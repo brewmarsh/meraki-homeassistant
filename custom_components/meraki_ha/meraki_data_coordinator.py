@@ -1,13 +1,12 @@
 """Data update coordinator for the Meraki HA integration."""
+# pylint: disable=too-many-lines
 
+import asyncio
 from datetime import datetime, timedelta
 from typing import TYPE_CHECKING, Any
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers import device_registry as dr
-
-if TYPE_CHECKING:
-    from homeassistant.core import HomeAssistant
 from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
@@ -17,20 +16,30 @@ from .const import (
     CONF_DASHBOARD_DEVICE_TYPE_FILTER,
     CONF_DEVICE_SCAN_INTERVAL,
     CONF_ENABLE_MQTT,
+    CONF_ENABLE_WEBHOOKS,
     CONF_ENABLED_NETWORKS,
     CONF_NETWORK_SCAN_INTERVAL,
     CONF_SSID_SCAN_INTERVAL,
+    CONF_WEBHOOK_POLLING_REDUCTION,
     DEFAULT_CLIENT_SCAN_INTERVAL,
     DEFAULT_DEVICE_SCAN_INTERVAL,
     DEFAULT_ENABLE_MQTT,
     DEFAULT_NETWORK_SCAN_INTERVAL,
     DEFAULT_SSID_SCAN_INTERVAL,
     DOMAIN,
+    WEBHOOK_CLIENT_SCAN_INTERVAL,
+    WEBHOOK_DETAIL_REFRESH_DELAY,
+    WEBHOOK_DEVICE_SCAN_INTERVAL,
+    WEBHOOK_NETWORK_SCAN_INTERVAL,
+    WEBHOOK_SSID_SCAN_INTERVAL,
 )
 from .core.api.client import MerakiAPIClient as ApiClient
 from .core.errors import ApiClientCommunicationError
 from .helpers.logging_helper import MerakiLoggers
 from .types import MerakiDevice, MerakiNetwork
+
+if TYPE_CHECKING:
+    from homeassistant.core import HomeAssistant
 
 # Use feature-specific logger - can be configured independently via:
 # logger:
@@ -78,6 +87,26 @@ class MerakiDataCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             entry.options.get(CONF_ENABLE_MQTT, DEFAULT_ENABLE_MQTT)
         )
         self._mqtt_last_updates: dict[str, datetime] = {}  # serial -> last MQTT update
+
+        # Webhook-related state
+        self._webhooks_active: bool = False
+        self._last_webhook_received: datetime | None = None
+        self._webhook_received_count: int = 0
+
+        # Debouncing: track pending refreshes to avoid duplicate API calls
+        self._pending_refreshes: dict[str, datetime] = {}  # key -> scheduled time
+        self._refresh_debounce_seconds: int = 5  # Minimum seconds between refreshes
+
+        # Event deduplication: track recently processed alert IDs
+        self._processed_alert_ids: dict[str, datetime] = {}  # alertId -> processed time
+        self._alert_dedup_ttl_seconds: int = 300  # 5 minutes TTL for dedup cache
+
+        # Prometheus-style metrics for monitoring
+        self._webhook_counts_by_type: dict[str, int] = {}  # alert_type -> count
+        self._webhook_processing_durations: list[float] = []  # milliseconds
+        self._targeted_refresh_counts_by_type: dict[str, int] = {}  # type -> count
+        self._targeted_refresh_success_count: int = 0
+        self._targeted_refresh_failure_count: int = 0
 
         # Set a short update interval for the coordinator to run frequently
         super().__init__(
@@ -191,6 +220,138 @@ class MerakiDataCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         if unique_id in self._pending_updates:
             del self._pending_updates[unique_id]
             _LOGGER.debug("Cancelled pending update for %s", unique_id)
+
+    def mark_webhook_received(
+        self, alert_type: str | None = None, alert_id: str | None = None
+    ) -> bool:
+        """
+        Mark that a webhook alert was received.
+
+        This is used to track webhook activity and enable polling reduction
+        when webhooks are actively providing data. Also handles deduplication
+        of alerts by alertId.
+
+        Args:
+        ----
+            alert_type: Optional alert type for logging purposes.
+            alert_id: Optional unique alert ID for deduplication.
+
+        Returns
+        -------
+            True if this is a new alert, False if it's a duplicate.
+
+        """
+        # Check for duplicate alert
+        if alert_id and self._is_duplicate_alert(alert_id):
+            _LOGGER.debug(
+                "Ignoring duplicate alert: %s (type=%s)",
+                alert_id,
+                alert_type or "unknown",
+            )
+            return False
+
+        self._last_webhook_received = datetime.now()
+        self._webhook_received_count += 1
+        _LOGGER.debug(
+            "Webhook received (type=%s, total=%d, last=%s)",
+            alert_type or "unknown",
+            self._webhook_received_count,
+            self._last_webhook_received,
+        )
+        return True
+
+    def _is_duplicate_alert(self, alert_id: str) -> bool:
+        """Check if an alert was recently processed (deduplication)."""
+        now = datetime.now()
+
+        # Clean up old entries
+        self._cleanup_dedup_cache()
+
+        if alert_id in self._processed_alert_ids:
+            return True
+
+        # Mark as processed
+        self._processed_alert_ids[alert_id] = now
+        return False
+
+    def _cleanup_dedup_cache(self) -> None:
+        """Remove expired entries from the deduplication cache."""
+        now = datetime.now()
+        ttl = timedelta(seconds=self._alert_dedup_ttl_seconds)
+        expired = [
+            aid
+            for aid, processed_time in self._processed_alert_ids.items()
+            if (now - processed_time) > ttl
+        ]
+        for aid in expired:
+            del self._processed_alert_ids[aid]
+
+    def schedule_debounced_refresh(
+        self,
+        key: str,
+        refresh_coro,
+        delay_seconds: int | None = None,
+    ) -> bool:
+        """
+        Schedule a debounced refresh for a given key.
+
+        If a refresh is already pending for the same key, this returns False
+        and doesn't schedule another one. This prevents rapid successive
+        webhooks from triggering multiple API calls.
+
+        Args:
+        ----
+            key: A unique key for this refresh (e.g., "device:{serial}").
+            refresh_coro: The coroutine to run for the refresh.
+            delay_seconds: Optional delay before running (uses default if None).
+
+        Returns
+        -------
+            True if refresh was scheduled, False if already pending.
+
+        """
+        now = datetime.now()
+        delay = delay_seconds or self._refresh_debounce_seconds
+
+        # Check if a refresh is already pending for this key
+        if key in self._pending_refreshes:
+            pending_time = self._pending_refreshes[key]
+            if (pending_time - now).total_seconds() > 0:
+                _LOGGER.debug("Refresh already pending for %s, skipping duplicate", key)
+                return False
+
+        # Schedule the refresh
+        scheduled_time = now + timedelta(seconds=delay)
+        self._pending_refreshes[key] = scheduled_time
+
+        async def _debounced_wrapper():
+            try:
+                await refresh_coro
+            finally:
+                # Clean up after completion
+                if key in self._pending_refreshes:
+                    del self._pending_refreshes[key]
+
+        self.hass.async_create_task(_debounced_wrapper())
+        return True
+
+    @property
+    def webhooks_active(self) -> bool:
+        """Check if webhooks are currently active (received recently)."""
+        return self._is_webhooks_active()
+
+    @property
+    def webhook_stats(self) -> dict[str, Any]:
+        """Get webhook statistics for diagnostics."""
+        return {
+            "total_received": self._webhook_received_count,
+            "last_received": (
+                self._last_webhook_received.isoformat()
+                if self._last_webhook_received
+                else None
+            ),
+            "is_active": self._is_webhooks_active(),
+        }
 
     @property
     def mqtt_enabled(self) -> bool:
@@ -831,6 +992,69 @@ class MerakiDataCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
         return set(enabled_network_ids)
 
+    def _is_webhooks_active(self) -> bool:
+        """Check if webhooks are enabled and recently received."""
+        if not self.config_entry:
+            return False
+
+        webhooks_enabled = self.config_entry.options.get(CONF_ENABLE_WEBHOOKS, False)
+        polling_reduction_enabled = self.config_entry.options.get(
+            CONF_WEBHOOK_POLLING_REDUCTION, True
+        )
+
+        if not webhooks_enabled or not polling_reduction_enabled:
+            return False
+
+        if self._last_webhook_received is None:
+            # Haven't received any webhooks yet
+            return False
+
+        # Consider webhooks active if we've received one in the last 15 minutes.
+        # This allows for a grace period if webhooks stop arriving.
+        return (datetime.now() - self._last_webhook_received) < timedelta(minutes=15)
+
+    def _get_effective_poll_interval(self, data_type: str) -> timedelta:
+        """Get the polling interval, reduced if webhooks are active."""
+        if not self.config_entry:
+            # Fallback to default if config_entry is not available
+            return timedelta(seconds=DEFAULT_NETWORK_SCAN_INTERVAL)
+
+        webhooks_active = self._is_webhooks_active()
+
+        if data_type == "network":
+            default_seconds = self.config_entry.options.get(
+                CONF_NETWORK_SCAN_INTERVAL, DEFAULT_NETWORK_SCAN_INTERVAL
+            )
+            webhook_seconds = WEBHOOK_NETWORK_SCAN_INTERVAL
+        elif data_type == "device":
+            default_seconds = self.config_entry.options.get(
+                CONF_DEVICE_SCAN_INTERVAL, DEFAULT_DEVICE_SCAN_INTERVAL
+            )
+            webhook_seconds = WEBHOOK_DEVICE_SCAN_INTERVAL
+        elif data_type == "client":
+            default_seconds = self.config_entry.options.get(
+                CONF_CLIENT_SCAN_INTERVAL, DEFAULT_CLIENT_SCAN_INTERVAL
+            )
+            webhook_seconds = WEBHOOK_CLIENT_SCAN_INTERVAL
+        elif data_type == "ssid":
+            default_seconds = self.config_entry.options.get(
+                CONF_SSID_SCAN_INTERVAL, DEFAULT_SSID_SCAN_INTERVAL
+            )
+            webhook_seconds = WEBHOOK_SSID_SCAN_INTERVAL
+        else:
+            # Fallback for unknown type
+            default_seconds = DEFAULT_NETWORK_SCAN_INTERVAL
+            webhook_seconds = WEBHOOK_NETWORK_SCAN_INTERVAL
+
+        effective_seconds = webhook_seconds if webhooks_active else default_seconds
+        _LOGGER.debug(
+            "Effective poll interval for %s: %d seconds (webhooks_active=%s)",
+            data_type,
+            effective_seconds,
+            webhooks_active,
+        )
+        return timedelta(seconds=effective_seconds)
+
     @async_log_time(MerakiLoggers.COORDINATOR, slow_threshold=10.0)
     async def _async_update_data(self) -> dict[str, Any]:
         """Fetch data from API endpoint based on tiered polling intervals."""
@@ -840,23 +1064,10 @@ class MerakiDataCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         if not self.config_entry:
             raise UpdateFailed("Configuration entry not available.")
 
-        network_interval_seconds = self.config_entry.options.get(
-            CONF_NETWORK_SCAN_INTERVAL, DEFAULT_NETWORK_SCAN_INTERVAL
-        )
-        device_interval_seconds = self.config_entry.options.get(
-            CONF_DEVICE_SCAN_INTERVAL, DEFAULT_DEVICE_SCAN_INTERVAL
-        )
-        client_interval_seconds = self.config_entry.options.get(
-            CONF_CLIENT_SCAN_INTERVAL, DEFAULT_CLIENT_SCAN_INTERVAL
-        )
-        ssid_interval_seconds = self.config_entry.options.get(
-            CONF_SSID_SCAN_INTERVAL, DEFAULT_SSID_SCAN_INTERVAL
-        )
-
-        network_interval = timedelta(seconds=network_interval_seconds)
-        device_interval = timedelta(seconds=device_interval_seconds)
-        client_interval = timedelta(seconds=client_interval_seconds)
-        ssid_interval = timedelta(seconds=ssid_interval_seconds)
+        network_interval = self._get_effective_poll_interval("network")
+        device_interval = self._get_effective_poll_interval("device")
+        client_interval = self._get_effective_poll_interval("client")
+        ssid_interval = self._get_effective_poll_interval("ssid")
 
         # Determine which data to fetch
         fetch_networks = (
@@ -1184,3 +1395,221 @@ class MerakiDataCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         if updated_clients > 0:
             _LOGGER.info("Updated %d client(s) from Scanning API data", updated_clients)
             self.async_update_listeners()
+
+    async def async_handle_webhook_alert(
+        self,
+        alert_type: str,
+        data: dict[str, Any],
+    ) -> None:
+        """
+        Handle a webhook alert by updating the coordinator's data.
+
+        This method provides a centralized entry point for all webhook-driven
+        updates. It performs an immediate, optimistic state update based on the
+        webhook payload and then schedules a debounced targeted refresh.
+
+        Args:
+        ----
+            alert_type: The type of the alert (e.g., "APs went down").
+            data: The data payload from the webhook.
+
+        """
+        _LOGGER.debug(
+            "Coordinator handling webhook alert: type=%s, data=%s",
+            alert_type,
+            data,
+        )
+
+        if "client" in alert_type.lower():
+            alert_data = data.get("alertData", {})
+            client_mac = alert_data.get("mac") or alert_data.get("clientMac")
+            network_id = data.get("networkId")
+            if client_mac and network_id:
+                # Use debounced scheduling to avoid duplicate refreshes
+                key = f"client:{network_id}:{client_mac}"
+                self.schedule_debounced_refresh(
+                    key,
+                    self._targeted_client_refresh(
+                        network_id=network_id,
+                        client_mac=client_mac,
+                    ),
+                )
+        elif "deviceSerial" in data:
+            serial = data.get("deviceSerial")
+            if serial:
+                key = f"device:{serial}"
+                self.schedule_debounced_refresh(
+                    key,
+                    self._targeted_device_refresh(serial),
+                )
+
+    async def _targeted_client_refresh(
+        self,
+        network_id: str,
+        client_mac: str,
+        delay: int = WEBHOOK_DETAIL_REFRESH_DELAY,
+    ) -> None:
+        """Fetch single client details after a webhook alert."""
+        await asyncio.sleep(delay)
+
+        # Track metrics
+        self._increment_targeted_refresh_count("client")
+
+        try:
+            client = await self.api.network.get_network_client(network_id, client_mac)
+            if client:
+                # Find and update the client in the coordinator data
+                if self.data and "clients" in self.data:
+                    for i, existing_client in enumerate(self.data["clients"]):
+                        if existing_client.get("mac") == client_mac:
+                            self.data["clients"][i] = client
+                            self.async_update_listeners()
+                            _LOGGER.info(
+                                "Targeted refresh successful for client %s", client_mac
+                            )
+                            self._targeted_refresh_success_count += 1
+                            return
+            self._targeted_refresh_success_count += 1
+        except (ApiClientCommunicationError, TimeoutError, OSError) as e:
+            _LOGGER.error(
+                "Error during targeted client refresh for %s: %s", client_mac, e
+            )
+            self._targeted_refresh_failure_count += 1
+
+    async def _targeted_device_refresh(
+        self,
+        serial: str,
+        delay: int = WEBHOOK_DETAIL_REFRESH_DELAY,
+    ) -> None:
+        """Fetch single device details after a webhook alert."""
+        await asyncio.sleep(delay)
+
+        # Track metrics
+        self._increment_targeted_refresh_count("device")
+
+        try:
+            device = await self.api.devices.get_device(serial)
+            if device:
+                # Find and update the device in the coordinator data
+                if self.data and "devices" in self.data:
+                    for i, existing_device in enumerate(self.data["devices"]):
+                        if existing_device.get("serial") == serial:
+                            self.data["devices"][i] = device
+                            self.async_update_listeners()
+                            _LOGGER.info(
+                                "Targeted refresh successful for device %s", serial
+                            )
+                            self._targeted_refresh_success_count += 1
+                            return
+            self._targeted_refresh_success_count += 1
+        except (ApiClientCommunicationError, TimeoutError, OSError) as e:
+            _LOGGER.error("Error during targeted device refresh for %s: %s", serial, e)
+            self._targeted_refresh_failure_count += 1
+
+    async def _targeted_ssid_refresh(
+        self,
+        network_id: str,
+        delay: int = WEBHOOK_DETAIL_REFRESH_DELAY,
+    ) -> None:
+        """Fetch SSIDs for a network after a settings change webhook alert."""
+        await asyncio.sleep(delay)
+
+        # Track metrics
+        self._increment_targeted_refresh_count("ssid")
+
+        try:
+            ssids = await self.api.wireless.get_network_ssids(network_id)
+            if ssids:
+                # Update SSIDs in the coordinator data
+                if self.data and "ssids" in self.data:
+                    # Remove old SSIDs for this network and add new ones
+                    self.data["ssids"] = [
+                        s
+                        for s in self.data["ssids"]
+                        if s.get("networkId") != network_id
+                    ]
+                    self.data["ssids"].extend(ssids)
+                    self.async_update_listeners()
+                    _LOGGER.info(
+                        "Targeted SSID refresh successful for network %s", network_id
+                    )
+            self._targeted_refresh_success_count += 1
+        except (ApiClientCommunicationError, TimeoutError, OSError) as e:
+            _LOGGER.error(
+                "Error during targeted SSID refresh for network %s: %s", network_id, e
+            )
+            self._targeted_refresh_failure_count += 1
+
+    async def _targeted_network_refresh(
+        self,
+        network_id: str,
+        delay: int = WEBHOOK_DETAIL_REFRESH_DELAY,
+    ) -> None:
+        """Fetch network details after a settings change webhook alert."""
+        await asyncio.sleep(delay)
+
+        # Track metrics
+        self._increment_targeted_refresh_count("network")
+
+        try:
+            # Re-fetch the network's data
+            networks = await self.api.organization.get_organization_networks()
+            if networks:
+                for network in networks:
+                    if network.get("id") == network_id:
+                        # Update the network in coordinator data
+                        if self.data and "networks" in self.data:
+                            for i, existing_network in enumerate(self.data["networks"]):
+                                if existing_network.get("id") == network_id:
+                                    self.data["networks"][i] = network
+                                    self.async_update_listeners()
+                                    _LOGGER.info(
+                                        "Targeted network refresh successful for %s",
+                                        network_id,
+                                    )
+                                    self._targeted_refresh_success_count += 1
+                                    return
+            self._targeted_refresh_success_count += 1
+        except (ApiClientCommunicationError, TimeoutError, OSError) as e:
+            _LOGGER.error(
+                "Error during targeted network refresh for %s: %s", network_id, e
+            )
+            self._targeted_refresh_failure_count += 1
+
+    def _increment_targeted_refresh_count(self, refresh_type: str) -> None:
+        """Increment the targeted refresh counter for a specific type.
+
+        Args:
+        ----
+            refresh_type: Type of refresh (device, client, network, ssid).
+
+        """
+        counts = getattr(self, "_targeted_refresh_counts_by_type", {})
+        counts[refresh_type] = counts.get(refresh_type, 0) + 1
+        self._targeted_refresh_counts_by_type = counts
+
+    def _update_device_status_immediate(self, serial: str, is_online: bool) -> None:
+        """Update device status in coordinator data without an API call."""
+        device = self.devices_by_serial.get(serial)
+        if device:
+            new_status = "online" if is_online else "offline"
+            if device.get("status") != new_status:
+                device["status"] = new_status
+                _LOGGER.debug(
+                    "Immediately updated device %s status to %s", serial, new_status
+                )
+
+    def _update_client_status_immediate(self, mac: str, is_online: bool) -> None:
+        """Update client status in coordinator data without an API call."""
+        if self.data and "clients" in self.data:
+            for client in self.data["clients"]:
+                if client.get("mac") == mac:
+                    new_status = "Online" if is_online else "Offline"
+                    if client.get("status") != new_status:
+                        client["status"] = new_status
+                        _LOGGER.debug(
+                            "Immediately updated client %s status to %s",
+                            mac,
+                            new_status,
+                        )
+                    break

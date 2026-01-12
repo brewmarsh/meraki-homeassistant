@@ -6,7 +6,13 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from ..const import DATA_CLIENT, DOMAIN, PLATFORM_SWITCH
+from ..const import (
+    DATA_CLIENT,
+    DOMAIN,
+    ENTITY_CHUNK_DELAY,
+    ENTITY_CHUNK_SIZE,
+    PLATFORM_SWITCH,
+)
 from ..helpers.logging_helper import MerakiLoggers
 from .setup_helpers import async_setup_switches
 
@@ -34,12 +40,11 @@ async def async_setup_entry(
     _LOGGER.debug("Found %d switch entities", len(switch_entities))
     if switch_entities:
         _LOGGER.debug("Adding %d switch entities", len(switch_entities))
-        chunk_size = 50
-        for i in range(0, len(switch_entities), chunk_size):
-            chunk = switch_entities[i : i + chunk_size]
+        for i in range(0, len(switch_entities), ENTITY_CHUNK_SIZE):
+            chunk = switch_entities[i : i + ENTITY_CHUNK_SIZE]
             async_add_entities(chunk)
-            if len(switch_entities) > chunk_size:
-                await asyncio.sleep(1)
+            if len(switch_entities) > ENTITY_CHUNK_SIZE:
+                await asyncio.sleep(ENTITY_CHUNK_DELAY)
 
     return True
 

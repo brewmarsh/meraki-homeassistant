@@ -466,7 +466,7 @@ class TestMerakiCamera:
                 camera,
                 "_fetch_snapshot",
                 new_callable=AsyncMock,
-                side_effect=Exception("Simulated error"),
+                side_effect=OSError("Simulated network error"),
             ),
         ):
             result = await camera.async_camera_image()

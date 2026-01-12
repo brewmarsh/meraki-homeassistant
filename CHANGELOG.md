@@ -1,3 +1,22 @@
+# [3.1.0-beta.6](https://github.com/liptonj/meraki-homeassistant/compare/v3.1.0-beta.5...v3.1.0-beta.6) (2026-01-12)
+
+### Features
+
+- **webhook:** Comprehensive webhook alerts with targeted refresh and bidirectional sync
+  - Auto-register Meraki Dashboard HTTP servers per enabled network with selected alert types
+  - Shared-secret validation, alert deduplication, debounced targeted device/client/SSID refreshes
+  - Adaptive polling reduction when webhooks are active; Scanning API and alerts coexist
+  - Manual setup guidance surfaced in options when auto-registration is blocked (e.g., read-only keys)
+- **performance:** Apply coordinator and API client optimizations from performance review
+  - Smarter caching, reduced duplicate calls, semaphore tuning to stay under rate limits
+
+### Bug Fixes
+
+- **options:** Add missing translations for webhook and data sync options
+- **webhook:** Fix Scanning API webhook 404 handling and reduce noisy retry logging
+
+---
+
 # [2.2.1-beta.1](https://github.com/liptonj/meraki-homeassistant/compare/v2.2.0-beta.36...v2.2.1-beta.1) (2025-01-06)
 
 ### Features

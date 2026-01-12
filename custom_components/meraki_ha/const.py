@@ -85,6 +85,12 @@ DEFAULT_CAMERA_SNAPSHOT_INTERVAL: Final = 0
 CONF_CAMERA_ENTITY_MAPPINGS: Final = "camera_entity_mappings"
 """Configuration key for camera entity mappings (Meraki serial -> HA entity_id)."""
 
+CONF_MANUAL_CLIENT_ASSOCIATIONS: Final = "manual_client_associations"
+"""Configuration key for manual Meraki client to HA device associations."""
+
+DEFAULT_MANUAL_CLIENT_ASSOCIATIONS: Final[dict[str, str]] = {}
+"""Default empty dict for manual client associations (client_mac -> ha_device_id)."""
+
 CONF_MQTT_RELAY_DESTINATIONS: Final = "mqtt_relay_destinations"
 """Configuration key for MQTT relay destinations."""
 
@@ -190,6 +196,20 @@ DEFAULT_CLIENT_SCAN_INTERVAL: Final = 90
 DEFAULT_SSID_SCAN_INTERVAL: Final = 600
 """Default scan interval in seconds for SSIDs (10 minutes)."""
 
+# Webhook-reduced polling intervals
+WEBHOOK_NETWORK_SCAN_INTERVAL: Final = 21600  # 6 hours
+WEBHOOK_DEVICE_SCAN_INTERVAL: Final = 3600  # 1 hour
+WEBHOOK_CLIENT_SCAN_INTERVAL: Final = 600  # 10 minutes
+WEBHOOK_SSID_SCAN_INTERVAL: Final = 3600  # 1 hour
+
+# Entity chunking configuration (performance tuning)
+# These control how entities are registered in batches to avoid overwhelming HA
+ENTITY_CHUNK_SIZE: Final = 50
+"""Number of entities to register per chunk."""
+
+ENTITY_CHUNK_DELAY: Final = 0.5
+"""Delay in seconds between entity chunks (reduced from 1.0 for better performance)."""
+
 
 # Defaults for new options
 DEFAULT_ENABLE_DEVICE_STATUS: Final = True
@@ -230,6 +250,71 @@ CONF_SCANNING_API_EXTERNAL_URL: Final = "scanning_api_external_url"
 
 DEFAULT_SCANNING_API_EXTERNAL_URL: Final = ""
 """Default value for custom external URL (empty = use HA's external URL)."""
+
+# Webhook configuration
+CONF_ENABLE_WEBHOOKS: Final = "enable_webhooks"
+"""Configuration key for enabling webhook alerts."""
+
+CONF_WEBHOOK_EXTERNAL_URL: Final = "webhook_external_url"
+"""Configuration key for custom external URL for webhook alerts."""
+
+CONF_WEBHOOK_SHARED_SECRET: Final = "webhook_shared_secret"
+"""Configuration key for webhook shared secret."""
+
+CONF_WEBHOOK_AUTO_REGISTER: Final = "webhook_auto_register"
+"""Configuration key for enabling auto-registration of webhooks."""
+
+CONF_WEBHOOK_ALERT_TYPES: Final = "webhook_alert_types"
+"""Configuration key for a list of alert types to subscribe to."""
+
+CONF_WEBHOOK_POLLING_REDUCTION: Final = "webhook_polling_reduction"
+"""Configuration key for reducing polling when webhooks are active."""
+
+DEFAULT_ENABLE_WEBHOOKS: Final = False
+"""Default value for enabling webhooks."""
+
+DEFAULT_WEBHOOK_EXTERNAL_URL: Final = ""
+"""Default value for custom external URL for webhooks."""
+
+DEFAULT_WEBHOOK_SHARED_SECRET: Final = ""
+"""Default value for webhook shared secret (auto-generated if empty)."""
+
+DEFAULT_WEBHOOK_AUTO_REGISTER: Final = True
+"""Default value for auto-registering webhooks."""
+
+DEFAULT_WEBHOOK_ALERT_TYPES: Final[list[str]] = []
+"""Default empty list of alert types."""
+
+DEFAULT_WEBHOOK_POLLING_REDUCTION: Final = True
+"""Default value for reducing polling when webhooks are active."""
+
+# Bidirectional sync configuration
+CONF_SYNC_NAMES_TO_MERAKI: Final = "sync_names_to_meraki"
+"""Configuration key for syncing HA device names to Meraki."""
+
+CONF_SYNC_INCLUDE_MODEL: Final = "sync_include_model"
+"""Configuration key for including the device model in the synced name."""
+
+CONF_SYNC_INCLUDE_VERSION: Final = "sync_include_version"
+"""Configuration key for including the software version in the synced name."""
+
+CONF_SYNC_ON_NEW_CLIENT: Final = "sync_on_new_client"
+"""Configuration key for auto-syncing when a new client is discovered."""
+
+DEFAULT_SYNC_NAMES_TO_MERAKI: Final = False
+"""Default value for syncing names to Meraki."""
+
+DEFAULT_SYNC_INCLUDE_MODEL: Final = True
+"""Default value for including the model in the synced name."""
+
+DEFAULT_SYNC_INCLUDE_VERSION: Final = False
+"""Default value for including the version in the synced name."""
+
+DEFAULT_SYNC_ON_NEW_CLIENT: Final = True
+"""Default value for auto-syncing new clients."""
+
+WEBHOOK_DETAIL_REFRESH_DELAY: Final = 5
+"""Delay in seconds after receiving a webhook before fetching full details."""
 
 CONF_ENABLE_MQTT: Final = "enable_mqtt"
 """Configuration key for enabling MQTT functionality."""

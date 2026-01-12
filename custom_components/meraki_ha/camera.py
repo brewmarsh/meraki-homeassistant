@@ -20,6 +20,8 @@ from .const import (
     CONF_CAMERA_SNAPSHOT_INTERVAL,
     DEFAULT_CAMERA_SNAPSHOT_INTERVAL,
     DOMAIN,
+    ENTITY_CHUNK_DELAY,
+    ENTITY_CHUNK_SIZE,
 )
 from .core.utils.naming_utils import format_device_name
 from .helpers.device_info_helpers import resolve_device_info
@@ -68,12 +70,11 @@ async def async_setup_entry(
 
     if camera_entities:
         _LOGGER.debug("Adding %d camera entities", len(camera_entities))
-        chunk_size = 50
-        for i in range(0, len(camera_entities), chunk_size):
-            chunk = camera_entities[i : i + chunk_size]
+        for i in range(0, len(camera_entities), ENTITY_CHUNK_SIZE):
+            chunk = camera_entities[i : i + ENTITY_CHUNK_SIZE]
             async_add_entities(chunk)
-            if len(camera_entities) > chunk_size:
-                await asyncio.sleep(1)
+            if len(camera_entities) > ENTITY_CHUNK_SIZE:
+                await asyncio.sleep(ENTITY_CHUNK_DELAY)
 
 
 class MerakiCamera(CoordinatorEntity, Camera):  # type: ignore[type-arg]
@@ -158,7 +159,7 @@ class MerakiCamera(CoordinatorEntity, Camera):  # type: ignore[type-arg]
                     self.name,
                 )
                 return self._cached_snapshot
-        except Exception as e:
+        except (KeyError, AttributeError, TypeError, OSError) as e:
             _LOGGER.debug("Error checking linked camera for %s: %s", self.name, e)
             # Continue to try Meraki snapshot
 
@@ -192,7 +193,7 @@ class MerakiCamera(CoordinatorEntity, Camera):  # type: ignore[type-arg]
 
             # Return the new snapshot, or cached one if fetch failed
             return snapshot if snapshot is not None else self._cached_snapshot
-        except Exception as e:
+        except (aiohttp.ClientError, TimeoutError, OSError) as e:
             _LOGGER.warning("Error fetching camera image for %s: %s", self.name, e)
             return self._cached_snapshot
 
@@ -310,7 +311,8 @@ class MerakiCamera(CoordinatorEntity, Camera):  # type: ignore[type-arg]
             if linked_camera and hasattr(linked_camera, "stream_source"):
                 try:
                     return await linked_camera.stream_source()
-                except Exception as e:
+                except Exception as e:  # pylint: disable=broad-exception-caught
+                    # Intentionally broad: external camera may raise any exception
                     _LOGGER.debug("Error getting stream from %s: %s", entity_id, e)
 
         return None
@@ -325,7 +327,8 @@ class MerakiCamera(CoordinatorEntity, Camera):  # type: ignore[type-arg]
         if linked_camera and hasattr(linked_camera, "async_camera_image"):
             try:
                 return await linked_camera.async_camera_image()
-            except Exception as e:
+            except Exception as e:  # pylint: disable=broad-exception-caught
+                # Intentionally broad: external camera may raise any exception
                 _LOGGER.debug("Error getting image from %s: %s", entity_id, e)
 
         return None
@@ -386,6 +389,32 @@ class MerakiCamera(CoordinatorEntity, Camera):  # type: ignore[type-arg]
     def supported_features(self) -> CameraEntityFeature:
         """Return supported features."""
         return CameraEntityFeature.STREAM
+
+    def camera_image(
+        self, width: int | None = None, height: int | None = None
+    ) -> bytes | None:
+        """Return bytes of camera image (sync version).
+
+        This is the sync implementation required by the abstract Camera class.
+        We return the cached snapshot since the async version handles fetching.
+        """
+        return self._cached_snapshot
+
+    def turn_on(self) -> None:
+        """Turn on camera (sync version - not supported, use async_turn_on)."""
+        raise NotImplementedError("Use async_turn_on instead")
+
+    def turn_off(self) -> None:
+        """Turn off camera (sync version - not supported, use async_turn_off)."""
+        raise NotImplementedError("Use async_turn_off instead")
+
+    def enable_motion_detection(self) -> None:
+        """Enable motion detection (not supported by Meraki cameras via API)."""
+        raise NotImplementedError("Motion detection not supported via Meraki API")
+
+    def disable_motion_detection(self) -> None:
+        """Disable motion detection (not supported by Meraki cameras via API)."""
+        raise NotImplementedError("Motion detection not supported via Meraki API")
 
     @property
     def is_streaming(self) -> bool:

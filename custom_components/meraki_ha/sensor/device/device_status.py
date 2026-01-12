@@ -141,13 +141,12 @@ class MerakiDeviceStatusSensor(
             return status_icon_map.get(self.native_value, "mdi:help-network-outline")
         return "mdi:help-network-outline"
 
-    def _get_current_device_data(self) -> dict[str, Any] | None:
-        """Retrieve the latest data for this sensor's device from the coordinator."""
-        if self.coordinator.data and self.coordinator.data.get("devices"):
-            for dev_data in self.coordinator.data["devices"]:
-                if dev_data.get("serial") == self._device_serial:
-                    return dev_data
-        return None
+    def _get_current_device_data(self) -> Mapping[str, Any] | None:
+        """Retrieve the latest data for this sensor's device from the coordinator.
+
+        Uses the coordinator's O(1) lookup table for efficient access.
+        """
+        return self.coordinator.devices_by_serial.get(self._device_serial)
 
     def _update_sensor_data(self) -> None:
         """Update sensor state and attributes from coordinator data."""

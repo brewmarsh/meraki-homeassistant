@@ -589,18 +589,12 @@ def generate_screenshots() -> None:
             print(f"  Saved: {SCREENSHOT_DIR / 'dashboard_view.png'}")
 
             # Screenshot 2: Settings View
-            print("Capturing Settings view...")
-            page.click(".settings-btn")
-            page.wait_for_timeout(1500)
-            # Set larger viewport to capture the full modal
-            page.set_viewport_size({"width": 1000, "height": 1400})
-            page.wait_for_timeout(500)
-            page.screenshot(path=str(SCREENSHOT_DIR / "settings_view.png"))
-            print(f"  Saved: {SCREENSHOT_DIR / 'settings_view.png'}")
-
-            # Close settings modal by clicking Cancel button
-            page.click("text=Cancel")
-            page.wait_for_timeout(500)
+            # Note: The Settings button now opens HA's native options flow
+            # which cannot be captured in our standalone mock environment.
+            # We skip this screenshot and use a placeholder or existing image.
+            print("Skipping Settings view (uses HA native options flow)...")
+            # If a settings_view.png already exists, keep it
+            # Otherwise this screenshot will be missing from docs
 
             # Screenshot 3: Switch Detail View
             print("Capturing Switch detail view...")

@@ -7,7 +7,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from ..const import DOMAIN
+from ..const import DOMAIN, ENTITY_CHUNK_DELAY, ENTITY_CHUNK_SIZE
 from ..helpers.logging_helper import MerakiLoggers
 
 _LOGGER = MerakiLoggers.SWITCH
@@ -34,11 +34,10 @@ async def async_setup_entry(
     _LOGGER.debug("Found %d text entities", len(text_entities))
     if text_entities:
         _LOGGER.debug("Adding %d text entities", len(text_entities))
-        chunk_size = 50
-        for i in range(0, len(text_entities), chunk_size):
-            chunk = text_entities[i : i + chunk_size]
+        for i in range(0, len(text_entities), ENTITY_CHUNK_SIZE):
+            chunk = text_entities[i : i + ENTITY_CHUNK_SIZE]
             async_add_entities(chunk)
-            if len(text_entities) > chunk_size:
-                await asyncio.sleep(1)
+            if len(text_entities) > ENTITY_CHUNK_SIZE:
+                await asyncio.sleep(ENTITY_CHUNK_DELAY)
 
     return True

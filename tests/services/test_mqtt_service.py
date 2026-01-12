@@ -7,6 +7,7 @@ import pytest
 from custom_components.meraki_ha.services.mqtt_service import (
     MERAKI_MT_TOPIC_REGEX,
     MerakiMqttService,
+    normalize_mac,
 )
 
 
@@ -93,22 +94,22 @@ class TestMerakiMqttService:
 
     def test_normalize_mac_with_colons(self):
         """Test MAC normalization with colon separators."""
-        result = MerakiMqttService._normalize_mac("54:6c:0e:8a:9e:81")
+        result = normalize_mac("54:6c:0e:8a:9e:81")
         assert result == "54:6C:0E:8A:9E:81"
 
     def test_normalize_mac_with_dashes(self):
         """Test MAC normalization with dash separators."""
-        result = MerakiMqttService._normalize_mac("54-6c-0e-8a-9e-81")
+        result = normalize_mac("54-6c-0e-8a-9e-81")
         assert result == "54:6C:0E:8A:9E:81"
 
     def test_normalize_mac_no_separators(self):
         """Test MAC normalization without separators."""
-        result = MerakiMqttService._normalize_mac("546c0e8a9e81")
+        result = normalize_mac("546c0e8a9e81")
         assert result == "54:6C:0E:8A:9E:81"
 
     def test_normalize_mac_uppercase(self):
         """Test MAC normalization for uppercase input."""
-        result = MerakiMqttService._normalize_mac("54:6C:0E:8A:9E:81")
+        result = normalize_mac("54:6C:0E:8A:9E:81")
         assert result == "54:6C:0E:8A:9E:81"
 
     def test_is_running_initially_false(self, mock_hass, mock_coordinator):
@@ -140,7 +141,7 @@ class TestMerakiMqttService:
         with patch(
             "custom_components.meraki_ha.services.mqtt_service.mqtt.async_subscribe",
             new_callable=AsyncMock,
-            side_effect=Exception("MQTT not available"),
+            side_effect=OSError("MQTT not available"),
         ):
             result = await service.async_start()
 

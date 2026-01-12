@@ -92,7 +92,10 @@
         "description": "Select a category to configure:",
         "menu_options": {
           "network_selection": "Network Selection",
+          "device_association": "Device Association",
           "polling": "Polling & Refresh",
+          "webhooks": "Webhooks",
+          "data_sync": "Data Sync",
           "camera": "Camera Settings",
           "mqtt": "MQTT Configuration",
           "scanning_api": "Scanning API",
@@ -115,6 +118,46 @@
           "enable_vlan_management": "Enable VLAN management features."
         }
       },
+      "device_association": {
+        "title": "Device Association",
+        "description": "Link Meraki network clients to existing Home Assistant devices.\n\nThis allows client data (connection status, bandwidth usage, etc.) to appear on the linked HA device.\n\nCurrent associations ({association_count}):\n{associations}",
+        "data": {
+          "action": "What would you like to do?"
+        },
+        "data_description": {
+          "action": "Choose an action to manage device associations."
+        }
+      },
+      "select_client": {
+        "title": "Step 1: Select Meraki Network Client",
+        "description": "Choose a Meraki network client to associate with a Home Assistant device.\n\nClients are devices (phones, laptops, IoT devices) connected to your Meraki network. They are identified by their MAC address and may show a hostname or description.",
+        "data": {
+          "client": "Meraki Network Client"
+        },
+        "data_description": {
+          "client": "Select a client device from your Meraki network. Shows: Name (Manufacturer) or MAC address if no name is available."
+        }
+      },
+      "select_device": {
+        "title": "Step 2: Select Target Home Assistant Device",
+        "description": "Choose the Home Assistant device to link with the selected Meraki client.\n\nThe Meraki client's sensors (connection status, bandwidth, SSID, etc.) will appear as entities under this device.",
+        "data": {
+          "device": "Target Home Assistant Device"
+        },
+        "data_description": {
+          "device": "Select a device from Home Assistant to attach the Meraki client data to. This is typically the same physical device (e.g., link your phone's Meraki client to your phone's HA device)."
+        }
+      },
+      "remove_association": {
+        "title": "Remove Device Association",
+        "description": "Select one or more associations to remove.\n\nRemoving an association will stop the Meraki client data from appearing on the linked Home Assistant device.",
+        "data": {
+          "associations": "Associations to Remove"
+        },
+        "data_description": {
+          "associations": "Select one or more client → device associations to remove."
+        }
+      },
       "polling": {
         "title": "Polling & Refresh Settings",
         "description": "Configure how often the integration polls the Meraki API.",
@@ -131,6 +174,42 @@
           "device_scan_interval": "Polling interval for infrequently changing data like device inventory.",
           "client_scan_interval": "Polling interval for very frequently changing data like client information.",
           "ssid_scan_interval": "Polling interval for infrequently changing data like SSID configuration."
+        }
+      },
+      "webhooks": {
+        "title": "Webhook Settings",
+        "description": "Configure Meraki webhooks for real-time event notifications.\n\n**Webhook URL:** `{webhook_url}`\n\n**Status:** {status}\n\n**Manual setup (use if auto-register fails):**\n{manual_setup}",
+        "data": {
+          "enable_webhooks": "Enable Webhooks",
+          "webhook_external_url": "External URL (optional)",
+          "webhook_shared_secret": "Shared Secret",
+          "webhook_auto_register": "Auto-register Webhooks",
+          "webhook_alert_types": "Alert Types",
+          "webhook_polling_reduction": "Reduce Polling When Webhooks Active"
+        },
+        "data_description": {
+          "enable_webhooks": "Enable receiving real-time alerts from Meraki Dashboard via webhooks.",
+          "webhook_external_url": "Custom external URL for webhooks (e.g., https://ha.example.com). Leave empty to use Home Assistant's configured external URL.",
+          "webhook_shared_secret": "Shared secret for webhook verification. Meraki will include this in webhook requests.",
+          "webhook_auto_register": "Automatically register this webhook URL with Meraki Dashboard for selected networks.",
+          "webhook_alert_types": "Select which alert types to receive via webhooks.",
+          "webhook_polling_reduction": "Reduce polling frequency for data that can be received via webhooks."
+        }
+      },
+      "data_sync": {
+        "title": "Data Sync Settings",
+        "description": "Configure how data is synchronized between Home Assistant and Meraki.",
+        "data": {
+          "sync_names_to_meraki": "Sync Names to Meraki",
+          "sync_include_model": "Include Model in Synced Names",
+          "sync_include_version": "Include Version in Synced Names",
+          "sync_on_new_client": "Sync on New Client"
+        },
+        "data_description": {
+          "sync_names_to_meraki": "Push device name changes from Home Assistant back to Meraki Dashboard.",
+          "sync_include_model": "Include device model information when syncing names.",
+          "sync_include_version": "Include firmware version when syncing names.",
+          "sync_on_new_client": "Automatically sync when a new client is detected on the network."
         }
       },
       "display_preferences": {
@@ -261,7 +340,9 @@
     "error": {
       "host_required": "Broker hostname is required.",
       "name_required": "Destination name is required.",
-      "invalid_port": "Invalid port number. Must be between 1 and 65535."
+      "invalid_port": "Invalid port number. Must be between 1 and 65535.",
+      "no_clients": "No unassociated Meraki clients available. All clients are either already associated or no clients are connected.",
+      "no_devices": "No Home Assistant devices available to associate with."
     }
   },
   "entity": {

@@ -11,6 +11,7 @@ import json
 import re
 from collections.abc import Callable
 from datetime import datetime
+from functools import lru_cache
 from typing import TYPE_CHECKING
 
 from homeassistant.components import mqtt
@@ -34,6 +35,29 @@ _LOGGER = MerakiLoggers.MQTT
 MERAKI_MT_TOPIC_REGEX = re.compile(
     r"^meraki/v1/mt/(?P<network_id>[^/]+)/ble/(?P<sensor_mac>[^/]+)/(?P<metric>.+)$"
 )
+
+
+@lru_cache(maxsize=256)
+def normalize_mac(mac: str) -> str:
+    """
+    Normalize MAC address to uppercase with colons.
+
+    This function is memoized with LRU cache since MAC addresses are
+    normalized on every MQTT message and the same sensors send repeatedly.
+
+    Args:
+    ----
+        mac: MAC address in any format.
+
+    Returns
+    -------
+        Normalized MAC address (e.g., "54:6C:0E:8A:9E:81").
+
+    """
+    # Remove any separators and convert to uppercase
+    clean_mac = mac.upper().replace(":", "").replace("-", "").replace(".", "")
+    # Insert colons every 2 characters
+    return ":".join(clean_mac[i : i + 2] for i in range(0, 12, 2))
 
 
 class MerakiMqttService:
@@ -140,7 +164,11 @@ class MerakiMqttService:
                 "MQTT service started, subscribed to %s", MERAKI_MQTT_MT_TOPIC_PATTERN
             )
             return True
-        except Exception as err:
+        except (TimeoutError, OSError, ValueError, AttributeError) as err:
+            # TimeoutError: Connection timeout
+            # OSError: Network/socket errors
+            # ValueError: Invalid topic or configuration
+            # AttributeError: MQTT integration not properly loaded
             _LOGGER.error("Failed to subscribe to MQTT topics: %s", err)
             return False
 
@@ -168,32 +196,13 @@ class MerakiMqttService:
                 serial = device.get("serial")
                 if mac and serial:
                     # Normalize MAC address format (uppercase, colon-separated)
-                    normalized_mac = self._normalize_mac(mac)
+                    normalized_mac = normalize_mac(mac)
                     self._mac_to_serial_map[normalized_mac] = serial
 
         _LOGGER.debug(
             "Built MAC to serial map with %d MT sensors",
             len(self._mac_to_serial_map),
         )
-
-    @staticmethod
-    def _normalize_mac(mac: str) -> str:
-        """
-        Normalize MAC address to uppercase with colons.
-
-        Args:
-        ----
-            mac: MAC address in any format.
-
-        Returns
-        -------
-            Normalized MAC address (e.g., "54:6C:0E:8A:9E:81").
-
-        """
-        # Remove any separators and convert to uppercase
-        clean_mac = mac.upper().replace(":", "").replace("-", "").replace(".", "")
-        # Insert colons every 2 characters
-        return ":".join(clean_mac[i : i + 2] for i in range(0, 12, 2))
 
     @callback
     def _async_handle_message(self, msg: mqtt.ReceiveMessage) -> None:
@@ -227,8 +236,8 @@ class MerakiMqttService:
         sensor_mac = match.group("sensor_mac")
         metric = match.group("metric")
 
-        # Normalize the MAC address
-        normalized_mac = self._normalize_mac(sensor_mac)
+        # Normalize the MAC address (uses LRU cache for performance)
+        normalized_mac = normalize_mac(sensor_mac)
 
         # Look up device serial from MAC
         serial = self._mac_to_serial_map.get(normalized_mac)

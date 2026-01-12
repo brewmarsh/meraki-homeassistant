@@ -516,6 +516,39 @@ async def test_network_selection_with_empty_coordinator_data() -> None:
     assert result["step_id"] == "network_selection"
 
 
+@pytest.mark.asyncio
+async def test_webhooks_step_includes_manual_setup_placeholders() -> None:
+    """Ensure webhooks step shows manual setup guidance from WebhookManager."""
+    handler = create_options_flow_handler()
+
+    # Inject a WebhookManager-like object with status/errors and manual instructions
+    mock_manager = MagicMock()
+    mock_manager.webhook_status = {
+        "status": "error",
+        "message": "⚠️ Registration errors: 1",
+        "errors": ["Read-only API key"],
+    }
+    mock_manager.get_manual_setup_instructions.return_value = {
+        "webhook_url": "https://ha.example.com/api/webhook/test",
+        "shared_secret": "secret123",
+        "alert_types": ["APs went down", "Client blocked"],
+    }
+
+    handler.hass.data[DOMAIN][handler.handler]["webhook_manager"] = mock_manager
+
+    result: ConfigFlowResult = await handler.async_step_webhooks()
+
+    assert result["type"].value == "form"
+    placeholders = result.get("description_placeholders") or {}
+    # Status should come from webhook_status.message
+    assert placeholders.get("status", "").startswith("⚠️ Registration errors")
+    manual = placeholders.get("manual_setup", "")
+    assert "https://ha.example.com/api/webhook/test" in manual
+    assert "secret123" in manual
+    assert "APs went down" in manual
+    assert "Client blocked" in manual
+
+
 # --- Tests for async_get_options_flow ---
 
 
@@ -584,3 +617,171 @@ async def test_options_flow_simulates_real_ha_behavior() -> None:
     # Verify options are loaded correctly
     assert handler.options["scan_interval"] == 60
     assert handler.options["enable_mqtt"] is True
+
+
+# =============================================================================
+# Translation Alignment Tests
+# =============================================================================
+
+
+class TestOptionsFlowTranslationAlignment:
+    """Tests that verify options flow fields align with translation strings."""
+
+    @pytest.fixture
+    def strings_json(self) -> dict[str, Any]:
+        """Load strings.json."""
+        import json
+        from pathlib import Path
+
+        strings_path = Path(__file__).parent.parent / (
+            "custom_components/meraki_ha/strings.json"
+        )
+        with open(strings_path, encoding="utf-8") as f:
+            return json.load(f)
+
+    @pytest.fixture
+    def en_json(self) -> dict[str, Any]:
+        """Load translations/en.json."""
+        import json
+        from pathlib import Path
+
+        en_path = Path(__file__).parent.parent / (
+            "custom_components/meraki_ha/translations/en.json"
+        )
+        with open(en_path, encoding="utf-8") as f:
+            return json.load(f)
+
+    def test_device_association_action_field_has_translation(
+        self, strings_json: dict[str, Any]
+    ) -> None:
+        """Verify device_association step has 'action' field in translations."""
+        step = strings_json["options"]["step"]["device_association"]
+        assert "action" in step["data"], "Missing 'action' in device_association.data"
+        assert "action" in step["data_description"], (
+            "Missing 'action' in device_association.data_description"
+        )
+
+    def test_select_client_field_has_translation(
+        self, strings_json: dict[str, Any]
+    ) -> None:
+        """Verify select_client step has 'client' field in translations."""
+        step = strings_json["options"]["step"]["select_client"]
+        assert "client" in step["data"], "Missing 'client' in select_client.data"
+        assert "client" in step["data_description"], (
+            "Missing 'client' in select_client.data_description"
+        )
+
+    def test_select_device_field_has_translation(
+        self, strings_json: dict[str, Any]
+    ) -> None:
+        """Verify select_device step has 'device' field in translations."""
+        step = strings_json["options"]["step"]["select_device"]
+        assert "device" in step["data"], "Missing 'device' in select_device.data"
+        assert "device" in step["data_description"], (
+            "Missing 'device' in select_device.data_description"
+        )
+
+    def test_remove_association_field_has_translation(
+        self, strings_json: dict[str, Any]
+    ) -> None:
+        """Verify remove_association step has 'associations' field."""
+        step = strings_json["options"]["step"]["remove_association"]
+        assert "associations" in step["data"], (
+            "Missing 'associations' in remove_association.data"
+        )
+        assert "associations" in step["data_description"], (
+            "Missing 'associations' in remove_association.data_description"
+        )
+
+    def test_strings_and_en_json_device_association_match(
+        self, strings_json: dict[str, Any], en_json: dict[str, Any]
+    ) -> None:
+        """Verify strings.json and en.json have matching device_association fields."""
+        strings_step = strings_json["options"]["step"]["device_association"]
+        en_step = en_json["options"]["step"]["device_association"]
+
+        # Check data keys match
+        assert set(strings_step["data"].keys()) == set(en_step["data"].keys()), (
+            "data keys mismatch between strings.json and en.json for device_association"
+        )
+
+        # Check data_description keys match
+        assert set(strings_step["data_description"].keys()) == set(
+            en_step["data_description"].keys()
+        ), "data_description keys mismatch for device_association"
+
+    def test_strings_and_en_json_select_client_match(
+        self, strings_json: dict[str, Any], en_json: dict[str, Any]
+    ) -> None:
+        """Verify strings.json and en.json have matching select_client fields."""
+        strings_step = strings_json["options"]["step"]["select_client"]
+        en_step = en_json["options"]["step"]["select_client"]
+
+        assert set(strings_step["data"].keys()) == set(en_step["data"].keys()), (
+            "data keys mismatch for select_client"
+        )
+        assert set(strings_step["data_description"].keys()) == set(
+            en_step["data_description"].keys()
+        ), "data_description keys mismatch for select_client"
+
+    def test_strings_and_en_json_select_device_match(
+        self, strings_json: dict[str, Any], en_json: dict[str, Any]
+    ) -> None:
+        """Verify strings.json and en.json have matching select_device fields."""
+        strings_step = strings_json["options"]["step"]["select_device"]
+        en_step = en_json["options"]["step"]["select_device"]
+
+        assert set(strings_step["data"].keys()) == set(en_step["data"].keys()), (
+            "data keys mismatch for select_device"
+        )
+        assert set(strings_step["data_description"].keys()) == set(
+            en_step["data_description"].keys()
+        ), "data_description keys mismatch for select_device"
+
+    def test_all_options_steps_have_required_translation_fields(
+        self, strings_json: dict[str, Any]
+    ) -> None:
+        """Verify all options steps have title and description."""
+        steps = strings_json["options"]["step"]
+        for step_id, step_data in steps.items():
+            assert "title" in step_data, f"Missing 'title' in options.step.{step_id}"
+            # description is optional for menu steps but required for form steps
+            if step_id != "init":
+                assert "description" in step_data, (
+                    f"Missing 'description' in options.step.{step_id}"
+                )
+
+    def test_options_flow_schema_fields_have_translations(
+        self, strings_json: dict[str, Any]
+    ) -> None:
+        """Verify schema fields used in options_flow.py have translations."""
+        from custom_components.meraki_ha.schemas import (
+            SCHEMA_CAMERA,
+            SCHEMA_DATA_SYNC,
+            SCHEMA_DISPLAY_PREFERENCES,
+            SCHEMA_LOGGING,
+            SCHEMA_NETWORK_SELECTION,
+            SCHEMA_POLLING,
+            SCHEMA_WEBHOOKS,
+        )
+
+        schema_step_mapping = {
+            "network_selection": SCHEMA_NETWORK_SELECTION,
+            "polling": SCHEMA_POLLING,
+            "webhooks": SCHEMA_WEBHOOKS,
+            "data_sync": SCHEMA_DATA_SYNC,
+            "camera": SCHEMA_CAMERA,
+            "display_preferences": SCHEMA_DISPLAY_PREFERENCES,
+            "logging": SCHEMA_LOGGING,
+        }
+
+        for step_id, schema in schema_step_mapping.items():
+            step_translations = strings_json["options"]["step"].get(step_id, {})
+            data_translations = step_translations.get("data", {})
+
+            for key in schema.schema:
+                field_name = key.schema if hasattr(key, "schema") else str(key)
+                assert field_name in data_translations, (
+                    f"Schema field '{field_name}' in {step_id} "
+                    f"missing from strings.json translations"
+                )

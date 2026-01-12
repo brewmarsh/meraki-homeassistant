@@ -521,11 +521,11 @@ class TestMerakiAPIClient:
         mock_register = AsyncMock()
         with patch.object(api_client.network, "register_webhook", new=mock_register):
             await api_client.register_webhook(
-                "https://example.com/webhook", "secret123"
+                "https://example.com/webhook", "secret123", "config_entry_123"
             )
 
         mock_register.assert_called_once_with(
-            "https://example.com/webhook", "secret123"
+            "https://example.com/webhook", "secret123", "config_entry_123"
         )
 
     @pytest.mark.asyncio

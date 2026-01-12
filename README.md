@@ -102,6 +102,17 @@ This Home Assistant integration allows you to monitor and manage your Cisco Mera
 - **Real-time Status:** Device online/offline status, firmware versions, and uptime tracking
 - **Rich Sensor Data:** Client counts, data usage, PoE consumption, and much more
 
+### Real-Time Webhook Alerts
+
+- **Instant Updates:** Receive real-time notifications for device status changes, client connectivity, configuration changes, and security events
+- **API Efficiency:** 85% reduction in API calls (46 calls/hour saved) when webhooks are active
+- **Targeted Refresh:** Smart updates for only affected entities instead of polling all data
+- **Adaptive Polling:** Automatic interval reduction when webhooks are healthy
+- **Auto-Configuration:** Automatically registers webhooks in Meraki Dashboard (or manual setup for read-only API keys)
+- **Monitoring:** Built-in health sensors and Prometheus-style metrics for observability
+
+See [Webhook Documentation](docs/architecture/webhooks.md) for complete details.
+
 ### Web UI Dashboard
 
 - **Dashboard View Modes:** View devices organized by Network or by Device Type
@@ -176,6 +187,27 @@ This Home Assistant integration allows you to monitor and manage your Cisco Mera
 | Temperature Unit        | Celsius or Fahrenheit                             | Celsius |
 | Dashboard View Mode     | Default view: by Network or by Type               | Network |
 | Camera Link Integration | Filter cameras by integration (e.g., "blue_iris") | All     |
+| Enable Webhooks         | Enable real-time webhook alerts                   | false   |
+| Webhook Auto-Register   | Automatically configure webhooks in Dashboard     | true    |
+
+### Webhook Configuration (Optional)
+
+For real-time updates, enable webhooks in the integration options:
+
+1. Go to **Settings** > **Devices & Services** > **Meraki** > **Configure**
+2. Navigate to the **Webhooks** section
+3. Enable **Enable Webhooks**
+4. Configure external URL (uses HA external URL if not specified)
+5. Select desired alert types (device, client, network, security, sensor)
+6. Save configuration
+
+**Requirements:**
+
+- HTTPS URL (public, not local/private IP)
+- Valid SSL certificate
+- For read-only API keys: manual setup in Meraki Dashboard (instructions provided in UI)
+
+See [Webhook Documentation](docs/architecture/webhooks.md) for detailed setup and troubleshooting.
 
 ## Web UI Features
 

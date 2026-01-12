@@ -1,15 +1,59 @@
-# Architecture Overview for `meraki-ha`
+# Architecture & Development
 
-## 1. Executive Summary
+This section contains architectural overviews, component documentation, and development setup guides for the Meraki Home Assistant integration.
 
-This document provides an overview of the architecture for the `meraki-ha` custom component. The integration is designed for performance and scalability, with a focus on efficient data fetching, centralized state management, and modular design.
+## Component Documentation
 
-The key architectural pillars are:
+- **[Architecture Overview](./layered_architecture.md)** - Core integration architecture
+- **[Webhooks & Real-Time Updates](./webhooks.md)** - Webhook implementation, monitoring, and observability
+- **[Wireless & SSIDs](./wireless.md)** - Wireless AP and SSID management architecture
+- **[Switches](./switches.md)** - Switch monitoring and port visualization
+- **[Cameras](./cameras.md)** - Camera integration and RTSP streaming
+- **[Appliances](./appliance.md)** - MX security appliance sensors
+- **[Camera Component Design](./camera_component.md)** - Camera entity implementation
+- **[Client Count](./client_count.md)** - Client tracking implementation
+- **[Development Setup](./development_setup.md)** - Development environment and testing
+
+## Key Architectural Pillars
 
 - **Centralized Data Fetching:** A single data coordinator (`MerakiDataCoordinator`) is responsible for all API communication, eliminating redundant API calls and ensuring data consistency.
 - **Optimized API Usage:** The API client (`MerakiAPIClient`) leverages concurrent API calls using `asyncio.gather` to reduce latency and improve responsiveness.
 - **Efficient State Management:** The `MerakiDataCoordinator` creates lookup tables for devices, networks, and SSIDs after each data fetch. This provides entities with fast, O(1) access to their data, avoiding slow, iterative lookups.
 - **Modular Design:** The codebase is broken down into smaller, more focused modules. The API client uses a facade pattern, delegating calls to endpoint-specific handlers. Utility functions and sensor setup logic have also been modularized.
+
+## Real-Time Updates via Webhooks
+
+The integration supports comprehensive webhook alerts for instant notification of:
+
+- Device status changes (up/down/rebooted)
+- Client connectivity events
+- Network configuration changes
+- Security alerts
+- Environmental sensor thresholds
+
+**Benefits:**
+
+- 85% reduction in API calls (46 calls/hour saved)
+- Instant visibility into network changes
+- Targeted API refresh for affected entities
+- Adaptive polling reduction when webhooks are healthy
+
+See **[webhooks.md](./webhooks.md)** for complete documentation.
+
+## Bidirectional Sync
+
+Push Home Assistant device names to Meraki Dashboard for easy identification:
+
+- Automatic sync when new clients connect
+- Manual sync service available
+- Device hierarchy traversal (finds root device names)
+- Configurable name formatting (include model/version)
+
+---
+
+## Executive Summary (Legacy)
+
+This document provides an overview of the architecture for the `meraki-ha` custom component. The integration is designed for performance and scalability, with a focus on efficient data fetching, centralized state management, and modular design.
 
 ## 2. Core Components
 

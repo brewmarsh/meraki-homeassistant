@@ -120,7 +120,7 @@ class TestAsyncRegisterWebhook:
             )
 
         api_client.register_webhook.assert_called_once_with(
-            "https://public.example.com/api/webhook/wh_123", "secret"
+            "https://public.example.com/api/webhook/wh_123", "secret", "entry_id"
         )
 
     @pytest.mark.asyncio
@@ -240,14 +240,26 @@ class TestAsyncHandleWebhook:
     @pytest.mark.asyncio
     async def test_handle_webhook_ap_down_alert(self, mock_request: MagicMock) -> None:
         """Test handling AP down alert webhook."""
+        device = {"serial": "AP-1234", "status": "online"}
         coordinator = MagicMock()
-        coordinator.data = {"devices": [{"serial": "AP-1234", "status": "online"}]}
+        coordinator.data = {"devices": [device]}
+        coordinator.devices_by_serial = {"AP-1234": device}
         coordinator.async_update_listeners = MagicMock()
+
+        def _update_device_status(serial, is_online):
+            device["status"] = "online" if is_online else "offline"
+
+        coordinator._update_device_status_immediate.side_effect = _update_device_status
+
+        config_entry = MagicMock()
+        config_entry.options = {"webhook_shared_secret": "secret"}
 
         hass = MagicMock(spec=HomeAssistant)
         hass.data = {
             DOMAIN: {"wh_123": {"secret": "secret", "coordinator": coordinator}}
         }
+        hass.config_entries.async_get_entry.return_value = config_entry
+
         mock_request.json = AsyncMock(
             return_value={
                 "alertType": "APs went down",
@@ -258,7 +270,7 @@ class TestAsyncHandleWebhook:
 
         await async_handle_webhook(hass, "wh_123", mock_request)
 
-        assert coordinator.data["devices"][0]["status"] == "offline"
+        assert device["status"] == "offline"
         coordinator.async_update_listeners.assert_called_once()
 
     @pytest.mark.asyncio
@@ -266,17 +278,28 @@ class TestAsyncHandleWebhook:
         self, mock_request: MagicMock
     ) -> None:
         """Test handling client connectivity changed webhook."""
+        client = {"mac": "AA:BB:CC:DD:EE:FF", "status": "Online"}
         coordinator = MagicMock()
         coordinator.data = {
             "devices": [],
-            "clients": [{"mac": "AA:BB:CC:DD:EE:FF", "status": "Online"}],
+            "clients": [client],
         }
         coordinator.async_update_listeners = MagicMock()
+
+        def _update_client_status(mac, is_online):
+            client["status"] = "Online" if is_online else "Offline"
+
+        coordinator._update_client_status_immediate.side_effect = _update_client_status
+
+        config_entry = MagicMock()
+        config_entry.options = {"webhook_shared_secret": "secret"}
 
         hass = MagicMock(spec=HomeAssistant)
         hass.data = {
             DOMAIN: {"wh_123": {"secret": "secret", "coordinator": coordinator}}
         }
+        hass.config_entries.async_get_entry.return_value = config_entry
+
         mock_request.json = AsyncMock(
             return_value={
                 "alertType": "Client connectivity changed",
@@ -287,7 +310,7 @@ class TestAsyncHandleWebhook:
 
         await async_handle_webhook(hass, "wh_123", mock_request)
 
-        assert coordinator.data["clients"][0]["status"] == "Offline"
+        assert client["status"] == "Offline"
         coordinator.async_update_listeners.assert_called_once()
 
     @pytest.mark.asyncio

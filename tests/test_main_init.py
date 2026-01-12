@@ -377,14 +377,14 @@ async def test_scanning_api_webhook_registered_when_enabled(
 
         await async_setup_entry(mock_hass, mock_config_entry)
 
-    # Verify HA webhook was registered with correct compound ID
+    # Verify HA webhook was registered with correct unique ID
     mock_ha_webhook_register.assert_called_once()
     call_args = mock_ha_webhook_register.call_args
     assert call_args[0][0] == mock_hass  # hass
     assert call_args[0][1] == DOMAIN  # domain
     assert call_args[0][2] == "Meraki Scanning API"  # name
-    # Webhook ID should be just the entry_id now
-    expected_webhook_id = mock_config_entry.entry_id
+    # Webhook ID should be entry_id + "_scanning" to prevent conflicts
+    expected_webhook_id = f"{mock_config_entry.entry_id}_scanning"
     assert call_args[0][3] == expected_webhook_id
 
 

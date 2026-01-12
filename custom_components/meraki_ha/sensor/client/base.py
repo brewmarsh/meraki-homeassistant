@@ -18,7 +18,7 @@ from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.device_registry import CONNECTION_NETWORK_MAC, DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from ...const import DOMAIN
+from ...const import CONF_MANUAL_CLIENT_ASSOCIATIONS, DOMAIN
 from ...helpers.logging_helper import MerakiLoggers
 from ...meraki_data_coordinator import MerakiDataCoordinator
 
@@ -132,14 +132,79 @@ def _find_existing_device_by_ip(
     return None
 
 
+def _find_existing_device_by_manual_association(
+    hass: HomeAssistant,
+    mac_address: str,
+    config_entry: ConfigEntry | None = None,
+) -> dr.DeviceEntry | None:
+    """Find an existing Home Assistant device via manual association.
+
+    Checks the config entry options for manually configured client-to-device
+    associations.
+
+    Parameters
+    ----------
+    hass : HomeAssistant
+        The Home Assistant instance.
+    mac_address : str
+        The MAC address of the Meraki client.
+    config_entry : ConfigEntry | None
+        The config entry containing manual associations.
+
+    Returns
+    -------
+    dr.DeviceEntry | None
+        The matching device entry, or None if not found.
+
+    """
+    if not config_entry:
+        return None
+
+    # Get manual associations from config entry options
+    associations = config_entry.options.get(CONF_MANUAL_CLIENT_ASSOCIATIONS, {})
+    if not associations:
+        return None
+
+    # Normalize MAC address for comparison
+    normalized_mac = mac_address.lower().replace("-", ":")
+
+    # Check for manual association
+    device_id = associations.get(normalized_mac)
+    if not device_id:
+        # Also try with the original MAC format
+        device_id = associations.get(mac_address)
+
+    if not device_id:
+        return None
+
+    try:
+        device_registry = dr.async_get(hass)
+        device = device_registry.async_get(device_id)
+        if device:
+            _LOGGER.debug(
+                "Found manually associated device '%s' for MAC %s",
+                device.name,
+                mac_address,
+            )
+            return device
+    except (AttributeError, TypeError):
+        pass
+
+    return None
+
+
 def _find_existing_device(
     hass: HomeAssistant,
     mac_address: str,
     ip_address: str | None = None,
+    config_entry: ConfigEntry | None = None,
 ) -> dr.DeviceEntry | None:
-    """Find an existing Home Assistant device by MAC or IP address.
+    """Find an existing Home Assistant device by manual association, MAC, or IP.
 
-    Tries MAC first (more reliable), then falls back to IP matching.
+    Priority order:
+    1. Manual association (user-configured in options flow)
+    2. MAC address matching
+    3. IP address matching
 
     Parameters
     ----------
@@ -149,6 +214,8 @@ def _find_existing_device(
         The MAC address to search for.
     ip_address : str | None
         The IP address to search for (optional).
+    config_entry : ConfigEntry | None
+        The config entry containing manual associations (optional).
 
     Returns
     -------
@@ -156,10 +223,19 @@ def _find_existing_device(
         The matching device entry, or None if not found.
 
     """
+    # Try manual association first (user-configured)
+    device = _find_existing_device_by_manual_association(
+        hass, mac_address, config_entry
+    )
+    if device:
+        return device
+
+    # Try MAC matching
     device = _find_existing_device_by_mac(hass, mac_address)
     if device:
         return device
 
+    # Fall back to IP matching
     if ip_address:
         device = _find_existing_device_by_ip(hass, ip_address)
         if device:
@@ -209,9 +285,11 @@ class MerakiClientSensorBase(CoordinatorEntity, SensorEntity):
         self._attr_unique_id = f"meraki_client_{self._client_mac}_{sensor_key}"
 
         # Check if this client matches an existing Home Assistant device
-        # Try MAC first, then IP address for devices without exposed MACs
+        # Priority: manual association > MAC matching > IP matching
         client_ip = client_data.get("ip")
-        existing_device = _find_existing_device(hass, self._client_mac, client_ip)
+        existing_device = _find_existing_device(
+            hass, self._client_mac, client_ip, config_entry
+        )
 
         if existing_device:
             # Link to the existing device

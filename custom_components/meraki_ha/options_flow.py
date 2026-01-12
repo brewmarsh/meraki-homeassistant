@@ -12,6 +12,7 @@ from .const import (
     CONF_ENABLE_MQTT,
     CONF_ENABLED_NETWORKS,
     CONF_INTEGRATION_TITLE,
+    CONF_MANUAL_CLIENT_ASSOCIATIONS,
     CONF_MQTT_RELAY_DESTINATIONS,
     DEFAULT_MQTT_PORT,
     DEFAULT_MQTT_RELAY_DESTINATIONS,
@@ -26,10 +27,12 @@ from .const import (
 )
 from .schemas import (
     SCHEMA_CAMERA,
+    SCHEMA_DATA_SYNC,
     SCHEMA_DISPLAY_PREFERENCES,
     SCHEMA_LOGGING,
     SCHEMA_NETWORK_SELECTION,
     SCHEMA_POLLING,
+    SCHEMA_WEBHOOKS,
 )
 
 
@@ -81,7 +84,10 @@ class MerakiOptionsFlowHandler(OptionsFlow):
             step_id="init",
             menu_options=[
                 "network_selection",
+                "device_association",
                 "polling",
+                "webhooks",
+                "data_sync",
                 "camera",
                 "mqtt",
                 "scanning_api",
@@ -177,6 +183,320 @@ class MerakiOptionsFlowHandler(OptionsFlow):
         return self.async_show_form(
             step_id="network_selection",
             data_schema=schema_with_defaults,
+        )
+
+    async def async_step_device_association(
+        self,
+        user_input: dict[str, Any] | None = None,
+    ) -> ConfigFlowResult:
+        """Handle device association settings - main menu."""
+        from homeassistant.helpers import device_registry as dr
+
+        from .meraki_data_coordinator import MerakiDataCoordinator
+
+        if user_input is not None:
+            action = user_input.get("action", "save")
+
+            if action == "add":
+                return await self.async_step_select_client()
+            if action == "remove":
+                return await self.async_step_remove_association()
+
+            return self.async_create_entry(
+                title=CONF_INTEGRATION_TITLE, data=self.options
+            )
+
+        # Get current associations
+        current_associations: dict[str, str] = self.options.get(
+            CONF_MANUAL_CLIENT_ASSOCIATIONS, {}
+        )
+
+        # Build summary of current associations
+        association_summary = []
+        coordinator: MerakiDataCoordinator = self.hass.data[DOMAIN][
+            self.config_entry.entry_id
+        ]["coordinator"]
+        device_registry = dr.async_get(self.hass)
+
+        for client_mac, device_id in current_associations.items():
+            # Find client name
+            client_name = client_mac
+            if coordinator.data and coordinator.data.get("clients"):
+                for client in coordinator.data["clients"]:
+                    if client.get("mac") == client_mac:
+                        client_name = (
+                            client.get("description")
+                            or client.get("dhcpHostname")
+                            or client_mac
+                        )
+                        break
+
+            # Find device name
+            device = device_registry.async_get(device_id)
+            device_name = device.name if device else device_id
+
+            association_summary.append(f"• {client_name} → {device_name}")
+
+        summary_text = "\n".join(association_summary) if association_summary else "None"
+
+        actions = [
+            selector.SelectOptionDict(value="save", label="✓ Save and return to menu"),
+            selector.SelectOptionDict(
+                value="add", label="+ Add new client → device association"
+            ),
+        ]
+        if current_associations:
+            actions.append(
+                selector.SelectOptionDict(
+                    value="remove", label="− Remove an existing association"
+                )
+            )
+
+        schema = vol.Schema(
+            {
+                vol.Optional("action", default="save"): selector.SelectSelector(
+                    selector.SelectSelectorConfig(
+                        options=actions,
+                        mode=selector.SelectSelectorMode.LIST,
+                    )
+                ),
+            }
+        )
+
+        return self.async_show_form(
+            step_id="device_association",
+            data_schema=schema,
+            description_placeholders={
+                "association_count": str(len(current_associations)),
+                "associations": summary_text,
+            },
+        )
+
+    async def async_step_select_client(
+        self,
+        user_input: dict[str, Any] | None = None,
+    ) -> ConfigFlowResult:
+        """Select a Meraki client to associate with an HA device."""
+        from .meraki_data_coordinator import MerakiDataCoordinator
+
+        if user_input is not None:
+            # Store selected client MAC and proceed to device selection
+            self._selected_client_mac = user_input.get("client")
+            return await self.async_step_select_device()
+
+        coordinator: MerakiDataCoordinator = self.hass.data[DOMAIN][
+            self.config_entry.entry_id
+        ]["coordinator"]
+
+        # Get current associations to filter out already-associated clients
+        current_associations: dict[str, str] = self.options.get(
+            CONF_MANUAL_CLIENT_ASSOCIATIONS, {}
+        )
+
+        # Build list of unassociated clients
+        client_options: list[selector.SelectOptionDict] = []
+        if coordinator.data and coordinator.data.get("clients"):
+            for client in coordinator.data["clients"]:
+                client_mac = client.get("mac")
+                if not client_mac or client_mac in current_associations:
+                    continue
+
+                # Generate friendly name
+                client_name = (
+                    client.get("description")
+                    or client.get("dhcpHostname")
+                    or client.get("ip")
+                    or client_mac
+                )
+                manufacturer = client.get("manufacturer", "")
+                if manufacturer:
+                    label = f"{client_name} ({manufacturer})"
+                else:
+                    label = client_name
+
+                client_options.append(
+                    selector.SelectOptionDict(value=client_mac, label=label)
+                )
+
+        if not client_options:
+            # No clients available
+            return self.async_show_form(
+                step_id="select_client",
+                data_schema=vol.Schema({}),
+                description_placeholders={
+                    "message": "No unassociated clients available."
+                },
+                errors={"base": "no_clients"},
+            )
+
+        # Sort by label
+        client_options.sort(key=lambda x: x["label"].lower())
+
+        schema = vol.Schema(
+            {
+                vol.Required("client"): selector.SelectSelector(
+                    selector.SelectSelectorConfig(
+                        options=client_options,
+                        mode=selector.SelectSelectorMode.DROPDOWN,
+                    )
+                ),
+            }
+        )
+
+        return self.async_show_form(
+            step_id="select_client",
+            data_schema=schema,
+        )
+
+    async def async_step_select_device(
+        self,
+        user_input: dict[str, Any] | None = None,
+    ) -> ConfigFlowResult:
+        """Select an HA device to link the Meraki client to."""
+        from homeassistant.helpers import device_registry as dr
+
+        if user_input is not None:
+            # Save the association
+            device_id = user_input.get("device")
+            client_mac = getattr(self, "_selected_client_mac", None)
+
+            if client_mac and device_id:
+                associations = dict(
+                    self.options.get(CONF_MANUAL_CLIENT_ASSOCIATIONS, {})
+                )
+                associations[client_mac] = device_id
+                self.options[CONF_MANUAL_CLIENT_ASSOCIATIONS] = associations
+
+            # Clean up and return to main menu
+            self._selected_client_mac = None
+            return await self.async_step_device_association()
+
+        # Build list of HA devices (excluding Meraki client devices)
+        device_registry = dr.async_get(self.hass)
+        device_options: list[selector.SelectOptionDict] = []
+
+        for device in device_registry.devices.values():
+            # Skip Meraki client devices
+            if any(
+                DOMAIN in str(ident) and "client_" in str(ident)
+                for ident in device.identifiers
+            ):
+                continue
+
+            # Skip devices without a name
+            if not device.name:
+                continue
+
+            # Include manufacturer info if available
+            if device.manufacturer:
+                label = f"{device.name} ({device.manufacturer})"
+            else:
+                label = device.name
+
+            device_options.append(
+                selector.SelectOptionDict(value=device.id, label=label)
+            )
+
+        if not device_options:
+            return self.async_show_form(
+                step_id="select_device",
+                data_schema=vol.Schema({}),
+                errors={"base": "no_devices"},
+            )
+
+        # Sort by label
+        device_options.sort(key=lambda x: x["label"].lower())
+
+        schema = vol.Schema(
+            {
+                vol.Required("device"): selector.SelectSelector(
+                    selector.SelectSelectorConfig(
+                        options=device_options,
+                        mode=selector.SelectSelectorMode.DROPDOWN,
+                    )
+                ),
+            }
+        )
+
+        return self.async_show_form(
+            step_id="select_device",
+            data_schema=schema,
+        )
+
+    async def async_step_remove_association(
+        self,
+        user_input: dict[str, Any] | None = None,
+    ) -> ConfigFlowResult:
+        """Remove an existing device association."""
+        from homeassistant.helpers import device_registry as dr
+
+        from .meraki_data_coordinator import MerakiDataCoordinator
+
+        if user_input is not None:
+            # Remove selected associations
+            selected_macs = user_input.get("associations", [])
+            if selected_macs:
+                associations = dict(
+                    self.options.get(CONF_MANUAL_CLIENT_ASSOCIATIONS, {})
+                )
+                for mac in selected_macs:
+                    associations.pop(mac, None)
+                self.options[CONF_MANUAL_CLIENT_ASSOCIATIONS] = associations
+
+            return await self.async_step_device_association()
+
+        # Build list of current associations
+        current_associations: dict[str, str] = self.options.get(
+            CONF_MANUAL_CLIENT_ASSOCIATIONS, {}
+        )
+
+        if not current_associations:
+            return await self.async_step_device_association()
+
+        coordinator: MerakiDataCoordinator = self.hass.data[DOMAIN][
+            self.config_entry.entry_id
+        ]["coordinator"]
+        device_registry = dr.async_get(self.hass)
+
+        association_options: list[selector.SelectOptionDict] = []
+        for client_mac, device_id in current_associations.items():
+            # Find client name
+            client_name = client_mac
+            if coordinator.data and coordinator.data.get("clients"):
+                for client in coordinator.data["clients"]:
+                    if client.get("mac") == client_mac:
+                        client_name = (
+                            client.get("description")
+                            or client.get("dhcpHostname")
+                            or client_mac
+                        )
+                        break
+
+            # Find device name
+            device = device_registry.async_get(device_id)
+            device_name = device.name if device else device_id
+
+            association_options.append(
+                selector.SelectOptionDict(
+                    value=client_mac, label=f"{client_name} → {device_name}"
+                )
+            )
+
+        schema = vol.Schema(
+            {
+                vol.Required("associations"): selector.SelectSelector(
+                    selector.SelectSelectorConfig(
+                        options=association_options,
+                        multiple=True,
+                        mode=selector.SelectSelectorMode.LIST,
+                    )
+                ),
+            }
+        )
+
+        return self.async_show_form(
+            step_id="remove_association",
+            data_schema=schema,
         )
 
     async def async_step_polling(
@@ -516,3 +836,137 @@ class MerakiOptionsFlowHandler(OptionsFlow):
 
             new_schema_keys[key] = value
         return vol.Schema(new_schema_keys)
+
+    async def async_step_webhooks(
+        self,
+        user_input: dict[str, Any] | None = None,
+    ) -> ConfigFlowResult:
+        """Handle webhook settings."""
+        from .const import (
+            CONF_WEBHOOK_EXTERNAL_URL,
+            DEFAULT_WEBHOOK_EXTERNAL_URL,
+        )
+        from .core.errors import MerakiConnectionError
+        from .webhook import get_webhook_url
+
+        if user_input is not None:
+            self.options.update(user_input)
+            return self.async_create_entry(
+                title=CONF_INTEGRATION_TITLE, data=self.options
+            )
+
+        custom_url = self.options.get(
+            CONF_WEBHOOK_EXTERNAL_URL, DEFAULT_WEBHOOK_EXTERNAL_URL
+        )
+
+        try:
+            webhook_url = get_webhook_url(
+                self.hass, self.config_entry.entry_id, custom_url or None
+            )
+        except MerakiConnectionError as err:
+            webhook_url = f"⚠️ {err}"
+
+        # Get real webhook status from coordinator
+        status = self._get_webhook_status()
+
+        # Provide manual setup guidance if available from WebhookManager
+        manual_setup = ""
+        entry_data = self.hass.data.get(DOMAIN, {}).get(self.config_entry.entry_id, {})
+        webhook_manager = entry_data.get("webhook_manager")
+        if webhook_manager:
+            manual = webhook_manager.get_manual_setup_instructions()
+            url = manual.get("webhook_url", "N/A")
+            secret = manual.get("shared_secret", "N/A")
+            alert_types = ", ".join(manual.get("alert_types", [])) or "None"
+            manual_setup = (
+                "Manual setup (use if auto-register fails):\n"
+                f"URL: {url}\nSecret: {secret}\nAlerts: {alert_types}"
+            )
+
+        schema_with_defaults = self._populate_schema_defaults(
+            SCHEMA_WEBHOOKS,
+            self.options,
+        )
+
+        return self.async_show_form(
+            step_id="webhooks",
+            data_schema=schema_with_defaults,
+            description_placeholders={
+                "webhook_url": webhook_url,
+                "status": status,
+                "manual_setup": manual_setup,
+            },
+        )
+
+    def _get_webhook_status(self) -> str:
+        """Get the current webhook status from the coordinator."""
+        from .const import DOMAIN
+
+        try:
+            entry_data = self.hass.data.get(DOMAIN, {}).get(
+                self.config_entry.entry_id, {}
+            )
+            # Prefer WebhookManager status if available
+            webhook_manager = entry_data.get("webhook_manager")
+            if webhook_manager:
+                status = webhook_manager.webhook_status
+                base_msg = status.get("message", "❓ Unable to determine status")
+                # Include manual setup hint if auto-registration failed
+                if status.get("status") == "error":
+                    manual = webhook_manager.get_manual_setup_instructions()
+                    url = manual.get("webhook_url", "N/A")
+                    secret = manual.get("shared_secret", "N/A")
+                    alert_types = ", ".join(manual.get("alert_types", [])) or "None"
+                    return (
+                        f"{base_msg}\nManual setup:\nURL: {url}\nSecret: {secret}\n"
+                        f"Alerts: {alert_types}"
+                    )
+                return base_msg
+
+            coordinator = entry_data.get("coordinator")
+
+            if not coordinator:
+                return "❓ Coordinator not available"
+
+            # Check if webhooks are active (received recently)
+            if hasattr(coordinator, "webhooks_active") and coordinator.webhooks_active:
+                stats = getattr(coordinator, "webhook_stats", {})
+                count = stats.get("total_received", 0)
+                return f"✅ Webhooks active ({count} received)"
+
+            # Check if webhooks were ever received
+            if hasattr(coordinator, "webhook_stats"):
+                stats = coordinator.webhook_stats
+                if stats.get("last_received"):
+                    return "⚠️ Webhooks configured but not recently active"
+
+            # Check if webhook is registered with HA
+            webhook_id = self.config_entry.data.get("webhook_id")
+            if webhook_id:
+                return "✅ Webhook registered with Home Assistant"
+
+            return "❌ Webhooks not configured"
+
+        except Exception:
+            return "❓ Unable to determine status"
+
+    async def async_step_data_sync(
+        self,
+        user_input: dict[str, Any] | None = None,
+    ) -> ConfigFlowResult:
+        """Handle data sync settings."""
+        if user_input is not None:
+            self.options.update(user_input)
+            return self.async_create_entry(
+                title=CONF_INTEGRATION_TITLE, data=self.options
+            )
+
+        schema_with_defaults = self._populate_schema_defaults(
+            SCHEMA_DATA_SYNC,
+            self.options,
+        )
+
+        return self.async_show_form(
+            step_id="data_sync",
+            data_schema=schema_with_defaults,
+        )

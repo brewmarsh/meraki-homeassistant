@@ -14,14 +14,13 @@ async def test_meraki_device_status_sensor_online(
 ) -> None:
     """Test the Meraki device status sensor when the device is online."""
     coordinator = MagicMock()
-    coordinator.data = {
-        "devices": [
-            {
-                "serial": "Q234-ABCD-5678",
-                "status": "online",
-            }
-        ],
+    device = {
+        "serial": "Q234-ABCD-5678",
+        "status": "online",
     }
+    coordinator.data = {"devices": [device]}
+    # Set up the O(1) lookup table used by the optimized _get_current_device_data
+    coordinator.devices_by_serial = {"Q234-ABCD-5678": device}
     device_data = {
         "serial": "Q234-ABCD-5678",
     }
@@ -37,14 +36,13 @@ async def test_meraki_device_status_sensor_offline(
 ) -> None:
     """Test the Meraki device status sensor when the device is offline."""
     coordinator = MagicMock()
-    coordinator.data = {
-        "devices": [
-            {
-                "serial": "Q234-ABCD-5678",
-                "status": "offline",
-            }
-        ],
+    device = {
+        "serial": "Q234-ABCD-5678",
+        "status": "offline",
     }
+    coordinator.data = {"devices": [device]}
+    # Set up the O(1) lookup table used by the optimized _get_current_device_data
+    coordinator.devices_by_serial = {"Q234-ABCD-5678": device}
     device_data = {
         "serial": "Q234-ABCD-5678",
     }

@@ -5,7 +5,7 @@ import functools
 import inspect
 from collections.abc import Awaitable, Callable
 from json import JSONDecodeError
-from typing import Any, TypeVar, cast
+from typing import Any, TypeVar, cast, get_type_hints
 
 from aiohttp import ClientError
 from meraki.exceptions import APIError, AsyncAPIError
@@ -25,6 +25,52 @@ from ..errors import (
 T = TypeVar("T")
 
 _LOGGER = MerakiLoggers.API
+
+
+def _is_list_return_type(func: Callable[..., Any]) -> bool:
+    """
+    Check if a function's return type annotation indicates a list.
+
+    Handles both:
+    - Regular type annotations (list, list[X])
+    - String annotations from `from __future__ import annotations`
+
+    Args:
+        func: The function to inspect.
+
+    Returns
+    -------
+        True if the return type is a list, False otherwise.
+    """
+    # First try to get resolved type hints (handles string annotations)
+    try:
+        hints = get_type_hints(func)
+        return_type = hints.get("return")
+        if return_type is not None:
+            # Check if it's exactly list or a generic list type
+            if return_type is list:
+                return True
+            origin = getattr(return_type, "__origin__", None)
+            if origin is list:
+                return True
+    except Exception:
+        # If get_type_hints fails, fall back to raw annotation inspection
+        pass
+
+    # Fallback: check the raw annotation (may be a string)
+    sig = inspect.signature(func)
+    return_type = sig.return_annotation
+
+    # Handle string annotations (from __future__.annotations)
+    if isinstance(return_type, str):
+        # Check if the string starts with "list" (case-insensitive)
+        return return_type.lower().startswith("list")
+
+    # Handle actual type objects
+    if return_type is list:
+        return True
+    origin = getattr(return_type, "__origin__", None)
+    return origin is list
 
 
 def handle_meraki_errors(
@@ -52,12 +98,7 @@ def handle_meraki_errors(
                 err,
             )
             # Inspect the wrapped function's return type to return a safe empty value
-            sig = inspect.signature(func)
-            return_type = sig.return_annotation
-            if return_type is list or getattr(return_type, "__origin__", None) in (
-                list,
-                list,
-            ):
+            if _is_list_return_type(func):
                 return cast(T, [])
             return cast(T, {})
         except (APIError, AsyncAPIError) as err:
@@ -74,12 +115,7 @@ def handle_meraki_errors(
                     err,
                 )
                 # Return empty value for retry limit errors (graceful degradation)
-                sig = inspect.signature(func)
-                return_type = sig.return_annotation
-                if return_type is list or getattr(return_type, "__origin__", None) in (
-                    list,
-                    list,
-                ):
+                if _is_list_return_type(func):
                     return cast(T, [])
                 return cast(T, {})
 

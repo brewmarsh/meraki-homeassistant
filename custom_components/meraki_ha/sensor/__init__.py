@@ -6,6 +6,7 @@ It filters the discovered entities to only include SensorEntity instances.
 It also sets up client sensors dynamically based on coordinator data,
 providing separate entities for VLAN, SSID, connected device, and data usage.
 """
+# pylint: disable=wrong-import-position
 
 from __future__ import annotations
 
@@ -19,13 +20,7 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from ..const import CONF_ENABLE_DEVICE_TRACKER, DOMAIN
 from ..helpers.logging_helper import MerakiLoggers
-
-if TYPE_CHECKING:
-    from ..meraki_data_coordinator import MerakiDataCoordinator
-
-# Re-export for backwards compatibility
-# Client sensor imports
-from .client import (
+from .client import (  # Re-export for backwards compatibility
     MerakiClientConnectedDeviceSensor,
     MerakiClientConnectionTypeSensor,
     MerakiClientReceivedBytesSensor,
@@ -39,6 +34,11 @@ from .device.rtsp_url import MerakiRtspUrlSensor as MerakiCameraRTSPUrlSensor
 from .network.meraki_network_info import MerakiNetworkInfoSensor
 from .network.network_clients import MerakiNetworkClientsSensor
 from .network.network_identity import MerakiNetworkIdentitySensor
+
+if TYPE_CHECKING:
+    from ..meraki_data_coordinator import MerakiDataCoordinator
+
+# pylint: enable=wrong-import-position
 
 __all__ = [
     "async_setup_entry",
@@ -78,6 +78,24 @@ async def async_setup_entry(
     # Get all discovered entities and filter for sensors
     discovered_entities = entry_data.get("entities", [])
     sensor_entities = [e for e in discovered_entities if isinstance(e, SensorEntity)]
+
+    # Add webhook metrics sensors if webhooks are enabled
+    webhook_manager = entry_data.get("webhook_manager")
+    coordinator = entry_data.get("coordinator")
+    if webhook_manager and coordinator:
+        # pylint: disable=import-outside-toplevel
+        from .webhook_metrics import (
+            MerakiAPITargetedRefreshTotalSensor,
+            MerakiWebhookProcessingDurationSensor,
+            MerakiWebhookReceivedTotalSensor,
+        )
+
+        webhook_metrics_sensors: list[SensorEntity] = [
+            MerakiWebhookReceivedTotalSensor(coordinator, config_entry),
+            MerakiWebhookProcessingDurationSensor(coordinator, config_entry),
+            MerakiAPITargetedRefreshTotalSensor(coordinator, config_entry),
+        ]
+        sensor_entities.extend(webhook_metrics_sensors)
 
     if sensor_entities:
         _LOGGER.debug("Adding %d sensor entities", len(sensor_entities))
