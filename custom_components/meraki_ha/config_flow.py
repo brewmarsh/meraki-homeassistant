@@ -6,10 +6,13 @@ import logging
 from typing import Any
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 import voluptuous as vol
 from homeassistant import config_entries
 from homeassistant.config_entries import ConfigFlowResult
 =======
+=======
+>>>>>>> 08ff23a4 (fix(config_flow): Resolve CI failures by correcting test logic)
 from homeassistant.config_entries import (
     ConfigEntry,
     ConfigFlow,
