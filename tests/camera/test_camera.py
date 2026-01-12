@@ -50,16 +50,22 @@ async def test_webrtc_offer_stream_component_not_running(camera_entity: MerakiCa
     """Test WebRTC offer when the stream component is not running."""
     camera_entity.hass.components.get.return_value = None
 
-    result = await camera_entity.async_handle_async_webrtc_offer("test_offer", "test_peer")
+    result = await camera_entity.async_handle_async_webrtc_offer(
+        "test_offer", "test_peer"
+    )
 
     assert result is None
 
 
 async def test_webrtc_offer_no_stream_source(camera_entity: MerakiCamera):
     """Test WebRTC offer when the camera has no stream source."""
-    with patch.object(camera_entity, "stream_source", new_callable=AsyncMock) as mock_stream_source:
+    with patch.object(
+        camera_entity, "stream_source", new_callable=AsyncMock
+    ) as mock_stream_source:
         mock_stream_source.return_value = None
-        result = await camera_entity.async_handle_async_webrtc_offer("test_offer", "test_peer")
+        result = await camera_entity.async_handle_async_webrtc_offer(
+            "test_offer", "test_peer"
+        )
 
         assert result is None
 
@@ -69,9 +75,13 @@ async def test_webrtc_offer_success(camera_entity: MerakiCamera):
     mock_stream = AsyncMock()
     mock_stream.async_handle_webrtc_offer.return_value = "test_answer"
     camera_entity.hass.components.stream = mock_stream
-    with patch.object(camera_entity, "stream_source", new_callable=AsyncMock) as mock_stream_source:
+    with patch.object(
+        camera_entity, "stream_source", new_callable=AsyncMock
+    ) as mock_stream_source:
         mock_stream_source.return_value = "rtsp://stream.source"
-        result = await camera_entity.async_handle_async_webrtc_offer("test_offer", "test_peer")
+        result = await camera_entity.async_handle_async_webrtc_offer(
+            "test_offer", "test_peer"
+        )
 
         assert result == "test_answer"
         mock_stream.async_handle_webrtc_offer.assert_called_once_with(
@@ -85,9 +95,13 @@ async def test_webrtc_offer_exception(camera_entity: MerakiCamera, caplog):
     mock_stream.async_handle_webrtc_offer.side_effect = Exception("Test Error")
     camera_entity.hass.components.stream = mock_stream
 
-    with patch.object(camera_entity, "stream_source", new_callable=AsyncMock) as mock_stream_source:
+    with patch.object(
+        camera_entity, "stream_source", new_callable=AsyncMock
+    ) as mock_stream_source:
         mock_stream_source.return_value = "rtsp://stream.source"
-        result = await camera_entity.async_handle_async_webrtc_offer("test_offer", "test_peer")
+        result = await camera_entity.async_handle_async_webrtc_offer(
+            "test_offer", "test_peer"
+        )
 
         assert result is None
         assert "Error handling WebRTC offer" in caplog.text
