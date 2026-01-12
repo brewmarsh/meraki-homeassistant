@@ -108,9 +108,23 @@ class MerakiConfigFlow(ConfigFlow, domain="meraki_ha"):  # type: ignore[call-arg
             await self.hass.config_entries.async_reload(entry.entry_id)
             return self.async_abort(reason="reconfigure_successful")
 
-        return self.async_show_form(
-            step_id="reconfigure",
-            data_schema=self.add_suggested_values_to_schema(
-                OPTIONS_SCHEMA, entry.options
-            ),
+        schema_with_defaults = self._populate_schema_defaults(
+            OPTIONS_SCHEMA, entry.options
         )
+
+        return self.async_show_form(
+            step_id="reconfigure", data_schema=schema_with_defaults
+        )
+
+    def _populate_schema_defaults(
+        self, schema: vol.Schema, defaults: dict[str, Any]
+    ) -> vol.Schema:
+        """Populate a schema with default values from a dictionary."""
+        new_schema_keys = {}
+        for key, value in schema.schema.items():
+            if key.schema in defaults:
+                new_key = type(key)(key.schema, default=defaults[key.schema])
+                new_schema_keys[new_key] = value
+            else:
+                new_schema_keys[key] = value
+        return vol.Schema(new_schema_keys)
