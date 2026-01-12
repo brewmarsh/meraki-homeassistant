@@ -1,0 +1,70 @@
+name: Jules Handoff Detector
+
+run-name: 'Detect Jules Handoff on PR #${{ github.event.issue.number }}'
+
+# Detects when Jules posts a handoff comment and automatically adds the label
+# Jules can't execute shell commands, so we need this workflow to detect the comment
+# and trigger the handoff workflow
+
+on:
+  issue_comment:
+    types: [created]
+
+permissions:
+  contents: read
+  issues: write
+  pull-requests: write
+
+concurrency:
+  group: jules-handoff-${{ github.event.issue.number }}
+  cancel-in-progress: true
+
+jobs:
+  detect-handoff:
+    runs-on: ubuntu-latest
+    # Only trigger on PR comments (issue_comment fires for both issues and PRs)
+    if: github.event.issue.pull_request != null
+    steps:
+      - name: Check for Jules handoff comment
+        id: check
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          COMMENT_BODY: ${{ github.event.comment.body }}
+          COMMENT_AUTHOR: ${{ github.event.comment.user.login }}
+        run: |
+          PR_NUM="${{ github.event.issue.number }}"
+
+          # Check if this is a Jules handoff comment
+          # Look for the handoff markers: "🆘 Jules" or "Handoff to Cursor"
+          if echo "$COMMENT_BODY" | grep -qE "(🆘.*Jules|Jules.*Handoff|Handoff.*Cursor|jules-needs-help)"; then
+            echo "✅ Detected Jules handoff comment"
+            echo "is_handoff=true" >> "$GITHUB_OUTPUT"
+            echo "pr_number=$PR_NUM" >> "$GITHUB_OUTPUT"
+          else
+            echo "Not a handoff comment - skipping"
+            echo "is_handoff=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Add jules-needs-help label
+        if: steps.check.outputs.is_handoff == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          PR_NUM="${{ steps.check.outputs.pr_number }}"
+
+          echo "Adding jules-needs-help label to PR #$PR_NUM"
+
+          # Check if label already exists
+          CURRENT_LABELS=$(gh pr view "$PR_NUM" --repo "${{ github.repository }}" --json labels --jq '[.labels[].name] | join(" ")')
+
+          if echo "$CURRENT_LABELS" | grep -q "jules-needs-help"; then
+            echo "Label already present - skipping"
+          elif echo "$CURRENT_LABELS" | grep -q "cursor-reviewing"; then
+            echo "Cursor already reviewing - skipping"
+          else
+            gh pr edit "$PR_NUM" \
+              --repo "${{ github.repository }}" \
+              --add-label "jules-needs-help"
+
+            echo "✅ Label added - jules-needs-help workflow will trigger"
+          fi
