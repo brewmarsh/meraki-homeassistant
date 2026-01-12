@@ -164,6 +164,7 @@ class ConfigFlowHandler(config_entries.ConfigFlow):
             await self.hass.config_entries.async_reload(entry.entry_id)
             return self.async_abort(reason="reconfigure_successful")
 
+<<<<<<< HEAD
         schema_with_defaults = self._populate_schema_defaults(
             OPTIONS_SCHEMA,
             entry.options,
@@ -200,3 +201,11 @@ class ConfigFlowHandler(config_entries.ConfigFlow):
             else:
                 new_schema_keys[key] = value
         return vol.Schema(new_schema_keys)
+=======
+        return self.async_show_form(
+            step_id="reconfigure",
+            data_schema=self.add_suggested_values_to_schema(
+                OPTIONS_SCHEMA, entry.options
+            ),
+        )
+>>>>>>> 00a5566c (fix: Resolve CI failures in config flow and dependencies)
