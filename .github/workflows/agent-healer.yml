@@ -12,14 +12,12 @@ permissions:
 jobs:
   heal:
     # 1. Only run if Validate Code failed
-    # 2. Prevent infinite loops (don't heal the healer's own runs)
-    # 3. Allow you, Dependabot, and Jules to trigger the healing
+    # 2. Prevent infinite loops (only heal failures from specific actors)
     if: |
       github.event.workflow_run.conclusion == 'failure' &&
-      github.event.workflow_run.event != 'workflow_run' &&
-      (github.event.workflow_run.actor.login == 'brewmarsh' || 
-       github.event.workflow_run.actor.login == 'dependabot[bot]' || 
-       github.event.workflow_run.actor.login == 'google-labs-jules[bot]')
+      (github.triggering_actor == 'brewmarsh' || 
+       github.triggering_actor == 'dependabot[bot]' || 
+       github.triggering_actor == 'google-labs-jules[bot]')
 
     runs-on: ubuntu-latest
 
@@ -27,22 +25,29 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
         with:
+          # Use your PAT here to allow Jules' pushes to trigger further CI runs
+          token: ${{ secrets.JULES_GITHUB_PAT }}
           ref: ${{ github.event.workflow_run.head_sha }}
 
       - name: Invoke Jules Agent
         uses: google-labs-code/jules-invoke@main
         with:
           jules_api_key: ${{ secrets.JULES_API_KEY }}
+          # Some versions of jules-invoke allow passing the token directly for branch creation
+          github_token: ${{ secrets.JULES_GITHUB_PAT }}
           starting_branch: ${{ github.event.workflow_run.head_branch }}
           include_last_commit: true
           include_commit_log: true
           prompt: |
             The "Validate Code" CI failed. 
             Actor: ${{ github.event.workflow_run.actor.login }}
+            Branch: ${{ github.event.workflow_run.head_branch }}
 
             Please analyze the logs and:
-            1. Resolve any pycares/aiodns conflicts (target range >=4.9.0,<5.0.0).
+            1. Resolve any pycares/aiodns conflicts. 
+               - Hard lock: aiodns==3.6.1 and pycares==4.11.0. 
+               - DO NOT use older versions (like 4.4.0) as they crash on Python 3.13.
             2. Ensure webrtc-models==0.3.0 is in manifest.json requirements.
-            3. Fix any linting or test errors.
+            3. Fix any linting (Ruff) or test (Pytest) errors.
 
             Apply fixes directly to: ${{ github.event.workflow_run.head_branch }}

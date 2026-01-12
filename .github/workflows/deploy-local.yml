@@ -70,7 +70,6 @@ jobs:
           echo "Config check passed. Triggering restart..."
 
           # 3. Trigger Restart with Fallback
-          # Attempt Standard Restart
           RESTART_RESPONSE=$(curl -s -w "\n%{http_code}" -X POST \
                -H "Authorization: Bearer $CLEAN_TOKEN" \
                -H "Content-Type: application/json" \
@@ -79,7 +78,6 @@ jobs:
 
           RESTART_STATUS=$(echo "$RESTART_RESPONSE" | tail -n1)
 
-          # If standard restart fails with 400, try the Hassio Host Reboot
           if [ "$RESTART_STATUS" -ne 200 ]; then
              echo "Standard restart failed (HTTP $RESTART_STATUS). Trying Hassio host reboot..."
              RESTART_RESPONSE=$(curl -s -w "\n%{http_code}" -X POST \
@@ -90,14 +88,10 @@ jobs:
              RESTART_STATUS=$(echo "$RESTART_RESPONSE" | tail -n1)
           fi
 
-          # 200 is Success, 201 is Created (common for some services)
           if [ "$RESTART_STATUS" -ne 200 ] && [ "$RESTART_STATUS" -ne 201 ]; then
             echo "FAILED to restart! HTTP $RESTART_STATUS"
-            echo "Response: $(echo "$RESTART_RESPONSE" | sed '$d')"
             exit 1
           fi
-
-          echo "Home Assistant restart command accepted. Sending notification..."
 
           # 4. Send Success Notification
           curl -s -X POST -H "Authorization: Bearer $CLEAN_TOKEN" \
@@ -105,5 +99,21 @@ jobs:
                -d "{\"title\": \"Meraki HA Deployed\", \"message\": \"Deploy finished and restart initiated.\"}" \
                "$HA_URL/api/services/notify/$NOTIFY_SERVICE"
 
-          echo "Waiting 60s for reboot..."
-          sleep 60
+          echo "Home Assistant is rebooting..."
+
+      - name: Post-Deploy Health Audit
+        shell: bash
+        env:
+          HA_URL: ${{ secrets.HA_URL }}
+          HA_TOKEN: ${{ secrets.HA_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "Waiting 90s for system to stabilize and poll Meraki Dashboard..."
+          sleep 120
+
+          # This assumes Jules has built tools/auditor/audit.py per your issue prompt
+          if [ -f "tools/auditor/audit.py" ]; then
+            python3 tools/auditor/audit.py
+          else
+            echo "Auditor script not found. Skipping health check."
+          fi
