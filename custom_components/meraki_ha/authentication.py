@@ -146,13 +146,19 @@ class MerakiAuthentication:
                 e,
             )
             raise
+        except MerakiAuthenticationError as e:
+            _LOGGER.error("Authentication failed: %s", e)
+            raise
+        except MerakiConnectionError as e:
+            _LOGGER.error("Connection error: %s", e)
+            raise
         except Exception as e:
             _LOGGER.error(
                 "Unexpected error during validation for org %s: %s",
                 self.organization_id,
                 e,
             )
-            raise ConfigEntryAuthFailed(
+            raise MerakiConnectionError(
                 f"Unexpected error for org {self.organization_id}: {e}",
             ) from e
 
