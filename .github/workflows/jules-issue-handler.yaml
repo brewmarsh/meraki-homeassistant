@@ -38,7 +38,31 @@ jobs:
             exit 1
           fi
 
+      - name: Check for existing PR
+        id: existing
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          ISSUE_NUM="${{ github.event.issue.number }}"
+
+          # Search for PRs that reference this issue
+          EXISTING_PR=$(gh pr list \
+            --repo "${{ github.repository }}" \
+            --state open \
+            --search "in:body Closes #$ISSUE_NUM OR in:body Fixes #$ISSUE_NUM OR in:body Resolves #$ISSUE_NUM" \
+            --json number,headRefName \
+            --jq '.[0].number // empty' 2>/dev/null || echo "")
+
+          if [[ -n "$EXISTING_PR" ]]; then
+            echo "⏭️ PR #$EXISTING_PR already exists for issue #$ISSUE_NUM - skipping"
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "No existing PR found - proceeding"
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Start issue
+        if: steps.existing.outputs.skip != 'true'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -56,12 +80,14 @@ jobs:
             --add-label "in-progress"
 
       - name: Checkout
+        if: steps.existing.outputs.skip != 'true'
         uses: actions/checkout@v4
         with:
           ref: beta
           fetch-depth: 1
 
       - name: Invoke Jules
+        if: steps.existing.outputs.skip != 'true'
         uses: google-labs-code/jules-action@v1.0.0
         with:
           starting_branch: beta

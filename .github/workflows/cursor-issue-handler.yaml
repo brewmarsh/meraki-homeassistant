@@ -38,15 +38,32 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          ISSUE_NUM="${{ github.event.issue.number }}"
+
           # Check if already in progress
-          LABELS=$(gh issue view ${{ github.event.issue.number }} --repo ${{ github.repository }} --json labels -q '.labels[].name')
+          LABELS=$(gh issue view "$ISSUE_NUM" --repo ${{ github.repository }} --json labels -q '.labels[].name')
 
           if echo "$LABELS" | grep -q "in-progress"; then
             echo "Issue already in progress, skipping"
             echo "should_process=false" >> "$GITHUB_OUTPUT"
-          else
-            echo "should_process=true" >> "$GITHUB_OUTPUT"
+            exit 0
           fi
+
+          # Check for existing PR
+          EXISTING_PR=$(gh pr list \
+            --repo "${{ github.repository }}" \
+            --state open \
+            --search "in:body Closes #$ISSUE_NUM OR in:body Fixes #$ISSUE_NUM OR in:body Resolves #$ISSUE_NUM" \
+            --json number \
+            --jq '.[0].number // empty' 2>/dev/null || echo "")
+
+          if [[ -n "$EXISTING_PR" ]]; then
+            echo "PR #$EXISTING_PR already exists for issue #$ISSUE_NUM, skipping"
+            echo "should_process=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          echo "should_process=true" >> "$GITHUB_OUTPUT"
 
   # Launch Cursor agent for the task
   launch-cursor:
