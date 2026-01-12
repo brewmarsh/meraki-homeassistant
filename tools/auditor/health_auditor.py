@@ -4,7 +4,7 @@ import json
 import os
 import re
 import subprocess
-from typing import Any, Dict, List, Optional, Set
+from typing import Any, Dict, List, Optional
 
 import aiohttp
 
@@ -20,12 +20,14 @@ VERSION_FILE = "custom_components/meraki_ha/manifest.json"
 
 async def get_version() -> str:
     """Get the integration version from the manifest file."""
-    with open(VERSION_FILE, "r") as f:
+    with open(VERSION_FILE) as f:
         manifest = json.load(f)
     return manifest["version"]
 
 
-async def get_unhealthy_entities(session: aiohttp.ClientSession) -> List[Dict[str, Any]]:
+async def get_unhealthy_entities(
+    session: aiohttp.ClientSession,
+) -> List[Dict[str, Any]]:
     """Fetch all entities from Home Assistant and filter for unhealthy ones."""
     headers = {
         "Authorization": f"Bearer {HA_TOKEN}",
@@ -166,7 +168,7 @@ def update_github_issue(issue_number: int, unhealthy_entities: List[Dict[str, An
 
 
 async def main():
-    """Main execution function."""
+    """Run the main execution function."""
     if not all([HA_TOKEN, GITHUB_TOKEN, GITHUB_REPOSITORY]):
         print(
             "Missing required environment variables: "
@@ -175,7 +177,6 @@ async def main():
         return
 
     version = await get_version()
-    issue_title = f"[Release Audit] {version}"
 
     async with aiohttp.ClientSession() as session:
         unhealthy_entities = await get_unhealthy_entities(session)
