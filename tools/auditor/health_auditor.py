@@ -1,4 +1,5 @@
 """Automated Health Auditor for Meraki Integration."""
+
 import asyncio
 import json
 import os
@@ -41,10 +42,9 @@ async def get_unhealthy_entities(
             if response.status == 200:
                 entities = await response.json()
                 for entity in entities:
-                    if (
-                        entity["entity_id"].startswith(f"{DOMAIN}.")
-                        and entity["state"] in ["unavailable", "unknown"]
-                    ):
+                    if entity["entity_id"].startswith(f"{DOMAIN}.") and entity[
+                        "state"
+                    ] in ["unavailable", "unknown"]:
                         unhealthy_entities.append(entity)
             else:
                 print(f"Error fetching entities: {response.status}")
