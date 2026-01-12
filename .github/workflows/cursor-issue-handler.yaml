@@ -98,30 +98,118 @@ jobs:
           *Cursor will create a PR when the work is complete.*"
 
       - name: Launch Cursor agent
+        id: launch
         env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           CURSOR_API_KEY: ${{ secrets.CURSOR_API_KEY }}
+          GH_PAT: ${{ secrets.GH_PAT }}
         run: |
           ISSUE_NUM="${{ github.event.issue.number }}"
           ISSUE_TITLE="${{ github.event.issue.title }}"
           ISSUE_BODY=$(gh issue view "$ISSUE_NUM" --repo "${{ github.repository }}" --json body -q '.body' || echo "")
 
-          # Build the prompt for Cursor
-          PROMPT="You are a coding agent for a Home Assistant integration.
+          # Pass the PAT to Cursor so it can authenticate with GitHub
+          GH_PAT_VALUE="${GH_PAT:-}"
 
-          Task: ${ISSUE_TITLE}
-          Issue: #${ISSUE_NUM}
+          # Build a comprehensive prompt for Cursor with explicit completion checklist
+          PROMPT="You are a coding agent for a Home Assistant integration (Cisco Meraki).
 
+          ═══════════════════════════════════════════════════════════
+          TASK: ${ISSUE_TITLE}
+          ISSUE: #${ISSUE_NUM}
+          REPO: ${{ github.repository }}
+          ═══════════════════════════════════════════════════════════
+
+          GITHUB AUTHENTICATION:
+          If you need to run gh commands (issue comments, PR operations, etc.)
+          and get permission errors, set this environment variable first:
+          export GH_TOKEN='${GH_PAT_VALUE}'
+
+          Then retry the command. This token has write access to the repository.
+
+          ═══════════════════════════════════════════════════════════
+
+          REQUIREMENTS:
           ${ISSUE_BODY}
 
-          Steps:
-          1. Read issue #${ISSUE_NUM} comments for any prior context
-          2. Read AGENTS.md for project patterns
-          3. Implement the task following existing code patterns
-          4. Run ./run_checks.sh - must pass
-          5. Update issue: gh issue comment ${ISSUE_NUM} --body 'Done: <what> | Files: <list>'
-          6. Create PR with: Fixes #${ISSUE_NUM}
+          ═══════════════════════════════════════════════════════════
+          MANDATORY STEPS (Complete ALL before finishing):
+          ═══════════════════════════════════════════════════════════
 
-          Constraints: Follow existing code style. All tests must pass."
+          □ STEP 1: UNDERSTAND THE CODEBASE
+            - Read AGENTS.md for project patterns and conventions
+            - Read issue #${ISSUE_NUM} comments for any prior context
+            - Identify relevant files to modify
+
+          □ STEP 2: IMPLEMENT THE SOLUTION
+            - Follow existing code patterns exactly
+            - Use the correct logger: MerakiLoggers (see AGENTS.md section 3.2)
+            - Add type hints to all functions
+            - Use async/await for I/O operations
+            - Do NOT add unrelated changes or refactoring
+
+          □ STEP 3: ADD/UPDATE TESTS
+            - Add unit tests for any new functionality
+            - Ensure bug fixes have regression tests
+            - Tests go in tests/ directory mirroring source structure
+
+          □ STEP 4: VERIFY QUALITY (REQUIRED)
+            Run: ./run_checks.sh
+            This MUST pass with no errors. If it fails:
+            - Fix the errors
+            - Run again until it passes
+            - Do NOT proceed until all checks pass
+
+          □ STEP 5: UPDATE THE ISSUE
+            Run this command to report what you did:
+            gh issue comment ${ISSUE_NUM} --repo ${{ github.repository }} --body \"## ✅ Cursor Implementation Complete
+
+            ### Changes Made
+            <list each file changed and what you did>
+
+            ### Tests Added/Updated
+            <list test files>
+
+            ### Verification
+            - [x] ./run_checks.sh passes
+            - [x] All existing tests still pass
+            - [x] New tests cover the changes
+
+            ---
+            *PR ready for review*\"
+
+          □ STEP 6: CREATE THE PULL REQUEST
+            - PR title should be descriptive (e.g., 'feat(sensor): add temperature sensor')
+            - PR body MUST include: Closes #${ISSUE_NUM}
+            - Target branch: beta
+
+          ═══════════════════════════════════════════════════════════
+          CRITICAL CONSTRAINTS:
+          ═══════════════════════════════════════════════════════════
+
+          ❌ DO NOT:
+            - Skip running ./run_checks.sh
+            - Create PRs with failing tests
+            - Add features not requested in the issue
+            - Refactor unrelated code
+            - Use requirements.txt (use pyproject.toml)
+            - Use logging.getLogger(__name__) (use MerakiLoggers)
+
+          ✅ DO:
+            - Complete ALL 6 steps above
+            - Update the issue with your progress
+            - Create a PR that closes the issue
+            - Make the PR ready for human review
+
+          ═══════════════════════════════════════════════════════════
+          COMPLETION DEFINITION:
+          You are DONE when:
+          1. Code changes are complete
+          2. Tests are added/updated
+          3. ./run_checks.sh passes
+          4. Issue #${ISSUE_NUM} has your completion comment
+          5. PR is created with 'Closes #${ISSUE_NUM}' in body
+          ═══════════════════════════════════════════════════════════"
 
           # Call Cursor API
           BRANCH_NAME="cursor/${ISSUE_NUM}-task"
@@ -155,26 +243,34 @@ jobs:
           AGENT_ID=$(echo "$RESPONSE" | jq -r '.id // empty')
           if [[ -n "$AGENT_ID" ]]; then
             echo "Cursor agent launched with ID: $AGENT_ID"
+            echo "agent_id=$AGENT_ID" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Comment on issue - Agent launched
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          AGENT_ID="${{ steps.launch.outputs.agent_id }}"
+
           gh issue comment ${{ github.event.issue.number }} \
             --repo ${{ github.repository }} \
             --body "## ✅ Cursor Agent Launched
 
-          Cursor is now working on this issue. A PR will be created when complete.
+          Cursor is now working on this issue.
 
-          **Next Steps:**
-          1. Cursor will analyze the codebase
+          **Agent:** [\`$AGENT_ID\`](https://cursor.com/agents?id=$AGENT_ID)
+          **Branch:** \`cursor/${{ github.event.issue.number }}-task\`
+
+          **The agent will:**
+          1. Read AGENTS.md for project patterns
           2. Implement the requested changes
-          3. Run quality checks
-          4. Create a PR targeting beta
+          3. Add/update tests
+          4. Run ./run_checks.sh (must pass)
+          5. Comment on this issue with completion details
+          6. Create a PR targeting beta
 
           ---
-          *You will be notified when the PR is ready for review.*"
+          *[Track agent progress](https://cursor.com/agents?id=$AGENT_ID)*"
 
   # Handle errors
   handle-error:

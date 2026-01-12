@@ -1,9 +1,10 @@
-name: Jules PR Linker
+name: Agent PR Linker
 
 run-name: 'Link PR #${{ github.event.pull_request.number }} to Issue'
 
-# This workflow links Jules-created PRs back to their source issues
-# Triggers when any PR is opened and checks if it's from Jules
+# This workflow links AI agent-created PRs back to their source issues
+# Handles both Jules and Cursor PRs
+# Triggers when any PR is opened and checks if it's from an AI agent
 
 on:
   pull_request:
@@ -20,7 +21,7 @@ permissions:
 
 # Prevent duplicate linking for the same PR
 concurrency:
-  group: jules-pr-linker-${{ github.event.pull_request.number }}
+  group: agent-pr-linker-${{ github.event.pull_request.number }}
   cancel-in-progress: true
 
 jobs:
@@ -28,7 +29,7 @@ jobs:
     runs-on: ubuntu-latest
     # Inherits permissions from workflow level
     steps:
-      - name: Check if Jules PR
+      - name: Check if AI Agent PR
         id: check
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -40,18 +41,36 @@ jobs:
           echo "PR Author: $PR_AUTHOR"
           echo "Branch: $BRANCH"
 
-          # Check if this is a Jules PR
-          # Jules author formats: "app/google-labs-jules", "jules", or contains "jules"
-          IS_JULES="false"
-          if [[ "$PR_AUTHOR" == *"jules"* ]] || [[ "$PR_AUTHOR" == *"google-labs"* ]] || [[ "$PR_AUTHOR" == *"[bot]"* ]]; then
-            IS_JULES="true"
+          # Detect which agent created this PR
+          AGENT_TYPE=""
+
+          # Check for Jules
+          if [[ "$PR_AUTHOR" == *"jules"* ]] || [[ "$PR_AUTHOR" == *"google-labs"* ]]; then
+            AGENT_TYPE="jules"
             echo "Detected Jules PR by author: $PR_AUTHOR"
           fi
 
-          echo "is_jules=$IS_JULES" >> "$GITHUB_OUTPUT"
+          # Check for Cursor (branch pattern or author)
+          if [[ "$BRANCH" == cursor/* ]] || [[ "$BRANCH" == cursor-review/* ]] || [[ "$PR_AUTHOR" == *"cursor"* ]]; then
+            AGENT_TYPE="cursor"
+            echo "Detected Cursor PR by branch: $BRANCH"
+          fi
 
-          if [[ "$IS_JULES" != "true" ]]; then
-            echo "Not a Jules PR - skipping"
+          # Also check for bot accounts that might be either agent
+          if [[ -z "$AGENT_TYPE" ]] && [[ "$PR_AUTHOR" == *"[bot]"* ]]; then
+            # Check branch name to determine which agent
+            if [[ "$BRANCH" == cursor/* ]]; then
+              AGENT_TYPE="cursor"
+            else
+              AGENT_TYPE="jules"
+            fi
+            echo "Detected bot PR, determined agent: $AGENT_TYPE"
+          fi
+
+          echo "agent_type=$AGENT_TYPE" >> "$GITHUB_OUTPUT"
+
+          if [[ -z "$AGENT_TYPE" ]]; then
+            echo "Not an AI agent PR - skipping"
             exit 0
           fi
 
@@ -74,7 +93,7 @@ jobs:
             fi
           fi
 
-          # Method 3: Extract from branch name (e.g., "bugfix/something-59-randomid")
+          # Method 3: Extract from branch name (e.g., "cursor/123-task" or "bugfix/something-59-randomid")
           if [[ -z "$ISSUE_NUM" ]]; then
             # Look for issue number pattern in branch name
             ISSUE_NUM=$(echo "$BRANCH" | grep -oE '[-/][0-9]+[-/]' | grep -oE '[0-9]+' | head -1)
@@ -83,7 +102,15 @@ jobs:
             fi
           fi
 
-          # Method 4: Try just numbers in branch name after common prefixes
+          # Method 4: For cursor branches like "cursor/123-task"
+          if [[ -z "$ISSUE_NUM" ]]; then
+            ISSUE_NUM=$(echo "$BRANCH" | sed -E 's/^(cursor|cursor-review)\///' | grep -oE '^[0-9]+' | head -1)
+            if [[ -n "$ISSUE_NUM" ]]; then
+              echo "Found issue from cursor branch pattern: #$ISSUE_NUM"
+            fi
+          fi
+
+          # Method 5: Try just numbers in branch name after common prefixes
           if [[ -z "$ISSUE_NUM" ]]; then
             ISSUE_NUM=$(echo "$BRANCH" | sed -E 's/^(bugfix|fix|feat|feature)\///' | grep -oE '^[^-]+-[0-9]+' | grep -oE '[0-9]+' | head -1)
             if [[ -n "$ISSUE_NUM" ]]; then
@@ -104,7 +131,7 @@ jobs:
           fi
 
       - name: Comment on issue - PR created
-        if: steps.check.outputs.is_jules == 'true' && steps.check.outputs.issue_number != ''
+        if: steps.check.outputs.agent_type != '' && steps.check.outputs.issue_number != ''
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -114,13 +141,23 @@ jobs:
           PR_URL="${{ github.event.pull_request.html_url }}"
           BRANCH="${{ github.event.pull_request.head.ref }}"
           PR_AUTHOR="${{ github.event.pull_request.user.login }}"
+          AGENT_TYPE="${{ steps.check.outputs.agent_type }}"
 
           REPO="${{ github.repository }}"
           BRANCH_URL="https://github.com/${REPO}/tree/${BRANCH}"
 
+          # Set agent display name
+          if [[ "$AGENT_TYPE" == "cursor" ]]; then
+            AGENT_NAME="Cursor"
+            AGENT_EMOJI="🖱️"
+          else
+            AGENT_NAME="Jules"
+            AGENT_EMOJI="🤖"
+          fi
+
           gh issue comment "$ISSUE_NUM" \
             --repo "$REPO" \
-            --body "## ✅ Jules Created a Pull Request
+            --body "## ${AGENT_EMOJI} ${AGENT_NAME} Created a Pull Request
 
           **PR**: [#${PR_NUM} - ${PR_TITLE}](${PR_URL})
           **Branch**: [\`${BRANCH}\`](${BRANCH_URL})
@@ -128,14 +165,14 @@ jobs:
 
           **Next Steps:**
           1. ⏳ CI is running quality checks
-          2. 🤖 Automated code review
+          2. 🔍 Automated code review
           3. 📋 Human review before merge
 
           ---
           *This PR will automatically close this issue when merged.*"
 
       - name: Update issue labels
-        if: steps.check.outputs.is_jules == 'true' && steps.check.outputs.issue_number != ''
+        if: steps.check.outputs.agent_type != '' && steps.check.outputs.issue_number != ''
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -148,7 +185,7 @@ jobs:
             --add-label "pr-pending" 2>/dev/null || true
 
       - name: Add issue reference to PR if missing
-        if: steps.check.outputs.is_jules == 'true' && steps.check.outputs.issue_number != ''
+        if: steps.check.outputs.agent_type != '' && steps.check.outputs.issue_number != ''
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |

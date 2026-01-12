@@ -270,8 +270,10 @@ jobs:
 
                ---
                *Handing off to Cursor*"
-            4. Run: gh pr edit ${{ steps.pr.outputs.pr_number }} --add-label "jules-needs-help"
-            5. EXIT immediately - Cursor will read the issue and take over
+            4. Add label AND trigger handoff workflow (BOTH commands required):
+               gh pr edit ${{ steps.pr.outputs.pr_number }} --add-label "jules-needs-help" --repo ${{ github.repository }}
+               gh api repos/${{ github.repository }}/dispatches --method POST -f event_type='jules-needs-help' -f client_payload[pr_number]='${{ steps.pr.outputs.pr_number }}' -f client_payload[branch]='${{ steps.pr.outputs.pr_branch }}' -f client_payload[issue_number]='${{ steps.pr.outputs.issue_number }}'
+            5. EXIT immediately - Cursor will take over
 
             DO NOT keep running ./run_checks.sh hoping for different results.
 

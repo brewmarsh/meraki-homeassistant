@@ -137,6 +137,7 @@ jobs:
         if: steps.pr.outputs.skip != 'true'
         env:
           CURSOR_API_KEY: ${{ secrets.CURSOR_API_KEY }}
+          GH_PAT: ${{ secrets.GH_PAT }}
         run: |
           JULES_BRANCH="${{ steps.pr.outputs.head_ref }}"
           CURSOR_BRANCH="cursor-review/${JULES_BRANCH}"
@@ -147,22 +148,107 @@ jobs:
           fi
 
           ISSUE_NUM="${{ steps.pr.outputs.issue_number }}"
+          PR_NUM="${{ steps.pr.outputs.number }}"
+          GH_PAT_VALUE="${GH_PAT:-}"
 
-          PROMPT="You are a code review agent for a Home Assistant integration.
+          # Comprehensive code review prompt
+          PROMPT="You are a code review agent for a Home Assistant integration (Cisco Meraki).
 
-          PR: #${{ steps.pr.outputs.number }} | Issue: #$ISSUE_NUM
-          Source: $JULES_BRANCH | Target: $CURSOR_BRANCH
-          Requirements: ${ISSUE_BODY:-See issue}
+          ═══════════════════════════════════════════════════════════
+          CODE REVIEW TASK
+          PR: #$PR_NUM | Issue: #$ISSUE_NUM
+          Source Branch: $JULES_BRANCH
+          REPO: ${{ github.repository }}
+          ═══════════════════════════════════════════════════════════
 
-          Steps:
-          1. Read issue #$ISSUE_NUM comments for context from previous agents
-          2. Read AGENTS.md for project patterns
-          3. Review implementation quality and test coverage
-          4. Run ./run_checks.sh - must pass
-          5. Update issue: gh issue comment $ISSUE_NUM --body 'Review: <findings>'
-          6. Create PR targeting $JULES_BRANCH
+          GITHUB AUTHENTICATION:
+          If you need to run gh commands and get permission errors, run:
+          export GH_TOKEN='${GH_PAT_VALUE}'
+          Then retry the command.
 
-          Constraints: Don't add unrelated changes. All tests must pass."
+          ═══════════════════════════════════════════════════════════
+
+          ORIGINAL REQUIREMENTS:
+          ${ISSUE_BODY:-See issue #$ISSUE_NUM for requirements}
+
+          ═══════════════════════════════════════════════════════════
+          REVIEW CHECKLIST (Check ALL items):
+          ═══════════════════════════════════════════════════════════
+
+          □ STEP 1: UNDERSTAND CONTEXT
+            - Read AGENTS.md for project patterns and conventions
+            - Read issue #$ISSUE_NUM and all comments for full context
+            - Review the changes made in PR #$PR_NUM
+
+          □ STEP 2: VERIFY REQUIREMENTS MET
+            - Does the implementation address ALL requirements in issue #$ISSUE_NUM?
+            - Are there any missing features or edge cases?
+            - If requirements are NOT fully met, implement the missing parts
+
+          □ STEP 3: CHECK CODE QUALITY
+            Review for:
+            - Correct logger usage (MerakiLoggers, not logging.getLogger)
+            - Type hints on all functions
+            - Proper async/await patterns
+            - Error handling and edge cases
+            - Code follows existing patterns in codebase
+            - No hardcoded secrets or credentials
+
+          □ STEP 4: CHECK TEST COVERAGE
+            - Are there tests for new functionality?
+            - Do tests cover edge cases?
+            - If tests are missing, ADD THEM
+
+          □ STEP 5: VERIFY QUALITY CHECKS
+            Run: ./run_checks.sh
+            This MUST pass. Fix any errors found.
+
+          □ STEP 6: UPDATE THE ISSUE
+            Run this command:
+            gh issue comment $ISSUE_NUM --repo ${{ github.repository }} --body \"## 🔍 Cursor Code Review Complete
+
+            ### Review Findings
+            <list what you reviewed>
+
+            ### Changes Made (if any)
+            <list any fixes or improvements you made>
+
+            ### Quality Verification
+            - [x] Requirements fully implemented
+            - [x] Code follows project patterns
+            - [x] Tests exist and pass
+            - [x] ./run_checks.sh passes
+
+            ---
+            *Ready for human review*\"
+
+          □ STEP 7: CREATE REVIEW PR
+            - Create PR targeting $JULES_BRANCH (not beta)
+            - Include review findings in PR description
+
+          ═══════════════════════════════════════════════════════════
+          CRITICAL RULES:
+          ═══════════════════════════════════════════════════════════
+
+          ❌ DO NOT:
+            - Skip any checklist items
+            - Add unrelated refactoring
+            - Change code style preferences
+            - Skip running ./run_checks.sh
+
+          ✅ DO:
+            - Fix any issues you find
+            - Add missing tests
+            - Ensure ALL requirements from issue are met
+            - Update the issue with your findings
+
+          ═══════════════════════════════════════════════════════════
+          COMPLETION: You are DONE when:
+          1. All checklist items are verified
+          2. ./run_checks.sh passes
+          3. Issue has your review comment
+          4. Review PR is created targeting $JULES_BRANCH
+          ═══════════════════════════════════════════════════════════"
 
           ESCAPED_PROMPT=$(echo "$PROMPT" | jq -Rs .)
 

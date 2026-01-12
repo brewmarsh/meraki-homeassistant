@@ -167,17 +167,20 @@ Both agents can be assigned issues directly:
 
 ## Workflow Files
 
-| Workflow                    | Trigger                       | Purpose                             |
-| --------------------------- | ----------------------------- | ----------------------------------- |
-| `jules-issue-handler.yaml`  | Issue labeled `jules-issue`   | Launch Jules to work on issue       |
-| `cursor-issue-handler.yaml` | Issue labeled `cursor-work`   | Launch Cursor directly on issue     |
-| `jules-pr-linker.yaml`      | PR opened by Jules            | Link PR to issue, update labels     |
-| `jules-ci-fix.yaml`         | Beta CI fails on Jules PR     | Self-heal: Jules fixes CI errors    |
-| `jules-needs-help.yaml`     | PR labeled `jules-needs-help` | Handoff: Jules asks Cursor for help |
-| `cursor-launcher.yaml`      | Beta CI passes on Jules PR    | Launch Cursor for code review       |
-| `cursor-fix.yaml`           | Beta CI on Cursor PR          | Handle Cursor PR: fix or merge      |
-| `beta-ci.yaml`              | PR to any branch except main  | Run all CI checks                   |
-| `beta-version-update.yaml`  | PR merged to beta             | Cleanup, version bump, release      |
+| Workflow                       | Trigger                           | Purpose                             |
+| ------------------------------ | --------------------------------- | ----------------------------------- |
+| `jules-issue-handler.yaml`     | Issue labeled `jules-issue`       | Launch Jules to work on issue       |
+| `cursor-issue-handler.yaml`    | Issue labeled `cursor-work`       | Launch Cursor directly on issue     |
+| `jules-pr-linker.yaml`         | PR opened by any agent            | Link PR to issue, update labels     |
+| `jules-ci-fix.yaml`            | Beta CI fails on Jules PR         | Self-heal: Jules fixes CI errors    |
+| `jules-needs-help.yaml`        | PR labeled OR repository_dispatch | Handoff: Jules asks Cursor for help |
+| `cursor-launcher.yaml`         | Beta CI passes on Jules PR        | Launch Cursor for code review       |
+| `cursor-fix.yaml`              | Beta CI on Cursor PR              | Handle Cursor PR: fix or merge      |
+| `ready-for-review-merger.yaml` | CI passes + ready-for-review      | Auto-merge reviewed PRs             |
+| `beta-ci.yaml`                 | PR to any branch except main      | Run all CI checks                   |
+| `beta-version-update.yaml`     | PR merged to beta                 | Cleanup, version bump, release      |
+
+**Note:** `jules-pr-linker.yaml` handles BOTH Jules and Cursor PRs. It detects the agent type from the branch name or author.
 
 ## Labels
 
@@ -185,10 +188,12 @@ Both agents can be assigned issues directly:
 | -------------------- | ------ | ---------------------------------- |
 | `jules-issue`        | Purple | Issue assigned to Jules            |
 | `cursor-work`        | Blue   | Issue assigned directly to Cursor  |
+| `status: todo`       | Gray   | Task not yet started               |
 | `in-progress`        | Yellow | Agent is working on this           |
-| `pr-pending`         | Green  | PR created, awaiting review        |
+| `pr-pending`         | Green  | PR created, awaiting CI/review     |
 | `jules-needs-help`   | Orange | Jules got stuck, requesting Cursor |
 | `cursor-reviewing`   | Blue   | Cursor is reviewing the PR         |
+| `cursor-ci-fixed`    | Blue   | Cursor fixed CI, now reviewing     |
 | `cursor-reviewed`    | Green  | Cursor completed review            |
 | `ready-for-review`   | Green  | Ready for human review             |
 | `needs-human-review` | Red    | Escalated - agent couldn't fix     |
@@ -283,6 +288,51 @@ To prevent agents from interfering with each other:
 2. **Cursor skips** if:
    - PR already has `cursor-reviewed` label
    - Branch is not `cursor-review/*` (for fix workflow)
+
+---
+
+## GITHUB_TOKEN Limitation
+
+**Important:** GitHub Actions triggered by `GITHUB_TOKEN` do NOT trigger other workflows. This is a security feature to prevent infinite loops.
+
+### Impact
+
+When a workflow adds a label using `GITHUB_TOKEN`:
+
+```bash
+gh pr edit <PR#> --add-label "jules-needs-help"  # Won't trigger other workflows!
+```
+
+The `pull_request: [labeled]` event won't trigger other workflows.
+
+### Solution: repository_dispatch
+
+We use `repository_dispatch` to directly trigger workflows:
+
+```bash
+# This DOES trigger the jules-needs-help workflow
+gh api repos/{owner}/{repo}/dispatches \
+  --method POST \
+  -f event_type='jules-needs-help' \
+  -f client_payload[pr_number]='123' \
+  -f client_payload[branch]='feature/my-branch' \
+  -f client_payload[issue_number]='456'
+```
+
+### Workflows Using repository_dispatch
+
+| Workflow                | Event Type         | Triggered By                       |
+| ----------------------- | ------------------ | ---------------------------------- |
+| `jules-needs-help.yaml` | `jules-needs-help` | `jules-ci-fix.yaml`, Jules prompts |
+
+### Agent Prompts
+
+When telling Jules to hand off to Cursor, the prompt instructs Jules to:
+
+1. Add the label (for visibility): `gh pr edit <PR#> --add-label "jules-needs-help"`
+2. Trigger the workflow: `gh api repos/.../dispatches -f event_type='jules-needs-help' ...`
+
+Both are required because the label alone won't trigger the workflow.
 
 ## CI Error Handling
 
@@ -401,7 +451,48 @@ tests/conftest.py → tests/const.py → custom_components/meraki_ha/types.py
 | ---------------- | --------------------------------- | --------------------------------- |
 | `JULES_API_KEY`  | jules-issue-handler, jules-ci-fix | Authenticate with Jules API       |
 | `CURSOR_API_KEY` | cursor-launcher, cursor-fix       | Authenticate with Cursor API      |
+| `GH_PAT`         | All Cursor workflows              | GitHub access for Cursor agents   |
 | `GITHUB_TOKEN`   | All workflows                     | GitHub API access (auto-provided) |
+
+### GH_PAT Setup
+
+Cursor cloud agents run in their own environment and may not have GitHub access.
+The `GH_PAT` secret allows Cursor to comment on issues, update PRs, etc.
+
+**Note:** GitHub doesn't allow secrets starting with `GITHUB_`, so we use `GH_PAT`.
+
+**To create:**
+
+1. Go to GitHub → Settings → Developer settings → Personal access tokens → Tokens (classic)
+2. Generate new token with these scopes:
+   - `repo` (full control of private repositories)
+3. Copy the token
+4. Add to repository: Settings → Secrets → Actions → New repository secret
+   - Name: `GH_PAT`
+   - Value: Your token
+
+The Cursor prompts include instructions to use this token if permission errors occur.
+
+---
+
+## Cursor Cloud Agent API
+
+The workflows use Cursor's Cloud Agent API to launch and manage agents.
+
+### API Documentation
+
+- **Cloud Agent API:** <https://cursor.com/docs/cloud-agent/api/endpoints>
+
+### How Agent Completion is Detected
+
+We do NOT use external webhooks. Instead:
+
+1. Cursor agents are launched with `autoCreatePr: true`
+2. When the agent completes, it creates a PR
+3. The PR creation triggers `jules-pr-linker.yaml` (handles both Jules and Cursor)
+4. The workflow links the PR to the issue and updates labels
+
+This approach requires no external services or webhook forwarding.
 
 ## Manual Triggers
 
@@ -421,11 +512,72 @@ workflow_dispatch:
 
 Each workflow uses concurrency groups to prevent duplicate runs:
 
-| Workflow               | Concurrency Group             |
-| ---------------------- | ----------------------------- |
-| `jules-issue-handler`  | `jules-issue-{issue_number}`  |
-| `cursor-issue-handler` | `cursor-issue-{issue_number}` |
-| `jules-ci-fix`         | `jules-fix-{branch}`          |
-| `jules-needs-help`     | `jules-help-{pr_number}`      |
-| `cursor-launcher`      | `cursor-review-{branch}`      |
-| `cursor-fix`           | `cursor-fix-{branch}`         |
+| Workflow                  | Concurrency Group             |
+| ------------------------- | ----------------------------- |
+| `jules-issue-handler`     | `jules-issue-{issue_number}`  |
+| `cursor-issue-handler`    | `cursor-issue-{issue_number}` |
+| `jules-ci-fix`            | `jules-fix-{branch}`          |
+| `jules-needs-help`        | `jules-help-{pr_number}`      |
+| `cursor-launcher`         | `cursor-review-{branch}`      |
+| `cursor-fix`              | `cursor-fix-{branch}`         |
+| `ready-for-review-merger` | `ready-merger-{branch}`       |
+
+---
+
+## Agent Prompt Best Practices
+
+The prompts sent to agents include explicit completion checklists to ensure tasks are fully completed.
+
+### Key Elements in Every Prompt
+
+1. **Task Context**: Issue number, repository, branch
+2. **Requirements**: The actual task from the issue
+3. **Step-by-Step Checklist**: Numbered steps with checkboxes
+4. **Verification Command**: `./run_checks.sh`
+5. **Issue Update Template**: Exact command to comment on issue
+6. **PR Requirements**: What the PR must include
+7. **Constraints**: What NOT to do
+8. **Definition of Done**: Explicit completion criteria
+
+### Example Prompt Structure
+
+```text
+═══════════════════════════════════════════════════════════
+TASK: <title>
+ISSUE: #<number>
+═══════════════════════════════════════════════════════════
+
+REQUIREMENTS:
+<issue body>
+
+═══════════════════════════════════════════════════════════
+MANDATORY STEPS (Complete ALL):
+═══════════════════════════════════════════════════════════
+
+□ STEP 1: <action>
+□ STEP 2: <action>
+□ STEP 3: VERIFY (./run_checks.sh must pass)
+□ STEP 4: UPDATE ISSUE (gh issue comment ...)
+□ STEP 5: CREATE PR
+
+═══════════════════════════════════════════════════════════
+CONSTRAINTS:
+- Don't skip any steps
+- All tests must pass
+═══════════════════════════════════════════════════════════
+
+COMPLETION DEFINITION:
+You are DONE when: <explicit criteria>
+═══════════════════════════════════════════════════════════
+```
+
+### Why This Matters
+
+Without explicit completion criteria, agents may:
+
+- Skip running quality checks
+- Not link PRs to issues
+- Not comment on issues with progress
+- Leave tasks partially complete
+
+The structured prompts ensure consistent, complete task execution.

@@ -175,7 +175,6 @@ jobs:
         if: steps.check.outputs.skip != 'true' && steps.escalate.outputs.handoff_to_cursor == 'true'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          CURSOR_API_KEY: ${{ secrets.CURSOR_API_KEY }}
         run: |
           PR_NUM="${{ steps.check.outputs.pr_number }}"
           BRANCH="${{ steps.check.outputs.branch }}"
@@ -217,7 +216,7 @@ jobs:
             --body "## 🔄 Handoff to Cursor
 
           Jules attempted 3 fixes but CI still fails.
-          Handing off to Cursor for a fresh perspective.
+          Triggering Cursor handoff workflow...
 
           ---
           *Automated handoff*"
@@ -225,61 +224,34 @@ jobs:
           # Add cursor-reviewing label to prevent Jules from trying again
           gh pr edit "$TARGET_PR" \
             --repo "${{ github.repository }}" \
-            --add-label "cursor-reviewing" 2>/dev/null || true
+            --add-label "cursor-reviewing" \
+            --add-label "jules-needs-help" 2>/dev/null || true
 
-          # Launch Cursor agent on the TARGET branch
-          PROMPT="You are a CI fix agent for a Home Assistant integration. Taking over from Jules.
+          # Trigger the jules-needs-help workflow via repository_dispatch
+          # This bypasses the GITHUB_TOKEN limitation where bot labels don't trigger workflows
+          echo "Triggering jules-needs-help workflow via repository_dispatch..."
 
-          Branch: $TARGET_BRANCH | Issue: #$ISSUE_NUM
-          Jules attempted 3 fixes without success. Fresh perspective needed.
+          gh api repos/${{ github.repository }}/dispatches \
+            --method POST \
+            -f event_type='jules-needs-help' \
+            -f client_payload[pr_number]="$TARGET_PR" \
+            -f client_payload[branch]="$TARGET_BRANCH" \
+            -f client_payload[issue_number]="$ISSUE_NUM"
 
-          Steps:
-          1. Read issue #$ISSUE_NUM comments to see what Jules tried
-          2. Read AGENTS.md for project patterns
-          3. Run ./run_checks.sh to see current errors
-          4. Fix with a different approach than Jules used
-          5. Run ./run_checks.sh - must pass
-          6. Commit: fix(cursor): resolve CI errors after Jules handoff
-          7. Update issue: gh issue comment $ISSUE_NUM --body 'Fixed: <what> because <why>'
-
-          Constraints: Push to $TARGET_BRANCH. Don't repeat Jules' failed approaches."
-
-          # Call Cursor API
-          ESCAPED_PROMPT=$(echo "$PROMPT" | jq -Rs .)
-
-          RESPONSE=$(curl -sS -X POST "https://api.cursor.com/v0/agents" \
-            -u "${CURSOR_API_KEY}:" \
-            -H "Content-Type: application/json" \
-            -d "{
-              \"source\": {
-                \"repository\": \"https://github.com/${{ github.repository }}\",
-                \"ref\": \"$TARGET_BRANCH\"
-              },
-              \"prompt\": {
-                \"text\": ${ESCAPED_PROMPT}
-              },
-              \"target\": {
-                \"branchName\": \"$TARGET_BRANCH\",
-                \"autoCreatePr\": false
-              }
-            }")
-
-          echo "Cursor API Response: $RESPONSE"
-
-          AGENT_ID=$(echo "$RESPONSE" | jq -r '.id // empty')
+          echo "✅ Handoff workflow triggered"
 
           if [[ -n "$ISSUE_NUM" ]]; then
             gh issue comment "$ISSUE_NUM" \
               --repo "${{ github.repository }}" \
               --body "## 🔄 Handoff: Jules → Cursor
 
-            Jules exhausted 3 fix attempts. Cursor is taking over.
+            Jules exhausted 3 fix attempts. Cursor handoff triggered.
 
-            | PR | Branch | Agent |
-            |----|--------|-------|
-            | #$TARGET_PR | \`$TARGET_BRANCH\` | [${AGENT_ID:-...}](https://cursor.com/agents?id=$AGENT_ID) |
+            | PR | Branch |
+            |----|--------|
+            | #$TARGET_PR | \`$TARGET_BRANCH\` |
 
-            Cursor will provide detailed updates."
+            Cursor will provide detailed updates shortly."
           fi
 
       # Note: Human escalation is handled by cursor-fix.yaml after Cursor attempts fail
@@ -416,37 +388,73 @@ jobs:
           include_last_commit: false
           include_commit_log: false
           prompt: |
-            You are a CI fix agent for a Home Assistant integration.
+            You are a CI fix agent for a Home Assistant integration (Cisco Meraki).
 
             Your plan is auto-approved - proceed immediately without waiting for human interaction.
 
-            Failed jobs: ${{ steps.ci_failure.outputs.failed_jobs }}
+            ═══════════════════════════════════════════════════════════
+            CI FIX TASK
+            Issue: #${{ steps.check.outputs.issue_number }}
+            Failed Jobs: ${{ steps.ci_failure.outputs.failed_jobs }}
+            REPO: ${{ github.repository }}
+            ═══════════════════════════════════════════════════════════
 
-            Error logs:
+            CI ERROR LOGS:
             ```
             ${{ steps.errors.outputs.ci_errors }}
             ```
 
-            Steps:
-            1. Read issue #${{ steps.check.outputs.issue_number }} comments for context from previous attempts
-            2. Run `./run_checks.sh` to reproduce errors locally
-            3. Read `AGENTS.md` for project patterns and conventions
-            4. Fix ONLY the errors shown above
-            5. Run `./run_checks.sh` again - must pass with no errors
-            6. Commit with message: `fix(jules): resolve CI errors`
-            7. Update issue: `gh issue comment ${{ steps.check.outputs.issue_number }} --body "Fixed: <what> because <why>"`
+            ═══════════════════════════════════════════════════════════
+            FIX STEPS (Complete ALL):
+            ═══════════════════════════════════════════════════════════
 
-            Constraints:
-            - Target branch: `${{ steps.check.outputs.base_branch || 'beta' }}`
+            □ STEP 1: UNDERSTAND CONTEXT
+              - Read AGENTS.md for project patterns
+              - Read issue #${{ steps.check.outputs.issue_number }} comments for prior fix attempts
+              - Run ./run_checks.sh to reproduce errors
+
+            □ STEP 2: FIX THE ERRORS
+              - Fix ONLY the errors shown above
+              - Do NOT refactor unrelated code
+              - Do NOT add new features
+
+            □ STEP 3: VERIFY THE FIX
+              Run: ./run_checks.sh
+              This MUST pass with no errors before proceeding.
+
+            □ STEP 4: COMMIT
+              Commit message: fix(jules): resolve CI errors
+
+            □ STEP 5: UPDATE THE ISSUE
+              Run:
+              gh issue comment ${{ steps.check.outputs.issue_number }} --repo ${{ github.repository }} --body "## 🔧 Jules CI Fix Applied
+
+              ### Errors Fixed
+              <list what you fixed>
+
+              ### Root Cause
+              <explain why the error occurred>
+
+              ### Verification
+              - [x] ./run_checks.sh passes
+
+              ---
+              *CI fix complete*"
+
+            ═══════════════════════════════════════════════════════════
+            CONSTRAINTS:
+            - Target branch: ${{ steps.check.outputs.base_branch || 'beta' }}
             - Don't refactor unrelated code
-            - All tests must pass before creating PR
+            - All tests must pass
+            ═══════════════════════════════════════════════════════════
 
-            CRITICAL - NEVER LOOP ENDLESSLY:
+            ESCAPE HATCH - If stuck after 2 fix attempts:
+
             If ./run_checks.sh fails with the SAME error after 2 fix attempts:
             1. STOP trying to fix it yourself
             2. Commit your current progress (even if broken)
             3. Update issue with handoff context:
-               gh issue comment ${{ steps.check.outputs.issue_number }} --body "## 🆘 Jules Handoff to Cursor
+               gh issue comment ${{ steps.check.outputs.issue_number }} --repo ${{ github.repository }} --body "## 🆘 Jules Handoff to Cursor
 
                ### ✅ What I Completed
                <list files changed and what you fixed>
@@ -462,8 +470,10 @@ jobs:
 
                ---
                *Handing off to Cursor*"
-            4. Run: gh pr edit <PR#> --add-label "jules-needs-help"
-            5. EXIT immediately - Cursor will read the issue and take over
+            4. Add label AND trigger handoff workflow (BOTH commands required):
+               gh pr edit <PR#> --add-label "jules-needs-help" --repo ${{ github.repository }}
+               gh api repos/${{ github.repository }}/dispatches --method POST -f event_type='jules-needs-help' -f client_payload[pr_number]='<PR#>' -f client_payload[branch]='${{ steps.check.outputs.branch }}' -f client_payload[issue_number]='${{ steps.check.outputs.issue_number }}'
+            5. EXIT immediately - Cursor will take over
 
             DO NOT keep running ./run_checks.sh hoping for different results.
 

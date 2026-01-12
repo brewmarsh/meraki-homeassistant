@@ -96,35 +96,97 @@ jobs:
           include_last_commit: false
           include_commit_log: false
           prompt: |
-            You are a coding agent for a Home Assistant integration.
+            You are a coding agent for a Home Assistant integration (Cisco Meraki).
 
             Your plan is auto-approved - proceed immediately without waiting for human interaction.
 
-            Task: ${{ github.event.issue.title }}
-            Issue: #${{ github.event.issue.number }}
+            ═══════════════════════════════════════════════════════════
+            TASK: ${{ github.event.issue.title }}
+            ISSUE: #${{ github.event.issue.number }}
+            REPO: ${{ github.repository }}
+            ═══════════════════════════════════════════════════════════
 
+            REQUIREMENTS:
             ${{ github.event.issue.body }}
 
-            Steps:
-            1. Read issue #${{ github.event.issue.number }} comments for any prior context
-            2. Read `AGENTS.md` for project patterns and conventions
-            3. Implement the task following existing code patterns
-            4. Run `./run_checks.sh` - must pass with no errors
-            5. Update issue: `gh issue comment ${{ github.event.issue.number }} --body "Done: <what> | Files: <list>"`
-            6. Create PR with `Closes #${{ github.event.issue.number }}` in body
+            ═══════════════════════════════════════════════════════════
+            MANDATORY STEPS (Complete ALL before finishing):
+            ═══════════════════════════════════════════════════════════
 
-            Constraints:
-            - All tests must pass before creating PR
-            - Follow existing code style and patterns
-            - Don't add unrelated changes
+            □ STEP 1: UNDERSTAND THE CODEBASE
+              - Read AGENTS.md for project patterns and conventions
+              - Read issue #${{ github.event.issue.number }} comments for any prior context
+              - Identify relevant files to modify
 
-            CRITICAL - NEVER LOOP ENDLESSLY:
+            □ STEP 2: IMPLEMENT THE SOLUTION
+              - Follow existing code patterns exactly
+              - Use the correct logger: MerakiLoggers (see AGENTS.md section 3.2)
+              - Add type hints to all functions
+              - Use async/await for I/O operations
+              - Do NOT add unrelated changes or refactoring
+
+            □ STEP 3: ADD/UPDATE TESTS
+              - Add unit tests for any new functionality
+              - Ensure bug fixes have regression tests
+              - Tests go in tests/ directory mirroring source structure
+
+            □ STEP 4: VERIFY QUALITY (REQUIRED)
+              Run: ./run_checks.sh
+              This MUST pass with no errors. If it fails:
+              - Fix the errors
+              - Run again until it passes
+              - Do NOT proceed until all checks pass
+
+            □ STEP 5: UPDATE THE ISSUE
+              Run this command to report what you did:
+              gh issue comment ${{ github.event.issue.number }} --repo ${{ github.repository }} --body "## ✅ Jules Implementation Complete
+
+              ### Changes Made
+              <list each file changed and what you did>
+
+              ### Tests Added/Updated
+              <list test files>
+
+              ### Verification
+              - [x] ./run_checks.sh passes
+              - [x] All existing tests still pass
+              - [x] New tests cover the changes
+
+              ---
+              *PR ready for review*"
+
+            □ STEP 6: CREATE THE PULL REQUEST
+              - PR title should be descriptive (e.g., 'feat(sensor): add temperature sensor')
+              - PR body MUST include: Closes #${{ github.event.issue.number }}
+              - Target branch: beta
+
+            ═══════════════════════════════════════════════════════════
+            CRITICAL CONSTRAINTS:
+            ═══════════════════════════════════════════════════════════
+
+            ❌ DO NOT:
+              - Skip running ./run_checks.sh
+              - Create PRs with failing tests
+              - Add features not requested in the issue
+              - Refactor unrelated code
+              - Use requirements.txt (use pyproject.toml)
+              - Use logging.getLogger(__name__) (use MerakiLoggers)
+
+            ✅ DO:
+              - Complete ALL 6 steps above
+              - Update the issue with your progress
+              - Create a PR that closes the issue
+
+            ═══════════════════════════════════════════════════════════
+            ESCAPE HATCH - If stuck after 2 fix attempts:
+            ═══════════════════════════════════════════════════════════
+
             If ./run_checks.sh fails with the SAME error after 2 fix attempts:
             1. STOP trying to fix it yourself
             2. Commit your current progress (even if broken)
-            3. Create a PR with your progress
+            3. Create a PR with your progress (note the PR number)
             4. Update issue with handoff context:
-               gh issue comment ${{ github.event.issue.number }} --body "## 🆘 Jules Handoff to Cursor
+               gh issue comment ${{ github.event.issue.number }} --repo ${{ github.repository }} --body "## 🆘 Jules Handoff to Cursor
 
                ### ✅ What I Completed
                <list files changed and what you implemented>
@@ -140,7 +202,9 @@ jobs:
 
                ---
                *Handing off to Cursor*"
-            5. Run: gh pr edit <PR#> --add-label "jules-needs-help"
-            6. EXIT immediately - Cursor will read the issue and take over
+            5. Add label AND trigger handoff workflow (BOTH commands required):
+               gh pr edit <PR#> --add-label "jules-needs-help" --repo ${{ github.repository }}
+               gh api repos/${{ github.repository }}/dispatches --method POST -f event_type='jules-needs-help' -f client_payload[pr_number]='<PR#>' -f client_payload[branch]='<branch_name>' -f client_payload[issue_number]='${{ github.event.issue.number }}'
+            6. EXIT immediately - Cursor will take over
 
             DO NOT keep running ./run_checks.sh hoping for different results.

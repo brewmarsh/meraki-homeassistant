@@ -581,4 +581,107 @@ The project uses GitHub Actions for CI/CD:
 
 ---
 
+## 15. Task Completion Checklist ⚠️ CRITICAL
+
+**A task is NOT complete until ALL of these are done:**
+
+### 15.1. Before You Start
+
+- [ ] Read this entire `AGENTS.md` document
+- [ ] Read the issue AND all comments for full context
+- [ ] Understand what "done" looks like for this specific task
+
+### 15.2. Implementation Requirements
+
+| Requirement                   | How to Verify                                |
+| ----------------------------- | -------------------------------------------- |
+| Code follows project patterns | Compare with similar existing code           |
+| Correct logger used           | `MerakiLoggers.X`, NOT `logging.getLogger()` |
+| Type hints on all functions   | mypy passes                                  |
+| Async/await for I/O           | No blocking calls in async functions         |
+| No hardcoded secrets          | bandit passes                                |
+| Tests added/updated           | pytest passes, new code has coverage         |
+
+### 15.3. Quality Verification
+
+**You MUST run this before completing:**
+
+```bash
+./run_checks.sh
+```
+
+This runs:
+
+1. `uv sync` - Install dependencies
+2. `ruff check` - Linting
+3. `ruff format --check` - Formatting
+4. `bandit` - Security
+5. `mypy` - Type checking
+6. `pytest` - Tests
+
+**All checks MUST pass with zero errors.**
+
+### 15.4. Issue Update (REQUIRED)
+
+Before creating a PR, comment on the issue with:
+
+```markdown
+## ✅ Implementation Complete
+
+### Changes Made
+
+- `path/to/file.py`: <what you changed>
+- `path/to/other.py`: <what you changed>
+
+### Tests Added/Updated
+
+- `tests/path/to/test_file.py`: <what tests>
+
+### Verification
+
+- [x] ./run_checks.sh passes
+- [x] All existing tests still pass
+- [x] New tests cover the changes
+
+---
+
+_PR ready for review_
+```
+
+### 15.5. Pull Request Requirements
+
+| Requirement             | Example                                          |
+| ----------------------- | ------------------------------------------------ |
+| Descriptive title       | `feat(sensor): add temperature threshold alerts` |
+| Issue reference in body | `Closes #123` or `Fixes #123`                    |
+| Target branch           | `beta` (never `main`)                            |
+| All CI checks pass      | Green checkmarks on PR                           |
+
+### 15.6. Definition of Done
+
+Your task is **COMPLETE** when:
+
+1. ✅ All requirements from the issue are implemented
+2. ✅ Tests exist and pass
+3. ✅ `./run_checks.sh` passes with zero errors
+4. ✅ Issue has your completion comment
+5. ✅ PR is created with `Closes #<issue>` in the body
+6. ✅ PR targets `beta` branch
+7. ✅ CI checks are passing on the PR
+
+**If ANY of these are missing, you are NOT done.**
+
+### 15.7. Common Mistakes to Avoid
+
+| Mistake                            | Why It's Wrong                   | How to Fix                                |
+| ---------------------------------- | -------------------------------- | ----------------------------------------- |
+| Creating PR without running checks | CI will fail, wasting time       | Always run `./run_checks.sh` first        |
+| Not linking PR to issue            | Issue won't auto-close on merge  | Add `Closes #123` to PR body              |
+| Partial implementation             | Task not actually complete       | Re-read issue, implement ALL requirements |
+| Not commenting on issue            | No visibility into what was done | Always comment before creating PR         |
+| Skipping tests                     | Regressions won't be caught      | Add tests for new/changed functionality   |
+| Using wrong logger                 | Inconsistent logging             | Use `MerakiLoggers.X` per section 3.2     |
+
+---
+
 _This document was last updated for version 3.1.0._

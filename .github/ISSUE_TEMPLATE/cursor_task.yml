@@ -8,8 +8,15 @@ body:
       value: |
         ### 🖱️ Cursor AI Agent Instructions
 
-        When this issue is created and labeled, Cursor will automatically begin analyzing
-        the requirements based on the DEVELOPMENT.md and the beta branch.
+        When this issue is created and labeled with `cursor-work`, Cursor will automatically:
+
+        1. Read `AGENTS.md` for project patterns
+        2. Implement the requirements below
+        3. Run `./run_checks.sh` (must pass)
+        4. Comment on this issue with completion details
+        5. Create a PR targeting `beta` with `Closes #<this issue>`
+
+        **Expected completion:** Cursor will update this issue when done.
 
   - type: input
     id: milestone
@@ -23,17 +30,38 @@ body:
     id: requirements
     attributes:
       label: Task Requirements
-      description: Describe exactly what you want Cursor to build or refactor.
-      placeholder: 'e.g., Refactor the sensor platform to use a base class...'
+      description: |
+        Describe exactly what you want Cursor to build or refactor.
+        Be specific - Cursor will implement EXACTLY what you describe here.
+      placeholder: |
+        Example:
+        - Add a new sensor for X that reads from Y
+        - The sensor should update every Z seconds
+        - Include unit tests in tests/sensor/
     validations:
       required: true
+
+  - type: textarea
+    id: acceptance_criteria
+    attributes:
+      label: Acceptance Criteria
+      description: How will you know the task is complete? List specific criteria.
+      placeholder: |
+        - [ ] Sensor appears in Home Assistant after integration reload
+        - [ ] Sensor updates with correct values
+        - [ ] Unit tests exist and pass
+        - [ ] No new linting errors
 
   - type: textarea
     id: constraints
     attributes:
       label: Specific Constraints
       description: List any technical constraints (e.g., specific files to modify, patterns to follow).
-      value: 'Follow DEVELOPMENT.md standards. Use existing patterns in the codebase.'
+      value: |
+        - Follow AGENTS.md standards (especially section 15 - Task Completion)
+        - Use existing patterns in the codebase
+        - Use MerakiLoggers for logging (see AGENTS.md section 3.2)
+        - Add/update tests for any new functionality
 
   - type: dropdown
     id: task_type

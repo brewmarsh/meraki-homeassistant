@@ -1,14 +1,22 @@
 name: Jules Needs Help Handler
 
-run-name: 'Cursor: Help Jules on ${{ github.event.pull_request.head.ref }}'
+run-name: 'Cursor: Help Jules on PR #${{ github.event.pull_request.number || github.event.client_payload.pr_number }}'
 
-# Triggers when Jules adds the 'jules-needs-help' label to a PR
-# This workflow invokes Cursor to take over and complete the task
-# Jules' help request comment provides context about where it got stuck
+# Triggers when Jules needs Cursor to take over
+# Can be triggered by:
+# 1. Label 'jules-needs-help' added to PR (by humans only - bot labels don't trigger)
+# 2. repository_dispatch from jules-ci-fix.yaml (for bot-to-bot handoff)
+#
+# NOTE: GitHub Actions using GITHUB_TOKEN don't trigger other workflows via labels.
+# That's why we use repository_dispatch for bot handoffs.
 
 on:
   pull_request:
     types: [labeled]
+
+  # Direct trigger from other workflows (bypasses GITHUB_TOKEN limitation)
+  repository_dispatch:
+    types: [jules-needs-help]
 
 # IMPORTANT: Repository settings must also allow workflow permissions
 # Go to: Settings → Actions → General → Workflow permissions
@@ -20,14 +28,18 @@ permissions:
 
 # Prevent multiple handlers for same PR
 concurrency:
-  group: jules-help-${{ github.event.pull_request.number }}
+  group: jules-help-${{ github.event.pull_request.number || github.event.client_payload.pr_number }}
   cancel-in-progress: false
 
 jobs:
   handle-help-request:
     runs-on: ubuntu-latest
-    # Only trigger when jules-needs-help label is added
-    if: github.event.label.name == 'jules-needs-help'
+    # Trigger on:
+    # 1. Label event with 'jules-needs-help' label
+    # 2. repository_dispatch event
+    if: |
+      (github.event_name == 'pull_request' && github.event.label.name == 'jules-needs-help') ||
+      github.event_name == 'repository_dispatch'
     # Inherits permissions from workflow level
     steps:
       - name: Gather context from Jules
@@ -35,17 +47,42 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          PR_NUM="${{ github.event.pull_request.number }}"
-          PR_BRANCH="${{ github.event.pull_request.head.ref }}"
-          PR_TITLE="${{ github.event.pull_request.title }}"
-          PR_BODY="${{ github.event.pull_request.body }}"
+          # Handle both pull_request (labeled) and repository_dispatch events
+          if [[ "${{ github.event_name }}" == "repository_dispatch" ]]; then
+            # Triggered by repository_dispatch from jules-ci-fix.yaml
+            PR_NUM="${{ github.event.client_payload.pr_number }}"
+            PR_BRANCH="${{ github.event.client_payload.branch }}"
+            ISSUE_NUM="${{ github.event.client_payload.issue_number }}"
+
+            echo "Triggered by repository_dispatch"
+
+            # Get PR details from GitHub
+            PR_JSON=$(gh pr view "$PR_NUM" --repo "${{ github.repository }}" --json title,body)
+            PR_TITLE=$(echo "$PR_JSON" | jq -r '.title // empty')
+            PR_BODY=$(echo "$PR_JSON" | jq -r '.body // empty')
+          else
+            # Triggered by pull_request labeled event
+            PR_NUM="${{ github.event.pull_request.number }}"
+            PR_BRANCH="${{ github.event.pull_request.head.ref }}"
+            PR_TITLE="${{ github.event.pull_request.title }}"
+            PR_BODY="${{ github.event.pull_request.body }}"
+
+            echo "Triggered by label event"
+
+            # Extract issue number from PR body or branch name
+            ISSUE_NUM=$(echo "$PR_BODY" | grep -oiE '(closes|fixes|resolves) #[0-9]+' | grep -oE '[0-9]+' | head -1)
+            if [[ -z "$ISSUE_NUM" ]]; then
+              ISSUE_NUM=$(echo "$PR_BRANCH" | grep -oE '[-/][0-9]+[-/]' | grep -oE '[0-9]+' | head -1)
+            fi
+          fi
 
           echo "PR #$PR_NUM: $PR_TITLE"
           echo "Branch: $PR_BRANCH"
+          echo "Issue: #$ISSUE_NUM"
 
           # Get the help request comment from Jules (look for the 🆘 marker)
           HELP_COMMENT=$(gh pr view "$PR_NUM" --repo "${{ github.repository }}" --json comments \
-            --jq '[.comments[] | select(.body | contains("🆘 Jules Needs Cursor Help"))] | last | .body // empty')
+            --jq '[.comments[] | select(.body | contains("🆘 Jules") or contains("Handoff"))] | last | .body // empty')
 
           if [[ -z "$HELP_COMMENT" ]]; then
             echo "⚠️ No help request comment found, using generic context"
@@ -53,13 +90,6 @@ jobs:
           fi
 
           echo "Found help request comment"
-
-          # Extract issue number from PR body or branch name
-          ISSUE_NUM=$(echo "$PR_BODY" | grep -oiE '(closes|fixes|resolves) #[0-9]+' | grep -oE '[0-9]+' | head -1)
-          if [[ -z "$ISSUE_NUM" ]]; then
-            ISSUE_NUM=$(echo "$PR_BRANCH" | grep -oE '[-/][0-9]+[-/]' | grep -oE '[0-9]+' | head -1)
-          fi
-          echo "Issue: #$ISSUE_NUM"
 
           # Get the original issue body for context
           ISSUE_BODY=""
@@ -134,10 +164,12 @@ jobs:
       - name: Invoke Cursor to take over
         env:
           CURSOR_API_KEY: ${{ secrets.CURSOR_API_KEY }}
+          GH_PAT: ${{ secrets.GH_PAT }}
         run: |
           PR_BRANCH="${{ steps.context.outputs.pr_branch }}"
           PR_NUM="${{ steps.context.outputs.pr_number }}"
           ISSUE_NUM="${{ steps.context.outputs.issue_number }}"
+          GH_PAT_VALUE="${GH_PAT:-}"
 
           # Read saved context
           HELP_COMMENT=$(cat /tmp/help_comment.txt)
@@ -145,29 +177,87 @@ jobs:
           FILES_CHANGED=$(cat /tmp/files_changed.txt)
           CI_ERRORS=$(cat /tmp/ci_errors.txt)
 
-          PROMPT="You are a coding agent for a Home Assistant integration. Taking over from Jules.
+          PROMPT="You are a coding agent for a Home Assistant integration (Cisco Meraki).
+          Taking over from Jules who got stuck.
 
+          ═══════════════════════════════════════════════════════════
+          HANDOFF FROM JULES
           PR: #$PR_NUM | Issue: #$ISSUE_NUM | Branch: $PR_BRANCH
+          REPO: ${{ github.repository }}
+          ═══════════════════════════════════════════════════════════
 
-          Jules requested help with:
+          GITHUB AUTHENTICATION:
+          If you need to run gh commands and get permission errors, run:
+          export GH_TOKEN='${GH_PAT_VALUE}'
+          Then retry the command.
+
+          ═══════════════════════════════════════════════════════════
+
+          JULES' HELP REQUEST:
           $HELP_COMMENT
 
-          Files changed: $FILES_CHANGED
+          FILES JULES CHANGED:
+          $FILES_CHANGED
 
-          CI errors:
+          CI ERRORS (if any):
           \`\`\`
           $CI_ERRORS
           \`\`\`
 
-          Steps:
-          1. Read issue #$ISSUE_NUM comments to understand full context
-          2. Read AGENTS.md for project patterns
-          3. Fix what blocked Jules
-          4. Run ./run_checks.sh - must pass
-          5. Commit: fix(cursor): continue from Jules
-          6. Update issue: gh issue comment $ISSUE_NUM --body 'Fixed: <what> because <why>'
+          ═══════════════════════════════════════════════════════════
+          TAKEOVER STEPS (Complete ALL):
+          ═══════════════════════════════════════════════════════════
 
-          Constraints: Push to $PR_BRANCH. Don't create a new PR."
+          □ STEP 1: UNDERSTAND THE FULL CONTEXT
+            - Read AGENTS.md for project patterns
+            - Read issue #$ISSUE_NUM AND all comments
+            - Review Jules' work in the changed files
+            - Understand what Jules was trying to do
+
+          □ STEP 2: FIX WHAT BLOCKED JULES
+            - Address the specific problem Jules described
+            - Use a different approach if Jules' approach wasn't working
+            - Follow project patterns exactly
+
+          □ STEP 3: COMPLETE THE ORIGINAL TASK
+            - Ensure ALL requirements from issue #$ISSUE_NUM are met
+            - Don't just fix the error - finish the whole task
+            - Add any missing tests
+
+          □ STEP 4: VERIFY QUALITY
+            Run: ./run_checks.sh
+            This MUST pass with no errors.
+
+          □ STEP 5: COMMIT YOUR CHANGES
+            Commit message: fix(cursor): continue from Jules - <brief description>
+
+          □ STEP 6: UPDATE THE ISSUE
+            Run:
+            gh issue comment $ISSUE_NUM --repo ${{ github.repository }} --body '## ✅ Cursor Takeover Complete
+
+            ### What Jules Was Stuck On
+            <describe the problem>
+
+            ### How I Fixed It
+            <explain your solution>
+
+            ### Additional Changes
+            <any other work you did to complete the task>
+
+            ### Verification
+            - [x] ./run_checks.sh passes
+            - [x] All requirements from issue met
+            - [x] Tests added/updated
+
+            ---
+            *Handoff complete - PR ready for review*'
+
+          ═══════════════════════════════════════════════════════════
+          CONSTRAINTS:
+          - Push to $PR_BRANCH (don't create a new PR)
+          - Complete the ENTIRE task, not just the blocking issue
+          - Don't add unrelated changes
+          ═══════════════════════════════════════════════════════════"
 
           ESCAPED_PROMPT=$(echo "$PROMPT" | jq -Rs .)
 

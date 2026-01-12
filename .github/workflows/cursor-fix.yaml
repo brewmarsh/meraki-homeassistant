@@ -237,10 +237,12 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           CURSOR_API_KEY: ${{ secrets.CURSOR_API_KEY }}
+          GH_PAT: ${{ secrets.GH_PAT }}
         run: |
           PR_NUMBER="${{ steps.check.outputs.pr_number }}"
           BRANCH="${{ steps.check.outputs.cursor_branch }}"
           ISSUE_NUM="${{ steps.check.outputs.issue_number }}"
+          GH_PAT_VALUE="${GH_PAT:-}"
 
           echo "🔍 Launching Cursor code review after CI fix"
 
@@ -253,20 +255,46 @@ jobs:
           # Launch Cursor for code review (creates cursor-review/* branch)
           CURSOR_REVIEW_BRANCH="cursor-review/${BRANCH}"
 
-          PROMPT="You are a code review agent for a Home Assistant integration.
+          PROMPT="You are a code review agent for a Home Assistant integration (Cisco Meraki).
 
+          ═══════════════════════════════════════════════════════════
+          CODE REVIEW AFTER CI FIX
           PR: #$PR_NUMBER | Issue: #$ISSUE_NUM | Branch: $BRANCH
-          Requirements: ${ISSUE_BODY:-See issue}
+          REPO: ${{ github.repository }}
+          ═══════════════════════════════════════════════════════════
 
-          Steps:
-          1. Read issue #$ISSUE_NUM comments for context from previous agents
-          2. Read AGENTS.md for project patterns
-          3. Review code quality, patterns, and test coverage
-          4. Run ./run_checks.sh - must pass
-          5. Update issue: gh issue comment $ISSUE_NUM --body 'Review: <findings>'
-          6. Create PR targeting $BRANCH
+          GITHUB AUTHENTICATION:
+          If you need to run gh commands and get permission errors, run:
+          export GH_TOKEN='${GH_PAT_VALUE}'
+          Then retry the command.
 
-          Constraints: Don't add unrelated changes. All tests must pass."
+          ═══════════════════════════════════════════════════════════
+
+          REQUIREMENTS: ${ISSUE_BODY:-See issue #$ISSUE_NUM}
+
+          CI has been fixed. Now review the implementation quality.
+
+          ═══════════════════════════════════════════════════════════
+          REVIEW CHECKLIST:
+          ═══════════════════════════════════════════════════════════
+
+          □ Read AGENTS.md for project patterns
+          □ Read issue #$ISSUE_NUM comments for full context
+          □ Verify ALL requirements from issue are implemented
+          □ Check code quality (logger usage, type hints, async patterns)
+          □ Verify test coverage exists
+          □ Run ./run_checks.sh - MUST pass
+          □ Comment on issue with review findings:
+            gh issue comment $ISSUE_NUM --repo ${{ github.repository }} --body '## 🔍 Review Complete
+            <your findings>
+            - [x] Requirements met
+            - [x] Code quality verified
+            - [x] Tests pass'
+          □ Create PR targeting $BRANCH
+
+          ═══════════════════════════════════════════════════════════
+          CONSTRAINTS: Don't add unrelated changes. All tests must pass.
+          ═══════════════════════════════════════════════════════════"
 
           ESCAPED_PROMPT=$(echo "$PROMPT" | jq -Rs .)
 
@@ -361,6 +389,7 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           CURSOR_API_KEY: ${{ secrets.CURSOR_API_KEY }}
+          GH_PAT: ${{ secrets.GH_PAT }}
         run: |
           PR_NUMBER="${{ steps.check.outputs.pr_number }}"
           BRANCH="${{ steps.check.outputs.cursor_branch }}"
@@ -429,26 +458,72 @@ jobs:
               CI_ERRORS=$(gh run view "$RUN_ID" --repo "${{ github.repository }}" --log-failed 2>/dev/null | tail -150 || echo "Could not retrieve error logs")
             fi
 
+            GH_PAT_VALUE="${GH_PAT:-}"
+
             # Invoke Cursor API with error context
-            PROMPT="You are a CI fix agent for a Home Assistant integration.
+            PROMPT="You are a CI fix agent for a Home Assistant integration (Cisco Meraki).
 
+            ═══════════════════════════════════════════════════════════
+            CI FIX TASK
             Branch: $BRANCH | Issue: #$ISSUE_NUM | Attempt: #$((FIX_ATTEMPTS + 1))
+            REPO: ${{ github.repository }}
+            ═══════════════════════════════════════════════════════════
 
-            Error logs:
+            GITHUB AUTHENTICATION:
+            If you need to run gh commands and get permission errors, run:
+            export GH_TOKEN='${GH_PAT_VALUE}'
+            Then retry the command.
+
+            ═══════════════════════════════════════════════════════════
+
+            CI ERRORS TO FIX:
             \`\`\`
             ${CI_ERRORS}
             \`\`\`
 
-            Steps:
-            1. Read issue #$ISSUE_NUM comments for context from previous attempts
-            2. Run ./run_checks.sh to reproduce errors
-            3. Read AGENTS.md for project patterns
-            4. Fix ONLY the errors shown above
-            5. Run ./run_checks.sh - must pass
-            6. Commit: fix(cursor): resolve CI errors
-            7. Update issue: gh issue comment $ISSUE_NUM --body 'Fixed: <what> because <why>'
+            ═══════════════════════════════════════════════════════════
+            FIX STEPS (Complete ALL):
+            ═══════════════════════════════════════════════════════════
 
-            Constraints: Push to $BRANCH (no new PR). Don't refactor unrelated code."
+            □ STEP 1: UNDERSTAND CONTEXT
+              - Read AGENTS.md for project patterns
+              - Read issue #$ISSUE_NUM comments for prior fix attempts
+              - Run ./run_checks.sh to see current errors
+
+            □ STEP 2: FIX THE ERRORS
+              - Fix ONLY the errors shown above
+              - Do NOT refactor unrelated code
+              - Do NOT add new features
+
+            □ STEP 3: VERIFY THE FIX
+              Run: ./run_checks.sh
+              This MUST pass with no errors before proceeding.
+
+            □ STEP 4: COMMIT
+              Commit message: fix(cursor): resolve CI errors
+
+            □ STEP 5: UPDATE THE ISSUE
+              Run:
+              gh issue comment $ISSUE_NUM --repo ${{ github.repository }} --body '## 🔧 CI Fix Applied
+
+              ### Errors Fixed
+              <list what you fixed>
+
+              ### Root Cause
+              <explain why the error occurred>
+
+              ### Verification
+              - [x] ./run_checks.sh passes
+
+              ---
+              *CI fix attempt #$((FIX_ATTEMPTS + 1))*'
+
+            ═══════════════════════════════════════════════════════════
+            CONSTRAINTS:
+            - Push to $BRANCH (no new PR)
+            - Don't refactor unrelated code
+            - Don't add new features
+            ═══════════════════════════════════════════════════════════"
 
             ESCAPED_PROMPT=$(echo "$PROMPT" | jq -Rs .)
 

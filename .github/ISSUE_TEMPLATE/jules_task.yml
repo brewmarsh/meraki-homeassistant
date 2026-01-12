@@ -8,8 +8,18 @@ body:
   - type: markdown
     attributes:
       value: |
-        ### 🤖 AI Agent Instructions
-        When this issue is created, Jules will automatically begin analyzing the requirements based on `AGENTS.md`, `DEVELOPMENT.md`, and the `beta` branch.
+        ### 🤖 Jules AI Agent Instructions
+
+        When this issue is created and labeled with `jules-issue`, Jules will automatically:
+
+        1. Read `AGENTS.md` for project patterns (especially section 15 - Task Completion)
+        2. Implement the requirements below
+        3. Run `./run_checks.sh` (must pass)
+        4. Comment on this issue with completion details
+        5. Create a PR targeting `beta` with `Closes #<this issue>`
+
+        **Expected completion:** Jules will update this issue when done.
+
   - type: input
     id: milestone
     attributes:
@@ -17,20 +27,44 @@ body:
       value: 'v2.3.0 (2026.1 Infrastructure Update)'
     validations:
       required: true
+
   - type: textarea
     id: requirements
     attributes:
       label: Task Requirements
-      description: Describe exactly what you want Jules to build or refactor.
-      placeholder: 'e.g., Implement Requirement [E-1] from the Roadmap...'
+      description: |
+        Describe exactly what you want Jules to build or refactor.
+        Be specific - Jules will implement EXACTLY what you describe here.
+      placeholder: |
+        Example:
+        - Add a new sensor for X that reads from Y
+        - The sensor should update every Z seconds
+        - Include unit tests in tests/sensor/
     validations:
       required: true
+
+  - type: textarea
+    id: acceptance_criteria
+    attributes:
+      label: Acceptance Criteria
+      description: How will you know the task is complete? List specific criteria.
+      placeholder: |
+        - [ ] Sensor appears in Home Assistant after integration reload
+        - [ ] Sensor updates with correct values
+        - [ ] Unit tests exist and pass
+        - [ ] No new linting errors
+
   - type: textarea
     id: constraints
     attributes:
       label: Specific Constraints
-      description: List any technical constraints (e.g., specific files to ignore).
-      value: 'Ignore all errors not related to the meraki_ha integration. Follow Home Assistant Sentence Case standards.'
+      description: List any technical constraints (e.g., specific files to modify, patterns to follow).
+      value: |
+        - Follow AGENTS.md standards (especially section 15 - Task Completion)
+        - Use existing patterns in the codebase
+        - Use MerakiLoggers for logging (see AGENTS.md section 3.2)
+        - Add/update tests for any new functionality
+
   - type: checkboxes
     id: target
     attributes:
