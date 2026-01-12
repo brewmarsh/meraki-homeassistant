@@ -165,6 +165,7 @@ class ConfigFlowHandler(config_entries.ConfigFlow):
             return self.async_abort(reason="reconfigure_successful")
 
 <<<<<<< HEAD
+<<<<<<< HEAD
         schema_with_defaults = self._populate_schema_defaults(
             OPTIONS_SCHEMA,
             entry.options,
@@ -209,3 +210,25 @@ class ConfigFlowHandler(config_entries.ConfigFlow):
             ),
         )
 >>>>>>> 00a5566c (fix: Resolve CI failures in config flow and dependencies)
+=======
+        schema_with_defaults = self._populate_schema_defaults(
+            OPTIONS_SCHEMA, entry.options
+        )
+
+        return self.async_show_form(
+            step_id="reconfigure", data_schema=schema_with_defaults
+        )
+
+    def _populate_schema_defaults(
+        self, schema: vol.Schema, defaults: dict[str, Any]
+    ) -> vol.Schema:
+        """Populate a schema with default values from a dictionary."""
+        new_schema_keys = {}
+        for key, value in schema.schema.items():
+            if key.schema in defaults:
+                new_key = type(key)(key.schema, default=defaults[key.schema])
+                new_schema_keys[new_key] = value
+            else:
+                new_schema_keys[key] = value
+        return vol.Schema(new_schema_keys)
+>>>>>>> b654416b (fix(tests): Address PR feedback)
