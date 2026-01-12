@@ -165,6 +165,7 @@ jobs:
         env:
           CURSOR_API_KEY: ${{ secrets.CURSOR_API_KEY }}
           GH_PAT: ${{ secrets.GH_PAT }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           PR_BRANCH="${{ steps.context.outputs.pr_branch }}"
           PR_NUM="${{ steps.context.outputs.pr_number }}"
@@ -314,7 +315,15 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh pr comment ${{ github.event.pull_request.number }} \
+          # Get PR number from either pull_request or repository_dispatch event
+          PR_NUM="${{ github.event.pull_request.number || github.event.client_payload.pr_number }}"
+
+          if [[ -z "$PR_NUM" ]]; then
+            echo "No PR number available - skipping error comment"
+            exit 0
+          fi
+
+          gh pr comment "$PR_NUM" \
             --repo "${{ github.repository }}" \
             --body "## ⚠️ Cursor Handoff Error
 
@@ -331,7 +340,7 @@ jobs:
           *You may need to manually trigger Cursor or request human help.*"
 
           # Reset labels
-          gh pr edit ${{ github.event.pull_request.number }} \
+          gh pr edit "$PR_NUM" \
             --repo "${{ github.repository }}" \
             --remove-label "cursor-reviewing" \
             --add-label "needs-human-review" 2>/dev/null || true
