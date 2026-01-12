@@ -175,7 +175,7 @@ jobs:
               --squash \
               --delete-branch
 
-            # Comment on Jules PR
+            # Comment on Jules PR and trigger CI
             if [[ -n "$JULES_PR" ]]; then
               gh pr comment "$JULES_PR" \
                 --repo "${{ github.repository }}" \
@@ -185,7 +185,7 @@ jobs:
 
             **Cursor Branch**: \`$CURSOR_BRANCH\` → deleted ✅
 
-            This PR is now ready for human review.
+            Triggering final CI run...
 
             ---
             *Cursor review completed*"
@@ -195,6 +195,13 @@ jobs:
                 --remove-label "cursor-reviewing" \
                 --add-label "cursor-reviewed" \
                 --add-label "ready-for-review" 2>/dev/null || true
+
+              # Trigger CI by closing and reopening the PR
+              # (GITHUB_TOKEN commits don't trigger workflows, so we need this workaround)
+              echo "Triggering CI by close/reopen..."
+              gh pr close "$JULES_PR" --repo "${{ github.repository }}" 2>/dev/null || true
+              sleep 2
+              gh pr reopen "$JULES_PR" --repo "${{ github.repository }}" 2>/dev/null || true
             fi
 
           elif [[ "$IS_HANDOFF" == "true" ]]; then

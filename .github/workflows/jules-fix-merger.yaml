@@ -181,7 +181,14 @@ jobs:
 
             Changes: $COMMIT_COUNT commit(s), $FILES
 
-            CI running on updated code."
+            Triggering CI on updated code..."
+
+            # Trigger CI by closing and reopening the PR
+            # (GITHUB_TOKEN commits don't trigger workflows, so we need this workaround)
+            echo "Triggering CI by close/reopen..."
+            gh pr close "$ORIGINAL_PR" --repo "${{ github.repository }}" 2>/dev/null || true
+            sleep 2
+            gh pr reopen "$ORIGINAL_PR" --repo "${{ github.repository }}" 2>/dev/null || true
 
             # Extract issue number and comment on issue too
             ISSUE_NUM=$(echo "$ORIGINAL_BODY" | grep -oiE '(closes|fixes|resolves) #[0-9]+' | grep -oE '[0-9]+' | head -1)
@@ -196,6 +203,6 @@ jobs:
 
               Fix PR #$FIX_PR merged into original PR #$ORIGINAL_PR.
 
-              CI will run again. See Jules's comments above for fix details."
+              CI triggered. See Jules's comments above for fix details."
             fi
           fi
