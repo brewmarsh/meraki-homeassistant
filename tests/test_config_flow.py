@@ -142,30 +142,11 @@ async def test_form(hass: HomeAssistant) -> None:
         )
         await hass.async_block_till_done()
 
-        assert result2["type"] == FlowResultType.FORM
-        assert result2["step_id"] == "init"
-
-        result3 = await hass.config_entries.flow.async_configure(
-            result["flow_id"],
-            {
-                "scan_interval": 30,
-                "enable_device_tracker": True,
-                "enable_vlan_management": False,
-            },
-        )
-        await hass.async_block_till_done()
-
-    assert result3["type"] == FlowResultType.CREATE_ENTRY
-    assert result3["title"] == "Test Org"
-    assert result3["data"] == {
+    assert result2["type"] == FlowResultType.CREATE_ENTRY
+    assert result2["title"] == "Test Org"
+    assert result2["data"] == {
         "meraki_api_key": "test-api-key",
         "meraki_org_id": "test-org-id",
-        "org_name": "Test Org",
-    }
-    assert result3["options"] == {
-        "scan_interval": 30,
-        "enable_device_tracker": True,
-        "enable_vlan_management": False,
     }
     assert len(mock_setup_entry.mock_calls) == 1
 
