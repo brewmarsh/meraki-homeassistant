@@ -15,8 +15,8 @@ jobs:
     # 2. Prevent infinite loops (only heal failures from specific actors)
     if: |
       github.event.workflow_run.conclusion == 'failure' &&
-      (github.triggering_actor == 'brewmarsh' || 
-       github.triggering_actor == 'dependabot[bot]' || 
+      (github.triggering_actor == 'brewmarsh' ||
+       github.triggering_actor == 'dependabot[bot]' ||
        github.triggering_actor == 'google-labs-jules[bot]')
 
     runs-on: ubuntu-latest
@@ -39,13 +39,13 @@ jobs:
           include_last_commit: true
           include_commit_log: true
           prompt: |
-            The "Validate Code" CI failed. 
+            The "Validate Code" CI failed.
             Actor: ${{ github.event.workflow_run.actor.login }}
             Branch: ${{ github.event.workflow_run.head_branch }}
 
             Please analyze the logs and:
-            1. Resolve any pycares/aiodns conflicts. 
-               - Hard lock: aiodns==3.6.1 and pycares==4.11.0. 
+            1. Resolve any pycares/aiodns conflicts.
+               - Hard lock: aiodns==3.6.1 and pycares==4.11.0.
                - DO NOT use older versions (like 4.4.0) as they crash on Python 3.13.
             2. Ensure webrtc-models==0.3.0 is in manifest.json requirements.
             3. Fix any linting (Ruff) or test (Pytest) errors.

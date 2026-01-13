@@ -15,7 +15,7 @@ updates:
     # The image to monitor for new releases. 
     # Dependabot tracks the versions of the 'actions/runner' on GitHub.
     # It detects that the ARG is tied to this dependency.
-    target-branch: "main" 
+    target-branch: "main"
     labels:
       - "runner-update"
       - "dependencies"
