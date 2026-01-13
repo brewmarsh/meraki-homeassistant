@@ -1,4 +1,4 @@
-name: Deploy MkDocs
+name: Deploy Documentation
 
 on:
   release:

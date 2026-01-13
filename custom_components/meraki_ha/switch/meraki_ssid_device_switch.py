@@ -11,10 +11,10 @@ from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from ..coordinator import MerakiDataUpdateCoordinator
 from ..core.api.client import MerakiAPIClient
 from ..core.utils.icon_utils import get_device_type_icon
 from ..helpers.device_info_helpers import resolve_device_info
+from ..meraki_data_coordinator import MerakiDataCoordinator
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -27,7 +27,7 @@ class MerakiSSIDBaseSwitch(CoordinatorEntity, SwitchEntity):
 
     def __init__(
         self,
-        coordinator: MerakiDataUpdateCoordinator,
+        coordinator: MerakiDataCoordinator,
         meraki_client: MerakiAPIClient,
         config_entry: ConfigEntry,
         ssid_data: dict[str, Any],
@@ -96,7 +96,7 @@ class MerakiSSIDBaseSwitch(CoordinatorEntity, SwitchEntity):
     def _update_internal_state(self) -> None:
         """Update the internal state of the switch based on coordinator data."""
         # Ignore coordinator data to avoid overwriting optimistic state
-        if self.coordinator.is_pending(self.unique_id):
+        if self.coordinator.is_update_pending(self.unique_id):
             return
 
         current_ssid_data = self._get_current_ssid_data()
@@ -123,17 +123,26 @@ class MerakiSSIDBaseSwitch(CoordinatorEntity, SwitchEntity):
         # The payload for the API call uses the `_attribute_to_check`.
         payload = {self._attribute_to_check: value}
 
-        # "Fire and forget" API call.
-        self.hass.async_create_task(
-            self._meraki_client.wireless.update_network_wireless_ssid(
+        try:
+            await self._meraki_client.wireless.update_network_wireless_ssid(
                 network_id=self._network_id,
                 number=self._ssid_number,
                 **payload,
             )
-        )
+        except Exception as e:
+            _LOGGER.error(
+                "Failed to update SSID %s: %s",
+                self.name,
+                e,
+                exc_info=True,
+            )
+            # Revert optimistic update on failure
+            self._attr_is_on = not value
+            self.async_write_ha_state()
+            return
 
         # Register a pending update to prevent overwriting the optimistic state
-        self.coordinator.register_pending_update(self.unique_id)
+        self.coordinator.register_update_pending(self.unique_id)
 
     async def async_turn_on(self, **kwargs: Any) -> None:
         """Turn the switch on."""
@@ -149,7 +158,7 @@ class MerakiSSIDEnabledSwitch(MerakiSSIDBaseSwitch):
 
     def __init__(
         self,
-        coordinator: MerakiDataUpdateCoordinator,
+        coordinator: MerakiDataCoordinator,
         meraki_client: MerakiAPIClient,
         config_entry: ConfigEntry,
         ssid_data: dict[str, Any],
@@ -182,7 +191,7 @@ class MerakiSSIDBroadcastSwitch(MerakiSSIDBaseSwitch):
 
     def __init__(
         self,
-        coordinator: MerakiDataUpdateCoordinator,
+        coordinator: MerakiDataCoordinator,
         meraki_client: MerakiAPIClient,
         config_entry: ConfigEntry,
         ssid_data: dict[str, Any],

@@ -11,9 +11,9 @@ from homeassistant.core import callback
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from ..coordinator import MerakiDataUpdateCoordinator
 from ..helpers.device_info_helpers import resolve_device_info
 from ..helpers.entity_helpers import get_device_from_coordinator
+from ..meraki_data_coordinator import MerakiDataCoordinator
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -26,7 +26,7 @@ class SwitchPortSensor(CoordinatorEntity, BinarySensorEntity):
 
     def __init__(
         self,
-        coordinator: MerakiDataUpdateCoordinator,
+        coordinator: MerakiDataCoordinator,
         device: dict[str, Any],
         port: dict[str, Any],
     ) -> None:

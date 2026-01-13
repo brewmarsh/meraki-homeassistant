@@ -43,7 +43,7 @@ def ws_subscribe_meraki_data(
     def async_send_update() -> None:
         """Send update to client."""
         connection.send_message(
-            websocket_api.event_message(msg["id"], coordinator.data)
+            websocket_api.event_message(msg["id"], {"data": coordinator.data})
         )
 
     # Send initial data

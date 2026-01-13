@@ -11,9 +11,9 @@ from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from ..coordinator import MerakiDataUpdateCoordinator
 from ..core.api.client import MerakiAPIClient
 from ..helpers.device_info_helpers import resolve_device_info
+from ..meraki_data_coordinator import MerakiDataCoordinator
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -26,7 +26,7 @@ class MerakiContentFilteringSelect(CoordinatorEntity, SelectEntity):
 
     def __init__(
         self,
-        coordinator: MerakiDataUpdateCoordinator,
+        coordinator: MerakiDataCoordinator,
         meraki_client: MerakiAPIClient,
         config_entry: ConfigEntry,
         network_data: dict[str, Any],
