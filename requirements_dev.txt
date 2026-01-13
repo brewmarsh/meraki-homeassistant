@@ -18,5 +18,6 @@ pytest-asyncio==1.2.0
 codecov
 aiohttp>=3.13.2
 urllib3>=2.6.2
+webrtc-models==0.3.0
 aiodns==3.6.1
 pycares==4.11.0
