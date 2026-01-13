@@ -44,8 +44,6 @@ class SensorEndpoints:
 
         """
         _LOGGER.debug("Sending command '%s' to sensor %s", operation, serial)
-        if self._client.dashboard is None:
-            return {}
         return await self._client.run_sync(
             self._client.dashboard.sensor.createDeviceSensorCommand,
             serial=serial,
@@ -64,8 +62,6 @@ class SensorEndpoints:
 
         """
         _LOGGER.debug("Getting latest sensor readings for organization")
-        if self._client.dashboard is None:
-            return []
         return await self._client.run_sync(
             self._client.dashboard.sensor.getOrganizationSensorReadingsLatest,
             organizationId=self._client.organization_id,
