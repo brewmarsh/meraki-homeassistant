@@ -1,3 +1,6 @@
+<<<<<<< HEAD
+# Changelog
+=======
 # [2.0.0-beta.66](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.65...v2.0.0-beta.66) (2025-11-19)
 
 
@@ -514,6 +517,7 @@
 - configure dependabot to target beta branch ([83f4057](https://github.com/brewmarsh/meraki-homeassistant/commit/83f4057caca2dc13adc4c33e786b4ce74f88d8cb))
 
 ## [2.0.0-beta.2](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0...v2.0.0-beta.2) (2025-11-10)
+>>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 
 ## [2.0.0](https://github.com/brewmarsh/meraki-homeassistant/compare/v1.5.4-beta.36...v2.0.0) (2025-11-07)
 
@@ -594,4 +598,8 @@
 
 ## 1.0.0
 
+<<<<<<< HEAD
 - Initial release
+=======
+- Initial release
+>>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)

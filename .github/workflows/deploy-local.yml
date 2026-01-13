@@ -1,10 +1,22 @@
 name: Deploy Latest Code to Local Folder on Linux Runner
 
+<<<<<<< HEAD
+=======
 # This workflow will run on 'push' events to the specified branches.
+>>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 on:
   push:
     branches:
       - main
+<<<<<<< HEAD
+      - beta
+
+jobs:
+  deploy-to-linux-folder:
+    runs-on: self-hosted
+
+    env:
+=======
       - beta # Trigger deployment on pushes/merges to the beta branch
 
 jobs:
@@ -15,24 +27,39 @@ jobs:
     # Define environment variables
     env:
       # This is the path inside your runner container, mapping to the Host OS config.
+>>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
       DESTINATION_PATH: '/ha_config/custom_components/meraki_ha'
 
     steps:
       - name: Checkout repository
+<<<<<<< HEAD
+        uses: actions/checkout@v5
+
+      - name: Copy files to destination folder (rsync)
+=======
         # Checks out your repository code into $GITHUB_WORKSPACE.
         uses: actions/checkout@v5
 
       - name: Copy files to destination folder (rsync)
         # Use 'bash' and 'sudo rsync' to bypass symlink and permission issues.
+>>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
         shell: bash
         env:
           DEPLOY_PATH: ${{ env.DESTINATION_PATH }}
         run: |
+<<<<<<< HEAD
+=======
           # The source directory containing ONLY the component files (with trailing slash)
+>>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
           SourceComponentDir="${GITHUB_WORKSPACE}/custom_components/meraki_ha/"
           DestinationPath="${DEPLOY_PATH}"
 
           echo "Starting deployment..."
+<<<<<<< HEAD
+          sudo mkdir -p "${DestinationPath}"
+
+          # Preserving your specific rsync flags and excludes
+=======
           echo "Source path: ${SourceComponentDir}"
           echo "Destination path: ${DestinationPath}"
 
@@ -48,6 +75,7 @@ jobs:
           #   --delete: removes files from destination that aren't in source (ensures clean state)
 
           # CRITICAL: Exclude development files/symlinks to avoid 'Operation not supported' errors.
+>>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
           sudo rsync -rltpD --inplace --delete \
             --exclude '.git' \
             --exclude 'node_modules' \
@@ -58,16 +86,78 @@ jobs:
             "${SourceComponentDir}" "${DestinationPath}"
 
           echo "Successfully copied latest code to ${DestinationPath}."
+<<<<<<< HEAD
+=======
           echo "Deployment complete."
 
       - name: Install jq
         run: sudo apt-get update && sudo apt-get install -y jq
+>>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 
       - name: Restart Home Assistant
         shell: bash
         env:
           HA_URL: ${{ secrets.HA_URL }}
           HA_TOKEN: ${{ secrets.HA_TOKEN }}
+<<<<<<< HEAD
+          # REPLACE with your actual phone entity name from HA
+          NOTIFY_SERVICE: 'mobile_app_your_phone_name'
+        run: |
+          echo "Attempting to restart Home Assistant..."
+
+          # 1. SANITIZE TOKEN
+          CLEAN_TOKEN=$(echo "$HA_TOKEN" | tr -d '\r\n ')
+
+          # 2. Check Configuration
+          echo "Checking Home Assistant configuration..."
+          RAW_RESPONSE=$(curl -s -w "\n%{http_code}" -X POST \
+               -H "Authorization: Bearer $CLEAN_TOKEN" \
+               -H "Content-Type: application/json" \
+               "$HA_URL/api/config/core/check_config")
+
+          HTTP_STATUS=$(echo "$RAW_RESPONSE" | tail -n1)
+          if [ "$HTTP_STATUS" -ne 200 ]; then
+            echo "FAILED: Home Assistant API returned HTTP $HTTP_STATUS"
+            echo "Response details: $(echo "$RAW_RESPONSE" | sed '$d')"
+            exit 1
+          fi
+
+          echo "Config check passed. Triggering restart..."
+
+          # 3. Trigger Restart with Fallback
+          RESTART_RESPONSE=$(curl -s -w "\n%{http_code}" -X POST \
+               -H "Authorization: Bearer $CLEAN_TOKEN" \
+               -H "Content-Type: application/json" \
+               --data-raw '{}' \
+               "$HA_URL/api/services/home_assistant/restart")
+
+          RESTART_STATUS=$(echo "$RESTART_RESPONSE" | tail -n1)
+
+          if [ "$RESTART_STATUS" -ne 200 ]; then
+             echo "Standard restart failed (HTTP $RESTART_STATUS). Trying Hassio host reboot..."
+             RESTART_RESPONSE=$(curl -s -w "\n%{http_code}" -X POST \
+               -H "Authorization: Bearer $CLEAN_TOKEN" \
+               -H "Content-Type: application/json" \
+               --data-raw '{}' \
+               "$HA_URL/api/services/hassio/host_reboot")
+             RESTART_STATUS=$(echo "$RESTART_RESPONSE" | tail -n1)
+          fi
+
+          if [ "$RESTART_STATUS" -ne 200 ] && [ "$RESTART_STATUS" -ne 201 ]; then
+            echo "FAILED to restart! HTTP $RESTART_STATUS"
+            exit 1
+          fi
+
+          # 4. Send Success Notification
+          curl -s -X POST -H "Authorization: Bearer $CLEAN_TOKEN" \
+               -H "Content-Type: application/json" \
+               -d "{\"title\": \"Meraki HA Deployed\", \"message\": \"Deploy finished and restart initiated.\"}" \
+               "$HA_URL/api/services/notify/$NOTIFY_SERVICE"
+
+          echo "Home Assistant is rebooting..."
+
+      - name: Post-Deploy Health Audit
+=======
         run: |
           echo "Attempting to restart Home Assistant..."
 
@@ -156,11 +246,24 @@ jobs:
           sleep 60 # Wait for 60 seconds. Adjust as needed.
 
       - name: Run Release Health Auditor
+>>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
         shell: bash
         env:
           HA_URL: ${{ secrets.HA_URL }}
           HA_TOKEN: ${{ secrets.HA_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+<<<<<<< HEAD
+        run: |
+          echo "Waiting 90s for system to stabilize and poll Meraki Dashboard..."
+          sleep 120
+
+          # This assumes Jules has built tools/auditor/audit.py per your issue prompt
+          if [ -f "tools/auditor/audit.py" ]; then
+            python3 tools/auditor/audit.py
+          else
+            echo "Auditor script not found. Skipping health check."
+          fi
+=======
           GITHUB_REPOSITORY: ${{ github.repository }}
         run: |
           echo "Waiting an additional 30 seconds for Home Assistant to fully initialize..."
@@ -171,3 +274,4 @@ jobs:
 
           echo "Running the health auditor script..."
           python3 tools/auditor/health_auditor.py
+>>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)

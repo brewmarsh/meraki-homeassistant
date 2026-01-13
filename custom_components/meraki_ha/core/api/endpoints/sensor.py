@@ -44,8 +44,11 @@ class SensorEndpoints:
 
         """
         _LOGGER.debug("Sending command '%s' to sensor %s", operation, serial)
+<<<<<<< HEAD
+=======
         if self._client.dashboard is None:
             return {}
+>>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
         return await self._client.run_sync(
             self._client.dashboard.sensor.createDeviceSensorCommand,
             serial=serial,
@@ -64,8 +67,11 @@ class SensorEndpoints:
 
         """
         _LOGGER.debug("Getting latest sensor readings for organization")
+<<<<<<< HEAD
+=======
         if self._client.dashboard is None:
             return []
+>>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
         return await self._client.run_sync(
             self._client.dashboard.sensor.getOrganizationSensorReadingsLatest,
             organizationId=self._client.organization_id,

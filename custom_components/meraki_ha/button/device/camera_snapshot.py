@@ -10,8 +10,13 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
+<<<<<<< HEAD
+from ...coordinator import MerakiDataUpdateCoordinator
+from ...helpers.device_info_helpers import resolve_device_info
+=======
 from ...helpers.device_info_helpers import resolve_device_info
 from ...meraki_data_coordinator import MerakiDataCoordinator
+>>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 
 if TYPE_CHECKING:
     from ...services.camera_service import CameraService
@@ -25,7 +30,11 @@ class MerakiSnapshotButton(CoordinatorEntity, ButtonEntity):
 
     def __init__(
         self,
+<<<<<<< HEAD
+        coordinator: MerakiDataUpdateCoordinator,
+=======
         coordinator: MerakiDataCoordinator,
+>>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
         device: dict[str, Any],
         camera_service: CameraService,
         config_entry: ConfigEntry,

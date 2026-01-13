@@ -9,7 +9,11 @@ from custom_components.meraki_ha.sensor.device.data_usage import MerakiDataUsage
 
 @pytest.fixture
 def mock_data_coordinator():
+<<<<<<< HEAD
+    """Fixture for a mocked MerakiDataUpdateCoordinator."""
+=======
     """Fixture for a mocked MerakiDataCoordinator."""
+>>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
     coordinator = MagicMock()
     coordinator.config_entry.options = {}
     coordinator.data = {

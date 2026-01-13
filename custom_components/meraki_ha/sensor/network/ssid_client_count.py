@@ -5,7 +5,11 @@ from typing import Any
 from homeassistant.components.sensor import SensorEntityDescription, SensorStateClass
 from homeassistant.config_entries import ConfigEntry
 
+<<<<<<< HEAD
+from ...coordinator import MerakiDataUpdateCoordinator
+=======
 from ...meraki_data_coordinator import MerakiDataCoordinator
+>>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 from .base import MerakiSSIDBaseSensor
 
 
@@ -22,7 +26,11 @@ class MerakiSSIDClientCountSensor(MerakiSSIDBaseSensor):
 
     def __init__(
         self,
+<<<<<<< HEAD
+        coordinator: MerakiDataUpdateCoordinator,
+=======
         coordinator: MerakiDataCoordinator,
+>>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
         config_entry: ConfigEntry,
         ssid_data: dict[str, Any],
     ) -> None:

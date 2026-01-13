@@ -1,5 +1,16 @@
 /** @type {import('tailwindcss').Config} */
 export default {
+<<<<<<< HEAD
+  content: [
+    "./index.html",
+    "./src/**/*.{js,ts,jsx,tsx}",
+  ],
+  theme: {
+    extend: {},
+  },
+  plugins: [],
+}
+=======
   darkMode: 'class',
   content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
   theme: {
@@ -23,3 +34,4 @@ export default {
   },
   plugins: [],
 };
+>>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)

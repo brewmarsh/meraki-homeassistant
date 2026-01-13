@@ -2,6 +2,17 @@
 
 from __future__ import annotations
 
+<<<<<<< HEAD
+import logging
+from typing import Any
+
+from homeassistant.components import websocket_api
+from homeassistant.core import HomeAssistant
+from voluptuous import ALLOW_EXTRA, All, Required, Schema
+
+from .const import DOMAIN
+from .coordinator import MerakiDataUpdateCoordinator
+=======
 import json
 import logging
 import os
@@ -15,6 +26,7 @@ from voluptuous import ALLOW_EXTRA, All, Optional, Required, Schema
 from .const import CONF_ENABLED_NETWORKS, DATA_CLIENT, DOMAIN
 from .core.timed_access_manager import TimedAccessManager
 from .meraki_data_coordinator import MerakiDataCoordinator
+>>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 from .services.camera_service import CameraService
 
 _LOGGER = logging.getLogger(__name__)
@@ -67,6 +79,8 @@ def async_setup_api(hass: HomeAssistant) -> None:
             extra=ALLOW_EXTRA,
         ),
     )
+<<<<<<< HEAD
+=======
     websocket_api.async_register_command(
         hass,
         "meraki_ha/update_enabled_networks",
@@ -98,6 +112,7 @@ def async_setup_api(hass: HomeAssistant) -> None:
             extra=ALLOW_EXTRA,
         ),
     )
+>>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 
 
 @websocket_api.async_response
@@ -121,6 +136,12 @@ async def handle_get_config(
         connection.send_error(msg["id"], "not_found", "Config entry not found")
         return
 
+<<<<<<< HEAD
+    coordinator: MerakiDataUpdateCoordinator = hass.data[DOMAIN][config_entry_id][
+        "coordinator"
+    ]
+    connection.send_result(msg["id"], coordinator.data)
+=======
     coordinator: MerakiDataCoordinator = hass.data[DOMAIN][config_entry_id][
         "coordinator"
     ]
@@ -146,6 +167,7 @@ async def handle_get_config(
             "version": version,
         },
     )
+>>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 
 
 @websocket_api.async_response
@@ -200,6 +222,8 @@ async def handle_get_camera_snapshot(
     camera_service: CameraService = hass.data[DOMAIN][config_entry_id]["camera_service"]
     snapshot_url = await camera_service.get_camera_snapshot(serial)
     connection.send_result(msg["id"], {"url": snapshot_url})
+<<<<<<< HEAD
+=======
 
 
 @websocket_api.async_response
@@ -276,3 +300,4 @@ async def handle_create_timed_access_key(
     except Exception as e:
         _LOGGER.exception("Error creating timed access key: %s", e)
         connection.send_error(msg["id"], "error", str(e))
+>>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)

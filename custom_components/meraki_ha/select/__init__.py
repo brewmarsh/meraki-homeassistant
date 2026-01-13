@@ -2,7 +2,10 @@
 
 from __future__ import annotations
 
+<<<<<<< HEAD
+=======
 import asyncio
+>>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 import logging
 
 from homeassistant.config_entries import ConfigEntry
@@ -36,6 +39,9 @@ async def async_setup_entry(
                     network,
                 )
             )
+<<<<<<< HEAD
+        async_add_entities(select_entities)
+=======
 
         if select_entities:
             _LOGGER.debug("Adding %d select entities", len(select_entities))
@@ -45,3 +51,4 @@ async def async_setup_entry(
                 async_add_entities(chunk)
                 if len(select_entities) > chunk_size:
                     await asyncio.sleep(1)
+>>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)

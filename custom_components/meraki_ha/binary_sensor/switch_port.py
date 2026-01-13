@@ -11,9 +11,15 @@ from homeassistant.core import callback
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
+<<<<<<< HEAD
+from ..coordinator import MerakiDataUpdateCoordinator
+from ..helpers.device_info_helpers import resolve_device_info
+from ..helpers.entity_helpers import get_device_from_coordinator
+=======
 from ..helpers.device_info_helpers import resolve_device_info
 from ..helpers.entity_helpers import get_device_from_coordinator
 from ..meraki_data_coordinator import MerakiDataCoordinator
+>>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -26,7 +32,11 @@ class SwitchPortSensor(CoordinatorEntity, BinarySensorEntity):
 
     def __init__(
         self,
+<<<<<<< HEAD
+        coordinator: MerakiDataUpdateCoordinator,
+=======
         coordinator: MerakiDataCoordinator,
+>>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
         device: dict[str, Any],
         port: dict[str, Any],
     ) -> None:

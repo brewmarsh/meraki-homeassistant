@@ -7,8 +7,13 @@ from homeassistant.components.sensor import SensorEntity, SensorStateClass
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import callback
 
+<<<<<<< HEAD
+from ...coordinator import MerakiDataUpdateCoordinator
+from ...core.entities.meraki_network_entity import MerakiNetworkEntity
+=======
 from ...core.entities.meraki_network_entity import MerakiNetworkEntity
 from ...meraki_data_coordinator import MerakiDataCoordinator
+>>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 from ...types import MerakiNetwork
 
 if TYPE_CHECKING:
@@ -26,7 +31,11 @@ class MerakiNetworkClientsSensor(MerakiNetworkEntity, SensorEntity):
 
     def __init__(
         self,
+<<<<<<< HEAD
+        coordinator: MerakiDataUpdateCoordinator,
+=======
         coordinator: MerakiDataCoordinator,
+>>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
         config_entry: ConfigEntry,
         network_data: dict[str, Any],
         network_control_service: "NetworkControlService",
