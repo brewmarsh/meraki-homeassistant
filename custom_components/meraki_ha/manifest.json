@@ -1,7 +1,9 @@
 {
   "domain": "meraki_ha",
   "name": "Meraki for Home Assistant",
-  "after_dependencies": [],
+  "after_dependencies": [
+    "webrtc"
+  ],
   "codeowners": [
     "@brewmarsh"
   ],
@@ -9,8 +11,7 @@
   "dependencies": [
     "frontend",
     "panel_custom",
-    "http",
-    "webrtc"
+    "http"
   ],
   "documentation": "https://github.com/brewmarsh/meraki-homeassistant",
   "integration_type": "hub",
