@@ -22,6 +22,24 @@ def auto_enable_custom_integrations(
     yield
 
 
+@pytest.fixture(autouse=True)
+def bypass_platform_setup() -> Generator[None, None, None]:
+    """Bypass platform setup to avoid hass_frontend dependency."""
+    import json
+    from unittest.mock import patch
+
+    original_loads = json.loads
+
+    def mock_loads(s, *args, **kwargs):
+        data = original_loads(s, *args, **kwargs)
+        if isinstance(data, dict) and data.get("domain") == "meraki_ha":
+            data["dependencies"] = []
+        return data
+
+    with patch("json.loads", side_effect=mock_loads):
+        yield
+
+
 @pytest.fixture
 def mock_coordinator() -> MagicMock:
 <<<<<<< HEAD
