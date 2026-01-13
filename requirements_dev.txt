@@ -14,7 +14,7 @@ playwright
 pytest-homeassistant-custom-component==0.13.305
 pytest
 pytest-cov==7.0.0
-pytest-asyncio==1.2.0
+pytest-asyncio==1.3.0
 codecov
 aiohttp>=3.13.2
 urllib3>=2.6.2
