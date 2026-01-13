@@ -14,6 +14,7 @@ if TYPE_CHECKING:
     from homeassistant.helpers.entity import Entity
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
@@ -30,13 +31,18 @@ if TYPE_CHECKING:
     from ....services.camera_service import CameraService
     from ....types import MerakiDevice
 =======
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
     from ....services.camera_service import CameraService
     from ....types import MerakiDevice
     from ...meraki_data_coordinator import (
         MerakiDataCoordinator,
     )
+<<<<<<< HEAD
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
     from ...services.device_control_service import DeviceControlService
     from ...services.network_control_service import NetworkControlService
 
@@ -50,6 +56,7 @@ class MXHandler(BaseDeviceHandler):
     def __init__(
         self,
 <<<<<<< HEAD
+<<<<<<< HEAD
         coordinator: MerakiDataUpdateCoordinator,
 =======
 <<<<<<< HEAD
@@ -58,6 +65,9 @@ class MXHandler(BaseDeviceHandler):
         coordinator: MerakiDataCoordinator,
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+        coordinator: MerakiDataCoordinator,
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
         device: MerakiDevice,
         config_entry: ConfigEntry,
         control_service: DeviceControlService,
@@ -72,6 +82,7 @@ class MXHandler(BaseDeviceHandler):
     def create(
         cls,
 <<<<<<< HEAD
+<<<<<<< HEAD
         coordinator: MerakiDataUpdateCoordinator,
 =======
 <<<<<<< HEAD
@@ -80,11 +91,15 @@ class MXHandler(BaseDeviceHandler):
         coordinator: MerakiDataCoordinator,
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+        coordinator: MerakiDataCoordinator,
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
         device: MerakiDevice,
         config_entry: ConfigEntry,
         camera_service: CameraService,
         control_service: DeviceControlService,
         network_control_service: NetworkControlService,
+<<<<<<< HEAD
 <<<<<<< HEAD
         switch_port_coordinator: SwitchPortStatusCoordinator,
 =======
@@ -93,6 +108,8 @@ class MXHandler(BaseDeviceHandler):
 =======
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
     ) -> MXHandler:
         """Create an instance of the handler."""
         return cls(

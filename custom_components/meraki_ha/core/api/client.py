@@ -15,6 +15,7 @@ from typing import TYPE_CHECKING, Any
 
 import meraki
 <<<<<<< HEAD
+<<<<<<< HEAD
 from homeassistant.core import HomeAssistant
 
 from ...core.errors import MerakiInformationalError
@@ -24,6 +25,8 @@ from homeassistant.core import HomeAssistant
 
 from ...core.errors import MerakiInformationalError
 =======
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
 
 if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
@@ -32,8 +35,11 @@ from ...core.errors import (
     MerakiTrafficAnalysisError,
     MerakiVlansDisabledError,
 )
+<<<<<<< HEAD
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
 from ...types import MerakiDevice, MerakiNetwork
 from .endpoints.appliance import ApplianceEndpoints
 from .endpoints.camera import CameraEndpoints
@@ -44,6 +50,7 @@ from .endpoints.sensor import SensorEndpoints
 from .endpoints.switch import SwitchEndpoints
 from .endpoints.wireless import WirelessEndpoints
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 <<<<<<< HEAD
@@ -57,6 +64,8 @@ if TYPE_CHECKING:
 =======
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
 _LOGGER = logging.getLogger(__name__)
 
 
@@ -74,6 +83,7 @@ class MerakiAPIClient:
         api_key: str,
         org_id: str,
 <<<<<<< HEAD
+<<<<<<< HEAD
         coordinator: MerakiDataUpdateCoordinator | None = None,
 =======
 <<<<<<< HEAD
@@ -81,6 +91,8 @@ class MerakiAPIClient:
 =======
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
         base_url: str = "https://api.meraki.com/api/v1",
     ) -> None:
         """
@@ -91,6 +103,7 @@ class MerakiAPIClient:
             api_key: The Meraki API key.
             org_id: The organization ID.
 <<<<<<< HEAD
+<<<<<<< HEAD
             coordinator: The data update coordinator.
 =======
 <<<<<<< HEAD
@@ -98,12 +111,15 @@ class MerakiAPIClient:
 =======
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
             base_url: The base URL for the Meraki API.
 
         """
         self._api_key = api_key
         self._org_id = org_id
         self._hass = hass
+<<<<<<< HEAD
 <<<<<<< HEAD
         self.coordinator = coordinator
 
@@ -137,6 +153,11 @@ class MerakiAPIClient:
         self.dashboard: meraki.DashboardAPI | None = None
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+        self._base_url = base_url
+
+        self.dashboard: meraki.DashboardAPI | None = None
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
 
         # Initialize endpoint handlers
         self.appliance = ApplianceEndpoints(self, self._hass)
@@ -149,6 +170,7 @@ class MerakiAPIClient:
         self.sensor = SensorEndpoints(self)
 
 <<<<<<< HEAD
+<<<<<<< HEAD
         # Semaphore to limit concurrent API calls
         self._semaphore = asyncio.Semaphore(2)
 
@@ -158,6 +180,8 @@ class MerakiAPIClient:
         self._semaphore = asyncio.Semaphore(2)
 
 =======
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
         # Set to store network IDs that have failed traffic analysis
         self.traffic_analysis_failed_networks: set[str] = set()
 
@@ -183,8 +207,11 @@ class MerakiAPIClient:
             nginx_429_retry_wait_time=2,
         )
 
+<<<<<<< HEAD
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
     async def run_sync(
         self,
         func: Callable[..., Any],
@@ -420,6 +447,7 @@ class MerakiAPIClient:
                     self.wireless.get_network_ssids(network["id"]),
                 )
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
             if "appliance" in product_types:
@@ -436,6 +464,8 @@ class MerakiAPIClient:
                         self.appliance.get_network_vlans(network["id"]),
                     )
 =======
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
                 detail_tasks[f"wireless_settings_{network['id']}"] = (
                     self._run_with_semaphore(
                         self.wireless.get_network_wireless_settings(network["id"]),
@@ -460,8 +490,11 @@ class MerakiAPIClient:
                 detail_tasks[f"vlans_{network['id']}"] = self._run_with_semaphore(
                     self.appliance.get_network_vlans(network["id"]),
                 )
+<<<<<<< HEAD
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
                 detail_tasks[f"l3_firewall_rules_{network['id']}"] = (
                     self._run_with_semaphore(
                         self.appliance.get_l3_firewall_rules(network["id"]),
@@ -544,12 +577,16 @@ class MerakiAPIClient:
         rf_profiles_by_network: dict[str, Any] = {}
         content_filtering_by_network: dict[str, Any] = {}
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 =======
         wireless_settings_by_network: dict[str, Any] = {}
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+        wireless_settings_by_network: dict[str, Any] = {}
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
 
         for network in networks:
             network_ssids_key = f"ssids_{network['id']}"
@@ -565,6 +602,7 @@ class MerakiAPIClient:
             network_traffic_key = f"traffic_{network['id']}"
             network_traffic = detail_data.get(network_traffic_key)
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
@@ -579,6 +617,8 @@ class MerakiAPIClient:
 <<<<<<< HEAD
 =======
 =======
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
             if isinstance(network_traffic, MerakiTrafficAnalysisError):
                 _LOGGER.info(
                     "Traffic analysis is not enabled for network '%s'. "
@@ -587,8 +627,11 @@ class MerakiAPIClient:
                     network["name"],
                 )
                 self.traffic_analysis_failed_networks.add(network["id"])
+<<<<<<< HEAD
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
                 appliance_traffic[network["id"]] = {
                     "error": "disabled",
                     "reason": str(network_traffic),
@@ -600,6 +643,7 @@ class MerakiAPIClient:
 
             network_vlans_key = f"vlans_{network['id']}"
             network_vlans = detail_data.get(network_vlans_key)
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 <<<<<<< HEAD
@@ -618,6 +662,9 @@ class MerakiAPIClient:
             if isinstance(network_vlans, MerakiVlansDisabledError):
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+            if isinstance(network_vlans, MerakiVlansDisabledError):
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
                 vlan_by_network[network["id"]] = []
             elif isinstance(network_vlans, list):
                 vlan_by_network[network["id"]] = network_vlans
@@ -668,9 +715,12 @@ class MerakiAPIClient:
                 ]
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 =======
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
             wireless_settings_key = f"wireless_settings_{network['id']}"
             wireless_settings = detail_data.get(wireless_settings_key)
             if isinstance(wireless_settings, dict):
@@ -680,8 +730,11 @@ class MerakiAPIClient:
                     wireless_settings_key
                 ]
 
+<<<<<<< HEAD
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
         for device in devices:
             product_type = device.get("productType")
             if product_type == "camera":
@@ -696,6 +749,7 @@ class MerakiAPIClient:
                     device["sense_settings"] = settings
             elif product_type == "switch":
 <<<<<<< HEAD
+<<<<<<< HEAD
                 if statuses := detail_data.get(f"ports_statuses_{device['serial']}"):
                     device["ports_statuses"] = statuses
 =======
@@ -703,6 +757,8 @@ class MerakiAPIClient:
                 if statuses := detail_data.get(f"ports_statuses_{device['serial']}"):
                     device["ports_statuses"] = statuses
 =======
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
                 statuses_key = f"ports_statuses_{device['serial']}"
                 statuses = detail_data.get(statuses_key)
                 if isinstance(statuses, list):
@@ -721,8 +777,11 @@ class MerakiAPIClient:
                     if prev_device and "ports_statuses" in prev_device:
                         device["ports_statuses"] = prev_device["ports_statuses"]
 
+<<<<<<< HEAD
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
             elif product_type == "appliance":
                 if settings := detail_data.get(
                     f"appliance_settings_{device['serial']}",
@@ -740,12 +799,16 @@ class MerakiAPIClient:
             "rf_profiles": rf_profiles_by_network,
             "content_filtering": content_filtering_by_network,
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 =======
             "wireless_settings": wireless_settings_by_network,
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+            "wireless_settings": wireless_settings_by_network,
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
         }
 
     async def get_all_data(
@@ -823,6 +886,7 @@ class MerakiAPIClient:
         await self.network.register_webhook(webhook_url, secret)
 
 <<<<<<< HEAD
+<<<<<<< HEAD
     async def unregister_webhook(self, webhook_id: str) -> None:
 =======
 <<<<<<< HEAD
@@ -831,11 +895,15 @@ class MerakiAPIClient:
     async def unregister_webhook(self, webhook_url: str) -> None:
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+    async def unregister_webhook(self, webhook_url: str) -> None:
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
         """
         Unregister a webhook with the Meraki API.
 
         Args:
 <<<<<<< HEAD
+<<<<<<< HEAD
             webhook_id: The ID of the webhook to unregister.
 
         """
@@ -847,13 +915,18 @@ class MerakiAPIClient:
         """
         await self.network.unregister_webhook(webhook_id)
 =======
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
         ----
             webhook_url: The URL of the webhook to unregister.
 
         """
         await self.network.unregister_webhook(webhook_url)
+<<<<<<< HEAD
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
 
     async def async_reboot_device(self, serial: str) -> dict[str, Any]:
         """

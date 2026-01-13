@@ -1,4 +1,5 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
 ﻿name: Agent Healer
 =======
 <<<<<<< HEAD
@@ -9,6 +10,8 @@ on:
     workflows: ['Validate Code']
     types: [completed]
 =======
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
 name: Agent Healer
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
 
@@ -20,8 +23,11 @@ on:
 =======
   pull_request:
     branches: [beta]
+<<<<<<< HEAD
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
 
 permissions:
   contents: write
@@ -29,6 +35,7 @@ permissions:
 
 jobs:
   heal:
+<<<<<<< HEAD
 <<<<<<< HEAD
     # 1. Only run if Validate Code failed
     # 2. Prevent infinite loops (only heal failures from specific actors)
@@ -75,6 +82,8 @@ jobs:
 
             Apply fixes directly to: ${{ github.event.workflow_run.head_branch }}
 =======
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
     # Only run if the validation failed OR if specifically triggered by you/dependabot
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
     if: |
@@ -123,5 +132,8 @@ jobs:
             3. If this is a Dependabot PR, resolve version conflicts in manifest.json and requirements.txt.
             4. Ensure 'webrtc-models==0.3.0' is present if required by HA Core.
             5. Apply the fix and push directly to the branch.
+<<<<<<< HEAD
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)

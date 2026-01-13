@@ -26,6 +26,7 @@ if TYPE_CHECKING:
 
     from ...types import MerakiDevice
 <<<<<<< HEAD
+<<<<<<< HEAD
     from ..coordinator import MerakiDataUpdateCoordinator
     from ..core.api.client import MerakiAPIClient
     from ..core.coordinators.switch_port_status_coordinator import (
@@ -43,6 +44,10 @@ if TYPE_CHECKING:
     from ..meraki_data_coordinator import MerakiDataCoordinator
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+    from ..core.api.client import MerakiAPIClient
+    from ..meraki_data_coordinator import MerakiDataCoordinator
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
     from ..services.camera_service import CameraService
     from ..services.device_control_service import DeviceControlService
     from ..services.network_control_service import NetworkControlService
@@ -68,6 +73,7 @@ class DeviceDiscoveryService:
     def __init__(
         self,
 <<<<<<< HEAD
+<<<<<<< HEAD
         coordinator: MerakiDataUpdateCoordinator,
         config_entry: ConfigEntry,
         meraki_client: MerakiAPIClient,
@@ -84,6 +90,11 @@ class DeviceDiscoveryService:
         meraki_client: MerakiAPIClient,
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+        coordinator: MerakiDataCoordinator,
+        config_entry: ConfigEntry,
+        meraki_client: MerakiAPIClient,
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
         camera_service: CameraService,
         control_service: DeviceControlService,
         network_control_service: NetworkControlService,
@@ -93,6 +104,7 @@ class DeviceDiscoveryService:
         self._config_entry = config_entry
         self._meraki_client = meraki_client
 <<<<<<< HEAD
+<<<<<<< HEAD
         self._switch_port_coordinator = switch_port_coordinator
 =======
 <<<<<<< HEAD
@@ -100,6 +112,8 @@ class DeviceDiscoveryService:
 =======
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
         self._camera_service = camera_service
         self._control_service = control_service
         self._network_control_service = network_control_service
@@ -125,6 +139,7 @@ class DeviceDiscoveryService:
             self._control_service,
             self._network_control_service,
 <<<<<<< HEAD
+<<<<<<< HEAD
             self._switch_port_coordinator,
 =======
 <<<<<<< HEAD
@@ -132,6 +147,8 @@ class DeviceDiscoveryService:
 =======
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
         )
         network_entities = await network_handler.discover_entities()
         all_entities.extend(network_entities)
@@ -173,12 +190,16 @@ class DeviceDiscoveryService:
                     self._camera_service,
                     self._control_service,
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 =======
                     self._network_control_service,
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+                    self._network_control_service,
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
                     self._meraki_client,
                 )
             elif model_prefix in ("MX", "GX", "GR"):
@@ -195,6 +216,7 @@ class DeviceDiscoveryService:
                     device,
                     self._config_entry,
 <<<<<<< HEAD
+<<<<<<< HEAD
                     self._switch_port_coordinator,
                     self._control_service,
 =======
@@ -202,6 +224,8 @@ class DeviceDiscoveryService:
                     self._switch_port_coordinator,
                     self._control_service,
 =======
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
                     self._control_service,
                     self._network_control_service,
                 )
@@ -212,8 +236,11 @@ class DeviceDiscoveryService:
                     self._config_entry,
                     self._control_service,
                     self._network_control_service,
+<<<<<<< HEAD
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
                 )
             else:
                 handler = handler_class(

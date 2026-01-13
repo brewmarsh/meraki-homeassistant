@@ -15,6 +15,7 @@ from .const import CONF_MERAKI_API_KEY, CONF_MERAKI_ORG_ID
 
 if TYPE_CHECKING:
 <<<<<<< HEAD
+<<<<<<< HEAD
     from .config_flow import ConfigFlowHandler
 =======
 <<<<<<< HEAD
@@ -23,12 +24,16 @@ if TYPE_CHECKING:
     from .config_flow import MerakiConfigFlow
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+    from .config_flow import MerakiConfigFlow
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
 
 
 _LOGGER = logging.getLogger(__name__)
 
 
 async def async_step_reauth(
+<<<<<<< HEAD
 <<<<<<< HEAD
     self: ConfigFlowHandler,
 =======
@@ -38,6 +43,9 @@ async def async_step_reauth(
     self: MerakiConfigFlow,
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+    self: MerakiConfigFlow,
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
     user_input: dict[str, Any] | None = None,
 ) -> data_entry_flow.FlowResult:
     """

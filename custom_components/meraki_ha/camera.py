@@ -13,6 +13,7 @@ from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 from .const import DOMAIN, PLATFORM_CAMERA
 from .core.utils.naming_utils import format_device_name
 from .core.utils.network_utils import construct_rtsp_url
@@ -26,6 +27,10 @@ from .const import DOMAIN
 from .core.utils.naming_utils import format_device_name
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+from .const import DOMAIN
+from .core.utils.naming_utils import format_device_name
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
 from .helpers.entity_helpers import format_entity_name
 
 if TYPE_CHECKING:
@@ -33,6 +38,7 @@ if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
     from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
+<<<<<<< HEAD
 <<<<<<< HEAD
     from .coordinator import MerakiDataUpdateCoordinator
 =======
@@ -42,11 +48,15 @@ if TYPE_CHECKING:
     from .meraki_data_coordinator import MerakiDataCoordinator
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+    from .meraki_data_coordinator import MerakiDataCoordinator
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
     from .services.camera_service import CameraService
 
 
 _LOGGER = logging.getLogger(__name__)
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 SUPPORT_STREAM = CameraEntityFeature.STREAM
 
@@ -57,12 +67,15 @@ SUPPORT_STREAM = CameraEntityFeature.STREAM
 =======
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
 
 async def async_setup_entry(
     hass: HomeAssistant,
     config_entry: ConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
+<<<<<<< HEAD
 <<<<<<< HEAD
     """
     Set up Meraki camera entities from a config entry.
@@ -108,6 +121,8 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """
     return await hass.config_entries.async_unload_platforms(entry, [PLATFORM_CAMERA])
 =======
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
     """Set up Meraki camera entities from a config entry."""
     entry_data = hass.data[DOMAIN][config_entry.entry_id]
     discovered_entities = entry_data.get("entities", [])
@@ -158,14 +173,18 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             async_add_entities(chunk)
             if len(camera_entities) > chunk_size:
                 await asyncio.sleep(1)
+<<<<<<< HEAD
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
 
 
 class MerakiCamera(CoordinatorEntity, Camera):
     """
     Representation of a Meraki camera.
 
+<<<<<<< HEAD
 <<<<<<< HEAD
     This entity is state-driven by the central MerakiDataUpdateCoordinator.
 =======
@@ -175,12 +194,16 @@ class MerakiCamera(CoordinatorEntity, Camera):
     This entity is state-driven by the central MerakiDataCoordinator.
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+    This entity is state-driven by the central MerakiDataCoordinator.
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
     """
 
     _attr_brand = "Cisco Meraki"
 
     def __init__(
         self,
+<<<<<<< HEAD
 <<<<<<< HEAD
         coordinator: MerakiDataUpdateCoordinator,
 =======
@@ -190,10 +213,14 @@ class MerakiCamera(CoordinatorEntity, Camera):
         coordinator: MerakiDataCoordinator,
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+        coordinator: MerakiDataCoordinator,
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
         config_entry: ConfigEntry,
         device: dict[str, Any],
         camera_service: CameraService,
     ) -> None:
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 <<<<<<< HEAD
@@ -219,10 +246,15 @@ class MerakiCamera(CoordinatorEntity, Camera):
         super().__init__(coordinator)
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+        """Initialize the camera."""
+        super().__init__(coordinator)
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
         Camera.__init__(self)
         self._config_entry = config_entry
         self._device_serial = device["serial"]
         self._camera_service = camera_service
+<<<<<<< HEAD
 <<<<<<< HEAD
         self._device_data = device  # Store initial data
 =======
@@ -273,6 +305,8 @@ class MerakiCamera(CoordinatorEntity, Camera):
             model=self._device_data.get("model"),
 =======
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
         self._attr_unique_id = f"{self._device_serial}-camera"
         self._attr_name = format_entity_name(
             format_device_name(self._device_data, self._config_entry.options),
@@ -322,12 +356,16 @@ class MerakiCamera(CoordinatorEntity, Camera):
                 self.device_data, self.coordinator.config_entry.options
             ),
             model=self.device_data.get("model"),
+<<<<<<< HEAD
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
             manufacturer="Cisco Meraki",
         )
 
     async def async_camera_image(
+<<<<<<< HEAD
 <<<<<<< HEAD
         self,
         width: int | None = None,
@@ -413,6 +451,8 @@ class MerakiCamera(CoordinatorEntity, Camera):
 
         _LOGGER.warning("Could not determine a valid RTSP URL for camera %s", self.name)
 =======
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
         self, width: int | None = None, height: int | None = None
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
     ) -> bytes | None:
@@ -495,13 +535,17 @@ class MerakiCamera(CoordinatorEntity, Camera):
         """Return the source of the stream, if enabled."""
         if self.is_streaming:
             return self.device_data.get("rtsp_url")
+<<<<<<< HEAD
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
         return None
 
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
         """Return the state attributes."""
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 <<<<<<< HEAD
@@ -526,6 +570,8 @@ class MerakiCamera(CoordinatorEntity, Camera):
                 self._device_serial,
                 "RTSP stream URL is not available.",
 =======
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
         attrs = {}
         video_settings = self.device_data.get("video_settings", {})
         if not video_settings.get("rtspServerEnabled", False):
@@ -544,8 +590,11 @@ class MerakiCamera(CoordinatorEntity, Camera):
 =======
                 "RTSP stream URL is not available. The camera might not support cloud"
                 " archival.",
+<<<<<<< HEAD
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
             )
         else:
             attrs["stream_status"] = "Enabled"
@@ -553,20 +602,27 @@ class MerakiCamera(CoordinatorEntity, Camera):
 
     @property
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 =======
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
     def supported_features(self) -> CameraEntityFeature:
         """Return supported features."""
         return CameraEntityFeature.STREAM
 
     @property
+<<<<<<< HEAD
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
     def is_streaming(self) -> bool:
         """
         Return true if the camera is streaming.
 
+<<<<<<< HEAD
 <<<<<<< HEAD
         This requires the rtspServerEnabled setting to be true and for either a
         valid rtsp:// URL or a LAN IP to be available.
@@ -660,6 +716,8 @@ class MerakiCamera(CoordinatorEntity, Camera):
         """Turn off the camera stream."""
         await self._async_set_stream_state(False)
 =======
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
         This requires both the rtspServerEnabled setting to be true and a
         valid rtsp:// URL to be available.
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
@@ -755,5 +813,8 @@ class MerakiCamera(CoordinatorEntity, Camera):
             self._device_serial, False
         )
         await self.coordinator.async_request_refresh()
+<<<<<<< HEAD
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)

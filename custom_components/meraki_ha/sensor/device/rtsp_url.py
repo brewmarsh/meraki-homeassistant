@@ -12,6 +12,7 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from ...const import DOMAIN
 <<<<<<< HEAD
+<<<<<<< HEAD
 from ...coordinator import MerakiDataUpdateCoordinator
 from ...core.utils.naming_utils import format_device_name
 from ...core.utils.network_utils import construct_rtsp_url
@@ -23,12 +24,17 @@ from ...core.utils.naming_utils import format_device_name
 from ...core.utils.network_utils import construct_rtsp_url
 from ...helpers.entity_helpers import format_entity_name
 =======
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
 from ...core.utils.naming_utils import format_device_name
 from ...core.utils.network_utils import construct_rtsp_url
 from ...helpers.entity_helpers import format_entity_name
 from ...meraki_data_coordinator import MerakiDataCoordinator
+<<<<<<< HEAD
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -38,6 +44,7 @@ class MerakiRtspUrlSensor(CoordinatorEntity, SensorEntity):
     Representation of an RTSP URL sensor.
 
 <<<<<<< HEAD
+<<<<<<< HEAD
     This sensor is driven by the central MerakiDataUpdateCoordinator, which
 =======
 <<<<<<< HEAD
@@ -46,12 +53,16 @@ class MerakiRtspUrlSensor(CoordinatorEntity, SensorEntity):
     This sensor is driven by the central MerakiDataCoordinator, which
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+    This sensor is driven by the central MerakiDataCoordinator, which
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
     ensures that the state is always in sync with the latest data from the
     Meraki API.
     """
 
     def __init__(
         self,
+<<<<<<< HEAD
 <<<<<<< HEAD
         coordinator: MerakiDataUpdateCoordinator,
 =======
@@ -61,6 +72,9 @@ class MerakiRtspUrlSensor(CoordinatorEntity, SensorEntity):
         coordinator: MerakiDataCoordinator,
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+        coordinator: MerakiDataCoordinator,
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
         device_data: dict[str, Any],
         config_entry: ConfigEntry,
     ) -> None:

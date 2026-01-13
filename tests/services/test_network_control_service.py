@@ -18,6 +18,7 @@ def mock_api_client() -> MagicMock:
 @pytest.fixture
 def mock_coordinator_with_clients(mock_coordinator: MagicMock) -> MagicMock:
 <<<<<<< HEAD
+<<<<<<< HEAD
     """Fixture for a mocked MerakiDataUpdateCoordinator with client data."""
 =======
 <<<<<<< HEAD
@@ -26,6 +27,9 @@ def mock_coordinator_with_clients(mock_coordinator: MagicMock) -> MagicMock:
     """Fixture for a mocked MerakiDataCoordinator with client data."""
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+    """Fixture for a mocked MerakiDataCoordinator with client data."""
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
     mock_coordinator.data = {
         "clients": [
             {"networkId": "N_1234", "mac": "00:11:22:33:44:55"},

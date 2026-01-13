@@ -23,6 +23,7 @@ class WirelessEndpoints:
         """Initialize the endpoint."""
         self._api_client = api_client
 <<<<<<< HEAD
+<<<<<<< HEAD
         self._dashboard = api_client.dashboard
 =======
 <<<<<<< HEAD
@@ -30,6 +31,8 @@ class WirelessEndpoints:
 =======
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
 
     @handle_meraki_errors
     @async_timed_cache()
@@ -47,6 +50,7 @@ class WirelessEndpoints:
 
         """
 <<<<<<< HEAD
+<<<<<<< HEAD
         ssids = await self._api_client.run_sync(
             self._dashboard.wireless.getNetworkWirelessSsids,
 =======
@@ -54,12 +58,17 @@ class WirelessEndpoints:
         ssids = await self._api_client.run_sync(
             self._dashboard.wireless.getNetworkWirelessSsids,
 =======
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
         if self._api_client.dashboard is None:
             return []
         ssids = await self._api_client.run_sync(
             self._api_client.dashboard.wireless.getNetworkWirelessSsids,
+<<<<<<< HEAD
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
             networkId=network_id,
         )
         validated = validate_response(ssids)
@@ -84,6 +93,7 @@ class WirelessEndpoints:
 
         """
 <<<<<<< HEAD
+<<<<<<< HEAD
         settings = await self._api_client.run_sync(
             self._dashboard.wireless.getDeviceWirelessRadioSettings,
 =======
@@ -91,12 +101,17 @@ class WirelessEndpoints:
         settings = await self._api_client.run_sync(
             self._dashboard.wireless.getDeviceWirelessRadioSettings,
 =======
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
         if self._api_client.dashboard is None:
             return {}
         settings = await self._api_client.run_sync(
             self._api_client.dashboard.wireless.getDeviceWirelessRadioSettings,
+<<<<<<< HEAD
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
             serial=serial,
         )
         validated = validate_response(settings)
@@ -107,9 +122,12 @@ class WirelessEndpoints:
 
     @handle_meraki_errors
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 =======
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
     async def create_network_wireless_ssid_identity_psk(
         self,
         network_id: str,
@@ -153,8 +171,11 @@ class WirelessEndpoints:
         return validated
 
     @handle_meraki_errors
+<<<<<<< HEAD
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
     @async_timed_cache()
     async def get_network_wireless_ssid(
         self,
@@ -175,6 +196,7 @@ class WirelessEndpoints:
 
         """
 <<<<<<< HEAD
+<<<<<<< HEAD
         ssid = await self._api_client.run_sync(
             self._dashboard.wireless.getNetworkWirelessSsid,
 =======
@@ -182,12 +204,17 @@ class WirelessEndpoints:
         ssid = await self._api_client.run_sync(
             self._dashboard.wireless.getNetworkWirelessSsid,
 =======
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
         if self._api_client.dashboard is None:
             return {}
         ssid = await self._api_client.run_sync(
             self._api_client.dashboard.wireless.getNetworkWirelessSsid,
+<<<<<<< HEAD
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
             networkId=network_id,
             number=number,
         )
@@ -199,9 +226,12 @@ class WirelessEndpoints:
 
     @handle_meraki_errors
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 =======
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
     @async_timed_cache()
     async def get_network_wireless_settings(self, network_id: str) -> dict[str, Any]:
         """
@@ -257,8 +287,11 @@ class WirelessEndpoints:
         return validated
 
     @handle_meraki_errors
+<<<<<<< HEAD
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
     async def update_network_wireless_ssid(
         self,
         network_id: str,
@@ -280,6 +313,7 @@ class WirelessEndpoints:
 
         """
 <<<<<<< HEAD
+<<<<<<< HEAD
         ssid = await self._api_client.run_sync(
             self._dashboard.wireless.updateNetworkWirelessSsid,
 =======
@@ -287,12 +321,17 @@ class WirelessEndpoints:
         ssid = await self._api_client.run_sync(
             self._dashboard.wireless.updateNetworkWirelessSsid,
 =======
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
         if self._api_client.dashboard is None:
             return {}
         ssid = await self._api_client.run_sync(
             self._api_client.dashboard.wireless.updateNetworkWirelessSsid,
+<<<<<<< HEAD
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
             networkId=network_id,
             number=number,
             **kwargs,
@@ -322,6 +361,7 @@ class WirelessEndpoints:
 
         """
 <<<<<<< HEAD
+<<<<<<< HEAD
         profiles = await self._api_client.run_sync(
             self._dashboard.wireless.getNetworkWirelessRfProfiles,
 =======
@@ -329,12 +369,17 @@ class WirelessEndpoints:
         profiles = await self._api_client.run_sync(
             self._dashboard.wireless.getNetworkWirelessRfProfiles,
 =======
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
         if self._api_client.dashboard is None:
             return []
         profiles = await self._api_client.run_sync(
             self._api_client.dashboard.wireless.getNetworkWirelessRfProfiles,
+<<<<<<< HEAD
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
             networkId=network_id,
         )
         validated = validate_response(profiles)
@@ -364,6 +409,7 @@ class WirelessEndpoints:
 
         """
 <<<<<<< HEAD
+<<<<<<< HEAD
         rules = await self._api_client.run_sync(
             self._dashboard.wireless.getNetworkWirelessSsidL7FirewallRules,
 =======
@@ -371,12 +417,17 @@ class WirelessEndpoints:
         rules = await self._api_client.run_sync(
             self._dashboard.wireless.getNetworkWirelessSsidL7FirewallRules,
 =======
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
         if self._api_client.dashboard is None:
             return {}
         rules = await self._api_client.run_sync(
             self._api_client.dashboard.wireless.getNetworkWirelessSsidL7FirewallRules,
+<<<<<<< HEAD
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
             networkId=network_id,
             number=number,
         )
@@ -410,6 +461,7 @@ class WirelessEndpoints:
 
         """
 <<<<<<< HEAD
+<<<<<<< HEAD
         rules = await self._api_client.run_sync(
             self._dashboard.wireless.updateNetworkWirelessSsidL7FirewallRules,
 =======
@@ -417,12 +469,17 @@ class WirelessEndpoints:
         rules = await self._api_client.run_sync(
             self._dashboard.wireless.updateNetworkWirelessSsidL7FirewallRules,
 =======
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
         if self._api_client.dashboard is None:
             return {}
         rules = await self._api_client.run_sync(
             self._api_client.dashboard.wireless.updateNetworkWirelessSsidL7FirewallRules,
+<<<<<<< HEAD
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
             networkId=network_id,
             number=number,
             **kwargs,

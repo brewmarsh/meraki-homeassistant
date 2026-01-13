@@ -2,6 +2,7 @@
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
 <<<<<<< HEAD
+<<<<<<< HEAD
     rev: v5.0.0
 =======
 <<<<<<< HEAD
@@ -10,6 +11,9 @@ repos:
     rev: v6.0.0
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+    rev: v6.0.0
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
     hooks:
       # - id: trailing-whitespace # Temporarily commented out
       # - id: mixed-line-ending # Temporarily commented out
@@ -23,6 +27,7 @@ repos:
       - id: end-of-file-fixer
   - repo: https://github.com/psf/black
 <<<<<<< HEAD
+<<<<<<< HEAD
     rev: 24.2.0
 =======
 <<<<<<< HEAD
@@ -31,6 +36,9 @@ repos:
     rev: 25.12.0
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+    rev: 25.12.0
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
     hooks:
       - id: black
         language_version: python3
@@ -41,6 +49,7 @@ repos:
   #        name: isort (python)
   - repo: https://github.com/astral-sh/ruff-pre-commit
 <<<<<<< HEAD
+<<<<<<< HEAD
     rev: v0.9.5
 =======
 <<<<<<< HEAD
@@ -49,6 +58,9 @@ repos:
     rev: v0.14.11
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+    rev: v0.14.11
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
     hooks:
       - id: ruff
         args:
@@ -74,6 +86,7 @@ repos:
       - id: prettier
   - repo: https://github.com/cdce8p/python-typing-update
 <<<<<<< HEAD
+<<<<<<< HEAD
     rev: v0.7.0
 =======
 <<<<<<< HEAD
@@ -82,6 +95,9 @@ repos:
     rev: v0.8.1
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+    rev: v0.8.1
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
     hooks:
       - id: python-typing-update
         stages: [manual]
@@ -92,6 +108,7 @@ repos:
         files: ^(custom_components|tests)/.+\.py$
   - repo: https://github.com/DavidAnson/markdownlint-cli2
 <<<<<<< HEAD
+<<<<<<< HEAD
     rev: v0.8.1
     hooks:
       - id: markdownlint-cli2
@@ -101,6 +118,8 @@ repos:
     hooks:
       - id: markdownlint-cli2
 =======
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
     rev: v0.20.0
     hooks:
       - id: markdownlint-cli2
@@ -109,5 +128,8 @@ repos:
     hooks:
       - id: hassfest
         stages: [manual]
+<<<<<<< HEAD
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)

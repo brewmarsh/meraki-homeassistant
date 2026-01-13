@@ -35,6 +35,7 @@ class ApplianceEndpoints:
         """
         self._api_client = api_client
 <<<<<<< HEAD
+<<<<<<< HEAD
         self._dashboard = api_client.dashboard
 =======
 <<<<<<< HEAD
@@ -42,6 +43,8 @@ class ApplianceEndpoints:
 =======
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
         self._hass = hass
 
     @handle_meraki_errors
@@ -64,6 +67,7 @@ class ApplianceEndpoints:
 
         """
 <<<<<<< HEAD
+<<<<<<< HEAD
         traffic = await self._api_client.run_sync(
             self._dashboard.appliance.getNetworkApplianceTraffic,
 =======
@@ -71,12 +75,17 @@ class ApplianceEndpoints:
         traffic = await self._api_client.run_sync(
             self._dashboard.appliance.getNetworkApplianceTraffic,
 =======
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
         if self._api_client.dashboard is None:
             return []
         traffic = await self._api_client.run_sync(
             self._api_client.dashboard.appliance.getNetworkApplianceTraffic,
+<<<<<<< HEAD
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
             networkId=network_id,
             timespan=timespan,
         )
@@ -101,6 +110,7 @@ class ApplianceEndpoints:
 
         """
 <<<<<<< HEAD
+<<<<<<< HEAD
         vlans = await self._api_client.run_sync(
             self._dashboard.appliance.getNetworkApplianceVlans,
 =======
@@ -108,12 +118,17 @@ class ApplianceEndpoints:
         vlans = await self._api_client.run_sync(
             self._dashboard.appliance.getNetworkApplianceVlans,
 =======
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
         if self._api_client.dashboard is None:
             return []
         vlans = await self._api_client.run_sync(
             self._api_client.dashboard.appliance.getNetworkApplianceVlans,
+<<<<<<< HEAD
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
             networkId=network_id,
         )
         validated = validate_response(vlans)
@@ -143,6 +158,7 @@ class ApplianceEndpoints:
 
         """
 <<<<<<< HEAD
+<<<<<<< HEAD
         vlan = await self._api_client.run_sync(
             self._dashboard.appliance.updateNetworkApplianceVlan,
 =======
@@ -150,12 +166,17 @@ class ApplianceEndpoints:
         vlan = await self._api_client.run_sync(
             self._dashboard.appliance.updateNetworkApplianceVlan,
 =======
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
         if self._api_client.dashboard is None:
             return {}
         vlan = await self._api_client.run_sync(
             self._api_client.dashboard.appliance.updateNetworkApplianceVlan,
+<<<<<<< HEAD
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
             networkId=network_id,
             vlanId=vlan_id,
             **kwargs,
@@ -181,6 +202,7 @@ class ApplianceEndpoints:
 
         """
 <<<<<<< HEAD
+<<<<<<< HEAD
         rules = await self._api_client.run_sync(
             self._dashboard.appliance.getNetworkApplianceFirewallL3FirewallRules,
 =======
@@ -188,12 +210,17 @@ class ApplianceEndpoints:
         rules = await self._api_client.run_sync(
             self._dashboard.appliance.getNetworkApplianceFirewallL3FirewallRules,
 =======
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
         if self._api_client.dashboard is None:
             return {}
         rules = await self._api_client.run_sync(
             self._api_client.dashboard.appliance.getNetworkApplianceFirewallL3FirewallRules,
+<<<<<<< HEAD
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
             networkId=network_id,
         )
         validated = validate_response(rules)
@@ -221,6 +248,7 @@ class ApplianceEndpoints:
 
         """
 <<<<<<< HEAD
+<<<<<<< HEAD
         rules = await self._api_client.run_sync(
             self._dashboard.appliance.updateNetworkApplianceFirewallL3FirewallRules,
 =======
@@ -228,12 +256,17 @@ class ApplianceEndpoints:
         rules = await self._api_client.run_sync(
             self._dashboard.appliance.updateNetworkApplianceFirewallL3FirewallRules,
 =======
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
         if self._api_client.dashboard is None:
             return {}
         rules = await self._api_client.run_sync(
             self._api_client.dashboard.appliance.updateNetworkApplianceFirewallL3FirewallRules,
+<<<<<<< HEAD
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
             networkId=network_id,
             **kwargs,
         )
@@ -258,6 +291,7 @@ class ApplianceEndpoints:
 
         """
 <<<<<<< HEAD
+<<<<<<< HEAD
         settings = await self._api_client.run_sync(
             self._dashboard.appliance.getNetworkApplianceTrafficShaping,
 =======
@@ -265,12 +299,17 @@ class ApplianceEndpoints:
         settings = await self._api_client.run_sync(
             self._dashboard.appliance.getNetworkApplianceTrafficShaping,
 =======
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
         if self._api_client.dashboard is None:
             return {}
         settings = await self._api_client.run_sync(
             self._api_client.dashboard.appliance.getNetworkApplianceTrafficShaping,
+<<<<<<< HEAD
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
             networkId=network_id,
         )
         validated = validate_response(settings)
@@ -298,6 +337,7 @@ class ApplianceEndpoints:
 
         """
 <<<<<<< HEAD
+<<<<<<< HEAD
         settings = await self._api_client.run_sync(
             self._dashboard.appliance.updateNetworkApplianceTrafficShaping,
 =======
@@ -305,12 +345,17 @@ class ApplianceEndpoints:
         settings = await self._api_client.run_sync(
             self._dashboard.appliance.updateNetworkApplianceTrafficShaping,
 =======
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
         if self._api_client.dashboard is None:
             return {}
         settings = await self._api_client.run_sync(
             self._api_client.dashboard.appliance.updateNetworkApplianceTrafficShaping,
+<<<<<<< HEAD
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
             networkId=network_id,
             **kwargs,
         )
@@ -335,6 +380,7 @@ class ApplianceEndpoints:
 
         """
 <<<<<<< HEAD
+<<<<<<< HEAD
         status = await self._api_client.run_sync(
             self._dashboard.appliance.getNetworkApplianceVpnSiteToSiteVpn,
 =======
@@ -342,12 +388,17 @@ class ApplianceEndpoints:
         status = await self._api_client.run_sync(
             self._dashboard.appliance.getNetworkApplianceVpnSiteToSiteVpn,
 =======
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
         if self._api_client.dashboard is None:
             return {}
         status = await self._api_client.run_sync(
             self._api_client.dashboard.appliance.getNetworkApplianceVpnSiteToSiteVpn,
+<<<<<<< HEAD
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
             networkId=network_id,
         )
         validated = validate_response(status)
@@ -371,6 +422,7 @@ class ApplianceEndpoints:
 
         """
 <<<<<<< HEAD
+<<<<<<< HEAD
         status = await self._api_client.run_sync(
             self._dashboard.appliance.updateNetworkApplianceVpnSiteToSiteVpn,
 =======
@@ -378,12 +430,17 @@ class ApplianceEndpoints:
         status = await self._api_client.run_sync(
             self._dashboard.appliance.updateNetworkApplianceVpnSiteToSiteVpn,
 =======
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
         if self._api_client.dashboard is None:
             return {}
         status = await self._api_client.run_sync(
             self._api_client.dashboard.appliance.updateNetworkApplianceVpnSiteToSiteVpn,
+<<<<<<< HEAD
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
             networkId=network_id,
             **kwargs,
         )
@@ -411,6 +468,7 @@ class ApplianceEndpoints:
 
         """
 <<<<<<< HEAD
+<<<<<<< HEAD
         uplinks = await self._api_client.run_sync(
             self._dashboard.appliance.getDeviceApplianceUplinksSettings,
 =======
@@ -418,12 +476,17 @@ class ApplianceEndpoints:
         uplinks = await self._api_client.run_sync(
             self._dashboard.appliance.getDeviceApplianceUplinksSettings,
 =======
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
         if self._api_client.dashboard is None:
             return {}
         uplinks = await self._api_client.run_sync(
             self._api_client.dashboard.appliance.getDeviceApplianceUplinksSettings,
+<<<<<<< HEAD
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
             serial=serial,
         )
         validated = validate_response(uplinks)
@@ -452,6 +515,7 @@ class ApplianceEndpoints:
 
         """
 <<<<<<< HEAD
+<<<<<<< HEAD
         result = await self._api_client.run_sync(
             self._dashboard.appliance.getNetworkApplianceContentFiltering,
 =======
@@ -459,12 +523,17 @@ class ApplianceEndpoints:
         result = await self._api_client.run_sync(
             self._dashboard.appliance.getNetworkApplianceContentFiltering,
 =======
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
         if self._api_client.dashboard is None:
             return {}
         result = await self._api_client.run_sync(
             self._api_client.dashboard.appliance.getNetworkApplianceContentFiltering,
+<<<<<<< HEAD
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
             networkId=network_id,
         )
         validated = validate_response(result)
@@ -493,6 +562,7 @@ class ApplianceEndpoints:
 
         """
 <<<<<<< HEAD
+<<<<<<< HEAD
         result = await self._api_client.run_sync(
             self._dashboard.appliance.getNetworkApplianceContentFilteringCategories,
 =======
@@ -500,12 +570,17 @@ class ApplianceEndpoints:
         result = await self._api_client.run_sync(
             self._dashboard.appliance.getNetworkApplianceContentFilteringCategories,
 =======
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
         if self._api_client.dashboard is None:
             return {}
         result = await self._api_client.run_sync(
             self._api_client.dashboard.appliance.getNetworkApplianceContentFilteringCategories,
+<<<<<<< HEAD
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
             networkId=network_id,
         )
         validated = validate_response(result)
@@ -531,6 +606,7 @@ class ApplianceEndpoints:
 
         """
 <<<<<<< HEAD
+<<<<<<< HEAD
         result = await self._api_client.run_sync(
             self._dashboard.devices.rebootDevice,
 =======
@@ -538,12 +614,17 @@ class ApplianceEndpoints:
         result = await self._api_client.run_sync(
             self._dashboard.devices.rebootDevice,
 =======
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
         if self._api_client.dashboard is None:
             return {}
         result = await self._api_client.run_sync(
             self._api_client.dashboard.devices.rebootDevice,
+<<<<<<< HEAD
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
             serial=serial,
         )
         validated = validate_response(result)
@@ -567,6 +648,7 @@ class ApplianceEndpoints:
 
         """
 <<<<<<< HEAD
+<<<<<<< HEAD
         ports = await self._api_client.run_sync(
             self._dashboard.appliance.getNetworkAppliancePorts,
 =======
@@ -574,12 +656,17 @@ class ApplianceEndpoints:
         ports = await self._api_client.run_sync(
             self._dashboard.appliance.getNetworkAppliancePorts,
 =======
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
         if self._api_client.dashboard is None:
             return []
         ports = await self._api_client.run_sync(
             self._api_client.dashboard.appliance.getNetworkAppliancePorts,
+<<<<<<< HEAD
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
             networkId=network_id,
         )
         validated = validate_response(ports)
@@ -603,6 +690,7 @@ class ApplianceEndpoints:
 
         """
 <<<<<<< HEAD
+<<<<<<< HEAD
         settings = await self._api_client.run_sync(
             self._dashboard.appliance.getNetworkApplianceSettings,
 =======
@@ -610,12 +698,17 @@ class ApplianceEndpoints:
         settings = await self._api_client.run_sync(
             self._dashboard.appliance.getNetworkApplianceSettings,
 =======
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
         if self._api_client.dashboard is None:
             return {}
         settings = await self._api_client.run_sync(
             self._api_client.dashboard.appliance.getNetworkApplianceSettings,
+<<<<<<< HEAD
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
             networkId=network_id,
         )
         validated = validate_response(settings)
@@ -642,6 +735,7 @@ class ApplianceEndpoints:
 
         """
 <<<<<<< HEAD
+<<<<<<< HEAD
         rules = await self._api_client.run_sync(
             self._dashboard.appliance.getNetworkApplianceL7FirewallRules,
 =======
@@ -649,12 +743,17 @@ class ApplianceEndpoints:
         rules = await self._api_client.run_sync(
             self._dashboard.appliance.getNetworkApplianceL7FirewallRules,
 =======
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
         if self._api_client.dashboard is None:
             return {}
         rules = await self._api_client.run_sync(
             self._api_client.dashboard.appliance.getNetworkApplianceL7FirewallRules,
+<<<<<<< HEAD
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
             networkId=network_id,
         )
         validated = validate_response(rules)
@@ -684,6 +783,7 @@ class ApplianceEndpoints:
 
         """
 <<<<<<< HEAD
+<<<<<<< HEAD
         rules = await self._api_client.run_sync(
             self._dashboard.appliance.updateNetworkApplianceL7FirewallRules,
 =======
@@ -691,12 +791,17 @@ class ApplianceEndpoints:
         rules = await self._api_client.run_sync(
             self._dashboard.appliance.updateNetworkApplianceL7FirewallRules,
 =======
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
         if self._api_client.dashboard is None:
             return {}
         rules = await self._api_client.run_sync(
             self._api_client.dashboard.appliance.updateNetworkApplianceL7FirewallRules,
+<<<<<<< HEAD
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
             networkId=network_id,
             **kwargs,
         )
@@ -727,6 +832,7 @@ class ApplianceEndpoints:
 
         """
 <<<<<<< HEAD
+<<<<<<< HEAD
         result = await self._api_client.run_sync(
             self._dashboard.appliance.updateNetworkApplianceContentFiltering,
 =======
@@ -734,12 +840,17 @@ class ApplianceEndpoints:
         result = await self._api_client.run_sync(
             self._dashboard.appliance.updateNetworkApplianceContentFiltering,
 =======
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
         if self._api_client.dashboard is None:
             return {}
         result = await self._api_client.run_sync(
             self._api_client.dashboard.appliance.updateNetworkApplianceContentFiltering,
+<<<<<<< HEAD
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
             networkId=network_id,
             **kwargs,
         )
@@ -763,6 +874,7 @@ class ApplianceEndpoints:
 
         """
 <<<<<<< HEAD
+<<<<<<< HEAD
         statuses = await self._api_client.run_sync(
             self._dashboard.appliance.getOrganizationApplianceUplinkStatuses,
 =======
@@ -770,12 +882,17 @@ class ApplianceEndpoints:
         statuses = await self._api_client.run_sync(
             self._dashboard.appliance.getOrganizationApplianceUplinkStatuses,
 =======
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
         if self._api_client.dashboard is None:
             return []
         statuses = await self._api_client.run_sync(
             self._api_client.dashboard.appliance.getOrganizationApplianceUplinkStatuses,
+<<<<<<< HEAD
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
             organizationId=self._api_client.organization_id,
             total_pages="all",
         )

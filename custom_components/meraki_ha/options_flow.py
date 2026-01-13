@@ -6,6 +6,7 @@ from typing import Any
 
 import voluptuous as vol
 <<<<<<< HEAD
+<<<<<<< HEAD
 from homeassistant import config_entries, data_entry_flow
 =======
 <<<<<<< HEAD
@@ -22,6 +23,8 @@ class MerakiOptionsFlowHandler(config_entries.OptionsFlow):
 
     def __init__(self, config_entry: config_entries.ConfigEntry) -> None:
 =======
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
 from homeassistant.config_entries import ConfigEntry, ConfigFlowResult, OptionsFlow
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
 from homeassistant.helpers import selector
@@ -38,8 +41,11 @@ class MerakiOptionsFlowHandler(config_entries.OptionsFlow):
     def __init__(self, config_entry: config_entries.ConfigEntry) -> None:
 =======
     def __init__(self, config_entry: ConfigEntry) -> None:
+<<<<<<< HEAD
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
         """
         Initialize options flow.
 
@@ -54,6 +60,7 @@ class MerakiOptionsFlowHandler(config_entries.OptionsFlow):
         self,
         user_input: dict[str, Any] | None = None,
 <<<<<<< HEAD
+<<<<<<< HEAD
     ) -> data_entry_flow.FlowResult:
 =======
 <<<<<<< HEAD
@@ -62,6 +69,9 @@ class MerakiOptionsFlowHandler(config_entries.OptionsFlow):
     ) -> ConfigFlowResult:
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+    ) -> ConfigFlowResult:
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
         """
         Manage the options flow.
 
@@ -75,6 +85,7 @@ class MerakiOptionsFlowHandler(config_entries.OptionsFlow):
 
         """
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 =======
@@ -82,6 +93,10 @@ class MerakiOptionsFlowHandler(config_entries.OptionsFlow):
 
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+        from .meraki_data_coordinator import MerakiDataCoordinator
+
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
         if user_input is not None:
             self.options.update(user_input)
             return self.async_create_entry(
@@ -89,6 +104,7 @@ class MerakiOptionsFlowHandler(config_entries.OptionsFlow):
                 data=self.options,
             )
 
+<<<<<<< HEAD
 <<<<<<< HEAD
         coordinator: MerakiDataUpdateCoordinator = self.hass.data[DOMAIN][
             self.config_entry.entry_id
@@ -104,6 +120,11 @@ class MerakiOptionsFlowHandler(config_entries.OptionsFlow):
         ]["coordinator"]
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+        coordinator: MerakiDataCoordinator = self.hass.data[DOMAIN][
+            self.config_entry.entry_id
+        ]["coordinator"]
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
         network_options = []
         if coordinator.data and coordinator.data.get("networks"):
             network_options = [
@@ -121,6 +142,7 @@ class MerakiOptionsFlowHandler(config_entries.OptionsFlow):
         return self.async_show_form(step_id="init", data_schema=schema_with_defaults)
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
     def _populate_schema_defaults(
@@ -130,6 +152,8 @@ class MerakiOptionsFlowHandler(config_entries.OptionsFlow):
         network_options: list[dict[str, str]],
     ) -> vol.Schema:
 =======
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
     @staticmethod
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
     def _populate_schema_defaults(
@@ -141,8 +165,11 @@ class MerakiOptionsFlowHandler(config_entries.OptionsFlow):
     ) -> vol.Schema:
 =======
     ):
+<<<<<<< HEAD
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
         """
         Populate a schema with default values.
 
@@ -170,6 +197,7 @@ class MerakiOptionsFlowHandler(config_entries.OptionsFlow):
                 key = type(key)(key.schema, default=defaults[key.schema])
 
 <<<<<<< HEAD
+<<<<<<< HEAD
             if key_name == CONF_IGNORED_NETWORKS and isinstance(
 =======
 <<<<<<< HEAD
@@ -178,6 +206,9 @@ class MerakiOptionsFlowHandler(config_entries.OptionsFlow):
             if key_name == CONF_ENABLED_NETWORKS and isinstance(
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+            if key_name == CONF_ENABLED_NETWORKS and isinstance(
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
                 value, selector.SelectSelector
             ):
                 new_config = value.config.copy()

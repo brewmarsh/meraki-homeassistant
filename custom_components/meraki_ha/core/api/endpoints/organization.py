@@ -33,6 +33,7 @@ class OrganizationEndpoints:
         """
         self._api_client = api_client
 <<<<<<< HEAD
+<<<<<<< HEAD
         self._dashboard = api_client.dashboard
 =======
 <<<<<<< HEAD
@@ -40,6 +41,8 @@ class OrganizationEndpoints:
 =======
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
 
     @handle_meraki_errors
     @async_timed_cache(timeout=3600)
@@ -53,6 +56,7 @@ class OrganizationEndpoints:
 
         """
 <<<<<<< HEAD
+<<<<<<< HEAD
         org = await self._api_client.run_sync(
             self._dashboard.organizations.getOrganization,
 =======
@@ -60,12 +64,17 @@ class OrganizationEndpoints:
         org = await self._api_client.run_sync(
             self._dashboard.organizations.getOrganization,
 =======
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
         if self._api_client.dashboard is None:
             return {}
         org = await self._api_client.run_sync(
             self._api_client.dashboard.organizations.getOrganization,
+<<<<<<< HEAD
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
             organizationId=self._api_client.organization_id,
         )
         validated = validate_response(org)
@@ -86,6 +95,7 @@ class OrganizationEndpoints:
 
         """
 <<<<<<< HEAD
+<<<<<<< HEAD
         networks = await self._api_client.run_sync(
             self._dashboard.organizations.getOrganizationNetworks,
 =======
@@ -93,12 +103,17 @@ class OrganizationEndpoints:
         networks = await self._api_client.run_sync(
             self._dashboard.organizations.getOrganizationNetworks,
 =======
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
         if self._api_client.dashboard is None:
             return []
         networks = await self._api_client.run_sync(
             self._api_client.dashboard.organizations.getOrganizationNetworks,
+<<<<<<< HEAD
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
             organizationId=self._api_client.organization_id,
         )
         validated = validate_response(networks)
@@ -119,6 +134,7 @@ class OrganizationEndpoints:
 
         """
 <<<<<<< HEAD
+<<<<<<< HEAD
         upgrades = await self._api_client.run_sync(
             self._dashboard.organizations.getOrganizationFirmwareUpgrades,
 =======
@@ -126,12 +142,17 @@ class OrganizationEndpoints:
         upgrades = await self._api_client.run_sync(
             self._dashboard.organizations.getOrganizationFirmwareUpgrades,
 =======
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
         if self._api_client.dashboard is None:
             return []
         upgrades = await self._api_client.run_sync(
             self._api_client.dashboard.organizations.getOrganizationFirmwareUpgrades,
+<<<<<<< HEAD
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
             organizationId=self._api_client.organization_id,
         )
         validated = validate_response(upgrades)
@@ -152,6 +173,7 @@ class OrganizationEndpoints:
 
         """
 <<<<<<< HEAD
+<<<<<<< HEAD
         statuses = await self._api_client.run_sync(
             self._dashboard.organizations.getOrganizationDeviceStatuses,
 =======
@@ -159,12 +181,17 @@ class OrganizationEndpoints:
         statuses = await self._api_client.run_sync(
             self._dashboard.organizations.getOrganizationDeviceStatuses,
 =======
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
         if self._api_client.dashboard is None:
             return []
         statuses = await self._api_client.run_sync(
             self._api_client.dashboard.organizations.getOrganizationDeviceStatuses,
+<<<<<<< HEAD
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
             organizationId=self._api_client.organization_id,
         )
         validated = validate_response(statuses)
@@ -185,6 +212,7 @@ class OrganizationEndpoints:
 
         """
 <<<<<<< HEAD
+<<<<<<< HEAD
         availabilities = await self._api_client.run_sync(
             self._dashboard.organizations.getOrganizationDevicesAvailabilities,
 =======
@@ -192,12 +220,17 @@ class OrganizationEndpoints:
         availabilities = await self._api_client.run_sync(
             self._dashboard.organizations.getOrganizationDevicesAvailabilities,
 =======
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
         if self._api_client.dashboard is None:
             return []
         availabilities = await self._api_client.run_sync(
             self._api_client.dashboard.organizations.getOrganizationDevicesAvailabilities,
+<<<<<<< HEAD
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
             organizationId=self._api_client.organization_id,
             total_pages="all",
         )
@@ -221,6 +254,7 @@ class OrganizationEndpoints:
 
         """
 <<<<<<< HEAD
+<<<<<<< HEAD
         devices = await self._api_client.run_sync(
             self._dashboard.organizations.getOrganizationDevices,
 =======
@@ -228,12 +262,17 @@ class OrganizationEndpoints:
         devices = await self._api_client.run_sync(
             self._dashboard.organizations.getOrganizationDevices,
 =======
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
         if self._api_client.dashboard is None:
             return []
         devices = await self._api_client.run_sync(
             self._api_client.dashboard.organizations.getOrganizationDevices,
+<<<<<<< HEAD
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
             organizationId=self._api_client.organization_id,
         )
         validated = validate_response(devices)
@@ -254,6 +293,7 @@ class OrganizationEndpoints:
 
         """
 <<<<<<< HEAD
+<<<<<<< HEAD
         orgs = await self._api_client.run_sync(
             self._dashboard.organizations.getOrganizations
 =======
@@ -261,12 +301,17 @@ class OrganizationEndpoints:
         orgs = await self._api_client.run_sync(
             self._dashboard.organizations.getOrganizations
 =======
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
         if self._api_client.dashboard is None:
             return []
         orgs = await self._api_client.run_sync(
             self._api_client.dashboard.organizations.getOrganizations
+<<<<<<< HEAD
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
         )
         validated = validate_response(orgs)
         if not isinstance(validated, list):

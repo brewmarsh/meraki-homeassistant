@@ -1,4 +1,5 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
 # Python
 =======
 <<<<<<< HEAD
@@ -9,11 +10,17 @@
 # Python & Core Bytecode
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+# --- Meraki HA & Jules Environment (v2.4.0) ---
+
+# Python & Core Bytecode
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
 *.py[cod]
 *$py.class
 __pycache__/
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 # Node/npm
 node_modules/
 =======
@@ -21,6 +28,8 @@ node_modules/
 # Node/npm
 node_modules/
 =======
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
 # Agent & Virtual Environment Artifacts
 .venv/
 .jules/
@@ -38,13 +47,17 @@ test-output/
 # Node/npm & Frontend
 node_modules/
 custom_components/meraki_ha/www/node_modules/
+<<<<<<< HEAD
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
 .cache/
 *.cache/
 .prettier-cache/
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 # Coverage
 .coverage
 coverage.xml
@@ -54,6 +67,8 @@ coverage.xml
 .coverage
 coverage.xml
 =======
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
 # Home Assistant Local Storage & Builds
 .storage/
 .cloud/
@@ -62,5 +77,8 @@ dist/
 # System/OS Junk
 .DS_Store
 Thumbs.db
+<<<<<<< HEAD
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)

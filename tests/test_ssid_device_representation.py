@@ -22,6 +22,7 @@ from custom_components.meraki_ha.text.meraki_ssid_name import MerakiSSIDNameText
 @pytest.fixture
 def mock_coordinator_and_data() -> tuple[MagicMock, MagicMock, dict[str, Any]]:
 <<<<<<< HEAD
+<<<<<<< HEAD
     """Fixture for a mocked MerakiDataUpdateCoordinator and basic data."""
 =======
 <<<<<<< HEAD
@@ -30,6 +31,9 @@ def mock_coordinator_and_data() -> tuple[MagicMock, MagicMock, dict[str, Any]]:
     """Fixture for a mocked MerakiDataCoordinator and basic data."""
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+    """Fixture for a mocked MerakiDataCoordinator and basic data."""
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
     coordinator = MagicMock()
     coordinator.config_entry.options = {}
 
@@ -93,6 +97,7 @@ def test_ssid_device_unification(
     # Get the identifiers from each entity's DeviceInfo
     sensor_device_info = sensor.device_info
 <<<<<<< HEAD
+<<<<<<< HEAD
     if sensor_device_info is None:
         pytest.fail("Sensor device_info is None")
 =======
@@ -115,6 +120,8 @@ def test_ssid_device_unification(
     if text_device_info is None:
         pytest.fail("Text device_info is None")
 =======
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
     assert sensor_device_info is not None
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
     sensor_identifiers = sensor_device_info["identifiers"]
@@ -135,8 +142,11 @@ def test_ssid_device_unification(
         pytest.fail("Text device_info is None")
 =======
     assert text_device_info is not None
+<<<<<<< HEAD
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
     text_identifiers = text_device_info["identifiers"]
 
     # Assert that all entities share the exact same device identifier

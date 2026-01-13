@@ -11,6 +11,7 @@ from ..const import (
     CONF_ENABLE_VLAN_MANAGEMENT,
 )
 <<<<<<< HEAD
+<<<<<<< HEAD
 from ..coordinator import MerakiDataUpdateCoordinator
 =======
 <<<<<<< HEAD
@@ -19,13 +20,18 @@ from ..core.api.client import MerakiAPIClient
 from ..types import MerakiVlan
 =======
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
 from ..core.api.client import MerakiAPIClient
 from ..types import MerakiVlan
 <<<<<<< HEAD
 =======
 from .access_point_leds import MerakiAPLEDSwitch
+<<<<<<< HEAD
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
 from .camera_controls import AnalyticsSwitch
 from .meraki_ssid_device_switch import (
     MerakiSSIDBroadcastSwitch,
@@ -40,6 +46,7 @@ _LOGGER = logging.getLogger(__name__)
 def _setup_vlan_switches(
     config_entry: ConfigEntry,
 <<<<<<< HEAD
+<<<<<<< HEAD
     coordinator: MerakiDataUpdateCoordinator,
 =======
 <<<<<<< HEAD
@@ -48,6 +55,9 @@ def _setup_vlan_switches(
     coordinator: MerakiDataCoordinator,
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+    coordinator: MerakiDataCoordinator,
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
     added_entities: set[str],
 ) -> list[Entity]:
     """Set up VLAN switches."""
@@ -81,6 +91,7 @@ def _setup_vlan_switches(
 def _setup_ssid_switches(
     config_entry: ConfigEntry,
 <<<<<<< HEAD
+<<<<<<< HEAD
     coordinator: MerakiDataUpdateCoordinator,
 =======
 <<<<<<< HEAD
@@ -89,6 +100,9 @@ def _setup_ssid_switches(
     coordinator: MerakiDataCoordinator,
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+    coordinator: MerakiDataCoordinator,
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
     added_entities: set[str],
 ) -> list[Entity]:
     """Set up SSID switches."""
@@ -130,6 +144,7 @@ def _setup_ssid_switches(
 def _setup_camera_switches(
     config_entry: ConfigEntry,
 <<<<<<< HEAD
+<<<<<<< HEAD
     coordinator: MerakiDataUpdateCoordinator,
 =======
 <<<<<<< HEAD
@@ -138,6 +153,9 @@ def _setup_camera_switches(
     coordinator: MerakiDataCoordinator,
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+    coordinator: MerakiDataCoordinator,
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
     added_entities: set[str],
 ) -> list[Entity]:
     """Set up camera-specific switches."""
@@ -159,6 +177,7 @@ def _setup_camera_switches(
 def _setup_mt40_switches(
     config_entry: ConfigEntry,
 <<<<<<< HEAD
+<<<<<<< HEAD
     coordinator: MerakiDataUpdateCoordinator,
 =======
 <<<<<<< HEAD
@@ -167,6 +186,9 @@ def _setup_mt40_switches(
     coordinator: MerakiDataCoordinator,
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+    coordinator: MerakiDataCoordinator,
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
     added_entities: set[str],
     meraki_client: "MerakiAPIClient",
 ) -> list[Entity]:
@@ -188,6 +210,7 @@ def _setup_mt40_switches(
 
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 def async_setup_switches(
     hass: HomeAssistant,
     config_entry: ConfigEntry,
@@ -199,6 +222,8 @@ def async_setup_switches(
     config_entry: ConfigEntry,
     coordinator: MerakiDataUpdateCoordinator,
 =======
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
 def _setup_ap_led_switches(
     config_entry: ConfigEntry,
     coordinator: MerakiDataCoordinator,
@@ -226,8 +251,11 @@ def async_setup_switches(
     hass: HomeAssistant,
     config_entry: ConfigEntry,
     coordinator: MerakiDataCoordinator,
+<<<<<<< HEAD
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
     meraki_client: "MerakiAPIClient",
 ) -> list[Entity]:
     """Set up all switch entities from the central coordinator."""
@@ -245,11 +273,15 @@ def async_setup_switches(
         _setup_mt40_switches(config_entry, coordinator, added_entities, meraki_client)
     )
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 =======
     entities.extend(_setup_ap_led_switches(config_entry, coordinator, added_entities))
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+    entities.extend(_setup_ap_led_switches(config_entry, coordinator, added_entities))
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
 
     return entities

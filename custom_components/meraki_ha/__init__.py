@@ -2,6 +2,7 @@
 
 import logging
 <<<<<<< HEAD
+<<<<<<< HEAD
 import random
 import string
 =======
@@ -99,6 +100,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
 =======
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
 import secrets
 from datetime import timedelta
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
@@ -202,13 +205,17 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             entry, data={**entry.data, "webhook_id": webhook_id, "secret": secret}
         )
 
+<<<<<<< HEAD
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
     entry.async_on_unload(entry.add_update_listener(async_reload_entry))
 
     return True
 
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 <<<<<<< HEAD
@@ -246,6 +253,8 @@ async def async_reload_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
     await async_unload_entry(hass, entry)
     await async_setup_entry(hass, entry)
 =======
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
 async def async_reload_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
     """Reload the config entry when it has changed."""
     await hass.config_entries.async_reload(entry.entry_id)
@@ -273,6 +282,7 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     return unload_ok
 <<<<<<< HEAD
+<<<<<<< HEAD
 
 
 async def async_reload_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
@@ -289,3 +299,5 @@ async def async_reload_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
 =======
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)

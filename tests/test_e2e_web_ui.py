@@ -56,6 +56,7 @@ async def setup_integration_fixture(
     with (
         patch(
 <<<<<<< HEAD
+<<<<<<< HEAD
             "custom_components.meraki_ha.MerakiDataUpdateCoordinator._async_update_data",
 =======
 <<<<<<< HEAD
@@ -64,6 +65,9 @@ async def setup_integration_fixture(
             "custom_components.meraki_ha.MerakiDataCoordinator._async_update_data",
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+            "custom_components.meraki_ha.MerakiDataCoordinator._async_update_data",
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
             return_value=MOCK_ALL_DATA,
         ),
         patch(

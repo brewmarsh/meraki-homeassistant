@@ -3,6 +3,7 @@
     "step": {
       "user": {
 <<<<<<< HEAD
+<<<<<<< HEAD
         "title": "Step 1 of 2: Meraki Credentials",
 =======
 <<<<<<< HEAD
@@ -11,10 +12,14 @@
         "title": "Step 1 of 4: Meraki Credentials",
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+        "title": "Step 1 of 4: Meraki Credentials",
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
         "description": "Enter your Meraki API Key and Organization ID.",
         "data": {
           "meraki_api_key": "Meraki API Key",
           "meraki_org_id": "Meraki Organization ID"
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 <<<<<<< HEAD
@@ -29,6 +34,8 @@
           "enable_vlan_management": "Enable VLAN Management",
           "ignored_networks": "Ignored Networks"
 =======
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
         },
         "data_description": {
           "meraki_api_key": "Your personal API key for the Meraki Dashboard.",
@@ -84,8 +91,11 @@
         "data_description": {
           "webhook_url": "The publicly accessible URL for Meraki webhooks. Leave empty to use Home Assistant's cloud link.",
           "ignored_networks": "A comma-separated list of network IDs to ignore."
+<<<<<<< HEAD
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
         }
       }
     },
@@ -104,6 +114,7 @@
     "step": {
       "init": {
 <<<<<<< HEAD
+<<<<<<< HEAD
         "title": "Meraki Settings",
         "description": "Configure the settings for the Meraki integration.",
         "data": {
@@ -129,6 +140,8 @@
           "ignored_networks": "Ignored Networks",
           "ignored_networks_description": "A comma-separated list of network names to exclude from the integration."
 =======
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
         "title": "Meraki Options",
         "description": "Step 1 of 3: General Settings",
         "data": {
@@ -170,8 +183,11 @@
         "data_description": {
           "webhook_url": "The publicly accessible URL for Meraki webhooks. Leave empty to use Home Assistant's cloud link.",
           "ignored_networks": "A comma-separated list of network IDs to ignore."
+<<<<<<< HEAD
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
         }
       }
     }
@@ -205,6 +221,7 @@
           "unknown": "Unknown"
         }
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 =======
@@ -213,6 +230,11 @@
         "name": "Radio Settings"
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+      },
+      "radio_settings": {
+        "name": "Radio Settings"
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
       }
     },
     "switch": {

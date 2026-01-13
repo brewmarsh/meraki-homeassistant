@@ -10,6 +10,7 @@ from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 from ..coordinator import MerakiDataUpdateCoordinator
 from ..helpers.device_info_helpers import resolve_device_info
 =======
@@ -21,6 +22,10 @@ from ..helpers.device_info_helpers import resolve_device_info
 from ..meraki_data_coordinator import MerakiDataCoordinator
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+from ..helpers.device_info_helpers import resolve_device_info
+from ..meraki_data_coordinator import MerakiDataCoordinator
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -34,6 +39,7 @@ class MerakiContentFilteringSwitch(
     def __init__(
         self,
 <<<<<<< HEAD
+<<<<<<< HEAD
         coordinator: MerakiDataUpdateCoordinator,
 =======
 <<<<<<< HEAD
@@ -42,6 +48,9 @@ class MerakiContentFilteringSwitch(
         coordinator: MerakiDataCoordinator,
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+        coordinator: MerakiDataCoordinator,
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
         config_entry: ConfigEntry,
         network: dict[str, Any],
         category: dict[str, Any],

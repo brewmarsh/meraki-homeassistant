@@ -1,6 +1,7 @@
 """Button platform for the Meraki Home Assistant integration."""
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 import logging
@@ -15,6 +16,8 @@ from .device.camera_snapshot import MerakiSnapshotButton
 from .device.mt15_refresh_data import MerakiMt15RefreshDataButton
 from .reboot import MerakiRebootButton
 =======
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
 import asyncio
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
 import logging
@@ -31,8 +34,11 @@ from .device.mt15_refresh_data import MerakiMt15RefreshDataButton
 from .reboot import MerakiRebootButton
 =======
 from ..const import DOMAIN
+<<<<<<< HEAD
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -44,6 +50,7 @@ async def async_setup_entry(
 ) -> bool:
     """Set up Meraki button entities from a config entry."""
 <<<<<<< HEAD
+<<<<<<< HEAD
     if config_entry.entry_id not in hass.data[DOMAIN]:
         # This entry is not ready yet, we'll wait for the coordinator to be ready
         return False
@@ -93,6 +100,8 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     return await hass.config_entries.async_unload_platforms(entry, [PLATFORM_BUTTON])
 =======
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
     entry_data = hass.data[DOMAIN][config_entry.entry_id]
     coordinator = entry_data["coordinator"]
     device_control_service = entry_data["device_control_service"]
@@ -127,6 +136,7 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         async_add_entities(button_entities)
 
     return True
+<<<<<<< HEAD
 <<<<<<< HEAD
 
 
@@ -136,3 +146,5 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 =======
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)

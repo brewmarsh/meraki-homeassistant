@@ -1,5 +1,6 @@
 {
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
@@ -28,6 +29,8 @@
 <<<<<<< HEAD
 =======
 =======
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
 	"name": "Meraki HA Dev Container",
 	"image": "ghcr.io/home-assistant/devcontainer:stable",
 	"postCreateCommand": "pip install -r requirements_dev.txt",
@@ -40,6 +43,10 @@
 			]
 		}
 	}
+<<<<<<< HEAD
 }
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+}
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)

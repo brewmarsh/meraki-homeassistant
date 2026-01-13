@@ -13,6 +13,7 @@ from ...const import MOCK_CONFIG_ENTRY, MOCK_MX_DEVICE
 @pytest.fixture
 def mock_coordinator():
 <<<<<<< HEAD
+<<<<<<< HEAD
     """Fixture for a mock MerakiDataUpdateCoordinator."""
 =======
 <<<<<<< HEAD
@@ -21,6 +22,9 @@ def mock_coordinator():
     """Fixture for a mock MerakiDataCoordinator."""
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+    """Fixture for a mock MerakiDataCoordinator."""
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
     coordinator = MagicMock()
     coordinator.data = {"devices": [MOCK_MX_DEVICE]}
     return coordinator

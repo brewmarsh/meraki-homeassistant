@@ -1,16 +1,21 @@
 name: Deploy Latest Code to Local Folder on Linux Runner
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 =======
 # This workflow will run on 'push' events to the specified branches.
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+# This workflow will run on 'push' events to the specified branches.
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
 on:
   push:
     branches:
       - main
+<<<<<<< HEAD
 <<<<<<< HEAD
       - beta
 =======
@@ -23,6 +28,8 @@ jobs:
 
     env:
 =======
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
       - beta # Trigger deployment on pushes/merges to the beta branch
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
 
@@ -34,13 +41,17 @@ jobs:
 <<<<<<< HEAD
 =======
       # This is the path inside your runner container, mapping to the Host OS config.
+<<<<<<< HEAD
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
       DESTINATION_PATH: '/ha_config/custom_components/meraki_ha'
 
     steps:
       - name: Checkout repository
 <<<<<<< HEAD
+<<<<<<< HEAD
         uses: actions/checkout@v5
 
       - name: Copy files to destination folder (rsync)
@@ -50,17 +61,23 @@ jobs:
 
       - name: Copy files to destination folder (rsync)
 =======
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
         # Checks out your repository code into $GITHUB_WORKSPACE.
         uses: actions/checkout@v5
 
       - name: Copy files to destination folder (rsync)
         # Use 'bash' and 'sudo rsync' to bypass symlink and permission issues.
+<<<<<<< HEAD
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
         shell: bash
         env:
           DEPLOY_PATH: ${{ env.DESTINATION_PATH }}
         run: |
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 <<<<<<< HEAD
@@ -68,11 +85,15 @@ jobs:
           # The source directory containing ONLY the component files (with trailing slash)
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+          # The source directory containing ONLY the component files (with trailing slash)
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
           SourceComponentDir="${GITHUB_WORKSPACE}/custom_components/meraki_ha/"
           DestinationPath="${DEPLOY_PATH}"
 
           echo "Starting deployment..."
 <<<<<<< HEAD
+<<<<<<< HEAD
           sudo mkdir -p "${DestinationPath}"
 
           # Preserving your specific rsync flags and excludes
@@ -82,6 +103,8 @@ jobs:
 
           # Preserving your specific rsync flags and excludes
 =======
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
           echo "Source path: ${SourceComponentDir}"
           echo "Destination path: ${DestinationPath}"
 
@@ -97,8 +120,11 @@ jobs:
           #   --delete: removes files from destination that aren't in source (ensures clean state)
 
           # CRITICAL: Exclude development files/symlinks to avoid 'Operation not supported' errors.
+<<<<<<< HEAD
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
           sudo rsync -rltpD --inplace --delete \
             --exclude '.git' \
             --exclude 'node_modules' \
@@ -110,21 +136,28 @@ jobs:
 
           echo "Successfully copied latest code to ${DestinationPath}."
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 =======
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
           echo "Deployment complete."
 
       - name: Install jq
         run: sudo apt-get update && sudo apt-get install -y jq
+<<<<<<< HEAD
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
 
       - name: Restart Home Assistant
         shell: bash
         env:
           HA_URL: ${{ secrets.HA_URL }}
           HA_TOKEN: ${{ secrets.HA_TOKEN }}
+<<<<<<< HEAD
 <<<<<<< HEAD
           # REPLACE with your actual phone entity name from HA
           NOTIFY_SERVICE: 'mobile_app_your_phone_name'
@@ -189,6 +222,8 @@ jobs:
       - name: Post-Deploy Health Audit
 =======
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
         run: |
           echo "Attempting to restart Home Assistant..."
 
@@ -248,13 +283,17 @@ jobs:
       - name: Post-Deploy Health Audit
 =======
       - name: Run Release Health Auditor
+<<<<<<< HEAD
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
         shell: bash
         env:
           HA_URL: ${{ secrets.HA_URL }}
           HA_TOKEN: ${{ secrets.HA_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 <<<<<<< HEAD
@@ -269,6 +308,8 @@ jobs:
             echo "Auditor script not found. Skipping health check."
           fi
 =======
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
           GITHUB_REPOSITORY: ${{ github.repository }}
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
         run: |
@@ -293,5 +334,8 @@ jobs:
 
           echo "Running the health auditor script..."
           python3 tools/auditor/health_auditor.py
+<<<<<<< HEAD
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)

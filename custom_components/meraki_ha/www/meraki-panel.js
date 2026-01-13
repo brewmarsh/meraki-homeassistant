@@ -1,4 +1,5 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
 function tc(e) {
   return e && e.__esModule && Object.prototype.hasOwnProperty.call(e, "default") ? e.default : e;
 }
@@ -10,6 +11,8 @@ function tc(e) {
 }
 var Hu = { exports: {} }, el = {}, Wu = { exports: {} }, T = {};
 =======
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
 (function () {
   const t = document.createElement('link').relList;
   if (t && t.supports && t.supports('modulepreload')) return;
@@ -231,8 +234,11 @@ var $o = { exports: {} },
   el = {},
   Bo = { exports: {} },
   L = {};
+<<<<<<< HEAD
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
 /**
  * @license React
  * react.production.min.js
@@ -241,6 +247,7 @@ var $o = { exports: {} },
  *
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
+<<<<<<< HEAD
 <<<<<<< HEAD
  */
 var Xt = Symbol.for("react.element"), rc = Symbol.for("react.portal"), lc = Symbol.for("react.fragment"), ic = Symbol.for("react.strict_mode"), oc = Symbol.for("react.profiler"), uc = Symbol.for("react.provider"), sc = Symbol.for("react.context"), ac = Symbol.for("react.forward_ref"), cc = Symbol.for("react.suspense"), fc = Symbol.for("react.memo"), dc = Symbol.for("react.lazy"), Oo = Symbol.iterator;
@@ -502,6 +509,8 @@ Wu.exports = T;
 var en = Wu.exports;
 const gc = /* @__PURE__ */ tc(en);
 =======
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
  */ var qr = Symbol.for('react.element'),
   nc = Symbol.for('react.portal'),
   lc = Symbol.for('react.fragment'),
@@ -774,8 +783,11 @@ L.version = '18.3.1';
 Bo.exports = L;
 var et = Bo.exports;
 const yc = rc(et);
+<<<<<<< HEAD
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
 /**
  * @license React
  * react-jsx-runtime.production.min.js
@@ -784,6 +796,7 @@ const yc = rc(et);
  *
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 <<<<<<< HEAD
@@ -808,6 +821,8 @@ el.jsxs = bu;
 Hu.exports = el;
 var L = Hu.exports, Ql = {}, es = { exports: {} }, ge = {}, ns = { exports: {} }, ts = {};
 =======
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
  */ var bc = et,
   kc = Symbol.for('react.element'),
   wc = Symbol.for('react.fragment'),
@@ -846,8 +861,11 @@ var C = $o.exports,
   ye = {},
   ei = { exports: {} },
   ti = {};
+<<<<<<< HEAD
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
 /**
  * @license React
  * scheduler.production.min.js
@@ -856,6 +874,7 @@ var C = $o.exports,
  *
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 <<<<<<< HEAD
@@ -1081,6 +1100,8 @@ var C = $o.exports,
 ns.exports = ts;
 var _c = ns.exports;
 =======
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
  */ (function (e) {
   function t(S, N) {
     var z = S.length;
@@ -1402,8 +1423,11 @@ var _c = ns.exports;
 })(ti);
 ei.exports = ti;
 var _c = ei.exports;
+<<<<<<< HEAD
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
 /**
  * @license React
  * react-dom.production.min.js
@@ -1412,6 +1436,7 @@ var _c = ei.exports;
  *
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 <<<<<<< HEAD
@@ -1447,6 +1472,8 @@ function Tc(e, n, t, r) {
     case "boolean":
       return r ? !1 : t !== null ? !t.acceptsBooleans : (e = e.toLowerCase().slice(0, 5), e !== "data-" && e !== "aria-");
 =======
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
  */ var Pc = et,
   ve = _c;
 function g(e) {
@@ -1496,12 +1523,16 @@ function Tc(e, n, t, r) {
           ? !r.acceptsBooleans
           : ((e = e.toLowerCase().slice(0, 5)),
             e !== 'data-' && e !== 'aria-');
+<<<<<<< HEAD
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
     default:
       return !1;
   }
 }
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 <<<<<<< HEAD
@@ -1632,6 +1663,8 @@ function El(e, n) {
         }
         e.call(n.prototype);
 =======
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
 function Lc(e, t, r, n) {
   if (t === null || typeof t > 'u' || zc(e, t, r, n)) return !0;
   if (n) return !1;
@@ -1757,13 +1790,17 @@ function El(e, n) {
         e.call(n.prototype);
 =======
         e.call(t.prototype);
+<<<<<<< HEAD
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
       }
     else {
       try {
         throw Error();
       } catch (c) {
+<<<<<<< HEAD
 <<<<<<< HEAD
         r = c;
 =======
@@ -1773,10 +1810,14 @@ function El(e, n) {
         n = c;
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+        n = c;
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
       }
       e();
     }
   } catch (c) {
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 <<<<<<< HEAD
@@ -1799,6 +1840,8 @@ function El(e, n) {
               }
             while (1 <= o && 0 <= u);
 =======
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
     if (c && n && typeof c.stack == 'string') {
       for (
         var l = c.stack.split(`
@@ -1825,12 +1868,16 @@ function El(e, n) {
             while (1 <= o && 0 <= u);
 =======
             while (1 <= u && 0 <= o);
+<<<<<<< HEAD
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
           break;
         }
     }
   } finally {
+<<<<<<< HEAD
 <<<<<<< HEAD
     Sl = !1, Error.prepareStackTrace = t;
 =======
@@ -1942,6 +1989,8 @@ function jc(e) {
     case 25:
       return "TracingMarker";
 =======
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
     (wl = !1), (Error.prepareStackTrace = r);
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
   }
@@ -2052,14 +2101,18 @@ function jc(e) {
       return "TracingMarker";
 =======
       return 'TracingMarker';
+<<<<<<< HEAD
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
     case 1:
     case 0:
     case 17:
     case 2:
     case 14:
     case 15:
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 <<<<<<< HEAD
@@ -2122,6 +2175,8 @@ function ss(e) {
 function Lr(e) {
   if (e = e || (typeof document < "u" ? document : void 0), typeof e > "u")
 =======
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
       if (typeof t == 'function') return t.displayName || t.name || null;
       if (typeof t == 'string') return t;
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
@@ -2180,8 +2235,11 @@ function Lr(e) {
 =======
 function Ln(e) {
   if (((e = e || (typeof document < 'u' ? document : void 0)), typeof e > 'u'))
+<<<<<<< HEAD
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
     return null;
   try {
     return e.activeElement || e.body;
@@ -2189,6 +2247,7 @@ function Ln(e) {
     return e.body;
   }
 }
+<<<<<<< HEAD
 <<<<<<< HEAD
 function Jl(e, n) {
   var t = n.checked;
@@ -2406,6 +2465,8 @@ function ri(e, n) {
     case "font-face-name":
     case "missing-glyph":
 =======
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
 function Xl(e, t) {
   var r = t.checked;
   return V({}, t, {
@@ -2632,13 +2693,17 @@ function ri(e, n) {
     case 'font-face-format':
     case 'font-face-name':
     case 'missing-glyph':
+<<<<<<< HEAD
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
       return !1;
     default:
       return !0;
   }
 }
+<<<<<<< HEAD
 <<<<<<< HEAD
 var li = null;
 function Xi(e) {
@@ -2732,6 +2797,8 @@ function Ic(e, n, t, r, l, i, o, u, s) {
   try {
     n.apply(t, c);
 =======
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
 var la = null;
 function qa(e) {
   return (
@@ -2826,12 +2893,16 @@ function Ic(e, n, t, r, l, i, o, u, s) {
     n.apply(t, c);
 =======
     t.apply(r, c);
+<<<<<<< HEAD
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
   } catch (h) {
     this.onError(h);
   }
 }
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 <<<<<<< HEAD
@@ -2895,6 +2966,8 @@ function Ac(e) {
       if (r = l.return, r !== null) {
         t = r;
 =======
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
 var Sr = !1,
   Tn = null,
   Mn = !1,
@@ -2967,12 +3040,16 @@ function Ac(e) {
     if (a === null) {
       if (((n = l.return), n !== null)) {
         r = n;
+<<<<<<< HEAD
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
         continue;
       }
       break;
     }
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 <<<<<<< HEAD
@@ -3037,6 +3114,8 @@ function Es(e) {
     if (n !== null)
       return n;
 =======
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
     if (l.child === a.child) {
       for (a = l.child; a; ) {
         if (a === r) return Bu(l), e;
@@ -3097,12 +3176,16 @@ function Es(e) {
 =======
     var t = wi(e);
     if (t !== null) return t;
+<<<<<<< HEAD
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
     e = e.sibling;
   }
   return null;
 }
+<<<<<<< HEAD
 <<<<<<< HEAD
 var xs = ye.unstable_scheduleCallback, Ko = ye.unstable_cancelCallback, Vc = ye.unstable_shouldYield, Bc = ye.unstable_requestPaint, Q = ye.unstable_now, Hc = ye.unstable_getCurrentPriorityLevel, Gi = ye.unstable_ImmediatePriority, Cs = ye.unstable_UserBlockingPriority, Mr = ye.unstable_NormalPriority, Wc = ye.unstable_LowPriority, _s = ye.unstable_IdlePriority, nl = null, Fe = null;
 function Qc(e) {
@@ -3124,6 +3207,8 @@ function Xc(e) {
 var ir = 64, or = 4194304;
 function kt(e) {
 =======
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
 var Si = ve.unstable_scheduleCallback,
   Qu = ve.unstable_cancelCallback,
   Vc = ve.unstable_shouldYield,
@@ -3156,8 +3241,11 @@ function kt(e) {
 var ln = 64,
   an = 4194304;
 function br(e) {
+<<<<<<< HEAD
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
   switch (e & -e) {
     case 1:
       return 1;
@@ -3207,6 +3295,7 @@ function br(e) {
   }
 }
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
@@ -3235,6 +3324,8 @@ function Gc(e, n) {
 }
 function Gc(e, n) {
 =======
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
 function Fn(e, t) {
   var r = e.pendingLanes;
   if (r === 0) return 0;
@@ -3260,12 +3351,16 @@ function Fn(e, t) {
   return n;
 }
 function Yc(e, t) {
+<<<<<<< HEAD
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
   switch (e) {
     case 1:
     case 2:
     case 4:
+<<<<<<< HEAD
 <<<<<<< HEAD
       return n + 250;
 =======
@@ -3275,6 +3370,9 @@ function Yc(e, t) {
       return t + 250;
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+      return t + 250;
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
     case 8:
     case 16:
     case 32:
@@ -3295,6 +3393,7 @@ function Yc(e, t) {
     case 1048576:
     case 2097152:
 <<<<<<< HEAD
+<<<<<<< HEAD
       return n + 5e3;
 =======
 <<<<<<< HEAD
@@ -3303,6 +3402,9 @@ function Yc(e, t) {
       return t + 5e3;
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+      return t + 5e3;
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
     case 4194304:
     case 8388608:
     case 16777216:
@@ -3318,6 +3420,7 @@ function Yc(e, t) {
       return -1;
   }
 }
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 <<<<<<< HEAD
@@ -3423,6 +3526,8 @@ function js(e) {
       } else if (n === 3 && t.stateNode.current.memoizedState.isDehydrated) {
         e.blockedOn = t.tag === 3 ? t.stateNode.containerInfo : null;
 =======
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
 function Gc(e, t) {
   for (
     var r = e.suspendedLanes,
@@ -3538,14 +3643,18 @@ function js(e) {
 =======
       } else if (t === 3 && r.stateNode.current.memoizedState.isDehydrated) {
         e.blockedOn = r.tag === 3 ? r.stateNode.containerInfo : null;
+<<<<<<< HEAD
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
         return;
       }
     }
   }
   e.blockedOn = null;
 }
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 <<<<<<< HEAD
@@ -3732,6 +3841,8 @@ function Ms(e) {
           return 16;
         case _s:
 =======
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
 function kn(e) {
   if (e.blockedOn !== null) return !1;
   for (var t = e.targetContainers; 0 < t.length; ) {
@@ -3913,8 +4024,11 @@ function Ms(e) {
         case _s:
 =======
         case Ei:
+<<<<<<< HEAD
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
           return 536870912;
         default:
           return 16;
@@ -3923,6 +4037,7 @@ function Ms(e) {
       return 16;
   }
 }
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 <<<<<<< HEAD
@@ -4071,6 +4186,8 @@ function Is(e, n) {
     case "mousedown":
     case "focusout":
 =======
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
 var tt = null,
   Za = null,
   wn = null;
@@ -4226,13 +4343,17 @@ function Is(e, n) {
     case 'keypress':
     case 'mousedown':
     case 'focusout':
+<<<<<<< HEAD
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
       return !0;
     default:
       return !1;
   }
 }
+<<<<<<< HEAD
 <<<<<<< HEAD
 function Fs(e) {
   return e = e.detail, typeof e == "object" && "data" in e ? e.data : null;
@@ -4251,6 +4372,8 @@ function zf(e, n) {
     case "textInput":
       return e = n.data, e === bo && eu ? null : e;
 =======
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
 function Oi(e) {
   return (e = e.detail), typeof e == 'object' && 'data' in e ? e.data : null;
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
@@ -4272,12 +4395,16 @@ function zf(e, n) {
       return t.which !== 32 ? null : ((Zu = !0), Xu);
     case 'textInput':
       return (e = t.data), e === Xu && Zu ? null : e;
+<<<<<<< HEAD
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
     default:
       return null;
   }
 }
+<<<<<<< HEAD
 <<<<<<< HEAD
 function Tf(e, n) {
   if (In)
@@ -4301,6 +4428,8 @@ function Tf(e, n) {
     case "compositionend":
       return Ds && n.locale !== "ko" ? null : n.data;
 =======
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
 function zf(e, t) {
   if (It)
     return e === 'compositionend' || (!tu && Ii(e, t))
@@ -4324,12 +4453,16 @@ function zf(e, t) {
 =======
     case 'compositionend':
       return Fi && t.locale !== 'ko' ? null : t.data;
+<<<<<<< HEAD
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
     default:
       return null;
   }
 }
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 <<<<<<< HEAD
@@ -4889,6 +5022,8 @@ function un(e) {
       if (n === "/$")
         return null;
 =======
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
 var Lf = {
   color: !0,
   date: !0,
@@ -5465,12 +5600,16 @@ function un(e) {
     if (t === 8) {
       if (((t = e.data), t === '$' || t === '$!' || t === '$?')) break;
       if (t === '/$') return null;
+<<<<<<< HEAD
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
     }
   }
   return e;
 }
+<<<<<<< HEAD
 <<<<<<< HEAD
 function du(e) {
 =======
@@ -5487,6 +5626,8 @@ function du(e) {
       } else
         t === "/$" && n++;
 =======
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
 function co(e) {
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
   e = e.previousSibling;
@@ -5506,13 +5647,17 @@ function co(e) {
         if (t === 0) return e;
         t--;
       } else r === '/$' && t++;
+<<<<<<< HEAD
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
     }
     e = e.previousSibling;
   }
   return null;
 }
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 <<<<<<< HEAD
@@ -5627,6 +5772,8 @@ function vn() {
     } finally {
       M = n, Il = !1;
 =======
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
 var ur = Math.random().toString(36).slice(2),
   Oe = '__reactFiber$' + ur,
   Ar = '__reactProps$' + ur,
@@ -5745,12 +5892,16 @@ function vn() {
       M = n, Il = !1;
 =======
       (R = t), (Ol = !1);
+<<<<<<< HEAD
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
     }
   }
   return null;
 }
+<<<<<<< HEAD
 <<<<<<< HEAD
 var Vn = [], Bn = 0, Vr = null, Br = 0, ke = [], Se = 0, Pn = null, Ve = 1, Be = "";
 function wn(e, n) {
@@ -5798,6 +5949,8 @@ function hu(e, n) {
     case 13:
       return n = n.nodeType !== 8 ? null : n, n !== null ? (t = Pn !== null ? { id: Ve, overflow: Be } : null, e.memoizedState = { dehydrated: n, treeContext: t, retryLane: 1073741824 }, t = Ee(18, null, null, 0), t.stateNode = n, t.return = e, e.child = t, ve = e, he = null, !0) : !1;
 =======
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
 var At = [],
   Vt = 0,
   Vn = null,
@@ -5867,12 +6020,16 @@ function hu(e, n) {
             !0)
           : !1
       );
+<<<<<<< HEAD
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
     default:
       return !1;
   }
 }
+<<<<<<< HEAD
 <<<<<<< HEAD
 function wi(e) {
 =======
@@ -5932,6 +6089,8 @@ function dr(e) {
           } else
             t !== "$" && t !== "$!" && t !== "$?" || n++;
 =======
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
 function ba(e) {
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
   return (e.mode & 1) !== 0 && (e.flags & 128) === 0;
@@ -5991,13 +6150,17 @@ function dr(e) {
 =======
             t--;
           } else (r !== '$' && r !== '$!' && r !== '$?') || t++;
+<<<<<<< HEAD
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
         }
         e = e.nextSibling;
       }
       he = null;
     }
+<<<<<<< HEAD
 <<<<<<< HEAD
   } else
     he = ve ? un(e.stateNode.nextSibling) : null;
@@ -6274,6 +6437,8 @@ function Si(e, n, t) {
     var r = e.alternate;
     if ((e.childLanes & n) !== n ? (e.childLanes |= n, r !== null && (r.childLanes |= n)) : r !== null && (r.childLanes & n) !== n && (r.childLanes |= n), e === t)
 =======
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
   } else he = ge ? ut(e.stateNode.nextSibling) : null;
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
   return !0;
@@ -6553,12 +6718,16 @@ function Si(e, n, t) {
         : n !== null && (n.childLanes & t) !== t && (n.childLanes |= t),
       e === r)
     )
+<<<<<<< HEAD
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
       break;
     e = e.return;
   }
 }
+<<<<<<< HEAD
 <<<<<<< HEAD
 function Zn(e, n) {
   Wr = e, uo = Hn = null, e = e.dependencies, e !== null && e.firstContext !== null && (e.lanes & n && (ce = !0), e.firstContext = null);
@@ -6676,6 +6845,8 @@ function Qr(e, n, t, r) {
             case 0:
               if (w = k.payload, p = typeof w == "function" ? w.call(g, m, p) : w, p == null)
 =======
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
 function Yt(e, t) {
   (Qn = e),
     (uu = $t = null),
@@ -6800,12 +6971,16 @@ function Qr(e, n, t, r) {
                 (p = typeof b == 'function' ? b.call(y, m, p) : b),
                 p == null)
               )
+<<<<<<< HEAD
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
                 break e;
               m = V({}, m, p);
               break e;
             case 2:
+<<<<<<< HEAD
 <<<<<<< HEAD
               Je = !0;
 =======
@@ -6975,6 +7150,8 @@ function $l(e) {
       if ((zn & h) === h)
         s !== null && (s = s.next = { lane: 0, action: c.action, hasEagerState: c.hasEagerState, eagerState: c.eagerState, next: null }), r = c.hasEagerState ? c.eagerState : e(r, c.action);
 =======
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
               Xe = !0;
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
           }
@@ -7153,14 +7330,18 @@ function $l(e) {
               next: null,
             }),
           (n = c.hasEagerState ? c.eagerState : e(n, c.action));
+<<<<<<< HEAD
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
       else {
         var m = {
           lane: h,
           action: c.action,
           hasEagerState: c.hasEagerState,
           eagerState: c.eagerState,
+<<<<<<< HEAD
 <<<<<<< HEAD
           next: null
 =======
@@ -7227,6 +7408,8 @@ function da(e) {
     var t = n();
     return !Me(e, t);
 =======
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
           next: null,
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
         };
@@ -7293,12 +7476,16 @@ function da(e) {
 =======
     var r = t();
     return !Re(e, r);
+<<<<<<< HEAD
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
   } catch {
     return !0;
   }
 }
+<<<<<<< HEAD
 <<<<<<< HEAD
 function pa(e) {
   var n = Ke(e, 1);
@@ -7414,6 +7601,8 @@ function nd(e, n, t) {
           var s = n.interleaved;
           s === null ? (l.next = l, co(n)) : (l.next = s.next, s.next = l), n.interleaved = l;
 =======
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
 function ds(e) {
   var t = We(e, 1);
   t !== null && Me(t, e, 1, -1);
@@ -7533,13 +7722,17 @@ function nd(e, n, t) {
             ? ((l.next = l), su(t))
             : ((l.next = i.next), (i.next = l)),
             (t.interleaved = l);
+<<<<<<< HEAD
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
           return;
         }
       } catch {
       } finally {
       }
+<<<<<<< HEAD
 <<<<<<< HEAD
     t = la(e, n, l, r), t !== null && (l = oe(), je(t, e, r, l), _a(t, n, r));
 =======
@@ -7763,6 +7956,8 @@ function _u(e) {
     var n;
     if ((n = e.tag === 13) && (n = e.memoizedState, n = n !== null ? n.dehydrated !== null : !0), n)
 =======
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
     (r = ns(e, t, l, n)),
       r !== null && ((l = ue()), Me(r, e, n, l), Es(r, t, n));
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
@@ -7991,13 +8186,17 @@ function _u(e) {
         ((t = e.memoizedState), (t = t !== null ? t.dehydrated !== null : !0)),
       t)
     )
+<<<<<<< HEAD
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
       return e;
     e = e.return;
   } while (e !== null);
   return null;
 }
+<<<<<<< HEAD
 <<<<<<< HEAD
 function Nu(e, n, t, r, l) {
   return e.mode & 1 ? (e.flags |= 65536, e.lanes = l, e) : (e === n ? e.flags |= 65536 : (e.flags |= 128, t.flags |= 131072, t.flags &= -52805, t.tag === 1 && (t.alternate === null ? t.tag = 17 : (n = He(-1, 1), n.tag = 2, sn(t, n, 1))), t.lanes |= 1), e);
@@ -8139,6 +8338,8 @@ function ud(e, n, t, r, l, i, o) {
     if (r = J, r !== null) {
       switch (o & -o) {
 =======
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
 function _o(e, t, r, n, l) {
   return e.mode & 1
     ? ((e.flags |= 65536), (e.lanes = l), e)
@@ -8292,8 +8493,11 @@ function ud(e, n, t, r, l, i, o) {
   if (((o = (u & e.childLanes) !== 0), ce || o)) {
     if (((n = X), n !== null)) {
       switch (u & -u) {
+<<<<<<< HEAD
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
         case 4:
           l = 2;
           break;
@@ -8329,6 +8533,7 @@ function ud(e, n, t, r, l, i, o) {
         default:
           l = 0;
       }
+<<<<<<< HEAD
 <<<<<<< HEAD
       l = l & (r.suspendedLanes | o) ? 0 : l, l !== 0 && l !== i.retryLane && (i.retryLane = l, Ke(e, l), je(r, e, l, -1));
 =======
@@ -8448,6 +8653,8 @@ function sd(e, n, t) {
       }
       if (l = n.memoizedState, l !== null && (l.rendering = null, l.tail = null, l.lastEffect = null), O($, $.current), r)
 =======
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
       (l = l & (n.suspendedLanes | u) ? 0 : l),
         l !== 0 &&
           l !== a.retryLane &&
@@ -8575,12 +8782,16 @@ function sd(e, n, t) {
         F(U, U.current),
         n)
       )
+<<<<<<< HEAD
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
         break;
       return null;
     case 22:
     case 23:
+<<<<<<< HEAD
 <<<<<<< HEAD
       return n.lanes = 0, La(e, n, t);
 =======
@@ -8694,6 +8905,8 @@ function ad(e, n, t) {
   var r = n.pendingProps;
   switch (io(n), n.tag) {
 =======
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
       return (t.lanes = 0), zs(e, t, r);
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
   }
@@ -8808,8 +9021,11 @@ function ad(e, n, t) {
 function sd(e, t, r) {
   var n = t.pendingProps;
   switch ((lu(t), t.tag)) {
+<<<<<<< HEAD
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
     case 2:
     case 16:
     case 15:
@@ -8820,6 +9036,7 @@ function sd(e, t, r) {
     case 12:
     case 9:
     case 14:
+<<<<<<< HEAD
 <<<<<<< HEAD
       return te(n), null;
 =======
@@ -9075,6 +9292,8 @@ function sd(e, t, r) {
     case 23:
       return No(), r = n.memoizedState !== null, e !== null && e.memoizedState !== null !== r && (n.flags |= 8192), r && n.mode & 1 ? me & 1073741824 && (te(n), n.subtreeFlags & 6 && (n.flags |= 8192)) : te(n), null;
 =======
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
       return re(t), null;
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
     case 1:
@@ -9337,13 +9556,17 @@ function sd(e, t, r) {
           : re(t),
         null
       );
+<<<<<<< HEAD
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
     case 24:
       return null;
     case 25:
       return null;
   }
+<<<<<<< HEAD
 <<<<<<< HEAD
   throw Error(y(156, n.tag));
 =======
@@ -9375,6 +9598,8 @@ function cd(e, n) {
     case 23:
       return No(), null;
 =======
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
   throw Error(g(156, t.tag));
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
 }
@@ -9405,14 +9630,18 @@ function cd(e, n) {
       return No(), null;
 =======
       return Eu(), null;
+<<<<<<< HEAD
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
     case 24:
       return null;
     default:
       return null;
   }
 }
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 <<<<<<< HEAD
@@ -9490,6 +9719,8 @@ function dd(e, n) {
           if (n.flags & 1024)
             switch (n.tag) {
 =======
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
 var hn = !1,
   ne = !1,
   fd = typeof WeakSet == 'function' ? WeakSet : Set,
@@ -9569,14 +9800,18 @@ function dd(e, n) {
           var b = t.alternate;
           if (t.flags & 1024)
             switch (t.tag) {
+<<<<<<< HEAD
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
               case 0:
               case 11:
               case 15:
                 break;
               case 1:
 <<<<<<< HEAD
+<<<<<<< HEAD
                 if (w !== null) {
                   var k = w.memoizedProps, F = w.memoizedState, f = n.stateNode, a = f.getSnapshotBeforeUpdate(n.elementType === n.type ? k : ze(n.type, k), F);
                   f.__reactInternalSnapshotBeforeUpdate = a;
@@ -9596,6 +9831,8 @@ function dd(e, n) {
                 var d = n.stateNode.containerInfo;
                 d.nodeType === 1 ? d.textContent = "" : d.nodeType === 9 && d.documentElement && d.removeChild(d.documentElement);
 =======
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
                 if (b !== null) {
                   var k = b.memoizedProps,
                     D = b.memoizedState,
@@ -9614,8 +9851,11 @@ function dd(e, n) {
                   : d.nodeType === 9 &&
                     d.documentElement &&
                     d.removeChild(d.documentElement);
+<<<<<<< HEAD
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
                 break;
               case 5:
               case 6:
@@ -9623,6 +9863,7 @@ function dd(e, n) {
               case 17:
                 break;
               default:
+<<<<<<< HEAD
 <<<<<<< HEAD
                 throw Error(y(163));
 =======
@@ -9743,6 +9984,8 @@ function Aa(e, n, t) {
     case 4:
       r = q, l = Te, q = t.stateNode.containerInfo, Te = !0, Ge(e, n, t), q = r, Te = l;
 =======
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
                 throw Error(g(163));
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
             }
@@ -9868,13 +10111,17 @@ function Aa(e, n, t) {
         Ye(e, t, r),
         (Z = n),
         (ze = l);
+<<<<<<< HEAD
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
       break;
     case 0:
     case 11:
     case 14:
     case 15:
+<<<<<<< HEAD
 <<<<<<< HEAD
       if (!re && (r = t.updateQueue, r !== null && (r = r.lastEffect, r !== null))) {
         l = r = r.next;
@@ -9957,6 +10204,8 @@ function Pe(e, n) {
 function Va(e, n) {
   var t = e.alternate, r = e.flags;
 =======
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
       if (
         !ne &&
         ((n = r.updateQueue), n !== null && ((n = n.lastEffect), n !== null))
@@ -10042,13 +10291,17 @@ function Va(e, n) {
 function Vs(e, t) {
   var r = e.alternate,
     n = e.flags;
+<<<<<<< HEAD
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
   switch (e.tag) {
     case 0:
     case 11:
     case 14:
     case 15:
+<<<<<<< HEAD
 <<<<<<< HEAD
       if (Pe(n, e), Oe(e), r & 4) {
 =======
@@ -10064,6 +10317,8 @@ function Vs(e, t) {
         } catch (k) {
           B(e, e.return, k);
 =======
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
       if ((Ce(t, e), Fe(e), n & 4)) {
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
         try {
@@ -10078,12 +10333,16 @@ function Vs(e, t) {
           B(e, e.return, k);
 =======
           $(e, e.return, k);
+<<<<<<< HEAD
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
         }
       }
       break;
     case 1:
+<<<<<<< HEAD
 <<<<<<< HEAD
       Pe(n, e), Oe(e), r & 512 && t !== null && Wn(t, t.return);
 =======
@@ -10131,6 +10390,8 @@ function Vs(e, t) {
           } catch (k) {
             B(e, e.return, k);
 =======
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
       Ce(t, e), Fe(e), n & 512 && r !== null && Bt(r, r.return);
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
       break;
@@ -10177,12 +10438,16 @@ function Vs(e, t) {
             B(e, e.return, k);
 =======
             $(e, e.return, k);
+<<<<<<< HEAD
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
           }
       }
       break;
     case 6:
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 <<<<<<< HEAD
@@ -10198,6 +10463,8 @@ function Vs(e, t) {
         } catch (k) {
           B(e, e.return, k);
 =======
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
       if ((Ce(t, e), Fe(e), n & 4)) {
         if (e.stateNode === null) throw Error(g(162));
         (l = e.stateNode), (a = e.memoizedProps);
@@ -10209,12 +10476,16 @@ function Vs(e, t) {
           B(e, e.return, k);
 =======
           $(e, e.return, k);
+<<<<<<< HEAD
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
         }
       }
       break;
     case 3:
+<<<<<<< HEAD
 <<<<<<< HEAD
       if (Pe(n, e), Oe(e), r & 4 && t !== null && t.memoizedState.isDehydrated)
 =======
@@ -10239,6 +10510,8 @@ function Vs(e, t) {
             for (m = S = h; S !== null; ) {
               switch (p = S, g = p.child, p.tag) {
 =======
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
       if (
         (Ce(t, e), Fe(e), n & 4 && r !== null && r.memoizedState.isDehydrated)
       )
@@ -10276,12 +10549,16 @@ function Vs(e, t) {
           for (w = e, h = e.child; h !== null; ) {
             for (m = w = h; w !== null; ) {
               switch (((p = w), (y = p.child), p.tag)) {
+<<<<<<< HEAD
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
                 case 0:
                 case 11:
                 case 14:
                 case 15:
+<<<<<<< HEAD
 <<<<<<< HEAD
                   zt(4, p, p.return);
 =======
@@ -10298,6 +10575,8 @@ function Vs(e, t) {
                     } catch (k) {
                       B(r, t, k);
 =======
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
                   Cr(4, p, p.return);
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
                   break;
@@ -10313,12 +10592,16 @@ function Vs(e, t) {
                       B(r, t, k);
 =======
                       $(n, r, k);
+<<<<<<< HEAD
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
                     }
                   }
                   break;
                 case 5:
+<<<<<<< HEAD
 <<<<<<< HEAD
                   Wn(p, p.return);
 =======
@@ -10371,6 +10654,8 @@ function Vs(e, t) {
     case 19:
       Pe(n, e), Oe(e), r & 4 && Ou(e);
 =======
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
                   Bt(p, p.return);
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
                   break;
@@ -10422,12 +10707,16 @@ function Vs(e, t) {
       Pe(n, e), Oe(e), r & 4 && Ou(e);
 =======
       Ce(t, e), Fe(e), n & 4 && Ro(e);
+<<<<<<< HEAD
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
       break;
     case 21:
       break;
     default:
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 <<<<<<< HEAD
@@ -10554,6 +10843,8 @@ function Du(e) {
                   case "img":
                     s.src && (t.src = s.src);
 =======
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
       Ce(t, e), Fe(e);
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
   }
@@ -10675,8 +10966,11 @@ function Du(e) {
 =======
                   case 'img':
                     i.src && (r.src = i.src);
+<<<<<<< HEAD
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
                 }
               }
               break;
@@ -10687,6 +10981,7 @@ function Du(e) {
             case 12:
               break;
             case 13:
+<<<<<<< HEAD
 <<<<<<< HEAD
               if (n.memoizedState === null) {
                 var c = n.alternate;
@@ -10699,10 +10994,15 @@ function Du(e) {
                 var c = t.alternate;
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+              if (t.memoizedState === null) {
+                var c = t.alternate;
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
                 if (c !== null) {
                   var h = c.memoizedState;
                   if (h !== null) {
                     var m = h.dehydrated;
+<<<<<<< HEAD
 <<<<<<< HEAD
                     m !== null && It(m);
 =======
@@ -10712,6 +11012,9 @@ function Du(e) {
                     m !== null && Ir(m);
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+                    m !== null && Ir(m);
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
                   }
                 }
               }
@@ -10724,6 +11027,7 @@ function Du(e) {
             case 25:
               break;
             default:
+<<<<<<< HEAD
 <<<<<<< HEAD
               throw Error(y(163));
 =======
@@ -10958,6 +11262,8 @@ function hd(e) {
             if (!Me(i(), l))
               return !1;
 =======
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
               throw Error(g(163));
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
           }
@@ -11191,13 +11497,17 @@ function hd(e) {
               return !1;
 =======
             if (!Re(a(), l)) return !1;
+<<<<<<< HEAD
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
           } catch {
             return !1;
           }
         }
     }
+<<<<<<< HEAD
 <<<<<<< HEAD
     if (t = n.child, n.subtreeFlags & 16384 && t !== null)
       t.return = n, n = t;
@@ -11215,6 +11525,8 @@ function hd(e) {
       }
       n.sibling.return = n.return, n = n.sibling;
 =======
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
     if (((r = t.child), t.subtreeFlags & 16384 && r !== null))
       (r.return = t), (t = r);
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
@@ -11230,12 +11542,16 @@ function hd(e) {
       n.sibling.return = n.return, n = n.sibling;
 =======
       (t.sibling.return = t.return), (t = t.sibling);
+<<<<<<< HEAD
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
     }
   }
   return !0;
 }
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 <<<<<<< HEAD
@@ -11538,6 +11854,8 @@ function Jn() {
                 for (S = c; S !== null; ) {
                   var h = S;
 =======
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
 function Je(e, t) {
   for (
     t &= ~wu,
@@ -11857,12 +12175,16 @@ function Jn() {
                 var c = o[i];
                 for (w = c; w !== null; ) {
                   var h = w;
+<<<<<<< HEAD
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
                   switch (h.tag) {
                     case 0:
                     case 11:
                     case 15:
+<<<<<<< HEAD
 <<<<<<< HEAD
                       zt(8, h, i);
 =======
@@ -11965,6 +12287,8 @@ function Jn() {
     } finally {
       M = t, xe.transition = n;
 =======
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
                       Cr(8, h, a);
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
                   }
@@ -12066,12 +12390,16 @@ function Jn() {
       M = t, xe.transition = n;
 =======
       (R = r), (xe.transition = t);
+<<<<<<< HEAD
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
     }
   }
   return !1;
 }
+<<<<<<< HEAD
 <<<<<<< HEAD
 function $u(e, n, t) {
   n = rt(t, n), n = Pa(e, n, 1), e = sn(e, n, 1), n = oe(), e !== null && (Gt(e, 1, n), pe(e, n));
@@ -12426,6 +12754,8 @@ function br(e) {
   if (e = e.current, !e.child)
     return null;
 =======
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
 function jo(e, t, r) {
   (t = rr(r, t)),
     (t = Ps(e, t, 1)),
@@ -12783,8 +13113,11 @@ function br(e) {
 =======
 function Jn(e) {
   if (((e = e.current), !e.child)) return null;
+<<<<<<< HEAD
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
   switch (e.child.tag) {
     case 5:
       return e.child.stateNode;
@@ -12792,6 +13125,7 @@ function Jn(e) {
       return e.child.stateNode;
   }
 }
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 <<<<<<< HEAD
@@ -12831,6 +13165,8 @@ pl.prototype.unmount = Ro.prototype.unmount = function() {
       dl(null, e, null, null);
     }), n[Qe] = null;
 =======
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
 function Uo(e, t) {
   if (((e = e.memoizedState), e !== null && e.dehydrated !== null)) {
     var r = e.retryLane;
@@ -12868,13 +13204,17 @@ pl.prototype.unmount = Ro.prototype.unmount = function() {
 =======
     }),
       (t[He] = null);
+<<<<<<< HEAD
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
   }
 };
 function pl(e) {
   this._internalRoot = e;
 }
+<<<<<<< HEAD
 <<<<<<< HEAD
 pl.prototype.unstable_scheduleHydration = function(e) {
 =======
@@ -13002,6 +13342,8 @@ ii = function(e, n, t) {
               throw Error(y(90));
             ss(r), ql(r, l);
 =======
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
 pl.prototype.unstable_scheduleHydration = function (e) {
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
   if (e) {
@@ -13145,12 +13487,16 @@ aa = function (e, t, r) {
             var l = al(n);
             if (!l) throw Error(g(90));
             oi(n), Zl(n, l);
+<<<<<<< HEAD
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
           }
         }
       }
       break;
+<<<<<<< HEAD
 <<<<<<< HEAD
     case "textarea":
       cs(e, t);
@@ -13245,6 +13591,8 @@ ge.version = "18.3.1-next-f1338f8080-20240426";
 function ec() {
   if (!(typeof __REACT_DEVTOOLS_GLOBAL_HOOK__ > "u" || typeof __REACT_DEVTOOLS_GLOBAL_HOOK__.checkDCE != "function"))
 =======
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
     case 'textarea':
       si(e, r);
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
@@ -13342,14 +13690,18 @@ function ec() {
       typeof __REACT_DEVTOOLS_GLOBAL_HOOK__.checkDCE != 'function'
     )
   )
+<<<<<<< HEAD
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
     try {
       __REACT_DEVTOOLS_GLOBAL_HOOK__.checkDCE(ec);
     } catch (e) {
       console.error(e);
     }
 }
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 <<<<<<< HEAD
@@ -13506,6 +13858,8 @@ class Ud extends HTMLElement {
 }
 customElements.get("meraki-panel") || customElements.define("meraki-panel", Ud);
 =======
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
 ec(), (Jo.exports = ye);
 var Ld = Jo.exports,
   Vo = Ld;
@@ -13737,5 +14091,8 @@ customElements.get("meraki-panel") || customElements.define("meraki-panel", Ud);
 =======
 customElements.get('meraki-panel') ||
   customElements.define('meraki-panel', jd);
+<<<<<<< HEAD
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)

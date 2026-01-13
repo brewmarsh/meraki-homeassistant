@@ -33,6 +33,7 @@ class SwitchEndpoints:
         """
         self._api_client = api_client
 <<<<<<< HEAD
+<<<<<<< HEAD
         self._dashboard = api_client.dashboard
 =======
 <<<<<<< HEAD
@@ -40,6 +41,8 @@ class SwitchEndpoints:
 =======
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
 
     @handle_meraki_errors
     @async_timed_cache(timeout=60)
@@ -59,6 +62,7 @@ class SwitchEndpoints:
 
         """
 <<<<<<< HEAD
+<<<<<<< HEAD
         statuses = await self._api_client.run_sync(
             self._dashboard.switch.getDeviceSwitchPortsStatuses, serial=serial
 =======
@@ -66,13 +70,18 @@ class SwitchEndpoints:
         statuses = await self._api_client.run_sync(
             self._dashboard.switch.getDeviceSwitchPortsStatuses, serial=serial
 =======
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
         if self._api_client.dashboard is None:
             return []
         statuses = await self._api_client.run_sync(
             self._api_client.dashboard.switch.getDeviceSwitchPortsStatuses,
             serial=serial,
+<<<<<<< HEAD
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
         )
         validated = validate_response(statuses)
         if not isinstance(validated, list):
@@ -96,6 +105,7 @@ class SwitchEndpoints:
 
         """
 <<<<<<< HEAD
+<<<<<<< HEAD
         ports = await self._api_client.run_sync(
             self._dashboard.switch.getDeviceSwitchPorts, serial=serial
 =======
@@ -103,12 +113,17 @@ class SwitchEndpoints:
         ports = await self._api_client.run_sync(
             self._dashboard.switch.getDeviceSwitchPorts, serial=serial
 =======
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
         if self._api_client.dashboard is None:
             return []
         ports = await self._api_client.run_sync(
             self._api_client.dashboard.switch.getDeviceSwitchPorts, serial=serial
+<<<<<<< HEAD
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
         )
         validated = validate_response(ports)
         if not isinstance(validated, list):

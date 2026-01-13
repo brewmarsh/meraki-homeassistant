@@ -8,6 +8,7 @@ from homeassistant.components.sensor import SensorEntity
 from homeassistant.config_entries import ConfigEntry
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 from ...coordinator import MerakiDataUpdateCoordinator
 from ...core.entities.meraki_vlan_entity import MerakiVLANEntity
 from ...core.utils.entity_id_utils import get_vlan_entity_id
@@ -22,6 +23,11 @@ from ...core.utils.entity_id_utils import get_vlan_entity_id
 from ...meraki_data_coordinator import MerakiDataCoordinator
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+from ...core.entities.meraki_vlan_entity import MerakiVLANEntity
+from ...core.utils.entity_id_utils import get_vlan_entity_id
+from ...meraki_data_coordinator import MerakiDataCoordinator
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
 from ...types import MerakiVlan
 
 _LOGGER = logging.getLogger(__name__)
@@ -33,6 +39,7 @@ class MerakiVLANIDSensor(MerakiVLANEntity, SensorEntity):
     def __init__(
         self,
 <<<<<<< HEAD
+<<<<<<< HEAD
         coordinator: MerakiDataUpdateCoordinator,
 =======
 <<<<<<< HEAD
@@ -41,6 +48,9 @@ class MerakiVLANIDSensor(MerakiVLANEntity, SensorEntity):
         coordinator: MerakiDataCoordinator,
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+        coordinator: MerakiDataCoordinator,
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
         config_entry: ConfigEntry,
         network_id: str,
         vlan: MerakiVlan,
@@ -67,6 +77,7 @@ class MerakiVLANIPv4EnabledSensor(MerakiVLANEntity, SensorEntity):
     def __init__(
         self,
 <<<<<<< HEAD
+<<<<<<< HEAD
         coordinator: MerakiDataUpdateCoordinator,
 =======
 <<<<<<< HEAD
@@ -75,6 +86,9 @@ class MerakiVLANIPv4EnabledSensor(MerakiVLANEntity, SensorEntity):
         coordinator: MerakiDataCoordinator,
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+        coordinator: MerakiDataCoordinator,
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
         config_entry: ConfigEntry,
         network_id: str,
         vlan: MerakiVlan,
@@ -103,6 +117,7 @@ class MerakiVLANIPv4InterfaceSensor(MerakiVLANEntity, SensorEntity):
     def __init__(
         self,
 <<<<<<< HEAD
+<<<<<<< HEAD
         coordinator: MerakiDataUpdateCoordinator,
 =======
 <<<<<<< HEAD
@@ -111,6 +126,9 @@ class MerakiVLANIPv4InterfaceSensor(MerakiVLANEntity, SensorEntity):
         coordinator: MerakiDataCoordinator,
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+        coordinator: MerakiDataCoordinator,
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
         config_entry: ConfigEntry,
         network_id: str,
         vlan: MerakiVlan,
@@ -139,6 +157,7 @@ class MerakiVLANIPv4UplinkSensor(MerakiVLANEntity, SensorEntity):
     def __init__(
         self,
 <<<<<<< HEAD
+<<<<<<< HEAD
         coordinator: MerakiDataUpdateCoordinator,
 =======
 <<<<<<< HEAD
@@ -147,6 +166,9 @@ class MerakiVLANIPv4UplinkSensor(MerakiVLANEntity, SensorEntity):
         coordinator: MerakiDataCoordinator,
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+        coordinator: MerakiDataCoordinator,
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
         config_entry: ConfigEntry,
         network_id: str,
         vlan: MerakiVlan,
@@ -176,6 +198,7 @@ class MerakiVLANIPv6EnabledSensor(MerakiVLANEntity, SensorEntity):
     def __init__(
         self,
 <<<<<<< HEAD
+<<<<<<< HEAD
         coordinator: MerakiDataUpdateCoordinator,
 =======
 <<<<<<< HEAD
@@ -184,6 +207,9 @@ class MerakiVLANIPv6EnabledSensor(MerakiVLANEntity, SensorEntity):
         coordinator: MerakiDataCoordinator,
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+        coordinator: MerakiDataCoordinator,
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
         config_entry: ConfigEntry,
         network_id: str,
         vlan: MerakiVlan,
@@ -215,6 +241,7 @@ class MerakiVLANIPv6InterfaceSensor(MerakiVLANEntity, SensorEntity):
     def __init__(
         self,
 <<<<<<< HEAD
+<<<<<<< HEAD
         coordinator: MerakiDataUpdateCoordinator,
 =======
 <<<<<<< HEAD
@@ -223,6 +250,9 @@ class MerakiVLANIPv6InterfaceSensor(MerakiVLANEntity, SensorEntity):
         coordinator: MerakiDataCoordinator,
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+        coordinator: MerakiDataCoordinator,
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
         config_entry: ConfigEntry,
         network_id: str,
         vlan: MerakiVlan,
@@ -254,6 +284,7 @@ class MerakiVLANIPv6UplinkSensor(MerakiVLANEntity, SensorEntity):
     def __init__(
         self,
 <<<<<<< HEAD
+<<<<<<< HEAD
         coordinator: MerakiDataUpdateCoordinator,
 =======
 <<<<<<< HEAD
@@ -262,6 +293,9 @@ class MerakiVLANIPv6UplinkSensor(MerakiVLANEntity, SensorEntity):
         coordinator: MerakiDataCoordinator,
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+        coordinator: MerakiDataCoordinator,
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
         config_entry: ConfigEntry,
         network_id: str,
         vlan: MerakiVlan,

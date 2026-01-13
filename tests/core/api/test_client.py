@@ -5,6 +5,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 from custom_components.meraki_ha.coordinator import MerakiDataUpdateCoordinator
 from custom_components.meraki_ha.core.api.client import MerakiAPIClient
 from custom_components.meraki_ha.core.errors import MerakiInformationalError
@@ -18,6 +19,10 @@ from custom_components.meraki_ha.core.api.client import MerakiAPIClient
 from custom_components.meraki_ha.meraki_data_coordinator import MerakiDataCoordinator
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+from custom_components.meraki_ha.core.api.client import MerakiAPIClient
+from custom_components.meraki_ha.meraki_data_coordinator import MerakiDataCoordinator
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
 from tests.const import MOCK_DEVICE, MOCK_NETWORK
 
 
@@ -38,6 +43,7 @@ def hass():
 def coordinator():
     """Fixture for a mocked coordinator."""
 <<<<<<< HEAD
+<<<<<<< HEAD
     mock = MagicMock(spec=MerakiDataUpdateCoordinator)
 =======
 <<<<<<< HEAD
@@ -46,6 +52,9 @@ def coordinator():
     mock = MagicMock(spec=MerakiDataCoordinator)
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+    mock = MagicMock(spec=MerakiDataCoordinator)
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
     mock.is_vlan_check_due.return_value = True
     mock.is_traffic_check_due.return_value = True
     return mock
@@ -54,6 +63,7 @@ def coordinator():
 @pytest.fixture
 def api_client(hass, mock_dashboard, coordinator):
     """Fixture for a MerakiAPIClient instance."""
+<<<<<<< HEAD
 <<<<<<< HEAD
     return MerakiAPIClient(
         hass=hass, api_key="test-key", org_id="test-org", coordinator=coordinator
@@ -67,6 +77,9 @@ def api_client(hass, mock_dashboard, coordinator):
     return MerakiAPIClient(hass=hass, api_key="test-key", org_id="test-org")
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+    return MerakiAPIClient(hass=hass, api_key="test-key", org_id="test-org")
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
 
 
 @pytest.mark.asyncio
@@ -209,6 +222,7 @@ def test_build_detail_tasks_for_appliance_device(api_client):
 
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
@@ -253,6 +267,8 @@ def test_process_detailed_data_handles_errors(api_client):
 =======
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
 @pytest.mark.skip(reason="TODO: Fix this test")
 def test_process_detailed_data_merges_device_info(api_client):
     """Test that _process_detailed_data merges details into device objects."""

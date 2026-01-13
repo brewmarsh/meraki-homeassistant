@@ -91,6 +91,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
         # 3. Create a temporary index.html to host the panel
         with open("index.html", "w") as f:
 <<<<<<< HEAD
+<<<<<<< HEAD
             f.write("""
 =======
 <<<<<<< HEAD
@@ -100,6 +101,10 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
                 """
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+            f.write(
+                """
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
                 <!DOCTYPE html>
                 <html lang="en">
                 <head>
@@ -113,6 +118,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
                 </body>
                 </html>
 <<<<<<< HEAD
+<<<<<<< HEAD
             """)
 =======
 <<<<<<< HEAD
@@ -122,6 +128,10 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
             )
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+            """
+            )
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
 
         # 4. Use Playwright to take a screenshot
         async with async_playwright() as p:

@@ -1,6 +1,7 @@
 """Config flow for the Meraki Home Assistant integration."""
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 from __future__ import annotations
 
 import logging
@@ -20,15 +21,20 @@ from __future__ import annotations
 
 =======
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
 import logging
 from typing import Any
 
 import voluptuous as vol
 <<<<<<< HEAD
+<<<<<<< HEAD
 from homeassistant import config_entries
 from homeassistant.config_entries import ConfigFlowResult
 =======
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
 from homeassistant.config_entries import (
     ConfigEntry,
     ConfigFlow,
@@ -36,10 +42,13 @@ from homeassistant.config_entries import (
     OptionsFlow,
 )
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 498e2557 (fix(config_flow): Remove unused voluptuous import)
 =======
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
 from homeassistant.core import callback
 from homeassistant.data_entry_flow import AbortFlow
 
@@ -57,6 +66,7 @@ _LOGGER = logging.getLogger(__name__)
 
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 @config_entries.HANDLERS.register(DOMAIN)
 class ConfigFlowHandler(config_entries.ConfigFlow):
     """Handle a config flow for Meraki."""
@@ -72,13 +82,18 @@ class ConfigFlowHandler(config_entries.ConfigFlow):
     VERSION = 1
     CONNECTION_CLASS = config_entries.CONN_CLASS_CLOUD_POLL
 =======
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
 class MerakiConfigFlow(ConfigFlow, domain="meraki_ha"):  # type: ignore[call-arg]
     """Handle a config flow for Meraki."""
 
     VERSION = 1
     CONNECTION_CLASS = "cloud_poll"
+<<<<<<< HEAD
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
 
     def __init__(self) -> None:
         """Initialize the config flow."""
@@ -86,6 +101,7 @@ class MerakiConfigFlow(ConfigFlow, domain="meraki_ha"):  # type: ignore[call-arg
         self.options: dict[str, Any] = {}
 
     async def async_step_user(
+<<<<<<< HEAD
 <<<<<<< HEAD
         self,
         user_input: dict[str, Any] | None = None,
@@ -125,6 +141,11 @@ class MerakiConfigFlow(ConfigFlow, domain="meraki_ha"):  # type: ignore[call-arg
         """Handle the initial step."""
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        """Handle the initial step."""
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
         errors: dict[str, str] = {}
         if user_input is not None:
             try:
@@ -137,6 +158,7 @@ class MerakiConfigFlow(ConfigFlow, domain="meraki_ha"):  # type: ignore[call-arg
                 self.data[CONF_MERAKI_ORG_ID] = user_input[CONF_MERAKI_ORG_ID]
                 self.data["org_name"] = validation_result.get(
 <<<<<<< HEAD
+<<<<<<< HEAD
                     "org_name",
                     user_input[CONF_MERAKI_ORG_ID],
 =======
@@ -147,11 +169,15 @@ class MerakiConfigFlow(ConfigFlow, domain="meraki_ha"):  # type: ignore[call-arg
                     "org_name", user_input[CONF_MERAKI_ORG_ID]
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+                    "org_name", user_input[CONF_MERAKI_ORG_ID]
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
                 )
 
                 await self.async_set_unique_id(user_input[CONF_MERAKI_ORG_ID])
                 self._abort_if_unique_id_configured()
 
+<<<<<<< HEAD
 <<<<<<< HEAD
                 # Show the general form by default
 =======
@@ -160,12 +186,15 @@ class MerakiConfigFlow(ConfigFlow, domain="meraki_ha"):  # type: ignore[call-arg
 =======
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
                 return await self.async_step_init()
 
             except MerakiAuthenticationError:
                 errors["base"] = "invalid_auth"
             except MerakiConnectionError:
                 errors["base"] = "cannot_connect"
+<<<<<<< HEAD
 <<<<<<< HEAD
             except AbortFlow as e:
                 raise e
@@ -178,11 +207,16 @@ class MerakiConfigFlow(ConfigFlow, domain="meraki_ha"):  # type: ignore[call-arg
                 return self.async_abort(reason="already_configured")
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+            except AbortFlow:
+                return self.async_abort(reason="already_configured")
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
             except Exception:
                 _LOGGER.exception("Unexpected exception")
                 errors["base"] = "unknown"
 
         return self.async_show_form(
+<<<<<<< HEAD
 <<<<<<< HEAD
             step_id="user",
             data_schema=CONFIG_SCHEMA,
@@ -211,6 +245,8 @@ class MerakiConfigFlow(ConfigFlow, domain="meraki_ha"):  # type: ignore[call-arg
 
         """
 =======
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
             step_id="user", data_schema=CONFIG_SCHEMA, errors=errors
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
         )
@@ -234,8 +270,11 @@ class MerakiConfigFlow(ConfigFlow, domain="meraki_ha"):  # type: ignore[call-arg
         """
 =======
         """Handle the general settings step."""
+<<<<<<< HEAD
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
         if user_input is not None:
             self.options.update(user_input)
             return self.async_create_entry(
@@ -244,6 +283,7 @@ class MerakiConfigFlow(ConfigFlow, domain="meraki_ha"):  # type: ignore[call-arg
                 options=self.options,
             )
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 <<<<<<< HEAD
@@ -291,6 +331,8 @@ class MerakiConfigFlow(ConfigFlow, domain="meraki_ha"):  # type: ignore[call-arg
 
         """
 =======
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
         return self.async_show_form(step_id="init", data_schema=OPTIONS_SCHEMA)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
 
@@ -336,12 +378,15 @@ class MerakiConfigFlow(ConfigFlow, domain="meraki_ha"):  # type: ignore[call-arg
         from .meraki_data_coordinator import MerakiDataCoordinator
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 1025a183 (fix: Resolve config flow error during reconfiguration)
 =======
 >>>>>>> 498e2557 (fix(config_flow): Remove unused voluptuous import)
 =======
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
         entry = self.hass.config_entries.async_get_entry(self.context["entry_id"])
         if not entry:
             return self.async_abort(reason="unknown_entry")
@@ -352,6 +397,7 @@ class MerakiConfigFlow(ConfigFlow, domain="meraki_ha"):  # type: ignore[call-arg
             await self.hass.config_entries.async_reload(entry.entry_id)
             return self.async_abort(reason="reconfigure_successful")
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -410,6 +456,8 @@ class MerakiConfigFlow(ConfigFlow, domain="meraki_ha"):  # type: ignore[call-arg
 =======
 =======
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
         coordinator: MerakiDataCoordinator = self.hass.data[DOMAIN][entry.entry_id][
             "coordinator"
         ]
@@ -432,6 +480,7 @@ class MerakiConfigFlow(ConfigFlow, domain="meraki_ha"):  # type: ignore[call-arg
         return self.async_show_form(
             step_id="reconfigure", data_schema=schema_with_defaults
         )
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -459,3 +508,5 @@ class MerakiConfigFlow(ConfigFlow, domain="meraki_ha"):  # type: ignore[call-arg
 =======
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)

@@ -1,4 +1,5 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
@@ -14,10 +15,14 @@ entities for Meraki MR series (wireless) devices.
 """MR (Wireless) Device Handler."""
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+"""MR (Wireless) Device Handler."""
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
 
 from __future__ import annotations
 
 import logging
+<<<<<<< HEAD
 <<<<<<< HEAD
 from typing import TYPE_CHECKING, Any
 =======
@@ -27,6 +32,9 @@ from typing import TYPE_CHECKING, Any
 from typing import TYPE_CHECKING
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+from typing import TYPE_CHECKING
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
 
 from .base import BaseDeviceHandler
 
@@ -35,6 +43,7 @@ if TYPE_CHECKING:
     from homeassistant.helpers.entity import Entity
 
 <<<<<<< HEAD
+<<<<<<< HEAD
     from ....coordinator import MerakiDataUpdateCoordinator
     from ....services.camera_service import CameraService
     from ....services.device_control_service import DeviceControlService
@@ -48,12 +57,17 @@ if TYPE_CHECKING:
     from ....services.network_control_service import NetworkControlService
     from ....types import MerakiDevice
 =======
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
     from ....services.network_control_service import NetworkControlService
     from ....types import MerakiDevice
     from ...meraki_data_coordinator import MerakiDataCoordinator
     from ...services.device_control_service import DeviceControlService
+<<<<<<< HEAD
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
 
 
 _LOGGER = logging.getLogger(__name__)
@@ -64,6 +78,7 @@ class MRHandler(BaseDeviceHandler):
 
     def __init__(
         self,
+<<<<<<< HEAD
 <<<<<<< HEAD
         coordinator: MerakiDataUpdateCoordinator,
 =======
@@ -86,6 +101,8 @@ class MRHandler(BaseDeviceHandler):
         super().__init__(coordinator, device, config_entry)
         self._control_service = control_service
 =======
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
         coordinator: MerakiDataCoordinator,
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
         device: MerakiDevice,
@@ -107,12 +124,16 @@ class MRHandler(BaseDeviceHandler):
 <<<<<<< HEAD
 =======
         self._network_control_service = network_control_service
+<<<<<<< HEAD
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
 
     @classmethod
     def create(
         cls,
+<<<<<<< HEAD
 <<<<<<< HEAD
         coordinator: MerakiDataUpdateCoordinator,
 =======
@@ -139,6 +160,8 @@ class MRHandler(BaseDeviceHandler):
 
         """
 =======
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
         coordinator: MerakiDataCoordinator,
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
         device: MerakiDevice,
@@ -164,14 +187,18 @@ class MRHandler(BaseDeviceHandler):
         """
 =======
         """Create an instance of the handler."""
+<<<<<<< HEAD
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
         return cls(
             coordinator,
             device,
             config_entry,
             control_service,
 <<<<<<< HEAD
+<<<<<<< HEAD
         )
 
     async def discover_entities(self) -> list[Entity]:
@@ -197,13 +224,18 @@ class MRHandler(BaseDeviceHandler):
 
         """
 =======
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
             network_control_service,
         )
 
     async def discover_entities(self) -> list[Entity]:
         """Discover entities for a wireless device."""
+<<<<<<< HEAD
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
         entities: list[Entity] = []
 
         # In the future, this is where we would create entities like:

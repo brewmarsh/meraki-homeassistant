@@ -12,6 +12,7 @@ from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 from ..coordinator import MerakiDataUpdateCoordinator
 from ..core.api.client import MerakiAPIClient
 from ..core.utils.icon_utils import get_device_type_icon
@@ -23,12 +24,17 @@ from ..core.api.client import MerakiAPIClient
 from ..core.utils.icon_utils import get_device_type_icon
 from ..helpers.device_info_helpers import resolve_device_info
 =======
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
 from ..core.api.client import MerakiAPIClient
 from ..core.utils.icon_utils import get_device_type_icon
 from ..helpers.device_info_helpers import resolve_device_info
 from ..meraki_data_coordinator import MerakiDataCoordinator
+<<<<<<< HEAD
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -42,6 +48,7 @@ class MerakiSSIDBaseSwitch(CoordinatorEntity, SwitchEntity):
     def __init__(
         self,
 <<<<<<< HEAD
+<<<<<<< HEAD
         coordinator: MerakiDataUpdateCoordinator,
 =======
 <<<<<<< HEAD
@@ -50,6 +57,9 @@ class MerakiSSIDBaseSwitch(CoordinatorEntity, SwitchEntity):
         coordinator: MerakiDataCoordinator,
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+        coordinator: MerakiDataCoordinator,
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
         meraki_client: MerakiAPIClient,
         config_entry: ConfigEntry,
         ssid_data: dict[str, Any],
@@ -119,6 +129,7 @@ class MerakiSSIDBaseSwitch(CoordinatorEntity, SwitchEntity):
         """Update the internal state of the switch based on coordinator data."""
         # Ignore coordinator data to avoid overwriting optimistic state
 <<<<<<< HEAD
+<<<<<<< HEAD
         if self.coordinator.is_pending(self.unique_id):
 =======
 <<<<<<< HEAD
@@ -127,6 +138,9 @@ class MerakiSSIDBaseSwitch(CoordinatorEntity, SwitchEntity):
         if self.coordinator.is_update_pending(self.unique_id):
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+        if self.coordinator.is_update_pending(self.unique_id):
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
             return
 
         current_ssid_data = self._get_current_ssid_data()
@@ -154,6 +168,7 @@ class MerakiSSIDBaseSwitch(CoordinatorEntity, SwitchEntity):
         payload = {self._attribute_to_check: value}
 
 <<<<<<< HEAD
+<<<<<<< HEAD
         # "Fire and forget" API call.
         self.hass.async_create_task(
             self._meraki_client.wireless.update_network_wireless_ssid(
@@ -167,11 +182,16 @@ class MerakiSSIDBaseSwitch(CoordinatorEntity, SwitchEntity):
             await self._meraki_client.wireless.update_network_wireless_ssid(
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+        try:
+            await self._meraki_client.wireless.update_network_wireless_ssid(
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
                 network_id=self._network_id,
                 number=self._ssid_number,
                 **payload,
             )
 <<<<<<< HEAD
+<<<<<<< HEAD
         )
 
         # Register a pending update to prevent overwriting the optimistic state
@@ -183,6 +203,8 @@ class MerakiSSIDBaseSwitch(CoordinatorEntity, SwitchEntity):
         # Register a pending update to prevent overwriting the optimistic state
         self.coordinator.register_pending_update(self.unique_id)
 =======
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
         except Exception as e:
             _LOGGER.error(
                 "Failed to update SSID %s: %s",
@@ -197,8 +219,11 @@ class MerakiSSIDBaseSwitch(CoordinatorEntity, SwitchEntity):
 
         # Register a pending update to prevent overwriting the optimistic state
         self.coordinator.register_update_pending(self.unique_id)
+<<<<<<< HEAD
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
 
     async def async_turn_on(self, **kwargs: Any) -> None:
         """Turn the switch on."""
@@ -215,6 +240,7 @@ class MerakiSSIDEnabledSwitch(MerakiSSIDBaseSwitch):
     def __init__(
         self,
 <<<<<<< HEAD
+<<<<<<< HEAD
         coordinator: MerakiDataUpdateCoordinator,
 =======
 <<<<<<< HEAD
@@ -223,6 +249,9 @@ class MerakiSSIDEnabledSwitch(MerakiSSIDBaseSwitch):
         coordinator: MerakiDataCoordinator,
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+        coordinator: MerakiDataCoordinator,
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
         meraki_client: MerakiAPIClient,
         config_entry: ConfigEntry,
         ssid_data: dict[str, Any],
@@ -256,6 +285,7 @@ class MerakiSSIDBroadcastSwitch(MerakiSSIDBaseSwitch):
     def __init__(
         self,
 <<<<<<< HEAD
+<<<<<<< HEAD
         coordinator: MerakiDataUpdateCoordinator,
 =======
 <<<<<<< HEAD
@@ -264,6 +294,9 @@ class MerakiSSIDBroadcastSwitch(MerakiSSIDBaseSwitch):
         coordinator: MerakiDataCoordinator,
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+        coordinator: MerakiDataCoordinator,
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
         meraki_client: MerakiAPIClient,
         config_entry: ConfigEntry,
         ssid_data: dict[str, Any],

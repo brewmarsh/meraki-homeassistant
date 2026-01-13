@@ -12,6 +12,7 @@ from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 from ..coordinator import MerakiDataUpdateCoordinator
 from ..core.api.client import MerakiAPIClient
 from ..helpers.device_info_helpers import resolve_device_info
@@ -26,6 +27,11 @@ from ..helpers.device_info_helpers import resolve_device_info
 from ..meraki_data_coordinator import MerakiDataCoordinator
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+from ..core.api.client import MerakiAPIClient
+from ..helpers.device_info_helpers import resolve_device_info
+from ..meraki_data_coordinator import MerakiDataCoordinator
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -39,6 +45,7 @@ class MerakiMt40PowerOutlet(
     def __init__(
         self,
 <<<<<<< HEAD
+<<<<<<< HEAD
         coordinator: MerakiDataUpdateCoordinator,
 =======
 <<<<<<< HEAD
@@ -47,6 +54,9 @@ class MerakiMt40PowerOutlet(
         coordinator: MerakiDataCoordinator,
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+        coordinator: MerakiDataCoordinator,
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
         device_info: dict[str, Any],
         config_entry: ConfigEntry,
         meraki_client: MerakiAPIClient,

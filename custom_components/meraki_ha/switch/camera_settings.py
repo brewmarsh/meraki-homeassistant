@@ -8,6 +8,7 @@ from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 from custom_components.meraki_ha.coordinator import MerakiDataUpdateCoordinator
 
 from ..core.api.client import MerakiAPIClient
@@ -21,6 +22,10 @@ from ..core.api.client import MerakiAPIClient
 from ..meraki_data_coordinator import MerakiDataCoordinator
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+from ..core.api.client import MerakiAPIClient
+from ..meraki_data_coordinator import MerakiDataCoordinator
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
 from ..types import MerakiDevice
 
 _LOGGER = logging.getLogger(__name__)
@@ -35,6 +40,7 @@ class MerakiCameraSettingSwitchBase(
     def __init__(
         self,
 <<<<<<< HEAD
+<<<<<<< HEAD
         coordinator: MerakiDataUpdateCoordinator,
 =======
 <<<<<<< HEAD
@@ -43,6 +49,9 @@ class MerakiCameraSettingSwitchBase(
         coordinator: MerakiDataCoordinator,
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+        coordinator: MerakiDataCoordinator,
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
         meraki_client: MerakiAPIClient,
         device_data: dict[str, Any],
         key: str,

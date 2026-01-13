@@ -1,6 +1,7 @@
 # `AGENTS.md`: Agent & Developer Guidelines
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 This document provides essential instructions for AI agents and human developers. Adhering to these guidelines is critical for maintaining the stability of the **Meraki Home Assistant** integration, especially regarding Python 3.13 and Home Assistant Core 2026.1 compatibility.
 =======
 <<<<<<< HEAD
@@ -75,6 +76,8 @@ Meraki Dashboard has a provisioning delay. To prevent UI flickering (the "Toggle
 - **PAT Requirement:** GitHub suppresses events triggered by the default `GITHUB_TOKEN`. Jules **must** be configured with a Personal Access Token (PAT) named `JULES_GITHUB_PAT` to allow the **Agent Healer** to trigger on CI failures.
 - **Health Audit:** After deployment, wait 90 seconds for the Meraki coordinator to stabilize before running the `tools/auditor/audit.py` script to check for `unavailable` entities.
 =======
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
 This document provides essential instructions for AI agents and human developers working across this organization's codebases. Adhering to these guidelines is critical for maintaining code quality, consistency, and stability.
 
 This file contains **common rules** that apply to *all* projects. For project-specific details (like technology stack, file paths, and build commands), please refer to the `README.md` or `CONTRIBUTING.md` file in the specific repository.
@@ -166,5 +169,8 @@ Meraki Dashboard has a provisioning delay. To prevent UI flickering (the "Toggle
 * **Iterative Improvement:** If you encounter an issue (e.g., a security vulnerability, a bug, a confusing pattern), look for other instances of the same problem in the codebase and fix them all.
 * **Update Documentation:** As you make changes, ensure that `README.md` and `CONTRIBUTING.md` are updated to reflect the new state of the application.
 * **Update This File:** If you discover a new development technique, a useful debugging procedure, or a common pitfall, please update *this* `AGENTS.md` file to help future agents.
+<<<<<<< HEAD
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)

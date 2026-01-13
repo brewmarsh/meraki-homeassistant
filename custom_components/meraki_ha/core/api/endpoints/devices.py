@@ -31,6 +31,7 @@ class DevicesEndpoints:
         """
         self._api_client = api_client
 <<<<<<< HEAD
+<<<<<<< HEAD
         self._dashboard = api_client.dashboard
 =======
 <<<<<<< HEAD
@@ -38,6 +39,8 @@ class DevicesEndpoints:
 =======
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
 
     @handle_meraki_errors
     async def get_device_clients(self, serial: str) -> list[dict[str, Any]]:
@@ -54,6 +57,7 @@ class DevicesEndpoints:
 
         """
 <<<<<<< HEAD
+<<<<<<< HEAD
         clients = await self._api_client.run_sync(
             self._dashboard.devices.getDeviceClients,
 =======
@@ -61,12 +65,17 @@ class DevicesEndpoints:
         clients = await self._api_client.run_sync(
             self._dashboard.devices.getDeviceClients,
 =======
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
         if self._api_client.dashboard is None:
             return []
         clients = await self._api_client.run_sync(
             self._api_client.dashboard.devices.getDeviceClients,
+<<<<<<< HEAD
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
             serial,
             timespan=300,  # 5 minutes to get current clients
         )
@@ -90,6 +99,7 @@ class DevicesEndpoints:
 
         """
 <<<<<<< HEAD
+<<<<<<< HEAD
         device = await self._api_client.run_sync(
             self._dashboard.devices.getDevice,
 =======
@@ -97,12 +107,17 @@ class DevicesEndpoints:
         device = await self._api_client.run_sync(
             self._dashboard.devices.getDevice,
 =======
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
         if self._api_client.dashboard is None:
             return {}
         device = await self._api_client.run_sync(
             self._api_client.dashboard.devices.getDevice,
+<<<<<<< HEAD
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
             serial=serial,
         )
         validated = validate_response(device)
@@ -127,6 +142,7 @@ class DevicesEndpoints:
 
         """
 <<<<<<< HEAD
+<<<<<<< HEAD
         device = await self._api_client.run_sync(
             self._dashboard.devices.updateDevice,
 =======
@@ -134,12 +150,17 @@ class DevicesEndpoints:
         device = await self._api_client.run_sync(
             self._dashboard.devices.updateDevice,
 =======
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
         if self._api_client.dashboard is None:
             return {}
         device = await self._api_client.run_sync(
             self._api_client.dashboard.devices.updateDevice,
+<<<<<<< HEAD
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
             serial=serial,
             **kwargs,
         )

@@ -6,6 +6,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.entity import DeviceInfo
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 from ...coordinator import MerakiDataUpdateCoordinator
 from ...core.utils.naming_utils import format_device_name
 =======
@@ -17,6 +18,10 @@ from ...core.utils.naming_utils import format_device_name
 from ...meraki_data_coordinator import MerakiDataCoordinator
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+from ...core.utils.naming_utils import format_device_name
+from ...meraki_data_coordinator import MerakiDataCoordinator
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
 from ...types import MerakiVlan
 from . import BaseMerakiEntity
 
@@ -27,6 +32,7 @@ class MerakiVLANEntity(BaseMerakiEntity):
     def __init__(
         self,
 <<<<<<< HEAD
+<<<<<<< HEAD
         coordinator: MerakiDataUpdateCoordinator,
 =======
 <<<<<<< HEAD
@@ -35,6 +41,9 @@ class MerakiVLANEntity(BaseMerakiEntity):
         coordinator: MerakiDataCoordinator,
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+        coordinator: MerakiDataCoordinator,
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
         config_entry: ConfigEntry,
         network_id: str,
         vlan: MerakiVlan,

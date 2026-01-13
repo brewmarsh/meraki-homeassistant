@@ -11,6 +11,7 @@ from tests.const import MOCK_DEVICE, MOCK_NETWORK
 @pytest.fixture
 def mock_coordinator_with_devices_and_ssids(mock_coordinator: MagicMock) -> MagicMock:
 <<<<<<< HEAD
+<<<<<<< HEAD
     """Fixture for a mocked MerakiDataUpdateCoordinator with devices and SSIDs."""
 =======
 <<<<<<< HEAD
@@ -19,6 +20,9 @@ def mock_coordinator_with_devices_and_ssids(mock_coordinator: MagicMock) -> Magi
     """Fixture for a mocked MerakiDataCoordinator with devices and SSIDs."""
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+    """Fixture for a mocked MerakiDataCoordinator with devices and SSIDs."""
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
     device_in_network = MOCK_DEVICE.copy()
     device_in_network["networkId"] = MOCK_NETWORK["id"]
     device_other_network = MOCK_DEVICE.copy()

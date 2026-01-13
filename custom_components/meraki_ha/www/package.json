@@ -1,5 +1,6 @@
 {
 <<<<<<< HEAD
+<<<<<<< HEAD
   "name": "meraki-ha-webui",
 =======
 <<<<<<< HEAD
@@ -8,10 +9,14 @@
   "name": "meraki-ha-www",
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+  "name": "meraki-ha-www",
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
   "private": true,
   "version": "0.0.0",
   "type": "module",
   "scripts": {
+<<<<<<< HEAD
 <<<<<<< HEAD
     "dev": "vite --host",
     "build": "tsc && vite build",
@@ -27,10 +32,16 @@
     "lint": "eslint . --ext js,jsx --report-unused-disable-directives --max-warnings 0",
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+    "dev": "vite",
+    "build": "vite build",
+    "lint": "eslint . --ext js,jsx --report-unused-disable-directives --max-warnings 0",
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
     "preview": "vite preview"
   },
   "dependencies": {
     "react": "^18.2.0",
+<<<<<<< HEAD
 <<<<<<< HEAD
     "react-dom": "^18.2.0"
 =======
@@ -52,6 +63,8 @@
     "typescript": "^5.0.2",
     "vite": "^4.4.5"
 =======
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
     "react-dom": "^18.2.0",
     "react-router-dom": "^6.22.3"
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
@@ -76,7 +89,10 @@
     "postcss": "^8.4.38",
     "tailwindcss": "^3.4.3",
     "vite": "^5.2.0"
+<<<<<<< HEAD
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
   }
 }

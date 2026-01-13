@@ -25,6 +25,7 @@ def auto_enable_custom_integrations(
 @pytest.fixture
 def mock_coordinator() -> MagicMock:
 <<<<<<< HEAD
+<<<<<<< HEAD
     """Fixture for a mocked MerakiDataUpdateCoordinator."""
 =======
 <<<<<<< HEAD
@@ -33,11 +34,15 @@ def mock_coordinator() -> MagicMock:
     """Fixture for a mocked MerakiDataCoordinator."""
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+    """Fixture for a mocked MerakiDataCoordinator."""
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
     coordinator = MagicMock()
     coordinator.config_entry.options = {}
     coordinator.data = MOCK_ALL_DATA
     coordinator.async_request_refresh = AsyncMock()
     coordinator.async_write_ha_state = MagicMock()
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 <<<<<<< HEAD
@@ -47,6 +52,11 @@ def mock_coordinator() -> MagicMock:
     coordinator.async_request_refresh = AsyncMock()
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+    coordinator.is_update_pending = MagicMock(return_value=False)
+    coordinator.register_update_pending = MagicMock()
+    coordinator.async_request_refresh = AsyncMock()
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
     return coordinator
 
 
@@ -56,8 +66,6 @@ def mock_config_entry() -> MagicMock:
     entry = MagicMock()
     entry.options = {}
     return entry
-<<<<<<< HEAD
-=======
 
 
 @pytest.fixture(autouse=True)
@@ -79,7 +87,10 @@ def prevent_socket_and_camera_load() -> Generator[None, None, None]:
     ):
         yield
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> b654416b (fix(tests): Address PR feedback)
 =======
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)

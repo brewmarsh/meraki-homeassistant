@@ -45,6 +45,7 @@ if TYPE_CHECKING:
     from homeassistant.helpers.entity import Entity
 
 <<<<<<< HEAD
+<<<<<<< HEAD
     from ...coordinator import MerakiDataUpdateCoordinator
     from ...core.api.client import MerakiAPIClient
 =======
@@ -56,6 +57,10 @@ if TYPE_CHECKING:
     from ...meraki_data_coordinator import MerakiDataCoordinator
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+    from ...core.api.client import MerakiAPIClient
+    from ...meraki_data_coordinator import MerakiDataCoordinator
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
 
 
 _LOGGER = logging.getLogger(__name__)
@@ -67,6 +72,7 @@ class SSIDHandler(BaseHandler):
     def __init__(
         self,
 <<<<<<< HEAD
+<<<<<<< HEAD
         coordinator: MerakiDataUpdateCoordinator,
 =======
 <<<<<<< HEAD
@@ -75,6 +81,9 @@ class SSIDHandler(BaseHandler):
         coordinator: MerakiDataCoordinator,
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+        coordinator: MerakiDataCoordinator,
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
         config_entry: ConfigEntry,
         meraki_client: MerakiAPIClient,
     ) -> None:
@@ -86,6 +95,7 @@ class SSIDHandler(BaseHandler):
     def create(
         cls,
 <<<<<<< HEAD
+<<<<<<< HEAD
         coordinator: MerakiDataUpdateCoordinator,
 =======
 <<<<<<< HEAD
@@ -94,6 +104,9 @@ class SSIDHandler(BaseHandler):
         coordinator: MerakiDataCoordinator,
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+        coordinator: MerakiDataCoordinator,
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
         config_entry: ConfigEntry,
         meraki_client: MerakiAPIClient,
     ) -> SSIDHandler:

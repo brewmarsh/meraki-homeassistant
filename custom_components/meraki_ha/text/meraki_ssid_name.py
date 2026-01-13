@@ -12,6 +12,7 @@ from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 from ..coordinator import MerakiDataUpdateCoordinator
 from ..core.api.client import MerakiAPIClient
 from ..helpers.device_info_helpers import resolve_device_info
@@ -26,6 +27,11 @@ from ..helpers.device_info_helpers import resolve_device_info
 from ..meraki_data_coordinator import MerakiDataCoordinator
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+from ..core.api.client import MerakiAPIClient
+from ..helpers.device_info_helpers import resolve_device_info
+from ..meraki_data_coordinator import MerakiDataCoordinator
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -40,6 +46,7 @@ class MerakiSSIDNameText(CoordinatorEntity, TextEntity):
     def __init__(
         self,
 <<<<<<< HEAD
+<<<<<<< HEAD
         coordinator: MerakiDataUpdateCoordinator,
 =======
 <<<<<<< HEAD
@@ -48,6 +55,9 @@ class MerakiSSIDNameText(CoordinatorEntity, TextEntity):
         coordinator: MerakiDataCoordinator,
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+        coordinator: MerakiDataCoordinator,
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
         meraki_client: MerakiAPIClient,
         config_entry: ConfigEntry,  # Added to match switch entities
         ssid_data: dict[str, Any],
@@ -118,6 +128,7 @@ class MerakiSSIDNameText(CoordinatorEntity, TextEntity):
         """Update the internal state of the text entity based on coordinator data."""
         # Ignore coordinator data to avoid overwriting optimistic state
 <<<<<<< HEAD
+<<<<<<< HEAD
         if self.coordinator.is_pending(self.unique_id):
 =======
 <<<<<<< HEAD
@@ -126,6 +137,9 @@ class MerakiSSIDNameText(CoordinatorEntity, TextEntity):
         if self.coordinator.is_update_pending(self.unique_id):
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+        if self.coordinator.is_update_pending(self.unique_id):
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
             return
 
         current_ssid_data = self._get_current_ssid_data()
@@ -155,6 +169,7 @@ class MerakiSSIDNameText(CoordinatorEntity, TextEntity):
             )
             # Register a pending update to prevent overwriting the optimistic state
 <<<<<<< HEAD
+<<<<<<< HEAD
             self.coordinator.register_pending_update(self.unique_id)
 =======
 <<<<<<< HEAD
@@ -163,6 +178,9 @@ class MerakiSSIDNameText(CoordinatorEntity, TextEntity):
             self.coordinator.register_update_pending(self.unique_id)
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+            self.coordinator.register_update_pending(self.unique_id)
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
             await self.coordinator.async_request_refresh()
         except Exception as e:
             _LOGGER.error(

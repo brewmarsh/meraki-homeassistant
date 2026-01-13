@@ -5,6 +5,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 from custom_components.meraki_ha.coordinator import MerakiDataUpdateCoordinator
 =======
 <<<<<<< HEAD
@@ -12,10 +13,13 @@ from custom_components.meraki_ha.coordinator import MerakiDataUpdateCoordinator
 =======
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
 from custom_components.meraki_ha.core.api.client import MerakiAPIClient
 from custom_components.meraki_ha.core.api.endpoints.appliance import (
     ApplianceEndpoints,
 )
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 <<<<<<< HEAD
@@ -23,6 +27,9 @@ from custom_components.meraki_ha.core.api.endpoints.appliance import (
 from custom_components.meraki_ha.meraki_data_coordinator import MerakiDataCoordinator
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+from custom_components.meraki_ha.meraki_data_coordinator import MerakiDataCoordinator
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
 from tests.const import MOCK_NETWORK
 
 
@@ -43,6 +50,7 @@ def hass():
 def coordinator():
     """Fixture for a mocked coordinator."""
 <<<<<<< HEAD
+<<<<<<< HEAD
     mock = MagicMock(spec=MerakiDataUpdateCoordinator)
 =======
 <<<<<<< HEAD
@@ -51,6 +59,9 @@ def coordinator():
     mock = MagicMock(spec=MerakiDataCoordinator)
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+    mock = MagicMock(spec=MerakiDataCoordinator)
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
     mock.is_vlan_check_due.return_value = True
     mock.is_traffic_check_due.return_value = True
     return mock
@@ -58,6 +69,7 @@ def coordinator():
 
 @pytest.fixture
 <<<<<<< HEAD
+<<<<<<< HEAD
 def api_client(hass, mock_dashboard, coordinator):
     """Fixture for a MerakiAPIClient instance."""
     with patch("meraki.DashboardAPI", return_value=mock_dashboard):
@@ -75,13 +87,18 @@ def api_client(hass, mock_dashboard, coordinator):
         )
         yield client
 =======
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
 def api_client(hass, mock_dashboard):
     """Fixture for a MerakiAPIClient instance."""
     client = MerakiAPIClient(hass=hass, api_key="test-key", org_id="test-org")
     client.dashboard = mock_dashboard
     yield client
+<<<<<<< HEAD
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
 
 
 @pytest.fixture

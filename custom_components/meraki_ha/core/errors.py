@@ -44,11 +44,14 @@ class MerakiInformationalError(MerakiError):
     """Error to indicate an informational/non-critical problem."""
 
 <<<<<<< HEAD
+<<<<<<< HEAD
     pass
 =======
 <<<<<<< HEAD
     pass
 =======
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
 
 class MerakiTrafficAnalysisError(MerakiInformationalError):
     """Error to indicate that traffic analysis is not enabled."""
@@ -56,5 +59,8 @@ class MerakiTrafficAnalysisError(MerakiInformationalError):
 
 class MerakiVlansDisabledError(MerakiInformationalError):
     """Error to indicate that VLANs are not enabled for a network."""
+<<<<<<< HEAD
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)

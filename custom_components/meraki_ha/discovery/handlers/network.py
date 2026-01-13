@@ -19,6 +19,7 @@ if TYPE_CHECKING:
     from homeassistant.helpers.entity import Entity
 
 <<<<<<< HEAD
+<<<<<<< HEAD
     from ....core.coordinators.switch_port_status_coordinator import (
         SwitchPortStatusCoordinator,
     )
@@ -36,12 +37,17 @@ if TYPE_CHECKING:
     from ....types import MerakiDevice
     from ...coordinator import MerakiDataUpdateCoordinator
 =======
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
     from ....services.camera_service import CameraService
     from ....services.device_control_service import DeviceControlService
     from ....types import MerakiDevice
     from ...meraki_data_coordinator import MerakiDataCoordinator
+<<<<<<< HEAD
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
     from ...services.network_control_service import NetworkControlService
 
 
@@ -54,6 +60,7 @@ class NetworkHandler(BaseHandler):
     def __init__(
         self,
 <<<<<<< HEAD
+<<<<<<< HEAD
         coordinator: MerakiDataUpdateCoordinator,
 =======
 <<<<<<< HEAD
@@ -62,6 +69,9 @@ class NetworkHandler(BaseHandler):
         coordinator: MerakiDataCoordinator,
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+        coordinator: MerakiDataCoordinator,
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
         config_entry: ConfigEntry,
         network_control_service: NetworkControlService,
     ) -> None:
@@ -73,6 +83,7 @@ class NetworkHandler(BaseHandler):
     def create(
         cls,
 <<<<<<< HEAD
+<<<<<<< HEAD
         coordinator: MerakiDataUpdateCoordinator,
 =======
 <<<<<<< HEAD
@@ -81,11 +92,15 @@ class NetworkHandler(BaseHandler):
         coordinator: MerakiDataCoordinator,
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+        coordinator: MerakiDataCoordinator,
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
         device: MerakiDevice,
         config_entry: ConfigEntry,
         camera_service: CameraService,
         control_service: DeviceControlService,
         network_control_service: NetworkControlService,
+<<<<<<< HEAD
 <<<<<<< HEAD
         switch_port_coordinator: SwitchPortStatusCoordinator,
 =======
@@ -94,6 +109,8 @@ class NetworkHandler(BaseHandler):
 =======
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
     ) -> NetworkHandler:
         """Create an instance of the handler."""
         return cls(
@@ -122,6 +139,7 @@ class NetworkHandler(BaseHandler):
             if "appliance" in network.get("productTypes", []):
                 try:
 <<<<<<< HEAD
+<<<<<<< HEAD
                     categories = await self._coordinator.meraki_client.appliance.get_network_appliance_content_filtering_categories(  # noqa: E501
 =======
 <<<<<<< HEAD
@@ -130,6 +148,9 @@ class NetworkHandler(BaseHandler):
                     categories = await self._coordinator.api.appliance.get_network_appliance_content_filtering_categories(  # noqa: E501
 >>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+=======
+                    categories = await self._coordinator.api.appliance.get_network_appliance_content_filtering_categories(  # noqa: E501
+>>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
                         network["id"]
                     )
                     for category in categories.get("categories", []):
