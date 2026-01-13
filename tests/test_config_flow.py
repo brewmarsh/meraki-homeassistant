@@ -127,7 +127,7 @@ async def test_form(hass: HomeAssistant) -> None:
     assert result["errors"] == {}
 
     with patch(
-        "custom_components.meraki_ha.config_flow.validate_meraki_credentials",
+        "custom_components.meraki_ha.authentication.validate_meraki_credentials",
         return_value={"valid": True, "org_name": "Test Org"},
     ), patch(
         "custom_components.meraki_ha.async_setup_entry",
@@ -140,21 +140,13 @@ async def test_form(hass: HomeAssistant) -> None:
                 "meraki_org_id": "test-org-id",
             },
         )
-        assert result2["type"] == FlowResultType.FORM
-        assert result2["step_id"] == "init"
-
-        result3 = await hass.config_entries.flow.async_configure(
-            result["flow_id"],
-            {},
-        )
         await hass.async_block_till_done()
 
-    assert result3["type"] == FlowResultType.CREATE_ENTRY
-    assert result3["title"] == "Test Org"
-    assert result3["data"] == {
+    assert result2["type"] == FlowResultType.CREATE_ENTRY
+    assert result2["title"] == "Test Org"
+    assert result2["data"] == {
         "meraki_api_key": "test-api-key",
         "meraki_org_id": "test-org-id",
-        "org_name": "Test Org",
     }
     assert len(mock_setup_entry.mock_calls) == 1
 
@@ -166,7 +158,7 @@ async def test_form_invalid_auth(hass: HomeAssistant) -> None:
     )
 
     with patch(
-        "custom_components.meraki_ha.config_flow.validate_meraki_credentials",
+        "custom_components.meraki_ha.authentication.validate_meraki_credentials",
         side_effect=MerakiAuthenticationError,
     ):
         result2 = await hass.config_entries.flow.async_configure(
@@ -188,7 +180,7 @@ async def test_form_cannot_connect(hass: HomeAssistant) -> None:
     )
 
     with patch(
-        "custom_components.meraki_ha.config_flow.validate_meraki_credentials",
+        "custom_components.meraki_ha.authentication.validate_meraki_credentials",
         side_effect=MerakiConnectionError,
     ):
         result2 = await hass.config_entries.flow.async_configure(
@@ -201,6 +193,7 @@ async def test_form_cannot_connect(hass: HomeAssistant) -> None:
 
     assert result2["type"] == FlowResultType.FORM
     assert result2["errors"] == {"base": "cannot_connect"}
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 >>>>>>> d778955d (test(config_flow): Add tests for API error handling)
@@ -256,3 +249,6 @@ async def test_reconfigure_flow(hass: HomeAssistant) -> None:
 >>>>>>> 00a5566c (fix: Resolve CI failures in config flow and dependencies)
 =======
 >>>>>>> b654416b (fix(tests): Address PR feedback)
+=======
+>>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
+>>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)

@@ -10,7 +10,15 @@ from tests.const import MOCK_NETWORK
 
 @pytest.fixture
 def mock_coordinator_with_network(mock_coordinator: MagicMock) -> MagicMock:
+<<<<<<< HEAD
     """Fixture for a mocked MerakiDataUpdateCoordinator with a network."""
+=======
+<<<<<<< HEAD
+    """Fixture for a mocked MerakiDataUpdateCoordinator with a network."""
+=======
+    """Fixture for a mocked MerakiDataCoordinator with a network."""
+>>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
+>>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
     mock_coordinator.data = {"networks": [MOCK_NETWORK]}
     return mock_coordinator
 

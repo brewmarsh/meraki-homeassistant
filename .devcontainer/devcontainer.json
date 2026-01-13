@@ -1,4 +1,8 @@
 {
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
   "name": "Meraki HA Dev Container",
   "image": "mcr.microsoft.com/devcontainers/python:3.13-bookworm",
   "postCreateCommand": "pip install --upgrade pip && pip install -r requirements_dev.txt",
@@ -21,3 +25,21 @@
   },
   "remoteUser": "vscode"
 }
+<<<<<<< HEAD
+=======
+=======
+	"name": "Meraki HA Dev Container",
+	"image": "ghcr.io/home-assistant/devcontainer:stable",
+	"postCreateCommand": "pip install -r requirements_dev.txt",
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"ms-python.python",
+				"ms-python.vscode-pylance",
+				"charliermarsh.ruff"
+			]
+		}
+	}
+}
+>>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
+>>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)

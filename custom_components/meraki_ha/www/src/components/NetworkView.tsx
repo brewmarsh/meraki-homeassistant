@@ -1,9 +1,34 @@
 import React, { useState } from 'react';
+<<<<<<< HEAD
 import DeviceView from './DeviceView';
+=======
+<<<<<<< HEAD
+import DeviceView from './DeviceView';
+=======
+import DeviceTable from './DeviceTable';
+import SSIDView from './SSIDView';
+
+// Define the types for our data
+interface SSID {
+  number: number;
+  name: string;
+  enabled: boolean;
+  networkId: string;
+}
+>>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
+>>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
 
 interface Network {
   id: string;
   name: string;
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+=======
+  ssids: SSID[];
+  is_enabled: boolean;
+>>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
+>>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
 }
 
 interface Device {
@@ -22,9 +47,23 @@ interface NetworkViewProps {
     networks: Network[];
     devices: Device[];
   };
+<<<<<<< HEAD
 }
 
 const NetworkView: React.FC<NetworkViewProps> = ({ data }) => {
+=======
+<<<<<<< HEAD
+}
+
+const NetworkView: React.FC<NetworkViewProps> = ({ data }) => {
+=======
+  onToggle: (networkId: string, enabled: boolean) => void;
+  setActiveView: (view: { view: string; deviceId?: string }) => void;
+}
+
+const NetworkView: React.FC<NetworkViewProps> = ({ data, onToggle, setActiveView }) => {
+>>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
+>>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
   const [openNetworkId, setOpenNetworkId] = useState<string | null>(null);
 
   const handleNetworkClick = (networkId: string) => {
@@ -41,11 +80,26 @@ const NetworkView: React.FC<NetworkViewProps> = ({ data }) => {
     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
       {networks.map((network) => {
         const isOpen = openNetworkId === network.id;
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+=======
+        const enabledSsids = network.ssids
+          ? network.ssids.filter((s) => s.enabled).length
+          : 0;
+        const totalSsids = network.ssids ? network.ssids.length : 0;
+
+>>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
+>>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
         return (
           <ha-card key={network.id}>
             <div
               className="card-header"
               onClick={() => handleNetworkClick(network.id)}
+<<<<<<< HEAD
+              style={{ display: 'flex', alignItems: 'center', cursor: 'pointer', padding: '16px' }}
+=======
+<<<<<<< HEAD
               style={{ display: 'flex', alignItems: 'center', cursor: 'pointer', padding: '16px' }}
             >
               <span>[Network] {network.name}</span>
@@ -56,6 +110,39 @@ const NetworkView: React.FC<NetworkViewProps> = ({ data }) => {
                 <DeviceView
                   devices={devices.filter((d) => d.networkId === network.id)}
                 />
+=======
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                cursor: 'pointer',
+                padding: '16px',
+              }}
+>>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+            >
+              <span>[Network] {network.name}</span>
+              <ha-icon style={{ marginLeft: '8px' }} icon={isOpen ? 'mdi:chevron-up' : 'mdi:chevron-down'}></ha-icon>
+            </div>
+            {isOpen && (
+              <div className="card-content">
+                <DeviceView
+                  devices={devices.filter((d) => d.networkId === network.id)}
+                />
+<<<<<<< HEAD
+=======
+                {network.ssids && network.ssids.length > 0 && (
+                  <>
+                    <div
+                      className="hero-indicator"
+                      style={{ padding: '0 16px 16px' }}
+                    >
+                      <ha-icon icon="mdi:wifi"></ha-icon>
+                      {enabledSsids} / {totalSsids} SSIDs Enabled
+                    </div>
+                    <SSIDView ssids={network.ssids} />
+                  </>
+                )}
+>>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
+>>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
               </div>
             )}
           </ha-card>

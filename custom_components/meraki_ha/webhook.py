@@ -116,7 +116,15 @@ async def async_register_webhook(
 
 async def async_unregister_webhook(
     hass: HomeAssistant,
+<<<<<<< HEAD
     webhook_id: str,
+=======
+<<<<<<< HEAD
+    webhook_id: str,
+=======
+    webhook_url: str,
+>>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
+>>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
     api_client: MerakiAPIClient,
 ) -> None:
     """
@@ -125,11 +133,27 @@ async def async_unregister_webhook(
     Args:
     ----
         hass: The Home Assistant instance.
+<<<<<<< HEAD
         webhook_id: The httpServerId from Meraki.
         api_client: The Meraki API client.
 
     """
     await api_client.unregister_webhook(webhook_id)
+=======
+<<<<<<< HEAD
+        webhook_id: The httpServerId from Meraki.
+        api_client: The Meraki API client.
+
+    """
+    await api_client.unregister_webhook(webhook_id)
+=======
+        webhook_url: The URL of the webhook to unregister.
+        api_client: The Meraki API client.
+
+    """
+    await api_client.unregister_webhook(webhook_url)
+>>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
+>>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
 
 
 async def async_handle_webhook(

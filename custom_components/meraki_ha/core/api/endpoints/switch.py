@@ -32,7 +32,14 @@ class SwitchEndpoints:
 
         """
         self._api_client = api_client
+<<<<<<< HEAD
         self._dashboard = api_client.dashboard
+=======
+<<<<<<< HEAD
+        self._dashboard = api_client.dashboard
+=======
+>>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
+>>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
 
     @handle_meraki_errors
     @async_timed_cache(timeout=60)
@@ -51,8 +58,21 @@ class SwitchEndpoints:
             A list of port statuses.
 
         """
+<<<<<<< HEAD
         statuses = await self._api_client.run_sync(
             self._dashboard.switch.getDeviceSwitchPortsStatuses, serial=serial
+=======
+<<<<<<< HEAD
+        statuses = await self._api_client.run_sync(
+            self._dashboard.switch.getDeviceSwitchPortsStatuses, serial=serial
+=======
+        if self._api_client.dashboard is None:
+            return []
+        statuses = await self._api_client.run_sync(
+            self._api_client.dashboard.switch.getDeviceSwitchPortsStatuses,
+            serial=serial,
+>>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
+>>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
         )
         validated = validate_response(statuses)
         if not isinstance(validated, list):
@@ -75,8 +95,20 @@ class SwitchEndpoints:
             A list of ports.
 
         """
+<<<<<<< HEAD
         ports = await self._api_client.run_sync(
             self._dashboard.switch.getDeviceSwitchPorts, serial=serial
+=======
+<<<<<<< HEAD
+        ports = await self._api_client.run_sync(
+            self._dashboard.switch.getDeviceSwitchPorts, serial=serial
+=======
+        if self._api_client.dashboard is None:
+            return []
+        ports = await self._api_client.run_sync(
+            self._api_client.dashboard.switch.getDeviceSwitchPorts, serial=serial
+>>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
+>>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
         )
         validated = validate_response(ports)
         if not isinstance(validated, list):

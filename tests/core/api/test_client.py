@@ -4,9 +4,20 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
+<<<<<<< HEAD
 from custom_components.meraki_ha.coordinator import MerakiDataUpdateCoordinator
 from custom_components.meraki_ha.core.api.client import MerakiAPIClient
 from custom_components.meraki_ha.core.errors import MerakiInformationalError
+=======
+<<<<<<< HEAD
+from custom_components.meraki_ha.coordinator import MerakiDataUpdateCoordinator
+from custom_components.meraki_ha.core.api.client import MerakiAPIClient
+from custom_components.meraki_ha.core.errors import MerakiInformationalError
+=======
+from custom_components.meraki_ha.core.api.client import MerakiAPIClient
+from custom_components.meraki_ha.meraki_data_coordinator import MerakiDataCoordinator
+>>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
+>>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
 from tests.const import MOCK_DEVICE, MOCK_NETWORK
 
 
@@ -26,7 +37,15 @@ def hass():
 @pytest.fixture
 def coordinator():
     """Fixture for a mocked coordinator."""
+<<<<<<< HEAD
     mock = MagicMock(spec=MerakiDataUpdateCoordinator)
+=======
+<<<<<<< HEAD
+    mock = MagicMock(spec=MerakiDataUpdateCoordinator)
+=======
+    mock = MagicMock(spec=MerakiDataCoordinator)
+>>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
+>>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
     mock.is_vlan_check_due.return_value = True
     mock.is_traffic_check_due.return_value = True
     return mock
@@ -35,9 +54,19 @@ def coordinator():
 @pytest.fixture
 def api_client(hass, mock_dashboard, coordinator):
     """Fixture for a MerakiAPIClient instance."""
+<<<<<<< HEAD
     return MerakiAPIClient(
         hass=hass, api_key="test-key", org_id="test-org", coordinator=coordinator
     )
+=======
+<<<<<<< HEAD
+    return MerakiAPIClient(
+        hass=hass, api_key="test-key", org_id="test-org", coordinator=coordinator
+    )
+=======
+    return MerakiAPIClient(hass=hass, api_key="test-key", org_id="test-org")
+>>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
+>>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
 
 
 @pytest.mark.asyncio
@@ -179,6 +208,10 @@ def test_build_detail_tasks_for_appliance_device(api_client):
     assert f"vlans_{network_with_appliance['id']}" in tasks
 
 
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
 def test_process_detailed_data_handles_errors(api_client):
     """Test that _process_detailed_data handles disabled features."""
     # Arrange
@@ -215,6 +248,11 @@ def test_process_detailed_data_handles_errors(api_client):
     )
 
 
+<<<<<<< HEAD
+=======
+=======
+>>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
+>>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
 @pytest.mark.skip(reason="TODO: Fix this test")
 def test_process_detailed_data_merges_device_info(api_client):
     """Test that _process_detailed_data merges details into device objects."""

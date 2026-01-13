@@ -15,16 +15,34 @@ if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
     from homeassistant.helpers.entity import Entity
 
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
     from ....core.coordinators.meraki_data_coordinator import (
         MerakiDataUpdateCoordinator,
     )
     from ....core.coordinators.switch_port_status_coordinator import (
         SwitchPortStatusCoordinator,
     )
+<<<<<<< HEAD
+=======
+=======
+>>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
+>>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
     from ....services.camera_service import CameraService
     from ....services.device_control_service import DeviceControlService
     from ....services.network_control_service import NetworkControlService
     from ....types import MerakiDevice
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+=======
+    from ...meraki_data_coordinator import (
+        MerakiDataCoordinator,
+    )
+>>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
+>>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
 
 
 _LOGGER = logging.getLogger(__name__)
@@ -35,7 +53,15 @@ class BaseHandler(ABC):
 
     def __init__(
         self,
+<<<<<<< HEAD
         coordinator: MerakiDataUpdateCoordinator,
+=======
+<<<<<<< HEAD
+        coordinator: MerakiDataUpdateCoordinator,
+=======
+        coordinator: MerakiDataCoordinator,
+>>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
+>>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
         config_entry: ConfigEntry,
     ) -> None:
         """Initialize the BaseHandler."""
@@ -53,7 +79,15 @@ class BaseDeviceHandler(BaseHandler, ABC):
 
     def __init__(
         self,
+<<<<<<< HEAD
         coordinator: MerakiDataUpdateCoordinator,
+=======
+<<<<<<< HEAD
+        coordinator: MerakiDataUpdateCoordinator,
+=======
+        coordinator: MerakiDataCoordinator,
+>>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
+>>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
         device: MerakiDevice,
         config_entry: ConfigEntry,
     ) -> None:
@@ -65,13 +99,28 @@ class BaseDeviceHandler(BaseHandler, ABC):
     @abstractmethod
     def create(
         cls,
+<<<<<<< HEAD
         coordinator: MerakiDataUpdateCoordinator,
+=======
+<<<<<<< HEAD
+        coordinator: MerakiDataUpdateCoordinator,
+=======
+        coordinator: MerakiDataCoordinator,
+>>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
+>>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
         device: MerakiDevice,
         config_entry: ConfigEntry,
         camera_service: CameraService,
         control_service: DeviceControlService,
         network_control_service: NetworkControlService,
+<<<<<<< HEAD
         switch_port_coordinator: SwitchPortStatusCoordinator,
+=======
+<<<<<<< HEAD
+        switch_port_coordinator: SwitchPortStatusCoordinator,
+=======
+>>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
+>>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
     ) -> BaseDeviceHandler:
         """Create an instance of the handler."""
         raise NotImplementedError

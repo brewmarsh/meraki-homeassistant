@@ -4,7 +4,15 @@ import logging
 
 from homeassistant.helpers.entity import Entity
 
+<<<<<<< HEAD
 from ..coordinator import MerakiDataUpdateCoordinator
+=======
+<<<<<<< HEAD
+from ..coordinator import MerakiDataUpdateCoordinator
+=======
+from ..meraki_data_coordinator import MerakiDataCoordinator
+>>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
+>>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
 from ..sensor_defs.mt_sensors import MT_SENSOR_MODELS
 from .device.meraki_mt_base import MerakiMtSensor
 
@@ -12,7 +20,15 @@ _LOGGER = logging.getLogger(__name__)
 
 
 def async_setup_mt_sensors(
+<<<<<<< HEAD
     coordinator: MerakiDataUpdateCoordinator,
+=======
+<<<<<<< HEAD
+    coordinator: MerakiDataUpdateCoordinator,
+=======
+    coordinator: MerakiDataCoordinator,
+>>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
+>>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
     device_info: dict,
 ) -> list[Entity]:
     """Set up Meraki MT sensor entities for a given device."""

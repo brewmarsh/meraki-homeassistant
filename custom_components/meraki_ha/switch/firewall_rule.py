@@ -9,9 +9,21 @@ from homeassistant.components.switch import SwitchEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import callback
 
+<<<<<<< HEAD
 from ..coordinator import MerakiDataUpdateCoordinator
 from ..core.entities.meraki_firewall_rule_entity import MerakiFirewallRuleEntity
 from ..core.utils.entity_id_utils import get_firewall_rule_entity_id
+=======
+<<<<<<< HEAD
+from ..coordinator import MerakiDataUpdateCoordinator
+from ..core.entities.meraki_firewall_rule_entity import MerakiFirewallRuleEntity
+from ..core.utils.entity_id_utils import get_firewall_rule_entity_id
+=======
+from ..core.entities.meraki_firewall_rule_entity import MerakiFirewallRuleEntity
+from ..core.utils.entity_id_utils import get_firewall_rule_entity_id
+from ..meraki_data_coordinator import MerakiDataCoordinator
+>>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
+>>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
 from ..types import MerakiFirewallRule
 
 _LOGGER = logging.getLogger(__name__)
@@ -22,7 +34,15 @@ class MerakiFirewallRuleSwitch(MerakiFirewallRuleEntity, SwitchEntity):
 
     def __init__(
         self,
+<<<<<<< HEAD
         coordinator: MerakiDataUpdateCoordinator,
+=======
+<<<<<<< HEAD
+        coordinator: MerakiDataUpdateCoordinator,
+=======
+        coordinator: MerakiDataCoordinator,
+>>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
+>>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
         config_entry: ConfigEntry,
         network_id: str,
         rule: MerakiFirewallRule,

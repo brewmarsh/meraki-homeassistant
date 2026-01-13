@@ -11,7 +11,15 @@ from custom_components.meraki_ha.button.device.mt15_refresh_data import (
 
 @pytest.fixture
 def mock_coordinator_mt15(mock_coordinator: MagicMock) -> MagicMock:
+<<<<<<< HEAD
     """Fixture for a mocked MerakiDataUpdateCoordinator with MT15 data."""
+=======
+<<<<<<< HEAD
+    """Fixture for a mocked MerakiDataUpdateCoordinator with MT15 data."""
+=======
+    """Fixture for a mocked MerakiDataCoordinator with MT15 data."""
+>>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
+>>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
     mock_coordinator.data = {
         "devices": [
             {

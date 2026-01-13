@@ -18,7 +18,15 @@ def mock_meraki_client() -> MagicMock:
 
 @pytest.fixture
 def mock_coordinator_with_refresh(mock_coordinator: MagicMock) -> MagicMock:
+<<<<<<< HEAD
     """Fixture for a mocked MerakiDataUpdateCoordinator.
+=======
+<<<<<<< HEAD
+    """Fixture for a mocked MerakiDataUpdateCoordinator.
+=======
+    """Fixture for a mocked MerakiDataCoordinator.
+>>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
+>>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
 
     This fixture includes an async_request_refresh mock.
     """

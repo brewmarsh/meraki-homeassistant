@@ -30,7 +30,14 @@ class DevicesEndpoints:
 
         """
         self._api_client = api_client
+<<<<<<< HEAD
         self._dashboard = api_client.dashboard
+=======
+<<<<<<< HEAD
+        self._dashboard = api_client.dashboard
+=======
+>>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
+>>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
 
     @handle_meraki_errors
     async def get_device_clients(self, serial: str) -> list[dict[str, Any]]:
@@ -46,8 +53,20 @@ class DevicesEndpoints:
             A list of clients.
 
         """
+<<<<<<< HEAD
         clients = await self._api_client.run_sync(
             self._dashboard.devices.getDeviceClients,
+=======
+<<<<<<< HEAD
+        clients = await self._api_client.run_sync(
+            self._dashboard.devices.getDeviceClients,
+=======
+        if self._api_client.dashboard is None:
+            return []
+        clients = await self._api_client.run_sync(
+            self._api_client.dashboard.devices.getDeviceClients,
+>>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
+>>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
             serial,
             timespan=300,  # 5 minutes to get current clients
         )
@@ -70,8 +89,20 @@ class DevicesEndpoints:
             The device details.
 
         """
+<<<<<<< HEAD
         device = await self._api_client.run_sync(
             self._dashboard.devices.getDevice,
+=======
+<<<<<<< HEAD
+        device = await self._api_client.run_sync(
+            self._dashboard.devices.getDevice,
+=======
+        if self._api_client.dashboard is None:
+            return {}
+        device = await self._api_client.run_sync(
+            self._api_client.dashboard.devices.getDevice,
+>>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
+>>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
             serial=serial,
         )
         validated = validate_response(device)
@@ -95,8 +126,20 @@ class DevicesEndpoints:
             The updated device.
 
         """
+<<<<<<< HEAD
         device = await self._api_client.run_sync(
             self._dashboard.devices.updateDevice,
+=======
+<<<<<<< HEAD
+        device = await self._api_client.run_sync(
+            self._dashboard.devices.updateDevice,
+=======
+        if self._api_client.dashboard is None:
+            return {}
+        device = await self._api_client.run_sync(
+            self._api_client.dashboard.devices.updateDevice,
+>>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
+>>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
             serial=serial,
             **kwargs,
         )

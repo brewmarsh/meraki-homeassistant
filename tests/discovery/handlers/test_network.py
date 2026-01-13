@@ -17,7 +17,15 @@ MOCK_NETWORK_2 = {"id": "N_5678", "name": "Network 2"}
 
 @pytest.fixture
 def mock_coordinator():
+<<<<<<< HEAD
     """Fixture for a mock MerakiDataUpdateCoordinator."""
+=======
+<<<<<<< HEAD
+    """Fixture for a mock MerakiDataUpdateCoordinator."""
+=======
+    """Fixture for a mock MerakiDataCoordinator."""
+>>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
+>>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
     coordinator = MagicMock()
     coordinator.data = {"networks": [MOCK_NETWORK_1, MOCK_NETWORK_2]}
     return coordinator

@@ -1,9 +1,27 @@
+<<<<<<< HEAD
+﻿name: Agent Healer
+=======
+<<<<<<< HEAD
 ﻿name: Agent Healer
 
 on:
   workflow_run:
     workflows: ['Validate Code']
     types: [completed]
+=======
+name: Agent Healer
+>>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+
+on:
+  workflow_run:
+    workflows: ['Validate Code']
+    types: [completed]
+<<<<<<< HEAD
+=======
+  pull_request:
+    branches: [beta]
+>>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
+>>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
 
 permissions:
   contents: write
@@ -11,6 +29,11 @@ permissions:
 
 jobs:
   heal:
+<<<<<<< HEAD
+    # 1. Only run if Validate Code failed
+    # 2. Prevent infinite loops (only heal failures from specific actors)
+=======
+<<<<<<< HEAD
     # 1. Only run if Validate Code failed
     # 2. Prevent infinite loops (only heal failures from specific actors)
     if: |
@@ -51,3 +74,54 @@ jobs:
             3. Fix any linting (Ruff) or test (Pytest) errors.
 
             Apply fixes directly to: ${{ github.event.workflow_run.head_branch }}
+=======
+    # Only run if the validation failed OR if specifically triggered by you/dependabot
+>>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+    if: |
+      github.event.workflow_run.conclusion == 'failure' &&
+      (github.triggering_actor == 'brewmarsh' ||
+       github.triggering_actor == 'dependabot[bot]' ||
+       github.triggering_actor == 'google-labs-jules[bot]')
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          # Use your PAT here to allow Jules' pushes to trigger further CI runs
+          token: ${{ secrets.JULES_GITHUB_PAT }}
+          ref: ${{ github.event.workflow_run.head_sha }}
+
+      - name: Invoke Jules Agent
+        uses: google-labs-code/jules-invoke@main
+        with:
+          jules_api_key: ${{ secrets.JULES_API_KEY }}
+          # Some versions of jules-invoke allow passing the token directly for branch creation
+          github_token: ${{ secrets.JULES_GITHUB_PAT }}
+          starting_branch: ${{ github.event.workflow_run.head_branch }}
+          include_last_commit: true
+          include_commit_log: true
+          prompt: |
+            The "Validate Code" CI failed.
+            Actor: ${{ github.event.workflow_run.actor.login }}
+            Branch: ${{ github.event.workflow_run.head_branch }}
+
+            Please analyze the logs and:
+            1. Resolve any pycares/aiodns conflicts.
+               - Hard lock: aiodns==3.6.1 and pycares==4.11.0.
+               - DO NOT use older versions (like 4.4.0) as they crash on Python 3.13.
+            2. Ensure webrtc-models==0.3.0 is in manifest.json requirements.
+            3. Fix any linting (Ruff) or test (Pytest) errors.
+
+<<<<<<< HEAD
+            Apply fixes directly to: ${{ github.event.workflow_run.head_branch }}
+=======
+            **Instructions:**
+            1. Analyze the logs from the 'Validate Code' workflow.
+            2. Review any linting (Ruff) or test (Pytest) errors.
+            3. If this is a Dependabot PR, resolve version conflicts in manifest.json and requirements.txt.
+            4. Ensure 'webrtc-models==0.3.0' is present if required by HA Core.
+            5. Apply the fix and push directly to the branch.
+>>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
+>>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)

@@ -1,5 +1,6 @@
 """Config flow for the Meraki Home Assistant integration."""
 
+<<<<<<< HEAD
 from __future__ import annotations
 
 import logging
@@ -13,13 +14,32 @@ from homeassistant.config_entries import ConfigFlowResult
 =======
 =======
 >>>>>>> 08ff23a4 (fix(config_flow): Resolve CI failures by correcting test logic)
+=======
+<<<<<<< HEAD
+from __future__ import annotations
+
+=======
+>>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
+import logging
+from typing import Any
+
+import voluptuous as vol
+<<<<<<< HEAD
+from homeassistant import config_entries
+from homeassistant.config_entries import ConfigFlowResult
+=======
+>>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
 from homeassistant.config_entries import (
     ConfigEntry,
     ConfigFlow,
     ConfigFlowResult,
     OptionsFlow,
 )
+<<<<<<< HEAD
 >>>>>>> 498e2557 (fix(config_flow): Remove unused voluptuous import)
+=======
+>>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
+>>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
 from homeassistant.core import callback
 from homeassistant.data_entry_flow import AbortFlow
 
@@ -36,12 +56,29 @@ from .schemas import CONFIG_SCHEMA, OPTIONS_SCHEMA
 _LOGGER = logging.getLogger(__name__)
 
 
+<<<<<<< HEAD
 @config_entries.HANDLERS.register(DOMAIN)
 class ConfigFlowHandler(config_entries.ConfigFlow):
     """Handle a config flow for Meraki."""
 
     VERSION = 1
     CONNECTION_CLASS = config_entries.CONN_CLASS_CLOUD_POLL
+=======
+<<<<<<< HEAD
+@config_entries.HANDLERS.register(DOMAIN)
+class ConfigFlowHandler(config_entries.ConfigFlow):
+    """Handle a config flow for Meraki."""
+
+    VERSION = 1
+    CONNECTION_CLASS = config_entries.CONN_CLASS_CLOUD_POLL
+=======
+class MerakiConfigFlow(ConfigFlow, domain="meraki_ha"):  # type: ignore[call-arg]
+    """Handle a config flow for Meraki."""
+
+    VERSION = 1
+    CONNECTION_CLASS = "cloud_poll"
+>>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
+>>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
 
     def __init__(self) -> None:
         """Initialize the config flow."""
@@ -49,6 +86,7 @@ class ConfigFlowHandler(config_entries.ConfigFlow):
         self.options: dict[str, Any] = {}
 
     async def async_step_user(
+<<<<<<< HEAD
         self,
         user_input: dict[str, Any] | None = None,
     ) -> ConfigFlowResult:
@@ -64,6 +102,29 @@ class ConfigFlowHandler(config_entries.ConfigFlow):
             The flow result.
 
         """
+=======
+<<<<<<< HEAD
+        self,
+        user_input: dict[str, Any] | None = None,
+    ) -> ConfigFlowResult:
+        """
+        Handle the initial step.
+
+        Args:
+        ----
+            user_input: The user input.
+
+        Returns
+        -------
+            The flow result.
+
+        """
+=======
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        """Handle the initial step."""
+>>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
+>>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
         errors: dict[str, str] = {}
         if user_input is not None:
             try:
@@ -75,27 +136,59 @@ class ConfigFlowHandler(config_entries.ConfigFlow):
                 self.data[CONF_MERAKI_API_KEY] = user_input[CONF_MERAKI_API_KEY]
                 self.data[CONF_MERAKI_ORG_ID] = user_input[CONF_MERAKI_ORG_ID]
                 self.data["org_name"] = validation_result.get(
+<<<<<<< HEAD
                     "org_name",
                     user_input[CONF_MERAKI_ORG_ID],
+=======
+<<<<<<< HEAD
+                    "org_name",
+                    user_input[CONF_MERAKI_ORG_ID],
+=======
+                    "org_name", user_input[CONF_MERAKI_ORG_ID]
+>>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
+>>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
                 )
 
                 await self.async_set_unique_id(user_input[CONF_MERAKI_ORG_ID])
                 self._abort_if_unique_id_configured()
 
+<<<<<<< HEAD
                 # Show the general form by default
+=======
+<<<<<<< HEAD
+                # Show the general form by default
+=======
+>>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
+>>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
                 return await self.async_step_init()
 
             except MerakiAuthenticationError:
                 errors["base"] = "invalid_auth"
             except MerakiConnectionError:
                 errors["base"] = "cannot_connect"
+<<<<<<< HEAD
             except AbortFlow as e:
                 raise e
+=======
+<<<<<<< HEAD
+            except AbortFlow as e:
+                raise e
+=======
+            except AbortFlow:
+                return self.async_abort(reason="already_configured")
+>>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
+>>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
             except Exception:
                 _LOGGER.exception("Unexpected exception")
                 errors["base"] = "unknown"
 
         return self.async_show_form(
+<<<<<<< HEAD
+            step_id="user",
+            data_schema=CONFIG_SCHEMA,
+            errors=errors,
+=======
+<<<<<<< HEAD
             step_id="user",
             data_schema=CONFIG_SCHEMA,
             errors=errors,
@@ -117,6 +210,32 @@ class ConfigFlowHandler(config_entries.ConfigFlow):
             The flow result.
 
         """
+=======
+            step_id="user", data_schema=CONFIG_SCHEMA, errors=errors
+>>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
+        )
+
+    async def async_step_init(
+        self,
+        user_input: dict[str, Any] | None = None,
+    ) -> ConfigFlowResult:
+<<<<<<< HEAD
+        """
+        Handle the general settings step.
+
+        Args:
+        ----
+            user_input: The user input.
+
+        Returns
+        -------
+            The flow result.
+
+        """
+=======
+        """Handle the general settings step."""
+>>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
+>>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
         if user_input is not None:
             self.options.update(user_input)
             return self.async_create_entry(
@@ -125,10 +244,55 @@ class ConfigFlowHandler(config_entries.ConfigFlow):
                 options=self.options,
             )
 
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
         return self.async_show_form(
             step_id="init",
             data_schema=OPTIONS_SCHEMA,
         )
+<<<<<<< HEAD
+=======
+
+    @staticmethod
+    @callback
+    def async_get_options_flow(
+        config_entry: config_entries.ConfigEntry,
+    ) -> config_entries.OptionsFlow:
+        """
+        Get the options flow for this handler.
+
+        Args:
+        ----
+            config_entry: The config entry.
+
+        Returns
+        -------
+            The options flow handler.
+
+        """
+        return MerakiOptionsFlowHandler(config_entry)
+
+    async def async_step_reconfigure(
+        self,
+        user_input: dict[str, Any] | None = None,
+    ) -> ConfigFlowResult:
+        """
+        Handle a reconfiguration flow.
+
+        Args:
+        ----
+            user_input: The user input.
+
+        Returns
+        -------
+            The flow result.
+
+        """
+=======
+        return self.async_show_form(step_id="init", data_schema=OPTIONS_SCHEMA)
+>>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
 
     @staticmethod
     @callback
@@ -171,9 +335,13 @@ class ConfigFlowHandler(config_entries.ConfigFlow):
 <<<<<<< HEAD
         from .meraki_data_coordinator import MerakiDataCoordinator
 
+<<<<<<< HEAD
 >>>>>>> 1025a183 (fix: Resolve config flow error during reconfiguration)
 =======
 >>>>>>> 498e2557 (fix(config_flow): Remove unused voluptuous import)
+=======
+>>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
+>>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
         entry = self.hass.config_entries.async_get_entry(self.context["entry_id"])
         if not entry:
             return self.async_abort(reason="unknown_entry")
@@ -188,6 +356,9 @@ class ConfigFlowHandler(config_entries.ConfigFlow):
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
         schema_with_defaults = self._populate_schema_defaults(
             OPTIONS_SCHEMA,
             entry.options,
@@ -225,6 +396,7 @@ class ConfigFlowHandler(config_entries.ConfigFlow):
                 new_schema_keys[key] = value
         return vol.Schema(new_schema_keys)
 =======
+<<<<<<< HEAD
         return self.async_show_form(
             step_id="reconfigure",
             data_schema=self.add_suggested_values_to_schema(
@@ -236,6 +408,8 @@ class ConfigFlowHandler(config_entries.ConfigFlow):
         schema_with_defaults = self._populate_schema_defaults(
             OPTIONS_SCHEMA, entry.options
 =======
+=======
+>>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
         coordinator: MerakiDataCoordinator = self.hass.data[DOMAIN][entry.entry_id][
             "coordinator"
         ]
@@ -260,6 +434,7 @@ class ConfigFlowHandler(config_entries.ConfigFlow):
         )
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 498e2557 (fix(config_flow): Remove unused voluptuous import)
 
@@ -281,3 +456,6 @@ class ConfigFlowHandler(config_entries.ConfigFlow):
 >>>>>>> 1025a183 (fix: Resolve config flow error during reconfiguration)
 =======
 >>>>>>> 498e2557 (fix(config_flow): Remove unused voluptuous import)
+=======
+>>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
+>>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)

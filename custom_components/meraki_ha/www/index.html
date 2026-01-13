@@ -1,3 +1,7 @@
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
 
                     <!DOCTYPE html>
                     <html>
@@ -12,3 +16,35 @@
                         <script type="module" src="/meraki-panel.js"></script>
                     </body>
                     </html>
+<<<<<<< HEAD
+=======
+=======
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Meraki HA Control</title>
+    <script>
+      window.HA_URL = '__HA_URL__';
+      window.CONFIG_ENTRY_ID = '__CONFIG_ENTRY_ID__';
+      // On page load or when changing themes, best to add inline in `head` to avoid FOUC
+      if (
+        localStorage.theme === 'dark' ||
+        (!('theme' in localStorage) &&
+          window.matchMedia('(prefers-color-scheme: dark)').matches)
+      ) {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
+    </script>
+  </head>
+  <body class="bg-light-background dark:bg-dark-background">
+    <div id="root"></div>
+    <script type="module" src="./meraki-panel.js"></script>
+  </body>
+</html>
+>>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
+>>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)

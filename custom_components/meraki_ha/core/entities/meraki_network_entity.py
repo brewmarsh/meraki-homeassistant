@@ -6,7 +6,15 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
+<<<<<<< HEAD
 from ...coordinator import MerakiDataUpdateCoordinator
+=======
+<<<<<<< HEAD
+from ...coordinator import MerakiDataUpdateCoordinator
+=======
+from ...meraki_data_coordinator import MerakiDataCoordinator
+>>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
+>>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
 from ...types import MerakiNetwork
 from ..utils.naming_utils import format_device_name
 
@@ -16,7 +24,15 @@ class MerakiNetworkEntity(CoordinatorEntity):
 
     def __init__(
         self,
+<<<<<<< HEAD
         coordinator: MerakiDataUpdateCoordinator,
+=======
+<<<<<<< HEAD
+        coordinator: MerakiDataUpdateCoordinator,
+=======
+        coordinator: MerakiDataCoordinator,
+>>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
+>>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
         config_entry: ConfigEntry,
         network: MerakiNetwork,
     ) -> None:

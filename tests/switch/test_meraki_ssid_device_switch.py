@@ -13,7 +13,15 @@ from custom_components.meraki_ha.switch.meraki_ssid_device_switch import (
 
 @pytest.fixture
 def mock_coordinator_with_ssid_data(mock_coordinator: MagicMock) -> MagicMock:
+<<<<<<< HEAD
     """Fixture for a mocked MerakiDataUpdateCoordinator with SSID data."""
+=======
+<<<<<<< HEAD
+    """Fixture for a mocked MerakiDataUpdateCoordinator with SSID data."""
+=======
+    """Fixture for a mocked MerakiDataCoordinator with SSID data."""
+>>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
+>>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
     mock_coordinator.config_entry.options = {}
     mock_coordinator.async_request_refresh = AsyncMock()
     mock_coordinator.is_pending.return_value = False
@@ -62,8 +70,17 @@ async def test_meraki_ssid_enabled_switch(
     assert switch.is_on is True
     assert switch.name == "Enabled Control"
     device_info = switch.device_info
+<<<<<<< HEAD
     if device_info is None:
         pytest.fail("Device info is None")
+=======
+<<<<<<< HEAD
+    if device_info is None:
+        pytest.fail("Device info is None")
+=======
+    assert device_info is not None
+>>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
+>>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
     assert device_info["name"] == "[SSID] Test SSID"
 
     # Test with omit format
@@ -76,8 +93,17 @@ async def test_meraki_ssid_enabled_switch(
     )
     assert switch.name == "Enabled Control"
     device_info = switch.device_info
+<<<<<<< HEAD
     if device_info is None:
         pytest.fail("Device info is None")
+=======
+<<<<<<< HEAD
+    if device_info is None:
+        pytest.fail("Device info is None")
+=======
+    assert device_info is not None
+>>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
+>>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
     assert device_info["name"] == "Test SSID"
 
     switch.hass = hass
@@ -109,8 +135,17 @@ async def test_meraki_ssid_broadcast_switch(
     assert switch.is_on is True
     assert switch.name == "Broadcast Control"
     device_info = switch.device_info
+<<<<<<< HEAD
     if device_info is None:
         pytest.fail("Device info is None")
+=======
+<<<<<<< HEAD
+    if device_info is None:
+        pytest.fail("Device info is None")
+=======
+    assert device_info is not None
+>>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
+>>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
     assert device_info["name"] == "[SSID] Test SSID"
 
     # Test with omit format
@@ -123,8 +158,17 @@ async def test_meraki_ssid_broadcast_switch(
     )
     assert switch.name == "Broadcast Control"
     device_info = switch.device_info
+<<<<<<< HEAD
     if device_info is None:
         pytest.fail("Device info is None")
+=======
+<<<<<<< HEAD
+    if device_info is None:
+        pytest.fail("Device info is None")
+=======
+    assert device_info is not None
+>>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
+>>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
     assert device_info["name"] == "Test SSID"
 
     switch.hass = hass
