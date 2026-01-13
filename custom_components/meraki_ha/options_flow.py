@@ -70,12 +70,12 @@ class MerakiOptionsFlowHandler(OptionsFlow):
 
         return self.async_show_form(step_id="init", data_schema=schema_with_defaults)
 
-    @staticmethod
     def _populate_schema_defaults(
+        self,
         schema: vol.Schema,
         defaults: dict[str, Any],
         network_options: list[dict[str, str]],
-    ):
+    ) -> vol.Schema:
         """
         Populate a schema with default values.
 

@@ -3,7 +3,6 @@
 import logging
 from typing import Any
 
-import voluptuous as vol
 from homeassistant.config_entries import (
     ConfigEntry,
     ConfigFlow,
@@ -18,7 +17,6 @@ from .const import (
     CONF_INTEGRATION_TITLE,
     CONF_MERAKI_API_KEY,
     CONF_MERAKI_ORG_ID,
-    DOMAIN,
 )
 from .core.errors import MerakiAuthenticationError, MerakiConnectionError
 from .options_flow import MerakiOptionsFlowHandler
@@ -99,8 +97,6 @@ class MerakiConfigFlow(ConfigFlow, domain="meraki_ha"):  # type: ignore[call-arg
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
         """Handle a reconfiguration flow."""
-        from .meraki_data_coordinator import MerakiDataCoordinator
-
         entry = self.hass.config_entries.async_get_entry(self.context["entry_id"])
         if not entry:
             return self.async_abort(reason="unknown_entry")
@@ -111,20 +107,23 @@ class MerakiConfigFlow(ConfigFlow, domain="meraki_ha"):  # type: ignore[call-arg
             await self.hass.config_entries.async_reload(entry.entry_id)
             return self.async_abort(reason="reconfigure_successful")
 
-        coordinator: MerakiDataCoordinator = self.hass.data[DOMAIN][entry.entry_id][
-            "coordinator"
-        ]
-        network_options = []
-        if coordinator.data and coordinator.data.get("networks"):
-            network_options = [
-                {"label": network["name"], "value": network["id"]}
-                for network in coordinator.data["networks"]
-            ]
-
-        schema_with_defaults = MerakiOptionsFlowHandler._populate_schema_defaults(
-            OPTIONS_SCHEMA, entry.options, network_options
+        schema_with_defaults = self._populate_schema_defaults(
+            OPTIONS_SCHEMA, entry.options
         )
 
         return self.async_show_form(
             step_id="reconfigure", data_schema=schema_with_defaults
         )
+
+    def _populate_schema_defaults(
+        self, schema: vol.Schema, defaults: dict[str, Any]
+    ) -> vol.Schema:
+        """Populate a schema with default values from a dictionary."""
+        new_schema_keys = {}
+        for key, value in schema.schema.items():
+            if key.schema in defaults:
+                new_key = type(key)(key.schema, default=defaults[key.schema])
+                new_schema_keys[new_key] = value
+            else:
+                new_schema_keys[key] = value
+        return vol.Schema(new_schema_keys)
