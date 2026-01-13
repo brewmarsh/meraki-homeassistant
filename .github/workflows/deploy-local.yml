@@ -93,6 +93,7 @@ jobs:
             exit 1
           fi
 
+<<<<<<< HEAD
           # 4. Send Success Notification
           curl -s -X POST -H "Authorization: Bearer $CLEAN_TOKEN" \
                -H "Content-Type: application/json" \
@@ -117,3 +118,8 @@ jobs:
           else
             echo "Auditor script not found. Skipping health check."
           fi
+=======
+          echo "Home Assistant restart command sent. Waiting for it to come back online..."
+          # Add a sleep to allow Home Assistant to restart
+          sleep 60 # Wait for 60 seconds. Adjust as needed.
+>>>>>>> 498e2557 (fix(config_flow): Remove unused voluptuous import)

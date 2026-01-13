@@ -5,9 +5,18 @@ from __future__ import annotations
 import logging
 from typing import Any
 
+<<<<<<< HEAD
 import voluptuous as vol
 from homeassistant import config_entries
 from homeassistant.config_entries import ConfigFlowResult
+=======
+from homeassistant.config_entries import (
+    ConfigEntry,
+    ConfigFlow,
+    ConfigFlowResult,
+    OptionsFlow,
+)
+>>>>>>> 498e2557 (fix(config_flow): Remove unused voluptuous import)
 from homeassistant.core import callback
 from homeassistant.data_entry_flow import AbortFlow
 
@@ -16,7 +25,6 @@ from .const import (
     CONF_INTEGRATION_TITLE,
     CONF_MERAKI_API_KEY,
     CONF_MERAKI_ORG_ID,
-    DOMAIN,
 )
 from .core.errors import MerakiAuthenticationError, MerakiConnectionError
 from .options_flow import MerakiOptionsFlowHandler
@@ -157,9 +165,12 @@ class ConfigFlowHandler(config_entries.ConfigFlow):
         """
 =======
         """Handle a reconfiguration flow."""
+<<<<<<< HEAD
         from .meraki_data_coordinator import MerakiDataCoordinator
 
 >>>>>>> 1025a183 (fix: Resolve config flow error during reconfiguration)
+=======
+>>>>>>> 498e2557 (fix(config_flow): Remove unused voluptuous import)
         entry = self.hass.config_entries.async_get_entry(self.context["entry_id"])
         if not entry:
             return self.async_abort(reason="unknown_entry")
@@ -170,6 +181,7 @@ class ConfigFlowHandler(config_entries.ConfigFlow):
             await self.hass.config_entries.async_reload(entry.entry_id)
             return self.async_abort(reason="reconfigure_successful")
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -234,12 +246,19 @@ class ConfigFlowHandler(config_entries.ConfigFlow):
         schema_with_defaults = MerakiOptionsFlowHandler._populate_schema_defaults(
             OPTIONS_SCHEMA, entry.options, network_options
 >>>>>>> 1025a183 (fix: Resolve config flow error during reconfiguration)
+=======
+        schema_with_defaults = self._populate_schema_defaults(
+            OPTIONS_SCHEMA, entry.options
+>>>>>>> 498e2557 (fix(config_flow): Remove unused voluptuous import)
         )
 
         return self.async_show_form(
             step_id="reconfigure", data_schema=schema_with_defaults
         )
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 498e2557 (fix(config_flow): Remove unused voluptuous import)
 
     def _populate_schema_defaults(
         self, schema: vol.Schema, defaults: dict[str, Any]
@@ -253,6 +272,9 @@ class ConfigFlowHandler(config_entries.ConfigFlow):
             else:
                 new_schema_keys[key] = value
         return vol.Schema(new_schema_keys)
+<<<<<<< HEAD
 >>>>>>> b654416b (fix(tests): Address PR feedback)
 =======
 >>>>>>> 1025a183 (fix: Resolve config flow error during reconfiguration)
+=======
+>>>>>>> 498e2557 (fix(config_flow): Remove unused voluptuous import)
