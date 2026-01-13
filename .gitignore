@@ -1,18 +1,10 @@
-<<<<<<< HEAD
-# Python
-=======
 # --- Meraki HA & Jules Environment (v2.4.0) ---
 
 # Python & Core Bytecode
->>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 *.py[cod]
 *$py.class
 __pycache__/
 
-<<<<<<< HEAD
-# Node/npm
-node_modules/
-=======
 # Agent & Virtual Environment Artifacts
 .venv/
 .jules/
@@ -30,16 +22,10 @@ test-output/
 # Node/npm & Frontend
 node_modules/
 custom_components/meraki_ha/www/node_modules/
->>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 .cache/
 *.cache/
 .prettier-cache/
 
-<<<<<<< HEAD
-# Coverage
-.coverage
-coverage.xml
-=======
 # Home Assistant Local Storage & Builds
 .storage/
 .cloud/
@@ -48,4 +34,3 @@ dist/
 # System/OS Junk
 .DS_Store
 Thumbs.db
->>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)

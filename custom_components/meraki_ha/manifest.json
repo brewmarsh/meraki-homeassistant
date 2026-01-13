@@ -1,12 +1,6 @@
 {
   "domain": "meraki_ha",
   "name": "Meraki for Home Assistant",
-<<<<<<< HEAD
-  "after_dependencies": ["stream", "camera"],
-  "codeowners": ["@brewmarsh"],
-  "config_flow": true,
-  "dependencies": ["frontend", "panel_custom", "http"],
-=======
   "after_dependencies": [],
   "codeowners": [
     "@brewmarsh"
@@ -18,26 +12,10 @@
     "http",
     "webrtc"
   ],
->>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
   "documentation": "https://github.com/brewmarsh/meraki-homeassistant",
   "integration_type": "hub",
   "iot_class": "cloud_polling",
   "issue_tracker": "https://github.com/brewmarsh/meraki-homeassistant/issues",
-<<<<<<< HEAD
-  "loggers": ["meraki_ha"],
-  "quality_scale": "platinum",
-  "requirements": [
-    "meraki>=1.40.1",
-    "aiohttp>=3.13.2",
-    "diskcache==5.6.3",
-    "aiofiles==23.2.1",
-    "pycares==4.11.0",
-    "aiodns==3.6.1",
-    "webrtc-models==0.3.0"
-  ],
-  "version": "2.0.0"
-}
-=======
   "loggers": [
     "meraki_ha"
   ],
@@ -50,4 +28,3 @@
   ],
 "version": "2.0.0-beta.69"
 }
->>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)

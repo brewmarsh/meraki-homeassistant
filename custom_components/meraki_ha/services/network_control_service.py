@@ -10,13 +10,8 @@ import logging
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-<<<<<<< HEAD
-    from ..coordinator import MerakiDataUpdateCoordinator
-    from ..core.api.client import MerakiAPIClient
-=======
     from ..core.api.client import MerakiAPIClient
     from ..meraki_data_coordinator import MerakiDataCoordinator
->>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 
 
 _LOGGER = logging.getLogger(__name__)
@@ -28,11 +23,7 @@ class NetworkControlService:
     def __init__(
         self,
         api_client: MerakiAPIClient,
-<<<<<<< HEAD
-        coordinator: MerakiDataUpdateCoordinator,
-=======
         coordinator: MerakiDataCoordinator,
->>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
     ) -> None:
         """Initialize the network control service."""
         self._api_client = api_client

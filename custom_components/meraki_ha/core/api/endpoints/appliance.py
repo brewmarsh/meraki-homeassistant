@@ -34,10 +34,6 @@ class ApplianceEndpoints:
 
         """
         self._api_client = api_client
-<<<<<<< HEAD
-        self._dashboard = api_client.dashboard
-=======
->>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
         self._hass = hass
 
     @handle_meraki_errors
@@ -59,15 +55,10 @@ class ApplianceEndpoints:
             A list of traffic data.
 
         """
-<<<<<<< HEAD
-        traffic = await self._api_client.run_sync(
-            self._dashboard.appliance.getNetworkApplianceTraffic,
-=======
         if self._api_client.dashboard is None:
             return []
         traffic = await self._api_client.run_sync(
             self._api_client.dashboard.appliance.getNetworkApplianceTraffic,
->>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
             networkId=network_id,
             timespan=timespan,
         )
@@ -91,15 +82,10 @@ class ApplianceEndpoints:
             A list of VLANs.
 
         """
-<<<<<<< HEAD
-        vlans = await self._api_client.run_sync(
-            self._dashboard.appliance.getNetworkApplianceVlans,
-=======
         if self._api_client.dashboard is None:
             return []
         vlans = await self._api_client.run_sync(
             self._api_client.dashboard.appliance.getNetworkApplianceVlans,
->>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
             networkId=network_id,
         )
         validated = validate_response(vlans)
@@ -128,15 +114,10 @@ class ApplianceEndpoints:
             The updated VLAN.
 
         """
-<<<<<<< HEAD
-        vlan = await self._api_client.run_sync(
-            self._dashboard.appliance.updateNetworkApplianceVlan,
-=======
         if self._api_client.dashboard is None:
             return {}
         vlan = await self._api_client.run_sync(
             self._api_client.dashboard.appliance.updateNetworkApplianceVlan,
->>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
             networkId=network_id,
             vlanId=vlan_id,
             **kwargs,
@@ -161,15 +142,10 @@ class ApplianceEndpoints:
             The L3 firewall rules.
 
         """
-<<<<<<< HEAD
-        rules = await self._api_client.run_sync(
-            self._dashboard.appliance.getNetworkApplianceFirewallL3FirewallRules,
-=======
         if self._api_client.dashboard is None:
             return {}
         rules = await self._api_client.run_sync(
             self._api_client.dashboard.appliance.getNetworkApplianceFirewallL3FirewallRules,
->>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
             networkId=network_id,
         )
         validated = validate_response(rules)
@@ -196,15 +172,10 @@ class ApplianceEndpoints:
             The updated L3 firewall rules.
 
         """
-<<<<<<< HEAD
-        rules = await self._api_client.run_sync(
-            self._dashboard.appliance.updateNetworkApplianceFirewallL3FirewallRules,
-=======
         if self._api_client.dashboard is None:
             return {}
         rules = await self._api_client.run_sync(
             self._api_client.dashboard.appliance.updateNetworkApplianceFirewallL3FirewallRules,
->>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
             networkId=network_id,
             **kwargs,
         )
@@ -228,15 +199,10 @@ class ApplianceEndpoints:
             The traffic shaping settings.
 
         """
-<<<<<<< HEAD
-        settings = await self._api_client.run_sync(
-            self._dashboard.appliance.getNetworkApplianceTrafficShaping,
-=======
         if self._api_client.dashboard is None:
             return {}
         settings = await self._api_client.run_sync(
             self._api_client.dashboard.appliance.getNetworkApplianceTrafficShaping,
->>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
             networkId=network_id,
         )
         validated = validate_response(settings)
@@ -263,15 +229,10 @@ class ApplianceEndpoints:
             The updated traffic shaping settings.
 
         """
-<<<<<<< HEAD
-        settings = await self._api_client.run_sync(
-            self._dashboard.appliance.updateNetworkApplianceTrafficShaping,
-=======
         if self._api_client.dashboard is None:
             return {}
         settings = await self._api_client.run_sync(
             self._api_client.dashboard.appliance.updateNetworkApplianceTrafficShaping,
->>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
             networkId=network_id,
             **kwargs,
         )
@@ -295,15 +256,10 @@ class ApplianceEndpoints:
             The VPN status.
 
         """
-<<<<<<< HEAD
-        status = await self._api_client.run_sync(
-            self._dashboard.appliance.getNetworkApplianceVpnSiteToSiteVpn,
-=======
         if self._api_client.dashboard is None:
             return {}
         status = await self._api_client.run_sync(
             self._api_client.dashboard.appliance.getNetworkApplianceVpnSiteToSiteVpn,
->>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
             networkId=network_id,
         )
         validated = validate_response(status)
@@ -326,15 +282,10 @@ class ApplianceEndpoints:
             The updated VPN status.
 
         """
-<<<<<<< HEAD
-        status = await self._api_client.run_sync(
-            self._dashboard.appliance.updateNetworkApplianceVpnSiteToSiteVpn,
-=======
         if self._api_client.dashboard is None:
             return {}
         status = await self._api_client.run_sync(
             self._api_client.dashboard.appliance.updateNetworkApplianceVpnSiteToSiteVpn,
->>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
             networkId=network_id,
             **kwargs,
         )
@@ -361,15 +312,10 @@ class ApplianceEndpoints:
             The uplinks settings.
 
         """
-<<<<<<< HEAD
-        uplinks = await self._api_client.run_sync(
-            self._dashboard.appliance.getDeviceApplianceUplinksSettings,
-=======
         if self._api_client.dashboard is None:
             return {}
         uplinks = await self._api_client.run_sync(
             self._api_client.dashboard.appliance.getDeviceApplianceUplinksSettings,
->>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
             serial=serial,
         )
         validated = validate_response(uplinks)
@@ -397,15 +343,10 @@ class ApplianceEndpoints:
             The content filtering settings.
 
         """
-<<<<<<< HEAD
-        result = await self._api_client.run_sync(
-            self._dashboard.appliance.getNetworkApplianceContentFiltering,
-=======
         if self._api_client.dashboard is None:
             return {}
         result = await self._api_client.run_sync(
             self._api_client.dashboard.appliance.getNetworkApplianceContentFiltering,
->>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
             networkId=network_id,
         )
         validated = validate_response(result)
@@ -433,15 +374,10 @@ class ApplianceEndpoints:
             The content filtering categories.
 
         """
-<<<<<<< HEAD
-        result = await self._api_client.run_sync(
-            self._dashboard.appliance.getNetworkApplianceContentFilteringCategories,
-=======
         if self._api_client.dashboard is None:
             return {}
         result = await self._api_client.run_sync(
             self._api_client.dashboard.appliance.getNetworkApplianceContentFilteringCategories,
->>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
             networkId=network_id,
         )
         validated = validate_response(result)
@@ -466,15 +402,10 @@ class ApplianceEndpoints:
             The response from the API.
 
         """
-<<<<<<< HEAD
-        result = await self._api_client.run_sync(
-            self._dashboard.devices.rebootDevice,
-=======
         if self._api_client.dashboard is None:
             return {}
         result = await self._api_client.run_sync(
             self._api_client.dashboard.devices.rebootDevice,
->>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
             serial=serial,
         )
         validated = validate_response(result)
@@ -497,15 +428,10 @@ class ApplianceEndpoints:
             A list of ports.
 
         """
-<<<<<<< HEAD
-        ports = await self._api_client.run_sync(
-            self._dashboard.appliance.getNetworkAppliancePorts,
-=======
         if self._api_client.dashboard is None:
             return []
         ports = await self._api_client.run_sync(
             self._api_client.dashboard.appliance.getNetworkAppliancePorts,
->>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
             networkId=network_id,
         )
         validated = validate_response(ports)
@@ -528,15 +454,10 @@ class ApplianceEndpoints:
             The settings for the network appliance.
 
         """
-<<<<<<< HEAD
-        settings = await self._api_client.run_sync(
-            self._dashboard.appliance.getNetworkApplianceSettings,
-=======
         if self._api_client.dashboard is None:
             return {}
         settings = await self._api_client.run_sync(
             self._api_client.dashboard.appliance.getNetworkApplianceSettings,
->>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
             networkId=network_id,
         )
         validated = validate_response(settings)
@@ -562,15 +483,10 @@ class ApplianceEndpoints:
             The L7 firewall rules.
 
         """
-<<<<<<< HEAD
-        rules = await self._api_client.run_sync(
-            self._dashboard.appliance.getNetworkApplianceL7FirewallRules,
-=======
         if self._api_client.dashboard is None:
             return {}
         rules = await self._api_client.run_sync(
             self._api_client.dashboard.appliance.getNetworkApplianceL7FirewallRules,
->>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
             networkId=network_id,
         )
         validated = validate_response(rules)
@@ -599,15 +515,10 @@ class ApplianceEndpoints:
             The updated L7 firewall rules.
 
         """
-<<<<<<< HEAD
-        rules = await self._api_client.run_sync(
-            self._dashboard.appliance.updateNetworkApplianceL7FirewallRules,
-=======
         if self._api_client.dashboard is None:
             return {}
         rules = await self._api_client.run_sync(
             self._api_client.dashboard.appliance.updateNetworkApplianceL7FirewallRules,
->>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
             networkId=network_id,
             **kwargs,
         )
@@ -637,15 +548,10 @@ class ApplianceEndpoints:
             The updated content filtering settings.
 
         """
-<<<<<<< HEAD
-        result = await self._api_client.run_sync(
-            self._dashboard.appliance.updateNetworkApplianceContentFiltering,
-=======
         if self._api_client.dashboard is None:
             return {}
         result = await self._api_client.run_sync(
             self._api_client.dashboard.appliance.updateNetworkApplianceContentFiltering,
->>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
             networkId=network_id,
             **kwargs,
         )
@@ -668,15 +574,10 @@ class ApplianceEndpoints:
             A list of uplink statuses.
 
         """
-<<<<<<< HEAD
-        statuses = await self._api_client.run_sync(
-            self._dashboard.appliance.getOrganizationApplianceUplinkStatuses,
-=======
         if self._api_client.dashboard is None:
             return []
         statuses = await self._api_client.run_sync(
             self._api_client.dashboard.appliance.getOrganizationApplianceUplinkStatuses,
->>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
             organizationId=self._api_client.organization_id,
             total_pages="all",
         )

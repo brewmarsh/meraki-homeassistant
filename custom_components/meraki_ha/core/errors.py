@@ -43,9 +43,6 @@ class MerakiNetworkError(MerakiError):
 class MerakiInformationalError(MerakiError):
     """Error to indicate an informational/non-critical problem."""
 
-<<<<<<< HEAD
-    pass
-=======
 
 class MerakiTrafficAnalysisError(MerakiInformationalError):
     """Error to indicate that traffic analysis is not enabled."""
@@ -53,4 +50,3 @@ class MerakiTrafficAnalysisError(MerakiInformationalError):
 
 class MerakiVlansDisabledError(MerakiInformationalError):
     """Error to indicate that VLANs are not enabled for a network."""
->>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)

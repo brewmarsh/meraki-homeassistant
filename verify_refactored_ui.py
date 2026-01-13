@@ -29,12 +29,8 @@ async def main():
             await page.goto(f"http://localhost:{PORT}")
 
             # Mock the hass object
-<<<<<<< HEAD
-            await page.evaluate("""
-=======
             await page.evaluate(
                 """
->>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
                 window.hass = {
                   connection: {
                     sendMessagePromise: async (message) => {
@@ -69,17 +65,11 @@ async def main():
                     darkMode: true,
                   },
                 };
-<<<<<<< HEAD
-            """)
-
-            await page.evaluate("""
-=======
             """
             )
 
             await page.evaluate(
                 """
->>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
                 const el = document.createElement('meraki-panel');
                 el.hass = window.hass;
                 el.panel = {
@@ -88,12 +78,8 @@ async def main():
                     }
                 }
                 document.body.appendChild(el);
-<<<<<<< HEAD
-            """)
-=======
             """
             )
->>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 
             page.on("console", lambda msg: print(f"Browser Console: {msg.text}"))
 

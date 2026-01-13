@@ -4,11 +4,7 @@ from __future__ import annotations
 
 from typing import Any
 
-<<<<<<< HEAD
-from ..coordinator import MerakiDataUpdateCoordinator
-=======
 from ..meraki_data_coordinator import MerakiDataCoordinator
->>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 
 
 def format_entity_name(
@@ -36,11 +32,7 @@ def format_entity_name(
 
 
 def get_device_from_coordinator(
-<<<<<<< HEAD
-    coordinator: MerakiDataUpdateCoordinator,
-=======
     coordinator: MerakiDataCoordinator,
->>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
     serial: str,
 ) -> dict[str, Any] | None:
     """

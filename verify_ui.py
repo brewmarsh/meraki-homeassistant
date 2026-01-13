@@ -90,12 +90,8 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
 
         # 3. Create a temporary index.html to host the panel
         with open("index.html", "w") as f:
-<<<<<<< HEAD
-            f.write("""
-=======
             f.write(
                 """
->>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
                 <!DOCTYPE html>
                 <html lang="en">
                 <head>
@@ -108,12 +104,8 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
                     <script type="module" src="meraki-panel.js"></script>
                 </body>
                 </html>
-<<<<<<< HEAD
-            """)
-=======
             """
             )
->>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 
         # 4. Use Playwright to take a screenshot
         async with async_playwright() as p:

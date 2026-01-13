@@ -14,11 +14,7 @@ async def test_discover_entities():
     mock_coordinator = MagicMock()
     mock_config_entry = MagicMock()
     mock_control_service = MagicMock()
-<<<<<<< HEAD
-    mock_switch_port_coordinator = MagicMock()
-=======
     mock_network_control_service = MagicMock()
->>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
     mock_switch_device = {
         "serial": "Q234-ABCD-5678",
         "name": "My Switch",
@@ -33,13 +29,8 @@ async def test_discover_entities():
         mock_coordinator,
         mock_switch_device,
         mock_config_entry,
-<<<<<<< HEAD
-        mock_switch_port_coordinator,
-        mock_control_service,
-=======
         mock_control_service,
         mock_network_control_service,
->>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
     )
 
     # Act

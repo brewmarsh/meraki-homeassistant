@@ -1,10 +1,5 @@
-<<<<<<< HEAD
-homeassistant==2025.11.0
-uv==0.9.6
-=======
 homeassistant==2026.1.0
 uv==0.9.17
->>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
 aiofiles==23.2.1
 types-aiofiles==25.1.0.20251011
 meraki==1.40.1
@@ -13,16 +8,6 @@ ruff==0.5.5
 pip-audit==2.7.3
 bandit[toml]==1.7.9
 mypy==1.11.0
-<<<<<<< HEAD
-voluptuous==0.15.2
-pyyaml==6.0.3
-playwright
-pytest-homeassistant-custom-component==0.13.294
-pytest==8.4.2
-pytest-cov==7.0.0
-pytest-asyncio==1.2.0
-codecov
-=======
 voluptuous==0.16.0
 pyyaml==6.0.3
 playwright
@@ -35,4 +20,3 @@ aiohttp>=3.13.2
 urllib3>=2.6.2
 aiodns==3.6.1
 pycares==4.11.0
->>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
