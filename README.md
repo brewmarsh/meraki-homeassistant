@@ -1,24 +1,24 @@
+# Meraki Home Assistant Integration
+
 [![Current Version](https://img.shields.io/github/v/release/brewmarsh/meraki-homeassistant?include_prereleases&label=Current%20Version)](https://github.com/brewmarsh/meraki-homeassistant/releases)
 [![Beta Python Linting](https://github.com/brewmarsh/meraki-homeassistant/actions/workflows/beta-validation.yaml/badge.svg)](https://github.com/brewmarsh/meraki-homeassistant/actions/workflows/beta-validation.yaml)
 [![codecov](https://codecov.io/gh/brewmarsh/meraki-homeassistant/branch/main/graph/badge.svg)](https://codecov.io/gh/brewmarsh/meraki-homeassistant)
-[![Python Version](https://img.shields.io/badge/python-3.9-blue.svg)]()
+[![Python Version](https://img.shields.io/badge/python-3.9-blue.svg)](https://www.python.org/downloads/)
 [![Code style: ruff](https://img.shields.io/badge/code%20style-ruff-000000.svg)](https://github.com/astral-sh/ruff)
-
-# Meraki Home Assistant Integration 🤖
 
 This Home Assistant integration allows you to monitor and manage your Cisco Meraki network, including devices, networks, and SSIDs. It leverages the Meraki API to bring data from your Meraki dashboard into Home Assistant, enabling you to gain insights into your network and automate actions based on its status.
 
 ## Table of Contents
 
-- [Key Features](#key-features-)
-- [Installation](#installation-️)
-- [Configuration](#configuration-⚙️)
-- [Web UI](#web-ui-)
-- [Services & Controls](#services--controls-)
+- [Key Features](#key-features)
+- [Installation](#installation)
+- [Configuration](#configuration)
+- [Web UI](#web-ui)
+- [Services & Controls](#services--controls)
   - [Parental Controls (Client Blocking)](#parental-controls-client-blocking)
   - [Content Filtering](#content-filtering)
   - [SSID Control](#ssid-control)
-- [Entities](#entities-)
+- [Entities](#entities)
   - [Device & Entity Model](#device--entity-model)
   - [Organization-Wide Sensors](#organization-wide-sensors)
   - [Camera Entities & Sensors](#camera-entities--sensors)
@@ -28,19 +28,19 @@ This Home Assistant integration allows you to monitor and manage your Cisco Mera
   - [Appliance Port Sensors](#appliance-port-sensors)
   - [SSID Sensors](#ssid-sensors)
   - [Environmental Sensors (MT Series)](#environmental-sensors-mt-series)
-- [Automation Examples](#automation-examples-)
-- [Troubleshooting](#troubleshooting-)
-- [How to Contribute](#how-to-contribute-)
-- [Known Issues & Limitations](#known-issues--limitations-️)
-- [Disclaimer](#disclaimer-)
+- [Automation Examples](#automation-examples)
+- [Troubleshooting](#troubleshooting)
+- [How to Contribute](#how-to-contribute)
+- [Known Issues & Limitations](#known-issues--limitations)
+- [Disclaimer](#disclaimer)
 
-## Screenshots 📸
+## Screenshots
 
 |                                                     Network View                                                      |                                                     Device Detail View                                                      |
 | :-------------------------------------------------------------------------------------------------------------------: | :-------------------------------------------------------------------------------------------------------------------------: |
 | ![Network View](https://user-images.githubusercontent.com/1099616/279869151-24702f37-646d-4176-963d-2103f6f3630d.png) | ![Device Detail View](https://user-images.githubusercontent.com/1099616/279869158-2947a195-5c02-4580-b7a4-315111956f46.png) |
 
-## Key Features ✨
+## Key Features
 
 - **Comprehensive Monitoring:** Keep tabs on all your Meraki hardware, including Wireless Access Points (MR/GR), Switches (MS/GS), Security Appliances (MX), Cameras (MV), and Environmental Sensors (MT).
 - **Powerful Controls:** Enable/disable SSIDs, block specific clients (Parental Controls), and manage content filtering categories directly from Home Assistant.
@@ -67,14 +67,7 @@ If you encounter issues with the integration, please check the following:
 
 If you're still having trouble, please open an issue on the GitHub repository.
 
-## Installation 🛠️
-
-### Prerequisites
-
-- Home Assistant installation (ensure you are on a compatible version).
-- A Cisco Meraki account with API access enabled.
-- Your Meraki API key.
-- Your Meraki Organization ID.
+## Installation
 
 ### Installation Steps
 
@@ -90,34 +83,35 @@ If you're still having trouble, please open an issue on the GitHub repository.
    - Click "Install" and follow the prompts.
 4. **Restart Home Assistant:** After installation, restart your Home Assistant instance to load the integration.
 
-## Configuration ⚙️
+## Configuration
 
 ### Obtaining Meraki API Credentials
 
 To use this integration, you will need a Meraki API key and your Organization ID.
 
-1.  **Log in to the Meraki Dashboard:** Go to [https://dashboard.meraki.com/](https://dashboard.meraki.com/).
-2.  **Enable API Access:**
-    - Navigate to **Organization** > **Settings**.
-    - Under the **Dashboard API access** section, ensure API access is enabled.
-3.  **Generate API Key:**
-    - Go to your **Profile** (click your name/email in the top right) > **My profile**.
-    - Scroll down to the **API access** section.
-    - Click **Generate new API key**.
-    - **Important:** Copy the generated API key and store it securely. You will not be able to see it again after navigating away from this page.
-4.  **Find Organization ID:**
-    - **Easiest Method:** The Organization ID is displayed at the bottom of every page in the Meraki dashboard.
-    - **Alternative Method (API):** You can find it by making a simple API call to the `/organizations` endpoint with your API key.
-    ```bash
-    curl -L -H 'X-Cisco-Meraki-API-Key: <your_api_key>' -H 'Content-Type: application/json' '[https://api.meraki.com/api/v1/organizations](https://api.meraki.com/api/v1/organizations)'
-    ```
+1. **Log in to the Meraki Dashboard:** Go to [https://dashboard.meraki.com/](https://dashboard.meraki.com/).
+2. **Enable API Access:**
+   - Navigate to **Organization** > **Settings**.
+   - Under the **Dashboard API access** section, ensure API access is enabled.
+3. **Generate API Key:**
+   - Go to your **Profile** (click your name/email in the top right) > **My profile**.
+   - Scroll down to the **API access** section.
+   - Click **Generate new API key**.
+   - **Important:** Copy the generated API key and store it securely. You will not be able to see it again after navigating away from this page.
+4. **Find Organization ID:**
+   - **Easiest Method:** The Organization ID is displayed at the bottom of every page in the Meraki dashboard.
+   - **Alternative Method (API):** You can find it by making a simple API call to the `/organizations` endpoint with your API key.
+
+   ```bash
+   curl -L -H 'X-Cisco-Meraki-API-Key: <your_api_key>' -H 'Content-Type: application/json' 'https://api.meraki.com/api/v1/organizations'
+   ```
 
 ### Setting up the Integration
 
-1.  Navigate to **Settings** > **Devices & Services** in your Home Assistant UI.
-2.  Click the **+ ADD INTEGRATION** button in the bottom right.
-3.  Search for "Meraki" and select it.
-4.  Follow the on-screen prompts to enter your API Key and Organization ID.
+1. Navigate to **Settings** > **Devices & Services** in your Home Assistant UI.
+2. Click the **+ ADD INTEGRATION** button in the bottom right.
+3. Search for "Meraki" and select it.
+4. Follow the on-screen prompts to enter your API Key and Organization ID.
 
 ### Configuration Options
 
@@ -128,7 +122,7 @@ The following options can be configured when you first set up the integration, o
 - **Enable VLAN Management:** Whether to enable VLAN management entities. Default: false.
 - **Ignored Networks:** A comma-separated list of network IDs to ignore.
 
-## Web UI 🖼️
+## Web UI
 
 This integration provides a custom panel to display a dashboard of your Meraki network. The panel is automatically added to your Home Assistant sidebar when you install the integration.
 
@@ -139,7 +133,7 @@ The Web UI provides a comprehensive overview of your Meraki network, including:
 - **Client Details:** A list of all the clients on your network, with the ability to block or unblock them.
 - **Event Log:** A log of all the events on your network, including device connectivity, client activity, and configuration changes.
 
-## Services & Controls 🎛️
+## Services & Controls
 
 This integration provides several ways to control your Meraki network directly from Home Assistant.
 
@@ -173,7 +167,7 @@ A `reboot_device` service is available to reboot any Meraki device.
 - **Data:**
   - `serial`: The serial number of the device to reboot.
 
-## Entities 🧩
+## Entities
 
 ### Device & Entity Model
 
@@ -281,7 +275,7 @@ For each Meraki environmental sensor (MT series), entities are created to monito
 | `sensor`        | `[Sensor Name] Water Detection` | Whether water has been detected.     | MT12         |
 | `binary_sensor` | `[Sensor Name] Door`            | The state of the door (open/closed). | MT20         |
 
-## Automation Examples 🚀
+## Automation Examples
 
 ### Notify when a device goes offline
 

@@ -10,7 +10,7 @@ The backend of the integration is written in Python and uses the `meraki` librar
 
 The source code for the backend is located in the `custom_components/meraki_ha/` directory.
 
-### Installing Dependencies
+### Backend Dependencies
 
 To work with the backend code, you must first install the necessary Python dependencies. It is recommended to use a virtual environment to avoid conflicts with other projects.
 
@@ -40,7 +40,7 @@ The Meraki side panel is a modern web application built with React, Vite, and Ty
 
 The source code for the frontend panel is located in the `custom_components/meraki_ha/www/` directory.
 
-### Installing Dependencies
+### Frontend Dependencies
 
 To work with the frontend code, you must first install the necessary Node.js dependencies. Navigate to the frontend directory and run the following command:
 
