@@ -5,7 +5,7 @@ import json
 import os
 import re
 import subprocess
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import aiohttp
 
@@ -28,7 +28,7 @@ async def get_version() -> str:
 
 async def get_unhealthy_entities(
     session: aiohttp.ClientSession,
-) -> List[Dict[str, Any]]:
+) -> list[dict[str, Any]]:
     """Fetch all entities from Home Assistant and filter for unhealthy ones."""
     headers = {
         "Authorization": f"Bearer {HA_TOKEN}",
@@ -54,7 +54,7 @@ async def get_unhealthy_entities(
     return unhealthy_entities
 
 
-def run_gh_command(command: List[str]) -> str:
+def run_gh_command(command: list[str]) -> str:
     """Run a gh command and return the output."""
     try:
         result = subprocess.run(
@@ -70,7 +70,7 @@ def run_gh_command(command: List[str]) -> str:
         raise
 
 
-def find_existing_issue(version: str) -> Optional[int]:
+def find_existing_issue(version: str) -> int | None:
     """Check if a release audit issue already exists on GitHub."""
     issue_title = f"[Release Audit] {version}"
     output = run_gh_command(
@@ -94,7 +94,7 @@ def find_existing_issue(version: str) -> Optional[int]:
     return None
 
 
-def create_github_issue(version: str, unhealthy_entities: List[Dict[str, Any]]):
+def create_github_issue(version: str, unhealthy_entities: list[dict[str, Any]]):
     """Create a new GitHub issue with the audit results."""
     issue_title = f"[Release Audit] {version}"
     body = "The following entities were found to be in an unhealthy state:\n\n"
@@ -118,7 +118,7 @@ def create_github_issue(version: str, unhealthy_entities: List[Dict[str, Any]]):
     print(f"Created new GitHub issue: {issue_title}")
 
 
-def update_github_issue(issue_number: int, unhealthy_entities: List[Dict[str, Any]]):
+def update_github_issue(issue_number: int, unhealthy_entities: list[dict[str, Any]]):
     """Update an existing GitHub issue with the latest audit results."""
     existing_issue_body = run_gh_command(
         [
