@@ -9,15 +9,10 @@ repos:
       - id: check-merge-conflict
       - id: check-toml
       - id: check-json
-        exclude: (.vscode|.devcontainer)
+        exclude: (.vscode|.devcontainer|node_modules)
       - id: check-executables-have-shebangs
         stages: [manual]
       - id: end-of-file-fixer
-  - repo: https://github.com/psf/black
-    rev: 25.12.0
-    hooks:
-      - id: black
-        language_version: python3
   #  - repo: https://github.com/pycqa/isort
   #    rev: 5.13.2
   #    hooks:
@@ -41,6 +36,7 @@ repos:
           - --skip="./.*,*.csv,*.json"
           - --quiet-level=2
         exclude_types: [csv, json]
+        exclude: (^node_modules/|custom_components/meraki_ha/www/meraki-panel\.js|custom_components/meraki_ha/www/dist/)
   #  - repo: https://github.com/adrienverge/yamllint.git
   #    rev: v1.35.1
   #    hooks:
