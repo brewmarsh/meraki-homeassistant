@@ -36,6 +36,7 @@ The required logic is as follows:
     ```
 
 4.  **Ignore Coordinator Updates:** The entity's state update method (`_update_internal_state`) **must** check if it is in a cooldown period before processing new data. If it is, it must `return` and do nothing.
+
     ```python
     # Example
     def _update_internal_state(self) -> None:
