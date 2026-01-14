@@ -21,7 +21,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          ref: ${{ github.base_ref }}
+          ref: beta
 
       - name: Set up Python and Node.js
         uses: actions/setup-python@v5
@@ -34,25 +34,13 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install bump2version
+          pip install bump-my-version
           npm install
 
       - name: Increment Version
         id: increment
-        env:
-          PR_TITLE: ${{ github.event.pull_request.title }}
         run: |
-          if [[ "${{ github.base_ref }}" == "beta" ]]; then
-            bump2version --allow-dirty beta
-          else
-            increment_type="patch" # Default increment type
-            if [[ "$PR_TITLE" == *"[major]"* ]]; then
-              increment_type="major"
-            elif [[ "$PR_TITLE" == *"[minor]"* ]]; then
-              increment_type="minor"
-            fi
-            bump2version --allow-dirty $increment_type
-          fi
+          bump-my-version bump patch --allow-dirty
           new_version=$(grep -oP '"version": "\K[^"]+' custom_components/meraki_ha/manifest.json)
           echo "new_version=$new_version" >> "$GITHUB_OUTPUT"
 
@@ -71,7 +59,7 @@ jobs:
           commit_user_name: 'github-actions[bot]'
           commit_user_email: 'github-actions[bot]@users.noreply.github.com'
           commit_author: 'github-actions[bot] <github-actions[bot]@users.noreply.github.com>'
-          branch: ${{ github.base_ref }}
+          branch: beta
 
   release:
     runs-on: ubuntu-latest
