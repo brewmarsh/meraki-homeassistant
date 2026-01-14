@@ -20,7 +20,7 @@ if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
     from homeassistant.core import HomeAssistant
     from homeassistant.helpers.entity_platform import AddEntitiesCallback
-
+    from homeassistant.components.camera import WebRTCSendMessage
     from .meraki_data_coordinator import MerakiDataCoordinator
     from .services.camera_service import CameraService
 
@@ -186,3 +186,17 @@ class MerakiCamera(CoordinatorEntity, Camera):
             self._device_serial, False
         )
         await self.coordinator.async_request_refresh()
+
+    async def async_handle_async_webrtc_offer(self, offer_sdp: str) -> WebRTCSendMessage:
+        """Handle a WebRTC offer from the frontend."""
+        if not self.is_streaming:
+            raise ValueError("Camera is not streaming")
+
+        if "webrtc" not in self.hass.components:
+            _LOGGER.warning("WebRTC component not loaded")
+            raise RuntimeError("WebRTC component not loaded")
+
+        answer_sdp = await self.hass.components.webrtc.async_handle_offer(
+            self.entity_id, offer_sdp
+        )
+        return WebRTCSendMessage(sdp=answer_sdp)
