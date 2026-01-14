@@ -14,49 +14,49 @@ This document outlines the requirements for a comprehensive refactor of the Mera
 
 The new UI will be a single-page application (SPA) built with **React** and styled with **Tailwind CSS**.
 
--   **Data Model:** A dedicated WebSocket API endpoint will serve a centralized data payload containing device counts, a list of all discovered entities with their properties, and a new `status_messages` field on each device for human-readable log information.
--   **Component Hierarchy:**
-    -   `App.tsx`: The main component that manages application state, the WebSocket connection, and client-side routing.
-    -   `Dashboard.tsx`: Displays high-level metrics using `StatusCard` components and a summary table of devices.
-    -   `DeviceView.tsx`: Displays detailed information for a single device.
-    -   `StatusCard.tsx`: A reusable component for displaying a single metric.
-    -   `DeviceTable.tsx`: A searchable, sortable table of all discovered Meraki devices.
--   **Styling:** Tailwind's `dark:` modifier will be used for dark mode. The font will be `Inter`.
+- **Data Model:** A dedicated WebSocket API endpoint will serve a centralized data payload containing device counts, a list of all discovered entities with their properties, and a new `status_messages` field on each device for human-readable log information.
+- **Component Hierarchy:**
+  - `App.tsx`: The main component that manages application state, the WebSocket connection, and client-side routing.
+  - `Dashboard.tsx`: Displays high-level metrics using `StatusCard` components and a summary table of devices.
+  - `DeviceView.tsx`: Displays detailed information for a single device.
+  - `StatusCard.tsx`: A reusable component for displaying a single metric.
+  - `DeviceTable.tsx`: A searchable, sortable table of all discovered Meraki devices.
+- **Styling:** Tailwind's `dark:` modifier will be used for dark mode. The font will be `Inter`.
 
 ## Implementation Plan
 
 ### Phase 1: Backend Data & API
 
 1.  **Create WebSocket Endpoint:**
-    -   Define a WebSocket handler in `custom_components/meraki_ha/api/websocket.py`.
-    -   The handler will send a complete data snapshot on connection and push updates when the coordinator's data changes.
+    - Define a WebSocket handler in `custom_components/meraki_ha/api/websocket.py`.
+    - The handler will send a complete data snapshot on connection and push updates when the coordinator's data changes.
 2.  **Enrich Data with Status Messages:**
-    -   Add a `status_messages` list to each device's data payload in the Meraki data coordinator.
-    -   Log significant events to this list for display in the UI.
+    - Add a `status_messages` list to each device's data payload in the Meraki data coordinator.
+    - Log significant events to this list for display in the UI.
 
 ### Phase 2: Frontend Foundation (React)
 
 1.  **Set up the React App:**
-    -   Create a new React app in `custom_components/meraki_ha/www`.
+    - Create a new React app in `custom_components/meraki_ha/www`.
 2.  **Connect to Backend:**
-    -   Establish a WebSocket connection in `App.tsx` to receive data from the Home Assistant backend.
+    - Establish a WebSocket connection in `App.tsx` to receive data from the Home Assistant backend.
 3.  **Implement Routing:**
-    -   Create a simple state-based routing system in `App.tsx`.
+    - Create a simple state-based routing system in `App.tsx`.
 
 ### Phase 3: Dashboard & Core Components
 
 1.  **Build `StatusCard.tsx`:**
-    -   Create a reusable component for displaying metrics.
+    - Create a reusable component for displaying metrics.
 2.  **Build `Dashboard.tsx`:**
-    -   Create a responsive card layout for key metrics.
+    - Create a responsive card layout for key metrics.
 3.  **Build `DeviceTable.tsx`:**
-    -   Create a searchable, sortable table of devices.
+    - Create a searchable, sortable table of devices.
 
 ### Phase 4: Device Details & Final Touches
 
 1.  **Build `DeviceView.tsx`:**
-    -   Display detailed information for a single device, including `status_messages`.
+    - Display detailed information for a single device, including `status_messages`.
 2.  **Implement Dark Mode:**
-    -   Ensure all components support dark mode.
+    - Ensure all components support dark mode.
 3.  **Add Final Polish:**
-    -   Implement smooth transitions, icons, and ensure proper spacing.
+    - Implement smooth transitions, icons, and ensure proper spacing.
