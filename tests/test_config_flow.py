@@ -36,7 +36,8 @@ async def test_form(hass: HomeAssistant) -> None:
                 "meraki_org_id": "test-org-id",
             },
         )
-        await hass.async_block_till_done()
+        assert result2["type"] == FlowResultType.FORM
+        assert result2["step_id"] == "init"
 
         result3 = await hass.config_entries.flow.async_configure(
             result2["flow_id"],
@@ -44,7 +45,6 @@ async def test_form(hass: HomeAssistant) -> None:
         )
         await hass.async_block_till_done()
 
-    assert result2["type"] == FlowResultType.FORM
     assert result3["type"] == FlowResultType.CREATE_ENTRY
     assert result3["title"] == "Test Org"
     assert result3["data"] == {
