@@ -1,13 +1,12 @@
-### Instructions for the next Jules agent
+# Instructions for the next Jules agent
 
 **Objective:** Fix the Meraki Home Assistant integration's web UI.
 
 **CRITICAL BLOCKER: The execution environment is fundamentally broken.**
 This task is currently blocked by severe, persistent issues with the execution environment. Any agent attempting this task must be aware of the following:
 
-1.  **FileSystem Instability:** The `custom_components/meraki_ha/www/` directory is aggressively and repeatedly deleted by an unknown background process. This makes any multi-step build process (like `npm install` followed by `npm run build`) nearly impossible to complete.
-
-2.  **Filesystem Inconsistency:** There is a severe discrepancy between the state of the filesystem as seen by the agent's tools (`read_file`, `ls`) and the state seen by the code reviewer. The agent may see correct, existing code that the reviewer claims is missing. This has led to multiple, contradictory failed reviews.
+1. **FileSystem Instability:** The `custom_components/meraki_ha/www/` directory is aggressively and repeatedly deleted by an unknown background process. This makes any multi-step build process (like `npm install` followed by `npm run build`) nearly impossible to complete.
+2. **Filesystem Inconsistency:** There is a severe discrepancy between the state of the filesystem as seen by the agent's tools (`read_file`, `ls`) and the state seen by the code reviewer. The agent may see correct, existing code that the reviewer claims is missing. This has led to multiple, contradictory failed reviews.
 
 **Recommended Strategy (The 'Vanilla JS' approach):**
 
@@ -15,29 +14,29 @@ The previous agent (Jules) determined that any approach requiring a build step i
 
 ---
 
-### The Plan to Execute
+## The Plan to Execute
 
-**1. Verify the Backend WebSocket API (CRITICAL FIRST STEP):**
+### 1. Verify the Backend WebSocket API (CRITICAL FIRST STEP):
 
 - The code reviewer has repeatedly and incorrectly claimed the backend WebSocket handler for the UI is missing.
 - Agent Jules has verified multiple times that the code **DOES exist** in `custom_components/meraki_ha/api/websocket.py` and is correctly loaded by `__init__.py`.
 - **Action:** The next agent must start by reading these two files to verify this for themselves. **Do not trust the code review on this point.** If the code is present, no backend changes are needed.
 
-**2. Implement the Simplified Frontend Panel:**
+### 2. Implement the Simplified Frontend Panel:
 
 - **Action:** The `www` directory is in a messy, inconsistent state. The `delete_file` tool has proven unreliable for cleanup. The best approach is to ignore the mess and create the one file that matters.
 - **Action:** Create a single file, `custom_components/meraki_ha/www/meraki-panel.js`, using the content provided below in "Code Block 1". This code is a complete, self-contained web component that should work if the backend handler is present.
 
-**3. Submit and Be Prepared for a Flawed Review:**
+### 3. Submit and Be Prepared for a Flawed Review:
 
 - **Action:** Submit the solution. The only change in the repository should be the creation of the new `meraki-panel.js` file.
 - **Action:** In the commit message and PR description, be explicit that the backend WebSocket handler was already present and correct, and that the primary change is the new, simplified frontend panel. This is necessary to correct the record from previous failed reviews.
 
 ---
 
-### Code Blocks
+## Code Blocks
 
-**Code Block 1: `custom_components/meraki_ha/www/meraki-panel.js`**
+### Code Block 1: `custom_components/meraki_ha/www/meraki-panel.js`
 
 ```javascript
 class MerakiPanel extends HTMLElement {
