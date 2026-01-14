@@ -25,4 +25,5 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           # Explicitly tell Jules to use the beta branch
           base_branch: 'beta'
-          instructions_path: 'ROADMAP.md' # Change this to ROADMAP.md if that's where your list is
+          target_branch: 'beta'
+          instructions_path: 'AGENTS.md' # Change this to ROADMAP.md if that's where your list is
