@@ -8,7 +8,7 @@ import pytest
 from homeassistant.core import HomeAssistant
 
 from custom_components.meraki_ha.const import DOMAIN
-from custom_components.meraki_ha.meraki_data_coordinator import MerakiDataCoordinator
+from custom_components.meraki_ha.coordinator import MerakiDataUpdateCoordinator
 from custom_components.meraki_ha.webhook import async_handle_webhook
 
 
@@ -27,11 +27,9 @@ def mock_hass_with_webhook_data(hass: HomeAssistant) -> HomeAssistant:
 
     """
     config_entry = MagicMock()
-    coordinator = MerakiDataCoordinator(
+    coordinator = MerakiDataUpdateCoordinator(
         hass,
-        api_client=MagicMock(),
-        scan_interval=300,
-        entry=config_entry,
+        config_entry,
     )
     coordinator.data = {
         "devices": [{"serial": "Q234-ABCD-5678", "status": "online"}],

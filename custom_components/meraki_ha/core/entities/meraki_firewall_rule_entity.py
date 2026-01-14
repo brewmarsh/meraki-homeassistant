@@ -5,8 +5,8 @@ from __future__ import annotations
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.entity import DeviceInfo
 
+from ...coordinator import MerakiDataUpdateCoordinator
 from ...core.utils.naming_utils import format_device_name
-from ...meraki_data_coordinator import MerakiDataCoordinator
 from ...types import MerakiFirewallRule
 from . import BaseMerakiEntity
 
@@ -16,7 +16,7 @@ class MerakiFirewallRuleEntity(BaseMerakiEntity):
 
     def __init__(
         self,
-        coordinator: MerakiDataCoordinator,
+        coordinator: MerakiDataUpdateCoordinator,
         config_entry: ConfigEntry,
         network_id: str,
         rule: MerakiFirewallRule,

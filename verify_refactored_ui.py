@@ -29,8 +29,7 @@ async def main():
             await page.goto(f"http://localhost:{PORT}")
 
             # Mock the hass object
-            await page.evaluate(
-                """
+            await page.evaluate("""
                 window.hass = {
                   connection: {
                     sendMessagePromise: async (message) => {
@@ -65,11 +64,9 @@ async def main():
                     darkMode: true,
                   },
                 };
-            """
-            )
+            """)
 
-            await page.evaluate(
-                """
+            await page.evaluate("""
                 const el = document.createElement('meraki-panel');
                 el.hass = window.hass;
                 el.panel = {
@@ -78,8 +75,7 @@ async def main():
                     }
                 }
                 document.body.appendChild(el);
-            """
-            )
+            """)
 
             page.on("console", lambda msg: print(f"Browser Console: {msg.text}"))
 

@@ -10,12 +10,12 @@ To provide a simple and convenient way for users to manage their guest Wi-Fi net
 
 The page will be divided into two main sections:
 
-### Section 1: Basic Guest Network Control
+\*\*Section 1: Basic Guest Network Control
 
 - **Enable Guest Wi-Fi:** A toggle switch to enable/disable the guest SSID.
 - **Guest Wi-Fi Password:** A text input to view and change the password, with a save button.
 
-### Section 2: Custom Splash Page Configuration
+\*\*Section 2: Custom Splash Page Configuration
 
 - **Enable Custom Splash Page:** A main toggle switch for this feature.
 - When enabled, the following options appear:
@@ -31,20 +31,20 @@ The page will be divided into two main sections:
 
 ## 3. Implementation Plan & Instructions for a Continuing Agent
 
-### Goal
+\*\*Goal
 
 Implement the "Guest Wi-Fi Management" feature as described above.
 
-### Prerequisites
+\*\*Prerequisites
 
 - Familiarity with creating Home Assistant `switch` and `text` entities.
 - Knowledge of the Meraki API for managing SSIDs.
 - Familiarity with React (functional components, hooks like `useState` and `useEffect`).
 - Understanding of how to make API calls in JavaScript using `fetch`.
 
-### Step-by-Step Implementation Plan
+\*\*Step-by-Step Implementation Plan
 
-#### 1. Backend: Core Entities & API
+#\*\*1. Backend: Core Entities & API
 
 - **Entities:**
   - Implement the `MerakiGuestWifiPasswordText` entity as previously described.
@@ -53,7 +53,7 @@ Implement the "Guest Wi-Fi Management" feature as described above.
   - **Email Collection Endpoint:** Create a new endpoint like `/api/meraki_ha/splash_signup` to handle the form submission from the splash page. This endpoint will save the collected email addresses (e.g., to a `.csv` file in your `config` directory).
   - **Configuration Endpoints:** Create new API endpoints (`/api/guest_wifi/splash_settings`) for the frontend to get and set the splash page configuration (enabled, content, email collection setting).
 
-#### 2. Backend: Meraki API Interaction
+#\*\*2. Backend: Meraki API Interaction
 
 - When the user enables the custom splash page, the integration will need to make a series of API calls:
 
@@ -62,12 +62,12 @@ Implement the "Guest Wi-Fi Management" feature as described above.
    - `splashUrl` to the public URL of the new splash page endpoint.
 2. **Update Firewall Rules:** Call `PUT /networks/{networkId}/wireless/ssids/{number}` to update the `walledGardenRanges`. The public URL of your Home Assistant instance must be added to this list to allow guest devices to access the splash page.
 
-#### 3. Frontend: UI Implementation
+#\*\*3. Frontend: UI Implementation
 
 - Create the new **"Guest Wi-Fi"** page (`GuestWifiPage.jsx`) as designed above.
 - The page will fetch its state from the new backend endpoints.
 - The "Save" buttons will post the configuration back to the backend.
 
-#### 4. Build and Verify
+#\*\*4. Build and Verify
 
 - As before, this will involve building the frontend and using a Playwright script to test the new UI and its functionality.
