@@ -1,102 +1,99 @@
-"""Tests for the Meraki config flow."""
-
-from __future__ import annotations
+"""Test the Meraki HA config flow."""
 
 from unittest.mock import patch
 
-import pytest
+from homeassistant import config_entries, setup
 from homeassistant.core import HomeAssistant
+from homeassistant.data_entry_flow import FlowResultType
 
-from custom_components.meraki_ha.config_flow import MerakiAuthenticationError
-from custom_components.meraki_ha.const import (
-    CONF_ENABLE_DEVICE_TRACKER,
-    CONF_IGNORED_NETWORKS,
-    CONF_MERAKI_API_KEY,
-    CONF_MERAKI_ORG_ID,
-    CONF_SCAN_INTERVAL,
-    DOMAIN,
+from custom_components.meraki_ha.const import DOMAIN
+from custom_components.meraki_ha.core.errors import (
+    MerakiAuthenticationError,
+    MerakiConnectionError,
 )
 
 
-@pytest.mark.asyncio
-async def test_async_step_user_success(hass: HomeAssistant) -> None:
-    """
-    Test the user step of the config flow with valid credentials.
+async def test_form(hass: HomeAssistant) -> None:
+    """Test we get the form."""
+    await setup.async_setup_component(hass, "persistent_notification", {})
+    result = await hass.config_entries.flow.async_init(
+        DOMAIN, context={"source": config_entries.SOURCE_USER}
+    )
+    assert result["type"] == FlowResultType.FORM
+    assert result["errors"] == {}
 
-    Args:
-    ----
-        hass: The Home Assistant instance.
-
-    """
     with patch(
         "custom_components.meraki_ha.config_flow.validate_meraki_credentials",
         return_value={"valid": True, "org_name": "Test Org"},
-    ):
-        # Initial step
-        result = await hass.config_entries.flow.async_init(
-            DOMAIN,
-            context={"source": "user"},
-        )
-        assert result["type"] == "form"
-        assert result["step_id"] == "user"
-
-        # Provide credentials
-        user_input = {
-            CONF_MERAKI_API_KEY: "test-api-key",
-            CONF_MERAKI_ORG_ID: "test-org-id",
-        }
-        result = await hass.config_entries.flow.async_configure(
+    ), patch(
+        "custom_components.meraki_ha.async_setup_entry",
+        return_value=True,
+    ) as mock_setup_entry:
+        result2 = await hass.config_entries.flow.async_configure(
             result["flow_id"],
-            user_input,
+            {
+                "meraki_api_key": "test-api-key",
+                "meraki_org_id": "test-org-id",
+            },
         )
-        assert result["type"] == "form"
-        assert result["step_id"] == "init"
+        assert result2["type"] == FlowResultType.FORM
+        assert result2["step_id"] == "init"
 
-        # Provide combined options
-        options_input = {
-            CONF_SCAN_INTERVAL: 120,
-            CONF_ENABLE_DEVICE_TRACKER: True,
-            CONF_IGNORED_NETWORKS: [],
-            "enable_vlan_management": False,
-        }
-        result = await hass.config_entries.flow.async_configure(
-            result["flow_id"],
-            options_input,
+        result3 = await hass.config_entries.flow.async_configure(
+            result2["flow_id"],
+            {},
         )
         await hass.async_block_till_done()
 
-        # Final assertions
-        assert result["type"] == "create_entry"
-        assert result["title"] == "Test Org"
-        assert result["data"][CONF_MERAKI_API_KEY] == user_input[CONF_MERAKI_API_KEY]
-        assert result["data"][CONF_MERAKI_ORG_ID] == user_input[CONF_MERAKI_ORG_ID]
-        assert result["options"] == options_input
+    assert result3["type"] == FlowResultType.CREATE_ENTRY
+    assert result3["title"] == "Test Org"
+    assert result3["data"] == {
+        "meraki_api_key": "test-api-key",
+        "meraki_org_id": "test-org-id",
+        "org_name": "Test Org",
+    }
+    assert len(mock_setup_entry.mock_calls) == 1
 
 
-@pytest.mark.asyncio
-async def test_async_step_user_invalid_auth(hass: HomeAssistant) -> None:
-    """
-    Test the user step of the config flow with invalid credentials.
+async def test_form_invalid_auth(hass: HomeAssistant) -> None:
+    """Test we handle invalid auth."""
+    result = await hass.config_entries.flow.async_init(
+        DOMAIN, context={"source": config_entries.SOURCE_USER}
+    )
 
-    Args:
-    ----
-        hass: The Home Assistant instance.
-
-    """
     with patch(
         "custom_components.meraki_ha.config_flow.validate_meraki_credentials",
         side_effect=MerakiAuthenticationError,
     ):
-        result = await hass.config_entries.flow.async_init(
-            DOMAIN,
-            context={"source": "user"},
-        )
-        result = await hass.config_entries.flow.async_configure(
+        result2 = await hass.config_entries.flow.async_configure(
             result["flow_id"],
             {
-                CONF_MERAKI_API_KEY: "test-api-key",
-                CONF_MERAKI_ORG_ID: "test-org-id",
+                "meraki_api_key": "test-api-key",
+                "meraki_org_id": "test-org-id",
             },
         )
-        assert result["type"] == "form"
-        assert result["errors"] == {"base": "invalid_auth"}
+
+    assert result2["type"] == FlowResultType.FORM
+    assert result2["errors"] == {"base": "invalid_auth"}
+
+
+async def test_form_cannot_connect(hass: HomeAssistant) -> None:
+    """Test we handle cannot connect error."""
+    result = await hass.config_entries.flow.async_init(
+        DOMAIN, context={"source": config_entries.SOURCE_USER}
+    )
+
+    with patch(
+        "custom_components.meraki_ha.config_flow.validate_meraki_credentials",
+        side_effect=MerakiConnectionError,
+    ):
+        result2 = await hass.config_entries.flow.async_configure(
+            result["flow_id"],
+            {
+                "meraki_api_key": "test-api-key",
+                "meraki_org_id": "test-org-id",
+            },
+        )
+
+    assert result2["type"] == FlowResultType.FORM
+    assert result2["errors"] == {"base": "cannot_connect"}
