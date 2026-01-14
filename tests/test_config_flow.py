@@ -45,6 +45,16 @@ async def test_form(hass: HomeAssistant) -> None:
         )
         await hass.async_block_till_done()
 
+<<<<<<< HEAD
+=======
+        result3 = await hass.config_entries.flow.async_configure(
+            result2["flow_id"],
+            {},
+        )
+        await hass.async_block_till_done()
+
+    assert result2["type"] == FlowResultType.FORM
+>>>>>>> 12342c48 (fix(ci): resolve config flow test failures)
     assert result3["type"] == FlowResultType.CREATE_ENTRY
     assert result3["title"] == "Test Org"
     assert result3["data"] == {

@@ -10,6 +10,7 @@ from typing import Any
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 import voluptuous as vol
 from homeassistant import config_entries
 from homeassistant.config_entries import ConfigFlowResult
@@ -39,6 +40,9 @@ from homeassistant.config_entries import ConfigFlowResult
 =======
 import voluptuous as vol
 >>>>>>> 0727a312 (fix: Resolve CI failures by aligning dependencies and fixing tests)
+=======
+import voluptuous as vol
+>>>>>>> 12342c48 (fix(ci): resolve config flow test failures)
 from homeassistant.config_entries import (
     ConfigEntry,
     ConfigFlow,
