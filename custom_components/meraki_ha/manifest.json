@@ -24,8 +24,8 @@
   "requirements": [
     "aiohttp>=3.13.2",
     "urllib3>=2.6.2",
-    "aiodns>=3.2.0",
-    "pycares>=4.0.0,<4.5.0"
+    "aiodns==3.6.1",
+    "pycares==4.11.0"
   ],
 "version": "2.0.0-beta.69"
 }
