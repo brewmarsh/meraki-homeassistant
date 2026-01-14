@@ -14,14 +14,9 @@ from functools import partial
 from typing import TYPE_CHECKING, Any
 
 import meraki
+from homeassistant.core import HomeAssistant
 
-if TYPE_CHECKING:
-    from homeassistant.core import HomeAssistant
-
-from ...core.errors import (
-    MerakiTrafficAnalysisError,
-    MerakiVlansDisabledError,
-)
+from ...core.errors import MerakiInformationalError
 from ...types import MerakiDevice, MerakiNetwork
 from .endpoints.appliance import ApplianceEndpoints
 from .endpoints.camera import CameraEndpoints
@@ -31,6 +26,10 @@ from .endpoints.organization import OrganizationEndpoints
 from .endpoints.sensor import SensorEndpoints
 from .endpoints.switch import SwitchEndpoints
 from .endpoints.wireless import WirelessEndpoints
+
+if TYPE_CHECKING:
+    from ...coordinator import MerakiDataUpdateCoordinator
+
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -48,6 +47,7 @@ class MerakiAPIClient:
         hass: HomeAssistant,
         api_key: str,
         org_id: str,
+        coordinator: MerakiDataUpdateCoordinator | None = None,
         base_url: str = "https://api.meraki.com/api/v1",
     ) -> None:
         """
@@ -57,15 +57,25 @@ class MerakiAPIClient:
             hass: The Home Assistant instance.
             api_key: The Meraki API key.
             org_id: The organization ID.
+            coordinator: The data update coordinator.
             base_url: The base URL for the Meraki API.
 
         """
         self._api_key = api_key
         self._org_id = org_id
         self._hass = hass
-        self._base_url = base_url
+        self.coordinator = coordinator
 
-        self.dashboard: meraki.DashboardAPI | None = None
+        self.dashboard: meraki.DashboardAPI = meraki.DashboardAPI(
+            api_key=api_key,
+            base_url=base_url,
+            output_log=False,
+            print_console=False,
+            suppress_logging=True,
+            maximum_retries=3,
+            wait_on_rate_limit=True,
+            nginx_429_retry_wait_time=2,
+        )
 
         # Initialize endpoint handlers
         self.appliance = ApplianceEndpoints(self, self._hass)
@@ -77,30 +87,8 @@ class MerakiAPIClient:
         self.wireless = WirelessEndpoints(self)
         self.sensor = SensorEndpoints(self)
 
-        # Set to store network IDs that have failed traffic analysis
-        self.traffic_analysis_failed_networks: set[str] = set()
-
         # Semaphore to limit concurrent API calls
         self._semaphore = asyncio.Semaphore(2)
-
-    async def async_setup(self) -> None:
-        """Perform asynchronous setup of the API client."""
-        self.dashboard = await self._hass.async_add_executor_job(
-            self._create_dashboard_api
-        )
-
-    def _create_dashboard_api(self) -> meraki.DashboardAPI:
-        """Create and return the MerakiDashboardAPI instance."""
-        return meraki.DashboardAPI(
-            api_key=self._api_key,
-            base_url=self._base_url,
-            output_log=False,
-            print_console=False,
-            suppress_logging=True,
-            maximum_retries=3,
-            wait_on_rate_limit=True,
-            nginx_429_retry_wait_time=2,
-        )
 
     async def run_sync(
         self,
@@ -336,19 +324,19 @@ class MerakiAPIClient:
                 detail_tasks[f"ssids_{network['id']}"] = self._run_with_semaphore(
                     self.wireless.get_network_ssids(network["id"]),
                 )
-                detail_tasks[f"wireless_settings_{network['id']}"] = (
-                    self._run_with_semaphore(
-                        self.wireless.get_network_wireless_settings(network["id"]),
-                    )
-                )
             if "appliance" in product_types:
-                if network["id"] not in self.traffic_analysis_failed_networks:
+                if not self.coordinator or self.coordinator.is_traffic_check_due(
+                    network["id"],
+                ):
                     detail_tasks[f"traffic_{network['id']}"] = self._run_with_semaphore(
                         self.network.get_network_traffic(network["id"], "appliance"),
                     )
-                detail_tasks[f"vlans_{network['id']}"] = self._run_with_semaphore(
-                    self.appliance.get_network_vlans(network["id"]),
-                )
+                if not self.coordinator or self.coordinator.is_vlan_check_due(
+                    network["id"],
+                ):
+                    detail_tasks[f"vlans_{network['id']}"] = self._run_with_semaphore(
+                        self.appliance.get_network_vlans(network["id"]),
+                    )
                 detail_tasks[f"l3_firewall_rules_{network['id']}"] = (
                     self._run_with_semaphore(
                         self.appliance.get_l3_firewall_rules(network["id"]),
@@ -430,7 +418,6 @@ class MerakiAPIClient:
         vpn_status_by_network: dict[str, Any] = {}
         rf_profiles_by_network: dict[str, Any] = {}
         content_filtering_by_network: dict[str, Any] = {}
-        wireless_settings_by_network: dict[str, Any] = {}
 
         for network in networks:
             network_ssids_key = f"ssids_{network['id']}"
@@ -445,14 +432,14 @@ class MerakiAPIClient:
 
             network_traffic_key = f"traffic_{network['id']}"
             network_traffic = detail_data.get(network_traffic_key)
-            if isinstance(network_traffic, MerakiTrafficAnalysisError):
-                _LOGGER.info(
-                    "Traffic analysis is not enabled for network '%s'. "
-                    "This is not an error and can be ignored if you do not "
-                    "use this feature.",
-                    network["name"],
-                )
-                self.traffic_analysis_failed_networks.add(network["id"])
+            if isinstance(network_traffic, MerakiInformationalError):
+                if "traffic analysis" in str(network_traffic).lower():
+                    if self.coordinator:
+                        self.coordinator.add_network_status_message(
+                            network["id"],
+                            "Traffic Analysis is not enabled for this network.",
+                        )
+                        self.coordinator.mark_traffic_check_done(network["id"])
                 appliance_traffic[network["id"]] = {
                     "error": "disabled",
                     "reason": str(network_traffic),
@@ -464,7 +451,14 @@ class MerakiAPIClient:
 
             network_vlans_key = f"vlans_{network['id']}"
             network_vlans = detail_data.get(network_vlans_key)
-            if isinstance(network_vlans, MerakiVlansDisabledError):
+            if isinstance(network_vlans, MerakiInformationalError):
+                if "vlans are not enabled" in str(network_vlans).lower():
+                    if self.coordinator:
+                        self.coordinator.add_network_status_message(
+                            network["id"],
+                            "VLANs are not enabled for this network.",
+                        )
+                        self.coordinator.mark_vlan_check_done(network["id"])
                 vlan_by_network[network["id"]] = []
             elif isinstance(network_vlans, list):
                 vlan_by_network[network["id"]] = network_vlans
@@ -514,15 +508,6 @@ class MerakiAPIClient:
                     content_filtering_key
                 ]
 
-            wireless_settings_key = f"wireless_settings_{network['id']}"
-            wireless_settings = detail_data.get(wireless_settings_key)
-            if isinstance(wireless_settings, dict):
-                wireless_settings_by_network[network["id"]] = wireless_settings
-            elif previous_data and wireless_settings_key in previous_data:
-                wireless_settings_by_network[network["id"]] = previous_data[
-                    wireless_settings_key
-                ]
-
         for device in devices:
             product_type = device.get("productType")
             if product_type == "camera":
@@ -536,24 +521,8 @@ class MerakiAPIClient:
                 if settings := detail_data.get(f"sense_settings_{device['serial']}"):
                     device["sense_settings"] = settings
             elif product_type == "switch":
-                statuses_key = f"ports_statuses_{device['serial']}"
-                statuses = detail_data.get(statuses_key)
-                if isinstance(statuses, list):
+                if statuses := detail_data.get(f"ports_statuses_{device['serial']}"):
                     device["ports_statuses"] = statuses
-                elif previous_data:
-                    # Try to retrieve from previous data based on serial
-                    prev_devices = previous_data.get("devices", [])
-                    prev_device = next(
-                        (
-                            d
-                            for d in prev_devices
-                            if d.get("serial") == device["serial"]
-                        ),
-                        None,
-                    )
-                    if prev_device and "ports_statuses" in prev_device:
-                        device["ports_statuses"] = prev_device["ports_statuses"]
-
             elif product_type == "appliance":
                 if settings := detail_data.get(
                     f"appliance_settings_{device['serial']}",
@@ -570,7 +539,6 @@ class MerakiAPIClient:
             "vpn_status": vpn_status_by_network,
             "rf_profiles": rf_profiles_by_network,
             "content_filtering": content_filtering_by_network,
-            "wireless_settings": wireless_settings_by_network,
         }
 
     async def get_all_data(
@@ -647,16 +615,15 @@ class MerakiAPIClient:
         """
         await self.network.register_webhook(webhook_url, secret)
 
-    async def unregister_webhook(self, webhook_url: str) -> None:
+    async def unregister_webhook(self, webhook_id: str) -> None:
         """
         Unregister a webhook with the Meraki API.
 
         Args:
-        ----
-            webhook_url: The URL of the webhook to unregister.
+            webhook_id: The ID of the webhook to unregister.
 
         """
-        await self.network.unregister_webhook(webhook_url)
+        await self.network.unregister_webhook(webhook_id)
 
     async def async_reboot_device(self, serial: str) -> dict[str, Any]:
         """

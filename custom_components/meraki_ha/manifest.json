@@ -1,30 +1,31 @@
 {
-  "domain": "meraki_ha",
-  "name": "Meraki for Home Assistant",
-  "after_dependencies": [],
-  "codeowners": [
-    "@brewmarsh"
-  ],
-  "config_flow": true,
-  "dependencies": [
-    "frontend",
-    "panel_custom",
-    "http",
-    "webrtc"
-  ],
-  "documentation": "https://github.com/brewmarsh/meraki-homeassistant",
-  "integration_type": "hub",
-  "iot_class": "cloud_polling",
-  "issue_tracker": "https://github.com/brewmarsh/meraki-homeassistant/issues",
-  "loggers": [
-    "meraki_ha"
-  ],
-  "quality_scale": "platinum",
-  "requirements": [
-    "aiohttp>=3.13.2",
-    "urllib3>=2.6.2",
-    "aiodns==3.6.1",
-    "pycares==4.11.0"
-  ],
-"version": "2.0.0-beta.69"
+    "domain":  "meraki_ha",
+    "name":  "Meraki for Home Assistant",
+    "after_dependencies":  [
+                               "webrtc"
+                           ],
+    "codeowners":  [
+                       "@brewmarsh"
+                   ],
+    "config_flow":  true,
+    "dependencies":  [
+                         "frontend",
+                         "panel_custom",
+                         "http"
+                     ],
+    "documentation":  "https://github.com/brewmarsh/meraki-homeassistant",
+    "integration_type":  "hub",
+    "iot_class":  "cloud_polling",
+    "issue_tracker":  "https://github.com/brewmarsh/meraki-homeassistant/issues",
+    "loggers":  [
+                    "meraki_ha"
+                ],
+    "quality_scale":  "platinum",
+    "requirements":  [
+                         "aiohttp\u003e=3.13.2",
+                         "urllib3\u003e=2.6.2",
+                         "aiodns==3.6.1",
+                         "pycares==4.11.0"
+                     ],
+    "version":  "2.0.0-beta.69"
 }
