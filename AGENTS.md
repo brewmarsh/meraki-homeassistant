@@ -2,7 +2,7 @@
 
 This document provides essential instructions for AI agents and human developers working across this organization's codebases. Adhering to these guidelines is critical for maintaining code quality, consistency, and stability.
 
-This file contains **common rules** that apply to *all* projects. For project-specific details (like technology stack, file paths, and build commands), please refer to the `README.md` or `CONTRIBUTING.md` file in the specific repository.
+This file contains **common rules** that apply to _all_ projects. For project-specific details (like technology stack, file paths, and build commands), please refer to the `README.md` or `CONTRIBUTING.md` file in the specific repository.
 
 ---
 
@@ -10,9 +10,9 @@ This file contains **common rules** that apply to *all* projects. For project-sp
 
 Before starting work, review the following files in the **root of the specific repository**:
 
-* **`README.md`**: Contains the project's objective, technology stack, and definitive guide for setup, installation, and deployment.
-* **`CONTRIBUTING.md` (if present)**: Contains detailed, project-specific rules, key file paths, and architectural patterns you must follow.
-* **`[e.g., pyproject.toml, package.json]`**: Review the project's dependencies and available scripts.
+- **`README.md`**: Contains the project's objective, technology stack, and definitive guide for setup, installation, and deployment.
+- **`CONTRIBUTING.md` (if present)**: Contains detailed, project-specific rules, key file paths, and architectural patterns you must follow.
+- **`[e.g., pyproject.toml, package.json]`**: Review the project's dependencies and available scripts.
 
 ---
 
@@ -24,10 +24,10 @@ A clean Git history is essential for collaboration. All branches and commits **m
 
 Use a prefix separated by a slash (`/`) to categorize your work.
 
-* **`feature/<short-description>`**: For adding new features (e.g., `feature/add-user-profile`).
-* **`fix/<short-description>`**: For fixing bugs (e.g., `fix/login-csrf-bug`).
-* **`chore/<short-description>`**: For maintenance, refactoring, or CI/CD tasks (e.g., `chore/update-docker-base-image`).
-* **`docs/<short-description>`**: For documentation-only changes (e.g., `docs/update-api-examples`).
+- **`feature/<short-description>`**: For adding new features (e.g., `feature/add-user-profile`).
+- **`fix/<short-description>`**: For fixing bugs (e.g., `fix/login-csrf-bug`).
+- **`chore/<short-description>`**: For maintenance, refactoring, or CI/CD tasks (e.g., `chore/update-docker-base-image`).
+- **`docs/<short-description>`**: For documentation-only changes (e.g., `docs/update-api-examples`).
 
 ### Commit (Check-in) Naming
 
@@ -35,13 +35,13 @@ All commit messages **must** follow the [**Conventional Commits**](https://www.c
 
 The format is: `type(scope): subject`
 
-* **`feat:`**: A new feature (e.g., `feat: allow users to reset their password`).
-* **`fix:`**: A bug fix (e.g., `fix: correct password hash iterations during login`).
-* **`docs:`**: Documentation-only changes (e.g., `docs: update AGENTS.md with commit standards`).
-* **`style:`**: Code style changes (e.g., `style: run ruff formatter on all python files`).
-* **`refactor:`**: A code change that neither fixes a bug nor adds a feature (e.g., `refactor: extract api client into separate service`).
-* **`test:`**: Adding missing tests or correcting existing tests (e.g., `test: add unit test for new validation logic`).
-* **`chore:`**: Changes to the build process or auxiliary tools (e.g., `chore: add new linter to pre-commit hook`).
+- **`feat:`**: A new feature (e.g., `feat: allow users to reset their password`).
+- **`fix:`**: A bug fix (e.g., `fix: correct password hash iterations during login`).
+- **`docs:`**: Documentation-only changes (e.g., `docs: update AGENTS.md with commit standards`).
+- **`style:`**: Code style changes (e.g., `style: run ruff formatter on all python files`).
+- **`refactor:`**: A code change that neither fixes a bug nor adds a feature (e.g., `refactor: extract api client into separate service`).
+- **`test:`**: Adding missing tests or correcting existing tests (e.g., `test: add unit test for new validation logic`).
+- **`chore:`**: Changes to the build process or auxiliary tools (e.g., `chore: add new linter to pre-commit hook`).
 
 ---
 
@@ -49,21 +49,21 @@ The format is: `type(scope): subject`
 
 ### General Naming Conventions
 
-* **Python:**
-    * Files: `snake_case.py`
-    * Classes: `PascalCase`
-    * Functions & Variables: `snake_case`
-    * Constants: `UPPER_SNAKE_CASE`
-* **JavaScript/React:**
-    * Files & Components: `PascalCase.jsx` (for components), `camelCase.js` (for utilities).
-    * Functions & Variables: `camelCase`
-    * Constants: `UPPER_SNAKE_CASE`
+- **Python:**
+  - Files: `snake_case.py`
+  - Classes: `PascalCase`
+  - Functions & Variables: `snake_case`
+  - Constants: `UPPER_SNAKE_CASE`
+- **JavaScript/React:**
+  - Files & Components: `PascalCase.jsx` (for components), `camelCase.js` (for utilities).
+  - Functions & Variables: `camelCase`
+  - Constants: `UPPER_SNAKE_CASE`
 
 ### General Structure
 
-* **Keep Logic Separate:** Route handlers (`routes.py`, `views.py`) should only parse requests and return responses. All business logic **must** be in separate service functions/classes (e.g., in a `services/` or `utils/` directory).
-* **Keep Clients Separate:** All third-party API client logic (e.g., Meraki API, Google API) **must** be in its own module (e.g., `clients/meraki_client.py`).
-* **Constants:** Do not use "magic strings" or numbers in code. Define them as constants in a central `const.py` file or at the top of the module.
+- **Keep Logic Separate:** Route handlers (`routes.py`, `views.py`) should only parse requests and return responses. All business logic **must** be in separate service functions/classes (e.g., in a `services/` or `utils/` directory).
+- **Keep Clients Separate:** All third-party API client logic (e.g., Meraki API, Google API) **must** be in its own module (e.g., `clients/meraki_client.py`).
+- **Constants:** Do not use "magic strings" or numbers in code. Define them as constants in a central `const.py` file or at the top of the module.
 
 ---
 
@@ -71,30 +71,30 @@ The format is: `type(scope): subject`
 
 ### 4.1. General Principles
 
-* **Use the ORM:** When a project uses an ORM (like SQLAlchemy or Django ORM), **all** database interactions must use it. Do not write raw SQL queries unless absolutely necessary.
-* **Beware N+1 Queries:** When fetching lists of items that have related data, use the ORM's built-in methods (e.g., `joinedload`, `subqueryload`, `select_related`, `prefetch_related`) to prevent N+1 query bugs.
-* **Security:**
-    * **Validate Input:** All user-provided input **must** be validated on the server side.
-    * **CSRF Protection:** All state-changing requests (POST, PUT, DELETE) **must** be protected against Cross-Site Request Forgery (CSRF).
-    * **Passwords:** Never handle or store passwords in plaintext. Use `werkzeug.security` or `django.contrib.auth` for hashing.
+- **Use the ORM:** When a project uses an ORM (like SQLAlchemy or Django ORM), **all** database interactions must use it. Do not write raw SQL queries unless absolutely necessary.
+- **Beware N+1 Queries:** When fetching lists of items that have related data, use the ORM's built-in methods (e.g., `joinedload`, `subqueryload`, `select_related`, `prefetch_related`) to prevent N+1 query bugs.
+- **Security:**
+  - **Validate Input:** All user-provided input **must** be validated on the server side.
+  - **CSRF Protection:** All state-changing requests (POST, PUT, DELETE) **must** be protected against Cross-Site Request Forgery (CSRF).
+  - **Passwords:** Never handle or store passwords in plaintext. Use `werkzeug.security` or `django.contrib.auth` for hashing.
 
 ### 4.2. Language-Specific Rules (Python)
 
-* **Linting & Formatting:** This project uses [**Ruff**](https://docs.astral.sh/ruff/) for linting *and* formatting (replacing Black, Flake8, and isort).
-    * All code **must** be formatted with `ruff format .` before committing.
-    * All code **must** be free of linter errors from `ruff check .`.
-* **Type Hinting:** All new functions **must** include [PEP 484](https://peps.python.org/pep-0484/) type hints for all arguments and return values.
-* **Docstrings:** All public modules, classes, and functions **must** have docstrings following the [Google Python Style Guide](https://google.github.io/styleguide/pyguide.html#3.8-comments-and-docstrings).
-* **Dependencies:** Use `pyproject.toml` with a tool like [Poetry](https://python-poetry.org/) or [PDM](https://pdm.fming.dev/) for dependency management. `requirements.txt` should only be used if the project is already using it.
-* **Error Handling:** Use specific exceptions. Do not use broad `except Exception:` blocks.
+- **Linting & Formatting:** This project uses [**Ruff**](https://docs.astral.sh/ruff/) for linting _and_ formatting (replacing Black, Flake8, and isort).
+  - All code **must** be formatted with `ruff format .` before committing.
+  - All code **must** be free of linter errors from `ruff check .`.
+- **Type Hinting:** All new functions **must** include [PEP 484](https://peps.python.org/pep-0484/) type hints for all arguments and return values.
+- **Docstrings:** All public modules, classes, and functions **must** have docstrings following the [Google Python Style Guide](https://google.github.io/styleguide/pyguide.html#3.8-comments-and-docstrings).
+- **Dependencies:** Use `pyproject.toml` with a tool like [Poetry](https://python-poetry.org/) or [PDM](https://pdm.fming.dev/) for dependency management. `requirements.txt` should only be used if the project is already using it.
+- **Error Handling:** Use specific exceptions. Do not use broad `except Exception:` blocks.
 
 ### 4.3. Language-Specific Rules (JavaScript/React)
 
-* **Linting & Formatting:** This project uses [**Prettier**](https://prettier.io/) for formatting and [**ESLint**](https://eslint.org/) for linting.
-* **Modern JS:** Use modern ECMAScript features (e.g., `const`/`let` over `var`, arrow functions, spread syntax).
-* **React:**
-    * Use **Functional Components** and **Hooks** (e.g., `useState`, `useEffect`) for all new code.
-    * Do not write class-based components.
+- **Linting & Formatting:** This project uses [**Prettier**](https://prettier.io/) for formatting and [**ESLint**](https://eslint.org/) for linting.
+- **Modern JS:** Use modern ECMAScript features (e.g., `const`/`let` over `var`, arrow functions, spread syntax).
+- **React:**
+  - Use **Functional Components** and **Hooks** (e.g., `useState`, `useEffect`) for all new code.
+  - Do not write class-based components.
 
 ---
 
@@ -102,19 +102,19 @@ The format is: `type(scope): subject`
 
 ### 5.1. Code Quality Tools
 
-* **Pre-commit Hooks:** This repository should use `pre-commit` to automatically run linters and formatters before each commit. You can install it with `pre-commit install`.
-* **Static Analysis:** This project may use `mypy` (Python type checking) or `bandit` (Python security analysis). These checks must pass in the CI pipeline.
+- **Pre-commit Hooks:** This repository should use `pre-commit` to automatically run linters and formatters before each commit. You can install it with `pre-commit install`.
+- **Static Analysis:** This project may use `mypy` (Python type checking) or `bandit` (Python security analysis). These checks must pass in the CI pipeline.
 
 ### 5.2. Testing
 
-* **Coverage:** All new features or business logic **must** be accompanied by unit tests.
-* **Run Tests:** Always run the full test suite (e.g., `pytest`, `npm test`) *before* submitting your code.
-* **Mocks:** When writing tests, ensure all mocks are as accurate as possible to the real APIs or functions they are replacing.
+- **Coverage:** All new features or business logic **must** be accompanied by unit tests.
+- **Run Tests:** Always run the full test suite (e.g., `pytest`, `npm test`) _before_ submitting your code.
+- **Mocks:** When writing tests, ensure all mocks are as accurate as possible to the real APIs or functions they are replacing.
 
 ---
 
 ## 6. Documentation & Iteration
 
-* **Iterative Improvement:** If you encounter an issue (e.g., a security vulnerability, a bug, a confusing pattern), look for other instances of the same problem in the codebase and fix them all.
-* **Update Documentation:** As you make changes, ensure that `README.md` and `CONTRIBUTING.md` are updated to reflect the new state of the application.
-* **Update This File:** If you discover a new development technique, a useful debugging procedure, or a common pitfall, please update *this* `AGENTS.md` file to help future agents.
+- **Iterative Improvement:** If you encounter an issue (e.g., a security vulnerability, a bug, a confusing pattern), look for other instances of the same problem in the codebase and fix them all.
+- **Update Documentation:** As you make changes, ensure that `README.md` and `CONTRIBUTING.md` are updated to reflect the new state of the application.
+- **Update This File:** If you discover a new development technique, a useful debugging procedure, or a common pitfall, please update _this_ `AGENTS.md` file to help future agents.

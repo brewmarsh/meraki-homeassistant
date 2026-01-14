@@ -21,19 +21,40 @@ const App: React.FC<AppProps> = () => {
 
   useEffect(() => {
     if (window.location.hostname === 'localhost') {
-        setData({
-          "networks": [
-            { "id": "N_12345", "name": "Main Office", "is_enabled": true, "ssids": [] }
-          ],
-          devices: [
-            { name: 'Living Room AP', model: 'MR33', serial: 'Q2JD-XXXX-XXXX', status: 'online', entity_id: 'switch.living_room_ap', networkId: 'N_12345' },
-            { name: 'Office Switch', model: 'MS220-8P', serial: 'Q2HD-XXXX-XXXX', status: 'online', entity_id: 'switch.office_switch', networkId: 'N_12345' },
-            { name: 'Front Door Camera', model: 'MV12', serial: 'Q2FD-XXXX-XXXX', status: 'online', entity_id: 'camera.front_door_camera', networkId: 'N_12345' },
-          ],
-          ssids: [],
-        });
-        setLoading(false);
-        return;
+      setData({
+        networks: [
+          { id: 'N_12345', name: 'Main Office', is_enabled: true, ssids: [] },
+        ],
+        devices: [
+          {
+            name: 'Living Room AP',
+            model: 'MR33',
+            serial: 'Q2JD-XXXX-XXXX',
+            status: 'online',
+            entity_id: 'switch.living_room_ap',
+            networkId: 'N_12345',
+          },
+          {
+            name: 'Office Switch',
+            model: 'MS220-8P',
+            serial: 'Q2HD-XXXX-XXXX',
+            status: 'online',
+            entity_id: 'switch.office_switch',
+            networkId: 'N_12345',
+          },
+          {
+            name: 'Front Door Camera',
+            model: 'MV12',
+            serial: 'Q2FD-XXXX-XXXX',
+            status: 'online',
+            entity_id: 'camera.front_door_camera',
+            networkId: 'N_12345',
+          },
+        ],
+        ssids: [],
+      });
+      setLoading(false);
+      return;
     }
     let accessToken = localStorage.getItem('meraki_ha_llat');
     if (!accessToken) {
@@ -163,7 +184,11 @@ const App: React.FC<AppProps> = () => {
     <div className="p-4">
       <h1 className="text-2xl font-bold mb-4">Meraki HA Web UI</h1>
       {activeView.view === 'dashboard' ? (
-        <NetworkView data={data} onToggle={handleToggle} setActiveView={setActiveView} />
+        <NetworkView
+          data={data}
+          onToggle={handleToggle}
+          setActiveView={setActiveView}
+        />
       ) : (
         <DeviceView
           activeView={activeView}

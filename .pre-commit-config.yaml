@@ -62,8 +62,3 @@ repos:
     rev: v0.20.0
     hooks:
       - id: markdownlint-cli2
-  - repo: https://github.com/home-assistant/actions
-    rev: "2024.5.0"
-    hooks:
-      - id: hassfest
-        stages: [manual]

@@ -68,9 +68,9 @@ jobs:
         with:
           commit_message: 'chore(release): update version to ${{ steps.increment.outputs.new_version }}'
           file_pattern: 'custom_components/meraki_ha/manifest.json package.json .bumpversion.cfg package-lock.json'
-          commit_user_name: "github-actions[bot]"
-          commit_user_email: "github-actions[bot]@users.noreply.github.com"
-          commit_author: "github-actions[bot] <github-actions[bot]@users.noreply.github.com>"
+          commit_user_name: 'github-actions[bot]'
+          commit_user_email: 'github-actions[bot]@users.noreply.github.com'
+          commit_author: 'github-actions[bot] <github-actions[bot]@users.noreply.github.com>'
           branch: ${{ github.base_ref }}
 
   release:

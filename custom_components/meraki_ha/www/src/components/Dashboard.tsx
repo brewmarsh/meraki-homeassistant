@@ -3,7 +3,7 @@ import StatusCard from './StatusCard';
 import DeviceTable from './DeviceTable';
 
 interface DashboardProps {
-  setActiveView: (view: { view:string; deviceId?: string }) => void;
+  setActiveView: (view: { view: string; deviceId?: string }) => void;
   data: any;
 }
 
@@ -25,8 +25,16 @@ const Dashboard: React.FC<DashboardProps> = ({ setActiveView, data }) => {
   return (
     <div>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
-        <StatusCard title="Total Devices" value={metrics.totalDevices} icon="📱" />
-        <StatusCard title="Wireless APs" value={metrics.wirelessAps} icon="📡" />
+        <StatusCard
+          title="Total Devices"
+          value={metrics.totalDevices}
+          icon="📱"
+        />
+        <StatusCard
+          title="Wireless APs"
+          value={metrics.wirelessAps}
+          icon="📡"
+        />
         <StatusCard title="Switches" value={metrics.switches} icon="🔄" />
         <StatusCard title="Cameras" value={metrics.cameras} icon="📹" />
         <StatusCard title="Virtual SSIDs" value={metrics.ssids} icon="📶" />

@@ -5,7 +5,10 @@ interface DeviceTableProps {
   setActiveView: (view: { view: string; deviceId?: string }) => void;
 }
 
-const DeviceTable: React.FC<DeviceTableProps> = ({ devices, setActiveView }) => {
+const DeviceTable: React.FC<DeviceTableProps> = ({
+  devices,
+  setActiveView,
+}) => {
   const [searchTerm, setSearchTerm] = useState('');
 
   const getDeviceIcon = (model: string) => {
@@ -15,12 +18,16 @@ const DeviceTable: React.FC<DeviceTableProps> = ({ devices, setActiveView }) => 
     return 'mdi:help-circle';
   };
 
-  const filteredDevices = devices.filter(device =>
-    device.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    device.serial?.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredDevices = devices.filter(
+    (device) =>
+      device.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      device.serial?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const handleDeviceClick = (e: React.MouseEvent<HTMLAnchorElement>, entityId: string) => {
+  const handleDeviceClick = (
+    e: React.MouseEvent<HTMLAnchorElement>,
+    entityId: string
+  ) => {
     e.preventDefault();
     e.stopPropagation(); // Prevent the row's onClick from firing
     const event = new CustomEvent('hass-more-info', {
@@ -50,15 +57,20 @@ const DeviceTable: React.FC<DeviceTableProps> = ({ devices, setActiveView }) => 
             </tr>
           </thead>
           <tbody>
-            {filteredDevices.map(device => (
+            {filteredDevices.map((device) => (
               <tr
                 key={device.serial}
                 className="border-b border-light-border dark:border-dark-border hover:bg-light-hover dark:hover:bg-dark-hover cursor-pointer"
-                onClick={() => setActiveView({ view: 'device', deviceId: device.serial })}
+                onClick={() =>
+                  setActiveView({ view: 'device', deviceId: device.serial })
+                }
               >
                 <td className="p-4">
                   <div style={{ display: 'flex', alignItems: 'center' }}>
-                    <ha-icon icon={getDeviceIcon(device.model)} style={{ marginRight: '8px' }}></ha-icon>
+                    <ha-icon
+                      icon={getDeviceIcon(device.model)}
+                      style={{ marginRight: '8px' }}
+                    ></ha-icon>
                     <a
                       href="#"
                       onClick={(e) => {
