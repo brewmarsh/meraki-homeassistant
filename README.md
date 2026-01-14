@@ -9,6 +9,7 @@
 This Home Assistant integration allows you to monitor and manage your Cisco Meraki network, including devices, networks, and SSIDs. It leverages the Meraki API to bring data from your Meraki dashboard into Home Assistant, enabling you to gain insights into your network and automate actions based on its status.
 
 ## Table of Contents
+
 - [Key Features](#key-features-)
 - [Installation](#installation-️)
 - [Configuration](#configuration-⚙️)
@@ -35,8 +36,8 @@ This Home Assistant integration allows you to monitor and manage your Cisco Mera
 
 ## Screenshots 📸
 
-| Network View | Device Detail View |
-| :---: | :---: |
+|                                                     Network View                                                      |                                                     Device Detail View                                                      |
+| :-------------------------------------------------------------------------------------------------------------------: | :-------------------------------------------------------------------------------------------------------------------------: |
 | ![Network View](https://user-images.githubusercontent.com/1099616/279869151-24702f37-646d-4176-963d-2103f6f3630d.png) | ![Device Detail View](https://user-images.githubusercontent.com/1099616/279869158-2947a195-5c02-4580-b7a4-315111956f46.png) |
 
 ## Key Features ✨
@@ -79,14 +80,14 @@ If you're still having trouble, please open an issue on the GitHub repository.
 
 1. **Ensure HACS is installed:** If you haven't already, install the [Home Assistant Community Store (HACS)](https://hacs.xyz/).
 2. **Add Custom Repository:**
-    - In HACS, go to "Integrations".
-    - Click the three dots in the top right and select "Custom repositories".
-    - In the "Repository" field, enter the URL of this custom integration's GitHub repository.
-    - For "Category", select "Integration".
-    - Click "Add".
+   - In HACS, go to "Integrations".
+   - Click the three dots in the top right and select "Custom repositories".
+   - In the "Repository" field, enter the URL of this custom integration's GitHub repository.
+   - For "Category", select "Integration".
+   - Click "Add".
 3. **Install Integration:**
-    - Search for "Meraki" or the name of this integration in HACS.
-    - Click "Install" and follow the prompts.
+   - Search for "Meraki" or the name of this integration in HACS.
+   - Click "Install" and follow the prompts.
 4. **Restart Home Assistant:** After installation, restart your Home Assistant instance to load the integration.
 
 ## Configuration ⚙️
@@ -97,16 +98,16 @@ To use this integration, you will need a Meraki API key and your Organization ID
 
 1.  **Log in to the Meraki Dashboard:** Go to [https://dashboard.meraki.com/](https://dashboard.meraki.com/).
 2.  **Enable API Access:**
-    * Navigate to **Organization** > **Settings**.
-    * Under the **Dashboard API access** section, ensure API access is enabled.
+    - Navigate to **Organization** > **Settings**.
+    - Under the **Dashboard API access** section, ensure API access is enabled.
 3.  **Generate API Key:**
-    * Go to your **Profile** (click your name/email in the top right) > **My profile**.
-    * Scroll down to the **API access** section.
-    * Click **Generate new API key**.
-    * **Important:** Copy the generated API key and store it securely. You will not be able to see it again after navigating away from this page.
+    - Go to your **Profile** (click your name/email in the top right) > **My profile**.
+    - Scroll down to the **API access** section.
+    - Click **Generate new API key**.
+    - **Important:** Copy the generated API key and store it securely. You will not be able to see it again after navigating away from this page.
 4.  **Find Organization ID:**
-    * **Easiest Method:** The Organization ID is displayed at the bottom of every page in the Meraki dashboard.
-    * **Alternative Method (API):** You can find it by making a simple API call to the `/organizations` endpoint with your API key.
+    - **Easiest Method:** The Organization ID is displayed at the bottom of every page in the Meraki dashboard.
+    - **Alternative Method (API):** You can find it by making a simple API call to the `/organizations` endpoint with your API key.
     ```bash
     curl -L -H 'X-Cisco-Meraki-API-Key: <your_api_key>' -H 'Content-Type: application/json' '[https://api.meraki.com/api/v1/organizations](https://api.meraki.com/api/v1/organizations)'
     ```
@@ -122,10 +123,10 @@ To use this integration, you will need a Meraki API key and your Organization ID
 
 The following options can be configured when you first set up the integration, or at any time by navigating to the integration's card in **Settings -> Devices & Services** and clicking **Configure**.
 
-* **Scan Interval:** How often (in seconds) to poll the Meraki API for updates. Default: 300.
-* **Enable Device Tracker:** Whether to enable the device tracker entity for clients. Default: true.
-* **Enable VLAN Management:** Whether to enable VLAN management entities. Default: false.
-* **Ignored Networks:** A comma-separated list of network IDs to ignore.
+- **Scan Interval:** How often (in seconds) to poll the Meraki API for updates. Default: 300.
+- **Enable Device Tracker:** Whether to enable the device tracker entity for clients. Default: true.
+- **Enable VLAN Management:** Whether to enable VLAN management entities. Default: false.
+- **Ignored Networks:** A comma-separated list of network IDs to ignore.
 
 ## Web UI 🖼️
 
@@ -188,21 +189,21 @@ The integration represents different aspects of your Meraki setup as devices wit
 
 These sensors provide aggregate client counts across your entire Meraki organization and are linked to the Organization device. The client data for these sensors is based on activity within the **last day**.
 
-| Entity Type | Name | Description |
-| :--- | :--- | :--- |
-| `sensor` | `Organization SSID Clients` | Total clients connected to all SSIDs across the organization. |
-| `sensor` | `Organization Wireless Clients` | Total clients connected to wireless Access Points (MR series). |
-| `sensor` | `Organization Appliance Clients` | Total clients that have routed traffic through security appliances (MX series). |
-| `sensor` | `Organization Client Types` | A breakdown of client counts by type (SSID, Appliance, Wireless). |
+| Entity Type | Name                             | Description                                                                     |
+| :---------- | :------------------------------- | :------------------------------------------------------------------------------ |
+| `sensor`    | `Organization SSID Clients`      | Total clients connected to all SSIDs across the organization.                   |
+| `sensor`    | `Organization Wireless Clients`  | Total clients connected to wireless Access Points (MR series).                  |
+| `sensor`    | `Organization Appliance Clients` | Total clients that have routed traffic through security appliances (MX series). |
+| `sensor`    | `Organization Client Types`      | A breakdown of client counts by type (SSID, Appliance, Wireless).               |
 
 ### Camera Entities & Sensors
 
 For each Meraki camera (MV series), a `camera` entity is created.
 
-| Entity Type | Name | Description |
-| :--- | :--- | :--- |
-| `camera` | `[Camera Name]` | Provides a live video stream from the camera via RTSP. |
-| `sensor` | `RTSP Stream URL` | The RTSP URL for the camera's video stream. The URL is only available when RTSP is enabled. |
+| Entity Type | Name              | Description                                                                                 |
+| :---------- | :---------------- | :------------------------------------------------------------------------------------------ |
+| `camera`    | `[Camera Name]`   | Provides a live video stream from the camera via RTSP.                                      |
+| `sensor`    | `RTSP Stream URL` | The RTSP URL for the camera's video stream. The URL is only available when RTSP is enabled. |
 
 **Note:** To view the camera stream, you must enable RTSP. You can do this by turning on the `camera` entity itself.
 
@@ -210,15 +211,15 @@ For each Meraki camera (MV series), a `camera` entity is created.
 
 These sensors are linked to specific physical Meraki hardware devices.
 
-| Entity Type | Name | Description | Availability |
-| :--- | :--- | :--- | :--- |
-| `sensor` | `[Device Name] Status` | The current operational status of the device (e.g., "online", "offline"). | All |
-| `sensor` | `[Device Name] Connected Clients` | The number of clients currently connected to the device. | Wireless APs, Switches, Appliances |
-| `sensor` | `[Device Name] Data Usage` | Total data usage for the device in the last day. | Appliances |
-| `sensor` | `[Device Name] Firmware Status` | Indicates if a firmware update is available. | All |
-| `sensor` | `[Device Name] PoE Usage` | The total PoE power being consumed by the device. | Switches |
-| `sensor` | `[Device Name] WAN 1 Connectivity` | The connectivity status of the WAN 1 port. | Appliances |
-| `sensor` | `[Device Name] WAN 2 Connectivity` | The connectivity status of the WAN 2 port. | Appliances |
+| Entity Type | Name                               | Description                                                               | Availability                       |
+| :---------- | :--------------------------------- | :------------------------------------------------------------------------ | :--------------------------------- |
+| `sensor`    | `[Device Name] Status`             | The current operational status of the device (e.g., "online", "offline"). | All                                |
+| `sensor`    | `[Device Name] Connected Clients`  | The number of clients currently connected to the device.                  | Wireless APs, Switches, Appliances |
+| `sensor`    | `[Device Name] Data Usage`         | Total data usage for the device in the last day.                          | Appliances                         |
+| `sensor`    | `[Device Name] Firmware Status`    | Indicates if a firmware update is available.                              | All                                |
+| `sensor`    | `[Device Name] PoE Usage`          | The total PoE power being consumed by the device.                         | Switches                           |
+| `sensor`    | `[Device Name] WAN 1 Connectivity` | The connectivity status of the WAN 1 port.                                | Appliances                         |
+| `sensor`    | `[Device Name] WAN 2 Connectivity` | The connectivity status of the WAN 2 port.                                | Appliances                         |
 
 ### Network Sensors
 
@@ -233,52 +234,52 @@ These sensors are linked to Meraki Network "devices" in Home Assistant.
 
 For each VLAN configured in a network, the following sensors are created.
 
-| Entity Type | Name | Description |
-| :--- | :--- | :--- |
-| `sensor` | `[VLAN Name] Subnet` | The subnet of the VLAN. |
-| `sensor` | `[VLAN Name] Appliance IP` | The appliance IP address for the VLAN. |
+| Entity Type | Name                       | Description                            |
+| :---------- | :------------------------- | :------------------------------------- |
+| `sensor`    | `[VLAN Name] Subnet`       | The subnet of the VLAN.                |
+| `sensor`    | `[VLAN Name] Appliance IP` | The appliance IP address for the VLAN. |
 
 ### Appliance Port Sensors
 
 For each port on a Meraki MX security appliance, a sensor is created to monitor its status.
 
-| Entity Type | Name | Description |
-| :--- | :--- | :--- |
-| `sensor` | `[Appliance Name] Port [Port Number]` | The status of a specific port on a Meraki appliance (e.g., "connected"). |
+| Entity Type | Name                                  | Description                                                              |
+| :---------- | :------------------------------------ | :----------------------------------------------------------------------- |
+| `sensor`    | `[Appliance Name] Port [Port Number]` | The status of a specific port on a Meraki appliance (e.g., "connected"). |
 
 ### SSID Sensors
 
-| Entity Type | Name | Description |
-| :--- | :--- | :--- |
-| `sensor` | `[SSID Name] Splash Page` | The type of splash page for the SSID. |
-| `sensor` | `[SSID Name] Auth Mode` | The association control method for the SSID. |
-| `sensor` | `[SSID Name] Encryption Mode` | The psk encryption mode for the SSID. |
-| `sensor` | `[SSID Name] WPA Encryption Mode` | The types of WPA encryption. |
-| `sensor` | `[SSID Name] IP Assignment Mode` | The client IP assignment mode. |
-| `sensor` | `[SSID Name] Band Selection` | The client-serving radio frequencies of this SSID. |
-| `sensor` | `[SSID Name] Per-Client Bandwidth Limit Up` | The upload bandwidth limit in Kbps. |
-| `sensor` | `[SSID Name] Per-Client Bandwidth Limit Down` | The download bandwidth limit in Kbps. |
-| `sensor` | `[SSID Name] Per-SSID Bandwidth Limit Up` | The total upload bandwidth limit in Kbps. |
-| `sensor` | `[SSID Name] Per-SSID Bandwidth Limit Down` | The total download bandwidth limit in Kbps. |
-| `sensor` | `[SSID Name] Visible` | Whether the SSID is advertised or hidden. |
-| `sensor` | `[SSID Name] Availability` | Whether the SSID is enabled or disabled. |
-| `sensor` | `[SSID Name] Channel` | The current operational channel of the SSID. |
-| `sensor` | `[SSID Name] Client Count` | The number of clients connected to the SSID. |
-| `sensor` | `[SSID Name] Walled Garden` | Whether the walled garden is enabled or disabled. |
-| `sensor` | `[SSID Name] Mandatory DHCP` | Whether mandatory DHCP is enabled or disabled. |
-| `sensor` | `[SSID Name] Minimum Bitrate 2.4GHz` | The minimum bitrate for the 2.4GHz band. |
-| `sensor` | `[SSID Name] Minimum Bitrate 5GHz` | The minimum bitrate for the 5GHz band. |
+| Entity Type | Name                                          | Description                                        |
+| :---------- | :-------------------------------------------- | :------------------------------------------------- |
+| `sensor`    | `[SSID Name] Splash Page`                     | The type of splash page for the SSID.              |
+| `sensor`    | `[SSID Name] Auth Mode`                       | The association control method for the SSID.       |
+| `sensor`    | `[SSID Name] Encryption Mode`                 | The psk encryption mode for the SSID.              |
+| `sensor`    | `[SSID Name] WPA Encryption Mode`             | The types of WPA encryption.                       |
+| `sensor`    | `[SSID Name] IP Assignment Mode`              | The client IP assignment mode.                     |
+| `sensor`    | `[SSID Name] Band Selection`                  | The client-serving radio frequencies of this SSID. |
+| `sensor`    | `[SSID Name] Per-Client Bandwidth Limit Up`   | The upload bandwidth limit in Kbps.                |
+| `sensor`    | `[SSID Name] Per-Client Bandwidth Limit Down` | The download bandwidth limit in Kbps.              |
+| `sensor`    | `[SSID Name] Per-SSID Bandwidth Limit Up`     | The total upload bandwidth limit in Kbps.          |
+| `sensor`    | `[SSID Name] Per-SSID Bandwidth Limit Down`   | The total download bandwidth limit in Kbps.        |
+| `sensor`    | `[SSID Name] Visible`                         | Whether the SSID is advertised or hidden.          |
+| `sensor`    | `[SSID Name] Availability`                    | Whether the SSID is enabled or disabled.           |
+| `sensor`    | `[SSID Name] Channel`                         | The current operational channel of the SSID.       |
+| `sensor`    | `[SSID Name] Client Count`                    | The number of clients connected to the SSID.       |
+| `sensor`    | `[SSID Name] Walled Garden`                   | Whether the walled garden is enabled or disabled.  |
+| `sensor`    | `[SSID Name] Mandatory DHCP`                  | Whether mandatory DHCP is enabled or disabled.     |
+| `sensor`    | `[SSID Name] Minimum Bitrate 2.4GHz`          | The minimum bitrate for the 2.4GHz band.           |
+| `sensor`    | `[SSID Name] Minimum Bitrate 5GHz`            | The minimum bitrate for the 5GHz band.             |
 
 ### Environmental Sensors (MT Series)
 
 For each Meraki environmental sensor (MT series), entities are created to monitor real-time conditions.
 
-| Entity Type | Name | Description | Availability |
-| :--- | :--- | :--- | :--- |
-| `sensor` | `[Sensor Name] Temperature` | The ambient temperature. | MT10, MT12 |
-| `sensor` | `[Sensor Name] Humidity` | The relative humidity. | MT10, MT12 |
-| `sensor` | `[Sensor Name] Water Detection` | Whether water has been detected. | MT12 |
-| `binary_sensor` | `[Sensor Name] Door` | The state of the door (open/closed). | MT20 |
+| Entity Type     | Name                            | Description                          | Availability |
+| :-------------- | :------------------------------ | :----------------------------------- | :----------- |
+| `sensor`        | `[Sensor Name] Temperature`     | The ambient temperature.             | MT10, MT12   |
+| `sensor`        | `[Sensor Name] Humidity`        | The relative humidity.               | MT10, MT12   |
+| `sensor`        | `[Sensor Name] Water Detection` | Whether water has been detected.     | MT12         |
+| `binary_sensor` | `[Sensor Name] Door`            | The state of the door (open/closed). | MT20         |
 
 ## Automation Examples 🚀
 
@@ -286,12 +287,13 @@ For each Meraki environmental sensor (MT series), entities are created to monito
 
 ```yaml
 automation:
-  - alias: "Notify when Meraki device goes offline"
+  - alias: 'Notify when Meraki device goes offline'
     trigger:
       - platform: state
         entity_id: sensor.my_access_point_status
-        to: "offline"
+        to: 'offline'
     action:
       - service: notify.mobile_app_my_phone
         data:
-          message: "{{ trigger.to_state.name }} has gone offline."
+          message: '{{ trigger.to_state.name }} has gone offline.'
+```

@@ -1,12 +1,36 @@
 {
   "ignore": [
-    { "id": "GHSA-6mq8-rvhq-8wgg", "reason": "Pinned by Home Assistant Core 2025.11.0" },
-    { "id": "GHSA-69f9-5gxw-wvc2", "reason": "Pinned by Home Assistant Core 2025.11.0" },
-    { "id": "GHSA-6jhg-hg63-jvvf", "reason": "Pinned by Home Assistant Core 2025.11.0" },
-    { "id": "GHSA-g84x-mcqj-x9qq", "reason": "Pinned by Home Assistant Core 2025.11.0" },
-    { "id": "GHSA-fh55-r93g-j68g", "reason": "Pinned by Home Assistant Core 2025.11.0" },
-    { "id": "GHSA-54jq-c3m8-4m76", "reason": "Pinned by Home Assistant Core 2025.11.0" },
-    { "id": "GHSA-jj3x-wxrx-4x23", "reason": "Pinned by Home Assistant Core 2025.11.0" },
-    { "id": "GHSA-mqqc-3gqh-h2x8", "reason": "Pinned by Home Assistant Core 2025.11.0" }
+    {
+      "id": "GHSA-6mq8-rvhq-8wgg",
+      "reason": "Pinned by Home Assistant Core 2025.11.0"
+    },
+    {
+      "id": "GHSA-69f9-5gxw-wvc2",
+      "reason": "Pinned by Home Assistant Core 2025.11.0"
+    },
+    {
+      "id": "GHSA-6jhg-hg63-jvvf",
+      "reason": "Pinned by Home Assistant Core 2025.11.0"
+    },
+    {
+      "id": "GHSA-g84x-mcqj-x9qq",
+      "reason": "Pinned by Home Assistant Core 2025.11.0"
+    },
+    {
+      "id": "GHSA-fh55-r93g-j68g",
+      "reason": "Pinned by Home Assistant Core 2025.11.0"
+    },
+    {
+      "id": "GHSA-54jq-c3m8-4m76",
+      "reason": "Pinned by Home Assistant Core 2025.11.0"
+    },
+    {
+      "id": "GHSA-jj3x-wxrx-4x23",
+      "reason": "Pinned by Home Assistant Core 2025.11.0"
+    },
+    {
+      "id": "GHSA-mqqc-3gqh-h2x8",
+      "reason": "Pinned by Home Assistant Core 2025.11.0"
+    }
   ]
 }

@@ -2,7 +2,7 @@ name: Agent Healer
 
 on:
   workflow_run:
-    workflows: ["Validate Code"]
+    workflows: ['Validate Code']
     types: [completed]
   pull_request:
     branches: [beta]

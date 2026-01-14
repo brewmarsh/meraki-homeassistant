@@ -29,8 +29,9 @@ repos:
       - id: ruff
         args:
           - --fix
-  #      - id: ruff-format
-  #        files: ^(custom_components|tests)/.+\.py$
+        files: ^(custom_components|tests|tools)/.+\.py$
+      - id: ruff-format
+        files: ^(custom_components|tests|tools)/.+\.py$
   - repo: https://github.com/codespell-project/codespell
     rev: v2.4.1
     hooks:
@@ -62,8 +63,4 @@ repos:
     rev: v0.20.0
     hooks:
       - id: markdownlint-cli2
-  - repo: https://github.com/home-assistant/actions
-    rev: "2024.5.0"
-    hooks:
-      - id: hassfest
-        stages: [manual]
+        exclude: ^node_modules/
