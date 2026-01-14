@@ -14,7 +14,7 @@ Your task is to refactor the `meraki_ha` integration to correctly retrieve and r
 
 This plan focuses on making device controls stateless and declarative by centralizing the action logic in a dedicated service that the device handlers can call.
 
-### Phase 1: API and Repository Updates
+\*\*Phase 1: API and Repository Updates
 
 1. **Add `rebootDevice` to `MerakiApiClient`**:
    - Add a new asynchronous method, `async_reboot_device(serial)`, that calls the Meraki API's `rebootDevice` endpoint. This method will send the command to the Meraki cloud.
@@ -24,7 +24,7 @@ This plan focuses on making device controls stateless and declarative by central
    - This method will accept the device serial and call the `MerakiApiClient`. It will handle any errors, logging them but not raising exceptions that would crash the integration.
    - Because this is a write action, it should not be cached.
 
-### Phase 2: Create a Dedicated Control Service
+\*\*Phase 2: Create a Dedicated Control Service
 
 1. **Develop `DeviceControlService` (`meraki_ha/services/device_control_service.py`)**:
    - Create a new class, `DeviceControlService`, that is injected with the `MerakiRepository`.
@@ -32,14 +32,14 @@ This plan focuses on making device controls stateless and declarative by central
      - `async_reboot(serial)`: A method that calls the repository's `async_reboot_device` method.
    - The separation of this logic into a service keeps the `DeviceHandlers` thin and focused on entity creation.
 
-### Phase 3: Update Device Handlers and Entities
+\*\*Phase 3: Update Device Handlers and Entities
 
 1. **Refactor `MXHandler` and `GXHandler`**:
    - Update the handlers to accept the `DeviceControlService` via **Dependency Injection**.
    - Within the handler's entity creation logic, create new `homeassistant.components.button.ButtonEntity` or `switch` entities as appropriate.
    - The `async_press` method of the button entity or the `async_turn_on`/`async_turn_off` methods of the switch entity must call the corresponding method on the **injected `DeviceControlService`**. For example, the button's `async_press` will call `await self._control_service.async_reboot(self.device_serial)`.
 
-### Phase 4: Testing and Cleanup
+\*\*Phase 4: Testing and Cleanup
 
 1. **Write Focused Unit Tests**:
    - Test the `DeviceControlService` by injecting a mock `MerakiRepository` and asserting that the `async_reboot` method is called correctly.
