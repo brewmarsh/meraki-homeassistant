@@ -47,14 +47,14 @@ This Home Assistant integration allows you to monitor and manage your Cisco Mera
 - **Web Interface:** A dedicated web UI for advanced features like guest Wi-Fi management and viewing event logs.
 - **Rich Sensor Data:** Creates a wide array of sensors for device status, client counts, data usage, firmware updates, PoE consumption, and much more.
 - **Camera Integration:** View live RTSP streams from your Meraki cameras within Home Assistant.
-- **Device & Entity Model:** The integration represents different aspects of your Meraki setup as devices within Home Assistant to create a logical hierarchy.
-- **Organization-Wide Sensors:** These sensors provide aggregate client counts across your entire Meraki organization and are linked to the Organization device.
-- **Physical Device Sensors:** These sensors are linked to specific physical Meraki hardware devices.
-- **Network Sensors:** These sensors are linked to Meraki Network "devices" in Home Assistant.
-- **VLAN Sensors:** For each VLAN configured in a network, sensors are created to monitor its status.
-- **Appliance Port Sensors:** For each port on a Meraki MX security appliance, a sensor is created to monitor its status.
-- **SSID Sensors:** A variety of sensors are created for each SSID, including client count, bandwidth limits, and more.
-- **Environmental Sensors (MT Series):** For each Meraki environmental sensor (MT series), entities are created to monitor real-time conditions.
+- ### Device **Device & Entity Model Entity Model:** The integration represents different aspects of your Meraki setup as devices within Home Assistant to create a logical hierarchy.
+- ### Organization-Wide Sensors:\*\* These sensors provide aggregate client counts across your entire Meraki organization and are linked to the Organization device.
+- ### Physical Device Sensors:\*\* These sensors are linked to specific physical Meraki hardware devices.
+- ### Network Sensors:\*\* These sensors are linked to Meraki Network "devices" in Home Assistant.
+- ### VLAN Sensors:\*\* For each VLAN configured in a network, sensors are created to monitor its status.
+- ### Appliance Port Sensors:\*\* For each port on a Meraki MX security appliance, a sensor is created to monitor its status.
+- ### SSID Sensors:\*\* A variety of sensors are created for each SSID, including client count, bandwidth limits, and more.
+- ### Environmental Sensors (MT Series):\*\* For each Meraki environmental sensor (MT series), entities are created to monitor real-time conditions.
 
 ## Troubleshooting troubleshooting-
 

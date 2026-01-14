@@ -6,7 +6,7 @@ This document outlines the functional requirements for camera entities in the Me
 
 The integration must provide a reliable RTSP stream URL for camera entities. The logic for determining this URL should follow a specific priority and fallback mechanism to ensure maximum reliability and user control.
 
-### R6: RTSP URL Logic
+\*\*R6: RTSP URL Logic
 
 The `stream_source` property of the `MerakiCamera` entity must implement the following logic:
 

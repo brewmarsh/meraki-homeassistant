@@ -6,11 +6,11 @@ This document provides instructions for setting up a development environment for
 
 The backend of the integration is written in Python and uses the `meraki` library to interact with the Meraki API.
 
-### Backend Code Location
+\*\*Backend Code Location
 
 The source code for the backend is located in the `custom_components/meraki_ha/` directory.
 
-### Installing Dependencies
+\*\*Installing Dependencies
 
 To work with the backend code, you must first install the necessary Python dependencies. It is recommended to use a virtual environment to avoid conflicts with other projects.
 
@@ -20,7 +20,7 @@ source venv/bin/activate
 pip install -r requirements_dev.txt
 ```
 
-### Running the Linter and Tests
+\*\*Running the Linter and Tests
 
 To ensure that your code is up to the project's standards, you should run the linter and tests before submitting a pull request.
 
@@ -36,11 +36,11 @@ pytest
 
 The Meraki side panel is a modern web application built with React, Vite, and TypeScript.
 
-### Frontend Code Location
+\*\*Frontend Code Location
 
 The source code for the frontend panel is located in the `custom_components/meraki_ha/www/` directory.
 
-### Frontend Dependencies
+\*\*Frontend Dependencies
 
 To work with the frontend code, you must first install the necessary Node.js dependencies. Navigate to the frontend directory and run the following command:
 
@@ -49,7 +49,7 @@ cd custom_components/meraki_ha/www/
 npm install
 ```
 
-### Building the Frontend
+\*\*Building the Frontend
 
 After making changes to the frontend code, you must rebuild the panel to generate the final JavaScript and CSS files. To do this, run the following command from the `custom_components/meraki_ha/www/` directory:
 
@@ -59,7 +59,7 @@ npm run build
 
 This will compile the frontend application and place the necessary `meraki-panel.js` and `style.css` files in the `custom_components/meraki_ha/www/` directory. These are the files that are served to Home Assistant.
 
-### Development Server
+\*\*Development Server
 
 For a more interactive development experience, you can run the Vite development server:
 
