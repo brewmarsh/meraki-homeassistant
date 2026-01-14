@@ -30,7 +30,7 @@ if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
     from homeassistant.core import HomeAssistant
     from homeassistant.helpers.entity_platform import AddEntitiesCallback
-
+    from homeassistant.components.camera import WebRTCSendMessage
     from .meraki_data_coordinator import MerakiDataCoordinator
     from .services.camera_service import CameraService
 
