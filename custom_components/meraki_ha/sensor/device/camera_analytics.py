@@ -9,8 +9,8 @@ from homeassistant.components.sensor import SensorEntity
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from ...coordinator import MerakiDataUpdateCoordinator
 from ...helpers.device_info_helpers import resolve_device_info
+from ...meraki_data_coordinator import MerakiDataCoordinator
 
 if TYPE_CHECKING:
     from ...services.camera_service import CameraService
@@ -24,7 +24,7 @@ class MerakiAnalyticsSensor(CoordinatorEntity, SensorEntity):
 
     def __init__(
         self,
-        coordinator: MerakiDataUpdateCoordinator,
+        coordinator: MerakiDataCoordinator,
         device: dict[str, Any],
         camera_service: CameraService,
         object_type: str,
@@ -76,7 +76,7 @@ class MerakiPersonCountSensor(MerakiAnalyticsSensor):
 
     def __init__(
         self,
-        coordinator: MerakiDataUpdateCoordinator,
+        coordinator: MerakiDataCoordinator,
         device: dict[str, Any],
         camera_service: CameraService,
     ) -> None:
@@ -90,7 +90,7 @@ class MerakiVehicleCountSensor(MerakiAnalyticsSensor):
 
     def __init__(
         self,
-        coordinator: MerakiDataUpdateCoordinator,
+        coordinator: MerakiDataCoordinator,
         device: dict[str, Any],
         camera_service: CameraService,
     ) -> None:

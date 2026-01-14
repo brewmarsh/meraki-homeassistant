@@ -12,7 +12,7 @@ from ...const import MOCK_CONFIG_ENTRY, MOCK_MX_DEVICE
 
 @pytest.fixture
 def mock_coordinator():
-    """Fixture for a mock MerakiDataUpdateCoordinator."""
+    """Fixture for a mock MerakiDataCoordinator."""
     coordinator = MagicMock()
     coordinator.data = {"devices": [MOCK_MX_DEVICE]}
     return coordinator

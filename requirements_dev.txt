@@ -11,13 +11,12 @@ mypy==1.11.0
 voluptuous==0.15.2
 pyyaml==6.0.3
 playwright
-pytest-homeassistant-custom-component==0.13.294
-pytest==8.4.2
+pytest-homeassistant-custom-component
+pytest
 pytest-cov==7.0.0
 pytest-asyncio==1.2.0
 codecov
 aiohttp>=3.13.2
 urllib3>=2.6.2
-webrtc-models==0.3.0
 aiodns==3.6.1
 pycares==4.11.0

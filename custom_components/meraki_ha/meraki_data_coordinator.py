@@ -2,20 +2,19 @@
 
 import logging
 from datetime import datetime, timedelta
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.core import HomeAssistant
 from homeassistant.helpers import device_registry as dr
+
+if TYPE_CHECKING:
+    from homeassistant.core import HomeAssistant
 from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
 from .const import (
-    CONF_IGNORED_NETWORKS,
-    CONF_MERAKI_API_KEY,
-    CONF_MERAKI_ORG_ID,
+    CONF_ENABLED_NETWORKS,
     CONF_SCAN_INTERVAL,
-    DEFAULT_IGNORED_NETWORKS,
     DEFAULT_SCAN_INTERVAL,
     DOMAIN,
 )
@@ -25,12 +24,14 @@ from .types import MerakiDevice, MerakiNetwork
 _LOGGER = logging.getLogger(__name__)
 
 
-class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
+class MerakiDataCoordinator(DataUpdateCoordinator[dict[str, Any]]):
     """A centralized coordinator for Meraki API data."""
 
     def __init__(
         self,
-        hass: HomeAssistant,
+        hass: "HomeAssistant",
+        api_client: ApiClient,
+        scan_interval: int,
         entry: ConfigEntry,
     ) -> None:
         """
@@ -42,13 +43,7 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             entry: The config entry.
 
         """
-        self.api = ApiClient(
-            hass=hass,
-            api_key=entry.data[CONF_MERAKI_API_KEY],
-            org_id=entry.data[CONF_MERAKI_ORG_ID],
-            coordinator=self,
-        )
-        self.config_entry = entry
+        self.api = api_client
         self.devices_by_serial: dict[str, MerakiDevice] = {}
         self.networks_by_id: dict[str, MerakiNetwork] = {}
         self.ssids_by_network_and_number: dict[tuple[str, int], dict[str, Any]] = {}
@@ -74,7 +69,7 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             update_interval=timedelta(seconds=scan_interval),
         )
 
-    def register_pending_update(
+    def register_update_pending(
         self,
         unique_id: str,
         expiry_seconds: int = 150,
@@ -99,9 +94,9 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             expiry_time,
         )
 
-    def is_pending(self, unique_id: str) -> bool:
+    def is_update_pending(self, unique_id: str) -> bool:
         """
-        Check if an entity is in a pending (cooldown) state.
+        Check if an entity update is in a pending (cooldown) state.
 
         Args:
         ----
@@ -128,9 +123,43 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         _LOGGER.debug("Update for %s is still pending (on cooldown)", unique_id)
         return True
 
-    def _filter_ignored_networks(self, data: dict[str, Any]) -> None:
+    def is_pending(self, unique_id: str) -> bool:
         """
-        Filter out networks that the user has chosen to ignore.
+        Check if an entity update is in a pending (cooldown) state.
+
+        Args:
+        ----
+            unique_id: The unique ID of the entity.
+
+        Returns
+        -------
+            True if the entity is in a pending state, False otherwise.
+
+        """
+        return self.is_update_pending(unique_id)
+
+    def register_pending(
+        self,
+        unique_id: str,
+        expiry_seconds: int = 150,
+    ) -> None:
+        """
+        Register a pending update to ignore coordinator data.
+
+        This prevents overwriting an optimistic state with stale data from the
+        Meraki API, which can have a significant provisioning delay.
+
+        Args:
+        ----
+            unique_id: The unique ID of the entity.
+            expiry_seconds: The duration of the cooldown period.
+
+        """
+        self.register_update_pending(unique_id, expiry_seconds)
+
+    def _filter_enabled_networks(self, data: dict[str, Any]) -> None:
+        """
+        Filter out networks that the user has chosen to disable.
 
         Args:
         ----
@@ -140,17 +169,92 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         if not self.config_entry or not hasattr(self.config_entry, "options"):
             _LOGGER.debug(
                 "Config entry or options not available, "
-                "cannot filter ignored networks.",
+                "cannot filter enabled networks.",
             )
             return
-        ignored_network_ids = self.config_entry.options.get(
-            CONF_IGNORED_NETWORKS,
-            DEFAULT_IGNORED_NETWORKS,
+        enabled_network_ids = self.config_entry.options.get(
+            CONF_ENABLED_NETWORKS,
         )
-        if ignored_network_ids and "networks" in data:
-            data["networks"] = [
-                n for n in data["networks"] if n.get("id") not in ignored_network_ids
+
+        # If the option is not set, all networks are enabled by default.
+        if enabled_network_ids is None:
+            enabled_network_ids = [
+                n["id"] for n in data.get("networks", []) if "id" in n
             ]
+
+        if "networks" in data:
+            for network in data["networks"]:
+                network["is_enabled"] = network.get("id") in enabled_network_ids
+
+            # Filter devices and SSIDs to only include those from enabled networks
+            if "devices" in data:
+                data["devices"] = [
+                    d
+                    for d in data["devices"]
+                    if d.get("networkId") in enabled_network_ids
+                ]
+            if "ssids" in data:
+                data["ssids"] = [
+                    s
+                    for s in data["ssids"]
+                    if s.get("networkId") in enabled_network_ids
+                ]
+
+    async def _async_remove_disabled_devices(self, data: dict[str, Any]) -> None:
+        """
+        Remove devices and entities from disabled networks.
+
+        Args:
+        ----
+            data: The data dictionary containing the latest device information.
+
+        """
+        if not self.config_entry:
+            return
+
+        dev_reg = dr.async_get(self.hass)
+        ent_reg = er.async_get(self.hass)
+
+        # Get identifiers for all devices associated with this config entry
+        device_ids_in_registry = {
+            list(device.identifiers)[0][1]
+            for device in dev_reg.devices.values()
+            if self.config_entry.entry_id in device.config_entries
+        }
+
+        # Build a set of all valid identifiers from the latest coordinator data
+        latest_valid_identifiers: set[str] = {
+            device["serial"] for device in data.get("devices", [])
+        }
+        for ssid in data.get("ssids", []):
+            network_id = ssid.get("networkId")
+            ssid_number = ssid.get("number")
+            if network_id and ssid_number is not None:
+                latest_valid_identifiers.add(f"{network_id}_{ssid_number}")
+
+        # Add network identifiers
+        for network in data.get("networks", []):
+            if network.get("is_enabled"):
+                latest_valid_identifiers.add(f"network_{network['id']}")
+
+        # Add VLAN identifiers
+        for network_id, vlans in data.get("vlans", {}).items():
+            if isinstance(vlans, list):
+                for vlan in vlans:
+                    if "id" in vlan:
+                        latest_valid_identifiers.add(f"vlan_{network_id}_{vlan['id']}")
+
+        # Determine which device identifiers to remove
+        device_ids_to_remove = device_ids_in_registry - latest_valid_identifiers
+
+        for device_id in device_ids_to_remove:
+            device = dev_reg.async_get_device(identifiers={(DOMAIN, device_id)})
+            if device:
+                _LOGGER.debug("Removing device %s and its entities.", device_id)
+                entities = er.async_entries_for_device(ent_reg, device.id)
+                for entity in entities:
+                    ent_reg.async_remove(entity.entity_id)
+                dev_reg.async_remove_device(device.id)
 
     def _populate_device_entities(self, data: dict[str, Any]) -> None:
         """
@@ -179,10 +283,28 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                     ha_device.id,
                 )
                 if entities_for_device:
-                    # For simplicity, link to the first entity found.
-                    # A more robust solution might involve identifying a "primary"
-                    # entity.
-                    device["entity_id"] = entities_for_device[0].entity_id
+                    # Prioritize more representative entities
+                    primary_entity = None
+                    for entity in entities_for_device:
+                        if entity.platform in ["switch", "camera", "binary_sensor"]:
+                            primary_entity = entity
+                            break
+                    if primary_entity:
+                        device["entity_id"] = primary_entity.entity_id
+                    else:
+                        device["entity_id"] = entities_for_device[0].entity_id
+
+                    # Add list of entities to device data for frontend
+                    device["entities"] = []
+                    for entity in entities_for_device:
+                        state_obj = self.hass.states.get(entity.entity_id)
+                        device["entities"].append(
+                            {
+                                "name": entity.name or entity.original_name,
+                                "entity_id": entity.entity_id,
+                                "state": state_obj.state if state_obj else "unknown",
+                            }
+                        )
 
     async def _async_update_data(self) -> dict[str, Any]:
         """Fetch data from API endpoint and apply filters."""
@@ -192,7 +314,26 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 _LOGGER.warning("API call to get_all_data returned no data.")
                 raise UpdateFailed("API call returned no data.")
 
-            self._filter_ignored_networks(data)
+            self._filter_enabled_networks(data)
+            _LOGGER.debug("SSIDs after filtering: %s", data.get("ssids"))
+            await self._async_remove_disabled_devices(data)
+
+            # Process errors and update timers
+            for network_id, traffic_data in data.get("appliance_traffic", {}).items():
+                if (
+                    isinstance(traffic_data, dict)
+                    and traffic_data.get("error") == "disabled"
+                ):
+                    self.add_network_status_message(
+                        network_id, "Traffic Analysis is not enabled for this network."
+                    )
+                    self.mark_traffic_check_done(network_id)
+            for network_id, vlan_data in data.get("vlans", {}).items():
+                if isinstance(vlan_data, list) and not vlan_data:
+                    self.add_network_status_message(
+                        network_id, "VLANs are not enabled for this network."
+                    )
+                    self.mark_vlan_check_done(network_id)
 
             # Create lookup tables for efficient access in entities
             self.devices_by_serial = {
@@ -206,6 +347,17 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 for s in data.get("ssids", [])
                 if "networkId" in s and "number" in s
             }
+
+            # Add SSIDs to each network for easier access in the UI
+            all_ssids = data.get("ssids", [])
+            for network in data.get("networks", []):
+                network_id = network.get("id")
+                if network_id:
+                    network["ssids"] = [
+                        ssid
+                        for ssid in all_ssids
+                        if ssid.get("networkId") == network_id
+                    ]
 
             self._populate_device_entities(data)
 

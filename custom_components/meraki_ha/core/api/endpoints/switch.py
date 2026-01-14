@@ -32,7 +32,6 @@ class SwitchEndpoints:
 
         """
         self._api_client = api_client
-        self._dashboard = api_client.dashboard
 
     @handle_meraki_errors
     @async_timed_cache(timeout=60)
@@ -51,8 +50,11 @@ class SwitchEndpoints:
             A list of port statuses.
 
         """
+        if self._api_client.dashboard is None:
+            return []
         statuses = await self._api_client.run_sync(
-            self._dashboard.switch.getDeviceSwitchPortsStatuses, serial=serial
+            self._api_client.dashboard.switch.getDeviceSwitchPortsStatuses,
+            serial=serial,
         )
         validated = validate_response(statuses)
         if not isinstance(validated, list):
@@ -75,8 +77,10 @@ class SwitchEndpoints:
             A list of ports.
 
         """
+        if self._api_client.dashboard is None:
+            return []
         ports = await self._api_client.run_sync(
-            self._dashboard.switch.getDeviceSwitchPorts, serial=serial
+            self._api_client.dashboard.switch.getDeviceSwitchPorts, serial=serial
         )
         validated = validate_response(ports)
         if not isinstance(validated, list):

@@ -1,9 +1,20 @@
 import React, { useState } from 'react';
-import DeviceView from './DeviceView';
+import DeviceTable from './DeviceTable';
+import SSIDView from './SSIDView';
+
+// Define the types for our data
+interface SSID {
+  number: number;
+  name: string;
+  enabled: boolean;
+  networkId: string;
+}
 
 interface Network {
   id: string;
   name: string;
+  ssids: SSID[];
+  is_enabled: boolean;
 }
 
 interface Device {
@@ -22,9 +33,11 @@ interface NetworkViewProps {
     networks: Network[];
     devices: Device[];
   };
+  onToggle: (networkId: string, enabled: boolean) => void;
+  setActiveView: (view: { view: string; deviceId?: string }) => void;
 }
 
-const NetworkView: React.FC<NetworkViewProps> = ({ data }) => {
+const NetworkView: React.FC<NetworkViewProps> = ({ data, onToggle, setActiveView }) => {
   const [openNetworkId, setOpenNetworkId] = useState<string | null>(null);
 
   const handleNetworkClick = (networkId: string) => {
@@ -41,21 +54,64 @@ const NetworkView: React.FC<NetworkViewProps> = ({ data }) => {
     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
       {networks.map((network) => {
         const isOpen = openNetworkId === network.id;
+        const enabledSsids = network.ssids
+          ? network.ssids.filter((s) => s.enabled).length
+          : 0;
+        const totalSsids = network.ssids ? network.ssids.length : 0;
+
         return (
           <ha-card key={network.id}>
             <div
               className="card-header"
               onClick={() => handleNetworkClick(network.id)}
-              style={{ display: 'flex', alignItems: 'center', cursor: 'pointer', padding: '16px' }}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                cursor: 'pointer',
+                padding: '16px',
+              }}
             >
               <span>[Network] {network.name}</span>
-              <ha-icon style={{ marginLeft: '8px' }} icon={isOpen ? 'mdi:chevron-up' : 'mdi:chevron-down'}></ha-icon>
+              <ha-icon
+                style={{ marginLeft: '8px' }}
+                icon={isOpen ? 'mdi:chevron-up' : 'mdi:chevron-down'}
+              ></ha-icon>
+              <div
+                style={{
+                  marginLeft: 'auto',
+                  display: 'flex',
+                  alignItems: 'center',
+                }}
+              >
+                <span style={{ marginRight: '8px' }}>Track in</span>
+                <ha-icon
+                  icon="hass:home-assistant"
+                  style={{ color: 'var(--primary-color)', marginRight: '8px' }}
+                ></ha-icon>
+                <ha-switch
+                  checked={network.is_enabled}
+                  onchange={(e: any) => onToggle(network.id, e.target.checked)}
+                ></ha-switch>
+              </div>
             </div>
-            {isOpen && (
+            {isOpen && network.is_enabled && (
               <div className="card-content">
-                <DeviceView
+                <DeviceTable
                   devices={devices.filter((d) => d.networkId === network.id)}
+                  setActiveView={setActiveView}
                 />
+                {network.ssids && network.ssids.length > 0 && (
+                  <>
+                    <div
+                      className="hero-indicator"
+                      style={{ padding: '0 16px 16px' }}
+                    >
+                      <ha-icon icon="mdi:wifi"></ha-icon>
+                      {enabledSsids} / {totalSsids} SSIDs Enabled
+                    </div>
+                    <SSIDView ssids={network.ssids} />
+                  </>
+                )}
               </div>
             )}
           </ha-card>

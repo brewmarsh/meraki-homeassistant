@@ -1,34 +1,53 @@
 name: Deploy Latest Code to Local Folder on Linux Runner
 
+# This workflow will run on 'push' events to the specified branches.
 on:
   push:
     branches:
       - main
-      - beta
+      - beta # Trigger deployment on pushes/merges to the beta branch
 
 jobs:
   deploy-to-linux-folder:
+    # This job runs on the self-hosted runner.
     runs-on: self-hosted
 
+    # Define environment variables
     env:
+      # This is the path inside your runner container, mapping to the Host OS config.
       DESTINATION_PATH: '/ha_config/custom_components/meraki_ha'
 
     steps:
       - name: Checkout repository
+        # Checks out your repository code into $GITHUB_WORKSPACE.
         uses: actions/checkout@v5
 
       - name: Copy files to destination folder (rsync)
+        # Use 'bash' and 'sudo rsync' to bypass symlink and permission issues.
         shell: bash
         env:
           DEPLOY_PATH: ${{ env.DESTINATION_PATH }}
         run: |
+          # The source directory containing ONLY the component files (with trailing slash)
           SourceComponentDir="${GITHUB_WORKSPACE}/custom_components/meraki_ha/"
           DestinationPath="${DEPLOY_PATH}"
 
           echo "Starting deployment..."
+          echo "Source path: ${SourceComponentDir}"
+          echo "Destination path: ${DestinationPath}"
+
+          # 1. Create the destination directory if it doesn't exist
+          # Use sudo to elevate permissions for file system operations.
+          # The -p flag prevents an error if the directory already exists.
           sudo mkdir -p "${DestinationPath}"
 
-          # Preserving your specific rsync flags and excludes
+          # 2. Copy files using rsync for robustness
+          # rsync -ah --delete:
+          #   -a: archive mode (preserves permissions, timestamps, etc.)
+          #   -h: human-readable output
+          #   --delete: removes files from destination that aren't in source (ensures clean state)
+
+          # CRITICAL: Exclude development files/symlinks to avoid 'Operation not supported' errors.
           sudo rsync -rltpD --inplace --delete \
             --exclude '.git' \
             --exclude 'node_modules' \
@@ -39,81 +58,99 @@ jobs:
             "${SourceComponentDir}" "${DestinationPath}"
 
           echo "Successfully copied latest code to ${DestinationPath}."
+          echo "Deployment complete."
+
+      - name: Install jq
+        run: sudo apt-get update && sudo apt-get install -y jq
 
       - name: Restart Home Assistant
         shell: bash
         env:
           HA_URL: ${{ secrets.HA_URL }}
           HA_TOKEN: ${{ secrets.HA_TOKEN }}
-          # REPLACE with your actual phone entity name from HA
-          NOTIFY_SERVICE: 'mobile_app_your_phone_name'
         run: |
           echo "Attempting to restart Home Assistant..."
 
-          # 1. SANITIZE TOKEN
-          CLEAN_TOKEN=$(echo "$HA_TOKEN" | tr -d '\r\n ')
+          # Sanitize the Home Assistant token to remove any trailing newlines or whitespace.
+          CLEAN_HA_TOKEN=$(echo -n "$HA_TOKEN" | tr -d '\n\r')
 
-          # 2. Check Configuration
-          echo "Checking Home Assistant configuration..."
-          RAW_RESPONSE=$(curl -s -w "\n%{http_code}" -X POST \
-               -H "Authorization: Bearer $CLEAN_TOKEN" \
-               -H "Content-Type: application/json" \
-               "$HA_URL/api/config/core/check_config")
+          # Step 1a: Basic Connectivity Test
+          echo "Testing basic connectivity to Home Assistant..."
+          API_STATUS=$(curl -sSL -o /dev/null -w "%{http_code}" -X GET \
+              -H "Authorization: Bearer $CLEAN_HA_TOKEN" \
+              -H "Content-Type: application/json" \
+              "$HA_URL/api/")
 
-          HTTP_STATUS=$(echo "$RAW_RESPONSE" | tail -n1)
-          if [ "$HTTP_STATUS" -ne 200 ]; then
-            echo "FAILED: Home Assistant API returned HTTP $HTTP_STATUS"
-            echo "Response details: $(echo "$RAW_RESPONSE" | sed '$d')"
-            exit 1
-          fi
-
-          echo "Config check passed. Triggering restart..."
-
-          # 3. Trigger Restart with Fallback
-          RESTART_RESPONSE=$(curl -s -w "\n%{http_code}" -X POST \
-               -H "Authorization: Bearer $CLEAN_TOKEN" \
-               -H "Content-Type: application/json" \
-               --data-raw '{}' \
-               "$HA_URL/api/services/home_assistant/restart")
-
-          RESTART_STATUS=$(echo "$RESTART_RESPONSE" | tail -n1)
-
-          if [ "$RESTART_STATUS" -ne 200 ]; then
-             echo "Standard restart failed (HTTP $RESTART_STATUS). Trying Hassio host reboot..."
-             RESTART_RESPONSE=$(curl -s -w "\n%{http_code}" -X POST \
-               -H "Authorization: Bearer $CLEAN_TOKEN" \
-               -H "Content-Type: application/json" \
-               --data-raw '{}' \
-               "$HA_URL/api/services/hassio/host_reboot")
-             RESTART_STATUS=$(echo "$RESTART_RESPONSE" | tail -n1)
-          fi
-
-          if [ "$RESTART_STATUS" -ne 200 ] && [ "$RESTART_STATUS" -ne 201 ]; then
-            echo "FAILED to restart! HTTP $RESTART_STATUS"
-            exit 1
-          fi
-
-          # 4. Send Success Notification
-          curl -s -X POST -H "Authorization: Bearer $CLEAN_TOKEN" \
-               -H "Content-Type: application/json" \
-               -d "{\"title\": \"Meraki HA Deployed\", \"message\": \"Deploy finished and restart initiated.\"}" \
-               "$HA_URL/api/services/notify/$NOTIFY_SERVICE"
-
-          echo "Home Assistant is rebooting..."
-
-      - name: Post-Deploy Health Audit
-        shell: bash
-        env:
-          HA_URL: ${{ secrets.HA_URL }}
-          HA_TOKEN: ${{ secrets.HA_TOKEN }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          echo "Waiting 90s for system to stabilize and poll Meraki Dashboard..."
-          sleep 120
-
-          # This assumes Jules has built tools/auditor/audit.py per your issue prompt
-          if [ -f "tools/auditor/audit.py" ]; then
-            python3 tools/auditor/audit.py
+          if [[ "$API_STATUS" -ne 200 ]]; then
+              echo "Error: Could not connect to the Home Assistant API. HTTP status code: $API_STATUS."
+              echo "Please verify that the HA_URL secret is set correctly and that your Home Assistant instance is running."
+              echo "Attempted URL: $HA_URL/api/"
+              exit 1
           else
-            echo "Auditor script not found. Skipping health check."
+              echo "Connectivity test passed."
           fi
+
+          # Step 1b: Check Configuration
+          echo "Checking Home Assistant configuration..."
+          BODY_FILE=$(mktemp) # Create a temporary file to store the response body.
+
+          # Make the API call and capture the HTTP status code. Use -L to follow redirects.
+          HTTP_STATUS=$(curl -sSL -o "$BODY_FILE" -w "%{http_code}" -X POST \
+              -H "Authorization: Bearer $CLEAN_HA_TOKEN" \
+              -H "Content-Type: application/json" \
+              -d "{}" \
+              "$HA_URL/api/config/core/check_config")
+
+          RESPONSE_BODY=$(cat "$BODY_FILE")
+          rm "$BODY_FILE" # Clean up the temporary file.
+
+          # Check for non-2xx status codes (e.g., 404 Not Found, 401 Unauthorized).
+          if [[ "$HTTP_STATUS" -lt 200 || "$HTTP_STATUS" -ge 300 ]]; then
+              echo "Error: API call to check config failed with HTTP status code $HTTP_STATUS."
+              if [[ "$HTTP_STATUS" -eq 404 ]]; then
+                  echo "A 404 error here often means the 'config' integration is not enabled in your Home Assistant's configuration.yaml."
+              fi
+              echo "Please check that the HA_URL secret is correct and the server is reachable."
+              echo "URL: $HA_URL/api/config/core/check_config"
+              echo "Response: $RESPONSE_BODY"
+              exit 1
+          fi
+
+          # Verify that the successful response is valid JSON before trying to parse it.
+          if ! echo "$RESPONSE_BODY" | jq -e . > /dev/null 2>&1; then
+            echo "Error: The API response was not valid JSON. JQ parse failed."
+            echo "HTTP Status: $HTTP_STATUS"
+            echo "Received response:"
+            echo "$RESPONSE_BODY"
+            exit 1
+          fi
+
+          # Check if the configuration is valid
+          CONFIG_RESULT=$(echo "$RESPONSE_BODY" | jq -r '.result')
+          CONFIG_ERRORS=$(echo "$RESPONSE_BODY" | jq -r '.errors')
+
+          if [ "$CONFIG_RESULT" != "valid" ]; then
+            echo "Config check failed! Result: $CONFIG_RESULT"
+            echo "Errors:"
+            echo "$CONFIG_ERRORS"
+            exit 1 # Stop the pipeline
+          else
+            echo "Config check passed."
+          fi
+
+          # Step 1c: Trigger Restart
+          echo "Triggering Home Assistant restart..."
+          RESTART_STATUS=$(curl -sSL -o /dev/null -w "%{http_code}" -X POST \
+              -H "Authorization: Bearer $CLEAN_HA_TOKEN" \
+              -H "Content-Type: application/json" \
+              -d "{}" \
+              "$HA_URL/api/services/home_assistant/restart")
+
+          if [[ "$RESTART_STATUS" -lt 200 || "$RESTART_STATUS" -ge 300 ]]; then
+              echo "Error: API call to restart failed with HTTP status code $RESTART_STATUS."
+              exit 1
+          fi
+
+          echo "Home Assistant restart command sent. Waiting for it to come back online..."
+          # Add a sleep to allow Home Assistant to restart
+          sleep 60 # Wait for 60 seconds. Adjust as needed.

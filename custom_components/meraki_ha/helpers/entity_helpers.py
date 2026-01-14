@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from ..coordinator import MerakiDataUpdateCoordinator
+from ..meraki_data_coordinator import MerakiDataCoordinator
 
 
 def format_entity_name(
@@ -32,7 +32,7 @@ def format_entity_name(
 
 
 def get_device_from_coordinator(
-    coordinator: MerakiDataUpdateCoordinator,
+    coordinator: MerakiDataCoordinator,
     serial: str,
 ) -> dict[str, Any] | None:
     """

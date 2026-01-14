@@ -24,12 +24,15 @@ def auto_enable_custom_integrations(
 
 @pytest.fixture
 def mock_coordinator() -> MagicMock:
-    """Fixture for a mocked MerakiDataUpdateCoordinator."""
+    """Fixture for a mocked MerakiDataCoordinator."""
     coordinator = MagicMock()
     coordinator.config_entry.options = {}
     coordinator.data = MOCK_ALL_DATA
     coordinator.async_request_refresh = AsyncMock()
     coordinator.async_write_ha_state = MagicMock()
+    coordinator.is_update_pending = MagicMock(return_value=False)
+    coordinator.register_update_pending = MagicMock()
+    coordinator.async_request_refresh = AsyncMock()
     return coordinator
 
 
