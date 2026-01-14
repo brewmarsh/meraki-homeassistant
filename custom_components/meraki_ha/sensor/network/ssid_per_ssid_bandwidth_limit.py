@@ -5,7 +5,7 @@ from typing import Any
 from homeassistant.components.sensor import SensorEntityDescription, SensorStateClass
 from homeassistant.config_entries import ConfigEntry
 
-from ...meraki_data_coordinator import MerakiDataCoordinator
+from ...coordinator import MerakiDataUpdateCoordinator
 from .base import MerakiSSIDBaseSensor
 
 
@@ -21,7 +21,7 @@ class MerakiSSIDPerSsidBandwidthLimitSensor(MerakiSSIDBaseSensor):
 
     def __init__(
         self,
-        coordinator: MerakiDataCoordinator,
+        coordinator: MerakiDataUpdateCoordinator,
         config_entry: ConfigEntry,
         ssid_data: dict[str, Any],
         direction: str,

@@ -6,7 +6,7 @@ from typing import Any
 from homeassistant.components.switch import SwitchEntityDescription
 from homeassistant.helpers.typing import UNDEFINED
 
-from custom_components.meraki_ha.meraki_data_coordinator import MerakiDataCoordinator
+from custom_components.meraki_ha.coordinator import MerakiDataUpdateCoordinator
 
 from ..core.api.client import MerakiAPIClient
 from .camera_settings import MerakiCameraSettingSwitchBase
@@ -19,7 +19,7 @@ class MerakiCameraSenseSwitch(MerakiCameraSettingSwitchBase):
 
     def __init__(
         self,
-        coordinator: MerakiDataCoordinator,
+        coordinator: MerakiDataUpdateCoordinator,
         meraki_client: MerakiAPIClient,
         device_data: dict[str, Any],
     ) -> None:
@@ -59,7 +59,7 @@ class MerakiCameraAudioDetectionSwitch(MerakiCameraSettingSwitchBase):
 
     def __init__(
         self,
-        coordinator: MerakiDataCoordinator,
+        coordinator: MerakiDataUpdateCoordinator,
         meraki_client: MerakiAPIClient,
         device_data: dict[str, Any],
     ) -> None:

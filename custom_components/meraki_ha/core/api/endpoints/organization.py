@@ -32,6 +32,7 @@ class OrganizationEndpoints:
 
         """
         self._api_client = api_client
+        self._dashboard = api_client.dashboard
 
     @handle_meraki_errors
     @async_timed_cache(timeout=3600)
@@ -44,10 +45,8 @@ class OrganizationEndpoints:
             The organization details.
 
         """
-        if self._api_client.dashboard is None:
-            return {}
         org = await self._api_client.run_sync(
-            self._api_client.dashboard.organizations.getOrganization,
+            self._dashboard.organizations.getOrganization,
             organizationId=self._api_client.organization_id,
         )
         validated = validate_response(org)
@@ -67,10 +66,8 @@ class OrganizationEndpoints:
             A list of networks.
 
         """
-        if self._api_client.dashboard is None:
-            return []
         networks = await self._api_client.run_sync(
-            self._api_client.dashboard.organizations.getOrganizationNetworks,
+            self._dashboard.organizations.getOrganizationNetworks,
             organizationId=self._api_client.organization_id,
         )
         validated = validate_response(networks)
@@ -90,10 +87,8 @@ class OrganizationEndpoints:
             A list of firmware upgrades.
 
         """
-        if self._api_client.dashboard is None:
-            return []
         upgrades = await self._api_client.run_sync(
-            self._api_client.dashboard.organizations.getOrganizationFirmwareUpgrades,
+            self._dashboard.organizations.getOrganizationFirmwareUpgrades,
             organizationId=self._api_client.organization_id,
         )
         validated = validate_response(upgrades)
@@ -113,10 +108,8 @@ class OrganizationEndpoints:
             A list of device statuses.
 
         """
-        if self._api_client.dashboard is None:
-            return []
         statuses = await self._api_client.run_sync(
-            self._api_client.dashboard.organizations.getOrganizationDeviceStatuses,
+            self._dashboard.organizations.getOrganizationDeviceStatuses,
             organizationId=self._api_client.organization_id,
         )
         validated = validate_response(statuses)
@@ -136,10 +129,8 @@ class OrganizationEndpoints:
             A list of device availabilities.
 
         """
-        if self._api_client.dashboard is None:
-            return []
         availabilities = await self._api_client.run_sync(
-            self._api_client.dashboard.organizations.getOrganizationDevicesAvailabilities,
+            self._dashboard.organizations.getOrganizationDevicesAvailabilities,
             organizationId=self._api_client.organization_id,
             total_pages="all",
         )
@@ -162,10 +153,8 @@ class OrganizationEndpoints:
             A list of devices.
 
         """
-        if self._api_client.dashboard is None:
-            return []
         devices = await self._api_client.run_sync(
-            self._api_client.dashboard.organizations.getOrganizationDevices,
+            self._dashboard.organizations.getOrganizationDevices,
             organizationId=self._api_client.organization_id,
         )
         validated = validate_response(devices)
@@ -185,10 +174,8 @@ class OrganizationEndpoints:
             A list of organizations.
 
         """
-        if self._api_client.dashboard is None:
-            return []
         orgs = await self._api_client.run_sync(
-            self._api_client.dashboard.organizations.getOrganizations
+            self._dashboard.organizations.getOrganizations
         )
         validated = validate_response(orgs)
         if not isinstance(validated, list):
