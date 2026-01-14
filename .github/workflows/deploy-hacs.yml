@@ -64,7 +64,7 @@ jobs:
 
       - name: Commit and push changes
         if: steps.increment.outputs.new_version != ''
-        uses: stefanzweifel/git-auto-commit-action@v5
+        uses: stefanzweifel/git-auto-commit-action@v7
         with:
           commit_message: 'chore(release): update version to ${{ steps.increment.outputs.new_version }}'
           file_pattern: 'custom_components/meraki_ha/manifest.json package.json pyproject.toml package-lock.json'
