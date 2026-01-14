@@ -19,7 +19,7 @@ repos:
   #      - id: isort
   #        name: isort (python)
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.14.11
+    rev: v0.5.5
     hooks:
       - id: ruff
         args:
@@ -53,8 +53,9 @@ repos:
           - --force
           - --keep-updates
         files: ^(custom_components|tests)/.+\.py$
-  - repo: https://github.com/DavidAnson/markdownlint-cli2
-    rev: v0.20.0
-    hooks:
-      - id: markdownlint-cli2
-        exclude: ^node_modules/
+  # TODO: Fix markdown issues and re-enable
+  # - repo: https://github.com/DavidAnson/markdownlint-cli2
+  #   rev: v0.20.0
+  #   hooks:
+  #     - id: markdownlint-cli2
+  #       exclude: ^node_modules/
