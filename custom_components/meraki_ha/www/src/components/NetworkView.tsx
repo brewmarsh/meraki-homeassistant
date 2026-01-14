@@ -1,13 +1,4 @@
 import React, { useState } from 'react';
-<<<<<<< HEAD
-<<<<<<< HEAD
-import DeviceView from './DeviceView';
-=======
-<<<<<<< HEAD
-import DeviceView from './DeviceView';
-=======
-=======
->>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
 import DeviceTable from './DeviceTable';
 import SSIDView from './SSIDView';
 
@@ -18,28 +9,12 @@ interface SSID {
   enabled: boolean;
   networkId: string;
 }
-<<<<<<< HEAD
->>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
->>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
-=======
->>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
 
 interface Network {
   id: string;
   name: string;
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
-=======
   ssids: SSID[];
   is_enabled: boolean;
->>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
->>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
-=======
-  ssids: SSID[];
-  is_enabled: boolean;
->>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
 }
 
 interface Device {
@@ -58,29 +33,11 @@ interface NetworkViewProps {
     networks: Network[];
     devices: Device[];
   };
-<<<<<<< HEAD
-<<<<<<< HEAD
-}
-
-const NetworkView: React.FC<NetworkViewProps> = ({ data }) => {
-=======
-<<<<<<< HEAD
-}
-
-const NetworkView: React.FC<NetworkViewProps> = ({ data }) => {
-=======
-=======
->>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
   onToggle: (networkId: string, enabled: boolean) => void;
   setActiveView: (view: { view: string; deviceId?: string }) => void;
 }
 
 const NetworkView: React.FC<NetworkViewProps> = ({ data, onToggle, setActiveView }) => {
-<<<<<<< HEAD
->>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
->>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
-=======
->>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
   const [openNetworkId, setOpenNetworkId] = useState<string | null>(null);
 
   const handleNetworkClick = (networkId: string) => {
@@ -97,64 +54,52 @@ const NetworkView: React.FC<NetworkViewProps> = ({ data, onToggle, setActiveView
     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
       {networks.map((network) => {
         const isOpen = openNetworkId === network.id;
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
-=======
-=======
->>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
         const enabledSsids = network.ssids
           ? network.ssids.filter((s) => s.enabled).length
           : 0;
         const totalSsids = network.ssids ? network.ssids.length : 0;
 
-<<<<<<< HEAD
->>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
->>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
-=======
->>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
         return (
           <ha-card key={network.id}>
             <div
               className="card-header"
               onClick={() => handleNetworkClick(network.id)}
-<<<<<<< HEAD
-<<<<<<< HEAD
-              style={{ display: 'flex', alignItems: 'center', cursor: 'pointer', padding: '16px' }}
-=======
-<<<<<<< HEAD
-              style={{ display: 'flex', alignItems: 'center', cursor: 'pointer', padding: '16px' }}
-            >
-              <span>[Network] {network.name}</span>
-              <ha-icon style={{ marginLeft: '8px' }} icon={isOpen ? 'mdi:chevron-up' : 'mdi:chevron-down'}></ha-icon>
-            </div>
-            {isOpen && (
-              <div className="card-content">
-                <DeviceView
-                  devices={devices.filter((d) => d.networkId === network.id)}
-                />
-=======
-=======
->>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
               style={{
                 display: 'flex',
                 alignItems: 'center',
                 cursor: 'pointer',
                 padding: '16px',
               }}
->>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
             >
               <span>[Network] {network.name}</span>
-              <ha-icon style={{ marginLeft: '8px' }} icon={isOpen ? 'mdi:chevron-up' : 'mdi:chevron-down'}></ha-icon>
+              <ha-icon
+                style={{ marginLeft: '8px' }}
+                icon={isOpen ? 'mdi:chevron-up' : 'mdi:chevron-down'}
+              ></ha-icon>
+              <div
+                style={{
+                  marginLeft: 'auto',
+                  display: 'flex',
+                  alignItems: 'center',
+                }}
+              >
+                <span style={{ marginRight: '8px' }}>Track in</span>
+                <ha-icon
+                  icon="hass:home-assistant"
+                  style={{ color: 'var(--primary-color)', marginRight: '8px' }}
+                ></ha-icon>
+                <ha-switch
+                  checked={network.is_enabled}
+                  onchange={(e: any) => onToggle(network.id, e.target.checked)}
+                ></ha-switch>
+              </div>
             </div>
-            {isOpen && (
+            {isOpen && network.is_enabled && (
               <div className="card-content">
-                <DeviceView
+                <DeviceTable
                   devices={devices.filter((d) => d.networkId === network.id)}
+                  setActiveView={setActiveView}
                 />
-<<<<<<< HEAD
-=======
                 {network.ssids && network.ssids.length > 0 && (
                   <>
                     <div
@@ -167,11 +112,6 @@ const NetworkView: React.FC<NetworkViewProps> = ({ data, onToggle, setActiveView
                     <SSIDView ssids={network.ssids} />
                   </>
                 )}
-<<<<<<< HEAD
->>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
->>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
-=======
->>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
               </div>
             )}
           </ha-card>

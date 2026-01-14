@@ -2,17 +2,7 @@
 
 from __future__ import annotations
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
-=======
 import asyncio
->>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
->>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
-=======
-import asyncio
->>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
 import logging
 
 from homeassistant.config_entries import ConfigEntry
@@ -46,15 +36,6 @@ async def async_setup_entry(
                     network,
                 )
             )
-<<<<<<< HEAD
-<<<<<<< HEAD
-        async_add_entities(select_entities)
-=======
-<<<<<<< HEAD
-        async_add_entities(select_entities)
-=======
-=======
->>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
 
         if select_entities:
             _LOGGER.debug("Adding %d select entities", len(select_entities))
@@ -64,8 +45,3 @@ async def async_setup_entry(
                 async_add_entities(chunk)
                 if len(select_entities) > chunk_size:
                     await asyncio.sleep(1)
-<<<<<<< HEAD
->>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
->>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
-=======
->>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)

@@ -1,18 +1,6 @@
 {
   "name": "meraki-homeassistant",
-<<<<<<< HEAD
-<<<<<<< HEAD
-  "version": "2.0.0",
-=======
-<<<<<<< HEAD
-  "version": "2.0.0",
-=======
   "version": "2.0.0-beta.69",
->>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
->>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
-=======
-  "version": "2.0.0-beta.69",
->>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
   "description": "Meraki Home Assistant Integration",
   "scripts": {
     "changelog": "conventional-changelog -p angular -i CHANGELOG.md -s",

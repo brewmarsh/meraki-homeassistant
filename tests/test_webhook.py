@@ -8,19 +8,7 @@ import pytest
 from homeassistant.core import HomeAssistant
 
 from custom_components.meraki_ha.const import DOMAIN
-<<<<<<< HEAD
-<<<<<<< HEAD
-from custom_components.meraki_ha.coordinator import MerakiDataUpdateCoordinator
-=======
-<<<<<<< HEAD
-from custom_components.meraki_ha.coordinator import MerakiDataUpdateCoordinator
-=======
 from custom_components.meraki_ha.meraki_data_coordinator import MerakiDataCoordinator
->>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
->>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
-=======
-from custom_components.meraki_ha.meraki_data_coordinator import MerakiDataCoordinator
->>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
 from custom_components.meraki_ha.webhook import async_handle_webhook
 
 
@@ -39,29 +27,11 @@ def mock_hass_with_webhook_data(hass: HomeAssistant) -> HomeAssistant:
 
     """
     config_entry = MagicMock()
-<<<<<<< HEAD
-<<<<<<< HEAD
-    coordinator = MerakiDataUpdateCoordinator(
-        hass,
-        config_entry,
-=======
-<<<<<<< HEAD
-    coordinator = MerakiDataUpdateCoordinator(
-        hass,
-        config_entry,
-=======
-=======
->>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
     coordinator = MerakiDataCoordinator(
         hass,
         api_client=MagicMock(),
         scan_interval=300,
         entry=config_entry,
-<<<<<<< HEAD
->>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
->>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
-=======
->>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
     )
     coordinator.data = {
         "devices": [{"serial": "Q234-ABCD-5678", "status": "online"}],

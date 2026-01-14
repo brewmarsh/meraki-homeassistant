@@ -44,19 +44,8 @@ class SensorEndpoints:
 
         """
         _LOGGER.debug("Sending command '%s' to sensor %s", operation, serial)
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
-=======
         if self._client.dashboard is None:
             return {}
->>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
->>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
-=======
-        if self._client.dashboard is None:
-            return {}
->>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
         return await self._client.run_sync(
             self._client.dashboard.sensor.createDeviceSensorCommand,
             serial=serial,
@@ -75,19 +64,8 @@ class SensorEndpoints:
 
         """
         _LOGGER.debug("Getting latest sensor readings for organization")
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
-=======
         if self._client.dashboard is None:
             return []
->>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
->>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
-=======
-        if self._client.dashboard is None:
-            return []
->>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
         return await self._client.run_sync(
             self._client.dashboard.sensor.getOrganizationSensorReadingsLatest,
             organizationId=self._client.organization_id,

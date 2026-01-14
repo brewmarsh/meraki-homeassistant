@@ -27,24 +27,12 @@ CONF_MERAKI_ORG_ID: Final = "meraki_org_id"
 CONF_SCAN_INTERVAL: Final = "scan_interval"
 """Configuration key for the scan interval in seconds."""
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
-=======
-=======
->>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
 CONF_ENABLE_WEB_UI: Final = "enable_web_ui"
 """Configuration key for enabling the web UI."""
 
 CONF_WEB_UI_PORT: Final = "web_ui_port"
 """Configuration key for the web UI port."""
 
-<<<<<<< HEAD
->>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
->>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
-=======
->>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
 DATA_CLIENT: Final = "client"
 """Key for storing the Meraki API client in Home Assistant's data."""
 
@@ -54,24 +42,12 @@ DATA_COORDINATOR: Final = "coordinator"
 DATA_COORDINATORS: Final = "coordinators"
 """Key for storing the dictionary of all coordinators."""
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
-=======
-=======
->>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
 CONF_IGNORED_NETWORKS: Final = "ignored_networks"
 """Configuration key for a list of network names to ignore."""
 
 CONF_HIDE_UNCONFIGURED_SSIDS: Final = "hide_unconfigured_ssids"
 """Configuration key for hiding unconfigured SSIDs."""
 
-<<<<<<< HEAD
->>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
->>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
-=======
->>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
 CONF_RTSP_STREAM_ENABLED: Final = "rtsp_stream_enabled"
 """Configuration key for enabling RTSP stream on a camera."""
 
@@ -79,66 +55,25 @@ CONF_ENABLE_DEVICE_TRACKER: Final = "enable_device_tracker"
 """Configuration key for enabling device tracker."""
 
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-CONF_IGNORED_NETWORKS: Final = "ignored_networks"
-"""Configuration key for a list of network names to ignore."""
-
-=======
-<<<<<<< HEAD
-CONF_IGNORED_NETWORKS: Final = "ignored_networks"
-"""Configuration key for a list of network names to ignore."""
-
-=======
->>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
->>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
-=======
->>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
 CONF_ENABLE_VLAN_MANAGEMENT: Final = "enable_vlan_management"
 """Configuration key for enabling vlan management."""
 
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-DEFAULT_IGNORED_NETWORKS: Final = ""
-=======
-<<<<<<< HEAD
-DEFAULT_IGNORED_NETWORKS: Final = ""
-=======
-=======
->>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
 CONF_ENABLED_NETWORKS: Final = "enabled_networks"
 """Configuration key for a list of network IDs to enable."""
 
 DEFAULT_ENABLED_NETWORKS: Final[list[str]] = []
-<<<<<<< HEAD
->>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
->>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
-=======
->>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
 """Default value for the ignored networks list."""
 
 DEFAULT_ENABLE_VLAN_MANAGEMENT: Final = False
 """Default value for enabling vlan management."""
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
-=======
-=======
->>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
 DEFAULT_IGNORED_NETWORKS: Final = ""
 """Default value for the ignored networks list."""
 
 DEFAULT_HIDE_UNCONFIGURED_SSIDS: Final = False
 """Default value for hiding unconfigured SSIDs."""
 
-<<<<<<< HEAD
->>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
->>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
-=======
->>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
 DATA_SSID_DEVICES_COORDINATOR: Final = "ssid_devices"
 """Key for the SSID devices coordinator."""
 
@@ -148,24 +83,12 @@ MERAKI_API_CLIENT: Final = "meraki_api_client"
 DEFAULT_SCAN_INTERVAL: Final = 300
 """Default scan interval in seconds for the Meraki API data."""
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
-=======
-=======
->>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
 DEFAULT_ENABLE_WEB_UI: Final = False
 """Default value for enabling the web UI."""
 
 DEFAULT_WEB_UI_PORT: Final = 8080
 """Default scan interval in seconds for the Meraki API data."""
 
-<<<<<<< HEAD
->>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
->>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
-=======
->>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
 # Platform types
 PLATFORM_BINARY_SENSOR: Final = "binary_sensor"
 """Represents the binary_sensor platform."""

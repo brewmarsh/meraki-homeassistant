@@ -1,202 +1,163 @@
 """The Meraki Home Assistant integration."""
 
 import logging
-<<<<<<< HEAD
-<<<<<<< HEAD
-import random
-import string
-=======
-<<<<<<< HEAD
-import random
-import string
-
-from homeassistant.components import frontend as hass_frontend
-from homeassistant.config_entries import ConfigEntry
-from homeassistant.core import HomeAssistant
-from homeassistant.helpers import config_validation as cv
-from homeassistant.helpers.typing import ConfigType
-
-from .const import (
-    CONF_MERAKI_ORG_ID,
-    DOMAIN,
-    PLATFORMS,
-    WEBHOOK_ID_FORMAT,
-)
-from .coordinator import MerakiDataUpdateCoordinator
-from .core.repositories.camera_repository import CameraRepository
-from .core.repository import MerakiRepository
-from .frontend import async_register_frontend
-from .services.camera_service import CameraService
-from .services.device_control_service import DeviceControlService
-from .web_api import async_setup_api
-from .webhook import async_register_webhook
-
-_LOGGER = logging.getLogger(__name__)
-
-CONFIG_SCHEMA = cv.empty_config_schema(DOMAIN)
-
-
-async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
-    """
-    Set up the Meraki integration.
-
-    Args:
-        hass: The Home Assistant instance.
-        config: The configuration.
-
-    Returns
-    -------
-        Whether the setup was successful.
-
-    """
-    hass.data.setdefault(DOMAIN, {})
-    return True
-
-
-async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
-    """
-    Set up Meraki from a config entry.
-
-    Args:
-        hass: The Home Assistant instance.
-        entry: The config entry.
-
-    Returns
-    -------
-        Whether the setup was successful.
-
-    """
-    await async_register_frontend(hass, entry)
-    async_setup_api(hass)
-    coordinator = MerakiDataUpdateCoordinator(hass, entry)
-    await coordinator.async_config_entry_first_refresh()
-
-    repo = MerakiRepository(coordinator.api)
-    device_control_service = DeviceControlService(repo)
-    camera_repo = CameraRepository(coordinator.api, entry.data[CONF_MERAKI_ORG_ID])
-    camera_service = CameraService(camera_repo)
-
-    hass.data[DOMAIN][entry.entry_id] = {
-        "coordinator": coordinator,
-        "meraki_client": coordinator.api,
-        "device_control_service": device_control_service,
-        "camera_service": camera_service,
-    }
-
-    # Set up webhook
-    webhook_id = WEBHOOK_ID_FORMAT.format(entry_id=entry.entry_id)
-    hass.data[DOMAIN][entry.entry_id]["webhook_id"] = webhook_id
-    if not entry.data.get("webhook_secret"):
-        secret = "".join(random.choice(string.ascii_letters) for _ in range(32))
-        hass.config_entries.async_update_entry(
-            entry,
-            data={**entry.data, "webhook_secret": secret},
-        )
-    else:
-        secret = entry.data["webhook_secret"]
-
-    await async_register_webhook(hass, webhook_id, secret, coordinator.api, entry=entry)
-
-    await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
-
-=======
-=======
->>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
 import secrets
 from datetime import timedelta
->>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
 
-from homeassistant.components import frontend as hass_frontend
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers import config_validation as cv
-from homeassistant.helpers.typing import ConfigType
+from homeassistant.exceptions import ConfigEntryNotReady
 
 from .const import (
+    CONF_ENABLE_WEB_UI,
+    CONF_MERAKI_API_KEY,
     CONF_MERAKI_ORG_ID,
+    CONF_SCAN_INTERVAL,
+    CONF_WEB_UI_PORT,
+    DATA_CLIENT,
+    DEFAULT_ENABLE_WEB_UI,
+    DEFAULT_SCAN_INTERVAL,
+    DEFAULT_WEB_UI_PORT,
     DOMAIN,
     PLATFORMS,
-    WEBHOOK_ID_FORMAT,
 )
-from .coordinator import MerakiDataUpdateCoordinator
+from .core.api.client import MerakiAPIClient
 from .core.repositories.camera_repository import CameraRepository
 from .core.repository import MerakiRepository
-from .frontend import async_register_frontend
+from .discovery.service import DeviceDiscoveryService
+from .frontend import (
+    async_register_panel,
+    async_register_static_path,
+    async_unregister_frontend,
+)
+from .meraki_data_coordinator import MerakiDataCoordinator
 from .services.camera_service import CameraService
 from .services.device_control_service import DeviceControlService
+from .services.network_control_service import NetworkControlService
 from .web_api import async_setup_api
-from .webhook import async_register_webhook
+from .web_server import MerakiWebServer
+from .webhook import (
+    async_register_webhook,
+    async_unregister_webhook,
+    get_webhook_url,
+)
 
 _LOGGER = logging.getLogger(__name__)
 
-CONFIG_SCHEMA = cv.empty_config_schema(DOMAIN)
-
-
-async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
-    """
-    Set up the Meraki integration.
-
-    Args:
-        hass: The Home Assistant instance.
-        config: The configuration.
-
-    Returns
-    -------
-        Whether the setup was successful.
-
-    """
-    hass.data.setdefault(DOMAIN, {})
-    return True
-
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
-    """
-    Set up Meraki from a config entry.
+    """Set up Meraki from a config entry."""
+    hass.data.setdefault(DOMAIN, {})
+    entry_data = hass.data.setdefault(DOMAIN, {}).setdefault(entry.entry_id, {})
 
-    Args:
-        hass: The Home Assistant instance.
-        entry: The config entry.
+    try:
+        if DATA_CLIENT not in entry_data:
+            client = MerakiAPIClient(
+                hass,
+                api_key=entry.data[CONF_MERAKI_API_KEY],
+                org_id=entry.data[CONF_MERAKI_ORG_ID],
+            )
+            await client.async_setup()
+            entry_data[DATA_CLIENT] = client
+        api_client = entry_data[DATA_CLIENT]
+    except KeyError as err:
+        _LOGGER.error("Missing required configuration: %s", err)
+        return False
 
-    Returns
-    -------
-        Whether the setup was successful.
-
-    """
-    await async_register_frontend(hass, entry)
-    async_setup_api(hass)
-    coordinator = MerakiDataUpdateCoordinator(hass, entry)
-    await coordinator.async_config_entry_first_refresh()
-
-    repo = MerakiRepository(coordinator.api)
-    device_control_service = DeviceControlService(repo)
-    camera_repo = CameraRepository(coordinator.api, entry.data[CONF_MERAKI_ORG_ID])
-    camera_service = CameraService(camera_repo)
-
-    hass.data[DOMAIN][entry.entry_id] = {
-        "coordinator": coordinator,
-        "meraki_client": coordinator.api,
-        "device_control_service": device_control_service,
-        "camera_service": camera_service,
-    }
-
-    # Set up webhook
-    webhook_id = WEBHOOK_ID_FORMAT.format(entry_id=entry.entry_id)
-    hass.data[DOMAIN][entry.entry_id]["webhook_id"] = webhook_id
-    if not entry.data.get("webhook_secret"):
-        secret = "".join(random.choice(string.ascii_letters) for _ in range(32))
-        hass.config_entries.async_update_entry(
-            entry,
-            data={**entry.data, "webhook_secret": secret},
+    try:
+        scan_interval = int(
+            entry.options.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL)
         )
-    else:
-        secret = entry.data["webhook_secret"]
+        if scan_interval <= 0:
+            scan_interval = DEFAULT_SCAN_INTERVAL
+    except (ValueError, TypeError):
+        scan_interval = DEFAULT_SCAN_INTERVAL
 
-    await async_register_webhook(hass, webhook_id, secret, coordinator.api, entry=entry)
+    if "coordinator" not in entry_data:
+        entry_data["coordinator"] = MerakiDataCoordinator(
+            hass=hass,
+            api_client=api_client,
+            scan_interval=scan_interval,
+            entry=entry,
+        )
+        try:
+            await entry_data["coordinator"].async_config_entry_first_refresh()
+        except ConfigEntryNotReady:
+            raise
+    else:
+        entry_data["coordinator"].update_interval = timedelta(seconds=scan_interval)
+        await entry_data["coordinator"].async_refresh()
+    coordinator = entry_data["coordinator"]
+
+    if "meraki_repository" not in entry_data:
+        entry_data["meraki_repository"] = MerakiRepository(api_client)
+    meraki_repository = entry_data["meraki_repository"]
+
+    # Handle web server
+    web_ui_enabled = entry.options.get(CONF_ENABLE_WEB_UI, DEFAULT_ENABLE_WEB_UI)
+    web_server = entry_data.get("web_server")
+    if web_ui_enabled:
+        if not web_server:
+            port = entry.options.get(CONF_WEB_UI_PORT, DEFAULT_WEB_UI_PORT)
+            server = MerakiWebServer(hass, coordinator, port)
+            await server.start()
+            entry_data["web_server"] = server
+        else:
+            # Check if port changed
+            new_port = entry.options.get(CONF_WEB_UI_PORT, DEFAULT_WEB_UI_PORT)
+            if web_server.port != new_port:
+                await web_server.stop()
+                server = MerakiWebServer(hass, coordinator, new_port)
+                await server.start()
+                entry_data["web_server"] = server
+    elif web_server:
+        # Web UI was disabled
+        await web_server.stop()
+        entry_data.pop("web_server", None)
+
+    # Initialize repositories and services for the new architecture
+    if "control_service" not in entry_data:
+        entry_data["control_service"] = DeviceControlService(meraki_repository)
+    control_service = entry_data["control_service"]
+
+    if "camera_repository" not in entry_data:
+        entry_data["camera_repository"] = CameraRepository(
+            api_client, api_client.organization_id
+        )
+    camera_repository = entry_data["camera_repository"]
+
+    if "camera_service" not in entry_data:
+        entry_data["camera_service"] = CameraService(camera_repository)
+    camera_service = entry_data["camera_service"]
+
+    if "network_control_service" not in entry_data:
+        entry_data["network_control_service"] = NetworkControlService(
+            api_client, coordinator
+        )
+    network_control_service = entry_data["network_control_service"]
+
+    # New discovery service setup.
+    if "discovery_service" not in entry_data:
+        entry_data["discovery_service"] = DeviceDiscoveryService(
+            coordinator=coordinator,
+            config_entry=entry,
+            meraki_client=api_client,
+            camera_service=camera_service,
+            control_service=control_service,
+            network_control_service=network_control_service,
+        )
+    discovery_service = entry_data["discovery_service"]
+
+    discovered_entities = await discovery_service.discover_entities()
+    entry_data["entities"] = discovered_entities
+
+    # Register frontend panel
+    await async_register_static_path(hass)
+    await async_register_panel(hass, entry)
+    async_setup_api(hass)
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
-<<<<<<< HEAD
-=======
     if "webhook_id" not in entry.data:
         webhook_id = entry.entry_id
         secret = secrets.token_hex(16)
@@ -205,99 +166,36 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             entry, data={**entry.data, "webhook_id": webhook_id, "secret": secret}
         )
 
-<<<<<<< HEAD
->>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
->>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
-=======
->>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
     entry.async_on_unload(entry.add_update_listener(async_reload_entry))
 
     return True
 
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
-async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
-    """
-    Unload a Meraki config entry.
-
-    Args:
-        hass: The Home Assistant instance.
-        entry: The config entry.
-
-    Returns
-    -------
-        Whether the unload was successful.
-
-    """
-    hass_frontend.async_remove_panel(hass, "meraki")
-
-    unload_ok = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
-    if unload_ok:
-        hass.data[DOMAIN].pop(entry.entry_id)
-
-    return unload_ok
-
-
-async def async_reload_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
-    """
-    Reload Meraki config entry.
-
-    Args:
-        hass: The Home Assistant instance.
-        entry: The config entry.
-
-    """
-    await async_unload_entry(hass, entry)
-    await async_setup_entry(hass, entry)
-=======
-=======
->>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
 async def async_reload_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
     """Reload the config entry when it has changed."""
     await hass.config_entries.async_reload(entry.entry_id)
 
 
->>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
-    """
-    Unload a Meraki config entry.
+    """Unload a Meraki config entry."""
+    entry_data = hass.data[DOMAIN].get(entry.entry_id)
+    if entry_data:
+        if "webhook_id" in entry.data:
+            api_client = entry_data[DATA_CLIENT]
+            webhook_url = get_webhook_url(hass, entry.data["webhook_id"])
+            await async_unregister_webhook(hass, webhook_url, api_client)
 
-    Args:
-        hass: The Home Assistant instance.
-        entry: The config entry.
-
-    Returns
-    -------
-        Whether the unload was successful.
-
-    """
-    hass_frontend.async_remove_panel(hass, "meraki")
+        if "web_server" in entry_data:
+            server = entry_data["web_server"]
+            await server.stop()
+        async_unregister_frontend(hass)
 
     unload_ok = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
+
     if unload_ok:
-        hass.data[DOMAIN].pop(entry.entry_id)
+        if DOMAIN in hass.data:
+            hass.data[DOMAIN].pop(entry.entry_id, None)
+            if not hass.data[DOMAIN]:
+                hass.data.pop(DOMAIN)
 
     return unload_ok
-<<<<<<< HEAD
-<<<<<<< HEAD
-
-
-async def async_reload_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
-    """
-    Reload Meraki config entry.
-
-    Args:
-        hass: The Home Assistant instance.
-        entry: The config entry.
-
-    """
-    await async_unload_entry(hass, entry)
-    await async_setup_entry(hass, entry)
-=======
->>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
->>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
-=======
->>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)

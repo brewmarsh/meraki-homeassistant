@@ -2,57 +2,21 @@
   "config": {
     "step": {
       "user": {
-<<<<<<< HEAD
-<<<<<<< HEAD
-        "title": "Step 1 of 2: Meraki Credentials",
-=======
-<<<<<<< HEAD
-        "title": "Step 1 of 2: Meraki Credentials",
-=======
         "title": "Step 1 of 4: Meraki Credentials",
->>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
->>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
-=======
-        "title": "Step 1 of 4: Meraki Credentials",
->>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
         "description": "Enter your Meraki API Key and Organization ID.",
         "data": {
           "meraki_api_key": "Meraki API Key",
           "meraki_org_id": "Meraki Organization ID"
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
-        }
-      },
-      "init": {
-        "title": "Step 2 of 2: Configuration",
-        "description": "Set the configuration for the integration. These can be changed later from the options menu.",
-        "data": {
-          "scan_interval": "Update Interval",
-          "enable_device_tracker": "Enable Device Tracker",
-          "enable_vlan_management": "Enable VLAN Management",
-          "ignored_networks": "Ignored Networks"
-=======
-=======
->>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
         },
         "data_description": {
           "meraki_api_key": "Your personal API key for the Meraki Dashboard.",
           "meraki_org_id": "The ID of the Meraki Organization you want to add."
->>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
         }
       },
-      "init": {
-        "title": "Step 2 of 2: Configuration",
-        "description": "Set the configuration for the integration. These can be changed later from the options menu.",
+      "general": {
+        "title": "Step 2 of 4: General Settings",
+        "description": "Configure general settings for the Meraki integration.",
         "data": {
-<<<<<<< HEAD
-          "scan_interval": "Update Interval",
-          "enable_device_tracker": "Enable Device Tracker",
-          "enable_vlan_management": "Enable VLAN Management",
-          "ignored_networks": "Ignored Networks"
-=======
           "scan_interval": "Scan Interval (seconds)",
           "device_name_format": "Device Name Format"
         },
@@ -91,11 +55,6 @@
         "data_description": {
           "webhook_url": "The publicly accessible URL for Meraki webhooks. Leave empty to use Home Assistant's cloud link.",
           "ignored_networks": "A comma-separated list of network IDs to ignore."
-<<<<<<< HEAD
->>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
->>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
-=======
->>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
         }
       }
     },
@@ -113,35 +72,6 @@
   "options": {
     "step": {
       "init": {
-<<<<<<< HEAD
-<<<<<<< HEAD
-        "title": "Meraki Settings",
-        "description": "Configure the settings for the Meraki integration.",
-        "data": {
-          "scan_interval": "Update Interval",
-          "scan_interval_description": "How often to poll the Meraki API for updates, in seconds.",
-          "enable_device_tracker": "Enable Device Tracker",
-          "enable_device_tracker_description": "Track devices connected to your Meraki networks as Home Assistant entities.",
-          "enable_vlan_management": "Enable VLAN Management",
-          "enable_vlan_management_description": "Expose controls for managing VLAN settings on your networks.",
-          "ignored_networks": "Ignored Networks",
-          "ignored_networks_description": "A comma-separated list of network names to exclude from the integration."
-=======
-<<<<<<< HEAD
-        "title": "Meraki Settings",
-        "description": "Configure the settings for the Meraki integration.",
-        "data": {
-          "scan_interval": "Update Interval",
-          "scan_interval_description": "How often to poll the Meraki API for updates, in seconds.",
-          "enable_device_tracker": "Enable Device Tracker",
-          "enable_device_tracker_description": "Track devices connected to your Meraki networks as Home Assistant entities.",
-          "enable_vlan_management": "Enable VLAN Management",
-          "enable_vlan_management_description": "Expose controls for managing VLAN settings on your networks.",
-          "ignored_networks": "Ignored Networks",
-          "ignored_networks_description": "A comma-separated list of network names to exclude from the integration."
-=======
-=======
->>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
         "title": "Meraki Options",
         "description": "Step 1 of 3: General Settings",
         "data": {
@@ -183,11 +113,6 @@
         "data_description": {
           "webhook_url": "The publicly accessible URL for Meraki webhooks. Leave empty to use Home Assistant's cloud link.",
           "ignored_networks": "A comma-separated list of network IDs to ignore."
-<<<<<<< HEAD
->>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
->>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
-=======
->>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
         }
       }
     }
@@ -220,21 +145,9 @@
           "dormant": "Dormant",
           "unknown": "Unknown"
         }
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
-=======
       },
       "radio_settings": {
         "name": "Radio Settings"
->>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
->>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
-=======
-      },
-      "radio_settings": {
-        "name": "Radio Settings"
->>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
       }
     },
     "switch": {

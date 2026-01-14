@@ -17,19 +17,8 @@ from ..errors import (
     MerakiDeviceError,
     MerakiInformationalError,
     MerakiNetworkError,
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
-=======
     MerakiTrafficAnalysisError,
     MerakiVlansDisabledError,
->>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
->>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
-=======
-    MerakiTrafficAnalysisError,
-    MerakiVlansDisabledError,
->>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
 )
 
 # Type variable for generic function return type
@@ -72,21 +61,7 @@ def handle_meraki_errors(
                 return cast(T, [])
             return cast(T, {})
         except APIError as err:
-<<<<<<< HEAD
-<<<<<<< HEAD
-            if _is_informational_error(err):
-                raise MerakiInformationalError(f"Informational error: {err}") from err
-=======
-<<<<<<< HEAD
-            if _is_informational_error(err):
-                raise MerakiInformationalError(f"Informational error: {err}") from err
-=======
             _raise_if_informational_error(err)
->>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
->>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
-=======
-            _raise_if_informational_error(err)
->>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
 
             _LOGGER.error("Meraki API error: %s", err)
             if _is_auth_error(err):
@@ -158,29 +133,6 @@ def _is_network_error(err: APIError) -> bool:
     )
 
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-def _is_informational_error(err: APIError) -> bool:
-    """Check if error is informational (e.g., feature not enabled)."""
-    error_str = str(err).lower()
-    return (
-        "vlans are not enabled" in error_str
-        or "traffic analysis" in error_str
-        or "historical viewing is not supported" in error_str
-    )
-=======
-<<<<<<< HEAD
-def _is_informational_error(err: APIError) -> bool:
-    """Check if error is informational (e.g., feature not enabled)."""
-    error_str = str(err).lower()
-    return (
-        "vlans are not enabled" in error_str
-        or "traffic analysis" in error_str
-        or "historical viewing is not supported" in error_str
-    )
-=======
-=======
->>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
 def _raise_if_informational_error(err: APIError) -> None:
     """
     Check if an API error is informational and raise a specific exception.
@@ -201,11 +153,6 @@ def _raise_if_informational_error(err: APIError) -> None:
         raise MerakiTrafficAnalysisError(str(err)) from err
     if "historical viewing is not supported" in error_str:
         raise MerakiInformationalError(str(err)) from err
-<<<<<<< HEAD
->>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
->>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
-=======
->>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
 
 
 def validate_response(response: Any) -> dict[str, Any] | list[Any]:

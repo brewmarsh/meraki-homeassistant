@@ -8,36 +8,12 @@ from homeassistant.helpers import selector
 from .const import (
     CONF_ENABLE_DEVICE_TRACKER,
     CONF_ENABLE_VLAN_MANAGEMENT,
-<<<<<<< HEAD
-<<<<<<< HEAD
-    CONF_IGNORED_NETWORKS,
-=======
-<<<<<<< HEAD
-    CONF_IGNORED_NETWORKS,
-=======
     CONF_ENABLED_NETWORKS,
->>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
->>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
-=======
-    CONF_ENABLED_NETWORKS,
->>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
     CONF_MERAKI_API_KEY,
     CONF_MERAKI_ORG_ID,
     CONF_SCAN_INTERVAL,
     DEFAULT_ENABLE_VLAN_MANAGEMENT,
-<<<<<<< HEAD
-<<<<<<< HEAD
-    DEFAULT_IGNORED_NETWORKS,
-=======
-<<<<<<< HEAD
-    DEFAULT_IGNORED_NETWORKS,
-=======
     DEFAULT_ENABLED_NETWORKS,
->>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
->>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
-=======
-    DEFAULT_ENABLED_NETWORKS,
->>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
     DEFAULT_SCAN_INTERVAL,
 )
 
@@ -66,19 +42,7 @@ OPTIONS_SCHEMA = vol.Schema(
             CONF_ENABLE_VLAN_MANAGEMENT, default=DEFAULT_ENABLE_VLAN_MANAGEMENT
         ): selector.BooleanSelector(),
         vol.Optional(
-<<<<<<< HEAD
-<<<<<<< HEAD
-            CONF_IGNORED_NETWORKS, default=DEFAULT_IGNORED_NETWORKS
-=======
-<<<<<<< HEAD
-            CONF_IGNORED_NETWORKS, default=DEFAULT_IGNORED_NETWORKS
-=======
             CONF_ENABLED_NETWORKS, default=DEFAULT_ENABLED_NETWORKS
->>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
->>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
-=======
-            CONF_ENABLED_NETWORKS, default=DEFAULT_ENABLED_NETWORKS
->>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
         ): selector.SelectSelector(
             selector.SelectSelectorConfig(
                 options=[],

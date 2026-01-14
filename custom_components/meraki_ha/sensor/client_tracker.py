@@ -10,23 +10,8 @@ from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from ..const import DOMAIN
-<<<<<<< HEAD
-<<<<<<< HEAD
-from ..coordinator import MerakiDataUpdateCoordinator
-from ..core.utils.naming_utils import format_device_name
-=======
-<<<<<<< HEAD
-from ..coordinator import MerakiDataUpdateCoordinator
-from ..core.utils.naming_utils import format_device_name
-=======
 from ..core.utils.naming_utils import format_device_name
 from ..meraki_data_coordinator import MerakiDataCoordinator
->>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
->>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
-=======
-from ..core.utils.naming_utils import format_device_name
-from ..meraki_data_coordinator import MerakiDataCoordinator
->>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -44,19 +29,7 @@ class ClientTrackerDeviceSensor(CoordinatorEntity, SensorEntity):
     )
 
     def __init__(
-<<<<<<< HEAD
-<<<<<<< HEAD
-        self, coordinator: MerakiDataUpdateCoordinator, config_entry: ConfigEntry
-=======
-<<<<<<< HEAD
-        self, coordinator: MerakiDataUpdateCoordinator, config_entry: ConfigEntry
-=======
         self, coordinator: MerakiDataCoordinator, config_entry: ConfigEntry
->>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
->>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
-=======
-        self, coordinator: MerakiDataCoordinator, config_entry: ConfigEntry
->>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
     ) -> None:
         """Initialize the sensor."""
         super().__init__(coordinator)
@@ -102,19 +75,7 @@ class MerakiClientSensor(CoordinatorEntity, SensorEntity):
 
     def __init__(
         self,
-<<<<<<< HEAD
-<<<<<<< HEAD
-        coordinator: MerakiDataUpdateCoordinator,
-=======
-<<<<<<< HEAD
-        coordinator: MerakiDataUpdateCoordinator,
-=======
         coordinator: MerakiDataCoordinator,
->>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
->>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
-=======
-        coordinator: MerakiDataCoordinator,
->>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
         config_entry: ConfigEntry,
         client_data: dict[str, Any],
     ) -> None:

@@ -17,19 +17,7 @@ from custom_components.meraki_ha.sensor.org.org_clients import (
 
 @pytest.fixture
 def mock_coordinator() -> MagicMock:
-<<<<<<< HEAD
-<<<<<<< HEAD
-    """Fixture for a mocked MerakiDataUpdateCoordinator."""
-=======
-<<<<<<< HEAD
-    """Fixture for a mocked MerakiDataUpdateCoordinator."""
-=======
     """Fixture for a mocked MerakiDataCoordinator."""
->>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
->>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
-=======
-    """Fixture for a mocked MerakiDataCoordinator."""
->>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
     coordinator = MagicMock()
     coordinator.config_entry.options = {}
     coordinator.data = {
@@ -63,21 +51,7 @@ def test_org_device_naming(mock_coordinator: MagicMock) -> None:
 
     sensor = MerakiOrganizationSSIDClientsSensor(mock_coordinator, org_id, org_name)
     device_info = sensor.device_info
-<<<<<<< HEAD
-<<<<<<< HEAD
-    if device_info is None:
-        pytest.fail("Org sensor device_info is None")
-=======
-<<<<<<< HEAD
-    if device_info is None:
-        pytest.fail("Org sensor device_info is None")
-=======
     assert device_info is not None
->>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
->>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
-=======
-    assert device_info is not None
->>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
     assert device_info["name"] == "[Organization] Test Organization"
 
 
@@ -106,21 +80,7 @@ def test_network_device_naming(mock_coordinator: MagicMock) -> None:
         MagicMock(),
     )
     device_info = sensor.device_info
-<<<<<<< HEAD
-<<<<<<< HEAD
-    if device_info is None:
-        pytest.fail("Network sensor device_info is None")
-=======
-<<<<<<< HEAD
-    if device_info is None:
-        pytest.fail("Network sensor device_info is None")
-=======
     assert device_info is not None
->>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
->>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
-=======
-    assert device_info is not None
->>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
     assert device_info["name"] == "[Network] Test Network"
 
 
@@ -143,19 +103,5 @@ def test_vlan_device_naming(mock_coordinator: MagicMock) -> None:
         vlan_data,
     )
     device_info = sensor.device_info
-<<<<<<< HEAD
-<<<<<<< HEAD
-    if device_info is None:
-        pytest.fail("VLAN sensor device_info is None")
-=======
-<<<<<<< HEAD
-    if device_info is None:
-        pytest.fail("VLAN sensor device_info is None")
-=======
     assert device_info is not None
->>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
->>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
-=======
-    assert device_info is not None
->>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
     assert device_info["name"] == "[VLAN] Test VLAN"

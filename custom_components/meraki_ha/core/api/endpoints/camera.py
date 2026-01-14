@@ -32,42 +32,15 @@ class CameraEndpoints:
 
         """
         self._api_client = api_client
-<<<<<<< HEAD
-<<<<<<< HEAD
-        self._dashboard = api_client.dashboard
-=======
-<<<<<<< HEAD
-        self._dashboard = api_client.dashboard
-=======
->>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
->>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
-=======
->>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
 
     @handle_meraki_errors
     @async_timed_cache()
     async def get_camera_sense_settings(self, serial: str) -> dict[str, Any]:
         """Get sense settings for a specific camera."""
-<<<<<<< HEAD
-<<<<<<< HEAD
-        settings = await self._api_client.run_sync(
-            self._dashboard.camera.getDeviceCameraSense, serial=serial
-=======
-<<<<<<< HEAD
-        settings = await self._api_client.run_sync(
-            self._dashboard.camera.getDeviceCameraSense, serial=serial
-=======
-=======
->>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
         if self._api_client.dashboard is None:
             return {}
         settings = await self._api_client.run_sync(
             self._api_client.dashboard.camera.getDeviceCameraSense, serial=serial
-<<<<<<< HEAD
->>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
->>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
-=======
->>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
         )
         validated = validate_response(settings)
         if not isinstance(validated, dict):
@@ -79,27 +52,11 @@ class CameraEndpoints:
     @async_timed_cache()
     async def get_camera_video_settings(self, serial: str) -> dict[str, Any]:
         """Get video settings for a specific camera."""
-<<<<<<< HEAD
-<<<<<<< HEAD
-        settings = await self._api_client.run_sync(
-            self._dashboard.camera.getDeviceCameraVideoSettings, serial=serial
-=======
-<<<<<<< HEAD
-        settings = await self._api_client.run_sync(
-            self._dashboard.camera.getDeviceCameraVideoSettings, serial=serial
-=======
-=======
->>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
         if self._api_client.dashboard is None:
             return {}
         settings = await self._api_client.run_sync(
             self._api_client.dashboard.camera.getDeviceCameraVideoSettings,
             serial=serial,
-<<<<<<< HEAD
->>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
->>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
-=======
->>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
         )
         validated = validate_response(settings)
         if not isinstance(validated, dict):
@@ -111,26 +68,10 @@ class CameraEndpoints:
     @async_timed_cache(timeout=30)
     async def get_device_camera_video_link(self, serial: str) -> dict[str, Any]:
         """Get video link for a specific camera."""
-<<<<<<< HEAD
-<<<<<<< HEAD
-        link = await self._api_client.run_sync(
-            self._dashboard.camera.getDeviceCameraVideoLink, serial=serial
-=======
-<<<<<<< HEAD
-        link = await self._api_client.run_sync(
-            self._dashboard.camera.getDeviceCameraVideoLink, serial=serial
-=======
-=======
->>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
         if self._api_client.dashboard is None:
             return {}
         link = await self._api_client.run_sync(
             self._api_client.dashboard.camera.getDeviceCameraVideoLink, serial=serial
-<<<<<<< HEAD
->>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
->>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
-=======
->>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
         )
         validated = validate_response(link)
         if not isinstance(validated, dict):
@@ -143,26 +84,10 @@ class CameraEndpoints:
         self, serial: str, **kwargs
     ) -> dict[str, Any]:
         """Update video settings for a specific camera."""
-<<<<<<< HEAD
-<<<<<<< HEAD
-        result = await self._api_client.run_sync(
-            self._dashboard.camera.updateDeviceCameraVideoSettings,
-=======
-<<<<<<< HEAD
-        result = await self._api_client.run_sync(
-            self._dashboard.camera.updateDeviceCameraVideoSettings,
-=======
-=======
->>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
         if self._api_client.dashboard is None:
             return {}
         result = await self._api_client.run_sync(
             self._api_client.dashboard.camera.updateDeviceCameraVideoSettings,
-<<<<<<< HEAD
->>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
->>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
-=======
->>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
             serial=serial,
             **kwargs,
         )
@@ -177,26 +102,10 @@ class CameraEndpoints:
         self, serial: str, **kwargs
     ) -> dict[str, Any]:
         """Update sense settings for a specific camera."""
-<<<<<<< HEAD
-<<<<<<< HEAD
-        result = await self._api_client.run_sync(
-            self._dashboard.camera.updateDeviceCameraSense,
-=======
-<<<<<<< HEAD
-        result = await self._api_client.run_sync(
-            self._dashboard.camera.updateDeviceCameraSense,
-=======
-=======
->>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
         if self._api_client.dashboard is None:
             return {}
         result = await self._api_client.run_sync(
             self._api_client.dashboard.camera.updateDeviceCameraSense,
-<<<<<<< HEAD
->>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
->>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
-=======
->>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
             serial=serial,
             **kwargs,
         )
@@ -212,26 +121,10 @@ class CameraEndpoints:
         self, serial: str, object_type: str = "person"
     ) -> list[dict[str, Any]]:
         """Get recent analytics for a specific camera."""
-<<<<<<< HEAD
-<<<<<<< HEAD
-        recent = await self._api_client.run_sync(
-            self._dashboard.camera.getDeviceCameraAnalyticsRecent,
-=======
-<<<<<<< HEAD
-        recent = await self._api_client.run_sync(
-            self._dashboard.camera.getDeviceCameraAnalyticsRecent,
-=======
-=======
->>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
         if self._api_client.dashboard is None:
             return []
         recent = await self._api_client.run_sync(
             self._api_client.dashboard.camera.getDeviceCameraAnalyticsRecent,
-<<<<<<< HEAD
->>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
->>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
-=======
->>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
             serial=serial,
             objectType=object_type,
         )
@@ -247,26 +140,10 @@ class CameraEndpoints:
         self, serial: str
     ) -> list[dict[str, Any]]:
         """Get analytics zones for a specific camera."""
-<<<<<<< HEAD
-<<<<<<< HEAD
-        zones = await self._api_client.run_sync(
-            self._dashboard.camera.getDeviceCameraAnalyticsZones,
-=======
-<<<<<<< HEAD
-        zones = await self._api_client.run_sync(
-            self._dashboard.camera.getDeviceCameraAnalyticsZones,
-=======
-=======
->>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
         if self._api_client.dashboard is None:
             return []
         zones = await self._api_client.run_sync(
             self._api_client.dashboard.camera.getDeviceCameraAnalyticsZones,
-<<<<<<< HEAD
->>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
->>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
-=======
->>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
             serial=serial,
         )
         validated = validate_response(zones)
@@ -280,26 +157,10 @@ class CameraEndpoints:
         self, serial: str, **kwargs
     ) -> dict[str, Any]:
         """Generate a snapshot of what the camera sees."""
-<<<<<<< HEAD
-<<<<<<< HEAD
-        snapshot = await self._api_client.run_sync(
-            self._dashboard.camera.generateDeviceCameraSnapshot,
-=======
-<<<<<<< HEAD
-        snapshot = await self._api_client.run_sync(
-            self._dashboard.camera.generateDeviceCameraSnapshot,
-=======
-=======
->>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
         if self._api_client.dashboard is None:
             return {}
         snapshot = await self._api_client.run_sync(
             self._api_client.dashboard.camera.generateDeviceCameraSnapshot,
-<<<<<<< HEAD
->>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
->>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
-=======
->>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
             serial=serial,
             **kwargs,
         )

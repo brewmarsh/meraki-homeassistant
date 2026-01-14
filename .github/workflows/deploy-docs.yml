@@ -1,0 +1,28 @@
+name: Deploy Documentation
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:  # Add this section to grant write permission
+      contents: write  # This allows the action to write to the repository's contents
+
+    steps:
+      - uses: actions/setup-python@v6
+      - uses: actions/checkout@v5
+        with:
+          python-version: 3.x
+
+      - run: pip install -r requirements_dev.txt
+      - run: mkdocs build
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./site
+          publish_branch: gh-pages
+          force_orphan: true

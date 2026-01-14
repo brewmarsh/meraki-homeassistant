@@ -1,36 +1,4 @@
 {
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
->>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
-  "name": "Meraki HA Dev Container",
-  "image": "mcr.microsoft.com/devcontainers/python:3.13-bookworm",
-  "postCreateCommand": "pip install --upgrade pip && pip install -r requirements_dev.txt",
-  "customizations": {
-    "vscode": {
-      "extensions": [
-        "ms-python.python",
-        "ms-python.vscode-pylance",
-        "charliermarsh.ruff",
-        "kevinrose.vsc-python-test-adapter",
-        "github.vscode-pull-request-github"
-      ],
-      "settings": {
-        "python.testing.pytestArgs": ["tests"],
-        "python.testing.unittestEnabled": false,
-        "python.testing.pytestEnabled": true,
-        "python.analysis.extraPaths": ["custom_components"]
-      }
-    }
-  },
-  "remoteUser": "vscode"
-}
-<<<<<<< HEAD
-=======
-=======
-=======
->>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
 	"name": "Meraki HA Dev Container",
 	"image": "ghcr.io/home-assistant/devcontainer:stable",
 	"postCreateCommand": "pip install -r requirements_dev.txt",
@@ -43,10 +11,4 @@
 			]
 		}
 	}
-<<<<<<< HEAD
 }
->>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
->>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
-=======
-}
->>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)

@@ -21,19 +21,7 @@ from custom_components.meraki_ha.text.meraki_ssid_name import MerakiSSIDNameText
 
 @pytest.fixture
 def mock_coordinator_and_data() -> tuple[MagicMock, MagicMock, dict[str, Any]]:
-<<<<<<< HEAD
-<<<<<<< HEAD
-    """Fixture for a mocked MerakiDataUpdateCoordinator and basic data."""
-=======
-<<<<<<< HEAD
-    """Fixture for a mocked MerakiDataUpdateCoordinator and basic data."""
-=======
     """Fixture for a mocked MerakiDataCoordinator and basic data."""
->>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
->>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
-=======
-    """Fixture for a mocked MerakiDataCoordinator and basic data."""
->>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
     coordinator = MagicMock()
     coordinator.config_entry.options = {}
 
@@ -96,57 +84,19 @@ def test_ssid_device_unification(
 
     # Get the identifiers from each entity's DeviceInfo
     sensor_device_info = sensor.device_info
-<<<<<<< HEAD
-<<<<<<< HEAD
-    if sensor_device_info is None:
-        pytest.fail("Sensor device_info is None")
-=======
-<<<<<<< HEAD
-    if sensor_device_info is None:
-        pytest.fail("Sensor device_info is None")
-    sensor_identifiers = sensor_device_info["identifiers"]
-
-    detail_sensor_device_info = detail_sensor.device_info
-    if detail_sensor_device_info is None:
-        pytest.fail("Detail sensor device_info is None")
-    detail_sensor_identifiers = detail_sensor_device_info["identifiers"]
-
-    switch_device_info = switch.device_info
-    if switch_device_info is None:
-        pytest.fail("Switch device_info is None")
-    switch_identifiers = switch_device_info["identifiers"]
-
-    text_device_info = text.device_info
-    if text_device_info is None:
-        pytest.fail("Text device_info is None")
-=======
-=======
->>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
     assert sensor_device_info is not None
->>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
     sensor_identifiers = sensor_device_info["identifiers"]
 
     detail_sensor_device_info = detail_sensor.device_info
-    if detail_sensor_device_info is None:
-        pytest.fail("Detail sensor device_info is None")
+    assert detail_sensor_device_info is not None
     detail_sensor_identifiers = detail_sensor_device_info["identifiers"]
 
     switch_device_info = switch.device_info
-    if switch_device_info is None:
-        pytest.fail("Switch device_info is None")
+    assert switch_device_info is not None
     switch_identifiers = switch_device_info["identifiers"]
 
     text_device_info = text.device_info
-<<<<<<< HEAD
-    if text_device_info is None:
-        pytest.fail("Text device_info is None")
-=======
     assert text_device_info is not None
-<<<<<<< HEAD
->>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
->>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
-=======
->>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
     text_identifiers = text_device_info["identifiers"]
 
     # Assert that all entities share the exact same device identifier

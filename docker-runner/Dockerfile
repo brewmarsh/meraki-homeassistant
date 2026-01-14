@@ -1,17 +1,5 @@
 # Use a stable, minimal Ubuntu base
-<<<<<<< HEAD
-<<<<<<< HEAD
-FROM ubuntu:24.04
-=======
-<<<<<<< HEAD
-FROM ubuntu:24.04
-=======
 FROM ubuntu:22.04
->>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
->>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
-=======
-FROM ubuntu:22.04
->>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
 
 # Define the official runner version (Check GitHub releases for latest)
 ARG RUNNER_VERSION="2.329.0"

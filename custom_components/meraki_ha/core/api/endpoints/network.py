@@ -5,21 +5,9 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING, Any
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
-=======
 import meraki
 
 from custom_components.meraki_ha.core.errors import MerakiTrafficAnalysisError
->>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
->>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
-=======
-import meraki
-
-from custom_components.meraki_ha.core.errors import MerakiTrafficAnalysisError
->>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
 from custom_components.meraki_ha.core.utils.api_utils import (
     handle_meraki_errors,
     validate_response,
@@ -47,17 +35,6 @@ class NetworkEndpoints:
 
         """
         self._api_client = api_client
-<<<<<<< HEAD
-<<<<<<< HEAD
-        self._dashboard = api_client.dashboard
-=======
-<<<<<<< HEAD
-        self._dashboard = api_client.dashboard
-=======
->>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
->>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
-=======
->>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
 
     @handle_meraki_errors
     @async_timed_cache(timeout=60)
@@ -74,26 +51,10 @@ class NetworkEndpoints:
             A list of clients.
 
         """
-<<<<<<< HEAD
-<<<<<<< HEAD
-        clients = await self._api_client.run_sync(
-            self._dashboard.networks.getNetworkClients,
-=======
-<<<<<<< HEAD
-        clients = await self._api_client.run_sync(
-            self._dashboard.networks.getNetworkClients,
-=======
-=======
->>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
         if self._api_client.dashboard is None:
             return []
         clients = await self._api_client.run_sync(
             self._api_client.dashboard.networks.getNetworkClients,
-<<<<<<< HEAD
->>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
->>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
-=======
->>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
             networkId=network_id,
             total_pages="all",
         )
@@ -121,22 +82,6 @@ class NetworkEndpoints:
             A list of traffic data.
 
         """
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
->>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
-        traffic = await self._api_client.run_sync(
-            self._dashboard.networks.getNetworkTraffic,
-            networkId=network_id,
-            deviceType=device_type,
-            timespan=86400,  # 24 hours
-        )
-<<<<<<< HEAD
-=======
-=======
-=======
->>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
         if self._api_client.dashboard is None:
             return []
         try:
@@ -158,11 +103,6 @@ class NetworkEndpoints:
                     f"Traffic analysis not enabled for network {network_id}"
                 ) from e
             raise
-<<<<<<< HEAD
->>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
->>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
-=======
->>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
         validated = validate_response(traffic)
         if not isinstance(validated, list):
             _LOGGER.warning("get_network_traffic did not return a list.")
@@ -184,26 +124,10 @@ class NetworkEndpoints:
             A list of webhooks.
 
         """
-<<<<<<< HEAD
-<<<<<<< HEAD
-        webhooks = await self._api_client.run_sync(
-            self._dashboard.networks.getNetworkWebhooksHttpServers,
-=======
-<<<<<<< HEAD
-        webhooks = await self._api_client.run_sync(
-            self._dashboard.networks.getNetworkWebhooksHttpServers,
-=======
-=======
->>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
         if self._api_client.dashboard is None:
             return []
         webhooks = await self._api_client.run_sync(
             self._api_client.dashboard.networks.getNetworkWebhooksHttpServers,
-<<<<<<< HEAD
->>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
->>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
-=======
->>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
             networkId=network_id,
         )
         validated = validate_response(webhooks)
@@ -223,26 +147,10 @@ class NetworkEndpoints:
             webhook_id: The ID of the webhook.
 
         """
-<<<<<<< HEAD
-<<<<<<< HEAD
-        await self._api_client.run_sync(
-            self._dashboard.networks.deleteNetworkWebhooksHttpServer,
-=======
-<<<<<<< HEAD
-        await self._api_client.run_sync(
-            self._dashboard.networks.deleteNetworkWebhooksHttpServer,
-=======
-=======
->>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
         if self._api_client.dashboard is None:
             return
         await self._api_client.run_sync(
             self._api_client.dashboard.networks.deleteNetworkWebhooksHttpServer,
-<<<<<<< HEAD
->>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
->>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
-=======
->>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
             networkId=network_id,
             httpServerId=webhook_id,
         )
@@ -288,26 +196,10 @@ class NetworkEndpoints:
             if existing_webhook:
                 await self.delete_webhook(network_id, existing_webhook["id"])
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-            await self._api_client.run_sync(
-                self._dashboard.networks.createNetworkWebhooksHttpServer,
-=======
-<<<<<<< HEAD
-            await self._api_client.run_sync(
-                self._dashboard.networks.createNetworkWebhooksHttpServer,
-=======
-=======
->>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
             if self._api_client.dashboard is None:
                 return
             await self._api_client.run_sync(
                 self._api_client.dashboard.networks.createNetworkWebhooksHttpServer,
-<<<<<<< HEAD
->>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
->>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
-=======
->>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
                 networkId=network_id,
                 url=webhook_url,
                 sharedSecret=secret,
@@ -315,56 +207,17 @@ class NetworkEndpoints:
             )
 
     @handle_meraki_errors
-<<<<<<< HEAD
-<<<<<<< HEAD
-    async def unregister_webhook(self, webhook_id: str) -> None:
-=======
-<<<<<<< HEAD
-    async def unregister_webhook(self, webhook_id: str) -> None:
-=======
     async def unregister_webhook(self, webhook_url: str) -> None:
->>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
->>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
-=======
-    async def unregister_webhook(self, webhook_url: str) -> None:
->>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
         """
         Unregister a webhook with the Meraki API.
 
         Args:
         ----
-<<<<<<< HEAD
-<<<<<<< HEAD
-            webhook_id: The ID of the webhook.
-=======
-<<<<<<< HEAD
-            webhook_id: The ID of the webhook.
-=======
             webhook_url: The URL of the webhook to unregister.
->>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
->>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
-=======
-            webhook_url: The URL of the webhook to unregister.
->>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
 
         """
         networks = await self._api_client.organization.get_organization_networks()
         for network in networks:
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
->>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
-            await self._api_client.run_sync(
-                self._dashboard.networks.deleteNetworkWebhooksHttpServer,
-                networkId=network["id"],
-                httpServerId=webhook_id,
-            )
-<<<<<<< HEAD
-=======
-=======
-=======
->>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
             network_id = network["id"]
             webhook_to_delete = await self.find_webhook_by_url(network_id, webhook_url)
             if webhook_to_delete and "id" in webhook_to_delete:
@@ -374,11 +227,6 @@ class NetworkEndpoints:
                     network_id,
                 )
                 await self.delete_webhook(network_id, webhook_to_delete["id"])
-<<<<<<< HEAD
->>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
->>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
-=======
->>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
 
     @handle_meraki_errors
     @async_timed_cache(timeout=60)
@@ -398,26 +246,10 @@ class NetworkEndpoints:
             A list of analytics history.
 
         """
-<<<<<<< HEAD
-<<<<<<< HEAD
-        history = await self._api_client.run_sync(
-            self._dashboard.camera.getNetworkCameraAnalyticsRecent,
-=======
-<<<<<<< HEAD
-        history = await self._api_client.run_sync(
-            self._dashboard.camera.getNetworkCameraAnalyticsRecent,
-=======
-=======
->>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
         if self._api_client.dashboard is None:
             return []
         history = await self._api_client.run_sync(
             self._api_client.dashboard.camera.getNetworkCameraAnalyticsRecent,
-<<<<<<< HEAD
->>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
->>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
-=======
->>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
             networkId=network_id,
             objectType=object_type,
         )
@@ -428,13 +260,6 @@ class NetworkEndpoints:
             )
             return []
         return validated
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
-=======
-=======
->>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
 
     @handle_meraki_errors
     @async_timed_cache(timeout=300)
@@ -462,8 +287,3 @@ class NetworkEndpoints:
             _LOGGER.warning("get_network_group_policies did not return a list.")
             return []
         return validated
-<<<<<<< HEAD
->>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
->>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
-=======
->>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)

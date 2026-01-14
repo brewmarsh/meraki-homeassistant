@@ -9,19 +9,7 @@ from custom_components.meraki_ha.sensor.setup_mt_sensors import async_setup_mt_s
 
 @pytest.fixture
 def mock_coordinator_with_mt_devices(mock_coordinator: MagicMock) -> MagicMock:
-<<<<<<< HEAD
-<<<<<<< HEAD
-    """Fixture for a mocked MerakiDataUpdateCoordinator with MT sensor data."""
-=======
-<<<<<<< HEAD
-    """Fixture for a mocked MerakiDataUpdateCoordinator with MT sensor data."""
-=======
     """Fixture for a mocked MerakiDataCoordinator with MT sensor data."""
->>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
->>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
-=======
-    """Fixture for a mocked MerakiDataCoordinator with MT sensor data."""
->>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
     mock_coordinator.data = {
         "devices": [
             {

@@ -8,37 +8,14 @@ against the Meraki Dashboard API using the Meraki SDK.
 from __future__ import annotations
 
 import logging
-<<<<<<< HEAD
-<<<<<<< HEAD
-from typing import Any
-=======
-<<<<<<< HEAD
-from typing import Any
-
-from homeassistant.core import HomeAssistant
-from homeassistant.exceptions import ConfigEntryAuthFailed
-from meraki.exceptions import APIError as MerakiSDKAPIError
-
-=======
-=======
->>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
 from typing import TYPE_CHECKING, Any
->>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
 
-from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryAuthFailed
 from meraki.exceptions import APIError as MerakiSDKAPIError
 
-<<<<<<< HEAD
-=======
 if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
 
-<<<<<<< HEAD
->>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
->>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
-=======
->>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
 from .core.api.client import MerakiAPIClient
 from .core.errors import MerakiAuthenticationError, MerakiConnectionError
 
@@ -91,17 +68,7 @@ class MerakiAuthentication:
             api_key=self.api_key,
             org_id=self.organization_id,
         )
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
-=======
         await client.async_setup()
->>>>>>> 500a6a1 (Merge branch 'main' into test/config-flow-errors-4148457084909740722)
->>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
-=======
-        await client.async_setup()
->>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
 
         try:
             all_organizations: list[
