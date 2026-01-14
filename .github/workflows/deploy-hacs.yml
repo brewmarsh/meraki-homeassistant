@@ -34,7 +34,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install bump2version
+          pip install bump-my-version
           npm install
 
       - name: Increment Version
@@ -43,7 +43,7 @@ jobs:
           PR_TITLE: ${{ github.event.pull_request.title }}
         run: |
           if [[ "${{ github.base_ref }}" == "beta" ]]; then
-            bump2version --allow-dirty beta
+            bump-my-version bump beta --allow-dirty
           else
             increment_type="patch" # Default increment type
             if [[ "$PR_TITLE" == *"[major]"* ]]; then
@@ -51,7 +51,7 @@ jobs:
             elif [[ "$PR_TITLE" == *"[minor]"* ]]; then
               increment_type="minor"
             fi
-            bump2version --allow-dirty $increment_type
+            bump-my-version bump $increment_type --allow-dirty
           fi
           new_version=$(grep -oP '"version": "\K[^"]+' custom_components/meraki_ha/manifest.json)
           echo "new_version=$new_version" >> "$GITHUB_OUTPUT"
@@ -67,7 +67,7 @@ jobs:
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: 'chore(release): update version to ${{ steps.increment.outputs.new_version }}'
-          file_pattern: 'custom_components/meraki_ha/manifest.json package.json .bumpversion.cfg package-lock.json'
+          file_pattern: 'custom_components/meraki_ha/manifest.json package.json pyproject.toml package-lock.json'
           commit_user_name: 'github-actions[bot]'
           commit_user_email: 'github-actions[bot]@users.noreply.github.com'
           commit_author: 'github-actions[bot] <github-actions[bot]@users.noreply.github.com>'
