@@ -22,24 +22,6 @@ def auto_enable_custom_integrations(
     yield
 
 
-@pytest.fixture(autouse=True)
-def bypass_platform_setup() -> Generator[None, None, None]:
-    """Bypass platform setup to avoid hass_frontend dependency."""
-    import json
-    from unittest.mock import patch
-
-    original_loads = json.loads
-
-    def mock_loads(s, *args, **kwargs):
-        data = original_loads(s, *args, **kwargs)
-        if isinstance(data, dict) and data.get("domain") == "meraki_ha":
-            data["dependencies"] = []
-        return data
-
-    with patch("json.loads", side_effect=mock_loads):
-        yield
-
-
 @pytest.fixture
 def mock_coordinator() -> MagicMock:
 <<<<<<< HEAD
@@ -103,6 +85,7 @@ def prevent_socket_and_camera_load() -> Generator[None, None, None]:
         ),
         patch("turbojpeg.TurboJPEG", MagicMock()),
     ):
+<<<<<<< HEAD
         yield
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -112,3 +95,6 @@ def prevent_socket_and_camera_load() -> Generator[None, None, None]:
 >>>>>>> c0de2c1e (fix(config_flow): Resolve CI failures and rebase on beta)
 =======
 >>>>>>> 2aed98c0 (fix(config_flow): Resolve CI and HACS validation failures)
+=======
+        yield
+>>>>>>> 3856bba1 (feat(tests): Add config flow tests and resolve dependency issues)
