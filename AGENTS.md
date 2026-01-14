@@ -43,6 +43,12 @@ The format is: `type(scope): subject`
 - **`test:`**: Adding missing tests or correcting existing tests (e.g., `test: add unit test for new validation logic`).
 - **`chore:`**: Changes to the build process or auxiliary tools (e.g., `chore: add new linter to pre-commit hook`).
 
+## Pull Request Standards
+
+- **Issue Linking:** Every PR must link to its source issue.
+- **Format:** Always include "Fixes #<number>" in the PR title or the first line of the description.
+- **Base Branch:** All PRs should target the `beta` branch unless explicitly told otherwise.
+
 ---
 
 ## 3. Code Organization & Naming
@@ -129,4 +135,4 @@ This section serves as a repository for institutional knowledge and recurring fi
   - **Fix:** [Explanation of the solution]
   - **Reasoning:** [Why this fix works and what the root cause was]
 
-*(This section will be populated over time as we identify recurring issues.)*
+_(This section will be populated over time as we identify recurring issues.)_
