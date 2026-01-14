@@ -9,7 +9,7 @@ from custom_components.meraki_ha.sensor.setup_mt_sensors import async_setup_mt_s
 
 @pytest.fixture
 def mock_coordinator_with_mt_devices(mock_coordinator: MagicMock) -> MagicMock:
-    """Fixture for a mocked MerakiDataCoordinator with MT sensor data."""
+    """Fixture for a mocked MerakiDataUpdateCoordinator with MT sensor data."""
     mock_coordinator.data = {
         "devices": [
             {

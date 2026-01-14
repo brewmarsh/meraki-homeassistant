@@ -118,3 +118,15 @@ The format is: `type(scope): subject`
 - **Iterative Improvement:** If you encounter an issue (e.g., a security vulnerability, a bug, a confusing pattern), look for other instances of the same problem in the codebase and fix them all.
 - **Update Documentation:** As you make changes, ensure that `README.md` and `CONTRIBUTING.md` are updated to reflect the new state of the application.
 - **Update This File:** If you discover a new development technique, a useful debugging procedure, or a common pitfall, please update _this_ `AGENTS.md` file to help future agents.
+
+---
+
+## 7. Knowledge Base
+
+This section serves as a repository for institutional knowledge and recurring fixes. Before tackling an issue, review this section to see if a similar problem has been solved before.
+
+- **[Symptom/Problem]:** [Brief description of the issue]
+  - **Fix:** [Explanation of the solution]
+  - **Reasoning:** [Why this fix works and what the root cause was]
+
+*(This section will be populated over time as we identify recurring issues.)*

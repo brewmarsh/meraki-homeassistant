@@ -5,8 +5,7 @@ aiofiles==23.2.1
 yarl
 playwright
 pytest-homeassistant-custom-component
-aiohttp>=3.13.2
-urllib3>=2.6.2
-aiodns==3.6.1
 pycares==4.11.0
 filelock==3.20.3
+webrtc-models==0.3.0
+aiodns==3.6.1
