@@ -2,9 +2,12 @@
 
 from __future__ import annotations
 
+import json
 import logging
+from pathlib import Path
 from typing import Any
 
+import aiofiles
 from homeassistant.components import websocket_api
 from homeassistant.core import HomeAssistant
 from voluptuous import ALLOW_EXTRA, All, Required, Schema
@@ -63,7 +66,31 @@ def async_setup_api(hass: HomeAssistant) -> None:
             extra=ALLOW_EXTRA,
         ),
     )
+    websocket_api.async_register_command(
+        hass,
+        "meraki_ha/get_version",
+        handle_get_version,
+        Schema(
+            {
+                Required("type"): All(str, "meraki_ha/get_version"),
+            },
+            extra=ALLOW_EXTRA,
+        ),
+    )
 
+@websocket_api.async_response
+async def handle_get_version(
+    hass: HomeAssistant,
+    connection: websocket_api.ActiveConnection,
+    msg: dict[str, Any],
+) -> None:
+    """Handle get_version command."""
+    manifest_path = Path(__file__).parent / "manifest.json"
+    async with aiofiles.open(manifest_path, encoding="utf-8") as f:
+        manifest_data = await f.read()
+        manifest = json.loads(manifest_data)
+    version = manifest.get("version", "0.0.0")
+    connection.send_result(msg["id"], {"version": version})
 
 @websocket_api.async_response
 async def handle_get_config(
