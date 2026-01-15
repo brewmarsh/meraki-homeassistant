@@ -1,5 +1,6 @@
 {
   "chat.tools.terminal.autoApprove": {
-    "ruff": true
+    "ruff": true,
+    "git merge": true
   }
 }
