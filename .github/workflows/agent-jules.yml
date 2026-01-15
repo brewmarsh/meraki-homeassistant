@@ -28,7 +28,7 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           # Targeting: Hard-code beta as the base for all operations.
           base_branch: 'beta'
-          instructions_path: 'ROADMAP.md'
+          instructions_path: 'docs/internal/GITHUB_ARCHITECTURE.md'
           prompt: |
             When creating a Pull Request, you must always look for a related issue number in the task context.
             Include 'Fixes #<issue_number>' at the beginning of the PR title or in the first line of the PR description.
