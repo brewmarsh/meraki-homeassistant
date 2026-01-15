@@ -563,6 +563,47 @@ class MerakiAPIClient:
         initial_results = await self._async_fetch_initial_data()
         processed_initial_data = self._process_initial_data(initial_results)
 
+        # Post-process MT20 sensors to get the latest door reading
+        devices = processed_initial_data.get("devices")
+        if isinstance(devices, list):
+            mt20_serials = [
+                device["serial"]
+                for device in devices
+                if device.get("model", "").startswith("MT20")
+            ]
+            if mt20_serials:
+                door_readings_res = (
+                    await self.sensor.get_organization_door_sensor_readings_latest(
+                        mt20_serials,
+                    )
+                )
+                if isinstance(door_readings_res, list):
+                    door_readings_by_serial = {
+                        reading["serial"]: reading.get("readings", [])
+                        for reading in door_readings_res
+                        if "serial" in reading
+                    }
+
+                    for device in devices:
+                        serial = device.get("serial")
+                        if serial in door_readings_by_serial:
+                            # Ensure 'readings' key exists
+                            if "readings" not in device or not isinstance(
+                                device["readings"],
+                                list,
+                            ):
+                                device["readings"] = []
+
+                            # Remove old 'door' metric
+                            device["readings"] = [
+                                r
+                                for r in device["readings"]
+                                if r.get("metric") != "door"
+                            ]
+
+                            # Add new 'door' metric
+                            device["readings"].extend(door_readings_by_serial[serial])
+
         networks = processed_initial_data["networks"]
         devices = processed_initial_data["devices"]
 

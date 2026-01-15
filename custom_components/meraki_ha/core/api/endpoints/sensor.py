@@ -67,3 +67,24 @@ class SensorEndpoints:
             organizationId=self._client.organization_id,
             total_pages="all",
         )
+
+    async def get_organization_door_sensor_readings_latest(
+        self,
+        serials: list[str],
+    ) -> list[dict[str, Any]]:
+        """
+        Return the latest available reading for the door metric from each sensor.
+
+        Returns
+        -------
+            The response from the API.
+
+        """
+        _LOGGER.debug("Getting latest door sensor readings for organization")
+        return await self._client.run_sync(
+            self._client.dashboard.sensor.getOrganizationSensorReadingsLatest,
+            organizationId=self._client.organization_id,
+            serials=serials,
+            metrics=["door"],
+            total_pages="all",
+        )
