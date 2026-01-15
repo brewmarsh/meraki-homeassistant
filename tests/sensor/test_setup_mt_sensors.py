@@ -51,7 +51,15 @@ def mock_coordinator_with_mt_devices(mock_coordinator: MagicMock) -> MagicMock:
                 "model": "MT40",
                 "productType": "sensor",
                 "readings": [
-                    {"metric": "power", "power": {"draw": 120.5}},
+                    {"metric": "realPower", "realPower": {"draw": 120.5}},
+                    {
+                        "metric": "apparentPower",
+                        "apparentPower": {"draw": 125.0},
+                    },
+                    {
+                        "metric": "powerFactor",
+                        "powerFactor": {"percentage": 96.4},
+                    },
                     {"metric": "voltage", "voltage": {"level": 120.1}},
                     {"metric": "current", "current": {"draw": 1.0}},
                 ],
@@ -171,17 +179,33 @@ def test_async_setup_mt40_sensors(
     device_info = mock_coordinator_with_mt_devices.data["devices"][3]
     entities = async_setup_mt_sensors(mock_coordinator_with_mt_devices, device_info)
 
-    assert len(entities) == 3
+    assert len(entities) == 5
 
     sensors_by_key = {entity.entity_description.key: entity for entity in entities}
 
-    # Verify Power Sensor
-    power_sensor = sensors_by_key.get("power")
-    assert power_sensor is not None
-    assert power_sensor.unique_id == "mt40-1_power"
-    assert power_sensor.name == "MT40 Power Controller Power"
-    assert power_sensor.native_value == 120.5  # type: ignore[attr-defined]
-    assert power_sensor.available is True
+    # Verify Real Power Sensor
+    real_power_sensor = sensors_by_key.get("realPower")
+    assert real_power_sensor is not None
+    assert real_power_sensor.unique_id == "mt40-1_realPower"
+    assert real_power_sensor.name == "MT40 Power Controller Real Power"
+    assert real_power_sensor.native_value == 120.5  # type: ignore[attr-defined]
+    assert real_power_sensor.available is True
+
+    # Verify Apparent Power Sensor
+    apparent_power_sensor = sensors_by_key.get("apparentPower")
+    assert apparent_power_sensor is not None
+    assert apparent_power_sensor.unique_id == "mt40-1_apparentPower"
+    assert apparent_power_sensor.name == "MT40 Power Controller Apparent Power"
+    assert apparent_power_sensor.native_value == 125.0  # type: ignore[attr-defined]
+    assert apparent_power_sensor.available is True
+
+    # Verify Power Factor Sensor
+    power_factor_sensor = sensors_by_key.get("powerFactor")
+    assert power_factor_sensor is not None
+    assert power_factor_sensor.unique_id == "mt40-1_powerFactor"
+    assert power_factor_sensor.name == "MT40 Power Controller Power Factor"
+    assert power_factor_sensor.native_value == 96.4  # type: ignore[attr-defined]
+    assert power_factor_sensor.available is True
 
     # Verify Voltage Sensor
     voltage_sensor = sensors_by_key.get("voltage")

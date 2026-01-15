@@ -136,13 +136,32 @@ class MerakiAPIClient:
             A dictionary of initial data.
 
         """
+        # First, get the list of devices
+        devices = await self._run_with_semaphore(
+            self.organization.get_organization_devices(),
+        )
+
+        # Then, get sensor readings only for MT devices
+        mt_serials = [
+            d["serial"]
+            for d in devices
+            if d.get("model", "").startswith("MT") and "serial" in d
+        ]
+        sensor_metrics = [
+            "realPower",
+            "apparentPower",
+            "powerFactor",
+            "voltage",
+            "current",
+            "noise",
+            "battery",
+        ]
+
         tasks = {
             "networks": self._run_with_semaphore(
                 self.organization.get_organization_networks(),
             ),
-            "devices": self._run_with_semaphore(
-                self.organization.get_organization_devices(),
-            ),
+            "devices": asyncio.sleep(0, result=devices),  # Use the already fetched devices
             "devices_availabilities": self._run_with_semaphore(
                 self.organization.get_organization_devices_availabilities(),
             ),
@@ -150,7 +169,10 @@ class MerakiAPIClient:
                 self.appliance.get_organization_appliance_uplink_statuses(),
             ),
             "sensor_readings": self._run_with_semaphore(
-                self.sensor.get_organization_sensor_readings_latest(),
+                self.sensor.get_organization_sensor_readings_latest(
+                    serials=mt_serials,
+                    metrics=sensor_metrics,
+                ),
             ),
         }
         results = await asyncio.gather(*tasks.values(), return_exceptions=True)
@@ -231,8 +253,17 @@ class MerakiAPIClient:
         for device in devices:
             if availability := availabilities_by_serial.get(device["serial"]):
                 device["status"] = availability["status"]
-            if readings := readings_by_serial.get(device["serial"]):
-                device["readings"] = readings
+
+            # Merge new readings with existing ones to prevent "unavailable" state
+            if new_readings := readings_by_serial.get(device["serial"]):
+                if "readings" not in device:
+                    device["readings"] = []
+                existing_readings = {
+                    reading["metric"]: reading for reading in device["readings"]
+                }
+                for reading in new_readings:
+                    existing_readings[reading["metric"]] = reading
+                device["readings"] = list(existing_readings.values())
 
         return {
             "networks": networks,
