@@ -2,7 +2,11 @@ site_name: Meraki Home Assistant Integration
 theme:
   name: material # Use the Material for MkDocs theme
 nav:
-  - Home: index.md # The main page
-  - Configuration: configuration.md
-  - Entities: entities.md
-  - Troubleshooting: troubleshooting.md
+  - Home: README.md
+  - Setup: user/setup.md
+  - Components:
+    - SSIDs: user/ssids.md
+    - Wireless: user/wireless.md
+    - Switches: user/switches.md
+    - Cameras: user/cameras.md
+  - Troubleshooting: user/troubleshooting.md
