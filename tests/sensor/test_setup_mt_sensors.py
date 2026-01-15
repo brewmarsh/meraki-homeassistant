@@ -68,7 +68,7 @@ def test_async_setup_mt10_sensors(
     device_info = mock_coordinator_with_mt_devices.data["devices"][0]
     entities = async_setup_mt_sensors(mock_coordinator_with_mt_devices, device_info)
 
-    assert len(entities) == 2
+    assert len(entities) == 3
 
     sensors_by_key = {entity.entity_description.key: entity for entity in entities}
 
@@ -96,7 +96,7 @@ def test_async_setup_mt15_sensors(
     device_info = mock_coordinator_with_mt_devices.data["devices"][1]
     entities = async_setup_mt_sensors(mock_coordinator_with_mt_devices, device_info)
 
-    assert len(entities) == 6
+    assert len(entities) == 7
 
     sensors_by_key = {entity.entity_description.key: entity for entity in entities}
 
@@ -156,7 +156,7 @@ def test_async_setup_mt12_sensors(
     device_info = mock_coordinator_with_mt_devices.data["devices"][2]
     entities = async_setup_mt_sensors(mock_coordinator_with_mt_devices, device_info)
 
-    assert len(entities) == 1
+    assert len(entities) == 2
     water_sensor = entities[0]
     assert water_sensor.unique_id == "mt12-1_water"
     assert water_sensor.name == "MT12 Sensor Water Detection"
