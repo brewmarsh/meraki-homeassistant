@@ -12,4 +12,3 @@ node_modules/
 # Coverage
 .coverage
 coverage.xml
-site/

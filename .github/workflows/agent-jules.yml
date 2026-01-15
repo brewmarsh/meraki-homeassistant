@@ -18,6 +18,9 @@ jobs:
       pull-requests: write
 
     steps:
+      # Step 1: Plan and Execute
+      # The agent (Jules) first creates a plan, posts it as a comment,
+      # and then executes the plan by creating a branch and committing code.
       - name: Plan and Execute
         id: jules
         uses: google-labs-code/jules-invoke@main
@@ -25,12 +28,16 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           # Targeting: Hard-code beta as the base for all operations.
           base_branch: 'beta'
-          instructions_path: 'docs/internal/'
+          instructions_path: 'ROADMAP.md'
           prompt: |
             When creating a Pull Request, you must always look for a related issue number in the task context.
             Include 'Fixes #<issue_number>' at the beginning of the PR title or in the first line of the PR description.
             This ensures our project tracking stays synchronized.
 
+      # Step 2: Validation
+      # This step runs after the agent has committed code. It checks for
+      # code quality and syntax errors. If this step fails, the agent
+      # is expected to fix the issues in the next run (self-correction).
       - name: Checkout agent's branch
         if: success() && steps.jules.outputs.branch_name != ''
         uses: actions/checkout@v4
@@ -46,29 +53,14 @@ jobs:
 
       - name: Install dependencies
         if: success() && steps.jules.outputs.branch_name != ''
-        run: pip install -r requirements_dev.txt
+        # Using -q to reduce noise
+        run: pip -q install -r requirements_dev.txt
 
-      - name: Pre-flight Validation
-        id: preflight
+      - name: Validation
         if: success() && steps.jules.outputs.branch_name != ''
-        continue-on-error: true
         run: |
-          set -e
-          echo "Running pre-flight validation checks..."
+          echo "Running validation checks..."
+          # Specificity: Ignore all errors not related to the meraki_ha integration.
           ruff check custom_components/meraki_ha/
           python -m compileall -q custom_components/meraki_ha/
-          echo "Pre-flight validation passed."
-
-      - name: Handle Pre-flight Failure
-        if: steps.preflight.outcome == 'failure'
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          ISSUE_NUMBER: ${{ github.event.issue.number || github.event.pull_request.number }}
-          BRANCH_NAME: ${{ steps.jules.outputs.branch_name }}
-        run: |
-          gh issue comment $ISSUE_NUMBER --body "Jules-bot Pre-flight check failed on branch \`$BRANCH_NAME\`. I will close any associated PR and attempt to fix it on my next run."
-          PR_URL=$(gh pr list --head "$BRANCH_NAME" --json url -q '.[0].url' || echo "")
-          if [ -n "$PR_URL" ]; then
-            gh pr close "$PR_URL" --comment "Closing due to failed pre-flight checks. I will attempt to fix this."
-          fi
-          exit 1
+          echo "Validation checks passed."
