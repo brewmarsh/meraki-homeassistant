@@ -36,23 +36,32 @@ class NetworkEndpoints:
 
     @handle_meraki_errors
     @async_timed_cache(timeout=60)
-    async def get_network_clients(self, network_id: str) -> list[dict[str, Any]]:
+    async def get_network_clients(
+        self, network_id: str, timespan: int | None = None
+    ) -> list[dict[str, Any]]:
         """
         Get all clients in a network.
 
         Args:
         ----
             network_id: The ID of the network.
+            timespan: The timespan for which to query clients.
 
         Returns
         -------
             A list of clients.
 
         """
+        kwargs = {
+            "networkId": network_id,
+            "total_pages": "all",
+        }
+        if timespan:
+            kwargs["timespan"] = timespan
+
         clients = await self._api_client.run_sync(
             self._dashboard.networks.getNetworkClients,
-            networkId=network_id,
-            total_pages="all",
+            **kwargs,
         )
         validated = validate_response(clients)
         if not isinstance(validated, list):
