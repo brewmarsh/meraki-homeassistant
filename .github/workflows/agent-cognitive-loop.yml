@@ -1,0 +1,79 @@
+name: 'Agent: Cognitive Loop'
+
+on:
+  issues:
+    types: [labeled, commented]
+  pull_request:
+    types: [labeled]
+
+jobs:
+  cognitive-loop:
+    if: >
+      github.event.label.name == 'jules' ||
+      contains(github.event.comment.body, '@jules')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+
+    steps:
+      - name: Plan and Execute
+        id: jules
+        uses: google-labs-code/jules-invoke@main
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+<<<<<<< HEAD:.github/workflows/agent-cognitive-loop.yml
+          base_branch: ${{ github.event.pull_request.base.ref || 'beta' }}
+          instructions_path: 'ROADMAP.md'
+=======
+          # Targeting: Hard-code beta as the base for all operations.
+          base_branch: 'beta'
+          instructions_path: 'docs/internal/'
+>>>>>>> 76bb5e5 (Apply patch /tmp/4426fc88-95bd-4589-a70a-92adf53a2366.patch):.github/workflows/agent-jules.yml
+          prompt: |
+            When creating a Pull Request, you must always look for a related issue number in the task context.
+            Include 'Fixes #<issue_number>' at the beginning of the PR title or in the first line of the PR description.
+            This ensures our project tracking stays synchronized.
+
+      - name: Checkout agent's branch
+        if: success() && steps.jules.outputs.branch_name != ''
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.jules.outputs.branch_name }}
+
+      - name: Set up Python
+        if: success() && steps.jules.outputs.branch_name != ''
+        uses: actions/setup-python@v6
+        with:
+          python-version-file: '.python-version'
+          cache: 'pip'
+
+      - name: Install dependencies
+        if: success() && steps.jules.outputs.branch_name != ''
+        run: pip install -r requirements_dev.txt
+
+      - name: Pre-flight Validation
+        id: preflight
+        if: success() && steps.jules.outputs.branch_name != ''
+        continue-on-error: true
+        run: |
+          set -e
+          echo "Running pre-flight validation checks..."
+          ruff check custom_components/meraki_ha/
+          python -m compileall -q custom_components/meraki_ha/
+          echo "Pre-flight validation passed."
+
+      - name: Handle Pre-flight Failure
+        if: steps.preflight.outcome == 'failure'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ISSUE_NUMBER: ${{ github.event.issue.number || github.event.pull_request.number }}
+          BRANCH_NAME: ${{ steps.jules.outputs.branch_name }}
+        run: |
+          gh issue comment $ISSUE_NUMBER --body "Jules-bot Pre-flight check failed on branch \`$BRANCH_NAME\`. I will close any associated PR and attempt to fix it on my next run."
+          PR_URL=$(gh pr list --head "$BRANCH_NAME" --json url -q '.[0].url' || echo "")
+          if [ -n "$PR_URL" ]; then
+            gh pr close "$PR_URL" --comment "Closing due to failed pre-flight checks. I will attempt to fix this."
+          fi
+          exit 1
