@@ -3,6 +3,9 @@
 import logging
 import random
 import string
+import json
+from pathlib import Path
+import aiofiles
 
 from homeassistant.components import frontend as hass_frontend
 from homeassistant.config_entries import ConfigEntry
@@ -19,7 +22,6 @@ from .const import (
 from .coordinator import MerakiDataUpdateCoordinator
 from .core.repositories.camera_repository import CameraRepository
 from .core.repository import MerakiRepository
-from .frontend import async_register_frontend
 from .services.camera_service import CameraService
 from .services.device_control_service import DeviceControlService
 from .web_api import async_setup_api
@@ -60,7 +62,29 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         Whether the setup was successful.
 
     """
-    await async_register_frontend(hass, entry)
+    manifest_path = Path(__file__).parent / "manifest.json"
+    async with aiofiles.open(manifest_path, encoding="utf-8") as f:
+        manifest_data = await f.read()
+        manifest = json.loads(manifest_data)
+    version = manifest.get("version", "0.0.0")
+    module_url = f"/local/{DOMAIN}/meraki-panel.js?v={version}"
+    hass_frontend.async_register_built_in_panel(
+        hass,
+        component_name="custom",
+        sidebar_title=entry.title,
+        sidebar_icon="mdi:router-network",
+        frontend_url_path="meraki",
+        config={
+            "_panel_custom": {
+                "name": "meraki-panel",
+                "module_url": module_url,
+                "embed_iframe": False,
+                "trust_external_script": True,
+            },
+            "config_entry_id": entry.entry_id,
+        },
+        require_admin=True,
+    )
     async_setup_api(hass)
     coordinator = MerakiDataUpdateCoordinator(hass, entry)
     await coordinator.async_config_entry_first_refresh()
