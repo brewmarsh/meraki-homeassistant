@@ -3,7 +3,10 @@
 import logging
 from typing import Any
 
-from homeassistant.components.sensor import SensorEntity, SensorEntityDescription
+from homeassistant.components.sensor import (
+    RestoreSensor,
+    SensorEntityDescription,
+)
 from homeassistant.core import callback
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
@@ -15,7 +18,7 @@ from ...core.utils.naming_utils import format_device_name
 _LOGGER = logging.getLogger(__name__)
 
 
-class MerakiMtSensor(CoordinatorEntity, SensorEntity):
+class MerakiMtSensor(CoordinatorEntity, RestoreSensor):
     """Representation of a Meraki MT sensor."""
 
     def __init__(
@@ -31,6 +34,12 @@ class MerakiMtSensor(CoordinatorEntity, SensorEntity):
         self._attr_unique_id = f"{self._device['serial']}_{self.entity_description.key}"
         self._attr_name = f"{self._device['name']} {self.entity_description.name}"
 
+    async def async_added_to_hass(self) -> None:
+        """Restore last state."""
+        await super().async_added_to_hass()
+        if last_sensor_data := await self.async_get_last_sensor_data():
+            self._attr_native_value = last_sensor_data.native_value
+
     @property
     def device_info(self) -> DeviceInfo:
         """Return device information."""
@@ -43,21 +52,11 @@ class MerakiMtSensor(CoordinatorEntity, SensorEntity):
             manufacturer="Cisco Meraki",
         )
 
-    @callback
-    def _handle_coordinator_update(self) -> None:
-        """Handle updated data from the coordinator."""
-        for device in self.coordinator.data.get("devices", []):
-            if device["serial"] == self._device["serial"]:
-                self._device = device
-                self.async_write_ha_state()
-                return
-
-    @property
-    def native_value(self) -> float | bool | None:
-        """Return the state of the sensor."""
+    def _update_native_value(self) -> None:
+        """Update the native value of the sensor."""
         readings = self._device.get("readings")
         if not readings or not isinstance(readings, list):
-            return None
+            return
 
         for reading in readings:
             if reading.get("metric") == self.entity_description.key:
@@ -65,6 +64,7 @@ class MerakiMtSensor(CoordinatorEntity, SensorEntity):
                 if isinstance(metric_data, dict):
                     # Map metric to the key holding its value
                     key_map = {
+                        "battery": "percentage",
                         "temperature": "celsius",
                         "humidity": "relativePercentage",
                         "pm25": "concentration",
@@ -79,13 +79,30 @@ class MerakiMtSensor(CoordinatorEntity, SensorEntity):
                     value_key = key_map.get(self.entity_description.key)
                     if value_key:
                         if value_key == "ambient":
-                            return metric_data.get("ambient", {}).get("level")
-                        return metric_data.get(value_key)
-        return None
+                            self._attr_native_value = (
+                                metric_data.get("ambient", {}).get("level")
+                            )
+                        else:
+                            self._attr_native_value = metric_data.get(value_key)
+                        return
+
+    @callback
+    def _handle_coordinator_update(self) -> None:
+        """Handle updated data from the coordinator."""
+        for device in self.coordinator.data.get("devices", []):
+            if device["serial"] == self._device["serial"]:
+                self._device = device
+                self._update_native_value()
+                self.async_write_ha_state()
+                return
 
     @property
     def available(self) -> bool:
         """Return if the sensor is available."""
+        # A sensor is available if it has a value from the coordinator or a restored state
+        if self.native_value is not None:
+            return True
+
         # The sensor is available if there is a reading for its metric.
         # This prevents creating sensors for metrics that a device doesn't support.
         readings = self._device.get("readings")
