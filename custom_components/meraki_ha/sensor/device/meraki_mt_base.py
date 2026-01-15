@@ -3,7 +3,7 @@
 import logging
 from typing import Any
 
-from homeassistant.components.sensor import SensorEntity, SensorEntityDescription
+from homeassistant.components.sensor import RestoreSensor, SensorEntityDescription
 from homeassistant.core import callback
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
@@ -15,7 +15,7 @@ from ...core.utils.naming_utils import format_device_name
 _LOGGER = logging.getLogger(__name__)
 
 
-class MerakiMtSensor(CoordinatorEntity, SensorEntity):
+class MerakiMtSensor(CoordinatorEntity, RestoreSensor):
     """Representation of a Meraki MT sensor."""
 
     def __init__(
@@ -30,6 +30,13 @@ class MerakiMtSensor(CoordinatorEntity, SensorEntity):
         self.entity_description = entity_description
         self._attr_unique_id = f"{self._device['serial']}_{self.entity_description.key}"
         self._attr_name = f"{self._device['name']} {self.entity_description.name}"
+        self._attr_native_value = None
+
+    async def async_added_to_hass(self) -> None:
+        """Handle entity which provides state restoration."""
+        await super().async_added_to_hass()
+        if (last_sensor_data := await self.async_get_last_sensor_data()) is not None:
+            self._attr_native_value = last_sensor_data.native_value
 
     @property
     def device_info(self) -> DeviceInfo:
@@ -57,7 +64,7 @@ class MerakiMtSensor(CoordinatorEntity, SensorEntity):
         """Return the state of the sensor."""
         readings = self._device.get("readings")
         if not readings or not isinstance(readings, list):
-            return None
+            return self._attr_native_value
 
         for reading in readings:
             if reading.get("metric") == self.entity_description.key:
@@ -75,13 +82,18 @@ class MerakiMtSensor(CoordinatorEntity, SensorEntity):
                         "power": "draw",
                         "voltage": "level",
                         "current": "draw",
+                        "battery": "percentage",
                     }
                     value_key = key_map.get(self.entity_description.key)
                     if value_key:
                         if value_key == "ambient":
-                            return metric_data.get("ambient", {}).get("level")
-                        return metric_data.get(value_key)
-        return None
+                            self._attr_native_value = metric_data.get("ambient", {}).get(
+                                "level"
+                            )
+                        else:
+                            self._attr_native_value = metric_data.get(value_key)
+                        return self._attr_native_value
+        return self._attr_native_value
 
     @property
     def available(self) -> bool:
