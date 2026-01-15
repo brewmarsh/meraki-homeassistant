@@ -23,14 +23,9 @@ jobs:
         uses: google-labs-code/jules-invoke@main
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-<<<<<<< HEAD:.github/workflows/agent-cognitive-loop.yml
-          base_branch: ${{ github.event.pull_request.base.ref || 'beta' }}
-          instructions_path: 'ROADMAP.md'
-=======
           # Targeting: Hard-code beta as the base for all operations.
           base_branch: 'beta'
           instructions_path: 'docs/internal/'
->>>>>>> 76bb5e5 (Apply patch /tmp/4426fc88-95bd-4589-a70a-92adf53a2366.patch):.github/workflows/agent-jules.yml
           prompt: |
             When creating a Pull Request, you must always look for a related issue number in the task context.
             Include 'Fixes #<issue_number>' at the beginning of the PR title or in the first line of the PR description.
