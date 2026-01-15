@@ -12,12 +12,12 @@ Please explore the different sections to find the information you need:
 - **[Design](./design/README.md)**
   This section provides high-level design documents, explaining the overall architecture and outlining the design for specific features like the event log viewer and guest Wi-Fi management.
 
-- **[Architecture & Development](./architecture/README.md)**
+- **[Architecture & Development](./internal/architecture/README.md)**
   This section contains in-depth architectural documents, refactoring plans, and developer setup guides. It's the best place to find information about the codebase's structure, development environment, and plans for future improvements.
 
-- **[Testing](./testing/testing_plan.md)**
+- **[Testing](./internal/testing/TEST_SERVER.md)**
   This section contains the testing plan for the integration, outlining the strategy for ensuring code quality and reliability.
 
 ---
 
-For guidelines on how to contribute to this documentation, please see the [AGENTS.md](./AGENTS.md) file.
+For guidelines on how to contribute to this documentation, please see the [AGENTS.md](./internal/AGENTS.md) file.
