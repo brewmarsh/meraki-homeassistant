@@ -30,7 +30,9 @@ CONFIG_FLOW_SCHEMA = vol.Schema(
         vol.Required(CONF_MERAKI_API_KEY): selector.TextSelector(
             selector.TextSelectorConfig(type=selector.TextSelectorType.PASSWORD)
         ),
-        vol.Required(CONF_MERAKI_ORG_ID): selector.TextSelector(),
+        vol.Required(CONF_MERAKI_ORG_ID): selector.TextSelector(
+            selector.TextSelectorConfig(type=selector.TextSelectorType.TEXT)
+        ),
     }
 )
 
