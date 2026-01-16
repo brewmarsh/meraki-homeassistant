@@ -1,6 +1,4 @@
--c requirements.txt
--c requirements_dev.txt
--r requirements_all.txt
+-r requirements_dev.txt
 
 # Test-specific dependencies
 pytest-homeassistant-custom-component
