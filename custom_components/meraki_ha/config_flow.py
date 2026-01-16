@@ -10,7 +10,6 @@ from homeassistant import config_entries
 from homeassistant.config_entries import ConfigFlowResult
 from homeassistant.core import callback
 from homeassistant.data_entry_flow import AbortFlow
-from homeassistant.helpers import selector
 
 from .authentication import validate_meraki_credentials
 from .const import (
@@ -21,20 +20,9 @@ from .const import (
 )
 from .core.errors import MerakiAuthenticationError, MerakiConnectionError
 from .options_flow import MerakiOptionsFlowHandler
-from .schemas import OPTIONS_SCHEMA
+from .schemas import CONFIG_SCHEMA, OPTIONS_SCHEMA
 
 _LOGGER = logging.getLogger(__name__)
-
-CONFIG_FLOW_SCHEMA = vol.Schema(
-    {
-        vol.Required(CONF_MERAKI_API_KEY): selector.TextSelector(
-            selector.TextSelectorConfig(type=selector.TextSelectorType.PASSWORD)
-        ),
-        vol.Required(CONF_MERAKI_ORG_ID): selector.TextSelector(
-            selector.TextSelectorConfig(type=selector.TextSelectorType.TEXT)
-        ),
-    }
-)
 
 
 @config_entries.HANDLERS.register(DOMAIN)
@@ -98,7 +86,7 @@ class ConfigFlowHandler(config_entries.ConfigFlow):
 
         return self.async_show_form(
             step_id="user",
-            data_schema=CONFIG_FLOW_SCHEMA,
+            data_schema=CONFIG_SCHEMA,
             errors=errors,
         )
 

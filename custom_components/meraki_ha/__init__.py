@@ -61,18 +61,13 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         Whether the setup was successful.
 
     """
-    # Serve the custom panel
-    hass.http.async_register_static_paths(
-        [
-            StaticPathConfig(
-                f"/local/{DOMAIN}",
-                hass.config.path(f"custom_components/{DOMAIN}/www"),
-                cache_headers=False,
-            )
-        ]
+    # Modern, async-safe asset registration
+    path_to_www = Path(__file__).parent / "www"
+    await hass.http.async_register_static_paths(
+        [StaticPathConfig(f"/local/{DOMAIN}", str(path_to_www), False)]
     )
 
-    # Register the custom panel if not already registered
+    # Sidebar registration with a guard
     if "meraki" not in hass.data.get("frontend_panels", {}):
         hass_frontend.async_register_built_in_panel(
             hass,
@@ -86,16 +81,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
                     "module_url": f"/local/{DOMAIN}/meraki-panel.js",
                     "embed_iframe": False,
                     "trust_external_script": True,
-                },
-                "config_entry_id": entry.entry_id,
+                }
             },
             require_admin=True,
         )
-
-    path_to_www = str(Path(__file__).parent / "www")
-    await hass.http.async_register_static_paths(
-        [StaticPathConfig(f"/local/{DOMAIN}", path_to_www, False)]
-    )
 
     async_setup_api(hass)
     coordinator = MerakiDataUpdateCoordinator(hass, entry)

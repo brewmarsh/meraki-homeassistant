@@ -203,10 +203,34 @@ class OrganizationEndpoints:
         )
         validated = validate_response(statuses)
         if not isinstance(validated, list):
-            msg = (
-                "get_organization_wireless_ssids_statuses_by_device "
-                "did not return a list."
+            _LOGGER.warning(
+                "get_organization_wireless_ssids_statuses_by_device did not return a list."
             )
-            _LOGGER.warning(msg)
+            return []
+        return validated
+
+    @handle_meraki_errors
+    @async_timed_cache()
+    async def get_organization_wireless_ssids_statuses_by_device(
+        self,
+    ) -> list[dict[str, Any]]:
+        """
+        Get organization-wide wireless SSIDs statuses by device.
+
+        Returns
+        -------
+            A list of wireless SSIDs statuses.
+
+        """
+        statuses = await self._api_client.run_sync(
+            self._dashboard.organizations.getOrganizationWirelessSsidsStatusesByDevice,
+            organizationId=self._api_client.organization_id,
+            total_pages="all",
+        )
+        validated = validate_response(statuses)
+        if not isinstance(validated, list):
+            _LOGGER.warning(
+                "get_organization_wireless_ssids_statuses_by_device did not return a list."
+            )
             return []
         return validated

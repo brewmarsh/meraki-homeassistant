@@ -19,8 +19,10 @@ from .const import (
 
 CONFIG_SCHEMA = vol.Schema(
     {
-        vol.Required(CONF_MERAKI_API_KEY): str,
-        vol.Required(CONF_MERAKI_ORG_ID): str,
+        vol.Required(CONF_MERAKI_API_KEY): selector.TextSelector(
+            selector.TextSelectorConfig(type=selector.TextSelectorType.PASSWORD)
+        ),
+        vol.Required(CONF_MERAKI_ORG_ID): selector.TextSelector(),
     }
 )
 
@@ -39,10 +41,6 @@ OPTIONS_SCHEMA = vol.Schema(
         vol.Required(
             CONF_ENABLE_VLAN_MANAGEMENT, default=DEFAULT_ENABLE_VLAN_MANAGEMENT
         ): selector.BooleanSelector(),
-        vol.Optional(
-            CONF_IGNORED_NETWORKS, default=DEFAULT_IGNORED_NETWORKS
-        ): selector.SelectSelector(
-            selector.SelectSelectorConfig(options=[], custom_value=True, multiple=True)
-        ),
+        vol.Optional(CONF_IGNORED_NETWORKS, default=DEFAULT_IGNORED_NETWORKS): [str],
     }
 )

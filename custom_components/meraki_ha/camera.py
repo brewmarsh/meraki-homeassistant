@@ -13,7 +13,7 @@ from aiortc import (
     RTCSessionDescription,
 )
 from aiortc.contrib.media import MediaRelay
-from homeassistant.components.camera import Camera, CameraEntityFeature
+from homeassistant.components import Camera, CameraEntityFeature, camera
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
@@ -24,7 +24,6 @@ from .core.utils.naming_utils import format_device_name
 if TYPE_CHECKING:
     from homeassistant.components.camera.webrtc import (
         RTCIceCandidate,
-        WebRTCSendMessage,
     )
     from homeassistant.config_entries import ConfigEntry
     from homeassistant.core import HomeAssistant
@@ -195,7 +194,7 @@ class MerakiCamera(CoordinatorEntity, Camera):
         await self.coordinator.async_request_refresh()
 
     async def async_handle_async_webrtc_offer(
-        self, offer_sdp: str, session_id: str, send_message: WebRTCSendMessage
+        self, offer_sdp: str, session_id: str, send_message: camera.WebRTCSendMessage
     ) -> None:
         """Handle the async WebRTC offer."""
         _LOGGER.debug("Handling WebRTC offer for session_id: %s", session_id)
@@ -251,6 +250,6 @@ class MerakiCamera(CoordinatorEntity, Camera):
     def close_webrtc_session(self, session_id: str) -> None:
         """Close a WebRTC session."""
         _LOGGER.debug("Closing WebRTC session: %s", session_id)
-        pc = self._webrtc_sessions.pop(session_id, None)
+        pc = self._webrtc_sessions.pop(session_id)
         if pc:
             self.hass.async_create_task(pc.close())

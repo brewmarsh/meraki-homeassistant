@@ -144,7 +144,7 @@ jobs:
           RESTART_STATUS=$(curl -sSL -o "$RESTART_BODY_FILE" -w "%{http_code}" -X POST \
               -H "Authorization: Bearer $CLEAN_HA_TOKEN" \
               -H "Content-Type: application/json" \
-              -d '' \
+              -d '{}' \
               "$HA_URL/api/services/homeassistant/restart")
 
           RESTART_RESPONSE_BODY=$(cat "$RESTART_BODY_FILE")
