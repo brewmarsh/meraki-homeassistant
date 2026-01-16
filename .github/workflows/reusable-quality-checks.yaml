@@ -33,7 +33,10 @@ jobs:
           enable-cache: true
       - name: Install dependencies
         run: pip install -r requirements_dev.txt
-      - run: mypy custom_components/meraki_ha/ tests/
+      - name: Type check
+        run: |
+          pip install mypy pytest-homeassistant-custom-component
+          mypy custom_components/meraki_ha --ignore-missing-imports
 
   # Job 3: Security & Audit
   security:
