@@ -7,8 +7,6 @@ from typing import Any
 
 from ..coordinator import MerakiDataUpdateCoordinator
 from ..core.api.client import MerakiAPIClient
-from ..core.utils.naming_utils import format_device_name
-from ..helpers.entity_helpers import format_entity_name
 from .camera_settings import MerakiCameraSettingSwitchBase
 
 _LOGGER = logging.getLogger(__name__)

@@ -82,7 +82,6 @@ class MerakiMtSensor(CoordinatorEntity, RestoreSensor):
                         "power": "draw",
                         "voltage": "level",
                         "current": "draw",
-                        "battery": "percentage",
                     }
                     value_key = key_map.get(self.entity_description.key)
                     if value_key:
