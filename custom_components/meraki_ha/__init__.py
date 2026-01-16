@@ -66,24 +66,27 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     async with aiofiles.open(manifest_path, encoding="utf-8") as f:
         manifest_data = await f.read()
         manifest = json.loads(manifest_data)
-    # Correctly register the custom panel
-    hass_frontend.async_register_built_in_panel(
-        hass,
-        component_name="custom",
-        sidebar_title=entry.title,
-        sidebar_icon="mdi:router-network",
-        frontend_url_path="meraki",
-        config={
-            "_panel_custom": {
-                "name": "meraki-panel",
-                "module_url": f"/local/{DOMAIN}/meraki-panel.js",
-                "embed_iframe": False,
-                "trust_external_script": True,
+    # Register the custom panel if not already registered
+    panel_registered_key = f"{DOMAIN}_{entry.entry_id}_panel_registered"
+    if not hass.data.get(panel_registered_key):
+        hass_frontend.async_register_built_in_panel(
+            hass,
+            component_name="custom",
+            sidebar_title=entry.title,
+            sidebar_icon="mdi:router-network",
+            frontend_url_path="meraki",
+            config={
+                "_panel_custom": {
+                    "name": "meraki-panel",
+                    "module_url": f"/local/{DOMAIN}/meraki-panel.js",
+                    "embed_iframe": False,
+                    "trust_external_script": True,
+                },
+                "config_entry_id": entry.entry_id,
             },
-            "config_entry_id": entry.entry_id,
-        },
-        require_admin=True,
-    )
+            require_admin=True,
+        )
+        hass.data[panel_registered_key] = True
     async_setup_api(hass)
     coordinator = MerakiDataUpdateCoordinator(hass, entry)
     await coordinator.async_config_entry_first_refresh()
@@ -139,6 +142,10 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     unload_ok = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
     if unload_ok:
         hass.data[DOMAIN].pop(entry.entry_id)
+        # Clean up the panel registration flag
+        panel_registered_key = f"{DOMAIN}_{entry.entry_id}_panel_registered"
+        if panel_registered_key in hass.data:
+            hass.data.pop(panel_registered_key)
 
     return unload_ok
 
