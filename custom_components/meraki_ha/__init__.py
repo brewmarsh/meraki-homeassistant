@@ -3,11 +3,10 @@
 import logging
 import random
 import string
-import json
 from pathlib import Path
-import aiofiles
 
 from homeassistant.components import frontend as hass_frontend
+from homeassistant.components.http import StaticPathConfig
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import config_validation as cv
@@ -62,13 +61,14 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         Whether the setup was successful.
 
     """
-    manifest_path = Path(__file__).parent / "manifest.json"
-    async with aiofiles.open(manifest_path, encoding="utf-8") as f:
-        manifest_data = await f.read()
-        manifest = json.loads(manifest_data)
-    # Register the custom panel if not already registered
-    panel_registered_key = f"{DOMAIN}_{entry.entry_id}_panel_registered"
-    if not hass.data.get(panel_registered_key):
+    # Modern, async-safe asset registration
+    path_to_www = Path(__file__).parent / "www"
+    await hass.http.async_register_static_paths(
+        [StaticPathConfig(f"/local/{DOMAIN}", str(path_to_www), False)]
+    )
+
+    # Sidebar registration with a guard
+    if "meraki" not in hass.data.get("frontend_panels", {}):
         hass_frontend.async_register_built_in_panel(
             hass,
             component_name="custom",
@@ -81,12 +81,11 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
                     "module_url": f"/local/{DOMAIN}/meraki-panel.js",
                     "embed_iframe": False,
                     "trust_external_script": True,
-                },
-                "config_entry_id": entry.entry_id,
+                }
             },
             require_admin=True,
         )
-        hass.data[panel_registered_key] = True
+
     async_setup_api(hass)
     coordinator = MerakiDataUpdateCoordinator(hass, entry)
     await coordinator.async_config_entry_first_refresh()
@@ -142,10 +141,6 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     unload_ok = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
     if unload_ok:
         hass.data[DOMAIN].pop(entry.entry_id)
-        # Clean up the panel registration flag
-        panel_registered_key = f"{DOMAIN}_{entry.entry_id}_panel_registered"
-        if panel_registered_key in hass.data:
-            hass.data.pop(panel_registered_key)
 
     return unload_ok
 

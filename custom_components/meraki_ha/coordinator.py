@@ -185,26 +185,33 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                     device["entity_id"] = entities_for_device[0].entity_id
 
     async def _async_update_data(self) -> dict[str, Any]:
-        """Fetch data from API endpoint and apply filters."""
+        """
+        Fetch data from API endpoint, apply filters, and handle exceptions.
+        """
         try:
+            # Pass the last known successful data to the API client
             data = await self.api.get_all_data(self.last_successful_data)
+
             if not data:
                 _LOGGER.warning("API call to get_all_data returned no data.")
-                raise UpdateFailed("API call returned no data.")
+                # Return cached data to prevent entities from becoming unavailable
+                return self.last_successful_data
 
             self._filter_ignored_networks(data)
 
             # Create lookup tables for efficient access in entities
             self.devices_by_serial = {
-                d["serial"]: d for d in data.get("devices", []) if "serial" in d
+                d.get("serial"): d
+                for d in data.get("devices", [])
+                if d.get("serial")
             }
             self.networks_by_id = {
-                n["id"]: n for n in data.get("networks", []) if "id" in n
+                n.get("id"): n for n in data.get("networks", []) if n.get("id")
             }
             self.ssids_by_network_and_number = {
-                (s["networkId"], s["number"]): s
+                (s.get("networkId"), s.get("number")): s
                 for s in data.get("ssids", [])
-                if "networkId" in s and "number" in s
+                if s.get("networkId") and s.get("number") is not None
             }
 
             self._populate_device_entities(data)
@@ -212,18 +219,20 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             self.last_successful_update = datetime.now()
             self.last_successful_data = data
             return data
-        except Exception as err:
-            if self.last_successful_update and (
-                datetime.now() - self.last_successful_update
-            ) < timedelta(minutes=30):
-                _LOGGER.warning(
-                    "Failed to fetch new data, using stale data. Error: %s",
-                    err,
-                )
-                return self.data
 
+        except Exception as err:
+            _LOGGER.warning(
+                "Failed to fetch new data, using stale data. Error: %s",
+                err,
+            )
+            # Return the last successful data to maintain entity state
+            if self.last_successful_data:
+                return self.last_successful_data
+
+            # If there's no last successful data, re-raise the exception
+            # This will happen on the first run if it fails
             _LOGGER.error(
-                "Unexpected error fetching Meraki data: %s",
+                "Unexpected error fetching Meraki data for the first time: %s",
                 err,
                 exc_info=True,
             )

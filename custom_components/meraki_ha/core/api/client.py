@@ -194,6 +194,7 @@ class MerakiAPIClient:
         sensor_readings_res = results.get("sensor_readings")
         battery_readings_res = results.get("battery_readings")
 
+        # Defensive initialization and validation
         networks: list[MerakiNetwork] = (
             networks_res if isinstance(networks_res, list) else []
         )
@@ -233,38 +234,53 @@ class MerakiAPIClient:
         )
         if not isinstance(sensor_readings_res, list):
             _LOGGER.warning(
-                "Could not fetch Meraki sensor readings: %s", sensor_readings_res
+                "Could not fetch Meraki sensor readings: %s",
+                sensor_readings_res,
             )
 
+        battery_readings: list[dict[str, Any]] = (
+            battery_readings_res if isinstance(battery_readings_res, list) else []
+        )
+        # No warning for battery readings as it's an optional fetch
+
         availabilities_by_serial = {
-            availability["serial"]: availability
+            availability.get("serial"): availability
             for availability in devices_availabilities
-            if isinstance(availability, dict) and "serial" in availability
+            if isinstance(availability, dict) and availability.get("serial")
         }
 
         readings_by_serial = {
-            reading["serial"]: reading.get("readings", [])
+            reading.get("serial"): reading.get("readings", [])
             for reading in sensor_readings
-            if isinstance(reading, dict) and "serial" in reading
+            if isinstance(reading, dict) and reading.get("serial")
         }
 
         battery_readings_by_serial = {
-            reading["serial"]: reading.get("readings", [])
+            reading.get("serial"): reading.get("readings", [])
             for reading in battery_readings
-            if isinstance(reading, dict) and "serial" in reading
-        } if battery_readings_res and isinstance(battery_readings_res, list) else {}
+            if isinstance(reading, dict) and reading.get("serial")
+        }
 
         for device in devices:
-            if availability := availabilities_by_serial.get(device["serial"]):
-                device["status"] = availability["status"]
+            serial = device.get("serial")
+            if not serial:
+                continue
 
-            device_readings = readings_by_serial.get(device["serial"], [])
+            if availability := availabilities_by_serial.get(serial):
+                device["status"] = availability.get("status")
 
-            if battery_readings := battery_readings_by_serial.get(device["serial"]):
+            device_readings = readings_by_serial.get(serial, [])
+
+            if battery_device_readings := battery_readings_by_serial.get(serial):
                 # Merge battery readings, avoiding duplicates
-                existing_metrics = {r["metric"] for r in device_readings}
-                for reading in battery_readings:
-                    if reading["metric"] not in existing_metrics:
+                existing_metrics = {
+                    r.get("metric") for r in device_readings if r.get("metric")
+                }
+                for reading in battery_device_readings:
+                    if (
+                        reading.get("metric")
+                        and reading.get("metric") not in existing_metrics
+                    ):
                         device_readings.append(reading)
 
             if device_readings:
