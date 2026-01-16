@@ -96,7 +96,7 @@ class ConfigFlowHandler(config_entries.ConfigFlow):
 
         return self.async_show_form(
             step_id="user",
-            data_schema=CONFIG_SCHEMA,
+            data_schema=CONFIG_FLOW_SCHEMA,
             errors=errors,
         )
 
