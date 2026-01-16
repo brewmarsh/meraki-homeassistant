@@ -57,41 +57,41 @@ class MerakiMtSensor(CoordinatorEntity, RestoreSensor):
         """Update the native value of the sensor."""
         readings = self._device.get("readings")
         if not readings or not isinstance(readings, list):
-            return self._attr_native_value
+            self._attr_native_value = None
+            return
 
         for reading in readings:
             if reading.get("metric") == self.entity_description.key:
                 metric_data = reading.get(self.entity_description.key)
+
+                # Handle battery metric
+                if self.entity_description.key == "battery":
+                    self._attr_native_value = metric_data.get("percentage")
+                    return
+
+                # Handle noise metric
+                if self.entity_description.key == "noise":
+                    if "ambient" in metric_data:
+                        self._attr_native_value = metric_data["ambient"].get("level")
+                    return
+
+                # Handle other metrics with a generic key map
                 if isinstance(metric_data, dict):
-                    # Map metric to the key holding its value
                     key_map = {
-                        "battery": "percentage",
                         "temperature": "celsius",
                         "humidity": "relativePercentage",
                         "pm25": "concentration",
                         "tvoc": "concentration",
                         "co2": "concentration",
-                        "noise": "ambient",
                         "water": "present",
                         "power": "draw",
                         "voltage": "level",
                         "current": "draw",
-                        "battery": "percentage",
                     }
                     value_key = key_map.get(self.entity_description.key)
                     if value_key:
-                        if value_key == "ambient":
-                            self._attr_native_value = (
-                                metric_data.get("ambient", {}).get("level")
-                            )
-                        else:
-                            self._attr_native_value = metric_data.get(value_key)
+                        self._attr_native_value = metric_data.get(value_key)
                         return
-                elif self.entity_description.key == "noise":
-                    self._attr_native_value = metric_data.get("ambient", {}).get(
-                        "level",
-                    )
-                    return
 
     @callback
     def _handle_coordinator_update(self) -> None:

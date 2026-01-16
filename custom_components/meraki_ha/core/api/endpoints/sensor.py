@@ -50,17 +50,15 @@ class SensorEndpoints:
             operation=operation,
         )
 
-    async def get_organization_sensor_readings_latest_for_serials(
+    async def get_organization_sensor_readings_latest(
         self,
-        serials: list[str],
-        metrics: list[str],
+        metrics: list[str] | None = None,
     ) -> list[dict[str, Any]]:
         """
-        Return the latest available reading for a given list of metrics from a list of sensors.
+        Return the latest available reading for each metric from each sensor.
 
         Args:
         ----
-            serials: A list of sensor serials to fetch data for.
             metrics: A list of metrics to fetch.
 
         Returns
@@ -68,41 +66,17 @@ class SensorEndpoints:
             The response from the API.
 
         """
-        if not serials:
-            return []
-        _LOGGER.debug(
-            "Getting latest sensor readings for serials: %s, metrics: %s",
-            serials,
-            metrics,
-        )
-        return await self._client.run_sync(
-            self._client.dashboard.sensor.getOrganizationSensorReadingsLatest,
-            organizationId=self._client.organization_id,
-            serials=serials,
-            metrics=metrics,
-            total_pages="all",
-        )
+        if metrics is None:
+            metrics = [
+                "battery",
+                "co2",
+                "humidity",
+                "noise",
+                "pm25",
+                "temperature",
+                "tvoc",
+            ]
 
-    async def get_organization_sensor_readings_latest(
-        self,
-    ) -> list[dict[str, Any]]:
-        """
-        Return the latest available reading for each metric from each sensor.
-
-        Returns
-        -------
-            The response from the API.
-
-        """
-        metrics = [
-            "battery",
-            "co2",
-            "humidity",
-            "noise",
-            "pm25",
-            "temperature",
-            "tvoc",
-        ]
         _LOGGER.debug(
             "Getting latest sensor readings for organization with metrics: %s",
             ", ".join(metrics),
