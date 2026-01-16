@@ -293,7 +293,6 @@ class MerakiAPIClient:
             self._run_with_semaphore(
                 self.network.get_network_clients(
                     network["id"],
-                    statuses=["Online"],
                     perPage=1000,
                     total_pages="all",
                 ),
@@ -305,9 +304,14 @@ class MerakiAPIClient:
         for i, network in enumerate(networks):
             result = clients_results[i]
             if isinstance(result, list):
-                for client in result:
+                online_clients = [
+                    client
+                    for client in result
+                    if client.get("status") and client["status"] == "Online"
+                ]
+                for client in online_clients:
                     client["networkId"] = network["id"]
-                clients.extend(result)
+                clients.extend(online_clients)
         return clients
 
     async def _async_fetch_device_clients(
