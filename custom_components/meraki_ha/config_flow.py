@@ -19,10 +19,20 @@ from .const import (
     DOMAIN,
 )
 from .core.errors import MerakiAuthenticationError, MerakiConnectionError
+from homeassistant.helpers import selector
 from .options_flow import MerakiOptionsFlowHandler
 from .schemas import CONFIG_SCHEMA, OPTIONS_SCHEMA
 
 _LOGGER = logging.getLogger(__name__)
+
+CONFIG_FLOW_SCHEMA = vol.Schema(
+    {
+        vol.Required(CONF_MERAKI_API_KEY): selector.TextSelector(
+            selector.TextSelectorConfig(type=selector.TextSelectorType.PASSWORD)
+        ),
+        vol.Required(CONF_MERAKI_ORG_ID): selector.TextSelector(),
+    }
+)
 
 
 @config_entries.HANDLERS.register(DOMAIN)
