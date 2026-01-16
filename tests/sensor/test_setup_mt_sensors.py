@@ -70,7 +70,7 @@ def test_async_setup_mt10_sensors(
     for entity in entities:
         entity._handle_coordinator_update()
 
-    assert len(entities) == 2
+    assert len(entities) == 3
 
     sensors_by_key = {entity.entity_description.key: entity for entity in entities}
 
@@ -100,7 +100,7 @@ def test_async_setup_mt15_sensors(
     for entity in entities:
         entity._handle_coordinator_update()
 
-    assert len(entities) == 6
+    assert len(entities) == 7
 
     sensors_by_key = {entity.entity_description.key: entity for entity in entities}
 
@@ -162,7 +162,7 @@ def test_async_setup_mt12_sensors(
     for entity in entities:
         entity._handle_coordinator_update()
 
-    assert len(entities) == 1
+    assert len(entities) == 2
     water_sensor = entities[0]
     assert water_sensor.unique_id == "mt12-1_water"
     assert water_sensor.name == "MT12 Sensor Water Detection"

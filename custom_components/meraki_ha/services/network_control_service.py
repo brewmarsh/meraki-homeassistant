@@ -34,8 +34,10 @@ class NetworkControlService:
         if not self._coordinator.data or not self._coordinator.data.get("clients"):
             return 0
 
-        count = 0
-        for client in self._coordinator.data["clients"]:
-            if client.get("networkId") == network_id:
-                count += 1
-        return count
+        return len(
+            [
+                client
+                for client in self._coordinator.data["clients"]
+                if client.get("networkId") == network_id
+            ]
+        )

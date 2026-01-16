@@ -33,6 +33,13 @@ class MerakiMtSensor(CoordinatorEntity, RestoreSensor):
         self.entity_description = entity_description
         self._attr_unique_id = f"{self._device['serial']}_{self.entity_description.key}"
         self._attr_name = f"{self._device['name']} {self.entity_description.name}"
+        self._attr_native_value = None
+
+    async def async_added_to_hass(self) -> None:
+        """Handle entity which provides state restoration."""
+        await super().async_added_to_hass()
+        if (last_sensor_data := await self.async_get_last_sensor_data()) is not None:
+            self._attr_native_value = last_sensor_data.native_value
 
     async def async_added_to_hass(self) -> None:
         """Restore last state."""
@@ -56,7 +63,7 @@ class MerakiMtSensor(CoordinatorEntity, RestoreSensor):
         """Update the native value of the sensor."""
         readings = self._device.get("readings")
         if not readings or not isinstance(readings, list):
-            return
+            return self._attr_native_value
 
         for reading in readings:
             if reading.get("metric") == self.entity_description.key:
@@ -75,6 +82,7 @@ class MerakiMtSensor(CoordinatorEntity, RestoreSensor):
                         "power": "draw",
                         "voltage": "level",
                         "current": "draw",
+                        "battery": "percentage",
                     }
                     value_key = key_map.get(self.entity_description.key)
                     if value_key:

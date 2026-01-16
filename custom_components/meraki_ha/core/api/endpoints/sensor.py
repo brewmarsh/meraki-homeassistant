@@ -50,6 +50,39 @@ class SensorEndpoints:
             operation=operation,
         )
 
+    async def get_organization_sensor_readings_latest_for_serials(
+        self,
+        serials: list[str],
+        metrics: list[str],
+    ) -> list[dict[str, Any]]:
+        """
+        Return the latest available reading for a given list of metrics from a list of sensors.
+
+        Args:
+        ----
+            serials: A list of sensor serials to fetch data for.
+            metrics: A list of metrics to fetch.
+
+        Returns
+        -------
+            The response from the API.
+
+        """
+        if not serials:
+            return []
+        _LOGGER.debug(
+            "Getting latest sensor readings for serials: %s, metrics: %s",
+            serials,
+            metrics,
+        )
+        return await self._client.run_sync(
+            self._client.dashboard.sensor.getOrganizationSensorReadingsLatest,
+            organizationId=self._client.organization_id,
+            serials=serials,
+            metrics=metrics,
+            total_pages="all",
+        )
+
     async def get_organization_sensor_readings_latest(
         self,
     ) -> list[dict[str, Any]]:
