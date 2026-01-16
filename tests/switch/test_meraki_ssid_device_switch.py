@@ -1,4 +1,5 @@
 """Tests for the Meraki SSID device switch."""
+
 import asyncio
 from unittest.mock import AsyncMock, MagicMock
 

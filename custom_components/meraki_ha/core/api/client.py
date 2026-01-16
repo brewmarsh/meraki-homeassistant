@@ -164,7 +164,9 @@ class MerakiAPIClient:
             "networks": self._run_with_semaphore(
                 self.organization.get_organization_networks(),
             ),
-            "devices": asyncio.sleep(0, result=devices),  # Use the already fetched devices
+            "devices": asyncio.sleep(
+                0, result=devices
+            ),  # Use the already fetched devices
             "devices_availabilities": self._run_with_semaphore(
                 self.organization.get_organization_devices_availabilities(),
             ),
