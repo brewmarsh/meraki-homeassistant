@@ -16,7 +16,9 @@ from typing import TYPE_CHECKING, Any
 import meraki
 from homeassistant.core import HomeAssistant
 
-from ...core.errors import MerakiInformationalError
+from ...core.parsers.network import parse_network_data
+from ...core.parsers.sensors import parse_sensor_data
+from ...core.parsers.wireless import parse_wireless_data
 from ...types import MerakiDevice, MerakiNetwork
 from .endpoints.appliance import ApplianceEndpoints
 from .endpoints.camera import CameraEndpoints
@@ -174,124 +176,6 @@ class MerakiAPIClient:
                 data["battery_readings"] = battery_data_res
 
         return data
-
-    def _process_initial_data(self, results: dict[str, Any]) -> dict[str, Any]:
-        """
-        Process the initial data, handling errors and merging.
-
-        Args:
-            results: The raw initial data from the API.
-
-        Returns
-        -------
-            The processed initial data.
-
-        """
-        # Safe dictionary access using .get()
-        networks_res = results.get("networks")
-        devices_res = results.get("devices")
-        devices_availabilities_res = results.get("devices_availabilities")
-        appliance_uplink_statuses_res = results.get("appliance_uplink_statuses")
-        sensor_readings_res = results.get("sensor_readings")
-        battery_readings_res = results.get("battery_readings")
-
-        # Defensive initialization and validation
-        networks: list[MerakiNetwork] = (
-            networks_res if isinstance(networks_res, list) else []
-        )
-        if not isinstance(networks_res, list):
-            _LOGGER.warning("Could not fetch Meraki networks: %s", networks_res)
-
-        devices: list[MerakiDevice] = (
-            devices_res if isinstance(devices_res, list) else []
-        )
-        if not isinstance(devices_res, list):
-            _LOGGER.warning("Could not fetch Meraki devices: %s", devices_res)
-
-        devices_availabilities: list[dict[str, Any]] = (
-            devices_availabilities_res
-            if isinstance(devices_availabilities_res, list)
-            else []
-        )
-        if not isinstance(devices_availabilities_res, list):
-            _LOGGER.warning(
-                "Could not fetch Meraki device availabilities: %s",
-                devices_availabilities_res,
-            )
-
-        appliance_uplink_statuses: list[dict[str, Any]] = (
-            appliance_uplink_statuses_res
-            if isinstance(appliance_uplink_statuses_res, list)
-            else []
-        )
-        if not isinstance(appliance_uplink_statuses_res, list):
-            _LOGGER.warning(
-                "Could not fetch Meraki appliance uplink statuses: %s",
-                appliance_uplink_statuses_res,
-            )
-
-        sensor_readings: list[dict[str, Any]] = (
-            sensor_readings_res if isinstance(sensor_readings_res, list) else []
-        )
-        if not isinstance(sensor_readings_res, list):
-            _LOGGER.warning(
-                "Could not fetch Meraki sensor readings: %s",
-                sensor_readings_res,
-            )
-
-        battery_readings: list[dict[str, Any]] = (
-            battery_readings_res if isinstance(battery_readings_res, list) else []
-        )
-        # No warning for battery readings as it's an optional fetch
-
-        availabilities_by_serial = {
-            availability.get("serial"): availability
-            for availability in devices_availabilities
-            if isinstance(availability, dict) and availability.get("serial")
-        }
-
-        readings_by_serial = {
-            reading.get("serial"): reading.get("readings", [])
-            for reading in sensor_readings
-            if isinstance(reading, dict) and reading.get("serial")
-        }
-
-        battery_readings_by_serial = {
-            reading.get("serial"): reading.get("readings", [])
-            for reading in battery_readings
-            if isinstance(reading, dict) and reading.get("serial")
-        }
-
-        for device in devices:
-            serial = device.get("serial")
-            if not serial:
-                continue
-
-            if availability := availabilities_by_serial.get(serial):
-                device["status"] = availability.get("status")
-
-            device_readings = readings_by_serial.get(serial, [])
-
-            if battery_device_readings := battery_readings_by_serial.get(serial):
-                # Merge battery readings, avoiding duplicates
-                existing_metrics = {
-                    r.get("metric") for r in device_readings if r.get("metric")
-                }
-                for reading in battery_device_readings:
-                    if (
-                        reading.get("metric")
-                        and reading.get("metric") not in existing_metrics
-                    ):
-                        device_readings.append(reading)
-
-            if device_readings:
-                device["readings"] = device_readings
-
-        return {
-            "networks": networks,
-            "devices": devices,
-            "appliance_uplink_statuses": appliance_uplink_statuses,
-        }
 
     async def _async_fetch_network_clients(
         self,
@@ -453,158 +337,6 @@ class MerakiAPIClient:
                 )
         return detail_tasks
 
-    def _process_detailed_data(
-        self,
-        detail_data: dict[str, Any],
-        networks: list[MerakiNetwork],
-        devices: list[MerakiDevice],
-        previous_data: dict[str, Any],
-    ) -> dict[str, Any]:
-        """
-        Process the detailed data and merge it into the main data structure.
-
-        Args:
-            detail_data: The raw detailed data from the API.
-            networks: A list of networks.
-            devices: A list of devices.
-            previous_data: The previous data from the coordinator.
-
-        Returns
-        -------
-            The processed detailed data.
-
-        """
-        ssids: list[dict[str, Any]] = []
-        appliance_traffic: dict[str, Any] = {}
-        vlan_by_network: dict[str, Any] = {}
-        l3_firewall_rules_by_network: dict[str, Any] = {}
-        traffic_shaping_by_network: dict[str, Any] = {}
-        vpn_status_by_network: dict[str, Any] = {}
-        rf_profiles_by_network: dict[str, Any] = {}
-        content_filtering_by_network: dict[str, Any] = {}
-
-        for network in networks:
-            network_ssids_key = f"ssids_{network['id']}"
-            network_ssids = detail_data.get(network_ssids_key)
-            if isinstance(network_ssids, list):
-                for ssid in network_ssids:
-                    if "unconfigured ssid" not in ssid.get("name", "").lower():
-                        ssid["networkId"] = network["id"]
-                        ssids.append(ssid)
-            elif previous_data and network_ssids_key in previous_data:
-                ssids.extend(previous_data[network_ssids_key])
-
-            network_traffic_key = f"traffic_{network['id']}"
-            network_traffic = detail_data.get(network_traffic_key)
-            if isinstance(network_traffic, MerakiInformationalError):
-                if "traffic analysis" in str(network_traffic).lower():
-                    if self.coordinator:
-                        self.coordinator.add_network_status_message(
-                            network["id"],
-                            "Traffic Analysis is not enabled for this network.",
-                        )
-                        self.coordinator.mark_traffic_check_done(network["id"])
-                appliance_traffic[network["id"]] = {
-                    "error": "disabled",
-                    "reason": str(network_traffic),
-                }
-            elif isinstance(network_traffic, dict):
-                appliance_traffic[network["id"]] = network_traffic
-            elif previous_data and network_traffic_key in previous_data:
-                appliance_traffic[network["id"]] = previous_data[network_traffic_key]
-
-            network_vlans_key = f"vlans_{network['id']}"
-            network_vlans = detail_data.get(network_vlans_key)
-            if isinstance(network_vlans, MerakiInformationalError):
-                if "vlans are not enabled" in str(network_vlans).lower():
-                    if self.coordinator:
-                        self.coordinator.add_network_status_message(
-                            network["id"],
-                            "VLANs are not enabled for this network.",
-                        )
-                        self.coordinator.mark_vlan_check_done(network["id"])
-                vlan_by_network[network["id"]] = []
-            elif isinstance(network_vlans, list):
-                vlan_by_network[network["id"]] = network_vlans
-            elif previous_data and network_vlans_key in previous_data:
-                vlan_by_network[network["id"]] = previous_data[network_vlans_key]
-
-            l3_firewall_rules_key = f"l3_firewall_rules_{network['id']}"
-            l3_firewall_rules = detail_data.get(l3_firewall_rules_key)
-            if isinstance(l3_firewall_rules, dict):
-                l3_firewall_rules_by_network[network["id"]] = l3_firewall_rules
-            elif previous_data and l3_firewall_rules_key in previous_data:
-                l3_firewall_rules_by_network[network["id"]] = previous_data[
-                    l3_firewall_rules_key
-                ]
-
-            traffic_shaping_key = f"traffic_shaping_{network['id']}"
-            traffic_shaping = detail_data.get(traffic_shaping_key)
-            if isinstance(traffic_shaping, dict):
-                traffic_shaping_by_network[network["id"]] = traffic_shaping
-            elif previous_data and traffic_shaping_key in previous_data:
-                traffic_shaping_by_network[network["id"]] = previous_data[
-                    traffic_shaping_key
-                ]
-
-            vpn_status_key = f"vpn_status_{network['id']}"
-            vpn_status = detail_data.get(vpn_status_key)
-            if isinstance(vpn_status, dict):
-                vpn_status_by_network[network["id"]] = vpn_status
-            elif previous_data and vpn_status_key in previous_data:
-                vpn_status_by_network[network["id"]] = previous_data[vpn_status_key]
-
-            network_rf_profiles_key = f"rf_profiles_{network['id']}"
-            network_rf_profiles = detail_data.get(network_rf_profiles_key)
-            if isinstance(network_rf_profiles, list):
-                rf_profiles_by_network[network["id"]] = network_rf_profiles
-            elif previous_data and network_rf_profiles_key in previous_data:
-                rf_profiles_by_network[network["id"]] = previous_data[
-                    network_rf_profiles_key
-                ]
-
-            content_filtering_key = f"content_filtering_{network['id']}"
-            content_filtering = detail_data.get(content_filtering_key)
-            if isinstance(content_filtering, dict):
-                content_filtering_by_network[network["id"]] = content_filtering
-            elif previous_data and content_filtering_key in previous_data:
-                content_filtering_by_network[network["id"]] = previous_data[
-                    content_filtering_key
-                ]
-
-        for device in devices:
-            product_type = device.get("productType")
-            if product_type == "camera":
-                if settings := detail_data.get(f"video_settings_{device['serial']}"):
-                    device["video_settings"] = settings
-                    # The video_settings endpoint also provides the RTSP URL
-                    if isinstance(settings, dict):
-                        device["rtsp_url"] = settings.get("rtsp_url")
-                    else:
-                        device["rtsp_url"] = None
-                if settings := detail_data.get(f"sense_settings_{device['serial']}"):
-                    device["sense_settings"] = settings
-            elif product_type == "switch":
-                if statuses := detail_data.get(f"ports_statuses_{device['serial']}"):
-                    device["ports_statuses"] = statuses
-            elif product_type == "appliance":
-                if settings := detail_data.get(
-                    f"appliance_settings_{device['serial']}",
-                ):
-                    if isinstance(settings.get("dynamicDns"), dict):
-                        device["dynamicDns"] = settings["dynamicDns"]
-
-        return {
-            "ssids": ssids,
-            "appliance_traffic": appliance_traffic,
-            "vlans": vlan_by_network,
-            "l3_firewall_rules": l3_firewall_rules_by_network,
-            "traffic_shaping": traffic_shaping_by_network,
-            "vpn_status": vpn_status_by_network,
-            "rf_profiles": rf_profiles_by_network,
-            "content_filtering": content_filtering_by_network,
-        }
-
     async def get_all_data(
         self,
         previous_data: dict[str, Any] | None = None,
@@ -625,10 +357,13 @@ class MerakiAPIClient:
 
         _LOGGER.debug("Fetching fresh Meraki data from API")
         initial_results = await self._async_fetch_initial_data()
-        processed_initial_data = self._process_initial_data(initial_results)
 
-        networks = processed_initial_data["networks"]
-        devices = processed_initial_data["devices"]
+        networks: list[MerakiNetwork] = initial_results.get("networks", [])
+        devices: list[MerakiDevice] = initial_results.get("devices", [])
+        sensor_readings = initial_results.get("sensor_readings")
+        battery_readings = initial_results.get("battery_readings")
+
+        parse_sensor_data(devices, sensor_readings, battery_readings)
 
         network_clients, device_clients = await asyncio.gather(
             self._async_fetch_network_clients(networks),
@@ -643,10 +378,15 @@ class MerakiAPIClient:
         )
         detail_data = dict(zip(detail_tasks.keys(), detail_results, strict=True))
 
-        processed_detailed_data = self._process_detailed_data(
+        processed_network_data = parse_network_data(
             detail_data,
             networks,
-            devices,
+            previous_data,
+            self.coordinator,
+        )
+        processed_wireless_data = parse_wireless_data(
+            detail_data,
+            networks,
             previous_data,
         )
 
@@ -657,10 +397,12 @@ class MerakiAPIClient:
             "clients_by_serial": (
                 device_clients if isinstance(device_clients, dict) else {}
             ),
-            "appliance_uplink_statuses": processed_initial_data[
-                "appliance_uplink_statuses"
-            ],
-            **processed_detailed_data,
+            "appliance_uplink_statuses": initial_results.get(
+                "appliance_uplink_statuses",
+                [],
+            ),
+            "ssids": processed_wireless_data,
+            **processed_network_data,
         }
 
     @property

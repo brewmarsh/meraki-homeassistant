@@ -13,7 +13,7 @@ pyyaml==6.0.3
 playwright
 pytest-homeassistant-custom-component
 pytest
-pytest-cov==7.0.0
+pytest-cov
 pytest-asyncio==1.2.0
 codecov
 aiohttp>=3.13.2
