@@ -58,6 +58,10 @@ class SensorEndpoints:
         """
         Return the latest available reading for each metric from each sensor.
 
+        Args:
+        ----
+            metrics: A list of metrics to fetch.
+
         Returns
         -------
             The response from the API.
