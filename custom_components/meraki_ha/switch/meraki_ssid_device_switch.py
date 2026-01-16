@@ -14,6 +14,7 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from ..coordinator import MerakiDataUpdateCoordinator
 from ..core.api.client import MerakiAPIClient
 from ..core.utils.icon_utils import get_device_type_icon
+from ..helpers.debounce import Debounce
 from ..helpers.device_info_helpers import resolve_device_info
 
 _LOGGER = logging.getLogger(__name__)
@@ -39,6 +40,7 @@ class MerakiSSIDBaseSwitch(CoordinatorEntity, SwitchEntity):
         self._meraki_client = meraki_client
         self._config_entry = config_entry
         self._ssid_data_at_init = ssid_data  # Store initial SSID data for device info
+        self._debouncer = Debounce(coordinator.hass, 1.0)
 
         self._network_id = ssid_data.get("networkId")
         self._ssid_number = ssid_data.get("number")
@@ -125,7 +127,8 @@ class MerakiSSIDBaseSwitch(CoordinatorEntity, SwitchEntity):
 
         # "Fire and forget" API call.
         self.hass.async_create_task(
-            self._meraki_client.wireless.update_network_wireless_ssid(
+            self._debouncer.async_call(
+                self._meraki_client.wireless.update_network_wireless_ssid,
                 network_id=self._network_id,
                 number=self._ssid_number,
                 **payload,
