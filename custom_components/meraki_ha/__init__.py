@@ -66,8 +66,12 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     async with aiofiles.open(manifest_path, encoding="utf-8") as f:
         manifest_data = await f.read()
         manifest = json.loads(manifest_data)
-    version = manifest.get("version", "0.0.0")
-    module_url = f"/local/{DOMAIN}/meraki-panel.js?v={version}"
+    # Correctly register the custom panel
+    hass.http.register_static_path(
+        f"/local/{DOMAIN}",
+        Path(__file__).parent / "www",
+        cache_headers=False,
+    )
     hass_frontend.async_register_built_in_panel(
         hass,
         component_name="custom",
@@ -77,7 +81,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         config={
             "_panel_custom": {
                 "name": "meraki-panel",
-                "module_url": module_url,
+                "module_url": f"/local/{DOMAIN}/meraki-panel.js",
                 "embed_iframe": False,
                 "trust_external_script": True,
             },
