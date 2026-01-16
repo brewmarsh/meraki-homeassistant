@@ -19,5 +19,5 @@
     "webrtc-models==0.3.0",
     "aiortc"
   ],
-  "version": "2.1.0-beta.13"
+  "version": "2.1.0-beta.14"
 }
