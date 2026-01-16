@@ -29,12 +29,12 @@ jobs:
         with:
           python-version: '3.13'
           enable-cache: true
+      - name: Upgrade Pip and Setuptools
+        run: python -m pip install --upgrade pip setuptools
       - name: Install dependencies
         run: pip install -r requirements_dev.txt
       - name: Type check
-        run: |
-          pip install mypy pytest-homeassistant-custom-component
-          mypy custom_components/meraki_ha --ignore-missing-imports
+        run: mypy . --ignore-missing-imports
 
   security:
     runs-on: ubuntu-latest
