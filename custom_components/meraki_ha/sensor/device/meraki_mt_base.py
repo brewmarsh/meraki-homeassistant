@@ -41,12 +41,6 @@ class MerakiMtSensor(CoordinatorEntity, RestoreSensor):
         if (last_sensor_data := await self.async_get_last_sensor_data()) is not None:
             self._attr_native_value = last_sensor_data.native_value
 
-    async def async_added_to_hass(self) -> None:
-        """Restore last state."""
-        await super().async_added_to_hass()
-        if last_sensor_data := await self.async_get_last_sensor_data():
-            self._attr_native_value = last_sensor_data.native_value
-
     @property
     def device_info(self) -> DeviceInfo:
         """Return device information."""
@@ -93,6 +87,11 @@ class MerakiMtSensor(CoordinatorEntity, RestoreSensor):
                         else:
                             self._attr_native_value = metric_data.get(value_key)
                         return
+                elif self.entity_description.key == "noise":
+                    self._attr_native_value = metric_data.get("ambient", {}).get(
+                        "level",
+                    )
+                    return
 
     @callback
     def _handle_coordinator_update(self) -> None:
