@@ -4,7 +4,7 @@
   "after_dependencies": ["webrtc"],
   "codeowners": ["@brewmarsh"],
   "config_flow": true,
-  "dependencies": ["http"],
+  "dependencies": ["http", "camera"],
   "documentation": "https://github.com/brewmarsh/meraki-homeassistant",
   "integration_type": "hub",
   "iot_class": "cloud_polling",
