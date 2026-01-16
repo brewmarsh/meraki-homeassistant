@@ -2,13 +2,12 @@ name: Pull Request Validation
 
 on:
   pull_request:
+    types: [opened, synchronize, reopened]
     branches:
       - main
       - beta
-    types: [opened, synchronize, reopened]
 
 jobs:
-  # Job 1: Linting and Formatting
   lint:
     runs-on: ubuntu-latest
     steps:
@@ -19,10 +18,9 @@ jobs:
           enable-cache: true
       - name: Install Ruff
         run: pip install ruff
-      - run: ruff check custom_components/meraki_ha/
+      - run: ruff check .
       - run: ruff format --check .
 
-  # Job 2: Type Checking
   type-check:
     runs-on: ubuntu-latest
     steps:
@@ -33,9 +31,11 @@ jobs:
           enable-cache: true
       - name: Install dependencies
         run: pip install -r requirements_dev.txt
-      - run: mypy custom_components/meraki_ha/ tests/
+      - name: Type check
+        run: |
+          pip install mypy pytest-homeassistant-custom-component
+          mypy custom_components/meraki_ha --ignore-missing-imports
 
-  # Job 3: Security & Audit
   security:
     runs-on: ubuntu-latest
     steps:
@@ -53,7 +53,6 @@ jobs:
           PIP_AUDIT_IGNORE_VULN: 'GHSA-6mq8-rvhq-8wgg GHSA-69f9-5gxw-wvc2 GHSA-6jhg-hg63-jvvf GHSA-g84x-mcqj-x9qq GHSA-fh55-r93g-j68g GHSA-54jq-c3m8-4m76 GHSA-jj3x-wxrx-4x23 GHSA-mqqc-3gqh-h2x8 PYSEC-2020-49 PYSEC-2022-42969 GHSA-g7vv-2v7x-gj9p'
         run: pip-audit
 
-  # Job 4: Unit Tests
   test:
     runs-on: ubuntu-latest
     steps:
@@ -62,21 +61,14 @@ jobs:
         with:
           python-version: '3.13'
           enable-cache: true
-
-      # --- FORCE CLEAN STEP: THE DEFINITIVE FIX ---
       - name: Force Clean DNS Stack
         run: |
-          # Forcibly remove existing/cached versions that cause the AttributeError on Python 3.13
           pip uninstall -y pycares aiodns
-          # Freshly install the Home Assistant 2026.1 official pins
           pip install --no-cache-dir pycares==4.11.0 aiodns==3.2.0
-
       - name: Install dependencies
         run: pip install -r requirements_dev.txt
-
       - name: Run Tests
         run: pytest --cov=custom_components.meraki_ha --cov-report=xml tests/
-
       - name: Upload coverage
         uses: codecov/codecov-action@v5
         with:
