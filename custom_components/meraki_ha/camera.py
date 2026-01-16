@@ -13,7 +13,7 @@ from aiortc import (
     RTCSessionDescription,
 )
 from aiortc.contrib.media import MediaRelay
-from homeassistant.components import Camera, CameraEntityFeature, camera
+from homeassistant.components.camera import Camera, CameraEntityFeature
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
@@ -22,6 +22,7 @@ from .const import DOMAIN
 from .core.utils.naming_utils import format_device_name
 
 if TYPE_CHECKING:
+    from homeassistant.components.camera import WebRTCSendMessage
     from homeassistant.components.camera.webrtc import (
         RTCIceCandidate,
     )
@@ -194,7 +195,7 @@ class MerakiCamera(CoordinatorEntity, Camera):
         await self.coordinator.async_request_refresh()
 
     async def async_handle_async_webrtc_offer(
-        self, offer_sdp: str, session_id: str, send_message: camera.WebRTCSendMessage
+        self, offer_sdp: str, session_id: str, send_message: WebRTCSendMessage
     ) -> None:
         """Handle the async WebRTC offer."""
         _LOGGER.debug("Handling WebRTC offer for session_id: %s", session_id)
