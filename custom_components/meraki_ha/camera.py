@@ -30,7 +30,7 @@ if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
     from homeassistant.core import HomeAssistant
     from homeassistant.helpers.entity_platform import AddEntitiesCallback
-    from homeassistant.components.camera import WebRTCSendMessage
+
     from .meraki_data_coordinator import MerakiDataCoordinator
     from .services.camera_service import CameraService
 
@@ -204,26 +204,6 @@ class MerakiCamera(CoordinatorEntity, Camera):
         """Handle the async WebRTC offer."""
         _LOGGER.debug("Handling WebRTC offer for session_id: %s", session_id)
 
-    async def async_on_webrtc_candidate(
-        self, session_id: str, candidate: RTCIceCandidate
-    ) -> None:
-        """Handle a WebRTC candidate."""
-        _LOGGER.debug(
-            "Handling WebRTC candidate for session_id: %s, candidate: %s",
-            session_id,
-            candidate,
-        )
-
-    def close_webrtc_session(self, session_id: str) -> None:
-        """Close a WebRTC session."""
-        _LOGGER.debug("Closing WebRTC session: %s", session_id)
-
-    async def async_handle_async_webrtc_offer(
-        self, offer_sdp: str, session_id: str, send_message: WebRTCSendMessage
-    ) -> None:
-        """Handle the async WebRTC offer."""
-        _LOGGER.debug("Handling WebRTC offer for session_id: %s", session_id)
-
         offer = RTCSessionDescription(sdp=offer_sdp, type="offer")
         pc = RTCPeerConnection()
         self._webrtc_sessions[session_id] = pc
@@ -275,6 +255,6 @@ class MerakiCamera(CoordinatorEntity, Camera):
     def close_webrtc_session(self, session_id: str) -> None:
         """Close a WebRTC session."""
         _LOGGER.debug("Closing WebRTC session: %s", session_id)
-        pc = self._webrtc_sessions.pop(session_id)
+        pc = self._webrtc_sessions.pop(session_id, None)
         if pc:
             self.hass.async_create_task(pc.close())

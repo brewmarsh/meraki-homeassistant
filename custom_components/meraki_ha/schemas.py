@@ -39,6 +39,10 @@ OPTIONS_SCHEMA = vol.Schema(
         vol.Required(
             CONF_ENABLE_VLAN_MANAGEMENT, default=DEFAULT_ENABLE_VLAN_MANAGEMENT
         ): selector.BooleanSelector(),
-        vol.Optional(CONF_IGNORED_NETWORKS, default=DEFAULT_IGNORED_NETWORKS): [str],
+        vol.Optional(
+            CONF_IGNORED_NETWORKS, default=DEFAULT_IGNORED_NETWORKS
+        ): selector.SelectSelector(
+            selector.SelectSelectorConfig(options=[], custom_value=True, multiple=True)
+        ),
     }
 )

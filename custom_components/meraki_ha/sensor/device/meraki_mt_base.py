@@ -90,7 +90,12 @@ class MerakiMtSensor(CoordinatorEntity, RestoreSensor):
                     }
                     value_key = key_map.get(self.entity_description.key)
                     if value_key:
-                        self._attr_native_value = metric_data.get(value_key)
+                        if value_key == "ambient":
+                            self._attr_native_value = metric_data.get(
+                                "ambient", {}
+                            ).get("level")
+                        else:
+                            self._attr_native_value = metric_data.get(value_key)
                         return
 
     @callback
@@ -106,7 +111,8 @@ class MerakiMtSensor(CoordinatorEntity, RestoreSensor):
     @property
     def available(self) -> bool:
         """Return if the sensor is available."""
-        # A sensor is available if it has a value from the coordinator or a restored state
+        # A sensor is available if it has a value from the coordinator or
+        # a restored state
         if self.native_value is not None:
             return True
 

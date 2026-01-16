@@ -12,7 +12,6 @@ from homeassistant.const import (
     UnitOfElectricCurrent,
     UnitOfElectricPotential,
     UnitOfPower,
-    UnitOfSoundPressure,
     UnitOfTemperature,
 )
 
@@ -107,7 +106,11 @@ MT_BATTERY_DESCRIPTION = SensorEntityDescription(
 
 # Mapping of MT models to their supported sensor descriptions
 MT_SENSOR_MODELS = {
-    "MT10": [MT_TEMPERATURE_DESCRIPTION, MT_HUMIDITY_DESCRIPTION, MT_BATTERY_DESCRIPTION],
+    "MT10": [
+        MT_TEMPERATURE_DESCRIPTION,
+        MT_HUMIDITY_DESCRIPTION,
+        MT_BATTERY_DESCRIPTION,
+    ],
     "MT11": [MT_TEMPERATURE_DESCRIPTION, MT_BATTERY_DESCRIPTION],
     "MT12": [MT_WATER_DESCRIPTION, MT_BATTERY_DESCRIPTION],
     "MT14": [
