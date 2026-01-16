@@ -61,6 +61,7 @@ def test_mt20_open_sensor(
     assert sensor.name == "MT20 Sensor Door"
     assert sensor.is_on is True
     assert sensor.available is True
+    assert sensor.extra_state_attributes["ts"] == "2023-01-01T00:00:00Z"
 
 
 def test_mt20_closed_sensor(
