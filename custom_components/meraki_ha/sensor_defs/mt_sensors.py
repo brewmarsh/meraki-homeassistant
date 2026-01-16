@@ -65,10 +65,10 @@ MT_CO2_DESCRIPTION = SensorEntityDescription(
 
 MT_NOISE_DESCRIPTION = SensorEntityDescription(
     key="noise",
-    name="Ambient Noise",
+    name="Ambient noise",
     device_class=SensorDeviceClass.SOUND_PRESSURE,
     state_class=SensorStateClass.MEASUREMENT,
-    native_unit_of_measurement=UnitOfSoundPressure.WEIGHTED_DECIBEL_A,
+    native_unit_of_measurement="dBA",
 )
 
 
