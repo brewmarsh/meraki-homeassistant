@@ -6,6 +6,9 @@ on:
       - main
       - beta
 
+permissions:
+  contents: write
+
 jobs:
   quality-checks:
     uses: ./.github/workflows/reusable-quality-checks.yaml
@@ -16,10 +19,6 @@ jobs:
   release:
     needs: quality-checks
     runs-on: ubuntu-latest
-    # --- REQUIRED PERMISSIONS ---
-    permissions:
-      contents: write
-    # ----------------------------
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
