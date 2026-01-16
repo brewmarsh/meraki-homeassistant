@@ -155,6 +155,9 @@ class MerakiAPIClient:
             "current",
             "noise",
             "battery",
+            "pm25",
+            "tvoc",
+            "co2",
         ]
 
         tasks = {
