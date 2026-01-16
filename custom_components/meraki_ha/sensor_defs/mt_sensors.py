@@ -9,10 +9,10 @@ from homeassistant.const import (
     CONCENTRATION_MICROGRAMS_PER_CUBIC_METER,
     CONCENTRATION_PARTS_PER_MILLION,
     PERCENTAGE,
+    UnitOfApparentPower,
     UnitOfElectricCurrent,
     UnitOfElectricPotential,
     UnitOfPower,
-    UnitOfSoundPressure,
     UnitOfTemperature,
 )
 
@@ -65,20 +65,37 @@ MT_CO2_DESCRIPTION = SensorEntityDescription(
 
 MT_NOISE_DESCRIPTION = SensorEntityDescription(
     key="noise",
-    name="Ambient Noise",
+    name="Ambient noise",
     device_class=SensorDeviceClass.SOUND_PRESSURE,
     state_class=SensorStateClass.MEASUREMENT,
-    native_unit_of_measurement=UnitOfSoundPressure.WEIGHTED_DECIBEL_A,
+    native_unit_of_measurement="dBA",
 )
 
 
-MT_POWER_DESCRIPTION = SensorEntityDescription(
-    key="power",
-    name="Power",
+MT_REAL_POWER_DESCRIPTION = SensorEntityDescription(
+    key="realPower",
+    name="Real Power",
     device_class=SensorDeviceClass.POWER,
     state_class=SensorStateClass.MEASUREMENT,
     native_unit_of_measurement=UnitOfPower.WATT,
 )
+
+MT_APPARENT_POWER_DESCRIPTION = SensorEntityDescription(
+    key="apparentPower",
+    name="Apparent Power",
+    device_class=SensorDeviceClass.APPARENT_POWER,
+    state_class=SensorStateClass.MEASUREMENT,
+    native_unit_of_measurement=UnitOfApparentPower.VOLT_AMPERE,
+)
+
+MT_POWER_FACTOR_DESCRIPTION = SensorEntityDescription(
+    key="powerFactor",
+    name="Power Factor",
+    device_class=SensorDeviceClass.POWER_FACTOR,
+    state_class=SensorStateClass.MEASUREMENT,
+    native_unit_of_measurement=PERCENTAGE,
+)
+
 
 MT_VOLTAGE_DESCRIPTION = SensorEntityDescription(
     key="voltage",
@@ -107,7 +124,11 @@ MT_BATTERY_DESCRIPTION = SensorEntityDescription(
 
 # Mapping of MT models to their supported sensor descriptions
 MT_SENSOR_MODELS = {
-    "MT10": [MT_TEMPERATURE_DESCRIPTION, MT_HUMIDITY_DESCRIPTION, MT_BATTERY_DESCRIPTION],
+    "MT10": [
+        MT_TEMPERATURE_DESCRIPTION,
+        MT_HUMIDITY_DESCRIPTION,
+        MT_BATTERY_DESCRIPTION,
+    ],
     "MT11": [MT_TEMPERATURE_DESCRIPTION, MT_BATTERY_DESCRIPTION],
     "MT12": [MT_WATER_DESCRIPTION, MT_BATTERY_DESCRIPTION],
     "MT14": [
@@ -115,7 +136,6 @@ MT_SENSOR_MODELS = {
         MT_TVOC_DESCRIPTION,
         MT_TEMPERATURE_DESCRIPTION,
         MT_HUMIDITY_DESCRIPTION,
-        MT_BATTERY_DESCRIPTION,
         MT_NOISE_DESCRIPTION,
     ],
     "MT15": [
@@ -130,7 +150,9 @@ MT_SENSOR_MODELS = {
     "MT20": [MT_BATTERY_DESCRIPTION],
     "MT30": [MT_BATTERY_DESCRIPTION],
     "MT40": [
-        MT_POWER_DESCRIPTION,
+        MT_REAL_POWER_DESCRIPTION,
+        MT_APPARENT_POWER_DESCRIPTION,
+        MT_POWER_FACTOR_DESCRIPTION,
         MT_VOLTAGE_DESCRIPTION,
         MT_CURRENT_DESCRIPTION,
     ],
