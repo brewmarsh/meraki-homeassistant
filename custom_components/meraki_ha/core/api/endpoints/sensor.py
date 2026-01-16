@@ -94,9 +94,22 @@ class SensorEndpoints:
             The response from the API.
 
         """
-        _LOGGER.debug("Getting latest sensor readings for organization")
+        metrics = [
+            "battery",
+            "co2",
+            "humidity",
+            "noise",
+            "pm25",
+            "temperature",
+            "tvoc",
+        ]
+        _LOGGER.debug(
+            "Getting latest sensor readings for organization with metrics: %s",
+            ", ".join(metrics),
+        )
         return await self._client.run_sync(
             self._client.dashboard.sensor.getOrganizationSensorReadingsLatest,
             organizationId=self._client.organization_id,
+            metrics=metrics,
             total_pages="all",
         )
