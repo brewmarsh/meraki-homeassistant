@@ -150,54 +150,21 @@ class MerakiAPIClient:
                 self.appliance.get_organization_appliance_uplink_statuses(),
             ),
             "sensor_readings": self._run_with_semaphore(
-                self.sensor.get_organization_sensor_readings_latest(),
+                self.sensor.get_organization_sensor_readings_latest(
+                    metrics=[
+                        "battery",
+                        "noise",
+                        "pm25",
+                        "tvoc",
+                        "co2",
+                        "temperature",
+                        "humidity",
+                    ],
+                ),
             ),
         }
         results = await asyncio.gather(*tasks.values(), return_exceptions=True)
-        data = dict(zip(tasks.keys(), results, strict=True))
-
-        # Fetch battery data separately
-        devices_res = data.get("devices")
-        if isinstance(devices_res, list):
-            mt_serials = [
-                device["serial"]
-                for device in devices_res
-                if device.get("model", "").startswith("MT")
-                and device.get("model") not in ["MT14", "MT15"]
-            ]
-            if mt_serials:
-                battery_data_res = await self._run_with_semaphore(
-                    self.sensor.get_organization_sensor_readings_latest_for_serials(
-                        serials=mt_serials,
-                        metrics=["battery"],
-                    ),
-                )
-                data["battery_readings"] = battery_data_res
-
-            environmental_serials = [
-                device["serial"]
-                for device in devices_res
-                if device.get("model") in ["MT14", "MT15"]
-            ]
-
-            if environmental_serials:
-                environmental_data_res = await self._run_with_semaphore(
-                    self.sensor.get_organization_sensor_readings_latest_for_serials(
-                        serials=environmental_serials,
-                        metrics=[
-                            "battery",
-                            "noise",
-                            "pm25",
-                            "tvoc",
-                            "co2",
-                            "temperature",
-                            "humidity",
-                        ],
-                    ),
-                )
-                data["environmental_readings"] = environmental_data_res
-
-        return data
+        return dict(zip(tasks.keys(), results, strict=True))
 
     def _process_initial_data(self, results: dict[str, Any]) -> dict[str, Any]:
         """
@@ -216,8 +183,6 @@ class MerakiAPIClient:
         devices_availabilities_res = results.get("devices_availabilities")
         appliance_uplink_statuses_res = results.get("appliance_uplink_statuses")
         sensor_readings_res = results.get("sensor_readings")
-        battery_readings_res = results.get("battery_readings")
-        environmental_readings_res = results.get("environmental_readings")
 
         networks: list[MerakiNetwork] = (
             networks_res if isinstance(networks_res, list) else []
@@ -298,25 +263,7 @@ class MerakiAPIClient:
             if availability := availabilities_by_serial.get(device["serial"]):
                 device["status"] = availability["status"]
 
-            device_readings = readings_by_serial.get(device["serial"], [])
-
-            if battery_readings := battery_readings_by_serial.get(device["serial"]):
-                # Merge battery readings, avoiding duplicates
-                existing_metrics = {r["metric"] for r in device_readings}
-                for reading in battery_readings:
-                    if reading["metric"] not in existing_metrics:
-                        device_readings.append(reading)
-
-            if environmental_readings := environmental_readings_by_serial.get(
-                device["serial"],
-            ):
-                # Merge environmental readings, avoiding duplicates
-                existing_metrics = {r["metric"] for r in device_readings}
-                for reading in environmental_readings:
-                    if reading["metric"] not in existing_metrics:
-                        device_readings.append(reading)
-
-            if device_readings:
+            if device_readings := readings_by_serial.get(device["serial"]):
                 device["readings"] = device_readings
 
         return {
