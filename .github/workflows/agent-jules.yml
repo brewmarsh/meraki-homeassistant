@@ -25,8 +25,9 @@ jobs:
       - name: Plan and Execute
         id: jules
         uses: google-labs-code/jules-invoke@main
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
           # Targeting: Hard-code beta as the base for all operations.
           base_branch: 'beta'
           instructions_path: 'docs/internal/GITHUB_ARCHITECTURE.md'

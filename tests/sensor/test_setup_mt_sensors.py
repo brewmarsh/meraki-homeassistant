@@ -46,12 +46,33 @@ def mock_coordinator_with_mt_devices(mock_coordinator: MagicMock) -> MagicMock:
                 ],
             },
             {
+                "serial": "mt14-1",
+                "name": "MT14 Sensor",
+                "model": "MT14",
+                "productType": "sensor",
+                "readings": [
+                    {"metric": "temperature", "temperature": {"celsius": 22.1}},
+                    {"metric": "humidity", "humidity": {"relativePercentage": 45.2}},
+                    {"metric": "pm25", "pm25": {"concentration": 10.5}},
+                    {"metric": "tvoc", "tvoc": {"concentration": 150}},
+                    {"metric": "noise", "noise": {"ambient": {"level": 35.2}}},
+                ],
+            },
+            {
                 "serial": "mt40-1",
                 "name": "MT40 Power Controller",
                 "model": "MT40",
                 "productType": "sensor",
                 "readings": [
-                    {"metric": "power", "power": {"draw": 120.5}},
+                    {"metric": "realPower", "realPower": {"draw": 120.5}},
+                    {
+                        "metric": "apparentPower",
+                        "apparentPower": {"draw": 125.0},
+                    },
+                    {
+                        "metric": "powerFactor",
+                        "powerFactor": {"percentage": 96.4},
+                    },
                     {"metric": "voltage", "voltage": {"level": 120.1}},
                     {"metric": "current", "current": {"draw": 1.0}},
                 ],
@@ -170,26 +191,94 @@ def test_async_setup_mt12_sensors(
     assert water_sensor.available is True
 
 
+def test_async_setup_mt14_sensors(
+    mock_coordinator_with_mt_devices: MagicMock,
+) -> None:
+    """Test the setup of sensors for an MT14 device."""
+    device_info = mock_coordinator_with_mt_devices.data["devices"][3]
+    entities = async_setup_mt_sensors(mock_coordinator_with_mt_devices, device_info)
+
+    assert len(entities) == 5
+
+    sensors_by_key = {entity.entity_description.key: entity for entity in entities}
+
+    # Verify Temperature Sensor
+    temp_sensor = sensors_by_key.get("temperature")
+    assert temp_sensor is not None
+    assert temp_sensor.unique_id == "mt14-1_temperature"
+    assert temp_sensor.name == "MT14 Sensor Temperature"
+    assert temp_sensor.native_value == 22.1  # type: ignore[attr-defined]
+    assert temp_sensor.available is True
+
+    # Verify Humidity Sensor
+    humidity_sensor = sensors_by_key.get("humidity")
+    assert humidity_sensor is not None
+    assert humidity_sensor.unique_id == "mt14-1_humidity"
+    assert humidity_sensor.name == "MT14 Sensor Humidity"
+    assert humidity_sensor.native_value == 45.2  # type: ignore[attr-defined]
+    assert humidity_sensor.available is True
+
+    # Verify PM2.5 Sensor
+    pm25_sensor = sensors_by_key.get("pm25")
+    assert pm25_sensor is not None
+    assert pm25_sensor.unique_id == "mt14-1_pm25"
+    assert pm25_sensor.name == "MT14 Sensor PM2.5"
+    assert pm25_sensor.native_value == 10.5  # type: ignore[attr-defined]
+    assert pm25_sensor.available is True
+
+    # Verify TVOC Sensor
+    tvoc_sensor = sensors_by_key.get("tvoc")
+    assert tvoc_sensor is not None
+    assert tvoc_sensor.unique_id == "mt14-1_tvoc"
+    assert tvoc_sensor.name == "MT14 Sensor TVOC"
+    assert tvoc_sensor.native_value == 150  # type: ignore[attr-defined]
+    assert tvoc_sensor.available is True
+
+    # Verify Noise Sensor
+    noise_sensor = sensors_by_key.get("noise")
+    assert noise_sensor is not None
+    assert noise_sensor.unique_id == "mt14-1_noise"
+    assert noise_sensor.name == "MT14 Sensor Ambient Noise"
+    assert noise_sensor.native_value == 35.2  # type: ignore[attr-defined]
+    assert noise_sensor.available is True
+
+
 def test_async_setup_mt40_sensors(
     mock_coordinator_with_mt_devices: MagicMock,
 ) -> None:
     """Test the setup of sensors for an MT40 device."""
-    device_info = mock_coordinator_with_mt_devices.data["devices"][3]
+    device_info = mock_coordinator_with_mt_devices.data["devices"][4]
     entities = async_setup_mt_sensors(mock_coordinator_with_mt_devices, device_info)
     for entity in entities:
         entity._handle_coordinator_update()
 
-    assert len(entities) == 3
+    assert len(entities) == 5
 
     sensors_by_key = {entity.entity_description.key: entity for entity in entities}
 
-    # Verify Power Sensor
-    power_sensor = sensors_by_key.get("power")
-    assert power_sensor is not None
-    assert power_sensor.unique_id == "mt40-1_power"
-    assert power_sensor.name == "MT40 Power Controller Power"
-    assert power_sensor.native_value == 120.5
-    assert power_sensor.available is True
+    # Verify Real Power Sensor
+    real_power_sensor = sensors_by_key.get("realPower")
+    assert real_power_sensor is not None
+    assert real_power_sensor.unique_id == "mt40-1_realPower"
+    assert real_power_sensor.name == "MT40 Power Controller Real Power"
+    assert real_power_sensor.native_value == 120.5  # type: ignore[attr-defined]
+    assert real_power_sensor.available is True
+
+    # Verify Apparent Power Sensor
+    apparent_power_sensor = sensors_by_key.get("apparentPower")
+    assert apparent_power_sensor is not None
+    assert apparent_power_sensor.unique_id == "mt40-1_apparentPower"
+    assert apparent_power_sensor.name == "MT40 Power Controller Apparent Power"
+    assert apparent_power_sensor.native_value == 125.0  # type: ignore[attr-defined]
+    assert apparent_power_sensor.available is True
+
+    # Verify Power Factor Sensor
+    power_factor_sensor = sensors_by_key.get("powerFactor")
+    assert power_factor_sensor is not None
+    assert power_factor_sensor.unique_id == "mt40-1_powerFactor"
+    assert power_factor_sensor.name == "MT40 Power Controller Power Factor"
+    assert power_factor_sensor.native_value == 96.4  # type: ignore[attr-defined]
+    assert power_factor_sensor.available is True
 
     # Verify Voltage Sensor
     voltage_sensor = sensors_by_key.get("voltage")

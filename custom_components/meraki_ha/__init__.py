@@ -3,9 +3,6 @@
 import logging
 import random
 import string
-import json
-from pathlib import Path
-import aiofiles
 
 from homeassistant.components import frontend as hass_frontend
 from homeassistant.components.http import StaticPathConfig
@@ -63,10 +60,17 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         Whether the setup was successful.
 
     """
-    manifest_path = Path(__file__).parent / "manifest.json"
-    async with aiofiles.open(manifest_path, encoding="utf-8") as f:
-        manifest_data = await f.read()
-        manifest = json.loads(manifest_data)
+    # Serve the custom panel
+    hass.http.async_register_static_paths(
+        [
+            StaticPathConfig(
+                f"/local/{DOMAIN}",
+                hass.config.path(f"custom_components/{DOMAIN}/www"),
+                cache_headers=False,
+            )
+        ]
+    )
+
     # Register the custom panel if not already registered
     if "meraki" not in hass.data.get("frontend_panels", {}):
         hass_frontend.async_register_built_in_panel(
