@@ -11,7 +11,9 @@ from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from ...coordinator import MerakiDataUpdateCoordinator
+from ...core.utils.naming_utils import format_device_name
 from ...helpers.device_info_helpers import resolve_device_info
+from ...helpers.entity_helpers import format_entity_name
 
 if TYPE_CHECKING:
     from ...services.camera_service import CameraService
@@ -36,7 +38,9 @@ class MerakiSnapshotButton(CoordinatorEntity, ButtonEntity):
         self._camera_service = camera_service
         self._config_entry = config_entry
         self._attr_unique_id = f"{self._device['serial']}-snapshot"
-        self._attr_name = f"{self._device['name']} Snapshot"
+        self._attr_name = format_entity_name(
+            format_device_name(device, config_entry.options), "Snapshot"
+        )
 
     @property
     def device_info(self) -> DeviceInfo | None:

@@ -20,7 +20,6 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import DOMAIN
 from .core.utils.naming_utils import format_device_name
-from .helpers.entity_helpers import format_entity_name
 
 if TYPE_CHECKING:
     from homeassistant.components.camera.webrtc import (
@@ -82,10 +81,7 @@ class MerakiCamera(CoordinatorEntity, Camera):
         self._device_serial = device["serial"]
         self._camera_service = camera_service
         self._attr_unique_id = f"{self._device_serial}-camera"
-        self._attr_name = format_entity_name(
-            format_device_name(self.device_data, self.coordinator.config_entry.options),
-            "",
-        )
+        self._attr_name = f"[Camera] {device['name']}"
         self._attr_model = self.device_data.get("model")
         self._webrtc_sessions: dict[str, Any] = {}
 
