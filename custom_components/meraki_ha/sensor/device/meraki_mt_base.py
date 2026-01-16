@@ -84,7 +84,9 @@ class MerakiMtSensor(CoordinatorEntity, RestoreSensor):
                         "tvoc": "concentration",
                         "co2": "concentration",
                         "water": "present",
-                        "power": "draw",
+                        "realPower": "draw",
+                        "apparentPower": "draw",
+                        "powerFactor": "percentage",
                         "voltage": "level",
                         "current": "draw",
                     }

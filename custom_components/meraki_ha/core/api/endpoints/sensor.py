@@ -52,6 +52,7 @@ class SensorEndpoints:
 
     async def get_organization_sensor_readings_latest(
         self,
+        serials: list[str] | None = None,
         metrics: list[str] | None = None,
     ) -> list[dict[str, Any]]:
         """
@@ -66,24 +67,16 @@ class SensorEndpoints:
             The response from the API.
 
         """
-        if metrics is None:
-            metrics = [
-                "battery",
-                "co2",
-                "humidity",
-                "noise",
-                "pm25",
-                "temperature",
-                "tvoc",
-            ]
-
-        _LOGGER.debug(
-            "Getting latest sensor readings for organization with metrics: %s",
-            ", ".join(metrics),
-        )
+        _LOGGER.debug("Getting latest sensor readings for organization")
+        kwargs: dict[str, Any] = {
+            "organizationId": self._client.organization_id,
+            "total_pages": "all",
+        }
+        if serials:
+            kwargs["serials"] = serials
+        if metrics:
+            kwargs["metrics"] = metrics
         return await self._client.run_sync(
             self._client.dashboard.sensor.getOrganizationSensorReadingsLatest,
-            organizationId=self._client.organization_id,
-            metrics=metrics,
-            total_pages="all",
+            **kwargs,
         )
