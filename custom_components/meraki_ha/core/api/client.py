@@ -148,16 +148,8 @@ class MerakiAPIClient:
             if d.get("model", "").startswith("MT") and "serial" in d
         ]
         sensor_metrics = [
-            "realPower",
-            "apparentPower",
-            "powerFactor",
-            "voltage",
-            "current",
-            "noise",
-            "battery",
-            "pm25",
-            "tvoc",
-            "co2",
+            "realPower", "apparentPower", "powerFactor", "voltage", "current",
+            "noise", "battery", "pm25", "tvoc", "co2"
         ]
 
         tasks = {
@@ -256,17 +248,8 @@ class MerakiAPIClient:
         for device in devices:
             if availability := availabilities_by_serial.get(device["serial"]):
                 device["status"] = availability["status"]
-
-            # Merge new readings with existing ones to prevent "unavailable" state
-            if new_readings := readings_by_serial.get(device["serial"]):
-                if "readings" not in device:
-                    device["readings"] = []
-                existing_readings = {
-                    reading["metric"]: reading for reading in device["readings"]
-                }
-                for reading in new_readings:
-                    existing_readings[reading["metric"]] = reading
-                device["readings"] = list(existing_readings.values())
+            if readings := readings_by_serial.get(device["serial"]):
+                device["readings"] = readings
 
         return {
             "networks": networks,
@@ -290,14 +273,7 @@ class MerakiAPIClient:
 
         """
         client_tasks = [
-            self._run_with_semaphore(
-                self.network.get_network_clients(
-                    network["id"],
-                    statuses=["Online"],
-                    perPage=1000,
-                    total_pages="all",
-                ),
-            )
+            self._run_with_semaphore(self.network.get_network_clients(network["id"]))
             for network in networks
         ]
         clients_results = await asyncio.gather(*client_tasks, return_exceptions=True)

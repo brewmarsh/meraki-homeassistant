@@ -194,6 +194,24 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
             self._filter_ignored_networks(data)
 
+            # Merge sensor readings to prevent "unavailable" state
+            if self.data and "devices" in self.data:
+                previous_devices = {
+                    device["serial"]: device for device in self.data["devices"]
+                }
+                for device in data.get("devices", []):
+                    if (
+                        "readings" in device
+                        and "readings" in previous_devices.get(device["serial"], {})
+                    ):
+                        previous_readings = {
+                            reading["metric"]: reading
+                            for reading in previous_devices[device["serial"]]["readings"]
+                        }
+                        for reading in device["readings"]:
+                            previous_readings[reading["metric"]] = reading
+                        device["readings"] = list(previous_readings.values())
+
             # Create lookup tables for efficient access in entities
             self.devices_by_serial = {
                 d["serial"]: d for d in data.get("devices", []) if "serial" in d

@@ -5,7 +5,6 @@ import random
 import string
 
 from homeassistant.components import frontend as hass_frontend
-from homeassistant.components.http import StaticPathConfig
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import config_validation as cv
@@ -20,6 +19,7 @@ from .const import (
 from .coordinator import MerakiDataUpdateCoordinator
 from .core.repositories.camera_repository import CameraRepository
 from .core.repository import MerakiRepository
+from .frontend import async_register_frontend
 from .services.camera_service import CameraService
 from .services.device_control_service import DeviceControlService
 from .web_api import async_setup_api
@@ -60,36 +60,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         Whether the setup was successful.
 
     """
-    # Serve the custom panel
-    hass.http.async_register_static_paths(
-        [
-            StaticPathConfig(
-                f"/local/{DOMAIN}",
-                hass.config.path(f"custom_components/{DOMAIN}/www"),
-                cache_headers=False,
-            )
-        ]
-    )
-
-    # Register the custom panel if not already registered
-    if "meraki" not in hass.data.get("frontend_panels", {}):
-        hass_frontend.async_register_built_in_panel(
-            hass,
-            component_name="custom",
-            sidebar_title=entry.title,
-            sidebar_icon="mdi:router-network",
-            frontend_url_path="meraki",
-            config={
-                "_panel_custom": {
-                    "name": "meraki-panel",
-                    "module_url": f"/local/{DOMAIN}/meraki-panel.js",
-                    "embed_iframe": False,
-                    "trust_external_script": True,
-                },
-                "config_entry_id": entry.entry_id,
-            },
-            require_admin=True,
-        )
+    await async_register_frontend(hass, entry)
     async_setup_api(hass)
     coordinator = MerakiDataUpdateCoordinator(hass, entry)
     await coordinator.async_config_entry_first_refresh()

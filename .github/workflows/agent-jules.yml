@@ -2,7 +2,7 @@ name: 'Agent: Cognitive Loop'
 
 on:
   issues:
-    types: [labeled, commented, reopened]
+    types: [labeled, commented]
   pull_request:
     types: [labeled]
 
@@ -10,8 +10,7 @@ jobs:
   cognitive-loop:
     if: >
       github.event.label.name == 'jules' ||
-      contains(github.event.comment.body, '@jules') ||
-      (github.event.action == 'reopened' && contains(github.event.issue.labels.*.name, 'jules'))
+      contains(github.event.comment.body, '@jules')
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -29,7 +28,7 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           # Targeting: Hard-code beta as the base for all operations.
           base_branch: 'beta'
-          instructions_path: 'docs/internal/GITHUB_ARCHITECTURE.md'
+          instructions_path: 'ROADMAP.md'
           prompt: |
             When creating a Pull Request, you must always look for a related issue number in the task context.
             Include 'Fixes #<issue_number>' at the beginning of the PR title or in the first line of the PR description.

@@ -13,11 +13,11 @@
   "quality_scale": "platinum",
   "requirements": [
     "aiohttp>=3.13.2",
-    "urllib3>=2.6.3",
+    "urllib3>=2.6.2",
     "aiodns==3.6.1",
     "pycares==4.11.0",
     "webrtc-models==0.3.0",
     "aiortc"
   ],
-  "version": "2.1.0-beta.18"
+  "version": "2.0.0-beta.69"
 }
