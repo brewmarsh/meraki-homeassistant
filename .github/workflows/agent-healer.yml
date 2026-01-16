@@ -31,10 +31,11 @@ jobs:
 
       - name: Invoke Jules Agent
         uses: google-labs-code/jules-invoke@main
+        env:
+          GITHUB_TOKEN: ${{ secrets.JULES_GITHUB_PAT }}
         with:
           jules_api_key: ${{ secrets.JULES_API_KEY }}
           # Some versions of jules-invoke allow passing the token directly for branch creation
-          github_token: ${{ secrets.JULES_GITHUB_PAT }}
           starting_branch: ${{ github.event.workflow_run.head_branch }}
           include_last_commit: true
           include_commit_log: true
