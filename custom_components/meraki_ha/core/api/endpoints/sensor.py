@@ -50,16 +50,17 @@ class SensorEndpoints:
             operation=operation,
         )
 
-    async def get_organization_sensor_readings_latest(
+    async def get_organization_sensor_readings_latest_for_serials(
         self,
-        serials: list[str] | None = None,
-        metrics: list[str] | None = None,
+        serials: list[str],
+        metrics: list[str],
     ) -> list[dict[str, Any]]:
         """
-        Return the latest available reading for each metric from each sensor.
+        Return the latest available reading for a given list of metrics from a list of sensors.
 
         Args:
         ----
+            serials: A list of sensor serials to fetch data for.
             metrics: A list of metrics to fetch.
 
         Returns
@@ -67,37 +68,48 @@ class SensorEndpoints:
             The response from the API.
 
         """
-        _LOGGER.debug("Getting latest sensor readings for organization")
-        kwargs: dict[str, Any] = {
-            "organizationId": self._client.organization_id,
-            "total_pages": "all",
-        }
-        if serials:
-            kwargs["serials"] = serials
-        if metrics:
-            kwargs["metrics"] = metrics
+        if not serials:
+            return []
+        _LOGGER.debug(
+            "Getting latest sensor readings for serials: %s, metrics: %s",
+            serials,
+            metrics,
+        )
         return await self._client.run_sync(
             self._client.dashboard.sensor.getOrganizationSensorReadingsLatest,
-            **kwargs,
+            organizationId=self._client.organization_id,
+            serials=serials,
+            metrics=metrics,
+            total_pages="all",
         )
 
-    async def get_organization_door_sensor_readings_latest(
+    async def get_organization_sensor_readings_latest(
         self,
-        serials: list[str],
     ) -> list[dict[str, Any]]:
         """
-        Return the latest available reading for the door metric from each sensor.
+        Return the latest available reading for each metric from each sensor.
 
         Returns
         -------
             The response from the API.
 
         """
-        _LOGGER.debug("Getting latest door sensor readings for organization")
+        metrics = [
+            "battery",
+            "co2",
+            "humidity",
+            "noise",
+            "pm25",
+            "temperature",
+            "tvoc",
+        ]
+        _LOGGER.debug(
+            "Getting latest sensor readings for organization with metrics: %s",
+            ", ".join(metrics),
+        )
         return await self._client.run_sync(
             self._client.dashboard.sensor.getOrganizationSensorReadingsLatest,
             organizationId=self._client.organization_id,
-            serials=serials,
-            metrics=["door"],
+            metrics=metrics,
             total_pages="all",
         )

@@ -41,6 +41,12 @@ class MerakiMtSensor(CoordinatorEntity, RestoreSensor):
         if (last_sensor_data := await self.async_get_last_sensor_data()) is not None:
             self._attr_native_value = last_sensor_data.native_value
 
+    async def async_added_to_hass(self) -> None:
+        """Restore last state."""
+        await super().async_added_to_hass()
+        if last_sensor_data := await self.async_get_last_sensor_data():
+            self._attr_native_value = last_sensor_data.native_value
+
     @property
     def device_info(self) -> DeviceInfo:
         """Return device information."""
@@ -57,45 +63,33 @@ class MerakiMtSensor(CoordinatorEntity, RestoreSensor):
         """Update the native value of the sensor."""
         readings = self._device.get("readings")
         if not readings or not isinstance(readings, list):
-            self._attr_native_value = None
-            return
+            return self._attr_native_value
 
         for reading in readings:
             if reading.get("metric") == self.entity_description.key:
                 metric_data = reading.get(self.entity_description.key)
-
-                # Handle battery metric
-                if self.entity_description.key == "battery":
-                    self._attr_native_value = metric_data.get("percentage")
-                    return
-
-                # Handle noise metric
-                if self.entity_description.key == "noise":
-                    if "ambient" in metric_data:
-                        self._attr_native_value = metric_data["ambient"].get("level")
-                    return
-
-                # Handle other metrics with a generic key map
                 if isinstance(metric_data, dict):
+                    # Map metric to the key holding its value
                     key_map = {
+                        "battery": "percentage",
                         "temperature": "celsius",
                         "humidity": "relativePercentage",
                         "pm25": "concentration",
                         "tvoc": "concentration",
                         "co2": "concentration",
+                        "noise": "ambient",
                         "water": "present",
-                        "realPower": "draw",
-                        "apparentPower": "draw",
-                        "powerFactor": "percentage",
+                        "power": "draw",
                         "voltage": "level",
                         "current": "draw",
+                        "battery": "percentage",
                     }
                     value_key = key_map.get(self.entity_description.key)
                     if value_key:
                         if value_key == "ambient":
-                            self._attr_native_value = metric_data.get(
-                                "ambient", {}
-                            ).get("level")
+                            self._attr_native_value = (
+                                metric_data.get("ambient", {}).get("level")
+                            )
                         else:
                             self._attr_native_value = metric_data.get(value_key)
                         return
@@ -113,8 +107,7 @@ class MerakiMtSensor(CoordinatorEntity, RestoreSensor):
     @property
     def available(self) -> bool:
         """Return if the sensor is available."""
-        # A sensor is available if it has a value from the coordinator or
-        # a restored state
+        # A sensor is available if it has a value from the coordinator or a restored state
         if self.native_value is not None:
             return True
 

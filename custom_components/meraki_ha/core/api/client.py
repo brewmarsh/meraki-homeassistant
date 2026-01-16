@@ -136,35 +136,13 @@ class MerakiAPIClient:
             A dictionary of initial data.
 
         """
-        # First, get the list of devices
-        devices = await self._run_with_semaphore(
-            self.organization.get_organization_devices(),
-        )
-
-        # Then, get sensor readings only for MT devices
-        mt_serials = [
-            d["serial"]
-            for d in devices
-            if d.get("model", "").startswith("MT") and "serial" in d
-        ]
-        sensor_metrics = [
-            "realPower",
-            "apparentPower",
-            "powerFactor",
-            "voltage",
-            "current",
-            "noise",
-            "battery",
-            "pm25",
-            "tvoc",
-            "co2",
-        ]
-
         tasks = {
             "networks": self._run_with_semaphore(
                 self.organization.get_organization_networks(),
             ),
-            "devices": asyncio.sleep(0, result=devices),  # Use the already fetched devices
+            "devices": self._run_with_semaphore(
+                self.organization.get_organization_devices(),
+            ),
             "devices_availabilities": self._run_with_semaphore(
                 self.organization.get_organization_devices_availabilities(),
             ),
@@ -172,14 +150,30 @@ class MerakiAPIClient:
                 self.appliance.get_organization_appliance_uplink_statuses(),
             ),
             "sensor_readings": self._run_with_semaphore(
-                self.sensor.get_organization_sensor_readings_latest(
-                    serials=mt_serials,
-                    metrics=sensor_metrics,
-                ),
+                self.sensor.get_organization_sensor_readings_latest(),
             ),
         }
         results = await asyncio.gather(*tasks.values(), return_exceptions=True)
-        return dict(zip(tasks.keys(), results, strict=True))
+        data = dict(zip(tasks.keys(), results, strict=True))
+
+        # Fetch battery data separately
+        devices_res = data.get("devices")
+        if isinstance(devices_res, list):
+            mt_serials = [
+                device["serial"]
+                for device in devices_res
+                if device.get("model", "").startswith("MT")
+            ]
+            if mt_serials:
+                battery_data_res = await self._run_with_semaphore(
+                    self.sensor.get_organization_sensor_readings_latest_for_serials(
+                        serials=mt_serials,
+                        metrics=["battery"],
+                    ),
+                )
+                data["battery_readings"] = battery_data_res
+
+        return data
 
     def _process_initial_data(self, results: dict[str, Any]) -> dict[str, Any]:
         """
@@ -198,6 +192,7 @@ class MerakiAPIClient:
         devices_availabilities_res = results.get("devices_availabilities")
         appliance_uplink_statuses_res = results.get("appliance_uplink_statuses")
         sensor_readings_res = results.get("sensor_readings")
+        battery_readings_res = results.get("battery_readings")
 
         # Defensive initialization and validation
         networks: list[MerakiNetwork] = (
@@ -266,12 +261,6 @@ class MerakiAPIClient:
             if isinstance(reading, dict) and reading.get("serial")
         }
 
-        environmental_readings_by_serial = {
-            reading["serial"]: reading.get("readings", [])
-            for reading in environmental_readings_res
-            if isinstance(reading, dict) and "serial" in reading
-        } if environmental_readings_res and isinstance(environmental_readings_res, list) else {}
-
         for device in devices:
             serial = device.get("serial")
             if not serial:
@@ -292,15 +281,6 @@ class MerakiAPIClient:
                         reading.get("metric")
                         and reading.get("metric") not in existing_metrics
                     ):
-                        device_readings.append(reading)
-
-            if environmental_readings := environmental_readings_by_serial.get(
-                device["serial"],
-            ):
-                # Merge environmental readings, avoiding duplicates
-                existing_metrics = {r["metric"] for r in device_readings}
-                for reading in environmental_readings:
-                    if reading["metric"] not in existing_metrics:
                         device_readings.append(reading)
 
             if device_readings:
@@ -641,47 +621,6 @@ class MerakiAPIClient:
         _LOGGER.debug("Fetching fresh Meraki data from API")
         initial_results = await self._async_fetch_initial_data()
         processed_initial_data = self._process_initial_data(initial_results)
-
-        # Post-process MT20 sensors to get the latest door reading
-        devices = processed_initial_data.get("devices")
-        if isinstance(devices, list):
-            mt20_serials = [
-                device["serial"]
-                for device in devices
-                if device.get("model", "").startswith("MT20")
-            ]
-            if mt20_serials:
-                door_readings_res = (
-                    await self.sensor.get_organization_door_sensor_readings_latest(
-                        mt20_serials,
-                    )
-                )
-                if isinstance(door_readings_res, list):
-                    door_readings_by_serial = {
-                        reading["serial"]: reading.get("readings", [])
-                        for reading in door_readings_res
-                        if "serial" in reading
-                    }
-
-                    for device in devices:
-                        serial = device.get("serial")
-                        if serial in door_readings_by_serial:
-                            # Ensure 'readings' key exists
-                            if "readings" not in device or not isinstance(
-                                device["readings"],
-                                list,
-                            ):
-                                device["readings"] = []
-
-                            # Remove old 'door' metric
-                            device["readings"] = [
-                                r
-                                for r in device["readings"]
-                                if r.get("metric") != "door"
-                            ]
-
-                            # Add new 'door' metric
-                            device["readings"].extend(door_readings_by_serial[serial])
 
         networks = processed_initial_data["networks"]
         devices = processed_initial_data["devices"]
