@@ -50,9 +50,7 @@ CONF_ENABLE_VLAN_MANAGEMENT: Final = "enable_vlan_management"
 """Configuration key for enabling vlan management."""
 
 
-from typing import Final, List
-
-DEFAULT_IGNORED_NETWORKS: Final[List[str]] = []
+DEFAULT_IGNORED_NETWORKS: Final[list[str]] = []
 """Default value for the ignored networks list."""
 
 DEFAULT_ENABLE_VLAN_MANAGEMENT: Final = False

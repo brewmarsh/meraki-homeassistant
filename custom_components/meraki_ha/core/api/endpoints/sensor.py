@@ -56,7 +56,7 @@ class SensorEndpoints:
         metrics: list[str],
     ) -> list[dict[str, Any]]:
         """
-        Return the latest available reading for a given list of metrics from a list of sensors.
+        Return the latest available reading for metrics from sensors.
 
         Args:
         ----

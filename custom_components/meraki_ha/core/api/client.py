@@ -273,17 +273,26 @@ class MerakiAPIClient:
             if isinstance(reading, dict) and "serial" in reading
         }
 
-        battery_readings_by_serial = {
-            reading["serial"]: reading.get("readings", [])
-            for reading in battery_readings
-            if isinstance(reading, dict) and "serial" in reading
-        } if battery_readings_res and isinstance(battery_readings_res, list) else {}
+        battery_readings_by_serial = (
+            {
+                reading["serial"]: reading.get("readings", [])
+                for reading in battery_readings_res
+                if isinstance(reading, dict) and "serial" in reading
+            }
+            if battery_readings_res and isinstance(battery_readings_res, list)
+            else {}
+        )
 
-        environmental_readings_by_serial = {
-            reading["serial"]: reading.get("readings", [])
-            for reading in environmental_readings_res
-            if isinstance(reading, dict) and "serial" in reading
-        } if environmental_readings_res and isinstance(environmental_readings_res, list) else {}
+        environmental_readings_by_serial = (
+            {
+                reading["serial"]: reading.get("readings", [])
+                for reading in environmental_readings_res
+                if isinstance(reading, dict) and "serial" in reading
+            }
+            if environmental_readings_res
+            and isinstance(environmental_readings_res, list)
+            else {}
+        )
 
         for device in devices:
             if availability := availabilities_by_serial.get(device["serial"]):
