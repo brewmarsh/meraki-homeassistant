@@ -191,8 +191,11 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             if not data:
                 _LOGGER.warning("API call to get_all_data returned no data.")
                 raise UpdateFailed("API call returned no data.")
+        except Exception as err:
+            _LOGGER.warning("Error communicating with API: %s", err)
+            return self.data
 
-            self._filter_ignored_networks(data)
+        self._filter_ignored_networks(data)
 
             # Create lookup tables for efficient access in entities
             self.devices_by_serial = {
@@ -212,22 +215,6 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             self.last_successful_update = datetime.now()
             self.last_successful_data = data
             return data
-        except Exception as err:
-            if self.last_successful_update and (
-                datetime.now() - self.last_successful_update
-            ) < timedelta(minutes=30):
-                _LOGGER.warning(
-                    "Failed to fetch new data, using stale data. Error: %s",
-                    err,
-                )
-                return self.data
-
-            _LOGGER.error(
-                "Unexpected error fetching Meraki data: %s",
-                err,
-                exc_info=True,
-            )
-            raise UpdateFailed(f"Error communicating with API: {err}") from err
 
     def get_device(self, serial: str) -> MerakiDevice | None:
         """

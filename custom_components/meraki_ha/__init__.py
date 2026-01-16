@@ -8,6 +8,7 @@ from pathlib import Path
 import aiofiles
 
 from homeassistant.components import frontend as hass_frontend
+from homeassistant.components.http import StaticPathConfig
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import config_validation as cv
@@ -67,8 +68,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         manifest_data = await f.read()
         manifest = json.loads(manifest_data)
     # Register the custom panel if not already registered
-    panel_registered_key = f"{DOMAIN}_{entry.entry_id}_panel_registered"
-    if not hass.data.get(panel_registered_key):
+    if "meraki" not in hass.data.get("frontend_panels", {}):
         hass_frontend.async_register_built_in_panel(
             hass,
             component_name="custom",
@@ -86,7 +86,12 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             },
             require_admin=True,
         )
-        hass.data[panel_registered_key] = True
+
+    path_to_www = str(Path(__file__).parent / "www")
+    await hass.http.async_register_static_paths(
+        [StaticPathConfig(f"/local/{DOMAIN}", path_to_www, False)]
+    )
+
     async_setup_api(hass)
     coordinator = MerakiDataUpdateCoordinator(hass, entry)
     await coordinator.async_config_entry_first_refresh()
@@ -137,15 +142,10 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         Whether the unload was successful.
 
     """
-    hass_frontend.async_remove_panel(hass, "meraki")
-
     unload_ok = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
     if unload_ok:
         hass.data[DOMAIN].pop(entry.entry_id)
-        # Clean up the panel registration flag
-        panel_registered_key = f"{DOMAIN}_{entry.entry_id}_panel_registered"
-        if panel_registered_key in hass.data:
-            hass.data.pop(panel_registered_key)
+        hass_frontend.async_remove_panel(hass, "meraki")
 
     return unload_ok
 
