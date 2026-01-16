@@ -7,6 +7,9 @@ on:
       - main
       - beta
 
+permissions:
+  contents: write
+
 jobs:
   lint:
     runs-on: ubuntu-latest
@@ -18,8 +21,15 @@ jobs:
           enable-cache: true
       - name: Install Ruff
         run: pip install ruff
-      - run: ruff check .
-      - run: ruff format --check .
+      - name: Run Ruff Linter
+        run: ruff check --fix .
+      - name: Run Ruff Formatter
+        run: ruff format .
+      - name: Commit fixes
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "chore(lint): auto-fix with ruff"
+          branch: ${{ github.head_ref }}
 
   type-check:
     runs-on: ubuntu-latest
