@@ -12,7 +12,6 @@ from homeassistant.const import (
     UnitOfElectricCurrent,
     UnitOfElectricPotential,
     UnitOfPower,
-    UnitOfSoundPressure,
     UnitOfTemperature,
 )
 
