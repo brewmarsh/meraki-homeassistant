@@ -90,6 +90,12 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             },
             require_admin=True,
         )
+
+    path_to_www = str(Path(__file__).parent / "www")
+    await hass.http.async_register_static_paths(
+        [StaticPathConfig(f"/local/{DOMAIN}", path_to_www, False)]
+    )
+
     async_setup_api(hass)
     coordinator = MerakiDataUpdateCoordinator(hass, entry)
     await coordinator.async_config_entry_first_refresh()
@@ -140,11 +146,10 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         Whether the unload was successful.
 
     """
-    hass_frontend.async_remove_panel(hass, "meraki")
-
     unload_ok = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
     if unload_ok:
         hass.data[DOMAIN].pop(entry.entry_id)
+        hass_frontend.async_remove_panel(hass, "meraki")
 
     return unload_ok
 

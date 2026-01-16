@@ -193,11 +193,18 @@ class MerakiAPIClient:
             The processed initial data.
 
         """
+        # Initialize all metric variables to empty lists
+        battery_readings: list = []
+        noise_readings: list = []
+        power_readings: list = []
+
+        # Safe dictionary access using .get()
         networks_res = results.get("networks")
         devices_res = results.get("devices")
         devices_availabilities_res = results.get("devices_availabilities")
         appliance_uplink_statuses_res = results.get("appliance_uplink_statuses")
         sensor_readings_res = results.get("sensor_readings")
+        battery_readings_res = results.get("battery_readings", [])
 
         networks: list[MerakiNetwork] = (
             networks_res if isinstance(networks_res, list) else []
