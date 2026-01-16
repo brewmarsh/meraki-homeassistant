@@ -47,4 +47,4 @@ search = '"version": "{current_version}"'
 replace = '"version": "{new_version}"'
 
 [tool.bumpversion.parts.beta]
-first_value = "1"
+first_value = 1
