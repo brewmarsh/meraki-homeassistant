@@ -10,6 +10,7 @@ from homeassistant import config_entries
 from homeassistant.config_entries import ConfigFlowResult
 from homeassistant.core import callback
 from homeassistant.data_entry_flow import AbortFlow
+from homeassistant.helpers import selector
 
 from .authentication import validate_meraki_credentials
 from .const import (
@@ -19,9 +20,8 @@ from .const import (
     DOMAIN,
 )
 from .core.errors import MerakiAuthenticationError, MerakiConnectionError
-from homeassistant.helpers import selector
 from .options_flow import MerakiOptionsFlowHandler
-from .schemas import CONFIG_SCHEMA, OPTIONS_SCHEMA
+from .schemas import OPTIONS_SCHEMA
 
 _LOGGER = logging.getLogger(__name__)
 
