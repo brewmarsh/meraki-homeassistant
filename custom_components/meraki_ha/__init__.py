@@ -67,11 +67,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         manifest_data = await f.read()
         manifest = json.loads(manifest_data)
     # Correctly register the custom panel
-    hass.http.register_static_path(
-        f"/local/{DOMAIN}",
-        Path(__file__).parent / "www",
-        cache_headers=False,
-    )
     hass_frontend.async_register_built_in_panel(
         hass,
         component_name="custom",
