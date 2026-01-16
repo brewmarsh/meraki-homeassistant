@@ -163,6 +163,7 @@ class MerakiAPIClient:
                 device["serial"]
                 for device in devices_res
                 if device.get("model", "").startswith("MT")
+                and device.get("model") not in ["MT14", "MT15"]
             ]
             if mt_serials:
                 battery_data_res = await self._run_with_semaphore(
@@ -172,6 +173,29 @@ class MerakiAPIClient:
                     ),
                 )
                 data["battery_readings"] = battery_data_res
+
+            environmental_serials = [
+                device["serial"]
+                for device in devices_res
+                if device.get("model") in ["MT14", "MT15"]
+            ]
+
+            if environmental_serials:
+                environmental_data_res = await self._run_with_semaphore(
+                    self.sensor.get_organization_sensor_readings_latest_for_serials(
+                        serials=environmental_serials,
+                        metrics=[
+                            "battery",
+                            "noise",
+                            "pm25",
+                            "tvoc",
+                            "co2",
+                            "temperature",
+                            "humidity",
+                        ],
+                    ),
+                )
+                data["environmental_readings"] = environmental_data_res
 
         return data
 
@@ -193,6 +217,7 @@ class MerakiAPIClient:
         appliance_uplink_statuses_res = results.get("appliance_uplink_statuses")
         sensor_readings_res = results.get("sensor_readings")
         battery_readings_res = results.get("battery_readings")
+        environmental_readings_res = results.get("environmental_readings")
 
         # Defensive initialization and validation
         networks: list[MerakiNetwork] = (
@@ -261,6 +286,12 @@ class MerakiAPIClient:
             if isinstance(reading, dict) and reading.get("serial")
         }
 
+        environmental_readings_by_serial = {
+            reading["serial"]: reading.get("readings", [])
+            for reading in environmental_readings_res
+            if isinstance(reading, dict) and "serial" in reading
+        } if environmental_readings_res and isinstance(environmental_readings_res, list) else {}
+
         for device in devices:
             serial = device.get("serial")
             if not serial:
@@ -281,6 +312,15 @@ class MerakiAPIClient:
                         reading.get("metric")
                         and reading.get("metric") not in existing_metrics
                     ):
+                        device_readings.append(reading)
+
+            if environmental_readings := environmental_readings_by_serial.get(
+                device["serial"],
+            ):
+                # Merge environmental readings, avoiding duplicates
+                existing_metrics = {r["metric"] for r in device_readings}
+                for reading in environmental_readings:
+                    if reading["metric"] not in existing_metrics:
                         device_readings.append(reading)
 
             if device_readings:
