@@ -12,9 +12,15 @@ follow_imports = "silent"
 module = "aiofiles"
 ignore_missing_imports = true
 
+# Required for the AI-assisted "Gatekeeper" workflow.
 [tool.ruff]
+fix = true
+unsafe-fixes = true
 exclude = [".pyenv"]
 line-length = 88
+
+[tool.ruff.format]
+docstring-code-format = true
 
 [tool.ruff.lint]
 select = [
