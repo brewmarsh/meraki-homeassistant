@@ -41,7 +41,7 @@ class MerakiMotionSensor(CoordinatorEntity, BinarySensorEntity):
         self._camera_service = camera_service
         self._config_entry = config_entry
         self._attr_unique_id = f"{self._device['serial']}-motion"
-        self._attr_name = f"{self._device['name']} Motion"
+        self._attr_name = f"[Camera] {self._device['name']} Motion"
         self._motion_events: list[dict[str, Any]] = []
 
     @property
