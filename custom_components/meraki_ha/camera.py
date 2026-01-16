@@ -198,7 +198,6 @@ class MerakiCamera(CoordinatorEntity, Camera):
         )
         await self.coordinator.async_request_refresh()
 
-
     async def async_handle_async_webrtc_offer(
         self, offer_sdp: str, session_id: str, send_message: WebRTCSendMessage
     ) -> None:
@@ -256,6 +255,6 @@ class MerakiCamera(CoordinatorEntity, Camera):
     def close_webrtc_session(self, session_id: str) -> None:
         """Close a WebRTC session."""
         _LOGGER.debug("Closing WebRTC session: %s", session_id)
-        pc = self._webrtc_sessions.pop(session_id)
+        pc = self._webrtc_sessions.pop(session_id, None)
         if pc:
             self.hass.async_create_task(pc.close())

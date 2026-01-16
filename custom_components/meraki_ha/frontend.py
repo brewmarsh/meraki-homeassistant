@@ -1,5 +1,4 @@
-"""Starting setup task: Frontend."""
-
+"""Frontend registration."""
 from __future__ import annotations
 
 import json
@@ -7,7 +6,6 @@ from pathlib import Path
 
 import aiofiles
 from homeassistant.components import frontend
-from homeassistant.components.http import StaticPathConfig
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 
@@ -15,25 +13,21 @@ from .const import DOMAIN
 
 
 async def async_register_frontend(hass: HomeAssistant, entry: ConfigEntry) -> None:
-    """Register the frontend."""
-    # Setup panel
-    await hass.http.async_register_static_paths(
-        [
-            StaticPathConfig(
-                url_path=f"/api/panel_custom/{DOMAIN}",
-                path=str(Path(__file__).parent / "www"),
-                cache_headers=False,
-            ),
-        ],
-    )
-
-    # Register panel
+    """Register the frontend panel."""
+    # Load version from manifest to bust browser cache
     manifest_path = Path(__file__).parent / "manifest.json"
     async with aiofiles.open(manifest_path, encoding="utf-8") as f:
         manifest_data = await f.read()
         manifest = json.loads(manifest_data)
     version = manifest.get("version", "0.0.0")
-    module_url = f"/api/panel_custom/{DOMAIN}/meraki-panel.js?v={version}"
+
+    # The custom panel will be served at `/local/meraki_ha/meraki-panel.js`.
+    # HA automatically maps the `www` folder of an integration to
+    # `_hass_frontend/static/panels/<integration_name>`. The `/local/` alias
+    # is then used to access these assets. No need to register static paths.
+    module_url = f"/local/{DOMAIN}/meraki-panel.js?v={version}"
+
+    # Register a custom panel using the modern `module_url` approach
     frontend.async_register_built_in_panel(
         hass,
         component_name="custom",

@@ -12,7 +12,6 @@ from homeassistant.const import (
     UnitOfElectricCurrent,
     UnitOfElectricPotential,
     UnitOfPower,
-    UnitOfSoundPressure,
     UnitOfTemperature,
 )
 
@@ -65,10 +64,10 @@ MT_CO2_DESCRIPTION = SensorEntityDescription(
 
 MT_NOISE_DESCRIPTION = SensorEntityDescription(
     key="noise",
-    name="Ambient Noise",
+    name="Ambient noise",
     device_class=SensorDeviceClass.SOUND_PRESSURE,
     state_class=SensorStateClass.MEASUREMENT,
-    native_unit_of_measurement=UnitOfSoundPressure.WEIGHTED_DECIBEL_A,
+    native_unit_of_measurement="dBA",
 )
 
 
@@ -96,17 +95,31 @@ MT_CURRENT_DESCRIPTION = SensorEntityDescription(
     native_unit_of_measurement=UnitOfElectricCurrent.AMPERE,
 )
 
+MT_BATTERY_DESCRIPTION = SensorEntityDescription(
+    key="battery",
+    name="Battery",
+    device_class=SensorDeviceClass.BATTERY,
+    state_class=SensorStateClass.MEASUREMENT,
+    native_unit_of_measurement=PERCENTAGE,
+)
+
 
 # Mapping of MT models to their supported sensor descriptions
 MT_SENSOR_MODELS = {
-    "MT10": [MT_TEMPERATURE_DESCRIPTION, MT_HUMIDITY_DESCRIPTION],
-    "MT11": [MT_TEMPERATURE_DESCRIPTION],  # Assuming MT11 is a temperature sensor
-    "MT12": [MT_WATER_DESCRIPTION],
+    "MT10": [
+        MT_TEMPERATURE_DESCRIPTION,
+        MT_HUMIDITY_DESCRIPTION,
+        MT_BATTERY_DESCRIPTION,
+    ],
+    "MT11": [MT_TEMPERATURE_DESCRIPTION, MT_BATTERY_DESCRIPTION],
+    "MT12": [MT_WATER_DESCRIPTION, MT_BATTERY_DESCRIPTION],
     "MT14": [
         MT_PM25_DESCRIPTION,
         MT_TVOC_DESCRIPTION,
         MT_TEMPERATURE_DESCRIPTION,
         MT_HUMIDITY_DESCRIPTION,
+        MT_BATTERY_DESCRIPTION,
+        MT_NOISE_DESCRIPTION,
     ],
     "MT15": [
         MT_CO2_DESCRIPTION,
@@ -115,9 +128,10 @@ MT_SENSOR_MODELS = {
         MT_TEMPERATURE_DESCRIPTION,
         MT_HUMIDITY_DESCRIPTION,
         MT_NOISE_DESCRIPTION,
+        MT_BATTERY_DESCRIPTION,
     ],
-    "MT20": [],  # MT20 is a binary sensor, no standard sensors
-    "MT30": [],  # Smart Automation Button, no standard sensors
+    "MT20": [MT_BATTERY_DESCRIPTION],
+    "MT30": [MT_BATTERY_DESCRIPTION],
     "MT40": [
         MT_POWER_DESCRIPTION,
         MT_VOLTAGE_DESCRIPTION,

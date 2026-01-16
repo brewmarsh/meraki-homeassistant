@@ -150,7 +150,17 @@ class MerakiAPIClient:
                 self.appliance.get_organization_appliance_uplink_statuses(),
             ),
             "sensor_readings": self._run_with_semaphore(
-                self.sensor.get_organization_sensor_readings_latest(),
+                self.sensor.get_organization_sensor_readings_latest(
+                    metrics=[
+                        "battery",
+                        "noise",
+                        "pm25",
+                        "tvoc",
+                        "co2",
+                        "temperature",
+                        "humidity",
+                    ],
+                ),
             ),
         }
         results = await asyncio.gather(*tasks.values(), return_exceptions=True)
@@ -231,8 +241,9 @@ class MerakiAPIClient:
         for device in devices:
             if availability := availabilities_by_serial.get(device["serial"]):
                 device["status"] = availability["status"]
-            if readings := readings_by_serial.get(device["serial"]):
-                device["readings"] = readings
+
+            if device_readings := readings_by_serial.get(device["serial"]):
+                device["readings"] = device_readings
 
         return {
             "networks": networks,
@@ -256,7 +267,14 @@ class MerakiAPIClient:
 
         """
         client_tasks = [
-            self._run_with_semaphore(self.network.get_network_clients(network["id"]))
+            self._run_with_semaphore(
+                self.network.get_network_clients(
+                    network["id"],
+                    statuses=["Online"],
+                    perPage=1000,
+                    total_pages="all",
+                ),
+            )
             for network in networks
         ]
         clients_results = await asyncio.gather(*client_tasks, return_exceptions=True)
