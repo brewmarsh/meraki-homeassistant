@@ -78,6 +78,7 @@ def async_setup_api(hass: HomeAssistant) -> None:
         ),
     )
 
+
 @websocket_api.async_response
 async def handle_get_version(
     hass: HomeAssistant,
@@ -91,6 +92,7 @@ async def handle_get_version(
         manifest = json.loads(manifest_data)
     version = manifest.get("version", "0.0.0")
     connection.send_result(msg["id"], {"version": version})
+
 
 @websocket_api.async_response
 async def handle_get_config(

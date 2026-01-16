@@ -197,24 +197,24 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
         self._filter_ignored_networks(data)
 
-            # Create lookup tables for efficient access in entities
-            self.devices_by_serial = {
-                d["serial"]: d for d in data.get("devices", []) if "serial" in d
-            }
-            self.networks_by_id = {
-                n["id"]: n for n in data.get("networks", []) if "id" in n
-            }
-            self.ssids_by_network_and_number = {
-                (s["networkId"], s["number"]): s
-                for s in data.get("ssids", [])
-                if "networkId" in s and "number" in s
-            }
+        # Create lookup tables for efficient access in entities
+        self.devices_by_serial = {
+            d["serial"]: d for d in data.get("devices", []) if "serial" in d
+        }
+        self.networks_by_id = {
+            n["id"]: n for n in data.get("networks", []) if "id" in n
+        }
+        self.ssids_by_network_and_number = {
+            (s["networkId"], s["number"]): s
+            for s in data.get("ssids", [])
+            if "networkId" in s and "number" in s
+        }
 
-            self._populate_device_entities(data)
+        self._populate_device_entities(data)
 
-            self.last_successful_update = datetime.now()
-            self.last_successful_data = data
-            return data
+        self.last_successful_update = datetime.now()
+        self.last_successful_data = data
+        return data
 
     def get_device(self, serial: str) -> MerakiDevice | None:
         """

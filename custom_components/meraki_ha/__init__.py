@@ -3,6 +3,7 @@
 import logging
 import random
 import string
+from pathlib import Path
 
 from homeassistant.components import frontend as hass_frontend
 from homeassistant.components.http import StaticPathConfig
