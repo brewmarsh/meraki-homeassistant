@@ -401,7 +401,7 @@ class MerakiAPIClient:
                 "appliance_uplink_statuses",
                 [],
             ),
-            "ssids": processed_wireless_data,
+            "ssids": processed_wireless_data.get("ssids", []),
             **processed_network_data,
         }
 
