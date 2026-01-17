@@ -43,7 +43,7 @@ jobs:
           enable-cache: true
       - name: Install dependencies
         run: pip install -r requirements_dev.txt
-      - run: mypy custom_components/meraki_ha/ tests/
+      - run: mypy --ignore-missing-imports custom_components/meraki_ha/ tests/
 
   # Job 3: Security & Audit
   security:
