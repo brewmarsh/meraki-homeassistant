@@ -48,7 +48,6 @@ async def async_setup_entry(
                     device,
                     camera_service,
                     config_entry,
-                    CAMERA_MOTION_DESCRIPTION,
                 )
             )
 
