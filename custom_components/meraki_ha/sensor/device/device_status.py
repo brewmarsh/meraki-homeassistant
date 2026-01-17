@@ -104,7 +104,9 @@ class MerakiDeviceStatusSensor(CoordinatorEntity, SensorEntity):
             "dormant": "mdi:access-point-network-off",
         }
         if isinstance(self.native_value, str):
-            return status_icon_map.get(self.native_value, "mdi:help-network-outline")
+            return status_icon_map.get(
+                self.native_value.lower(), "mdi:help-network-outline"
+            )
         return "mdi:help-network-outline"
 
     def _get_current_device_data(self) -> dict[str, Any] | None:

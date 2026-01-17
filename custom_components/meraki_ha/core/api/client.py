@@ -16,6 +16,9 @@ from typing import TYPE_CHECKING, Any
 import meraki
 from homeassistant.core import HomeAssistant
 
+from ...core.parsers.devices import parse_device_data
+from ...core.parsers.devices import parse_device_data
+from ...core.parsers.devices import parse_device_data
 from ...core.parsers.network import parse_network_data
 from ...core.parsers.sensors import parse_sensor_data
 from ...core.parsers.wireless import parse_wireless_data
@@ -144,6 +147,15 @@ class MerakiAPIClient:
             ),
             "devices": self._run_with_semaphore(
                 self.organization.get_organization_devices(),
+            ),
+            "device_statuses": self._run_with_semaphore(
+                self.organization.get_organization_device_statuses(),
+            ),
+            "device_statuses": self._run_with_semaphore(
+                self.organization.get_organization_device_statuses(),
+            ),
+            "device_statuses": self._run_with_semaphore(
+                self.organization.get_organization_device_statuses(),
             ),
             "devices_availabilities": self._run_with_semaphore(
                 self.organization.get_organization_devices_availabilities(),
@@ -360,6 +372,15 @@ class MerakiAPIClient:
 
         networks: list[MerakiNetwork] = initial_results.get("networks", [])
         devices: list[MerakiDevice] = initial_results.get("devices", [])
+        device_statuses = initial_results.get("device_statuses", [])
+
+        parse_device_data(devices, device_statuses)
+        device_statuses = initial_results.get("device_statuses", [])
+
+        parse_device_data(devices, device_statuses)
+        device_statuses = initial_results.get("device_statuses", [])
+
+        parse_device_data(devices, device_statuses)
         sensor_readings = initial_results.get("sensor_readings")
         battery_readings = initial_results.get("battery_readings")
 
