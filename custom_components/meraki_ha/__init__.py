@@ -76,12 +76,13 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             sidebar_icon="mdi:router-network",
             frontend_url_path="meraki",
             config={
+                "config_entry_id": entry.entry_id,
                 "_panel_custom": {
                     "name": "meraki-panel",
                     "module_url": f"/local/{DOMAIN}/meraki-panel.js",
                     "embed_iframe": False,
                     "trust_external_script": True,
-                }
+                },
             },
             require_admin=True,
         )
