@@ -5,7 +5,7 @@ import logging
 from homeassistant.helpers.entity import Entity
 
 from ..coordinator import MerakiDataUpdateCoordinator
-from ..sensor_defs.mt_sensors import MT_SENSOR_MODELS
+from ..descriptions import MT_SENSOR_MODELS
 from .device.meraki_mt_base import MerakiMtSensor
 
 _LOGGER = logging.getLogger(__name__)

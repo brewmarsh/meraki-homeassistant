@@ -10,16 +10,17 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING
 
-from ...binary_sensor.device.camera_motion import MerakiMotionSensor
-from ...button.device.camera_snapshot import MerakiSnapshotButton
-from ...camera import MerakiCamera
-from ...core.errors import MerakiInformationalError
-from ...sensor.device.camera_analytics import (
+from ....binary_sensor.device.camera_motion import MerakiMotionSensor
+from ....button.device.camera_snapshot import MerakiSnapshotButton
+from ....camera import MerakiCamera
+from ....core.errors import MerakiInformationalError
+from ....descriptions import CAMERA_MOTION_DESCRIPTION
+from ....sensor.device.camera_analytics import (
     MerakiPersonCountSensor,
     MerakiVehicleCountSensor,
 )
-from ...sensor.device.rtsp_url import MerakiRtspUrlSensor
-from ...switch.camera_controls import AnalyticsSwitch
+from ....sensor.device.rtsp_url import MerakiRtspUrlSensor
+from ....switch.camera_controls import AnalyticsSwitch
 from .base import BaseDeviceHandler
 
 if TYPE_CHECKING:
@@ -134,6 +135,7 @@ class MVHandler(BaseDeviceHandler):
                 self.device,
                 self._camera_service,
                 self._config_entry,
+                CAMERA_MOTION_DESCRIPTION,
             )
         )
 

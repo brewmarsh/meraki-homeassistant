@@ -10,7 +10,8 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING
 
-from ...binary_sensor.switch_port import SwitchPortSensor
+from ....binary_sensor.switch_port import SwitchPortSensor
+from ....descriptions import SWITCH_PORT_DESCRIPTION
 from .base import BaseDeviceHandler
 
 if TYPE_CHECKING:
@@ -78,7 +79,12 @@ class MSHandler(BaseDeviceHandler):
         for port in ports:
             if port.get("enabled"):
                 entities.append(
-                    SwitchPortSensor(self._switch_port_coordinator, self.device, port)
+                    SwitchPortSensor(
+                        self._switch_port_coordinator,
+                        self.device,
+                        port,
+                        SWITCH_PORT_DESCRIPTION,
+                    )
                 )
 
         return entities
