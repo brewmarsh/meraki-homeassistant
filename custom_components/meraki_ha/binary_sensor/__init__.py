@@ -8,7 +8,7 @@ from homeassistant.helpers.entity import Entity
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from ..const import DOMAIN
-from ..descriptions import (
+from ..entity_descriptions import (
     CAMERA_MOTION_DESCRIPTION,
     MT20_DOOR_DESCRIPTION,
     SWITCH_PORT_DESCRIPTION,
