@@ -28,10 +28,11 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
+          jules_api_key: ${{ secrets.JULES_API_KEY }}
           # Targeting: Hard-code beta as the base for all operations.
           prompt: |
             When creating a Pull Request, you must always look for a related issue number in the task context.
-            Include 'Fixes #<issue_number>' at the beginning of the PR title or in the first line of the PR description.
+            Include 'Fixes: #' at the beginning of the PR title or in the first line of the PR description.
             This ensures our project tracking stays synchronized.
 
       # Step 2: Validation
