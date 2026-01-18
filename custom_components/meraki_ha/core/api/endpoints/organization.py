@@ -99,7 +99,7 @@ class OrganizationEndpoints:
 
     @handle_meraki_errors
     @async_timed_cache(timeout=60)
-    async def get_organization_device_statuses(self) -> list[dict[str, Any]]:
+    async def get_organization_devices_statuses(self) -> list[dict[str, Any]]:
         """
         Get status information for all devices in the organization.
 
@@ -109,12 +109,13 @@ class OrganizationEndpoints:
 
         """
         statuses = await self._api_client.run_sync(
-            self._dashboard.organizations.getOrganizationDeviceStatuses,
+            self._dashboard.organizations.getOrganizationDevicesStatuses,
             organizationId=self._api_client.organization_id,
+            total_pages="all",
         )
         validated = validate_response(statuses)
         if not isinstance(validated, list):
-            _LOGGER.warning("get_organization_device_statuses did not return a list.")
+            _LOGGER.warning("get_organization_devices_statuses did not return a list.")
             return []
         return validated
 
