@@ -1,5 +1,9 @@
 # Use a stable, minimal Ubuntu base
+<<<<<<< HEAD
 FROM ubuntu:22.04
+=======
+FROM ubuntu:24.04
+>>>>>>> origin/beta
 
 # Define the official runner version (Check GitHub releases for latest)
 ARG RUNNER_VERSION="2.329.0"

@@ -27,12 +27,15 @@ CONF_MERAKI_ORG_ID: Final = "meraki_org_id"
 CONF_SCAN_INTERVAL: Final = "scan_interval"
 """Configuration key for the scan interval in seconds."""
 
+<<<<<<< HEAD
 CONF_ENABLE_WEB_UI: Final = "enable_web_ui"
 """Configuration key for enabling the web UI."""
 
 CONF_WEB_UI_PORT: Final = "web_ui_port"
 """Configuration key for the web UI port."""
 
+=======
+>>>>>>> origin/beta
 DATA_CLIENT: Final = "client"
 """Key for storing the Meraki API client in Home Assistant's data."""
 
@@ -42,12 +45,15 @@ DATA_COORDINATOR: Final = "coordinator"
 DATA_COORDINATORS: Final = "coordinators"
 """Key for storing the dictionary of all coordinators."""
 
+<<<<<<< HEAD
 CONF_IGNORED_NETWORKS: Final = "ignored_networks"
 """Configuration key for a list of network names to ignore."""
 
 CONF_HIDE_UNCONFIGURED_SSIDS: Final = "hide_unconfigured_ssids"
 """Configuration key for hiding unconfigured SSIDs."""
 
+=======
+>>>>>>> origin/beta
 CONF_RTSP_STREAM_ENABLED: Final = "rtsp_stream_enabled"
 """Configuration key for enabling RTSP stream on a camera."""
 
@@ -55,25 +61,39 @@ CONF_ENABLE_DEVICE_TRACKER: Final = "enable_device_tracker"
 """Configuration key for enabling device tracker."""
 
 
+<<<<<<< HEAD
+=======
+CONF_IGNORED_NETWORKS: Final = "ignored_networks"
+"""Configuration key for a list of network names to ignore."""
+
+>>>>>>> origin/beta
 CONF_ENABLE_VLAN_MANAGEMENT: Final = "enable_vlan_management"
 """Configuration key for enabling vlan management."""
 
 
+<<<<<<< HEAD
 CONF_ENABLED_NETWORKS: Final = "enabled_networks"
 """Configuration key for a list of network IDs to enable."""
 
 DEFAULT_ENABLED_NETWORKS: Final[list[str]] = []
+=======
+
+DEFAULT_IGNORED_NETWORKS: Final[list[str]] = []
+>>>>>>> origin/beta
 """Default value for the ignored networks list."""
 
 DEFAULT_ENABLE_VLAN_MANAGEMENT: Final = False
 """Default value for enabling vlan management."""
 
+<<<<<<< HEAD
 DEFAULT_IGNORED_NETWORKS: Final = ""
 """Default value for the ignored networks list."""
 
 DEFAULT_HIDE_UNCONFIGURED_SSIDS: Final = False
 """Default value for hiding unconfigured SSIDs."""
 
+=======
+>>>>>>> origin/beta
 DATA_SSID_DEVICES_COORDINATOR: Final = "ssid_devices"
 """Key for the SSID devices coordinator."""
 
@@ -83,12 +103,15 @@ MERAKI_API_CLIENT: Final = "meraki_api_client"
 DEFAULT_SCAN_INTERVAL: Final = 300
 """Default scan interval in seconds for the Meraki API data."""
 
+<<<<<<< HEAD
 DEFAULT_ENABLE_WEB_UI: Final = False
 """Default value for enabling the web UI."""
 
 DEFAULT_WEB_UI_PORT: Final = 8080
 """Default scan interval in seconds for the Meraki API data."""
 
+=======
+>>>>>>> origin/beta
 # Platform types
 PLATFORM_BINARY_SENSOR: Final = "binary_sensor"
 """Represents the binary_sensor platform."""

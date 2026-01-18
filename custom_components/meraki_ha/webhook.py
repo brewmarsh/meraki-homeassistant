@@ -116,7 +116,11 @@ async def async_register_webhook(
 
 async def async_unregister_webhook(
     hass: HomeAssistant,
+<<<<<<< HEAD
     webhook_url: str,
+=======
+    webhook_id: str,
+>>>>>>> origin/beta
     api_client: MerakiAPIClient,
 ) -> None:
     """
@@ -125,11 +129,19 @@ async def async_unregister_webhook(
     Args:
     ----
         hass: The Home Assistant instance.
+<<<<<<< HEAD
         webhook_url: The URL of the webhook to unregister.
         api_client: The Meraki API client.
 
     """
     await api_client.unregister_webhook(webhook_url)
+=======
+        webhook_id: The httpServerId from Meraki.
+        api_client: The Meraki API client.
+
+    """
+    await api_client.unregister_webhook(webhook_id)
+>>>>>>> origin/beta
 
 
 async def async_handle_webhook(

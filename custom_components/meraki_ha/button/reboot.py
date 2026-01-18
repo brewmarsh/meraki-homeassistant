@@ -14,6 +14,10 @@ from homeassistant.components.button import ButtonEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.entity import DeviceInfo
 
+<<<<<<< HEAD
+=======
+from ..core.utils.naming_utils import format_entity_name
+>>>>>>> origin/beta
 from ..helpers.device_info_helpers import resolve_device_info
 
 if TYPE_CHECKING:

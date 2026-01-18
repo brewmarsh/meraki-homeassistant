@@ -8,12 +8,20 @@ from homeassistant.helpers import selector
 from .const import (
     CONF_ENABLE_DEVICE_TRACKER,
     CONF_ENABLE_VLAN_MANAGEMENT,
+<<<<<<< HEAD
     CONF_ENABLED_NETWORKS,
+=======
+    CONF_IGNORED_NETWORKS,
+>>>>>>> origin/beta
     CONF_MERAKI_API_KEY,
     CONF_MERAKI_ORG_ID,
     CONF_SCAN_INTERVAL,
     DEFAULT_ENABLE_VLAN_MANAGEMENT,
+<<<<<<< HEAD
     DEFAULT_ENABLED_NETWORKS,
+=======
+    DEFAULT_IGNORED_NETWORKS,
+>>>>>>> origin/beta
     DEFAULT_SCAN_INTERVAL,
 )
 
@@ -41,6 +49,7 @@ OPTIONS_SCHEMA = vol.Schema(
         vol.Required(
             CONF_ENABLE_VLAN_MANAGEMENT, default=DEFAULT_ENABLE_VLAN_MANAGEMENT
         ): selector.BooleanSelector(),
+<<<<<<< HEAD
         vol.Optional(
             CONF_ENABLED_NETWORKS, default=DEFAULT_ENABLED_NETWORKS
         ): selector.SelectSelector(
@@ -51,5 +60,8 @@ OPTIONS_SCHEMA = vol.Schema(
                 mode=selector.SelectSelectorMode.DROPDOWN,
             )
         ),
+=======
+        vol.Optional(CONF_IGNORED_NETWORKS, default=DEFAULT_IGNORED_NETWORKS): [str],
+>>>>>>> origin/beta
     }
 )

@@ -18,6 +18,7 @@ This is the **most critical pattern** in this codebase for all entities that mod
 
 The required logic is as follows:
 
+<<<<<<< HEAD
 1.  **Optimistic State Update:** The entity's action method (e.g., `async_turn_on`) **must** immediately update its own state and tell Home Assistant to write this state to the UI.
 
     ```python
@@ -45,6 +46,35 @@ The required logic is as follows:
 
         # ... rest of the update logic ...
     ```
+=======
+1. **Optimistic State Update:** The entity's action method (e.g., `async_turn_on`) **must** immediately update its own state and tell Home Assistant to write this state to the UI.
+
+   ```python
+   # Example from a switch
+   self._attr_is_on = True
+   self.async_write_ha_state()
+   ```
+
+2. **Fire-and-Forget API Call:** The method should then make the API call to Meraki without waiting for a response to be confirmed by a refresh.
+
+3. **Register a Cooldown:** After making the API call, the entity **must** register a "pending update" with the central `MerakiDataCoordinator`. This acts as a cooldown period (default 150 seconds).
+
+   ```python
+   # Example
+   self.coordinator.register_pending_update(self.unique_id)
+   ```
+
+4. **Ignore Coordinator Updates:** The entity's state update method (`_update_internal_state`) **must** check if it is in a cooldown period before processing new data. If it is, it must `return` and do nothing.
+
+   ```python
+   # Example
+   def _update_internal_state(self) -> None:
+       if self.coordinator.is_pending(self.unique_id):
+           return  # Ignore update, optimistic state is in control
+
+       # ... rest of the update logic ...
+   ```
+>>>>>>> origin/beta
 
 **Do not attempt to "fix" this by forcing an immediate refresh after an action.** This will not work and will re-introduce the original bug.
 
@@ -111,6 +141,7 @@ The self-hosted web interface is a React application located in `custom_componen
 
 This project uses [Poetry](https://python-poetry.org/) for dependency management.
 
+<<<<<<< HEAD
 1.  Install dependencies:
     ```bash
     poetry install
@@ -119,11 +150,22 @@ This project uses [Poetry](https://python-poetry.org/) for dependency management
     ```bash
     poetry shell
     ```
+=======
+1. Install dependencies:
+   ```bash
+   poetry install
+   ```
+2. Activate the virtual environment:
+   ```bash
+   poetry shell
+   ```
+>>>>>>> origin/beta
 
 ### Running Quality Checks
 
 Before submitting, you **must** run all quality checks. These are also enforced by pre-commit hooks.
 
+<<<<<<< HEAD
 1.  **Linting & Formatting (Ruff):**
 
     ```bash
@@ -154,6 +196,38 @@ Before submitting, you **must** run all quality checks. These are also enforced 
     ```bash
     poetry run python -m script.hassfest
     ```
+=======
+1. **Linting & Formatting (Ruff):**
+
+   ```bash
+   poetry run ruff check --fix .
+   poetry run ruff format .
+   ```
+
+2. **Type Checking (mypy):**
+
+   ```bash
+   poetry run mypy .
+   ```
+
+3. **Security Analysis (bandit):**
+
+   ```bash
+   poetry run bandit -r custom_components/meraki_ha/
+   ```
+
+4. **Run Tests (pytest):**
+
+   ```bash
+   poetry run pytest
+   ```
+
+5. **Home Assistant Validation (hassfest):**
+   This ensures the integration's manifest and structure are valid.
+   ```bash
+   poetry run python -m script.hassfest
+   ```
+>>>>>>> origin/beta
 
 ### Debugging
 

@@ -9,6 +9,7 @@ repos:
       - id: check-merge-conflict
       - id: check-toml
       - id: check-json
+<<<<<<< HEAD
         exclude: (.vscode|.devcontainer)
       - id: check-executables-have-shebangs
         stages: [manual]
@@ -18,20 +19,34 @@ repos:
     hooks:
       - id: black
         language_version: python3
+=======
+        exclude: (.vscode|.devcontainer|node_modules)
+      - id: check-executables-have-shebangs
+        stages: [manual]
+      - id: end-of-file-fixer
+>>>>>>> origin/beta
   #  - repo: https://github.com/pycqa/isort
   #    rev: 5.13.2
   #    hooks:
   #      - id: isort
   #        name: isort (python)
   - repo: https://github.com/astral-sh/ruff-pre-commit
+<<<<<<< HEAD
     rev: v0.14.11
+=======
+    rev: v0.5.5
+>>>>>>> origin/beta
     hooks:
       - id: ruff
         args:
           - --fix
+<<<<<<< HEAD
         files: ^(custom_components|tests|tools)/.+\.py$|.+\.py$
       - id: ruff-format
         files: ^(custom_components|tests|tools)/.+\.py$|.+\.py$
+=======
+      - id: ruff-format
+>>>>>>> origin/beta
   - repo: https://github.com/codespell-project/codespell
     rev: v2.4.1
     hooks:
@@ -41,6 +56,10 @@ repos:
           - --skip="./.*,*.csv,*.json"
           - --quiet-level=2
         exclude_types: [csv, json]
+<<<<<<< HEAD
+=======
+        exclude: (^node_modules/|custom_components/meraki_ha/www/meraki-panel\.js|custom_components/meraki_ha/www/dist/)
+>>>>>>> origin/beta
   #  - repo: https://github.com/adrienverge/yamllint.git
   #    rev: v1.35.1
   #    hooks:
@@ -59,8 +78,17 @@ repos:
           - --force
           - --keep-updates
         files: ^(custom_components|tests)/.+\.py$
+<<<<<<< HEAD
   - repo: https://github.com/DavidAnson/markdownlint-cli2
     rev: v0.20.0
     hooks:
       - id: markdownlint-cli2
         exclude: ^node_modules/
+=======
+  # TODO: Fix markdown issues and re-enable
+  # - repo: https://github.com/DavidAnson/markdownlint-cli2
+  #   rev: v0.20.0
+  #   hooks:
+  #     - id: markdownlint-cli2
+  #       exclude: ^node_modules/
+>>>>>>> origin/beta

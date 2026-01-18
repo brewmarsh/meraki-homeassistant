@@ -13,7 +13,11 @@ from tests.const import MOCK_DEVICE
 
 @pytest.fixture
 def mock_coordinator():
+<<<<<<< HEAD
     """Fixture for a mocked MerakiDataCoordinator."""
+=======
+    """Fixture for a mocked MerakiDataUpdateCoordinator."""
+>>>>>>> origin/beta
     return MagicMock()
 
 

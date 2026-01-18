@@ -12,10 +12,23 @@ follow_imports = "silent"
 module = "aiofiles"
 ignore_missing_imports = true
 
+<<<<<<< HEAD
 [tool.ruff]
 exclude = [".pyenv"]
 line-length = 88
 
+=======
+# Required for the AI-assisted "Gatekeeper" workflow.
+[tool.ruff]
+fix = true
+unsafe-fixes = true
+exclude = [".pyenv"]
+line-length = 88
+
+[tool.ruff.format]
+docstring-code-format = true
+
+>>>>>>> origin/beta
 [tool.ruff.lint]
 select = [
     "E",  # pycodestyle errors
@@ -30,3 +43,24 @@ select = [
 ignore = ["D100", "D104", "D107", "D211", "D212"]
 [tool.ruff.lint.pydocstyle]
 convention = "numpy"
+<<<<<<< HEAD
+=======
+
+[tool.bumpversion]
+current_version = "2.1.0-beta.53"
+commit = false
+tag = false
+parse = "(?P<major>\\d+)\\.(?P<minor>\\d+)\\.(?P<patch>\\d+)(\\-beta\\.(?P<beta>\\d+))?"
+serialize = [
+	"{major}.{minor}.{patch}-beta.{beta}",
+	"{major}.{minor}.{patch}",
+]
+
+[[tool.bumpversion.files]]
+filename = "custom_components/meraki_ha/manifest.json"
+search = '"version": "{current_version}"'
+replace = '"version": "{new_version}"'
+
+[tool.bumpversion.parts.beta]
+first_value = 1
+>>>>>>> origin/beta

@@ -1,9 +1,36 @@
+<<<<<<< HEAD
 meraki==1.40.0
+=======
+-r requirements_dev.txt
+
+# Test-specific dependencies
+pytest-homeassistant-custom-component
+pytest
+pytest-cov
+pytest-asyncio
+pytest-socket
+pytest-picked
+pytest-sugar
+pytest-unordered
+pytest-xdist
+codecov
+respx
+requests-mock
+freezegun
+pytest-freezer
+pytest-timeout
+pytest-github-actions-annotate-failures
+syrupy
+aiortc
+>>>>>>> origin/beta
 protobuf==4.25.3
 diskcache==5.6.3
 aiofiles==23.2.1
 yarl==1.9.2
+<<<<<<< HEAD
 aiohttp==3.9.1
+=======
+>>>>>>> origin/beta
 cryptography==41.0.7
 h11==0.14.0
 jinja2==3.1.2
@@ -12,6 +39,7 @@ pip==23.3
 requests==2.31.0
 setuptools==78.1.1
 tqdm==4.66.1
+<<<<<<< HEAD
 urllib3==1.26.18
 homeassistant==2023.12.0
 voluptuous==0.13.1
@@ -23,10 +51,23 @@ pytest-mock==3.12.0
 types-aiofiles==23.2.0.20240106
 playwright==1.39.0
 pytest-cov==4.1.0
+=======
+homeassistant==2023.12.0
+voluptuous==0.16.0
+pytest-mock==3.12.0
+types-aiofiles==23.2.0.20240106
+>>>>>>> origin/beta
 py==1.11.0
 tzdata==2024.1
 janus==1.0.0
 psutil-home-assistant==0.0.1
+<<<<<<< HEAD
 pillow==10.2.0
 fnv-hash-fast==0.4.0
 flake8==7.0.0
+=======
+pillow>=11.0.0
+fnv-hash-fast==0.4.0
+flake8==7.0.0
+urllib3
+>>>>>>> origin/beta

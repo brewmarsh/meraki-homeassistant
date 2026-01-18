@@ -13,20 +13,35 @@ MOCK_CONFIG_ENTRY.entry_id = MOCK_CONFIG_ENTRY_ID
 
 MOCK_NETWORK: MerakiNetwork = {
     "id": "N_12345",
+<<<<<<< HEAD
     "organizationId": "test-org",
     "name": "Test Network",
     "productTypes": ["appliance", "switch", "wireless", "cellularGateway"],
     "tags": "e2e-test",
     "clientCount": 5,
+=======
+    "organization_id": "test-org",
+    "name": "Test Network",
+    "product_types": ["appliance", "switch", "wireless", "cellularGateway"],
+    "tags": "e2e-test",
+>>>>>>> origin/beta
 }
 
 MOCK_DEVICE: MerakiDevice = {
     "serial": "Q234-ABCD-5678",
     "name": "Test Device",
+<<<<<<< HEAD
     "model": "MR33",
     "networkId": "N_12345",
     "productType": "wireless",
     "lanIp": "1.2.3.4",
+=======
+    "mac": "00:11:22:33:44:55",
+    "model": "MR33",
+    "network_id": "N_12345",
+    "product_type": "wireless",
+    "lan_ip": "1.2.3.4",
+>>>>>>> origin/beta
     "status": "online",
 }
 

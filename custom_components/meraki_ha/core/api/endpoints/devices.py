@@ -30,6 +30,10 @@ class DevicesEndpoints:
 
         """
         self._api_client = api_client
+<<<<<<< HEAD
+=======
+        self._dashboard = api_client.dashboard
+>>>>>>> origin/beta
 
     @handle_meraki_errors
     async def get_device_clients(self, serial: str) -> list[dict[str, Any]]:
@@ -45,10 +49,15 @@ class DevicesEndpoints:
             A list of clients.
 
         """
+<<<<<<< HEAD
         if self._api_client.dashboard is None:
             return []
         clients = await self._api_client.run_sync(
             self._api_client.dashboard.devices.getDeviceClients,
+=======
+        clients = await self._api_client.run_sync(
+            self._dashboard.devices.getDeviceClients,
+>>>>>>> origin/beta
             serial,
             timespan=300,  # 5 minutes to get current clients
         )
@@ -71,10 +80,15 @@ class DevicesEndpoints:
             The device details.
 
         """
+<<<<<<< HEAD
         if self._api_client.dashboard is None:
             return {}
         device = await self._api_client.run_sync(
             self._api_client.dashboard.devices.getDevice,
+=======
+        device = await self._api_client.run_sync(
+            self._dashboard.devices.getDevice,
+>>>>>>> origin/beta
             serial=serial,
         )
         validated = validate_response(device)
@@ -98,10 +112,15 @@ class DevicesEndpoints:
             The updated device.
 
         """
+<<<<<<< HEAD
         if self._api_client.dashboard is None:
             return {}
         device = await self._api_client.run_sync(
             self._api_client.dashboard.devices.updateDevice,
+=======
+        device = await self._api_client.run_sync(
+            self._dashboard.devices.updateDevice,
+>>>>>>> origin/beta
             serial=serial,
             **kwargs,
         )

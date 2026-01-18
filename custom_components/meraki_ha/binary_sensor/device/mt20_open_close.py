@@ -14,8 +14,14 @@ from homeassistant.core import callback
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
+<<<<<<< HEAD
 from ...helpers.device_info_helpers import resolve_device_info
 from ...meraki_data_coordinator import MerakiDataCoordinator
+=======
+from ...coordinator import MerakiDataUpdateCoordinator
+from ...core.utils.naming_utils import format_entity_name
+from ...helpers.device_info_helpers import resolve_device_info
+>>>>>>> origin/beta
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -27,7 +33,11 @@ class MerakiMt20OpenCloseSensor(CoordinatorEntity, BinarySensorEntity):
 
     def __init__(
         self,
+<<<<<<< HEAD
         coordinator: MerakiDataCoordinator,
+=======
+        coordinator: MerakiDataUpdateCoordinator,
+>>>>>>> origin/beta
         device_info: dict[str, Any],
         config_entry: ConfigEntry,
     ) -> None:

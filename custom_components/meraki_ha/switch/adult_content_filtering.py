@@ -8,8 +8,13 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import callback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
+<<<<<<< HEAD
 from ..helpers.device_info_helpers import resolve_device_info
 from ..meraki_data_coordinator import MerakiDataCoordinator
+=======
+from ..coordinator import MerakiDataUpdateCoordinator
+from ..helpers.device_info_helpers import resolve_device_info
+>>>>>>> origin/beta
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -19,7 +24,11 @@ class MerakiAdultContentFilteringSwitch(CoordinatorEntity, SwitchEntity):
 
     def __init__(
         self,
+<<<<<<< HEAD
         coordinator: MerakiDataCoordinator,
+=======
+        coordinator: MerakiDataUpdateCoordinator,
+>>>>>>> origin/beta
         config_entry: ConfigEntry,
         ssid: dict[str, Any],
     ) -> None:

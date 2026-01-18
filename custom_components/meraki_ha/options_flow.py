@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import Any
 
 import voluptuous as vol
+<<<<<<< HEAD
 from homeassistant.config_entries import ConfigEntry, ConfigFlowResult, OptionsFlow
 from homeassistant.helpers import selector
 
@@ -16,6 +17,20 @@ class MerakiOptionsFlowHandler(OptionsFlow):
     """Handle an options flow for the Meraki integration."""
 
     def __init__(self, config_entry: ConfigEntry) -> None:
+=======
+from homeassistant import config_entries, data_entry_flow
+from homeassistant.helpers import selector
+
+from .const import CONF_IGNORED_NETWORKS, CONF_INTEGRATION_TITLE, DOMAIN
+from .coordinator import MerakiDataUpdateCoordinator
+from .schemas import OPTIONS_SCHEMA
+
+
+class MerakiOptionsFlowHandler(config_entries.OptionsFlow):
+    """Handle an options flow for the Meraki integration."""
+
+    def __init__(self, config_entry: config_entries.ConfigEntry) -> None:
+>>>>>>> origin/beta
         """
         Initialize options flow.
 
@@ -29,7 +44,11 @@ class MerakiOptionsFlowHandler(OptionsFlow):
     async def async_step_init(
         self,
         user_input: dict[str, Any] | None = None,
+<<<<<<< HEAD
     ) -> ConfigFlowResult:
+=======
+    ) -> data_entry_flow.FlowResult:
+>>>>>>> origin/beta
         """
         Manage the options flow.
 
@@ -42,8 +61,11 @@ class MerakiOptionsFlowHandler(OptionsFlow):
             The flow result.
 
         """
+<<<<<<< HEAD
         from .meraki_data_coordinator import MerakiDataCoordinator
 
+=======
+>>>>>>> origin/beta
         if user_input is not None:
             self.options.update(user_input)
             return self.async_create_entry(
@@ -51,9 +73,15 @@ class MerakiOptionsFlowHandler(OptionsFlow):
                 data=self.options,
             )
 
+<<<<<<< HEAD
         coordinator: MerakiDataCoordinator = self.hass.data[DOMAIN][
             self.config_entry.entry_id
         ]["coordinator"]
+=======
+        coordinator: MerakiDataUpdateCoordinator = self.hass.data[DOMAIN][
+            self.config_entry.entry_id
+        ]
+>>>>>>> origin/beta
         network_options = []
         if coordinator.data and coordinator.data.get("networks"):
             network_options = [
@@ -102,7 +130,11 @@ class MerakiOptionsFlowHandler(OptionsFlow):
                 # default value set to the existing option value.
                 key = type(key)(key.schema, default=defaults[key.schema])
 
+<<<<<<< HEAD
             if key_name == CONF_ENABLED_NETWORKS and isinstance(
+=======
+            if key_name == CONF_IGNORED_NETWORKS and isinstance(
+>>>>>>> origin/beta
                 value, selector.SelectSelector
             ):
                 new_config = value.config.copy()

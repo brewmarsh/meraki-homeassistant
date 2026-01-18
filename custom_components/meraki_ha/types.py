@@ -2,7 +2,49 @@
 
 from __future__ import annotations
 
+<<<<<<< HEAD
 from typing import TypedDict
+=======
+from dataclasses import dataclass, field
+from typing import Any, TypedDict
+
+
+@dataclass
+class MerakiDevice:
+    """Dataclass for a Meraki device."""
+
+    serial: str
+    name: str
+    model: str
+    mac: str
+    lan_ip: str | None = None
+    wan1_ip: str | None = None
+    wan2_ip: str | None = None
+    public_ip: str | None = None
+    network_id: str | None = None
+    status: str | None = None
+    product_type: str | None = None
+    tags: list[str] = field(default_factory=list)
+    readings: list[dict[str, Any]] = field(default_factory=list)
+    video_settings: dict[str, Any] | None = None
+    rtsp_url: str | None = None
+    sense_settings: dict[str, Any] | None = None
+    ports_statuses: list[dict[str, Any]] = field(default_factory=list)
+    dynamic_dns: dict[str, Any] | None = None
+
+
+@dataclass
+class MerakiNetwork:
+    """Dataclass for a Meraki network."""
+
+    id: str
+    name: str
+    organization_id: str
+    product_types: list[str] = field(default_factory=list)
+    time_zone: str | None = None
+    tags: list[str] = field(default_factory=list)
+    notes: str | None = None
+>>>>>>> origin/beta
 
 
 class MerakiVlan(TypedDict):
@@ -15,6 +57,7 @@ class MerakiVlan(TypedDict):
     ipv6: dict | None
 
 
+<<<<<<< HEAD
 class MerakiNetwork(TypedDict):
     """Represents a Meraki Network."""
 
@@ -26,6 +69,8 @@ class MerakiNetwork(TypedDict):
     clientCount: int | None
 
 
+=======
+>>>>>>> origin/beta
 class MerakiFirewallRule(TypedDict):
     """Represents a Meraki L3 Firewall Rule."""
 
@@ -52,6 +97,7 @@ class MerakiVpn(TypedDict):
     mode: str
     hubs: list
     subnets: list
+<<<<<<< HEAD
 
 
 class MerakiDevice(TypedDict, total=False):
@@ -71,3 +117,5 @@ class MerakiDevice(TypedDict, total=False):
     rtsp_url: str | None
     sense_settings: dict
     readings: list[dict]
+=======
+>>>>>>> origin/beta

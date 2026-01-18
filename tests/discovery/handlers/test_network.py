@@ -17,7 +17,11 @@ MOCK_NETWORK_2 = {"id": "N_5678", "name": "Network 2"}
 
 @pytest.fixture
 def mock_coordinator():
+<<<<<<< HEAD
     """Fixture for a mock MerakiDataCoordinator."""
+=======
+    """Fixture for a mock MerakiDataUpdateCoordinator."""
+>>>>>>> origin/beta
     coordinator = MagicMock()
     coordinator.data = {"networks": [MOCK_NETWORK_1, MOCK_NETWORK_2]}
     return coordinator

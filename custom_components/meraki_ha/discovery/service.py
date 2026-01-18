@@ -25,8 +25,16 @@ if TYPE_CHECKING:
     from homeassistant.helpers.entity import Entity
 
     from ...types import MerakiDevice
+<<<<<<< HEAD
     from ..core.api.client import MerakiAPIClient
     from ..meraki_data_coordinator import MerakiDataCoordinator
+=======
+    from ..coordinator import MerakiDataUpdateCoordinator
+    from ..core.api.client import MerakiAPIClient
+    from ..core.coordinators.switch_port_status_coordinator import (
+        SwitchPortStatusCoordinator,
+    )
+>>>>>>> origin/beta
     from ..services.camera_service import CameraService
     from ..services.device_control_service import DeviceControlService
     from ..services.network_control_service import NetworkControlService
@@ -51,9 +59,16 @@ class DeviceDiscoveryService:
 
     def __init__(
         self,
+<<<<<<< HEAD
         coordinator: MerakiDataCoordinator,
         config_entry: ConfigEntry,
         meraki_client: MerakiAPIClient,
+=======
+        coordinator: MerakiDataUpdateCoordinator,
+        config_entry: ConfigEntry,
+        meraki_client: MerakiAPIClient,
+        switch_port_coordinator: SwitchPortStatusCoordinator,
+>>>>>>> origin/beta
         camera_service: CameraService,
         control_service: DeviceControlService,
         network_control_service: NetworkControlService,
@@ -62,6 +77,10 @@ class DeviceDiscoveryService:
         self._coordinator = coordinator
         self._config_entry = config_entry
         self._meraki_client = meraki_client
+<<<<<<< HEAD
+=======
+        self._switch_port_coordinator = switch_port_coordinator
+>>>>>>> origin/beta
         self._camera_service = camera_service
         self._control_service = control_service
         self._network_control_service = network_control_service
@@ -86,6 +105,10 @@ class DeviceDiscoveryService:
             self._camera_service,
             self._control_service,
             self._network_control_service,
+<<<<<<< HEAD
+=======
+            self._switch_port_coordinator,
+>>>>>>> origin/beta
         )
         network_entities = await network_handler.discover_entities()
         all_entities.extend(network_entities)
@@ -126,8 +149,11 @@ class DeviceDiscoveryService:
                     self._config_entry,
                     self._camera_service,
                     self._control_service,
+<<<<<<< HEAD
                     self._network_control_service,
                     self._meraki_client,
+=======
+>>>>>>> origin/beta
                 )
             elif model_prefix in ("MX", "GX", "GR"):
                 handler = handler_class(
@@ -142,6 +168,7 @@ class DeviceDiscoveryService:
                     self._coordinator,
                     device,
                     self._config_entry,
+<<<<<<< HEAD
                     self._control_service,
                     self._network_control_service,
                 )
@@ -152,6 +179,10 @@ class DeviceDiscoveryService:
                     self._config_entry,
                     self._control_service,
                     self._network_control_service,
+=======
+                    self._switch_port_coordinator,
+                    self._control_service,
+>>>>>>> origin/beta
                 )
             else:
                 handler = handler_class(

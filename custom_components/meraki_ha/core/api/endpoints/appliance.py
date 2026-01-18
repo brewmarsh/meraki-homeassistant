@@ -34,6 +34,10 @@ class ApplianceEndpoints:
 
         """
         self._api_client = api_client
+<<<<<<< HEAD
+=======
+        self._dashboard = api_client.dashboard
+>>>>>>> origin/beta
         self._hass = hass
 
     @handle_meraki_errors
@@ -55,10 +59,15 @@ class ApplianceEndpoints:
             A list of traffic data.
 
         """
+<<<<<<< HEAD
         if self._api_client.dashboard is None:
             return []
         traffic = await self._api_client.run_sync(
             self._api_client.dashboard.appliance.getNetworkApplianceTraffic,
+=======
+        traffic = await self._api_client.run_sync(
+            self._dashboard.appliance.getNetworkApplianceTraffic,
+>>>>>>> origin/beta
             networkId=network_id,
             timespan=timespan,
         )
@@ -82,10 +91,15 @@ class ApplianceEndpoints:
             A list of VLANs.
 
         """
+<<<<<<< HEAD
         if self._api_client.dashboard is None:
             return []
         vlans = await self._api_client.run_sync(
             self._api_client.dashboard.appliance.getNetworkApplianceVlans,
+=======
+        vlans = await self._api_client.run_sync(
+            self._dashboard.appliance.getNetworkApplianceVlans,
+>>>>>>> origin/beta
             networkId=network_id,
         )
         validated = validate_response(vlans)
@@ -114,10 +128,15 @@ class ApplianceEndpoints:
             The updated VLAN.
 
         """
+<<<<<<< HEAD
         if self._api_client.dashboard is None:
             return {}
         vlan = await self._api_client.run_sync(
             self._api_client.dashboard.appliance.updateNetworkApplianceVlan,
+=======
+        vlan = await self._api_client.run_sync(
+            self._dashboard.appliance.updateNetworkApplianceVlan,
+>>>>>>> origin/beta
             networkId=network_id,
             vlanId=vlan_id,
             **kwargs,
@@ -142,10 +161,15 @@ class ApplianceEndpoints:
             The L3 firewall rules.
 
         """
+<<<<<<< HEAD
         if self._api_client.dashboard is None:
             return {}
         rules = await self._api_client.run_sync(
             self._api_client.dashboard.appliance.getNetworkApplianceFirewallL3FirewallRules,
+=======
+        rules = await self._api_client.run_sync(
+            self._dashboard.appliance.getNetworkApplianceFirewallL3FirewallRules,
+>>>>>>> origin/beta
             networkId=network_id,
         )
         validated = validate_response(rules)
@@ -172,10 +196,15 @@ class ApplianceEndpoints:
             The updated L3 firewall rules.
 
         """
+<<<<<<< HEAD
         if self._api_client.dashboard is None:
             return {}
         rules = await self._api_client.run_sync(
             self._api_client.dashboard.appliance.updateNetworkApplianceFirewallL3FirewallRules,
+=======
+        rules = await self._api_client.run_sync(
+            self._dashboard.appliance.updateNetworkApplianceFirewallL3FirewallRules,
+>>>>>>> origin/beta
             networkId=network_id,
             **kwargs,
         )
@@ -199,10 +228,15 @@ class ApplianceEndpoints:
             The traffic shaping settings.
 
         """
+<<<<<<< HEAD
         if self._api_client.dashboard is None:
             return {}
         settings = await self._api_client.run_sync(
             self._api_client.dashboard.appliance.getNetworkApplianceTrafficShaping,
+=======
+        settings = await self._api_client.run_sync(
+            self._dashboard.appliance.getNetworkApplianceTrafficShaping,
+>>>>>>> origin/beta
             networkId=network_id,
         )
         validated = validate_response(settings)
@@ -229,10 +263,15 @@ class ApplianceEndpoints:
             The updated traffic shaping settings.
 
         """
+<<<<<<< HEAD
         if self._api_client.dashboard is None:
             return {}
         settings = await self._api_client.run_sync(
             self._api_client.dashboard.appliance.updateNetworkApplianceTrafficShaping,
+=======
+        settings = await self._api_client.run_sync(
+            self._dashboard.appliance.updateNetworkApplianceTrafficShaping,
+>>>>>>> origin/beta
             networkId=network_id,
             **kwargs,
         )
@@ -256,10 +295,15 @@ class ApplianceEndpoints:
             The VPN status.
 
         """
+<<<<<<< HEAD
         if self._api_client.dashboard is None:
             return {}
         status = await self._api_client.run_sync(
             self._api_client.dashboard.appliance.getNetworkApplianceVpnSiteToSiteVpn,
+=======
+        status = await self._api_client.run_sync(
+            self._dashboard.appliance.getNetworkApplianceVpnSiteToSiteVpn,
+>>>>>>> origin/beta
             networkId=network_id,
         )
         validated = validate_response(status)
@@ -282,10 +326,15 @@ class ApplianceEndpoints:
             The updated VPN status.
 
         """
+<<<<<<< HEAD
         if self._api_client.dashboard is None:
             return {}
         status = await self._api_client.run_sync(
             self._api_client.dashboard.appliance.updateNetworkApplianceVpnSiteToSiteVpn,
+=======
+        status = await self._api_client.run_sync(
+            self._dashboard.appliance.updateNetworkApplianceVpnSiteToSiteVpn,
+>>>>>>> origin/beta
             networkId=network_id,
             **kwargs,
         )
@@ -312,10 +361,15 @@ class ApplianceEndpoints:
             The uplinks settings.
 
         """
+<<<<<<< HEAD
         if self._api_client.dashboard is None:
             return {}
         uplinks = await self._api_client.run_sync(
             self._api_client.dashboard.appliance.getDeviceApplianceUplinksSettings,
+=======
+        uplinks = await self._api_client.run_sync(
+            self._dashboard.appliance.getDeviceApplianceUplinksSettings,
+>>>>>>> origin/beta
             serial=serial,
         )
         validated = validate_response(uplinks)
@@ -343,10 +397,15 @@ class ApplianceEndpoints:
             The content filtering settings.
 
         """
+<<<<<<< HEAD
         if self._api_client.dashboard is None:
             return {}
         result = await self._api_client.run_sync(
             self._api_client.dashboard.appliance.getNetworkApplianceContentFiltering,
+=======
+        result = await self._api_client.run_sync(
+            self._dashboard.appliance.getNetworkApplianceContentFiltering,
+>>>>>>> origin/beta
             networkId=network_id,
         )
         validated = validate_response(result)
@@ -374,10 +433,15 @@ class ApplianceEndpoints:
             The content filtering categories.
 
         """
+<<<<<<< HEAD
         if self._api_client.dashboard is None:
             return {}
         result = await self._api_client.run_sync(
             self._api_client.dashboard.appliance.getNetworkApplianceContentFilteringCategories,
+=======
+        result = await self._api_client.run_sync(
+            self._dashboard.appliance.getNetworkApplianceContentFilteringCategories,
+>>>>>>> origin/beta
             networkId=network_id,
         )
         validated = validate_response(result)
@@ -402,10 +466,15 @@ class ApplianceEndpoints:
             The response from the API.
 
         """
+<<<<<<< HEAD
         if self._api_client.dashboard is None:
             return {}
         result = await self._api_client.run_sync(
             self._api_client.dashboard.devices.rebootDevice,
+=======
+        result = await self._api_client.run_sync(
+            self._dashboard.devices.rebootDevice,
+>>>>>>> origin/beta
             serial=serial,
         )
         validated = validate_response(result)
@@ -428,10 +497,15 @@ class ApplianceEndpoints:
             A list of ports.
 
         """
+<<<<<<< HEAD
         if self._api_client.dashboard is None:
             return []
         ports = await self._api_client.run_sync(
             self._api_client.dashboard.appliance.getNetworkAppliancePorts,
+=======
+        ports = await self._api_client.run_sync(
+            self._dashboard.appliance.getNetworkAppliancePorts,
+>>>>>>> origin/beta
             networkId=network_id,
         )
         validated = validate_response(ports)
@@ -454,10 +528,15 @@ class ApplianceEndpoints:
             The settings for the network appliance.
 
         """
+<<<<<<< HEAD
         if self._api_client.dashboard is None:
             return {}
         settings = await self._api_client.run_sync(
             self._api_client.dashboard.appliance.getNetworkApplianceSettings,
+=======
+        settings = await self._api_client.run_sync(
+            self._dashboard.appliance.getNetworkApplianceSettings,
+>>>>>>> origin/beta
             networkId=network_id,
         )
         validated = validate_response(settings)
@@ -483,10 +562,15 @@ class ApplianceEndpoints:
             The L7 firewall rules.
 
         """
+<<<<<<< HEAD
         if self._api_client.dashboard is None:
             return {}
         rules = await self._api_client.run_sync(
             self._api_client.dashboard.appliance.getNetworkApplianceL7FirewallRules,
+=======
+        rules = await self._api_client.run_sync(
+            self._dashboard.appliance.getNetworkApplianceL7FirewallRules,
+>>>>>>> origin/beta
             networkId=network_id,
         )
         validated = validate_response(rules)
@@ -515,10 +599,15 @@ class ApplianceEndpoints:
             The updated L7 firewall rules.
 
         """
+<<<<<<< HEAD
         if self._api_client.dashboard is None:
             return {}
         rules = await self._api_client.run_sync(
             self._api_client.dashboard.appliance.updateNetworkApplianceL7FirewallRules,
+=======
+        rules = await self._api_client.run_sync(
+            self._dashboard.appliance.updateNetworkApplianceL7FirewallRules,
+>>>>>>> origin/beta
             networkId=network_id,
             **kwargs,
         )
@@ -548,10 +637,15 @@ class ApplianceEndpoints:
             The updated content filtering settings.
 
         """
+<<<<<<< HEAD
         if self._api_client.dashboard is None:
             return {}
         result = await self._api_client.run_sync(
             self._api_client.dashboard.appliance.updateNetworkApplianceContentFiltering,
+=======
+        result = await self._api_client.run_sync(
+            self._dashboard.appliance.updateNetworkApplianceContentFiltering,
+>>>>>>> origin/beta
             networkId=network_id,
             **kwargs,
         )
@@ -574,10 +668,15 @@ class ApplianceEndpoints:
             A list of uplink statuses.
 
         """
+<<<<<<< HEAD
         if self._api_client.dashboard is None:
             return []
         statuses = await self._api_client.run_sync(
             self._api_client.dashboard.appliance.getOrganizationApplianceUplinkStatuses,
+=======
+        statuses = await self._api_client.run_sync(
+            self._dashboard.appliance.getOrganizationApplianceUplinkStatuses,
+>>>>>>> origin/beta
             organizationId=self._api_client.organization_id,
             total_pages="all",
         )

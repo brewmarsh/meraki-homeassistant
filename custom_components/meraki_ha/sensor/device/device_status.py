@@ -20,8 +20,13 @@ from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from ...const import DOMAIN
+<<<<<<< HEAD
 from ...core.utils.naming_utils import format_device_name
 from ...meraki_data_coordinator import MerakiDataCoordinator
+=======
+from ...coordinator import MerakiDataUpdateCoordinator
+from ...core.utils.naming_utils import format_device_name
+>>>>>>> origin/beta
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -48,7 +53,11 @@ class MerakiDeviceStatusSensor(CoordinatorEntity, SensorEntity):
 
     def __init__(
         self,
+<<<<<<< HEAD
         coordinator: MerakiDataCoordinator,
+=======
+        coordinator: MerakiDataUpdateCoordinator,
+>>>>>>> origin/beta
         device_data: dict[str, Any],  # Initial device_data snapshot
         config_entry: ConfigEntry,
     ) -> None:
@@ -104,7 +113,13 @@ class MerakiDeviceStatusSensor(CoordinatorEntity, SensorEntity):
             "dormant": "mdi:access-point-network-off",
         }
         if isinstance(self.native_value, str):
+<<<<<<< HEAD
             return status_icon_map.get(self.native_value, "mdi:help-network-outline")
+=======
+            return status_icon_map.get(
+                self.native_value.lower(), "mdi:help-network-outline"
+            )
+>>>>>>> origin/beta
         return "mdi:help-network-outline"
 
     def _get_current_device_data(self) -> dict[str, Any] | None:

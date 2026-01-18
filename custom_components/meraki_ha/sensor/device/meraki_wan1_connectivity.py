@@ -12,8 +12,13 @@ from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from ...const import DOMAIN
+<<<<<<< HEAD
 from ...core.utils.naming_utils import format_device_name
 from ...meraki_data_coordinator import MerakiDataCoordinator
+=======
+from ...coordinator import MerakiDataUpdateCoordinator
+from ...core.utils.naming_utils import format_device_name, format_entity_name
+>>>>>>> origin/beta
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -33,7 +38,11 @@ class MerakiWAN1ConnectivitySensor(
 
     def __init__(
         self,
+<<<<<<< HEAD
         coordinator: MerakiDataCoordinator,
+=======
+        coordinator: MerakiDataUpdateCoordinator,
+>>>>>>> origin/beta
         device_data: dict[str, Any],
         config_entry: ConfigEntry,
     ) -> None:

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import logging
+<<<<<<< HEAD
 import os
 from typing import Any
 
@@ -15,6 +16,18 @@ from voluptuous import ALLOW_EXTRA, All, Optional, Required, Schema
 from .const import CONF_ENABLED_NETWORKS, DATA_CLIENT, DOMAIN
 from .core.timed_access_manager import TimedAccessManager
 from .meraki_data_coordinator import MerakiDataCoordinator
+=======
+from pathlib import Path
+from typing import Any
+
+import aiofiles
+from homeassistant.components import websocket_api
+from homeassistant.core import HomeAssistant
+from voluptuous import ALLOW_EXTRA, All, Required, Schema
+
+from .const import DOMAIN
+from .coordinator import MerakiDataUpdateCoordinator
+>>>>>>> origin/beta
 from .services.camera_service import CameraService
 
 _LOGGER = logging.getLogger(__name__)
@@ -69,6 +82,7 @@ def async_setup_api(hass: HomeAssistant) -> None:
     )
     websocket_api.async_register_command(
         hass,
+<<<<<<< HEAD
         "meraki_ha/update_enabled_networks",
         handle_update_enabled_networks,
         Schema(
@@ -94,6 +108,13 @@ def async_setup_api(hass: HomeAssistant) -> None:
                 Required("passphrase"): str,
                 Required("duration_hours"): int,
                 Optional("group_policy_id"): str,
+=======
+        "meraki_ha/get_version",
+        handle_get_version,
+        Schema(
+            {
+                Required("type"): All(str, "meraki_ha/get_version"),
+>>>>>>> origin/beta
             },
             extra=ALLOW_EXTRA,
         ),
@@ -101,6 +122,24 @@ def async_setup_api(hass: HomeAssistant) -> None:
 
 
 @websocket_api.async_response
+<<<<<<< HEAD
+=======
+async def handle_get_version(
+    hass: HomeAssistant,
+    connection: websocket_api.ActiveConnection,
+    msg: dict[str, Any],
+) -> None:
+    """Handle get_version command."""
+    manifest_path = Path(__file__).parent / "manifest.json"
+    async with aiofiles.open(manifest_path, encoding="utf-8") as f:
+        manifest_data = await f.read()
+        manifest = json.loads(manifest_data)
+    version = manifest.get("version", "0.0.0")
+    connection.send_result(msg["id"], {"version": version})
+
+
+@websocket_api.async_response
+>>>>>>> origin/beta
 async def handle_get_config(
     hass: HomeAssistant,
     connection: websocket_api.ActiveConnection,
@@ -121,6 +160,7 @@ async def handle_get_config(
         connection.send_error(msg["id"], "not_found", "Config entry not found")
         return
 
+<<<<<<< HEAD
     coordinator: MerakiDataCoordinator = hass.data[DOMAIN][config_entry_id][
         "coordinator"
     ]
@@ -146,6 +186,12 @@ async def handle_get_config(
             "version": version,
         },
     )
+=======
+    coordinator: MerakiDataUpdateCoordinator = hass.data[DOMAIN][config_entry_id][
+        "coordinator"
+    ]
+    connection.send_result(msg["id"], coordinator.data)
+>>>>>>> origin/beta
 
 
 @websocket_api.async_response
@@ -200,6 +246,7 @@ async def handle_get_camera_snapshot(
     camera_service: CameraService = hass.data[DOMAIN][config_entry_id]["camera_service"]
     snapshot_url = await camera_service.get_camera_snapshot(serial)
     connection.send_result(msg["id"], {"url": snapshot_url})
+<<<<<<< HEAD
 
 
 @websocket_api.async_response
@@ -276,3 +323,5 @@ async def handle_create_timed_access_key(
     except Exception as e:
         _LOGGER.exception("Error creating timed access key: %s", e)
         connection.send_error(msg["id"], "error", str(e))
+=======
+>>>>>>> origin/beta

@@ -47,3 +47,16 @@ def format_device_name(device: dict[str, Any], config: Mapping[str, Any]) -> str
         product_type_str = product_type.capitalize()
 
     return f"[{product_type_str}] {name}"
+<<<<<<< HEAD
+=======
+
+
+def format_entity_name(
+    device: dict[str, Any], config: Mapping[str, Any], entity_name: str | None
+) -> str:
+    """Format an entity name by combining the device name and entity-specific name."""
+    device_name = format_device_name(device, config)
+    if entity_name:
+        return f"{device_name} {entity_name}"
+    return device_name
+>>>>>>> origin/beta
