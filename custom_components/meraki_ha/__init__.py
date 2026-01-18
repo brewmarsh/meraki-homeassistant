@@ -21,6 +21,7 @@ from .const import (
     DOMAIN,
     PLATFORMS,
 )
+from .api.websocket import async_setup_websocket_api
 from .core.api.client import MerakiAPIClient
 from .core.repositories.camera_repository import CameraRepository
 from .core.repository import MerakiRepository
@@ -155,6 +156,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     await async_register_static_path(hass)
     await async_register_panel(hass, entry)
     async_setup_api(hass)
+    async_setup_websocket_api(hass)
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
