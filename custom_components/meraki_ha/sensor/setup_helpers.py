@@ -1,6 +1,7 @@
 """Helper function for setting up all sensor entities."""
 
 import logging
+from dataclasses import asdict
 from typing import TYPE_CHECKING, cast
 
 from homeassistant.config_entries import ConfigEntry
@@ -50,7 +51,8 @@ def _setup_device_sensors(
     """Set up device-specific sensors."""
     entities: list[Entity] = []
     devices = coordinator.data.get("devices", [])
-    for device_info in devices:
+    for device in devices:
+        device_info = asdict(device)
         serial = device_info.get("serial")
         if not serial:
             _LOGGER.warning("Skipping device with missing serial.")
@@ -212,9 +214,10 @@ def _setup_uplink_sensors(
         if not serial:
             continue
 
-        device_info = coordinator.get_device(serial)
-        if not device_info:
+        device = coordinator.get_device(serial)
+        if not device:
             continue
+        device_info = asdict(device)
 
         for uplink in uplink_status.get("uplinks", []):
             interface = uplink.get("interface")
