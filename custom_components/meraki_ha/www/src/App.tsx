@@ -7,9 +7,12 @@ interface MerakiData {
   [key: string]: any;
 }
 
-interface AppProps {}
+interface AppProps {
+  hass?: any;
+  config_entry_id?: string;
+}
 
-const App: React.FC<AppProps> = () => {
+const App: React.FC<AppProps> = ({ hass, config_entry_id }) => {
   const [data, setData] = useState<MerakiData | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -19,8 +22,12 @@ const App: React.FC<AppProps> = () => {
   });
   const socketRef = useRef<WebSocket | null>(null);
 
+  // If we are in standalone mode, config_entry_id might come from window
+  const finalConfigEntryId = config_entry_id || (window as any).CONFIG_ENTRY_ID;
+
   useEffect(() => {
-    if (window.location.hostname === 'localhost') {
+    // 1. Mock Data for Localhost (No Backend)
+    if (window.location.hostname === 'localhost' && !hass) {
       setData({
         networks: [
           { id: 'N_12345', name: 'Main Office', is_enabled: true, ssids: [] },
@@ -56,6 +63,42 @@ const App: React.FC<AppProps> = () => {
       setLoading(false);
       return;
     }
+
+    // 2. HA Integrated Mode (Props provided)
+    if (hass) {
+      if (!hass.connection) {
+        setError('Home Assistant connection object not found.');
+        setLoading(false);
+        return;
+      }
+
+      (async () => {
+        try {
+          const resultData = await hass.connection.sendMessagePromise({
+            type: 'meraki_ha/get_config',
+            config_entry_id: finalConfigEntryId,
+          });
+
+          const { networks, enabled_networks } = resultData;
+          if (networks && enabled_networks) {
+            const processedNetworks = networks.map((network: any) => ({
+              ...network,
+              is_enabled: enabled_networks.includes(network.id),
+            }));
+            resultData.networks = processedNetworks;
+          }
+          setData(resultData);
+        } catch (err: any) {
+          console.error('Error fetching Meraki data:', err);
+          setError(`Failed to fetch Meraki data: ${err.message || 'Unknown error'}`);
+        } finally {
+          setLoading(false);
+        }
+      })();
+      return;
+    }
+
+    // 3. Standalone Mode with real HA (WebSocket)
     let accessToken = localStorage.getItem('meraki_ha_llat');
     if (!accessToken) {
       accessToken = prompt(
@@ -95,7 +138,7 @@ const App: React.FC<AppProps> = () => {
           JSON.stringify({
             id: messageId,
             type: 'meraki_ha/get_config',
-            config_entry_id: (window as any).CONFIG_ENTRY_ID,
+            config_entry_id: finalConfigEntryId,
           })
         );
       } else if (message.type === 'auth_invalid') {
@@ -141,7 +184,7 @@ const App: React.FC<AppProps> = () => {
         socket.close();
       }
     };
-  }, []);
+  }, [hass, finalConfigEntryId]);
 
   if (loading) {
     return <div className="p-4">Loading...</div>;
@@ -151,7 +194,7 @@ const App: React.FC<AppProps> = () => {
     return <div className="p-4 text-red-500">Error: {error}</div>;
   }
 
-  const handleToggle = (networkId: string, enabled: boolean) => {
+  const handleToggle = async (networkId: string, enabled: boolean) => {
     if (!data) return;
 
     const updatedNetworks = data.networks.map((network: any) =>
@@ -165,18 +208,31 @@ const App: React.FC<AppProps> = () => {
       .filter((network: any) => network.is_enabled)
       .map((network: any) => network.id);
 
-    const socket = socketRef.current;
-    if (socket && socket.readyState === 1) {
-      socket.send(
-        JSON.stringify({
-          id: Date.now(),
-          type: 'meraki_ha/update_enabled_networks',
-          config_entry_id: (window as any).CONFIG_ENTRY_ID,
-          enabled_networks: enabledNetworkIds,
-        })
-      );
+    if (hass) {
+        try {
+            await hass.connection.sendMessagePromise({
+                type: 'meraki_ha/update_enabled_networks',
+                config_entry_id: finalConfigEntryId,
+                enabled_networks: enabledNetworkIds,
+            });
+        } catch (err) {
+            console.error('Error updating enabled networks:', err);
+            // Revert on error?
+        }
     } else {
-      console.error('WebSocket is not connected.');
+        const socket = socketRef.current;
+        if (socket && socket.readyState === 1) {
+          socket.send(
+            JSON.stringify({
+              id: Date.now(),
+              type: 'meraki_ha/update_enabled_networks',
+              config_entry_id: finalConfigEntryId,
+              enabled_networks: enabledNetworkIds,
+            })
+          );
+        } else {
+          console.error('WebSocket is not connected.');
+        }
     }
   };
 
