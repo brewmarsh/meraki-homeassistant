@@ -23,6 +23,7 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from ...const import DOMAIN
 from ...core.utils.naming_utils import format_device_name
 from ...meraki_data_coordinator import MerakiDataCoordinator
+from ...types import MerakiDevice
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -109,13 +110,9 @@ class MerakiDeviceStatusSensor(CoordinatorEntity, SensorEntity):
             return status_icon_map.get(self.native_value, "mdi:help-network-outline")
         return "mdi:help-network-outline"
 
-    def _get_current_device_data(self) -> dict[str, Any] | None:
+    def _get_current_device_data(self) -> MerakiDevice | None:
         """Retrieve the latest data for this sensor's device from the coordinator."""
-        if self.coordinator.data and self.coordinator.data.get("devices"):
-            for dev_data in self.coordinator.data["devices"]:
-                if dev_data.get("serial") == self._device_serial:
-                    return dev_data
-        return None
+        return self.coordinator.get_device(self._device_serial)
 
     def _update_sensor_data(self) -> None:
         """Update sensor state and attributes from coordinator data."""
@@ -127,7 +124,7 @@ class MerakiDeviceStatusSensor(CoordinatorEntity, SensorEntity):
             return
 
         # Status is the primary value of this sensor
-        device_status: str | None = current_device_data.get("status")
+        device_status: str | None = getattr(current_device_data, "status", None)
         if isinstance(device_status, str):
             self._attr_native_value = device_status.lower()
         else:
@@ -135,19 +132,19 @@ class MerakiDeviceStatusSensor(CoordinatorEntity, SensorEntity):
 
         # Populate attributes from the latest device data
         self._attr_extra_state_attributes = {
-            "model": current_device_data.get("model"),
-            "serial_number": current_device_data.get(
-                "serial"
+            "model": getattr(current_device_data, "model", None),
+            "serial_number": getattr(
+                current_device_data, "serial", None
             ),  # Should match self._device_serial
-            "firmware_version": current_device_data.get("firmware"),
-            "product_type": current_device_data.get("productType"),
-            "mac_address": current_device_data.get("mac"),
-            "lan_ip": current_device_data.get("lanIp"),
-            "public_ip": current_device_data.get("publicIp"),
-            "wan1_ip": current_device_data.get("wan1Ip"),
-            "wan2_ip": current_device_data.get("wan2Ip"),
-            "tags": current_device_data.get("tags", []),
-            "network_id": current_device_data.get("networkId"),
+            "firmware_version": getattr(current_device_data, "firmware", None),
+            "product_type": getattr(current_device_data, "productType", None),
+            "mac_address": getattr(current_device_data, "mac", None),
+            "lan_ip": getattr(current_device_data, "lanIp", None),
+            "public_ip": getattr(current_device_data, "publicIp", None),
+            "wan1_ip": getattr(current_device_data, "wan1Ip", None),
+            "wan2_ip": getattr(current_device_data, "wan2Ip", None),
+            "tags": getattr(current_device_data, "tags", []),
+            "network_id": getattr(current_device_data, "networkId", None),
         }
         # Filter out None values from attributes
         self._attr_extra_state_attributes = {
@@ -155,8 +152,10 @@ class MerakiDeviceStatusSensor(CoordinatorEntity, SensorEntity):
         }
 
         # If the device is an appliance, add uplink information as attributes
-        if current_device_data.get("productType") == "appliance":
-            for uplink in current_device_data.get("uplinks", []):
+        product_type = getattr(current_device_data, "productType", None)
+        if product_type == "appliance":
+            uplinks = getattr(current_device_data, "uplinks", [])
+            for uplink in uplinks:
                 interface = uplink.get("interface")
                 if interface is not None:
                     self._attr_extra_state_attributes[f"{interface}_status"] = (
@@ -188,9 +187,4 @@ class MerakiDeviceStatusSensor(CoordinatorEntity, SensorEntity):
         if not super().available:  # Checks coordinator.last_update_success
             return False
         # Check if the specific device data is available
-        if self.coordinator.data and self.coordinator.data.get("devices"):
-            return any(
-                dev.get("serial") == self._device_serial
-                for dev in self.coordinator.data["devices"]
-            )
-        return False
+        return self.coordinator.get_device(self._device_serial) is not None

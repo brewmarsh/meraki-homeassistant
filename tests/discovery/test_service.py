@@ -5,6 +5,7 @@ from unittest.mock import ANY, AsyncMock, MagicMock, patch
 import pytest
 
 from custom_components.meraki_ha.discovery.service import DeviceDiscoveryService
+from custom_components.meraki_ha.types import MerakiDevice
 from tests.const import MOCK_DEVICE
 
 
@@ -24,6 +25,15 @@ def mock_coordinator_with_devices(mock_coordinator: MagicMock) -> MagicMock:
         "networks": [],
         "ssids": [],
     }
+
+    def get_device_side_effect(serial):
+        device = next(
+            (d for d in mock_coordinator.data["devices"] if d["serial"] == serial),
+            None
+        )
+        return MerakiDevice.from_dict(device) if device else None
+
+    mock_coordinator.get_device.side_effect = get_device_side_effect
     return mock_coordinator
 
 
