@@ -10,3 +10,4 @@ urllib3>=2.6.2
 aiodns==3.6.1
 pycares==4.11.0
 webrtc-models==0.3.0
+aiortc
