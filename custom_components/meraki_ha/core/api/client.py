@@ -376,6 +376,7 @@ class MerakiAPIClient:
             network_fields = {f.name for f in fields(MerakiNetwork)}
             networks = [
                 MerakiNetwork(
+                    organization_id=self.organization_id,
                     **{k: v for k, v in network.items() if k in network_fields},
                 )
                 for network in networks_res

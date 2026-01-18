@@ -13,7 +13,6 @@ MOCK_CONFIG_ENTRY.entry_id = MOCK_CONFIG_ENTRY_ID
 
 MOCK_NETWORK: MerakiNetwork = {
     "id": "N_12345",
-    "organization_id": "test-org",
     "name": "Test Network",
     "product_types": ["appliance", "switch", "wireless", "cellularGateway"],
     "tags": "e2e-test",
