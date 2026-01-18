@@ -43,11 +43,13 @@ def ws_subscribe_meraki_data(
     def async_send_update() -> None:
         """Send update to client."""
         connection.send_message(
-            websocket_api.event_message(msg["id"], {"data": coordinator.data})
+            websocket_api.event_message(msg["id"], coordinator.data)
         )
 
     # Send initial data
     connection.send_result(msg["id"], coordinator.data)
+    # Send initial event to ensure client updates
+    async_send_update()
 
     # Register for updates
     cancel_subscription = coordinator.async_add_listener(async_send_update)
