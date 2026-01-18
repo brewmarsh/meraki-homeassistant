@@ -22,7 +22,7 @@ from custom_components.meraki_ha.const import (
 
 from .const import MOCK_ALL_DATA
 
-TEST_PORT = 9988
+TEST_PORT = 9995
 MOCK_SETTINGS = {"scan_interval": 300}
 
 
@@ -69,7 +69,6 @@ async def setup_integration_fixture(
         yield config_entry
 
 
-@pytest.mark.skip(reason="Test is failing and needs to be fixed")
 @pytest.mark.asyncio
 async def test_dashboard_loads_and_displays_data(
     hass: HomeAssistant,
@@ -101,7 +100,7 @@ async def test_dashboard_loads_and_displays_data(
             page = await browser.new_page()
 
             # Create a basic HTML file to load the panel
-            with open("index.html", "w") as f:
+            with open("test_index.html", "w") as f:
                 f.write(
                     """
                     <!DOCTYPE html>
@@ -112,6 +111,14 @@ async def test_dashboard_loads_and_displays_data(
                     <body>
                         <div id="root"></div>
                         <script type="module" src="/meraki-panel.js"></script>
+                        <script>
+                            customElements.whenDefined('meraki-panel').then(() => {
+                                const panel = document.createElement('meraki-panel');
+                                panel.hass = window.hass;
+                                panel.panel = { config: { config_entry_id: 'test_entry' } };
+                                document.body.appendChild(panel);
+                            });
+                        </script>
                     </body>
                     </html>
                 """
@@ -134,18 +141,20 @@ async def test_dashboard_loads_and_displays_data(
                         }};
                         callback(message);
                         return () => Promise.resolve();
+                      }},
+                      sendMessagePromise: async (message) => {{
+                        return {mock_data_json};
                       }}
                     }}
                   }};
                 """,
             )
 
-            await page.goto(f"http://localhost:{TEST_PORT}/")
+            await page.goto(f"http://localhost:{TEST_PORT}/test_index.html")
 
             # Check for the network card, which should now be rendered with mock data
-            network_card = page.locator("[data-testid=network-card]")
+            network_card = page.locator("ha-card").filter(has_text="[Network] Test Network")
             await expect(network_card).to_be_visible()
-            await expect(network_card.locator("p")).to_have_text("Test Network")
 
             await browser.close()
     finally:
