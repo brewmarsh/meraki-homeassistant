@@ -7,7 +7,7 @@ aiohttp
 cryptography
 h11
 jinja2
-orjson>=3.10.7
+orjson
 pip
 requests
 setuptools
