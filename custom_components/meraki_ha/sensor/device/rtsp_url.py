@@ -7,6 +7,7 @@ from typing import Any
 
 from homeassistant.components.sensor import SensorEntity
 from homeassistant.config_entries import ConfigEntry
+from homeassistant.const import EntityCategory
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
@@ -27,6 +28,8 @@ class MerakiRtspUrlSensor(CoordinatorEntity, SensorEntity):
     ensures that the state is always in sync with the latest data from the
     Meraki API.
     """
+
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
 
     def __init__(
         self,
