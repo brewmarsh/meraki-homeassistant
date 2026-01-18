@@ -168,6 +168,7 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         dev_reg = dr.async_get(self.hass)
 
         for device in devices:
+            device.status_messages = []
             ha_device = dev_reg.async_get_device(
                 identifiers={(DOMAIN, device.serial)},
             )
