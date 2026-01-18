@@ -374,11 +374,13 @@ class MerakiAPIClient:
         devices: list[MerakiDevice] = initial_results.get("devices", [])
         device_statuses = initial_results.get("device_statuses", [])
 
-        parse_device_data(devices, device_statuses)
-        device_statuses = initial_results.get("device_statuses", [])
-
-        parse_device_data(devices, device_statuses)
-        device_statuses = initial_results.get("device_statuses", [])
+        if isinstance(device_statuses, Exception):
+            _LOGGER.warning(
+                "Could not fetch device statuses, "
+                "device status data will be unavailable: %s",
+                device_statuses,
+            )
+            device_statuses = []
 
         parse_device_data(devices, device_statuses)
         sensor_readings = initial_results.get("sensor_readings")
