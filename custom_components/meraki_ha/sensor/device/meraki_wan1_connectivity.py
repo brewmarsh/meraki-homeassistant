@@ -7,6 +7,7 @@ from typing import Any
 
 from homeassistant.components.sensor import SensorEntity
 from homeassistant.config_entries import ConfigEntry
+from homeassistant.const import EntityCategory
 from homeassistant.core import callback
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
@@ -29,6 +30,7 @@ class MerakiWAN1ConnectivitySensor(
 
     _attr_icon = "mdi:wan"
     _attr_has_entity_name = True
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
     _attr_device_class = "connectivity"  # type: ignore[assignment]
 
     def __init__(
