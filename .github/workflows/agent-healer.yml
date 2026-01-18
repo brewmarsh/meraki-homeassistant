@@ -1,11 +1,9 @@
-name: Agent Healer
+﻿name: Agent Healer
 
 on:
   workflow_run:
     workflows: ['Validate Code']
     types: [completed]
-  pull_request:
-    branches: [beta]
 
 permissions:
   contents: write
@@ -13,30 +11,44 @@ permissions:
 
 jobs:
   heal:
-    # Only run if the validation failed OR if specifically triggered by you/dependabot
+    # 1. Only run if Validate Code failed
+    # 2. Prevent infinite loops (only heal failures from specific actors)
     if: |
-      (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'failure') ||
-      (github.event_name == 'pull_request' && (github.actor == 'dependabot[bot]' || github.actor == 'brewmarsh'))
+      github.event.workflow_run.conclusion == 'failure' &&
+      (github.triggering_actor == 'brewmarsh' ||
+       github.triggering_actor == 'dependabot[bot]' ||
+       github.triggering_actor == 'google-labs-jules[bot]')
+
     runs-on: ubuntu-latest
+
     steps:
-      - name: Trigger Jules to Fix CI
-        uses: google-labs-code/jules-action@main
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          # Use your PAT here to allow Jules' pushes to trigger further CI runs
+          token: ${{ secrets.JULES_GITHUB_PAT }}
+          ref: ${{ github.event.workflow_run.head_sha }}
+
+      - name: Invoke Jules Agent
+        uses: google-labs-code/jules-invoke@main
+        env:
+          GITHUB_TOKEN: ${{ secrets.JULES_GITHUB_PAT }}
         with:
           jules_api_key: ${{ secrets.JULES_API_KEY }}
-          starting_branch: ${{ github.head_ref || github.event.workflow_run.head_branch || github.ref_name }}
+          # Some versions of jules-invoke allow passing the token directly for branch creation
+          starting_branch: ${{ github.event.workflow_run.head_branch }}
           include_last_commit: true
           include_commit_log: true
           prompt: |
-            The CI validation failed for this change. 
+            The "Validate Code" CI failed.
+            Actor: ${{ github.event.workflow_run.actor.login }}
+            Branch: ${{ github.event.workflow_run.head_branch }}
 
-            **Context:**
-            - **Triggering Actor:** ${{ github.actor }}
-            - **Event:** ${{ github.event_name }}
-            - **Branch:** ${{ github.head_ref || github.event.workflow_run.head_branch || github.ref_name }}
+            Please analyze the logs and:
+            1. Resolve any pycares/aiodns conflicts.
+               - Hard lock: aiodns==3.6.1 and pycares==4.11.0.
+               - DO NOT use older versions (like 4.4.0) as they crash on Python 3.13.
+            2. Ensure webrtc-models==0.3.0 is in manifest.json requirements.
+            3. Fix any linting (Ruff) or test (Pytest) errors.
 
-            **Instructions:**
-            1. Analyze the logs from the 'Validate Code' workflow.
-            2. Review any linting (Ruff) or test (Pytest) errors.
-            3. If this is a Dependabot PR, resolve version conflicts in manifest.json and requirements.txt.
-            4. Ensure 'webrtc-models==0.3.0' is present if required by HA Core.
-            5. Apply the fix and push directly to the branch.
+            Apply fixes directly to: ${{ github.event.workflow_run.head_branch }}

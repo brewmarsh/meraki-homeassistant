@@ -56,10 +56,6 @@ async def get_unhealthy_entities(
 
 def run_gh_command(command: list[str]) -> str:
     """Run a gh command and return the output."""
-    if GITHUB_TOKEN is None:
-        print("GITHUB_TOKEN is not set")
-        return ""
-
     try:
         result = subprocess.run(
             ["gh"] + command,
@@ -71,15 +67,11 @@ def run_gh_command(command: list[str]) -> str:
         return result.stdout.strip()
     except (subprocess.CalledProcessError, FileNotFoundError) as e:
         print(f"GitHub CLI command failed: {e}")
-        return ""
+        raise
 
 
 def find_existing_issue(version: str) -> int | None:
     """Check if a release audit issue already exists on GitHub."""
-    if GITHUB_REPOSITORY is None:
-        print("GITHUB_REPOSITORY is not set")
-        return None
-
     issue_title = f"[Release Audit] {version}"
     output = run_gh_command(
         [
@@ -104,10 +96,6 @@ def find_existing_issue(version: str) -> int | None:
 
 def create_github_issue(version: str, unhealthy_entities: list[dict[str, Any]]):
     """Create a new GitHub issue with the audit results."""
-    if GITHUB_REPOSITORY is None:
-        print("GITHUB_REPOSITORY is not set")
-        return
-
     issue_title = f"[Release Audit] {version}"
     body = "The following entities were found to be in an unhealthy state:\n\n"
     for entity in unhealthy_entities:
@@ -132,10 +120,6 @@ def create_github_issue(version: str, unhealthy_entities: list[dict[str, Any]]):
 
 def update_github_issue(issue_number: int, unhealthy_entities: list[dict[str, Any]]):
     """Update an existing GitHub issue with the latest audit results."""
-    if GITHUB_REPOSITORY is None:
-        print("GITHUB_REPOSITORY is not set")
-        return
-
     existing_issue_body = run_gh_command(
         [
             "issue",
@@ -203,10 +187,15 @@ async def main():
         print("All entities are healthy. No action needed.")
         return
 
-    if existing_issue:
-        update_github_issue(existing_issue, unhealthy_entities)
-    else:
-        create_github_issue(version, unhealthy_entities)
+    try:
+        if existing_issue:
+            update_github_issue(existing_issue, unhealthy_entities)
+        else:
+            create_github_issue(version, unhealthy_entities)
+    except Exception as e:
+        print(f"An error occurred: {e}")
+        # Exit with a non-zero status code to indicate failure
+        exit(1)
 
 
 if __name__ == "__main__":

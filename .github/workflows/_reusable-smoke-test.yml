@@ -1,0 +1,96 @@
+name: Reusable Smoke Test
+
+on:
+  workflow_call:
+    inputs:
+      branch_name:
+        required: true
+        type: string
+
+jobs:
+  smoke_test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Deploy to Test Server
+        uses: appleboy/ssh-action@v0.1.10
+        with:
+          host: ${{ secrets.SMOKE_TEST_SERVER_IP }}
+          username: ${{ secrets.SMOKE_TEST_SSH_USERNAME }}
+          key: ${{ secrets.SMOKE_TEST_SSH_KEY }}
+          script: |
+            rsync -avz --delete \
+              --exclude='.git/' \
+              --exclude='*.pyc' \
+              --exclude='__pycache__/' \
+              ${{ github.workspace }}/custom_components/meraki_ha/ \
+              /config/custom_components/meraki_ha/
+
+      - name: Restart Home Assistant
+        uses: appleboy/ssh-action@v0.1.10
+        with:
+          host: ${{ secrets.SMOKE_TEST_SERVER_IP }}
+          username: ${{ secrets.SMOKE_TEST_SSH_USERNAME }}
+          key: ${{ secrets.SMOKE_TEST_SSH_KEY }}
+          script: |
+            hass-cli service call homeassistant.restart
+
+      - name: Wait for Home Assistant to be ready
+        run: |
+          echo "Waiting for Home Assistant to restart..."
+          for i in {1..30}; do
+            if curl -s "http://${{ secrets.SMOKE_TEST_SERVER_IP }}:8123/api/" > /dev/null; then
+              echo "Home Assistant is ready."
+              exit 0
+            fi
+            sleep 10
+          done
+          echo "Home Assistant did not become ready in time."
+          exit 1
+
+      - name: Install Python Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install homeassistant-ws requests
+
+      - name: Run Smoke Test Probe
+        id: probe
+        run: |
+          echo "probe_output<<EOF" >> $GITHUB_OUTPUT
+          python scripts/smoke_test_probe.py >> $GITHUB_OUTPUT 2>&1
+          echo "EOF" >> $GITHUB_OUTPUT
+        env:
+          HA_URL: ws://${{ secrets.SMOKE_TEST_SERVER_IP }}:8123/api/websocket
+          HA_TOKEN: ${{ secrets.HA_TEST_TOKEN }}
+        continue-on-error: true
+
+      - name: Run Log Query
+        id: logs
+        run: |
+          echo "log_output<<EOF" >> $GITHUB_OUTPUT
+          python scripts/query_logs.py >> $GITHUB_OUTPUT 2>&1
+          echo "EOF" >> $GITHUB_OUTPUT
+        env:
+          BETTER_STACK_API_TOKEN: ${{ secrets.BETTER_STACK_API_TOKEN }}
+        continue-on-error: true
+
+      - name: Create GitHub Issue on Failure
+        if: steps.probe.outcome == 'failure' || steps.logs.outcome == 'failure'
+        run: |
+          gh issue create \
+            --title "Smoke Test Failure: ${{ inputs.branch_name }}" \
+            --body "Smoke test failed for branch: **${{ inputs.branch_name }}**
+
+            **Probe Output:**
+            \`\`\`
+            ${{ steps.probe.outputs.probe_output }}
+            \`\`\`
+
+            **Log Query Output:**
+            \`\`\`
+            ${{ steps.logs.outputs.log_output }}
+            \`\`\`"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

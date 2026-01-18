@@ -10,7 +10,7 @@ from tests.const import MOCK_DEVICE, MOCK_NETWORK
 
 @pytest.fixture
 def mock_coordinator_with_devices_and_ssids(mock_coordinator: MagicMock) -> MagicMock:
-    """Fixture for a mocked MerakiDataCoordinator with devices and SSIDs."""
+    """Fixture for a mocked MerakiDataUpdateCoordinator with devices and SSIDs."""
     device_in_network = MOCK_DEVICE.copy()
     device_in_network["networkId"] = MOCK_NETWORK["id"]
     device_other_network = MOCK_DEVICE.copy()
