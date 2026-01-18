@@ -115,7 +115,9 @@ async def test_dashboard_loads_and_displays_data(
                             customElements.whenDefined('meraki-panel').then(() => {
                                 const panel = document.createElement('meraki-panel');
                                 panel.hass = window.hass;
-                                panel.panel = { config: { config_entry_id: 'test_entry' } };
+                                panel.panel = { config: {
+                                    config_entry_id: 'test_entry'
+                                }};
                                 document.body.appendChild(panel);
                             });
                         </script>
@@ -153,7 +155,9 @@ async def test_dashboard_loads_and_displays_data(
             await page.goto(f"http://localhost:{TEST_PORT}/test_index.html")
 
             # Check for the network card, which should now be rendered with mock data
-            network_card = page.locator("ha-card").filter(has_text="[Network] Test Network")
+            network_card = page.locator("ha-card").filter(
+                has_text="[Network] Test Network"
+            )
             await expect(network_card).to_be_visible()
 
             await browser.close()
