@@ -11,9 +11,8 @@ from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from ...coordinator import MerakiDataUpdateCoordinator
-from ...core.utils.naming_utils import format_device_name
+from ...core.utils.naming_utils import format_device_name, format_entity_name
 from ...helpers.device_info_helpers import resolve_device_info
-from ...helpers.entity_helpers import format_entity_name
 
 if TYPE_CHECKING:
     from ...services.camera_service import CameraService
