@@ -107,8 +107,8 @@ def _setup_camera_switches(
     entities: list[Entity] = []
     devices = coordinator.data.get("devices", [])
     for device_info in devices:
-        if device_info.get("productType", "").startswith("camera"):
-            serial = device_info["serial"]
+        if (device_info.product_type or "").startswith("camera"):
+            serial = device_info.serial
             # Analytics Switch
             unique_id = f"{serial}_analytics_switch"
             if unique_id not in added_entities:
@@ -129,8 +129,8 @@ def _setup_mt40_switches(
     entities: list[Entity] = []
     devices = coordinator.data.get("devices", [])
     for device_info in devices:
-        if device_info.get("model", "").startswith("MT40"):
-            serial = device_info["serial"]
+        if (device_info.model or "").startswith("MT40"):
+            serial = device_info.serial
             unique_id = f"{serial}_outlet_switch"
             if unique_id not in added_entities:
                 entities.append(
