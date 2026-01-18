@@ -5,7 +5,6 @@ import random
 import string
 from pathlib import Path
 
-from homeassistant.components import frontend as hass_frontend
 from homeassistant.components.http import StaticPathConfig
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant

@@ -20,7 +20,9 @@ def parse_device_data(
     if not devices or not device_statuses:
         return
 
-    statuses_by_serial = {status["serial"]: status for status in device_statuses}
+    statuses_by_serial = {
+        status["serial"]: status for status in device_statuses if "serial" in status
+    }
     for device in devices:
         serial = device.get("serial")
         if serial in statuses_by_serial:
