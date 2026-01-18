@@ -157,21 +157,21 @@ class MerakiDeviceStatusSensor(CoordinatorEntity, SensorEntity):
             for uplink in current_device_data.get("uplinks", []):
                 interface = uplink.get("interface")
                 if interface is not None:
-                    self._attr_extra_state_attributes[
-                        f"{interface}_status"
-                    ] = uplink.get("status")
+                    self._attr_extra_state_attributes[f"{interface}_status"] = (
+                        uplink.get("status")
+                    )
                     self._attr_extra_state_attributes[f"{interface}_ip"] = uplink.get(
                         "ip"
                     )
-                    self._attr_extra_state_attributes[
-                        f"{interface}_gateway"
-                    ] = uplink.get("gateway")
-                    self._attr_extra_state_attributes[
-                        f"{interface}_public_ip"
-                    ] = uplink.get("publicIp")
-                    self._attr_extra_state_attributes[
-                        f"{interface}_dns_servers"
-                    ] = uplink.get("dns")
+                    self._attr_extra_state_attributes[f"{interface}_gateway"] = (
+                        uplink.get("gateway")
+                    )
+                    self._attr_extra_state_attributes[f"{interface}_public_ip"] = (
+                        uplink.get("publicIp")
+                    )
+                    self._attr_extra_state_attributes[f"{interface}_dns_servers"] = (
+                        uplink.get("dns")
+                    )
 
     @callback
     def _handle_coordinator_update(self) -> None:
