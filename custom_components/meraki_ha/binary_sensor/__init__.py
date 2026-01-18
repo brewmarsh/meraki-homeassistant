@@ -37,8 +37,8 @@ async def async_setup_entry(
     has_camera_service = camera_service is not None
 
     for device in devices:
-        product_type = device.get("productType", "")
-        model = device.get("model", "")
+        product_type = getattr(device, "productType", "")
+        model = getattr(device, "model", "")
 
         # Add motion sensors for cameras
         if product_type.startswith("camera") and has_camera_service:
@@ -61,7 +61,7 @@ async def async_setup_entry(
 
         # Add switch port sensors
         if product_type == "switch":
-            for port in device.get("ports_statuses", []):
+            for port in getattr(device, "ports_statuses", []):
                 binary_sensor_entities.append(
                     SwitchPortSensor(
                         coordinator, device, port, SWITCH_PORT_DESCRIPTION
