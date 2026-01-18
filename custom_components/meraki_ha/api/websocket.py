@@ -12,7 +12,7 @@ from ..const import DOMAIN
 
 @callback
 def async_setup_websocket_api(hass: HomeAssistant) -> None:
-    """Set up the WebSocket API."""
+    """Set up the WebSocket API for Meraki HA."""
     websocket_api.async_register_command(hass, ws_subscribe_meraki_data)
 
 
