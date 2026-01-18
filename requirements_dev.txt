@@ -8,7 +8,7 @@ ruff==0.5.5
 pip-audit==2.7.3
 bandit[toml]==1.7.9
 mypy==1.11.0
-voluptuous==0.16.0
+voluptuous
 pyyaml==6.0.3
 playwright
 pytest-homeassistant-custom-component
@@ -20,3 +20,4 @@ aiohttp>=3.13.2
 urllib3>=2.6.2
 aiodns==3.6.1
 pycares==4.11.0
+webrtc-models==0.3.0
