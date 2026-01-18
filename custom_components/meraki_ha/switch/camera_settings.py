@@ -7,8 +7,9 @@ from homeassistant.components.switch import SwitchEntity
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
+from custom_components.meraki_ha.coordinator import MerakiDataUpdateCoordinator
+
 from ..core.api.client import MerakiAPIClient
-from ..meraki_data_coordinator import MerakiDataCoordinator
 from ..types import MerakiDevice
 
 _LOGGER = logging.getLogger(__name__)
@@ -22,7 +23,7 @@ class MerakiCameraSettingSwitchBase(
 
     def __init__(
         self,
-        coordinator: MerakiDataCoordinator,
+        coordinator: MerakiDataUpdateCoordinator,
         meraki_client: MerakiAPIClient,
         device_data: dict[str, Any],
         key: str,

@@ -43,6 +43,12 @@ The format is: `type(scope): subject`
 - **`test:`**: Adding missing tests or correcting existing tests (e.g., `test: add unit test for new validation logic`).
 - **`chore:`**: Changes to the build process or auxiliary tools (e.g., `chore: add new linter to pre-commit hook`).
 
+## Pull Request Standards
+
+- **Issue Linking:** Every PR must link to its source issue.
+- **Format:** Always include "Fixes #<number>" in the PR title or the first line of the description.
+- **Base Branch:** All PRs should target the `beta` branch unless explicitly told otherwise.
+
 ---
 
 ## 3. Code Organization & Naming
@@ -118,3 +124,15 @@ The format is: `type(scope): subject`
 - **Iterative Improvement:** If you encounter an issue (e.g., a security vulnerability, a bug, a confusing pattern), look for other instances of the same problem in the codebase and fix them all.
 - **Update Documentation:** As you make changes, ensure that `README.md` and `CONTRIBUTING.md` are updated to reflect the new state of the application.
 - **Update This File:** If you discover a new development technique, a useful debugging procedure, or a common pitfall, please update _this_ `AGENTS.md` file to help future agents.
+
+---
+
+## 7. Knowledge Base
+
+This section serves as a repository for institutional knowledge and recurring fixes. Before tackling an issue, review this section to see if a similar problem has been solved before.
+
+- **[Symptom/Problem]:** [Brief description of the issue]
+  - **Fix:** [Explanation of the solution]
+  - **Reasoning:** [Why this fix works and what the root cause was]
+
+_(This section will be populated over time as we identify recurring issues.)_

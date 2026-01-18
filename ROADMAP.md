@@ -13,5 +13,5 @@
 
 ## Phase 3: Advanced Media
 
-- [ ] Implement Native WebRTC for MV Camera streams
+- [x] Implement Native WebRTC for MV Camera streams
 - [ ] Update translation strings for all new entities
