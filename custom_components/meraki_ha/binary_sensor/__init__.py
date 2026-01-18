@@ -54,9 +54,7 @@ async def async_setup_entry(
         # Add open/close sensors for MT20 devices
         if model.startswith("MT20"):
             binary_sensor_entities.append(
-                MerakiMt20OpenCloseSensor(
-                    coordinator, device, config_entry, MT20_DOOR_DESCRIPTION
-                )
+                MerakiMt20OpenCloseSensor(coordinator, device, config_entry)
             )
 
         # Add switch port sensors
