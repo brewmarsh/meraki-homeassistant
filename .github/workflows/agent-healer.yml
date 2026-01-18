@@ -2,7 +2,7 @@
 
 on:
   workflow_run:
-    workflows: ['Validate Code']
+    workflows: ['Pull Request Validation']
     types: [completed]
 
 permissions:
@@ -11,7 +11,7 @@ permissions:
 
 jobs:
   heal:
-    # 1. Only run if Validate Code failed
+    # 1. Only run if Pull Request Validation failed
     # 2. Prevent infinite loops (only heal failures from specific actors)
     if: |
       github.event.workflow_run.conclusion == 'failure' &&
@@ -40,7 +40,7 @@ jobs:
           include_last_commit: true
           include_commit_log: true
           prompt: |
-            The "Validate Code" CI failed.
+            The "Pull Request Validation" CI failed.
             Actor: ${{ github.event.workflow_run.actor.login }}
             Branch: ${{ github.event.workflow_run.head_branch }}
 
