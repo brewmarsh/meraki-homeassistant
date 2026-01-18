@@ -12,10 +12,12 @@
   "loggers": ["meraki_ha"],
   "quality_scale": "platinum",
   "requirements": [
-    "aiohttp>=3.13.2",
-    "urllib3>=2.6.2",
     "aiodns==3.6.1",
+    "aiohttp>=3.13.2",
+    "aiortc",
+    "meraki==1.40.1",
     "pycares==4.11.0",
+    "urllib3>=2.6.2",
     "webrtc-models==0.3.0"
   ],
   "version": "2.0.0-beta.69"
