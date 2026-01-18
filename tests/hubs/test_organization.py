@@ -10,7 +10,7 @@ from tests.const import MOCK_NETWORK
 
 @pytest.fixture
 def mock_coordinator_with_network(mock_coordinator: MagicMock) -> MagicMock:
-    """Fixture for a mocked MerakiDataCoordinator with a network."""
+    """Fixture for a mocked MerakiDataUpdateCoordinator with a network."""
     mock_coordinator.data = {"networks": [MOCK_NETWORK]}
     return mock_coordinator
 

@@ -1,16 +1,17 @@
-name: Jules Agent Trigger
+name: 'Agent: Cognitive Loop'
 
 on:
   issues:
-    types: [labeled, commented]
+    types: [labeled, commented, reopened]
   pull_request:
     types: [labeled]
 
 jobs:
-  jules-process:
+  cognitive-loop:
     if: >
-      github.event.label.name == 'jules' || 
-      contains(github.event.comment.body, '@jules')
+      github.event.label.name == 'jules' ||
+      contains(github.event.comment.body, '@jules') ||
+      (github.event.action == 'reopened' && contains(github.event.issue.labels.*.name, 'jules'))
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -18,11 +19,49 @@ jobs:
       pull-requests: write
 
     steps:
-      # We REMOVED the "Checkout" step here
-      - name: Run Jules Agent
+      # Step 1: Plan and Execute
+      # The agent (Jules) first creates a plan, posts it as a comment,
+      # and then executes the plan by creating a branch and committing code.
+      - name: Plan and Execute
+        id: jules
         uses: google-labs-code/jules-invoke@main
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          # Explicitly tell Jules to use the beta branch
-          base_branch: 'beta'
-          instructions_path: 'ROADMAP.md' # Change this to ROADMAP.md if that's where your list is
+          jules_api_key: ${{ secrets.JULES_API_KEY }}
+          # Targeting: Hard-code beta as the base for all operations.
+          prompt: |
+            When creating a Pull Request, you must always look for a related issue number in the task context.
+            Include 'Fixes: #' at the beginning of the PR title or in the first line of the PR description.
+            This ensures our project tracking stays synchronized.
+
+      # Step 2: Validation
+      # This step runs after the agent has committed code. It checks for
+      # code quality and syntax errors. If this step fails, the agent
+      # is expected to fix the issues in the next run (self-correction).
+      - name: Checkout agent's branch
+        if: success() && steps.jules.outputs.branch_name != ''
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.jules.outputs.branch_name }}
+
+      - name: Set up Python
+        if: success() && steps.jules.outputs.branch_name != ''
+        uses: actions/setup-python@v6
+        with:
+          python-version-file: '.python-version'
+          cache: 'pip'
+
+      - name: Install dependencies
+        if: success() && steps.jules.outputs.branch_name != ''
+        # Using -q to reduce noise
+        run: pip -q install -r requirements_dev.txt
+
+      - name: Validation
+        if: success() && steps.jules.outputs.branch_name != ''
+        run: |
+          echo "Running validation checks..."
+          # Specificity: Ignore all errors not related to the meraki_ha integration.
+          ruff check custom_components/meraki_ha/
+          python -m compileall -q custom_components/meraki_ha/
+          echo "Validation checks passed."
