@@ -8,6 +8,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryNotReady
 
+from .api.websocket import async_setup_websocket_api
 from .const import (
     CONF_ENABLE_WEB_UI,
     CONF_MERAKI_API_KEY,
@@ -21,7 +22,6 @@ from .const import (
     DOMAIN,
     PLATFORMS,
 )
-from .api.websocket import async_setup_websocket_api
 from .core.api.client import MerakiAPIClient
 from .core.repositories.camera_repository import CameraRepository
 from .core.repository import MerakiRepository
