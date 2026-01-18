@@ -21,5 +21,5 @@
     "urllib3>=2.6.2",
     "google-crc32c"
   ],
-  "version": "2.1.0-beta.59"
+  "version": "2.1.0-beta.60"
 }
