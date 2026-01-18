@@ -47,7 +47,7 @@ async def main():
                     <meraki-panel></meraki-panel>
                     <script type="module" src="meraki-panel.js"></script>
                     <script>
-                        // Mock the panel config if needed, though App.tsx handles localhost defaults
+                        // Mock the panel config if needed
                         const panel = document.querySelector('meraki-panel');
                         panel.panel = { config: { config_entry_id: 'mock' } };
                     </script>
@@ -64,7 +64,9 @@ async def main():
             page.on("console", lambda msg: print(f"Browser Console: {msg.text}"))
 
             print(f"Navigating to http://localhost:{PORT}/test_index.html")
-            await page.goto(f"http://localhost:{PORT}/test_index.html", wait_until="networkidle")
+            await page.goto(
+                f"http://localhost:{PORT}/test_index.html", wait_until="networkidle"
+            )
 
             print("Waiting for selector...")
             # Expecting "Meraki HA Web UI" as per App.tsx
