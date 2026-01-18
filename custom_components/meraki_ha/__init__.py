@@ -5,14 +5,15 @@ import random
 import string
 from pathlib import Path
 
+from homeassistant import config_entries
 from homeassistant.components import frontend as hass_frontend
 from homeassistant.components.http import StaticPathConfig
-from homeassistant import config_entries
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers.typing import ConfigType
 
+from .api.websocket import async_setup_websocket_api
 from .const import (
     CONF_MERAKI_ORG_ID,
     DOMAIN,
@@ -95,6 +96,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             _LOGGER.exception("Failed to register sidebar")
 
     async_setup_api(hass)
+    async_setup_websocket_api(hass)  # Added from incoming branch
     coordinator = MerakiDataUpdateCoordinator(hass, entry)
     await coordinator.async_config_entry_first_refresh()
 
