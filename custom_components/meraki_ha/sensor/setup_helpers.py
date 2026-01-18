@@ -219,6 +219,10 @@ def _setup_uplink_sensors(
             continue
         device_info = asdict(device)
 
+        # Fallback for devices without a name
+        if not device_info.get("name"):
+            device_info["name"] = f"Meraki Device {serial}"
+
         for uplink in uplink_status.get("uplinks", []):
             interface = uplink.get("interface")
             if not interface:
@@ -228,7 +232,7 @@ def _setup_uplink_sensors(
             if unique_id not in added_entities:
                 entities.append(
                     MerakiApplianceUplinkSensor(
-                        coordinator, cast(dict, device_info), config_entry, uplink
+                        coordinator, device_info, config_entry, uplink
                     )
                 )
                 added_entities.add(unique_id)
