@@ -148,18 +148,6 @@ class MerakiAPIClient:
             "devices": self._run_with_semaphore(
                 self.organization.get_organization_devices(),
             ),
-            "device_statuses": self._run_with_semaphore(
-                self.organization.get_organization_device_statuses(),
-            ),
-            "device_statuses": self._run_with_semaphore(
-                self.organization.get_organization_device_statuses(),
-            ),
-            "device_statuses": self._run_with_semaphore(
-                self.organization.get_organization_device_statuses(),
-            ),
-            "devices_availabilities": self._run_with_semaphore(
-                self.organization.get_organization_devices_availabilities(),
-            ),
             "appliance_uplink_statuses": self._run_with_semaphore(
                 self.appliance.get_organization_appliance_uplink_statuses(),
             ),
