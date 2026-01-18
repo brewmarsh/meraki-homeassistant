@@ -201,7 +201,7 @@ class MerakiAPIClient:
         client_tasks = [
             self._run_with_semaphore(
                 self.network.get_network_clients(
-                    network["id"],
+                    network.id,
                     perPage=1000,
                     total_pages="all",
                 ),
@@ -219,7 +219,7 @@ class MerakiAPIClient:
                     if client.get("status") and client["status"] == "Online"
                 ]
                 for client in online_clients:
-                    client["networkId"] = network["id"]
+                    client["networkId"] = network.id
                 clients.extend(online_clients)
         return clients
 
@@ -239,11 +239,11 @@ class MerakiAPIClient:
 
         """
         client_tasks = {
-            device["serial"]: self._run_with_semaphore(
-                self.devices.get_device_clients(device["serial"]),
+            device.serial: self._run_with_semaphore(
+                self.devices.get_device_clients(device.serial),
             )
             for device in devices
-            if device.get("productType")
+            if device.product_type
             in ["wireless", "appliance", "switch", "cellularGateway"]
         }
         results = await asyncio.gather(*client_tasks.values(), return_exceptions=True)
@@ -273,71 +273,71 @@ class MerakiAPIClient:
         """
         detail_tasks: dict[str, Awaitable[Any]] = {}
         for network in networks:
-            product_types = network.get("productTypes", [])
+            product_types = network.product_types
             if "wireless" in product_types:
-                detail_tasks[f"ssids_{network['id']}"] = self._run_with_semaphore(
-                    self.wireless.get_network_ssids(network["id"]),
+                detail_tasks[f"ssids_{network.id}"] = self._run_with_semaphore(
+                    self.wireless.get_network_ssids(network.id),
                 )
             if "appliance" in product_types:
                 if not self.coordinator or self.coordinator.is_traffic_check_due(
-                    network["id"],
+                    network.id,
                 ):
-                    detail_tasks[f"traffic_{network['id']}"] = self._run_with_semaphore(
-                        self.network.get_network_traffic(network["id"], "appliance"),
+                    detail_tasks[f"traffic_{network.id}"] = self._run_with_semaphore(
+                        self.network.get_network_traffic(network.id, "appliance"),
                     )
                 if not self.coordinator or self.coordinator.is_vlan_check_due(
-                    network["id"],
+                    network.id,
                 ):
-                    detail_tasks[f"vlans_{network['id']}"] = self._run_with_semaphore(
-                        self.appliance.get_network_vlans(network["id"]),
+                    detail_tasks[f"vlans_{network.id}"] = self._run_with_semaphore(
+                        self.appliance.get_network_vlans(network.id),
                     )
-                detail_tasks[f"l3_firewall_rules_{network['id']}"] = (
+                detail_tasks[f"l3_firewall_rules_{network.id}"] = (
                     self._run_with_semaphore(
-                        self.appliance.get_l3_firewall_rules(network["id"]),
+                        self.appliance.get_l3_firewall_rules(network.id),
                     )
                 )
-                detail_tasks[f"traffic_shaping_{network['id']}"] = (
+                detail_tasks[f"traffic_shaping_{network.id}"] = (
                     self._run_with_semaphore(
-                        self.appliance.get_traffic_shaping(network["id"]),
+                        self.appliance.get_traffic_shaping(network.id),
                     )
                 )
-                detail_tasks[f"vpn_status_{network['id']}"] = self._run_with_semaphore(
-                    self.appliance.get_vpn_status(network["id"]),
+                detail_tasks[f"vpn_status_{network.id}"] = self._run_with_semaphore(
+                    self.appliance.get_vpn_status(network.id),
                 )
-                detail_tasks[f"content_filtering_{network['id']}"] = (
+                detail_tasks[f"content_filtering_{network.id}"] = (
                     self._run_with_semaphore(
                         self.appliance.get_network_appliance_content_filtering(
-                            network["id"],
+                            network.id,
                         ),
                     )
                 )
             if "wireless" in product_types:
-                detail_tasks[f"rf_profiles_{network['id']}"] = self._run_with_semaphore(
-                    self.wireless.get_network_wireless_rf_profiles(network["id"]),
+                detail_tasks[f"rf_profiles_{network.id}"] = self._run_with_semaphore(
+                    self.wireless.get_network_wireless_rf_profiles(network.id),
                 )
         for device in devices:
-            if device.get("productType") == "camera":
-                detail_tasks[f"video_settings_{device['serial']}"] = (
+            if device.product_type == "camera":
+                detail_tasks[f"video_settings_{device.serial}"] = (
                     self._run_with_semaphore(
-                        self.camera.get_camera_video_settings(device["serial"]),
+                        self.camera.get_camera_video_settings(device.serial),
                     )
                 )
-                detail_tasks[f"sense_settings_{device['serial']}"] = (
+                detail_tasks[f"sense_settings_{device.serial}"] = (
                     self._run_with_semaphore(
-                        self.camera.get_camera_sense_settings(device["serial"]),
+                        self.camera.get_camera_sense_settings(device.serial),
                     )
                 )
-            elif device.get("productType") == "switch":
-                detail_tasks[f"ports_statuses_{device['serial']}"] = (
+            elif device.product_type == "switch":
+                detail_tasks[f"ports_statuses_{device.serial}"] = (
                     self._run_with_semaphore(
-                        self.switch.get_device_switch_ports_statuses(device["serial"]),
+                        self.switch.get_device_switch_ports_statuses(device.serial),
                     )
                 )
-            elif device.get("productType") == "appliance" and "networkId" in device:
-                detail_tasks[f"appliance_settings_{device['serial']}"] = (
+            elif device.product_type == "appliance" and "networkId" in device:
+                detail_tasks[f"appliance_settings_{device.serial}"] = (
                     self._run_with_semaphore(
                         self.appliance.get_network_appliance_settings(
-                            device["networkId"],
+                            device.network_id,
                         ),
                     )
                 )
@@ -364,10 +364,27 @@ class MerakiAPIClient:
         _LOGGER.debug("Fetching fresh Meraki data from API")
         initial_results = await self._async_fetch_initial_data()
 
-        networks: list[MerakiNetwork] = initial_results.get("networks", [])
-        devices: list[MerakiDevice] = initial_results.get("devices", [])
-        device_statuses = initial_results.get("device_statuses", [])
+        networks_res = initial_results.get("networks", [])
+        if isinstance(networks_res, Exception):
+            _LOGGER.warning(
+                "Could not fetch networks, network data will be unavailable: %s",
+                networks_res,
+            )
+            networks: list[MerakiNetwork] = []
+        else:
+            networks = networks_res
 
+        devices_res = initial_results.get("devices", [])
+        if isinstance(devices_res, Exception):
+            _LOGGER.warning(
+                "Could not fetch devices, device data will be unavailable: %s",
+                devices_res,
+            )
+            devices: list[MerakiDevice] = []
+        else:
+            devices = devices_res
+
+        device_statuses = initial_results.get("device_statuses", [])
         if isinstance(device_statuses, Exception):
             _LOGGER.warning(
                 "Could not fetch device statuses, "
