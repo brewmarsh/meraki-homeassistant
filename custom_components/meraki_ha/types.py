@@ -28,6 +28,8 @@ class MerakiDevice:
     sense_settings: dict[str, Any] | None = None
     ports_statuses: list[dict[str, Any]] = field(default_factory=list)
     dynamic_dns: dict[str, Any] | None = None
+    status_messages: list[str] = field(default_factory=list)
+    entity_id: str | None = None
 
 
 @dataclass
@@ -41,6 +43,7 @@ class MerakiNetwork:
     time_zone: str | None = None
     tags: list[str] = field(default_factory=list)
     notes: str | None = None
+    status_messages: list[str] = field(default_factory=list)
 
 
 class MerakiVlan(TypedDict):
