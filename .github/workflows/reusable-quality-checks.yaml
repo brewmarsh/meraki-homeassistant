@@ -54,6 +54,14 @@ jobs:
         with:
           python-version: ${{ inputs.python-version }}
           enable-cache: true
+      - name: Install dependencies
+        run: pip install -r requirements_dev.txt
+      - name: Install dependencies
+        run: pip install -r requirements_dev.txt
+      - name: Install dependencies
+        run: pip install -r requirements_dev.txt
+      - name: Install dependencies
+        run: pip install -r requirements_dev.txt
       - name: Install tools
         run: pip install pip-audit bandit
       - name: Run Bandit
