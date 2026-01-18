@@ -14,8 +14,11 @@ from custom_components.meraki_ha.const import DOMAIN
 from tests.const import MOCK_DEVICE, MOCK_GX_DEVICE, MOCK_MX_DEVICE
 
 
+from homeassistant.setup import async_setup_component
+
+
 @pytest.fixture
-def config_entry() -> MockConfigEntry:
+def mock_config_entry() -> MockConfigEntry:
     """Fixture for a mocked config entry."""
     return MockConfigEntry(
         domain=DOMAIN,
@@ -61,7 +64,7 @@ def mock_meraki_client() -> AsyncMock:
 @pytest.mark.enable_socket
 async def test_ssid_device_creation_and_unification(
     hass: HomeAssistant,
-    config_entry: MockConfigEntry,
+    mock_config_entry: MockConfigEntry,
     mock_meraki_client: AsyncMock,
 ) -> None:
     """
@@ -70,11 +73,12 @@ async def test_ssid_device_creation_and_unification(
     Args:
     ----
         hass: The Home Assistant instance.
-        config_entry: The config entry.
+        mock_config_entry: The config entry.
         mock_meraki_client: The mocked Meraki API client.
 
     """
-    config_entry.add_to_hass(hass)
+    assert await async_setup_component(hass, "http", {})
+    mock_config_entry.add_to_hass(hass)
 
     with (
         patch(
@@ -84,7 +88,7 @@ async def test_ssid_device_creation_and_unification(
         patch("custom_components.meraki_ha.async_register_webhook", return_value=None),
     ):
         # Set up the component
-        assert await hass.config_entries.async_setup(config_entry.entry_id)
+        assert await hass.config_entries.async_setup(mock_config_entry.entry_id)
         await hass.async_block_till_done()
 
         # Get the device and entity registries
@@ -115,7 +119,7 @@ async def test_ssid_device_creation_and_unification(
 @pytest.mark.enable_socket
 async def test_integration_reload(
     hass: HomeAssistant,
-    config_entry: MockConfigEntry,
+    mock_config_entry: MockConfigEntry,
     mock_meraki_client: AsyncMock,
 ) -> None:
     """
@@ -124,11 +128,12 @@ async def test_integration_reload(
     Args:
     ----
         hass: The Home Assistant instance.
-        config_entry: The config entry.
+        mock_config_entry: The config entry.
         mock_meraki_client: The mocked Meraki API client.
 
     """
-    config_entry.add_to_hass(hass)
+    assert await async_setup_component(hass, "http", {})
+    mock_config_entry.add_to_hass(hass)
 
     with (
         patch(
@@ -138,14 +143,14 @@ async def test_integration_reload(
         patch("custom_components.meraki_ha.async_register_webhook", return_value=None),
     ):
         # Set up the component
-        assert await hass.config_entries.async_setup(config_entry.entry_id)
+        assert await hass.config_entries.async_setup(mock_config_entry.entry_id)
         await hass.async_block_till_done()
 
         # Reload the integration
-        assert await hass.config_entries.async_reload(config_entry.entry_id)
+        assert await hass.config_entries.async_reload(mock_config_entry.entry_id)
         await hass.async_block_till_done()
 
         # Check that the coordinator is still there, indicating a successful reload
         assert DOMAIN in hass.data
-        assert config_entry.entry_id in hass.data[DOMAIN]
-        assert "coordinator" in hass.data[DOMAIN][config_entry.entry_id]
+        assert mock_config_entry.entry_id in hass.data[DOMAIN]
+        assert "coordinator" in hass.data[DOMAIN][mock_config_entry.entry_id]
