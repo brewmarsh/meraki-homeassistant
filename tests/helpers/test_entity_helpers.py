@@ -1,6 +1,6 @@
 """Tests for the Meraki entity helpers."""
 
-from custom_components.meraki_ha.helpers.entity_helpers import format_entity_name
+from custom_components.meraki_ha.core.utils.naming_utils import format_entity_name
 
 
 def test_format_entity_name():

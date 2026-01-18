@@ -15,13 +15,16 @@ if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
     from homeassistant.helpers.entity import Entity
 
+    from ....core.coordinators.meraki_data_coordinator import (
+        MerakiDataUpdateCoordinator,
+    )
+    from ....core.coordinators.switch_port_status_coordinator import (
+        SwitchPortStatusCoordinator,
+    )
     from ....services.camera_service import CameraService
     from ....services.device_control_service import DeviceControlService
     from ....services.network_control_service import NetworkControlService
     from ....types import MerakiDevice
-    from ...meraki_data_coordinator import (
-        MerakiDataCoordinator,
-    )
 
 
 _LOGGER = logging.getLogger(__name__)
@@ -32,7 +35,7 @@ class BaseHandler(ABC):
 
     def __init__(
         self,
-        coordinator: MerakiDataCoordinator,
+        coordinator: MerakiDataUpdateCoordinator,
         config_entry: ConfigEntry,
     ) -> None:
         """Initialize the BaseHandler."""
@@ -50,7 +53,7 @@ class BaseDeviceHandler(BaseHandler, ABC):
 
     def __init__(
         self,
-        coordinator: MerakiDataCoordinator,
+        coordinator: MerakiDataUpdateCoordinator,
         device: MerakiDevice,
         config_entry: ConfigEntry,
     ) -> None:
@@ -62,12 +65,13 @@ class BaseDeviceHandler(BaseHandler, ABC):
     @abstractmethod
     def create(
         cls,
-        coordinator: MerakiDataCoordinator,
+        coordinator: MerakiDataUpdateCoordinator,
         device: MerakiDevice,
         config_entry: ConfigEntry,
         camera_service: CameraService,
         control_service: DeviceControlService,
         network_control_service: NetworkControlService,
+        switch_port_coordinator: SwitchPortStatusCoordinator,
     ) -> BaseDeviceHandler:
         """Create an instance of the handler."""
         raise NotImplementedError

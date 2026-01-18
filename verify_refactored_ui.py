@@ -26,13 +26,10 @@ async def main():
             browser = await p.chromium.launch()
             page = await browser.new_page()
 
-            page.on("console", lambda msg: print(f"Browser Console: {msg.text}"))
-
             await page.goto(f"http://localhost:{PORT}")
 
             # Mock the hass object
-            await page.evaluate(
-                """
+            await page.evaluate("""
                 window.hass = {
                   connection: {
                     sendMessagePromise: async (message) => {
@@ -67,11 +64,9 @@ async def main():
                     darkMode: true,
                   },
                 };
-            """
-            )
+            """)
 
-            await page.evaluate(
-                """
+            await page.evaluate("""
                 const el = document.createElement('meraki-panel');
                 el.hass = window.hass;
                 el.panel = {
@@ -80,11 +75,12 @@ async def main():
                     }
                 }
                 document.body.appendChild(el);
-            """
-            )
+            """)
+
+            page.on("console", lambda msg: print(f"Browser Console: {msg.text}"))
 
             print("Waiting for selector...")
-            await page.wait_for_selector('text="Meraki HA Web UI"')
+            await page.wait_for_selector('text="Meraki Integration Control"')
             print("Selector found!")
 
             screenshot_path = "verification_screenshot.png"

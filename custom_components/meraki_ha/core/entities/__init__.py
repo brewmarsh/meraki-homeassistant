@@ -12,7 +12,7 @@ from ...const import (
     DOMAIN,
     MANUFACTURER,
 )
-from ...meraki_data_coordinator import MerakiDataCoordinator
+from ...coordinator import MerakiDataUpdateCoordinator
 from ..utils.naming_utils import format_device_name
 
 
@@ -28,7 +28,7 @@ class BaseMerakiEntity(CoordinatorEntity, Entity, ABC):
 
     def __init__(
         self,
-        coordinator: MerakiDataCoordinator,
+        coordinator: MerakiDataUpdateCoordinator,
         config_entry: ConfigEntry,
         serial: str | None = None,
         network_id: str | None = None,

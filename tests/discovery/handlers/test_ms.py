@@ -14,7 +14,7 @@ async def test_discover_entities():
     mock_coordinator = MagicMock()
     mock_config_entry = MagicMock()
     mock_control_service = MagicMock()
-    mock_network_control_service = MagicMock()
+    mock_switch_port_coordinator = MagicMock()
     mock_switch_device = {
         "serial": "Q234-ABCD-5678",
         "name": "My Switch",
@@ -29,8 +29,8 @@ async def test_discover_entities():
         mock_coordinator,
         mock_switch_device,
         mock_config_entry,
+        mock_switch_port_coordinator,
         mock_control_service,
-        mock_network_control_service,
     )
 
     # Act

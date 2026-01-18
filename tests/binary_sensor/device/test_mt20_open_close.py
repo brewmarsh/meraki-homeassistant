@@ -11,7 +11,7 @@ from custom_components.meraki_ha.binary_sensor.device.mt20_open_close import (
 
 @pytest.fixture
 def mock_coordinator_mt20(mock_coordinator: MagicMock) -> MagicMock:
-    """Fixture for a mocked MerakiDataCoordinator with MT20 data."""
+    """Fixture for a mocked MerakiDataUpdateCoordinator with MT20 data."""
     mock_coordinator.data = {
         "devices": [
             {

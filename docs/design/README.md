@@ -74,7 +74,7 @@ The integration provides the following platforms:
 
 ## Code Duplication and Refactoring Opportunities
 
-### Device Sensor Base Class
+\*\*Device Sensor Base Class
 
 The device sensor platforms in `custom_components/meraki_ha/sensor/device` have a lot of duplicated code. A base class could be created to handle the following:
 
