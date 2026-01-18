@@ -10,6 +10,7 @@ from __future__ import annotations
 import asyncio
 import logging
 from collections.abc import Awaitable, Callable
+from dataclasses import fields
 from functools import partial
 from typing import TYPE_CHECKING, Any
 
@@ -372,7 +373,13 @@ class MerakiAPIClient:
             )
             networks: list[MerakiNetwork] = []
         else:
-            networks = networks_res
+            network_fields = {f.name for f in fields(MerakiNetwork)}
+            networks = [
+                MerakiNetwork(
+                    **{k: v for k, v in network.items() if k in network_fields},
+                )
+                for network in networks_res
+            ]
 
         devices_res = initial_results.get("devices", [])
         if isinstance(devices_res, Exception):
@@ -382,7 +389,13 @@ class MerakiAPIClient:
             )
             devices: list[MerakiDevice] = []
         else:
-            devices = devices_res
+            device_fields = {f.name for f in fields(MerakiDevice)}
+            devices = [
+                MerakiDevice(
+                    **{k: v for k, v in device.items() if k in device_fields},
+                )
+                for device in devices_res
+            ]
 
         device_statuses = initial_results.get("device_statuses", [])
         if isinstance(device_statuses, Exception):

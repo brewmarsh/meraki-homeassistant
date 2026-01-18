@@ -35,10 +35,7 @@ def parse_network_data(
     content_filtering_by_network: dict[str, Any] = {}
 
     for network in networks:
-        if not isinstance(network, dict) or "id" not in network:
-            continue
-
-        network_id = network["id"]
+        network_id = network.id
 
         # Appliance Traffic
         network_traffic_key = f"traffic_{network_id}"
@@ -106,12 +103,12 @@ def parse_network_data(
             vpn_status_by_network[network_id] = previous_data[vpn_status_key]
 
         # RF Profiles
-        network_rf_profiles_key = f"rf_profiles_{network['id']}"
+        network_rf_profiles_key = f"rf_profiles_{network.id}"
         network_rf_profiles = detail_data.get(network_rf_profiles_key)
         if isinstance(network_rf_profiles, list):
-            rf_profiles_by_network[network['id']] = network_rf_profiles
+            rf_profiles_by_network[network.id] = network_rf_profiles
         elif previous_data and network_rf_profiles_key in previous_data:
-            rf_profiles_by_network[network['id']] = previous_data[
+            rf_profiles_by_network[network.id] = previous_data[
                 network_rf_profiles_key
             ]
 
