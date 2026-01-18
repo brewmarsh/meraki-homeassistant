@@ -10,17 +10,21 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING
 
-from ....binary_sensor.device.camera_motion import MerakiMotionSensor
-from ....button.device.camera_snapshot import MerakiSnapshotButton
-from ....camera import MerakiCamera
-from ....core.errors import MerakiInformationalError
-from ....descriptions import CAMERA_MOTION_DESCRIPTION
-from ....sensor.device.camera_analytics import (
+from custom_components.meraki_ha.binary_sensor.device.camera_motion import (
+    MerakiMotionSensor,
+)
+from custom_components.meraki_ha.button.device.camera_snapshot import (
+    MerakiSnapshotButton,
+)
+from custom_components.meraki_ha.camera import MerakiCamera
+from custom_components.meraki_ha.core.errors import MerakiInformationalError
+from custom_components.meraki_ha.entity_descriptions import CAMERA_MOTION_DESCRIPTION
+from custom_components.meraki_ha.sensor.device.camera_analytics import (
     MerakiPersonCountSensor,
     MerakiVehicleCountSensor,
 )
-from ....sensor.device.rtsp_url import MerakiRtspUrlSensor
-from ....switch.camera_controls import AnalyticsSwitch
+from custom_components.meraki_ha.sensor.device.rtsp_url import MerakiRtspUrlSensor
+from custom_components.meraki_ha.switch.camera_controls import AnalyticsSwitch
 from .base import BaseDeviceHandler
 
 if TYPE_CHECKING:

@@ -1,79 +1,35 @@
-Requirement already satisfied: uv==0.9.17 in /home/jules/.pyenv/versions/3.13.8/lib/python3.13/site-packages (0.9.17)
+Collecting aiofiles==23.2.1
+  Using cached aiofiles-23.2.1-py3-none-any.whl.metadata (9.7 kB)
 Collecting types-aiofiles==25.1.0.20251011
   Using cached types_aiofiles-25.1.0.20251011-py3-none-any.whl.metadata (1.7 kB)
+Collecting meraki==1.40.1
+  Using cached meraki-1.40.1-py3-none-any.whl.metadata (10 kB)
 Collecting PyTurboJPEG==1.7.2
   Using cached PyTurboJPEG-1.7.2.tar.gz (11 kB)
-  Preparing metadata (setup.py): started
-  Preparing metadata (setup.py): finished with status 'done'
-Collecting ruff==0.5.5
-  Using cached ruff-0.5.5-py3-none-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (24 kB)
-Collecting pip-audit==2.7.3
-  Using cached pip_audit-2.7.3-py3-none-any.whl.metadata (26 kB)
-Collecting bandit==1.7.9
-  Using cached bandit-1.7.9-py3-none-any.whl.metadata (6.7 kB)
-Collecting mypy==1.11.0
-  Using cached mypy-1.11.0-py3-none-any.whl.metadata (1.9 kB)
+  Installing build dependencies: started
+  Installing build dependencies: finished with status 'done'
+  Getting requirements to build wheel: started
+  Getting requirements to build wheel: finished with status 'done'
+  Preparing metadata (pyproject.toml): started
+  Preparing metadata (pyproject.toml): finished with status 'done'
 Collecting voluptuous==0.16.0
   Using cached voluptuous-0.16.0-py3-none-any.whl.metadata (20 kB)
 Requirement already satisfied: pyyaml==6.0.3 in /home/jules/.pyenv/versions/3.13.8/lib/python3.13/site-packages (6.0.3)
 Collecting playwright
   Using cached playwright-1.57.0-py3-none-manylinux1_x86_64.whl.metadata (3.5 kB)
-Requirement already satisfied: pytest-cov in /home/jules/.pyenv/versions/3.13.8/lib/python3.13/site-packages (7.0.0)
-Collecting pytest-asyncio==1.2.0
-  Using cached pytest_asyncio-1.2.0-py3-none-any.whl.metadata (4.1 kB)
-Collecting codecov
-  Using cached codecov-2.1.13-py2.py3-none-any.whl.metadata (1.3 kB)
-Requirement already satisfied: aiohttp in /home/jules/.pyenv/versions/3.13.8/lib/python3.13/site-packages (3.13.3)
+Requirement already satisfied: aiohttp in /home/jules/.pyenv/versions/3.13.8/lib/python3.13/site-packages (3.13.2)
 Requirement already satisfied: urllib3 in /home/jules/.pyenv/versions/3.13.8/lib/python3.13/site-packages (2.6.3)
-Requirement already satisfied: aiodns==3.6.1 in /home/jules/.pyenv/versions/3.13.8/lib/python3.13/site-packages (3.6.1)
-Requirement already satisfied: pycares==4.11.0 in /home/jules/.pyenv/versions/3.13.8/lib/python3.13/site-packages (4.11.0)
-Collecting pre-commit
-  Using cached pre_commit-4.5.1-py2.py3-none-any.whl.metadata (1.2 kB)
-Requirement already satisfied: filelock==3.20.3 in /home/jules/.pyenv/versions/3.13.8/lib/python3.13/site-packages (3.20.3)
-Collecting aiortc
-  Downloading aiortc-1.14.0-py3-none-any.whl.metadata (4.9 kB)
+Collecting aiodns==3.6.1
+  Using cached aiodns-3.6.1-py3-none-any.whl.metadata (5.8 kB)
+Collecting pycares==4.11.0
+  Using cached pycares-4.11.0-cp313-cp313-manylinux_2_28_x86_64.whl.metadata (4.5 kB)
+Requirement already satisfied: requests in /home/jules/.pyenv/versions/3.13.8/lib/python3.13/site-packages (from meraki==1.40.1) (2.32.5)
 Requirement already satisfied: numpy in /home/jules/.pyenv/versions/3.13.8/lib/python3.13/site-packages (from PyTurboJPEG==1.7.2) (2.3.2)
-Collecting CacheControl>=0.13.0 (from CacheControl[filecache]>=0.13.0->pip-audit==2.7.3)
-  Using cached cachecontrol-0.14.4-py3-none-any.whl.metadata (3.1 kB)
-Collecting cyclonedx-python-lib<8,>=5 (from pip-audit==2.7.3)
-  Using cached cyclonedx_python_lib-7.6.2-py3-none-any.whl.metadata (6.7 kB)
-Collecting html5lib>=1.1 (from pip-audit==2.7.3)
-  Using cached html5lib-1.1-py2.py3-none-any.whl.metadata (16 kB)
-Requirement already satisfied: packaging>=23.0.0 in /home/jules/.pyenv/versions/3.13.8/lib/python3.13/site-packages (from pip-audit==2.7.3) (25.0)
-Collecting pip-api>=0.0.28 (from pip-audit==2.7.3)
-  Using cached pip_api-0.0.34-py3-none-any.whl.metadata (6.6 kB)
-Collecting pip-requirements-parser>=32.0.0 (from pip-audit==2.7.3)
-  Using cached pip_requirements_parser-32.0.1-py3-none-any.whl.metadata (9.3 kB)
-Requirement already satisfied: requests>=2.31.0 in /home/jules/.pyenv/versions/3.13.8/lib/python3.13/site-packages (from pip-audit==2.7.3) (2.32.5)
-Collecting rich>=12.4 (from pip-audit==2.7.3)
-  Using cached rich-14.2.0-py3-none-any.whl.metadata (18 kB)
-Collecting toml>=0.10 (from pip-audit==2.7.3)
-  Using cached toml-0.10.2-py2.py3-none-any.whl.metadata (7.1 kB)
-Collecting stevedore>=1.20.0 (from bandit==1.7.9)
-  Using cached stevedore-5.6.0-py3-none-any.whl.metadata (2.3 kB)
-Requirement already satisfied: typing-extensions>=4.6.0 in /home/jules/.pyenv/versions/3.13.8/lib/python3.13/site-packages (from mypy==1.11.0) (4.15.0)
-Collecting mypy-extensions>=1.0.0 (from mypy==1.11.0)
-  Using cached mypy_extensions-1.1.0-py3-none-any.whl.metadata (1.1 kB)
-Collecting pytest<9,>=8.2 (from pytest-asyncio==1.2.0)
-  Using cached pytest-8.4.2-py3-none-any.whl.metadata (7.7 kB)
 Requirement already satisfied: cffi>=1.5.0 in /home/jules/.pyenv/versions/3.13.8/lib/python3.13/site-packages (from pycares==4.11.0) (2.0.0)
-Requirement already satisfied: license-expression<31,>=30 in /home/jules/.pyenv/versions/3.13.8/lib/python3.13/site-packages (from cyclonedx-python-lib<8,>=5->pip-audit==2.7.3) (30.4.3)
-Collecting packageurl-python<2,>=0.11 (from cyclonedx-python-lib<8,>=5->pip-audit==2.7.3)
-  Using cached packageurl_python-0.17.6-py3-none-any.whl.metadata (5.1 kB)
-Collecting py-serializable<2.0.0,>=1.1.0 (from cyclonedx-python-lib<8,>=5->pip-audit==2.7.3)
-  Using cached py_serializable-1.1.2-py3-none-any.whl.metadata (4.2 kB)
-Collecting sortedcontainers<3.0.0,>=2.4.0 (from cyclonedx-python-lib<8,>=5->pip-audit==2.7.3)
-  Using cached sortedcontainers-2.4.0-py2.py3-none-any.whl.metadata (10 kB)
-Requirement already satisfied: boolean.py>=4.0 in /home/jules/.pyenv/versions/3.13.8/lib/python3.13/site-packages (from license-expression<31,>=30->cyclonedx-python-lib<8,>=5->pip-audit==2.7.3) (5.0)
-Collecting defusedxml<0.8.0,>=0.7.1 (from py-serializable<2.0.0,>=1.1.0->cyclonedx-python-lib<8,>=5->pip-audit==2.7.3)
-  Using cached defusedxml-0.7.1-py2.py3-none-any.whl.metadata (32 kB)
-Requirement already satisfied: iniconfig>=1 in /home/jules/.pyenv/versions/3.13.8/lib/python3.13/site-packages (from pytest<9,>=8.2->pytest-asyncio==1.2.0) (2.3.0)
-Requirement already satisfied: pluggy<2,>=1.5 in /home/jules/.pyenv/versions/3.13.8/lib/python3.13/site-packages (from pytest<9,>=8.2->pytest-asyncio==1.2.0) (1.6.0)
-Requirement already satisfied: pygments>=2.7.2 in /home/jules/.pyenv/versions/3.13.8/lib/python3.13/site-packages (from pytest<9,>=8.2->pytest-asyncio==1.2.0) (2.19.2)
 Collecting pyee<14,>=13 (from playwright)
   Using cached pyee-13.0.0-py3-none-any.whl.metadata (2.9 kB)
 Requirement already satisfied: greenlet<4.0.0,>=3.1.1 in /home/jules/.pyenv/versions/3.13.8/lib/python3.13/site-packages (from playwright) (3.3.0)
-Requirement already satisfied: coverage>=7.10.6 in /home/jules/.pyenv/versions/3.13.8/lib/python3.13/site-packages (from coverage[toml]>=7.10.6->pytest-cov) (7.10.6)
+Requirement already satisfied: typing-extensions in /home/jules/.pyenv/versions/3.13.8/lib/python3.13/site-packages (from pyee<14,>=13->playwright) (4.15.0)
 Requirement already satisfied: aiohappyeyeballs>=2.5.0 in /home/jules/.pyenv/versions/3.13.8/lib/python3.13/site-packages (from aiohttp) (2.6.1)
 Requirement already satisfied: aiosignal>=1.4.0 in /home/jules/.pyenv/versions/3.13.8/lib/python3.13/site-packages (from aiohttp) (1.4.0)
 Requirement already satisfied: attrs>=17.3.0 in /home/jules/.pyenv/versions/3.13.8/lib/python3.13/site-packages (from aiohttp) (25.4.0)
@@ -82,112 +38,37 @@ Requirement already satisfied: multidict<7.0,>=4.5 in /home/jules/.pyenv/version
 Requirement already satisfied: propcache>=0.2.0 in /home/jules/.pyenv/versions/3.13.8/lib/python3.13/site-packages (from aiohttp) (0.4.1)
 Requirement already satisfied: yarl<2.0,>=1.17.0 in /home/jules/.pyenv/versions/3.13.8/lib/python3.13/site-packages (from aiohttp) (1.22.0)
 Requirement already satisfied: idna>=2.0 in /home/jules/.pyenv/versions/3.13.8/lib/python3.13/site-packages (from yarl<2.0,>=1.17.0->aiohttp) (3.11)
-Collecting cfgv>=2.0.0 (from pre-commit)
-  Downloading cfgv-3.5.0-py2.py3-none-any.whl.metadata (8.9 kB)
-Collecting identify>=1.0.0 (from pre-commit)
-  Downloading identify-2.6.16-py2.py3-none-any.whl.metadata (4.4 kB)
-Collecting nodeenv>=0.11.1 (from pre-commit)
-  Downloading nodeenv-1.10.0-py2.py3-none-any.whl.metadata (24 kB)
-Collecting virtualenv>=20.10.0 (from pre-commit)
-  Downloading virtualenv-20.36.1-py3-none-any.whl.metadata (4.7 kB)
-Collecting aioice<1.0.0,>=0.10.1 (from aiortc)
-  Downloading aioice-0.10.2-py3-none-any.whl.metadata (4.1 kB)
-Collecting av<17.0.0,>=14.0.0 (from aiortc)
-  Downloading av-16.1.0-cp313-cp313-manylinux_2_28_x86_64.whl.metadata (4.6 kB)
-Requirement already satisfied: cryptography>=44.0.0 in /home/jules/.pyenv/versions/3.13.8/lib/python3.13/site-packages (from aiortc) (46.0.2)
-Collecting google-crc32c>=1.1 (from aiortc)
-  Downloading google_crc32c-1.8.0-cp313-cp313-manylinux1_x86_64.manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_5_x86_64.whl.metadata (1.7 kB)
-Collecting pylibsrtp>=0.10.0 (from aiortc)
-  Downloading pylibsrtp-1.0.0-cp310-abi3-manylinux_2_26_x86_64.manylinux_2_28_x86_64.whl.metadata (4.0 kB)
-Requirement already satisfied: pyopenssl>=25.0.0 in /home/jules/.pyenv/versions/3.13.8/lib/python3.13/site-packages (from aiortc) (25.3.0)
-Collecting dnspython>=2.0.0 (from aioice<1.0.0,>=0.10.1->aiortc)
-  Downloading dnspython-2.8.0-py3-none-any.whl.metadata (5.7 kB)
-Requirement already satisfied: ifaddr>=0.2.0 in /home/jules/.pyenv/versions/3.13.8/lib/python3.13/site-packages (from aioice<1.0.0,>=0.10.1->aiortc) (0.2.0)
-Collecting msgpack<2.0.0,>=0.5.2 (from CacheControl>=0.13.0->CacheControl[filecache]>=0.13.0->pip-audit==2.7.3)
-  Downloading msgpack-1.1.2-cp313-cp313-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl.metadata (8.1 kB)
 Requirement already satisfied: pycparser in /home/jules/.pyenv/versions/3.13.8/lib/python3.13/site-packages (from cffi>=1.5.0->pycares==4.11.0) (2.23)
-Requirement already satisfied: six>=1.9 in /home/jules/.pyenv/versions/3.13.8/lib/python3.13/site-packages (from html5lib>=1.1->pip-audit==2.7.3) (1.17.0)
-Collecting webencodings (from html5lib>=1.1->pip-audit==2.7.3)
-  Downloading webencodings-0.5.1-py2.py3-none-any.whl.metadata (2.1 kB)
-Requirement already satisfied: pip in /home/jules/.pyenv/versions/3.13.8/lib/python3.13/site-packages (from pip-api>=0.0.28->pip-audit==2.7.3) (25.2)
-Collecting pyparsing (from pip-requirements-parser>=32.0.0->pip-audit==2.7.3)
-  Downloading pyparsing-3.3.1-py3-none-any.whl.metadata (5.6 kB)
-Requirement already satisfied: charset_normalizer<4,>=2 in /home/jules/.pyenv/versions/3.13.8/lib/python3.13/site-packages (from requests>=2.31.0->pip-audit==2.7.3) (3.4.4)
-Requirement already satisfied: certifi>=2017.4.17 in /home/jules/.pyenv/versions/3.13.8/lib/python3.13/site-packages (from requests>=2.31.0->pip-audit==2.7.3) (2026.1.4)
-Collecting markdown-it-py>=2.2.0 (from rich>=12.4->pip-audit==2.7.3)
-  Downloading markdown_it_py-4.0.0-py3-none-any.whl.metadata (7.3 kB)
-Collecting mdurl~=0.1 (from markdown-it-py>=2.2.0->rich>=12.4->pip-audit==2.7.3)
-  Downloading mdurl-0.1.2-py3-none-any.whl.metadata (1.6 kB)
-Collecting distlib<1,>=0.3.7 (from virtualenv>=20.10.0->pre-commit)
-  Using cached distlib-0.4.0-py2.py3-none-any.whl.metadata (5.2 kB)
-Collecting platformdirs<5,>=3.9.1 (from virtualenv>=20.10.0->pre-commit)
-  Downloading platformdirs-4.5.1-py3-none-any.whl.metadata (12 kB)
+Requirement already satisfied: charset_normalizer<4,>=2 in /home/jules/.pyenv/versions/3.13.8/lib/python3.13/site-packages (from requests->meraki==1.40.1) (3.4.4)
+Requirement already satisfied: certifi>=2017.4.17 in /home/jules/.pyenv/versions/3.13.8/lib/python3.13/site-packages (from requests->meraki==1.40.1) (2026.1.4)
+Downloading aiofiles-23.2.1-py3-none-any.whl (15 kB)
 Downloading types_aiofiles-25.1.0.20251011-py3-none-any.whl (14 kB)
-Downloading ruff-0.5.5-py3-none-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (10.1 MB)
-   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 10.1/10.1 MB 96.6 MB/s  0:00:00
-Downloading pip_audit-2.7.3-py3-none-any.whl (56 kB)
-Downloading bandit-1.7.9-py3-none-any.whl (127 kB)
-Downloading mypy-1.11.0-py3-none-any.whl (2.6 MB)
-   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 2.6/2.6 MB 97.9 MB/s  0:00:00
+Downloading meraki-1.40.1-py3-none-any.whl (262 kB)
 Downloading voluptuous-0.16.0-py3-none-any.whl (31 kB)
-Downloading pytest_asyncio-1.2.0-py3-none-any.whl (15 kB)
-Downloading cyclonedx_python_lib-7.6.2-py3-none-any.whl (361 kB)
-Downloading packageurl_python-0.17.6-py3-none-any.whl (36 kB)
-Downloading py_serializable-1.1.2-py3-none-any.whl (22 kB)
-Downloading defusedxml-0.7.1-py2.py3-none-any.whl (25 kB)
-Using cached pytest-8.4.2-py3-none-any.whl (365 kB)
-Downloading sortedcontainers-2.4.0-py2.py3-none-any.whl (29 kB)
+Downloading aiodns-3.6.1-py3-none-any.whl (8.0 kB)
+Downloading pycares-4.11.0-cp313-cp313-manylinux_2_28_x86_64.whl (641 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 641.0/641.0 kB 18.0 MB/s  0:00:00
 Downloading playwright-1.57.0-py3-none-manylinux1_x86_64.whl (46.0 MB)
-   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 46.0/46.0 MB 137.6 MB/s  0:00:00
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 46.0/46.0 MB 152.1 MB/s  0:00:00
 Using cached pyee-13.0.0-py3-none-any.whl (15 kB)
-Downloading codecov-2.1.13-py2.py3-none-any.whl (16 kB)
-Downloading pre_commit-4.5.1-py2.py3-none-any.whl (226 kB)
-Downloading aiortc-1.14.0-py3-none-any.whl (93 kB)
-Downloading aioice-0.10.2-py3-none-any.whl (24 kB)
-Downloading av-16.1.0-cp313-cp313-manylinux_2_28_x86_64.whl (40.9 MB)
-   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 40.9/40.9 MB 153.7 MB/s  0:00:00
-Downloading cachecontrol-0.14.4-py3-none-any.whl (22 kB)
-Downloading msgpack-1.1.2-cp313-cp313-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (424 kB)
-Downloading cfgv-3.5.0-py2.py3-none-any.whl (7.4 kB)
-Downloading dnspython-2.8.0-py3-none-any.whl (331 kB)
-Downloading google_crc32c-1.8.0-cp313-cp313-manylinux1_x86_64.manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_5_x86_64.whl (33 kB)
-Downloading html5lib-1.1-py2.py3-none-any.whl (112 kB)
-Downloading identify-2.6.16-py2.py3-none-any.whl (99 kB)
-Using cached mypy_extensions-1.1.0-py3-none-any.whl (5.0 kB)
-Downloading nodeenv-1.10.0-py2.py3-none-any.whl (23 kB)
-Downloading pip_api-0.0.34-py3-none-any.whl (120 kB)
-Downloading pip_requirements_parser-32.0.1-py3-none-any.whl (35 kB)
-Downloading pylibsrtp-1.0.0-cp310-abi3-manylinux_2_26_x86_64.manylinux_2_28_x86_64.whl (2.4 MB)
-   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 2.4/2.4 MB 104.9 MB/s  0:00:00
-Downloading rich-14.2.0-py3-none-any.whl (243 kB)
-Downloading markdown_it_py-4.0.0-py3-none-any.whl (87 kB)
-Downloading mdurl-0.1.2-py3-none-any.whl (10.0 kB)
-Downloading stevedore-5.6.0-py3-none-any.whl (54 kB)
-Downloading toml-0.10.2-py2.py3-none-any.whl (16 kB)
-Downloading virtualenv-20.36.1-py3-none-any.whl (6.0 MB)
-   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 6.0/6.0 MB 110.0 MB/s  0:00:00
-Using cached distlib-0.4.0-py2.py3-none-any.whl (469 kB)
-Downloading platformdirs-4.5.1-py3-none-any.whl (18 kB)
-Downloading pyparsing-3.3.1-py3-none-any.whl (121 kB)
-Downloading webencodings-0.5.1-py2.py3-none-any.whl (11 kB)
 Building wheels for collected packages: PyTurboJPEG
-  Building wheel for PyTurboJPEG (setup.py): started
-  Building wheel for PyTurboJPEG (setup.py): finished with status 'done'
-  Created wheel for PyTurboJPEG: filename=pyturbojpeg-1.7.2-py3-none-any.whl size=12319 sha256=f352b4e6dbb046273e04e2dbfd3fc6659e38ff03f1bbbe8de3947e8a577959dd
+  Building wheel for PyTurboJPEG (pyproject.toml): started
+  Building wheel for PyTurboJPEG (pyproject.toml): finished with status 'done'
+  Created wheel for PyTurboJPEG: filename=pyturbojpeg-1.7.2-py3-none-any.whl size=12320 sha256=2b344e83521f2c6958a3eef5b48e2807398443733fb8de2dd131961d8849e06b
   Stored in directory: /home/jules/.cache/pip/wheels/01/0d/2b/2bfb2066dfc89253d9a759ecf0a2f98ab1b3230e943a830820
 Successfully built PyTurboJPEG
-Installing collected packages: webencodings, sortedcontainers, distlib, voluptuous, types-aiofiles, toml, stevedore, ruff, PyTurboJPEG, pytest, pyparsing, pyee, platformdirs, pip-api, packageurl-python, nodeenv, mypy-extensions, msgpack, mdurl, identify, html5lib, google-crc32c, dnspython, defusedxml, cfgv, av, virtualenv, pytest-asyncio, pylibsrtp, py-serializable, playwright, pip-requirements-parser, mypy, markdown-it-py, codecov, CacheControl, aioice, rich, pre-commit, cyclonedx-python-lib, pip-audit, bandit, aiortc
+Installing collected packages: voluptuous, types-aiofiles, PyTurboJPEG, pyee, aiofiles, pycares, playwright, meraki, aiodns
   Attempting uninstall: voluptuous
     Found existing installation: voluptuous 0.15.2
     Uninstalling voluptuous-0.15.2:
       Successfully uninstalled voluptuous-0.15.2
-  Attempting uninstall: pytest
-    Found existing installation: pytest 9.0.0
-    Uninstalling pytest-9.0.0:
-      Successfully uninstalled pytest-9.0.0
-  Attempting uninstall: pytest-asyncio
-    Found existing installation: pytest-asyncio 1.3.0
-    Uninstalling pytest-asyncio-1.3.0:
-      Successfully uninstalled pytest-asyncio-1.3.0
+  Attempting uninstall: pycares
+    Found existing installation: pycares 5.0.1
+    Uninstalling pycares-5.0.1:
+      Successfully uninstalled pycares-5.0.1
+  Attempting uninstall: aiodns
+    Found existing installation: aiodns 3.5.0
+    Uninstalling aiodns-3.5.0:
+      Successfully uninstalled aiodns-3.5.0
 
-Successfully installed CacheControl-0.14.4 PyTurboJPEG-1.7.2 aioice-0.10.2 aiortc-1.14.0 av-16.1.0 bandit-1.7.9 cfgv-3.5.0 codecov-2.1.13 cyclonedx-python-lib-7.6.2 defusedxml-0.7.1 distlib-0.4.0 dnspython-2.8.0 google-crc32c-1.8.0 html5lib-1.1 identify-2.6.16 markdown-it-py-4.0.0 mdurl-0.1.2 msgpack-1.1.2 mypy-1.11.0 mypy-extensions-1.1.0 nodeenv-1.10.0 packageurl-python-0.17.6 pip-api-0.0.34 pip-audit-2.7.3 pip-requirements-parser-32.0.1 platformdirs-4.5.1 playwright-1.57.0 pre-commit-4.5.1 py-serializable-1.1.2 pyee-13.0.0 pylibsrtp-1.0.0 pyparsing-3.3.1 pytest-8.4.2 pytest-asyncio-1.2.0 rich-14.2.0 ruff-0.5.5 sortedcontainers-2.4.0 stevedore-5.6.0 toml-0.10.2 types-aiofiles-25.1.0.20251011 virtualenv-20.36.1 voluptuous-0.16.0 webencodings-0.5.1
+Successfully installed PyTurboJPEG-1.7.2 aiodns-3.6.1 aiofiles-23.2.1 meraki-1.40.1 playwright-1.57.0 pycares-4.11.0 pyee-13.0.0 types-aiofiles-25.1.0.20251011 voluptuous-0.16.0

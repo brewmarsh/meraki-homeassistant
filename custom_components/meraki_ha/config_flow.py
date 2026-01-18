@@ -20,14 +20,13 @@ from .const import (
 )
 from .core.errors import MerakiAuthenticationError, MerakiConnectionError
 from .coordinator import MerakiDataUpdateCoordinator
-from .helpers import populate_schema_defaults
+from .schema_helpers import populate_schema_defaults
 from .options_flow import MerakiOptionsFlowHandler
 from .schemas import CONFIG_SCHEMA, OPTIONS_SCHEMA
 
 _LOGGER = logging.getLogger(__name__)
 
 
-@config_entries.HANDLERS.register(DOMAIN)
 class ConfigFlowHandler(config_entries.ConfigFlow):
     """Handle a config flow for Meraki."""
 
