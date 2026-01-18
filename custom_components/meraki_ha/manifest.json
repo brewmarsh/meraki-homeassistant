@@ -17,7 +17,8 @@
     "aiortc",
     "meraki",
     "pycares==4.11.0",
-    "urllib3>=2.6.2"
+    "urllib3>=2.6.2",
+    "webrtc-models==0.3.0"
   ],
   "version": "2.1.0-beta.44"
 }
