@@ -60,7 +60,7 @@ async def test_get_all_data_orchestration(api_client):
 
     # Assert
     api_client._async_fetch_initial_data.assert_awaited_once()
-    mock_network = MerakiNetwork(**MOCK_NETWORK)
+    mock_network = MerakiNetwork(organization_id="test-org", **MOCK_NETWORK)
     mock_device = MerakiDevice(**MOCK_DEVICE)
 
     api_client._async_fetch_network_clients.assert_awaited_once_with([mock_network])
