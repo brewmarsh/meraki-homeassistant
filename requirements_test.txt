@@ -27,6 +27,9 @@ py==1.11.0
 tzdata==2024.1
 janus==1.0.0
 psutil-home-assistant==0.0.1
-pillow==10.2.0
+pillow>=11.0.0
 fnv-hash-fast==0.4.0
 flake8==7.0.0
+aiodns==3.6.1
+pycares==4.11.0
+webrtc-models==0.3.0
