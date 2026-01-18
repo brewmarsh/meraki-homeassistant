@@ -4,6 +4,7 @@ from typing import Any
 
 from homeassistant.components.sensor import SensorEntityDescription
 from homeassistant.config_entries import ConfigEntry
+from homeassistant.const import EntityCategory
 
 from ...meraki_data_coordinator import MerakiDataCoordinator
 from .base import MerakiSSIDBaseSensor
@@ -12,6 +13,7 @@ from .base import MerakiSSIDBaseSensor
 class MerakiSSIDVisibleSensor(MerakiSSIDBaseSensor):
     """Representation of a Meraki SSID Visibility sensor."""
 
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
     entity_description = SensorEntityDescription(
         key="visible",
         name="Visible",

@@ -4,6 +4,7 @@ from typing import Any
 
 from homeassistant.components.sensor import SensorEntityDescription
 from homeassistant.config_entries import ConfigEntry
+from homeassistant.const import EntityCategory
 
 from ...meraki_data_coordinator import MerakiDataCoordinator
 from .base import MerakiSSIDBaseSensor
@@ -12,6 +13,7 @@ from .base import MerakiSSIDBaseSensor
 class MerakiSSIDWPAEncryptionModeSensor(MerakiSSIDBaseSensor):
     """Representation of a Meraki SSID WPA Encryption Mode sensor."""
 
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
     entity_description = SensorEntityDescription(
         key="wpa_encryption_mode",
         name="WPA Encryption Mode",

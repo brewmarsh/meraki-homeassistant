@@ -5,6 +5,7 @@ from typing import Any
 
 from homeassistant.components.sensor import SensorEntity
 from homeassistant.config_entries import ConfigEntry
+from homeassistant.const import EntityCategory
 from homeassistant.core import callback
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
@@ -18,6 +19,8 @@ _LOGGER = logging.getLogger(__name__)
 
 class MerakiApplianceUplinkSensor(CoordinatorEntity, SensorEntity):
     """Representation of a Meraki appliance uplink sensor."""
+
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
 
     def __init__(
         self,
