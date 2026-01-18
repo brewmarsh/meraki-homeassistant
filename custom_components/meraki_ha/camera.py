@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+from dataclasses import asdict
 from typing import TYPE_CHECKING, Any
 
 import aiohttp
@@ -81,7 +82,10 @@ class MerakiCamera(CoordinatorEntity, Camera):
     @property
     def device_data(self) -> dict[str, Any]:
         """Return the device data from the coordinator."""
-        return self.coordinator.get_device(self._device_serial) or {}
+        dev = self.coordinator.get_device(self._device_serial)
+        if dev:
+            return asdict(dev)
+        return {}
 
     @property
     def device_info(self) -> DeviceInfo:

@@ -1,6 +1,7 @@
 """Helper function for setting up all sensor entities."""
 
 import logging
+from dataclasses import asdict
 from typing import TYPE_CHECKING, cast
 
 from homeassistant.config_entries import ConfigEntry
@@ -225,7 +226,7 @@ def _setup_uplink_sensors(
             if unique_id not in added_entities:
                 entities.append(
                     MerakiApplianceUplinkSensor(
-                        coordinator, cast(dict, device_info), config_entry, uplink
+                        coordinator, asdict(device_info), config_entry, uplink
                     )
                 )
                 added_entities.add(unique_id)

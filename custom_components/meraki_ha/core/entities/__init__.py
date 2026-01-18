@@ -1,6 +1,7 @@
 """Base entity classes for the Meraki integration."""
 
 from abc import ABC
+from dataclasses import asdict
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import EntityCategory
@@ -55,8 +56,9 @@ class BaseMerakiEntity(CoordinatorEntity, Entity, ABC):
         """Get device info for this entity."""
         # Handle network-based entities
         if self._network_id and not self._serial:
-            network = self.coordinator.get_network(self._network_id)
-            if network:
+            network_obj = self.coordinator.get_network(self._network_id)
+            if network_obj:
+                network = asdict(network_obj)
                 return DeviceInfo(
                     identifiers={(DOMAIN, f"network_{self._network_id}")},
                     name=format_device_name(network, self._config_entry.options),
@@ -67,8 +69,9 @@ class BaseMerakiEntity(CoordinatorEntity, Entity, ABC):
 
         # Handle device-based entities
         if self._serial:
-            device = self.coordinator.get_device(self._serial)
-            if device:
+            device_obj = self.coordinator.get_device(self._serial)
+            if device_obj:
+                device = asdict(device_obj)
                 model = device.get("model", "unknown")
                 return DeviceInfo(
                     identifiers={(DOMAIN, self._serial)},
@@ -93,7 +96,7 @@ class BaseMerakiEntity(CoordinatorEntity, Entity, ABC):
         # For device-based entities, check device status
         if self._serial:
             device = self.coordinator.get_device(self._serial)
-            return bool(device and device.get("status") == "online")
+            return bool(device and device.status == "online")
 
         # For network-based entities, check network status
         if self._network_id:

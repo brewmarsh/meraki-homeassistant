@@ -1,6 +1,7 @@
 """Base classes for Meraki camera switch entities."""
 
 import logging
+from dataclasses import asdict
 from typing import Any
 
 from homeassistant.components.switch import SwitchEntity
@@ -77,8 +78,8 @@ class MerakiCameraSettingSwitchBase(
         """Update the internal state of the switch."""
         device = self.coordinator.get_device(self._device_data["serial"])
         if device is not None:
-            self._device_data = device
-            self._attr_is_on = self._get_value_from_device(device)
+            self._device_data = asdict(device)
+            self._attr_is_on = self._get_value_from_device(self._device_data)
         else:
             self._attr_is_on = False
 

@@ -335,19 +335,6 @@ class MerakiDataCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                     )
                     self.mark_vlan_check_done(network_id)
 
-            # Create lookup tables for efficient access in entities
-            self.devices_by_serial = {
-                d["serial"]: d for d in data.get("devices", []) if "serial" in d
-            }
-            self.networks_by_id = {
-                n["id"]: n for n in data.get("networks", []) if "id" in n
-            }
-            self.ssids_by_network_and_number = {
-                (s["networkId"], s["number"]): s
-                for s in data.get("ssids", [])
-                if "networkId" in s and "number" in s
-            }
-
             # Add SSIDs to each network for easier access in the UI
             all_ssids = data.get("ssids", [])
             for network in data.get("networks", []):
@@ -360,6 +347,24 @@ class MerakiDataCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                     ]
 
             self._populate_device_entities(data)
+
+            # Create lookup tables for efficient access in entities
+            # We create these AFTER population to capture added fields like entity_id
+            self.devices_by_serial = {}
+            for d in data.get("devices", []):
+                if "serial" in d:
+                    self.devices_by_serial[d["serial"]] = MerakiDevice.from_dict(d)
+
+            self.networks_by_id = {}
+            for n in data.get("networks", []):
+                if "id" in n:
+                    self.networks_by_id[n["id"]] = MerakiNetwork.from_dict(n)
+
+            self.ssids_by_network_and_number = {
+                (s["networkId"], s["number"]): s
+                for s in data.get("ssids", [])
+                if "networkId" in s and "number" in s
+            }
 
             self.last_successful_update = datetime.now()
             self.last_successful_data = data
@@ -446,6 +451,11 @@ class MerakiDataCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                         device["status_messages"].append(message)
                     break
 
+        if serial in self.devices_by_serial:
+            device_obj = self.devices_by_serial[serial]
+            if message not in device_obj.status_messages:
+                device_obj.status_messages.append(message)
+
     def add_network_status_message(self, network_id: str, message: str) -> None:
         """
         Add a status message for a network.
@@ -464,6 +474,11 @@ class MerakiDataCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                     if message not in network["status_messages"]:
                         network["status_messages"].append(message)
                     break
+
+        if network_id in self.networks_by_id:
+            network_obj = self.networks_by_id[network_id]
+            if message not in network_obj.status_messages:
+                network_obj.status_messages.append(message)
 
     def _is_check_due(
         self,

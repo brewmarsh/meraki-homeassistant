@@ -5,6 +5,7 @@ from unittest.mock import MagicMock
 import pytest
 
 from custom_components.meraki_ha.sensor.setup_helpers import async_setup_sensors
+from custom_components.meraki_ha.types import MerakiDevice
 
 
 @pytest.fixture
@@ -16,7 +17,7 @@ def mock_coordinator():
         "serial": "dev1",
         "name": "Test Appliance",
         "model": "MX64",
-        "product_type": "appliance",
+            "productType": "appliance",
         "networkId": "net1",
     }
     coordinator.data = {
@@ -48,7 +49,7 @@ def mock_coordinator():
         "ssids": [],
         "vlans": {},
     }
-    coordinator.get_device.return_value = mock_device_data
+    coordinator.get_device.return_value = MerakiDevice.from_dict(mock_device_data)
     return coordinator
 
 

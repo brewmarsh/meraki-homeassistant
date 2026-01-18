@@ -7,6 +7,7 @@ from homeassistant.core import HomeAssistant
 from custom_components.meraki_ha.sensor.device.device_status import (
     MerakiDeviceStatusSensor,
 )
+from custom_components.meraki_ha.types import MerakiDevice
 
 
 async def test_meraki_device_status_sensor_online(
@@ -27,6 +28,14 @@ async def test_meraki_device_status_sensor_online(
     }
     config_entry = MagicMock()
     config_entry.options = {}
+    coordinator.get_device.return_value = MerakiDevice.from_dict({
+        "serial": "Q234-ABCD-5678",
+        "status": "online",
+        "name": "Test Device",
+        "model": "MR33",
+        "networkId": "N_1",
+        "productType": "wireless",
+    })
     sensor = MerakiDeviceStatusSensor(coordinator, device_data, config_entry)
     sensor._update_sensor_data()
     assert sensor.native_value == "online"
@@ -50,6 +59,14 @@ async def test_meraki_device_status_sensor_offline(
     }
     config_entry = MagicMock()
     config_entry.options = {}
+    coordinator.get_device.return_value = MerakiDevice.from_dict({
+        "serial": "Q234-ABCD-5678",
+        "status": "offline",
+        "name": "Test Device",
+        "model": "MR33",
+        "networkId": "N_1",
+        "productType": "wireless",
+    })
     sensor = MerakiDeviceStatusSensor(coordinator, device_data, config_entry)
     sensor._update_sensor_data()
     assert sensor.native_value == "offline"
