@@ -8,7 +8,7 @@ def parse_wireless_data(
     detail_data: dict[str, Any],
     networks: list[MerakiNetwork],
     previous_data: dict[str, Any],
-) -> list[dict[str, Any]]:
+) -> dict[str, list[dict[str, Any]]]:
     """
     Parse and process wireless data, primarily SSIDs.
 
@@ -18,7 +18,7 @@ def parse_wireless_data(
         previous_data: The previous data from the coordinator.
 
     Returns:
-        A list of processed SSIDs.
+        A dictionary containing a list of processed SSIDs.
     """
     ssids: list[dict[str, Any]] = []
     for network in networks:
@@ -40,4 +40,4 @@ def parse_wireless_data(
         elif previous_data and network_ssids_key in previous_data:
             ssids.extend(previous_data[network_ssids_key])
 
-    return ssids
+    return {"ssids": ssids}
