@@ -7,6 +7,7 @@ from pathlib import Path
 
 from homeassistant.components import frontend as hass_frontend
 from homeassistant.components.http import StaticPathConfig
+from homeassistant import config_entries
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import config_validation as cv
@@ -44,6 +45,9 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
         Whether the setup was successful.
 
     """
+    from . import config_flow
+
+    config_entries.HANDLERS.register(DOMAIN)(config_flow.ConfigFlowHandler)
     hass.data.setdefault(DOMAIN, {})
     return True
 
