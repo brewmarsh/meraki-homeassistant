@@ -13,6 +13,7 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from ...coordinator import MerakiDataUpdateCoordinator
 from ...core.utils.naming_utils import format_device_name, format_entity_name
 from ...helpers.device_info_helpers import resolve_device_info
+from ...types import MerakiDevice
 
 if TYPE_CHECKING:
     from ...services.camera_service import CameraService
@@ -27,7 +28,7 @@ class MerakiSnapshotButton(CoordinatorEntity, ButtonEntity):
     def __init__(
         self,
         coordinator: MerakiDataUpdateCoordinator,
-        device: dict[str, Any],
+        device: MerakiDevice,
         camera_service: CameraService,
         config_entry: ConfigEntry,
     ) -> None:
@@ -36,7 +37,7 @@ class MerakiSnapshotButton(CoordinatorEntity, ButtonEntity):
         self._device = device
         self._camera_service = camera_service
         self._config_entry = config_entry
-        self._attr_unique_id = f"{self._device['serial']}-snapshot"
+        self._attr_unique_id = f"{self._device.serial}-snapshot"
         self._attr_name = format_entity_name(
             format_device_name(device, config_entry.options), "Snapshot"
         )
@@ -48,7 +49,7 @@ class MerakiSnapshotButton(CoordinatorEntity, ButtonEntity):
 
     async def async_press(self) -> None:
         """Handle the button press."""
-        serial = self._device["serial"]
+        serial = self._device.serial
         _LOGGER.info("Snapshot button pressed for %s", serial)
         try:
             url = await self._camera_service.generate_snapshot(serial)
