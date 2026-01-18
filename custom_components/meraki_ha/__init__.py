@@ -5,6 +5,7 @@ import random
 import string
 from pathlib import Path
 
+from homeassistant.components import frontend as hass_frontend
 from homeassistant.components.http import StaticPathConfig
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
@@ -68,23 +69,26 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     # Sidebar registration with a guard
     if "meraki" not in hass.data.get("frontend_panels", {}):
-        hass_frontend.async_register_built_in_panel(
-            hass,
-            component_name="custom",
-            sidebar_title=entry.title,
-            sidebar_icon="mdi:router-network",
-            frontend_url_path="meraki",
-            config={
-                "config_entry_id": entry.entry_id,
-                "_panel_custom": {
-                    "name": "meraki-panel",
-                    "module_url": f"/local/{DOMAIN}/meraki-panel.js",
-                    "embed_iframe": False,
-                    "trust_external_script": True,
+        try:
+            hass_frontend.async_register_built_in_panel(
+                hass,
+                component_name="custom",
+                sidebar_title=entry.title,
+                sidebar_icon="mdi:router-network",
+                frontend_url_path="meraki",
+                config={
+                    "config_entry_id": entry.entry_id,
+                    "_panel_custom": {
+                        "name": "meraki-panel",
+                        "module_url": f"/local/{DOMAIN}/meraki-panel.js",
+                        "embed_iframe": False,
+                        "trust_external_script": True,
+                    },
                 },
-            },
-            require_admin=True,
-        )
+                require_admin=True,
+            )
+        except Exception:
+            _LOGGER.exception("Failed to register sidebar")
 
     async_setup_api(hass)
     coordinator = MerakiDataUpdateCoordinator(hass, entry)
