@@ -56,6 +56,10 @@ async def get_unhealthy_entities(
 
 def run_gh_command(command: list[str]) -> str:
     """Run a gh command and return the output."""
+    if GITHUB_TOKEN is None:
+        print("GITHUB_TOKEN is not set")
+        return ""
+
     try:
         result = subprocess.run(
             ["gh"] + command,
@@ -72,6 +76,10 @@ def run_gh_command(command: list[str]) -> str:
 
 def find_existing_issue(version: str) -> int | None:
     """Check if a release audit issue already exists on GitHub."""
+    if GITHUB_REPOSITORY is None:
+        print("GITHUB_REPOSITORY is not set")
+        return None
+
     issue_title = f"[Release Audit] {version}"
     output = run_gh_command(
         [
@@ -96,6 +104,10 @@ def find_existing_issue(version: str) -> int | None:
 
 def create_github_issue(version: str, unhealthy_entities: list[dict[str, Any]]):
     """Create a new GitHub issue with the audit results."""
+    if GITHUB_REPOSITORY is None:
+        print("GITHUB_REPOSITORY is not set")
+        return
+
     issue_title = f"[Release Audit] {version}"
     body = "The following entities were found to be in an unhealthy state:\n\n"
     for entity in unhealthy_entities:
@@ -120,6 +132,10 @@ def create_github_issue(version: str, unhealthy_entities: list[dict[str, Any]]):
 
 def update_github_issue(issue_number: int, unhealthy_entities: list[dict[str, Any]]):
     """Update an existing GitHub issue with the latest audit results."""
+    if GITHUB_REPOSITORY is None:
+        print("GITHUB_REPOSITORY is not set")
+        return
+
     existing_issue_body = run_gh_command(
         [
             "issue",
