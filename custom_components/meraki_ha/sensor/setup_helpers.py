@@ -119,7 +119,7 @@ def _setup_network_sensors(
     entities: list[Entity] = []
     networks = coordinator.data.get("networks", [])
     for network_data in networks:
-        network_id = network_data.get("id")
+        network_id = network_data.id
         if not network_id:
             continue
 
