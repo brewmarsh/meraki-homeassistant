@@ -19,6 +19,8 @@ from .const import (
     DOMAIN,
 )
 from .core.errors import MerakiAuthenticationError, MerakiConnectionError
+from .coordinator import MerakiDataUpdateCoordinator
+from .helpers import populate_schema_defaults
 from .options_flow import MerakiOptionsFlowHandler
 from .schemas import CONFIG_SCHEMA, OPTIONS_SCHEMA
 
@@ -164,39 +166,21 @@ class ConfigFlowHandler(config_entries.ConfigFlow):
             await self.hass.config_entries.async_reload(entry.entry_id)
             return self.async_abort(reason="reconfigure_successful")
 
-        schema_with_defaults = self._populate_schema_defaults(
+        coordinator: MerakiDataUpdateCoordinator = self.hass.data[DOMAIN][entry.entry_id]
+        network_options = []
+        if coordinator.data and coordinator.data.get("networks"):
+            network_options = [
+                {"label": network["name"], "value": network["id"]}
+                for network in coordinator.data["networks"]
+            ]
+
+        schema_with_defaults = populate_schema_defaults(
             OPTIONS_SCHEMA,
             entry.options,
+            network_options,
         )
 
         return self.async_show_form(
             step_id="reconfigure",
             data_schema=schema_with_defaults,
         )
-
-    def _populate_schema_defaults(
-        self,
-        schema: vol.Schema,
-        defaults: dict[str, Any],
-    ) -> vol.Schema:
-        """
-        Populate a schema with default values from a dictionary.
-
-        Args:
-        ----
-            schema: The schema to populate.
-            defaults: The default values.
-
-        Returns
-        -------
-            The populated schema.
-
-        """
-        new_schema_keys = {}
-        for key, value in schema.schema.items():
-            if key.schema in defaults:
-                new_key = type(key)(key.schema, default=defaults[key.schema])
-                new_schema_keys[new_key] = value
-            else:
-                new_schema_keys[key] = value
-        return vol.Schema(new_schema_keys)
