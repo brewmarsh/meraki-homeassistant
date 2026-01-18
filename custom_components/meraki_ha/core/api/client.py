@@ -17,8 +17,6 @@ import meraki
 from homeassistant.core import HomeAssistant
 
 from ...core.parsers.devices import parse_device_data
-from ...core.parsers.devices import parse_device_data
-from ...core.parsers.devices import parse_device_data
 from ...core.parsers.network import parse_network_data
 from ...core.parsers.sensors import parse_sensor_data
 from ...core.parsers.wireless import parse_wireless_data

@@ -8,13 +8,11 @@ import pytest
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.device_registry import async_get as async_get_device_registry
 from homeassistant.helpers.entity_registry import async_get as async_get_entity_registry
+from homeassistant.setup import async_setup_component
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.meraki_ha.const import DOMAIN
 from tests.const import MOCK_DEVICE, MOCK_GX_DEVICE, MOCK_MX_DEVICE
-
-
-from homeassistant.setup import async_setup_component
 
 
 @pytest.fixture

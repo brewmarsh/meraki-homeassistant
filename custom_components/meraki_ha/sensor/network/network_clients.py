@@ -9,7 +9,6 @@ from homeassistant.core import callback
 
 from ...coordinator import MerakiDataUpdateCoordinator
 from ...core.entities.meraki_network_entity import MerakiNetworkEntity
-from ...core.utils.naming_utils import format_entity_name
 from ...types import MerakiNetwork
 
 if TYPE_CHECKING:

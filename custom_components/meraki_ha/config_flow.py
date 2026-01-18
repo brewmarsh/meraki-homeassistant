@@ -5,7 +5,6 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-import voluptuous as vol
 from homeassistant import config_entries
 from homeassistant.config_entries import ConfigFlowResult
 from homeassistant.core import callback
@@ -18,9 +17,9 @@ from .const import (
     CONF_MERAKI_ORG_ID,
     DOMAIN,
 )
-from .core.errors import MerakiAuthenticationError, MerakiConnectionError
 from .coordinator import MerakiDataUpdateCoordinator
-from .helpers import populate_schema_defaults
+from .core.errors import MerakiAuthenticationError, MerakiConnectionError
+from .helpers.schema import populate_schema_defaults
 from .options_flow import MerakiOptionsFlowHandler
 from .schemas import CONFIG_SCHEMA, OPTIONS_SCHEMA
 

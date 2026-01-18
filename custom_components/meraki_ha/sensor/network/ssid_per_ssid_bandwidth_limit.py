@@ -6,7 +6,6 @@ from homeassistant.components.sensor import SensorEntityDescription, SensorState
 from homeassistant.config_entries import ConfigEntry
 
 from ...coordinator import MerakiDataUpdateCoordinator
-from ...core.utils.naming_utils import format_entity_name
 from .base import MerakiSSIDBaseSensor
 
 

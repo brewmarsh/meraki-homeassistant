@@ -1,9 +1,11 @@
 """Parsers for Meraki network data."""
 from __future__ import annotations
+
 import logging
 from typing import Any
-from ..errors import MerakiInformationalError
+
 from ...types import MerakiNetwork
+from ..errors import MerakiInformationalError
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -23,7 +25,8 @@ def parse_network_data(
         previous_data: The previous data from the coordinator.
         coordinator: The data update coordinator.
 
-    Returns:
+    Returns
+    -------
         A dictionary of processed network data.
     """
     appliance_traffic: dict[str, Any] = {}
