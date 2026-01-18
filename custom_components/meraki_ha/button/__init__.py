@@ -41,13 +41,13 @@ async def async_setup_entry(
         )
 
         # Add snapshot button for camera devices
-        if "camera" in device.get("productType", ""):
+        if "camera" in (device.product_type or ""):
             button_entities.append(
                 MerakiSnapshotButton(coordinator, device, camera_service, config_entry)
             )
 
         # Add refresh data button for MT15 devices
-        if device.get("model", "").startswith("MT15"):
+        if (device.model or "").startswith("MT15"):
             button_entities.append(
                 MerakiMt15RefreshDataButton(
                     coordinator, device, config_entry, meraki_client

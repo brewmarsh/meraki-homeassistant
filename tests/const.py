@@ -11,43 +11,46 @@ MOCK_CONFIG_ENTRY = MagicMock()
 MOCK_CONFIG_ENTRY.entry_id = MOCK_CONFIG_ENTRY_ID
 
 
-MOCK_NETWORK: MerakiNetwork = {
-    "id": "N_12345",
-    "name": "Test Network",
-    "product_types": ["appliance", "switch", "wireless", "cellularGateway"],
-    "tags": "e2e-test",
-}
+MOCK_NETWORK = MerakiNetwork(
+    id="N_12345",
+    name="Test Network",
+    product_types=["appliance", "switch", "wireless", "cellularGateway"],
+    tags="e2e-test",
+    organization_id="12345",
+)
 
-MOCK_DEVICE: MerakiDevice = {
-    "serial": "Q234-ABCD-5678",
-    "name": "Test Device",
-    "mac": "00:11:22:33:44:55",
-    "model": "MR33",
-    "network_id": "N_12345",
-    "product_type": "wireless",
-    "lan_ip": "1.2.3.4",
-    "status": "online",
-}
+MOCK_DEVICE = MerakiDevice(
+    serial="Q234-ABCD-5678",
+    name="Test Device",
+    mac="00:11:22:33:44:55",
+    model="MR33",
+    network_id="N_12345",
+    product_type="wireless",
+    lan_ip="1.2.3.4",
+    status="online",
+)
 
-MOCK_MX_DEVICE: MerakiDevice = {
-    "serial": "Q234-ABCD-MX",
-    "name": "Test MX Device",
-    "model": "MX67",
-    "networkId": "N_12345",
-    "productType": "appliance",
-    "lanIp": "1.2.3.5",
-    "status": "online",
-}
+MOCK_MX_DEVICE = MerakiDevice(
+    serial="Q234-ABCD-MX",
+    name="Test MX Device",
+    model="MX67",
+    network_id="N_12345",
+    product_type="appliance",
+    lan_ip="1.2.3.5",
+    status="online",
+    mac="00:11:22:33:44:56",
+)
 
-MOCK_GX_DEVICE: MerakiDevice = {
-    "serial": "Q234-ABCD-GX",
-    "name": "Test GX Device",
-    "model": "GX20",
-    "networkId": "N_12345",
-    "productType": "cellularGateway",
-    "lanIp": "1.2.3.6",
-    "status": "online",
-}
+MOCK_GX_DEVICE = MerakiDevice(
+    serial="Q234-ABCD-GX",
+    name="Test GX Device",
+    model="GX20",
+    network_id="N_12345",
+    product_type="cellularGateway",
+    lan_ip="1.2.3.6",
+    status="online",
+    mac="00:11:22:33:44:57",
+)
 
 MOCK_SSID = {
     "number": 0,
@@ -97,12 +100,17 @@ MOCK_ALL_DATA = {
     "l7_firewall_rules": MOCK_L7_FIREWALL_RULES,
 }
 
-MOCK_CAMERA_DEVICE = {
-    **MOCK_DEVICE,
-    "productType": "camera",
-    "model": "MV12",
-    "video_settings": {
+MOCK_CAMERA_DEVICE = MerakiDevice(
+    serial="Q234-ABCD-5678",
+    name="Test Device",
+    mac="00:11:22:33:44:55",
+    model="MV12",
+    network_id="N_12345",
+    product_type="camera",
+    lan_ip="1.2.3.4",
+    status="online",
+    video_settings={
         "rtspServerEnabled": True,
         "rtspUrl": "rtsp://test.com/stream",
     },
-}
+)
