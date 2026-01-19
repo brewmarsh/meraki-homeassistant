@@ -16,10 +16,6 @@ from .const import DOMAIN
 from .core.utils.naming_utils import format_device_name
 
 if TYPE_CHECKING:
-    from homeassistant.components.camera import WebRTCSendMessage
-    from homeassistant.components.camera.webrtc import (
-        RTCIceCandidate,
-    )
     from homeassistant.config_entries import ConfigEntry
     from homeassistant.core import HomeAssistant
     from homeassistant.helpers.entity_platform import AddEntitiesCallback
