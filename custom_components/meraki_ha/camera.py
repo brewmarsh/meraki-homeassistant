@@ -7,12 +7,6 @@ import logging
 from typing import TYPE_CHECKING, Any
 
 import aiohttp
-from aiortc import (
-    RTCIceCandidate,
-    RTCPeerConnection,
-    RTCSessionDescription,
-)
-from aiortc.contrib.media import MediaRelay
 from homeassistant.components.camera import Camera, CameraEntityFeature
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.device_registry import DeviceInfo
@@ -87,7 +81,6 @@ class MerakiCamera(CoordinatorEntity, Camera):
         self._attr_unique_id = f"{self._device_serial}-camera"
         self._attr_name = f"[Camera] {name}"
         self._attr_model = self.device_data.get("model")
-        self._webrtc_sessions: dict[str, Any] = {}
 
     @property
     def device_data(self) -> dict[str, Any]:
@@ -202,64 +195,3 @@ class MerakiCamera(CoordinatorEntity, Camera):
             self._device_serial, False
         )
         await self.coordinator.async_request_refresh()
-
-    async def async_handle_async_webrtc_offer(
-        self, offer_sdp: str, session_id: str, send_message: WebRTCSendMessage
-    ) -> None:
-        """Handle the async WebRTC offer."""
-        _LOGGER.debug("Handling WebRTC offer for session_id: %s", session_id)
-
-        offer = RTCSessionDescription(sdp=offer_sdp, type="offer")
-        pc = RTCPeerConnection()
-        self._webrtc_sessions[session_id] = pc
-
-        @pc.on("ice_candidate")
-        async def on_ice_candidate(candidate: RTCIceCandidate) -> None:
-            if candidate:
-                await send_message(
-                    {
-                        "type": "candidate",
-                        "candidate": {
-                            "candidate": candidate.candidate,
-                            "sdpMid": candidate.sdpMid,
-                            "sdpMLineIndex": candidate.sdpMLineIndex,
-                        },
-                    }
-                )
-
-        relay = MediaRelay()
-        player = self.hass.components.stream.player_for_source(
-            await self.stream_source()
-        )
-        if player.video_track:
-            pc.addTrack(relay.subscribe(player.video_track))
-
-        await pc.setRemoteDescription(offer)
-        answer = await pc.createAnswer()
-        await pc.setLocalDescription(answer)
-
-        await send_message({"type": "answer", "sdp": pc.localDescription.sdp})
-
-    async def async_on_webrtc_candidate(
-        self, session_id: str, candidate_dict: dict
-    ) -> None:
-        """Handle a WebRTC candidate."""
-        _LOGGER.debug(
-            "Handling WebRTC candidate for session_id: %s, candidate: %s",
-            session_id,
-            candidate_dict,
-        )
-        candidate = RTCIceCandidate(
-            candidate=candidate_dict["candidate"],
-            sdpMid=candidate_dict["sdpMid"],
-            sdpMLineIndex=candidate_dict["sdpMLineIndex"],
-        )
-        pc = self._webrtc_sessions[session_id]
-        await pc.addIceCandidate(candidate)
-
-    def close_webrtc_session(self, session_id: str) -> None:
-        """Close a WebRTC session."""
-        _LOGGER.debug("Closing WebRTC session: %s", session_id)
-        pc = self._webrtc_sessions.pop(session_id)
-        if pc:
-            self.hass.async_create_task(pc.close())
