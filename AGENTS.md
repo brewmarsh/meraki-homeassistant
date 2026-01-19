@@ -137,4 +137,9 @@ This section serves as a repository for institutional knowledge and recurring fi
   - **Fix:** [Explanation of the solution]
   - **Reasoning:** [Why this fix works and what the root cause was]
 
-_(This section will be populated over time as we identify recurring issues.)_
+## 8. Conflict Avoidance Strategy
+Atomic Commits: Only modify the files absolutely necessary for the task.
+
+Manifest Locking: If a task requires a version bump in manifest.json, check if a pending PR already has a higher version. Use the highest version available.
+
+Rebase First: Before starting any new task, always git checkout beta followed by git pull to ensure the starting point is current.
