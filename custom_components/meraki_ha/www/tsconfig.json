@@ -1,7 +1,12 @@
 {
   "compilerOptions": {
     "target": "ES2020",
+<<<<<<< HEAD
+    "experimentalDecorators": true,
+    "useDefineForClassFields": false,
+=======
     "useDefineForClassFields": true,
+>>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
     "lib": ["ES2020", "DOM", "DOM.Iterable"],
     "module": "ESNext",
     "skipLibCheck": true,
@@ -10,7 +15,10 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "noEmit": true,
+<<<<<<< HEAD
+=======
     "jsx": "react-jsx",
+>>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
     "strict": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,

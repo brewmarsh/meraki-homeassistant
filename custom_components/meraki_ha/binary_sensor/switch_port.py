@@ -11,9 +11,15 @@ from homeassistant.core import callback
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
+<<<<<<< HEAD
+from ..coordinator import MerakiDataUpdateCoordinator
+from ..core.utils.naming_utils import format_entity_name
+from ..helpers.device_info_helpers import resolve_device_info
+=======
 from ..helpers.device_info_helpers import resolve_device_info
 from ..helpers.entity_helpers import get_device_from_coordinator
 from ..meraki_data_coordinator import MerakiDataCoordinator
+>>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -26,7 +32,11 @@ class SwitchPortSensor(CoordinatorEntity, BinarySensorEntity):
 
     def __init__(
         self,
+<<<<<<< HEAD
+        coordinator: MerakiDataUpdateCoordinator,
+=======
         coordinator: MerakiDataCoordinator,
+>>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
         device: dict[str, Any],
         port: dict[str, Any],
     ) -> None:
@@ -45,7 +55,11 @@ class SwitchPortSensor(CoordinatorEntity, BinarySensorEntity):
     @callback
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
+<<<<<<< HEAD
+        device = self.coordinator.get_device(self._device["serial"])
+=======
         device = get_device_from_coordinator(self.coordinator, self._device["serial"])
+>>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
         if device:
             self._device = device
             for port in self._device.get("ports_statuses", []):

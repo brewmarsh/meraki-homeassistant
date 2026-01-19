@@ -7,15 +7,24 @@ from typing import Any
 
 from homeassistant.components.sensor import SensorEntity
 from homeassistant.config_entries import ConfigEntry
+<<<<<<< HEAD
+=======
 from homeassistant.const import EntityCategory
+>>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from ...const import DOMAIN
+<<<<<<< HEAD
+from ...coordinator import MerakiDataUpdateCoordinator
+from ...core.utils.naming_utils import format_device_name, format_entity_name
+from ...core.utils.network_utils import construct_rtsp_url
+=======
 from ...core.utils.naming_utils import format_device_name
 from ...core.utils.network_utils import construct_rtsp_url
 from ...helpers.entity_helpers import format_entity_name
 from ...meraki_data_coordinator import MerakiDataCoordinator
+>>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -24,16 +33,26 @@ class MerakiRtspUrlSensor(CoordinatorEntity, SensorEntity):
     """
     Representation of an RTSP URL sensor.
 
+<<<<<<< HEAD
+    This sensor is driven by the central MerakiDataUpdateCoordinator, which
+=======
     This sensor is driven by the central MerakiDataCoordinator, which
+>>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
     ensures that the state is always in sync with the latest data from the
     Meraki API.
     """
 
+<<<<<<< HEAD
+    def __init__(
+        self,
+        coordinator: MerakiDataUpdateCoordinator,
+=======
     _attr_entity_category = EntityCategory.DIAGNOSTIC
 
     def __init__(
         self,
         coordinator: MerakiDataCoordinator,
+>>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
         device_data: dict[str, Any],
         config_entry: ConfigEntry,
     ) -> None:

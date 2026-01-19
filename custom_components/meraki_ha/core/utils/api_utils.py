@@ -17,8 +17,11 @@ from ..errors import (
     MerakiDeviceError,
     MerakiInformationalError,
     MerakiNetworkError,
+<<<<<<< HEAD
+=======
     MerakiTrafficAnalysisError,
     MerakiVlansDisabledError,
+>>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
 )
 
 # Type variable for generic function return type
@@ -61,7 +64,12 @@ def handle_meraki_errors(
                 return cast(T, [])
             return cast(T, {})
         except APIError as err:
+<<<<<<< HEAD
+            if _is_informational_error(err):
+                raise MerakiInformationalError(f"Informational error: {err}") from err
+=======
             _raise_if_informational_error(err)
+>>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
 
             _LOGGER.error("Meraki API error: %s", err)
             if _is_auth_error(err):
@@ -133,6 +141,16 @@ def _is_network_error(err: APIError) -> bool:
     )
 
 
+<<<<<<< HEAD
+def _is_informational_error(err: APIError) -> bool:
+    """Check if error is informational (e.g., feature not enabled)."""
+    error_str = str(err).lower()
+    return (
+        "vlans are not enabled" in error_str
+        or "traffic analysis" in error_str
+        or "historical viewing is not supported" in error_str
+    )
+=======
 def _raise_if_informational_error(err: APIError) -> None:
     """
     Check if an API error is informational and raise a specific exception.
@@ -153,6 +171,7 @@ def _raise_if_informational_error(err: APIError) -> None:
         raise MerakiTrafficAnalysisError(str(err)) from err
     if "historical viewing is not supported" in error_str:
         raise MerakiInformationalError(str(err)) from err
+>>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
 
 
 def validate_response(response: Any) -> dict[str, Any] | list[Any]:

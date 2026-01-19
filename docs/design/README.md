@@ -74,7 +74,11 @@ The integration provides the following platforms:
 
 ## Code Duplication and Refactoring Opportunities
 
+<<<<<<< HEAD
+\*\*Device Sensor Base Class
+=======
 ### Device Sensor Base Class
+>>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
 
 The device sensor platforms in `custom_components/meraki_ha/sensor/device` have a lot of duplicated code. A base class could be created to handle the following:
 

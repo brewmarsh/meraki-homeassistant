@@ -1,22 +1,45 @@
+<<<<<<< HEAD
+# Changelog
+
+All notable changes to this project will be documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [2.0.0-beta.66](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.65...v2.0.0-beta.66) (2025-11-19)
+=======
 # [2.0.0-beta.66](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.65...v2.0.0-beta.66) (2025-11-19)
+>>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
 
 ### Bug Fixes
 
 - **websockets:** Register web API to resolve unknown command error ([ebf7359](https://github.com/brewmarsh/meraki-homeassistant/commit/ebf7359763c376ceafc88704d2d726eab62b9794))
 
+<<<<<<< HEAD
+## [2.0.0-beta.65](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.64...v2.0.0-beta.65) (2025-11-18)
+=======
 # [2.0.0-beta.65](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.64...v2.0.0-beta.65) (2025-11-18)
+>>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
 
 ### Bug Fixes
 
 - **ci:** improve diagnostics for ha-local-deploy ([0f578a3](https://github.com/brewmarsh/meraki-homeassistant/commit/0f578a3871eac4d3bfd239d242534f8baac6cf88))
 
+<<<<<<< HEAD
+## [2.0.0-beta.64](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.63...v2.0.0-beta.64) (2025-11-18)
+=======
 # [2.0.0-beta.64](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.63...v2.0.0-beta.64) (2025-11-18)
+>>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
 
 ### Bug Fixes
 
 - **frontend:** rebuild frontend to fix unknown command error ([d29f81b](https://github.com/brewmarsh/meraki-homeassistant/commit/d29f81bbd9ad8b2385cf9e169ac923bc28249912))
 
+<<<<<<< HEAD
+## [2.0.0-beta.63](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.62...v2.0.0-beta.63) (2025-11-18)
+=======
 # [2.0.0-beta.63](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.62...v2.0.0-beta.63) (2025-11-18)
+>>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
 
 ### Bug Fixes
 
@@ -26,152 +49,257 @@
 
 - Add camera status check before snapshot ([06b457b](https://github.com/brewmarsh/meraki-homeassistant/commit/06b457bda0800ed299c4edfdc5349cbc14f73406))
 
+<<<<<<< HEAD
+## [2.0.0-beta.62](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.61...v2.0.0-beta.62) (2025-11-18)
+=======
 # [2.0.0-beta.62](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.61...v2.0.0-beta.62) (2025-11-18)
+>>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
 
 ### Bug Fixes
 
 - restore side panel and correct websocket command ([8e11cf3](https://github.com/brewmarsh/meraki-homeassistant/commit/8e11cf3cea8e1c41403fdf54661213b536a319c7))
 
+<<<<<<< HEAD
+## [2.0.0-beta.61](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.60...v2.0.0-beta.61) (2025-11-18)
+=======
 # [2.0.0-beta.61](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.60...v2.0.0-beta.61) (2025-11-18)
+>>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
 
 ### Bug Fixes
 
 - restore side panel by registering frontend ([4e1ae4b](https://github.com/brewmarsh/meraki-homeassistant/commit/4e1ae4bac526a87011131ba197d2338567906c3a))
 
+<<<<<<< HEAD
+## [2.0.0-beta.60](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.59...v2.0.0-beta.60) (2025-11-18)
+=======
 # [2.0.0-beta.60](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.59...v2.0.0-beta.60) (2025-11-18)
+>>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
 
 ### Features
 
 - **coordinator:** Add backward compatibility for pending update methods ([66cea68](https://github.com/brewmarsh/meraki-homeassistant/commit/66cea68960b924def5074313f6086ae292f94995))
 
+<<<<<<< HEAD
+## [2.0.0-beta.59](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.58...v2.0.0-beta.59) (2025-11-18)
+=======
 # [2.0.0-beta.59](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.58...v2.0.0-beta.59) (2025-11-18)
+>>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
 
 ### Features
 
 - Use constant for Meraki client key ([df1a09a](https://github.com/brewmarsh/meraki-homeassistant/commit/df1a09aee373a8e5ed8ae4ab95732a8e6beb800b))
 
+<<<<<<< HEAD
+## [2.0.0-beta.58](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.57...v2.0.0-beta.58) (2025-11-18)
+=======
 # [2.0.0-beta.58](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.57...v2.0.0-beta.58) (2025-11-18)
+>>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
 
 ### Bug Fixes
 
 - **text:** Correct pending update method names ([a468e62](https://github.com/brewmarsh/meraki-homeassistant/commit/a468e62229eadd16ecba838cf9e50a57fb124019))
 
+<<<<<<< HEAD
+## [2.0.0-beta.57](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.56...v2.0.0-beta.57) (2025-11-18)
+=======
 # [2.0.0-beta.57](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.56...v2.0.0-beta.57) (2025-11-18)
+>>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
 
 ### Bug Fixes
 
 - **api:** Refactor API client to prevent NoneType error ([236c280](https://github.com/brewmarsh/meraki-homeassistant/commit/236c28028f31997853b2047510389cf6dba9c4d7))
 
+<<<<<<< HEAD
+## [2.0.0-beta.56](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.55...v2.0.0-beta.56) (2025-11-18)
+=======
 # [2.0.0-beta.56](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.55...v2.0.0-beta.56) (2025-11-18)
+>>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
 
 ### Bug Fixes
 
 - **core:** Refactor MerakiAPIClient for proper async initialization ([22fe573](https://github.com/brewmarsh/meraki-homeassistant/commit/22fe57372568340d5d7762e24e42e5f412810e18))
 
+<<<<<<< HEAD
+## [2.0.0-beta.55](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.54...v2.0.0-beta.55) (2025-11-18)
+=======
 # [2.0.0-beta.55](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.54...v2.0.0-beta.55) (2025-11-18)
+>>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
 
 ### Bug Fixes
 
 - **ci:** improve error handling for api calls ([daa85a7](https://github.com/brewmarsh/meraki-homeassistant/commit/daa85a783a14bd8489ff6da2ad7723b01fc94c83))
 
+<<<<<<< HEAD
+## [2.0.0-beta.54](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.53...v2.0.0-beta.54) (2025-11-18)
+=======
 # [2.0.0-beta.54](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.53...v2.0.0-beta.54) (2025-11-18)
+>>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
 
 ### Bug Fixes
 
 - **ci:** improve error handling for api calls ([e0ae444](https://github.com/brewmarsh/meraki-homeassistant/commit/e0ae444ccfab250dc4f264648193ad4f6045c7e7))
 - **core:** Await all MerakiAPIClient instantiations ([d2dd20b](https://github.com/brewmarsh/meraki-homeassistant/commit/d2dd20b48829c6edd2142e124c1da3c3f80ef70e))
 
+<<<<<<< HEAD
+## [2.0.0-beta.53](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.52...v2.0.0-beta.53) (2025-11-18)
+=======
 # [2.0.0-beta.53](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.52...v2.0.0-beta.53) (2025-11-18)
+>>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
 
 ### Bug Fixes
 
 - **core:** await MerakiAPIClient initialization ([8f06164](https://github.com/brewmarsh/meraki-homeassistant/commit/8f06164fa5e650b9af0567506f04b78f6321bfad))
 
+<<<<<<< HEAD
+## [2.0.0-beta.52](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.51...v2.0.0-beta.52) (2025-11-18)
+=======
 # [2.0.0-beta.52](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.51...v2.0.0-beta.52) (2025-11-18)
+>>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
 
 ### Bug Fixes
 
 - **ci:** improve error handling for api calls ([335e6a3](https://github.com/brewmarsh/meraki-homeassistant/commit/335e6a31f35dc177be79615595ee7c3f7705d34a))
 
+<<<<<<< HEAD
+## [2.0.0-beta.51](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.50...v2.0.0-beta.51) (2025-11-18)
+
+## [2.0.0-beta.50](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.49...v2.0.0-beta.50) (2025-11-18)
+=======
 # [2.0.0-beta.51](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.50...v2.0.0-beta.51) (2025-11-18)
 
 # [2.0.0-beta.50](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.49...v2.0.0-beta.50) (2025-11-18)
+>>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
 
 ### Bug Fixes
 
 - **ci:** Sanitize Home Assistant token in deploy workflow ([72dfd9d](https://github.com/brewmarsh/meraki-homeassistant/commit/72dfd9d6a43ab42e31cf7e3af43449b3a0c5fc25))
 
+<<<<<<< HEAD
+## [2.0.0-beta.49](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.48...v2.0.0-beta.49) (2025-11-18)
+=======
 # [2.0.0-beta.49](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.48...v2.0.0-beta.49) (2025-11-18)
+>>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
 
 ### Bug Fixes
 
 - **config_flow:** Correct AbortFlow import ([9fe7fd8](https://github.com/brewmarsh/meraki-homeassistant/commit/9fe7fd8aafbaf0bcc21dc356b8aeb76c769a8ad5))
 
+<<<<<<< HEAD
+## [2.0.0-beta.48](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.47...v2.0.0-beta.48) (2025-11-17)
+=======
 # [2.0.0-beta.48](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.47...v2.0.0-beta.48) (2025-11-17)
+>>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
 
 ### Bug Fixes
 
 - **ci:** handle non-JSON responses in deploy workflow ([bd83fed](https://github.com/brewmarsh/meraki-homeassistant/commit/bd83fed3f8468035916a97b1453c64983c901988))
 
+<<<<<<< HEAD
+## [2.0.0-beta.47](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.46...v2.0.0-beta.47) (2025-11-17)
+
+## [2.0.0-beta.46](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.45...v2.0.0-beta.46) (2025-11-17)
+=======
 # [2.0.0-beta.47](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.46...v2.0.0-beta.47) (2025-11-17)
 
 # [2.0.0-beta.46](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.45...v2.0.0-beta.46) (2025-11-17)
+>>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
 
 ### Bug Fixes
 
 - **ci:** install jq in deploy workflow ([75f6cc3](https://github.com/brewmarsh/meraki-homeassistant/commit/75f6cc3e79a5bddabb6dc2b9cd3053ebc8a6d3f7))
 - **config_flow:** Defer imports within async_step_user to resolve blocking call ([a77464c](https://github.com/brewmarsh/meraki-homeassistant/commit/a77464cdfeb0af77610c4774e4a80a48a22044a1))
 
+<<<<<<< HEAD
+## [2.0.0-beta.45](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.44...v2.0.0-beta.45) (2025-11-17)
+=======
 # [2.0.0-beta.45](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.44...v2.0.0-beta.45) (2025-11-17)
+>>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
 
 ### Bug Fixes
 
 - **config_flow:** Defer imports to resolve blocking call ([3f55d5f](https://github.com/brewmarsh/meraki-homeassistant/commit/3f55d5f865e392be55b9cfe8ce97dbffd04dbceb))
 - **config_flow:** Defer imports within async_step_user to resolve blocking call ([a77464c](https://github.com/brewmarsh/meraki-homeassistant/commit/a77464cdfeb0af77610c4774e4a80a48a22044a1))
 
+<<<<<<< HEAD
+## [2.0.0-beta.44](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.43...v2.0.0-beta.44) (2025-11-17)
+=======
 # [2.0.0-beta.44](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.43...v2.0.0-beta.44) (2025-11-17)
+>>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
 
 ### Features
 
 - Defer import to fix blocking call ([9700dd5](https://github.com/brewmarsh/meraki-homeassistant/commit/9700dd5e2476fbe9619bcc369ae02d5512a16916))
 
+<<<<<<< HEAD
+## [2.0.0-beta.43](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.42...v2.0.0-beta.43) (2025-11-17)
+=======
 # [2.0.0-beta.43](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.42...v2.0.0-beta.43) (2025-11-17)
+>>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
 
 ### Bug Fixes
 
 - **startup:** Resolve circular dependency and modernize setup ([27a2ec4](https://github.com/brewmarsh/meraki-homeassistant/commit/27a2ec4d2d1f14416c9bf8b79f7b0e5697876de3))
 
+<<<<<<< HEAD
+## [2.0.0-beta.42](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.41...v2.0.0-beta.42) (2025-11-17)
+=======
 # [2.0.0-beta.42](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.41...v2.0.0-beta.42) (2025-11-17)
+>>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
 
 ### Bug Fixes
 
 - **startup:** Resolve circular dependency and modernize setup ([d770727](https://github.com/brewmarsh/meraki-homeassistant/commit/d77072749c7cb39732edeae21d2227fac7688b4f))
 
+<<<<<<< HEAD
+## [2.0.0-beta.41](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.40...v2.0.0-beta.41) (2025-11-17)
+=======
 # [2.0.0-beta.41](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.40...v2.0.0-beta.41) (2025-11-17)
+>>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
 
 ### Bug Fixes
 
 - **options_flow:** resolve circular import on startup ([525ff6c](https://github.com/brewmarsh/meraki-homeassistant/commit/525ff6c3f2331dc23819388eb089085968cb044e))
 
+<<<<<<< HEAD
+## [2.0.0-beta.40](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.39...v2.0.0-beta.40) (2025-11-17)
+=======
 # [2.0.0-beta.40](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.39...v2.0.0-beta.40) (2025-11-17)
+>>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
 
 ### Bug Fixes
 
 - **init:** resolve blocking call on startup by refactoring setup ([95a3040](https://github.com/brewmarsh/meraki-homeassistant/commit/95a30401720388d7b66a5edc90a9c6b7d21b1f91))
 
+<<<<<<< HEAD
+## [2.0.0-beta.39](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.38...v2.0.0-beta.39) (2025-11-17)
+=======
 # [2.0.0-beta.39](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.38...v2.0.0-beta.39) (2025-11-17)
+>>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
 
 ### Bug Fixes
 
 - **config_flow:** resolve blocking call and import error on startup ([5732374](https://github.com/brewmarsh/meraki-homeassistant/commit/57323745c7e62705fbc93e2ea6c5c93563298a59))
 - **config_flow:** resolve blocking call and import error on startup ([1facb61](https://github.com/brewmarsh/meraki-homeassistant/commit/1facb61c1a9da1e2b6ccd43e5e6fc4c491508954))
 
+<<<<<<< HEAD
+## [2.0.0-beta.38](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.37...v2.0.0-beta.38) (2025-11-17)
+=======
 # [2.0.0-beta.38](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.37...v2.0.0-beta.38) (2025-11-17)
+>>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
 
 ### Bug Fixes
 
 - **core:** Break circular dependency to fix all startup failures ([fd023dc](https://github.com/brewmarsh/meraki-homeassistant/commit/fd023dc4d8cc60ba94f6a03a257698a0d48c53fe))
 
+<<<<<<< HEAD
+## [2.0.0-beta.37](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.36...v2.0.0-beta.37) (2025-11-16)
+
+## [2.0.0-beta.36](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.35...v2.0.0-beta.36) (2025-11-16)
+
+## [2.0.0-beta.35](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.34...v2.0.0-beta.35) (2025-11-16)
+
+## [2.0.0-beta.34](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.33...v2.0.0-beta.34) (2025-11-15)
+=======
 # [2.0.0-beta.37](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.36...v2.0.0-beta.37) (2025-11-16)
 
 # [2.0.0-beta.36](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.35...v2.0.0-beta.36) (2025-11-16)
@@ -179,56 +307,91 @@
 # [2.0.0-beta.35](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.34...v2.0.0-beta.35) (2025-11-16)
 
 # [2.0.0-beta.34](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.33...v2.0.0-beta.34) (2025-11-15)
+>>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
 
 ### Bug Fixes
 
 - Defer options flow import to prevent blocking call ([c0a8239](https://github.com/brewmarsh/meraki-homeassistant/commit/c0a8239ba4566a4d8fff104a1235440003dd58d2))
 
+<<<<<<< HEAD
+## [2.0.0-beta.33](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.32...v2.0.0-beta.33) (2025-11-15)
+
+## [2.0.0-beta.32](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.31...v2.0.0-beta.32) (2025-11-15)
+=======
 # [2.0.0-beta.33](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.32...v2.0.0-beta.33) (2025-11-15)
 
 # [2.0.0-beta.32](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.31...v2.0.0-beta.32) (2025-11-15)
+>>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
 
 ### Bug Fixes
 
 - **api:** Break circular dependency causing startup failure ([9df0287](https://github.com/brewmarsh/meraki-homeassistant/commit/9df028736fe490ede852cde210c70bf44a4d10a3))
 
+<<<<<<< HEAD
+## [2.0.0-beta.31](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.30...v2.0.0-beta.31) (2025-11-15)
+=======
 # [2.0.0-beta.31](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.30...v2.0.0-beta.31) (2025-11-15)
+>>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
 
 ### Bug Fixes
 
 - **coordinator:** Remove client re-init to fix handler error ([223cadb](https://github.com/brewmarsh/meraki-homeassistant/commit/223cadb875523bab5e5e676900f20386732e00ce))
 
+<<<<<<< HEAD
+## [2.0.0-beta.30](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.29...v2.0.0-beta.30) (2025-11-15)
+=======
 # [2.0.0-beta.30](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.29...v2.0.0-beta.30) (2025-11-15)
+>>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
 
 ### Bug Fixes
 
 - **options_flow:** Correct import path to resolve startup failure ([6b3bcc5](https://github.com/brewmarsh/meraki-homeassistant/commit/6b3bcc5caae4ad15ad01d59330608530ab5c623c))
 
+<<<<<<< HEAD
+## [2.0.0-beta.29](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.28...v2.0.0-beta.29) (2025-11-15)
+=======
 # [2.0.0-beta.29](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.28...v2.0.0-beta.29) (2025-11-15)
+>>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
 
 ### Bug Fixes
 
 - **config_flow:** Remove deprecated handler registration ([c5eac0a](https://github.com/brewmarsh/meraki-homeassistant/commit/c5eac0ae3ea7910d68f0ff84086ab7b28ba1b494))
 
+<<<<<<< HEAD
+## [2.0.0-beta.28](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.27...v2.0.0-beta.28) (2025-11-15)
+=======
 # [2.0.0-beta.28](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.27...v2.0.0-beta.28) (2025-11-15)
+>>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
 
 ### Bug Fixes
 
 - **structure:** Remove redundant platforms directory causing startup failure ([25ebff0](https://github.com/brewmarsh/meraki-homeassistant/commit/25ebff0f1828e593a616684713153854e6e574fa))
 
+<<<<<<< HEAD
+## [2.0.0-beta.27](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.26...v2.0.0-beta.27) (2025-11-15)
+=======
 # [2.0.0-beta.27](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.26...v2.0.0-beta.27) (2025-11-15)
+>>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
 
 ### Bug Fixes
 
 - **init:** Use modern config schema to fix ha-missing-config ([d1f4fb1](https://github.com/brewmarsh/meraki-homeassistant/commit/d1f4fb192fe41cb75739edd5c9e6f8244f5d33b9))
 
+<<<<<<< HEAD
+## [2.0.0-beta.26](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.25...v2.0.0-beta.26) (2025-11-15)
+=======
 # [2.0.0-beta.26](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.25...v2.0.0-beta.26) (2025-11-15)
+>>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
 
 ### Bug Fixes
 
 - **coordinator:** Unify coordinator classes to resolve AttributeError ([cb80e49](https://github.com/brewmarsh/meraki-homeassistant/commit/cb80e4918eb66b9ac7e38bc235c15d6b02eec7ad))
 
+<<<<<<< HEAD
+## [2.0.0-beta.25](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.24...v2.0.0-beta.25) (2025-11-15)
+=======
 # [2.0.0-beta.25](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.24...v2.0.0-beta.25) (2025-11-15)
+>>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
 
 ### Bug Fixes
 
@@ -246,7 +409,11 @@
 - Resolve startup errors and ruff violations ([24106f7](https://github.com/brewmarsh/meraki-homeassistant/commit/24106f766efd3a52272e8de57f69ccc5951db447))
 - Resolve startup errors and ruff violations ([d203f2a](https://github.com/brewmarsh/meraki-homeassistant/commit/d203f2aa56acac43eec0e802a0babe2e7c399fd1))
 
+<<<<<<< HEAD
+## [2.0.0-beta.23](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.24...v2.0.0-beta.23) (2025-11-14)
+=======
 # [2.0.0-beta.23](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.24...v2.0.0-beta.23) (2025-11-14)
+>>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
 
 ### Bug Fixes
 
@@ -255,7 +422,11 @@
 - Correct handler instantiation ([ff13a9b](https://github.com/brewmarsh/meraki-homeassistant/commit/ff13a9b1a24bfe6b7a940b2586e561cb6d0eefc1))
 - Correct handler instantiation ([0421c66](https://github.com/brewmarsh/meraki-homeassistant/commit/0421c6632a68a513abfc725605a21c4693cfecd1))
 
+<<<<<<< HEAD
+## [2.0.0-beta.22](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.24...v2.0.0-beta.22) (2025-11-13)
+=======
 # [2.0.0-beta.22](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.24...v2.0.0-beta.22) (2025-11-13)
+>>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
 
 ### Bug Fixes
 
@@ -263,14 +434,22 @@
 - Correct handler instantiation ([ff13a9b](https://github.com/brewmarsh/meraki-homeassistant/commit/ff13a9b1a24bfe6b7a940b2586e561cb6d0eefc1))
 - Correct handler instantiation ([0421c66](https://github.com/brewmarsh/meraki-homeassistant/commit/0421c6632a68a513abfc725605a21c4693cfecd1))
 
+<<<<<<< HEAD
+## [2.0.0-beta.21](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.24...v2.0.0-beta.21) (2025-11-13)
+=======
 # [2.0.0-beta.21](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.24...v2.0.0-beta.21) (2025-11-13)
+>>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
 
 ### Bug Fixes
 
 - Correct handler instantiation ([ff13a9b](https://github.com/brewmarsh/meraki-homeassistant/commit/ff13a9b1a24bfe6b7a940b2586e561cb6d0eefc1))
 - Correct handler instantiation ([0421c66](https://github.com/brewmarsh/meraki-homeassistant/commit/0421c6632a68a513abfc725605a21c4693cfecd1))
 
+<<<<<<< HEAD
+## [2.0.0-beta.20](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.19...v2.0.0-beta.20) (2025-11-12)
+=======
 # [2.0.0-beta.20](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.19...v2.0.0-beta.20) (2025-11-12)
+>>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
 
 ## [2.0.0-beta.19](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.0.0-beta.18...v2.0.0-beta.19) (2025-11-12)
 

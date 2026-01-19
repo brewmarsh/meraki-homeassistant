@@ -2,17 +2,13 @@
 
 import logging
 from collections.abc import Mapping
-from dataclasses import asdict, is_dataclass
 from typing import Any
 
 _LOGGER = logging.getLogger(__name__)
 
 
-def format_device_name(device: dict[str, Any] | Any, config: Mapping[str, Any]) -> str:
+def format_device_name(device: dict[str, Any], config: Mapping[str, Any]) -> str:
     """Format the device name based on the user's preference."""
-    if is_dataclass(device):
-        device = asdict(device)  # type: ignore[arg-type]
-
     name = device.get("name")
     if not name:
         if device.get("productType") == "ssid":
@@ -51,3 +47,16 @@ def format_device_name(device: dict[str, Any] | Any, config: Mapping[str, Any]) 
         product_type_str = product_type.capitalize()
 
     return f"[{product_type_str}] {name}"
+<<<<<<< HEAD
+
+
+def format_entity_name(
+    device: dict[str, Any], config: Mapping[str, Any], entity_name: str | None
+) -> str:
+    """Format an entity name by combining the device name and entity-specific name."""
+    device_name = format_device_name(device, config)
+    if entity_name:
+        return f"{device_name} {entity_name}"
+    return device_name
+=======
+>>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)

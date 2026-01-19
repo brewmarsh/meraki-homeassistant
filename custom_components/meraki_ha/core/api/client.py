@@ -10,10 +10,22 @@ from __future__ import annotations
 import asyncio
 import logging
 from collections.abc import Awaitable, Callable
+<<<<<<< HEAD
+from dataclasses import fields
+=======
+>>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
 from functools import partial
 from typing import TYPE_CHECKING, Any
 
 import meraki
+<<<<<<< HEAD
+from homeassistant.core import HomeAssistant
+
+from ...core.parsers.devices import parse_device_data
+from ...core.parsers.network import parse_network_data
+from ...core.parsers.sensors import parse_sensor_data
+from ...core.parsers.wireless import parse_wireless_data
+=======
 
 if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
@@ -22,6 +34,7 @@ from ...core.errors import (
     MerakiTrafficAnalysisError,
     MerakiVlansDisabledError,
 )
+>>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
 from ...types import MerakiDevice, MerakiNetwork
 from .endpoints.appliance import ApplianceEndpoints
 from .endpoints.camera import CameraEndpoints
@@ -32,6 +45,13 @@ from .endpoints.sensor import SensorEndpoints
 from .endpoints.switch import SwitchEndpoints
 from .endpoints.wireless import WirelessEndpoints
 
+<<<<<<< HEAD
+if TYPE_CHECKING:
+    from ...coordinator import MerakiDataUpdateCoordinator
+
+
+=======
+>>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
 _LOGGER = logging.getLogger(__name__)
 
 
@@ -48,6 +68,10 @@ class MerakiAPIClient:
         hass: HomeAssistant,
         api_key: str,
         org_id: str,
+<<<<<<< HEAD
+        coordinator: MerakiDataUpdateCoordinator | None = None,
+=======
+>>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
         base_url: str = "https://api.meraki.com/api/v1",
     ) -> None:
         """
@@ -57,15 +81,34 @@ class MerakiAPIClient:
             hass: The Home Assistant instance.
             api_key: The Meraki API key.
             org_id: The organization ID.
+<<<<<<< HEAD
+            coordinator: The data update coordinator.
+=======
+>>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
             base_url: The base URL for the Meraki API.
 
         """
         self._api_key = api_key
         self._org_id = org_id
         self._hass = hass
+<<<<<<< HEAD
+        self.coordinator = coordinator
+
+        self.dashboard: meraki.DashboardAPI = meraki.DashboardAPI(
+            api_key=api_key,
+            base_url=base_url,
+            output_log=False,
+            print_console=False,
+            suppress_logging=True,
+            maximum_retries=3,
+            wait_on_rate_limit=True,
+            nginx_429_retry_wait_time=2,
+        )
+=======
         self._base_url = base_url
 
         self.dashboard: meraki.DashboardAPI | None = None
+>>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
 
         # Initialize endpoint handlers
         self.appliance = ApplianceEndpoints(self, self._hass)
@@ -77,6 +120,11 @@ class MerakiAPIClient:
         self.wireless = WirelessEndpoints(self)
         self.sensor = SensorEndpoints(self)
 
+<<<<<<< HEAD
+        # Semaphore to limit concurrent API calls
+        self._semaphore = asyncio.Semaphore(2)
+
+=======
         # Set to store network IDs that have failed traffic analysis
         self.traffic_analysis_failed_networks: set[str] = set()
 
@@ -102,6 +150,7 @@ class MerakiAPIClient:
             nginx_429_retry_wait_time=2,
         )
 
+>>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
     async def run_sync(
         self,
         func: Callable[..., Any],
@@ -155,6 +204,12 @@ class MerakiAPIClient:
             "devices": self._run_with_semaphore(
                 self.organization.get_organization_devices(),
             ),
+<<<<<<< HEAD
+            "device_statuses": self._run_with_semaphore(
+                self.organization.get_organization_devices_statuses(),
+            ),
+=======
+>>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
             "devices_availabilities": self._run_with_semaphore(
                 self.organization.get_organization_devices_availabilities(),
             ),
@@ -166,6 +221,28 @@ class MerakiAPIClient:
             ),
         }
         results = await asyncio.gather(*tasks.values(), return_exceptions=True)
+<<<<<<< HEAD
+        data = dict(zip(tasks.keys(), results, strict=True))
+
+        # Fetch battery data separately
+        devices_res = data.get("devices")
+        if isinstance(devices_res, list):
+            mt_serials = [
+                device["serial"]
+                for device in devices_res
+                if device.get("model", "").startswith("MT")
+            ]
+            if mt_serials:
+                battery_data_res = await self._run_with_semaphore(
+                    self.sensor.get_organization_sensor_readings_latest_for_serials(
+                        serials=mt_serials,
+                        metrics=["battery"],
+                    ),
+                )
+                data["battery_readings"] = battery_data_res
+
+        return data
+=======
         return dict(zip(tasks.keys(), results, strict=True))
 
     def _process_initial_data(self, results: dict[str, Any]) -> dict[str, Any]:
@@ -186,13 +263,13 @@ class MerakiAPIClient:
         appliance_uplink_statuses_res = results.get("appliance_uplink_statuses")
         sensor_readings_res = results.get("sensor_readings")
 
-        networks: list[dict[str, Any]] = (
+        networks: list[MerakiNetwork] = (
             networks_res if isinstance(networks_res, list) else []
         )
         if not isinstance(networks_res, list):
             _LOGGER.warning("Could not fetch Meraki networks: %s", networks_res)
 
-        devices: list[dict[str, Any]] = (
+        devices: list[MerakiDevice] = (
             devices_res if isinstance(devices_res, list) else []
         )
         if not isinstance(devices_res, list):
@@ -251,6 +328,7 @@ class MerakiAPIClient:
             "devices": devices,
             "appliance_uplink_statuses": appliance_uplink_statuses,
         }
+>>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
 
     async def _async_fetch_network_clients(
         self,
@@ -268,7 +346,17 @@ class MerakiAPIClient:
 
         """
         client_tasks = [
-            self._run_with_semaphore(self.network.get_network_clients(network.id))
+<<<<<<< HEAD
+            self._run_with_semaphore(
+                self.network.get_network_clients(
+                    network.id,
+                    perPage=1000,
+                    total_pages="all",
+                ),
+            )
+=======
+            self._run_with_semaphore(self.network.get_network_clients(network["id"]))
+>>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
             for network in networks
         ]
         clients_results = await asyncio.gather(*client_tasks, return_exceptions=True)
@@ -277,7 +365,11 @@ class MerakiAPIClient:
             result = clients_results[i]
             if isinstance(result, list):
                 for client in result:
+<<<<<<< HEAD
                     client["networkId"] = network.id
+=======
+                    client["networkId"] = network["id"]
+>>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
                 clients.extend(result)
         return clients
 
@@ -297,11 +389,19 @@ class MerakiAPIClient:
 
         """
         client_tasks = {
+<<<<<<< HEAD
             device.serial: self._run_with_semaphore(
                 self.devices.get_device_clients(device.serial),
             )
             for device in devices
-            if device.productType
+            if device.product_type
+=======
+            device["serial"]: self._run_with_semaphore(
+                self.devices.get_device_clients(device["serial"]),
+            )
+            for device in devices
+            if device.get("productType")
+>>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
             in ["wireless", "appliance", "switch", "cellularGateway"]
         }
         results = await asyncio.gather(*client_tasks.values(), return_exceptions=True)
@@ -331,7 +431,8 @@ class MerakiAPIClient:
         """
         detail_tasks: dict[str, Awaitable[Any]] = {}
         for network in networks:
-            product_types = network.productTypes or []
+<<<<<<< HEAD
+            product_types = network.product_types
             if "wireless" in product_types:
                 detail_tasks[f"ssids_{network.id}"] = self._run_with_semaphore(
                     self.wireless.get_network_ssids(network.id),
@@ -342,13 +443,18 @@ class MerakiAPIClient:
                     )
                 )
             if "appliance" in product_types:
-                if network.id not in self.traffic_analysis_failed_networks:
+                if not self.coordinator or self.coordinator.is_traffic_check_due(
+                    network.id,
+                ):
                     detail_tasks[f"traffic_{network.id}"] = self._run_with_semaphore(
                         self.network.get_network_traffic(network.id, "appliance"),
                     )
-                detail_tasks[f"vlans_{network.id}"] = self._run_with_semaphore(
-                    self.appliance.get_network_vlans(network.id),
-                )
+                if not self.coordinator or self.coordinator.is_vlan_check_due(
+                    network.id,
+                ):
+                    detail_tasks[f"vlans_{network.id}"] = self._run_with_semaphore(
+                        self.appliance.get_network_vlans(network.id),
+                    )
                 detail_tasks[f"l3_firewall_rules_{network.id}"] = (
                     self._run_with_semaphore(
                         self.appliance.get_l3_firewall_rules(network.id),
@@ -366,15 +472,53 @@ class MerakiAPIClient:
                     self._run_with_semaphore(
                         self.appliance.get_network_appliance_content_filtering(
                             network.id,
+=======
+            product_types = network.get("productTypes", [])
+            if "wireless" in product_types:
+                detail_tasks[f"ssids_{network['id']}"] = self._run_with_semaphore(
+                    self.wireless.get_network_ssids(network["id"]),
+                )
+                detail_tasks[f"wireless_settings_{network['id']}"] = (
+                    self._run_with_semaphore(
+                        self.wireless.get_network_wireless_settings(network["id"]),
+                    )
+                )
+            if "appliance" in product_types:
+                if network["id"] not in self.traffic_analysis_failed_networks:
+                    detail_tasks[f"traffic_{network['id']}"] = self._run_with_semaphore(
+                        self.network.get_network_traffic(network["id"], "appliance"),
+                    )
+                detail_tasks[f"vlans_{network['id']}"] = self._run_with_semaphore(
+                    self.appliance.get_network_vlans(network["id"]),
+                )
+                detail_tasks[f"l3_firewall_rules_{network['id']}"] = (
+                    self._run_with_semaphore(
+                        self.appliance.get_l3_firewall_rules(network["id"]),
+                    )
+                )
+                detail_tasks[f"traffic_shaping_{network['id']}"] = (
+                    self._run_with_semaphore(
+                        self.appliance.get_traffic_shaping(network["id"]),
+                    )
+                )
+                detail_tasks[f"vpn_status_{network['id']}"] = self._run_with_semaphore(
+                    self.appliance.get_vpn_status(network["id"]),
+                )
+                detail_tasks[f"content_filtering_{network['id']}"] = (
+                    self._run_with_semaphore(
+                        self.appliance.get_network_appliance_content_filtering(
+                            network["id"],
+>>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
                         ),
                     )
                 )
             if "wireless" in product_types:
+<<<<<<< HEAD
                 detail_tasks[f"rf_profiles_{network.id}"] = self._run_with_semaphore(
                     self.wireless.get_network_wireless_rf_profiles(network.id),
                 )
         for device in devices:
-            if device.productType == "camera":
+            if device.product_type == "camera":
                 detail_tasks[f"video_settings_{device.serial}"] = (
                     self._run_with_semaphore(
                         self.camera.get_camera_video_settings(device.serial),
@@ -385,22 +529,52 @@ class MerakiAPIClient:
                         self.camera.get_camera_sense_settings(device.serial),
                     )
                 )
-            elif device.productType == "switch":
+            elif device.product_type == "switch":
                 detail_tasks[f"ports_statuses_{device.serial}"] = (
                     self._run_with_semaphore(
                         self.switch.get_device_switch_ports_statuses(device.serial),
                     )
                 )
-            elif device.productType == "appliance" and device.networkId:
+            elif device.product_type == "appliance" and "networkId" in device:
                 detail_tasks[f"appliance_settings_{device.serial}"] = (
                     self._run_with_semaphore(
                         self.appliance.get_network_appliance_settings(
-                            device.networkId,
+                            device.network_id,
+=======
+                detail_tasks[f"rf_profiles_{network['id']}"] = self._run_with_semaphore(
+                    self.wireless.get_network_wireless_rf_profiles(network["id"]),
+                )
+        for device in devices:
+            if device.get("productType") == "camera":
+                detail_tasks[f"video_settings_{device['serial']}"] = (
+                    self._run_with_semaphore(
+                        self.camera.get_camera_video_settings(device["serial"]),
+                    )
+                )
+                detail_tasks[f"sense_settings_{device['serial']}"] = (
+                    self._run_with_semaphore(
+                        self.camera.get_camera_sense_settings(device["serial"]),
+                    )
+                )
+            elif device.get("productType") == "switch":
+                detail_tasks[f"ports_statuses_{device['serial']}"] = (
+                    self._run_with_semaphore(
+                        self.switch.get_device_switch_ports_statuses(device["serial"]),
+                    )
+                )
+            elif device.get("productType") == "appliance" and "networkId" in device:
+                detail_tasks[f"appliance_settings_{device['serial']}"] = (
+                    self._run_with_semaphore(
+                        self.appliance.get_network_appliance_settings(
+                            device["networkId"],
+>>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
                         ),
                     )
                 )
         return detail_tasks
 
+<<<<<<< HEAD
+=======
     def _process_detailed_data(
         self,
         detail_data: dict[str, Any],
@@ -433,113 +607,113 @@ class MerakiAPIClient:
         wireless_settings_by_network: dict[str, Any] = {}
 
         for network in networks:
-            network_ssids_key = f"ssids_{network.id}"
+            network_ssids_key = f"ssids_{network['id']}"
             network_ssids = detail_data.get(network_ssids_key)
             if isinstance(network_ssids, list):
                 for ssid in network_ssids:
                     if "unconfigured ssid" not in ssid.get("name", "").lower():
-                        ssid["networkId"] = network.id
+                        ssid["networkId"] = network["id"]
                         ssids.append(ssid)
             elif previous_data and network_ssids_key in previous_data:
                 ssids.extend(previous_data[network_ssids_key])
 
-            network_traffic_key = f"traffic_{network.id}"
+            network_traffic_key = f"traffic_{network['id']}"
             network_traffic = detail_data.get(network_traffic_key)
             if isinstance(network_traffic, MerakiTrafficAnalysisError):
                 _LOGGER.info(
                     "Traffic analysis is not enabled for network '%s'. "
                     "This is not an error and can be ignored if you do not "
                     "use this feature.",
-                    network.name,
+                    network["name"],
                 )
-                self.traffic_analysis_failed_networks.add(network.id)
-                appliance_traffic[network.id] = {
+                self.traffic_analysis_failed_networks.add(network["id"])
+                appliance_traffic[network["id"]] = {
                     "error": "disabled",
                     "reason": str(network_traffic),
                 }
             elif isinstance(network_traffic, dict):
-                appliance_traffic[network.id] = network_traffic
+                appliance_traffic[network["id"]] = network_traffic
             elif previous_data and network_traffic_key in previous_data:
-                appliance_traffic[network.id] = previous_data[network_traffic_key]
+                appliance_traffic[network["id"]] = previous_data[network_traffic_key]
 
-            network_vlans_key = f"vlans_{network.id}"
+            network_vlans_key = f"vlans_{network['id']}"
             network_vlans = detail_data.get(network_vlans_key)
             if isinstance(network_vlans, MerakiVlansDisabledError):
-                vlan_by_network[network.id] = []
+                vlan_by_network[network["id"]] = []
             elif isinstance(network_vlans, list):
-                vlan_by_network[network.id] = network_vlans
+                vlan_by_network[network["id"]] = network_vlans
             elif previous_data and network_vlans_key in previous_data:
-                vlan_by_network[network.id] = previous_data[network_vlans_key]
+                vlan_by_network[network["id"]] = previous_data[network_vlans_key]
 
-            l3_firewall_rules_key = f"l3_firewall_rules_{network.id}"
+            l3_firewall_rules_key = f"l3_firewall_rules_{network['id']}"
             l3_firewall_rules = detail_data.get(l3_firewall_rules_key)
             if isinstance(l3_firewall_rules, dict):
-                l3_firewall_rules_by_network[network.id] = l3_firewall_rules
+                l3_firewall_rules_by_network[network["id"]] = l3_firewall_rules
             elif previous_data and l3_firewall_rules_key in previous_data:
-                l3_firewall_rules_by_network[network.id] = previous_data[
+                l3_firewall_rules_by_network[network["id"]] = previous_data[
                     l3_firewall_rules_key
                 ]
 
-            traffic_shaping_key = f"traffic_shaping_{network.id}"
+            traffic_shaping_key = f"traffic_shaping_{network['id']}"
             traffic_shaping = detail_data.get(traffic_shaping_key)
             if isinstance(traffic_shaping, dict):
-                traffic_shaping_by_network[network.id] = traffic_shaping
+                traffic_shaping_by_network[network["id"]] = traffic_shaping
             elif previous_data and traffic_shaping_key in previous_data:
-                traffic_shaping_by_network[network.id] = previous_data[
+                traffic_shaping_by_network[network["id"]] = previous_data[
                     traffic_shaping_key
                 ]
 
-            vpn_status_key = f"vpn_status_{network.id}"
+            vpn_status_key = f"vpn_status_{network['id']}"
             vpn_status = detail_data.get(vpn_status_key)
             if isinstance(vpn_status, dict):
-                vpn_status_by_network[network.id] = vpn_status
+                vpn_status_by_network[network["id"]] = vpn_status
             elif previous_data and vpn_status_key in previous_data:
-                vpn_status_by_network[network.id] = previous_data[vpn_status_key]
+                vpn_status_by_network[network["id"]] = previous_data[vpn_status_key]
 
-            network_rf_profiles_key = f"rf_profiles_{network.id}"
+            network_rf_profiles_key = f"rf_profiles_{network['id']}"
             network_rf_profiles = detail_data.get(network_rf_profiles_key)
             if isinstance(network_rf_profiles, list):
-                rf_profiles_by_network[network.id] = network_rf_profiles
+                rf_profiles_by_network[network["id"]] = network_rf_profiles
             elif previous_data and network_rf_profiles_key in previous_data:
-                rf_profiles_by_network[network.id] = previous_data[
+                rf_profiles_by_network[network["id"]] = previous_data[
                     network_rf_profiles_key
                 ]
 
-            content_filtering_key = f"content_filtering_{network.id}"
+            content_filtering_key = f"content_filtering_{network['id']}"
             content_filtering = detail_data.get(content_filtering_key)
             if isinstance(content_filtering, dict):
-                content_filtering_by_network[network.id] = content_filtering
+                content_filtering_by_network[network["id"]] = content_filtering
             elif previous_data and content_filtering_key in previous_data:
-                content_filtering_by_network[network.id] = previous_data[
+                content_filtering_by_network[network["id"]] = previous_data[
                     content_filtering_key
                 ]
 
-            wireless_settings_key = f"wireless_settings_{network.id}"
+            wireless_settings_key = f"wireless_settings_{network['id']}"
             wireless_settings = detail_data.get(wireless_settings_key)
             if isinstance(wireless_settings, dict):
-                wireless_settings_by_network[network.id] = wireless_settings
+                wireless_settings_by_network[network["id"]] = wireless_settings
             elif previous_data and wireless_settings_key in previous_data:
-                wireless_settings_by_network[network.id] = previous_data[
+                wireless_settings_by_network[network["id"]] = previous_data[
                     wireless_settings_key
                 ]
 
         for device in devices:
-            product_type = device.productType
+            product_type = device.get("productType")
             if product_type == "camera":
-                if settings := detail_data.get(f"video_settings_{device.serial}"):
-                    device.video_settings = settings
+                if settings := detail_data.get(f"video_settings_{device['serial']}"):
+                    device["video_settings"] = settings
                     # The video_settings endpoint also provides the RTSP URL
                     if isinstance(settings, dict):
-                        device.rtsp_url = settings.get("rtsp_url")
+                        device["rtsp_url"] = settings.get("rtsp_url")
                     else:
-                        device.rtsp_url = None
-                if settings := detail_data.get(f"sense_settings_{device.serial}"):
-                    device.sense_settings = settings
+                        device["rtsp_url"] = None
+                if settings := detail_data.get(f"sense_settings_{device['serial']}"):
+                    device["sense_settings"] = settings
             elif product_type == "switch":
-                statuses_key = f"ports_statuses_{device.serial}"
+                statuses_key = f"ports_statuses_{device['serial']}"
                 statuses = detail_data.get(statuses_key)
                 if isinstance(statuses, list):
-                    device.ports_statuses = statuses
+                    device["ports_statuses"] = statuses
                 elif previous_data:
                     # Try to retrieve from previous data based on serial
                     prev_devices = previous_data.get("devices", [])
@@ -547,33 +721,19 @@ class MerakiAPIClient:
                         (
                             d
                             for d in prev_devices
-                            if isinstance(d, MerakiDevice) and d.serial == device.serial
+                            if d.get("serial") == device["serial"]
                         ),
-                        next(
-                            (
-                                d
-                                for d in prev_devices
-                                if isinstance(d, dict)
-                                and d.get("serial") == device.serial
-                            ),
-                            None,
-                        ),
+                        None,
                     )
-                    if prev_device:
-                        if isinstance(prev_device, MerakiDevice):
-                            device.ports_statuses = prev_device.ports_statuses
-                        elif (
-                            isinstance(prev_device, dict)
-                            and "ports_statuses" in prev_device
-                        ):
-                            device.ports_statuses = prev_device["ports_statuses"]
+                    if prev_device and "ports_statuses" in prev_device:
+                        device["ports_statuses"] = prev_device["ports_statuses"]
 
             elif product_type == "appliance":
                 if settings := detail_data.get(
-                    f"appliance_settings_{device.serial}",
+                    f"appliance_settings_{device['serial']}",
                 ):
                     if isinstance(settings.get("dynamicDns"), dict):
-                        device.dynamicDns = settings["dynamicDns"]
+                        device["dynamicDns"] = settings["dynamicDns"]
 
         return {
             "ssids": ssids,
@@ -587,6 +747,7 @@ class MerakiAPIClient:
             "wireless_settings": wireless_settings_by_network,
         }
 
+>>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
     async def get_all_data(
         self,
         previous_data: dict[str, Any] | None = None,
@@ -607,14 +768,61 @@ class MerakiAPIClient:
 
         _LOGGER.debug("Fetching fresh Meraki data from API")
         initial_results = await self._async_fetch_initial_data()
+<<<<<<< HEAD
+
+        networks_res = initial_results.get("networks", [])
+        if isinstance(networks_res, Exception):
+            _LOGGER.warning(
+                "Could not fetch networks, network data will be unavailable: %s",
+                networks_res,
+            )
+            networks: list[MerakiNetwork] = []
+        else:
+            network_fields = {f.name for f in fields(MerakiNetwork)}
+            networks = [
+                MerakiNetwork(
+                    organization_id=self.organization_id,
+                    **{k: v for k, v in network.items() if k in network_fields},
+                )
+                for network in networks_res
+            ]
+
+        devices_res = initial_results.get("devices", [])
+        if isinstance(devices_res, Exception):
+            _LOGGER.warning(
+                "Could not fetch devices, device data will be unavailable: %s",
+                devices_res,
+            )
+            devices: list[MerakiDevice] = []
+        else:
+            device_fields = {f.name for f in fields(MerakiDevice)}
+            devices = [
+                MerakiDevice(
+                    **{k: v for k, v in device.items() if k in device_fields},
+                )
+                for device in devices_res
+            ]
+
+        device_statuses = initial_results.get("device_statuses", [])
+        if isinstance(device_statuses, Exception):
+            _LOGGER.warning(
+                "Could not fetch device statuses, "
+                "device status data will be unavailable: %s",
+                device_statuses,
+            )
+            device_statuses = []
+
+        parse_device_data(devices, device_statuses)
+        sensor_readings = initial_results.get("sensor_readings")
+        battery_readings = initial_results.get("battery_readings")
+
+        parse_sensor_data(devices, sensor_readings, battery_readings)
+=======
         processed_initial_data = self._process_initial_data(initial_results)
 
-        networks = [
-            MerakiNetwork.from_dict(n) for n in processed_initial_data["networks"]
-        ]
-        devices = [
-            MerakiDevice.from_dict(d) for d in processed_initial_data["devices"]
-        ]
+        networks = processed_initial_data["networks"]
+        devices = processed_initial_data["devices"]
+>>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
 
         network_clients, device_clients = await asyncio.gather(
             self._async_fetch_network_clients(networks),
@@ -629,10 +837,22 @@ class MerakiAPIClient:
         )
         detail_data = dict(zip(detail_tasks.keys(), detail_results, strict=True))
 
+<<<<<<< HEAD
+        processed_network_data = parse_network_data(
+            detail_data,
+            networks,
+            previous_data,
+            self.coordinator,
+        )
+        processed_wireless_data = parse_wireless_data(
+            detail_data,
+            networks,
+=======
         processed_detailed_data = self._process_detailed_data(
             detail_data,
             networks,
             devices,
+>>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
             previous_data,
         )
 
@@ -643,10 +863,19 @@ class MerakiAPIClient:
             "clients_by_serial": (
                 device_clients if isinstance(device_clients, dict) else {}
             ),
+<<<<<<< HEAD
+            "appliance_uplink_statuses": initial_results.get(
+                "appliance_uplink_statuses",
+                [],
+            ),
+            "ssids": processed_wireless_data.get("ssids", []),
+            **processed_network_data,
+=======
             "appliance_uplink_statuses": processed_initial_data[
                 "appliance_uplink_statuses"
             ],
             **processed_detailed_data,
+>>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
         }
 
     @property
@@ -665,16 +894,27 @@ class MerakiAPIClient:
         """
         await self.network.register_webhook(webhook_url, secret)
 
+<<<<<<< HEAD
+    async def unregister_webhook(self, webhook_id: str) -> None:
+=======
     async def unregister_webhook(self, webhook_url: str) -> None:
+>>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
         """
         Unregister a webhook with the Meraki API.
 
         Args:
+<<<<<<< HEAD
+            webhook_id: The ID of the webhook to unregister.
+
+        """
+        await self.network.unregister_webhook(webhook_id)
+=======
         ----
             webhook_url: The URL of the webhook to unregister.
 
         """
         await self.network.unregister_webhook(webhook_url)
+>>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
 
     async def async_reboot_device(self, serial: str) -> dict[str, Any]:
         """

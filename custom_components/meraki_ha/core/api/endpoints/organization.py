@@ -32,6 +32,10 @@ class OrganizationEndpoints:
 
         """
         self._api_client = api_client
+<<<<<<< HEAD
+        self._dashboard = api_client.dashboard
+=======
+>>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
 
     @handle_meraki_errors
     @async_timed_cache(timeout=3600)
@@ -44,10 +48,15 @@ class OrganizationEndpoints:
             The organization details.
 
         """
+<<<<<<< HEAD
+        org = await self._api_client.run_sync(
+            self._dashboard.organizations.getOrganization,
+=======
         if self._api_client.dashboard is None:
             return {}
         org = await self._api_client.run_sync(
             self._api_client.dashboard.organizations.getOrganization,
+>>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
             organizationId=self._api_client.organization_id,
         )
         validated = validate_response(org)
@@ -67,10 +76,15 @@ class OrganizationEndpoints:
             A list of networks.
 
         """
+<<<<<<< HEAD
+        networks = await self._api_client.run_sync(
+            self._dashboard.organizations.getOrganizationNetworks,
+=======
         if self._api_client.dashboard is None:
             return []
         networks = await self._api_client.run_sync(
             self._api_client.dashboard.organizations.getOrganizationNetworks,
+>>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
             organizationId=self._api_client.organization_id,
         )
         validated = validate_response(networks)
@@ -90,10 +104,15 @@ class OrganizationEndpoints:
             A list of firmware upgrades.
 
         """
+<<<<<<< HEAD
+        upgrades = await self._api_client.run_sync(
+            self._dashboard.organizations.getOrganizationFirmwareUpgrades,
+=======
         if self._api_client.dashboard is None:
             return []
         upgrades = await self._api_client.run_sync(
             self._api_client.dashboard.organizations.getOrganizationFirmwareUpgrades,
+>>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
             organizationId=self._api_client.organization_id,
         )
         validated = validate_response(upgrades)
@@ -104,7 +123,11 @@ class OrganizationEndpoints:
 
     @handle_meraki_errors
     @async_timed_cache(timeout=60)
+<<<<<<< HEAD
+    async def get_organization_devices_statuses(self) -> list[dict[str, Any]]:
+=======
     async def get_organization_device_statuses(self) -> list[dict[str, Any]]:
+>>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
         """
         Get status information for all devices in the organization.
 
@@ -113,6 +136,16 @@ class OrganizationEndpoints:
             A list of device statuses.
 
         """
+<<<<<<< HEAD
+        statuses = await self._api_client.run_sync(
+            self._dashboard.organizations.getOrganizationDevicesStatuses,
+            organizationId=self._api_client.organization_id,
+            total_pages="all",
+        )
+        validated = validate_response(statuses)
+        if not isinstance(validated, list):
+            _LOGGER.warning("get_organization_devices_statuses did not return a list.")
+=======
         if self._api_client.dashboard is None:
             return []
         statuses = await self._api_client.run_sync(
@@ -122,6 +155,7 @@ class OrganizationEndpoints:
         validated = validate_response(statuses)
         if not isinstance(validated, list):
             _LOGGER.warning("get_organization_device_statuses did not return a list.")
+>>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
             return []
         return validated
 
@@ -136,10 +170,15 @@ class OrganizationEndpoints:
             A list of device availabilities.
 
         """
+<<<<<<< HEAD
+        availabilities = await self._api_client.run_sync(
+            self._dashboard.organizations.getOrganizationDevicesAvailabilities,
+=======
         if self._api_client.dashboard is None:
             return []
         availabilities = await self._api_client.run_sync(
             self._api_client.dashboard.organizations.getOrganizationDevicesAvailabilities,
+>>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
             organizationId=self._api_client.organization_id,
             total_pages="all",
         )
@@ -162,10 +201,15 @@ class OrganizationEndpoints:
             A list of devices.
 
         """
+<<<<<<< HEAD
+        devices = await self._api_client.run_sync(
+            self._dashboard.organizations.getOrganizationDevices,
+=======
         if self._api_client.dashboard is None:
             return []
         devices = await self._api_client.run_sync(
             self._api_client.dashboard.organizations.getOrganizationDevices,
+>>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
             organizationId=self._api_client.organization_id,
         )
         validated = validate_response(devices)
@@ -185,13 +229,73 @@ class OrganizationEndpoints:
             A list of organizations.
 
         """
+<<<<<<< HEAD
+        orgs = await self._api_client.run_sync(
+            self._dashboard.organizations.getOrganizations
+=======
         if self._api_client.dashboard is None:
             return []
         orgs = await self._api_client.run_sync(
             self._api_client.dashboard.organizations.getOrganizations
+>>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
         )
         validated = validate_response(orgs)
         if not isinstance(validated, list):
             _LOGGER.warning("get_organizations did not return a list.")
             return []
         return validated
+<<<<<<< HEAD
+
+    @handle_meraki_errors
+    @async_timed_cache()
+    async def get_organization_wireless_ssids_statuses_by_device(
+        self,
+    ) -> list[dict[str, Any]]:
+        """
+        Get organization-wide wireless SSIDs statuses by device.
+
+        Returns
+        -------
+            A list of wireless SSIDs statuses.
+
+        """
+        statuses = await self._api_client.run_sync(
+            self._dashboard.organizations.getOrganizationWirelessSsidsStatusesByDevice,
+            organizationId=self._api_client.organization_id,
+            total_pages="all",
+        )
+        validated = validate_response(statuses)
+        if not isinstance(validated, list):
+            _LOGGER.warning(
+                "get_organization_wireless_ssids_statuses_by_device did not return a list."
+            )
+            return []
+        return validated
+
+    @handle_meraki_errors
+    @async_timed_cache()
+    async def get_organization_wireless_ssids_statuses_by_device(
+        self,
+    ) -> list[dict[str, Any]]:
+        """
+        Get organization-wide wireless SSIDs statuses by device.
+
+        Returns
+        -------
+            A list of wireless SSIDs statuses.
+
+        """
+        statuses = await self._api_client.run_sync(
+            self._dashboard.organizations.getOrganizationWirelessSsidsStatusesByDevice,
+            organizationId=self._api_client.organization_id,
+            total_pages="all",
+        )
+        validated = validate_response(statuses)
+        if not isinstance(validated, list):
+            _LOGGER.warning(
+                "get_organization_wireless_ssids_statuses_by_device did not return a list."
+            )
+            return []
+        return validated
+=======
+>>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)

@@ -12,7 +12,11 @@ from ...const import (
     DOMAIN,
     MANUFACTURER,
 )
+<<<<<<< HEAD
+from ...coordinator import MerakiDataUpdateCoordinator
+=======
 from ...meraki_data_coordinator import MerakiDataCoordinator
+>>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
 from ..utils.naming_utils import format_device_name
 
 
@@ -28,7 +32,11 @@ class BaseMerakiEntity(CoordinatorEntity, Entity, ABC):
 
     def __init__(
         self,
+<<<<<<< HEAD
+        coordinator: MerakiDataUpdateCoordinator,
+=======
         coordinator: MerakiDataCoordinator,
+>>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
         config_entry: ConfigEntry,
         serial: str | None = None,
         network_id: str | None = None,

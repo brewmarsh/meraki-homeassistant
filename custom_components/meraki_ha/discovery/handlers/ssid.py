@@ -44,8 +44,13 @@ if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
     from homeassistant.helpers.entity import Entity
 
+<<<<<<< HEAD
+    from ...coordinator import MerakiDataUpdateCoordinator
+    from ...core.api.client import MerakiAPIClient
+=======
     from ...core.api.client import MerakiAPIClient
     from ...meraki_data_coordinator import MerakiDataCoordinator
+>>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
 
 
 _LOGGER = logging.getLogger(__name__)
@@ -56,7 +61,11 @@ class SSIDHandler(BaseHandler):
 
     def __init__(
         self,
+<<<<<<< HEAD
+        coordinator: MerakiDataUpdateCoordinator,
+=======
         coordinator: MerakiDataCoordinator,
+>>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
         config_entry: ConfigEntry,
         meraki_client: MerakiAPIClient,
     ) -> None:
@@ -67,7 +76,11 @@ class SSIDHandler(BaseHandler):
     @classmethod
     def create(
         cls,
+<<<<<<< HEAD
+        coordinator: MerakiDataUpdateCoordinator,
+=======
         coordinator: MerakiDataCoordinator,
+>>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
         config_entry: ConfigEntry,
         meraki_client: MerakiAPIClient,
     ) -> SSIDHandler:

@@ -2,7 +2,11 @@
 Organization Hub.
 
 This module defines the OrganizationHub class, which is responsible for
+<<<<<<< HEAD
+processing and managing organization-level data from the MerakiDataUpdateCoordinator.
+=======
 processing and managing organization-level data from the MerakiDataCoordinator.
+>>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
 """
 
 from __future__ import annotations
@@ -11,7 +15,11 @@ import logging
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
+<<<<<<< HEAD
+    from ..coordinator import MerakiDataUpdateCoordinator
+=======
     from ..meraki_data_coordinator import MerakiDataCoordinator
+>>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -19,7 +27,11 @@ _LOGGER = logging.getLogger(__name__)
 class OrganizationHub:
     """A hub for processing organization-level data."""
 
+<<<<<<< HEAD
+    def __init__(self, coordinator: MerakiDataUpdateCoordinator) -> None:
+=======
     def __init__(self, coordinator: MerakiDataCoordinator) -> None:
+>>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
         """Initialize the OrganizationHub."""
         self._coordinator = coordinator
         self.data: dict = {}

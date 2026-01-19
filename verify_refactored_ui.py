@@ -26,6 +26,12 @@ async def main():
             browser = await p.chromium.launch()
             page = await browser.new_page()
 
+<<<<<<< HEAD
+            await page.goto(f"http://localhost:{PORT}")
+
+            # Mock the hass object
+            await page.evaluate("""
+=======
             page.on("console", lambda msg: print(f"Browser Console: {msg.text}"))
 
             await page.goto(f"http://localhost:{PORT}")
@@ -33,6 +39,7 @@ async def main():
             # Mock the hass object
             await page.evaluate(
                 """
+>>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
                 window.hass = {
                   connection: {
                     sendMessagePromise: async (message) => {
@@ -67,11 +74,17 @@ async def main():
                     darkMode: true,
                   },
                 };
+<<<<<<< HEAD
+            """)
+
+            await page.evaluate("""
+=======
             """
             )
 
             await page.evaluate(
                 """
+>>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
                 const el = document.createElement('meraki-panel');
                 el.hass = window.hass;
                 el.panel = {
@@ -80,11 +93,20 @@ async def main():
                     }
                 }
                 document.body.appendChild(el);
+<<<<<<< HEAD
+            """)
+
+            page.on("console", lambda msg: print(f"Browser Console: {msg.text}"))
+
+            print("Waiting for selector...")
+            await page.wait_for_selector('text="Meraki Integration Control"')
+=======
             """
             )
 
             print("Waiting for selector...")
             await page.wait_for_selector('text="Meraki HA Web UI"')
+>>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
             print("Selector found!")
 
             screenshot_path = "verification_screenshot.png"

@@ -13,6 +13,10 @@ from ..const import DOMAIN
 @callback
 def async_setup_websocket_api(hass: HomeAssistant) -> None:
     """Set up the WebSocket API."""
+<<<<<<< HEAD
+    # Register the command to subscribe to Meraki data
+=======
+>>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
     websocket_api.async_register_command(hass, ws_subscribe_meraki_data)
 
 
@@ -43,7 +47,11 @@ def ws_subscribe_meraki_data(
     def async_send_update() -> None:
         """Send update to client."""
         connection.send_message(
+<<<<<<< HEAD
+            websocket_api.event_message(msg["id"], coordinator.data)
+=======
             websocket_api.event_message(msg["id"], {"data": coordinator.data})
+>>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
         )
 
     # Send initial data

@@ -11,9 +11,15 @@ from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
+<<<<<<< HEAD
+from ..coordinator import MerakiDataUpdateCoordinator
+from ..core.api.client import MerakiAPIClient
+from ..helpers.device_info_helpers import resolve_device_info
+=======
 from ..core.api.client import MerakiAPIClient
 from ..helpers.device_info_helpers import resolve_device_info
 from ..meraki_data_coordinator import MerakiDataCoordinator
+>>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -27,7 +33,11 @@ class MerakiSSIDNameText(CoordinatorEntity, TextEntity):
 
     def __init__(
         self,
+<<<<<<< HEAD
+        coordinator: MerakiDataUpdateCoordinator,
+=======
         coordinator: MerakiDataCoordinator,
+>>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
         meraki_client: MerakiAPIClient,
         config_entry: ConfigEntry,  # Added to match switch entities
         ssid_data: dict[str, Any],
@@ -97,7 +107,11 @@ class MerakiSSIDNameText(CoordinatorEntity, TextEntity):
     def _update_internal_state(self) -> None:
         """Update the internal state of the text entity based on coordinator data."""
         # Ignore coordinator data to avoid overwriting optimistic state
+<<<<<<< HEAD
+        if self.coordinator.is_pending(self.unique_id):
+=======
         if self.coordinator.is_update_pending(self.unique_id):
+>>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
             return
 
         current_ssid_data = self._get_current_ssid_data()
@@ -126,7 +140,11 @@ class MerakiSSIDNameText(CoordinatorEntity, TextEntity):
                 name=value,
             )
             # Register a pending update to prevent overwriting the optimistic state
+<<<<<<< HEAD
+            self.coordinator.register_pending_update(self.unique_id)
+=======
             self.coordinator.register_update_pending(self.unique_id)
+>>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
             await self.coordinator.async_request_refresh()
         except Exception as e:
             _LOGGER.error(

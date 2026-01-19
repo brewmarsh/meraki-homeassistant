@@ -13,10 +13,21 @@ if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
     from homeassistant.helpers.entity import Entity
 
+<<<<<<< HEAD
+    from ....core.coordinators.meraki_data_coordinator import (
+        MerakiDataUpdateCoordinator,
+    )
+    from ....core.coordinators.switch_port_status_coordinator import (
+        SwitchPortStatusCoordinator,
+    )
+    from ....services.camera_service import CameraService
+    from ....types import MerakiDevice
+=======
     from ....types import MerakiDevice
     from ...meraki_data_coordinator import (
         MerakiDataCoordinator,
     )
+>>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
     from ...services.device_control_service import DeviceControlService
     from ...services.network_control_service import NetworkControlService
 
@@ -29,7 +40,11 @@ class GXHandler(BaseDeviceHandler):
 
     def __init__(
         self,
+<<<<<<< HEAD
+        coordinator: MerakiDataUpdateCoordinator,
+=======
         coordinator: MerakiDataCoordinator,
+>>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
         device: MerakiDevice,
         config_entry: ConfigEntry,
         control_service: DeviceControlService,
@@ -43,12 +58,22 @@ class GXHandler(BaseDeviceHandler):
     @classmethod
     def create(
         cls,
+<<<<<<< HEAD
+        coordinator: MerakiDataUpdateCoordinator,
+        device: MerakiDevice,
+        config_entry: ConfigEntry,
+        camera_service: CameraService,
+        control_service: DeviceControlService,
+        network_control_service: NetworkControlService,
+        switch_port_coordinator: SwitchPortStatusCoordinator,
+=======
         coordinator: MerakiDataCoordinator,
         device: MerakiDevice,
         config_entry: ConfigEntry,
         camera_service,  # Unused
         control_service: DeviceControlService,
         network_control_service: NetworkControlService,
+>>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
     ) -> GXHandler:
         """Create an instance of the handler."""
         return cls(

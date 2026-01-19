@@ -32,6 +32,10 @@ class SwitchEndpoints:
 
         """
         self._api_client = api_client
+<<<<<<< HEAD
+        self._dashboard = api_client.dashboard
+=======
+>>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
 
     @handle_meraki_errors
     @async_timed_cache(timeout=60)
@@ -50,11 +54,16 @@ class SwitchEndpoints:
             A list of port statuses.
 
         """
+<<<<<<< HEAD
+        statuses = await self._api_client.run_sync(
+            self._dashboard.switch.getDeviceSwitchPortsStatuses, serial=serial
+=======
         if self._api_client.dashboard is None:
             return []
         statuses = await self._api_client.run_sync(
             self._api_client.dashboard.switch.getDeviceSwitchPortsStatuses,
             serial=serial,
+>>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
         )
         validated = validate_response(statuses)
         if not isinstance(validated, list):
@@ -77,10 +86,15 @@ class SwitchEndpoints:
             A list of ports.
 
         """
+<<<<<<< HEAD
+        ports = await self._api_client.run_sync(
+            self._dashboard.switch.getDeviceSwitchPorts, serial=serial
+=======
         if self._api_client.dashboard is None:
             return []
         ports = await self._api_client.run_sync(
             self._api_client.dashboard.switch.getDeviceSwitchPorts, serial=serial
+>>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
         )
         validated = validate_response(ports)
         if not isinstance(validated, list):

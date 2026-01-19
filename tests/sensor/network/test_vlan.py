@@ -9,7 +9,11 @@ from custom_components.meraki_ha.sensor.setup_helpers import async_setup_sensors
 
 @pytest.fixture
 def mock_coordinator():
+<<<<<<< HEAD
+    """Fixture for a mocked MerakiDataUpdateCoordinator."""
+=======
     """Fixture for a mocked MerakiDataCoordinator."""
+>>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
     coordinator = MagicMock()
     coordinator.config_entry = MagicMock()
     coordinator.config_entry.options = {}

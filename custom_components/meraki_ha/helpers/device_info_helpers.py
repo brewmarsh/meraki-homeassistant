@@ -1,7 +1,10 @@
 """Helper functions for creating Home Assistant DeviceInfo objects."""
 
 import logging
+<<<<<<< HEAD
 from dataclasses import asdict, is_dataclass
+=======
+>>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
 from typing import Any
 
 from homeassistant.config_entries import ConfigEntry
@@ -14,7 +17,7 @@ _LOGGER = logging.getLogger(__name__)
 
 
 def resolve_device_info(
-    entity_data: dict[str, Any] | Any,
+    entity_data: dict[str, Any],
     config_entry: ConfigEntry,
     ssid_data: dict[str, Any] | None = None,
 ) -> DeviceInfo | None:
@@ -25,9 +28,13 @@ def resolve_device_info(
     linked to a physical device or a logical SSID "device" in the Home
     Assistant device registry.
     """
+<<<<<<< HEAD
+    # If a dataclass is passed, convert it to a dictionary
     if is_dataclass(entity_data):
-        entity_data = asdict(entity_data)  # type: ignore[arg-type]
+        entity_data = asdict(entity_data)
 
+=======
+>>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
     # Determine the effective data to use for device resolution.
     # If ssid_data is explicitly passed, it takes precedence for SSID devices.
     # Otherwise, check if the entity_data itself represents an SSID.

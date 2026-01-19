@@ -12,7 +12,11 @@ from ...const import MOCK_CONFIG_ENTRY, MOCK_MX_DEVICE
 
 @pytest.fixture
 def mock_coordinator():
+<<<<<<< HEAD
+    """Fixture for a mock MerakiDataUpdateCoordinator."""
+=======
     """Fixture for a mock MerakiDataCoordinator."""
+>>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
     coordinator = MagicMock()
     coordinator.data = {"devices": [MOCK_MX_DEVICE]}
     return coordinator
