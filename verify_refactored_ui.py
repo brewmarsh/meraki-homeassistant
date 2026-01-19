@@ -3,7 +3,6 @@ import http.server
 import os
 import socketserver
 import threading
-import pathlib
 
 from playwright.async_api import async_playwright
 
@@ -38,7 +37,12 @@ async def main():
             # Route requests for the JS file to the correct location
             # HTML asks for /local/meraki_ha/meraki-panel.js
             # We want to serve /meraki-panel.js (relative to www root)
-            await page.route("**/local/meraki_ha/meraki-panel.js", lambda route: route.fulfill(path=os.path.join(www_dir, "meraki-panel.js")))
+            await page.route(
+                "**/local/meraki_ha/meraki-panel.js",
+                lambda route: route.fulfill(
+                    path=os.path.join(www_dir, "meraki-panel.js")
+                ),
+            )
 
             await page.goto(f"http://localhost:{PORT}")
 
@@ -82,7 +86,8 @@ async def main():
             """
             )
 
-            # The index.html already contains <meraki-panel>, but it doesn't have hass set.
+            # The index.html already contains <meraki-panel>
+            # but it doesn't have hass set.
             # We can select the existing one and set properties.
             await page.evaluate(
                 """
