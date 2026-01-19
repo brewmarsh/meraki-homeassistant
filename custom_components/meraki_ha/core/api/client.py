@@ -212,14 +212,9 @@ class MerakiAPIClient:
         for i, network in enumerate(networks):
             result = clients_results[i]
             if isinstance(result, list):
-                online_clients = [
-                    client
-                    for client in result
-                    if client.get("status") and client["status"] == "Online"
-                ]
-                for client in online_clients:
+                for client in result:
                     client["networkId"] = network.id
-                clients.extend(online_clients)
+                clients.extend(result)
         return clients
 
     async def _async_fetch_device_clients(
