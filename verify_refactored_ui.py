@@ -11,7 +11,13 @@ PORT = 8080
 
 async def main():
     """Verify the UI."""
-    os.chdir("custom_components/meraki_ha/www")
+    # We will serve the current directory, but we need to find where we are.
+    # The script is in the root.
+    repo_root = os.getcwd()
+    www_dir = os.path.join(repo_root, "custom_components", "meraki_ha", "www")
+
+    # Change to www dir to serve files from there
+    os.chdir(www_dir)
 
     Handler = http.server.SimpleHTTPRequestHandler
     httpd = socketserver.TCPServer(("", PORT), Handler)
@@ -27,6 +33,16 @@ async def main():
             page = await browser.new_page()
 
             page.on("console", lambda msg: print(f"Browser Console: {msg.text}"))
+
+            # Route requests for the JS file to the correct location
+            # HTML asks for /local/meraki_ha/meraki-panel.js
+            # We want to serve /meraki-panel.js (relative to www root)
+            await page.route(
+                "**/local/meraki_ha/meraki-panel.js",
+                lambda route: route.fulfill(
+                    path=os.path.join(www_dir, "meraki-panel.js")
+                ),
+            )
 
             await page.goto(f"http://localhost:{PORT}")
 
@@ -68,22 +84,38 @@ async def main():
                 };
             """)
 
-            await page.evaluate("""
-                const el = document.createElement('meraki-panel');
-                el.hass = window.hass;
-                el.panel = {
-                    config: {
-                        config_entry_id: 'mock-entry-id'
+            # The index.html already contains <meraki-panel>
+            # but it doesn't have hass set.
+            # We can select the existing one and set properties.
+            await page.evaluate(
+                """
+                const el = document.querySelector('meraki-panel');
+                if (el) {
+                    el.hass = window.hass;
+                    el.panel = {
+                        config: {
+                            config_entry_id: 'mock-entry-id'
+                        }
                     }
+                } else {
+                    console.error('meraki-panel element not found in DOM');
+                    const newEl = document.createElement('meraki-panel');
+                    newEl.hass = window.hass;
+                    newEl.panel = {
+                        config: {
+                            config_entry_id: 'mock-entry-id'
+                        }
+                    }
+                    document.body.appendChild(newEl);
                 }
-                document.body.appendChild(el);
-            """)
+            """
+            )
 
             print("Waiting for selector...")
             await page.wait_for_selector('text="Meraki HA Web UI"')
             print("Selector found!")
 
-            screenshot_path = "verification_screenshot.png"
+            screenshot_path = os.path.join(repo_root, "verification_screenshot.png")
             await page.screenshot(path=screenshot_path)
             print(f"Screenshot saved to {screenshot_path}")
             await browser.close()
@@ -91,7 +123,7 @@ async def main():
     finally:
         httpd.shutdown()
         server_thread.join()
-        os.chdir("../../..")
+        os.chdir(repo_root)
 
 
 if __name__ == "__main__":
