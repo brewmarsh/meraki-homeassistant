@@ -1,5 +1,7 @@
 # `AGENTS.md`: Agent & Developer Guidelines
 
+**Mandatory: All Pull Requests must target the `beta` branch. Never target `main` for feature work.**
+
 This document provides essential instructions for AI agents and human developers working across this organization's codebases. Adhering to these guidelines is critical for maintaining code quality, consistency, and stability.
 
 This file contains **common rules** that apply to _all_ projects. For project-specific details (like technology stack, file paths, and build commands), please refer to the `README.md` or `CONTRIBUTING.md` file in the specific repository.
