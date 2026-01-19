@@ -10,8 +10,15 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
+<<<<<<< HEAD
+from ...coordinator import MerakiDataUpdateCoordinator
+from ...core.utils.naming_utils import format_device_name, format_entity_name
+from ...helpers.device_info_helpers import resolve_device_info
+from ...types import MerakiDevice
+=======
 from ...helpers.device_info_helpers import resolve_device_info
 from ...meraki_data_coordinator import MerakiDataCoordinator
+>>>>>>> 9bc35b7 (Merge pull request #845 from brewmarsh/fix/frontend-build-2299669574949783162)
 
 if TYPE_CHECKING:
     from ...services.camera_service import CameraService
@@ -25,8 +32,13 @@ class MerakiSnapshotButton(CoordinatorEntity, ButtonEntity):
 
     def __init__(
         self,
+<<<<<<< HEAD
+        coordinator: MerakiDataUpdateCoordinator,
+        device: MerakiDevice,
+=======
         coordinator: MerakiDataCoordinator,
         device: dict[str, Any],
+>>>>>>> 9bc35b7 (Merge pull request #845 from brewmarsh/fix/frontend-build-2299669574949783162)
         camera_service: CameraService,
         config_entry: ConfigEntry,
     ) -> None:
@@ -35,8 +47,15 @@ class MerakiSnapshotButton(CoordinatorEntity, ButtonEntity):
         self._device = device
         self._camera_service = camera_service
         self._config_entry = config_entry
+<<<<<<< HEAD
+        self._attr_unique_id = f"{self._device.serial}-snapshot"
+        self._attr_name = format_entity_name(
+            format_device_name(device, config_entry.options), "Snapshot"
+        )
+=======
         self._attr_unique_id = f"{self._device['serial']}-snapshot"
         self._attr_name = f"{self._device['name']} Snapshot"
+>>>>>>> 9bc35b7 (Merge pull request #845 from brewmarsh/fix/frontend-build-2299669574949783162)
 
     @property
     def device_info(self) -> DeviceInfo | None:
@@ -45,7 +64,11 @@ class MerakiSnapshotButton(CoordinatorEntity, ButtonEntity):
 
     async def async_press(self) -> None:
         """Handle the button press."""
+<<<<<<< HEAD
+        serial = self._device.serial
+=======
         serial = self._device["serial"]
+>>>>>>> 9bc35b7 (Merge pull request #845 from brewmarsh/fix/frontend-build-2299669574949783162)
         _LOGGER.info("Snapshot button pressed for %s", serial)
         try:
             url = await self._camera_service.generate_snapshot(serial)

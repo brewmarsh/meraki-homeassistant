@@ -9,8 +9,13 @@ from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from ...const import DOMAIN
+<<<<<<< HEAD
+from ...coordinator import MerakiDataUpdateCoordinator
+from ...core.utils.naming_utils import format_entity_name
+=======
 from ...helpers.entity_helpers import format_entity_name
 from ...meraki_data_coordinator import MerakiDataCoordinator
+>>>>>>> 9bc35b7 (Merge pull request #845 from brewmarsh/fix/frontend-build-2299669574949783162)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -23,7 +28,11 @@ class MerakiOrganizationDeviceTypeClientsSensor(CoordinatorEntity, SensorEntity)
 
     def __init__(
         self,
+<<<<<<< HEAD
+        coordinator: MerakiDataUpdateCoordinator,
+=======
         coordinator: MerakiDataCoordinator,
+>>>>>>> 9bc35b7 (Merge pull request #845 from brewmarsh/fix/frontend-build-2299669574949783162)
         config_entry: ConfigEntry,
         device_type: str,
     ) -> None:

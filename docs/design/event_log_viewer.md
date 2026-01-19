@@ -10,7 +10,11 @@ To provide a clear, filterable, and searchable view of network events and alerts
 
 A new page in the web UI called **"Event Log"** will be created, accessible from the main sidebar.
 
+<<<<<<< HEAD
+\*\*Main View
+=======
 ### Main View
+>>>>>>> 9bc35b7 (Merge pull request #845 from brewmarsh/fix/frontend-build-2299669574949783162)
 
 The page will feature a table displaying the event logs. Each row will represent a single event with the following columns:
 
@@ -19,7 +23,11 @@ The page will feature a table displaying the event logs. Each row will represent
 - **Description:** A detailed message about the event.
 - **Severity:** A color-coded indicator (e.g., "Info", "Warning", "Alert") to quickly identify important events.
 
+<<<<<<< HEAD
+\*\*Controls
+=======
 ### Controls
+>>>>>>> 9bc35b7 (Merge pull request #845 from brewmarsh/fix/frontend-build-2299669574949783162)
 
 Above the table, there will be several controls to help users find the information they need:
 
@@ -27,7 +35,11 @@ Above the table, there will be several controls to help users find the informati
 - **Event Type Filter:** A multi-select dropdown to show or hide specific categories of events.
 - **Search Bar:** A text input to search for keywords within the event descriptions.
 
+<<<<<<< HEAD
+\*\*UI Sketch
+=======
 ### UI Sketch
+>>>>>>> 9bc35b7 (Merge pull request #845 from brewmarsh/fix/frontend-build-2299669574949783162)
 
 ```ascii
 ---------------------------------------------------------------------
@@ -52,19 +64,33 @@ Above the table, there will be several controls to help users find the informati
 
 This section provides a detailed plan for an agent to implement this feature.
 
+<<<<<<< HEAD
+\*\*Goal
+
+Implement the "Event / Alert Log Viewer" as described in the design proposal.
+
+\*\*Prerequisites
+=======
 ### Goal
 
 Implement the "Event / Alert Log Viewer" as described in the design proposal.
 
 ### Prerequisites
+>>>>>>> 9bc35b7 (Merge pull request #845 from brewmarsh/fix/frontend-build-2299669574949783162)
 
 - Familiarity with React (functional components, hooks like `useState` and `useEffect`).
 - Understanding of how to make API calls in JavaScript using `fetch`.
 - Basic knowledge of the existing web UI structure (`App.jsx`, `Sidebar.jsx`, and the `pages` directory).
 
+<<<<<<< HEAD
+\*\*Step-by-Step Implementation Plan
+
+#\*\*1. Backend: Create the API Endpoint
+=======
 ### Step-by-Step Implementation Plan
 
 #### 1. Backend: Create the API Endpoint
+>>>>>>> 9bc35b7 (Merge pull request #845 from brewmarsh/fix/frontend-build-2299669574949783162)
 
 - **File to Modify:** `custom_components/meraki_ha/web_server.py`
 - **Tasks:**
@@ -75,7 +101,11 @@ Implement the "Event / Alert Log Viewer" as described in the design proposal.
 4. Inside the handler, use the `self.coordinator.api_client` to call the Meraki Dashboard API endpoint to fetch the events. The primary endpoint to investigate is `GET /networks/{networkId}/events`. You may need to fetch events for all networks and combine them, or use an organization-level endpoint if available.
 5. Process the data from the Meraki API into a clean JSON format suitable for the frontend and return it.
 
+<<<<<<< HEAD
+#\*\*2. Frontend: Build the UI
+=======
 #### 2. Frontend: Build the UI
+>>>>>>> 9bc35b7 (Merge pull request #845 from brewmarsh/fix/frontend-build-2299669574949783162)
 
 - **Task 1: Create the Event Log Page**
 
@@ -94,7 +124,11 @@ Implement the "Event / Alert Log Viewer" as described in the design proposal.
   - **File to Modify:** `custom_components/meraki_ha/web_ui/src/App.jsx`
   - **Task:** Add a new `<Route>` for the `/events` path that renders your new `EventLogPage` component.
 
+<<<<<<< HEAD
+#\*\*3. Build and Verify
+=======
 #### 3. Build and Verify
+>>>>>>> 9bc35b7 (Merge pull request #845 from brewmarsh/fix/frontend-build-2299669574949783162)
 
 - **Task 1: Build the Frontend**
   - Navigate to the `custom_components/meraki_ha/web_ui/` directory.

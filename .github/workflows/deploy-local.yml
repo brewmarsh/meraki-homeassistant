@@ -140,6 +140,21 @@ jobs:
 
           # Step 1c: Trigger Restart
           echo "Triggering Home Assistant restart..."
+<<<<<<< HEAD
+          RESTART_BODY_FILE=$(mktemp) # Create a temporary file to store the response body.
+          RESTART_STATUS=$(curl -sSL -o "$RESTART_BODY_FILE" -w "%{http_code}" -X POST \
+              -H "Authorization: Bearer $CLEAN_HA_TOKEN" \
+              -H "Content-Type: application/json" \
+              -d '{}' \
+              "$HA_URL/api/services/homeassistant/restart")
+
+          RESTART_RESPONSE_BODY=$(cat "$RESTART_BODY_FILE")
+          rm "$RESTART_BODY_FILE" # Clean up the temporary file.
+
+          if [[ "$RESTART_STATUS" -lt 200 || "$RESTART_STATUS" -ge 300 ]]; then
+              echo "Error: API call to restart failed with HTTP status code $RESTART_STATUS."
+              echo "Response Body: $RESTART_RESPONSE_BODY"
+=======
           RESTART_STATUS=$(curl -sSL -o /dev/null -w "%{http_code}" -X POST \
               -H "Authorization: Bearer $CLEAN_HA_TOKEN" \
               -H "Content-Type: application/json" \
@@ -148,12 +163,15 @@ jobs:
 
           if [[ "$RESTART_STATUS" -lt 200 || "$RESTART_STATUS" -ge 300 ]]; then
               echo "Error: API call to restart failed with HTTP status code $RESTART_STATUS."
+>>>>>>> 9bc35b7 (Merge pull request #845 from brewmarsh/fix/frontend-build-2299669574949783162)
               exit 1
           fi
 
           echo "Home Assistant restart command sent. Waiting for it to come back online..."
           # Add a sleep to allow Home Assistant to restart
           sleep 60 # Wait for 60 seconds. Adjust as needed.
+<<<<<<< HEAD
+=======
 
       - name: Run Release Health Auditor
         shell: bash
@@ -171,3 +189,4 @@ jobs:
 
           echo "Running the health auditor script..."
           python3 tools/auditor/health_auditor.py
+>>>>>>> 9bc35b7 (Merge pull request #845 from brewmarsh/fix/frontend-build-2299669574949783162)

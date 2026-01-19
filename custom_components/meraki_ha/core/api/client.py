@@ -10,10 +10,22 @@ from __future__ import annotations
 import asyncio
 import logging
 from collections.abc import Awaitable, Callable
+<<<<<<< HEAD
+from dataclasses import fields
+=======
+>>>>>>> 9bc35b7 (Merge pull request #845 from brewmarsh/fix/frontend-build-2299669574949783162)
 from functools import partial
 from typing import TYPE_CHECKING, Any
 
 import meraki
+<<<<<<< HEAD
+from homeassistant.core import HomeAssistant
+
+from ...core.parsers.devices import parse_device_data
+from ...core.parsers.network import parse_network_data
+from ...core.parsers.sensors import parse_sensor_data
+from ...core.parsers.wireless import parse_wireless_data
+=======
 
 if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
@@ -22,6 +34,7 @@ from ...core.errors import (
     MerakiTrafficAnalysisError,
     MerakiVlansDisabledError,
 )
+>>>>>>> 9bc35b7 (Merge pull request #845 from brewmarsh/fix/frontend-build-2299669574949783162)
 from ...types import MerakiDevice, MerakiNetwork
 from .endpoints.appliance import ApplianceEndpoints
 from .endpoints.camera import CameraEndpoints
@@ -32,6 +45,13 @@ from .endpoints.sensor import SensorEndpoints
 from .endpoints.switch import SwitchEndpoints
 from .endpoints.wireless import WirelessEndpoints
 
+<<<<<<< HEAD
+if TYPE_CHECKING:
+    from ...coordinator import MerakiDataUpdateCoordinator
+
+
+=======
+>>>>>>> 9bc35b7 (Merge pull request #845 from brewmarsh/fix/frontend-build-2299669574949783162)
 _LOGGER = logging.getLogger(__name__)
 
 
@@ -48,6 +68,10 @@ class MerakiAPIClient:
         hass: HomeAssistant,
         api_key: str,
         org_id: str,
+<<<<<<< HEAD
+        coordinator: MerakiDataUpdateCoordinator | None = None,
+=======
+>>>>>>> 9bc35b7 (Merge pull request #845 from brewmarsh/fix/frontend-build-2299669574949783162)
         base_url: str = "https://api.meraki.com/api/v1",
     ) -> None:
         """
@@ -57,15 +81,34 @@ class MerakiAPIClient:
             hass: The Home Assistant instance.
             api_key: The Meraki API key.
             org_id: The organization ID.
+<<<<<<< HEAD
+            coordinator: The data update coordinator.
+=======
+>>>>>>> 9bc35b7 (Merge pull request #845 from brewmarsh/fix/frontend-build-2299669574949783162)
             base_url: The base URL for the Meraki API.
 
         """
         self._api_key = api_key
         self._org_id = org_id
         self._hass = hass
+<<<<<<< HEAD
+        self.coordinator = coordinator
+
+        self.dashboard: meraki.DashboardAPI = meraki.DashboardAPI(
+            api_key=api_key,
+            base_url=base_url,
+            output_log=False,
+            print_console=False,
+            suppress_logging=True,
+            maximum_retries=3,
+            wait_on_rate_limit=True,
+            nginx_429_retry_wait_time=2,
+        )
+=======
         self._base_url = base_url
 
         self.dashboard: meraki.DashboardAPI | None = None
+>>>>>>> 9bc35b7 (Merge pull request #845 from brewmarsh/fix/frontend-build-2299669574949783162)
 
         # Initialize endpoint handlers
         self.appliance = ApplianceEndpoints(self, self._hass)
@@ -77,6 +120,11 @@ class MerakiAPIClient:
         self.wireless = WirelessEndpoints(self)
         self.sensor = SensorEndpoints(self)
 
+<<<<<<< HEAD
+        # Semaphore to limit concurrent API calls
+        self._semaphore = asyncio.Semaphore(2)
+
+=======
         # Set to store network IDs that have failed traffic analysis
         self.traffic_analysis_failed_networks: set[str] = set()
 
@@ -102,6 +150,7 @@ class MerakiAPIClient:
             nginx_429_retry_wait_time=2,
         )
 
+>>>>>>> 9bc35b7 (Merge pull request #845 from brewmarsh/fix/frontend-build-2299669574949783162)
     async def run_sync(
         self,
         func: Callable[..., Any],
@@ -155,6 +204,12 @@ class MerakiAPIClient:
             "devices": self._run_with_semaphore(
                 self.organization.get_organization_devices(),
             ),
+<<<<<<< HEAD
+            "device_statuses": self._run_with_semaphore(
+                self.organization.get_organization_devices_statuses(),
+            ),
+=======
+>>>>>>> 9bc35b7 (Merge pull request #845 from brewmarsh/fix/frontend-build-2299669574949783162)
             "devices_availabilities": self._run_with_semaphore(
                 self.organization.get_organization_devices_availabilities(),
             ),
@@ -166,6 +221,28 @@ class MerakiAPIClient:
             ),
         }
         results = await asyncio.gather(*tasks.values(), return_exceptions=True)
+<<<<<<< HEAD
+        data = dict(zip(tasks.keys(), results, strict=True))
+
+        # Fetch battery data separately
+        devices_res = data.get("devices")
+        if isinstance(devices_res, list):
+            mt_serials = [
+                device["serial"]
+                for device in devices_res
+                if device.get("model", "").startswith("MT")
+            ]
+            if mt_serials:
+                battery_data_res = await self._run_with_semaphore(
+                    self.sensor.get_organization_sensor_readings_latest_for_serials(
+                        serials=mt_serials,
+                        metrics=["battery"],
+                    ),
+                )
+                data["battery_readings"] = battery_data_res
+
+        return data
+=======
         return dict(zip(tasks.keys(), results, strict=True))
 
     def _process_initial_data(self, results: dict[str, Any]) -> dict[str, Any]:
@@ -251,6 +328,7 @@ class MerakiAPIClient:
             "devices": devices,
             "appliance_uplink_statuses": appliance_uplink_statuses,
         }
+>>>>>>> 9bc35b7 (Merge pull request #845 from brewmarsh/fix/frontend-build-2299669574949783162)
 
     async def _async_fetch_network_clients(
         self,
@@ -268,7 +346,17 @@ class MerakiAPIClient:
 
         """
         client_tasks = [
+<<<<<<< HEAD
+            self._run_with_semaphore(
+                self.network.get_network_clients(
+                    network.id,
+                    perPage=1000,
+                    total_pages="all",
+                ),
+            )
+=======
             self._run_with_semaphore(self.network.get_network_clients(network["id"]))
+>>>>>>> 9bc35b7 (Merge pull request #845 from brewmarsh/fix/frontend-build-2299669574949783162)
             for network in networks
         ]
         clients_results = await asyncio.gather(*client_tasks, return_exceptions=True)
@@ -277,7 +365,11 @@ class MerakiAPIClient:
             result = clients_results[i]
             if isinstance(result, list):
                 for client in result:
+<<<<<<< HEAD
+                    client["networkId"] = network.id
+=======
                     client["networkId"] = network["id"]
+>>>>>>> 9bc35b7 (Merge pull request #845 from brewmarsh/fix/frontend-build-2299669574949783162)
                 clients.extend(result)
         return clients
 
@@ -297,11 +389,19 @@ class MerakiAPIClient:
 
         """
         client_tasks = {
+<<<<<<< HEAD
+            device.serial: self._run_with_semaphore(
+                self.devices.get_device_clients(device.serial),
+            )
+            for device in devices
+            if device.product_type
+=======
             device["serial"]: self._run_with_semaphore(
                 self.devices.get_device_clients(device["serial"]),
             )
             for device in devices
             if device.get("productType")
+>>>>>>> 9bc35b7 (Merge pull request #845 from brewmarsh/fix/frontend-build-2299669574949783162)
             in ["wireless", "appliance", "switch", "cellularGateway"]
         }
         results = await asyncio.gather(*client_tasks.values(), return_exceptions=True)
@@ -331,6 +431,48 @@ class MerakiAPIClient:
         """
         detail_tasks: dict[str, Awaitable[Any]] = {}
         for network in networks:
+<<<<<<< HEAD
+            product_types = network.product_types
+            if "wireless" in product_types:
+                detail_tasks[f"ssids_{network.id}"] = self._run_with_semaphore(
+                    self.wireless.get_network_ssids(network.id),
+                )
+                detail_tasks[f"wireless_settings_{network.id}"] = (
+                    self._run_with_semaphore(
+                        self.wireless.get_network_wireless_settings(network.id),
+                    )
+                )
+            if "appliance" in product_types:
+                if not self.coordinator or self.coordinator.is_traffic_check_due(
+                    network.id,
+                ):
+                    detail_tasks[f"traffic_{network.id}"] = self._run_with_semaphore(
+                        self.network.get_network_traffic(network.id, "appliance"),
+                    )
+                if not self.coordinator or self.coordinator.is_vlan_check_due(
+                    network.id,
+                ):
+                    detail_tasks[f"vlans_{network.id}"] = self._run_with_semaphore(
+                        self.appliance.get_network_vlans(network.id),
+                    )
+                detail_tasks[f"l3_firewall_rules_{network.id}"] = (
+                    self._run_with_semaphore(
+                        self.appliance.get_l3_firewall_rules(network.id),
+                    )
+                )
+                detail_tasks[f"traffic_shaping_{network.id}"] = (
+                    self._run_with_semaphore(
+                        self.appliance.get_traffic_shaping(network.id),
+                    )
+                )
+                detail_tasks[f"vpn_status_{network.id}"] = self._run_with_semaphore(
+                    self.appliance.get_vpn_status(network.id),
+                )
+                detail_tasks[f"content_filtering_{network.id}"] = (
+                    self._run_with_semaphore(
+                        self.appliance.get_network_appliance_content_filtering(
+                            network.id,
+=======
             product_types = network.get("productTypes", [])
             if "wireless" in product_types:
                 detail_tasks[f"ssids_{network['id']}"] = self._run_with_semaphore(
@@ -366,10 +508,39 @@ class MerakiAPIClient:
                     self._run_with_semaphore(
                         self.appliance.get_network_appliance_content_filtering(
                             network["id"],
+>>>>>>> 9bc35b7 (Merge pull request #845 from brewmarsh/fix/frontend-build-2299669574949783162)
                         ),
                     )
                 )
             if "wireless" in product_types:
+<<<<<<< HEAD
+                detail_tasks[f"rf_profiles_{network.id}"] = self._run_with_semaphore(
+                    self.wireless.get_network_wireless_rf_profiles(network.id),
+                )
+        for device in devices:
+            if device.product_type == "camera":
+                detail_tasks[f"video_settings_{device.serial}"] = (
+                    self._run_with_semaphore(
+                        self.camera.get_camera_video_settings(device.serial),
+                    )
+                )
+                detail_tasks[f"sense_settings_{device.serial}"] = (
+                    self._run_with_semaphore(
+                        self.camera.get_camera_sense_settings(device.serial),
+                    )
+                )
+            elif device.product_type == "switch":
+                detail_tasks[f"ports_statuses_{device.serial}"] = (
+                    self._run_with_semaphore(
+                        self.switch.get_device_switch_ports_statuses(device.serial),
+                    )
+                )
+            elif device.product_type == "appliance" and "networkId" in device:
+                detail_tasks[f"appliance_settings_{device.serial}"] = (
+                    self._run_with_semaphore(
+                        self.appliance.get_network_appliance_settings(
+                            device.network_id,
+=======
                 detail_tasks[f"rf_profiles_{network['id']}"] = self._run_with_semaphore(
                     self.wireless.get_network_wireless_rf_profiles(network["id"]),
                 )
@@ -396,11 +567,14 @@ class MerakiAPIClient:
                     self._run_with_semaphore(
                         self.appliance.get_network_appliance_settings(
                             device["networkId"],
+>>>>>>> 9bc35b7 (Merge pull request #845 from brewmarsh/fix/frontend-build-2299669574949783162)
                         ),
                     )
                 )
         return detail_tasks
 
+<<<<<<< HEAD
+=======
     def _process_detailed_data(
         self,
         detail_data: dict[str, Any],
@@ -573,6 +747,7 @@ class MerakiAPIClient:
             "wireless_settings": wireless_settings_by_network,
         }
 
+>>>>>>> 9bc35b7 (Merge pull request #845 from brewmarsh/fix/frontend-build-2299669574949783162)
     async def get_all_data(
         self,
         previous_data: dict[str, Any] | None = None,
@@ -593,10 +768,61 @@ class MerakiAPIClient:
 
         _LOGGER.debug("Fetching fresh Meraki data from API")
         initial_results = await self._async_fetch_initial_data()
+<<<<<<< HEAD
+
+        networks_res = initial_results.get("networks", [])
+        if isinstance(networks_res, Exception):
+            _LOGGER.warning(
+                "Could not fetch networks, network data will be unavailable: %s",
+                networks_res,
+            )
+            networks: list[MerakiNetwork] = []
+        else:
+            network_fields = {f.name for f in fields(MerakiNetwork)}
+            networks = [
+                MerakiNetwork(
+                    organization_id=self.organization_id,
+                    **{k: v for k, v in network.items() if k in network_fields},
+                )
+                for network in networks_res
+            ]
+
+        devices_res = initial_results.get("devices", [])
+        if isinstance(devices_res, Exception):
+            _LOGGER.warning(
+                "Could not fetch devices, device data will be unavailable: %s",
+                devices_res,
+            )
+            devices: list[MerakiDevice] = []
+        else:
+            device_fields = {f.name for f in fields(MerakiDevice)}
+            devices = [
+                MerakiDevice(
+                    **{k: v for k, v in device.items() if k in device_fields},
+                )
+                for device in devices_res
+            ]
+
+        device_statuses = initial_results.get("device_statuses", [])
+        if isinstance(device_statuses, Exception):
+            _LOGGER.warning(
+                "Could not fetch device statuses, "
+                "device status data will be unavailable: %s",
+                device_statuses,
+            )
+            device_statuses = []
+
+        parse_device_data(devices, device_statuses)
+        sensor_readings = initial_results.get("sensor_readings")
+        battery_readings = initial_results.get("battery_readings")
+
+        parse_sensor_data(devices, sensor_readings, battery_readings)
+=======
         processed_initial_data = self._process_initial_data(initial_results)
 
         networks = processed_initial_data["networks"]
         devices = processed_initial_data["devices"]
+>>>>>>> 9bc35b7 (Merge pull request #845 from brewmarsh/fix/frontend-build-2299669574949783162)
 
         network_clients, device_clients = await asyncio.gather(
             self._async_fetch_network_clients(networks),
@@ -611,10 +837,22 @@ class MerakiAPIClient:
         )
         detail_data = dict(zip(detail_tasks.keys(), detail_results, strict=True))
 
+<<<<<<< HEAD
+        processed_network_data = parse_network_data(
+            detail_data,
+            networks,
+            previous_data,
+            self.coordinator,
+        )
+        processed_wireless_data = parse_wireless_data(
+            detail_data,
+            networks,
+=======
         processed_detailed_data = self._process_detailed_data(
             detail_data,
             networks,
             devices,
+>>>>>>> 9bc35b7 (Merge pull request #845 from brewmarsh/fix/frontend-build-2299669574949783162)
             previous_data,
         )
 
@@ -625,10 +863,19 @@ class MerakiAPIClient:
             "clients_by_serial": (
                 device_clients if isinstance(device_clients, dict) else {}
             ),
+<<<<<<< HEAD
+            "appliance_uplink_statuses": initial_results.get(
+                "appliance_uplink_statuses",
+                [],
+            ),
+            "ssids": processed_wireless_data.get("ssids", []),
+            **processed_network_data,
+=======
             "appliance_uplink_statuses": processed_initial_data[
                 "appliance_uplink_statuses"
             ],
             **processed_detailed_data,
+>>>>>>> 9bc35b7 (Merge pull request #845 from brewmarsh/fix/frontend-build-2299669574949783162)
         }
 
     @property
@@ -647,16 +894,27 @@ class MerakiAPIClient:
         """
         await self.network.register_webhook(webhook_url, secret)
 
+<<<<<<< HEAD
+    async def unregister_webhook(self, webhook_id: str) -> None:
+=======
     async def unregister_webhook(self, webhook_url: str) -> None:
+>>>>>>> 9bc35b7 (Merge pull request #845 from brewmarsh/fix/frontend-build-2299669574949783162)
         """
         Unregister a webhook with the Meraki API.
 
         Args:
+<<<<<<< HEAD
+            webhook_id: The ID of the webhook to unregister.
+
+        """
+        await self.network.unregister_webhook(webhook_id)
+=======
         ----
             webhook_url: The URL of the webhook to unregister.
 
         """
         await self.network.unregister_webhook(webhook_url)
+>>>>>>> 9bc35b7 (Merge pull request #845 from brewmarsh/fix/frontend-build-2299669574949783162)
 
     async def async_reboot_device(self, serial: str) -> dict[str, Any]:
         """

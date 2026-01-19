@@ -13,8 +13,14 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
+<<<<<<< HEAD
+from ...coordinator import MerakiDataUpdateCoordinator
+from ...core.utils.naming_utils import format_entity_name
+from ...helpers.device_info_helpers import resolve_device_info
+=======
 from ...helpers.device_info_helpers import resolve_device_info
 from ...meraki_data_coordinator import MerakiDataCoordinator
+>>>>>>> 9bc35b7 (Merge pull request #845 from brewmarsh/fix/frontend-build-2299669574949783162)
 
 if TYPE_CHECKING:
     from ...services.camera_service import CameraService
@@ -30,7 +36,11 @@ class MerakiMotionSensor(CoordinatorEntity, BinarySensorEntity):
 
     def __init__(
         self,
+<<<<<<< HEAD
+        coordinator: MerakiDataUpdateCoordinator,
+=======
         coordinator: MerakiDataCoordinator,
+>>>>>>> 9bc35b7 (Merge pull request #845 from brewmarsh/fix/frontend-build-2299669574949783162)
         device: dict[str, Any],
         camera_service: CameraService,
         config_entry: ConfigEntry,
@@ -41,7 +51,11 @@ class MerakiMotionSensor(CoordinatorEntity, BinarySensorEntity):
         self._camera_service = camera_service
         self._config_entry = config_entry
         self._attr_unique_id = f"{self._device['serial']}-motion"
+<<<<<<< HEAD
+        self._attr_name = f"[Camera] {self._device['name']} Motion"
+=======
         self._attr_name = f"{self._device['name']} Motion"
+>>>>>>> 9bc35b7 (Merge pull request #845 from brewmarsh/fix/frontend-build-2299669574949783162)
         self._motion_events: list[dict[str, Any]] = []
 
     @property

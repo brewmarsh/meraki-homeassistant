@@ -1,5 +1,10 @@
 # `AGENTS.md`: Agent & Developer Guidelines
 
+<<<<<<< HEAD
+**Mandatory: All Pull Requests must target the `beta` branch. Never target `main` for feature work.**
+
+=======
+>>>>>>> 9bc35b7 (Merge pull request #845 from brewmarsh/fix/frontend-build-2299669574949783162)
 This document provides essential instructions for AI agents and human developers working across this organization's codebases. Adhering to these guidelines is critical for maintaining code quality, consistency, and stability.
 
 This file contains **common rules** that apply to _all_ projects. For project-specific details (like technology stack, file paths, and build commands), please refer to the `README.md` or `CONTRIBUTING.md` file in the specific repository.
@@ -43,6 +48,15 @@ The format is: `type(scope): subject`
 - **`test:`**: Adding missing tests or correcting existing tests (e.g., `test: add unit test for new validation logic`).
 - **`chore:`**: Changes to the build process or auxiliary tools (e.g., `chore: add new linter to pre-commit hook`).
 
+<<<<<<< HEAD
+## Pull Request Standards
+
+- **Issue Linking:** Every PR must link to its source issue.
+- **Format:** Always include "Fixes #<number>" in the PR title or the first line of the description.
+- **Base Branch:** All PRs should target the `beta` branch unless explicitly told otherwise.
+
+=======
+>>>>>>> 9bc35b7 (Merge pull request #845 from brewmarsh/fix/frontend-build-2299669574949783162)
 ---
 
 ## 3. Code Organization & Naming
@@ -118,3 +132,32 @@ The format is: `type(scope): subject`
 - **Iterative Improvement:** If you encounter an issue (e.g., a security vulnerability, a bug, a confusing pattern), look for other instances of the same problem in the codebase and fix them all.
 - **Update Documentation:** As you make changes, ensure that `README.md` and `CONTRIBUTING.md` are updated to reflect the new state of the application.
 - **Update This File:** If you discover a new development technique, a useful debugging procedure, or a common pitfall, please update _this_ `AGENTS.md` file to help future agents.
+<<<<<<< HEAD
+
+---
+
+## 7. Knowledge Base
+
+This section serves as a repository for institutional knowledge and recurring fixes. Before tackling an issue, review this section to see if a similar problem has been solved before.
+
+- **[Symptom/Problem]:** [Brief description of the issue]
+  - **Fix:** [Explanation of the solution]
+  - **Reasoning:** [Why this fix works and what the root cause was]
+
+## 8. Conflict Avoidance Strategy
+Atomic Commits: Only modify the files absolutely necessary for the task.
+
+Manifest Locking: If a task requires a version bump in manifest.json, check if a pending PR already has a higher version. Use the highest version available.
+
+Rebase First: Before starting any new task, always git checkout beta followed by git pull to ensure the starting point is current.
+
+## 9. Automated Conflict Resolution Protocol
+When summoned to resolve conflicts:
+
+Always Rebase: Never use git merge. Always use git rebase origin/beta.
+
+Infrastructure Priority: If manifest.json or requirements.txt have conflicts, accept the version number from beta unless the current task specifically requires a bump.
+
+Naming Continuity: Ensure the meraki_select renaming is preserved. Do not let a rebase revert folders back to the standard library select name.
+=======
+>>>>>>> 9bc35b7 (Merge pull request #845 from brewmarsh/fix/frontend-build-2299669574949783162)

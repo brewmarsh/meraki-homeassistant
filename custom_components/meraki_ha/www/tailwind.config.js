@@ -1,5 +1,16 @@
 /** @type {import('tailwindcss').Config} */
 export default {
+<<<<<<< HEAD
+  content: [
+    "./index.html",
+    "./src/**/*.{js,ts,jsx,tsx}",
+  ],
+  theme: {
+    extend: {},
+  },
+  plugins: [],
+}
+=======
   darkMode: 'class',
   content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
   theme: {
@@ -23,3 +34,4 @@ export default {
   },
   plugins: [],
 };
+>>>>>>> 9bc35b7 (Merge pull request #845 from brewmarsh/fix/frontend-build-2299669574949783162)

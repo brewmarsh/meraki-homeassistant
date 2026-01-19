@@ -1,10 +1,18 @@
+<<<<<<< HEAD
+# Python
+=======
 # --- Meraki HA & Jules Environment (v2.4.0) ---
 
 # Python & Core Bytecode
+>>>>>>> 9bc35b7 (Merge pull request #845 from brewmarsh/fix/frontend-build-2299669574949783162)
 *.py[cod]
 *$py.class
 __pycache__/
 
+<<<<<<< HEAD
+# Node/npm
+node_modules/
+=======
 # Agent & Virtual Environment Artifacts
 .venv/
 .jules/
@@ -22,10 +30,16 @@ test-output/
 # Node/npm & Frontend
 node_modules/
 custom_components/meraki_ha/www/node_modules/
+>>>>>>> 9bc35b7 (Merge pull request #845 from brewmarsh/fix/frontend-build-2299669574949783162)
 .cache/
 *.cache/
 .prettier-cache/
 
+<<<<<<< HEAD
+# Coverage
+.coverage
+coverage.xml
+=======
 # Home Assistant Local Storage & Builds
 .storage/
 .cloud/
@@ -34,3 +48,4 @@ dist/
 # System/OS Junk
 .DS_Store
 Thumbs.db
+>>>>>>> 9bc35b7 (Merge pull request #845 from brewmarsh/fix/frontend-build-2299669574949783162)
