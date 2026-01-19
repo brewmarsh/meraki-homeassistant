@@ -14,6 +14,7 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from ..coordinator import MerakiDataUpdateCoordinator
 from ..core.api.client import MerakiAPIClient
 from ..helpers.device_info_helpers import resolve_device_info
+from ..types import MerakiNetwork
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -29,14 +30,14 @@ class MerakiContentFilteringSelect(CoordinatorEntity, SelectEntity):
         coordinator: MerakiDataUpdateCoordinator,
         meraki_client: MerakiAPIClient,
         config_entry: ConfigEntry,
-        network_data: dict[str, Any],
+        network_data: MerakiNetwork,
     ) -> None:
         """Initialize the Meraki Content Filtering select entity."""
         super().__init__(coordinator)
         self._meraki_client = meraki_client
         self._config_entry = config_entry
         self._network_data = network_data
-        self._network_id = network_data["id"]
+        self._network_id = network_data.id
 
         self.entity_description = SelectEntityDescription(
             key=f"content_filtering_{self._network_id}",
