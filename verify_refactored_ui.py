@@ -10,7 +10,10 @@ PORT = 8080
 
 
 class RequestHandler(http.server.SimpleHTTPRequestHandler):
+    """Custom request handler to map /local/meraki_ha/ to root."""
+
     def do_GET(self):
+        """Handle GET requests and map local paths."""
         # Map /local/meraki_ha/ to root
         if self.path.startswith("/local/meraki_ha/"):
             self.path = self.path.replace("/local/meraki_ha/", "/")
@@ -77,7 +80,8 @@ async def main():
             """
             )
 
-            # Clear existing body content to remove the static <meraki-panel> which might be in error state
+            # Clear existing body content to remove the static <meraki-panel>
+            # which might be in error state
             await page.evaluate("document.body.innerHTML = '';")
 
             await page.evaluate(
