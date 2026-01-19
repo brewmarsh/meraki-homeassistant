@@ -9,12 +9,19 @@ from playwright.async_api import async_playwright
 PORT = 8080
 
 
+class RequestHandler(http.server.SimpleHTTPRequestHandler):
+    def do_GET(self):
+        # Map /local/meraki_ha/ to root
+        if self.path.startswith("/local/meraki_ha/"):
+            self.path = self.path.replace("/local/meraki_ha/", "/")
+        return super().do_GET()
+
+
 async def main():
     """Verify the UI."""
     os.chdir("custom_components/meraki_ha/www")
 
-    Handler = http.server.SimpleHTTPRequestHandler
-    httpd = socketserver.TCPServer(("", PORT), Handler)
+    httpd = socketserver.TCPServer(("", PORT), RequestHandler)
     server_thread = threading.Thread(target=httpd.serve_forever)
     server_thread.daemon = True
 
@@ -70,6 +77,9 @@ async def main():
             """
             )
 
+            # Clear existing body content to remove the static <meraki-panel> which might be in error state
+            await page.evaluate("document.body.innerHTML = '';")
+
             await page.evaluate(
                 """
                 const el = document.createElement('meraki-panel');
@@ -95,6 +105,7 @@ async def main():
     finally:
         httpd.shutdown()
         server_thread.join()
+        # Restore CWD
         os.chdir("../../..")
 
 
