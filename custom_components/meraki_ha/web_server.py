@@ -2,6 +2,7 @@
 
 import logging
 import os
+from dataclasses import asdict
 
 import aiofiles  # type: ignore[import-untyped]
 from aiohttp import web
@@ -118,7 +119,8 @@ class MerakiWebServer:
         # Placeholder
         if not self.coordinator.data:
             return web.json_response({"error": "Data not available"}, status=503)
-        return web.json_response(self.coordinator.data.get("networks", []))
+        networks = [asdict(n) for n in self.coordinator.data.get("networks", [])]
+        return web.json_response(networks)
 
     async def handle_api_get_settings(self, request: web.Request) -> web.Response:
         """Handle requests to get the current integration settings."""
@@ -155,13 +157,13 @@ class MerakiWebServer:
             (
                 n
                 for n in self.coordinator.data.get("networks", [])
-                if n.get("id") == network_id
+                if n.id == network_id
             ),
             None,
         )
 
         if network:
-            return web.json_response(network)
+            return web.json_response(asdict(network))
         return web.json_response({"error": "Network not found"}, status=404)
 
     async def handle_api_get_parental_controls_resources(
@@ -188,7 +190,7 @@ class MerakiWebServer:
                         {
                             "type": "network",
                             "network_id": network_id,
-                            "name": network_info.get("name", "Unknown Network"),
+                            "name": network_info.name,
                         }
                     )
 

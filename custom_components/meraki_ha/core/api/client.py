@@ -550,14 +550,22 @@ class MerakiAPIClient:
                             if isinstance(d, MerakiDevice) and d.serial == device.serial
                         ),
                         next(
-                           (d for d in prev_devices if isinstance(d, dict) and d.get("serial") == device.serial),
-                           None
-                        )
+                            (
+                                d
+                                for d in prev_devices
+                                if isinstance(d, dict)
+                                and d.get("serial") == device.serial
+                            ),
+                            None,
+                        ),
                     )
                     if prev_device:
-                         if isinstance(prev_device, MerakiDevice):
+                        if isinstance(prev_device, MerakiDevice):
                             device.ports_statuses = prev_device.ports_statuses
-                         elif isinstance(prev_device, dict) and "ports_statuses" in prev_device:
+                        elif (
+                            isinstance(prev_device, dict)
+                            and "ports_statuses" in prev_device
+                        ):
                             device.ports_statuses = prev_device["ports_statuses"]
 
             elif product_type == "appliance":

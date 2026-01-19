@@ -26,7 +26,7 @@ def resolve_device_info(
     Assistant device registry.
     """
     if is_dataclass(entity_data):
-        entity_data = asdict(entity_data)
+        entity_data = asdict(entity_data)  # type: ignore[arg-type]
 
     # Determine the effective data to use for device resolution.
     # If ssid_data is explicitly passed, it takes precedence for SSID devices.

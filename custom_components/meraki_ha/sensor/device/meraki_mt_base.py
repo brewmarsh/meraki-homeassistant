@@ -1,7 +1,6 @@
 """Base class for Meraki MT sensor entities."""
 
 import logging
-from typing import Any
 
 from homeassistant.components.sensor import SensorEntity, SensorEntityDescription
 from homeassistant.core import callback
@@ -88,8 +87,8 @@ class MerakiMtSensor(CoordinatorEntity, SensorEntity):
         """Return if the sensor is available."""
         # The sensor is available if there is a reading for its metric.
         # This prevents creating sensors for metrics that a device doesn't support.
-        readings = self._device.get("readings")
-        if not readings or not isinstance(readings, list):
+        readings = self._device.readings
+        if not readings:
             return False
 
         for reading in readings:

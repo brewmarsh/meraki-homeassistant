@@ -8,7 +8,7 @@ for rebooting Meraki devices.
 from __future__ import annotations
 
 import logging
-from typing import TYPE_CHECKING, cast
+from typing import TYPE_CHECKING
 
 from homeassistant.components.button import ButtonEntity
 from homeassistant.config_entries import ConfigEntry
@@ -36,14 +36,14 @@ class MerakiRebootButton(ButtonEntity):
         self._control_service = control_service
         self._device = device
         self._config_entry = config_entry
-        self._attr_name = f"{device.get('name', 'Device')} Reboot"
-        self._attr_unique_id = f"{device['serial']}-reboot"
+        self._attr_name = f"{device.name} Reboot"
+        self._attr_unique_id = f"{device.serial}-reboot"
 
     @property
     def device_info(self) -> DeviceInfo | None:
         """Return the device info."""
-        return resolve_device_info(cast(dict, self._device), self._config_entry)
+        return resolve_device_info(self._device, self._config_entry)
 
     async def async_press(self) -> None:
         """Handle the button press."""
-        await self._control_service.async_reboot(self._device["serial"])
+        await self._control_service.async_reboot(self._device.serial)

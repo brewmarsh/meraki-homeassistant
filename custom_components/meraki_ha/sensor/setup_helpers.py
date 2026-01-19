@@ -225,7 +225,10 @@ def _setup_uplink_sensors(
             if unique_id not in added_entities:
                 entities.append(
                     MerakiApplianceUplinkSensor(
-                        coordinator, cast(MerakiDevice, device_info), config_entry, uplink
+                        coordinator,
+                        cast(MerakiDevice, device_info),
+                        config_entry,
+                        uplink,
                     )
                 )
                 added_entities.add(unique_id)

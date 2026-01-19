@@ -11,7 +11,7 @@ _LOGGER = logging.getLogger(__name__)
 def format_device_name(device: dict[str, Any] | Any, config: Mapping[str, Any]) -> str:
     """Format the device name based on the user's preference."""
     if is_dataclass(device):
-        device = asdict(device)
+        device = asdict(device)  # type: ignore[arg-type]
 
     name = device.get("name")
     if not name:
