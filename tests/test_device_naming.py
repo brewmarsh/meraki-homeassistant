@@ -68,11 +68,14 @@ def test_network_device_naming(mock_coordinator: MagicMock) -> None:
     network_id = "net1"
     network_name = "Test Network"
 
-    network_data = {
-        "id": network_id,
-        "name": network_name,
-        "productTypes": ["wireless"],
-    }
+    from custom_components.meraki_ha.types import MerakiNetwork
+
+    network_data = MerakiNetwork(
+        id=network_id,
+        name=network_name,
+        product_types=["wireless"],
+        organization_id="org1",
+    )
 
     sensor = MerakiNetworkClientsSensor(
         mock_coordinator,

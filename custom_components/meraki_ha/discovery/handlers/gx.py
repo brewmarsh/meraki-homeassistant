@@ -75,7 +75,7 @@ class GXHandler(BaseDeviceHandler):
             "appliance_uplink_statuses"
         ):
             for status in self._coordinator.data["appliance_uplink_statuses"]:
-                if status.get("serial") == self.device["serial"]:
+                if status.get("serial") == self.device.serial:
                     for uplink in status.get("uplinks", []):
                         entities.append(
                             MerakiApplianceUplinkSensor(
