@@ -7,24 +7,16 @@ from typing import Any
 
 from homeassistant.components.sensor import SensorEntity
 from homeassistant.config_entries import ConfigEntry
-<<<<<<< HEAD
-=======
 from homeassistant.const import EntityCategory
->>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from ...const import DOMAIN
-<<<<<<< HEAD
-from ...coordinator import MerakiDataUpdateCoordinator
-from ...core.utils.naming_utils import format_device_name, format_entity_name
-from ...core.utils.network_utils import construct_rtsp_url
-=======
 from ...core.utils.naming_utils import format_device_name
 from ...core.utils.network_utils import construct_rtsp_url
 from ...helpers.entity_helpers import format_entity_name
 from ...meraki_data_coordinator import MerakiDataCoordinator
->>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
+from ...types import MerakiDevice
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -33,34 +25,24 @@ class MerakiRtspUrlSensor(CoordinatorEntity, SensorEntity):
     """
     Representation of an RTSP URL sensor.
 
-<<<<<<< HEAD
-    This sensor is driven by the central MerakiDataUpdateCoordinator, which
-=======
     This sensor is driven by the central MerakiDataCoordinator, which
->>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
     ensures that the state is always in sync with the latest data from the
     Meraki API.
     """
 
-<<<<<<< HEAD
-    def __init__(
-        self,
-        coordinator: MerakiDataUpdateCoordinator,
-=======
     _attr_entity_category = EntityCategory.DIAGNOSTIC
 
     def __init__(
         self,
         coordinator: MerakiDataCoordinator,
->>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
-        device_data: dict[str, Any],
+        device_data: MerakiDevice,
         config_entry: ConfigEntry,
     ) -> None:
         """Initialize the sensor."""
         super().__init__(coordinator)
         self._device_data = device_data
         self._config_entry = config_entry
-        self._attr_unique_id = f"{self._device_data['serial']}-rtsp-url"
+        self._attr_unique_id = f"{self._device_data.serial}-rtsp-url"
         self._attr_name = format_entity_name(
             format_device_name(self._device_data, self._config_entry.options),
             "RTSP URL",
@@ -68,7 +50,7 @@ class MerakiRtspUrlSensor(CoordinatorEntity, SensorEntity):
         self._attr_icon = "mdi:cctv"
 
         # Set availability based on model
-        model = self._device_data.get("model", "")
+        model = self._device_data.model or ""
         if model.startswith("MV2"):
             self._attr_available = False
 
@@ -79,7 +61,7 @@ class MerakiRtspUrlSensor(CoordinatorEntity, SensorEntity):
         """Handle updated data from the coordinator."""
         # Find the updated device data from the coordinator's payload
         for device in self.coordinator.data.get("devices", []):
-            if device.get("serial") == self._device_data["serial"]:
+            if device.serial == self._device_data.serial:
                 self._device_data = device
                 break
         self._update_state()
@@ -87,8 +69,8 @@ class MerakiRtspUrlSensor(CoordinatorEntity, SensorEntity):
 
     def _update_state(self) -> None:
         """Update the sensor's state based on the latest device data."""
-        video_settings = self._device_data.get("video_settings", {})
-        lan_ip = self._device_data.get("lanIp")
+        video_settings = self._device_data.video_settings
+        lan_ip = self._device_data.lanIp
         if lan_ip:
             self._attr_native_value = construct_rtsp_url(lan_ip)
             return
@@ -104,14 +86,14 @@ class MerakiRtspUrlSensor(CoordinatorEntity, SensorEntity):
     def device_info(self) -> DeviceInfo:
         """Return device information."""
         return DeviceInfo(
-            identifiers={(DOMAIN, self._device_data["serial"])},
+            identifiers={(DOMAIN, self._device_data.serial)},
             name=format_device_name(self._device_data, self._config_entry.options),
-            model=self._device_data.get("model"),
+            model=self._device_data.model,
             manufacturer="Cisco Meraki",
         )
 
     @property
     def entity_registry_enabled_default(self) -> bool:
         """Return if the entity should be enabled by default."""
-        model = self._device_data.get("model", "")
+        model = self._device_data.model or ""
         return not model.startswith("MV2")

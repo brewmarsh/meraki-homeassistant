@@ -7,22 +7,14 @@ from typing import Any
 
 from homeassistant.components.sensor import SensorEntity
 from homeassistant.config_entries import ConfigEntry
-<<<<<<< HEAD
-=======
 from homeassistant.const import EntityCategory
->>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
 from homeassistant.core import callback
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from ...const import DOMAIN
-<<<<<<< HEAD
-from ...coordinator import MerakiDataUpdateCoordinator
-from ...core.utils.naming_utils import format_device_name, format_entity_name
-=======
 from ...core.utils.naming_utils import format_device_name
 from ...meraki_data_coordinator import MerakiDataCoordinator
->>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -38,19 +30,12 @@ class MerakiWAN1ConnectivitySensor(
 
     _attr_icon = "mdi:wan"
     _attr_has_entity_name = True
-<<<<<<< HEAD
-=======
     _attr_entity_category = EntityCategory.DIAGNOSTIC
->>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
     _attr_device_class = "connectivity"  # type: ignore[assignment]
 
     def __init__(
         self,
-<<<<<<< HEAD
-        coordinator: MerakiDataUpdateCoordinator,
-=======
         coordinator: MerakiDataCoordinator,
->>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
         device_data: dict[str, Any],
         config_entry: ConfigEntry,
     ) -> None:

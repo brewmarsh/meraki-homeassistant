@@ -1,36 +1,19 @@
-<<<<<<< HEAD
-"""Frontend registration."""
-=======
 """Starting setup task: Frontend."""
->>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
 
 from __future__ import annotations
 
 import json
-<<<<<<< HEAD
-from pathlib import Path
-
-import aiofiles
-from homeassistant.components import frontend
-=======
 import logging
 from pathlib import Path
 
 import aiofiles  # type: ignore[import-untyped]
 from homeassistant.components import frontend
 from homeassistant.components.http import StaticPathConfig
->>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 
 from .const import DOMAIN
 
-<<<<<<< HEAD
-
-async def async_register_frontend(hass: HomeAssistant, entry: ConfigEntry) -> None:
-    """Register the frontend panel."""
-    # Load version from manifest to bust browser cache
-=======
 _LOGGER = logging.getLogger(__name__)
 
 
@@ -53,25 +36,13 @@ async def async_register_static_path(hass: HomeAssistant) -> None:
 async def async_register_panel(hass: HomeAssistant, entry: ConfigEntry) -> None:
     """Register the panel for the frontend."""
     # Register panel
->>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
     manifest_path = Path(__file__).parent / "manifest.json"
     async with aiofiles.open(manifest_path, encoding="utf-8") as f:
         manifest_data = await f.read()
         manifest = json.loads(manifest_data)
     version = manifest.get("version", "0.0.0")
-<<<<<<< HEAD
-
-    # The custom panel will be served at `/local/meraki_ha/meraki-panel.js`.
-    # HA automatically maps the `www` folder of an integration to
-    # `_hass_frontend/static/panels/<integration_name>`. The `/local/` alias
-    # is then used to access these assets. No need to register static paths.
-    module_url = f"/local/{DOMAIN}/meraki-panel.js?v={version}"
-
-    # Register a custom panel using the modern `module_url` approach
-=======
     module_url = f"/api/panel_custom/{DOMAIN}/meraki-panel.js?v={version}"
     _LOGGER.debug("Frontend module URL: %s", module_url)
->>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
     frontend.async_register_built_in_panel(
         hass,
         component_name="custom",
@@ -89,8 +60,6 @@ async def async_register_panel(hass: HomeAssistant, entry: ConfigEntry) -> None:
         },
         require_admin=True,
     )
-<<<<<<< HEAD
-=======
 
 
 def async_unregister_frontend(hass: HomeAssistant) -> None:
@@ -103,4 +72,3 @@ def async_unregister_frontend(hass: HomeAssistant) -> None:
 
     """
     frontend.async_remove_panel(hass, "meraki")
->>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)

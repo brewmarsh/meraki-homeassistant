@@ -1,18 +1,10 @@
-<<<<<<< HEAD
-# Python
-=======
 # --- Meraki HA & Jules Environment (v2.4.0) ---
 
 # Python & Core Bytecode
->>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
 *.py[cod]
 *$py.class
 __pycache__/
 
-<<<<<<< HEAD
-# Node/npm
-node_modules/
-=======
 # Agent & Virtual Environment Artifacts
 .venv/
 .jules/
@@ -30,16 +22,10 @@ test-output/
 # Node/npm & Frontend
 node_modules/
 custom_components/meraki_ha/www/node_modules/
->>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
 .cache/
 *.cache/
 .prettier-cache/
 
-<<<<<<< HEAD
-# Coverage
-.coverage
-coverage.xml
-=======
 # Home Assistant Local Storage & Builds
 .storage/
 .cloud/
@@ -48,4 +34,3 @@ dist/
 # System/OS Junk
 .DS_Store
 Thumbs.db
->>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)

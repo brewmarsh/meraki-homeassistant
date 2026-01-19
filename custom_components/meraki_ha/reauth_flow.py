@@ -14,22 +14,14 @@ from .authentication import validate_meraki_credentials
 from .const import CONF_MERAKI_API_KEY, CONF_MERAKI_ORG_ID
 
 if TYPE_CHECKING:
-<<<<<<< HEAD
-    from .config_flow import ConfigFlowHandler
-=======
     from .config_flow import MerakiConfigFlow
->>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
 
 
 _LOGGER = logging.getLogger(__name__)
 
 
 async def async_step_reauth(
-<<<<<<< HEAD
-    self: ConfigFlowHandler,
-=======
     self: MerakiConfigFlow,
->>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
     user_input: dict[str, Any] | None = None,
 ) -> data_entry_flow.FlowResult:
     """

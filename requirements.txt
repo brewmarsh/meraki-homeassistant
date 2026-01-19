@@ -1,26 +1,11 @@
-<<<<<<< HEAD
-meraki==1.40.1
-protobuf==4.25.8
-=======
 meraki==1.36.0
 protobuf==4.25.3
->>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
 diskcache==5.6.3
 aiofiles==23.2.1
 yarl
 playwright
 pytest-homeassistant-custom-component
-<<<<<<< HEAD
-pycares==4.11.0
-filelock==3.20.3
-webrtc-models==0.3.0
-aiodns==3.6.1
-aiortc
-aiohttp>=3.13.2
-urllib3>=2.6.2
-=======
 aiohttp>=3.13.2
 urllib3>=2.6.2
 aiodns==3.6.1
 pycares==4.11.0
->>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)

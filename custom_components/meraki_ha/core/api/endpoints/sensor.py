@@ -44,53 +44,14 @@ class SensorEndpoints:
 
         """
         _LOGGER.debug("Sending command '%s' to sensor %s", operation, serial)
-<<<<<<< HEAD
-=======
         if self._client.dashboard is None:
             return {}
->>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
         return await self._client.run_sync(
             self._client.dashboard.sensor.createDeviceSensorCommand,
             serial=serial,
             operation=operation,
         )
 
-<<<<<<< HEAD
-    async def get_organization_sensor_readings_latest_for_serials(
-        self,
-        serials: list[str],
-        metrics: list[str],
-    ) -> list[dict[str, Any]]:
-        """
-        Return the latest available reading for a given list of metrics from a list of sensors.
-
-        Args:
-        ----
-            serials: A list of sensor serials to fetch data for.
-            metrics: A list of metrics to fetch.
-
-        Returns
-        -------
-            The response from the API.
-
-        """
-        if not serials:
-            return []
-        _LOGGER.debug(
-            "Getting latest sensor readings for serials: %s, metrics: %s",
-            serials,
-            metrics,
-        )
-        return await self._client.run_sync(
-            self._client.dashboard.sensor.getOrganizationSensorReadingsLatest,
-            organizationId=self._client.organization_id,
-            serials=serials,
-            metrics=metrics,
-            total_pages="all",
-        )
-
-=======
->>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
     async def get_organization_sensor_readings_latest(
         self,
     ) -> list[dict[str, Any]]:
@@ -102,31 +63,11 @@ class SensorEndpoints:
             The response from the API.
 
         """
-<<<<<<< HEAD
-        metrics = [
-            "battery",
-            "co2",
-            "humidity",
-            "noise",
-            "pm25",
-            "temperature",
-            "tvoc",
-        ]
-        _LOGGER.debug(
-            "Getting latest sensor readings for organization with metrics: %s",
-            ", ".join(metrics),
-        )
-        return await self._client.run_sync(
-            self._client.dashboard.sensor.getOrganizationSensorReadingsLatest,
-            organizationId=self._client.organization_id,
-            metrics=metrics,
-=======
         _LOGGER.debug("Getting latest sensor readings for organization")
         if self._client.dashboard is None:
             return []
         return await self._client.run_sync(
             self._client.dashboard.sensor.getOrganizationSensorReadingsLatest,
             organizationId=self._client.organization_id,
->>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
             total_pages="all",
         )

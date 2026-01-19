@@ -8,11 +8,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 
 from .const import DOMAIN
-<<<<<<< HEAD
-from .coordinator import MerakiDataUpdateCoordinator
-=======
 from .meraki_data_coordinator import MerakiDataCoordinator
->>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
 
 
 async def async_get_config_entry_diagnostics(
@@ -32,11 +28,7 @@ async def async_get_config_entry_diagnostics(
         A dictionary of diagnostics.
 
     """
-<<<<<<< HEAD
-    coordinator: MerakiDataUpdateCoordinator = hass.data[DOMAIN][entry.entry_id][
-=======
     coordinator: MerakiDataCoordinator = hass.data[DOMAIN][entry.entry_id][
->>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
         "coordinator"
     ]
     return {

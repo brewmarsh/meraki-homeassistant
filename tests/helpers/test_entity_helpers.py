@@ -1,10 +1,6 @@
 """Tests for the Meraki entity helpers."""
 
-<<<<<<< HEAD
-from custom_components.meraki_ha.core.utils.naming_utils import format_entity_name
-=======
 from custom_components.meraki_ha.helpers.entity_helpers import format_entity_name
->>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
 
 
 def test_format_entity_name():

@@ -5,22 +5,15 @@ from typing import Any
 
 from homeassistant.components.sensor import SensorEntity
 from homeassistant.config_entries import ConfigEntry
-<<<<<<< HEAD
-=======
 from homeassistant.const import EntityCategory
->>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
 from homeassistant.core import callback
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from ...const import DOMAIN
-<<<<<<< HEAD
-from ...coordinator import MerakiDataUpdateCoordinator
-from ...core.utils.naming_utils import format_device_name, format_entity_name
-=======
 from ...core.utils.naming_utils import format_device_name
 from ...meraki_data_coordinator import MerakiDataCoordinator
->>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
+from ...types import MerakiDevice
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -28,24 +21,18 @@ _LOGGER = logging.getLogger(__name__)
 class MerakiApplianceUplinkSensor(CoordinatorEntity, SensorEntity):
     """Representation of a Meraki appliance uplink sensor."""
 
-<<<<<<< HEAD
-    def __init__(
-        self,
-        coordinator: MerakiDataUpdateCoordinator,
-=======
     _attr_entity_category = EntityCategory.DIAGNOSTIC
 
     def __init__(
         self,
         coordinator: MerakiDataCoordinator,
->>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
-        device_data: dict[str, Any],
+        device_data: MerakiDevice,
         config_entry: ConfigEntry,
         uplink_data: dict[str, Any],
     ) -> None:
         """Initialize the sensor."""
         super().__init__(coordinator)
-        self._device_serial: str = device_data["serial"]
+        self._device_serial: str = device_data.serial
         self._config_entry = config_entry
         self._uplink_interface: str = uplink_data["interface"]
 
@@ -55,7 +42,7 @@ class MerakiApplianceUplinkSensor(CoordinatorEntity, SensorEntity):
         self._attr_device_info = DeviceInfo(
             identifiers={(DOMAIN, self._device_serial)},
             name=format_device_name(device_data, self._config_entry.options),
-            model=device_data.get("model"),
+            model=device_data.model,
             manufacturer="Cisco Meraki",
         )
         self._update_state()

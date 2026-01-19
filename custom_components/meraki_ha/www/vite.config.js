@@ -1,23 +1,4 @@
 import { defineConfig } from 'vite';
-<<<<<<< HEAD
-
-// https://vitejs.dev/config/
-export default defineConfig({
-  define: {
-    'process.env.NODE_ENV': JSON.stringify('production'),
-  },
-  build: {
-    lib: {
-      entry: 'src/meraki-panel.ts',
-      name: 'MerakiPanel',
-      fileName: (format) => `meraki-panel.js`,
-      formats: ['es'],
-    },
-    outDir: '.',
-    sourcemap: false,
-    minify: true,
-  },
-=======
 import react from '@vitejs/plugin-react';
 import path from 'path';
 
@@ -37,5 +18,4 @@ export default defineConfig({
   define: {
     'process.env.NODE_ENV': '"production"',
   }
->>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
 });

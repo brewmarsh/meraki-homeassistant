@@ -5,16 +5,10 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-<<<<<<< HEAD
-from ..coordinator import MerakiDataUpdateCoordinator
-from ..core.api.client import MerakiAPIClient
-from ..core.utils.naming_utils import format_entity_name
-=======
 from ..core.api.client import MerakiAPIClient
 from ..core.utils.naming_utils import format_device_name
 from ..helpers.entity_helpers import format_entity_name
 from ..meraki_data_coordinator import MerakiDataCoordinator
->>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
 from .camera_settings import MerakiCameraSettingSwitchBase
 
 _LOGGER = logging.getLogger(__name__)
@@ -25,11 +19,7 @@ class AnalyticsSwitch(MerakiCameraSettingSwitchBase):
 
     def __init__(
         self,
-<<<<<<< HEAD
-        coordinator: MerakiDataUpdateCoordinator,
-=======
         coordinator: MerakiDataCoordinator,
->>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
         meraki_client: MerakiAPIClient,
         device_data: dict[str, Any],
     ) -> None:
@@ -50,9 +40,6 @@ class AnalyticsSwitch(MerakiCameraSettingSwitchBase):
             "sense_enabled",
             "sense.analyticsEnabled",
         )
-<<<<<<< HEAD
-        self._attr_name = f"[Camera] {device_data['name']} Analytics"
-=======
         config_options = (
             coordinator.config_entry.options if coordinator.config_entry else {}
         )
@@ -60,7 +47,6 @@ class AnalyticsSwitch(MerakiCameraSettingSwitchBase):
             format_device_name(device_data, config_options),
             "Analytics",
         )
->>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
         self._attr_icon = "mdi:chart-bar"
 
     async def _async_update_setting(self, is_on: bool) -> None:

@@ -10,11 +10,7 @@ from tests.const import MOCK_NETWORK
 
 @pytest.fixture
 def mock_coordinator_with_network(mock_coordinator: MagicMock) -> MagicMock:
-<<<<<<< HEAD
-    """Fixture for a mocked MerakiDataUpdateCoordinator with a network."""
-=======
     """Fixture for a mocked MerakiDataCoordinator with a network."""
->>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
     mock_coordinator.data = {"networks": [MOCK_NETWORK]}
     return mock_coordinator
 

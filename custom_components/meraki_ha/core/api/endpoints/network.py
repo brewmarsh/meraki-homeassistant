@@ -5,12 +5,9 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING, Any
 
-<<<<<<< HEAD
-=======
 import meraki
 
 from custom_components.meraki_ha.core.errors import MerakiTrafficAnalysisError
->>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
 from custom_components.meraki_ha.core.utils.api_utils import (
     handle_meraki_errors,
     validate_response,
@@ -38,67 +35,28 @@ class NetworkEndpoints:
 
         """
         self._api_client = api_client
-<<<<<<< HEAD
-        self._dashboard = api_client.dashboard
-
-    @handle_meraki_errors
-    @async_timed_cache(timeout=60)
-    async def get_network_clients(
-        self,
-        network_id: str,
-        timespan: int | None = None,
-        perPage: int | None = None,
-        statuses: list[str] | None = None,
-        total_pages: int | str = "all",
-    ) -> list[dict[str, Any]]:
-=======
 
     @handle_meraki_errors
     @async_timed_cache(timeout=60)
     async def get_network_clients(self, network_id: str) -> list[dict[str, Any]]:
->>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
         """
         Get all clients in a network.
 
         Args:
         ----
             network_id: The ID of the network.
-<<<<<<< HEAD
-            timespan: The timespan for which to query clients.
-            perPage: The number of entries per page returned.
-            statuses: Filter clients by status.
-            total_pages: The number of pages to retrieve, or "all".
-=======
->>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
 
         Returns
         -------
             A list of clients.
 
         """
-<<<<<<< HEAD
-        kwargs = {
-            "networkId": network_id,
-            "total_pages": total_pages,
-        }
-        if timespan:
-            kwargs["timespan"] = timespan
-        if perPage:
-            kwargs["perPage"] = perPage
-        if statuses:
-            kwargs["statuses"] = statuses
-
-        clients = await self._api_client.run_sync(
-            self._dashboard.networks.getNetworkClients,
-            **kwargs,
-=======
         if self._api_client.dashboard is None:
             return []
         clients = await self._api_client.run_sync(
             self._api_client.dashboard.networks.getNetworkClients,
             networkId=network_id,
             total_pages="all",
->>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
         )
         validated = validate_response(clients)
         if not isinstance(validated, list):
@@ -124,14 +82,6 @@ class NetworkEndpoints:
             A list of traffic data.
 
         """
-<<<<<<< HEAD
-        traffic = await self._api_client.run_sync(
-            self._dashboard.networks.getNetworkTraffic,
-            networkId=network_id,
-            deviceType=device_type,
-            timespan=86400,  # 24 hours
-        )
-=======
         if self._api_client.dashboard is None:
             return []
         try:
@@ -153,7 +103,6 @@ class NetworkEndpoints:
                     f"Traffic analysis not enabled for network {network_id}"
                 ) from e
             raise
->>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
         validated = validate_response(traffic)
         if not isinstance(validated, list):
             _LOGGER.warning("get_network_traffic did not return a list.")
@@ -175,15 +124,10 @@ class NetworkEndpoints:
             A list of webhooks.
 
         """
-<<<<<<< HEAD
-        webhooks = await self._api_client.run_sync(
-            self._dashboard.networks.getNetworkWebhooksHttpServers,
-=======
         if self._api_client.dashboard is None:
             return []
         webhooks = await self._api_client.run_sync(
             self._api_client.dashboard.networks.getNetworkWebhooksHttpServers,
->>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
             networkId=network_id,
         )
         validated = validate_response(webhooks)
@@ -203,15 +147,10 @@ class NetworkEndpoints:
             webhook_id: The ID of the webhook.
 
         """
-<<<<<<< HEAD
-        await self._api_client.run_sync(
-            self._dashboard.networks.deleteNetworkWebhooksHttpServer,
-=======
         if self._api_client.dashboard is None:
             return
         await self._api_client.run_sync(
             self._api_client.dashboard.networks.deleteNetworkWebhooksHttpServer,
->>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
             networkId=network_id,
             httpServerId=webhook_id,
         )
@@ -257,15 +196,10 @@ class NetworkEndpoints:
             if existing_webhook:
                 await self.delete_webhook(network_id, existing_webhook["id"])
 
-<<<<<<< HEAD
-            await self._api_client.run_sync(
-                self._dashboard.networks.createNetworkWebhooksHttpServer,
-=======
             if self._api_client.dashboard is None:
                 return
             await self._api_client.run_sync(
                 self._api_client.dashboard.networks.createNetworkWebhooksHttpServer,
->>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
                 networkId=network_id,
                 url=webhook_url,
                 sharedSecret=secret,
@@ -273,32 +207,17 @@ class NetworkEndpoints:
             )
 
     @handle_meraki_errors
-<<<<<<< HEAD
-    async def unregister_webhook(self, webhook_id: str) -> None:
-=======
     async def unregister_webhook(self, webhook_url: str) -> None:
->>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
         """
         Unregister a webhook with the Meraki API.
 
         Args:
         ----
-<<<<<<< HEAD
-            webhook_id: The ID of the webhook.
-=======
             webhook_url: The URL of the webhook to unregister.
->>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
 
         """
         networks = await self._api_client.organization.get_organization_networks()
         for network in networks:
-<<<<<<< HEAD
-            await self._api_client.run_sync(
-                self._dashboard.networks.deleteNetworkWebhooksHttpServer,
-                networkId=network["id"],
-                httpServerId=webhook_id,
-            )
-=======
             network_id = network["id"]
             webhook_to_delete = await self.find_webhook_by_url(network_id, webhook_url)
             if webhook_to_delete and "id" in webhook_to_delete:
@@ -308,7 +227,6 @@ class NetworkEndpoints:
                     network_id,
                 )
                 await self.delete_webhook(network_id, webhook_to_delete["id"])
->>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
 
     @handle_meraki_errors
     @async_timed_cache(timeout=60)
@@ -328,15 +246,10 @@ class NetworkEndpoints:
             A list of analytics history.
 
         """
-<<<<<<< HEAD
-        history = await self._api_client.run_sync(
-            self._dashboard.camera.getNetworkCameraAnalyticsRecent,
-=======
         if self._api_client.dashboard is None:
             return []
         history = await self._api_client.run_sync(
             self._api_client.dashboard.camera.getNetworkCameraAnalyticsRecent,
->>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
             networkId=network_id,
             objectType=object_type,
         )
@@ -347,8 +260,6 @@ class NetworkEndpoints:
             )
             return []
         return validated
-<<<<<<< HEAD
-=======
 
     @handle_meraki_errors
     @async_timed_cache(timeout=300)
@@ -376,4 +287,3 @@ class NetworkEndpoints:
             _LOGGER.warning("get_network_group_policies did not return a list.")
             return []
         return validated
->>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)

@@ -22,34 +22,17 @@ def auto_enable_custom_integrations(
     yield
 
 
-<<<<<<< HEAD
-@pytest.fixture(autouse=True)
-def bypass_platform_setup() -> Generator[None, None, None]:
-    """Bypass platform setup to avoid hass_frontend dependency."""
-    from unittest.mock import patch
-    with patch("homeassistant.setup.async_setup_component", return_value=True):
-        yield
-
-
-@pytest.fixture
-def mock_coordinator() -> MagicMock:
-    """Fixture for a mocked MerakiDataUpdateCoordinator."""
-=======
 @pytest.fixture
 def mock_coordinator() -> MagicMock:
     """Fixture for a mocked MerakiDataCoordinator."""
->>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
     coordinator = MagicMock()
     coordinator.config_entry.options = {}
     coordinator.data = MOCK_ALL_DATA
     coordinator.async_request_refresh = AsyncMock()
     coordinator.async_write_ha_state = MagicMock()
-<<<<<<< HEAD
-=======
     coordinator.is_update_pending = MagicMock(return_value=False)
     coordinator.register_update_pending = MagicMock()
     coordinator.async_request_refresh = AsyncMock()
->>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
     return coordinator
 
 
@@ -59,8 +42,6 @@ def mock_config_entry() -> MagicMock:
     entry = MagicMock()
     entry.options = {}
     return entry
-<<<<<<< HEAD
-=======
 
 
 @pytest.fixture(autouse=True)
@@ -81,4 +62,3 @@ def prevent_socket_and_camera_load() -> Generator[None, None, None]:
         patch("turbojpeg.TurboJPEG", MagicMock()),
     ):
         yield
->>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)

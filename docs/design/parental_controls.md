@@ -11,11 +11,7 @@ This plan will focus on two core features:
 
 ---
 
-<<<<<<< HEAD
-\***\*2. Core Features & User Stories**
-=======
 ### **2. Core Features & User Stories**
->>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
 
 - **Content Filtering Policy Selection:** \* **User Story:** As a parent, I want to quickly switch my network’s content filtering policy from "school" to "gaming" to "bedtime" directly from Home Assistant, so I can easily manage my family's internet access throughout the day.
   - **Implementation:** A `select` entity will be exposed for each Meraki network, allowing the user to choose from a list of predefined content filtering policies from the Meraki dashboard.
@@ -26,15 +22,9 @@ This plan will focus on two core features:
 
 ---
 
-<<<<<<< HEAD
-\***\*3. Technical Design**
-
-#\***\*3.1. Home Assistant Entities**
-=======
 ### **3. Technical Design**
 
 #### **3.1. Home Assistant Entities**
->>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
 
 - **Entity 1: Content Filtering `select` Entity**
   - **Entity ID:** `select.meraki_content_filtering_policy_<network_name_slug>`
@@ -50,11 +40,7 @@ This plan will focus on two core features:
     - `GET /networks/{networkId}/appliance/firewall/l7FirewallRules` (to check for existing rules)
     - `PUT /networks/{networkId}/appliance/firewall/l7FirewallRules` (to add/remove rules)
 
-<<<<<<< HEAD
-#\***\*3.2. Meraki API Interaction**
-=======
 #### **3.2. Meraki API Interaction**
->>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
 
 - **Content Filtering:** The API endpoints are correctly identified. The agent should be aware that the `PUT` request to update content filtering requires the entire object, including the `allowedUrlPatterns` and `blockedUrlPatterns`. It should **read the current state first, update only the policy, and then write the complete object back**.
 - **Client Firewall Rules:** This is the most critical part of the implementation. The agent must:
@@ -69,11 +55,7 @@ This plan will focus on two core features:
 3. When a switch is toggled **off** (to allow), the agent will find the rule with the unique comment and the matching client IP and remove it from the list of rules before sending the `PUT` request.
 4. **Important:** The Meraki API has an endpoint to get a client's IP address (`GET /networks/{networkId}/clients/{clientId}/status`). The agent should use this to get the IP, as the `/networks/{networkId}/clients` endpoint might not always have the most up-to-date IP address.
 
-<<<<<<< HEAD
-#\***\*3.3. State Management & Polling**
-=======
 #### **3.3. State Management & Polling**
->>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
 
 - The integration must poll the Meraki API at a reasonable interval (e.g., every 3-5 minutes) to update the state of the Home Assistant entities.
 - The `select` entity's state should reflect the current Meraki network policy.
@@ -81,11 +63,7 @@ This plan will focus on two core features:
 
 ---
 
-<<<<<<< HEAD
-\***\*4. Risks & Mitigations**
-=======
 ### **4. Risks & Mitigations**
->>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
 
 - **Risk:** Overwriting user-defined firewall rules.
   - **Mitigation:** The plan to use a unique comment is the correct approach. The agent **must only modify rules that contain this specific comment**. All other rules must be preserved.
@@ -98,11 +76,7 @@ This plan will focus on two core features:
 
 ---
 
-<<<<<<< HEAD
-\***\*5. Additional & Optional Features**
-=======
 ### **5. Additional & Optional Features**
->>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
 
 Based on the capabilities of Meraki devices, here are a few more advanced features that would significantly enhance the user experience and create a more robust parental controls solution.
 

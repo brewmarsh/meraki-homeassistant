@@ -8,14 +8,6 @@ against the Meraki Dashboard API using the Meraki SDK.
 from __future__ import annotations
 
 import logging
-<<<<<<< HEAD
-from typing import Any
-
-from homeassistant.core import HomeAssistant
-from homeassistant.exceptions import ConfigEntryAuthFailed
-from meraki.exceptions import APIError as MerakiSDKAPIError
-
-=======
 from typing import TYPE_CHECKING, Any
 
 from homeassistant.exceptions import ConfigEntryAuthFailed
@@ -24,7 +16,6 @@ from meraki.exceptions import APIError as MerakiSDKAPIError
 if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
 
->>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
 from .core.api.client import MerakiAPIClient
 from .core.errors import MerakiAuthenticationError, MerakiConnectionError
 
@@ -77,10 +68,7 @@ class MerakiAuthentication:
             api_key=self.api_key,
             org_id=self.organization_id,
         )
-<<<<<<< HEAD
-=======
         await client.async_setup()
->>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
 
         try:
             all_organizations: list[

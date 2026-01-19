@@ -12,11 +12,7 @@ from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from ...types import MerakiDevice, MerakiNetwork
-<<<<<<< HEAD
-    from ..coordinator import MerakiDataUpdateCoordinator
-=======
     from ..meraki_data_coordinator import MerakiDataCoordinator
->>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -24,13 +20,7 @@ _LOGGER = logging.getLogger(__name__)
 class NetworkHub:
     """A hub for processing data for a specific network."""
 
-<<<<<<< HEAD
-    def __init__(
-        self, coordinator: MerakiDataUpdateCoordinator, network_id: str
-    ) -> None:
-=======
     def __init__(self, coordinator: MerakiDataCoordinator, network_id: str) -> None:
->>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
         """Initialize the NetworkHub."""
         self._coordinator = coordinator
         self.network_id = network_id

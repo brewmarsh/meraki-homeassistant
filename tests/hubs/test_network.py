@@ -10,11 +10,7 @@ from tests.const import MOCK_DEVICE, MOCK_NETWORK
 
 @pytest.fixture
 def mock_coordinator_with_devices_and_ssids(mock_coordinator: MagicMock) -> MagicMock:
-<<<<<<< HEAD
-    """Fixture for a mocked MerakiDataUpdateCoordinator with devices and SSIDs."""
-=======
     """Fixture for a mocked MerakiDataCoordinator with devices and SSIDs."""
->>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
     device_in_network = MOCK_DEVICE.copy()
     device_in_network["networkId"] = MOCK_NETWORK["id"]
     device_other_network = MOCK_DEVICE.copy()

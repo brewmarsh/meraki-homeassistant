@@ -10,31 +10,19 @@ The primary purpose of this web interface is to provide a user-friendly way to *
 
 The web interface will be a modern, single-page application (SPA) served by a lightweight Python web server that is started and managed by the Home Assistant integration itself.
 
-<<<<<<< HEAD
-\*\*2.1. Technology Stack
-=======
 ### 2.1. Technology Stack
->>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
 
 - **Backend/Web Server**: `aiohttp`.
 - **Frontend Framework**: **React** (using Vite for tooling).
 - **Styling**: **Tailwind CSS**.
 
-<<<<<<< HEAD
-\*\*2.2. Architecture
-=======
 ### 2.2. Architecture
->>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
 
 1. The integration will start an `aiohttp` web server on a user-configurable port.
 2. The server will serve a pre-built React application from `web_ui/dist`.
 3. The React app will consume REST API endpoints from the server to get data from the integration's coordinator.
 
-<<<<<<< HEAD
-\*\*2.3. API Endpoints
-=======
 ### 2.3. API Endpoints
->>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
 
 - `GET /api/config`: General configuration.
 - `GET /api/networks`: List of all networks.
@@ -46,11 +34,7 @@ The web interface will be a modern, single-page application (SPA) served by a li
 
 The application layout will be updated to a two-column design with a new color scheme.
 
-<<<<<<< HEAD
-\*\*3.1. Layout
-=======
 ### 3.1. Layout
->>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
 
 - **Left Column (Sidebar):**
   - A fixed-width, persistent sidebar for navigation.
@@ -58,11 +42,7 @@ The application layout will be updated to a two-column design with a new color s
 - **Right Column (Main Content):**
   - Displays the content for the selected page.
 
-<<<<<<< HEAD
-\*\*3.2. Theming and Color Scheme
-=======
 ### 3.2. Theming and Color Scheme
->>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
 
 - **Color Palette:**
   - **Primary/Accent:** Cisco Blue (e.g., `#00bceb`).
@@ -72,11 +52,7 @@ The application layout will be updated to a two-column design with a new color s
   - Must support automatic dark mode based on `prefers-color-scheme`.
   - To be implemented using Tailwind CSS's `dark:` variant.
 
-<<<<<<< HEAD
-\*\*3.3. Card Layout
-=======
 ### 3.3. Card Layout
->>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
 
 - The existing card-based layout will be maintained and enhanced.
 - Cards should be designed to be flexible for future additions (more data, action buttons).

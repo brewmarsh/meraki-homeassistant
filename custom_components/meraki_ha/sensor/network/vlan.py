@@ -7,16 +7,9 @@ import logging
 from homeassistant.components.sensor import SensorEntity
 from homeassistant.config_entries import ConfigEntry
 
-<<<<<<< HEAD
-from ...coordinator import MerakiDataUpdateCoordinator
-from ...core.entities.meraki_vlan_entity import MerakiVLANEntity
-from ...core.utils.entity_id_utils import get_vlan_entity_id
-from ...core.utils.naming_utils import format_entity_name
-=======
 from ...core.entities.meraki_vlan_entity import MerakiVLANEntity
 from ...core.utils.entity_id_utils import get_vlan_entity_id
 from ...meraki_data_coordinator import MerakiDataCoordinator
->>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
 from ...types import MerakiVlan
 
 _LOGGER = logging.getLogger(__name__)
@@ -27,11 +20,7 @@ class MerakiVLANIDSensor(MerakiVLANEntity, SensorEntity):
 
     def __init__(
         self,
-<<<<<<< HEAD
-        coordinator: MerakiDataUpdateCoordinator,
-=======
         coordinator: MerakiDataCoordinator,
->>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
         config_entry: ConfigEntry,
         network_id: str,
         vlan: MerakiVlan,
@@ -57,11 +46,7 @@ class MerakiVLANIPv4EnabledSensor(MerakiVLANEntity, SensorEntity):
 
     def __init__(
         self,
-<<<<<<< HEAD
-        coordinator: MerakiDataUpdateCoordinator,
-=======
         coordinator: MerakiDataCoordinator,
->>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
         config_entry: ConfigEntry,
         network_id: str,
         vlan: MerakiVlan,
@@ -89,11 +74,7 @@ class MerakiVLANIPv4InterfaceSensor(MerakiVLANEntity, SensorEntity):
 
     def __init__(
         self,
-<<<<<<< HEAD
-        coordinator: MerakiDataUpdateCoordinator,
-=======
         coordinator: MerakiDataCoordinator,
->>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
         config_entry: ConfigEntry,
         network_id: str,
         vlan: MerakiVlan,
@@ -121,11 +102,7 @@ class MerakiVLANIPv4UplinkSensor(MerakiVLANEntity, SensorEntity):
 
     def __init__(
         self,
-<<<<<<< HEAD
-        coordinator: MerakiDataUpdateCoordinator,
-=======
         coordinator: MerakiDataCoordinator,
->>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
         config_entry: ConfigEntry,
         network_id: str,
         vlan: MerakiVlan,
@@ -154,11 +131,7 @@ class MerakiVLANIPv6EnabledSensor(MerakiVLANEntity, SensorEntity):
 
     def __init__(
         self,
-<<<<<<< HEAD
-        coordinator: MerakiDataUpdateCoordinator,
-=======
         coordinator: MerakiDataCoordinator,
->>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
         config_entry: ConfigEntry,
         network_id: str,
         vlan: MerakiVlan,
@@ -189,11 +162,7 @@ class MerakiVLANIPv6InterfaceSensor(MerakiVLANEntity, SensorEntity):
 
     def __init__(
         self,
-<<<<<<< HEAD
-        coordinator: MerakiDataUpdateCoordinator,
-=======
         coordinator: MerakiDataCoordinator,
->>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
         config_entry: ConfigEntry,
         network_id: str,
         vlan: MerakiVlan,
@@ -224,11 +193,7 @@ class MerakiVLANIPv6UplinkSensor(MerakiVLANEntity, SensorEntity):
 
     def __init__(
         self,
-<<<<<<< HEAD
-        coordinator: MerakiDataUpdateCoordinator,
-=======
         coordinator: MerakiDataCoordinator,
->>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
         config_entry: ConfigEntry,
         network_id: str,
         vlan: MerakiVlan,

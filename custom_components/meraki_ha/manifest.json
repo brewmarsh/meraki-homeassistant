@@ -1,17 +1,10 @@
 {
   "domain": "meraki_ha",
   "name": "Meraki for Home Assistant",
-<<<<<<< HEAD
-  "after_dependencies": ["webrtc"],
-  "codeowners": ["@brewmarsh"],
-  "config_flow": true,
-  "dependencies": ["http", "camera"],
-=======
   "after_dependencies": [],
   "codeowners": ["@brewmarsh"],
   "config_flow": true,
   "dependencies": ["frontend", "panel_custom", "http", "webrtc"],
->>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
   "documentation": "https://github.com/brewmarsh/meraki-homeassistant",
   "integration_type": "hub",
   "iot_class": "cloud_polling",
@@ -19,22 +12,10 @@
   "loggers": ["meraki_ha"],
   "quality_scale": "platinum",
   "requirements": [
-<<<<<<< HEAD
-    "aiodns==3.6.1",
-    "pycares==4.11.0",
-    "webrtc-models==0.3.0",
-    "aiortc",
-    "meraki",
-    "aiohttp>=3.13.2",
-    "urllib3>=2.6.2"
-  ],
-  "version": "2.1.0-beta.66"
-=======
     "aiohttp>=3.13.2",
     "urllib3>=2.6.2",
     "aiodns==3.6.1",
     "pycares==4.11.0"
   ],
   "version": "2.0.0-beta.69"
->>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
 }

@@ -8,9 +8,5 @@ jobs:
   validate:
     runs-on: 'ubuntu-latest'
     steps:
-<<<<<<< HEAD
-      - uses: 'actions/checkout@v4'
-=======
       - uses: 'actions/checkout@v3'
->>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
       - uses: 'home-assistant/actions/hassfest@master'

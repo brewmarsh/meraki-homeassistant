@@ -1,10 +1,6 @@
 {
   "name": "meraki-homeassistant",
-<<<<<<< HEAD
-  "version": "2.1.0-beta.67",
-=======
   "version": "2.0.0-beta.69",
->>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
   "description": "Meraki Home Assistant Integration",
   "scripts": {
     "changelog": "conventional-changelog -p angular -i CHANGELOG.md -s",
@@ -15,11 +11,5 @@
   },
   "engines": {
     "node": ">=18"
-<<<<<<< HEAD
-  },
-  "dependencies": {
-    "lit": "^3.3.2"
-=======
->>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
   }
 }

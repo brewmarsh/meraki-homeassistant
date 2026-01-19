@@ -22,10 +22,6 @@ class WirelessEndpoints:
     def __init__(self, api_client: "MerakiAPIClient") -> None:
         """Initialize the endpoint."""
         self._api_client = api_client
-<<<<<<< HEAD
-        self._dashboard = api_client.dashboard
-=======
->>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
 
     @handle_meraki_errors
     @async_timed_cache()
@@ -42,15 +38,10 @@ class WirelessEndpoints:
             A list of SSIDs.
 
         """
-<<<<<<< HEAD
-        ssids = await self._api_client.run_sync(
-            self._dashboard.wireless.getNetworkWirelessSsids,
-=======
         if self._api_client.dashboard is None:
             return []
         ssids = await self._api_client.run_sync(
             self._api_client.dashboard.wireless.getNetworkWirelessSsids,
->>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
             networkId=network_id,
         )
         validated = validate_response(ssids)
@@ -74,15 +65,10 @@ class WirelessEndpoints:
             The wireless settings.
 
         """
-<<<<<<< HEAD
-        settings = await self._api_client.run_sync(
-            self._dashboard.wireless.getDeviceWirelessRadioSettings,
-=======
         if self._api_client.dashboard is None:
             return {}
         settings = await self._api_client.run_sync(
             self._api_client.dashboard.wireless.getDeviceWirelessRadioSettings,
->>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
             serial=serial,
         )
         validated = validate_response(settings)
@@ -92,8 +78,6 @@ class WirelessEndpoints:
         return validated
 
     @handle_meraki_errors
-<<<<<<< HEAD
-=======
     async def create_network_wireless_ssid_identity_psk(
         self,
         network_id: str,
@@ -137,7 +121,6 @@ class WirelessEndpoints:
         return validated
 
     @handle_meraki_errors
->>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
     @async_timed_cache()
     async def get_network_wireless_ssid(
         self,
@@ -157,15 +140,10 @@ class WirelessEndpoints:
             The SSID details.
 
         """
-<<<<<<< HEAD
-        ssid = await self._api_client.run_sync(
-            self._dashboard.wireless.getNetworkWirelessSsid,
-=======
         if self._api_client.dashboard is None:
             return {}
         ssid = await self._api_client.run_sync(
             self._api_client.dashboard.wireless.getNetworkWirelessSsid,
->>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
             networkId=network_id,
             number=number,
         )
@@ -176,8 +154,6 @@ class WirelessEndpoints:
         return validated
 
     @handle_meraki_errors
-<<<<<<< HEAD
-=======
     @async_timed_cache()
     async def get_network_wireless_settings(self, network_id: str) -> dict[str, Any]:
         """
@@ -233,7 +209,6 @@ class WirelessEndpoints:
         return validated
 
     @handle_meraki_errors
->>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
     async def update_network_wireless_ssid(
         self,
         network_id: str,
@@ -254,15 +229,10 @@ class WirelessEndpoints:
             The updated SSID.
 
         """
-<<<<<<< HEAD
-        ssid = await self._api_client.run_sync(
-            self._dashboard.wireless.updateNetworkWirelessSsid,
-=======
         if self._api_client.dashboard is None:
             return {}
         ssid = await self._api_client.run_sync(
             self._api_client.dashboard.wireless.updateNetworkWirelessSsid,
->>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
             networkId=network_id,
             number=number,
             **kwargs,
@@ -291,15 +261,10 @@ class WirelessEndpoints:
             A list of RF profiles.
 
         """
-<<<<<<< HEAD
-        profiles = await self._api_client.run_sync(
-            self._dashboard.wireless.getNetworkWirelessRfProfiles,
-=======
         if self._api_client.dashboard is None:
             return []
         profiles = await self._api_client.run_sync(
             self._api_client.dashboard.wireless.getNetworkWirelessRfProfiles,
->>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
             networkId=network_id,
         )
         validated = validate_response(profiles)
@@ -328,15 +293,10 @@ class WirelessEndpoints:
             The L7 firewall rules.
 
         """
-<<<<<<< HEAD
-        rules = await self._api_client.run_sync(
-            self._dashboard.wireless.getNetworkWirelessSsidL7FirewallRules,
-=======
         if self._api_client.dashboard is None:
             return {}
         rules = await self._api_client.run_sync(
             self._api_client.dashboard.wireless.getNetworkWirelessSsidL7FirewallRules,
->>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
             networkId=network_id,
             number=number,
         )
@@ -369,15 +329,10 @@ class WirelessEndpoints:
             The updated L7 firewall rules.
 
         """
-<<<<<<< HEAD
-        rules = await self._api_client.run_sync(
-            self._dashboard.wireless.updateNetworkWirelessSsidL7FirewallRules,
-=======
         if self._api_client.dashboard is None:
             return {}
         rules = await self._api_client.run_sync(
             self._api_client.dashboard.wireless.updateNetworkWirelessSsidL7FirewallRules,
->>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
             networkId=network_id,
             number=number,
             **kwargs,

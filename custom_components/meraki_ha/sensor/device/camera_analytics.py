@@ -9,14 +9,8 @@ from homeassistant.components.sensor import SensorEntity
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-<<<<<<< HEAD
-from ...coordinator import MerakiDataUpdateCoordinator
-from ...core.utils.naming_utils import format_entity_name
-from ...helpers.device_info_helpers import resolve_device_info
-=======
 from ...helpers.device_info_helpers import resolve_device_info
 from ...meraki_data_coordinator import MerakiDataCoordinator
->>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
 
 if TYPE_CHECKING:
     from ...services.camera_service import CameraService
@@ -30,11 +24,7 @@ class MerakiAnalyticsSensor(CoordinatorEntity, SensorEntity):
 
     def __init__(
         self,
-<<<<<<< HEAD
-        coordinator: MerakiDataUpdateCoordinator,
-=======
         coordinator: MerakiDataCoordinator,
->>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
         device: dict[str, Any],
         camera_service: CameraService,
         object_type: str,
@@ -45,13 +35,7 @@ class MerakiAnalyticsSensor(CoordinatorEntity, SensorEntity):
         self._camera_service = camera_service
         self._object_type = object_type
         self._attr_unique_id = f"{self._device['serial']}-{object_type}-count"
-<<<<<<< HEAD
-        self._attr_name = (
-            f"[Camera] {self._device['name']} {object_type.capitalize()} Count"
-        )
-=======
         self._attr_name = f"{self._device['name']} {object_type.capitalize()} Count"
->>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
         self._analytics_data: dict[str, Any] = {}
 
     @property
@@ -92,11 +76,7 @@ class MerakiPersonCountSensor(MerakiAnalyticsSensor):
 
     def __init__(
         self,
-<<<<<<< HEAD
-        coordinator: MerakiDataUpdateCoordinator,
-=======
         coordinator: MerakiDataCoordinator,
->>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
         device: dict[str, Any],
         camera_service: CameraService,
     ) -> None:
@@ -110,11 +90,7 @@ class MerakiVehicleCountSensor(MerakiAnalyticsSensor):
 
     def __init__(
         self,
-<<<<<<< HEAD
-        coordinator: MerakiDataUpdateCoordinator,
-=======
         coordinator: MerakiDataCoordinator,
->>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
         device: dict[str, Any],
         camera_service: CameraService,
     ) -> None:

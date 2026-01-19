@@ -1,10 +1,6 @@
 """Helper function for setting up all sensor entities."""
 
 import logging
-<<<<<<< HEAD
-from dataclasses import asdict
-=======
->>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
 from typing import TYPE_CHECKING, cast
 
 from homeassistant.config_entries import ConfigEntry
@@ -15,11 +11,7 @@ from ..const import (
     CONF_ENABLE_DEVICE_TRACKER,
     CONF_ENABLE_VLAN_MANAGEMENT,
 )
-<<<<<<< HEAD
-from ..coordinator import MerakiDataUpdateCoordinator
-=======
 from ..meraki_data_coordinator import MerakiDataCoordinator
->>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
 from ..sensor_registry import (
     COMMON_SENSORS_COORD_DEV_CONF,
     get_sensors_for_device_type,
@@ -51,23 +43,14 @@ _LOGGER = logging.getLogger(__name__)
 
 def _setup_device_sensors(
     config_entry: ConfigEntry,
-<<<<<<< HEAD
-    coordinator: MerakiDataUpdateCoordinator,
-=======
     coordinator: MerakiDataCoordinator,
->>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
     added_entities: set[str],
     camera_service: "CameraService",
 ) -> list[Entity]:
     """Set up device-specific sensors."""
     entities: list[Entity] = []
     devices = coordinator.data.get("devices", [])
-<<<<<<< HEAD
-    for device in devices:
-        device_info = asdict(device)
-=======
     for device_info in devices:
->>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
         serial = device_info.get("serial")
         if not serial:
             _LOGGER.warning("Skipping device with missing serial.")
@@ -127,22 +110,14 @@ def _setup_device_sensors(
 
 def _setup_network_sensors(
     config_entry: ConfigEntry,
-<<<<<<< HEAD
-    coordinator: MerakiDataUpdateCoordinator,
-=======
     coordinator: MerakiDataCoordinator,
->>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
     added_entities: set[str],
 ) -> list[Entity]:
     """Set up network-specific sensors."""
     entities: list[Entity] = []
     networks = coordinator.data.get("networks", [])
     for network_data in networks:
-<<<<<<< HEAD
-        network_id = network_data.id
-=======
         network_id = network_data.get("id")
->>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
         if not network_id:
             continue
 
@@ -161,11 +136,7 @@ def _setup_network_sensors(
 
 def _setup_client_tracker_sensors(
     config_entry: ConfigEntry,
-<<<<<<< HEAD
-    coordinator: MerakiDataUpdateCoordinator,
-=======
     coordinator: MerakiDataCoordinator,
->>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
 ) -> list[Entity]:
     """Set up client tracker sensors."""
     if not config_entry.options.get(CONF_ENABLE_DEVICE_TRACKER, True):
@@ -187,11 +158,7 @@ def _setup_client_tracker_sensors(
 
 def _setup_vlan_sensors(
     config_entry: ConfigEntry,
-<<<<<<< HEAD
-    coordinator: MerakiDataUpdateCoordinator,
-=======
     coordinator: MerakiDataCoordinator,
->>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
     added_entities: set[str],
 ) -> list[Entity]:
     """Set up VLAN sensors."""
@@ -234,11 +201,7 @@ def _setup_vlan_sensors(
 
 def _setup_uplink_sensors(
     config_entry: ConfigEntry,
-<<<<<<< HEAD
-    coordinator: MerakiDataUpdateCoordinator,
-=======
     coordinator: MerakiDataCoordinator,
->>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
     added_entities: set[str],
 ) -> list[Entity]:
     """Set up appliance uplink sensors."""
@@ -249,20 +212,9 @@ def _setup_uplink_sensors(
         if not serial:
             continue
 
-<<<<<<< HEAD
-        device = coordinator.get_device(serial)
-        if not device:
-            continue
-        device_info = asdict(device)
-
-        # Fallback for devices without a name
-        if not device_info.get("name"):
-            device_info["name"] = f"Meraki Device {serial}"
-=======
         device_info = coordinator.get_device(serial)
         if not device_info:
             continue
->>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
 
         for uplink in uplink_status.get("uplinks", []):
             interface = uplink.get("interface")
@@ -273,11 +225,7 @@ def _setup_uplink_sensors(
             if unique_id not in added_entities:
                 entities.append(
                     MerakiApplianceUplinkSensor(
-<<<<<<< HEAD
-                        coordinator, device_info, config_entry, uplink
-=======
                         coordinator, cast(dict, device_info), config_entry, uplink
->>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
                     )
                 )
                 added_entities.add(unique_id)
@@ -286,17 +234,6 @@ def _setup_uplink_sensors(
 
 def _setup_ssid_sensors(
     config_entry: ConfigEntry,
-<<<<<<< HEAD
-    coordinator: MerakiDataUpdateCoordinator,
-    added_entities: set[str],
-) -> list[Entity]:
-    """Set up SSID-specific sensors."""
-    entities: list[Entity] = []
-    ssids = coordinator.data.get("ssids", [])
-    for ssid_data in ssids:
-        network_id = ssid_data.get("networkId")
-        ssid_number = ssid_data.get("number")
-=======
     coordinator: MerakiDataCoordinator,
     added_entities: set[str],
 ) -> list[Entity]:
@@ -313,7 +250,6 @@ def _setup_ssid_sensors(
             network_id,
             ssid_number,
         )
->>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
         if not network_id or ssid_number is None:
             continue
 
@@ -331,18 +267,11 @@ def _setup_ssid_sensors(
 def async_setup_sensors(
     hass: HomeAssistant,
     config_entry: ConfigEntry,
-<<<<<<< HEAD
-    coordinator: MerakiDataUpdateCoordinator,
-    camera_service: "CameraService",
-) -> list[Entity]:
-    """Set up all sensor entities from the central coordinator."""
-=======
     coordinator: MerakiDataCoordinator,
     camera_service: "CameraService",
 ) -> list[Entity]:
     """Set up all sensor entities from the central coordinator."""
     _LOGGER.debug("Setting up all sensors")
->>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
     entities: list[Entity] = []
     added_entities: set[str] = set()
 
