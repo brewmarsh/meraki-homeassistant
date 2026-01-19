@@ -1,8 +1,8 @@
-uv==0.9.17
+uv
 aiofiles==23.2.1
 types-aiofiles==25.1.0.20251011
 meraki==1.40.1
-PyTurboJPEG==1.7.2
+PyTurboJPEG==1.8.2
 ruff==0.5.5
 pip-audit==2.7.3
 bandit==1.7.9
@@ -13,11 +13,11 @@ playwright
 pytest-homeassistant-custom-component
 pytest
 pytest-cov
-pytest-asyncio==1.2.0
+pytest-asyncio
 codecov
 aiohttp
-urllib3>=2.6.2
-aiodns==3.6.1
-pycares==4.11.0
+urllib3
+aiodns
+pycares
 pre-commit
 filelock==3.20.3

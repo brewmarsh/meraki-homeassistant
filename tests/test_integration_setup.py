@@ -11,6 +11,7 @@ from homeassistant.helpers.entity_registry import async_get as async_get_entity_
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.meraki_ha.const import DOMAIN
+from custom_components.meraki_ha.types import MerakiNetwork
 from tests.const import MOCK_DEVICE, MOCK_GX_DEVICE, MOCK_MX_DEVICE
 
 
@@ -36,11 +37,12 @@ def mock_meraki_client() -> AsyncMock:
         return_value={
             "devices": [MOCK_DEVICE, MOCK_MX_DEVICE, MOCK_GX_DEVICE],
             "networks": [
-                {
-                    "id": "net1",
-                    "name": "Test Network",
-                    "productTypes": ["wireless", "appliance"],
-                },
+                MerakiNetwork(
+                    id="net1",
+                    name="Test Network",
+                    product_types=["wireless", "appliance"],
+                    organization_id="fake_org",
+                ),
             ],
             "ssids": [
                 {

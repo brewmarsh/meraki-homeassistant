@@ -75,7 +75,7 @@ class MSHandler(BaseDeviceHandler):
 
         # Add switch port sensors, but only for enabled ports to avoid flooding
         # the entity registry.
-        ports = self.device.get("ports_statuses", [])
+        ports = self.device.ports_statuses
         for port in ports:
             if port.get("enabled"):
                 entities.append(

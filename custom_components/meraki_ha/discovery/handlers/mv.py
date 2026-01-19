@@ -84,7 +84,7 @@ class MVHandler(BaseDeviceHandler):
     async def discover_entities(self) -> list[Entity]:
         """Discover entities for a camera device."""
         entities: list[Entity] = []
-        serial = self.device["serial"]
+        serial = self.device.serial
 
         # If configured, ensure the RTSP stream is enabled by default
         if self._config_entry.options.get("rtsp_stream_enabled", False):

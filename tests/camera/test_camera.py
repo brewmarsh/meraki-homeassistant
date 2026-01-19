@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import dataclasses
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
@@ -18,6 +19,22 @@ def mock_camera(
     mock_camera_service: AsyncMock,
 ) -> MerakiCamera:
     """Fixture for a mocked MerakiCamera."""
+    # Ensure the camera device is available in the coordinator data
+    if "devices" in mock_coordinator.data:
+        # Check if already present to avoid duplicates
+        if not any(
+            d.serial == MOCK_CAMERA_DEVICE.serial for d in mock_coordinator.data["devices"]
+        ):
+            mock_coordinator.data["devices"].append(MOCK_CAMERA_DEVICE)
+
+    # Mock get_device to return the camera device when requested
+    def get_device_side_effect(serial: str):
+        if serial == MOCK_CAMERA_DEVICE.serial:
+            return MOCK_CAMERA_DEVICE
+        return None
+
+    mock_coordinator.get_device.side_effect = get_device_side_effect
+
     return MerakiCamera(
         mock_coordinator,
         mock_config_entry,
@@ -70,7 +87,7 @@ async def test_camera_turn_on(
 
     # Assert
     mock_camera_service.async_set_rtsp_stream_enabled.assert_called_once_with(
-        MOCK_CAMERA_DEVICE["serial"],
+        MOCK_CAMERA_DEVICE.serial,
         True,
     )
     mock_coordinator.register_pending_update.assert_called_once_with(
@@ -105,7 +122,7 @@ async def test_camera_turn_off(
 
     # Assert
     mock_camera_service.async_set_rtsp_stream_enabled.assert_called_once_with(
-        MOCK_CAMERA_DEVICE["serial"],
+        MOCK_CAMERA_DEVICE.serial,
         False,
     )
     mock_coordinator.register_pending_update.assert_called_once_with(
@@ -143,12 +160,13 @@ def test_is_streaming_logic(
 
     """
     # Arrange
-    mock_device_data = {
-        **MOCK_CAMERA_DEVICE,
-        "video_settings": video_settings,
+    mock_device_data = dataclasses.replace(
+        MOCK_CAMERA_DEVICE,
+        video_settings=video_settings,
         # Ensure lanIp is None for this test to isolate rtspUrl logic
-        "lanIp": None,
-    }
+        lan_ip=None,
+        rtsp_url=video_settings.get("rtspUrl"),
+    )
     # The entity is initialized with this data, so we pass it directly
     camera = MerakiCamera(
         mock_coordinator,
@@ -198,7 +216,7 @@ async def test_camera_image(
         # Assert
         assert image == b"image_bytes"
         mock_camera_service.generate_snapshot.assert_called_once_with(
-            MOCK_CAMERA_DEVICE["serial"],
+            MOCK_CAMERA_DEVICE.serial,
         )
 
 
@@ -219,14 +237,14 @@ def test_entity_disabled_if_no_url(
     """
     # Arrange
     # Create a mock device with no way to determine a stream URL
-    mock_device_no_url = {
-        **MOCK_CAMERA_DEVICE,
-        "video_settings": {
+    mock_device_no_url = dataclasses.replace(
+        MOCK_CAMERA_DEVICE,
+        video_settings={
             "rtspServerEnabled": True,
             "rtspUrl": None,
         },
-        "lanIp": None,
-    }
+        lan_ip=None,
+    )
 
     # Act
     camera = MerakiCamera(

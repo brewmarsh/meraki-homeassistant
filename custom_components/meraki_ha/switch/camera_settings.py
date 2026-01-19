@@ -1,5 +1,6 @@
 """Base classes for Meraki camera switch entities."""
 
+import dataclasses
 import logging
 from typing import Any
 
@@ -25,7 +26,7 @@ class MerakiCameraSettingSwitchBase(
         self,
         coordinator: MerakiDataUpdateCoordinator,
         meraki_client: MerakiAPIClient,
-        device_data: dict[str, Any],
+        device_data: dict[str, Any] | Any,
         key: str,
         api_field: str,
     ) -> None:
@@ -46,7 +47,12 @@ class MerakiCameraSettingSwitchBase(
         self._device_data = device_data
         self._key = key
         self._api_field = api_field
-        self._attr_unique_id = f"{self._device_data['serial']}_{self._key}"
+        serial = (
+            device_data.serial
+            if hasattr(device_data, "serial")
+            else device_data["serial"]
+        )
+        self._attr_unique_id = f"{serial}_{self._key}"
         self._attr_is_on = False
         self._update_state()  # Set initial state
 
@@ -70,13 +76,20 @@ class MerakiCameraSettingSwitchBase(
         for key in keys:
             if isinstance(value, dict):
                 value = value.get(key)
+            elif dataclasses.is_dataclass(value) and hasattr(value, key):
+                value = getattr(value, key)
             else:
                 return False
         return bool(value)
 
     def _update_state(self) -> None:
         """Update the internal state of the switch."""
-        device = self.coordinator.get_device(self._device_data["serial"])
+        serial = (
+            self._device_data.serial
+            if hasattr(self._device_data, "serial")
+            else self._device_data["serial"]
+        )
+        device = self.coordinator.get_device(serial)
         if device is not None:
             self._device_data = device
             self._attr_is_on = self._get_value_from_device(device)
@@ -129,9 +142,24 @@ class MerakiCameraSettingSwitchBase(
     @property
     def device_info(self) -> DeviceInfo:
         """Return device information."""
+        serial = (
+            self._device_data.serial
+            if hasattr(self._device_data, "serial")
+            else self._device_data["serial"]
+        )
+        name = (
+            self._device_data.name
+            if hasattr(self._device_data, "name")
+            else self._device_data["name"]
+        )
+        model = (
+            self._device_data.model
+            if hasattr(self._device_data, "model")
+            else self._device_data.get("model")
+        )
         return DeviceInfo(
-            identifiers={("meraki_ha", self._device_data["serial"])},
-            name=self._device_data["name"],
+            identifiers={("meraki_ha", serial)},
+            name=name,
             manufacturer="Cisco Meraki",
-            model=self._device_data["model"],
+            model=model,
         )
