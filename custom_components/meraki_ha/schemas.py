@@ -8,12 +8,20 @@ from homeassistant.helpers import selector
 from .const import (
     CONF_ENABLE_DEVICE_TRACKER,
     CONF_ENABLE_VLAN_MANAGEMENT,
+<<<<<<< HEAD
+    CONF_IGNORED_NETWORKS,
+=======
     CONF_ENABLED_NETWORKS,
+>>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
     CONF_MERAKI_API_KEY,
     CONF_MERAKI_ORG_ID,
     CONF_SCAN_INTERVAL,
     DEFAULT_ENABLE_VLAN_MANAGEMENT,
+<<<<<<< HEAD
+    DEFAULT_IGNORED_NETWORKS,
+=======
     DEFAULT_ENABLED_NETWORKS,
+>>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
     DEFAULT_SCAN_INTERVAL,
 )
 
@@ -41,6 +49,13 @@ OPTIONS_SCHEMA = vol.Schema(
         vol.Required(
             CONF_ENABLE_VLAN_MANAGEMENT, default=DEFAULT_ENABLE_VLAN_MANAGEMENT
         ): selector.BooleanSelector(),
+<<<<<<< HEAD
+        vol.Optional(CONF_IGNORED_NETWORKS, default=DEFAULT_IGNORED_NETWORKS): selector.SelectSelector(
+            selector.SelectSelectorConfig(
+                options=[],
+                multiple=True,
+                custom_value=True,
+=======
         vol.Optional(
             CONF_ENABLED_NETWORKS, default=DEFAULT_ENABLED_NETWORKS
         ): selector.SelectSelector(
@@ -48,6 +63,7 @@ OPTIONS_SCHEMA = vol.Schema(
                 options=[],
                 multiple=True,
                 custom_value=False,
+>>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
                 mode=selector.SelectSelectorMode.DROPDOWN,
             )
         ),

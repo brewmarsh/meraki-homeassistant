@@ -1,0 +1,9 @@
+pytest
+pytest-homeassistant-custom-component
+pytest-cov
+pytest-asyncio
+pytest-socket
+pytest-mock
+aiortc
+meraki
+webrtc-models

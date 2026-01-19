@@ -32,15 +32,24 @@ class CameraEndpoints:
 
         """
         self._api_client = api_client
+<<<<<<< HEAD
+        self._dashboard = api_client.dashboard
+=======
+>>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
 
     @handle_meraki_errors
     @async_timed_cache()
     async def get_camera_sense_settings(self, serial: str) -> dict[str, Any]:
         """Get sense settings for a specific camera."""
+<<<<<<< HEAD
+        settings = await self._api_client.run_sync(
+            self._dashboard.camera.getDeviceCameraSense, serial=serial
+=======
         if self._api_client.dashboard is None:
             return {}
         settings = await self._api_client.run_sync(
             self._api_client.dashboard.camera.getDeviceCameraSense, serial=serial
+>>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
         )
         validated = validate_response(settings)
         if not isinstance(validated, dict):
@@ -52,11 +61,16 @@ class CameraEndpoints:
     @async_timed_cache()
     async def get_camera_video_settings(self, serial: str) -> dict[str, Any]:
         """Get video settings for a specific camera."""
+<<<<<<< HEAD
+        settings = await self._api_client.run_sync(
+            self._dashboard.camera.getDeviceCameraVideoSettings, serial=serial
+=======
         if self._api_client.dashboard is None:
             return {}
         settings = await self._api_client.run_sync(
             self._api_client.dashboard.camera.getDeviceCameraVideoSettings,
             serial=serial,
+>>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
         )
         validated = validate_response(settings)
         if not isinstance(validated, dict):
@@ -68,10 +82,15 @@ class CameraEndpoints:
     @async_timed_cache(timeout=30)
     async def get_device_camera_video_link(self, serial: str) -> dict[str, Any]:
         """Get video link for a specific camera."""
+<<<<<<< HEAD
+        link = await self._api_client.run_sync(
+            self._dashboard.camera.getDeviceCameraVideoLink, serial=serial
+=======
         if self._api_client.dashboard is None:
             return {}
         link = await self._api_client.run_sync(
             self._api_client.dashboard.camera.getDeviceCameraVideoLink, serial=serial
+>>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
         )
         validated = validate_response(link)
         if not isinstance(validated, dict):
@@ -84,10 +103,15 @@ class CameraEndpoints:
         self, serial: str, **kwargs
     ) -> dict[str, Any]:
         """Update video settings for a specific camera."""
+<<<<<<< HEAD
+        result = await self._api_client.run_sync(
+            self._dashboard.camera.updateDeviceCameraVideoSettings,
+=======
         if self._api_client.dashboard is None:
             return {}
         result = await self._api_client.run_sync(
             self._api_client.dashboard.camera.updateDeviceCameraVideoSettings,
+>>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
             serial=serial,
             **kwargs,
         )
@@ -102,10 +126,15 @@ class CameraEndpoints:
         self, serial: str, **kwargs
     ) -> dict[str, Any]:
         """Update sense settings for a specific camera."""
+<<<<<<< HEAD
+        result = await self._api_client.run_sync(
+            self._dashboard.camera.updateDeviceCameraSense,
+=======
         if self._api_client.dashboard is None:
             return {}
         result = await self._api_client.run_sync(
             self._api_client.dashboard.camera.updateDeviceCameraSense,
+>>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
             serial=serial,
             **kwargs,
         )
@@ -121,10 +150,15 @@ class CameraEndpoints:
         self, serial: str, object_type: str = "person"
     ) -> list[dict[str, Any]]:
         """Get recent analytics for a specific camera."""
+<<<<<<< HEAD
+        recent = await self._api_client.run_sync(
+            self._dashboard.camera.getDeviceCameraAnalyticsRecent,
+=======
         if self._api_client.dashboard is None:
             return []
         recent = await self._api_client.run_sync(
             self._api_client.dashboard.camera.getDeviceCameraAnalyticsRecent,
+>>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
             serial=serial,
             objectType=object_type,
         )
@@ -140,10 +174,15 @@ class CameraEndpoints:
         self, serial: str
     ) -> list[dict[str, Any]]:
         """Get analytics zones for a specific camera."""
+<<<<<<< HEAD
+        zones = await self._api_client.run_sync(
+            self._dashboard.camera.getDeviceCameraAnalyticsZones,
+=======
         if self._api_client.dashboard is None:
             return []
         zones = await self._api_client.run_sync(
             self._api_client.dashboard.camera.getDeviceCameraAnalyticsZones,
+>>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
             serial=serial,
         )
         validated = validate_response(zones)
@@ -157,10 +196,15 @@ class CameraEndpoints:
         self, serial: str, **kwargs
     ) -> dict[str, Any]:
         """Generate a snapshot of what the camera sees."""
+<<<<<<< HEAD
+        snapshot = await self._api_client.run_sync(
+            self._dashboard.camera.generateDeviceCameraSnapshot,
+=======
         if self._api_client.dashboard is None:
             return {}
         snapshot = await self._api_client.run_sync(
             self._api_client.dashboard.camera.generateDeviceCameraSnapshot,
+>>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
             serial=serial,
             **kwargs,
         )

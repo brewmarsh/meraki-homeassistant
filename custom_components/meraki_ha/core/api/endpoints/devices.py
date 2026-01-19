@@ -30,6 +30,10 @@ class DevicesEndpoints:
 
         """
         self._api_client = api_client
+<<<<<<< HEAD
+        self._dashboard = api_client.dashboard
+=======
+>>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
 
     @handle_meraki_errors
     async def get_device_clients(self, serial: str) -> list[dict[str, Any]]:
@@ -45,10 +49,15 @@ class DevicesEndpoints:
             A list of clients.
 
         """
+<<<<<<< HEAD
+        clients = await self._api_client.run_sync(
+            self._dashboard.devices.getDeviceClients,
+=======
         if self._api_client.dashboard is None:
             return []
         clients = await self._api_client.run_sync(
             self._api_client.dashboard.devices.getDeviceClients,
+>>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
             serial,
             timespan=300,  # 5 minutes to get current clients
         )
@@ -71,10 +80,15 @@ class DevicesEndpoints:
             The device details.
 
         """
+<<<<<<< HEAD
+        device = await self._api_client.run_sync(
+            self._dashboard.devices.getDevice,
+=======
         if self._api_client.dashboard is None:
             return {}
         device = await self._api_client.run_sync(
             self._api_client.dashboard.devices.getDevice,
+>>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
             serial=serial,
         )
         validated = validate_response(device)
@@ -98,10 +112,15 @@ class DevicesEndpoints:
             The updated device.
 
         """
+<<<<<<< HEAD
+        device = await self._api_client.run_sync(
+            self._dashboard.devices.updateDevice,
+=======
         if self._api_client.dashboard is None:
             return {}
         device = await self._api_client.run_sync(
             self._api_client.dashboard.devices.updateDevice,
+>>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
             serial=serial,
             **kwargs,
         )

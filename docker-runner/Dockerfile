@@ -1,5 +1,9 @@
 # Use a stable, minimal Ubuntu base
+<<<<<<< HEAD
+FROM ubuntu:24.04
+=======
 FROM ubuntu:22.04
+>>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
 
 # Define the official runner version (Check GitHub releases for latest)
 ARG RUNNER_VERSION="2.329.0"

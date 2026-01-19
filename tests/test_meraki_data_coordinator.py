@@ -34,12 +34,12 @@ async def test_update_data_handles_errors(coordinator, mock_api_client):
         "networks": [MOCK_NETWORK],
         "devices": [],
         "appliance_traffic": {
-            MOCK_NETWORK.id: {
+            MOCK_NETWORK["id"]: {
                 "error": "disabled",
                 "reason": "Traffic analysis is not enabled",
             }
         },
-        "vlans": {MOCK_NETWORK.id: []},
+        "vlans": {MOCK_NETWORK["id"]: []},
     }
     coordinator.add_network_status_message = MagicMock()
     coordinator.mark_traffic_check_done = MagicMock()
@@ -50,10 +50,10 @@ async def test_update_data_handles_errors(coordinator, mock_api_client):
 
     # Assert
     coordinator.add_network_status_message.assert_any_call(
-        MOCK_NETWORK.id, "Traffic Analysis is not enabled for this network."
+        MOCK_NETWORK["id"], "Traffic Analysis is not enabled for this network."
     )
-    coordinator.mark_traffic_check_done.assert_called_once_with(MOCK_NETWORK.id)
+    coordinator.mark_traffic_check_done.assert_called_once_with(MOCK_NETWORK["id"])
     coordinator.add_network_status_message.assert_any_call(
-        MOCK_NETWORK.id, "VLANs are not enabled for this network."
+        MOCK_NETWORK["id"], "VLANs are not enabled for this network."
     )
-    coordinator.mark_vlan_check_done.assert_called_once_with(MOCK_NETWORK.id)
+    coordinator.mark_vlan_check_done.assert_called_once_with(MOCK_NETWORK["id"])

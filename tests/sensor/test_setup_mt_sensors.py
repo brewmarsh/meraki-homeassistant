@@ -9,7 +9,11 @@ from custom_components.meraki_ha.sensor.setup_mt_sensors import async_setup_mt_s
 
 @pytest.fixture
 def mock_coordinator_with_mt_devices(mock_coordinator: MagicMock) -> MagicMock:
+<<<<<<< HEAD
+    """Fixture for a mocked MerakiDataUpdateCoordinator with MT sensor data."""
+=======
     """Fixture for a mocked MerakiDataCoordinator with MT sensor data."""
+>>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
     mock_coordinator.data = {
         "devices": [
             {
@@ -67,8 +71,15 @@ def test_async_setup_mt10_sensors(
     """Test the setup of sensors for an MT10 device."""
     device_info = mock_coordinator_with_mt_devices.data["devices"][0]
     entities = async_setup_mt_sensors(mock_coordinator_with_mt_devices, device_info)
+<<<<<<< HEAD
+    for entity in entities:
+        entity._handle_coordinator_update()
+
+    assert len(entities) == 3
+=======
 
     assert len(entities) == 2
+>>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
 
     sensors_by_key = {entity.entity_description.key: entity for entity in entities}
 
@@ -77,7 +88,11 @@ def test_async_setup_mt10_sensors(
     temp_sensor = sensors_by_key["temperature"]
     assert temp_sensor.unique_id == "mt10-1_temperature"
     assert temp_sensor.name == "MT10 Sensor Temperature"
+<<<<<<< HEAD
+    assert temp_sensor.native_value == 25.5
+=======
     assert temp_sensor.native_value == 25.5  # type: ignore[attr-defined]
+>>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
     assert temp_sensor.available is True
 
     # Test Humidity Sensor
@@ -85,7 +100,11 @@ def test_async_setup_mt10_sensors(
     humidity_sensor = sensors_by_key["humidity"]
     assert humidity_sensor.unique_id == "mt10-1_humidity"
     assert humidity_sensor.name == "MT10 Sensor Humidity"
+<<<<<<< HEAD
+    assert humidity_sensor.native_value == 60.0
+=======
     assert humidity_sensor.native_value == 60.0  # type: ignore[attr-defined]
+>>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
     assert humidity_sensor.available is True
 
 
@@ -95,8 +114,15 @@ def test_async_setup_mt15_sensors(
     """Test the setup of sensors for an MT15 device."""
     device_info = mock_coordinator_with_mt_devices.data["devices"][1]
     entities = async_setup_mt_sensors(mock_coordinator_with_mt_devices, device_info)
+<<<<<<< HEAD
+    for entity in entities:
+        entity._handle_coordinator_update()
+
+    assert len(entities) == 7
+=======
 
     assert len(entities) == 6
+>>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
 
     sensors_by_key = {entity.entity_description.key: entity for entity in entities}
 
@@ -105,7 +131,11 @@ def test_async_setup_mt15_sensors(
     assert temp_sensor is not None
     assert temp_sensor.unique_id == "mt15-1_temperature"
     assert temp_sensor.name == "MT15 Sensor Temperature"
+<<<<<<< HEAD
+    assert temp_sensor.native_value == 22.1
+=======
     assert temp_sensor.native_value == 22.1  # type: ignore[attr-defined]
+>>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
     assert temp_sensor.available is True
 
     # Verify Humidity Sensor
@@ -113,7 +143,11 @@ def test_async_setup_mt15_sensors(
     assert humidity_sensor is not None
     assert humidity_sensor.unique_id == "mt15-1_humidity"
     assert humidity_sensor.name == "MT15 Sensor Humidity"
+<<<<<<< HEAD
+    assert humidity_sensor.native_value == 45.2
+=======
     assert humidity_sensor.native_value == 45.2  # type: ignore[attr-defined]
+>>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
     assert humidity_sensor.available is True
 
     # Verify CO2 Sensor
@@ -121,7 +155,11 @@ def test_async_setup_mt15_sensors(
     assert co2_sensor is not None
     assert co2_sensor.unique_id == "mt15-1_co2"
     assert co2_sensor.name == "MT15 Sensor CO2"
+<<<<<<< HEAD
+    assert co2_sensor.native_value == 450
+=======
     assert co2_sensor.native_value == 450  # type: ignore[attr-defined]
+>>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
     assert co2_sensor.available is True
 
     # Verify TVOC Sensor
@@ -129,7 +167,11 @@ def test_async_setup_mt15_sensors(
     assert tvoc_sensor is not None
     assert tvoc_sensor.unique_id == "mt15-1_tvoc"
     assert tvoc_sensor.name == "MT15 Sensor TVOC"
+<<<<<<< HEAD
+    assert tvoc_sensor.native_value == 150
+=======
     assert tvoc_sensor.native_value == 150  # type: ignore[attr-defined]
+>>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
     assert tvoc_sensor.available is True
 
     # Verify PM2.5 Sensor
@@ -137,7 +179,11 @@ def test_async_setup_mt15_sensors(
     assert pm25_sensor is not None
     assert pm25_sensor.unique_id == "mt15-1_pm25"
     assert pm25_sensor.name == "MT15 Sensor PM2.5"
+<<<<<<< HEAD
+    assert pm25_sensor.native_value == 10.5
+=======
     assert pm25_sensor.native_value == 10.5  # type: ignore[attr-defined]
+>>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
     assert pm25_sensor.available is True
 
     # Verify Noise Sensor
@@ -145,7 +191,11 @@ def test_async_setup_mt15_sensors(
     assert noise_sensor is not None
     assert noise_sensor.unique_id == "mt15-1_noise"
     assert noise_sensor.name == "MT15 Sensor Ambient Noise"
+<<<<<<< HEAD
+    assert noise_sensor.native_value == 35.2
+=======
     assert noise_sensor.native_value == 35.2  # type: ignore[attr-defined]
+>>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
     assert noise_sensor.available is True
 
 
@@ -155,12 +205,23 @@ def test_async_setup_mt12_sensors(
     """Test the setup of sensors for an MT12 device."""
     device_info = mock_coordinator_with_mt_devices.data["devices"][2]
     entities = async_setup_mt_sensors(mock_coordinator_with_mt_devices, device_info)
+<<<<<<< HEAD
+    for entity in entities:
+        entity._handle_coordinator_update()
+
+    assert len(entities) == 2
+    water_sensor = entities[0]
+    assert water_sensor.unique_id == "mt12-1_water"
+    assert water_sensor.name == "MT12 Sensor Water Detection"
+    assert water_sensor.native_value is False
+=======
 
     assert len(entities) == 1
     water_sensor = entities[0]
     assert water_sensor.unique_id == "mt12-1_water"
     assert water_sensor.name == "MT12 Sensor Water Detection"
     assert water_sensor.native_value is False  # type: ignore[attr-defined]
+>>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
     assert water_sensor.available is True
 
 
@@ -170,6 +231,11 @@ def test_async_setup_mt40_sensors(
     """Test the setup of sensors for an MT40 device."""
     device_info = mock_coordinator_with_mt_devices.data["devices"][3]
     entities = async_setup_mt_sensors(mock_coordinator_with_mt_devices, device_info)
+<<<<<<< HEAD
+    for entity in entities:
+        entity._handle_coordinator_update()
+=======
+>>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
 
     assert len(entities) == 3
 
@@ -180,7 +246,11 @@ def test_async_setup_mt40_sensors(
     assert power_sensor is not None
     assert power_sensor.unique_id == "mt40-1_power"
     assert power_sensor.name == "MT40 Power Controller Power"
+<<<<<<< HEAD
+    assert power_sensor.native_value == 120.5
+=======
     assert power_sensor.native_value == 120.5  # type: ignore[attr-defined]
+>>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
     assert power_sensor.available is True
 
     # Verify Voltage Sensor
@@ -188,7 +258,11 @@ def test_async_setup_mt40_sensors(
     assert voltage_sensor is not None
     assert voltage_sensor.unique_id == "mt40-1_voltage"
     assert voltage_sensor.name == "MT40 Power Controller Voltage"
+<<<<<<< HEAD
+    assert voltage_sensor.native_value == 120.1
+=======
     assert voltage_sensor.native_value == 120.1  # type: ignore[attr-defined]
+>>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
     assert voltage_sensor.available is True
 
     # Verify Current Sensor
@@ -196,7 +270,11 @@ def test_async_setup_mt40_sensors(
     assert current_sensor is not None
     assert current_sensor.unique_id == "mt40-1_current"
     assert current_sensor.name == "MT40 Power Controller Current"
+<<<<<<< HEAD
+    assert current_sensor.native_value == 1.0
+=======
     assert current_sensor.native_value == 1.0  # type: ignore[attr-defined]
+>>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
     assert current_sensor.available is True
 
 
@@ -205,14 +283,26 @@ def test_availability(mock_coordinator_with_mt_devices: MagicMock) -> None:
     device_info = mock_coordinator_with_mt_devices.data["devices"][0]  # MT10
     entities = async_setup_mt_sensors(mock_coordinator_with_mt_devices, device_info)
     temp_sensor = entities[0]
+<<<<<<< HEAD
+    temp_sensor._handle_coordinator_update()
+=======
+>>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
 
     # Sensor should be available
     assert temp_sensor.available is True
 
     # Remove readings and check availability
     device_info["readings"] = []
+<<<<<<< HEAD
+    temp_sensor._handle_coordinator_update()
+=======
+>>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
     assert temp_sensor.available is False
 
     # No readings key
     del device_info["readings"]
+<<<<<<< HEAD
+    temp_sensor._handle_coordinator_update()
+=======
+>>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
     assert temp_sensor.available is False

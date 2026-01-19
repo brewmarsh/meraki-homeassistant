@@ -11,7 +11,11 @@ from custom_components.meraki_ha.switch.adult_content_filtering import (
 
 @pytest.fixture
 def mock_coordinator_with_ssid_filtering(mock_coordinator: MagicMock) -> MagicMock:
+<<<<<<< HEAD
+    """Fixture for a mocked MerakiDataUpdateCoordinator with SSID filtering data."""
+=======
     """Fixture for a mocked MerakiDataCoordinator with SSID filtering data."""
+>>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
     mock_coordinator.get_ssid.return_value = {"adultContentFilteringEnabled": True}
     mock_coordinator.api.wireless.update_network_wireless_ssid = AsyncMock()
     mock_coordinator.async_request_refresh = AsyncMock()

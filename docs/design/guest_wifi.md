@@ -10,12 +10,20 @@ To provide a simple and convenient way for users to manage their guest Wi-Fi net
 
 The page will be divided into two main sections:
 
+<<<<<<< HEAD
+\*\*Section 1: Basic Guest Network Control
+=======
 ### Section 1: Basic Guest Network Control
+>>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
 
 - **Enable Guest Wi-Fi:** A toggle switch to enable/disable the guest SSID.
 - **Guest Wi-Fi Password:** A text input to view and change the password, with a save button.
 
+<<<<<<< HEAD
+\*\*Section 2: Custom Splash Page Configuration
+=======
 ### Section 2: Custom Splash Page Configuration
+>>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
 
 - **Enable Custom Splash Page:** A main toggle switch for this feature.
 - When enabled, the following options appear:
@@ -31,20 +39,34 @@ The page will be divided into two main sections:
 
 ## 3. Implementation Plan & Instructions for a Continuing Agent
 
+<<<<<<< HEAD
+\*\*Goal
+
+Implement the "Guest Wi-Fi Management" feature as described above.
+
+\*\*Prerequisites
+=======
 ### Goal
 
 Implement the "Guest Wi-Fi Management" feature as described above.
 
 ### Prerequisites
+>>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
 
 - Familiarity with creating Home Assistant `switch` and `text` entities.
 - Knowledge of the Meraki API for managing SSIDs.
 - Familiarity with React (functional components, hooks like `useState` and `useEffect`).
 - Understanding of how to make API calls in JavaScript using `fetch`.
 
+<<<<<<< HEAD
+\*\*Step-by-Step Implementation Plan
+
+#\*\*1. Backend: Core Entities & API
+=======
 ### Step-by-Step Implementation Plan
 
 #### 1. Backend: Core Entities & API
+>>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
 
 - **Entities:**
   - Implement the `MerakiGuestWifiPasswordText` entity as previously described.
@@ -53,7 +75,11 @@ Implement the "Guest Wi-Fi Management" feature as described above.
   - **Email Collection Endpoint:** Create a new endpoint like `/api/meraki_ha/splash_signup` to handle the form submission from the splash page. This endpoint will save the collected email addresses (e.g., to a `.csv` file in your `config` directory).
   - **Configuration Endpoints:** Create new API endpoints (`/api/guest_wifi/splash_settings`) for the frontend to get and set the splash page configuration (enabled, content, email collection setting).
 
+<<<<<<< HEAD
+#\*\*2. Backend: Meraki API Interaction
+=======
 #### 2. Backend: Meraki API Interaction
+>>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
 
 - When the user enables the custom splash page, the integration will need to make a series of API calls:
 
@@ -62,12 +88,20 @@ Implement the "Guest Wi-Fi Management" feature as described above.
    - `splashUrl` to the public URL of the new splash page endpoint.
 2. **Update Firewall Rules:** Call `PUT /networks/{networkId}/wireless/ssids/{number}` to update the `walledGardenRanges`. The public URL of your Home Assistant instance must be added to this list to allow guest devices to access the splash page.
 
+<<<<<<< HEAD
+#\*\*3. Frontend: UI Implementation
+=======
 #### 3. Frontend: UI Implementation
+>>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
 
 - Create the new **"Guest Wi-Fi"** page (`GuestWifiPage.jsx`) as designed above.
 - The page will fetch its state from the new backend endpoints.
 - The "Save" buttons will post the configuration back to the backend.
 
+<<<<<<< HEAD
+#\*\*4. Build and Verify
+=======
 #### 4. Build and Verify
+>>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
 
 - As before, this will involve building the frontend and using a Playwright script to test the new UI and its functionality.

@@ -7,36 +7,35 @@ import pytest
 from custom_components.meraki_ha.binary_sensor.device.mt20_open_close import (
     MerakiMt20OpenCloseSensor,
 )
-from custom_components.meraki_ha.types import MerakiDevice
 
 
 @pytest.fixture
 def mock_coordinator_mt20(mock_coordinator: MagicMock) -> MagicMock:
+<<<<<<< HEAD
+    """Fixture for a mocked MerakiDataUpdateCoordinator with MT20 data."""
+=======
     """Fixture for a mocked MerakiDataCoordinator with MT20 data."""
+>>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)
     mock_coordinator.data = {
         "devices": [
-            MerakiDevice.from_dict(
-                {
-                    "serial": "mt20-1",
-                    "name": "MT20 Sensor",
-                    "model": "MT20",
-                    "productType": "sensor",
-                    "readings": [
-                        {"metric": "door", "value": True},  # Door is open
-                    ],
-                }
-            ),
-            MerakiDevice.from_dict(
-                {
-                    "serial": "mt20-2",
-                    "name": "MT20 Sensor Closed",
-                    "model": "MT20",
-                    "productType": "sensor",
-                    "readings": [
-                        {"metric": "door", "value": False},  # Door is closed
-                    ],
-                }
-            ),
+            {
+                "serial": "mt20-1",
+                "name": "MT20 Sensor",
+                "model": "MT20",
+                "productType": "sensor",
+                "readings": [
+                    {"metric": "door", "value": True},  # Door is open
+                ],
+            },
+            {
+                "serial": "mt20-2",
+                "name": "MT20 Sensor Closed",
+                "model": "MT20",
+                "productType": "sensor",
+                "readings": [
+                    {"metric": "door", "value": False},  # Door is closed
+                ],
+            },
         ]
     }
     return mock_coordinator
@@ -85,9 +84,9 @@ def test_mt20_availability(
     assert sensor.available is True
 
     # Test availability when readings are missing
-    device_info.readings = []
+    device_info["readings"] = []
     assert sensor.available is False
 
     # Test availability when 'readings' key is absent
-    device_info.readings = None  # type: ignore[assignment]
+    del device_info["readings"]
     assert sensor.available is False

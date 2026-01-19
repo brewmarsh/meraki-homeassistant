@@ -7,29 +7,14 @@ from typing import Any
 _LOGGER = logging.getLogger(__name__)
 
 
-def format_device_name(device: Any, config: Mapping[str, Any]) -> str:
+def format_device_name(device: dict[str, Any], config: Mapping[str, Any]) -> str:
     """Format the device name based on the user's preference."""
-    # Handle dict or object
-    if isinstance(device, dict):
-        name = device.get("name")
-        product_type = device.get("productType")
-        model = device.get("model", "Device")
-        serial = device.get("serial")
-        number = device.get("number")
-        product_types = device.get("productTypes")
-    else:
-        name = getattr(device, "name", None)
-        product_type = getattr(device, "productType", None)
-        model = getattr(device, "model", "Device")
-        serial = getattr(device, "serial", None)
-        number = getattr(device, "number", None)
-        product_types = getattr(device, "productTypes", None)
-
+    name = device.get("name")
     if not name:
-        if product_type == "ssid":
-            name = f"SSID {number}"
+        if device.get("productType") == "ssid":
+            name = f"SSID {device.get('number')}"
         else:
-            name = f"Meraki {model} {serial}"
+            name = f"Meraki {device.get('model', 'Device')} {device.get('serial')}"
 
     # Default to prefix if not specified
     name_format = config.get("device_name_format", "prefix")
@@ -37,7 +22,8 @@ def format_device_name(device: Any, config: Mapping[str, Any]) -> str:
     if name_format == "omit":
         return name
 
-    if not product_type and product_types:
+    product_type = device.get("productType")
+    if not product_type and "productTypes" in device:
         product_type = "network"
 
     if not product_type:
@@ -61,3 +47,16 @@ def format_device_name(device: Any, config: Mapping[str, Any]) -> str:
         product_type_str = product_type.capitalize()
 
     return f"[{product_type_str}] {name}"
+<<<<<<< HEAD
+
+
+def format_entity_name(
+    device: dict[str, Any], config: Mapping[str, Any], entity_name: str | None
+) -> str:
+    """Format an entity name by combining the device name and entity-specific name."""
+    device_name = format_device_name(device, config)
+    if entity_name:
+        return f"{device_name} {entity_name}"
+    return device_name
+=======
+>>>>>>> ea81ca1 (Merge pull request #851 from brewmarsh/chore/fix-test-dependencies-18300066891703763116)

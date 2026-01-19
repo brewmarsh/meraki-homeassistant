@@ -6,6 +6,88 @@ from dataclasses import dataclass, field
 from typing import Any, TypedDict
 
 
+@dataclass
+class MerakiDevice:
+    """Dataclass for a Meraki device."""
+
+    serial: str
+    name: str
+    model: str
+    mac: str
+    lan_ip: str | None = None
+    wan1_ip: str | None = None
+    wan2_ip: str | None = None
+    public_ip: str | None = None
+    network_id: str | None = None
+    status: str | None = None
+    product_type: str | None = None
+    tags: list[str] = field(default_factory=list)
+    readings: list[dict[str, Any]] = field(default_factory=list)
+    video_settings: dict[str, Any] | None = None
+    rtsp_url: str | None = None
+    sense_settings: dict[str, Any] | None = None
+    ports_statuses: list[dict[str, Any]] = field(default_factory=list)
+    dynamic_dns: dict[str, Any] | None = None
+    status_messages: list[str] = field(default_factory=list)
+    entity_id: str | None = None
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> MerakiDevice:
+        """Create a MerakiDevice from a dictionary."""
+        return cls(
+            serial=data["serial"],
+            name=data.get("name", ""),
+            model=data.get("model", ""),
+            mac=data.get("mac", ""),
+            lan_ip=data.get("lanIp"),
+            wan1_ip=data.get("wan1Ip"),
+            wan2_ip=data.get("wan2Ip"),
+            public_ip=data.get("publicIp"),
+            network_id=data.get("networkId"),
+            status=data.get("status"),
+            product_type=data.get("productType"),
+            tags=data.get("tags", []),
+            readings=data.get("readings", []),
+            video_settings=data.get("video_settings"),
+            rtsp_url=data.get("rtsp_url"),
+            sense_settings=data.get("sense_settings"),
+            ports_statuses=data.get("ports_statuses", []),
+            dynamic_dns=data.get("dynamicDns"),
+        )
+
+
+@dataclass
+class MerakiNetwork:
+    """Dataclass for a Meraki network."""
+
+    id: str
+    name: str
+    organization_id: str
+    product_types: list[str] = field(default_factory=list)
+    time_zone: str | None = None
+    tags: list[str] = field(default_factory=list)
+    notes: str | None = None
+    status_messages: list[str] = field(default_factory=list)
+    # Dynamic fields
+    ssids: list[dict[str, Any]] = field(default_factory=list)
+    is_enabled: bool = True
+    client_count: int | None = None
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> MerakiNetwork:
+        """Create a MerakiNetwork from a dictionary."""
+        return cls(
+            id=data["id"],
+            name=data["name"],
+            organization_id=data["organizationId"],
+            product_types=data.get("productTypes", []),
+            time_zone=data.get("timeZone"),
+            tags=data.get("tags", []),
+            notes=data.get("notes"),
+            client_count=data.get("clientCount"),
+        )
+
+
 class MerakiVlan(TypedDict):
     """Represents a Meraki VLAN."""
 
@@ -14,34 +96,6 @@ class MerakiVlan(TypedDict):
     subnet: str | None
     applianceIp: str | None
     ipv6: dict | None
-
-
-@dataclass
-class MerakiNetwork:
-    """Represents a Meraki Network."""
-
-    id: str
-    name: str
-    productTypes: list[str]
-    organizationId: str
-    tags: str | None = None
-    clientCount: int | None = None
-    # Dynamic fields added by coordinator
-    ssids: list[dict[str, Any]] = field(default_factory=list)
-    status_messages: list[str] = field(default_factory=list)
-    is_enabled: bool = True
-
-    @classmethod
-    def from_dict(cls, data: dict[str, Any]) -> MerakiNetwork:
-        """Create a MerakiNetwork from a dictionary."""
-        return cls(
-            id=data["id"],
-            name=data["name"],
-            productTypes=data.get("productTypes", []),
-            organizationId=data["organizationId"],
-            tags=data.get("tags"),
-            clientCount=data.get("clientCount"),
-        )
 
 
 class MerakiFirewallRule(TypedDict):
@@ -70,54 +124,3 @@ class MerakiVpn(TypedDict):
     mode: str
     hubs: list
     subnets: list
-
-
-@dataclass
-class MerakiDevice:
-    """Represents a Meraki Device."""
-
-    serial: str
-    name: str
-    model: str
-    networkId: str
-    productType: str
-    status: str | None = None
-    lanIp: str | None = None
-    video_settings: dict[str, Any] = field(default_factory=dict)
-    ports_statuses: list[dict[str, Any]] = field(default_factory=list)
-    radio_settings: dict[str, Any] = field(default_factory=dict)
-    dynamicDns: dict[str, Any] = field(default_factory=dict)
-    rtsp_url: str | None = None
-    sense_settings: dict[str, Any] = field(default_factory=dict)
-    readings: list[dict[str, Any]] = field(default_factory=list)
-    firmware: str | None = None
-    mac: str | None = None
-    ports: list[dict[str, Any]] = field(default_factory=list)
-
-    # Dynamic fields added by coordinator
-    entity_id: str | None = None
-    status_messages: list[str] = field(default_factory=list)
-    entities: list[dict[str, Any]] = field(default_factory=list)
-
-    @classmethod
-    def from_dict(cls, data: dict[str, Any]) -> MerakiDevice:
-        """Create a MerakiDevice from a dictionary."""
-        return cls(
-            serial=data["serial"],
-            name=data.get("name", ""),
-            model=data.get("model", ""),
-            networkId=data.get("networkId", ""),
-            productType=data.get("productType", ""),
-            status=data.get("status"),
-            lanIp=data.get("lanIp"),
-            video_settings=data.get("video_settings", {}),
-            ports_statuses=data.get("ports_statuses", []),
-            radio_settings=data.get("radio_settings", {}),
-            dynamicDns=data.get("dynamicDns", {}),
-            rtsp_url=data.get("rtsp_url"),
-            sense_settings=data.get("sense_settings", {}),
-            readings=data.get("readings", []),
-            firmware=data.get("firmware"),
-            mac=data.get("mac"),
-            ports=data.get("ports", []),
-        )
