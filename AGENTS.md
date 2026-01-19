@@ -143,3 +143,12 @@ Atomic Commits: Only modify the files absolutely necessary for the task.
 Manifest Locking: If a task requires a version bump in manifest.json, check if a pending PR already has a higher version. Use the highest version available.
 
 Rebase First: Before starting any new task, always git checkout beta followed by git pull to ensure the starting point is current.
+
+## 9. Automated Conflict Resolution Protocol
+When summoned to resolve conflicts:
+
+Always Rebase: Never use git merge. Always use git rebase origin/beta.
+
+Infrastructure Priority: If manifest.json or requirements.txt have conflicts, accept the version number from beta unless the current task specifically requires a bump.
+
+Naming Continuity: Ensure the meraki_select renaming is preserved. Do not let a rebase revert folders back to the standard library select name.
