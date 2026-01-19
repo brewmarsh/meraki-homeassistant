@@ -5,6 +5,7 @@ class MerakiPanel extends HTMLElement {
     this._hass = null;
     this._panel = null;
     this._subscription = null;
+    this._lastData = null;
   }
 
   set hass(hass) {
@@ -69,6 +70,10 @@ class MerakiPanel extends HTMLElement {
         </div>
       </div>
     `;
+
+    if (this._lastData) {
+      this._updateContent(this._lastData);
+    }
   }
 
   disconnectedCallback() {
@@ -78,8 +83,26 @@ class MerakiPanel extends HTMLElement {
     }
   }
 
+  _escapeHTML(str) {
+    if (typeof str !== 'string') return str;
+    return str.replace(
+      /[&<>'"]/g,
+      (tag) =>
+        ({
+          '&': '&amp;',
+          '<': '&lt;',
+          '>': '&gt;',
+          "'": '&#39;',
+          '"': '&quot;',
+        })[tag]
+    );
+  }
+
   _updateContent(data) {
+    this._lastData = data;
     const content = this.shadowRoot.getElementById('content');
+    if (!content) return; // connectedCallback will handle it
+
     if (!data) {
       content.innerHTML = `
         <h1>Meraki Dashboard</h1>
@@ -91,7 +114,7 @@ class MerakiPanel extends HTMLElement {
       return;
     }
 
-    const orgName = data.org_name || 'Unknown Organization';
+    const orgName = this._escapeHTML(data.org_name || 'Unknown Organization');
     const networks = data.networks || [];
     const devices = data.devices || [];
     const clients = data.clients || [];
@@ -107,14 +130,19 @@ class MerakiPanel extends HTMLElement {
       html += '<div class="card">';
       html += '<h2>Networks & Devices</h2>';
       networks.forEach((network) => {
-        html += `<h3>${network.name} (ID: ${network.id})</h3>`;
+        const netName = this._escapeHTML(network.name);
+        const netId = this._escapeHTML(network.id);
+        html += `<h3>${netName} (ID: ${netId})</h3>`;
         const networkDevices = devices.filter(
           (d) => d.networkId === network.id
         );
         if (networkDevices.length > 0) {
           html += '<ul>';
           networkDevices.forEach((device) => {
-            html += `<li>${device.name || 'Unnamed Device'} (${device.productType} - ${device.serial})</li>`;
+            const devName = this._escapeHTML(device.name || 'Unnamed Device');
+            const devType = this._escapeHTML(device.productType);
+            const devSerial = this._escapeHTML(device.serial);
+            html += `<li>${devName} (${devType} - ${devSerial})</li>`;
           });
           html += '</ul>';
         } else {
@@ -129,7 +157,11 @@ class MerakiPanel extends HTMLElement {
       html += '<h2>Clients</h2>';
       html += '<ul>';
       clients.forEach((client) => {
-        html += `<li>${client.description || 'Unknown Client'} (${client.ip})</li>`;
+        const clientDesc = this._escapeHTML(
+          client.description || 'Unknown Client'
+        );
+        const clientIp = this._escapeHTML(client.ip);
+        html += `<li>${clientDesc} (${clientIp})</li>`;
       });
       html += '</ul>';
       html += '</div>';

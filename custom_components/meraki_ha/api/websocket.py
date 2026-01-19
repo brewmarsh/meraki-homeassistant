@@ -50,6 +50,7 @@ def ws_subscribe_meraki_data(
 
     # Send initial data
     connection.send_result(msg["id"], coordinator.data)
+    async_send_update()
 
     # Register for updates
     cancel_subscription = coordinator.async_add_listener(async_send_update)
