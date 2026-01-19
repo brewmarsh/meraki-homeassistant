@@ -10,14 +10,10 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-<<<<<<< HEAD
-from ...helpers.device_info_helpers import resolve_device_info
-from ...meraki_data_coordinator import MerakiDataCoordinator
-=======
 from ...coordinator import MerakiDataUpdateCoordinator
 from ...core.utils.naming_utils import format_device_name, format_entity_name
 from ...helpers.device_info_helpers import resolve_device_info
->>>>>>> origin/beta
+from ...types import MerakiDevice
 
 if TYPE_CHECKING:
     from ...services.camera_service import CameraService
@@ -31,12 +27,8 @@ class MerakiSnapshotButton(CoordinatorEntity, ButtonEntity):
 
     def __init__(
         self,
-<<<<<<< HEAD
-        coordinator: MerakiDataCoordinator,
-=======
         coordinator: MerakiDataUpdateCoordinator,
->>>>>>> origin/beta
-        device: dict[str, Any],
+        device: MerakiDevice,
         camera_service: CameraService,
         config_entry: ConfigEntry,
     ) -> None:
@@ -45,14 +37,10 @@ class MerakiSnapshotButton(CoordinatorEntity, ButtonEntity):
         self._device = device
         self._camera_service = camera_service
         self._config_entry = config_entry
-        self._attr_unique_id = f"{self._device['serial']}-snapshot"
-<<<<<<< HEAD
-        self._attr_name = f"{self._device['name']} Snapshot"
-=======
+        self._attr_unique_id = f"{self._device.serial}-snapshot"
         self._attr_name = format_entity_name(
             format_device_name(device, config_entry.options), "Snapshot"
         )
->>>>>>> origin/beta
 
     @property
     def device_info(self) -> DeviceInfo | None:
@@ -61,7 +49,7 @@ class MerakiSnapshotButton(CoordinatorEntity, ButtonEntity):
 
     async def async_press(self) -> None:
         """Handle the button press."""
-        serial = self._device["serial"]
+        serial = self._device.serial
         _LOGGER.info("Snapshot button pressed for %s", serial)
         try:
             url = await self._camera_service.generate_snapshot(serial)

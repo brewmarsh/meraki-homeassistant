@@ -13,13 +13,6 @@ if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
     from homeassistant.helpers.entity import Entity
 
-<<<<<<< HEAD
-    from ....services.camera_service import CameraService
-    from ....types import MerakiDevice
-    from ...meraki_data_coordinator import (
-        MerakiDataCoordinator,
-    )
-=======
     from ....core.coordinators.meraki_data_coordinator import (
         MerakiDataUpdateCoordinator,
     )
@@ -28,7 +21,6 @@ if TYPE_CHECKING:
     )
     from ....services.camera_service import CameraService
     from ....types import MerakiDevice
->>>>>>> origin/beta
     from ...services.device_control_service import DeviceControlService
     from ...services.network_control_service import NetworkControlService
 
@@ -41,11 +33,7 @@ class MXHandler(BaseDeviceHandler):
 
     def __init__(
         self,
-<<<<<<< HEAD
-        coordinator: MerakiDataCoordinator,
-=======
         coordinator: MerakiDataUpdateCoordinator,
->>>>>>> origin/beta
         device: MerakiDevice,
         config_entry: ConfigEntry,
         control_service: DeviceControlService,
@@ -59,20 +47,13 @@ class MXHandler(BaseDeviceHandler):
     @classmethod
     def create(
         cls,
-<<<<<<< HEAD
-        coordinator: MerakiDataCoordinator,
-=======
         coordinator: MerakiDataUpdateCoordinator,
->>>>>>> origin/beta
         device: MerakiDevice,
         config_entry: ConfigEntry,
         camera_service: CameraService,
         control_service: DeviceControlService,
         network_control_service: NetworkControlService,
-<<<<<<< HEAD
-=======
         switch_port_coordinator: SwitchPortStatusCoordinator,
->>>>>>> origin/beta
     ) -> MXHandler:
         """Create an instance of the handler."""
         return cls(

@@ -2,9 +2,6 @@
 
 from __future__ import annotations
 
-<<<<<<< HEAD
-from typing import TypedDict
-=======
 from dataclasses import dataclass, field
 from typing import Any, TypedDict
 
@@ -31,6 +28,8 @@ class MerakiDevice:
     sense_settings: dict[str, Any] | None = None
     ports_statuses: list[dict[str, Any]] = field(default_factory=list)
     dynamic_dns: dict[str, Any] | None = None
+    status_messages: list[str] = field(default_factory=list)
+    entity_id: str | None = None
 
 
 @dataclass
@@ -44,7 +43,7 @@ class MerakiNetwork:
     time_zone: str | None = None
     tags: list[str] = field(default_factory=list)
     notes: str | None = None
->>>>>>> origin/beta
+    status_messages: list[str] = field(default_factory=list)
 
 
 class MerakiVlan(TypedDict):
@@ -57,20 +56,6 @@ class MerakiVlan(TypedDict):
     ipv6: dict | None
 
 
-<<<<<<< HEAD
-class MerakiNetwork(TypedDict):
-    """Represents a Meraki Network."""
-
-    id: str
-    name: str
-    productTypes: list[str]
-    organizationId: str
-    tags: str | None
-    clientCount: int | None
-
-
-=======
->>>>>>> origin/beta
 class MerakiFirewallRule(TypedDict):
     """Represents a Meraki L3 Firewall Rule."""
 
@@ -97,25 +82,3 @@ class MerakiVpn(TypedDict):
     mode: str
     hubs: list
     subnets: list
-<<<<<<< HEAD
-
-
-class MerakiDevice(TypedDict, total=False):
-    """Represents a Meraki Device. Not all keys are guaranteed."""
-
-    serial: str
-    name: str
-    model: str
-    networkId: str
-    status: str | None
-    productType: str
-    lanIp: str | None
-    video_settings: dict
-    ports_statuses: list
-    radio_settings: dict
-    dynamicDns: dict
-    rtsp_url: str | None
-    sense_settings: dict
-    readings: list[dict]
-=======
->>>>>>> origin/beta

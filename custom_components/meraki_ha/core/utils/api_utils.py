@@ -17,11 +17,6 @@ from ..errors import (
     MerakiDeviceError,
     MerakiInformationalError,
     MerakiNetworkError,
-<<<<<<< HEAD
-    MerakiTrafficAnalysisError,
-    MerakiVlansDisabledError,
-=======
->>>>>>> origin/beta
 )
 
 # Type variable for generic function return type
@@ -64,12 +59,8 @@ def handle_meraki_errors(
                 return cast(T, [])
             return cast(T, {})
         except APIError as err:
-<<<<<<< HEAD
-            _raise_if_informational_error(err)
-=======
             if _is_informational_error(err):
                 raise MerakiInformationalError(f"Informational error: {err}") from err
->>>>>>> origin/beta
 
             _LOGGER.error("Meraki API error: %s", err)
             if _is_auth_error(err):
@@ -141,28 +132,6 @@ def _is_network_error(err: APIError) -> bool:
     )
 
 
-<<<<<<< HEAD
-def _raise_if_informational_error(err: APIError) -> None:
-    """
-    Check if an API error is informational and raise a specific exception.
-
-    Args:
-        err: The APIError instance.
-
-    Raises
-    ------
-        MerakiVlansDisabledError: If VLANs are not enabled.
-        MerakiTrafficAnalysisError: If traffic analysis is not enabled.
-        MerakiInformationalError: For other informational errors.
-    """
-    error_str = str(err).lower()
-    if "vlans are not enabled" in error_str:
-        raise MerakiVlansDisabledError(str(err)) from err
-    if "traffic analysis" in error_str:
-        raise MerakiTrafficAnalysisError(str(err)) from err
-    if "historical viewing is not supported" in error_str:
-        raise MerakiInformationalError(str(err)) from err
-=======
 def _is_informational_error(err: APIError) -> bool:
     """Check if error is informational (e.g., feature not enabled)."""
     error_str = str(err).lower()
@@ -171,7 +140,6 @@ def _is_informational_error(err: APIError) -> bool:
         or "traffic analysis" in error_str
         or "historical viewing is not supported" in error_str
     )
->>>>>>> origin/beta
 
 
 def validate_response(response: Any) -> dict[str, Any] | list[Any]:

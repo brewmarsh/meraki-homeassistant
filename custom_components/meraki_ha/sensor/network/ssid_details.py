@@ -10,14 +10,9 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import UnitOfDataRate
 from homeassistant.helpers.entity import EntityCategory
 
-<<<<<<< HEAD
-from ...helpers.device_info_helpers import resolve_device_info
-from ...meraki_data_coordinator import MerakiDataCoordinator
-=======
 from ...coordinator import MerakiDataUpdateCoordinator
 from ...core.utils.naming_utils import format_entity_name
 from ...helpers.device_info_helpers import resolve_device_info
->>>>>>> origin/beta
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -30,11 +25,7 @@ class MerakiSSIDDetailSensor(SensorEntity):
 
     def __init__(
         self,
-<<<<<<< HEAD
-        coordinator: MerakiDataCoordinator,
-=======
         coordinator: MerakiDataUpdateCoordinator,
->>>>>>> origin/beta
         config_entry: ConfigEntry,
         ssid_data: dict[str, Any],
         rf_profile: dict[str, Any] | None,

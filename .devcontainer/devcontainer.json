@@ -10,8 +10,6 @@
         "charliermarsh.ruff"
       ]
     }
-<<<<<<< HEAD
-=======
   },
   "features": {
     "ghcr.io/rocker-org/devcontainer-features/apt-packages:1": {
@@ -22,6 +20,5 @@
     "ghcr.io/rocker-org/devcontainer-features/apt-packages:1": {
       "packages": "gcc,python3-dev,musl-dev"
     }
->>>>>>> origin/beta
   }
 }

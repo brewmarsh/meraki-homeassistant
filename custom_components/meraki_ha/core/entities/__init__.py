@@ -12,11 +12,7 @@ from ...const import (
     DOMAIN,
     MANUFACTURER,
 )
-<<<<<<< HEAD
-from ...meraki_data_coordinator import MerakiDataCoordinator
-=======
 from ...coordinator import MerakiDataUpdateCoordinator
->>>>>>> origin/beta
 from ..utils.naming_utils import format_device_name
 
 
@@ -32,11 +28,7 @@ class BaseMerakiEntity(CoordinatorEntity, Entity, ABC):
 
     def __init__(
         self,
-<<<<<<< HEAD
-        coordinator: MerakiDataCoordinator,
-=======
         coordinator: MerakiDataUpdateCoordinator,
->>>>>>> origin/beta
         config_entry: ConfigEntry,
         serial: str | None = None,
         network_id: str | None = None,

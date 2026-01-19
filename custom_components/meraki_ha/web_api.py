@@ -4,19 +4,6 @@ from __future__ import annotations
 
 import json
 import logging
-<<<<<<< HEAD
-import os
-from typing import Any
-
-import aiofiles  # type: ignore[import-untyped]
-from homeassistant.components import websocket_api
-from homeassistant.core import HomeAssistant
-from voluptuous import ALLOW_EXTRA, All, Optional, Required, Schema
-
-from .const import CONF_ENABLED_NETWORKS, DATA_CLIENT, DOMAIN
-from .core.timed_access_manager import TimedAccessManager
-from .meraki_data_coordinator import MerakiDataCoordinator
-=======
 from pathlib import Path
 from typing import Any
 
@@ -27,7 +14,6 @@ from voluptuous import ALLOW_EXTRA, All, Required, Schema
 
 from .const import DOMAIN
 from .coordinator import MerakiDataUpdateCoordinator
->>>>>>> origin/beta
 from .services.camera_service import CameraService
 
 _LOGGER = logging.getLogger(__name__)
@@ -82,39 +68,11 @@ def async_setup_api(hass: HomeAssistant) -> None:
     )
     websocket_api.async_register_command(
         hass,
-<<<<<<< HEAD
-        "meraki_ha/update_enabled_networks",
-        handle_update_enabled_networks,
-        Schema(
-            {
-                Required("type"): All(str, "meraki_ha/update_enabled_networks"),
-                Required("config_entry_id"): str,
-                Required("enabled_networks"): [str],
-            },
-            extra=ALLOW_EXTRA,
-        ),
-    )
-    websocket_api.async_register_command(
-        hass,
-        "meraki_ha/create_timed_access_key",
-        handle_create_timed_access_key,
-        Schema(
-            {
-                Required("type"): All(str, "meraki_ha/create_timed_access_key"),
-                Required("config_entry_id"): str,
-                Required("network_id"): str,
-                Required("ssid_number"): str,
-                Required("name"): str,
-                Required("passphrase"): str,
-                Required("duration_hours"): int,
-                Optional("group_policy_id"): str,
-=======
         "meraki_ha/get_version",
         handle_get_version,
         Schema(
             {
                 Required("type"): All(str, "meraki_ha/get_version"),
->>>>>>> origin/beta
             },
             extra=ALLOW_EXTRA,
         ),
@@ -122,8 +80,6 @@ def async_setup_api(hass: HomeAssistant) -> None:
 
 
 @websocket_api.async_response
-<<<<<<< HEAD
-=======
 async def handle_get_version(
     hass: HomeAssistant,
     connection: websocket_api.ActiveConnection,
@@ -139,7 +95,6 @@ async def handle_get_version(
 
 
 @websocket_api.async_response
->>>>>>> origin/beta
 async def handle_get_config(
     hass: HomeAssistant,
     connection: websocket_api.ActiveConnection,
@@ -160,38 +115,10 @@ async def handle_get_config(
         connection.send_error(msg["id"], "not_found", "Config entry not found")
         return
 
-<<<<<<< HEAD
-    coordinator: MerakiDataCoordinator = hass.data[DOMAIN][config_entry_id][
-        "coordinator"
-    ]
-    config_entry = hass.config_entries.async_get_entry(config_entry_id)
-    enabled_networks = config_entry.options.get(CONF_ENABLED_NETWORKS)
-    if enabled_networks is None:
-        enabled_networks = [
-            n["id"] for n in coordinator.data.get("networks", []) if "id" in n
-        ]
-
-    manifest_path = os.path.join(os.path.dirname(__file__), "manifest.json")
-    async with aiofiles.open(manifest_path) as f:
-        contents = await f.read()
-    manifest = json.loads(contents)
-    version = manifest.get("version")
-
-    connection.send_result(
-        msg["id"],
-        {
-            **coordinator.data,
-            "enabled_networks": enabled_networks,
-            "config_entry_id": config_entry_id,
-            "version": version,
-        },
-    )
-=======
     coordinator: MerakiDataUpdateCoordinator = hass.data[DOMAIN][config_entry_id][
         "coordinator"
     ]
     connection.send_result(msg["id"], coordinator.data)
->>>>>>> origin/beta
 
 
 @websocket_api.async_response
@@ -246,82 +173,3 @@ async def handle_get_camera_snapshot(
     camera_service: CameraService = hass.data[DOMAIN][config_entry_id]["camera_service"]
     snapshot_url = await camera_service.get_camera_snapshot(serial)
     connection.send_result(msg["id"], {"url": snapshot_url})
-<<<<<<< HEAD
-
-
-@websocket_api.async_response
-async def handle_update_enabled_networks(
-    hass: HomeAssistant,
-    connection: websocket_api.ActiveConnection,
-    msg: dict[str, Any],
-) -> None:
-    """
-    Handle update_enabled_networks command.
-
-    Args:
-    ----
-        hass: The Home Assistant instance.
-        connection: The WebSocket connection.
-        msg: The WebSocket message.
-
-    """
-    config_entry_id = msg["config_entry_id"]
-    enabled_networks = msg["enabled_networks"]
-    if config_entry_id not in hass.data[DOMAIN]:
-        connection.send_error(msg["id"], "not_found", "Config entry not found")
-        return
-
-    config_entry = hass.config_entries.async_get_entry(config_entry_id)
-    if not config_entry:
-        connection.send_error(msg["id"], "not_found", "Config entry not found")
-        return
-
-    hass.config_entries.async_update_entry(
-        config_entry,
-        options={
-            **config_entry.options,
-            CONF_ENABLED_NETWORKS: enabled_networks,
-        },
-    )
-    connection.send_result(msg["id"], {"success": True})
-
-
-@websocket_api.async_response
-async def handle_create_timed_access_key(
-    hass: HomeAssistant,
-    connection: websocket_api.ActiveConnection,
-    msg: dict[str, Any],
-) -> None:
-    """
-    Handle create_timed_access_key command.
-
-    Args:
-    ----
-        hass: The Home Assistant instance.
-        connection: The WebSocket connection.
-        msg: The WebSocket message.
-
-    """
-    config_entry_id = msg["config_entry_id"]
-    if config_entry_id not in hass.data[DOMAIN]:
-        connection.send_error(msg["id"], "not_found", "Config entry not found")
-        return
-
-    api_client = hass.data[DOMAIN][config_entry_id][DATA_CLIENT]
-    manager = TimedAccessManager(api_client)
-
-    try:
-        result = await manager.create_timed_access_key(
-            network_id=msg["network_id"],
-            ssid_number=msg["ssid_number"],
-            name=msg["name"],
-            passphrase=msg["passphrase"],
-            duration_hours=msg["duration_hours"],
-            group_policy_id=msg.get("group_policy_id"),
-        )
-        connection.send_result(msg["id"], result)
-    except Exception as e:
-        _LOGGER.exception("Error creating timed access key: %s", e)
-        connection.send_error(msg["id"], "error", str(e))
-=======
->>>>>>> origin/beta

@@ -9,16 +9,10 @@ from homeassistant.components.switch import SwitchEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import callback
 
-<<<<<<< HEAD
-from ..core.entities.meraki_vlan_entity import MerakiVLANEntity
-from ..core.utils.entity_id_utils import get_vlan_entity_id
-from ..meraki_data_coordinator import MerakiDataCoordinator
-=======
 from ..coordinator import MerakiDataUpdateCoordinator
 from ..core.entities.meraki_vlan_entity import MerakiVLANEntity
 from ..core.utils.entity_id_utils import get_vlan_entity_id
 from ..core.utils.naming_utils import format_entity_name
->>>>>>> origin/beta
 from ..types import MerakiVlan
 
 _LOGGER = logging.getLogger(__name__)
@@ -29,11 +23,7 @@ class MerakiVLANDHCPSwitch(MerakiVLANEntity, SwitchEntity):
 
     def __init__(
         self,
-<<<<<<< HEAD
-        coordinator: MerakiDataCoordinator,
-=======
         coordinator: MerakiDataUpdateCoordinator,
->>>>>>> origin/beta
         config_entry: ConfigEntry,
         network_id: str,
         vlan: MerakiVlan,

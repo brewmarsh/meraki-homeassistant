@@ -44,13 +44,8 @@ if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
     from homeassistant.helpers.entity import Entity
 
-<<<<<<< HEAD
-    from ...core.api.client import MerakiAPIClient
-    from ...meraki_data_coordinator import MerakiDataCoordinator
-=======
     from ...coordinator import MerakiDataUpdateCoordinator
     from ...core.api.client import MerakiAPIClient
->>>>>>> origin/beta
 
 
 _LOGGER = logging.getLogger(__name__)
@@ -61,11 +56,7 @@ class SSIDHandler(BaseHandler):
 
     def __init__(
         self,
-<<<<<<< HEAD
-        coordinator: MerakiDataCoordinator,
-=======
         coordinator: MerakiDataUpdateCoordinator,
->>>>>>> origin/beta
         config_entry: ConfigEntry,
         meraki_client: MerakiAPIClient,
     ) -> None:
@@ -76,11 +67,7 @@ class SSIDHandler(BaseHandler):
     @classmethod
     def create(
         cls,
-<<<<<<< HEAD
-        coordinator: MerakiDataCoordinator,
-=======
         coordinator: MerakiDataUpdateCoordinator,
->>>>>>> origin/beta
         config_entry: ConfigEntry,
         meraki_client: MerakiAPIClient,
     ) -> SSIDHandler:

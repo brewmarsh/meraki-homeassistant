@@ -1,12 +1,8 @@
 {
   "compilerOptions": {
     "target": "ES2020",
-<<<<<<< HEAD
-    "useDefineForClassFields": true,
-=======
     "experimentalDecorators": true,
     "useDefineForClassFields": false,
->>>>>>> origin/beta
     "lib": ["ES2020", "DOM", "DOM.Iterable"],
     "module": "ESNext",
     "skipLibCheck": true,
@@ -15,10 +11,6 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "noEmit": true,
-<<<<<<< HEAD
-    "jsx": "react-jsx",
-=======
->>>>>>> origin/beta
     "strict": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,

@@ -47,8 +47,6 @@ def format_device_name(device: dict[str, Any], config: Mapping[str, Any]) -> str
         product_type_str = product_type.capitalize()
 
     return f"[{product_type_str}] {name}"
-<<<<<<< HEAD
-=======
 
 
 def format_entity_name(
@@ -59,4 +57,3 @@ def format_entity_name(
     if entity_name:
         return f"{device_name} {entity_name}"
     return device_name
->>>>>>> origin/beta

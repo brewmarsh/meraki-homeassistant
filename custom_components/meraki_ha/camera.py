@@ -7,27 +7,18 @@ import logging
 from typing import TYPE_CHECKING, Any
 
 import aiohttp
-<<<<<<< HEAD
-=======
 from aiortc import (
     RTCIceCandidate,
     RTCPeerConnection,
     RTCSessionDescription,
 )
 from aiortc.contrib.media import MediaRelay
->>>>>>> origin/beta
 from homeassistant.components.camera import Camera, CameraEntityFeature
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import DOMAIN
-<<<<<<< HEAD
-from .core.utils.naming_utils import format_device_name
-from .helpers.entity_helpers import format_entity_name
-
-if TYPE_CHECKING:
-=======
 from .core.utils.naming_utils import format_device_name, format_entity_name
 
 if TYPE_CHECKING:
@@ -35,7 +26,6 @@ if TYPE_CHECKING:
     from homeassistant.components.camera.webrtc import (
         RTCIceCandidate,
     )
->>>>>>> origin/beta
     from homeassistant.config_entries import ConfigEntry
     from homeassistant.core import HomeAssistant
     from homeassistant.helpers.entity_platform import AddEntitiesCallback
@@ -91,17 +81,9 @@ class MerakiCamera(CoordinatorEntity, Camera):
         self._device_serial = device["serial"]
         self._camera_service = camera_service
         self._attr_unique_id = f"{self._device_serial}-camera"
-<<<<<<< HEAD
-        self._attr_name = format_entity_name(
-            format_device_name(self.device_data, self.coordinator.config_entry.options),
-            "",
-        )
-        self._attr_model = self.device_data.get("model")
-=======
         self._attr_name = f"[Camera] {device['name']}"
         self._attr_model = self.device_data.get("model")
         self._webrtc_sessions: dict[str, Any] = {}
->>>>>>> origin/beta
 
     @property
     def device_data(self) -> dict[str, Any]:
@@ -211,8 +193,6 @@ class MerakiCamera(CoordinatorEntity, Camera):
             self._device_serial, False
         )
         await self.coordinator.async_request_refresh()
-<<<<<<< HEAD
-=======
 
     async def async_handle_async_webrtc_offer(
         self, offer_sdp: str, session_id: str, send_message: WebRTCSendMessage
@@ -274,4 +254,3 @@ class MerakiCamera(CoordinatorEntity, Camera):
         pc = self._webrtc_sessions.pop(session_id)
         if pc:
             self.hass.async_create_task(pc.close())
->>>>>>> origin/beta

@@ -10,14 +10,8 @@ from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from ...const import DOMAIN
-<<<<<<< HEAD
-from ...core.utils.naming_utils import format_device_name
-from ...helpers.entity_helpers import format_entity_name
-from ...meraki_data_coordinator import MerakiDataCoordinator
-=======
 from ...coordinator import MerakiDataUpdateCoordinator
 from ...core.utils.naming_utils import format_device_name, format_entity_name
->>>>>>> origin/beta
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -34,11 +28,7 @@ class MerakiOrganizationSSIDClientsSensor(
 
     def __init__(
         self,
-<<<<<<< HEAD
-        coordinator: MerakiDataCoordinator,
-=======
         coordinator: MerakiDataUpdateCoordinator,
->>>>>>> origin/beta
         org_id: str,
         org_name: str,
     ) -> None:
@@ -101,11 +91,7 @@ class MerakiOrganizationWirelessClientsSensor(
 
     def __init__(
         self,
-<<<<<<< HEAD
-        coordinator: MerakiDataCoordinator,
-=======
         coordinator: MerakiDataUpdateCoordinator,
->>>>>>> origin/beta
         org_id: str,
         org_name: str,
     ) -> None:
@@ -167,11 +153,7 @@ class MerakiOrganizationApplianceClientsSensor(
 
     def __init__(
         self,
-<<<<<<< HEAD
-        coordinator: MerakiDataCoordinator,
-=======
         coordinator: MerakiDataUpdateCoordinator,
->>>>>>> origin/beta
         org_id: str,
         org_name: str,
     ) -> None:

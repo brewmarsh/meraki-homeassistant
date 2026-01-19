@@ -18,12 +18,6 @@ if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
     from homeassistant.helpers.entity import Entity
 
-<<<<<<< HEAD
-    from ....services.camera_service import CameraService
-    from ....services.device_control_service import DeviceControlService
-    from ....types import MerakiDevice
-    from ...meraki_data_coordinator import MerakiDataCoordinator
-=======
     from ....core.coordinators.switch_port_status_coordinator import (
         SwitchPortStatusCoordinator,
     )
@@ -31,7 +25,6 @@ if TYPE_CHECKING:
     from ....services.device_control_service import DeviceControlService
     from ....types import MerakiDevice
     from ...coordinator import MerakiDataUpdateCoordinator
->>>>>>> origin/beta
     from ...services.network_control_service import NetworkControlService
 
 
@@ -43,11 +36,7 @@ class NetworkHandler(BaseHandler):
 
     def __init__(
         self,
-<<<<<<< HEAD
-        coordinator: MerakiDataCoordinator,
-=======
         coordinator: MerakiDataUpdateCoordinator,
->>>>>>> origin/beta
         config_entry: ConfigEntry,
         network_control_service: NetworkControlService,
     ) -> None:
@@ -58,20 +47,13 @@ class NetworkHandler(BaseHandler):
     @classmethod
     def create(
         cls,
-<<<<<<< HEAD
-        coordinator: MerakiDataCoordinator,
-=======
         coordinator: MerakiDataUpdateCoordinator,
->>>>>>> origin/beta
         device: MerakiDevice,
         config_entry: ConfigEntry,
         camera_service: CameraService,
         control_service: DeviceControlService,
         network_control_service: NetworkControlService,
-<<<<<<< HEAD
-=======
         switch_port_coordinator: SwitchPortStatusCoordinator,
->>>>>>> origin/beta
     ) -> NetworkHandler:
         """Create an instance of the handler."""
         return cls(
@@ -99,11 +81,7 @@ class NetworkHandler(BaseHandler):
             )
             if "appliance" in network.get("productTypes", []):
                 try:
-<<<<<<< HEAD
-                    categories = await self._coordinator.api.appliance.get_network_appliance_content_filtering_categories(  # noqa: E501
-=======
                     categories = await self._coordinator.meraki_client.appliance.get_network_appliance_content_filtering_categories(  # noqa: E501
->>>>>>> origin/beta
                         network["id"]
                     )
                     for category in categories.get("categories", []):

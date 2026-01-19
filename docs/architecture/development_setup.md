@@ -48,11 +48,7 @@ The project uses an automated versioning system based on `bump2version` and conv
 
 The CI/CD pipeline is implemented using GitHub Actions. The following workflows are required:
 
-<<<<<<< HEAD
-### 4.1. Code Quality and Testing (`python-lint.yaml`)
-=======
 \*\*4.1. Code Quality and Testing (`python-lint.yaml`)
->>>>>>> origin/beta
 
 - **Trigger:** On pushes and pull requests to the `main` branch.
 - **Steps:**
@@ -67,21 +63,13 @@ The CI/CD pipeline is implemented using GitHub Actions. The following workflows 
 8. Run `pytest` to execute the test suite and generate a coverage report.
 9. (Optional) Upload the coverage report to a service like Codecov.
 
-<<<<<<< HEAD
-### 4.2. Home Assistant Validation (Optional, for HA projects)
-=======
 \*\*4.2. Home Assistant Validation (Optional, for HA projects)
->>>>>>> origin/beta
 
 - If the project is a Home Assistant custom component, two validation workflows should be included:
   - **`validate.yaml`**: Uses the `hacs/action` to validate the project for the Home Assistant Community Store.
   - **`hassfest.yaml`**: Uses the `home-assistant/actions/hassfest` action to perform Home Assistant specific validation.
 
-<<<<<<< HEAD
-### 4.3. Documentation Deployment (`mkdocs-deploy.yaml`)
-=======
 \*\*4.3. Documentation Deployment (`mkdocs-deploy.yaml`)
->>>>>>> origin/beta
 
 - **Trigger:** On the creation of a new release.
 - **Steps:**
@@ -90,11 +78,7 @@ The CI/CD pipeline is implemented using GitHub Actions. The following workflows 
   3. Build the documentation using `mkdocs build`.
   4. Deploy the generated `site` directory to the `gh-pages` branch using the `peaceiris/actions-gh-pages` action.
 
-<<<<<<< HEAD
-### 4.4. Versioning and Release (`version_and_release.yaml`)
-=======
 \*\*4.4. Versioning and Release (`version_and_release.yaml`)
->>>>>>> origin/beta
 
 - **Trigger:** When a pull request is closed and merged into the `main` branch.
 - **Job 1: `version`**

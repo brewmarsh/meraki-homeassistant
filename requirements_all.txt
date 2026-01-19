@@ -1,7 +1,3 @@
-<<<<<<< HEAD
-meraki==1.36.0
-=======
 meraki==1.40.1
->>>>>>> origin/beta
 aiohttp
 homeassistant

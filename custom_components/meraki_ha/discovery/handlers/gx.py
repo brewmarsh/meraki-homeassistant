@@ -13,12 +13,6 @@ if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
     from homeassistant.helpers.entity import Entity
 
-<<<<<<< HEAD
-    from ....types import MerakiDevice
-    from ...meraki_data_coordinator import (
-        MerakiDataCoordinator,
-    )
-=======
     from ....core.coordinators.meraki_data_coordinator import (
         MerakiDataUpdateCoordinator,
     )
@@ -27,7 +21,6 @@ if TYPE_CHECKING:
     )
     from ....services.camera_service import CameraService
     from ....types import MerakiDevice
->>>>>>> origin/beta
     from ...services.device_control_service import DeviceControlService
     from ...services.network_control_service import NetworkControlService
 
@@ -40,11 +33,7 @@ class GXHandler(BaseDeviceHandler):
 
     def __init__(
         self,
-<<<<<<< HEAD
-        coordinator: MerakiDataCoordinator,
-=======
         coordinator: MerakiDataUpdateCoordinator,
->>>>>>> origin/beta
         device: MerakiDevice,
         config_entry: ConfigEntry,
         control_service: DeviceControlService,
@@ -58,14 +47,6 @@ class GXHandler(BaseDeviceHandler):
     @classmethod
     def create(
         cls,
-<<<<<<< HEAD
-        coordinator: MerakiDataCoordinator,
-        device: MerakiDevice,
-        config_entry: ConfigEntry,
-        camera_service,  # Unused
-        control_service: DeviceControlService,
-        network_control_service: NetworkControlService,
-=======
         coordinator: MerakiDataUpdateCoordinator,
         device: MerakiDevice,
         config_entry: ConfigEntry,
@@ -73,7 +54,6 @@ class GXHandler(BaseDeviceHandler):
         control_service: DeviceControlService,
         network_control_service: NetworkControlService,
         switch_port_coordinator: SwitchPortStatusCoordinator,
->>>>>>> origin/beta
     ) -> GXHandler:
         """Create an instance of the handler."""
         return cls(

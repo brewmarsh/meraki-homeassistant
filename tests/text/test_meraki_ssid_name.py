@@ -18,11 +18,7 @@ def mock_meraki_client() -> MagicMock:
 
 @pytest.fixture
 def mock_coordinator_with_refresh(mock_coordinator: MagicMock) -> MagicMock:
-<<<<<<< HEAD
-    """Fixture for a mocked MerakiDataCoordinator.
-=======
     """Fixture for a mocked MerakiDataUpdateCoordinator.
->>>>>>> origin/beta
 
     This fixture includes an async_request_refresh mock.
     """

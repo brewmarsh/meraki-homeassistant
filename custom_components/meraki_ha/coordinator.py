@@ -149,29 +149,28 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         )
         if ignored_network_ids and "networks" in data:
             data["networks"] = [
-                n for n in data["networks"] if n.get("id") not in ignored_network_ids
+                n for n in data["networks"] if n.id not in ignored_network_ids
             ]
 
-    def _populate_device_entities(self, data: dict[str, Any]) -> None:
+    def _populate_device_entities(self, devices: list[MerakiDevice]) -> None:
         """
         Populate device data with associated Home Assistant entities.
 
         Args:
         ----
-            data: The data dictionary to populate.
+            devices: The list of devices to populate.
 
         """
-        if not (data and "devices" in data):
+        if not devices:
             return
 
         ent_reg = er.async_get(self.hass)
         dev_reg = dr.async_get(self.hass)
 
-        for device in data["devices"]:
-            device.setdefault("status_messages", [])
-
+        for device in devices:
+            device.status_messages = []
             ha_device = dev_reg.async_get_device(
-                identifiers={(DOMAIN, device["serial"])},
+                identifiers={(DOMAIN, device.serial)},
             )
             if ha_device:
                 entities_for_device = er.async_entries_for_device(
@@ -182,7 +181,7 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                     # For simplicity, link to the first entity found.
                     # A more robust solution might involve identifying a "primary"
                     # entity.
-                    device["entity_id"] = entities_for_device[0].entity_id
+                    device.entity_id = entities_for_device[0].entity_id
 
     async def _async_update_data(self) -> dict[str, Any]:
         """Fetch data from API endpoint, apply filters, and handle exceptions."""
@@ -199,18 +198,16 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
             # Create lookup tables for efficient access in entities
             self.devices_by_serial = {
-                d.get("serial"): d for d in data.get("devices", []) if d.get("serial")
+                d.serial: d for d in data.get("devices", []) if d.serial
             }
-            self.networks_by_id = {
-                n.get("id"): n for n in data.get("networks", []) if n.get("id")
-            }
+            self.networks_by_id = {n.id: n for n in data.get("networks", []) if n.id}
             self.ssids_by_network_and_number = {
                 (s.get("networkId"), s.get("number")): s
                 for s in data.get("ssids", [])
                 if s.get("networkId") and s.get("number") is not None
             }
 
-            self._populate_device_entities(data)
+            self._populate_device_entities(data.get("devices", []))
 
             self.last_successful_update = datetime.now()
             self.last_successful_data = data
@@ -290,14 +287,11 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             message: The message to add.
 
         """
-        if self.data and self.data.get("devices"):
-            for device in self.data["devices"]:
-                if device.get("serial") == serial:
-                    device.setdefault("status_messages", [])
-                    # Avoid duplicate messages
-                    if message not in device["status_messages"]:
-                        device["status_messages"].append(message)
-                    break
+        device = self.get_device(serial)
+        if device:
+            # Avoid duplicate messages
+            if message not in device.status_messages:
+                device.status_messages.append(message)
 
     def add_network_status_message(self, network_id: str, message: str) -> None:
         """
@@ -309,14 +303,11 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             message: The message to add.
 
         """
-        if self.data and self.data.get("networks"):
-            for network in self.data["networks"]:
-                if network.get("id") == network_id:
-                    network.setdefault("status_messages", [])
-                    # Avoid duplicate messages
-                    if message not in network["status_messages"]:
-                        network["status_messages"].append(message)
-                    break
+        network = self.get_network(network_id)
+        if network:
+            # Avoid duplicate messages
+            if message not in network.status_messages:
+                network.status_messages.append(message)
 
     def _is_check_due(
         self,

@@ -16,7 +16,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: astral-sh/setup-uv@v1
+      - uses: astral-sh/setup-uv@v7
         with:
           python-version: ${{ inputs.python-version }}
           enable-cache: true
@@ -27,7 +27,7 @@ jobs:
       - name: Run Ruff Formatter
         run: ruff format .
       - name: Commit fixes
-        uses: stefanzweifel/git-auto-commit-action@v5
+        uses: stefanzweifel/git-auto-commit-action@v7
         with:
           commit_message: 'chore(lint): auto-fix with ruff'
           branch: ${{ github.head_ref }}
@@ -37,7 +37,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: astral-sh/setup-uv@v1
+      - uses: astral-sh/setup-uv@v7
         with:
           python-version: ${{ inputs.python-version }}
           enable-cache: true
@@ -50,7 +50,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: astral-sh/setup-uv@v1
+      - uses: astral-sh/setup-uv@v7
         with:
           python-version: ${{ inputs.python-version }}
           enable-cache: true
@@ -69,14 +69,14 @@ jobs:
       - name: Run Pip-Audit
         env:
           PIP_AUDIT_IGNORE_VULN: 'GHSA-6mq8-rvhq-8wgg GHSA-69f9-5gxw-wvc2 GHSA-6jhg-hg63-jvvf GHSA-g84x-mcqj-x9qq GHSA-fh55-r93g-j68g GHSA-54jq-c3m8-4m76 GHSA-jj3x-wxrx-4x23 GHSA-mqqc-3gqh-h2x8 PYSEC-2020-49 PYSEC-2022-42969 GHSA-g7vv-2v7x-gj9p'
-        run: pip-audit
+        run: cd custom_components/meraki_ha && python -m pip_audit -r requirements.txt -l
 
   # Job 4: Unit Tests
   test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: astral-sh/setup-uv@v1
+      - uses: astral-sh/setup-uv@v7
         with:
           python-version: ${{ inputs.python-version }}
           enable-cache: true

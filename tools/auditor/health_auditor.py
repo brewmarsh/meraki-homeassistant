@@ -12,9 +12,9 @@ import aiohttp
 # Constants
 DOMAIN = "meraki_ha"
 HA_URL = os.getenv("HA_URL", "http://localhost:8123")
-HA_TOKEN = os.getenv("HA_TOKEN")
-GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
-GITHUB_REPOSITORY = os.getenv("GITHUB_REPOSITORY")
+HA_TOKEN = os.getenv("HA_TOKEN", "")
+GITHUB_TOKEN = os.getenv("GITHUB_TOKEN", "")
+GITHUB_REPOSITORY = os.getenv("GITHUB_REPOSITORY", "")
 ISSUE_LABEL = "jules"
 VERSION_FILE = "custom_components/meraki_ha/manifest.json"
 
@@ -38,7 +38,9 @@ async def get_unhealthy_entities(
     unhealthy_entities = []
 
     try:
-        async with session.get(url, headers=headers, timeout=30) as response:
+        async with session.get(
+            url, headers=headers, timeout=aiohttp.ClientTimeout(total=30)
+        ) as response:
             if response.status == 200:
                 entities = await response.json()
                 for entity in entities:
@@ -71,11 +73,7 @@ def run_gh_command(command: list[str]) -> str:
         return result.stdout.strip()
     except (subprocess.CalledProcessError, FileNotFoundError) as e:
         print(f"GitHub CLI command failed: {e}")
-<<<<<<< HEAD
-        return ""
-=======
         raise
->>>>>>> origin/beta
 
 
 def find_existing_issue(version: str) -> int | None:
@@ -207,12 +205,6 @@ async def main():
         print("All entities are healthy. No action needed.")
         return
 
-<<<<<<< HEAD
-    if existing_issue:
-        update_github_issue(existing_issue, unhealthy_entities)
-    else:
-        create_github_issue(version, unhealthy_entities)
-=======
     try:
         if existing_issue:
             update_github_issue(existing_issue, unhealthy_entities)
@@ -222,7 +214,6 @@ async def main():
         print(f"An error occurred: {e}")
         # Exit with a non-zero status code to indicate failure
         exit(1)
->>>>>>> origin/beta
 
 
 if __name__ == "__main__":

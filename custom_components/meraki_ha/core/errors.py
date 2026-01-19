@@ -43,14 +43,4 @@ class MerakiNetworkError(MerakiError):
 class MerakiInformationalError(MerakiError):
     """Error to indicate an informational/non-critical problem."""
 
-<<<<<<< HEAD
-
-class MerakiTrafficAnalysisError(MerakiInformationalError):
-    """Error to indicate that traffic analysis is not enabled."""
-
-
-class MerakiVlansDisabledError(MerakiInformationalError):
-    """Error to indicate that VLANs are not enabled for a network."""
-=======
     pass
->>>>>>> origin/beta
