@@ -1,9 +1,10 @@
 import dataclasses
 from typing import Any
 
+
 def to_serializable(obj: Any) -> Any:
     """Recursively convert dataclasses to dictionaries for serialization."""
-    if dataclasses.is_dataclass(obj):
+    if dataclasses.is_dataclass(obj) and not isinstance(obj, type):
         return dataclasses.asdict(obj)
     if isinstance(obj, list):
         return [to_serializable(item) for item in obj]
