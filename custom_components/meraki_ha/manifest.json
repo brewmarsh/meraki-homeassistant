@@ -16,10 +16,9 @@
     "pycares==4.11.0",
     "webrtc-models==0.3.0",
     "aiortc",
-    "meraki==2.1.0",
+    "meraki",
     "aiohttp>=3.13.2",
-    "urllib3>=2.6.2",
-    "google-crc32c"
+    "urllib3>=2.6.2"
   ],
-  "version": "2.1.0-beta.67"
+  "version": "2.1.0-beta.66"
 }

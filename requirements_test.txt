@@ -42,3 +42,4 @@ pillow>=11.0.0
 fnv-hash-fast==0.4.0
 flake8==7.0.0
 urllib3
+PyTurboJPEG
