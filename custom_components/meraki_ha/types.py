@@ -2,7 +2,75 @@
 
 from __future__ import annotations
 
-from typing import TypedDict
+from dataclasses import dataclass, field
+from typing import Any, TypedDict
+
+
+@dataclass
+class MerakiDevice:
+    """Dataclass for a Meraki device."""
+
+    serial: str
+    name: str
+    model: str
+    firmware: str | None = None
+    mac: str | None = None
+    networkId: str | None = None
+    status: str | None = None
+    productType: str | None = None
+    lanIp: str | None = None
+    wan1Ip: str | None = None
+    wan2Ip: str | None = None
+    publicIp: str | None = None
+    video_settings: dict[str, Any] | None = None
+    ports_statuses: list[dict[str, Any]] = field(default_factory=list)
+    ports: list[dict[str, Any]] = field(default_factory=list)
+    radio_settings: dict[str, Any] | None = None
+    dynamicDns: dict[str, Any] | None = None
+    rtsp_url: str | None = None
+    sense_settings: dict[str, Any] | None = None
+    readings: list[dict[str, Any]] = field(default_factory=list)
+    tags: list[str] = field(default_factory=list)
+
+    # Internal/HA fields
+    entity_id: str | None = None
+    status_messages: list[str] = field(default_factory=list)
+    entities: list[dict[str, Any]] = field(default_factory=list)
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> MerakiDevice:
+        """Create a MerakiDevice from a dictionary, filtering unknown keys."""
+        # Get field names from the dataclass
+        field_names = {f.name for f in cls.__dataclass_fields__.values()}
+        # Filter input data to only include known fields
+        filtered_data = {k: v for k, v in data.items() if k in field_names}
+        return cls(**filtered_data)
+
+
+@dataclass
+class MerakiNetwork:
+    """Dataclass for a Meraki network."""
+
+    id: str
+    name: str
+    organizationId: str
+    productTypes: list[str] = field(default_factory=list)
+    tags: list[str] | str | None = None
+    clientCount: int | None = None
+    timeZone: str | None = None
+    notes: str | None = None
+
+    # Internal/HA fields
+    status_messages: list[str] = field(default_factory=list)
+    is_enabled: bool = True
+    ssids: list[dict[str, Any]] = field(default_factory=list)
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> MerakiNetwork:
+        """Create a MerakiNetwork from a dictionary, filtering unknown keys."""
+        field_names = {f.name for f in cls.__dataclass_fields__.values()}
+        filtered_data = {k: v for k, v in data.items() if k in field_names}
+        return cls(**filtered_data)
 
 
 class MerakiVlan(TypedDict):
@@ -13,17 +81,6 @@ class MerakiVlan(TypedDict):
     subnet: str | None
     applianceIp: str | None
     ipv6: dict | None
-
-
-class MerakiNetwork(TypedDict):
-    """Represents a Meraki Network."""
-
-    id: str
-    name: str
-    productTypes: list[str]
-    organizationId: str
-    tags: str | None
-    clientCount: int | None
 
 
 class MerakiFirewallRule(TypedDict):
@@ -52,22 +109,3 @@ class MerakiVpn(TypedDict):
     mode: str
     hubs: list
     subnets: list
-
-
-class MerakiDevice(TypedDict, total=False):
-    """Represents a Meraki Device. Not all keys are guaranteed."""
-
-    serial: str
-    name: str
-    model: str
-    networkId: str
-    status: str | None
-    productType: str
-    lanIp: str | None
-    video_settings: dict
-    ports_statuses: list
-    radio_settings: dict
-    dynamicDns: dict
-    rtsp_url: str | None
-    sense_settings: dict
-    readings: list[dict]

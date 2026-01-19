@@ -11,6 +11,7 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from ...const import DOMAIN
 from ...core.utils.naming_utils import format_device_name
 from ...meraki_data_coordinator import MerakiDataCoordinator
+from ...types import MerakiDevice
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -21,42 +22,41 @@ class MerakiMtSensor(CoordinatorEntity, SensorEntity):
     def __init__(
         self,
         coordinator: MerakiDataCoordinator,
-        device: dict[str, Any],
+        device: MerakiDevice,
         entity_description: SensorEntityDescription,
     ) -> None:
         """Initialize the sensor."""
         super().__init__(coordinator)
         self._device = device
         self.entity_description = entity_description
-        self._attr_unique_id = f"{self._device['serial']}_{self.entity_description.key}"
-        self._attr_name = f"{self._device['name']} {self.entity_description.name}"
+        self._attr_unique_id = f"{self._device.serial}_{self.entity_description.key}"
+        self._attr_name = f"{self._device.name} {self.entity_description.name}"
 
     @property
     def device_info(self) -> DeviceInfo:
         """Return device information."""
         return DeviceInfo(
-            identifiers={(DOMAIN, self._device["serial"])},
+            identifiers={(DOMAIN, self._device.serial)},
             name=format_device_name(
                 self._device, self.coordinator.config_entry.options
             ),
-            model=self._device["model"],
+            model=self._device.model,
             manufacturer="Cisco Meraki",
         )
 
     @callback
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
-        for device in self.coordinator.data.get("devices", []):
-            if device["serial"] == self._device["serial"]:
-                self._device = device
-                self.async_write_ha_state()
-                return
+        device = self.coordinator.get_device(self._device.serial)
+        if device:
+            self._device = device
+            self.async_write_ha_state()
 
     @property
     def native_value(self) -> float | bool | None:
         """Return the state of the sensor."""
-        readings = self._device.get("readings")
-        if not readings or not isinstance(readings, list):
+        readings = self._device.readings
+        if not readings:
             return None
 
         for reading in readings:

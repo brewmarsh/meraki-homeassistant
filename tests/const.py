@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import dataclasses
 from unittest.mock import MagicMock
 
 from custom_components.meraki_ha.types import MerakiDevice, MerakiNetwork
@@ -11,44 +12,44 @@ MOCK_CONFIG_ENTRY = MagicMock()
 MOCK_CONFIG_ENTRY.entry_id = MOCK_CONFIG_ENTRY_ID
 
 
-MOCK_NETWORK: MerakiNetwork = {
-    "id": "N_12345",
-    "organizationId": "test-org",
-    "name": "Test Network",
-    "productTypes": ["appliance", "switch", "wireless", "cellularGateway"],
-    "tags": "e2e-test",
-    "clientCount": 5,
-}
+MOCK_NETWORK = MerakiNetwork(
+    id="N_12345",
+    organizationId="test-org",
+    name="Test Network",
+    productTypes=["appliance", "switch", "wireless", "cellularGateway"],
+    tags=["e2e-test"],
+    clientCount=5,
+)
 
-MOCK_DEVICE: MerakiDevice = {
-    "serial": "Q234-ABCD-5678",
-    "name": "Test Device",
-    "model": "MR33",
-    "networkId": "N_12345",
-    "productType": "wireless",
-    "lanIp": "1.2.3.4",
-    "status": "online",
-}
+MOCK_DEVICE = MerakiDevice(
+    serial="Q234-ABCD-5678",
+    name="Test Device",
+    model="MR33",
+    networkId="N_12345",
+    productType="wireless",
+    lanIp="1.2.3.4",
+    status="online",
+)
 
-MOCK_MX_DEVICE: MerakiDevice = {
-    "serial": "Q234-ABCD-MX",
-    "name": "Test MX Device",
-    "model": "MX67",
-    "networkId": "N_12345",
-    "productType": "appliance",
-    "lanIp": "1.2.3.5",
-    "status": "online",
-}
+MOCK_MX_DEVICE = MerakiDevice(
+    serial="Q234-ABCD-MX",
+    name="Test MX Device",
+    model="MX67",
+    networkId="N_12345",
+    productType="appliance",
+    lanIp="1.2.3.5",
+    status="online",
+)
 
-MOCK_GX_DEVICE: MerakiDevice = {
-    "serial": "Q234-ABCD-GX",
-    "name": "Test GX Device",
-    "model": "GX20",
-    "networkId": "N_12345",
-    "productType": "cellularGateway",
-    "lanIp": "1.2.3.6",
-    "status": "online",
-}
+MOCK_GX_DEVICE = MerakiDevice(
+    serial="Q234-ABCD-GX",
+    name="Test GX Device",
+    model="GX20",
+    networkId="N_12345",
+    productType="cellularGateway",
+    lanIp="1.2.3.6",
+    status="online",
+)
 
 MOCK_SSID = {
     "number": 0,
@@ -98,12 +99,12 @@ MOCK_ALL_DATA = {
     "l7_firewall_rules": MOCK_L7_FIREWALL_RULES,
 }
 
-MOCK_CAMERA_DEVICE = {
-    **MOCK_DEVICE,
-    "productType": "camera",
-    "model": "MV12",
-    "video_settings": {
+MOCK_CAMERA_DEVICE = dataclasses.replace(
+    MOCK_DEVICE,
+    productType="camera",
+    model="MV12",
+    video_settings={
         "rtspServerEnabled": True,
         "rtspUrl": "rtsp://test.com/stream",
     },
-}
+)

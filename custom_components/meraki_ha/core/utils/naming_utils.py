@@ -2,13 +2,17 @@
 
 import logging
 from collections.abc import Mapping
+from dataclasses import asdict, is_dataclass
 from typing import Any
 
 _LOGGER = logging.getLogger(__name__)
 
 
-def format_device_name(device: dict[str, Any], config: Mapping[str, Any]) -> str:
+def format_device_name(device: dict[str, Any] | Any, config: Mapping[str, Any]) -> str:
     """Format the device name based on the user's preference."""
+    if is_dataclass(device):
+        device = asdict(device)
+
     name = device.get("name")
     if not name:
         if device.get("productType") == "ssid":

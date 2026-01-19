@@ -13,6 +13,7 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from ...const import DOMAIN
 from ...core.utils.naming_utils import format_device_name
 from ...meraki_data_coordinator import MerakiDataCoordinator
+from ...types import MerakiDevice
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -25,13 +26,13 @@ class MerakiApplianceUplinkSensor(CoordinatorEntity, SensorEntity):
     def __init__(
         self,
         coordinator: MerakiDataCoordinator,
-        device_data: dict[str, Any],
+        device_data: MerakiDevice,
         config_entry: ConfigEntry,
         uplink_data: dict[str, Any],
     ) -> None:
         """Initialize the sensor."""
         super().__init__(coordinator)
-        self._device_serial: str = device_data["serial"]
+        self._device_serial: str = device_data.serial
         self._config_entry = config_entry
         self._uplink_interface: str = uplink_data["interface"]
 
@@ -41,7 +42,7 @@ class MerakiApplianceUplinkSensor(CoordinatorEntity, SensorEntity):
         self._attr_device_info = DeviceInfo(
             identifiers={(DOMAIN, self._device_serial)},
             name=format_device_name(device_data, self._config_entry.options),
-            model=device_data.get("model"),
+            model=device_data.model,
             manufacturer="Cisco Meraki",
         )
         self._update_state()

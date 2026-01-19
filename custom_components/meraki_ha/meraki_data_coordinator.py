@@ -179,19 +179,19 @@ class MerakiDataCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         # If the option is not set, all networks are enabled by default.
         if enabled_network_ids is None:
             enabled_network_ids = [
-                n["id"] for n in data.get("networks", []) if "id" in n
+                n.id for n in data.get("networks", []) if n.id
             ]
 
         if "networks" in data:
             for network in data["networks"]:
-                network["is_enabled"] = network.get("id") in enabled_network_ids
+                network.is_enabled = network.id in enabled_network_ids
 
             # Filter devices and SSIDs to only include those from enabled networks
             if "devices" in data:
                 data["devices"] = [
                     d
                     for d in data["devices"]
-                    if d.get("networkId") in enabled_network_ids
+                    if d.networkId in enabled_network_ids
                 ]
             if "ssids" in data:
                 data["ssids"] = [
@@ -224,7 +224,7 @@ class MerakiDataCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
         # Build a set of all valid identifiers from the latest coordinator data
         latest_valid_identifiers: set[str] = {
-            device["serial"] for device in data.get("devices", [])
+            device.serial for device in data.get("devices", [])
         }
         for ssid in data.get("ssids", []):
             network_id = ssid.get("networkId")
@@ -234,8 +234,8 @@ class MerakiDataCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
         # Add network identifiers
         for network in data.get("networks", []):
-            if network.get("is_enabled"):
-                latest_valid_identifiers.add(f"network_{network['id']}")
+            if network.is_enabled:
+                latest_valid_identifiers.add(f"network_{network.id}")
 
         # Add VLAN identifiers
         for network_id, vlans in data.get("vlans", {}).items():
@@ -272,10 +272,8 @@ class MerakiDataCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         dev_reg = dr.async_get(self.hass)
 
         for device in data["devices"]:
-            device.setdefault("status_messages", [])
-
             ha_device = dev_reg.async_get_device(
-                identifiers={(DOMAIN, device["serial"])},
+                identifiers={(DOMAIN, device.serial)},
             )
             if ha_device:
                 entities_for_device = er.async_entries_for_device(
@@ -290,15 +288,15 @@ class MerakiDataCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                             primary_entity = entity
                             break
                     if primary_entity:
-                        device["entity_id"] = primary_entity.entity_id
+                        device.entity_id = primary_entity.entity_id
                     else:
-                        device["entity_id"] = entities_for_device[0].entity_id
+                        device.entity_id = entities_for_device[0].entity_id
 
                     # Add list of entities to device data for frontend
-                    device["entities"] = []
+                    device.entities = []
                     for entity in entities_for_device:
                         state_obj = self.hass.states.get(entity.entity_id)
-                        device["entities"].append(
+                        device.entities.append(
                             {
                                 "name": entity.name or entity.original_name,
                                 "entity_id": entity.entity_id,
@@ -337,10 +335,10 @@ class MerakiDataCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
             # Create lookup tables for efficient access in entities
             self.devices_by_serial = {
-                d["serial"]: d for d in data.get("devices", []) if "serial" in d
+                d.serial: d for d in data.get("devices", []) if d.serial
             }
             self.networks_by_id = {
-                n["id"]: n for n in data.get("networks", []) if "id" in n
+                n.id: n for n in data.get("networks", []) if n.id
             }
             self.ssids_by_network_and_number = {
                 (s["networkId"], s["number"]): s
@@ -351,9 +349,9 @@ class MerakiDataCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             # Add SSIDs to each network for easier access in the UI
             all_ssids = data.get("ssids", [])
             for network in data.get("networks", []):
-                network_id = network.get("id")
+                network_id = network.id
                 if network_id:
-                    network["ssids"] = [
+                    network.ssids = [
                         ssid
                         for ssid in all_ssids
                         if ssid.get("networkId") == network_id
@@ -439,11 +437,10 @@ class MerakiDataCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         """
         if self.data and self.data.get("devices"):
             for device in self.data["devices"]:
-                if device.get("serial") == serial:
-                    device.setdefault("status_messages", [])
+                if device.serial == serial:
                     # Avoid duplicate messages
-                    if message not in device["status_messages"]:
-                        device["status_messages"].append(message)
+                    if message not in device.status_messages:
+                        device.status_messages.append(message)
                     break
 
     def add_network_status_message(self, network_id: str, message: str) -> None:
@@ -458,11 +455,10 @@ class MerakiDataCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         """
         if self.data and self.data.get("networks"):
             for network in self.data["networks"]:
-                if network.get("id") == network_id:
-                    network.setdefault("status_messages", [])
+                if network.id == network_id:
                     # Avoid duplicate messages
-                    if message not in network["status_messages"]:
-                        network["status_messages"].append(message)
+                    if message not in network.status_messages:
+                        network.status_messages.append(message)
                     break
 
     def _is_check_due(

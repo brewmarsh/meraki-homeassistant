@@ -16,7 +16,7 @@ from ..sensor_registry import (
     COMMON_SENSORS_COORD_DEV_CONF,
     get_sensors_for_device_type,
 )
-from ..types import MerakiVlan
+from ..types import MerakiDevice, MerakiVlan
 from .client_tracker import ClientTrackerDeviceSensor, MerakiClientSensor
 from .device.appliance_port import MerakiAppliancePortSensor
 from .device.appliance_uplink import MerakiApplianceUplinkSensor
@@ -51,12 +51,12 @@ def _setup_device_sensors(
     entities: list[Entity] = []
     devices = coordinator.data.get("devices", [])
     for device_info in devices:
-        serial = device_info.get("serial")
+        serial = device_info.serial
         if not serial:
             _LOGGER.warning("Skipping device with missing serial.")
             continue
 
-        device_info["name"] = device_info.get("name") or f"Meraki Device {serial}"
+        device_info.name = device_info.name or f"Meraki Device {serial}"
 
         # Common sensors with (coordinator, device_info, config_entry)
         for sensor_class in COMMON_SENSORS_COORD_DEV_CONF:
@@ -65,7 +65,7 @@ def _setup_device_sensors(
                 entities.append(sensor_class(coordinator, device_info, config_entry))  # type: ignore[call-arg]
                 added_entities.add(unique_id)
 
-        product_type = device_info.get("productType")
+        product_type = device_info.productType
         if product_type and product_type.startswith("camera"):
             unique_id = f"{serial}_rtsp_url"
             if unique_id not in added_entities:
@@ -93,7 +93,7 @@ def _setup_device_sensors(
 
         # Appliance port sensors
         if product_type == "appliance":
-            for port in device_info.get("ports", []):
+            for port in device_info.ports:
                 unique_id = f"{serial}_port_{port['number']}"
                 if unique_id not in added_entities:
                     entities.append(
@@ -117,7 +117,7 @@ def _setup_network_sensors(
     entities: list[Entity] = []
     networks = coordinator.data.get("networks", [])
     for network_data in networks:
-        network_id = network_data.get("id")
+        network_id = network_data.id
         if not network_id:
             continue
 
@@ -225,7 +225,7 @@ def _setup_uplink_sensors(
             if unique_id not in added_entities:
                 entities.append(
                     MerakiApplianceUplinkSensor(
-                        coordinator, cast(dict, device_info), config_entry, uplink
+                        coordinator, cast(MerakiDevice, device_info), config_entry, uplink
                     )
                 )
                 added_entities.add(unique_id)
