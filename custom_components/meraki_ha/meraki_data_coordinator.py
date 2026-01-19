@@ -184,15 +184,30 @@ class MerakiDataCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
         if "networks" in data:
             for network in data["networks"]:
-                network["is_enabled"] = network.get("id") in enabled_network_ids
+                if not isinstance(network, dict):
+                    network_id = getattr(network, "id", None)
+                else:
+                    network_id = network.get("id")
+                is_enabled = network_id in enabled_network_ids
+
+                if isinstance(network, dict):
+                    network["is_enabled"] = is_enabled
+                else:
+                    # Manually set if object
+                    setattr(network, "is_enabled", is_enabled)  # noqa: B010
 
             # Filter devices and SSIDs to only include those from enabled networks
             if "devices" in data:
-                data["devices"] = [
-                    d
-                    for d in data["devices"]
-                    if d.get("networkId") in enabled_network_ids
-                ]
+                filtered_devices = []
+                for d in data["devices"]:
+                    if not isinstance(d, dict):
+                        n_id = getattr(d, "networkId", None)
+                    else:
+                        n_id = d.get("networkId")
+                    if n_id in enabled_network_ids:
+                        filtered_devices.append(d)
+                data["devices"] = filtered_devices
+
             if "ssids" in data:
                 data["ssids"] = [
                     s
@@ -223,9 +238,15 @@ class MerakiDataCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         }
 
         # Build a set of all valid identifiers from the latest coordinator data
-        latest_valid_identifiers: set[str] = {
-            device["serial"] for device in data.get("devices", [])
-        }
+        latest_valid_identifiers: set[str] = set()
+        for device in data.get("devices", []):
+            if not isinstance(device, dict):
+                serial = getattr(device, "serial", None)
+            else:
+                serial = device.get("serial")
+            if serial:
+                latest_valid_identifiers.add(serial)
+
         for ssid in data.get("ssids", []):
             network_id = ssid.get("networkId")
             ssid_number = ssid.get("number")
@@ -234,8 +255,15 @@ class MerakiDataCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
         # Add network identifiers
         for network in data.get("networks", []):
-            if network.get("is_enabled"):
-                latest_valid_identifiers.add(f"network_{network['id']}")
+            if not isinstance(network, dict):
+                is_enabled = getattr(network, "is_enabled", False)
+                network_id = getattr(network, "id", None)
+            else:
+                is_enabled = network.get("is_enabled")
+                network_id = network.get("id")
+
+            if is_enabled:
+                latest_valid_identifiers.add(f"network_{network_id}")
 
         # Add VLAN identifiers
         for network_id, vlans in data.get("vlans", {}).items():
@@ -272,10 +300,16 @@ class MerakiDataCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         dev_reg = dr.async_get(self.hass)
 
         for device in data["devices"]:
-            device.setdefault("status_messages", [])
+            # Ensure status_messages list exists
+            if isinstance(device, dict):
+                device.setdefault("status_messages", [])
+                serial = device["serial"]
+            else:
+                # device is MerakiDevice object, has default list in field
+                serial = device.serial
 
             ha_device = dev_reg.async_get_device(
-                identifiers={(DOMAIN, device["serial"])},
+                identifiers={(DOMAIN, serial)},
             )
             if ha_device:
                 entities_for_device = er.async_entries_for_device(
@@ -289,22 +323,35 @@ class MerakiDataCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                         if entity.platform in ["switch", "camera", "binary_sensor"]:
                             primary_entity = entity
                             break
+
                     if primary_entity:
-                        device["entity_id"] = primary_entity.entity_id
+                        entity_id = primary_entity.entity_id
                     else:
-                        device["entity_id"] = entities_for_device[0].entity_id
+                        entity_id = entities_for_device[0].entity_id
+
+                    if isinstance(device, dict):
+                        device["entity_id"] = entity_id
+                        device["entities"] = []
+                    else:
+                        device.entity_id = entity_id
+                        device.entities = []
 
                     # Add list of entities to device data for frontend
-                    device["entities"] = []
+                    entities_list = []
                     for entity in entities_for_device:
                         state_obj = self.hass.states.get(entity.entity_id)
-                        device["entities"].append(
+                        entities_list.append(
                             {
                                 "name": entity.name or entity.original_name,
                                 "entity_id": entity.entity_id,
                                 "state": state_obj.state if state_obj else "unknown",
                             }
                         )
+
+                    if isinstance(device, dict):
+                        device["entities"] = entities_list
+                    else:
+                        device.entities = entities_list
 
     async def _async_update_data(self) -> dict[str, Any]:
         """Fetch data from API endpoint and apply filters."""
@@ -338,13 +385,22 @@ class MerakiDataCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             # Add SSIDs to each network for easier access in the UI
             all_ssids = data.get("ssids", [])
             for network in data.get("networks", []):
-                network_id = network.get("id")
+                # Handle both dict and MerakiNetwork object
+                if not isinstance(network, dict):
+                    network_id = getattr(network, "id", None)
+                else:
+                    network_id = network.get("id")
+
                 if network_id:
-                    network["ssids"] = [
+                    ssids = [
                         ssid
                         for ssid in all_ssids
                         if ssid.get("networkId") == network_id
                     ]
+                    if isinstance(network, dict):
+                        network["ssids"] = ssids
+                    else:
+                        network.ssids = ssids
 
             self._populate_device_entities(data)
 
@@ -352,12 +408,17 @@ class MerakiDataCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             # We create these AFTER population to capture added fields like entity_id
             self.devices_by_serial = {}
             for d in data.get("devices", []):
-                if "serial" in d:
+                # Check if it's already an object (from client) or dict
+                if isinstance(d, MerakiDevice):
+                    self.devices_by_serial[d.serial] = d
+                elif isinstance(d, dict) and "serial" in d:
                     self.devices_by_serial[d["serial"]] = MerakiDevice.from_dict(d)
 
             self.networks_by_id = {}
             for n in data.get("networks", []):
-                if "id" in n:
+                if isinstance(n, MerakiNetwork):
+                    self.networks_by_id[n.id] = n
+                elif isinstance(n, dict) and "id" in n:
                     self.networks_by_id[n["id"]] = MerakiNetwork.from_dict(n)
 
             self.ssids_by_network_and_number = {
@@ -444,11 +505,18 @@ class MerakiDataCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         """
         if self.data and self.data.get("devices"):
             for device in self.data["devices"]:
-                if device.get("serial") == serial:
-                    device.setdefault("status_messages", [])
-                    # Avoid duplicate messages
-                    if message not in device["status_messages"]:
-                        device["status_messages"].append(message)
+                if not isinstance(device, dict):
+                    d_serial = getattr(device, "serial", None)
+                else:
+                    d_serial = device.get("serial")
+                if d_serial == serial:
+                    if isinstance(device, dict):
+                        device.setdefault("status_messages", [])
+                        if message not in device["status_messages"]:
+                            device["status_messages"].append(message)
+                    else:
+                        if message not in device.status_messages:
+                            device.status_messages.append(message)
                     break
 
         if serial in self.devices_by_serial:
@@ -468,11 +536,18 @@ class MerakiDataCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         """
         if self.data and self.data.get("networks"):
             for network in self.data["networks"]:
-                if network.get("id") == network_id:
-                    network.setdefault("status_messages", [])
-                    # Avoid duplicate messages
-                    if message not in network["status_messages"]:
-                        network["status_messages"].append(message)
+                if not isinstance(network, dict):
+                    n_id = getattr(network, "id", None)
+                else:
+                    n_id = network.get("id")
+                if n_id == network_id:
+                    if isinstance(network, dict):
+                        network.setdefault("status_messages", [])
+                        if message not in network["status_messages"]:
+                            network["status_messages"].append(message)
+                    else:
+                        if message not in network.status_messages:
+                            network.status_messages.append(message)
                     break
 
         if network_id in self.networks_by_id:

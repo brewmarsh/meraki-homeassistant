@@ -5,6 +5,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 
 from custom_components.meraki_ha.switch.access_point_leds import MerakiAPLEDSwitch
+from custom_components.meraki_ha.types import MerakiNetwork
 
 
 @pytest.fixture
@@ -32,7 +33,13 @@ def mock_config_entry():
 @pytest.fixture
 def mock_network():
     """Mock a Meraki network."""
-    return {"id": "N_12345", "name": "Test Network", "productTypes": ["wireless"]}
+    return MerakiNetwork.from_dict({
+        "id": "N_12345",
+        "name": "Test Network",
+        "productTypes": ["wireless"],
+        "organizationId": "org",
+        "clientCount": 0,
+    })
 
 
 async def test_switch_state(mock_coordinator, mock_config_entry, mock_network):

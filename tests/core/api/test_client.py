@@ -1,5 +1,6 @@
 """Tests for the Meraki API client."""
 
+import dataclasses
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
@@ -71,20 +72,23 @@ async def test_get_all_data_orchestration(api_client):
 def test_process_initial_data_merges_availability(api_client):
     """Test that _process_initial_data merges device availability."""
     # Arrange
-    device_with_status = MOCK_DEVICE.copy()
-    availabilities = [{"serial": MOCK_DEVICE["serial"], "status": "online"}]
+    device_with_status = dataclasses.replace(MOCK_DEVICE)
+    device_with_status.status = None
+
+    availabilities = [{"serial": MOCK_DEVICE.serial, "status": "online"}]
     results = {
         "networks": [MOCK_NETWORK],
         "devices": [device_with_status],
         "devices_availabilities": availabilities,
         "appliance_uplink_statuses": [],
+        "sensor_readings": [],
     }
 
     # Act
     data = api_client._process_initial_data(results)
 
     # Assert
-    assert data["devices"][0]["status"] == "online"
+    assert data["devices"][0].status == "online"
 
 
 def test_process_initial_data_handles_errors(api_client, caplog):

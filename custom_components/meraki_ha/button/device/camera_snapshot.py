@@ -3,7 +3,8 @@
 from __future__ import annotations
 
 import logging
-from typing import TYPE_CHECKING, Any
+from dataclasses import asdict
+from typing import TYPE_CHECKING
 
 from homeassistant.components.button import ButtonEntity
 from homeassistant.config_entries import ConfigEntry
@@ -12,6 +13,7 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from ...helpers.device_info_helpers import resolve_device_info
 from ...meraki_data_coordinator import MerakiDataCoordinator
+from ...types import MerakiDevice
 
 if TYPE_CHECKING:
     from ...services.camera_service import CameraService
@@ -26,7 +28,7 @@ class MerakiSnapshotButton(CoordinatorEntity, ButtonEntity):
     def __init__(
         self,
         coordinator: MerakiDataCoordinator,
-        device: dict[str, Any],
+        device: MerakiDevice,
         camera_service: CameraService,
         config_entry: ConfigEntry,
     ) -> None:
@@ -35,17 +37,17 @@ class MerakiSnapshotButton(CoordinatorEntity, ButtonEntity):
         self._device = device
         self._camera_service = camera_service
         self._config_entry = config_entry
-        self._attr_unique_id = f"{self._device['serial']}-snapshot"
-        self._attr_name = f"{self._device['name']} Snapshot"
+        self._attr_unique_id = f"{self._device.serial}-snapshot"
+        self._attr_name = f"{self._device.name} Snapshot"
 
     @property
     def device_info(self) -> DeviceInfo | None:
         """Return device information."""
-        return resolve_device_info(self._device, self._config_entry)
+        return resolve_device_info(asdict(self._device), self._config_entry)
 
     async def async_press(self) -> None:
         """Handle the button press."""
-        serial = self._device["serial"]
+        serial = self._device.serial
         _LOGGER.info("Snapshot button pressed for %s", serial)
         try:
             url = await self._camera_service.generate_snapshot(serial)

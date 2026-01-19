@@ -75,10 +75,10 @@ class NetworkHandler(BaseHandler):
                     network_control_service=self._network_control_service,
                 )
             )
-            if "appliance" in network.get("productTypes", []):
+            if "appliance" in getattr(network, "productTypes", []):
                 try:
                     categories = await self._coordinator.api.appliance.get_network_appliance_content_filtering_categories(  # noqa: E501
-                        network["id"]
+                        network.id
                     )
                     for category in categories.get("categories", []):
                         entities.append(
@@ -92,7 +92,7 @@ class NetworkHandler(BaseHandler):
                 except Exception as e:
                     _LOGGER.warning(
                         "Could not get content filtering categories for network %s: %s",
-                        network["id"],
+                        network.id,
                         e,
                     )
 

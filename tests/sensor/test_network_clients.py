@@ -8,6 +8,7 @@ from homeassistant.core import HomeAssistant
 from custom_components.meraki_ha.sensor.network.network_clients import (
     MerakiNetworkClientsSensor,
 )
+from custom_components.meraki_ha.types import MerakiNetwork
 
 
 @pytest.fixture
@@ -26,9 +27,18 @@ async def test_network_clients_sensor(
     coordinator = MagicMock()
     coordinator.data = {}  # Data is no longer read from coordinator
     config_entry = MagicMock()
-    network_data = {"id": "N_123", "name": "Test Network"}
+    network_data = {
+        "id": "N_123",
+        "name": "Test Network",
+        "productTypes": [],
+        "organizationId": "org",
+        "clientCount": 5,
+    }
     sensor = MerakiNetworkClientsSensor(
-        coordinator, config_entry, network_data, mock_network_control_service
+        coordinator,
+        config_entry,
+        MerakiNetwork.from_dict(network_data),
+        mock_network_control_service,
     )
     sensor.hass = hass
     sensor.entity_id = "sensor.test_network_clients"

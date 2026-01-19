@@ -188,7 +188,7 @@ class MerakiWebServer:
                         {
                             "type": "network",
                             "network_id": network_id,
-                            "name": network_info.get("name", "Unknown Network"),
+                            "name": getattr(network_info, "name", "Unknown Network"),
                         }
                     )
 

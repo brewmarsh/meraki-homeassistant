@@ -1,7 +1,7 @@
 """Sensor for tracking clients on a specific network."""
 
 import logging
-from typing import TYPE_CHECKING, Any, cast
+from typing import TYPE_CHECKING, Any
 
 from homeassistant.components.sensor import SensorEntity, SensorStateClass
 from homeassistant.config_entries import ConfigEntry
@@ -28,11 +28,17 @@ class MerakiNetworkClientsSensor(MerakiNetworkEntity, SensorEntity):
         self,
         coordinator: MerakiDataCoordinator,
         config_entry: ConfigEntry,
-        network_data: dict[str, Any],
+        network_data: MerakiNetwork | dict[str, Any],
         network_control_service: "NetworkControlService",
     ) -> None:
         """Initialize the sensor."""
-        super().__init__(coordinator, config_entry, cast(MerakiNetwork, network_data))
+        # Convert dict to MerakiNetwork if needed
+        if isinstance(network_data, dict):
+            network_obj = MerakiNetwork.from_dict(network_data)
+        else:
+            network_obj = network_data
+
+        super().__init__(coordinator, config_entry, network_obj)
         self._network_control_service = network_control_service
         self._attr_unique_id = f"meraki_network_clients_{self._network_id}"
         self._attr_name = "Clients"

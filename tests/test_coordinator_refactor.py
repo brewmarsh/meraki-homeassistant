@@ -41,19 +41,19 @@ async def test_coordinator_returns_objects(coordinator, mock_api_client):
 
     # Assert
     # Check device
-    device = coordinator.get_device(MOCK_DEVICE["serial"])
+    device = coordinator.get_device(MOCK_DEVICE.serial)
     assert device is not None
     assert is_dataclass(device)
     assert isinstance(device, MerakiDevice)
-    assert device.serial == MOCK_DEVICE["serial"]
-    assert device.name == MOCK_DEVICE["name"]
+    assert device.serial == MOCK_DEVICE.serial
+    assert device.name == MOCK_DEVICE.name
 
     # Check network
-    network = coordinator.get_network(MOCK_NETWORK["id"])
+    network = coordinator.get_network(MOCK_NETWORK.id)
     assert network is not None
     assert is_dataclass(network)
     assert isinstance(network, MerakiNetwork)
-    assert network.id == MOCK_NETWORK["id"]
+    assert network.id == MOCK_NETWORK.id
 
 @pytest.mark.asyncio
 async def test_status_messages_update_objects(coordinator, mock_api_client):
@@ -68,12 +68,12 @@ async def test_status_messages_update_objects(coordinator, mock_api_client):
     coordinator.data = data
 
     # Act
-    coordinator.add_status_message(MOCK_DEVICE["serial"], "Test Message")
+    coordinator.add_status_message(MOCK_DEVICE.serial, "Test Message")
 
     # Assert
-    device = coordinator.get_device(MOCK_DEVICE["serial"])
+    device = coordinator.get_device(MOCK_DEVICE.serial)
     assert "Test Message" in device.status_messages
 
-    # Check data dict too
-    device_dict = coordinator.data["devices"][0]
-    assert "Test Message" in device_dict["status_messages"]
+    # Check data dict (which are objects now)
+    device_obj = coordinator.data["devices"][0]
+    assert "Test Message" in device_obj.status_messages

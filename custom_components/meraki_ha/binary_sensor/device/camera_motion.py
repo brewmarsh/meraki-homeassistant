@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+from dataclasses import asdict
 from typing import TYPE_CHECKING, Any
 
 from homeassistant.components.binary_sensor import (
@@ -15,6 +16,7 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from ...helpers.device_info_helpers import resolve_device_info
 from ...meraki_data_coordinator import MerakiDataCoordinator
+from ...types import MerakiDevice
 
 if TYPE_CHECKING:
     from ...services.camera_service import CameraService
@@ -31,7 +33,7 @@ class MerakiMotionSensor(CoordinatorEntity, BinarySensorEntity):
     def __init__(
         self,
         coordinator: MerakiDataCoordinator,
-        device: dict[str, Any],
+        device: MerakiDevice,
         camera_service: CameraService,
         config_entry: ConfigEntry,
     ) -> None:
@@ -40,14 +42,14 @@ class MerakiMotionSensor(CoordinatorEntity, BinarySensorEntity):
         self._device = device
         self._camera_service = camera_service
         self._config_entry = config_entry
-        self._attr_unique_id = f"{self._device['serial']}-motion"
-        self._attr_name = f"{self._device['name']} Motion"
+        self._attr_unique_id = f"{self._device.serial}-motion"
+        self._attr_name = f"{self._device.name} Motion"
         self._motion_events: list[dict[str, Any]] = []
 
     @property
     def device_info(self) -> DeviceInfo | None:
         """Return device information."""
-        return resolve_device_info(self._device, self._config_entry)
+        return resolve_device_info(asdict(self._device), self._config_entry)
 
     @property
     def is_on(self) -> bool:
@@ -61,7 +63,7 @@ class MerakiMotionSensor(CoordinatorEntity, BinarySensorEntity):
 
     async def async_update(self) -> None:
         """Update the sensor."""
-        serial = self._device["serial"]
+        serial = self._device.serial
         try:
             self._motion_events = await self._camera_service.get_motion_history(serial)
         except Exception as e:

@@ -10,7 +10,6 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from ..core.api.client import MerakiAPIClient
 from ..meraki_data_coordinator import MerakiDataCoordinator
-from ..types import MerakiDevice
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -50,7 +49,7 @@ class MerakiCameraSettingSwitchBase(
         self._attr_is_on = False
         self._update_state()  # Set initial state
 
-    def _get_value_from_device(self, device: MerakiDevice | None) -> bool:
+    def _get_value_from_device(self, device: dict[str, Any] | None) -> bool:
         """
         Drill down into the device dictionary to get the state value.
 

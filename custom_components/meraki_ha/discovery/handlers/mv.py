@@ -79,7 +79,7 @@ class MVHandler(BaseDeviceHandler):
     async def discover_entities(self) -> list[Entity]:
         """Discover entities for a camera device."""
         entities: list[Entity] = []
-        serial = self.device["serial"]
+        serial = getattr(self.device, "serial", None)
 
         # Always create the base camera entity
         entities.append(
@@ -93,7 +93,9 @@ class MVHandler(BaseDeviceHandler):
 
         # The rest of the sensors should probably be created regardless of stream
         # availability
-        features = await self._camera_service.get_supported_analytics(serial)
+        features = await self._camera_service.get_supported_analytics(
+            str(serial) if serial else ""
+        )
 
         if "person_detection" in features:
             entities.append(

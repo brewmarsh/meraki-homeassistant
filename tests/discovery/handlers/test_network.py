@@ -8,18 +8,36 @@ from custom_components.meraki_ha.discovery.handlers.network import NetworkHandle
 from custom_components.meraki_ha.sensor.network.network_clients import (
     MerakiNetworkClientsSensor,
 )
+from custom_components.meraki_ha.types import MerakiNetwork
 
 from ...const import MOCK_CONFIG_ENTRY
 
-MOCK_NETWORK_1 = {"id": "N_1234", "name": "Network 1"}
-MOCK_NETWORK_2 = {"id": "N_5678", "name": "Network 2"}
+MOCK_NETWORK_1 = {
+    "id": "N_1234",
+    "name": "Network 1",
+    "productTypes": ["wireless"],
+    "organizationId": "org",
+    "clientCount": 0,
+}
+MOCK_NETWORK_2 = {
+    "id": "N_5678",
+    "name": "Network 2",
+    "productTypes": ["wireless"],
+    "organizationId": "org",
+    "clientCount": 0,
+}
 
 
 @pytest.fixture
 def mock_coordinator():
     """Fixture for a mock MerakiDataCoordinator."""
     coordinator = MagicMock()
-    coordinator.data = {"networks": [MOCK_NETWORK_1, MOCK_NETWORK_2]}
+    coordinator.data = {
+        "networks": [
+            MerakiNetwork.from_dict(MOCK_NETWORK_1),
+            MerakiNetwork.from_dict(MOCK_NETWORK_2),
+        ]
+    }
     return coordinator
 
 

@@ -37,7 +37,7 @@ class NetworkHub:
             return [
                 d
                 for d in self._coordinator.data["devices"]
-                if d.get("networkId") == self.network_id
+                if getattr(d, "networkId", None) == self.network_id
             ]
         return []
 

@@ -1,25 +1,25 @@
 """Tests for the DeviceDiscoveryService."""
 
+import dataclasses
 from unittest.mock import ANY, AsyncMock, MagicMock, patch
 
 import pytest
 
 from custom_components.meraki_ha.discovery.service import DeviceDiscoveryService
-from custom_components.meraki_ha.types import MerakiDevice
 from tests.const import MOCK_DEVICE
 
 
 @pytest.fixture
 def mock_coordinator_with_devices(mock_coordinator: MagicMock) -> MagicMock:
     """Fixture for a mocked MerakiDataCoordinator with various devices."""
-    wireless_device = MOCK_DEVICE.copy()
-    wireless_device["model"] = "MR36"
-    camera_device = MOCK_DEVICE.copy()
-    camera_device["serial"] = "camera_serial"
-    camera_device["model"] = "MV12"
-    unsupported_device = MOCK_DEVICE.copy()
-    unsupported_device["serial"] = "unsupported_serial"
-    unsupported_device["model"] = "unsupported"
+    wireless_device = dataclasses.replace(MOCK_DEVICE)
+    wireless_device.model = "MR36"
+    camera_device = dataclasses.replace(MOCK_DEVICE)
+    camera_device.serial = "camera_serial"
+    camera_device.model = "MV12"
+    unsupported_device = dataclasses.replace(MOCK_DEVICE)
+    unsupported_device.serial = "unsupported_serial"
+    unsupported_device.model = "unsupported"
     mock_coordinator.data = {
         "devices": [wireless_device, camera_device, unsupported_device],
         "networks": [],
@@ -28,10 +28,10 @@ def mock_coordinator_with_devices(mock_coordinator: MagicMock) -> MagicMock:
 
     def get_device_side_effect(serial):
         device = next(
-            (d for d in mock_coordinator.data["devices"] if d["serial"] == serial),
+            (d for d in mock_coordinator.data["devices"] if d.serial == serial),
             None
         )
-        return MerakiDevice.from_dict(device) if device else None
+        return device
 
     mock_coordinator.get_device.side_effect = get_device_side_effect
     return mock_coordinator

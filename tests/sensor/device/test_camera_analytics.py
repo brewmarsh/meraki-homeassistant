@@ -1,5 +1,6 @@
 """Tests for the Meraki camera analytics sensors."""
 
+import dataclasses
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
@@ -29,7 +30,7 @@ def mock_camera_service():
 async def test_person_count_sensor(mock_coordinator, mock_camera_service):
     """Test the person count sensor."""
     # Arrange
-    device = MOCK_DEVICE.copy()
+    device = dataclasses.replace(MOCK_DEVICE)
     sensor = MerakiPersonCountSensor(mock_coordinator, device, mock_camera_service)
 
     # Act
@@ -44,7 +45,7 @@ async def test_person_count_sensor(mock_coordinator, mock_camera_service):
 async def test_vehicle_count_sensor(mock_coordinator, mock_camera_service):
     """Test the vehicle count sensor."""
     # Arrange
-    device = MOCK_DEVICE.copy()
+    device = dataclasses.replace(MOCK_DEVICE)
     sensor = MerakiVehicleCountSensor(mock_coordinator, device, mock_camera_service)
 
     # Act

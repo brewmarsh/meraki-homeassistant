@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+from dataclasses import asdict
 from typing import TYPE_CHECKING, Any
 
 from homeassistant.components.sensor import SensorEntity
@@ -11,6 +12,7 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from ...helpers.device_info_helpers import resolve_device_info
 from ...meraki_data_coordinator import MerakiDataCoordinator
+from ...types import MerakiDevice
 
 if TYPE_CHECKING:
     from ...services.camera_service import CameraService
@@ -25,7 +27,7 @@ class MerakiAnalyticsSensor(CoordinatorEntity, SensorEntity):
     def __init__(
         self,
         coordinator: MerakiDataCoordinator,
-        device: dict[str, Any],
+        device: MerakiDevice,
         camera_service: CameraService,
         object_type: str,
     ) -> None:
@@ -34,14 +36,14 @@ class MerakiAnalyticsSensor(CoordinatorEntity, SensorEntity):
         self._device = device
         self._camera_service = camera_service
         self._object_type = object_type
-        self._attr_unique_id = f"{self._device['serial']}-{object_type}-count"
-        self._attr_name = f"{self._device['name']} {object_type.capitalize()} Count"
+        self._attr_unique_id = f"{self._device.serial}-{object_type}-count"
+        self._attr_name = f"{self._device.name} {object_type.capitalize()} Count"
         self._analytics_data: dict[str, Any] = {}
 
     @property
     def device_info(self) -> DeviceInfo | None:
         """Return device information."""
-        return resolve_device_info(self._device, self.coordinator.config_entry)
+        return resolve_device_info(asdict(self._device), self.coordinator.config_entry)
 
     @property
     def native_value(self) -> int | None:
@@ -57,7 +59,7 @@ class MerakiAnalyticsSensor(CoordinatorEntity, SensorEntity):
 
     async def async_update(self) -> None:
         """Update the sensor."""
-        serial = self._device["serial"]
+        serial = self._device.serial
         try:
             analytics_data = await self._camera_service.get_analytics_data(
                 serial, self._object_type
@@ -77,7 +79,7 @@ class MerakiPersonCountSensor(MerakiAnalyticsSensor):
     def __init__(
         self,
         coordinator: MerakiDataCoordinator,
-        device: dict[str, Any],
+        device: MerakiDevice,
         camera_service: CameraService,
     ) -> None:
         """Initialize the sensor."""
@@ -91,7 +93,7 @@ class MerakiVehicleCountSensor(MerakiAnalyticsSensor):
     def __init__(
         self,
         coordinator: MerakiDataCoordinator,
-        device: dict[str, Any],
+        device: MerakiDevice,
         camera_service: CameraService,
     ) -> None:
         """Initialize the sensor."""
