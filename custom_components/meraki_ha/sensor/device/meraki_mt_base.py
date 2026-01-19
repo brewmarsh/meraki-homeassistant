@@ -41,8 +41,6 @@ class MerakiMtSensor(CoordinatorEntity, RestoreSensor):
         if (last_sensor_data := await self.async_get_last_sensor_data()) is not None:
             self._attr_native_value = last_sensor_data.native_value
 
-
-
     @property
     def device_info(self) -> DeviceInfo:
         """Return device information."""

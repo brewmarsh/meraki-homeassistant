@@ -23,8 +23,8 @@ def mock_camera(
     if "devices" in mock_coordinator.data:
         # Check if already present to avoid duplicates
         if not any(
-                        d.serial == MOCK_CAMERA_DEVICE.serial
-                        for d in mock_coordinator.data["devices"]
+            d.serial == MOCK_CAMERA_DEVICE.serial
+            for d in mock_coordinator.data["devices"]
         ):
             mock_coordinator.data["devices"].append(MOCK_CAMERA_DEVICE)
 
