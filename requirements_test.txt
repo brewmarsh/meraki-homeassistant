@@ -1,7 +1,7 @@
 -r requirements_dev.txt
 
 # Test-specific dependencies
-pytest-homeassistant-custom-component==0.13.205
+pytest-homeassistant-custom-component
 pytest
 pytest-cov==6.0.0
 pytest-asyncio
