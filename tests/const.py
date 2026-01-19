@@ -11,7 +11,7 @@ MOCK_CONFIG_ENTRY = MagicMock()
 MOCK_CONFIG_ENTRY.entry_id = MOCK_CONFIG_ENTRY_ID
 
 
-MOCK_NETWORK: MerakiNetwork = {
+MOCK_NETWORK_DICT = {
     "id": "N_12345",
     "organizationId": "test-org",
     "name": "Test Network",
@@ -19,8 +19,9 @@ MOCK_NETWORK: MerakiNetwork = {
     "tags": "e2e-test",
     "clientCount": 5,
 }
+MOCK_NETWORK = MerakiNetwork.from_dict(MOCK_NETWORK_DICT)
 
-MOCK_DEVICE: MerakiDevice = {
+MOCK_DEVICE_DICT = {
     "serial": "Q234-ABCD-5678",
     "name": "Test Device",
     "model": "MR33",
@@ -29,8 +30,9 @@ MOCK_DEVICE: MerakiDevice = {
     "lanIp": "1.2.3.4",
     "status": "online",
 }
+MOCK_DEVICE = MerakiDevice.from_dict(MOCK_DEVICE_DICT)
 
-MOCK_MX_DEVICE: MerakiDevice = {
+MOCK_MX_DEVICE = MerakiDevice.from_dict({
     "serial": "Q234-ABCD-MX",
     "name": "Test MX Device",
     "model": "MX67",
@@ -38,9 +40,9 @@ MOCK_MX_DEVICE: MerakiDevice = {
     "productType": "appliance",
     "lanIp": "1.2.3.5",
     "status": "online",
-}
+})
 
-MOCK_GX_DEVICE: MerakiDevice = {
+MOCK_GX_DEVICE = MerakiDevice.from_dict({
     "serial": "Q234-ABCD-GX",
     "name": "Test GX Device",
     "model": "GX20",
@@ -48,7 +50,7 @@ MOCK_GX_DEVICE: MerakiDevice = {
     "productType": "cellularGateway",
     "lanIp": "1.2.3.6",
     "status": "online",
-}
+})
 
 MOCK_SSID = {
     "number": 0,
@@ -98,12 +100,12 @@ MOCK_ALL_DATA = {
     "l7_firewall_rules": MOCK_L7_FIREWALL_RULES,
 }
 
-MOCK_CAMERA_DEVICE = {
-    **MOCK_DEVICE,
+MOCK_CAMERA_DEVICE = MerakiDevice.from_dict({
+    **MOCK_DEVICE_DICT,
     "productType": "camera",
     "model": "MV12",
     "video_settings": {
         "rtspServerEnabled": True,
         "rtspUrl": "rtsp://test.com/stream",
     },
-}
+})

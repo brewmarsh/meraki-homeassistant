@@ -7,6 +7,7 @@ import pytest
 from custom_components.meraki_ha.binary_sensor.device.mt20_open_close import (
     MerakiMt20OpenCloseSensor,
 )
+from custom_components.meraki_ha.types import MerakiDevice
 
 
 @pytest.fixture
@@ -14,24 +15,28 @@ def mock_coordinator_mt20(mock_coordinator: MagicMock) -> MagicMock:
     """Fixture for a mocked MerakiDataCoordinator with MT20 data."""
     mock_coordinator.data = {
         "devices": [
-            {
-                "serial": "mt20-1",
-                "name": "MT20 Sensor",
-                "model": "MT20",
-                "productType": "sensor",
-                "readings": [
-                    {"metric": "door", "value": True},  # Door is open
-                ],
-            },
-            {
-                "serial": "mt20-2",
-                "name": "MT20 Sensor Closed",
-                "model": "MT20",
-                "productType": "sensor",
-                "readings": [
-                    {"metric": "door", "value": False},  # Door is closed
-                ],
-            },
+            MerakiDevice.from_dict(
+                {
+                    "serial": "mt20-1",
+                    "name": "MT20 Sensor",
+                    "model": "MT20",
+                    "productType": "sensor",
+                    "readings": [
+                        {"metric": "door", "value": True},  # Door is open
+                    ],
+                }
+            ),
+            MerakiDevice.from_dict(
+                {
+                    "serial": "mt20-2",
+                    "name": "MT20 Sensor Closed",
+                    "model": "MT20",
+                    "productType": "sensor",
+                    "readings": [
+                        {"metric": "door", "value": False},  # Door is closed
+                    ],
+                }
+            ),
         ]
     }
     return mock_coordinator
@@ -80,9 +85,9 @@ def test_mt20_availability(
     assert sensor.available is True
 
     # Test availability when readings are missing
-    device_info["readings"] = []
+    device_info.readings = []
     assert sensor.available is False
 
     # Test availability when 'readings' key is absent
-    del device_info["readings"]
+    device_info.readings = None  # type: ignore[assignment]
     assert sensor.available is False

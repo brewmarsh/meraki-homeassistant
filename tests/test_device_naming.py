@@ -13,6 +13,7 @@ from custom_components.meraki_ha.sensor.network.vlan import MerakiVLANIDSensor
 from custom_components.meraki_ha.sensor.org.org_clients import (
     MerakiOrganizationSSIDClientsSensor,
 )
+from custom_components.meraki_ha.types import MerakiNetwork
 
 
 @pytest.fixture
@@ -67,11 +68,12 @@ def test_network_device_naming(mock_coordinator: MagicMock) -> None:
     network_id = "net1"
     network_name = "Test Network"
 
-    network_data = {
+    network_data = MerakiNetwork.from_dict({
         "id": network_id,
         "name": network_name,
         "productTypes": ["wireless"],
-    }
+        "organizationId": "org1",
+    })
 
     sensor = MerakiNetworkClientsSensor(
         mock_coordinator,

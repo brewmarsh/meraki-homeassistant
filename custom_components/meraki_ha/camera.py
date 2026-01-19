@@ -15,6 +15,7 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from .const import DOMAIN
 from .core.utils.naming_utils import format_device_name
 from .helpers.entity_helpers import format_entity_name
+from .types import MerakiDevice
 
 if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
@@ -62,26 +63,26 @@ class MerakiCamera(CoordinatorEntity, Camera):
         self,
         coordinator: MerakiDataCoordinator,
         config_entry: ConfigEntry,
-        device: dict[str, Any],
+        device: MerakiDevice,
         camera_service: CameraService,
     ) -> None:
         """Initialize the camera."""
         super().__init__(coordinator)
         Camera.__init__(self)
         self._config_entry = config_entry
-        self._device_serial = device["serial"]
+        self._device_serial = device.serial
         self._camera_service = camera_service
         self._attr_unique_id = f"{self._device_serial}-camera"
         self._attr_name = format_entity_name(
             format_device_name(self.device_data, self.coordinator.config_entry.options),
             "",
         )
-        self._attr_model = self.device_data.get("model")
+        self._attr_model = self.device_data.model
 
     @property
-    def device_data(self) -> dict[str, Any]:
+    def device_data(self) -> MerakiDevice | None:
         """Return the device data from the coordinator."""
-        return self.coordinator.get_device(self._device_serial) or {}
+        return self.coordinator.get_device(self._device_serial)
 
     @property
     def device_info(self) -> DeviceInfo:
@@ -91,7 +92,7 @@ class MerakiCamera(CoordinatorEntity, Camera):
             name=format_device_name(
                 self.device_data, self.coordinator.config_entry.options
             ),
-            model=self.device_data.get("model"),
+            model=self.device_data.model,
             manufacturer="Cisco Meraki",
         )
 
@@ -99,7 +100,7 @@ class MerakiCamera(CoordinatorEntity, Camera):
         self, width: int | None = None, height: int | None = None
     ) -> bytes | None:
         """Return a still image from the camera."""
-        if self.device_data.get("status") != "online":
+        if self.device_data.status != "online":
             _LOGGER.debug("Skipping snapshot for offline camera: %s", self.name)
             return None
 
@@ -124,20 +125,20 @@ class MerakiCamera(CoordinatorEntity, Camera):
     async def stream_source(self) -> str | None:
         """Return the source of the stream, if enabled."""
         if self.is_streaming:
-            return self.device_data.get("rtsp_url")
+            return self.device_data.rtsp_url
         return None
 
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
         """Return the state attributes."""
         attrs = {}
-        video_settings = self.device_data.get("video_settings", {})
+        video_settings = self.device_data.video_settings
         if not video_settings.get("rtspServerEnabled", False):
             attrs["stream_status"] = "Disabled in Meraki Dashboard"
             self.coordinator.add_status_message(
                 self._device_serial, "RTSP stream is disabled in the Meraki dashboard."
             )
-        elif not self.device_data.get("rtsp_url"):
+        elif not self.device_data.rtsp_url:
             attrs["stream_status"] = (
                 "Stream URL not available. This may be because the camera does not"
                 " support cloud archival."
@@ -164,11 +165,11 @@ class MerakiCamera(CoordinatorEntity, Camera):
         This requires both the rtspServerEnabled setting to be true and a
         valid rtsp:// URL to be available.
         """
-        video_settings = self.device_data.get("video_settings", {})
+        video_settings = self.device_data.video_settings
         if not video_settings.get("rtspServerEnabled", False):
             return False
 
-        url = self.device_data.get("rtsp_url")
+        url = self.device_data.rtsp_url
         return url is not None and isinstance(url, str) and url.startswith("rtsp://")
 
     async def async_turn_on(self) -> None:
