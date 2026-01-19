@@ -11,7 +11,7 @@ from homeassistant.helpers.entity_registry import async_get as async_get_entity_
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.meraki_ha.const import DOMAIN
-from tests.const import MOCK_DEVICE, MOCK_GX_DEVICE, MOCK_MX_DEVICE
+from tests.const import MOCK_DEVICE, MOCK_GX_DEVICE, MOCK_MX_DEVICE, MOCK_NETWORK
 
 
 from homeassistant.setup import async_setup_component
@@ -35,19 +35,13 @@ def mock_meraki_client() -> AsyncMock:
     client.get_all_data = AsyncMock(
         return_value={
             "devices": [MOCK_DEVICE, MOCK_MX_DEVICE, MOCK_GX_DEVICE],
-            "networks": [
-                {
-                    "id": "net1",
-                    "name": "Test Network",
-                    "productTypes": ["wireless", "appliance"],
-                },
-            ],
+            "networks": [MOCK_NETWORK],
             "ssids": [
                 {
                     "number": 0,
                     "name": "Test SSID",
                     "enabled": True,
-                    "networkId": "net1",
+                    "networkId": MOCK_NETWORK.id,
                 },
             ],
             "clients": [],
@@ -96,7 +90,7 @@ async def test_ssid_device_creation_and_unification(
         entity_registry = async_get_entity_registry(hass)
 
         # Find devices related to the SSID
-        ssid_device_identifier = (DOMAIN, "net1_0")
+        ssid_device_identifier = (DOMAIN, f"{MOCK_NETWORK.id}_0")
         ssid_device = device_registry.async_get_device({ssid_device_identifier})
 
         # Assert that a device was created
