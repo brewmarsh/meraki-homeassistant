@@ -46,9 +46,7 @@ def ws_subscribe_meraki_data(
     def async_send_update() -> None:
         """Send update to client."""
         data = to_serializable(coordinator.data)
-        connection.send_message(
-            websocket_api.event_message(msg["id"], {"data": data})
-        )
+        connection.send_message(websocket_api.event_message(msg["id"], {"data": data}))
 
     # Send initial data
     data = to_serializable(coordinator.data)
