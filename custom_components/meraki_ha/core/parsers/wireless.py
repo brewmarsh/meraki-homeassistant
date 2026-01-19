@@ -22,10 +22,7 @@ def parse_wireless_data(
     """
     ssids: list[dict[str, Any]] = []
     for network in networks:
-        if not isinstance(network, dict) or "id" not in network:
-            continue
-
-        network_id = network["id"]
+        network_id = network.id
         network_ssids_key = f"ssids_{network_id}"
         network_ssids = detail_data.get(network_ssids_key)
 
