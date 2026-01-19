@@ -17,7 +17,11 @@ def mock_api_client() -> MagicMock:
 
 @pytest.fixture
 def mock_coordinator_with_clients(mock_coordinator: MagicMock) -> MagicMock:
+<<<<<<< HEAD
+    """Fixture for a mocked MerakiDataUpdateCoordinator with client data."""
+=======
     """Fixture for a mocked MerakiDataCoordinator with client data."""
+>>>>>>> 9bc35b7 (Merge pull request #845 from brewmarsh/fix/frontend-build-2299669574949783162)
     mock_coordinator.data = {
         "clients": [
             {"networkId": "N_1234", "mac": "00:11:22:33:44:55"},

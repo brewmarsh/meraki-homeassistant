@@ -4,15 +4,23 @@ import logging
 from typing import Any
 
 from homeassistant.components.sensor import SensorEntity
+<<<<<<< HEAD
+=======
 from homeassistant.const import EntityCategory
+>>>>>>> 9bc35b7 (Merge pull request #845 from brewmarsh/fix/frontend-build-2299669574949783162)
 from homeassistant.core import callback
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from ...const import DOMAIN
+<<<<<<< HEAD
+from ...coordinator import MerakiDataUpdateCoordinator
+from ...core.utils.naming_utils import format_device_name, format_entity_name
+=======
 from ...core.utils.naming_utils import format_device_name
 from ...helpers.entity_helpers import format_entity_name
 from ...meraki_data_coordinator import MerakiDataCoordinator
+>>>>>>> 9bc35b7 (Merge pull request #845 from brewmarsh/fix/frontend-build-2299669574949783162)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -20,11 +28,17 @@ _LOGGER = logging.getLogger(__name__)
 class MerakiAppliancePortSensor(CoordinatorEntity, SensorEntity):
     """Representation of a Meraki appliance port sensor."""
 
+<<<<<<< HEAD
+    def __init__(
+        self,
+        coordinator: MerakiDataUpdateCoordinator,
+=======
     _attr_entity_category = EntityCategory.DIAGNOSTIC
 
     def __init__(
         self,
         coordinator: MerakiDataCoordinator,
+>>>>>>> 9bc35b7 (Merge pull request #845 from brewmarsh/fix/frontend-build-2299669574949783162)
         device: dict[str, Any],
         port: dict[str, Any],
     ) -> None:

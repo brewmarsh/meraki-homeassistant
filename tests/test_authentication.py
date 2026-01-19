@@ -27,7 +27,10 @@ async def test_validate_meraki_credentials(hass: HomeAssistant) -> None:
     with patch(
         "custom_components.meraki_ha.authentication.MerakiAPIClient",
     ) as mock_client:
+<<<<<<< HEAD
+=======
         mock_client.return_value.async_setup = AsyncMock()
+>>>>>>> 9bc35b7 (Merge pull request #845 from brewmarsh/fix/frontend-build-2299669574949783162)
         mock_client.return_value.organization.get_organizations = AsyncMock(
             return_value=[{"id": "test-org-id", "name": "Test Org"}],
         )
@@ -51,7 +54,10 @@ async def test_validate_meraki_credentials_invalid_org(hass: HomeAssistant) -> N
         ) as mock_client,
         pytest.raises(ValueError),
     ):
+<<<<<<< HEAD
+=======
         mock_client.return_value.async_setup = AsyncMock()
+>>>>>>> 9bc35b7 (Merge pull request #845 from brewmarsh/fix/frontend-build-2299669574949783162)
         mock_client.return_value.organization.get_organizations = AsyncMock(
             return_value=[{"id": "other-org-id", "name": "Other Org"}],
         )
@@ -74,7 +80,10 @@ async def test_validate_meraki_credentials_auth_failed(hass: HomeAssistant) -> N
         ) as mock_client,
         pytest.raises(ConfigEntryAuthFailed),
     ):
+<<<<<<< HEAD
+=======
         mock_client.return_value.async_setup = AsyncMock()
+>>>>>>> 9bc35b7 (Merge pull request #845 from brewmarsh/fix/frontend-build-2299669574949783162)
         mock_client.return_value.organization.get_organizations = AsyncMock(
             side_effect=MerakiAuthenticationError("test"),
         )

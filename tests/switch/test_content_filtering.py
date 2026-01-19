@@ -11,7 +11,11 @@ from custom_components.meraki_ha.switch.content_filtering import (
 
 @pytest.fixture
 def mock_coordinator_with_content_filtering(mock_coordinator: MagicMock) -> MagicMock:
+<<<<<<< HEAD
+    """Fixture for a mocked MerakiDataUpdateCoordinator with content filtering data."""
+=======
     """Fixture for a mocked MerakiDataCoordinator with content filtering data."""
+>>>>>>> 9bc35b7 (Merge pull request #845 from brewmarsh/fix/frontend-build-2299669574949783162)
     mock_coordinator.data = {
         "content_filtering": {
             "net_1": {

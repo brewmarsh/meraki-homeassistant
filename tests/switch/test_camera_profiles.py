@@ -61,9 +61,15 @@ async def test_camera_sense_switch(hass, mock_device_coordinator, mock_api_clien
     mock_device_coordinator.async_request_refresh.reset_mock()
 
     # Simulate the coordinator updating the state
+<<<<<<< HEAD
+    mock_device_coordinator.data["devices"][0]["sense_settings"][
+        "sense_enabled"
+    ] = False
+=======
     mock_device_coordinator.data["devices"][0]["sense_settings"]["sense_enabled"] = (
         False
     )
+>>>>>>> 9bc35b7 (Merge pull request #845 from brewmarsh/fix/frontend-build-2299669574949783162)
     switch._handle_coordinator_update()
     assert switch.is_on is False
 

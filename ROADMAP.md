@@ -13,5 +13,9 @@
 
 ## Phase 3: Advanced Media
 
+<<<<<<< HEAD
+- [x] Implement Native WebRTC for MV Camera streams
+=======
 - [ ] Implement Native WebRTC for MV Camera streams
+>>>>>>> 9bc35b7 (Merge pull request #845 from brewmarsh/fix/frontend-build-2299669574949783162)
 - [ ] Update translation strings for all new entities

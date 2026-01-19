@@ -10,10 +10,16 @@ from homeassistant.helpers.entity import Entity
 from ..const import (
     CONF_ENABLE_VLAN_MANAGEMENT,
 )
+<<<<<<< HEAD
+from ..coordinator import MerakiDataUpdateCoordinator
+from ..core.api.client import MerakiAPIClient
+from ..types import MerakiVlan
+=======
 from ..core.api.client import MerakiAPIClient
 from ..meraki_data_coordinator import MerakiDataCoordinator
 from ..types import MerakiVlan
 from .access_point_leds import MerakiAPLEDSwitch
+>>>>>>> 9bc35b7 (Merge pull request #845 from brewmarsh/fix/frontend-build-2299669574949783162)
 from .camera_controls import AnalyticsSwitch
 from .meraki_ssid_device_switch import (
     MerakiSSIDBroadcastSwitch,
@@ -27,7 +33,11 @@ _LOGGER = logging.getLogger(__name__)
 
 def _setup_vlan_switches(
     config_entry: ConfigEntry,
+<<<<<<< HEAD
+    coordinator: MerakiDataUpdateCoordinator,
+=======
     coordinator: MerakiDataCoordinator,
+>>>>>>> 9bc35b7 (Merge pull request #845 from brewmarsh/fix/frontend-build-2299669574949783162)
     added_entities: set[str],
 ) -> list[Entity]:
     """Set up VLAN switches."""
@@ -60,7 +70,11 @@ def _setup_vlan_switches(
 
 def _setup_ssid_switches(
     config_entry: ConfigEntry,
+<<<<<<< HEAD
+    coordinator: MerakiDataUpdateCoordinator,
+=======
     coordinator: MerakiDataCoordinator,
+>>>>>>> 9bc35b7 (Merge pull request #845 from brewmarsh/fix/frontend-build-2299669574949783162)
     added_entities: set[str],
 ) -> list[Entity]:
     """Set up SSID switches."""
@@ -101,15 +115,24 @@ def _setup_ssid_switches(
 
 def _setup_camera_switches(
     config_entry: ConfigEntry,
+<<<<<<< HEAD
+    coordinator: MerakiDataUpdateCoordinator,
+=======
     coordinator: MerakiDataCoordinator,
+>>>>>>> 9bc35b7 (Merge pull request #845 from brewmarsh/fix/frontend-build-2299669574949783162)
     added_entities: set[str],
 ) -> list[Entity]:
     """Set up camera-specific switches."""
     entities: list[Entity] = []
     devices = coordinator.data.get("devices", [])
     for device_info in devices:
+<<<<<<< HEAD
+        if (device_info.product_type or "").startswith("camera"):
+            serial = device_info.serial
+=======
         if device_info.get("productType", "").startswith("camera"):
             serial = device_info["serial"]
+>>>>>>> 9bc35b7 (Merge pull request #845 from brewmarsh/fix/frontend-build-2299669574949783162)
             # Analytics Switch
             unique_id = f"{serial}_analytics_switch"
             if unique_id not in added_entities:
@@ -122,7 +145,11 @@ def _setup_camera_switches(
 
 def _setup_mt40_switches(
     config_entry: ConfigEntry,
+<<<<<<< HEAD
+    coordinator: MerakiDataUpdateCoordinator,
+=======
     coordinator: MerakiDataCoordinator,
+>>>>>>> 9bc35b7 (Merge pull request #845 from brewmarsh/fix/frontend-build-2299669574949783162)
     added_entities: set[str],
     meraki_client: "MerakiAPIClient",
 ) -> list[Entity]:
@@ -130,8 +157,13 @@ def _setup_mt40_switches(
     entities: list[Entity] = []
     devices = coordinator.data.get("devices", [])
     for device_info in devices:
+<<<<<<< HEAD
+        if (device_info.model or "").startswith("MT40"):
+            serial = device_info.serial
+=======
         if device_info.get("model", "").startswith("MT40"):
             serial = device_info["serial"]
+>>>>>>> 9bc35b7 (Merge pull request #845 from brewmarsh/fix/frontend-build-2299669574949783162)
             unique_id = f"{serial}_outlet_switch"
             if unique_id not in added_entities:
                 entities.append(
@@ -143,6 +175,12 @@ def _setup_mt40_switches(
     return entities
 
 
+<<<<<<< HEAD
+def async_setup_switches(
+    hass: HomeAssistant,
+    config_entry: ConfigEntry,
+    coordinator: MerakiDataUpdateCoordinator,
+=======
 def _setup_ap_led_switches(
     config_entry: ConfigEntry,
     coordinator: MerakiDataCoordinator,
@@ -170,6 +208,7 @@ def async_setup_switches(
     hass: HomeAssistant,
     config_entry: ConfigEntry,
     coordinator: MerakiDataCoordinator,
+>>>>>>> 9bc35b7 (Merge pull request #845 from brewmarsh/fix/frontend-build-2299669574949783162)
     meraki_client: "MerakiAPIClient",
 ) -> list[Entity]:
     """Set up all switch entities from the central coordinator."""
@@ -186,6 +225,9 @@ def async_setup_switches(
     entities.extend(
         _setup_mt40_switches(config_entry, coordinator, added_entities, meraki_client)
     )
+<<<<<<< HEAD
+=======
     entities.extend(_setup_ap_led_switches(config_entry, coordinator, added_entities))
+>>>>>>> 9bc35b7 (Merge pull request #845 from brewmarsh/fix/frontend-build-2299669574949783162)
 
     return entities

@@ -2,11 +2,27 @@
   "config": {
     "step": {
       "user": {
+<<<<<<< HEAD
+        "title": "Step 1 of 2: Meraki Credentials",
+=======
         "title": "Step 1 of 4: Meraki Credentials",
+>>>>>>> 9bc35b7 (Merge pull request #845 from brewmarsh/fix/frontend-build-2299669574949783162)
         "description": "Enter your Meraki API Key and Organization ID.",
         "data": {
           "meraki_api_key": "Meraki API Key",
           "meraki_org_id": "Meraki Organization ID"
+<<<<<<< HEAD
+        }
+      },
+      "init": {
+        "title": "Step 2 of 2: Configuration",
+        "description": "Set the configuration for the integration. These can be changed later from the options menu.",
+        "data": {
+          "scan_interval": "Update Interval",
+          "enable_device_tracker": "Enable Device Tracker",
+          "enable_vlan_management": "Enable VLAN Management",
+          "ignored_networks": "Ignored Networks"
+=======
         },
         "data_description": {
           "meraki_api_key": "Your personal API key for the Meraki Dashboard.",
@@ -55,6 +71,7 @@
         "data_description": {
           "webhook_url": "The publicly accessible URL for Meraki webhooks. Leave empty to use Home Assistant's cloud link.",
           "ignored_networks": "A comma-separated list of network IDs to ignore."
+>>>>>>> 9bc35b7 (Merge pull request #845 from brewmarsh/fix/frontend-build-2299669574949783162)
         }
       }
     },
@@ -72,6 +89,19 @@
   "options": {
     "step": {
       "init": {
+<<<<<<< HEAD
+        "title": "Meraki Settings",
+        "description": "Configure the settings for the Meraki integration.",
+        "data": {
+          "scan_interval": "Update Interval",
+          "scan_interval_description": "How often to poll the Meraki API for updates, in seconds.",
+          "enable_device_tracker": "Enable Device Tracker",
+          "enable_device_tracker_description": "Track devices connected to your Meraki networks as Home Assistant entities.",
+          "enable_vlan_management": "Enable VLAN Management",
+          "enable_vlan_management_description": "Expose controls for managing VLAN settings on your networks.",
+          "ignored_networks": "Ignored Networks",
+          "ignored_networks_description": "A comma-separated list of network names to exclude from the integration."
+=======
         "title": "Meraki Options",
         "description": "Step 1 of 3: General Settings",
         "data": {
@@ -113,6 +143,7 @@
         "data_description": {
           "webhook_url": "The publicly accessible URL for Meraki webhooks. Leave empty to use Home Assistant's cloud link.",
           "ignored_networks": "A comma-separated list of network IDs to ignore."
+>>>>>>> 9bc35b7 (Merge pull request #845 from brewmarsh/fix/frontend-build-2299669574949783162)
         }
       }
     }
@@ -145,9 +176,12 @@
           "dormant": "Dormant",
           "unknown": "Unknown"
         }
+<<<<<<< HEAD
+=======
       },
       "radio_settings": {
         "name": "Radio Settings"
+>>>>>>> 9bc35b7 (Merge pull request #845 from brewmarsh/fix/frontend-build-2299669574949783162)
       }
     },
     "switch": {

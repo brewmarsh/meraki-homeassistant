@@ -14,6 +14,10 @@ from homeassistant.components.button import ButtonEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.entity import DeviceInfo
 
+<<<<<<< HEAD
+from ..core.utils.naming_utils import format_entity_name
+=======
+>>>>>>> 9bc35b7 (Merge pull request #845 from brewmarsh/fix/frontend-build-2299669574949783162)
 from ..helpers.device_info_helpers import resolve_device_info
 
 if TYPE_CHECKING:
@@ -36,14 +40,27 @@ class MerakiRebootButton(ButtonEntity):
         self._control_service = control_service
         self._device = device
         self._config_entry = config_entry
+<<<<<<< HEAD
+        self._attr_name = f"{(device.name or 'Device')} Reboot"
+        self._attr_unique_id = f"{device.serial}-reboot"
+=======
         self._attr_name = f"{device.get('name', 'Device')} Reboot"
         self._attr_unique_id = f"{device['serial']}-reboot"
+>>>>>>> 9bc35b7 (Merge pull request #845 from brewmarsh/fix/frontend-build-2299669574949783162)
 
     @property
     def device_info(self) -> DeviceInfo | None:
         """Return the device info."""
+<<<<<<< HEAD
+        return resolve_device_info(self._device, self._config_entry)
+
+    async def async_press(self) -> None:
+        """Handle the button press."""
+        await self._control_service.async_reboot(self._device.serial)
+=======
         return resolve_device_info(cast(dict, self._device), self._config_entry)
 
     async def async_press(self) -> None:
         """Handle the button press."""
         await self._control_service.async_reboot(self._device["serial"])
+>>>>>>> 9bc35b7 (Merge pull request #845 from brewmarsh/fix/frontend-build-2299669574949783162)
