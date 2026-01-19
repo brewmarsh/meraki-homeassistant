@@ -3,13 +3,13 @@
 from unittest.mock import AsyncMock, patch
 
 import pytest
-from homeassistant.const import STATE_UNAVAILABLE
 from homeassistant.core import HomeAssistant
 from homeassistant.setup import async_setup_component
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.meraki_ha.const import DOMAIN
 from tests.const import MOCK_NETWORK
+
 
 @pytest.fixture
 def mock_config_entry() -> MockConfigEntry:
@@ -20,6 +20,7 @@ def mock_config_entry() -> MockConfigEntry:
         options={},
         entry_id="test_entry",
     )
+
 
 @pytest.fixture
 def mock_meraki_client() -> AsyncMock:
@@ -53,6 +54,7 @@ def mock_meraki_client() -> AsyncMock:
 
     return client
 
+
 async def test_content_filtering_select_entity(
     hass: HomeAssistant,
     mock_config_entry: MockConfigEntry,
@@ -74,6 +76,7 @@ async def test_content_filtering_select_entity(
 
         # Find the entity by searching the registry
         from homeassistant.helpers import entity_registry as er
+
         entity_registry = er.async_get(hass)
         entries = list(entity_registry.entities.values())
 

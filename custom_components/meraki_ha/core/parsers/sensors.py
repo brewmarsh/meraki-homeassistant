@@ -1,7 +1,10 @@
 """Parsers for Meraki sensor data."""
+
 from __future__ import annotations
+
 import logging
 from typing import Any
+
 from ...types import MerakiDevice
 
 _LOGGER = logging.getLogger(__name__)

@@ -50,7 +50,6 @@ CONF_ENABLE_VLAN_MANAGEMENT: Final = "enable_vlan_management"
 """Configuration key for enabling vlan management."""
 
 
-
 DEFAULT_IGNORED_NETWORKS: Final[list[str]] = []
 """Default value for the ignored networks list."""
 

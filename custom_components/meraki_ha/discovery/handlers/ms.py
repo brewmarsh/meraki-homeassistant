@@ -12,6 +12,7 @@ from typing import TYPE_CHECKING
 
 from custom_components.meraki_ha.binary_sensor.switch_port import SwitchPortSensor
 from custom_components.meraki_ha.entity_descriptions import SWITCH_PORT_DESCRIPTION
+
 from .base import BaseDeviceHandler
 
 if TYPE_CHECKING:

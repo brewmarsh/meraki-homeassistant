@@ -38,6 +38,7 @@ def auto_enable_custom_integrations(
 def bypass_platform_setup() -> Generator[None, None, None]:
     """Bypass platform setup to avoid hass_frontend dependency."""
     from unittest.mock import patch
+
     with patch("homeassistant.setup.async_setup_component", return_value=True):
         yield
 
