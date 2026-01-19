@@ -1,0 +1,2661 @@
+Installing dependencies...
+Requirement already satisfied: meraki==1.40.1 in /home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages (from -r requirements_test.txt (line 1)) (1.40.1)
+Requirement already satisfied: diskcache==5.6.3 in /home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages (from -r requirements_test.txt (line 2)) (5.6.3)
+Requirement already satisfied: aiofiles==23.2.1 in /home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages (from -r requirements_test.txt (line 3)) (23.2.1)
+Requirement already satisfied: setuptools==78.1.1 in /home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages (from -r requirements_test.txt (line 4)) (78.1.1)
+Requirement already satisfied: ruff==0.5.5 in /home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages (from -r requirements_test.txt (line 5)) (0.5.5)
+Requirement already satisfied: pip-audit==2.7.3 in /home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages (from -r requirements_test.txt (line 6)) (2.7.3)
+Requirement already satisfied: bandit==1.7.9 in /home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages (from -r requirements_test.txt (line 7)) (1.7.9)
+Requirement already satisfied: pytest-homeassistant-custom-component==0.13.205 in /home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages (from -r requirements_test.txt (line 8)) (0.13.205)
+Requirement already satisfied: pytest-mock in /home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages (from -r requirements_test.txt (line 9)) (3.12.0)
+Requirement already satisfied: types-aiofiles==23.2.0.20240106 in /home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages (from -r requirements_test.txt (line 10)) (23.2.0.20240106)
+Requirement already satisfied: playwright==1.39.0 in /home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages (from -r requirements_test.txt (line 11)) (1.39.0)
+Requirement already satisfied: pytest-cov in /home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages (from -r requirements_test.txt (line 12)) (6.0.0)
+Requirement already satisfied: py==1.11.0 in /home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages (from -r requirements_test.txt (line 13)) (1.11.0)
+Requirement already satisfied: tzdata==2024.1 in /home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages (from -r requirements_test.txt (line 14)) (2024.1)
+Requirement already satisfied: janus==1.0.0 in /home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages (from -r requirements_test.txt (line 15)) (1.0.0)
+Requirement already satisfied: psutil-home-assistant==0.0.1 in /home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages (from -r requirements_test.txt (line 16)) (0.0.1)
+Requirement already satisfied: pillow>=11.0.0 in /home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages (from -r requirements_test.txt (line 17)) (11.0.0)
+Requirement already satisfied: fnv-hash-fast in /home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages (from -r requirements_test.txt (line 18)) (1.0.2)
+Requirement already satisfied: flake8==7.0.0 in /home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages (from -r requirements_test.txt (line 19)) (7.0.0)
+Requirement already satisfied: respx in /home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages (from -r requirements_test.txt (line 22)) (0.21.1)
+Requirement already satisfied: requests-mock in /home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages (from -r requirements_test.txt (line 23)) (1.12.1)
+Requirement already satisfied: freezegun in /home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages (from -r requirements_test.txt (line 24)) (1.5.1)
+Requirement already satisfied: pytest-freezer in /home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages (from -r requirements_test.txt (line 25)) (0.4.8)
+Requirement already satisfied: pytest-timeout in /home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages (from -r requirements_test.txt (line 26)) (2.3.1)
+Requirement already satisfied: pytest-github-actions-annotate-failures in /home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages (from -r requirements_test.txt (line 27)) (0.2.0)
+Requirement already satisfied: syrupy in /home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages (from -r requirements_test.txt (line 28)) (4.8.0)
+Requirement already satisfied: pytest-socket in /home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages (from -r requirements_test.txt (line 29)) (0.7.0)
+Requirement already satisfied: pytest-picked in /home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages (from -r requirements_test.txt (line 30)) (0.5.0)
+Requirement already satisfied: pytest-sugar in /home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages (from -r requirements_test.txt (line 31)) (1.0.0)
+Requirement already satisfied: pytest-unordered in /home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages (from -r requirements_test.txt (line 32)) (0.6.1)
+Requirement already satisfied: pytest-xdist in /home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages (from -r requirements_test.txt (line 33)) (3.6.1)
+Requirement already satisfied: codecov in /home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages (from -r requirements_test.txt (line 34)) (2.1.13)
+Requirement already satisfied: requests in /home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages (from meraki==1.40.1->-r requirements_test.txt (line 1)) (2.32.3)
+Requirement already satisfied: aiohttp in /home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages (from meraki==1.40.1->-r requirements_test.txt (line 1)) (3.11.11)
+Requirement already satisfied: CacheControl>=0.13.0 in /home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages (from CacheControl[filecache]>=0.13.0->pip-audit==2.7.3->-r requirements_test.txt (line 6)) (0.14.4)
+Requirement already satisfied: cyclonedx-python-lib<8,>=5 in /home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages (from pip-audit==2.7.3->-r requirements_test.txt (line 6)) (6.4.4)
+Requirement already satisfied: html5lib>=1.1 in /home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages (from pip-audit==2.7.3->-r requirements_test.txt (line 6)) (1.1)
+Requirement already satisfied: packaging>=23.0.0 in /home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages (from pip-audit==2.7.3->-r requirements_test.txt (line 6)) (25.0)
+Requirement already satisfied: pip-api>=0.0.28 in /home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages (from pip-audit==2.7.3->-r requirements_test.txt (line 6)) (0.0.34)
+Requirement already satisfied: pip-requirements-parser>=32.0.0 in /home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages (from pip-audit==2.7.3->-r requirements_test.txt (line 6)) (32.0.1)
+Requirement already satisfied: rich>=12.4 in /home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages (from pip-audit==2.7.3->-r requirements_test.txt (line 6)) (14.2.0)
+Requirement already satisfied: toml>=0.10 in /home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages (from pip-audit==2.7.3->-r requirements_test.txt (line 6)) (0.10.2)
+Requirement already satisfied: PyYAML>=5.3.1 in /home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages (from bandit==1.7.9->-r requirements_test.txt (line 7)) (6.0.2)
+Requirement already satisfied: stevedore>=1.20.0 in /home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages (from bandit==1.7.9->-r requirements_test.txt (line 7)) (5.6.0)
+Requirement already satisfied: sqlalchemy in /home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages (from pytest-homeassistant-custom-component==0.13.205->-r requirements_test.txt (line 8)) (2.0.36)
+Requirement already satisfied: coverage==7.6.8 in /home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages (from pytest-homeassistant-custom-component==0.13.205->-r requirements_test.txt (line 8)) (7.6.8)
+Requirement already satisfied: license-expression==30.4.0 in /home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages (from pytest-homeassistant-custom-component==0.13.205->-r requirements_test.txt (line 8)) (30.4.0)
+Requirement already satisfied: mock-open==1.4.0 in /home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages (from pytest-homeassistant-custom-component==0.13.205->-r requirements_test.txt (line 8)) (1.4.0)
+Requirement already satisfied: pydantic==2.10.4 in /home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages (from pytest-homeassistant-custom-component==0.13.205->-r requirements_test.txt (line 8)) (2.10.4)
+Requirement already satisfied: pylint-per-file-ignores==1.3.2 in /home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages (from pytest-homeassistant-custom-component==0.13.205->-r requirements_test.txt (line 8)) (1.3.2)
+Requirement already satisfied: pipdeptree==2.23.4 in /home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages (from pytest-homeassistant-custom-component==0.13.205->-r requirements_test.txt (line 8)) (2.23.4)
+Requirement already satisfied: pytest-asyncio==0.24.0 in /home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages (from pytest-homeassistant-custom-component==0.13.205->-r requirements_test.txt (line 8)) (0.24.0)
+Requirement already satisfied: pytest-aiohttp==1.0.5 in /home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages (from pytest-homeassistant-custom-component==0.13.205->-r requirements_test.txt (line 8)) (1.0.5)
+Requirement already satisfied: pytest==8.3.4 in /home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages (from pytest-homeassistant-custom-component==0.13.205->-r requirements_test.txt (line 8)) (8.3.4)
+Requirement already satisfied: tqdm==4.66.5 in /home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages (from pytest-homeassistant-custom-component==0.13.205->-r requirements_test.txt (line 8)) (4.66.5)
+Requirement already satisfied: homeassistant==2025.1.4 in /home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages (from pytest-homeassistant-custom-component==0.13.205->-r requirements_test.txt (line 8)) (2025.1.4)
+Requirement already satisfied: paho-mqtt==1.6.1 in /home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages (from pytest-homeassistant-custom-component==0.13.205->-r requirements_test.txt (line 8)) (1.6.1)
+Requirement already satisfied: numpy==2.2.0 in /home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages (from pytest-homeassistant-custom-component==0.13.205->-r requirements_test.txt (line 8)) (2.2.0)
+Requirement already satisfied: greenlet==3.0.0 in /home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages (from playwright==1.39.0->-r requirements_test.txt (line 11)) (3.0.0)
+Requirement already satisfied: pyee==11.0.1 in /home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages (from playwright==1.39.0->-r requirements_test.txt (line 11)) (11.0.1)
+Requirement already satisfied: typing-extensions>=3.7.4.3 in /home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages (from janus==1.0.0->-r requirements_test.txt (line 15)) (4.15.0)
+Requirement already satisfied: psutil in /home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages (from psutil-home-assistant==0.0.1->-r requirements_test.txt (line 16)) (7.2.1)
+Requirement already satisfied: mccabe<0.8.0,>=0.7.0 in /home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages (from flake8==7.0.0->-r requirements_test.txt (line 19)) (0.7.0)
+Requirement already satisfied: pycodestyle<2.12.0,>=2.11.0 in /home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages (from flake8==7.0.0->-r requirements_test.txt (line 19)) (2.11.1)
+Requirement already satisfied: pyflakes<3.3.0,>=3.2.0 in /home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages (from flake8==7.0.0->-r requirements_test.txt (line 19)) (3.2.0)
+Requirement already satisfied: httpx>=0.21.0 in /home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages (from respx->-r requirements_test.txt (line 22)) (0.27.2)
+Requirement already satisfied: python-dateutil>=2.7 in /home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages (from freezegun->-r requirements_test.txt (line 24)) (2.9.0.post0)
+Requirement already satisfied: iniconfig in /home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages (from pytest==8.3.4->pytest-homeassistant-custom-component==0.13.205->-r requirements_test.txt (line 8)) (2.3.0)
+Requirement already satisfied: pluggy<2,>=1.5 in /home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages (from pytest==8.3.4->pytest-homeassistant-custom-component==0.13.205->-r requirements_test.txt (line 8)) (1.6.0)
+Requirement already satisfied: termcolor>=2.1.0 in /home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages (from pytest-sugar->-r requirements_test.txt (line 31)) (3.3.0)
+Requirement already satisfied: execnet>=2.1 in /home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages (from pytest-xdist->-r requirements_test.txt (line 33)) (2.1.2)
+Requirement already satisfied: aiodns==3.2.0 in /home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages (from homeassistant==2025.1.4->pytest-homeassistant-custom-component==0.13.205->-r requirements_test.txt (line 8)) (3.2.0)
+Requirement already satisfied: aiohasupervisor==0.2.2b5 in /home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages (from homeassistant==2025.1.4->pytest-homeassistant-custom-component==0.13.205->-r requirements_test.txt (line 8)) (0.2.2b5)
+Requirement already satisfied: aiohttp-cors==0.7.0 in /home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages (from homeassistant==2025.1.4->pytest-homeassistant-custom-component==0.13.205->-r requirements_test.txt (line 8)) (0.7.0)
+Requirement already satisfied: aiohttp-fast-zlib==0.2.0 in /home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages (from homeassistant==2025.1.4->pytest-homeassistant-custom-component==0.13.205->-r requirements_test.txt (line 8)) (0.2.0)
+Requirement already satisfied: aiozoneinfo==0.2.1 in /home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages (from homeassistant==2025.1.4->pytest-homeassistant-custom-component==0.13.205->-r requirements_test.txt (line 8)) (0.2.1)
+Requirement already satisfied: astral==2.2 in /home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages (from homeassistant==2025.1.4->pytest-homeassistant-custom-component==0.13.205->-r requirements_test.txt (line 8)) (2.2)
+Requirement already satisfied: async-interrupt==1.2.0 in /home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages (from homeassistant==2025.1.4->pytest-homeassistant-custom-component==0.13.205->-r requirements_test.txt (line 8)) (1.2.0)
+Requirement already satisfied: attrs==24.2.0 in /home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages (from homeassistant==2025.1.4->pytest-homeassistant-custom-component==0.13.205->-r requirements_test.txt (line 8)) (24.2.0)
+Requirement already satisfied: atomicwrites-homeassistant==1.4.1 in /home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages (from homeassistant==2025.1.4->pytest-homeassistant-custom-component==0.13.205->-r requirements_test.txt (line 8)) (1.4.1)
+Requirement already satisfied: awesomeversion==24.6.0 in /home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages (from homeassistant==2025.1.4->pytest-homeassistant-custom-component==0.13.205->-r requirements_test.txt (line 8)) (24.6.0)
+Requirement already satisfied: bcrypt==4.2.0 in /home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages (from homeassistant==2025.1.4->pytest-homeassistant-custom-component==0.13.205->-r requirements_test.txt (line 8)) (4.2.0)
+Requirement already satisfied: certifi>=2021.5.30 in /home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages (from homeassistant==2025.1.4->pytest-homeassistant-custom-component==0.13.205->-r requirements_test.txt (line 8)) (2026.1.4)
+Requirement already satisfied: ciso8601==2.3.2 in /home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages (from homeassistant==2025.1.4->pytest-homeassistant-custom-component==0.13.205->-r requirements_test.txt (line 8)) (2.3.2)
+Requirement already satisfied: cronsim==2.6 in /home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages (from homeassistant==2025.1.4->pytest-homeassistant-custom-component==0.13.205->-r requirements_test.txt (line 8)) (2.6)
+Requirement already satisfied: hass-nabucasa==0.87.0 in /home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages (from homeassistant==2025.1.4->pytest-homeassistant-custom-component==0.13.205->-r requirements_test.txt (line 8)) (0.87.0)
+Requirement already satisfied: home-assistant-bluetooth==1.13.0 in /home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages (from homeassistant==2025.1.4->pytest-homeassistant-custom-component==0.13.205->-r requirements_test.txt (line 8)) (1.13.0)
+Requirement already satisfied: ifaddr==0.2.0 in /home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages (from homeassistant==2025.1.4->pytest-homeassistant-custom-component==0.13.205->-r requirements_test.txt (line 8)) (0.2.0)
+Requirement already satisfied: Jinja2==3.1.5 in /home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages (from homeassistant==2025.1.4->pytest-homeassistant-custom-component==0.13.205->-r requirements_test.txt (line 8)) (3.1.5)
+Requirement already satisfied: lru-dict==1.3.0 in /home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages (from homeassistant==2025.1.4->pytest-homeassistant-custom-component==0.13.205->-r requirements_test.txt (line 8)) (1.3.0)
+Requirement already satisfied: PyJWT==2.10.1 in /home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages (from homeassistant==2025.1.4->pytest-homeassistant-custom-component==0.13.205->-r requirements_test.txt (line 8)) (2.10.1)
+Requirement already satisfied: cryptography==44.0.0 in /home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages (from homeassistant==2025.1.4->pytest-homeassistant-custom-component==0.13.205->-r requirements_test.txt (line 8)) (44.0.0)
+Requirement already satisfied: propcache==0.2.1 in /home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages (from homeassistant==2025.1.4->pytest-homeassistant-custom-component==0.13.205->-r requirements_test.txt (line 8)) (0.2.1)
+Requirement already satisfied: pyOpenSSL==24.3.0 in /home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages (from homeassistant==2025.1.4->pytest-homeassistant-custom-component==0.13.205->-r requirements_test.txt (line 8)) (24.3.0)
+Requirement already satisfied: orjson==3.10.12 in /home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages (from homeassistant==2025.1.4->pytest-homeassistant-custom-component==0.13.205->-r requirements_test.txt (line 8)) (3.10.12)
+Requirement already satisfied: python-slugify==8.0.4 in /home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages (from homeassistant==2025.1.4->pytest-homeassistant-custom-component==0.13.205->-r requirements_test.txt (line 8)) (8.0.4)
+Requirement already satisfied: securetar==2024.11.0 in /home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages (from homeassistant==2025.1.4->pytest-homeassistant-custom-component==0.13.205->-r requirements_test.txt (line 8)) (2024.11.0)
+Requirement already satisfied: ulid-transform==1.0.2 in /home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages (from homeassistant==2025.1.4->pytest-homeassistant-custom-component==0.13.205->-r requirements_test.txt (line 8)) (1.0.2)
+Requirement already satisfied: urllib3<2,>=1.26.5 in /home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages (from homeassistant==2025.1.4->pytest-homeassistant-custom-component==0.13.205->-r requirements_test.txt (line 8)) (1.26.18)
+Requirement already satisfied: uv==0.5.8 in /home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages (from homeassistant==2025.1.4->pytest-homeassistant-custom-component==0.13.205->-r requirements_test.txt (line 8)) (0.5.8)
+Requirement already satisfied: voluptuous==0.15.2 in /home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages (from homeassistant==2025.1.4->pytest-homeassistant-custom-component==0.13.205->-r requirements_test.txt (line 8)) (0.15.2)
+Requirement already satisfied: voluptuous-serialize==2.6.0 in /home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages (from homeassistant==2025.1.4->pytest-homeassistant-custom-component==0.13.205->-r requirements_test.txt (line 8)) (2.6.0)
+Requirement already satisfied: voluptuous-openapi==0.0.5 in /home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages (from homeassistant==2025.1.4->pytest-homeassistant-custom-component==0.13.205->-r requirements_test.txt (line 8)) (0.0.5)
+Requirement already satisfied: yarl==1.18.3 in /home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages (from homeassistant==2025.1.4->pytest-homeassistant-custom-component==0.13.205->-r requirements_test.txt (line 8)) (1.18.3)
+Requirement already satisfied: webrtc-models==0.3.0 in /home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages (from homeassistant==2025.1.4->pytest-homeassistant-custom-component==0.13.205->-r requirements_test.txt (line 8)) (0.3.0)
+Requirement already satisfied: charset-normalizer<4,>=2 in /home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages (from requests->meraki==1.40.1->-r requirements_test.txt (line 1)) (3.4.4)
+Requirement already satisfied: idna<4,>=2.5 in /home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages (from requests->meraki==1.40.1->-r requirements_test.txt (line 1)) (3.11)
+Requirement already satisfied: fnvhash<0.2.0,>=0.1.0 in /home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages (from fnv-hash-fast->-r requirements_test.txt (line 18)) (0.1.0)
+Requirement already satisfied: pycares>=4.0.0 in /home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages (from aiodns==3.2.0->homeassistant==2025.1.4->pytest-homeassistant-custom-component==0.13.205->-r requirements_test.txt (line 8)) (5.0.1)
+Requirement already satisfied: mashumaro<4.0,>=3.11 in /home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages (from aiohasupervisor==0.2.2b5->homeassistant==2025.1.4->pytest-homeassistant-custom-component==0.13.205->-r requirements_test.txt (line 8)) (3.17)
+Requirement already satisfied: aiohappyeyeballs>=2.3.0 in /home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages (from aiohttp->meraki==1.40.1->-r requirements_test.txt (line 1)) (2.6.1)
+Requirement already satisfied: aiosignal>=1.1.2 in /home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages (from aiohttp->meraki==1.40.1->-r requirements_test.txt (line 1)) (1.4.0)
+Requirement already satisfied: frozenlist>=1.1.1 in /home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages (from aiohttp->meraki==1.40.1->-r requirements_test.txt (line 1)) (1.8.0)
+Requirement already satisfied: multidict<7.0,>=4.5 in /home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages (from aiohttp->meraki==1.40.1->-r requirements_test.txt (line 1)) (6.7.0)
+Requirement already satisfied: pytz in /home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages (from astral==2.2->homeassistant==2025.1.4->pytest-homeassistant-custom-component==0.13.205->-r requirements_test.txt (line 8)) (2025.2)
+Requirement already satisfied: cffi>=1.12 in /home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages (from cryptography==44.0.0->homeassistant==2025.1.4->pytest-homeassistant-custom-component==0.13.205->-r requirements_test.txt (line 8)) (2.0.0)
+Requirement already satisfied: acme==3.0.1 in /home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages (from hass-nabucasa==0.87.0->homeassistant==2025.1.4->pytest-homeassistant-custom-component==0.13.205->-r requirements_test.txt (line 8)) (3.0.1)
+Requirement already satisfied: pycognito==2024.5.1 in /home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages (from hass-nabucasa==0.87.0->homeassistant==2025.1.4->pytest-homeassistant-custom-component==0.13.205->-r requirements_test.txt (line 8)) (2024.5.1)
+Requirement already satisfied: snitun==0.39.1 in /home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages (from hass-nabucasa==0.87.0->homeassistant==2025.1.4->pytest-homeassistant-custom-component==0.13.205->-r requirements_test.txt (line 8)) (0.39.1)
+Requirement already satisfied: josepy<2,>=1.13.0 in /home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages (from acme==3.0.1->hass-nabucasa==0.87.0->homeassistant==2025.1.4->pytest-homeassistant-custom-component==0.13.205->-r requirements_test.txt (line 8)) (1.15.0)
+Requirement already satisfied: pyrfc3339 in /home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages (from acme==3.0.1->hass-nabucasa==0.87.0->homeassistant==2025.1.4->pytest-homeassistant-custom-component==0.13.205->-r requirements_test.txt (line 8)) (2.1.0)
+Requirement already satisfied: habluetooth>=3.0 in /home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages (from home-assistant-bluetooth==1.13.0->homeassistant==2025.1.4->pytest-homeassistant-custom-component==0.13.205->-r requirements_test.txt (line 8)) (5.8.0)
+Requirement already satisfied: anyio in /home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages (from httpx>=0.21.0->respx->-r requirements_test.txt (line 22)) (4.12.1)
+Requirement already satisfied: httpcore==1.* in /home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages (from httpx>=0.21.0->respx->-r requirements_test.txt (line 22)) (1.0.9)
+Requirement already satisfied: sniffio in /home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages (from httpx>=0.21.0->respx->-r requirements_test.txt (line 22)) (1.3.1)
+Requirement already satisfied: MarkupSafe>=2.0 in /home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages (from Jinja2==3.1.5->homeassistant==2025.1.4->pytest-homeassistant-custom-component==0.13.205->-r requirements_test.txt (line 8)) (3.0.3)
+Requirement already satisfied: boolean.py>=4.0 in /home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages (from license-expression==30.4.0->pytest-homeassistant-custom-component==0.13.205->-r requirements_test.txt (line 8)) (5.0)
+Requirement already satisfied: pip>=24.2 in /home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages (from pipdeptree==2.23.4->pytest-homeassistant-custom-component==0.13.205->-r requirements_test.txt (line 8)) (25.3)
+Requirement already satisfied: boto3>=1.10.49 in /home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages (from pycognito==2024.5.1->hass-nabucasa==0.87.0->homeassistant==2025.1.4->pytest-homeassistant-custom-component==0.13.205->-r requirements_test.txt (line 8)) (1.42.30)
+Requirement already satisfied: envs>=1.3 in /home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages (from pycognito==2024.5.1->hass-nabucasa==0.87.0->homeassistant==2025.1.4->pytest-homeassistant-custom-component==0.13.205->-r requirements_test.txt (line 8)) (1.4)
+Requirement already satisfied: annotated-types>=0.6.0 in /home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages (from pydantic==2.10.4->pytest-homeassistant-custom-component==0.13.205->-r requirements_test.txt (line 8)) (0.7.0)
+Requirement already satisfied: pydantic-core==2.27.2 in /home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages (from pydantic==2.10.4->pytest-homeassistant-custom-component==0.13.205->-r requirements_test.txt (line 8)) (2.27.2)
+Requirement already satisfied: text-unidecode>=1.3 in /home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages (from python-slugify==8.0.4->homeassistant==2025.1.4->pytest-homeassistant-custom-component==0.13.205->-r requirements_test.txt (line 8)) (1.3)
+Requirement already satisfied: async-timeout>=3.0.1 in /home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages (from snitun==0.39.1->hass-nabucasa==0.87.0->homeassistant==2025.1.4->pytest-homeassistant-custom-component==0.13.205->-r requirements_test.txt (line 8)) (5.0.1)
+Requirement already satisfied: packageurl-python<2,>=0.11 in /home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages (from cyclonedx-python-lib<8,>=5->pip-audit==2.7.3->-r requirements_test.txt (line 6)) (0.17.6)
+Requirement already satisfied: py-serializable<2,>=0.16 in /home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages (from cyclonedx-python-lib<8,>=5->pip-audit==2.7.3->-r requirements_test.txt (line 6)) (1.1.2)
+Requirement already satisfied: sortedcontainers<3.0.0,>=2.4.0 in /home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages (from cyclonedx-python-lib<8,>=5->pip-audit==2.7.3->-r requirements_test.txt (line 6)) (2.4.0)
+Requirement already satisfied: h11>=0.16 in /home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages (from httpcore==1.*->httpx>=0.21.0->respx->-r requirements_test.txt (line 22)) (0.16.0)
+Requirement already satisfied: defusedxml<0.8.0,>=0.7.1 in /home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages (from py-serializable<2,>=0.16->cyclonedx-python-lib<8,>=5->pip-audit==2.7.3->-r requirements_test.txt (line 6)) (0.7.1)
+Requirement already satisfied: botocore<1.43.0,>=1.42.30 in /home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages (from boto3>=1.10.49->pycognito==2024.5.1->hass-nabucasa==0.87.0->homeassistant==2025.1.4->pytest-homeassistant-custom-component==0.13.205->-r requirements_test.txt (line 8)) (1.42.30)
+Requirement already satisfied: jmespath<2.0.0,>=0.7.1 in /home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages (from boto3>=1.10.49->pycognito==2024.5.1->hass-nabucasa==0.87.0->homeassistant==2025.1.4->pytest-homeassistant-custom-component==0.13.205->-r requirements_test.txt (line 8)) (1.0.1)
+Requirement already satisfied: s3transfer<0.17.0,>=0.16.0 in /home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages (from boto3>=1.10.49->pycognito==2024.5.1->hass-nabucasa==0.87.0->homeassistant==2025.1.4->pytest-homeassistant-custom-component==0.13.205->-r requirements_test.txt (line 8)) (0.16.0)
+Requirement already satisfied: six>=1.5 in /home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages (from python-dateutil>=2.7->freezegun->-r requirements_test.txt (line 24)) (1.17.0)
+Requirement already satisfied: msgpack<2.0.0,>=0.5.2 in /home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages (from CacheControl>=0.13.0->CacheControl[filecache]>=0.13.0->pip-audit==2.7.3->-r requirements_test.txt (line 6)) (1.1.2)
+Requirement already satisfied: filelock>=3.8.0 in /home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages (from CacheControl[filecache]>=0.13.0->pip-audit==2.7.3->-r requirements_test.txt (line 6)) (3.20.3)
+Requirement already satisfied: pycparser in /home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages (from cffi>=1.12->cryptography==44.0.0->homeassistant==2025.1.4->pytest-homeassistant-custom-component==0.13.205->-r requirements_test.txt (line 8)) (2.23)
+Requirement already satisfied: bleak>=1.0.1 in /home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages (from habluetooth>=3.0->home-assistant-bluetooth==1.13.0->homeassistant==2025.1.4->pytest-homeassistant-custom-component==0.13.205->-r requirements_test.txt (line 8)) (2.1.1)
+Requirement already satisfied: bleak-retry-connector>=4.2.0 in /home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages (from habluetooth>=3.0->home-assistant-bluetooth==1.13.0->homeassistant==2025.1.4->pytest-homeassistant-custom-component==0.13.205->-r requirements_test.txt (line 8)) (4.5.0)
+Requirement already satisfied: bluetooth-adapters>=2.1.0 in /home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages (from habluetooth>=3.0->home-assistant-bluetooth==1.13.0->homeassistant==2025.1.4->pytest-homeassistant-custom-component==0.13.205->-r requirements_test.txt (line 8)) (2.1.1)
+Requirement already satisfied: bluetooth-auto-recovery>=1.5.1 in /home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages (from habluetooth>=3.0->home-assistant-bluetooth==1.13.0->homeassistant==2025.1.4->pytest-homeassistant-custom-component==0.13.205->-r requirements_test.txt (line 8)) (1.5.3)
+Requirement already satisfied: bluetooth-data-tools>=1.28.0 in /home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages (from habluetooth>=3.0->home-assistant-bluetooth==1.13.0->homeassistant==2025.1.4->pytest-homeassistant-custom-component==0.13.205->-r requirements_test.txt (line 8)) (1.28.4)
+Requirement already satisfied: btsocket>=0.3.0 in /home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages (from habluetooth>=3.0->home-assistant-bluetooth==1.13.0->homeassistant==2025.1.4->pytest-homeassistant-custom-component==0.13.205->-r requirements_test.txt (line 8)) (0.3.0)
+Requirement already satisfied: dbus-fast>=2.30.2 in /home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages (from habluetooth>=3.0->home-assistant-bluetooth==1.13.0->homeassistant==2025.1.4->pytest-homeassistant-custom-component==0.13.205->-r requirements_test.txt (line 8)) (3.1.2)
+Requirement already satisfied: aiooui>=0.1.1 in /home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages (from bluetooth-adapters>=2.1.0->habluetooth>=3.0->home-assistant-bluetooth==1.13.0->homeassistant==2025.1.4->pytest-homeassistant-custom-component==0.13.205->-r requirements_test.txt (line 8)) (0.1.9)
+Requirement already satisfied: uart-devices>=0.1.0 in /home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages (from bluetooth-adapters>=2.1.0->habluetooth>=3.0->home-assistant-bluetooth==1.13.0->homeassistant==2025.1.4->pytest-homeassistant-custom-component==0.13.205->-r requirements_test.txt (line 8)) (0.1.1)
+Requirement already satisfied: usb-devices>=0.4.5 in /home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages (from bluetooth-adapters>=2.1.0->habluetooth>=3.0->home-assistant-bluetooth==1.13.0->homeassistant==2025.1.4->pytest-homeassistant-custom-component==0.13.205->-r requirements_test.txt (line 8)) (0.4.5)
+Requirement already satisfied: PyRIC>=0.1.6.3 in /home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages (from bluetooth-auto-recovery>=1.5.1->habluetooth>=3.0->home-assistant-bluetooth==1.13.0->homeassistant==2025.1.4->pytest-homeassistant-custom-component==0.13.205->-r requirements_test.txt (line 8)) (0.1.6.3)
+Requirement already satisfied: webencodings in /home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages (from html5lib>=1.1->pip-audit==2.7.3->-r requirements_test.txt (line 6)) (0.5.1)
+Requirement already satisfied: pyparsing in /home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages (from pip-requirements-parser>=32.0.0->pip-audit==2.7.3->-r requirements_test.txt (line 6)) (3.3.1)
+Requirement already satisfied: markdown-it-py>=2.2.0 in /home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages (from rich>=12.4->pip-audit==2.7.3->-r requirements_test.txt (line 6)) (4.0.0)
+Requirement already satisfied: pygments<3.0.0,>=2.13.0 in /home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages (from rich>=12.4->pip-audit==2.7.3->-r requirements_test.txt (line 6)) (2.19.2)
+Requirement already satisfied: mdurl~=0.1 in /home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages (from markdown-it-py>=2.2.0->rich>=12.4->pip-audit==2.7.3->-r requirements_test.txt (line 6)) (0.1.2)
+PYTHONPATH: :.
+Running tests...
+/home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages/pytest_asyncio/plugin.py:208: PytestDeprecationWarning: The configuration option "asyncio_default_fixture_loop_scope" is unset.
+The event loop scope for asynchronous fixtures will default to the fixture caching scope. Future versions of pytest-asyncio will default the loop scope for asynchronous fixtures to function scope. Set the default fixture loop scope explicitly in order to avoid unexpected behavior in the future. Valid fixture loop scopes are: "function", "class", "module", "package", "session"
+
+  warnings.warn(PytestDeprecationWarning(_DEFAULT_FIXTURE_LOOP_SCOPE_UNSET))
+============================= test session starts ==============================
+platform linux -- Python 3.12.12, pytest-8.3.4, pluggy-1.6.0
+rootdir: /app
+configfile: pytest.ini
+plugins: requests-mock-1.12.1, github-actions-annotate-failures-0.2.0, respx-0.21.1, test-groups-1.0.3, cov-6.0.0, mock-3.12.0, homeassistant-custom-component-0.13.205, xdist-3.6.1, syrupy-4.8.0, socket-0.7.0, asyncio-0.24.0, timeout-2.3.1, sugar-1.0.0, pytest_freezer-0.4.8, unordered-0.6.1, anyio-4.12.1, picked-0.5.0, aiohttp-1.0.5
+asyncio: mode=Mode.AUTO, default_loop_scope=None
+collected 149 items
+
+tests/binary_sensor/device/test_camera_motion.py FF                      [  1%]
+tests/binary_sensor/device/test_mt20_open_close.py FFF                   [  3%]
+tests/binary_sensor/test_switch_port.py ...                              [  5%]
+tests/button/device/test_mt15_refresh_data.py FF                         [  6%]
+tests/camera/test_camera.py EEEFFFFFEF                                   [ 13%]
+tests/core/api/endpoints/test_appliance.py FFFFFFFF                      [ 18%]
+tests/core/api/test_client.py F.FFssss                                   [ 24%]
+tests/core/utils/test_api_utils.py ...                                   [ 26%]
+tests/core/utils/test_naming_utils.py ....                               [ 28%]
+tests/core/utils/test_validation_utils.py ....                           [ 31%]
+tests/discovery/handlers/test_base.py ..                                 [ 32%]
+tests/discovery/handlers/test_gx.py .                                    [ 33%]
+tests/discovery/handlers/test_mr.py .                                    [ 34%]
+tests/discovery/handlers/test_ms.py F                                    [ 34%]
+tests/discovery/handlers/test_mv.py FFF                                  [ 36%]
+tests/discovery/handlers/test_mx.py .                                    [ 37%]
+tests/discovery/handlers/test_network.py F                               [ 38%]
+tests/discovery/test_service.py EE                                       [ 39%]
+tests/helpers/test_device_info_helpers.py ..                             [ 40%]
+tests/helpers/test_entity_helpers.py F                                   [ 41%]
+tests/helpers/test_ssid_status_calculator.py .                           [ 42%]
+tests/helpers/test_ssid_status_calculator_extended.py ....               [ 44%]
+tests/hubs/test_network.py EEEEE                                         [ 48%]
+tests/hubs/test_organization.py .F..                                     [ 51%]
+tests/sensor/device/test_appliance_port.py F                             [ 51%]
+tests/sensor/device/test_appliance_uplink.py F                           [ 52%]
+tests/sensor/device/test_camera_analytics.py FF                          [ 53%]
+tests/sensor/device/test_connected_clients.py ....                       [ 56%]
+tests/sensor/device/test_data_usage.py ..                                [ 57%]
+tests/sensor/device/test_meraki_firmware_status.py .                     [ 58%]
+tests/sensor/device/test_poe_usage.py F                                  [ 59%]
+tests/sensor/network/test_vlan.py F                                      [ 59%]
+tests/sensor/ssid/test_ssid_connected_clients.py F                       [ 60%]
+tests/sensor/test_device_status.py FF                                    [ 61%]
+tests/sensor/test_meraki_wan1_connectivity.py .                          [ 62%]
+tests/sensor/test_meraki_wan2_connectivity.py .                          [ 63%]
+tests/sensor/test_network_clients.py F                                   [ 63%]
+tests/sensor/test_org_clients.py FFF                                     [ 65%]
+tests/sensor/test_org_device_type_clients.py F                           [ 66%]
+tests/sensor/test_setup_mt_sensors.py FFFFF                              [ 69%]
+tests/services/test_device_control_service.py .                          [ 70%]
+tests/services/test_network_control_service.py ..                        [ 71%]
+tests/services/test_switch_port_service.py ...                           [ 73%]
+tests/switch/test_adult_content_filtering.py ....                        [ 76%]
+tests/switch/test_camera_profiles.py ss                                  [ 77%]
+tests/switch/test_content_filtering.py ....                              [ 80%]
+tests/switch/test_meraki_ssid_device_switch.py ..                        [ 81%]
+tests/switch/test_mt40_power_outlet.py FFFF                              [ 84%]
+tests/switch/test_vlan_dhcp.py ...                                       [ 86%]
+tests/test_authentication.py ...                                         [ 88%]
+tests/test_camera_control.py EE                                          [ 89%]
+tests/test_config_flow.py FFF                                            [ 91%]
+tests/test_device_naming.py FF.                                          [ 93%]
+tests/test_e2e_web_ui.py s                                               [ 94%]
+tests/test_integration_setup.py ..                                       [ 95%]
+tests/test_simple.py .                                                   [ 96%]
+tests/test_ssid_device_representation.py .                               [ 97%]
+tests/test_webhook.py ...                                                [ 99%]
+tests/text/test_meraki_ssid_name.py .                                    [100%]
+
+==================================== ERRORS ====================================
+_________________ ERROR at setup of test_camera_stream_source __________________
+
+mock_coordinator = <MagicMock id='140531647831920'>
+mock_config_entry = <MagicMock id='140531669556864'>
+mock_camera_service = <MagicMock id='140531669527456'>
+
+    @pytest.fixture
+    def mock_camera(
+        mock_coordinator: MagicMock,
+        mock_config_entry: MagicMock,
+        mock_camera_service: AsyncMock,
+    ) -> MerakiCamera:
+        """Fixture for a mocked MerakiCamera."""
+>       return MerakiCamera(
+            mock_coordinator,
+            mock_config_entry,
+            MOCK_CAMERA_DEVICE,
+            mock_camera_service,
+        )
+
+tests/camera/test_camera.py:21:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <entity unknown.unknown=unknown>
+coordinator = <MagicMock id='140531647831920'>
+config_entry = <MagicMock id='140531669556864'>
+device = MerakiDevice(serial='Q234-ABCD-5678', name='Test Device', model='MV12', mac='00:11:22:33:44:55', lan_ip='1.2.3.4', wan.../stream'}, rtsp_url=None, sense_settings=None, ports_statuses=[], dynamic_dns=None, status_messages=[], entity_id=None)
+camera_service = <MagicMock id='140531669527456'>
+
+    def __init__(
+        self,
+        coordinator: MerakiDataCoordinator,
+        config_entry: ConfigEntry,
+        device: dict[str, Any],
+        camera_service: CameraService,
+    ) -> None:
+        """Initialize the camera."""
+        super().__init__(coordinator)
+        Camera.__init__(self)
+        self._config_entry = config_entry
+>       self._device_serial = device["serial"]
+E       TypeError: 'MerakiDevice' object is not subscriptable
+
+custom_components/meraki_ha/camera.py:81: TypeError
+____________________ ERROR at setup of test_camera_turn_on _____________________
+
+mock_coordinator = <MagicMock id='140531648027664'>
+mock_config_entry = <MagicMock id='140531648577760'>
+mock_camera_service = <MagicMock id='140531648590144'>
+
+    @pytest.fixture
+    def mock_camera(
+        mock_coordinator: MagicMock,
+        mock_config_entry: MagicMock,
+        mock_camera_service: AsyncMock,
+    ) -> MerakiCamera:
+        """Fixture for a mocked MerakiCamera."""
+>       return MerakiCamera(
+            mock_coordinator,
+            mock_config_entry,
+            MOCK_CAMERA_DEVICE,
+            mock_camera_service,
+        )
+
+tests/camera/test_camera.py:21:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <entity unknown.unknown=unknown>
+coordinator = <MagicMock id='140531648027664'>
+config_entry = <MagicMock id='140531648577760'>
+device = MerakiDevice(serial='Q234-ABCD-5678', name='Test Device', model='MV12', mac='00:11:22:33:44:55', lan_ip='1.2.3.4', wan.../stream'}, rtsp_url=None, sense_settings=None, ports_statuses=[], dynamic_dns=None, status_messages=[], entity_id=None)
+camera_service = <MagicMock id='140531648590144'>
+
+    def __init__(
+        self,
+        coordinator: MerakiDataCoordinator,
+        config_entry: ConfigEntry,
+        device: dict[str, Any],
+        camera_service: CameraService,
+    ) -> None:
+        """Initialize the camera."""
+        super().__init__(coordinator)
+        Camera.__init__(self)
+        self._config_entry = config_entry
+>       self._device_serial = device["serial"]
+E       TypeError: 'MerakiDevice' object is not subscriptable
+
+custom_components/meraki_ha/camera.py:81: TypeError
+____________________ ERROR at setup of test_camera_turn_off ____________________
+
+mock_coordinator = <MagicMock id='140531648591872'>
+mock_config_entry = <MagicMock id='140531648024592'>
+mock_camera_service = <MagicMock id='140531637566688'>
+
+    @pytest.fixture
+    def mock_camera(
+        mock_coordinator: MagicMock,
+        mock_config_entry: MagicMock,
+        mock_camera_service: AsyncMock,
+    ) -> MerakiCamera:
+        """Fixture for a mocked MerakiCamera."""
+>       return MerakiCamera(
+            mock_coordinator,
+            mock_config_entry,
+            MOCK_CAMERA_DEVICE,
+            mock_camera_service,
+        )
+
+tests/camera/test_camera.py:21:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <entity unknown.unknown=unknown>
+coordinator = <MagicMock id='140531648591872'>
+config_entry = <MagicMock id='140531648024592'>
+device = MerakiDevice(serial='Q234-ABCD-5678', name='Test Device', model='MV12', mac='00:11:22:33:44:55', lan_ip='1.2.3.4', wan.../stream'}, rtsp_url=None, sense_settings=None, ports_statuses=[], dynamic_dns=None, status_messages=[], entity_id=None)
+camera_service = <MagicMock id='140531637566688'>
+
+    def __init__(
+        self,
+        coordinator: MerakiDataCoordinator,
+        config_entry: ConfigEntry,
+        device: dict[str, Any],
+        camera_service: CameraService,
+    ) -> None:
+        """Initialize the camera."""
+        super().__init__(coordinator)
+        Camera.__init__(self)
+        self._config_entry = config_entry
+>       self._device_serial = device["serial"]
+E       TypeError: 'MerakiDevice' object is not subscriptable
+
+custom_components/meraki_ha/camera.py:81: TypeError
+_____________________ ERROR at setup of test_camera_image ______________________
+
+mock_coordinator = <MagicMock id='140531648579440'>
+mock_config_entry = <MagicMock id='140531648028048'>
+mock_camera_service = <MagicMock id='140531648022864'>
+
+    @pytest.fixture
+    def mock_camera(
+        mock_coordinator: MagicMock,
+        mock_config_entry: MagicMock,
+        mock_camera_service: AsyncMock,
+    ) -> MerakiCamera:
+        """Fixture for a mocked MerakiCamera."""
+>       return MerakiCamera(
+            mock_coordinator,
+            mock_config_entry,
+            MOCK_CAMERA_DEVICE,
+            mock_camera_service,
+        )
+
+tests/camera/test_camera.py:21:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <entity unknown.unknown=unknown>
+coordinator = <MagicMock id='140531648579440'>
+config_entry = <MagicMock id='140531648028048'>
+device = MerakiDevice(serial='Q234-ABCD-5678', name='Test Device', model='MV12', mac='00:11:22:33:44:55', lan_ip='1.2.3.4', wan.../stream'}, rtsp_url=None, sense_settings=None, ports_statuses=[], dynamic_dns=None, status_messages=[], entity_id=None)
+camera_service = <MagicMock id='140531648022864'>
+
+    def __init__(
+        self,
+        coordinator: MerakiDataCoordinator,
+        config_entry: ConfigEntry,
+        device: dict[str, Any],
+        camera_service: CameraService,
+    ) -> None:
+        """Initialize the camera."""
+        super().__init__(coordinator)
+        Camera.__init__(self)
+        self._config_entry = config_entry
+>       self._device_serial = device["serial"]
+E       TypeError: 'MerakiDevice' object is not subscriptable
+
+custom_components/meraki_ha/camera.py:81: TypeError
+________________ ERROR at setup of test_discovery_service_init _________________
+
+mock_coordinator = <MagicMock id='140531637894032'>
+
+    @pytest.fixture
+    def mock_coordinator_with_devices(mock_coordinator: MagicMock) -> MagicMock:
+        """Fixture for a mocked MerakiDataUpdateCoordinator with various devices."""
+>       wireless_device = MOCK_DEVICE.copy()
+E       AttributeError: 'MerakiDevice' object has no attribute 'copy'
+
+tests/discovery/test_service.py:14: AttributeError
+________ ERROR at setup of test_discover_entities_delegates_to_handler _________
+
+mock_coordinator = <MagicMock id='140531647832736'>
+
+    @pytest.fixture
+    def mock_coordinator_with_devices(mock_coordinator: MagicMock) -> MagicMock:
+        """Fixture for a mocked MerakiDataUpdateCoordinator with various devices."""
+>       wireless_device = MOCK_DEVICE.copy()
+E       AttributeError: 'MerakiDevice' object has no attribute 'copy'
+
+tests/discovery/test_service.py:14: AttributeError
+___________________ ERROR at setup of test_network_hub_init ____________________
+
+mock_coordinator = <MagicMock id='140531636111072'>
+
+    @pytest.fixture
+    def mock_coordinator_with_devices_and_ssids(mock_coordinator: MagicMock) -> MagicMock:
+        """Fixture for a mocked MerakiDataUpdateCoordinator with devices and SSIDs."""
+>       device_in_network = MOCK_DEVICE.copy()
+E       AttributeError: 'MerakiDevice' object has no attribute 'copy'
+
+tests/hubs/test_network.py:14: AttributeError
+_________________ ERROR at setup of test_network_info_property _________________
+
+mock_coordinator = <MagicMock id='140531647832016'>
+
+    @pytest.fixture
+    def mock_coordinator_with_devices_and_ssids(mock_coordinator: MagicMock) -> MagicMock:
+        """Fixture for a mocked MerakiDataUpdateCoordinator with devices and SSIDs."""
+>       device_in_network = MOCK_DEVICE.copy()
+E       AttributeError: 'MerakiDevice' object has no attribute 'copy'
+
+tests/hubs/test_network.py:14: AttributeError
+___________________ ERROR at setup of test_devices_property ____________________
+
+mock_coordinator = <MagicMock id='140531637165840'>
+
+    @pytest.fixture
+    def mock_coordinator_with_devices_and_ssids(mock_coordinator: MagicMock) -> MagicMock:
+        """Fixture for a mocked MerakiDataUpdateCoordinator with devices and SSIDs."""
+>       device_in_network = MOCK_DEVICE.copy()
+E       AttributeError: 'MerakiDevice' object has no attribute 'copy'
+
+tests/hubs/test_network.py:14: AttributeError
+____________________ ERROR at setup of test_ssids_property _____________________
+
+mock_coordinator = <MagicMock id='140531647839792'>
+
+    @pytest.fixture
+    def mock_coordinator_with_devices_and_ssids(mock_coordinator: MagicMock) -> MagicMock:
+        """Fixture for a mocked MerakiDataUpdateCoordinator with devices and SSIDs."""
+>       device_in_network = MOCK_DEVICE.copy()
+E       AttributeError: 'MerakiDevice' object has no attribute 'copy'
+
+tests/hubs/test_network.py:14: AttributeError
+___________________ ERROR at setup of test_async_update_data ___________________
+
+mock_coordinator = <MagicMock id='140531648581792'>
+
+    @pytest.fixture
+    def mock_coordinator_with_devices_and_ssids(mock_coordinator: MagicMock) -> MagicMock:
+        """Fixture for a mocked MerakiDataUpdateCoordinator with devices and SSIDs."""
+>       device_in_network = MOCK_DEVICE.copy()
+E       AttributeError: 'MerakiDevice' object has no attribute 'copy'
+
+tests/hubs/test_network.py:14: AttributeError
+___________ ERROR at setup of test_camera_turn_on_optimistic_update ____________
+
+    @pytest.fixture
+    def mock_coordinator() -> MagicMock:
+        """Fixture for a mocked MerakiDataUpdateCoordinator."""
+        coordinator = MagicMock()
+        coordinator.config_entry.options = {}
+        # The coordinator's data is a dictionary that the entity will access
+        coordinator.data = {
+            "devices": [
+>               {
+                    **MOCK_DEVICE,
+                    "productType": "camera",
+                    "model": "MV12",
+                    "video_settings": {"rtspServerEnabled": False},
+                    "lanIp": "192.168.1.100",
+                },
+            ],
+        }
+E       TypeError: 'MerakiDevice' object is not a mapping
+
+tests/test_camera_control.py:22: TypeError
+___________ ERROR at setup of test_camera_turn_off_optimistic_update ___________
+
+    @pytest.fixture
+    def mock_coordinator() -> MagicMock:
+        """Fixture for a mocked MerakiDataUpdateCoordinator."""
+        coordinator = MagicMock()
+        coordinator.config_entry.options = {}
+        # The coordinator's data is a dictionary that the entity will access
+        coordinator.data = {
+            "devices": [
+>               {
+                    **MOCK_DEVICE,
+                    "productType": "camera",
+                    "model": "MV12",
+                    "video_settings": {"rtspServerEnabled": False},
+                    "lanIp": "192.168.1.100",
+                },
+            ],
+        }
+E       TypeError: 'MerakiDevice' object is not a mapping
+
+tests/test_camera_control.py:22: TypeError
+=================================== FAILURES ===================================
+____________________________ test_motion_sensor_on _____________________________
+
+mock_coordinator = <MagicMock id='140531647838112'>
+mock_camera_service = <AsyncMock id='140531648016992'>
+mock_config_entry = <MagicMock id='140531648024976'>
+
+    @pytest.mark.asyncio
+    async def test_motion_sensor_on(
+        mock_coordinator, mock_camera_service, mock_config_entry
+    ):
+        """Test the motion sensor when motion is detected."""
+        # Arrange
+>       device = MOCK_DEVICE.copy()
+E       AttributeError: 'MerakiDevice' object has no attribute 'copy'
+
+tests/binary_sensor/device/test_camera_motion.py:29: AttributeError
+____________________________ test_motion_sensor_off ____________________________
+
+mock_coordinator = <MagicMock id='140531637196160'>
+mock_camera_service = <AsyncMock id='140531637162096'>
+mock_config_entry = <MagicMock id='140531648660160'>
+
+    @pytest.mark.asyncio
+    async def test_motion_sensor_off(
+        mock_coordinator, mock_camera_service, mock_config_entry
+    ):
+        """Test the motion sensor when no motion is detected."""
+        # Arrange
+>       device = MOCK_DEVICE.copy()
+E       AttributeError: 'MerakiDevice' object has no attribute 'copy'
+
+tests/binary_sensor/device/test_camera_motion.py:50: AttributeError
+____________________________ test_mt20_open_sensor _____________________________
+
+mock_coordinator_mt20 = <MagicMock id='140531648014112'>
+mock_config_entry = <MagicMock id='140531648014256'>
+
+    def test_mt20_open_sensor(
+        mock_coordinator_mt20: MagicMock, mock_config_entry: MagicMock
+    ):
+        """Test the MT20 open/close sensor when the door is open."""
+        device_info = mock_coordinator_mt20.data["devices"][0]
+>       sensor = MerakiMt20OpenCloseSensor(
+            mock_coordinator_mt20, device_info, mock_config_entry
+        )
+
+tests/binary_sensor/device/test_mt20_open_close.py:45:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <entity unknown.unknown=unknown>
+coordinator = <MagicMock id='140531648014112'>
+device_info = {'model': 'MT20', 'name': 'MT20 Sensor', 'productType': 'sensor', 'readings': [{'metric': 'door', 'value': True}], ...}
+config_entry = <MagicMock id='140531648014256'>
+
+    def __init__(
+        self,
+        coordinator: MerakiDataUpdateCoordinator,
+        device_info: "MerakiDevice",
+        config_entry: ConfigEntry,
+    ) -> None:
+        """Initialize the sensor."""
+        super().__init__(coordinator)
+        self._device_info = device_info
+        self._config_entry = config_entry
+>       self._attr_unique_id = f"{self._device_info.serial}-door"
+E       AttributeError: 'dict' object has no attribute 'serial'
+
+custom_components/meraki_ha/binary_sensor/device/mt20_open_close.py:39: AttributeError
+___________________________ test_mt20_closed_sensor ____________________________
+
+mock_coordinator_mt20 = <MagicMock id='140531872490576'>
+mock_config_entry = <MagicMock id='140531637424000'>
+
+    def test_mt20_closed_sensor(
+        mock_coordinator_mt20: MagicMock, mock_config_entry: MagicMock
+    ):
+        """Test the MT20 open/close sensor when the door is closed."""
+        device_info = mock_coordinator_mt20.data["devices"][1]
+>       sensor = MerakiMt20OpenCloseSensor(
+            mock_coordinator_mt20, device_info, mock_config_entry
+        )
+
+tests/binary_sensor/device/test_mt20_open_close.py:60:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <entity unknown.unknown=unknown>
+coordinator = <MagicMock id='140531872490576'>
+device_info = {'model': 'MT20', 'name': 'MT20 Sensor Closed', 'productType': 'sensor', 'readings': [{'metric': 'door', 'value': False}], ...}
+config_entry = <MagicMock id='140531637424000'>
+
+    def __init__(
+        self,
+        coordinator: MerakiDataUpdateCoordinator,
+        device_info: "MerakiDevice",
+        config_entry: ConfigEntry,
+    ) -> None:
+        """Initialize the sensor."""
+        super().__init__(coordinator)
+        self._device_info = device_info
+        self._config_entry = config_entry
+>       self._attr_unique_id = f"{self._device_info.serial}-door"
+E       AttributeError: 'dict' object has no attribute 'serial'
+
+custom_components/meraki_ha/binary_sensor/device/mt20_open_close.py:39: AttributeError
+____________________________ test_mt20_availability ____________________________
+
+mock_coordinator_mt20 = <MagicMock id='140531637636944'>
+mock_config_entry = <MagicMock id='140531637455472'>
+
+    def test_mt20_availability(
+        mock_coordinator_mt20: MagicMock, mock_config_entry: MagicMock
+    ):
+        """Test sensor availability for the MT20 sensor."""
+        device_info = mock_coordinator_mt20.data["devices"][0]
+>       sensor = MerakiMt20OpenCloseSensor(
+            mock_coordinator_mt20, device_info, mock_config_entry
+        )
+
+tests/binary_sensor/device/test_mt20_open_close.py:75:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <entity unknown.unknown=unknown>
+coordinator = <MagicMock id='140531637636944'>
+device_info = {'model': 'MT20', 'name': 'MT20 Sensor', 'productType': 'sensor', 'readings': [{'metric': 'door', 'value': True}], ...}
+config_entry = <MagicMock id='140531637455472'>
+
+    def __init__(
+        self,
+        coordinator: MerakiDataUpdateCoordinator,
+        device_info: "MerakiDevice",
+        config_entry: ConfigEntry,
+    ) -> None:
+        """Initialize the sensor."""
+        super().__init__(coordinator)
+        self._device_info = device_info
+        self._config_entry = config_entry
+>       self._attr_unique_id = f"{self._device_info.serial}-door"
+E       AttributeError: 'dict' object has no attribute 'serial'
+
+custom_components/meraki_ha/binary_sensor/device/mt20_open_close.py:39: AttributeError
+__________________________ test_mt15_button_creation ___________________________
+
+mock_coordinator_mt15 = <MagicMock id='140531637431632'>
+mock_config_entry = <MagicMock id='140531637434608'>
+mock_meraki_client = <MagicMock id='140531637433408'>
+
+    def test_mt15_button_creation(
+        mock_coordinator_mt15: MagicMock,
+        mock_config_entry: MagicMock,
+        mock_meraki_client: MagicMock,
+    ):
+        """Test the creation of the MT15 refresh data button."""
+        device_info = mock_coordinator_mt15.data["devices"][0]
+>       button = MerakiMt15RefreshDataButton(
+            mock_coordinator_mt15, device_info, mock_config_entry, mock_meraki_client
+        )
+
+tests/button/device/test_mt15_refresh_data.py:44:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <entity unknown.unknown=unknown>
+coordinator = <MagicMock id='140531637431632'>
+device = {'model': 'MT15', 'name': 'MT15 Sensor', 'productType': 'sensor', 'serial': 'mt15-1'}
+config_entry = <MagicMock id='140531637434608'>
+meraki_client = <MagicMock id='140531637433408'>
+
+    def __init__(
+        self,
+        coordinator: MerakiDataUpdateCoordinator,
+        device: MerakiDevice,
+        config_entry: ConfigEntry,
+        meraki_client: MerakiAPIClient,
+    ) -> None:
+        """Initialize the button."""
+        super().__init__(coordinator)
+        self._device = device
+        self._config_entry = config_entry
+        self._meraki_client = meraki_client
+>       self._attr_unique_id = f"{self._device.serial}-refresh"
+E       AttributeError: 'dict' object has no attribute 'serial'
+
+custom_components/meraki_ha/button/device/mt15_refresh_data.py:37: AttributeError
+____________________________ test_mt15_button_press ____________________________
+
+mock_coordinator_mt15 = <MagicMock id='140531648674368'>
+mock_config_entry = <MagicMock id='140531648005568'>
+mock_meraki_client = <MagicMock id='140531648012192'>
+
+    @pytest.mark.asyncio
+    async def test_mt15_button_press(
+        mock_coordinator_mt15: MagicMock,
+        mock_config_entry: MagicMock,
+        mock_meraki_client: MagicMock,
+    ):
+        """Test pressing the MT15 refresh data button."""
+        device_info = mock_coordinator_mt15.data["devices"][0]
+>       button = MerakiMt15RefreshDataButton(
+            mock_coordinator_mt15, device_info, mock_config_entry, mock_meraki_client
+        )
+
+tests/button/device/test_mt15_refresh_data.py:61:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <entity unknown.unknown=unknown>
+coordinator = <MagicMock id='140531648674368'>
+device = {'model': 'MT15', 'name': 'MT15 Sensor', 'productType': 'sensor', 'serial': 'mt15-1'}
+config_entry = <MagicMock id='140531648005568'>
+meraki_client = <MagicMock id='140531648012192'>
+
+    def __init__(
+        self,
+        coordinator: MerakiDataUpdateCoordinator,
+        device: MerakiDevice,
+        config_entry: ConfigEntry,
+        meraki_client: MerakiAPIClient,
+    ) -> None:
+        """Initialize the button."""
+        super().__init__(coordinator)
+        self._device = device
+        self._config_entry = config_entry
+        self._meraki_client = meraki_client
+>       self._attr_unique_id = f"{self._device.serial}-refresh"
+E       AttributeError: 'dict' object has no attribute 'serial'
+
+custom_components/meraki_ha/button/device/mt15_refresh_data.py:37: AttributeError
+________________ test_is_streaming_logic[video_settings0-True] _________________
+
+mock_coordinator = <MagicMock id='140531669554848'>
+mock_config_entry = <MagicMock id='140531647827936'>
+mock_camera_service = <MagicMock id='140531838272480'>
+video_settings = {'rtspServerEnabled': True, 'rtspUrl': 'rtsp://test.com/stream'}
+expected_is_streaming = True
+
+    @pytest.mark.parametrize(
+        ("video_settings", "expected_is_streaming"),
+        [
+            ({"rtspServerEnabled": True, "rtspUrl": "rtsp://test.com/stream"}, True),
+            ({"rtspServerEnabled": False, "rtspUrl": "rtsp://test.com/stream"}, False),
+            ({"rtspServerEnabled": True, "rtspUrl": None}, False),
+            ({"rtspServerEnabled": True, "rtspUrl": "http://test.com/stream"}, False),
+            ({"rtspUrl": "rtsp://test.com/stream"}, False),
+        ],
+    )
+    def test_is_streaming_logic(
+        mock_coordinator: MagicMock,
+        mock_config_entry: MagicMock,
+        mock_camera_service: AsyncMock,
+        video_settings: dict,
+        expected_is_streaming: bool,
+    ) -> None:
+        """
+        Test the logic of the is_streaming property.
+
+        Args:
+        ----
+            mock_coordinator: The mocked coordinator.
+            mock_config_entry: The mocked config entry.
+            mock_camera_service: The mocked camera service.
+            video_settings: The video settings to test.
+            expected_is_streaming: The expected result.
+
+        """
+        # Arrange
+>       mock_device_data = {
+            **MOCK_CAMERA_DEVICE,
+            "video_settings": video_settings,
+            # Ensure lanIp is None for this test to isolate rtspUrl logic
+            "lanIp": None,
+        }
+E       TypeError: 'MerakiDevice' object is not a mapping
+
+tests/camera/test_camera.py:146: TypeError
+________________ test_is_streaming_logic[video_settings1-False] ________________
+
+mock_coordinator = <MagicMock id='140531637889280'>
+mock_config_entry = <MagicMock id='140531637986336'>
+mock_camera_service = <MagicMock id='140531637990128'>
+video_settings = {'rtspServerEnabled': False, 'rtspUrl': 'rtsp://test.com/stream'}
+expected_is_streaming = False
+
+    @pytest.mark.parametrize(
+        ("video_settings", "expected_is_streaming"),
+        [
+            ({"rtspServerEnabled": True, "rtspUrl": "rtsp://test.com/stream"}, True),
+            ({"rtspServerEnabled": False, "rtspUrl": "rtsp://test.com/stream"}, False),
+            ({"rtspServerEnabled": True, "rtspUrl": None}, False),
+            ({"rtspServerEnabled": True, "rtspUrl": "http://test.com/stream"}, False),
+            ({"rtspUrl": "rtsp://test.com/stream"}, False),
+        ],
+    )
+    def test_is_streaming_logic(
+        mock_coordinator: MagicMock,
+        mock_config_entry: MagicMock,
+        mock_camera_service: AsyncMock,
+        video_settings: dict,
+        expected_is_streaming: bool,
+    ) -> None:
+        """
+        Test the logic of the is_streaming property.
+
+        Args:
+        ----
+            mock_coordinator: The mocked coordinator.
+            mock_config_entry: The mocked config entry.
+            mock_camera_service: The mocked camera service.
+            video_settings: The video settings to test.
+            expected_is_streaming: The expected result.
+
+        """
+        # Arrange
+>       mock_device_data = {
+            **MOCK_CAMERA_DEVICE,
+            "video_settings": video_settings,
+            # Ensure lanIp is None for this test to isolate rtspUrl logic
+            "lanIp": None,
+        }
+E       TypeError: 'MerakiDevice' object is not a mapping
+
+tests/camera/test_camera.py:146: TypeError
+________________ test_is_streaming_logic[video_settings2-False] ________________
+
+mock_coordinator = <MagicMock id='140531637641408'>
+mock_config_entry = <MagicMock id='140531647838496'>
+mock_camera_service = <MagicMock id='140531647830336'>
+video_settings = {'rtspServerEnabled': True, 'rtspUrl': None}
+expected_is_streaming = False
+
+    @pytest.mark.parametrize(
+        ("video_settings", "expected_is_streaming"),
+        [
+            ({"rtspServerEnabled": True, "rtspUrl": "rtsp://test.com/stream"}, True),
+            ({"rtspServerEnabled": False, "rtspUrl": "rtsp://test.com/stream"}, False),
+            ({"rtspServerEnabled": True, "rtspUrl": None}, False),
+            ({"rtspServerEnabled": True, "rtspUrl": "http://test.com/stream"}, False),
+            ({"rtspUrl": "rtsp://test.com/stream"}, False),
+        ],
+    )
+    def test_is_streaming_logic(
+        mock_coordinator: MagicMock,
+        mock_config_entry: MagicMock,
+        mock_camera_service: AsyncMock,
+        video_settings: dict,
+        expected_is_streaming: bool,
+    ) -> None:
+        """
+        Test the logic of the is_streaming property.
+
+        Args:
+        ----
+            mock_coordinator: The mocked coordinator.
+            mock_config_entry: The mocked config entry.
+            mock_camera_service: The mocked camera service.
+            video_settings: The video settings to test.
+            expected_is_streaming: The expected result.
+
+        """
+        # Arrange
+>       mock_device_data = {
+            **MOCK_CAMERA_DEVICE,
+            "video_settings": video_settings,
+            # Ensure lanIp is None for this test to isolate rtspUrl logic
+            "lanIp": None,
+        }
+E       TypeError: 'MerakiDevice' object is not a mapping
+
+tests/camera/test_camera.py:146: TypeError
+________________ test_is_streaming_logic[video_settings3-False] ________________
+
+mock_coordinator = <MagicMock id='140531637565152'>
+mock_config_entry = <MagicMock id='140531648587600'>
+mock_camera_service = <MagicMock id='140531637171408'>
+video_settings = {'rtspServerEnabled': True, 'rtspUrl': 'http://test.com/stream'}
+expected_is_streaming = False
+
+    @pytest.mark.parametrize(
+        ("video_settings", "expected_is_streaming"),
+        [
+            ({"rtspServerEnabled": True, "rtspUrl": "rtsp://test.com/stream"}, True),
+            ({"rtspServerEnabled": False, "rtspUrl": "rtsp://test.com/stream"}, False),
+            ({"rtspServerEnabled": True, "rtspUrl": None}, False),
+            ({"rtspServerEnabled": True, "rtspUrl": "http://test.com/stream"}, False),
+            ({"rtspUrl": "rtsp://test.com/stream"}, False),
+        ],
+    )
+    def test_is_streaming_logic(
+        mock_coordinator: MagicMock,
+        mock_config_entry: MagicMock,
+        mock_camera_service: AsyncMock,
+        video_settings: dict,
+        expected_is_streaming: bool,
+    ) -> None:
+        """
+        Test the logic of the is_streaming property.
+
+        Args:
+        ----
+            mock_coordinator: The mocked coordinator.
+            mock_config_entry: The mocked config entry.
+            mock_camera_service: The mocked camera service.
+            video_settings: The video settings to test.
+            expected_is_streaming: The expected result.
+
+        """
+        # Arrange
+>       mock_device_data = {
+            **MOCK_CAMERA_DEVICE,
+            "video_settings": video_settings,
+            # Ensure lanIp is None for this test to isolate rtspUrl logic
+            "lanIp": None,
+        }
+E       TypeError: 'MerakiDevice' object is not a mapping
+
+tests/camera/test_camera.py:146: TypeError
+________________ test_is_streaming_logic[video_settings4-False] ________________
+
+mock_coordinator = <MagicMock id='140531636110016'>
+mock_config_entry = <MagicMock id='140531636125136'>
+mock_camera_service = <MagicMock id='140531636128992'>
+video_settings = {'rtspUrl': 'rtsp://test.com/stream'}
+expected_is_streaming = False
+
+    @pytest.mark.parametrize(
+        ("video_settings", "expected_is_streaming"),
+        [
+            ({"rtspServerEnabled": True, "rtspUrl": "rtsp://test.com/stream"}, True),
+            ({"rtspServerEnabled": False, "rtspUrl": "rtsp://test.com/stream"}, False),
+            ({"rtspServerEnabled": True, "rtspUrl": None}, False),
+            ({"rtspServerEnabled": True, "rtspUrl": "http://test.com/stream"}, False),
+            ({"rtspUrl": "rtsp://test.com/stream"}, False),
+        ],
+    )
+    def test_is_streaming_logic(
+        mock_coordinator: MagicMock,
+        mock_config_entry: MagicMock,
+        mock_camera_service: AsyncMock,
+        video_settings: dict,
+        expected_is_streaming: bool,
+    ) -> None:
+        """
+        Test the logic of the is_streaming property.
+
+        Args:
+        ----
+            mock_coordinator: The mocked coordinator.
+            mock_config_entry: The mocked config entry.
+            mock_camera_service: The mocked camera service.
+            video_settings: The video settings to test.
+            expected_is_streaming: The expected result.
+
+        """
+        # Arrange
+>       mock_device_data = {
+            **MOCK_CAMERA_DEVICE,
+            "video_settings": video_settings,
+            # Ensure lanIp is None for this test to isolate rtspUrl logic
+            "lanIp": None,
+        }
+E       TypeError: 'MerakiDevice' object is not a mapping
+
+tests/camera/test_camera.py:146: TypeError
+________________________ test_entity_disabled_if_no_url ________________________
+
+mock_coordinator = <MagicMock id='140531637634592'>
+mock_config_entry = <MagicMock id='140531669564016'>
+mock_camera_service = <MagicMock id='140531669551584'>
+
+    def test_entity_disabled_if_no_url(
+        mock_coordinator: MagicMock,
+        mock_config_entry: MagicMock,
+        mock_camera_service: AsyncMock,
+    ) -> None:
+        """
+        Test that the camera entity is disabled if no stream URL is available.
+
+        Args:
+        ----
+            mock_coordinator: The mocked coordinator.
+            mock_config_entry: The mocked config entry.
+            mock_camera_service: The mocked camera service.
+
+        """
+        # Arrange
+        # Create a mock device with no way to determine a stream URL
+>       mock_device_no_url = {
+            **MOCK_CAMERA_DEVICE,
+            "video_settings": {
+                "rtspServerEnabled": True,
+                "rtspUrl": None,
+            },
+            "lanIp": None,
+        }
+E       TypeError: 'MerakiDevice' object is not a mapping
+
+tests/camera/test_camera.py:222: TypeError
+____________________________ test_get_network_vlans ____________________________
+
+appliance_endpoints = <custom_components.meraki_ha.core.api.endpoints.appliance.ApplianceEndpoints object at 0x7fd0125e6f00>
+mock_dashboard = <MagicMock name='DashboardAPI()' id='140531638102464'>
+
+    @pytest.mark.asyncio
+    async def test_get_network_vlans(appliance_endpoints, mock_dashboard):
+        """Test get_network_vlans."""
+        mock_dashboard.appliance.getNetworkApplianceVlans = MagicMock(return_value=[])
+>       await appliance_endpoints.get_network_vlans(MOCK_NETWORK["id"])
+E       TypeError: 'MerakiNetwork' object is not subscriptable
+
+tests/core/api/endpoints/test_appliance.py:57: TypeError
+___________________________ test_update_network_vlan ___________________________
+
+appliance_endpoints = <custom_components.meraki_ha.core.api.endpoints.appliance.ApplianceEndpoints object at 0x7fd01250bd10>
+mock_dashboard = <MagicMock name='DashboardAPI()' id='140531637197792'>
+
+    @pytest.mark.asyncio
+    async def test_update_network_vlan(appliance_endpoints, mock_dashboard):
+        """Test update_network_vlan."""
+        mock_dashboard.appliance.updateNetworkApplianceVlan = MagicMock(return_value={})
+>       await appliance_endpoints.update_network_vlan(MOCK_NETWORK["id"], "1", name="test")
+E       TypeError: 'MerakiNetwork' object is not subscriptable
+
+tests/core/api/endpoints/test_appliance.py:67: TypeError
+__________________________ test_get_l3_firewall_rules __________________________
+
+appliance_endpoints = <custom_components.meraki_ha.core.api.endpoints.appliance.ApplianceEndpoints object at 0x7fd012f585f0>
+mock_dashboard = <MagicMock name='DashboardAPI()' id='140531648013104'>
+
+    @pytest.mark.asyncio
+    async def test_get_l3_firewall_rules(appliance_endpoints, mock_dashboard):
+        """Test get_l3_firewall_rules."""
+        mock_dashboard.appliance.getNetworkApplianceFirewallL3FirewallRules = MagicMock(
+            return_value={}
+        )
+>       await appliance_endpoints.get_l3_firewall_rules(MOCK_NETWORK["id"])
+E       TypeError: 'MerakiNetwork' object is not subscriptable
+
+tests/core/api/endpoints/test_appliance.py:79: TypeError
+________________________ test_update_l3_firewall_rules _________________________
+
+appliance_endpoints = <custom_components.meraki_ha.core.api.endpoints.appliance.ApplianceEndpoints object at 0x7fd0125629f0>
+mock_dashboard = <MagicMock name='DashboardAPI()' id='140531637559200'>
+
+    @pytest.mark.asyncio
+    async def test_update_l3_firewall_rules(appliance_endpoints, mock_dashboard):
+        """Test update_l3_firewall_rules."""
+        mock_dashboard.appliance.updateNetworkApplianceFirewallL3FirewallRules = MagicMock(
+            return_value={}
+        )
+>       await appliance_endpoints.update_l3_firewall_rules(MOCK_NETWORK["id"], rules=[])
+E       TypeError: 'MerakiNetwork' object is not subscriptable
+
+tests/core/api/endpoints/test_appliance.py:91: TypeError
+___________________________ test_get_traffic_shaping ___________________________
+
+appliance_endpoints = <custom_components.meraki_ha.core.api.endpoints.appliance.ApplianceEndpoints object at 0x7fd0139af020>
+mock_dashboard = <MagicMock name='DashboardAPI()' id='140531658845088'>
+
+    @pytest.mark.asyncio
+    async def test_get_traffic_shaping(appliance_endpoints, mock_dashboard):
+        """Test get_traffic_shaping."""
+        mock_dashboard.appliance.getNetworkApplianceTrafficShaping = MagicMock(
+            return_value={}
+        )
+>       await appliance_endpoints.get_traffic_shaping(MOCK_NETWORK["id"])
+E       TypeError: 'MerakiNetwork' object is not subscriptable
+
+tests/core/api/endpoints/test_appliance.py:103: TypeError
+_________________________ test_update_traffic_shaping __________________________
+
+appliance_endpoints = <custom_components.meraki_ha.core.api.endpoints.appliance.ApplianceEndpoints object at 0x7fd012500770>
+mock_dashboard = <MagicMock name='DashboardAPI()' id='140531637203456'>
+
+    @pytest.mark.asyncio
+    async def test_update_traffic_shaping(appliance_endpoints, mock_dashboard):
+        """Test update_traffic_shaping."""
+        mock_dashboard.appliance.updateNetworkApplianceTrafficShaping = MagicMock(
+            return_value={}
+        )
+>       await appliance_endpoints.update_traffic_shaping(MOCK_NETWORK["id"], enabled=True)
+E       TypeError: 'MerakiNetwork' object is not subscriptable
+
+tests/core/api/endpoints/test_appliance.py:115: TypeError
+_____________________________ test_get_vpn_status ______________________________
+
+appliance_endpoints = <custom_components.meraki_ha.core.api.endpoints.appliance.ApplianceEndpoints object at 0x7fd0125c5fd0>
+mock_dashboard = <MagicMock name='DashboardAPI()' id='140531637971152'>
+
+    @pytest.mark.asyncio
+    async def test_get_vpn_status(appliance_endpoints, mock_dashboard):
+        """Test get_vpn_status."""
+        mock_dashboard.appliance.getNetworkApplianceVpnSiteToSiteVpn = MagicMock(
+            return_value={}
+        )
+>       await appliance_endpoints.get_vpn_status(MOCK_NETWORK["id"])
+E       TypeError: 'MerakiNetwork' object is not subscriptable
+
+tests/core/api/endpoints/test_appliance.py:127: TypeError
+____________________________ test_update_vpn_status ____________________________
+
+appliance_endpoints = <custom_components.meraki_ha.core.api.endpoints.appliance.ApplianceEndpoints object at 0x7fd0125ca060>
+mock_dashboard = <MagicMock name='DashboardAPI()' id='140531637989168'>
+
+    @pytest.mark.asyncio
+    async def test_update_vpn_status(appliance_endpoints, mock_dashboard):
+        """Test update_vpn_status."""
+        mock_dashboard.appliance.updateNetworkApplianceVpnSiteToSiteVpn = MagicMock(
+            return_value={}
+        )
+>       await appliance_endpoints.update_vpn_status(MOCK_NETWORK["id"], mode="hub")
+E       TypeError: 'MerakiNetwork' object is not subscriptable
+
+tests/core/api/endpoints/test_appliance.py:139: TypeError
+_______________________ test_get_all_data_orchestration ________________________
+
+api_client = <custom_components.meraki_ha.core.api.client.MerakiAPIClient object at 0x7fd0143e54c0>
+
+    @pytest.mark.asyncio
+    async def test_get_all_data_orchestration(api_client):
+        """Test that get_all_data correctly orchestrates helper methods."""
+        # Arrange
+        api_client._async_fetch_initial_data = AsyncMock(
+            return_value={
+                "networks": [MOCK_NETWORK],
+                "devices": [MOCK_DEVICE],
+            }
+        )
+        api_client._async_fetch_network_clients = AsyncMock(return_value=[])
+        api_client._async_fetch_device_clients = AsyncMock(return_value={})
+        api_client._build_detail_tasks = MagicMock(return_value={})
+
+        # Act
+>       await api_client.get_all_data()
+
+tests/core/api/test_client.py:59:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <custom_components.meraki_ha.core.api.client.MerakiAPIClient object at 0x7fd0143e54c0>
+previous_data = {}
+
+    async def get_all_data(
+        self,
+        previous_data: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
+        """
+        Fetch all data from the Meraki API concurrently, with caching.
+
+        Args:
+            previous_data: The previous data from the coordinator.
+
+        Returns
+        -------
+            A dictionary of all data.
+
+        """
+        if previous_data is None:
+            previous_data = {}
+
+        _LOGGER.debug("Fetching fresh Meraki data from API")
+        initial_results = await self._async_fetch_initial_data()
+
+        networks_res = initial_results.get("networks", [])
+        if isinstance(networks_res, Exception):
+            _LOGGER.warning(
+                "Could not fetch networks, network data will be unavailable: %s",
+                networks_res,
+            )
+            networks: list[MerakiNetwork] = []
+        else:
+            network_fields = {f.name for f in fields(MerakiNetwork)}
+            networks = [
+                MerakiNetwork(
+                    organization_id=self.organization_id,
+>                   **{k: v for k, v in network.items() if k in network_fields},
+                )
+                for network in networks_res
+            ]
+E           AttributeError: 'MerakiNetwork' object has no attribute 'items'
+
+custom_components/meraki_ha/core/api/client.py:378: AttributeError
+____________________ test_get_all_data_merges_availability _____________________
+
+api_client = <custom_components.meraki_ha.core.api.client.MerakiAPIClient object at 0x7fd012fe5df0>
+
+    @pytest.mark.asyncio
+    async def test_get_all_data_merges_availability(api_client):
+        """Test that get_all_data merges device availability."""
+        # Arrange
+>       device_with_status = MOCK_DEVICE.copy()
+E       AttributeError: 'MerakiDevice' object has no attribute 'copy'
+
+tests/core/api/test_client.py:100: AttributeError
+________________ test_get_all_data_handles_informational_errors ________________
+
+api_client = <custom_components.meraki_ha.core.api.client.MerakiAPIClient object at 0x7fd012543bf0>
+
+    @pytest.mark.asyncio
+    async def test_get_all_data_handles_informational_errors(api_client):
+        """Test that get_all_data handles informational API errors."""
+        # Arrange
+        api_client._async_fetch_initial_data = AsyncMock(
+            return_value={
+                "networks": [MOCK_NETWORK],
+                "devices": [MOCK_DEVICE],
+                "device_statuses": [],
+            }
+        )
+        api_client._async_fetch_network_clients = AsyncMock(return_value=[])
+        api_client._async_fetch_device_clients = AsyncMock(return_value={})
+        async def coro():
+            return MerakiInformationalError("Traffic analysis is not enabled")
+
+        api_client._build_detail_tasks = MagicMock(
+>           return_value={f"traffic_{MOCK_NETWORK['id']}": coro()}
+        )
+E       TypeError: 'MerakiNetwork' object is not subscriptable
+
+tests/core/api/test_client.py:137: TypeError
+____________________________ test_discover_entities ____________________________
+
+    @pytest.mark.asyncio
+    async def test_discover_entities():
+        """Test that the handler discovers entities correctly."""
+        # Arrange
+        mock_coordinator = MagicMock()
+        mock_config_entry = MagicMock()
+        mock_control_service = MagicMock()
+        mock_switch_port_coordinator = MagicMock()
+        mock_switch_device = {
+            "serial": "Q234-ABCD-5678",
+            "name": "My Switch",
+            "model": "MS220-8P",
+            "ports_statuses": [
+                {"portId": 1, "enabled": True},
+                {"portId": 2, "enabled": True},
+            ],
+        }
+
+        handler = MSHandler(
+            mock_coordinator,
+            mock_switch_device,
+            mock_config_entry,
+            mock_switch_port_coordinator,
+            mock_control_service,
+        )
+
+        # Act
+>       entities = await handler.discover_entities()
+
+tests/discovery/handlers/test_ms.py:37:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <custom_components.meraki_ha.discovery.handlers.ms.MSHandler object at 0x7fd012571670>
+
+    async def discover_entities(self) -> list[Entity]:
+        """Discover entities for the MS switch."""
+        entities: list[Entity] = []
+
+        # Add switch port sensors, but only for enabled ports to avoid flooding
+        # the entity registry.
+        ports = self.device.get("ports_statuses", [])
+        for port in ports:
+            if port.get("enabled"):
+                entities.append(
+>                   SwitchPortSensor(
+                        self._switch_port_coordinator,
+                        self.device,
+                        port,
+                        SWITCH_PORT_DESCRIPTION,
+                    )
+                )
+E               TypeError: SwitchPortSensor.__init__() takes 4 positional arguments but 5 were given
+
+custom_components/meraki_ha/discovery/handlers/ms.py:82: TypeError
+_________________________ test_mv_handler_all_features _________________________
+
+mock_coordinator = <MagicMock id='140531637173856'>
+mock_config_entry = <MagicMock id='140531637171456'>
+mock_camera_service = <AsyncMock id='140531637972832'>
+mock_control_service = <MagicMock id='140531637975472'>
+
+    @pytest.mark.asyncio
+    async def test_mv_handler_all_features(
+        mock_coordinator: MagicMock,
+        mock_config_entry: MagicMock,
+        mock_camera_service: AsyncMock,
+        mock_control_service: MagicMock,
+    ) -> None:
+        """Test that the MVHandler discovers all entities for a capable camera."""
+        # Arrange
+>       device = MOCK_DEVICE.copy()
+E       AttributeError: 'MerakiDevice' object has no attribute 'copy'
+
+tests/discovery/handlers/test_mv.py:55: AttributeError
+________________________ test_mv_handler_some_features _________________________
+
+mock_coordinator = <MagicMock id='140531638059808'>
+mock_config_entry = <MagicMock id='140531638094784'>
+mock_camera_service = <AsyncMock id='140531638105008'>
+mock_control_service = <MagicMock id='140531636120384'>
+
+    @pytest.mark.asyncio
+    async def test_mv_handler_some_features(
+        mock_coordinator: MagicMock,
+        mock_config_entry: MagicMock,
+        mock_camera_service: AsyncMock,
+        mock_control_service: MagicMock,
+    ) -> None:
+        """Test that the MVHandler discovers some entities for a less capable camera."""
+        # Arrange
+>       device = MOCK_DEVICE.copy()
+E       AttributeError: 'MerakiDevice' object has no attribute 'copy'
+
+tests/discovery/handlers/test_mv.py:88: AttributeError
+______________________ test_mv_handler_no_extra_features _______________________
+
+mock_coordinator = <MagicMock id='140531648011952'>
+mock_config_entry = <MagicMock id='140531648013152'>
+mock_camera_service = <AsyncMock id='140531648593792'>
+mock_control_service = <MagicMock id='140531648587936'>
+
+    @pytest.mark.asyncio
+    async def test_mv_handler_no_extra_features(
+        mock_coordinator: MagicMock,
+        mock_config_entry: MagicMock,
+        mock_camera_service: AsyncMock,
+        mock_control_service: MagicMock,
+    ) -> None:
+        """Test that the MVHandler discovers only basic entities for a basic camera."""
+        # Arrange
+>       device = MOCK_DEVICE.copy()
+E       AttributeError: 'MerakiDevice' object has no attribute 'copy'
+
+tests/discovery/handlers/test_mv.py:124: AttributeError
+________________ test_discover_entities_creates_network_sensors ________________
+
+mock_coordinator = <MagicMock id='140531638095216'>
+mock_network_control_service = <MagicMock id='140531636113088'>
+
+    async def test_discover_entities_creates_network_sensors(
+        mock_coordinator, mock_network_control_service
+    ):
+        """Test that discover_entities creates a client sensor for each network."""
+        handler = NetworkHandler(
+            mock_coordinator, MOCK_CONFIG_ENTRY, mock_network_control_service
+        )
+
+>       entities = await handler.discover_entities()
+
+tests/discovery/handlers/test_network.py:42:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+custom_components/meraki_ha/discovery/handlers/network.py:75: in discover_entities
+    MerakiNetworkClientsSensor(
+custom_components/meraki_ha/sensor/network/network_clients.py:36: in __init__
+    super().__init__(coordinator, config_entry, cast(MerakiNetwork, network_data))
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <entity unknown.unknown=unknown>
+coordinator = <MagicMock id='140531638095216'>
+config_entry = <MagicMock id='140531878482608'>
+network = {'id': 'N_1234', 'name': 'Network 1'}
+
+    def __init__(
+        self,
+        coordinator: MerakiDataUpdateCoordinator,
+        config_entry: ConfigEntry,
+        network: MerakiNetwork,
+    ) -> None:
+        from dataclasses import asdict
+
+        """Initialize the network entity."""
+        super().__init__(coordinator=coordinator)
+        self._config_entry = config_entry
+        self._network = network
+>       self._network_id = network.id
+E       AttributeError: 'dict' object has no attribute 'id'
+
+custom_components/meraki_ha/core/entities/meraki_network_entity.py:29: AttributeError
+___________________________ test_format_entity_name ____________________________
+
+    def test_format_entity_name():
+        """Test the format_entity_name function."""
+>       assert format_entity_name("Device Name", "Sensor") == "Device Name Sensor"
+E       TypeError: format_entity_name() missing 1 required positional argument: 'entity_name'
+
+tests/helpers/test_entity_helpers.py:8: TypeError
+________________________ test_organization_id_property _________________________
+
+mock_coordinator_with_network = <MagicMock id='140531648018528'>
+
+    def test_organization_id_property(mock_coordinator_with_network: MagicMock) -> None:
+        """Test the organization_id property."""
+        hub = OrganizationHub(mock_coordinator_with_network)
+>       assert hub.organization_id == MOCK_NETWORK["organizationId"]
+
+tests/hubs/test_organization.py:27:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <custom_components.meraki_ha.hubs.organization.OrganizationHub object at 0x7fd0143e5880>
+
+    @property
+    def organization_id(self) -> str | None:
+        """Return the organization ID."""
+        if self._coordinator.data and self._coordinator.data.get("networks"):
+            # All networks belong to the same org, so we can take the first one
+>           return self._coordinator.data["networks"][0].get("organizationId")
+E           AttributeError: 'MerakiNetwork' object has no attribute 'get'
+
+custom_components/meraki_ha/hubs/organization.py:32: AttributeError
+__________________________ test_appliance_port_sensor __________________________
+
+mock_device_coordinator = <MagicMock id='140531637619792'>
+
+    def test_appliance_port_sensor(mock_device_coordinator):
+        """Test the appliance port sensor."""
+        device = mock_device_coordinator.data["devices"][0]
+        port1 = device["ports"][0]
+        port2 = device["ports"][1]
+        port3 = device["ports"][2]
+
+        # Test connected port
+>       sensor1 = MerakiAppliancePortSensor(mock_device_coordinator, device, port1)
+
+tests/sensor/device/test_appliance_port.py:66:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <entity unknown.unknown=unknown>
+coordinator = <MagicMock id='140531637619792'>
+device = {'model': 'MX64', 'name': 'Appliance', 'ports': [{'accessPolicy': None, 'enabled': True, 'number': 1, 'speed': '1000 M...one, ...}, {'accessPolicy': None, 'enabled': False, 'number': 3, 'speed': None, ...}], 'productType': 'appliance', ...}
+port = {'accessPolicy': None, 'enabled': True, 'number': 1, 'speed': '1000 Mbps', ...}
+
+    def __init__(
+        self,
+        coordinator: MerakiDataUpdateCoordinator,
+        device: dict[str, Any],
+        port: dict[str, Any],
+    ) -> None:
+        """Initialize the sensor."""
+        super().__init__(coordinator)
+        self._device = device
+        self._port = port
+        self._attr_unique_id = f"{self._device['serial']}_port_{self._port['number']}"
+>       self._attr_name = format_entity_name(
+            self._device["name"],
+            f"Port {self._port['number']}",
+        )
+E       TypeError: format_entity_name() missing 1 required positional argument: 'entity_name'
+
+custom_components/meraki_ha/sensor/device/appliance_port.py:32: TypeError
+____________________ test_appliance_uplink_sensor_creation _____________________
+
+mock_coordinator = <MagicMock id='140531637623776'>
+
+    def test_appliance_uplink_sensor_creation(mock_coordinator):
+        """Test that appliance uplink sensors are created correctly."""
+        hass = MagicMock()
+        config_entry = MagicMock()
+        camera_service = MagicMock()
+
+        # Run the setup
+>       sensors = async_setup_sensors(hass, config_entry, mock_coordinator, camera_service)
+
+tests/sensor/device/test_appliance_uplink.py:62:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+custom_components/meraki_ha/sensor/setup_helpers.py:282: in async_setup_sensors
+    _setup_device_sensors(config_entry, coordinator, added_entities, camera_service)
+custom_components/meraki_ha/sensor/setup_helpers.py:55: in _setup_device_sensors
+    device_info = asdict(device)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+obj = {'model': 'MX64', 'name': 'Test Appliance', 'networkId': 'net1', 'product_type': 'appliance', ...}
+
+    def asdict(obj, *, dict_factory=dict):
+        """Return the fields of a dataclass instance as a new dictionary mapping
+        field names to field values.
+
+        Example usage::
+
+          @dataclass
+          class C:
+              x: int
+              y: int
+
+          c = C(1, 2)
+          assert asdict(c) == {'x': 1, 'y': 2}
+
+        If given, 'dict_factory' will be used instead of built-in dict.
+        The function applies recursively to field values that are
+        dataclass instances. This will also look into built-in containers:
+        tuples, lists, and dicts. Other objects are copied with 'copy.deepcopy()'.
+        """
+        if not _is_dataclass_instance(obj):
+>           raise TypeError("asdict() should be called on dataclass instances")
+E           TypeError: asdict() should be called on dataclass instances
+
+/home/jules/.pyenv/versions/3.12.12/lib/python3.12/dataclasses.py:1328: TypeError
+___________________________ test_person_count_sensor ___________________________
+
+mock_coordinator = <MagicMock id='140531636118080'>
+mock_camera_service = <AsyncMock id='140531636124752'>
+
+    @pytest.mark.asyncio
+    async def test_person_count_sensor(mock_coordinator, mock_camera_service):
+        """Test the person count sensor."""
+        # Arrange
+>       device = MOCK_DEVICE.copy()
+E       AttributeError: 'MerakiDevice' object has no attribute 'copy'
+
+tests/sensor/device/test_camera_analytics.py:32: AttributeError
+__________________________ test_vehicle_count_sensor ___________________________
+
+mock_coordinator = <MagicMock id='140531647831872'>
+mock_camera_service = <AsyncMock id='140531647832304'>
+
+    @pytest.mark.asyncio
+    async def test_vehicle_count_sensor(mock_coordinator, mock_camera_service):
+        """Test the vehicle count sensor."""
+        # Arrange
+>       device = MOCK_DEVICE.copy()
+E       AttributeError: 'MerakiDevice' object has no attribute 'copy'
+
+tests/sensor/device/test_camera_analytics.py:47: AttributeError
+____________________________ test_poe_usage_sensor _____________________________
+
+mock_device_coordinator = <MagicMock id='140531648010368'>
+
+    def test_poe_usage_sensor(mock_device_coordinator):
+        """Test the PoE usage sensor."""
+        device = mock_device_coordinator.data["devices"][0]
+>       sensor = MerakiPoeUsageSensor(mock_device_coordinator, device)
+
+tests/sensor/device/test_poe_usage.py:35:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <entity unknown.unknown=unknown>
+coordinator = <MagicMock id='140531648010368'>
+device = {'model': 'MS220-8P', 'name': 'Switch', 'ports_statuses': [{'portId': 1, 'powerUsageInWh': 252}, {'portId': 2, 'powerUsageInWh': 124.8}, {'portId': 3, 'powerUsageInWh': 0}], 'productType': 'switch', ...}
+
+    def __init__(
+        self,
+        coordinator: MerakiDataUpdateCoordinator,
+        device: dict[str, Any],
+    ) -> None:
+        """
+        Initialize the sensor.
+
+        Args:
+        ----
+            coordinator: The data update coordinator.
+            device: The device data.
+
+        """
+        super().__init__(coordinator)
+        self._device = device
+        self._attr_unique_id = f"{self._device['serial']}_poe_usage"
+>       self._attr_name = format_entity_name(self._device["name"], "PoE Usage")
+E       TypeError: format_entity_name() missing 1 required positional argument: 'entity_name'
+
+custom_components/meraki_ha/sensor/device/poe_usage.py:53: TypeError
+__________________________ test_vlan_sensor_creation ___________________________
+
+mock_coordinator = <MagicMock id='140531637961120'>
+
+    def test_vlan_sensor_creation(mock_coordinator):
+        """Test that VLAN sensors are created correctly."""
+        hass = MagicMock()
+        camera_service = MagicMock()
+
+        # Run the setup
+>       sensors = async_setup_sensors(
+            hass, mock_coordinator.config_entry, mock_coordinator, camera_service
+        )
+
+tests/sensor/network/test_vlan.py:61:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+custom_components/meraki_ha/sensor/setup_helpers.py:284: in async_setup_sensors
+    entities.extend(_setup_network_sensors(config_entry, coordinator, added_entities))
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+config_entry = <MagicMock name='mock.config_entry' id='140531637965056'>
+coordinator = <MagicMock id='140531637961120'>, added_entities = set()
+
+    def _setup_network_sensors(
+        config_entry: ConfigEntry,
+        coordinator: MerakiDataUpdateCoordinator,
+        added_entities: set[str],
+    ) -> list[Entity]:
+        """Set up network-specific sensors."""
+        entities: list[Entity] = []
+        networks = coordinator.data.get("networks", [])
+        for network_data in networks:
+>           network_id = network_data.id
+E           AttributeError: 'dict' object has no attribute 'id'
+
+custom_components/meraki_ha/sensor/setup_helpers.py:122: AttributeError
+______________________ test_ssid_connected_clients_sensor ______________________
+
+mock_data_coordinator = <MagicMock id='140531648578000'>
+
+    def test_ssid_connected_clients_sensor(mock_data_coordinator):
+        """Test the connected clients sensor for an SSID."""
+        network_id = "net1"
+        ssid_data = mock_data_coordinator.data["ssids"][0]  # My SSID 1
+        config_entry = mock_data_coordinator.config_entry
+        sensor = MerakiSsidConnectedClientsSensor(
+            mock_data_coordinator, network_id, ssid_data, config_entry
+        )
+        # Expects 2: the two online clients on "My SSID 1" and "net1"
+>       assert sensor.native_value == 2
+E       assert 0 == 2
+E        +  where 0 = <entity unknown.unknown=unknown>.native_value
+
+tests/sensor/ssid/test_ssid_connected_clients.py:91: AssertionError
+___________________ test_meraki_device_status_sensor_online ____________________
+
+hass = <HomeAssistant RUNNING>
+
+    async def test_meraki_device_status_sensor_online(
+        hass: HomeAssistant,
+    ) -> None:
+        """Test the Meraki device status sensor when the device is online."""
+        coordinator = MagicMock()
+        coordinator.data = {
+            "devices": [
+                {
+                    "serial": "Q234-ABCD-5678",
+                    "status": "online",
+                }
+            ],
+        }
+        device_data = {
+            "serial": "Q234-ABCD-5678",
+        }
+        config_entry = MagicMock()
+        config_entry.options = {}
+>       sensor = MerakiDeviceStatusSensor(coordinator, device_data, config_entry)
+
+tests/sensor/test_device_status.py:30:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+custom_components/meraki_ha/sensor/device/device_status.py:96: in __init__
+    self._update_sensor_data()
+custom_components/meraki_ha/sensor/device/device_status.py:123: in _update_sensor_data
+    current_device_data = self._get_current_device_data()
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <entity unknown.unknown=unknown>
+
+    def _get_current_device_data(self) -> MerakiDevice | None:
+        """Retrieve the latest data for this sensor's device from the coordinator."""
+        if self.coordinator.data and self.coordinator.data.get("devices"):
+            for dev_data in self.coordinator.data["devices"]:
+>               if dev_data.serial == self._device_serial:
+E               AttributeError: 'dict' object has no attribute 'serial'
+
+custom_components/meraki_ha/sensor/device/device_status.py:117: AttributeError
+___________________ test_meraki_device_status_sensor_offline ___________________
+
+hass = <HomeAssistant RUNNING>
+
+    async def test_meraki_device_status_sensor_offline(
+        hass: HomeAssistant,
+    ) -> None:
+        """Test the Meraki device status sensor when the device is offline."""
+        coordinator = MagicMock()
+        coordinator.data = {
+            "devices": [
+                {
+                    "serial": "Q234-ABCD-5678",
+                    "status": "offline",
+                }
+            ],
+        }
+        device_data = {
+            "serial": "Q234-ABCD-5678",
+        }
+        config_entry = MagicMock()
+        config_entry.options = {}
+>       sensor = MerakiDeviceStatusSensor(coordinator, device_data, config_entry)
+
+tests/sensor/test_device_status.py:53:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+custom_components/meraki_ha/sensor/device/device_status.py:96: in __init__
+    self._update_sensor_data()
+custom_components/meraki_ha/sensor/device/device_status.py:123: in _update_sensor_data
+    current_device_data = self._get_current_device_data()
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <entity unknown.unknown=unknown>
+
+    def _get_current_device_data(self) -> MerakiDevice | None:
+        """Retrieve the latest data for this sensor's device from the coordinator."""
+        if self.coordinator.data and self.coordinator.data.get("devices"):
+            for dev_data in self.coordinator.data["devices"]:
+>               if dev_data.serial == self._device_serial:
+E               AttributeError: 'dict' object has no attribute 'serial'
+
+custom_components/meraki_ha/sensor/device/device_status.py:117: AttributeError
+_________________________ test_network_clients_sensor __________________________
+
+hass = <HomeAssistant RUNNING>
+mock_network_control_service = <MagicMock id='140531637892784'>
+
+    async def test_network_clients_sensor(
+        hass: HomeAssistant,
+        mock_network_control_service,
+    ) -> None:
+        """Test the Meraki network clients sensor."""
+        coordinator = MagicMock()
+        coordinator.data = {}  # Data is no longer read from coordinator
+        config_entry = MagicMock()
+        network_data = {"id": "N_123", "name": "Test Network"}
+>       sensor = MerakiNetworkClientsSensor(
+            coordinator, config_entry, network_data, mock_network_control_service
+        )
+
+tests/sensor/test_network_clients.py:30:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+custom_components/meraki_ha/sensor/network/network_clients.py:36: in __init__
+    super().__init__(coordinator, config_entry, cast(MerakiNetwork, network_data))
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <entity unknown.unknown=unknown>
+coordinator = <MagicMock id='140531828169360'>
+config_entry = <MagicMock id='140531669526016'>
+network = {'id': 'N_123', 'name': 'Test Network'}
+
+    def __init__(
+        self,
+        coordinator: MerakiDataUpdateCoordinator,
+        config_entry: ConfigEntry,
+        network: MerakiNetwork,
+    ) -> None:
+        from dataclasses import asdict
+
+        """Initialize the network entity."""
+        super().__init__(coordinator=coordinator)
+        self._config_entry = config_entry
+        self._network = network
+>       self._network_id = network.id
+E       AttributeError: 'dict' object has no attribute 'id'
+
+custom_components/meraki_ha/core/entities/meraki_network_entity.py:29: AttributeError
+_________________ test_meraki_organization_ssid_clients_sensor _________________
+
+hass = <HomeAssistant RUNNING>
+
+    async def test_meraki_organization_ssid_clients_sensor(
+        hass: HomeAssistant,
+    ) -> None:
+        """Test the Meraki organization SSID clients sensor."""
+        coordinator = MagicMock()
+        coordinator.data = {
+            "clients_on_ssids": 2,
+        }
+>       sensor = MerakiOrganizationSSIDClientsSensor(coordinator, "org_id", "org_name")
+
+tests/sensor/test_org_clients.py:22:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <entity unknown.unknown=unknown>
+coordinator = <MagicMock id='140531669557968'>, org_id = 'org_id'
+org_name = 'org_name'
+
+    def __init__(
+        self,
+        coordinator: MerakiDataUpdateCoordinator,
+        org_id: str,
+        org_name: str,
+    ) -> None:
+        """
+        Initialize the sensor.
+
+        Args:
+        ----
+            coordinator: The data update coordinator.
+            org_id: The organization ID.
+            org_name: The organization name.
+
+        """
+        super().__init__(coordinator)
+        self._org_id = org_id
+        self._org_name = org_name
+
+>       self._attr_name = format_entity_name(org_name, "SSID Clients")
+E       TypeError: format_entity_name() missing 1 required positional argument: 'entity_name'
+
+custom_components/meraki_ha/sensor/org/org_clients.py:49: TypeError
+_______________ test_meraki_organization_wireless_clients_sensor _______________
+
+hass = <HomeAssistant RUNNING>
+
+    async def test_meraki_organization_wireless_clients_sensor(
+        hass: HomeAssistant,
+    ) -> None:
+        """Test the Meraki organization wireless clients sensor."""
+        coordinator = MagicMock()
+        coordinator.data = {
+            "clients_on_wireless": 3,
+        }
+>       sensor = MerakiOrganizationWirelessClientsSensor(coordinator, "org_id", "org_name")
+
+tests/sensor/test_org_clients.py:35:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <entity unknown.unknown=unknown>
+coordinator = <MagicMock id='140531637970384'>, org_id = 'org_id'
+org_name = 'org_name'
+
+    def __init__(
+        self,
+        coordinator: MerakiDataUpdateCoordinator,
+        org_id: str,
+        org_name: str,
+    ) -> None:
+        """
+        Initialize the sensor.
+
+        Args:
+        ----
+            coordinator: The data update coordinator.
+            org_id: The organization ID.
+            org_name: The organization name.
+
+        """
+        super().__init__(coordinator)
+        self._org_id = org_id
+        self._org_name = org_name
+
+>       self._attr_name = format_entity_name(org_name, "Wireless Clients")
+E       TypeError: format_entity_name() missing 1 required positional argument: 'entity_name'
+
+custom_components/meraki_ha/sensor/org/org_clients.py:112: TypeError
+______________ test_meraki_organization_appliance_clients_sensor _______________
+
+hass = <HomeAssistant RUNNING>
+
+    async def test_meraki_organization_appliance_clients_sensor(
+        hass: HomeAssistant,
+    ) -> None:
+        """Test the Meraki organization appliance clients sensor."""
+        coordinator = MagicMock()
+        coordinator.data = {
+            "clients_on_appliances": 4,
+        }
+>       sensor = MerakiOrganizationApplianceClientsSensor(coordinator, "org_id", "org_name")
+
+tests/sensor/test_org_clients.py:48:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <entity unknown.unknown=unknown>
+coordinator = <MagicMock id='140531637166608'>, org_id = 'org_id'
+org_name = 'org_name'
+
+    def __init__(
+        self,
+        coordinator: MerakiDataUpdateCoordinator,
+        org_id: str,
+        org_name: str,
+    ) -> None:
+        """
+        Initialize the sensor.
+
+        Args:
+        ----
+            coordinator: The data update coordinator.
+            org_id: The organization ID.
+            org_name: The organization name.
+
+        """
+        super().__init__(coordinator)
+        self._org_id = org_id
+        self._org_name = org_name
+
+>       self._attr_name = format_entity_name(org_name, "Appliance Clients")
+E       TypeError: format_entity_name() missing 1 required positional argument: 'entity_name'
+
+custom_components/meraki_ha/sensor/org/org_clients.py:174: TypeError
+_____________ test_meraki_organization_device_type_clients_sensor ______________
+
+hass = <HomeAssistant RUNNING>
+
+    async def test_meraki_organization_device_type_clients_sensor(
+        hass: HomeAssistant,
+    ) -> None:
+        """Test the Meraki organization device type clients sensor."""
+        coordinator = MagicMock()
+        coordinator.data = {
+            "clients": [
+                {"deviceType": "wireless"},
+                {"deviceType": "wireless"},
+                {"deviceType": "appliance"},
+            ]
+        }
+>       sensor = MerakiOrganizationDeviceTypeClientsSensor(
+            coordinator, MagicMock(), "wireless"
+        )
+
+tests/sensor/test_org_device_type_clients.py:24:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <entity unknown.unknown=unknown>
+coordinator = <MagicMock id='140531637164112'>
+config_entry = <MagicMock id='140531638148784'>, device_type = 'wireless'
+
+    def __init__(
+        self,
+        coordinator: MerakiDataUpdateCoordinator,
+        config_entry: ConfigEntry,
+        device_type: str,
+    ) -> None:
+        """Initialize the sensor."""
+        super().__init__(coordinator)
+        self._config_entry = config_entry
+        self._device_type = device_type
+        self._org_id = self.coordinator.api_client.organization_id
+        self._attr_unique_id = f"{self._org_id}_{self._device_type}_clients"
+>       self._attr_name = format_entity_name(self._device_type.capitalize(), "Clients")
+E       TypeError: format_entity_name() missing 1 required positional argument: 'entity_name'
+
+custom_components/meraki_ha/sensor/org/org_device_type_clients.py:36: TypeError
+________________________ test_async_setup_mt10_sensors _________________________
+
+mock_coordinator_with_mt_devices = <MagicMock id='140531637966208'>
+
+    def test_async_setup_mt10_sensors(
+        mock_coordinator_with_mt_devices: MagicMock,
+    ) -> None:
+        """Test the setup of sensors for an MT10 device."""
+        device_info = mock_coordinator_with_mt_devices.data["devices"][0]
+        entities = async_setup_mt_sensors(mock_coordinator_with_mt_devices, device_info)
+        for entity in entities:
+>           entity._handle_coordinator_update()
+
+tests/sensor/test_setup_mt_sensors.py:71:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+custom_components/meraki_ha/sensor/device/meraki_mt_base.py:103: in _handle_coordinator_update
+    self.async_write_ha_state()
+/home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages/homeassistant/helpers/entity.py:1020: in async_write_ha_state
+    self._async_verify_state_writable()
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <entity unknown.unknown=unknown>
+
+    @callback
+    def _async_verify_state_writable(self) -> None:
+        """Verify the entity is in a writable state."""
+        if self.hass is None:
+>           raise RuntimeError(f"Attribute hass is None for {self}")
+E           RuntimeError: Attribute hass is None for <entity unknown.unknown=unknown>
+
+/home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages/homeassistant/helpers/entity.py:984: RuntimeError
+________________________ test_async_setup_mt15_sensors _________________________
+
+mock_coordinator_with_mt_devices = <MagicMock id='140531637884240'>
+
+    def test_async_setup_mt15_sensors(
+        mock_coordinator_with_mt_devices: MagicMock,
+    ) -> None:
+        """Test the setup of sensors for an MT15 device."""
+        device_info = mock_coordinator_with_mt_devices.data["devices"][1]
+        entities = async_setup_mt_sensors(mock_coordinator_with_mt_devices, device_info)
+        for entity in entities:
+>           entity._handle_coordinator_update()
+
+tests/sensor/test_setup_mt_sensors.py:101:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+custom_components/meraki_ha/sensor/device/meraki_mt_base.py:103: in _handle_coordinator_update
+    self.async_write_ha_state()
+/home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages/homeassistant/helpers/entity.py:1020: in async_write_ha_state
+    self._async_verify_state_writable()
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <entity unknown.unknown=unknown>
+
+    @callback
+    def _async_verify_state_writable(self) -> None:
+        """Verify the entity is in a writable state."""
+        if self.hass is None:
+>           raise RuntimeError(f"Attribute hass is None for {self}")
+E           RuntimeError: Attribute hass is None for <entity unknown.unknown=unknown>
+
+/home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages/homeassistant/helpers/entity.py:984: RuntimeError
+________________________ test_async_setup_mt12_sensors _________________________
+
+mock_coordinator_with_mt_devices = <MagicMock id='140531637165936'>
+
+    def test_async_setup_mt12_sensors(
+        mock_coordinator_with_mt_devices: MagicMock,
+    ) -> None:
+        """Test the setup of sensors for an MT12 device."""
+        device_info = mock_coordinator_with_mt_devices.data["devices"][2]
+        entities = async_setup_mt_sensors(mock_coordinator_with_mt_devices, device_info)
+        for entity in entities:
+>           entity._handle_coordinator_update()
+
+tests/sensor/test_setup_mt_sensors.py:163:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+custom_components/meraki_ha/sensor/device/meraki_mt_base.py:103: in _handle_coordinator_update
+    self.async_write_ha_state()
+/home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages/homeassistant/helpers/entity.py:1020: in async_write_ha_state
+    self._async_verify_state_writable()
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <entity unknown.unknown=unknown>
+
+    @callback
+    def _async_verify_state_writable(self) -> None:
+        """Verify the entity is in a writable state."""
+        if self.hass is None:
+>           raise RuntimeError(f"Attribute hass is None for {self}")
+E           RuntimeError: Attribute hass is None for <entity unknown.unknown=unknown>
+
+/home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages/homeassistant/helpers/entity.py:984: RuntimeError
+________________________ test_async_setup_mt40_sensors _________________________
+
+mock_coordinator_with_mt_devices = <MagicMock id='140531648025408'>
+
+    def test_async_setup_mt40_sensors(
+        mock_coordinator_with_mt_devices: MagicMock,
+    ) -> None:
+        """Test the setup of sensors for an MT40 device."""
+        device_info = mock_coordinator_with_mt_devices.data["devices"][3]
+        entities = async_setup_mt_sensors(mock_coordinator_with_mt_devices, device_info)
+        for entity in entities:
+>           entity._handle_coordinator_update()
+
+tests/sensor/test_setup_mt_sensors.py:180:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+custom_components/meraki_ha/sensor/device/meraki_mt_base.py:103: in _handle_coordinator_update
+    self.async_write_ha_state()
+/home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages/homeassistant/helpers/entity.py:1020: in async_write_ha_state
+    self._async_verify_state_writable()
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <entity unknown.unknown=unknown>
+
+    @callback
+    def _async_verify_state_writable(self) -> None:
+        """Verify the entity is in a writable state."""
+        if self.hass is None:
+>           raise RuntimeError(f"Attribute hass is None for {self}")
+E           RuntimeError: Attribute hass is None for <entity unknown.unknown=unknown>
+
+/home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages/homeassistant/helpers/entity.py:984: RuntimeError
+______________________________ test_availability _______________________________
+
+mock_coordinator_with_mt_devices = <MagicMock id='140531638065136'>
+
+    def test_availability(mock_coordinator_with_mt_devices: MagicMock) -> None:
+        """Test sensor availability."""
+        device_info = mock_coordinator_with_mt_devices.data["devices"][0]  # MT10
+        entities = async_setup_mt_sensors(mock_coordinator_with_mt_devices, device_info)
+        temp_sensor = entities[0]
+>       temp_sensor._handle_coordinator_update()
+
+tests/sensor/test_setup_mt_sensors.py:216:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+custom_components/meraki_ha/sensor/device/meraki_mt_base.py:103: in _handle_coordinator_update
+    self.async_write_ha_state()
+/home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages/homeassistant/helpers/entity.py:1020: in async_write_ha_state
+    self._async_verify_state_writable()
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <entity unknown.unknown=unknown>
+
+    @callback
+    def _async_verify_state_writable(self) -> None:
+        """Verify the entity is in a writable state."""
+        if self.hass is None:
+>           raise RuntimeError(f"Attribute hass is None for {self}")
+E           RuntimeError: Attribute hass is None for <entity unknown.unknown=unknown>
+
+/home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages/homeassistant/helpers/entity.py:984: RuntimeError
+____________________________ test_mt40_switch_state ____________________________
+
+hass = <HomeAssistant RUNNING>
+mock_coordinator_with_mt40_data = <MagicMock id='140531638094544'>
+mock_config_entry = <MagicMock id='140531647825008'>
+mock_meraki_client = <MagicMock id='140531647824480'>
+
+    def test_mt40_switch_state(
+        hass: HomeAssistant,
+        mock_coordinator_with_mt40_data: MagicMock,
+        mock_config_entry: MagicMock,
+        mock_meraki_client: MagicMock,
+    ):
+        """Test the initial state and update of the MT40 power outlet switch."""
+        device_info = mock_coordinator_with_mt40_data.data["devices"][0]
+>       switch = MerakiMt40PowerOutlet(
+            mock_coordinator_with_mt40_data,
+            device_info,
+            mock_config_entry,
+            mock_meraki_client,
+        )
+
+tests/switch/test_mt40_power_outlet.py:47:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <entity unknown.unknown=unknown>
+coordinator = <MagicMock id='140531638094544'>
+device_info = {'model': 'MT40', 'name': 'MT40 Power Controller', 'productType': 'sensor', 'readings': [{'metric': 'downstream_power', 'value': True}], ...}
+config_entry = <MagicMock id='140531647825008'>
+meraki_client = <MagicMock id='140531647824480'>
+
+    def __init__(
+        self,
+        coordinator: MerakiDataUpdateCoordinator,
+        device_info: dict[str, Any],
+        config_entry: ConfigEntry,
+        meraki_client: MerakiAPIClient,
+    ) -> None:
+        """
+        Initialize the switch.
+
+        Args:
+        ----
+            coordinator: The data update coordinator.
+            device_info: The device information.
+            config_entry: The config entry.
+            meraki_client: The Meraki API client.
+
+        """
+        super().__init__(coordinator)
+        self._device_info = device_info
+        self._config_entry = config_entry
+        self._meraki_client = meraki_client
+>       self._attr_unique_id = f"{self._device_info.serial}-outlet"
+E       AttributeError: 'dict' object has no attribute 'serial'
+
+custom_components/meraki_ha/switch/mt40_power_outlet.py:50: AttributeError
+______________________________ test_mt40_turn_on _______________________________
+
+hass = <HomeAssistant RUNNING>
+mock_coordinator_with_mt40_data = <MagicMock id='140531637884240'>
+mock_config_entry = <MagicMock id='140531637206240'>
+mock_meraki_client = <MagicMock id='140531637199184'>
+
+    @pytest.mark.asyncio
+    async def test_mt40_turn_on(
+        hass: HomeAssistant,
+        mock_coordinator_with_mt40_data: MagicMock,
+        mock_config_entry: MagicMock,
+        mock_meraki_client: MagicMock,
+    ):
+        """Test turning the MT40 power outlet on."""
+        device_info = mock_coordinator_with_mt40_data.data["devices"][0]
+>       switch = MerakiMt40PowerOutlet(
+            mock_coordinator_with_mt40_data,
+            device_info,
+            mock_config_entry,
+            mock_meraki_client,
+        )
+
+tests/switch/test_mt40_power_outlet.py:75:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <entity unknown.unknown=unknown>
+coordinator = <MagicMock id='140531637884240'>
+device_info = {'model': 'MT40', 'name': 'MT40 Power Controller', 'productType': 'sensor', 'readings': [{'metric': 'downstream_power', 'value': True}], ...}
+config_entry = <MagicMock id='140531637206240'>
+meraki_client = <MagicMock id='140531637199184'>
+
+    def __init__(
+        self,
+        coordinator: MerakiDataUpdateCoordinator,
+        device_info: dict[str, Any],
+        config_entry: ConfigEntry,
+        meraki_client: MerakiAPIClient,
+    ) -> None:
+        """
+        Initialize the switch.
+
+        Args:
+        ----
+            coordinator: The data update coordinator.
+            device_info: The device information.
+            config_entry: The config entry.
+            meraki_client: The Meraki API client.
+
+        """
+        super().__init__(coordinator)
+        self._device_info = device_info
+        self._config_entry = config_entry
+        self._meraki_client = meraki_client
+>       self._attr_unique_id = f"{self._device_info.serial}-outlet"
+E       AttributeError: 'dict' object has no attribute 'serial'
+
+custom_components/meraki_ha/switch/mt40_power_outlet.py:50: AttributeError
+______________________________ test_mt40_turn_off ______________________________
+
+hass = <HomeAssistant RUNNING>
+mock_coordinator_with_mt40_data = <MagicMock id='140531638144800'>
+mock_config_entry = <MagicMock id='140531637424000'>
+mock_meraki_client = <MagicMock id='140531636115728'>
+
+    @pytest.mark.asyncio
+    async def test_mt40_turn_off(
+        hass: HomeAssistant,
+        mock_coordinator_with_mt40_data: MagicMock,
+        mock_config_entry: MagicMock,
+        mock_meraki_client: MagicMock,
+    ):
+        """Test turning the MT40 power outlet off."""
+        device_info = mock_coordinator_with_mt40_data.data["devices"][0]
+>       switch = MerakiMt40PowerOutlet(
+            mock_coordinator_with_mt40_data,
+            device_info,
+            mock_config_entry,
+            mock_meraki_client,
+        )
+
+tests/switch/test_mt40_power_outlet.py:104:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <entity unknown.unknown=unknown>
+coordinator = <MagicMock id='140531638144800'>
+device_info = {'model': 'MT40', 'name': 'MT40 Power Controller', 'productType': 'sensor', 'readings': [{'metric': 'downstream_power', 'value': True}], ...}
+config_entry = <MagicMock id='140531637424000'>
+meraki_client = <MagicMock id='140531636115728'>
+
+    def __init__(
+        self,
+        coordinator: MerakiDataUpdateCoordinator,
+        device_info: dict[str, Any],
+        config_entry: ConfigEntry,
+        meraki_client: MerakiAPIClient,
+    ) -> None:
+        """
+        Initialize the switch.
+
+        Args:
+        ----
+            coordinator: The data update coordinator.
+            device_info: The device information.
+            config_entry: The config entry.
+            meraki_client: The Meraki API client.
+
+        """
+        super().__init__(coordinator)
+        self._device_info = device_info
+        self._config_entry = config_entry
+        self._meraki_client = meraki_client
+>       self._attr_unique_id = f"{self._device_info.serial}-outlet"
+E       AttributeError: 'dict' object has no attribute 'serial'
+
+custom_components/meraki_ha/switch/mt40_power_outlet.py:50: AttributeError
+____________________________ test_mt40_availability ____________________________
+
+mock_coordinator_with_mt40_data = <MagicMock id='140531637551280'>
+mock_config_entry = <MagicMock id='140531637472144'>
+mock_meraki_client = <MagicMock id='140531637483376'>
+
+    def test_mt40_availability(
+        mock_coordinator_with_mt40_data: MagicMock,
+        mock_config_entry: MagicMock,
+        mock_meraki_client: MagicMock,
+    ):
+        """Test availability of the MT40 switch."""
+        device_info = mock_coordinator_with_mt40_data.data["devices"][0]
+>       switch = MerakiMt40PowerOutlet(
+            mock_coordinator_with_mt40_data,
+            device_info,
+            mock_config_entry,
+            mock_meraki_client,
+        )
+
+tests/switch/test_mt40_power_outlet.py:131:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <entity unknown.unknown=unknown>
+coordinator = <MagicMock id='140531637551280'>
+device_info = {'model': 'MT40', 'name': 'MT40 Power Controller', 'productType': 'sensor', 'readings': [{'metric': 'downstream_power', 'value': True}], ...}
+config_entry = <MagicMock id='140531637472144'>
+meraki_client = <MagicMock id='140531637483376'>
+
+    def __init__(
+        self,
+        coordinator: MerakiDataUpdateCoordinator,
+        device_info: dict[str, Any],
+        config_entry: ConfigEntry,
+        meraki_client: MerakiAPIClient,
+    ) -> None:
+        """
+        Initialize the switch.
+
+        Args:
+        ----
+            coordinator: The data update coordinator.
+            device_info: The device information.
+            config_entry: The config entry.
+            meraki_client: The Meraki API client.
+
+        """
+        super().__init__(coordinator)
+        self._device_info = device_info
+        self._config_entry = config_entry
+        self._meraki_client = meraki_client
+>       self._attr_unique_id = f"{self._device_info.serial}-outlet"
+E       AttributeError: 'dict' object has no attribute 'serial'
+
+custom_components/meraki_ha/switch/mt40_power_outlet.py:50: AttributeError
+__________________________________ test_form ___________________________________
+
+hass = <HomeAssistant RUNNING>
+
+    async def test_form(hass: HomeAssistant) -> None:
+        """Test we get the form."""
+        await setup.async_setup_component(hass, "persistent_notification", {})
+>       result = await hass.config_entries.flow.async_init(
+            DOMAIN, context={"source": config_entries.SOURCE_USER}
+        )
+
+tests/test_config_flow.py:19:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+/home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages/homeassistant/config_entries.py:1315: in async_init
+    flow, result = await self._async_init(flow_id, handler, context, data)
+/home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages/homeassistant/config_entries.py:1340: in _async_init
+    flow = await self.async_create_flow(handler, context=context, data=data)
+/home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages/homeassistant/config_entries.py:1536: in async_create_flow
+    handler = await _async_get_flow_handler(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+hass = <HomeAssistant RUNNING>, domain = 'meraki_ha'
+hass_config = {'_': 'Not empty or else some bad checks for hass config in discovery.py breaks'}
+
+    async def _async_get_flow_handler(
+        hass: HomeAssistant, domain: str, hass_config: ConfigType
+    ) -> type[ConfigFlow]:
+        """Get a flow handler for specified domain."""
+
+        # First check if there is a handler registered for the domain
+        if loader.is_component_module_loaded(hass, f"{domain}.config_flow") and (
+            handler := HANDLERS.get(domain)
+        ):
+            return handler
+
+        await _load_integration(hass, domain, hass_config)
+
+        if handler := HANDLERS.get(domain):
+            return handler
+
+>       raise data_entry_flow.UnknownHandler
+E       homeassistant.data_entry_flow.UnknownHandler
+
+/home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages/homeassistant/config_entries.py:3338: UnknownHandler
+----------------------------- Captured stderr call -----------------------------
+INFO:homeassistant.loader:Loaded meraki_ha from custom_components.meraki_ha
+WARNING:homeassistant.loader:We found a custom integration meraki_ha which has not been tested by Home Assistant. This component might cause stability problems, be sure to disable it if you experience issues with Home Assistant
+------------------------------ Captured log call -------------------------------
+INFO     homeassistant.loader:loader.py:774 Loaded meraki_ha from custom_components.meraki_ha
+WARNING  homeassistant.loader:loader.py:688 We found a custom integration meraki_ha which has not been tested by Home Assistant. This component might cause stability problems, be sure to disable it if you experience issues with Home Assistant
+____________________________ test_form_invalid_auth ____________________________
+
+hass = <HomeAssistant RUNNING>
+
+    async def test_form_invalid_auth(hass: HomeAssistant) -> None:
+        """Test we handle invalid auth."""
+>       result = await hass.config_entries.flow.async_init(
+            DOMAIN, context={"source": config_entries.SOURCE_USER}
+        )
+
+tests/test_config_flow.py:63:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+/home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages/homeassistant/config_entries.py:1315: in async_init
+    flow, result = await self._async_init(flow_id, handler, context, data)
+/home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages/homeassistant/config_entries.py:1340: in _async_init
+    flow = await self.async_create_flow(handler, context=context, data=data)
+/home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages/homeassistant/config_entries.py:1536: in async_create_flow
+    handler = await _async_get_flow_handler(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+hass = <HomeAssistant RUNNING>, domain = 'meraki_ha'
+hass_config = {'_': 'Not empty or else some bad checks for hass config in discovery.py breaks'}
+
+    async def _async_get_flow_handler(
+        hass: HomeAssistant, domain: str, hass_config: ConfigType
+    ) -> type[ConfigFlow]:
+        """Get a flow handler for specified domain."""
+
+        # First check if there is a handler registered for the domain
+        if loader.is_component_module_loaded(hass, f"{domain}.config_flow") and (
+            handler := HANDLERS.get(domain)
+        ):
+            return handler
+
+        await _load_integration(hass, domain, hass_config)
+
+        if handler := HANDLERS.get(domain):
+            return handler
+
+>       raise data_entry_flow.UnknownHandler
+E       homeassistant.data_entry_flow.UnknownHandler
+
+/home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages/homeassistant/config_entries.py:3338: UnknownHandler
+----------------------------- Captured stderr call -----------------------------
+INFO:homeassistant.loader:Loaded meraki_ha from custom_components.meraki_ha
+WARNING:homeassistant.loader:We found a custom integration meraki_ha which has not been tested by Home Assistant. This component might cause stability problems, be sure to disable it if you experience issues with Home Assistant
+------------------------------ Captured log call -------------------------------
+INFO     homeassistant.loader:loader.py:774 Loaded meraki_ha from custom_components.meraki_ha
+WARNING  homeassistant.loader:loader.py:688 We found a custom integration meraki_ha which has not been tested by Home Assistant. This component might cause stability problems, be sure to disable it if you experience issues with Home Assistant
+___________________________ test_form_cannot_connect ___________________________
+
+hass = <HomeAssistant RUNNING>
+
+    async def test_form_cannot_connect(hass: HomeAssistant) -> None:
+        """Test we handle cannot connect error."""
+>       result = await hass.config_entries.flow.async_init(
+            DOMAIN, context={"source": config_entries.SOURCE_USER}
+        )
+
+tests/test_config_flow.py:85:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+/home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages/homeassistant/config_entries.py:1315: in async_init
+    flow, result = await self._async_init(flow_id, handler, context, data)
+/home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages/homeassistant/config_entries.py:1340: in _async_init
+    flow = await self.async_create_flow(handler, context=context, data=data)
+/home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages/homeassistant/config_entries.py:1536: in async_create_flow
+    handler = await _async_get_flow_handler(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+hass = <HomeAssistant RUNNING>, domain = 'meraki_ha'
+hass_config = {'_': 'Not empty or else some bad checks for hass config in discovery.py breaks'}
+
+    async def _async_get_flow_handler(
+        hass: HomeAssistant, domain: str, hass_config: ConfigType
+    ) -> type[ConfigFlow]:
+        """Get a flow handler for specified domain."""
+
+        # First check if there is a handler registered for the domain
+        if loader.is_component_module_loaded(hass, f"{domain}.config_flow") and (
+            handler := HANDLERS.get(domain)
+        ):
+            return handler
+
+        await _load_integration(hass, domain, hass_config)
+
+        if handler := HANDLERS.get(domain):
+            return handler
+
+>       raise data_entry_flow.UnknownHandler
+E       homeassistant.data_entry_flow.UnknownHandler
+
+/home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages/homeassistant/config_entries.py:3338: UnknownHandler
+----------------------------- Captured stderr call -----------------------------
+INFO:homeassistant.loader:Loaded meraki_ha from custom_components.meraki_ha
+WARNING:homeassistant.loader:We found a custom integration meraki_ha which has not been tested by Home Assistant. This component might cause stability problems, be sure to disable it if you experience issues with Home Assistant
+------------------------------ Captured log call -------------------------------
+INFO     homeassistant.loader:loader.py:774 Loaded meraki_ha from custom_components.meraki_ha
+WARNING  homeassistant.loader:loader.py:688 We found a custom integration meraki_ha which has not been tested by Home Assistant. This component might cause stability problems, be sure to disable it if you experience issues with Home Assistant
+____________________________ test_org_device_naming ____________________________
+
+mock_coordinator = <MagicMock id='140531637562464'>
+
+    def test_org_device_naming(mock_coordinator: MagicMock) -> None:
+        """
+        Test name formatting for an organization-level device.
+
+        Args:
+        ----
+            mock_coordinator: The mocked coordinator.
+
+        """
+        org_id = "org1"
+        org_name = "Test Organization"
+
+>       sensor = MerakiOrganizationSSIDClientsSensor(mock_coordinator, org_id, org_name)
+
+tests/test_device_naming.py:52:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <entity unknown.unknown=unknown>
+coordinator = <MagicMock id='140531637562464'>, org_id = 'org1'
+org_name = 'Test Organization'
+
+    def __init__(
+        self,
+        coordinator: MerakiDataUpdateCoordinator,
+        org_id: str,
+        org_name: str,
+    ) -> None:
+        """
+        Initialize the sensor.
+
+        Args:
+        ----
+            coordinator: The data update coordinator.
+            org_id: The organization ID.
+            org_name: The organization name.
+
+        """
+        super().__init__(coordinator)
+        self._org_id = org_id
+        self._org_name = org_name
+
+>       self._attr_name = format_entity_name(org_name, "SSID Clients")
+E       TypeError: format_entity_name() missing 1 required positional argument: 'entity_name'
+
+custom_components/meraki_ha/sensor/org/org_clients.py:49: TypeError
+__________________________ test_network_device_naming __________________________
+
+mock_coordinator = <MagicMock id='140531647828512'>
+
+    def test_network_device_naming(mock_coordinator: MagicMock) -> None:
+        """
+        Test name formatting for a network-level device.
+
+        Args:
+        ----
+            mock_coordinator: The mocked coordinator.
+
+        """
+        network_id = "net1"
+        network_name = "Test Network"
+
+        network_data = {
+            "id": network_id,
+            "name": network_name,
+            "productTypes": ["wireless"],
+        }
+
+>       sensor = MerakiNetworkClientsSensor(
+            mock_coordinator,
+            mock_coordinator.config_entry,
+            network_data,
+            MagicMock(),
+        )
+
+tests/test_device_naming.py:77:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+custom_components/meraki_ha/sensor/network/network_clients.py:36: in __init__
+    super().__init__(coordinator, config_entry, cast(MerakiNetwork, network_data))
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <entity unknown.unknown=unknown>
+coordinator = <MagicMock id='140531647828512'>
+config_entry = <MagicMock name='mock.config_entry' id='140531669556336'>
+network = {'id': 'net1', 'name': 'Test Network', 'productTypes': ['wireless']}
+
+    def __init__(
+        self,
+        coordinator: MerakiDataUpdateCoordinator,
+        config_entry: ConfigEntry,
+        network: MerakiNetwork,
+    ) -> None:
+        from dataclasses import asdict
+
+        """Initialize the network entity."""
+        super().__init__(coordinator=coordinator)
+        self._config_entry = config_entry
+        self._network = network
+>       self._network_id = network.id
+E       AttributeError: 'dict' object has no attribute 'id'
+
+custom_components/meraki_ha/core/entities/meraki_network_entity.py:29: AttributeError
+=========================== short test summary info ============================
+FAILED tests/binary_sensor/device/test_camera_motion.py::test_motion_sensor_on
+FAILED tests/binary_sensor/device/test_camera_motion.py::test_motion_sensor_off
+FAILED tests/binary_sensor/device/test_mt20_open_close.py::test_mt20_open_sensor
+FAILED tests/binary_sensor/device/test_mt20_open_close.py::test_mt20_closed_sensor
+FAILED tests/binary_sensor/device/test_mt20_open_close.py::test_mt20_availability
+FAILED tests/button/device/test_mt15_refresh_data.py::test_mt15_button_creation
+FAILED tests/button/device/test_mt15_refresh_data.py::test_mt15_button_press
+FAILED tests/camera/test_camera.py::test_is_streaming_logic[video_settings0-True]
+FAILED tests/camera/test_camera.py::test_is_streaming_logic[video_settings1-False]
+FAILED tests/camera/test_camera.py::test_is_streaming_logic[video_settings2-False]
+FAILED tests/camera/test_camera.py::test_is_streaming_logic[video_settings3-False]
+FAILED tests/camera/test_camera.py::test_is_streaming_logic[video_settings4-False]
+FAILED tests/camera/test_camera.py::test_entity_disabled_if_no_url - TypeErro...
+FAILED tests/core/api/endpoints/test_appliance.py::test_get_network_vlans - T...
+FAILED tests/core/api/endpoints/test_appliance.py::test_update_network_vlan
+FAILED tests/core/api/endpoints/test_appliance.py::test_get_l3_firewall_rules
+FAILED tests/core/api/endpoints/test_appliance.py::test_update_l3_firewall_rules
+FAILED tests/core/api/endpoints/test_appliance.py::test_get_traffic_shaping
+FAILED tests/core/api/endpoints/test_appliance.py::test_update_traffic_shaping
+FAILED tests/core/api/endpoints/test_appliance.py::test_get_vpn_status - Type...
+FAILED tests/core/api/endpoints/test_appliance.py::test_update_vpn_status - T...
+FAILED tests/core/api/test_client.py::test_get_all_data_orchestration - Attri...
+FAILED tests/core/api/test_client.py::test_get_all_data_merges_availability
+FAILED tests/core/api/test_client.py::test_get_all_data_handles_informational_errors
+FAILED tests/discovery/handlers/test_ms.py::test_discover_entities - TypeErro...
+FAILED tests/discovery/handlers/test_mv.py::test_mv_handler_all_features - At...
+FAILED tests/discovery/handlers/test_mv.py::test_mv_handler_some_features - A...
+FAILED tests/discovery/handlers/test_mv.py::test_mv_handler_no_extra_features
+FAILED tests/discovery/handlers/test_network.py::test_discover_entities_creates_network_sensors
+FAILED tests/helpers/test_entity_helpers.py::test_format_entity_name - TypeEr...
+FAILED tests/hubs/test_organization.py::test_organization_id_property - Attri...
+FAILED tests/sensor/device/test_appliance_port.py::test_appliance_port_sensor
+FAILED tests/sensor/device/test_appliance_uplink.py::test_appliance_uplink_sensor_creation
+FAILED tests/sensor/device/test_camera_analytics.py::test_person_count_sensor
+FAILED tests/sensor/device/test_camera_analytics.py::test_vehicle_count_sensor
+FAILED tests/sensor/device/test_poe_usage.py::test_poe_usage_sensor - TypeErr...
+FAILED tests/sensor/network/test_vlan.py::test_vlan_sensor_creation - Attribu...
+FAILED tests/sensor/ssid/test_ssid_connected_clients.py::test_ssid_connected_clients_sensor
+FAILED tests/sensor/test_device_status.py::test_meraki_device_status_sensor_online
+FAILED tests/sensor/test_device_status.py::test_meraki_device_status_sensor_offline
+FAILED tests/sensor/test_network_clients.py::test_network_clients_sensor - At...
+FAILED tests/sensor/test_org_clients.py::test_meraki_organization_ssid_clients_sensor
+FAILED tests/sensor/test_org_clients.py::test_meraki_organization_wireless_clients_sensor
+FAILED tests/sensor/test_org_clients.py::test_meraki_organization_appliance_clients_sensor
+FAILED tests/sensor/test_org_device_type_clients.py::test_meraki_organization_device_type_clients_sensor
+FAILED tests/sensor/test_setup_mt_sensors.py::test_async_setup_mt10_sensors
+FAILED tests/sensor/test_setup_mt_sensors.py::test_async_setup_mt15_sensors
+FAILED tests/sensor/test_setup_mt_sensors.py::test_async_setup_mt12_sensors
+FAILED tests/sensor/test_setup_mt_sensors.py::test_async_setup_mt40_sensors
+FAILED tests/sensor/test_setup_mt_sensors.py::test_availability - RuntimeErro...
+FAILED tests/switch/test_mt40_power_outlet.py::test_mt40_switch_state - Attri...
+FAILED tests/switch/test_mt40_power_outlet.py::test_mt40_turn_on - AttributeE...
+FAILED tests/switch/test_mt40_power_outlet.py::test_mt40_turn_off - Attribute...
+FAILED tests/switch/test_mt40_power_outlet.py::test_mt40_availability - Attri...
+FAILED tests/test_config_flow.py::test_form - homeassistant.data_entry_flow.U...
+FAILED tests/test_config_flow.py::test_form_invalid_auth - homeassistant.data...
+FAILED tests/test_config_flow.py::test_form_cannot_connect - homeassistant.da...
+FAILED tests/test_device_naming.py::test_org_device_naming - TypeError: forma...
+FAILED tests/test_device_naming.py::test_network_device_naming - AttributeErr...
+ERROR tests/camera/test_camera.py::test_camera_stream_source - TypeError: 'Me...
+ERROR tests/camera/test_camera.py::test_camera_turn_on - TypeError: 'MerakiDe...
+ERROR tests/camera/test_camera.py::test_camera_turn_off - TypeError: 'MerakiD...
+ERROR tests/camera/test_camera.py::test_camera_image - TypeError: 'MerakiDevi...
+ERROR tests/discovery/test_service.py::test_discovery_service_init - Attribut...
+ERROR tests/discovery/test_service.py::test_discover_entities_delegates_to_handler
+ERROR tests/hubs/test_network.py::test_network_hub_init - AttributeError: 'Me...
+ERROR tests/hubs/test_network.py::test_network_info_property - AttributeError...
+ERROR tests/hubs/test_network.py::test_devices_property - AttributeError: 'Me...
+ERROR tests/hubs/test_network.py::test_ssids_property - AttributeError: 'Mera...
+ERROR tests/hubs/test_network.py::test_async_update_data - AttributeError: 'M...
+ERROR tests/test_camera_control.py::test_camera_turn_on_optimistic_update - T...
+ERROR tests/test_camera_control.py::test_camera_turn_off_optimistic_update - ...
+============= 59 failed, 70 passed, 7 skipped, 13 errors in 14.38s =============

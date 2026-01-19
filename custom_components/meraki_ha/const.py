@@ -27,12 +27,6 @@ CONF_MERAKI_ORG_ID: Final = "meraki_org_id"
 CONF_SCAN_INTERVAL: Final = "scan_interval"
 """Configuration key for the scan interval in seconds."""
 
-CONF_ENABLE_WEB_UI: Final = "enable_web_ui"
-"""Configuration key for enabling the web UI."""
-
-CONF_WEB_UI_PORT: Final = "web_ui_port"
-"""Configuration key for the web UI port."""
-
 DATA_CLIENT: Final = "client"
 """Key for storing the Meraki API client in Home Assistant's data."""
 
@@ -42,12 +36,6 @@ DATA_COORDINATOR: Final = "coordinator"
 DATA_COORDINATORS: Final = "coordinators"
 """Key for storing the dictionary of all coordinators."""
 
-CONF_IGNORED_NETWORKS: Final = "ignored_networks"
-"""Configuration key for a list of network names to ignore."""
-
-CONF_HIDE_UNCONFIGURED_SSIDS: Final = "hide_unconfigured_ssids"
-"""Configuration key for hiding unconfigured SSIDs."""
-
 CONF_RTSP_STREAM_ENABLED: Final = "rtsp_stream_enabled"
 """Configuration key for enabling RTSP stream on a camera."""
 
@@ -55,24 +43,19 @@ CONF_ENABLE_DEVICE_TRACKER: Final = "enable_device_tracker"
 """Configuration key for enabling device tracker."""
 
 
+CONF_IGNORED_NETWORKS: Final = "ignored_networks"
+"""Configuration key for a list of network names to ignore."""
+
 CONF_ENABLE_VLAN_MANAGEMENT: Final = "enable_vlan_management"
 """Configuration key for enabling vlan management."""
 
 
-CONF_ENABLED_NETWORKS: Final = "enabled_networks"
-"""Configuration key for a list of network IDs to enable."""
 
-DEFAULT_ENABLED_NETWORKS: Final[list[str]] = []
+DEFAULT_IGNORED_NETWORKS: Final[list[str]] = []
 """Default value for the ignored networks list."""
 
 DEFAULT_ENABLE_VLAN_MANAGEMENT: Final = False
 """Default value for enabling vlan management."""
-
-DEFAULT_IGNORED_NETWORKS: Final = ""
-"""Default value for the ignored networks list."""
-
-DEFAULT_HIDE_UNCONFIGURED_SSIDS: Final = False
-"""Default value for hiding unconfigured SSIDs."""
 
 DATA_SSID_DEVICES_COORDINATOR: Final = "ssid_devices"
 """Key for the SSID devices coordinator."""
@@ -81,12 +64,6 @@ MERAKI_API_CLIENT: Final = "meraki_api_client"
 """Key for storing the MerakiAPIClient instance in hass.data."""
 
 DEFAULT_SCAN_INTERVAL: Final = 300
-"""Default scan interval in seconds for the Meraki API data."""
-
-DEFAULT_ENABLE_WEB_UI: Final = False
-"""Default value for enabling the web UI."""
-
-DEFAULT_WEB_UI_PORT: Final = 8080
 """Default scan interval in seconds for the Meraki API data."""
 
 # Platform types
@@ -108,6 +85,8 @@ PLATFORM_CAMERA: Final = "camera"
 """Represents the camera platform."""
 PLATFORM_NUMBER: Final = "number"
 """Represents the number platform."""
+PLATFORM_SELECT: Final = "select"
+"""Represents the select platform."""
 
 PLATFORMS: Final = [
     PLATFORM_SENSOR,
@@ -117,6 +96,7 @@ PLATFORMS: Final = [
     PLATFORM_TEXT,
     PLATFORM_CAMERA,
     PLATFORM_NUMBER,
+    PLATFORM_SELECT,
 ]
 """List of platforms supported by the integration."""
 

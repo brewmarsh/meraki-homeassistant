@@ -1,0 +1,5 @@
+commit 8efcfca15f167ed57ec53c230f35b26369a59f5a
+Author: google-labs-jules[bot] <161369871+google-labs-jules[bot]@users.noreply.github.com>
+Date:   Mon Jan 19 19:33:44 2026 +0000
+
+    fix(test): Update requirements_test.txt for HA 2025 compatibility

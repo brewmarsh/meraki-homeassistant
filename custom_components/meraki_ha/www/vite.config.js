@@ -1,21 +1,19 @@
 import { defineConfig } from 'vite';
-import react from '@vitejs/plugin-react';
-import path from 'path';
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  plugins: [react()],
+  define: {
+    'process.env.NODE_ENV': JSON.stringify('production'),
+  },
   build: {
     lib: {
-      entry: path.resolve(__dirname, 'src/entry.tsx'),
+      entry: 'src/meraki-panel.ts',
       name: 'MerakiPanel',
-      fileName: () => 'meraki-panel.js',
+      fileName: (format) => `meraki-panel.js`,
       formats: ['es'],
     },
     outDir: '.',
-    emptyOutDir: false,
+    sourcemap: false,
+    minify: true,
   },
-  define: {
-    'process.env.NODE_ENV': '"production"',
-  }
 });

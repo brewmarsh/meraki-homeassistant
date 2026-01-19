@@ -17,6 +17,18 @@ psutil-home-assistant==0.0.1
 pillow>=11.0.0
 fnv-hash-fast
 flake8==7.0.0
-webrtc-models==0.3.0
-PyTurboJPEG
-numpy>=1.26.0
+
+# Dependencies from beta (HEAD)
+respx
+requests-mock
+freezegun
+pytest-freezer
+pytest-timeout
+pytest-github-actions-annotate-failures
+syrupy
+pytest-socket
+pytest-picked
+pytest-sugar
+pytest-unordered
+pytest-xdist
+codecov
