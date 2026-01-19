@@ -26,6 +26,8 @@ async def main():
             browser = await p.chromium.launch()
             page = await browser.new_page()
 
+            page.on("console", lambda msg: print(f"Browser Console: {msg.text}"))
+
             await page.goto(f"http://localhost:{PORT}")
 
             # Mock the hass object
@@ -77,10 +79,8 @@ async def main():
                 document.body.appendChild(el);
             """)
 
-            page.on("console", lambda msg: print(f"Browser Console: {msg.text}"))
-
             print("Waiting for selector...")
-            await page.wait_for_selector('text="Meraki Integration Control"')
+            await page.wait_for_selector('text="Meraki HA Web UI"')
             print("Selector found!")
 
             screenshot_path = "verification_screenshot.png"

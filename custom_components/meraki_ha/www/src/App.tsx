@@ -1,0 +1,262 @@
+import React, { useState, useEffect, useRef } from 'react';
+import NetworkView from './components/NetworkView';
+import DeviceView from './components/DeviceView';
+
+// Define the types for our data
+interface MerakiData {
+  [key: string]: any;
+}
+
+interface AppProps {
+  hass?: any;
+  config_entry_id?: string;
+}
+
+const App: React.FC<AppProps> = ({ hass, config_entry_id }) => {
+  const [data, setData] = useState<MerakiData | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+  const [activeView, setActiveView] = useState({
+    view: 'dashboard',
+    deviceId: undefined,
+  });
+  const socketRef = useRef<WebSocket | null>(null);
+
+  // If we are in standalone mode, config_entry_id might come from window
+  const finalConfigEntryId =
+    config_entry_id || (window as any).CONFIG_ENTRY_ID;
+
+  useEffect(() => {
+    // 1. Mock Data for Localhost (No Backend)
+    if (window.location.hostname === 'localhost' && !hass) {
+      setData({
+        networks: [
+          { id: 'N_12345', name: 'Main Office', is_enabled: true, ssids: [] },
+        ],
+        devices: [
+          {
+            name: 'Living Room AP',
+            model: 'MR33',
+            serial: 'Q2JD-XXXX-XXXX',
+            status: 'online',
+            entity_id: 'switch.living_room_ap',
+            networkId: 'N_12345',
+          },
+          {
+            name: 'Office Switch',
+            model: 'MS220-8P',
+            serial: 'Q2HD-XXXX-XXXX',
+            status: 'online',
+            entity_id: 'switch.office_switch',
+            networkId: 'N_12345',
+          },
+          {
+            name: 'Front Door Camera',
+            model: 'MV12',
+            serial: 'Q2FD-XXXX-XXXX',
+            status: 'online',
+            entity_id: 'camera.front_door_camera',
+            networkId: 'N_12345',
+          },
+        ],
+        ssids: [],
+      });
+      setLoading(false);
+      return;
+    }
+
+    // 2. HA Integrated Mode (Props provided)
+    if (hass) {
+      if (!hass.connection) {
+        setError('Home Assistant connection object not found.');
+        setLoading(false);
+        return;
+      }
+
+      (async () => {
+        try {
+          const resultData = await hass.connection.sendMessagePromise({
+            type: 'meraki_ha/get_config',
+            config_entry_id: finalConfigEntryId,
+          });
+
+          const { networks, enabled_networks } = resultData;
+          if (networks && enabled_networks) {
+            const processedNetworks = networks.map((network: any) => ({
+              ...network,
+              is_enabled: enabled_networks.includes(network.id),
+            }));
+            resultData.networks = processedNetworks;
+          }
+          setData(resultData);
+        } catch (err: any) {
+          console.error('Error fetching Meraki data:', err);
+          setError(
+            `Failed to fetch Meraki data: ${err.message || 'Unknown error'}`
+          );
+        } finally {
+          setLoading(false);
+        }
+      })();
+      return;
+    }
+
+    // 3. Standalone Mode with real HA (WebSocket)
+    let accessToken = localStorage.getItem('meraki_ha_llat');
+    if (!accessToken) {
+      accessToken = prompt(
+        'Please enter your Home Assistant Long-Lived Access Token:'
+      );
+      if (accessToken) {
+        localStorage.setItem('meraki_ha_llat', accessToken);
+      } else {
+        setError('No access token provided.');
+        setLoading(false);
+        return;
+      }
+    }
+
+    const haUrl = (window as any).HA_URL.replace(/^http/, 'ws');
+    const wsUrl = `${haUrl}/api/websocket`;
+    socketRef.current = new WebSocket(wsUrl);
+    const socket = socketRef.current;
+    let messageId = 1;
+
+    socket.onopen = () => {
+      console.log('WebSocket connection established');
+      socket.send(
+        JSON.stringify({
+          type: 'auth',
+          access_token: accessToken,
+        })
+      );
+    };
+
+    socket.onmessage = (event) => {
+      const message = JSON.parse(event.data);
+
+      if (message.type === 'auth_ok') {
+        console.log('Authenticated successfully');
+        socket.send(
+          JSON.stringify({
+            id: messageId,
+            type: 'meraki_ha/get_config',
+            config_entry_id: finalConfigEntryId,
+          })
+        );
+      } else if (message.type === 'auth_invalid') {
+        console.error('Authentication failed:', message.message);
+        setError('Authentication failed. Please check your token.');
+        setLoading(false);
+        localStorage.removeItem('meraki_ha_llat');
+      } else if (message.id === messageId) {
+        if (message.type === 'result') {
+          if (message.success) {
+            const resultData = message.result;
+            const { networks, enabled_networks } = resultData;
+
+            if (networks && enabled_networks) {
+              const processedNetworks = networks.map((network: any) => ({
+                ...network,
+                is_enabled: enabled_networks.includes(network.id),
+              }));
+              resultData.networks = processedNetworks;
+            }
+            setData(resultData);
+          } else {
+            console.error('Failed to fetch Meraki data:', message.error);
+            setError(`Failed to fetch Meraki data: ${message.error.message}`);
+          }
+          setLoading(false);
+        }
+      }
+    };
+
+    socket.onerror = (err) => {
+      console.error('WebSocket error:', err);
+      setError('WebSocket connection error. See console for details.');
+      setLoading(false);
+    };
+
+    socket.onclose = () => {
+      console.log('WebSocket connection closed');
+    };
+
+    return () => {
+      if (socket && socket.readyState === 1) {
+        socket.close();
+      }
+    };
+  }, [hass, finalConfigEntryId]);
+
+  if (loading) {
+    return <div className="p-4">Loading...</div>;
+  }
+
+  if (error) {
+    return <div className="p-4 text-red-500">Error: {error}</div>;
+  }
+
+  const handleToggle = async (networkId: string, enabled: boolean) => {
+    if (!data) return;
+
+    const updatedNetworks = data.networks.map((network: any) =>
+      network.id === networkId ? { ...network, is_enabled: enabled } : network
+    );
+
+    const updatedData = { ...data, networks: updatedNetworks };
+    setData(updatedData);
+
+    const enabledNetworkIds = updatedNetworks
+      .filter((network: any) => network.is_enabled)
+      .map((network: any) => network.id);
+
+    if (hass) {
+      try {
+        await hass.connection.sendMessagePromise({
+          type: 'meraki_ha/update_enabled_networks',
+          config_entry_id: finalConfigEntryId,
+          enabled_networks: enabledNetworkIds,
+        });
+      } catch (err) {
+        console.error('Error updating enabled networks:', err);
+        // Revert on error?
+      }
+    } else {
+      const socket = socketRef.current;
+      if (socket && socket.readyState === 1) {
+        socket.send(
+          JSON.stringify({
+            id: Date.now(),
+            type: 'meraki_ha/update_enabled_networks',
+            config_entry_id: finalConfigEntryId,
+            enabled_networks: enabledNetworkIds,
+          })
+        );
+      } else {
+        console.error('WebSocket is not connected.');
+      }
+    }
+  };
+
+  return (
+    <div className="p-4">
+      <h1 className="text-2xl font-bold mb-4">Meraki HA Web UI</h1>
+      {activeView.view === 'dashboard' ? (
+        <NetworkView
+          data={data}
+          onToggle={handleToggle}
+          setActiveView={setActiveView}
+        />
+      ) : (
+        <DeviceView
+          activeView={activeView}
+          setActiveView={setActiveView}
+          data={data}
+        />
+      )}
+    </div>
+  );
+};
+
+export default App;

@@ -42,4 +42,13 @@ pillow>=11.0.0
 fnv-hash-fast
 flake8==7.0.0
 urllib3
-PyTurboJPEG
+
+# Dependencies from chore/fix-verify-ui-bandit-2655417526345349871
+meraki==1.40.1
+ruff==0.1.6
+pip-audit==2.7.2
+bandit==1.7.8
+playwright==1.39.0
+PyTurboJPEG==1.7.2
+orjson>=3.10.7
+webrtc-models==0.3.0

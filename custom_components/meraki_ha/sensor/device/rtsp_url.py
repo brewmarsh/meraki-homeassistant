@@ -7,12 +7,13 @@ from typing import Any
 
 from homeassistant.components.sensor import SensorEntity
 from homeassistant.config_entries import ConfigEntry
+from homeassistant.const import EntityCategory
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from ...const import DOMAIN
 from ...coordinator import MerakiDataUpdateCoordinator
-from ...core.utils.naming_utils import format_device_name, format_entity_name
+from ...core.utils.naming_utils import format_device_name
 from ...core.utils.network_utils import construct_rtsp_url
 
 _LOGGER = logging.getLogger(__name__)
@@ -26,6 +27,8 @@ class MerakiRtspUrlSensor(CoordinatorEntity, SensorEntity):
     ensures that the state is always in sync with the latest data from the
     Meraki API.
     """
+
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
 
     def __init__(
         self,
@@ -43,7 +46,8 @@ class MerakiRtspUrlSensor(CoordinatorEntity, SensorEntity):
             else device_data["serial"]
         )
         self._attr_unique_id = f"{serial}-rtsp-url"
-        self._attr_name = f"[Camera] {format_device_name(self._device_data, self._config_entry.options)} RTSP URL"
+        device_name = format_device_name(self._device_data, self._config_entry.options)
+        self._attr_name = f"[Camera] {device_name} RTSP URL"
         self._attr_icon = "mdi:cctv"
 
         # Set availability based on model
