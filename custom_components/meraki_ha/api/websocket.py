@@ -1,6 +1,5 @@
 """WebSocket API for Meraki HA."""
 
-# Ensure this file is tracked by git
 from __future__ import annotations
 
 import voluptuous as vol
@@ -14,6 +13,7 @@ from ..const import DOMAIN
 @callback
 def async_setup_websocket_api(hass: HomeAssistant) -> None:
     """Set up the WebSocket API."""
+    # Register the command to subscribe to Meraki data
     websocket_api.async_register_command(hass, ws_subscribe_meraki_data)
 
 
@@ -44,7 +44,7 @@ def ws_subscribe_meraki_data(
     def async_send_update() -> None:
         """Send update to client."""
         connection.send_message(
-            websocket_api.event_message(msg["id"], {"data": coordinator.data})
+            websocket_api.event_message(msg["id"], coordinator.data)
         )
 
     # Send initial data

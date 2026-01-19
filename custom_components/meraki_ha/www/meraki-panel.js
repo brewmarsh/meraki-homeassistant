@@ -80,14 +80,25 @@ class MerakiPanel extends HTMLElement {
 
   _updateContent(data) {
     const content = this.shadowRoot.getElementById('content');
+    content.innerHTML = ''; // Clear existing content
+
+    const header = document.createElement('h1');
+    header.textContent = 'Meraki Dashboard';
+    content.appendChild(header);
+
     if (!data) {
-      content.innerHTML = `
-        <h1>Meraki Dashboard</h1>
-        <div class="card error">
-          <h2>Error</h2>
-          <p>Received no data from the Meraki integration.</p>
-        </div>
-      `;
+      const card = document.createElement('div');
+      card.className = 'card error';
+
+      const h2 = document.createElement('h2');
+      h2.textContent = 'Error';
+      card.appendChild(h2);
+
+      const p = document.createElement('p');
+      p.textContent = 'Received no data from the Meraki integration.';
+      card.appendChild(p);
+
+      content.appendChild(card);
       return;
     }
 
@@ -96,46 +107,68 @@ class MerakiPanel extends HTMLElement {
     const devices = data.devices || [];
     const clients = data.clients || [];
 
-    let html = `
-      <h1>Meraki Dashboard</h1>
-      <div class="card">
-        <h2>Organization: ${orgName}</h2>
-      </div>
-    `;
+    // Organization Card
+    const orgCard = document.createElement('div');
+    orgCard.className = 'card';
+    const orgH2 = document.createElement('h2');
+    orgH2.textContent = `Organization: ${orgName}`;
+    orgCard.appendChild(orgH2);
+    content.appendChild(orgCard);
 
+    // Networks & Devices
     if (networks.length > 0) {
-      html += '<div class="card">';
-      html += '<h2>Networks & Devices</h2>';
+      const netCard = document.createElement('div');
+      netCard.className = 'card';
+
+      const netH2 = document.createElement('h2');
+      netH2.textContent = 'Networks & Devices';
+      netCard.appendChild(netH2);
+
       networks.forEach((network) => {
-        html += `<h3>${network.name} (ID: ${network.id})</h3>`;
+        const netH3 = document.createElement('h3');
+        netH3.textContent = `${network.name} (ID: ${network.id})`;
+        netCard.appendChild(netH3);
+
         const networkDevices = devices.filter(
           (d) => d.networkId === network.id
         );
+
         if (networkDevices.length > 0) {
-          html += '<ul>';
+          const ul = document.createElement('ul');
           networkDevices.forEach((device) => {
-            html += `<li>${device.name || 'Unnamed Device'} (${device.productType} - ${device.serial})</li>`;
+            const li = document.createElement('li');
+            li.textContent = `${device.name || 'Unnamed Device'} (${device.productType} - ${device.serial})`;
+            ul.appendChild(li);
           });
-          html += '</ul>';
+          netCard.appendChild(ul);
         } else {
-          html += '<p>No devices in this network.</p>';
+          const p = document.createElement('p');
+          p.textContent = 'No devices in this network.';
+          netCard.appendChild(p);
         }
       });
-      html += '</div>';
+      content.appendChild(netCard);
     }
 
+    // Clients
     if (clients.length > 0) {
-      html += '<div class="card">';
-      html += '<h2>Clients</h2>';
-      html += '<ul>';
-      clients.forEach((client) => {
-        html += `<li>${client.description || 'Unknown Client'} (${client.ip})</li>`;
-      });
-      html += '</ul>';
-      html += '</div>';
-    }
+      const clientCard = document.createElement('div');
+      clientCard.className = 'card';
 
-    content.innerHTML = html;
+      const clientH2 = document.createElement('h2');
+      clientH2.textContent = 'Clients';
+      clientCard.appendChild(clientH2);
+
+      const ul = document.createElement('ul');
+      clients.forEach((client) => {
+        const li = document.createElement('li');
+        li.textContent = `${client.description || 'Unknown Client'} (${client.ip})`;
+        ul.appendChild(li);
+      });
+      clientCard.appendChild(ul);
+
+      content.appendChild(clientCard);
+    }
   }
 }
 
