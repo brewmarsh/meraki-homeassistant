@@ -10,5 +10,15 @@
         "charliermarsh.ruff"
       ]
     }
+  },
+  "features": {
+    "ghcr.io/rocker-org/devcontainer-features/apt-packages:1": {
+      "packages": "gcc,python3-dev,musl-dev"
+    }
+  },
+  "features": {
+    "ghcr.io/rocker-org/devcontainer-features/apt-packages:1": {
+      "packages": "gcc,python3-dev,musl-dev"
+    }
   }
 }
