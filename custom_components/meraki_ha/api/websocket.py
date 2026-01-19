@@ -8,6 +8,7 @@ from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 
 from ..const import DOMAIN
+from ..helpers.serialization import to_serializable
 
 
 @callback
@@ -42,12 +43,14 @@ def ws_subscribe_meraki_data(
     @callback
     def async_send_update() -> None:
         """Send update to client."""
+        data = to_serializable(coordinator.data)
         connection.send_message(
-            websocket_api.event_message(msg["id"], {"data": coordinator.data})
+            websocket_api.event_message(msg["id"], {"data": data})
         )
 
     # Send initial data
-    connection.send_result(msg["id"], coordinator.data)
+    data = to_serializable(coordinator.data)
+    connection.send_result(msg["id"], data)
 
     # Register for updates
     cancel_subscription = coordinator.async_add_listener(async_send_update)
