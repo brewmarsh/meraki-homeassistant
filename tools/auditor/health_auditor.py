@@ -12,9 +12,9 @@ import aiohttp
 # Constants
 DOMAIN = "meraki_ha"
 HA_URL = os.getenv("HA_URL", "http://localhost:8123")
-HA_TOKEN = os.getenv("HA_TOKEN")
-GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
-GITHUB_REPOSITORY = os.getenv("GITHUB_REPOSITORY")
+HA_TOKEN = os.getenv("HA_TOKEN", "")
+GITHUB_TOKEN = os.getenv("GITHUB_TOKEN", "")
+GITHUB_REPOSITORY = os.getenv("GITHUB_REPOSITORY", "")
 ISSUE_LABEL = "jules"
 VERSION_FILE = "custom_components/meraki_ha/manifest.json"
 
@@ -38,7 +38,9 @@ async def get_unhealthy_entities(
     unhealthy_entities = []
 
     try:
-        async with session.get(url, headers=headers, timeout=30) as response:
+        async with session.get(
+            url, headers=headers, timeout=aiohttp.ClientTimeout(total=30)
+        ) as response:
             if response.status == 200:
                 entities = await response.json()
                 for entity in entities:
