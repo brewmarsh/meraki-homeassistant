@@ -17,7 +17,7 @@ from ..sensor_registry import (
     COMMON_SENSORS_COORD_DEV_CONF,
     get_sensors_for_device_type,
 )
-from ..types import MerakiVlan
+from ..types import MerakiDevice, MerakiVlan
 from .client_tracker import ClientTrackerDeviceSensor, MerakiClientSensor
 from .device.appliance_port import MerakiAppliancePortSensor
 from .device.appliance_uplink import MerakiApplianceUplinkSensor
@@ -51,60 +51,60 @@ def _setup_device_sensors(
     entities: list[Entity] = []
     devices = coordinator.data.get("devices", [])
     for device in devices:
-        device_info = asdict(device)
-        serial = device_info.get("serial")
+        serial = device.serial
         if not serial:
             _LOGGER.warning("Skipping device with missing serial.")
             continue
 
-        device_info["name"] = device_info.get("name") or f"Meraki Device {serial}"
+        if not device.name:
+            device.name = f"Meraki Device {serial}"
 
-        # Common sensors with (coordinator, device_info, config_entry)
+        # Common sensors with (coordinator, device, config_entry)
         for sensor_class in COMMON_SENSORS_COORD_DEV_CONF:
             unique_id = f"{serial}_{sensor_class.__name__}"
             if unique_id not in added_entities:
-                entities.append(sensor_class(coordinator, device_info, config_entry))  # type: ignore[call-arg]
+                entities.append(sensor_class(coordinator, device, config_entry))  # type: ignore[call-arg]
                 added_entities.add(unique_id)
 
-        product_type = device_info.get("productType")
+        product_type = device.product_type
         if product_type and product_type.startswith("camera"):
             unique_id = f"{serial}_rtsp_url"
             if unique_id not in added_entities:
                 entities.append(
-                    MerakiRtspUrlSensor(coordinator, device_info, config_entry)  # type: ignore[call-arg]
+                    MerakiRtspUrlSensor(coordinator, device, config_entry)  # type: ignore[call-arg]
                 )
                 added_entities.add(unique_id)
 
         if product_type:
-            # Sensors with (coordinator, device_info, config_entry)
+            # Sensors with (coordinator, device, config_entry)
             for sensor_class in get_sensors_for_device_type(product_type, True):
                 unique_id = f"{serial}_{sensor_class.__name__}"
                 if unique_id not in added_entities:
                     entities.append(
-                        sensor_class(coordinator, device_info, config_entry)  # type: ignore[call-arg]
+                        sensor_class(coordinator, device, config_entry)  # type: ignore[call-arg]
                     )
                     added_entities.add(unique_id)
 
-            # Sensors with (coordinator, device_info)
+            # Sensors with (coordinator, device)
             for sensor_class in get_sensors_for_device_type(product_type, False):
                 unique_id = f"{serial}_{sensor_class.__name__}"
                 if unique_id not in added_entities:
-                    entities.append(sensor_class(coordinator, device_info))  # type: ignore[call-arg]
+                    entities.append(sensor_class(coordinator, device))  # type: ignore[call-arg]
                     added_entities.add(unique_id)
 
         # Appliance port sensors
         if product_type == "appliance":
-            for port in device_info.get("ports", []):
+            for port in getattr(device, "ports", []):
                 unique_id = f"{serial}_port_{port['number']}"
                 if unique_id not in added_entities:
                     entities.append(
-                        MerakiAppliancePortSensor(coordinator, device_info, port)  # type: ignore[call-arg]
+                        MerakiAppliancePortSensor(coordinator, device, port)  # type: ignore[call-arg]
                     )
                     added_entities.add(unique_id)
 
         # MT sensor setup
         if product_type == "sensor":
-            entities.extend(async_setup_mt_sensors(coordinator, device_info))
+            entities.extend(async_setup_mt_sensors(coordinator, device))
 
     return entities
 
@@ -218,11 +218,10 @@ def _setup_uplink_sensors(
         device = coordinator.get_device(serial)
         if not device:
             continue
-        device_info = asdict(device)
 
         # Fallback for devices without a name
-        if not device_info.get("name"):
-            device_info["name"] = f"Meraki Device {serial}"
+        if not device.name:
+            device.name = f"Meraki Device {serial}"
 
         for uplink in uplink_status.get("uplinks", []):
             interface = uplink.get("interface")
@@ -233,7 +232,7 @@ def _setup_uplink_sensors(
             if unique_id not in added_entities:
                 entities.append(
                     MerakiApplianceUplinkSensor(
-                        coordinator, device_info, config_entry, uplink
+                        coordinator, device, config_entry, uplink
                     )
                 )
                 added_entities.add(unique_id)

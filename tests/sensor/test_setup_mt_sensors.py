@@ -20,6 +20,7 @@ def mock_coordinator_with_mt_devices(mock_coordinator: MagicMock) -> MagicMock:
                 "readings": [
                     {"metric": "temperature", "temperature": {"celsius": 25.5}},
                     {"metric": "humidity", "humidity": {"relativePercentage": 60.0}},
+                    {"metric": "battery", "battery": {"percentage": 100}},
                 ],
             },
             {
@@ -34,6 +35,7 @@ def mock_coordinator_with_mt_devices(mock_coordinator: MagicMock) -> MagicMock:
                     {"metric": "tvoc", "tvoc": {"concentration": 150}},
                     {"metric": "pm25", "pm25": {"concentration": 10.5}},
                     {"metric": "noise", "noise": {"ambient": {"level": 35.2}}},
+                    {"metric": "battery", "battery": {"percentage": 100}},
                 ],
             },
             {
@@ -43,6 +45,7 @@ def mock_coordinator_with_mt_devices(mock_coordinator: MagicMock) -> MagicMock:
                 "productType": "sensor",
                 "readings": [
                     {"metric": "water", "water": {"present": False}},
+                    {"metric": "battery", "battery": {"percentage": 100}},
                 ],
             },
             {
