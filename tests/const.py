@@ -100,8 +100,8 @@ MOCK_L7_FIREWALL_RULES = {
 }
 
 MOCK_ALL_DATA = {
-    "networks": [asdict(MOCK_NETWORK)],
-    "devices": [asdict(MOCK_DEVICE), asdict(MOCK_MX_DEVICE), asdict(MOCK_GX_DEVICE)],
+    "networks": [MOCK_NETWORK],
+    "devices": [MOCK_DEVICE, MOCK_MX_DEVICE, MOCK_GX_DEVICE],
     "ssids": [MOCK_SSID],
     "clients": [],
     "l7_firewall_rules": MOCK_L7_FIREWALL_RULES,
