@@ -23,6 +23,11 @@ class MerakiDevice:
     status: str | None = None
     product_type: str | None = None
     tags: list[str] = field(default_factory=list)
+    address: str | None = None
+    notes: str | None = None
+    url: str | None = None
+    firmware: str | None = None
+    firmware_upgrades: dict[str, Any] | None = None
     readings: list[dict[str, Any]] = field(default_factory=list)
     video_settings: dict[str, Any] | None = None
     rtsp_url: str | None = None
@@ -50,6 +55,11 @@ class MerakiDevice:
             status=data.get("status"),
             product_type=data.get("productType"),
             tags=data.get("tags", []),
+            address=data.get("address"),
+            notes=data.get("notes"),
+            url=data.get("url"),
+            firmware=data.get("firmware"),
+            firmware_upgrades=data.get("firmwareUpgrades"),
         )
 
 
