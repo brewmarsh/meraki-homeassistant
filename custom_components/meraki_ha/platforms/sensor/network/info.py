@@ -40,20 +40,38 @@ class MerakiNetworkInfoSensor(MerakiNetworkEntity):
     @property
     def native_value(self) -> str | None:
         """Return the network name."""
-        return self.network_data.get("name") if self.network_data else None
+        if not self.network_data:
+            return None
+        if isinstance(self.network_data, dict):
+             return self.network_data.get("name")
+        return getattr(self.network_data, "name", None)
 
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
         """Return the state attributes."""
         if not self.network_data:
             return {}
+
+        if isinstance(self.network_data, dict):
+             return {
+                "hostname": self.network_data.get("name"),
+                "notes": self.network_data.get("notes"),
+                "network_id": self.network_data.get("id"),
+                "organization_id": self.network_data.get("organizationId"),
+                "product_types": self.network_data.get("productTypes"),
+                "tags": self.network_data.get("tags", []),
+                "time_zone": self.network_data.get("timeZone"),
+                "url": self.network_data.get("url"),
+            }
+
         return {
-            "hostname": self.network_data.get("name"),
-            "notes": self.network_data.get("notes"),
-            "network_id": self.network_data.get("id"),
-            "organization_id": self.network_data.get("organizationId"),
-            "product_types": self.network_data.get("productTypes"),
-            "tags": self.network_data.get("tags", []),
-            "time_zone": self.network_data.get("timeZone"),
-            "url": self.network_data.get("url"),
+            "hostname": getattr(self.network_data, "name", None),
+            "notes": getattr(self.network_data, "notes", None),
+            "network_id": getattr(self.network_data, "id", None),
+            "organization_id": getattr(self.network_data, "organization_id", None),
+            "product_types": getattr(self.network_data, "product_types", []),
+            "tags": getattr(self.network_data, "tags", []),
+            "time_zone": getattr(self.network_data, "time_zone", None),
+            # url is not in MerakiNetwork dataclass
+            "url": getattr(self.network_data, "url", None),
         }

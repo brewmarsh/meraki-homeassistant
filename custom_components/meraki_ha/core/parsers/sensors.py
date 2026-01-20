@@ -41,10 +41,7 @@ def parse_sensor_data(
     }
 
     for device in devices:
-        if not isinstance(device, dict) or "serial" not in device:
-            continue
-
-        device_serial = device["serial"]
+        device_serial = device.serial
         device_readings = readings_by_serial.get(device_serial, [])
 
         if battery_readings_for_device := battery_readings_by_serial.get(device_serial):
@@ -54,4 +51,4 @@ def parse_sensor_data(
                     device_readings.append(reading)
 
         if device_readings:
-            device["readings"] = device_readings
+            device.readings = device_readings
