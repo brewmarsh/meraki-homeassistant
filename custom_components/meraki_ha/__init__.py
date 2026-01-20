@@ -8,7 +8,6 @@ from homeassistant import config_entries
 from homeassistant.components.http import StaticPathConfig
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
-from homeassistant.components.http import StaticPathConfig
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers.typing import ConfigType
 
@@ -53,15 +52,16 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     hass.data.setdefault(DOMAIN, {})
 
     # Register the static path for the custom panel
-    await hass.http.async_register_static_paths(
-        [
-            StaticPathConfig(
-                f"/local/{DOMAIN}",
-                hass.config.path(f"custom_components/{DOMAIN}/www"),
-                cache_headers=False,
-            )
-        ]
-    )
+    if hass.http:
+        await hass.http.async_register_static_paths(
+            [
+                StaticPathConfig(
+                    f"/local/{DOMAIN}",
+                    hass.config.path(f"custom_components/{DOMAIN}/www"),
+                    cache_headers=False,
+                )
+            ]
+        )
 
     return True
 

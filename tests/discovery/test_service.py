@@ -1,5 +1,6 @@
 """Tests for the DeviceDiscoveryService."""
 
+from dataclasses import replace
 from unittest.mock import ANY, AsyncMock, MagicMock, patch
 
 import pytest
@@ -11,14 +12,9 @@ from tests.const import MOCK_DEVICE
 @pytest.fixture
 def mock_coordinator_with_devices(mock_coordinator: MagicMock) -> MagicMock:
     """Fixture for a mocked MerakiDataUpdateCoordinator with various devices."""
-    wireless_device = MOCK_DEVICE.copy()
-    wireless_device["model"] = "MR36"
-    camera_device = MOCK_DEVICE.copy()
-    camera_device["serial"] = "camera_serial"
-    camera_device["model"] = "MV12"
-    unsupported_device = MOCK_DEVICE.copy()
-    unsupported_device["serial"] = "unsupported_serial"
-    unsupported_device["model"] = "unsupported"
+    wireless_device = replace(MOCK_DEVICE, model="MR36")
+    camera_device = replace(MOCK_DEVICE, serial="camera_serial", model="MV12")
+    unsupported_device = replace(MOCK_DEVICE, serial="unsupported_serial", model="unsupported")
     mock_coordinator.data = {
         "devices": [wireless_device, camera_device, unsupported_device],
         "networks": [],
@@ -126,6 +122,5 @@ async def test_discover_entities_delegates_to_handler(
             mock_config_entry,
             mock_camera_service,
             mock_control_service,
-            ANY,  # meraki_client
         )
         assert "No handler found for model 'unsupported'" in caplog.text
