@@ -57,9 +57,9 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
         await hass.http.async_register_static_paths(
             [
                 StaticPathConfig(
-                    f"/local/{DOMAIN}",
+                    "/meraki_ha_static",
                     hass.config.path(f"custom_components/{DOMAIN}/www"),
-                    cache_headers=False,
+                    cache_headers=True,
                 )
             ]
         )
