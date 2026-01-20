@@ -10,9 +10,8 @@ from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from ...const import DOMAIN
-from ...core.utils.naming_utils import format_device_name
-from ...helpers.entity_helpers import format_entity_name
-from ...meraki_data_coordinator import MerakiDataCoordinator
+from ...coordinator import MerakiDataUpdateCoordinator
+from ...core.utils.naming_utils import format_device_name, format_entity_name
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -24,7 +23,7 @@ class MerakiAppliancePortSensor(CoordinatorEntity, SensorEntity):
 
     def __init__(
         self,
-        coordinator: MerakiDataCoordinator,
+        coordinator: MerakiDataUpdateCoordinator,
         device: dict[str, Any],
         port: dict[str, Any],
     ) -> None:

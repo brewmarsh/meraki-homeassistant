@@ -1,0 +1,10 @@
+[detached HEAD 3353cc1] chore: fix test dependencies and verify_ui
+ 9 files changed, 302 insertions(+), 6 deletions(-)
+ create mode 100644 check_output.txt
+ create mode 100644 conflicts.txt
+ create mode 100644 rebase_check.txt
+ create mode 100644 rebase_continue.log
+ create mode 100644 rebase_status.txt
+ create mode 100644 status.txt
+ create mode 100644 status_final.txt
+Successfully rebased and updated refs/heads/jules-4237262277582534803-2e35ca8f.

@@ -1,0 +1,16 @@
+interactive rebase in progress; onto ea5b46a
+Last command done (1 command done):
+   pick b668b1c # chore: fix test dependencies and verify_ui
+No commands remaining.
+You are currently rebasing branch 'jules-4237262277582534803-2e35ca8f' on 'ea5b46a'.
+  (all conflicts fixed: run "git rebase --continue")
+
+Changes to be committed:
+  (use "git restore --staged <file>..." to unstage)
+	new file:   conflicts.txt
+	modified:   requirements_test.txt
+	modified:   verify_ui.py
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	status.txt
