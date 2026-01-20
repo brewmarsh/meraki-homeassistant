@@ -27,7 +27,6 @@ class MerakiDevice:
     address: str | None = None
     notes: str | None = None
     url: str | None = None
-    firmware: str | None = None
     firmware_upgrades: dict[str, Any] | None = None
     readings: list[dict[str, Any]] = field(default_factory=list)
     video_settings: dict[str, Any] | None = None
