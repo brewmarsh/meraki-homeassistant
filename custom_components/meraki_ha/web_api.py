@@ -30,14 +30,13 @@ def async_setup_api(hass: HomeAssistant) -> None:
     """
     websocket_api.async_register_command(
         hass,
-        "meraki_ha/get_config",
-        handle_get_config,
+        "meraki_ha/subscribe_meraki_data",
+        handle_subscribe_meraki_data,
         Schema(
             {
-                Required("type"): All(str, "meraki_ha/get_config"),
+                Required("type"): "meraki_ha/subscribe_meraki_data",
                 Required("config_entry_id"): str,
-            },
-            extra=ALLOW_EXTRA,
+            }
         ),
     )
     websocket_api.async_register_command(
@@ -94,22 +93,12 @@ async def handle_get_version(
     connection.send_result(msg["id"], {"version": version})
 
 
-@websocket_api.async_response
-async def handle_get_config(
+def handle_subscribe_meraki_data(
     hass: HomeAssistant,
     connection: websocket_api.ActiveConnection,
     msg: dict[str, Any],
 ) -> None:
-    """
-    Handle get_config command.
-
-    Args:
-    ----
-        hass: The Home Assistant instance.
-        connection: The WebSocket connection.
-        msg: The WebSocket message.
-
-    """
+    """Handle subscribe meraki data command."""
     config_entry_id = msg["config_entry_id"]
     if config_entry_id not in hass.data[DOMAIN]:
         connection.send_error(msg["id"], "not_found", "Config entry not found")
@@ -118,7 +107,19 @@ async def handle_get_config(
     coordinator: MerakiDataUpdateCoordinator = hass.data[DOMAIN][config_entry_id][
         "coordinator"
     ]
-    connection.send_result(msg["id"], coordinator.data)
+
+    @websocket_api.async_response
+    async def forward_data(data):
+        """Forward data to the client."""
+        connection.send_message(websocket_api.event_message(msg["id"], data))
+
+    connection.subscriptions[msg["id"]] = coordinator.async_add_listener(
+        forward_data,
+        # Immediately send the current data to the new subscriber
+        run_immediately=True,
+    )
+
+    connection.send_message(websocket_api.result_message(msg["id"]))
 
 
 @websocket_api.async_response

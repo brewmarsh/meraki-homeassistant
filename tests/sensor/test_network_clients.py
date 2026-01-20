@@ -19,8 +19,11 @@ async def test_network_clients_sensor(
     coordinator = MagicMock()
     coordinator.data = {}  # Data is no longer read from coordinator
     config_entry = MagicMock()
+    network_control_service = MagicMock()
+    network_control_service.get_network_client_count.return_value = 0
+
     sensor = MerakiNetworkClientsSensor(
-        coordinator, config_entry, MOCK_NETWORK, MagicMock()
+        coordinator, config_entry, MOCK_NETWORK, network_control_service
     )
-    sensor._update_sensor_data()
+    # sensor._update_sensor_data() # Removed as it doesn't exist and isn't needed
     assert sensor.native_value == 0

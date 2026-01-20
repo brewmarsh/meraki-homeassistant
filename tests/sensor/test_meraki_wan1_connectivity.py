@@ -22,5 +22,6 @@ async def test_meraki_wan1_connectivity_sensor(
     config_entry = MagicMock()
     config_entry.options = {}
     sensor = MerakiWAN1ConnectivitySensor(coordinator, online_device, config_entry)
-    sensor._update_sensor_data()
-    assert sensor.native_value == "1.2.3.4"
+    sensor._update_state()
+    assert sensor.native_value == "Connected"
+    assert sensor.extra_state_attributes["wan1_ip_address"] == "1.2.3.4"

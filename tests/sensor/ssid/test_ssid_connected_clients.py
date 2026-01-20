@@ -94,6 +94,9 @@ def test_ssid_connected_clients_sensor(mock_data_coordinator):
     sensor = MerakiSsidConnectedClientsSensor(
         mock_data_coordinator, network_id, ssid_data, config_entry
     )
+    sensor.hass = MagicMock()
+    sensor.entity_id = "sensor.test"
+    sensor.async_write_ha_state = MagicMock()
     sensor._handle_coordinator_update()
     # Expects 2: the two online clients on "My SSID 1" and "net1"
     assert sensor.native_value == 2

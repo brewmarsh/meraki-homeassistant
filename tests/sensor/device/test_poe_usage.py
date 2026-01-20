@@ -21,7 +21,7 @@ def mock_device_coordinator():
                     "name": "Switch",
                     "model": "MS220-8P",
                     "productType": "switch",
-                    "ports_statuses": [
+                    "portsStatuses": [
                         {"portId": 1, "powerUsageInWh": 252},
                         {"portId": 2, "powerUsageInWh": 124.8},
                         {"portId": 3, "powerUsageInWh": 0},
