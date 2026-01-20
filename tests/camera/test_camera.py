@@ -220,13 +220,13 @@ async def test_camera_image(
         )
 
 
-def test_entity_disabled_if_no_url(
+def test_entity_enabled_if_rtsp_enabled_but_no_url(
     mock_coordinator: MagicMock,
     mock_config_entry: MagicMock,
     mock_camera_service: AsyncMock,
 ) -> None:
     """
-    Test that the camera entity is disabled if no stream URL is available.
+    Test that the camera entity is enabled if RTSP is enabled, even if no stream URL.
 
     Args:
     ----
@@ -258,5 +258,46 @@ def test_entity_disabled_if_no_url(
     )
 
     # Assert
-    assert not camera.entity_registry_enabled_default
+    assert camera.entity_registry_enabled_default
     assert camera.extra_state_attributes["stream_status"] is not None
+
+
+def test_entity_disabled_if_no_url_and_rtsp_disabled(
+    mock_coordinator: MagicMock,
+    mock_config_entry: MagicMock,
+    mock_camera_service: AsyncMock,
+) -> None:
+    """
+    Test that the camera entity is disabled if no stream URL and RTSP is disabled.
+
+    Args:
+    ----
+        mock_coordinator: The mocked coordinator.
+        mock_config_entry: The mocked config entry.
+        mock_camera_service: The mocked camera service.
+
+    """
+    # Arrange
+    # Create a mock device with no way to determine a stream URL
+    mock_device_no_url = dataclasses.replace(
+        MOCK_CAMERA_DEVICE,
+        video_settings={
+            "rtspServerEnabled": False,
+            "rtspUrl": None,
+        },
+        lan_ip=None,
+        rtsp_url=None,
+    )
+
+    mock_coordinator.get_device.return_value = mock_device_no_url
+
+    # Act
+    camera = MerakiCamera(
+        mock_coordinator,
+        mock_config_entry,
+        mock_device_no_url,
+        mock_camera_service,
+    )
+
+    # Assert
+    assert not camera.entity_registry_enabled_default
