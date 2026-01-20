@@ -8,6 +8,7 @@ from homeassistant import config_entries
 from homeassistant.components.http import StaticPathConfig
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
+from homeassistant.components.http import StaticPathConfig
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers.typing import ConfigType
 
