@@ -21,8 +21,12 @@ from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from ...const import DOMAIN
+from ...coordinator import MerakiDataUpdateCoordinator
 from ...core.utils.naming_utils import format_device_name
+<<<<<<< HEAD
+=======
 from ...meraki_data_coordinator import MerakiDataCoordinator
+>>>>>>> 651bc8a (Refactor MerakiDevice to Dataclass)
 from ...types import MerakiDevice
 
 _LOGGER = logging.getLogger(__name__)
@@ -51,7 +55,7 @@ class MerakiDeviceStatusSensor(CoordinatorEntity, SensorEntity):
 
     def __init__(
         self,
-        coordinator: MerakiDataCoordinator,
+        coordinator: MerakiDataUpdateCoordinator,
         device_data: dict[str, Any],  # Initial device_data snapshot
         config_entry: ConfigEntry,
     ) -> None:
@@ -107,12 +111,22 @@ class MerakiDeviceStatusSensor(CoordinatorEntity, SensorEntity):
             "dormant": "mdi:access-point-network-off",
         }
         if isinstance(self.native_value, str):
-            return status_icon_map.get(self.native_value, "mdi:help-network-outline")
+            return status_icon_map.get(
+                self.native_value.lower(), "mdi:help-network-outline"
+            )
         return "mdi:help-network-outline"
 
     def _get_current_device_data(self) -> MerakiDevice | None:
         """Retrieve the latest data for this sensor's device from the coordinator."""
+<<<<<<< HEAD
+        if self.coordinator.data and self.coordinator.data.get("devices"):
+            for dev_data in self.coordinator.data["devices"]:
+                if dev_data.serial == self._device_serial:
+                    return dev_data
+        return None
+=======
         return self.coordinator.get_device(self._device_serial)
+>>>>>>> 651bc8a (Refactor MerakiDevice to Dataclass)
 
     def _update_sensor_data(self) -> None:
         """Update sensor state and attributes from coordinator data."""
@@ -124,7 +138,11 @@ class MerakiDeviceStatusSensor(CoordinatorEntity, SensorEntity):
             return
 
         # Status is the primary value of this sensor
+<<<<<<< HEAD
+        device_status: str | None = current_device_data.status
+=======
         device_status: str | None = getattr(current_device_data, "status", None)
+>>>>>>> 651bc8a (Refactor MerakiDevice to Dataclass)
         if isinstance(device_status, str):
             self._attr_native_value = device_status.lower()
         else:
@@ -132,6 +150,19 @@ class MerakiDeviceStatusSensor(CoordinatorEntity, SensorEntity):
 
         # Populate attributes from the latest device data
         self._attr_extra_state_attributes = {
+<<<<<<< HEAD
+            "model": current_device_data.model,
+            "serial_number": current_device_data.serial,
+            "firmware_version": getattr(current_device_data, "firmware", None),
+            "product_type": current_device_data.product_type,
+            "mac_address": current_device_data.mac,
+            "lan_ip": current_device_data.lan_ip,
+            "public_ip": current_device_data.public_ip,
+            "wan1_ip": current_device_data.wan1_ip,
+            "wan2_ip": current_device_data.wan2_ip,
+            "tags": getattr(current_device_data, "tags", []),
+            "network_id": current_device_data.network_id,
+=======
             "model": getattr(current_device_data, "model", None),
             "serial_number": getattr(
                 current_device_data, "serial", None
@@ -145,6 +176,7 @@ class MerakiDeviceStatusSensor(CoordinatorEntity, SensorEntity):
             "wan2_ip": getattr(current_device_data, "wan2Ip", None),
             "tags": getattr(current_device_data, "tags", []),
             "network_id": getattr(current_device_data, "networkId", None),
+>>>>>>> 651bc8a (Refactor MerakiDevice to Dataclass)
         }
         # Filter out None values from attributes
         self._attr_extra_state_attributes = {
@@ -152,10 +184,15 @@ class MerakiDeviceStatusSensor(CoordinatorEntity, SensorEntity):
         }
 
         # If the device is an appliance, add uplink information as attributes
+<<<<<<< HEAD
+        if current_device_data.product_type == "appliance":
+            for uplink in getattr(current_device_data, "uplinks", []):
+=======
         product_type = getattr(current_device_data, "productType", None)
         if product_type == "appliance":
             uplinks = getattr(current_device_data, "uplinks", [])
             for uplink in uplinks:
+>>>>>>> 651bc8a (Refactor MerakiDevice to Dataclass)
                 interface = uplink.get("interface")
                 if interface is not None:
                     self._attr_extra_state_attributes[f"{interface}_status"] = (
@@ -187,4 +224,13 @@ class MerakiDeviceStatusSensor(CoordinatorEntity, SensorEntity):
         if not super().available:  # Checks coordinator.last_update_success
             return False
         # Check if the specific device data is available
+<<<<<<< HEAD
+        if self.coordinator.data and self.coordinator.data.get("devices"):
+            return any(
+                dev.serial == self._device_serial
+                for dev in self.coordinator.data["devices"]
+            )
+        return False
+=======
         return self.coordinator.get_device(self._device_serial) is not None
+>>>>>>> 651bc8a (Refactor MerakiDevice to Dataclass)

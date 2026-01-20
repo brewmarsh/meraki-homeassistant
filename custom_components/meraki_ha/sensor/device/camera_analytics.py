@@ -10,9 +10,13 @@ from homeassistant.components.sensor import SensorEntity
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
+from ...coordinator import MerakiDataUpdateCoordinator
 from ...helpers.device_info_helpers import resolve_device_info
+<<<<<<< HEAD
+=======
 from ...meraki_data_coordinator import MerakiDataCoordinator
 from ...types import MerakiDevice
+>>>>>>> 651bc8a (Refactor MerakiDevice to Dataclass)
 
 if TYPE_CHECKING:
     from ...services.camera_service import CameraService
@@ -26,8 +30,13 @@ class MerakiAnalyticsSensor(CoordinatorEntity, SensorEntity):
 
     def __init__(
         self,
+<<<<<<< HEAD
+        coordinator: MerakiDataUpdateCoordinator,
+        device: dict[str, Any] | Any,
+=======
         coordinator: MerakiDataCoordinator,
         device: MerakiDevice,
+>>>>>>> 651bc8a (Refactor MerakiDevice to Dataclass)
         camera_service: CameraService,
         object_type: str,
     ) -> None:
@@ -36,8 +45,15 @@ class MerakiAnalyticsSensor(CoordinatorEntity, SensorEntity):
         self._device = device
         self._camera_service = camera_service
         self._object_type = object_type
+<<<<<<< HEAD
+        serial = device.serial if hasattr(device, "serial") else device["serial"]
+        name = device.name if hasattr(device, "name") else device["name"]
+        self._attr_unique_id = f"{serial}-{object_type}-count"
+        self._attr_name = f"[Camera] {name} {object_type.capitalize()} Count"
+=======
         self._attr_unique_id = f"{self._device.serial}-{object_type}-count"
         self._attr_name = f"{self._device.name} {object_type.capitalize()} Count"
+>>>>>>> 651bc8a (Refactor MerakiDevice to Dataclass)
         self._analytics_data: dict[str, Any] = {}
 
     @property
@@ -59,7 +75,15 @@ class MerakiAnalyticsSensor(CoordinatorEntity, SensorEntity):
 
     async def async_update(self) -> None:
         """Update the sensor."""
+<<<<<<< HEAD
+        serial = (
+            self._device.serial
+            if hasattr(self._device, "serial")
+            else self._device["serial"]
+        )
+=======
         serial = self._device.serial
+>>>>>>> 651bc8a (Refactor MerakiDevice to Dataclass)
         try:
             analytics_data = await self._camera_service.get_analytics_data(
                 serial, self._object_type
@@ -78,8 +102,13 @@ class MerakiPersonCountSensor(MerakiAnalyticsSensor):
 
     def __init__(
         self,
+<<<<<<< HEAD
+        coordinator: MerakiDataUpdateCoordinator,
+        device: dict[str, Any] | Any,
+=======
         coordinator: MerakiDataCoordinator,
         device: MerakiDevice,
+>>>>>>> 651bc8a (Refactor MerakiDevice to Dataclass)
         camera_service: CameraService,
     ) -> None:
         """Initialize the sensor."""
@@ -92,8 +121,13 @@ class MerakiVehicleCountSensor(MerakiAnalyticsSensor):
 
     def __init__(
         self,
+<<<<<<< HEAD
+        coordinator: MerakiDataUpdateCoordinator,
+        device: dict[str, Any] | Any,
+=======
         coordinator: MerakiDataCoordinator,
         device: MerakiDevice,
+>>>>>>> 651bc8a (Refactor MerakiDevice to Dataclass)
         camera_service: CameraService,
     ) -> None:
         """Initialize the sensor."""

@@ -11,12 +11,20 @@ from tests.const import MOCK_DEVICE, MOCK_NETWORK
 
 @pytest.fixture
 def mock_coordinator_with_devices_and_ssids(mock_coordinator: MagicMock) -> MagicMock:
+<<<<<<< HEAD
+    """Fixture for a mocked MerakiDataUpdateCoordinator with devices and SSIDs."""
+    device_in_network = dataclasses.replace(MOCK_DEVICE, network_id=MOCK_NETWORK.id)
+    device_other_network = dataclasses.replace(
+        MOCK_DEVICE, serial="other_serial", network_id="other_network"
+    )
+=======
     """Fixture for a mocked MerakiDataCoordinator with devices and SSIDs."""
     device_in_network = dataclasses.replace(MOCK_DEVICE)
     device_in_network.networkId = MOCK_NETWORK.id
     device_other_network = dataclasses.replace(MOCK_DEVICE)
     device_other_network.serial = "other_serial"
     device_other_network.networkId = "other_network"
+>>>>>>> 651bc8a (Refactor MerakiDevice to Dataclass)
 
     ssid_in_network = {"networkId": MOCK_NETWORK.id, "name": "SSID in network"}
     ssid_other_network = {
@@ -56,7 +64,11 @@ def test_devices_property(mock_coordinator_with_devices_and_ssids: MagicMock) ->
     hub = NetworkHub(mock_coordinator_with_devices_and_ssids, MOCK_NETWORK.id)
     devices = hub.devices
     assert len(devices) == 1
+<<<<<<< HEAD
+    assert devices[0].network_id == MOCK_NETWORK.id
+=======
     assert devices[0].networkId == MOCK_NETWORK.id
+>>>>>>> 651bc8a (Refactor MerakiDevice to Dataclass)
 
 
 def test_ssids_property(mock_coordinator_with_devices_and_ssids: MagicMock) -> None:

@@ -11,9 +11,10 @@ This plan will focus on two core features:
 
 ---
 
-### **2. Core Features & User Stories**
+\***\*2. Core Features & User Stories**
 
 - **Content Filtering Policy Selection:** \* **User Story:** As a parent, I want to quickly switch my network’s content filtering policy from "school" to "gaming" to "bedtime" directly from Home Assistant, so I can easily manage my family's internet access throughout the day.
+
   - **Implementation:** A `select` entity will be exposed for each Meraki network, allowing the user to choose from a list of predefined content filtering policies from the Meraki dashboard.
 
 - **On-Demand Device Internet "Time-Out":**
@@ -22,11 +23,12 @@ This plan will focus on two core features:
 
 ---
 
-### **3. Technical Design**
+\***\*3. Technical Design**
 
-#### **3.1. Home Assistant Entities**
+#\***\*3.1. Home Assistant Entities**
 
 - **Entity 1: Content Filtering `select` Entity**
+
   - **Entity ID:** `select.meraki_content_filtering_policy_<network_name_slug>`
   - **Function:** This entity will pull the list of available content filtering policies from the Meraki dashboard. The agent must handle the retrieval of these policy names, including the default categories (`Block all`, `Adult themes`, etc.) and any custom policies.
   - **API Calls:** \* `GET /networks/{networkId}/appliance/contentFiltering` (for initial state)
@@ -40,7 +42,7 @@ This plan will focus on two core features:
     - `GET /networks/{networkId}/appliance/firewall/l7FirewallRules` (to check for existing rules)
     - `PUT /networks/{networkId}/appliance/firewall/l7FirewallRules` (to add/remove rules)
 
-#### **3.2. Meraki API Interaction**
+#\***\*3.2. Meraki API Interaction**
 
 - **Content Filtering:** The API endpoints are correctly identified. The agent should be aware that the `PUT` request to update content filtering requires the entire object, including the `allowedUrlPatterns` and `blockedUrlPatterns`. It should **read the current state first, update only the policy, and then write the complete object back**.
 - **Client Firewall Rules:** This is the most critical part of the implementation. The agent must:
@@ -55,7 +57,7 @@ This plan will focus on two core features:
 3. When a switch is toggled **off** (to allow), the agent will find the rule with the unique comment and the matching client IP and remove it from the list of rules before sending the `PUT` request.
 4. **Important:** The Meraki API has an endpoint to get a client's IP address (`GET /networks/{networkId}/clients/{clientId}/status`). The agent should use this to get the IP, as the `/networks/{networkId}/clients` endpoint might not always have the most up-to-date IP address.
 
-#### **3.3. State Management & Polling**
+#\***\*3.3. State Management & Polling**
 
 - The integration must poll the Meraki API at a reasonable interval (e.g., every 3-5 minutes) to update the state of the Home Assistant entities.
 - The `select` entity's state should reflect the current Meraki network policy.
@@ -63,12 +65,14 @@ This plan will focus on two core features:
 
 ---
 
-### **4. Risks & Mitigations**
+\***\*4. Risks & Mitigations**
 
 - **Risk:** Overwriting user-defined firewall rules.
+
   - **Mitigation:** The plan to use a unique comment is the correct approach. The agent **must only modify rules that contain this specific comment**. All other rules must be preserved.
 
 - **Risk:** Meraki API rate limiting.
+
   - **Mitigation:** The agent should implement a delay or a queue for multiple API calls (e.g., when a user rapidly toggles several switches). Polling intervals should be carefully considered to avoid hitting the API too frequently.
 
 - **Risk:** The Meraki device loses connection or the API key is invalid.
@@ -76,16 +80,18 @@ This plan will focus on two core features:
 
 ---
 
-### **5. Additional & Optional Features**
+\***\*5. Additional & Optional Features**
 
 Based on the capabilities of Meraki devices, here are a few more advanced features that would significantly enhance the user experience and create a more robust parental controls solution.
 
 - **Scheduled Access (Time-based Rules):**
+
   - **Concept:** Instead of just an on/off switch, allow users to set schedules for internet access. This could be exposed as a **Home Assistant schedule helper entity**.
   - **How it works:** The integration would manage L7 firewall rules that are only active during specific times (e.g., blocking social media from 9 PM to 7 AM). The Meraki API supports time-of-day-based rules.
   - **Value:** Automates a common use case for parental controls, reducing the need for manual intervention.
 
 - **Application & URL Blocking:**
+
   - **Concept:** Provide a user interface to block specific applications (e.g., "YouTube," "Fortnite") or custom URLs for a device.
   - **How it works:** Meraki's L7 firewall rules support blocking by application, application category, and URL. The integration could expose a new entity or a service call in Home Assistant for this.
   - **Value:** Offers more granular control than simple on/off. Parents could block specific games or websites without disabling all internet access.

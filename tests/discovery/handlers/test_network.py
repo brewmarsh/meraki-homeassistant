@@ -12,6 +12,14 @@ from custom_components.meraki_ha.types import MerakiNetwork
 
 from ...const import MOCK_CONFIG_ENTRY
 
+<<<<<<< HEAD
+MOCK_NETWORK_1 = MerakiNetwork(
+    id="N_1234", name="Network 1", organization_id="org1", product_types=["wireless"]
+)
+MOCK_NETWORK_2 = MerakiNetwork(
+    id="N_5678", name="Network 2", organization_id="org1", product_types=["switch"]
+)
+=======
 MOCK_NETWORK_1 = {
     "id": "N_1234",
     "name": "Network 1",
@@ -26,11 +34,12 @@ MOCK_NETWORK_2 = {
     "organizationId": "org",
     "clientCount": 0,
 }
+>>>>>>> 651bc8a (Refactor MerakiDevice to Dataclass)
 
 
 @pytest.fixture
 def mock_coordinator():
-    """Fixture for a mock MerakiDataCoordinator."""
+    """Fixture for a mock MerakiDataUpdateCoordinator."""
     coordinator = MagicMock()
     coordinator.data = {
         "networks": [

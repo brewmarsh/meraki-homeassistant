@@ -18,10 +18,13 @@ if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
     from homeassistant.helpers.entity import Entity
 
+    from ....core.coordinators.switch_port_status_coordinator import (
+        SwitchPortStatusCoordinator,
+    )
     from ....services.camera_service import CameraService
     from ....services.device_control_service import DeviceControlService
     from ....types import MerakiDevice
-    from ...meraki_data_coordinator import MerakiDataCoordinator
+    from ...coordinator import MerakiDataUpdateCoordinator
     from ...services.network_control_service import NetworkControlService
 
 
@@ -33,7 +36,7 @@ class NetworkHandler(BaseHandler):
 
     def __init__(
         self,
-        coordinator: MerakiDataCoordinator,
+        coordinator: MerakiDataUpdateCoordinator,
         config_entry: ConfigEntry,
         network_control_service: NetworkControlService,
     ) -> None:
@@ -44,12 +47,13 @@ class NetworkHandler(BaseHandler):
     @classmethod
     def create(
         cls,
-        coordinator: MerakiDataCoordinator,
+        coordinator: MerakiDataUpdateCoordinator,
         device: MerakiDevice,
         config_entry: ConfigEntry,
         camera_service: CameraService,
         control_service: DeviceControlService,
         network_control_service: NetworkControlService,
+        switch_port_coordinator: SwitchPortStatusCoordinator,
     ) -> NetworkHandler:
         """Create an instance of the handler."""
         return cls(
@@ -77,8 +81,13 @@ class NetworkHandler(BaseHandler):
             )
             if "appliance" in getattr(network, "productTypes", []):
                 try:
+<<<<<<< HEAD
+                    categories = await self._coordinator.meraki_client.appliance.get_network_appliance_content_filtering_categories(  # noqa: E501
+                        network["id"]
+=======
                     categories = await self._coordinator.api.appliance.get_network_appliance_content_filtering_categories(  # noqa: E501
                         network.id
+>>>>>>> 651bc8a (Refactor MerakiDevice to Dataclass)
                     )
                     for category in categories.get("categories", []):
                         entities.append(

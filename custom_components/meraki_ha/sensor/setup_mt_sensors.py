@@ -4,15 +4,15 @@ import logging
 
 from homeassistant.helpers.entity import Entity
 
-from ..meraki_data_coordinator import MerakiDataCoordinator
-from ..sensor_defs.mt_sensors import MT_SENSOR_MODELS
+from ..coordinator import MerakiDataUpdateCoordinator
+from ..descriptions import MT_SENSOR_MODELS
 from .device.meraki_mt_base import MerakiMtSensor
 
 _LOGGER = logging.getLogger(__name__)
 
 
 def async_setup_mt_sensors(
-    coordinator: MerakiDataCoordinator,
+    coordinator: MerakiDataUpdateCoordinator,
     device_info: dict,
 ) -> list[Entity]:
     """Set up Meraki MT sensor entities for a given device."""

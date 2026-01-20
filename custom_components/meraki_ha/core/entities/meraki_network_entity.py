@@ -8,7 +8,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from ...meraki_data_coordinator import MerakiDataCoordinator
+from ...coordinator import MerakiDataUpdateCoordinator
 from ...types import MerakiNetwork
 from ..utils.naming_utils import format_device_name
 
@@ -18,10 +18,12 @@ class MerakiNetworkEntity(CoordinatorEntity):
 
     def __init__(
         self,
-        coordinator: MerakiDataCoordinator,
+        coordinator: MerakiDataUpdateCoordinator,
         config_entry: ConfigEntry,
         network: MerakiNetwork,
     ) -> None:
+        from dataclasses import asdict
+
         """Initialize the network entity."""
         super().__init__(coordinator=coordinator)
         self._config_entry = config_entry
