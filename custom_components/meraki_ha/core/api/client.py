@@ -10,7 +10,6 @@ from __future__ import annotations
 import asyncio
 import logging
 from collections.abc import Awaitable, Callable
-from dataclasses import fields
 from functools import partial
 from typing import TYPE_CHECKING, Any
 
