@@ -52,3 +52,18 @@ def parse_sensor_data(
 
         if device_readings:
             device.readings = device_readings
+
+            for reading in device_readings:
+                metric = reading.get("metric")
+                if metric == "noise":
+                    device.ambient_noise = reading.get("noise", {}).get("ambient", {}).get("level")
+                elif metric == "pm25":
+                    device.pm25 = reading.get("pm25", {}).get("concentration")
+                elif metric == "power":
+                    device.real_power = reading.get("power", {}).get("draw")
+                elif metric == "power_factor":
+                    device.power_factor = reading.get("power_factor", {}).get("factor")
+                elif metric == "current":
+                    device.current = reading.get("current", {}).get("draw")
+                elif metric == "door":
+                    device.door_open = reading.get("door", {}).get("open")
