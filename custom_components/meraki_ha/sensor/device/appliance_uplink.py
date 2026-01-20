@@ -5,13 +5,14 @@ from typing import Any
 
 from homeassistant.components.sensor import SensorEntity
 from homeassistant.config_entries import ConfigEntry
+from homeassistant.const import EntityCategory
 from homeassistant.core import callback
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from ...const import DOMAIN
 from ...coordinator import MerakiDataUpdateCoordinator
-from ...core.utils.naming_utils import format_device_name, format_entity_name
+from ...core.utils.naming_utils import format_device_name
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -19,26 +20,37 @@ _LOGGER = logging.getLogger(__name__)
 class MerakiApplianceUplinkSensor(CoordinatorEntity, SensorEntity):
     """Representation of a Meraki appliance uplink sensor."""
 
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
+
     def __init__(
         self,
         coordinator: MerakiDataUpdateCoordinator,
-        device_data: dict[str, Any],
+        device_data: dict[str, Any] | Any,
         config_entry: ConfigEntry,
         uplink_data: dict[str, Any],
     ) -> None:
         """Initialize the sensor."""
         super().__init__(coordinator)
-        self._device_serial: str = device_data["serial"]
+        self._device_serial: str = (
+            device_data.serial
+            if hasattr(device_data, "serial")
+            else device_data["serial"]
+        )
         self._config_entry = config_entry
         self._uplink_interface: str = uplink_data["interface"]
 
         self._attr_unique_id = f"{self._device_serial}_uplink_{self._uplink_interface}"
         self._attr_name = f"Uplink {self._uplink_interface.upper()}"
 
+        model = (
+            device_data.model
+            if hasattr(device_data, "model")
+            else device_data.get("model")
+        )
         self._attr_device_info = DeviceInfo(
             identifiers={(DOMAIN, self._device_serial)},
             name=format_device_name(device_data, self._config_entry.options),
-            model=device_data.get("model"),
+            model=model,
             manufacturer="Cisco Meraki",
         )
         self._update_state()

@@ -29,7 +29,7 @@ class MerakiMt20OpenCloseSensor(CoordinatorEntity, BinarySensorEntity):
     def __init__(
         self,
         coordinator: MerakiDataUpdateCoordinator,
-        device_info: "MerakiDevice",
+        device_info: MerakiDevice,
         config_entry: ConfigEntry,
     ) -> None:
         """Initialize the sensor."""

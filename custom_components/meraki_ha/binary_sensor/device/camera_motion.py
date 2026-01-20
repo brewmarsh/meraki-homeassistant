@@ -14,7 +14,6 @@ from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from ...coordinator import MerakiDataUpdateCoordinator
-from ...core.utils.naming_utils import format_entity_name
 from ...helpers.device_info_helpers import resolve_device_info
 
 if TYPE_CHECKING:
@@ -32,7 +31,7 @@ class MerakiMotionSensor(CoordinatorEntity, BinarySensorEntity):
     def __init__(
         self,
         coordinator: MerakiDataUpdateCoordinator,
-        device: dict[str, Any],
+        device: dict[str, Any] | Any,
         camera_service: CameraService,
         config_entry: ConfigEntry,
     ) -> None:
@@ -41,8 +40,10 @@ class MerakiMotionSensor(CoordinatorEntity, BinarySensorEntity):
         self._device = device
         self._camera_service = camera_service
         self._config_entry = config_entry
-        self._attr_unique_id = f"{self._device['serial']}-motion"
-        self._attr_name = f"[Camera] {self._device['name']} Motion"
+        serial = device.serial if hasattr(device, "serial") else device["serial"]
+        name = device.name if hasattr(device, "name") else device["name"]
+        self._attr_unique_id = f"{serial}-motion"
+        self._attr_name = f"[Camera] {name} Motion"
         self._motion_events: list[dict[str, Any]] = []
 
     @property
@@ -62,7 +63,11 @@ class MerakiMotionSensor(CoordinatorEntity, BinarySensorEntity):
 
     async def async_update(self) -> None:
         """Update the sensor."""
-        serial = self._device["serial"]
+        serial = (
+            self._device.serial
+            if hasattr(self._device, "serial")
+            else self._device["serial"]
+        )
         try:
             self._motion_events = await self._camera_service.get_motion_history(serial)
         except Exception as e:

@@ -130,6 +130,7 @@ async def test_get_all_data_handles_informational_errors(api_client):
     )
     api_client._async_fetch_network_clients = AsyncMock(return_value=[])
     api_client._async_fetch_device_clients = AsyncMock(return_value={})
+
     async def coro():
         return MerakiInformationalError("Traffic analysis is not enabled")
 

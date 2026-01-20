@@ -7,25 +7,15 @@ import logging
 from typing import TYPE_CHECKING, Any
 
 import aiohttp
-from aiortc import (
-    RTCIceCandidate,
-    RTCPeerConnection,
-    RTCSessionDescription,
-)
-from aiortc.contrib.media import MediaRelay
 from homeassistant.components.camera import Camera, CameraEntityFeature
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import DOMAIN
-from .core.utils.naming_utils import format_device_name, format_entity_name
+from .core.utils.naming_utils import format_device_name
 
 if TYPE_CHECKING:
-    from homeassistant.components.camera import WebRTCSendMessage
-    from homeassistant.components.camera.webrtc import (
-        RTCIceCandidate,
-    )
     from homeassistant.config_entries import ConfigEntry
     from homeassistant.core import HomeAssistant
     from homeassistant.helpers.entity_platform import AddEntitiesCallback
@@ -71,24 +61,32 @@ class MerakiCamera(CoordinatorEntity, Camera):
         self,
         coordinator: MerakiDataCoordinator,
         config_entry: ConfigEntry,
-        device: dict[str, Any],
+        device: dict[str, Any] | Any,
         camera_service: CameraService,
     ) -> None:
         """Initialize the camera."""
         super().__init__(coordinator)
         Camera.__init__(self)
         self._config_entry = config_entry
-        self._device_serial = device["serial"]
+        # Handle both dict and dataclass for device
+        self._device_serial = (
+            device.get("serial") if isinstance(device, dict) else device.serial
+        )
+        name = device.get("name") if isinstance(device, dict) else device.name
         self._camera_service = camera_service
         self._attr_unique_id = f"{self._device_serial}-camera"
-        self._attr_name = f"[Camera] {device['name']}"
+        self._attr_name = f"[Camera] {name}"
         self._attr_model = self.device_data.get("model")
-        self._webrtc_sessions: dict[str, Any] = {}
 
     @property
     def device_data(self) -> dict[str, Any]:
         """Return the device data from the coordinator."""
-        return self.coordinator.get_device(self._device_serial) or {}
+        import dataclasses
+
+        data = self.coordinator.get_device(self._device_serial)
+        if dataclasses.is_dataclass(data):
+            return dataclasses.asdict(data)
+        return data or {}
 
     @property
     def device_info(self) -> DeviceInfo:
@@ -193,64 +191,3 @@ class MerakiCamera(CoordinatorEntity, Camera):
             self._device_serial, False
         )
         await self.coordinator.async_request_refresh()
-
-    async def async_handle_async_webrtc_offer(
-        self, offer_sdp: str, session_id: str, send_message: WebRTCSendMessage
-    ) -> None:
-        """Handle the async WebRTC offer."""
-        _LOGGER.debug("Handling WebRTC offer for session_id: %s", session_id)
-
-        offer = RTCSessionDescription(sdp=offer_sdp, type="offer")
-        pc = RTCPeerConnection()
-        self._webrtc_sessions[session_id] = pc
-
-        @pc.on("ice_candidate")
-        async def on_ice_candidate(candidate: RTCIceCandidate) -> None:
-            if candidate:
-                await send_message(
-                    {
-                        "type": "candidate",
-                        "candidate": {
-                            "candidate": candidate.candidate,
-                            "sdpMid": candidate.sdpMid,
-                            "sdpMLineIndex": candidate.sdpMLineIndex,
-                        },
-                    }
-                )
-
-        relay = MediaRelay()
-        player = self.hass.components.stream.player_for_source(
-            await self.stream_source()
-        )
-        if player.video_track:
-            pc.addTrack(relay.subscribe(player.video_track))
-
-        await pc.setRemoteDescription(offer)
-        answer = await pc.createAnswer()
-        await pc.setLocalDescription(answer)
-
-        await send_message({"type": "answer", "sdp": pc.localDescription.sdp})
-
-    async def async_on_webrtc_candidate(
-        self, session_id: str, candidate_dict: dict
-    ) -> None:
-        """Handle a WebRTC candidate."""
-        _LOGGER.debug(
-            "Handling WebRTC candidate for session_id: %s, candidate: %s",
-            session_id,
-            candidate_dict,
-        )
-        candidate = RTCIceCandidate(
-            candidate=candidate_dict["candidate"],
-            sdpMid=candidate_dict["sdpMid"],
-            sdpMLineIndex=candidate_dict["sdpMLineIndex"],
-        )
-        pc = self._webrtc_sessions[session_id]
-        await pc.addIceCandidate(candidate)
-
-    def close_webrtc_session(self, session_id: str) -> None:
-        """Close a WebRTC session."""
-        _LOGGER.debug("Closing WebRTC session: %s", session_id)
-        pc = self._webrtc_sessions.pop(session_id)
-        if pc:
-            self.hass.async_create_task(pc.close())

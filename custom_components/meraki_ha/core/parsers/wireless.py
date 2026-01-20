@@ -1,6 +1,9 @@
 """Parsers for Meraki wireless data."""
+
 from __future__ import annotations
+
 from typing import Any
+
 from ...types import MerakiNetwork
 
 
@@ -17,7 +20,8 @@ def parse_wireless_data(
         networks: A list of Meraki networks.
         previous_data: The previous data from the coordinator.
 
-    Returns:
+    Returns
+    -------
         A dictionary containing a list of processed SSIDs.
     """
     ssids: list[dict[str, Any]] = []

@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import logging
-from typing import Any
 
 from homeassistant.components.button import ButtonEntity
 from homeassistant.config_entries import ConfigEntry
@@ -12,7 +11,6 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from ...coordinator import MerakiDataUpdateCoordinator
 from ...core.api.client import MerakiAPIClient
-from ...core.utils.naming_utils import format_entity_name
 from ...helpers.device_info_helpers import resolve_device_info
 from ...types import MerakiDevice
 
@@ -57,6 +55,4 @@ class MerakiMt15RefreshDataButton(CoordinatorEntity, ButtonEntity):
     @property
     def available(self) -> bool:
         """Return if the entity is available."""
-        return (
-            (self._device.model or "").startswith("MT15") and super().available
-        )
+        return (self._device.model or "").startswith("MT15") and super().available

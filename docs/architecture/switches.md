@@ -15,6 +15,7 @@ This plan will integrate switch port monitoring into the existing architecture b
 \*\*Phase 1: API and Repository Updates
 
 1. **Add `getDeviceSwitchPortsStatuses` to `MerakiApiClient`**:
+
    - Add a new asynchronous method, `async_get_switch_port_statuses(serial)`, that calls the Meraki API's `/devices/{serial}/switch/ports/statuses` endpoint. This will return a list of all ports and their current status.
 
 2. **Add `get_switch_port_statuses` to `MerakiRepository`**:
@@ -26,6 +27,7 @@ This plan will integrate switch port monitoring into the existing architecture b
 \*\*Phase 2: Create a Dedicated Switch Port Service
 
 1. **Develop `SwitchPortService` (`meraki_ha/services/switch_port_service.py`)**:
+
    - Create a new class, `SwitchPortService`, that is injected with the `MerakiRepository`.
    - This service will contain methods for handling switch port data, such as:
      - `async_get_port_status(serial, port_id)`: A method that queries the repository and returns the status (`Connected` or `Disconnected`) for a specific port.

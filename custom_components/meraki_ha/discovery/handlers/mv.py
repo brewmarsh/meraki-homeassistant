@@ -25,6 +25,7 @@ from custom_components.meraki_ha.sensor.device.camera_analytics import (
 )
 from custom_components.meraki_ha.sensor.device.rtsp_url import MerakiRtspUrlSensor
 from custom_components.meraki_ha.switch.camera_controls import AnalyticsSwitch
+
 from .base import BaseDeviceHandler
 
 if TYPE_CHECKING:
@@ -84,7 +85,7 @@ class MVHandler(BaseDeviceHandler):
     async def discover_entities(self) -> list[Entity]:
         """Discover entities for a camera device."""
         entities: list[Entity] = []
-        serial = self.device["serial"]
+        serial = self.device.serial
 
         # If configured, ensure the RTSP stream is enabled by default
         if self._config_entry.options.get("rtsp_stream_enabled", False):

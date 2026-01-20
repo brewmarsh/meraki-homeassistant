@@ -46,10 +46,11 @@ class MerakiOrganizationSSIDClientsSensor(
         self._org_id = org_id
         self._org_name = org_name
 
-        self._attr_name = format_entity_name(org_name, "SSID Clients")
-        self._attr_unique_id = f"{org_id}_clients_ssid"
-
         org_device_data = {"name": org_name, "productType": "organization"}
+        self._attr_name = format_entity_name(
+            org_device_data, self.coordinator.config_entry.options, "SSID Clients"
+        )
+        self._attr_unique_id = f"{org_id}_clients_ssid"
         formatted_name = format_device_name(
             device=org_device_data,
             config=self.coordinator.config_entry.options,
@@ -109,10 +110,11 @@ class MerakiOrganizationWirelessClientsSensor(
         self._org_id = org_id
         self._org_name = org_name
 
-        self._attr_name = format_entity_name(org_name, "Wireless Clients")
-        self._attr_unique_id = f"{org_id}_clients_wireless"
-
         org_device_data = {"name": org_name, "productType": "organization"}
+        self._attr_name = format_entity_name(
+            org_device_data, self.coordinator.config_entry.options, "Wireless Clients"
+        )
+        self._attr_unique_id = f"{org_id}_clients_wireless"
         formatted_name = format_device_name(
             device=org_device_data,
             config=self.coordinator.config_entry.options,
@@ -171,10 +173,11 @@ class MerakiOrganizationApplianceClientsSensor(
         self._org_id = org_id
         self._org_name = org_name
 
-        self._attr_name = format_entity_name(org_name, "Appliance Clients")
-        self._attr_unique_id = f"{org_id}_clients_appliance"
-
         org_device_data = {"name": org_name, "productType": "organization"}
+        self._attr_name = format_entity_name(
+            org_device_data, self.coordinator.config_entry.options, "Appliance Clients"
+        )
+        self._attr_unique_id = f"{org_id}_clients_appliance"
         formatted_name = format_device_name(
             device=org_device_data,
             config=self.coordinator.config_entry.options,

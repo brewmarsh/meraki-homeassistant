@@ -12,6 +12,7 @@ from typing import TYPE_CHECKING
 
 from custom_components.meraki_ha.binary_sensor.switch_port import SwitchPortSensor
 from custom_components.meraki_ha.entity_descriptions import SWITCH_PORT_DESCRIPTION
+
 from .base import BaseDeviceHandler
 
 if TYPE_CHECKING:
@@ -75,7 +76,7 @@ class MSHandler(BaseDeviceHandler):
 
         # Add switch port sensors, but only for enabled ports to avoid flooding
         # the entity registry.
-        ports = self.device.get("ports_statuses", [])
+        ports = self.device.ports_statuses
         for port in ports:
             if port.get("enabled"):
                 entities.append(

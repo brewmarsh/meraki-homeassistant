@@ -50,7 +50,6 @@ CONF_ENABLE_VLAN_MANAGEMENT: Final = "enable_vlan_management"
 """Configuration key for enabling vlan management."""
 
 
-
 DEFAULT_IGNORED_NETWORKS: Final[list[str]] = []
 """Default value for the ignored networks list."""
 
@@ -85,6 +84,8 @@ PLATFORM_CAMERA: Final = "camera"
 """Represents the camera platform."""
 PLATFORM_NUMBER: Final = "number"
 """Represents the number platform."""
+PLATFORM_SELECT: Final = "select"
+"""Represents the select platform."""
 
 PLATFORMS: Final = [
     PLATFORM_SENSOR,
@@ -94,6 +95,7 @@ PLATFORMS: Final = [
     PLATFORM_TEXT,
     PLATFORM_CAMERA,
     PLATFORM_NUMBER,
+    PLATFORM_SELECT,
 ]
 """List of platforms supported by the integration."""
 

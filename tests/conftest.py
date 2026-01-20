@@ -1,11 +1,23 @@
 """Global fixtures for meraki_ha integration."""
 
+import sys
 from collections.abc import Generator
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
 from tests.const import MOCK_ALL_DATA
+
+
+@pytest.fixture(autouse=True)
+def mock_aiortc():
+    """Mock aiortc module to avoid installation issues."""
+    if "aiortc" not in sys.modules:
+        sys.modules["aiortc"] = MagicMock()
+    if "aiortc.contrib" not in sys.modules:
+        sys.modules["aiortc.contrib"] = MagicMock()
+    if "aiortc.contrib.media" not in sys.modules:
+        sys.modules["aiortc.contrib.media"] = MagicMock()
 
 
 @pytest.fixture(autouse=True)
@@ -26,6 +38,7 @@ def auto_enable_custom_integrations(
 def bypass_platform_setup() -> Generator[None, None, None]:
     """Bypass platform setup to avoid hass_frontend dependency."""
     from unittest.mock import patch
+
     with patch("homeassistant.setup.async_setup_component", return_value=True):
         yield
 

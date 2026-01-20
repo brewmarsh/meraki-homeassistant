@@ -7,7 +7,6 @@ from typing import Any
 
 from ..coordinator import MerakiDataUpdateCoordinator
 from ..core.api.client import MerakiAPIClient
-from ..core.utils.naming_utils import format_entity_name
 from .camera_settings import MerakiCameraSettingSwitchBase
 
 _LOGGER = logging.getLogger(__name__)
@@ -20,7 +19,7 @@ class AnalyticsSwitch(MerakiCameraSettingSwitchBase):
         self,
         coordinator: MerakiDataUpdateCoordinator,
         meraki_client: MerakiAPIClient,
-        device_data: dict[str, Any],
+        device_data: dict[str, Any] | Any,
     ) -> None:
         """
         Initialize the analytics switch.
@@ -37,9 +36,10 @@ class AnalyticsSwitch(MerakiCameraSettingSwitchBase):
             meraki_client,
             device_data,
             "sense_enabled",
-            "sense.analyticsEnabled",
+            "sense_settings.analyticsEnabled",
         )
-        self._attr_name = f"[Camera] {device_data['name']} Analytics"
+        name = device_data.name if hasattr(device_data, "name") else device_data["name"]
+        self._attr_name = f"[Camera] {name} Analytics"
         self._attr_icon = "mdi:chart-bar"
 
     async def _async_update_setting(self, is_on: bool) -> None:
@@ -51,9 +51,14 @@ class AnalyticsSwitch(MerakiCameraSettingSwitchBase):
             is_on: Whether the setting is on or off.
 
         """
+        serial = (
+            self._device_data.serial
+            if hasattr(self._device_data, "serial")
+            else self._device_data["serial"]
+        )
         try:
             await self.client.camera.update_camera_sense_settings(
-                serial=self._device_data["serial"],
+                serial=serial,
                 sense_enabled=is_on,
             )
             await self.coordinator.async_request_refresh()
@@ -61,6 +66,6 @@ class AnalyticsSwitch(MerakiCameraSettingSwitchBase):
             _LOGGER.error(
                 "Failed to update camera setting %s for %s: %s",
                 self._key,
-                self._device_data["serial"],
+                serial,
                 e,
             )

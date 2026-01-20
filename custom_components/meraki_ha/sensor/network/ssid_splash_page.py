@@ -4,6 +4,7 @@ from typing import Any
 
 from homeassistant.components.sensor import SensorEntityDescription
 from homeassistant.config_entries import ConfigEntry
+from homeassistant.const import EntityCategory
 
 from ...coordinator import MerakiDataUpdateCoordinator
 from .base import MerakiSSIDBaseSensor
@@ -12,6 +13,7 @@ from .base import MerakiSSIDBaseSensor
 class MerakiSSIDSplashPageSensor(MerakiSSIDBaseSensor):
     """Representation of a Meraki SSID Splash Page sensor."""
 
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
     entity_description = SensorEntityDescription(
         key="splash_page",
         name="Splash Page",

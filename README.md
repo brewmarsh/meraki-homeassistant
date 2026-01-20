@@ -98,6 +98,7 @@ To use this integration, you will need a Meraki API key and your Organization ID
    - Click **Generate new API key**.
    - **Important:** Copy the generated API key and store it securely. You will not be able to see it again after navigating away from this page.
 4. **Find Organization ID:**
+
    - **Easiest Method:** The Organization ID is displayed at the bottom of every page in the Meraki dashboard.
    - **Alternative Method (API):** You can find it by making a simple API call to the `/organizations` endpoint with your API key.
 

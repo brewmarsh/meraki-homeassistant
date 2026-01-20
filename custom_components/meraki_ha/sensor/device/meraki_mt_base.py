@@ -13,7 +13,7 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from ...const import DOMAIN
 from ...coordinator import MerakiDataUpdateCoordinator
-from ...core.utils.naming_utils import format_device_name, format_entity_name
+from ...core.utils.naming_utils import format_device_name
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -39,12 +39,6 @@ class MerakiMtSensor(CoordinatorEntity, RestoreSensor):
         """Handle entity which provides state restoration."""
         await super().async_added_to_hass()
         if (last_sensor_data := await self.async_get_last_sensor_data()) is not None:
-            self._attr_native_value = last_sensor_data.native_value
-
-    async def async_added_to_hass(self) -> None:
-        """Restore last state."""
-        await super().async_added_to_hass()
-        if last_sensor_data := await self.async_get_last_sensor_data():
             self._attr_native_value = last_sensor_data.native_value
 
     @property
@@ -86,9 +80,9 @@ class MerakiMtSensor(CoordinatorEntity, RestoreSensor):
                     value_key = key_map.get(self.entity_description.key)
                     if value_key:
                         if value_key == "ambient":
-                            self._attr_native_value = (
-                                metric_data.get("ambient", {}).get("level")
-                            )
+                            self._attr_native_value = metric_data.get(
+                                "ambient", {}
+                            ).get("level")
                         else:
                             self._attr_native_value = metric_data.get(value_key)
                         return
@@ -106,7 +100,7 @@ class MerakiMtSensor(CoordinatorEntity, RestoreSensor):
     @property
     def available(self) -> bool:
         """Return if the sensor is available."""
-        # A sensor is available if it has a value from the coordinator or a restored state
+        # Available if it has a value from the coordinator or a restored state
         if self.native_value is not None:
             return True
 
