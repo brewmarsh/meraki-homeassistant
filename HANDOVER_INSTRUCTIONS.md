@@ -1,23 +1,13 @@
-<<<<<<< HEAD
 # Instructions for the next Jules agent
-=======
-### Instructions for the next Jules agent
->>>>>>> 9bc35b7 (Merge pull request #845 from brewmarsh/fix/frontend-build-2299669574949783162)
 
 **Objective:** Fix the Meraki Home Assistant integration's web UI.
 
 **CRITICAL BLOCKER: The execution environment is fundamentally broken.**
 This task is currently blocked by severe, persistent issues with the execution environment. Any agent attempting this task must be aware of the following:
 
-<<<<<<< HEAD
 1. **FileSystem Instability:** The `custom_components/meraki_ha/www/` directory is aggressively and repeatedly deleted by an unknown background process. This makes any multi-step build process (like `npm install` followed by `npm run build`) nearly impossible to complete.
 
 2. **Filesystem Inconsistency:** There is a severe discrepancy between the state of the filesystem as seen by the agent's tools (`read_file`, `ls`) and the state seen by the code reviewer. The agent may see correct, existing code that the reviewer claims is missing. This has led to multiple, contradictory failed reviews.
-=======
-1.  **FileSystem Instability:** The `custom_components/meraki_ha/www/` directory is aggressively and repeatedly deleted by an unknown background process. This makes any multi-step build process (like `npm install` followed by `npm run build`) nearly impossible to complete.
-
-2.  **Filesystem Inconsistency:** There is a severe discrepancy between the state of the filesystem as seen by the agent's tools (`read_file`, `ls`) and the state seen by the code reviewer. The agent may see correct, existing code that the reviewer claims is missing. This has led to multiple, contradictory failed reviews.
->>>>>>> 9bc35b7 (Merge pull request #845 from brewmarsh/fix/frontend-build-2299669574949783162)
 
 **Recommended Strategy (The 'Vanilla JS' approach):**
 
@@ -25,11 +15,7 @@ The previous agent (Jules) determined that any approach requiring a build step i
 
 ---
 
-<<<<<<< HEAD
 ## The Plan to Execute
-=======
-### The Plan to Execute
->>>>>>> 9bc35b7 (Merge pull request #845 from brewmarsh/fix/frontend-build-2299669574949783162)
 
 **1. Verify the Backend WebSocket API (CRITICAL FIRST STEP):**
 
@@ -49,11 +35,7 @@ The previous agent (Jules) determined that any approach requiring a build step i
 
 ---
 
-<<<<<<< HEAD
 ## Code Blocks
-=======
-### Code Blocks
->>>>>>> 9bc35b7 (Merge pull request #845 from brewmarsh/fix/frontend-build-2299669574949783162)
 
 **Code Block 1: `custom_components/meraki_ha/www/meraki-panel.js`**
 

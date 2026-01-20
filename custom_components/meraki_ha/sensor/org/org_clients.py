@@ -10,14 +10,8 @@ from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from ...const import DOMAIN
-<<<<<<< HEAD
 from ...coordinator import MerakiDataUpdateCoordinator
 from ...core.utils.naming_utils import format_device_name, format_entity_name
-=======
-from ...core.utils.naming_utils import format_device_name
-from ...helpers.entity_helpers import format_entity_name
-from ...meraki_data_coordinator import MerakiDataCoordinator
->>>>>>> 9bc35b7 (Merge pull request #845 from brewmarsh/fix/frontend-build-2299669574949783162)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -34,11 +28,7 @@ class MerakiOrganizationSSIDClientsSensor(
 
     def __init__(
         self,
-<<<<<<< HEAD
         coordinator: MerakiDataUpdateCoordinator,
-=======
-        coordinator: MerakiDataCoordinator,
->>>>>>> 9bc35b7 (Merge pull request #845 from brewmarsh/fix/frontend-build-2299669574949783162)
         org_id: str,
         org_name: str,
     ) -> None:
@@ -56,10 +46,11 @@ class MerakiOrganizationSSIDClientsSensor(
         self._org_id = org_id
         self._org_name = org_name
 
-        self._attr_name = format_entity_name(org_name, "SSID Clients")
-        self._attr_unique_id = f"{org_id}_clients_ssid"
-
         org_device_data = {"name": org_name, "productType": "organization"}
+        self._attr_name = format_entity_name(
+            org_device_data, self.coordinator.config_entry.options, "SSID Clients"
+        )
+        self._attr_unique_id = f"{org_id}_clients_ssid"
         formatted_name = format_device_name(
             device=org_device_data,
             config=self.coordinator.config_entry.options,
@@ -101,11 +92,7 @@ class MerakiOrganizationWirelessClientsSensor(
 
     def __init__(
         self,
-<<<<<<< HEAD
         coordinator: MerakiDataUpdateCoordinator,
-=======
-        coordinator: MerakiDataCoordinator,
->>>>>>> 9bc35b7 (Merge pull request #845 from brewmarsh/fix/frontend-build-2299669574949783162)
         org_id: str,
         org_name: str,
     ) -> None:
@@ -123,10 +110,11 @@ class MerakiOrganizationWirelessClientsSensor(
         self._org_id = org_id
         self._org_name = org_name
 
-        self._attr_name = format_entity_name(org_name, "Wireless Clients")
-        self._attr_unique_id = f"{org_id}_clients_wireless"
-
         org_device_data = {"name": org_name, "productType": "organization"}
+        self._attr_name = format_entity_name(
+            org_device_data, self.coordinator.config_entry.options, "Wireless Clients"
+        )
+        self._attr_unique_id = f"{org_id}_clients_wireless"
         formatted_name = format_device_name(
             device=org_device_data,
             config=self.coordinator.config_entry.options,
@@ -167,11 +155,7 @@ class MerakiOrganizationApplianceClientsSensor(
 
     def __init__(
         self,
-<<<<<<< HEAD
         coordinator: MerakiDataUpdateCoordinator,
-=======
-        coordinator: MerakiDataCoordinator,
->>>>>>> 9bc35b7 (Merge pull request #845 from brewmarsh/fix/frontend-build-2299669574949783162)
         org_id: str,
         org_name: str,
     ) -> None:
@@ -189,10 +173,11 @@ class MerakiOrganizationApplianceClientsSensor(
         self._org_id = org_id
         self._org_name = org_name
 
-        self._attr_name = format_entity_name(org_name, "Appliance Clients")
-        self._attr_unique_id = f"{org_id}_clients_appliance"
-
         org_device_data = {"name": org_name, "productType": "organization"}
+        self._attr_name = format_entity_name(
+            org_device_data, self.coordinator.config_entry.options, "Appliance Clients"
+        )
+        self._attr_unique_id = f"{org_id}_clients_appliance"
         formatted_name = format_device_name(
             device=org_device_data,
             config=self.coordinator.config_entry.options,

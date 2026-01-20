@@ -5,7 +5,6 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-import voluptuous as vol
 from homeassistant import config_entries
 from homeassistant.config_entries import ConfigFlowResult
 from homeassistant.core import callback
@@ -18,10 +17,10 @@ from .const import (
     CONF_MERAKI_ORG_ID,
     DOMAIN,
 )
-from .core.errors import MerakiAuthenticationError, MerakiConnectionError
 from .coordinator import MerakiDataUpdateCoordinator
-from .schema_helpers import populate_schema_defaults
+from .core.errors import MerakiAuthenticationError, MerakiConnectionError
 from .options_flow import MerakiOptionsFlowHandler
+from .schema_helpers import populate_schema_defaults
 from .schemas import CONFIG_SCHEMA, OPTIONS_SCHEMA
 
 _LOGGER = logging.getLogger(__name__)
@@ -165,7 +164,9 @@ class ConfigFlowHandler(config_entries.ConfigFlow):
             await self.hass.config_entries.async_reload(entry.entry_id)
             return self.async_abort(reason="reconfigure_successful")
 
-        coordinator: MerakiDataUpdateCoordinator = self.hass.data[DOMAIN][entry.entry_id]
+        coordinator: MerakiDataUpdateCoordinator = self.hass.data[DOMAIN][
+            entry.entry_id
+        ]
         network_options = []
         if coordinator.data and coordinator.data.get("networks"):
             network_options = [

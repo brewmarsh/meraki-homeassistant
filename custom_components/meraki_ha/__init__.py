@@ -96,7 +96,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             _LOGGER.exception("Failed to register sidebar")
 
     async_setup_api(hass)
-    async_setup_websocket_api(hass)  # Added from incoming branch
+    async_setup_websocket_api(hass)
+<<<<<<< HEAD
     coordinator = MerakiDataUpdateCoordinator(hass, entry)
     await coordinator.async_config_entry_first_refresh()
 
@@ -125,6 +126,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         secret = entry.data["webhook_secret"]
 
     await async_register_webhook(hass, webhook_id, secret, coordinator.api, entry=entry)
+=======
+>>>>>>> 435cb1f (chore: temporary commit before rebase)
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 

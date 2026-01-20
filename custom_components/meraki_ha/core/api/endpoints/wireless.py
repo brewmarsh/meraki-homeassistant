@@ -22,10 +22,7 @@ class WirelessEndpoints:
     def __init__(self, api_client: "MerakiAPIClient") -> None:
         """Initialize the endpoint."""
         self._api_client = api_client
-<<<<<<< HEAD
         self._dashboard = api_client.dashboard
-=======
->>>>>>> 9bc35b7 (Merge pull request #845 from brewmarsh/fix/frontend-build-2299669574949783162)
 
     @handle_meraki_errors
     @async_timed_cache()
@@ -42,15 +39,8 @@ class WirelessEndpoints:
             A list of SSIDs.
 
         """
-<<<<<<< HEAD
         ssids = await self._api_client.run_sync(
             self._dashboard.wireless.getNetworkWirelessSsids,
-=======
-        if self._api_client.dashboard is None:
-            return []
-        ssids = await self._api_client.run_sync(
-            self._api_client.dashboard.wireless.getNetworkWirelessSsids,
->>>>>>> 9bc35b7 (Merge pull request #845 from brewmarsh/fix/frontend-build-2299669574949783162)
             networkId=network_id,
         )
         validated = validate_response(ssids)
@@ -74,15 +64,8 @@ class WirelessEndpoints:
             The wireless settings.
 
         """
-<<<<<<< HEAD
         settings = await self._api_client.run_sync(
             self._dashboard.wireless.getDeviceWirelessRadioSettings,
-=======
-        if self._api_client.dashboard is None:
-            return {}
-        settings = await self._api_client.run_sync(
-            self._api_client.dashboard.wireless.getDeviceWirelessRadioSettings,
->>>>>>> 9bc35b7 (Merge pull request #845 from brewmarsh/fix/frontend-build-2299669574949783162)
             serial=serial,
         )
         validated = validate_response(settings)
@@ -92,52 +75,6 @@ class WirelessEndpoints:
         return validated
 
     @handle_meraki_errors
-<<<<<<< HEAD
-=======
-    async def create_network_wireless_ssid_identity_psk(
-        self,
-        network_id: str,
-        number: str,
-        name: str,
-        group_policy_id: str,
-        **kwargs: dict[str, Any],
-    ) -> dict[str, Any]:
-        """
-        Create an Identity PSK for an SSID.
-
-        Args:
-        ----
-            network_id: The ID of the network.
-            number: The SSID number.
-            name: The name of the Identity PSK.
-            group_policy_id: The group policy ID.
-            **kwargs: Additional arguments.
-
-        Returns
-        -------
-            The created Identity PSK.
-
-        """
-        if self._api_client.dashboard is None:
-            return {}
-        psk = await self._api_client.run_sync(
-            self._api_client.dashboard.wireless.createNetworkWirelessSsidIdentityPsk,
-            network_id,
-            number,
-            name,
-            group_policy_id,
-            **kwargs,
-        )
-        validated = validate_response(psk)
-        if not isinstance(validated, dict):
-            _LOGGER.warning(
-                "create_network_wireless_ssid_identity_psk did not return a dict"
-            )
-            return {}
-        return validated
-
-    @handle_meraki_errors
->>>>>>> 9bc35b7 (Merge pull request #845 from brewmarsh/fix/frontend-build-2299669574949783162)
     @async_timed_cache()
     async def get_network_wireless_ssid(
         self,
@@ -157,15 +94,8 @@ class WirelessEndpoints:
             The SSID details.
 
         """
-<<<<<<< HEAD
         ssid = await self._api_client.run_sync(
             self._dashboard.wireless.getNetworkWirelessSsid,
-=======
-        if self._api_client.dashboard is None:
-            return {}
-        ssid = await self._api_client.run_sync(
-            self._api_client.dashboard.wireless.getNetworkWirelessSsid,
->>>>>>> 9bc35b7 (Merge pull request #845 from brewmarsh/fix/frontend-build-2299669574949783162)
             networkId=network_id,
             number=number,
         )
@@ -176,64 +106,6 @@ class WirelessEndpoints:
         return validated
 
     @handle_meraki_errors
-<<<<<<< HEAD
-=======
-    @async_timed_cache()
-    async def get_network_wireless_settings(self, network_id: str) -> dict[str, Any]:
-        """
-        Get wireless settings for a network.
-
-        Args:
-        ----
-            network_id: The ID of the network.
-
-        Returns
-        -------
-            The wireless settings.
-        """
-        if self._api_client.dashboard is None:
-            return {}
-        settings = await self._api_client.run_sync(
-            self._api_client.dashboard.wireless.getNetworkWirelessSettings,
-            networkId=network_id,
-        )
-        validated = validate_response(settings)
-        if not isinstance(validated, dict):
-            _LOGGER.warning("get_network_wireless_settings did not return a dict")
-            return {}
-        return validated
-
-    @handle_meraki_errors
-    async def update_network_wireless_settings(
-        self, network_id: str, **kwargs: dict[str, Any]
-    ) -> dict[str, Any]:
-        """
-        Update wireless settings for a network.
-
-        Args:
-        ----
-            network_id: The ID of the network.
-            **kwargs: The settings to update.
-
-        Returns
-        -------
-            The updated settings.
-        """
-        if self._api_client.dashboard is None:
-            return {}
-        settings = await self._api_client.run_sync(
-            self._api_client.dashboard.wireless.updateNetworkWirelessSettings,
-            networkId=network_id,
-            **kwargs,
-        )
-        validated = validate_response(settings)
-        if not isinstance(validated, dict):
-            _LOGGER.warning("update_network_wireless_settings did not return a dict")
-            return {}
-        return validated
-
-    @handle_meraki_errors
->>>>>>> 9bc35b7 (Merge pull request #845 from brewmarsh/fix/frontend-build-2299669574949783162)
     async def update_network_wireless_ssid(
         self,
         network_id: str,
@@ -254,15 +126,8 @@ class WirelessEndpoints:
             The updated SSID.
 
         """
-<<<<<<< HEAD
         ssid = await self._api_client.run_sync(
             self._dashboard.wireless.updateNetworkWirelessSsid,
-=======
-        if self._api_client.dashboard is None:
-            return {}
-        ssid = await self._api_client.run_sync(
-            self._api_client.dashboard.wireless.updateNetworkWirelessSsid,
->>>>>>> 9bc35b7 (Merge pull request #845 from brewmarsh/fix/frontend-build-2299669574949783162)
             networkId=network_id,
             number=number,
             **kwargs,
@@ -291,15 +156,8 @@ class WirelessEndpoints:
             A list of RF profiles.
 
         """
-<<<<<<< HEAD
         profiles = await self._api_client.run_sync(
             self._dashboard.wireless.getNetworkWirelessRfProfiles,
-=======
-        if self._api_client.dashboard is None:
-            return []
-        profiles = await self._api_client.run_sync(
-            self._api_client.dashboard.wireless.getNetworkWirelessRfProfiles,
->>>>>>> 9bc35b7 (Merge pull request #845 from brewmarsh/fix/frontend-build-2299669574949783162)
             networkId=network_id,
         )
         validated = validate_response(profiles)
@@ -328,15 +186,8 @@ class WirelessEndpoints:
             The L7 firewall rules.
 
         """
-<<<<<<< HEAD
         rules = await self._api_client.run_sync(
             self._dashboard.wireless.getNetworkWirelessSsidL7FirewallRules,
-=======
-        if self._api_client.dashboard is None:
-            return {}
-        rules = await self._api_client.run_sync(
-            self._api_client.dashboard.wireless.getNetworkWirelessSsidL7FirewallRules,
->>>>>>> 9bc35b7 (Merge pull request #845 from brewmarsh/fix/frontend-build-2299669574949783162)
             networkId=network_id,
             number=number,
         )
@@ -369,15 +220,8 @@ class WirelessEndpoints:
             The updated L7 firewall rules.
 
         """
-<<<<<<< HEAD
         rules = await self._api_client.run_sync(
             self._dashboard.wireless.updateNetworkWirelessSsidL7FirewallRules,
-=======
-        if self._api_client.dashboard is None:
-            return {}
-        rules = await self._api_client.run_sync(
-            self._api_client.dashboard.wireless.updateNetworkWirelessSsidL7FirewallRules,
->>>>>>> 9bc35b7 (Merge pull request #845 from brewmarsh/fix/frontend-build-2299669574949783162)
             networkId=network_id,
             number=number,
             **kwargs,

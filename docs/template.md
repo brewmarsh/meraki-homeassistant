@@ -21,13 +21,8 @@ _If this document describes a new feature, list the functional and non-functiona
 
 | Requirement ID | Description | Priority |
 | :------------- | :---------- | :------- |
-<<<<<<< HEAD
 | REQ-001.       | ...         | High     |
 | REQ-002.       | ...         | Medium   |
-=======
-| REQ-001        | ...         | High     |
-| REQ-002        | ...         | Medium   |
->>>>>>> 9bc35b7 (Merge pull request #845 from brewmarsh/fix/frontend-build-2299669574949783162)
 
 ---
 
@@ -35,7 +30,6 @@ _If this document describes a new feature, list the functional and non-functiona
 
 _Describe the proposed design. This can include architecture diagrams, UI mockups, data models, and API endpoint descriptions._
 
-<<<<<<< HEAD
 \*\*3.1. High-Level Architecture
 
 _A diagram or description of the overall system architecture._
@@ -45,17 +39,6 @@ _A diagram or description of the overall system architecture._
 _Embed or link to mockups for any user interface changes._
 
 \*\*3.3. Data Model
-=======
-### 3.1. High-Level Architecture
-
-_A diagram or description of the overall system architecture._
-
-### 3.2. UI/UX Mockups
-
-_Embed or link to mockups for any user interface changes._
-
-### 3.3. Data Model
->>>>>>> 9bc35b7 (Merge pull request #845 from brewmarsh/fix/frontend-build-2299669574949783162)
 
 _Describe any new or modified data models._
 

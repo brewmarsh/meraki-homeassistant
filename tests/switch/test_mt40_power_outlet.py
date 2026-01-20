@@ -10,11 +10,7 @@ from custom_components.meraki_ha.switch.mt40_power_outlet import MerakiMt40Power
 
 @pytest.fixture
 def mock_coordinator_with_mt40_data(mock_coordinator: MagicMock) -> MagicMock:
-<<<<<<< HEAD
     """Fixture for a mocked MerakiDataUpdateCoordinator with MT40 data."""
-=======
-    """Fixture for a mocked MerakiDataCoordinator with MT40 data."""
->>>>>>> 9bc35b7 (Merge pull request #845 from brewmarsh/fix/frontend-build-2299669574949783162)
     mock_coordinator.data = {
         "devices": [
             {

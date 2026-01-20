@@ -13,11 +13,7 @@ from custom_components.meraki_ha.switch.vlan_dhcp import MerakiVLANDHCPSwitch
 
 @pytest.fixture
 def mock_coordinator_with_vlan_data(mock_coordinator: MagicMock) -> MagicMock:
-<<<<<<< HEAD
     """Fixture for a mocked MerakiDataUpdateCoordinator with VLAN data."""
-=======
-    """Fixture for a mocked MerakiDataCoordinator with VLAN data."""
->>>>>>> 9bc35b7 (Merge pull request #845 from brewmarsh/fix/frontend-build-2299669574949783162)
     mock_coordinator.data = {
         "vlans": {
             "net1": [

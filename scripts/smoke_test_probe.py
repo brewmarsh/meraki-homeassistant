@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 """
-Connects to a Home Assistant instance and checks the health of the meraki_ha integration.
+Connect to a Home Assistant instance and check the health of the meraki_ha integration.
 
-This script connects to the Home Assistant WebSocket API and performs the following checks:
+This script connects to the Home Assistant WebSocket API to perform the
+following checks:
 1. Verifies that the `meraki_ha` integration domain is loaded.
 2. Fetches all entities and identifies those belonging to `meraki_ha`.
 3. Checks if any of these entities have a state of `unavailable`.
@@ -12,6 +13,7 @@ Configuration is provided via environment variables:
 - `HA_URL`: The URL of the Home Assistant instance (e.g., `ws://localhost:8123/api/websocket`).
 - `HA_TOKEN`: A long-lived access token for Home Assistant.
 """
+
 import asyncio
 import json
 import os
@@ -21,7 +23,7 @@ from homeassistant_ws import HomeAssistantClient
 
 
 async def main():
-    """Main function to perform the smoke test."""
+    """Perform the smoke test."""
     ha_url = os.environ.get("HA_URL")
     ha_token = os.environ.get("HA_TOKEN")
 
@@ -41,24 +43,30 @@ async def main():
         # 2. Check for unavailable entities
         entity_registry = await client.get_entity_registry()
         meraki_entities = [
-            entity for entity in entity_registry
-            if entity["platform"] == "meraki_ha"
+            entity for entity in entity_registry if entity["platform"] == "meraki_ha"
         ]
 
         states = await client.get_states()
         unavailable_entities = []
         for entity in meraki_entities:
             for state in states:
-                if state["entity_id"] == entity["entity_id"] and state["state"] == "unavailable":
+                if (
+                    state["entity_id"] == entity["entity_id"]
+                    and state["state"] == "unavailable"
+                ):
                     unavailable_entities.append(state)
 
         if unavailable_entities:
-            print(f"Found {len(unavailable_entities)} unavailable meraki_ha entities:", file=sys.stderr)
+            print(
+                f"Found {len(unavailable_entities)} unavailable meraki_ha entities:",
+                file=sys.stderr,
+            )
             print(json.dumps(unavailable_entities, indent=2), file=sys.stderr)
             sys.exit(1)
 
         print("All meraki_ha entities are available.")
         sys.exit(0)
+
 
 if __name__ == "__main__":
     asyncio.run(main())

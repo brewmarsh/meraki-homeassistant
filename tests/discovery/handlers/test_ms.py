@@ -5,6 +5,7 @@ from unittest.mock import MagicMock
 import pytest
 
 from custom_components.meraki_ha.discovery.handlers.ms import MSHandler
+from custom_components.meraki_ha.types import MerakiDevice
 
 
 @pytest.mark.asyncio
@@ -14,32 +15,24 @@ async def test_discover_entities():
     mock_coordinator = MagicMock()
     mock_config_entry = MagicMock()
     mock_control_service = MagicMock()
-<<<<<<< HEAD
     mock_switch_port_coordinator = MagicMock()
-=======
-    mock_network_control_service = MagicMock()
->>>>>>> 9bc35b7 (Merge pull request #845 from brewmarsh/fix/frontend-build-2299669574949783162)
-    mock_switch_device = {
-        "serial": "Q234-ABCD-5678",
-        "name": "My Switch",
-        "model": "MS220-8P",
-        "ports_statuses": [
+    mock_switch_device = MerakiDevice(
+        serial="Q234-ABCD-5678",
+        name="My Switch",
+        model="MS220-8P",
+        mac="00:11:22:33:44:55",
+        ports_statuses=[
             {"portId": 1, "enabled": True},
             {"portId": 2, "enabled": True},
         ],
-    }
+    )
 
     handler = MSHandler(
         mock_coordinator,
         mock_switch_device,
         mock_config_entry,
-<<<<<<< HEAD
         mock_switch_port_coordinator,
         mock_control_service,
-=======
-        mock_control_service,
-        mock_network_control_service,
->>>>>>> 9bc35b7 (Merge pull request #845 from brewmarsh/fix/frontend-build-2299669574949783162)
     )
 
     # Act

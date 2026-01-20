@@ -143,21 +143,22 @@ export class MerakiPanel extends LitElement {
             (network) => html`
               <ha-card .header="${network.name}">
                 <div class="card-content">
-                    <p>This is where the devices would go</p>
+                  <p>This is where the devices would go</p>
                 </div>
                 <div class="card-actions">
-                    <ha-switch
-                      .checked=${enabled_networks.includes(network.id)}
-                      @change=${(e: any) => this._handleToggle(network.id, e.target.checked)}
-                    >
-                    </ha-switch>
+                  <ha-switch
+                    .checked=${enabled_networks.includes(network.id)}
+                    @change=${(e: any) =>
+                      this._handleToggle(network.id, e.target.checked)}
+                  >
+                  </ha-switch>
                 </div>
               </ha-card>
             `
           )}
         </div>
         <div style="text-align: center; margin-top: 16px;">
-            <p>Version: ${version}</p>
+          <p>Version: ${version}</p>
         </div>
       </ha-card>
     `;

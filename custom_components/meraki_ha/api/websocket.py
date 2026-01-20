@@ -1,5 +1,6 @@
 """WebSocket API for Meraki HA."""
 
+# Ensure this file is tracked by git
 from __future__ import annotations
 
 import voluptuous as vol
@@ -8,6 +9,7 @@ from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 
 from ..const import DOMAIN
+from ..helpers.serialization import to_serializable
 
 
 @callback
@@ -16,7 +18,8 @@ def async_setup_websocket_api(hass: HomeAssistant) -> None:
 <<<<<<< HEAD
     # Register the command to subscribe to Meraki data
 =======
->>>>>>> 9bc35b7 (Merge pull request #845 from brewmarsh/fix/frontend-build-2299669574949783162)
+    # Register the subscribe command for the frontend
+>>>>>>> 435cb1f (chore: temporary commit before rebase)
     websocket_api.async_register_command(hass, ws_subscribe_meraki_data)
 
 
@@ -46,16 +49,12 @@ def ws_subscribe_meraki_data(
     @callback
     def async_send_update() -> None:
         """Send update to client."""
-        connection.send_message(
-<<<<<<< HEAD
-            websocket_api.event_message(msg["id"], coordinator.data)
-=======
-            websocket_api.event_message(msg["id"], {"data": coordinator.data})
->>>>>>> 9bc35b7 (Merge pull request #845 from brewmarsh/fix/frontend-build-2299669574949783162)
-        )
+        data = to_serializable(coordinator.data)
+        connection.send_message(websocket_api.event_message(msg["id"], {"data": data}))
 
     # Send initial data
-    connection.send_result(msg["id"], coordinator.data)
+    data = to_serializable(coordinator.data)
+    connection.send_result(msg["id"], data)
 
     # Register for updates
     cancel_subscription = coordinator.async_add_listener(async_send_update)

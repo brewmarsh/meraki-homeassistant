@@ -21,11 +21,7 @@ from custom_components.meraki_ha.text.meraki_ssid_name import MerakiSSIDNameText
 
 @pytest.fixture
 def mock_coordinator_and_data() -> tuple[MagicMock, MagicMock, dict[str, Any]]:
-<<<<<<< HEAD
     """Fixture for a mocked MerakiDataUpdateCoordinator and basic data."""
-=======
-    """Fixture for a mocked MerakiDataCoordinator and basic data."""
->>>>>>> 9bc35b7 (Merge pull request #845 from brewmarsh/fix/frontend-build-2299669574949783162)
     coordinator = MagicMock()
     coordinator.config_entry.options = {}
 
@@ -88,7 +84,6 @@ def test_ssid_device_unification(
 
     # Get the identifiers from each entity's DeviceInfo
     sensor_device_info = sensor.device_info
-<<<<<<< HEAD
     if sensor_device_info is None:
         pytest.fail("Sensor device_info is None")
     sensor_identifiers = sensor_device_info["identifiers"]
@@ -106,21 +101,6 @@ def test_ssid_device_unification(
     text_device_info = text.device_info
     if text_device_info is None:
         pytest.fail("Text device_info is None")
-=======
-    assert sensor_device_info is not None
-    sensor_identifiers = sensor_device_info["identifiers"]
-
-    detail_sensor_device_info = detail_sensor.device_info
-    assert detail_sensor_device_info is not None
-    detail_sensor_identifiers = detail_sensor_device_info["identifiers"]
-
-    switch_device_info = switch.device_info
-    assert switch_device_info is not None
-    switch_identifiers = switch_device_info["identifiers"]
-
-    text_device_info = text.device_info
-    assert text_device_info is not None
->>>>>>> 9bc35b7 (Merge pull request #845 from brewmarsh/fix/frontend-build-2299669574949783162)
     text_identifiers = text_device_info["identifiers"]
 
     # Assert that all entities share the exact same device identifier

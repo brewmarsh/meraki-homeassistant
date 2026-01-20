@@ -9,16 +9,9 @@ from homeassistant.components.switch import SwitchEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import callback
 
-<<<<<<< HEAD
 from ..coordinator import MerakiDataUpdateCoordinator
 from ..core.entities.meraki_firewall_rule_entity import MerakiFirewallRuleEntity
 from ..core.utils.entity_id_utils import get_firewall_rule_entity_id
-from ..core.utils.naming_utils import format_entity_name
-=======
-from ..core.entities.meraki_firewall_rule_entity import MerakiFirewallRuleEntity
-from ..core.utils.entity_id_utils import get_firewall_rule_entity_id
-from ..meraki_data_coordinator import MerakiDataCoordinator
->>>>>>> 9bc35b7 (Merge pull request #845 from brewmarsh/fix/frontend-build-2299669574949783162)
 from ..types import MerakiFirewallRule
 
 _LOGGER = logging.getLogger(__name__)
@@ -29,11 +22,7 @@ class MerakiFirewallRuleSwitch(MerakiFirewallRuleEntity, SwitchEntity):
 
     def __init__(
         self,
-<<<<<<< HEAD
         coordinator: MerakiDataUpdateCoordinator,
-=======
-        coordinator: MerakiDataCoordinator,
->>>>>>> 9bc35b7 (Merge pull request #845 from brewmarsh/fix/frontend-build-2299669574949783162)
         config_entry: ConfigEntry,
         network_id: str,
         rule: MerakiFirewallRule,

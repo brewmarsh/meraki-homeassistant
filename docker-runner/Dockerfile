@@ -1,9 +1,5 @@
 # Use a stable, minimal Ubuntu base
-<<<<<<< HEAD
 FROM ubuntu:24.04
-=======
-FROM ubuntu:22.04
->>>>>>> 9bc35b7 (Merge pull request #845 from brewmarsh/fix/frontend-build-2299669574949783162)
 
 # Define the official runner version (Check GitHub releases for latest)
 ARG RUNNER_VERSION="2.329.0"

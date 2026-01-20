@@ -55,11 +55,7 @@ async def setup_integration_fixture(
 
     with (
         patch(
-<<<<<<< HEAD
             "custom_components.meraki_ha.MerakiDataUpdateCoordinator._async_update_data",
-=======
-            "custom_components.meraki_ha.MerakiDataCoordinator._async_update_data",
->>>>>>> 9bc35b7 (Merge pull request #845 from brewmarsh/fix/frontend-build-2299669574949783162)
             return_value=MOCK_ALL_DATA,
         ),
         patch(
