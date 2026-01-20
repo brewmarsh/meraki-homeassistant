@@ -15,7 +15,6 @@ class MerakiDevice:
     model: str
     mac: str
     lan_ip: str | None = None
-    appliance_uplink_statuses: list[dict[str, Any]] = field(default_factory=list)
     wan1_ip: str | None = None
     wan2_ip: str | None = None
     public_ip: str | None = None
@@ -89,6 +88,7 @@ class MerakiVlan:
     subnet: str | None = None
     appliance_ip: str | None = None
     ipv6: dict | None = None
+    dhcp_handling: str | None = None
 
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> "MerakiVlan":
@@ -99,6 +99,7 @@ class MerakiVlan:
             subnet=data.get("subnet"),
             appliance_ip=data.get("applianceIp"),
             ipv6=data.get("ipv6"),
+            dhcp_handling=data.get("dhcpHandling"),
         )
 
 

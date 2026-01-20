@@ -1,7 +1,9 @@
+from __future__ import annotations
+
 """Sensor entity for monitoring connected clients on a Meraki device."""
 
 import logging
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from homeassistant.components.sensor import SensorEntity, SensorStateClass
 from homeassistant.config_entries import ConfigEntry
@@ -10,6 +12,9 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from ...coordinator import MerakiDataUpdateCoordinator
 from ...helpers.device_info_helpers import resolve_device_info
+
+if TYPE_CHECKING:
+    from ...types import MerakiDevice
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -25,7 +30,7 @@ class MerakiDeviceConnectedClientsSensor(CoordinatorEntity, SensorEntity):
     def __init__(
         self,
         coordinator: MerakiDataUpdateCoordinator,
-        device_data: "MerakiDevice",
+        device_data: MerakiDevice,
         config_entry: ConfigEntry,
     ) -> None:
         """Initialize the sensor."""
@@ -41,7 +46,7 @@ class MerakiDeviceConnectedClientsSensor(CoordinatorEntity, SensorEntity):
         )
         self._update_state()
 
-    def _get_current_device_data(self) -> "MerakiDevice" | None:
+    def _get_current_device_data(self) -> MerakiDevice | None:
         """Retrieve the latest data for this sensor's device from the coordinator."""
         return self.coordinator.get_device(self._device_serial)
 

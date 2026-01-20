@@ -1,7 +1,9 @@
 """Sensor entity for Meraki camera sense status."""
 
+from __future__ import annotations
+
 import logging
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from homeassistant.components.sensor import SensorEntity, SensorEntityDescription
 from homeassistant.config_entries import ConfigEntry
@@ -12,6 +14,9 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from ...const import DOMAIN
 from ...coordinator import MerakiDataUpdateCoordinator
 from ...core.utils.naming_utils import format_device_name
+
+if TYPE_CHECKING:
+    from ...types import MerakiDevice
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -24,7 +29,7 @@ class MerakiCameraSenseStatusSensor(CoordinatorEntity, SensorEntity):
     def __init__(
         self,
         coordinator: MerakiDataUpdateCoordinator,
-        device_data: "MerakiDevice",
+        device_data: MerakiDevice,
         config_entry: ConfigEntry,
     ) -> None:
         """Initialize the Meraki Camera Sense Status sensor."""
@@ -47,7 +52,7 @@ class MerakiCameraSenseStatusSensor(CoordinatorEntity, SensorEntity):
 
         self._update_sensor_data()
 
-    def _get_current_device_data(self) -> "MerakiDevice" | None:
+    def _get_current_device_data(self) -> MerakiDevice | None:
         """Retrieve the latest data for this sensor's device from the coordinator."""
         return self.coordinator.get_device(self._device_serial)
 
@@ -60,7 +65,14 @@ class MerakiCameraSenseStatusSensor(CoordinatorEntity, SensorEntity):
             self._attr_icon = "mdi:help-rhombus"
             return
 
-        sense_enabled_value = current_device_data.sense_enabled
+        sense_settings = getattr(current_device_data, "sense_settings", None)
+
+        if not isinstance(sense_settings, dict):
+            self._attr_native_value = None
+            self._attr_icon = "mdi:camera-question"
+            return
+
+        sense_enabled_value = sense_settings.get("senseEnabled")
 
         if sense_enabled_value is None:
             self._attr_native_value = None
@@ -92,4 +104,5 @@ class MerakiCameraSenseStatusSensor(CoordinatorEntity, SensorEntity):
         if not current_device_data:
             return False
 
-        return current_device_data.sense_enabled is not None
+        sense_settings = getattr(current_device_data, "sense_settings", None)
+        return isinstance(sense_settings, dict)

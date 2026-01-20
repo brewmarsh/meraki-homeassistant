@@ -1,7 +1,9 @@
 """Sensor entity for Meraki camera audio detection status."""
 
+from __future__ import annotations
+
 import logging
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from homeassistant.components.sensor import SensorEntity, SensorEntityDescription
 from homeassistant.config_entries import ConfigEntry
@@ -12,6 +14,9 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from ...const import DOMAIN
 from ...coordinator import MerakiDataUpdateCoordinator
 from ...core.utils.naming_utils import format_device_name
+
+if TYPE_CHECKING:
+    from ...types import MerakiDevice
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -24,7 +29,7 @@ class MerakiCameraAudioDetectionSensor(CoordinatorEntity, SensorEntity):
     def __init__(
         self,
         coordinator: MerakiDataUpdateCoordinator,
-        device_data: "MerakiDevice",
+        device_data: MerakiDevice,
         config_entry: ConfigEntry,
     ) -> None:
         """Initialize the Meraki Camera Audio Detection sensor."""
@@ -47,7 +52,7 @@ class MerakiCameraAudioDetectionSensor(CoordinatorEntity, SensorEntity):
 
         self._update_sensor_data()
 
-    def _get_current_device_data(self) -> "MerakiDevice" | None:
+    def _get_current_device_data(self) -> MerakiDevice | None:
         """Retrieve the latest data for this sensor's device from the coordinator."""
         return self.coordinator.get_device(self._device_serial)
 
@@ -60,7 +65,15 @@ class MerakiCameraAudioDetectionSensor(CoordinatorEntity, SensorEntity):
             self._attr_icon = "mdi:help-rhombus"
             return
 
-        audio_detection_data = current_device_data.audio_detection
+        # Audio detection is part of sense settings
+        sense_settings = getattr(current_device_data, "sense_settings", None)
+
+        if not isinstance(sense_settings, dict):
+             self._attr_native_value = None
+             self._attr_icon = "mdi:microphone-question"
+             return
+
+        audio_detection_data = sense_settings.get("audioDetection")
 
         if (
             not isinstance(audio_detection_data, dict)
@@ -95,7 +108,11 @@ class MerakiCameraAudioDetectionSensor(CoordinatorEntity, SensorEntity):
         if not current_device_data:
             return False
 
-        audio_data = current_device_data.audio_detection
+        sense_settings = getattr(current_device_data, "sense_settings", None)
+        if not isinstance(sense_settings, dict):
+            return False
+
+        audio_data = sense_settings.get("audioDetection")
         if not isinstance(audio_data, dict) or "enabled" not in audio_data:
             return False
 
