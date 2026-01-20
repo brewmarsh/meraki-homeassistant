@@ -49,6 +49,12 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
 
     config_entries.HANDLERS.register(DOMAIN)(config_flow.ConfigFlowHandler)
     hass.data.setdefault(DOMAIN, {})
+
+    # Register the static path for the custom panel
+    hass.http.async_register_static_path(
+        f"/local/{DOMAIN}", hass.config.path(f"custom_components/{DOMAIN}/www"), cache_headers=False
+    )
+
     return True
 
 
