@@ -57,7 +57,8 @@ class MerakiMtSensor(CoordinatorEntity, RestoreSensor):
         """Update the native value of the sensor."""
         readings = self._device.readings
         if not readings or not isinstance(readings, list):
-            return self._attr_native_value
+            self._attr_native_value = None
+            return
 
         for reading in readings:
             if reading.get("metric") == self.entity_description.key:
@@ -86,6 +87,9 @@ class MerakiMtSensor(CoordinatorEntity, RestoreSensor):
                         else:
                             self._attr_native_value = metric_data.get(value_key)
                         return
+
+        # If metric not found in readings, set to None
+        self._attr_native_value = None
 
     @callback
     def _handle_coordinator_update(self) -> None:

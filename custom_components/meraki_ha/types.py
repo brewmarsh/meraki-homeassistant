@@ -60,6 +60,18 @@ class MerakiDevice:
             notes=data.get("notes"),
             url=data.get("url"),
             firmware_upgrades=data.get("firmwareUpgrades"),
+            readings=data.get("readings", []),
+            video_settings=data.get("videoSettings"),
+            rtsp_url=data.get("rtspUrl"),
+            sense_settings=data.get("senseSettings"),
+            analytics=data.get("analytics", []),
+            ports_statuses=data.get("portsStatuses", []),
+            appliance_ports=[
+                MerakiAppliancePort.from_dict(p) for p in data.get("appliancePorts", [])
+            ],
+            dynamic_dns=data.get("dynamicDns"),
+            status_messages=data.get("statusMessages", []),
+            appliance_uplink_statuses=data.get("applianceUplinkStatuses", []),
         )
 
 

@@ -27,5 +27,5 @@ async def test_meraki_organization_device_type_clients_sensor(
     sensor = MerakiOrganizationDeviceTypeClientsSensor(
         coordinator, config_entry, "wireless"
     )
-    sensor._update_sensor_data()
+    # sensor._update_sensor_data() # Removed
     assert sensor.native_value == 2
