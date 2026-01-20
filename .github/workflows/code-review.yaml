@@ -12,7 +12,6 @@ jobs:
         uses: google-labs-code/jules-invoke@main
         with:
           jules_api_key: ${{ secrets.JULES_API_KEY }}
-          model: "gemini-2.0-flash-thinking" # Use a fast/smart model
           prompt: |
             You are the Repository Compliance Officer. Read 'AGENTS.md'.
             Review the code changes in this PR.
