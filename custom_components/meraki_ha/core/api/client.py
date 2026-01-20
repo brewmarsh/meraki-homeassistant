@@ -371,14 +371,7 @@ class MerakiAPIClient:
             )
             networks: list[MerakiNetwork] = []
         else:
-            network_fields = {f.name for f in fields(MerakiNetwork)}
-            networks = [
-                MerakiNetwork(
-                    organization_id=self.organization_id,
-                    **{k: v for k, v in network.items() if k in network_fields},
-                )
-                for network in networks_res
-            ]
+            networks = networks_res
 
         devices_res = initial_results.get("devices", [])
         if isinstance(devices_res, Exception):
@@ -388,13 +381,7 @@ class MerakiAPIClient:
             )
             devices: list[MerakiDevice] = []
         else:
-            device_fields = {f.name for f in fields(MerakiDevice)}
-            devices = [
-                MerakiDevice(
-                    **{k: v for k, v in device.items() if k in device_fields},
-                )
-                for device in devices_res
-            ]
+            devices = devices_res
 
         device_statuses = initial_results.get("device_statuses", [])
         if isinstance(device_statuses, Exception):
@@ -434,6 +421,7 @@ class MerakiAPIClient:
             detail_data,
             networks,
             previous_data,
+            clients=network_clients if isinstance(network_clients, list) else [],
         )
 
         return {
