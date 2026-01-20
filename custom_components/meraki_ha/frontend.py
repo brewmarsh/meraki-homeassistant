@@ -23,9 +23,7 @@ async def async_register_frontend(hass: HomeAssistant, entry: ConfigEntry) -> No
     version = manifest.get("version", "0.0.0")
 
     # The custom panel will be served at `/local/meraki_ha/meraki-panel.js`.
-    # HA automatically maps the `www` folder of an integration to
-    # `_hass_frontend/static/panels/<integration_name>`. The `/local/` alias
-    # is then used to access these assets. No need to register static paths.
+    # This path is mapped to the `www` directory in `__init__.py`.
     module_url = f"/local/{DOMAIN}/meraki-panel.js?v={version}"
 
     # Register a custom panel using the modern `module_url` approach
