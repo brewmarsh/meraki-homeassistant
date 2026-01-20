@@ -34,6 +34,7 @@ class MerakiMtSensor(CoordinatorEntity, RestoreSensor):
         self._attr_unique_id = f"{device.serial}_{self.entity_description.key}"
         self._attr_name = f"{device.name} {self.entity_description.name}"
         self._attr_native_value = None
+        self.entity_id = f"sensor.{self._attr_unique_id}".replace(".", "_")
 
     async def async_added_to_hass(self) -> None:
         """Handle entity which provides state restoration."""

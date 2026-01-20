@@ -11,6 +11,7 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from ..coordinator import MerakiDataUpdateCoordinator
 from ..helpers.device_info_helpers import resolve_device_info
+from ..types import MerakiNetwork
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -40,6 +41,8 @@ class MerakiContentFilteringSwitch(
 
         """
         super().__init__(coordinator)
+        if isinstance(network, dict):
+            network = MerakiNetwork.from_dict(network)
         self._config_entry = config_entry
         self._network = network
         self._category = category
@@ -102,7 +105,7 @@ class MerakiContentFilteringSwitch(
         """
         current_settings = (
             await self._client.appliance.get_network_appliance_content_filtering(
-                self._network["id"],
+                self._network.id,
             )
         )
         blocked_categories = current_settings.get("blockedUrlCategories", [])
@@ -114,7 +117,7 @@ class MerakiContentFilteringSwitch(
             blocked_categories.remove(self._category["id"])
 
         await self._client.appliance.update_network_appliance_content_filtering(
-            self._network["id"],
+            self._network.id,
             blockedUrlCategories=blocked_categories,
         )
         await self.coordinator.async_request_refresh()
