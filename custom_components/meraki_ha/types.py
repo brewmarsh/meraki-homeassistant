@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any, TypedDict
+from typing import Any
 
 
 @dataclass
@@ -34,13 +34,13 @@ class MerakiDevice:
     sense_settings: dict[str, Any] | None = None
     analytics: list[dict[str, Any]] = field(default_factory=list)
     ports_statuses: list[dict[str, Any]] = field(default_factory=list)
-    appliance_ports: list["MerakiAppliancePort"] = field(default_factory=list)
+    appliance_ports: list[MerakiAppliancePort] = field(default_factory=list)
     dynamic_dns: dict[str, Any] | None = None
     status_messages: list[str] = field(default_factory=list)
     entity_id: str | None = None
 
     @classmethod
-    def from_dict(cls, data: dict[str, Any]) -> "MerakiDevice":
+    def from_dict(cls, data: dict[str, Any]) -> MerakiDevice:
         """Create a MerakiDevice instance from a dictionary."""
         return cls(
             serial=data.get("serial"),
@@ -61,13 +61,14 @@ class MerakiDevice:
             url=data.get("url"),
             firmware_upgrades=data.get("firmwareUpgrades"),
             readings=data.get("readings", []),
-            video_settings=data.get("videoSettings"),
+            video_settings=data.get("video_settings"),
             rtsp_url=data.get("rtspUrl"),
-            sense_settings=data.get("senseSettings"),
+            sense_settings=data.get("sense_settings"),
             analytics=data.get("analytics", []),
-            ports_statuses=data.get("portsStatuses", []),
+            ports_statuses=data.get("ports_statuses", []),
             appliance_ports=[
-                MerakiAppliancePort.from_dict(p) for p in data.get("appliancePorts", [])
+                MerakiAppliancePort.from_dict(p)
+                for p in data.get("appliance_ports", [])
             ],
             dynamic_dns=data.get("dynamicDns"),
             status_messages=data.get("statusMessages", []),
@@ -89,7 +90,7 @@ class MerakiNetwork:
     status_messages: list[str] = field(default_factory=list)
 
     @classmethod
-    def from_dict(cls, data: dict[str, Any]) -> "MerakiNetwork":
+    def from_dict(cls, data: dict[str, Any]) -> MerakiNetwork:
         """Create a MerakiNetwork instance from a dictionary."""
         return cls(
             id=data.get("id"),
@@ -114,7 +115,7 @@ class MerakiVlan:
     dhcp_handling: str | None = None
 
     @classmethod
-    def from_dict(cls, data: dict[str, Any]) -> "MerakiVlan":
+    def from_dict(cls, data: dict[str, Any]) -> MerakiVlan:
         """Create a MerakiVlan instance from a dictionary."""
         return cls(
             id=data.get("id"),
@@ -140,7 +141,7 @@ class MerakiFirewallRule:
     syslog_enabled: bool = False
 
     @classmethod
-    def from_dict(cls, data: dict[str, Any]) -> "MerakiFirewallRule":
+    def from_dict(cls, data: dict[str, Any]) -> MerakiFirewallRule:
         """Create a MerakiFirewallRule instance from a dictionary."""
         return cls(
             comment=data.get("comment"),
@@ -162,7 +163,7 @@ class MerakiTrafficShaping:
     rules: list = field(default_factory=list)
 
     @classmethod
-    def from_dict(cls, data: dict[str, Any]) -> "MerakiTrafficShaping":
+    def from_dict(cls, data: dict[str, Any]) -> MerakiTrafficShaping:
         """Create a MerakiTrafficShaping instance from a dictionary."""
         return cls(
             enabled=data.get("enabled", False),
@@ -179,7 +180,7 @@ class MerakiVpn:
     subnets: list = field(default_factory=list)
 
     @classmethod
-    def from_dict(cls, data: dict[str, Any]) -> "MerakiVpn":
+    def from_dict(cls, data: dict[str, Any]) -> MerakiVpn:
         """Create a MerakiVpn instance from a dictionary."""
         return cls(
             mode=data.get("mode"),
@@ -203,7 +204,7 @@ class MerakiAppliancePort:
     speed: str | None = None
 
     @classmethod
-    def from_dict(cls, data: dict[str, Any]) -> "MerakiAppliancePort":
+    def from_dict(cls, data: dict[str, Any]) -> MerakiAppliancePort:
         """Create a MerakiAppliancePort instance from a dictionary."""
         return cls(
             number=data.get("number"),

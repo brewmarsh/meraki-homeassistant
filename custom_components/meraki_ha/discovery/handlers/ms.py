@@ -84,7 +84,6 @@ class MSHandler(BaseDeviceHandler):
                         self._switch_port_coordinator,
                         self.device,
                         port,
-                        SWITCH_PORT_DESCRIPTION,
                     )
                 )
 

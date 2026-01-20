@@ -120,7 +120,6 @@ class MVHandler(BaseDeviceHandler):
                 MerakiPersonCountSensor(
                     self._coordinator,
                     self.device,
-                    self._camera_service,
                 )
             )
 
@@ -129,7 +128,6 @@ class MVHandler(BaseDeviceHandler):
                 MerakiVehicleCountSensor(
                     self._coordinator,
                     self.device,
-                    self._camera_service,
                 )
             )
 
@@ -140,7 +138,6 @@ class MVHandler(BaseDeviceHandler):
                 self.device,
                 self._camera_service,
                 self._config_entry,
-                CAMERA_MOTION_DESCRIPTION,
             )
         )
 

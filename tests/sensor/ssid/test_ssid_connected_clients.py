@@ -1,4 +1,3 @@
-
 """Tests for the Meraki SSID connected clients sensor."""
 
 from unittest.mock import MagicMock
@@ -77,11 +76,13 @@ def mock_data_coordinator():
             {"id": "net2", "name": "Network 2"},
         ],
     }
+
     def get_ssid(network_id, ssid_number):
         for ssid in coordinator.data["ssids"]:
             if ssid["networkId"] == network_id and ssid["number"] == ssid_number:
                 return ssid
         return None
+
     coordinator.get_ssid.side_effect = get_ssid
     return coordinator
 
