@@ -1,3 +1,7 @@
+/**
+ * Meraki Home Assistant Panel
+ * Implements a custom element for displaying Meraki data.
+ */
 class MerakiPanel extends HTMLElement {
   constructor() {
     super();
