@@ -81,6 +81,8 @@ class MerakiDeviceStatusSensor(CoordinatorEntity, SensorEntity):
             manufacturer="Cisco Meraki",
             serial_number=self._device_serial,
             sw_version=device_data.firmware,
+            suggested_area=device_data.address,
+            configuration_url=device_data.url,
         )
 
         # _attr_name is not explicitly set
@@ -136,14 +138,14 @@ class MerakiDeviceStatusSensor(CoordinatorEntity, SensorEntity):
         self._attr_extra_state_attributes = {
             "model": current_device_data.model,
             "serial_number": current_device_data.serial,
-            "firmware_version": getattr(current_device_data, "firmware", None),
+            "firmware_version": current_device_data.firmware,
             "product_type": current_device_data.product_type,
             "mac_address": current_device_data.mac,
             "lan_ip": current_device_data.lan_ip,
             "public_ip": current_device_data.public_ip,
             "wan1_ip": current_device_data.wan1_ip,
             "wan2_ip": current_device_data.wan2_ip,
-            "tags": getattr(current_device_data, "tags", []),
+            "tags": current_device_data.tags,
             "network_id": current_device_data.network_id,
         }
         # Filter out None values from attributes
@@ -153,7 +155,7 @@ class MerakiDeviceStatusSensor(CoordinatorEntity, SensorEntity):
 
         # If the device is an appliance, add uplink information as attributes
         if current_device_data.product_type == "appliance":
-            for uplink in getattr(current_device_data, "uplinks", []):
+            for uplink in current_device_data.appliance_uplink_statuses:
                 interface = uplink.get("interface")
                 if interface is not None:
                     self._attr_extra_state_attributes[f"{interface}_status"] = (
