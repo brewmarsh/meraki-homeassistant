@@ -13,7 +13,8 @@
   "quality_scale": "platinum",
   "requirements": [
     "aiohttp>=3.13.2",
-    "meraki==1.53.0",
+    "meraki>=1.53.0",
+    "pycares==4.11.0",
     "urllib3>=2.6.2"
   ],
   "version": "2.0.0-beta.69"

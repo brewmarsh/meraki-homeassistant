@@ -253,7 +253,7 @@ class MerakiAPIClient:
         self,
         networks: list[MerakiNetwork],
         devices: list[MerakiDevice],
-    ) -> dict[str, Awaitable[Any]]:
+    ) -> dict[str, asyncio.Task[Any]]:
         """
         Build a dictionary of tasks to fetch detailed data.
 
@@ -266,40 +266,50 @@ class MerakiAPIClient:
             A dictionary of tasks.
 
         """
-        detail_tasks: dict[str, Awaitable[Any]] = {}
+        detail_tasks: dict[str, asyncio.Task[Any]] = {}
         for network in networks:
             product_types = network.product_types
             if "wireless" in product_types:
-                detail_tasks[f"ssids_{network.id}"] = self._run_with_semaphore(
-                    self.wireless.get_network_ssids(network.id),
+                detail_tasks[f"ssids_{network.id}"] = asyncio.create_task(
+                    self._run_with_semaphore(
+                        self.wireless.get_network_ssids(network.id),
+                    )
                 )
             if "appliance" in product_types:
                 if not self.coordinator or self.coordinator.is_traffic_check_due(
                     network.id,
                 ):
-                    detail_tasks[f"traffic_{network.id}"] = self._run_with_semaphore(
-                        self.network.get_network_traffic(network.id, "appliance"),
+                    detail_tasks[f"traffic_{network.id}"] = asyncio.create_task(
+                        self._run_with_semaphore(
+                            self.network.get_network_traffic(network.id, "appliance"),
+                        )
                     )
                 if not self.coordinator or self.coordinator.is_vlan_check_due(
                     network.id,
                 ):
-                    detail_tasks[f"vlans_{network.id}"] = self._run_with_semaphore(
-                        self.appliance.get_network_vlans(network.id),
+                    detail_tasks[f"vlans_{network.id}"] = asyncio.create_task(
+                        self._run_with_semaphore(
+                            self.appliance.get_network_vlans(network.id),
+                        )
                     )
-                detail_tasks[f"l3_firewall_rules_{network.id}"] = (
+                detail_tasks[f"l3_firewall_rules_{network.id}"] = asyncio.create_task(
                     self._run_with_semaphore(
                         self.appliance.get_l3_firewall_rules(network.id),
                     )
                 )
-                detail_tasks[f"traffic_shaping_{network.id}"] = (
+                detail_tasks[f"traffic_shaping_{network.id}"] = asyncio.create_task(
                     self._run_with_semaphore(
                         self.appliance.get_traffic_shaping(network.id),
                     )
                 )
-                detail_tasks[f"vpn_status_{network.id}"] = self._run_with_semaphore(
-                    self.appliance.get_vpn_status(network.id),
+                detail_tasks[f"vpn_status_{network.id}"] = asyncio.create_task(
+                    self._run_with_semaphore(
+                        self.appliance.get_vpn_status(network.id),
+                    )
                 )
-                detail_tasks[f"content_filtering_{network.id}"] = (
+                detail_tasks[
+                    f"content_filtering_{network.id}"
+                ] = asyncio.create_task(
                     self._run_with_semaphore(
                         self.appliance.get_network_appliance_content_filtering(
                             network.id,
@@ -307,34 +317,44 @@ class MerakiAPIClient:
                     )
                 )
             if "wireless" in product_types:
-                detail_tasks[f"rf_profiles_{network.id}"] = self._run_with_semaphore(
-                    self.wireless.get_network_wireless_rf_profiles(network.id),
+                detail_tasks[f"rf_profiles_{network.id}"] = asyncio.create_task(
+                    self._run_with_semaphore(
+                        self.wireless.get_network_wireless_rf_profiles(network.id),
+                    )
                 )
         for device in devices:
             if device.product_type == "camera":
-                detail_tasks[f"video_settings_{device.serial}"] = (
+                detail_tasks[f"video_settings_{device.serial}"] = asyncio.create_task(
                     self._run_with_semaphore(
                         self.camera.get_camera_video_settings(device.serial),
                     )
                 )
-                detail_tasks[f"sense_settings_{device.serial}"] = (
+                detail_tasks[f"sense_settings_{device.serial}"] = asyncio.create_task(
                     self._run_with_semaphore(
                         self.camera.get_camera_sense_settings(device.serial),
                     )
                 )
-                detail_tasks[f"camera_analytics_{device.serial}"] = (
+                detail_tasks[
+                    f"camera_analytics_{device.serial}"
+                ] = asyncio.create_task(
                     self._run_with_semaphore(
-                        self.camera.get_camera_analytics_recent(device.serial),
+                        self.camera.get_device_camera_analytics_recent(
+                            device.serial,
+                        ),
                     )
                 )
             elif device.product_type == "switch":
-                detail_tasks[f"ports_statuses_{device.serial}"] = (
+                detail_tasks[
+                    f"ports_statuses_{device.serial}"
+                ] = asyncio.create_task(
                     self._run_with_semaphore(
                         self.switch.get_device_switch_ports_statuses(device.serial),
                     )
                 )
             elif device.product_type == "appliance" and device.network_id:
-                detail_tasks[f"appliance_settings_{device.serial}"] = (
+                detail_tasks[
+                    f"appliance_settings_{device.serial}"
+                ] = asyncio.create_task(
                     self._run_with_semaphore(
                         self.appliance.get_network_appliance_settings(
                             device.network_id,
