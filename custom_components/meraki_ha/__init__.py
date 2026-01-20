@@ -5,6 +5,7 @@ import random
 import string
 
 from homeassistant import config_entries
+from homeassistant.components.http import StaticPathConfig
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.components.http import StaticPathConfig
