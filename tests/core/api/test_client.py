@@ -167,6 +167,37 @@ def test_build_detail_tasks_for_wireless_device(api_client):
         task.close()
 
 
+@pytest.mark.asyncio
+async def test_get_all_data_includes_switch_ports(api_client):
+    """Test that get_all_data returns switch ports statuses."""
+    # Arrange
+    api_client._async_fetch_initial_data = AsyncMock(
+        return_value={
+            "networks": [],
+            "devices": [],
+        }
+    )
+    api_client._async_fetch_network_clients = AsyncMock(return_value=[])
+    api_client._async_fetch_device_clients = AsyncMock(return_value={})
+
+    # Simulate detailed switch ports response
+    async def coro():
+        return [{"portId": "1", "status": "Connected"}]
+
+    api_client._build_detail_tasks = MagicMock(
+        return_value={"ports_statuses_Q123": coro()}
+    )
+
+    # Act
+    data = await api_client.get_all_data()
+
+    # Assert
+    assert "switch_ports_statuses" in data
+    assert data["switch_ports_statuses"]["Q123"] == [
+        {"portId": "1", "status": "Connected"}
+    ]
+
+
 def test_build_detail_tasks_for_switch_device(api_client):
     """Test that _build_detail_tasks creates the correct tasks for a switch device."""
     # Arrange
