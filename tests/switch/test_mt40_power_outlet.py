@@ -23,9 +23,7 @@ def mock_coordinator_with_mt40_data(mock_coordinator: MagicMock) -> MagicMock:
         ],
     )
 
-    mock_coordinator.data = {
-        "devices": [device]
-    }
+    mock_coordinator.data = {"devices": [device]}
     mock_coordinator.is_pending = MagicMock(return_value=False)
     # Ensure get_device returns the device
     mock_coordinator.get_device.side_effect = lambda serial: next(
