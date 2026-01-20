@@ -58,7 +58,7 @@ async def test_camera_stream_source(mock_camera: MerakiCamera) -> None:
     source = await mock_camera.stream_source()
 
     # Assert
-    assert source == "rtsp://1.2.3.4:9000/live"
+    assert source == "rtsp://test.com/stream"
 
 
 @pytest.mark.asyncio
@@ -91,9 +91,7 @@ async def test_camera_turn_on(
         MOCK_CAMERA_DEVICE.serial,
         True,
     )
-    mock_coordinator.register_pending_update.assert_called_once_with(
-        mock_camera.unique_id
-    )
+    mock_coordinator.async_request_refresh.assert_called_once()
 
 
 @pytest.mark.asyncio
@@ -126,9 +124,7 @@ async def test_camera_turn_off(
         MOCK_CAMERA_DEVICE.serial,
         False,
     )
-    mock_coordinator.register_pending_update.assert_called_once_with(
-        mock_camera.unique_id
-    )
+    mock_coordinator.async_request_refresh.assert_called_once()
 
 
 @pytest.mark.parametrize(
@@ -168,6 +164,9 @@ def test_is_streaming_logic(
         lan_ip=None,
         rtsp_url=video_settings.get("rtspUrl"),
     )
+
+    mock_coordinator.get_device.return_value = mock_device_data
+
     # The entity is initialized with this data, so we pass it directly
     camera = MerakiCamera(
         mock_coordinator,
@@ -245,7 +244,10 @@ def test_entity_disabled_if_no_url(
             "rtspUrl": None,
         },
         lan_ip=None,
+        rtsp_url=None,
     )
+
+    mock_coordinator.get_device.return_value = mock_device_no_url
 
     # Act
     camera = MerakiCamera(
@@ -257,4 +259,4 @@ def test_entity_disabled_if_no_url(
 
     # Assert
     assert not camera.entity_registry_enabled_default
-    assert camera.extra_state_attributes["disabled_reason"] is not None
+    assert camera.extra_state_attributes["stream_status"] is not None

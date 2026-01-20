@@ -1,4 +1,3 @@
-
 """Tests for the Meraki network clients sensor."""
 
 from unittest.mock import MagicMock
@@ -8,7 +7,6 @@ from homeassistant.core import HomeAssistant
 from custom_components.meraki_ha.sensor.network.network_clients import (
     MerakiNetworkClientsSensor,
 )
-from custom_components.meraki_ha.types import MerakiNetwork
 from tests.const import MOCK_NETWORK
 
 
@@ -19,11 +17,12 @@ async def test_network_clients_sensor(
     coordinator = MagicMock()
     coordinator.data = {}  # Data is no longer read from coordinator
     config_entry = MagicMock()
-    network_control_service = MagicMock()
-    network_control_service.get_network_client_count.return_value = 0
-
+    service = MagicMock()
+    service.get_network_client_count.return_value = 0
     sensor = MerakiNetworkClientsSensor(
-        coordinator, config_entry, MOCK_NETWORK, network_control_service
+        coordinator, config_entry, MOCK_NETWORK, service
     )
-    # sensor._update_sensor_data() # Removed as it doesn't exist and isn't needed
+    sensor.hass = MagicMock()
+    sensor.async_write_ha_state = MagicMock()
+    sensor._handle_coordinator_update()
     assert sensor.native_value == 0

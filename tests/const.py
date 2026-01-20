@@ -120,4 +120,5 @@ MOCK_CAMERA_DEVICE = MerakiDevice(
         "rtspServerEnabled": True,
         "rtspUrl": "rtsp://test.com/stream",
     },
+    rtsp_url="rtsp://test.com/stream",
 )
