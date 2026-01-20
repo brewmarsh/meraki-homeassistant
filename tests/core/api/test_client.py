@@ -1,5 +1,6 @@
 """Tests for the Meraki API client."""
 
+from dataclasses import asdict
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
@@ -60,13 +61,11 @@ async def test_get_all_data_orchestration(api_client):
 
     # Assert
     api_client._async_fetch_initial_data.assert_awaited_once()
-    mock_network = MerakiNetwork(organization_id="test-org", **MOCK_NETWORK)
-    mock_device = MerakiDevice(**MOCK_DEVICE)
 
-    api_client._async_fetch_network_clients.assert_awaited_once_with([mock_network])
-    api_client._async_fetch_device_clients.assert_awaited_once_with([mock_device])
+    api_client._async_fetch_network_clients.assert_awaited_once_with([MOCK_NETWORK])
+    api_client._async_fetch_device_clients.assert_awaited_once_with([MOCK_DEVICE])
     api_client._build_detail_tasks.assert_called_once_with(
-        [mock_network], [mock_device]
+        [MOCK_NETWORK], [MOCK_DEVICE]
     )
 
 
@@ -97,8 +96,10 @@ async def test_get_all_data_handles_api_errors(api_client, caplog):
 async def test_get_all_data_merges_availability(api_client):
     """Test that get_all_data merges device availability."""
     # Arrange
-    device_with_status = MOCK_DEVICE.copy()
-    availabilities = [{"serial": MOCK_DEVICE["serial"], "status": "online"}]
+    from dataclasses import replace
+
+    device_with_status = replace(MOCK_DEVICE)
+    availabilities = [{"serial": MOCK_DEVICE.serial, "status": "online"}]
     api_client._async_fetch_initial_data = AsyncMock(
         return_value={
             "networks": [MOCK_NETWORK],
@@ -135,16 +136,16 @@ async def test_get_all_data_handles_informational_errors(api_client):
         return MerakiInformationalError("Traffic analysis is not enabled")
 
     api_client._build_detail_tasks = MagicMock(
-        return_value={f"traffic_{MOCK_NETWORK['id']}": coro()}
+        return_value={f"traffic_{MOCK_NETWORK.id}": coro()}
     )
 
     # Act
     data = await api_client.get_all_data()
 
     # Assert
-    assert data["appliance_traffic"][MOCK_NETWORK["id"]]["error"] == "disabled"
+    assert data["appliance_traffic"][MOCK_NETWORK.id]["error"] == "disabled"
     assert (
-        data["appliance_traffic"][MOCK_NETWORK["id"]]["reason"]
+        data["appliance_traffic"][MOCK_NETWORK.id]["reason"]
         == "Traffic analysis is not enabled"
     )
 
