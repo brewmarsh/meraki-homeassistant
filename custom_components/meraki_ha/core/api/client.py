@@ -324,7 +324,9 @@ class MerakiAPIClient:
                 )
                 detail_tasks[f"camera_analytics_{device.serial}"] = (
                     self._run_with_semaphore(
-                        self.camera.get_camera_analytics_recent(device.serial),
+                        self.camera.get_device_camera_analytics_recent(
+                            device.serial,
+                        ),
                     )
                 )
             elif device.product_type == "switch":
