@@ -326,7 +326,7 @@ class MerakiAPIClient:
                         self.switch.get_device_switch_ports_statuses(device.serial),
                     )
                 )
-            elif device.product_type == "appliance" and "networkId" in device:
+            elif device.product_type == "appliance" and device.network_id:
                 detail_tasks[f"appliance_settings_{device.serial}"] = (
                     self._run_with_semaphore(
                         self.appliance.get_network_appliance_settings(
