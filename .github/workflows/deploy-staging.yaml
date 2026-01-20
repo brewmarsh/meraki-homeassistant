@@ -1,0 +1,80 @@
+name: Deploy Beta to Staging (Smoke Test)
+
+on:
+  push:
+    branches:
+      - beta
+
+jobs:
+  deploy-to-staging:
+    runs-on: [self-hosted, meraki-smoketest]
+
+    env:
+      # Path mapped via fstab to 192.168.5.14
+      DESTINATION_PATH: '/mnt/homeassistant-smoketest/custom_components/meraki_ha'
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Copy files to Staging (rsync)
+        shell: bash
+        env:
+          DEPLOY_PATH: ${{ env.DESTINATION_PATH }}
+        run: |
+          SourceComponentDir="${GITHUB_WORKSPACE}/custom_components/meraki_ha/"
+          DestinationPath="${DEPLOY_PATH}"
+
+          echo "Starting Staging Deployment..."
+          echo "Source: ${SourceComponentDir}"
+          echo "Destination: ${DestinationPath}"
+
+          # Ensure destination exists
+          sudo mkdir -p "${DestinationPath}"
+
+          # Sync files
+          sudo rsync -rltpD --inplace --delete \
+            --exclude '.git' \
+            --exclude 'node_modules' \
+            --exclude 'tests' \
+            --exclude '*.log' \
+            --exclude '__pycache__' \
+            --exclude '.DS_Store' \
+            "${SourceComponentDir}" "${DestinationPath}"
+
+          echo "Deployment to Staging Complete."
+
+      - name: Install jq
+        run: sudo apt-get update && sudo apt-get install -y jq
+
+      - name: Restart Staging Home Assistant
+        shell: bash
+        env:
+          # You must add these secrets to your Repo!
+          HA_URL: ${{ secrets.HA_STAGING_URL }} 
+          HA_TOKEN: ${{ secrets.HA_STAGING_TOKEN }}
+        run: |
+          echo "Restarting Staging HA at $HA_URL..."
+          CLEAN_HA_TOKEN=$(echo -n "$HA_TOKEN" | tr -d '\n\r')
+
+          # 1. Check Config
+          echo "Checking Configuration..."
+          CHECK_STATUS=$(curl -s -o /dev/null -w "%{http_code}" -X POST \
+              -H "Authorization: Bearer $CLEAN_HA_TOKEN" \
+              -H "Content-Type: application/json" \
+              "$HA_URL/api/config/core/check_config")
+
+          if [[ "$CHECK_STATUS" -ne 200 ]]; then
+              echo "Config check failed (HTTP $CHECK_STATUS). Aborting restart."
+              exit 1
+          fi
+
+          # 2. Restart
+          echo "Triggering Restart..."
+          curl -X POST \
+              -H "Authorization: Bearer $CLEAN_HA_TOKEN" \
+              -H "Content-Type: application/json" \
+              -d '{}' \
+              "$HA_URL/api/services/homeassistant/restart"
+          
+          echo "Restart signal sent."
