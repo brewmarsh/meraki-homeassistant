@@ -99,10 +99,10 @@ class DeviceDiscoveryService:
         _LOGGER.debug("Starting entity discovery for %d devices", len(self._devices))
 
         for device in self._devices:
-            model = device.get("model")
+            model = device.model
             if not model:
                 _LOGGER.warning(
-                    "Device %s has no model, skipping", device.get("serial")
+                    "Device %s has no model, skipping", device.serial
                 )
                 continue
 
@@ -114,14 +114,14 @@ class DeviceDiscoveryService:
                 _LOGGER.debug(
                     "No handler found for model '%s', skipping device %s",
                     model,
-                    device.get("serial"),
+                    device.serial,
                 )
                 continue
 
             _LOGGER.debug(
                 "Using handler %s for device %s",
                 handler_class.__name__,
-                device.get("serial"),
+                device.serial,
             )
 
             # Pass the correct services to the handler based on its type

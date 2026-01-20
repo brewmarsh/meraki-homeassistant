@@ -26,7 +26,7 @@ async def test_motion_sensor_on(
 ):
     """Test the motion sensor when motion is detected."""
     # Arrange
-    device = MOCK_DEVICE.copy()
+    device = MOCK_DEVICE
     sensor = MerakiMotionSensor(
         mock_coordinator, device, mock_camera_service, mock_config_entry
     )
@@ -47,7 +47,7 @@ async def test_motion_sensor_off(
 ):
     """Test the motion sensor when no motion is detected."""
     # Arrange
-    device = MOCK_DEVICE.copy()
+    device = MOCK_DEVICE
     mock_camera_service.get_motion_history.return_value = []
     sensor = MerakiMotionSensor(
         mock_coordinator, device, mock_camera_service, mock_config_entry
