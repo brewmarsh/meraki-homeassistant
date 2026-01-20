@@ -1,3 +1,4 @@
+
 """Tests for the Meraki device firmware status sensor."""
 
 from unittest.mock import MagicMock

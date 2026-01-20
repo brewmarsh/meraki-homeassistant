@@ -1,3 +1,4 @@
+
 """Tests for the appliance API endpoints."""
 
 from unittest.mock import MagicMock, patch
@@ -54,9 +55,9 @@ def appliance_endpoints(api_client, hass):
 async def test_get_network_vlans(appliance_endpoints, mock_dashboard):
     """Test get_network_vlans."""
     mock_dashboard.appliance.getNetworkApplianceVlans = MagicMock(return_value=[])
-    await appliance_endpoints.get_network_vlans(MOCK_NETWORK["id"])
+    await appliance_endpoints.get_network_vlans(MOCK_NETWORK.id)
     mock_dashboard.appliance.getNetworkApplianceVlans.assert_called_once_with(
-        networkId=MOCK_NETWORK["id"]
+        networkId=MOCK_NETWORK.id
     )
 
 
@@ -64,9 +65,9 @@ async def test_get_network_vlans(appliance_endpoints, mock_dashboard):
 async def test_update_network_vlan(appliance_endpoints, mock_dashboard):
     """Test update_network_vlan."""
     mock_dashboard.appliance.updateNetworkApplianceVlan = MagicMock(return_value={})
-    await appliance_endpoints.update_network_vlan(MOCK_NETWORK["id"], "1", name="test")
+    await appliance_endpoints.update_network_vlan(MOCK_NETWORK.id, "1", name="test")
     mock_dashboard.appliance.updateNetworkApplianceVlan.assert_called_once_with(
-        networkId=MOCK_NETWORK["id"], vlanId="1", name="test"
+        networkId=MOCK_NETWORK.id, vlanId="1", name="test"
     )
 
 
@@ -76,9 +77,9 @@ async def test_get_l3_firewall_rules(appliance_endpoints, mock_dashboard):
     mock_dashboard.appliance.getNetworkApplianceFirewallL3FirewallRules = MagicMock(
         return_value={}
     )
-    await appliance_endpoints.get_l3_firewall_rules(MOCK_NETWORK["id"])
+    await appliance_endpoints.get_l3_firewall_rules(MOCK_NETWORK.id)
     mock_dashboard.appliance.getNetworkApplianceFirewallL3FirewallRules.assert_called_once_with(
-        networkId=MOCK_NETWORK["id"]
+        networkId=MOCK_NETWORK.id
     )
 
 
@@ -88,9 +89,9 @@ async def test_update_l3_firewall_rules(appliance_endpoints, mock_dashboard):
     mock_dashboard.appliance.updateNetworkApplianceFirewallL3FirewallRules = MagicMock(
         return_value={}
     )
-    await appliance_endpoints.update_l3_firewall_rules(MOCK_NETWORK["id"], rules=[])
+    await appliance_endpoints.update_l3_firewall_rules(MOCK_NETWORK.id, rules=[])
     mock_dashboard.appliance.updateNetworkApplianceFirewallL3FirewallRules.assert_called_once_with(
-        networkId=MOCK_NETWORK["id"], rules=[]
+        networkId=MOCK_NETWORK.id, rules=[]
     )
 
 
@@ -100,9 +101,9 @@ async def test_get_traffic_shaping(appliance_endpoints, mock_dashboard):
     mock_dashboard.appliance.getNetworkApplianceTrafficShaping = MagicMock(
         return_value={}
     )
-    await appliance_endpoints.get_traffic_shaping(MOCK_NETWORK["id"])
+    await appliance_endpoints.get_traffic_shaping(MOCK_NETWORK.id)
     mock_dashboard.appliance.getNetworkApplianceTrafficShaping.assert_called_once_with(
-        networkId=MOCK_NETWORK["id"]
+        networkId=MOCK_NETWORK.id
     )
 
 
@@ -112,9 +113,9 @@ async def test_update_traffic_shaping(appliance_endpoints, mock_dashboard):
     mock_dashboard.appliance.updateNetworkApplianceTrafficShaping = MagicMock(
         return_value={}
     )
-    await appliance_endpoints.update_traffic_shaping(MOCK_NETWORK["id"], enabled=True)
+    await appliance_endpoints.update_traffic_shaping(MOCK_NETWORK.id, enabled=True)
     mock_dashboard.appliance.updateNetworkApplianceTrafficShaping.assert_called_once_with(
-        networkId=MOCK_NETWORK["id"], enabled=True
+        networkId=MOCK_NETWORK.id, enabled=True
     )
 
 
@@ -124,9 +125,9 @@ async def test_get_vpn_status(appliance_endpoints, mock_dashboard):
     mock_dashboard.appliance.getNetworkApplianceVpnSiteToSiteVpn = MagicMock(
         return_value={}
     )
-    await appliance_endpoints.get_vpn_status(MOCK_NETWORK["id"])
+    await appliance_endpoints.get_vpn_status(MOCK_NETWORK.id)
     mock_dashboard.appliance.getNetworkApplianceVpnSiteToSiteVpn.assert_called_once_with(
-        networkId=MOCK_NETWORK["id"]
+        networkId=MOCK_NETWORK.id
     )
 
 
@@ -136,7 +137,7 @@ async def test_update_vpn_status(appliance_endpoints, mock_dashboard):
     mock_dashboard.appliance.updateNetworkApplianceVpnSiteToSiteVpn = MagicMock(
         return_value={}
     )
-    await appliance_endpoints.update_vpn_status(MOCK_NETWORK["id"], mode="hub")
+    await appliance_endpoints.update_vpn_status(MOCK_NETWORK.id, mode="hub")
     mock_dashboard.appliance.updateNetworkApplianceVpnSiteToSiteVpn.assert_called_once_with(
-        networkId=MOCK_NETWORK["id"], mode="hub"
+        networkId=MOCK_NETWORK.id, mode="hub"
     )

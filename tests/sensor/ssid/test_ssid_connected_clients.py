@@ -1,3 +1,4 @@
+
 """Tests for the Meraki SSID connected clients sensor."""
 
 from unittest.mock import MagicMock
@@ -76,6 +77,12 @@ def mock_data_coordinator():
             {"id": "net2", "name": "Network 2"},
         ],
     }
+    def get_ssid(network_id, ssid_number):
+        for ssid in coordinator.data["ssids"]:
+            if ssid["networkId"] == network_id and ssid["number"] == ssid_number:
+                return ssid
+        return None
+    coordinator.get_ssid.side_effect = get_ssid
     return coordinator
 
 
@@ -87,7 +94,8 @@ def test_ssid_connected_clients_sensor(mock_data_coordinator):
     sensor = MerakiSsidConnectedClientsSensor(
         mock_data_coordinator, network_id, ssid_data, config_entry
     )
+    sensor._handle_coordinator_update()
     # Expects 2: the two online clients on "My SSID 1" and "net1"
     assert sensor.native_value == 2
-    assert sensor.name == "My SSID 1 Connected Clients"
+    assert sensor.name == "Connected clients"
     assert sensor.device_info["identifiers"] == {(DOMAIN, "net1_0")}

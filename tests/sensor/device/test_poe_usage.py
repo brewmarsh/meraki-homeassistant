@@ -1,3 +1,4 @@
+
 """Tests for the Meraki PoE usage sensor."""
 
 from unittest.mock import MagicMock
@@ -5,6 +6,7 @@ from unittest.mock import MagicMock
 import pytest
 
 from custom_components.meraki_ha.sensor.device.poe_usage import MerakiPoeUsageSensor
+from custom_components.meraki_ha.types import MerakiDevice
 
 
 @pytest.fixture
@@ -13,17 +15,19 @@ def mock_device_coordinator():
     coordinator = MagicMock()
     coordinator.data = {
         "devices": [
-            {
-                "serial": "dev1",
-                "name": "Switch",
-                "model": "MS220-8P",
-                "productType": "switch",
-                "ports_statuses": [
-                    {"portId": 1, "powerUsageInWh": 252},
-                    {"portId": 2, "powerUsageInWh": 124.8},
-                    {"portId": 3, "powerUsageInWh": 0},
-                ],
-            }
+            MerakiDevice.from_dict(
+                {
+                    "serial": "dev1",
+                    "name": "Switch",
+                    "model": "MS220-8P",
+                    "productType": "switch",
+                    "ports_statuses": [
+                        {"portId": 1, "powerUsageInWh": 252},
+                        {"portId": 2, "powerUsageInWh": 124.8},
+                        {"portId": 3, "powerUsageInWh": 0},
+                    ],
+                }
+            )
         ]
     }
     return coordinator

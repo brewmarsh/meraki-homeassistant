@@ -1,3 +1,4 @@
+
 """Sensor entity for monitoring connected clients on a Meraki SSID."""
 
 import logging
@@ -43,7 +44,6 @@ class MerakiSsidConnectedClientsSensor(CoordinatorEntity, SensorEntity):
             entity_data=ssid_data,
             config_entry=self._config_entry,
         )
-        self._update_state()
 
     @callback
     def _update_state(self) -> None:
