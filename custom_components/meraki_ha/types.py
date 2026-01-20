@@ -31,6 +31,24 @@ class MerakiDevice:
     status_messages: list[str] = field(default_factory=list)
     entity_id: str | None = None
 
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> "MerakiDevice":
+        """Create a MerakiDevice instance from a dictionary."""
+        return cls(
+            serial=data.get("serial"),
+            name=data.get("name"),
+            model=data.get("model"),
+            mac=data.get("mac"),
+            lan_ip=data.get("lanIp"),
+            wan1_ip=data.get("wan1Ip"),
+            wan2_ip=data.get("wan2Ip"),
+            public_ip=data.get("publicIp"),
+            network_id=data.get("networkId"),
+            status=data.get("status"),
+            product_type=data.get("productType"),
+            tags=data.get("tags", []),
+        )
+
 
 @dataclass
 class MerakiNetwork:
@@ -44,6 +62,19 @@ class MerakiNetwork:
     tags: list[str] = field(default_factory=list)
     notes: str | None = None
     status_messages: list[str] = field(default_factory=list)
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> "MerakiNetwork":
+        """Create a MerakiNetwork instance from a dictionary."""
+        return cls(
+            id=data.get("id"),
+            name=data.get("name"),
+            organization_id=data.get("organizationId"),
+            product_types=data.get("productTypes", []),
+            time_zone=data.get("timeZone"),
+            tags=data.get("tags", []),
+            notes=data.get("notes"),
+        )
 
 
 class MerakiVlan(TypedDict):
