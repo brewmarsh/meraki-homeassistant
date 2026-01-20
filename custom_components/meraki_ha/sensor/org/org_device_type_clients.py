@@ -33,7 +33,7 @@ class MerakiOrganizationDeviceTypeClientsSensor(CoordinatorEntity, SensorEntity)
         self._device_type = device_type
         self._org_id = self.coordinator.api_client.organization_id
         self._attr_unique_id = f"{self._org_id}_{self._device_type}_clients"
-        self._attr_name = format_entity_name(self._device_type.capitalize(), "Clients")
+        self._attr_name = f"{self._device_type.capitalize()} Clients"
 
     @property
     def device_info(self) -> DeviceInfo:
