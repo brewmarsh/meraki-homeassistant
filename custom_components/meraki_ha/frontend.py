@@ -28,6 +28,9 @@ async def async_register_frontend(hass: HomeAssistant, entry: ConfigEntry) -> No
     # from `/local/meraki_ha/` which points to `custom_components/meraki_ha/www`.
     module_url = f"/local/{DOMAIN}/meraki-panel.js?v={version}"
 
+    # Remove the panel if it already exists to prevent 'Overwriting panel' error
+    frontend.async_remove_panel(hass, "meraki")
+
     # Register a custom panel using the modern `module_url` approach
     frontend.async_register_built_in_panel(
         hass,
