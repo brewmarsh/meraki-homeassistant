@@ -16,6 +16,7 @@ from typing import TYPE_CHECKING, Any
 import meraki
 from homeassistant.core import HomeAssistant
 
+from ...core.parsers.appliance import parse_appliance_data
 from ...core.parsers.devices import parse_device_data
 from ...core.parsers.network import parse_network_data
 from ...core.parsers.sensors import parse_sensor_data
@@ -391,9 +392,11 @@ class MerakiAPIClient:
             device_statuses = []
 
         parse_device_data(devices, device_statuses)
+        appliance_uplink_statuses = initial_results.get("appliance_uplink_statuses")
         sensor_readings = initial_results.get("sensor_readings")
         battery_readings = initial_results.get("battery_readings")
 
+        parse_appliance_data(devices, appliance_uplink_statuses)
         parse_sensor_data(devices, sensor_readings, battery_readings)
 
         network_clients, device_clients = await asyncio.gather(
@@ -428,10 +431,6 @@ class MerakiAPIClient:
             "clients": network_clients if isinstance(network_clients, list) else [],
             "clients_by_serial": (
                 device_clients if isinstance(device_clients, dict) else {}
-            ),
-            "appliance_uplink_statuses": initial_results.get(
-                "appliance_uplink_statuses",
-                [],
             ),
             "ssids": processed_wireless_data.get("ssids", []),
             **processed_network_data,

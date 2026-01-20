@@ -15,10 +15,12 @@ class MerakiDevice:
     model: str
     mac: str
     lan_ip: str | None = None
+    appliance_uplink_statuses: list[dict[str, Any]] = field(default_factory=list)
     wan1_ip: str | None = None
     wan2_ip: str | None = None
     public_ip: str | None = None
     network_id: str | None = None
+    appliance_uplink_statuses: list[dict[str, Any]] = field(default_factory=list)
     status: str | None = None
     product_type: str | None = None
     tags: list[str] = field(default_factory=list)
