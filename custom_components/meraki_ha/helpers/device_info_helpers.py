@@ -25,18 +25,25 @@ def resolve_device_info(
     linked to a physical device or a logical SSID "device" in the Home
     Assistant device registry.
     """
-    # If a dataclass is passed, convert it to a dictionary
-    if is_dataclass(entity_data):
-        entity_data = asdict(entity_data)
-
     # Determine the effective data to use for device resolution.
-    # If ssid_data is explicitly passed, it takes precedence for SSID devices.
-    # Otherwise, check if the entity_data itself represents an SSID.
     effective_data = entity_data
-    is_ssid = "number" in effective_data and "networkId" in effective_data
+    is_ssid = False
+    if is_dataclass(effective_data):
+        is_ssid = hasattr(effective_data, "number") and hasattr(
+            effective_data, "networkId"
+        )
+    else:
+        is_ssid = "number" in effective_data and "networkId" in effective_data
+
     if ssid_data:
         is_ssid = True
         effective_data = ssid_data
+
+    # Convert dataclasses to dicts for consistent access below
+    if is_dataclass(entity_data):
+        entity_data = asdict(entity_data)
+    if is_dataclass(effective_data):
+        effective_data = asdict(effective_data)
 
     # Create device info for an SSID
     if is_ssid:
