@@ -10,6 +10,7 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from ..const import DOMAIN, PLATFORM_BUTTON
 from .device.camera_snapshot import MerakiSnapshotButton
 from .device.mt15_refresh_data import MerakiMt15RefreshDataButton
+from .device.switch_port_cycle import MerakiSwitchPortCycleButton
 from .reboot import MerakiRebootButton
 
 _LOGGER = logging.getLogger(__name__)
@@ -27,6 +28,7 @@ async def async_setup_entry(
     entry_data = hass.data[DOMAIN][config_entry.entry_id]
     coordinator = entry_data["coordinator"]
     device_control_service = entry_data["device_control_service"]
+    switch_port_service = entry_data["switch_port_service"]
     camera_service = entry_data["camera_service"]
     meraki_client = entry_data.get("meraki_client")
     if not meraki_client:
@@ -53,6 +55,15 @@ async def async_setup_entry(
                     coordinator, device, config_entry, meraki_client
                 )
             )
+
+        # Add switch port cycle buttons
+        if device.product_type == "switch" and device.ports_statuses:
+            for port in device.ports_statuses:
+                button_entities.append(
+                    MerakiSwitchPortCycleButton(
+                        switch_port_service, device, port, config_entry
+                    )
+                )
 
     if button_entities:
         async_add_entities(button_entities)

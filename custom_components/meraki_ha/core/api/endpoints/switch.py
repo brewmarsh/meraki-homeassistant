@@ -83,3 +83,27 @@ class SwitchEndpoints:
             _LOGGER.warning("get_switch_ports did not return a list.")
             return []
         return validated
+
+    @handle_meraki_errors
+    async def cycle_device_switch_ports(
+        self,
+        serial: str,
+        ports: list[str],
+    ) -> dict[str, Any]:
+        """
+        Cycle a set of switch ports.
+
+        Args:
+        ----
+            serial: The serial number of the switch.
+            ports: A list of port IDs to cycle.
+
+        Returns
+        -------
+            The API response.
+
+        """
+        response = await self._api_client.run_sync(
+            self._dashboard.switch.cycleDeviceSwitchPorts, serial=serial, ports=ports
+        )
+        return validate_response(response)

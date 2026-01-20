@@ -492,3 +492,22 @@ class MerakiAPIClient:
 
         """
         return await self.switch.get_device_switch_ports_statuses(serial)
+
+    async def async_cycle_switch_ports(
+        self,
+        serial: str,
+        ports: list[str],
+    ) -> dict[str, Any]:
+        """
+        Cycle a set of switch ports.
+
+        Args:
+            serial: The serial number of the switch.
+            ports: A list of port IDs to cycle.
+
+        Returns
+        -------
+            The API response.
+
+        """
+        return await self.switch.cycle_device_switch_ports(serial, ports)
