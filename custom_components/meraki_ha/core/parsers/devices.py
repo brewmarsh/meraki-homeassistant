@@ -34,6 +34,7 @@ def parse_device_data(
         "wan1Ip": "wan1_ip",
         "wan2Ip": "wan2_ip",
         "publicIp": "public_ip",
+        "firmware": "firmware",
     }
 
     for device in devices:

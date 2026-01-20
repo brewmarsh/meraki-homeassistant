@@ -1,3 +1,4 @@
+
 """Tests for the Meraki device firmware status sensor."""
 
 from unittest.mock import MagicMock
@@ -7,6 +8,7 @@ import pytest
 from custom_components.meraki_ha.sensor.device.meraki_firmware_status import (
     MerakiFirmwareStatusSensor,
 )
+from custom_components.meraki_ha.types import MerakiDevice
 
 
 @pytest.fixture
@@ -15,29 +17,33 @@ def mock_device_coordinator():
     coordinator = MagicMock()
     coordinator.data = {
         "devices": [
-            {
-                "serial": "dev1",
-                "name": "Device 1",
-                "model": "MR52",
-                "firmware": "26.6",
-                "firmware_upgrades": {
-                    "available": True,
-                    "latestVersion": {"shortName": "27.1"},
-                    "nextUpgrade": {
-                        "toVersion": {"shortName": "27.1"},
-                        "time": "2025-08-01T00:00:00Z",
+            MerakiDevice.from_dict(
+                {
+                    "serial": "dev1",
+                    "name": "Device 1",
+                    "model": "MR52",
+                    "firmware": "26.6",
+                    "firmware_upgrades": {
+                        "available": True,
+                        "latestVersion": {"shortName": "27.1"},
+                        "nextUpgrade": {
+                            "toVersion": {"shortName": "27.1"},
+                            "time": "2025-08-01T00:00:00Z",
+                        },
                     },
-                },
-            },
-            {
-                "serial": "dev2",
-                "name": "Device 2",
-                "model": "MS220-8P",
-                "firmware": "15.15",
-                "firmware_upgrades": {
-                    "available": False,
-                },
-            },
+                }
+            ),
+            MerakiDevice.from_dict(
+                {
+                    "serial": "dev2",
+                    "name": "Device 2",
+                    "model": "MS220-8P",
+                    "firmware": "15.15",
+                    "firmware_upgrades": {
+                        "available": False,
+                    },
+                }
+            ),
         ]
     }
     return coordinator

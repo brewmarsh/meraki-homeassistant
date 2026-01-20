@@ -21,6 +21,7 @@ class MerakiDevice:
     network_id: str | None = None
     appliance_uplink_statuses: list[dict[str, Any]] = field(default_factory=list)
     status: str | None = None
+    firmware: str | None = None
     product_type: str | None = None
     tags: list[str] = field(default_factory=list)
     readings: list[dict[str, Any]] = field(default_factory=list)
@@ -48,6 +49,7 @@ class MerakiDevice:
             public_ip=data.get("publicIp"),
             network_id=data.get("networkId"),
             status=data.get("status"),
+            firmware=data.get("firmware"),
             product_type=data.get("productType"),
             tags=data.get("tags", []),
         )
