@@ -425,6 +425,13 @@ class MerakiAPIClient:
             clients=network_clients if isinstance(network_clients, list) else [],
         )
 
+        switch_ports_statuses: dict[str, Any] = {}
+        for key, value in detail_data.items():
+            if key.startswith("ports_statuses_"):
+                serial = key.replace("ports_statuses_", "")
+                if isinstance(value, list):
+                    switch_ports_statuses[serial] = value
+
         return {
             "networks": networks,
             "devices": devices,
@@ -433,6 +440,7 @@ class MerakiAPIClient:
                 device_clients if isinstance(device_clients, dict) else {}
             ),
             "ssids": processed_wireless_data.get("ssids", []),
+            "switch_ports_statuses": switch_ports_statuses,
             **processed_network_data,
         }
 
@@ -492,3 +500,22 @@ class MerakiAPIClient:
 
         """
         return await self.switch.get_device_switch_ports_statuses(serial)
+
+    async def async_cycle_switch_port(
+        self,
+        serial: str,
+        port_id: str,
+    ) -> dict[str, Any]:
+        """
+        Cycle a switch port.
+
+        Args:
+            serial: The serial number of the switch.
+            port_id: The ID of the port to cycle.
+
+        Returns
+        -------
+            The API response.
+
+        """
+        return await self.switch.cycle_switch_port(serial, port_id)

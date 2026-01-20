@@ -22,6 +22,7 @@ from .core.repositories.camera_repository import CameraRepository
 from .core.repository import MerakiRepository
 from .services.camera_service import CameraService
 from .services.device_control_service import DeviceControlService
+from .services.switch_port_service import SwitchPortService
 from .web_api import async_setup_api
 from .webhook import async_register_webhook
 from .frontend import async_register_frontend, async_remove_frontend
@@ -72,6 +73,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     repo = MerakiRepository(coordinator.api)
     device_control_service = DeviceControlService(repo)
+    switch_port_service = SwitchPortService(repo)
     camera_repo = CameraRepository(coordinator.api, entry.data[CONF_MERAKI_ORG_ID])
     camera_service = CameraService(camera_repo)
 
@@ -79,6 +81,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         "coordinator": coordinator,
         "meraki_client": coordinator.api,
         "device_control_service": device_control_service,
+        "switch_port_service": switch_port_service,
         "camera_service": camera_service,
     }
 

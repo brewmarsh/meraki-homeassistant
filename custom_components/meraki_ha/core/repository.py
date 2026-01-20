@@ -64,3 +64,28 @@ class MerakiRepository:
         except Exception as e:
             _LOGGER.error("Failed to get switch port statuses for %s: %s", serial, e)
             return None
+
+    async def async_cycle_switch_port(
+        self, serial: str, port_id: str
+    ) -> dict[str, Any] | None:
+        """
+        Cycle a switch port.
+
+        Args:
+        ----
+            serial: The serial number of the switch.
+            port_id: The ID of the port to cycle.
+
+        Returns
+        -------
+            A dictionary containing the API response, or None if an error occurred.
+
+        """
+        try:
+            response = await self._api_client.async_cycle_switch_port(serial, port_id)
+            return response
+        except Exception as e:
+            _LOGGER.error(
+                "Failed to cycle switch port %s for device %s: %s", port_id, serial, e
+            )
+            return None
