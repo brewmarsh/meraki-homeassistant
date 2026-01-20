@@ -66,6 +66,6 @@ def format_entity_name(
 ) -> str:
     """Format an entity name by combining the device name and entity-specific name."""
     device_name = format_device_name(device, config)
-    if entity_name:
-        return f"{device_name} {entity_name}"
+    if entity_name and entity_name.strip():
+        return f"{device_name} {entity_name.strip()}"
     return device_name
