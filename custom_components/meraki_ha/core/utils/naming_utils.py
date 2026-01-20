@@ -37,16 +37,20 @@ def format_device_name(device: dict[str, Any] | Any, config: Mapping[str, Any]) 
     if not product_type:
         product_type = "device"  # default to device
 
-    if product_type == "network":
+    if product_type.startswith("wireless"):
+        product_type_str = "Wireless"
+    elif product_type.startswith("switch"):
+        product_type_str = "Switch"
+    elif product_type.startswith("camera"):
+        product_type_str = "Camera"
+    elif product_type.startswith("sensor"):
+        product_type_str = "Sensor"
+    elif product_type.startswith("appliance"):
+        product_type_str = "Appliance"
+    elif product_type == "network":
         product_type_str = "Network"
     elif product_type == "organization":
         product_type_str = "Organization"
-    elif product_type == "switch":
-        product_type_str = "Switch"
-    elif product_type == "appliance":
-        product_type_str = "Appliance"
-    elif product_type == "camera":
-        product_type_str = "Camera"
     elif product_type == "ssid":
         product_type_str = "SSID"
     elif product_type == "vlan":
