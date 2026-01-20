@@ -142,6 +142,9 @@ class MerakiAPIClient:
 
         """
         tasks = {
+            "organization": self._run_with_semaphore(
+                self.organization.get_organization(),
+            ),
             "networks": self._run_with_semaphore(
                 self.organization.get_organization_networks(),
             ),
@@ -461,7 +464,15 @@ class MerakiAPIClient:
                 if isinstance(value, list):
                     switch_ports_statuses[serial] = value
 
+        organization_res = initial_results.get("organization", {})
+        org_name = (
+            organization_res.get("name")
+            if isinstance(organization_res, dict)
+            else "Unknown Organization"
+        )
+
         return {
+            "org_name": org_name,
             "networks": networks,
             "devices": devices,
             "clients": network_clients if isinstance(network_clients, list) else [],
