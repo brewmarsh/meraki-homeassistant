@@ -1,4 +1,5 @@
 """Select platform for Meraki HA."""
+
 from __future__ import annotations
 
 from .meraki_select import async_setup_entry
