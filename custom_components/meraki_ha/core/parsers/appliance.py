@@ -10,7 +10,7 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-from ...types import MerakiDevice
+from ...types import MerakiAppliancePort, MerakiDevice
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -48,3 +48,24 @@ def parse_appliance_data(
             if device.serial == serial:
                 device.appliance_uplink_statuses = status.get("uplinks", [])
                 break
+
+
+def parse_appliance_ports(
+    devices: list[MerakiDevice],
+    ports_by_serial: dict[str, list[dict[str, Any]]],
+) -> None:
+    """
+    Parse appliance ports and update device objects.
+
+    Args:
+        devices: A list of device objects.
+        ports_by_serial: A dictionary mapping serial to a list of port data.
+    """
+    if not ports_by_serial:
+        return
+
+    for device in devices:
+        if ports_data := ports_by_serial.get(device.serial):
+            device.appliance_ports = [
+                MerakiAppliancePort.from_dict(port) for port in ports_data
+            ]

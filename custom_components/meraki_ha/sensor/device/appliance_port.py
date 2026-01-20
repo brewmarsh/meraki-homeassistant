@@ -1,5 +1,7 @@
 """Sensor for Meraki appliance port status."""
 
+from __future__ import annotations
+
 import logging
 from typing import Any
 
@@ -12,6 +14,7 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from ...const import DOMAIN
 from ...coordinator import MerakiDataUpdateCoordinator
 from ...core.utils.naming_utils import format_device_name, format_entity_name
+from ...types import MerakiAppliancePort, MerakiDevice
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -24,18 +27,18 @@ class MerakiAppliancePortSensor(CoordinatorEntity, SensorEntity):
     def __init__(
         self,
         coordinator: MerakiDataUpdateCoordinator,
-        device: "MerakiDevice",
-        port: dict[str, Any],
+        device: MerakiDevice,
+        port: MerakiAppliancePort,
     ) -> None:
         """Initialize the sensor."""
         super().__init__(coordinator)
         self._device = device
         self._port = port
-        self._attr_unique_id = f"{device.serial}_port_{self._port['number']}"
+        self._attr_unique_id = f"{device.serial}_port_{self._port.number}"
         self._attr_name = format_entity_name(
             device,
             self.coordinator.config_entry.options,
-            f"Port {self._port['number']}",
+            f"Port {self._port.number}",
         )
         self._attr_icon = "mdi:ethernet-port"
 
@@ -57,8 +60,8 @@ class MerakiAppliancePortSensor(CoordinatorEntity, SensorEntity):
         device = self.coordinator.get_device(self._device.serial)
         if device:
             self._device = device
-            for port in device.ports:
-                if port["number"] == self._port["number"]:
+            for port in device.appliance_ports:
+                if port.number == self._port.number:
                     self._port = port
                     self.async_write_ha_state()
                     return
@@ -66,9 +69,9 @@ class MerakiAppliancePortSensor(CoordinatorEntity, SensorEntity):
     @property
     def native_value(self) -> str:
         """Return the state of the sensor."""
-        if not self._port.get("enabled"):
+        if not self._port.enabled:
             return "disabled"
-        if self._port.get("status") == "connected":
+        if self._port.status == "connected":
             return "connected"
         return "disconnected"
 
@@ -76,9 +79,9 @@ class MerakiAppliancePortSensor(CoordinatorEntity, SensorEntity):
     def extra_state_attributes(self) -> dict[str, Any]:
         """Return the state attributes."""
         return {
-            "port_number": self._port.get("number"),
-            "link_speed": self._port.get("speed"),
-            "vlan": self._port.get("vlan"),
-            "type": self._port.get("type"),
-            "access_policy": self._port.get("accessPolicy"),
+            "port_number": self._port.number,
+            "link_speed": self._port.speed,
+            "vlan": self._port.vlan,
+            "type": self._port.type,
+            "access_policy": self._port.access_policy,
         }
