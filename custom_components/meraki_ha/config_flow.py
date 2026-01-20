@@ -19,8 +19,8 @@ from .const import (
 )
 from .coordinator import MerakiDataUpdateCoordinator
 from .core.errors import MerakiAuthenticationError, MerakiConnectionError
+from .helpers.schema import populate_schema_defaults
 from .options_flow import MerakiOptionsFlowHandler
-from .schema_helpers import populate_schema_defaults
 from .schemas import CONFIG_SCHEMA, OPTIONS_SCHEMA
 
 _LOGGER = logging.getLogger(__name__)
