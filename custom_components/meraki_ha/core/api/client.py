@@ -370,7 +370,9 @@ class MerakiAPIClient:
             )
             networks: list[MerakiNetwork] = []
         else:
-            networks = networks_res
+            networks: list[MerakiNetwork] = [
+                MerakiNetwork.from_dict(n) for n in networks_res
+            ]
 
         devices_res = initial_results.get("devices", [])
         if isinstance(devices_res, Exception):
@@ -380,7 +382,9 @@ class MerakiAPIClient:
             )
             devices: list[MerakiDevice] = []
         else:
-            devices = devices_res
+            devices: list[MerakiDevice] = [
+                MerakiDevice.from_dict(d) for d in devices_res
+            ]
 
         device_statuses = initial_results.get("device_statuses", [])
         if isinstance(device_statuses, Exception):

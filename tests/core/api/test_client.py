@@ -1,13 +1,13 @@
 """Tests for the Meraki API client."""
 
 from unittest.mock import AsyncMock, MagicMock, patch
-
+from dataclasses import asdict
 import pytest
 
 from custom_components.meraki_ha.coordinator import MerakiDataUpdateCoordinator
 from custom_components.meraki_ha.core.api.client import MerakiAPIClient
 from custom_components.meraki_ha.core.errors import MerakiInformationalError
-from tests.const import MOCK_DEVICE, MOCK_NETWORK
+from tests.const import MOCK_DEVICE, MOCK_NETWORK, MOCK_DEVICE_INIT, MOCK_NETWORK_INIT
 
 
 @pytest.fixture
@@ -46,8 +46,8 @@ async def test_get_all_data_orchestration(api_client):
     # Arrange
     api_client._async_fetch_initial_data = AsyncMock(
         return_value={
-            "networks": [MOCK_NETWORK],
-            "devices": [MOCK_DEVICE],
+            "networks": [MOCK_NETWORK_INIT],
+            "devices": [MOCK_DEVICE_INIT],
         }
     )
     api_client._async_fetch_network_clients = AsyncMock(return_value=[])
@@ -60,11 +60,11 @@ async def test_get_all_data_orchestration(api_client):
     # Assert
     api_client._async_fetch_initial_data.assert_awaited_once()
 
-    api_client._async_fetch_network_clients.assert_awaited_once_with([MOCK_NETWORK])
-    api_client._async_fetch_device_clients.assert_awaited_once_with([MOCK_DEVICE])
-    api_client._build_detail_tasks.assert_called_once_with(
-        [MOCK_NETWORK], [MOCK_DEVICE]
-    )
+    assert api_client._async_fetch_network_clients.await_args[0][0][0].id == MOCK_NETWORK.id
+    assert api_client._async_fetch_device_clients.await_args[0][0][0].serial == MOCK_DEVICE.serial
+    api_client._build_detail_tasks.assert_called_once()
+    assert api_client._build_detail_tasks.call_args[0][0][0].id == MOCK_NETWORK.id
+    assert api_client._build_detail_tasks.call_args[0][1][0].serial == MOCK_DEVICE.serial
 
 
 @pytest.mark.asyncio
@@ -94,14 +94,11 @@ async def test_get_all_data_handles_api_errors(api_client, caplog):
 async def test_get_all_data_merges_availability(api_client):
     """Test that get_all_data merges device availability."""
     # Arrange
-    from dataclasses import replace
-
-    device_with_status = replace(MOCK_DEVICE)
     availabilities = [{"serial": MOCK_DEVICE.serial, "status": "online"}]
     api_client._async_fetch_initial_data = AsyncMock(
         return_value={
-            "networks": [MOCK_NETWORK],
-            "devices": [device_with_status],
+            "networks": [MOCK_NETWORK_INIT],
+            "devices": [MOCK_DEVICE_INIT],
             "devices_availabilities": availabilities,
         }
     )
@@ -122,8 +119,8 @@ async def test_get_all_data_handles_informational_errors(api_client):
     # Arrange
     api_client._async_fetch_initial_data = AsyncMock(
         return_value={
-            "networks": [MOCK_NETWORK],
-            "devices": [MOCK_DEVICE],
+            "networks": [MOCK_NETWORK_INIT],
+            "devices": [MOCK_DEVICE_INIT],
             "device_statuses": [],
         }
     )
@@ -159,9 +156,9 @@ def test_build_detail_tasks_for_wireless_device(api_client):
     tasks = api_client._build_detail_tasks(networks, devices)
 
     # Assert
-    assert f"ssids_{MOCK_NETWORK['id']}" in tasks
-    assert f"wireless_settings_{MOCK_DEVICE['serial']}" in tasks
-    assert f"rf_profiles_{MOCK_NETWORK['id']}" in tasks
+    assert f"ssids_{MOCK_NETWORK.id}" in tasks
+    assert f"wireless_settings_{MOCK_DEVICE.serial}" in tasks
+    assert f"rf_profiles_{MOCK_NETWORK.id}" in tasks
 
 
 @pytest.mark.skip(reason="TODO: Fix this test")
