@@ -50,7 +50,9 @@ class MerakiPoeUsageSensor(
         super().__init__(coordinator)
         self._device = device
         self._attr_unique_id = f"{self._device['serial']}_poe_usage"
-        self._attr_name = format_entity_name(self._device["name"], "PoE Usage")
+        self._attr_name = format_entity_name(
+            self._device, self.coordinator.config_entry.options, "PoE Usage"
+        )
 
     @property
     def device_info(self) -> DeviceInfo:
