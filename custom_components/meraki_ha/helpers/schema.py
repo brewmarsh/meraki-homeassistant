@@ -13,7 +13,7 @@ from custom_components.meraki_ha.const import CONF_IGNORED_NETWORKS
 def populate_schema_defaults(
     schema: vol.Schema,
     defaults: dict[str, Any],
-    network_options: list[dict[str, str]],
+    network_options: list[dict[str, str]] | None = None,
 ) -> vol.Schema:
     """
     Populate a schema with default values.
@@ -41,8 +41,10 @@ def populate_schema_defaults(
             # default value set to the existing option value.
             key = type(key)(key.schema, default=defaults[key.schema])
 
-        if key_name == CONF_IGNORED_NETWORKS and isinstance(
-            value, selector.SelectSelector
+        if (
+            key_name == CONF_IGNORED_NETWORKS
+            and isinstance(value, selector.SelectSelector)
+            and network_options is not None
         ):
             new_config = value.config.copy()
             new_config["options"] = network_options
