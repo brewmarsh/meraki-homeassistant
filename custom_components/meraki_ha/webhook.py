@@ -174,12 +174,12 @@ async def async_handle_webhook(
         device_serial = data.get("deviceSerial")
         if device_serial and coordinator.data:
             for i, device in enumerate(coordinator.data.get("devices", [])):
-                if device.get("serial") == device_serial:
+                if device.serial == device_serial:
                     _LOGGER.info(
                         "Device %s reported as down via webhook",
                         device_serial,
                     )
-                    coordinator.data["devices"][i]["status"] = "offline"
+                    coordinator.data["devices"][i].status = "offline"
                     coordinator.async_update_listeners()
                     break
     elif alert_type == "Client connectivity changed":

@@ -9,6 +9,7 @@ from homeassistant.core import HomeAssistant
 
 from custom_components.meraki_ha.const import DOMAIN
 from custom_components.meraki_ha.coordinator import MerakiDataUpdateCoordinator
+from custom_components.meraki_ha.types import MerakiDevice
 from custom_components.meraki_ha.webhook import async_handle_webhook
 
 
@@ -31,8 +32,17 @@ def mock_hass_with_webhook_data(hass: HomeAssistant) -> HomeAssistant:
         hass,
         config_entry,
     )
+
+    device = MerakiDevice(
+        serial="Q234-ABCD-5678",
+        status="online",
+        name="Test Device",
+        model="MR33",
+        mac="00:11:22:33:44:55"
+    )
+
     coordinator.data = {
-        "devices": [{"serial": "Q234-ABCD-5678", "status": "online"}],
+        "devices": [device],
         "clients": [],
     }
     hass.data[DOMAIN] = {
@@ -71,7 +81,7 @@ async def test_handle_webhook_device_down(
     await async_handle_webhook(mock_hass_with_webhook_data, webhook_id, request)
 
     # Assert
-    assert coordinator.data["devices"][0]["status"] == "offline"
+    assert coordinator.data["devices"][0].status == "offline"
     coordinator.async_update_listeners.assert_called_once()
 
 
@@ -102,7 +112,7 @@ async def test_handle_webhook_invalid_secret(
     await async_handle_webhook(mock_hass_with_webhook_data, webhook_id, request)
 
     # Assert
-    assert coordinator.data["devices"][0]["status"] == "online"  # Should not change
+    assert coordinator.data["devices"][0].status == "online"  # Should not change
     coordinator.async_update_listeners.assert_not_called()
 
 
