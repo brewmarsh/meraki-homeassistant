@@ -101,7 +101,7 @@ class MerakiPanel extends HTMLElement {
   _updateContent(data) {
     this._lastData = data;
     const content = this.shadowRoot.getElementById('content');
-    if (!content) return; // connectedCallback will handle it
+    if (!content) return;
 
     if (!data) {
       content.innerHTML = `
@@ -157,9 +157,7 @@ class MerakiPanel extends HTMLElement {
       html += '<h2>Clients</h2>';
       html += '<ul>';
       clients.forEach((client) => {
-        const clientDesc = this._escapeHTML(
-          client.description || 'Unknown Client'
-        );
+        const clientDesc = this._escapeHTML(client.description || 'Unknown Client');
         const clientIp = this._escapeHTML(client.ip);
         html += `<li>${clientDesc} (${clientIp})</li>`;
       });
