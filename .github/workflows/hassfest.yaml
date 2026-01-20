@@ -8,9 +8,5 @@ jobs:
   validate:
     runs-on: 'ubuntu-latest'
     steps:
-<<<<<<< HEAD
       - uses: 'actions/checkout@v4'
-=======
-      - uses: 'actions/checkout@v3'
->>>>>>> 9bc35b7 (Merge pull request #845 from brewmarsh/fix/frontend-build-2299669574949783162)
       - uses: 'home-assistant/actions/hassfest@master'

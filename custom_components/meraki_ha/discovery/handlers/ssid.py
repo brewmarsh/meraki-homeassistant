@@ -44,13 +44,8 @@ if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
     from homeassistant.helpers.entity import Entity
 
-<<<<<<< HEAD
     from ...coordinator import MerakiDataUpdateCoordinator
     from ...core.api.client import MerakiAPIClient
-=======
-    from ...core.api.client import MerakiAPIClient
-    from ...meraki_data_coordinator import MerakiDataCoordinator
->>>>>>> 9bc35b7 (Merge pull request #845 from brewmarsh/fix/frontend-build-2299669574949783162)
 
 
 _LOGGER = logging.getLogger(__name__)
@@ -61,11 +56,7 @@ class SSIDHandler(BaseHandler):
 
     def __init__(
         self,
-<<<<<<< HEAD
         coordinator: MerakiDataUpdateCoordinator,
-=======
-        coordinator: MerakiDataCoordinator,
->>>>>>> 9bc35b7 (Merge pull request #845 from brewmarsh/fix/frontend-build-2299669574949783162)
         config_entry: ConfigEntry,
         meraki_client: MerakiAPIClient,
     ) -> None:
@@ -76,11 +67,7 @@ class SSIDHandler(BaseHandler):
     @classmethod
     def create(
         cls,
-<<<<<<< HEAD
         coordinator: MerakiDataUpdateCoordinator,
-=======
-        coordinator: MerakiDataCoordinator,
->>>>>>> 9bc35b7 (Merge pull request #845 from brewmarsh/fix/frontend-build-2299669574949783162)
         config_entry: ConfigEntry,
         meraki_client: MerakiAPIClient,
     ) -> SSIDHandler:

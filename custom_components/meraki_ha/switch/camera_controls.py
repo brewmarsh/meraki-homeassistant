@@ -5,16 +5,8 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-<<<<<<< HEAD
 from ..coordinator import MerakiDataUpdateCoordinator
 from ..core.api.client import MerakiAPIClient
-from ..core.utils.naming_utils import format_entity_name
-=======
-from ..core.api.client import MerakiAPIClient
-from ..core.utils.naming_utils import format_device_name
-from ..helpers.entity_helpers import format_entity_name
-from ..meraki_data_coordinator import MerakiDataCoordinator
->>>>>>> 9bc35b7 (Merge pull request #845 from brewmarsh/fix/frontend-build-2299669574949783162)
 from .camera_settings import MerakiCameraSettingSwitchBase
 
 _LOGGER = logging.getLogger(__name__)
@@ -25,13 +17,9 @@ class AnalyticsSwitch(MerakiCameraSettingSwitchBase):
 
     def __init__(
         self,
-<<<<<<< HEAD
         coordinator: MerakiDataUpdateCoordinator,
-=======
-        coordinator: MerakiDataCoordinator,
->>>>>>> 9bc35b7 (Merge pull request #845 from brewmarsh/fix/frontend-build-2299669574949783162)
         meraki_client: MerakiAPIClient,
-        device_data: dict[str, Any],
+        device_data: dict[str, Any] | Any,
     ) -> None:
         """
         Initialize the analytics switch.
@@ -48,19 +36,10 @@ class AnalyticsSwitch(MerakiCameraSettingSwitchBase):
             meraki_client,
             device_data,
             "sense_enabled",
-            "sense.analyticsEnabled",
+            "sense_settings.analyticsEnabled",
         )
-<<<<<<< HEAD
-        self._attr_name = f"[Camera] {device_data['name']} Analytics"
-=======
-        config_options = (
-            coordinator.config_entry.options if coordinator.config_entry else {}
-        )
-        self._attr_name = format_entity_name(
-            format_device_name(device_data, config_options),
-            "Analytics",
-        )
->>>>>>> 9bc35b7 (Merge pull request #845 from brewmarsh/fix/frontend-build-2299669574949783162)
+        name = device_data.name if hasattr(device_data, "name") else device_data["name"]
+        self._attr_name = f"[Camera] {name} Analytics"
         self._attr_icon = "mdi:chart-bar"
 
     async def _async_update_setting(self, is_on: bool) -> None:
@@ -72,9 +51,14 @@ class AnalyticsSwitch(MerakiCameraSettingSwitchBase):
             is_on: Whether the setting is on or off.
 
         """
+        serial = (
+            self._device_data.serial
+            if hasattr(self._device_data, "serial")
+            else self._device_data["serial"]
+        )
         try:
             await self.client.camera.update_camera_sense_settings(
-                serial=self._device_data["serial"],
+                serial=serial,
                 sense_enabled=is_on,
             )
             await self.coordinator.async_request_refresh()
@@ -82,6 +66,6 @@ class AnalyticsSwitch(MerakiCameraSettingSwitchBase):
             _LOGGER.error(
                 "Failed to update camera setting %s for %s: %s",
                 self._key,
-                self._device_data["serial"],
+                serial,
                 e,
             )

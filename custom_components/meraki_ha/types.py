@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-<<<<<<< HEAD
 from dataclasses import dataclass, field
 from typing import Any, TypedDict
 
@@ -45,9 +44,6 @@ class MerakiNetwork:
     tags: list[str] = field(default_factory=list)
     notes: str | None = None
     status_messages: list[str] = field(default_factory=list)
-=======
-from typing import TypedDict
->>>>>>> 9bc35b7 (Merge pull request #845 from brewmarsh/fix/frontend-build-2299669574949783162)
 
 
 class MerakiVlan(TypedDict):
@@ -60,20 +56,6 @@ class MerakiVlan(TypedDict):
     ipv6: dict | None
 
 
-<<<<<<< HEAD
-=======
-class MerakiNetwork(TypedDict):
-    """Represents a Meraki Network."""
-
-    id: str
-    name: str
-    productTypes: list[str]
-    organizationId: str
-    tags: str | None
-    clientCount: int | None
-
-
->>>>>>> 9bc35b7 (Merge pull request #845 from brewmarsh/fix/frontend-build-2299669574949783162)
 class MerakiFirewallRule(TypedDict):
     """Represents a Meraki L3 Firewall Rule."""
 
@@ -100,25 +82,3 @@ class MerakiVpn(TypedDict):
     mode: str
     hubs: list
     subnets: list
-<<<<<<< HEAD
-=======
-
-
-class MerakiDevice(TypedDict, total=False):
-    """Represents a Meraki Device. Not all keys are guaranteed."""
-
-    serial: str
-    name: str
-    model: str
-    networkId: str
-    status: str | None
-    productType: str
-    lanIp: str | None
-    video_settings: dict
-    ports_statuses: list
-    radio_settings: dict
-    dynamicDns: dict
-    rtsp_url: str | None
-    sense_settings: dict
-    readings: list[dict]
->>>>>>> 9bc35b7 (Merge pull request #845 from brewmarsh/fix/frontend-build-2299669574949783162)

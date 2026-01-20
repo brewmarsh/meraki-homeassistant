@@ -44,25 +44,19 @@ class SensorEndpoints:
 
         """
         _LOGGER.debug("Sending command '%s' to sensor %s", operation, serial)
-<<<<<<< HEAD
-=======
-        if self._client.dashboard is None:
-            return {}
->>>>>>> 9bc35b7 (Merge pull request #845 from brewmarsh/fix/frontend-build-2299669574949783162)
         return await self._client.run_sync(
             self._client.dashboard.sensor.createDeviceSensorCommand,
             serial=serial,
             operation=operation,
         )
 
-<<<<<<< HEAD
     async def get_organization_sensor_readings_latest_for_serials(
         self,
         serials: list[str],
         metrics: list[str],
     ) -> list[dict[str, Any]]:
         """
-        Return the latest available reading for a given list of metrics from a list of sensors.
+        Return the latest readings for specified metrics from a list of sensors.
 
         Args:
         ----
@@ -89,8 +83,6 @@ class SensorEndpoints:
             total_pages="all",
         )
 
-=======
->>>>>>> 9bc35b7 (Merge pull request #845 from brewmarsh/fix/frontend-build-2299669574949783162)
     async def get_organization_sensor_readings_latest(
         self,
     ) -> list[dict[str, Any]]:
@@ -102,7 +94,6 @@ class SensorEndpoints:
             The response from the API.
 
         """
-<<<<<<< HEAD
         metrics = [
             "battery",
             "co2",
@@ -120,13 +111,5 @@ class SensorEndpoints:
             self._client.dashboard.sensor.getOrganizationSensorReadingsLatest,
             organizationId=self._client.organization_id,
             metrics=metrics,
-=======
-        _LOGGER.debug("Getting latest sensor readings for organization")
-        if self._client.dashboard is None:
-            return []
-        return await self._client.run_sync(
-            self._client.dashboard.sensor.getOrganizationSensorReadingsLatest,
-            organizationId=self._client.organization_id,
->>>>>>> 9bc35b7 (Merge pull request #845 from brewmarsh/fix/frontend-build-2299669574949783162)
             total_pages="all",
         )

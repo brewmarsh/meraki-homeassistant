@@ -8,14 +8,8 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import callback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-<<<<<<< HEAD
 from ...coordinator import MerakiDataUpdateCoordinator
-from ...core.utils.naming_utils import format_entity_name
 from ...helpers.device_info_helpers import resolve_device_info
-=======
-from ...helpers.device_info_helpers import resolve_device_info
-from ...meraki_data_coordinator import MerakiDataCoordinator
->>>>>>> 9bc35b7 (Merge pull request #845 from brewmarsh/fix/frontend-build-2299669574949783162)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -30,11 +24,7 @@ class MerakiSsidConnectedClientsSensor(CoordinatorEntity, SensorEntity):
 
     def __init__(
         self,
-<<<<<<< HEAD
         coordinator: MerakiDataUpdateCoordinator,
-=======
-        coordinator: MerakiDataCoordinator,
->>>>>>> 9bc35b7 (Merge pull request #845 from brewmarsh/fix/frontend-build-2299669574949783162)
         network_id: str,
         ssid_data: dict[str, Any],
         config_entry: ConfigEntry,
@@ -47,11 +37,7 @@ class MerakiSsidConnectedClientsSensor(CoordinatorEntity, SensorEntity):
         self._attr_unique_id = (
             f"{self._network_id}_{self._ssid_number}_connected_clients"
         )
-<<<<<<< HEAD
         self._attr_name = "Connected clients"
-=======
-        self._attr_name = f"{ssid_data['name']} Connected Clients"
->>>>>>> 9bc35b7 (Merge pull request #845 from brewmarsh/fix/frontend-build-2299669574949783162)
 
         self._attr_device_info = resolve_device_info(
             entity_data=ssid_data,
@@ -63,27 +49,10 @@ class MerakiSsidConnectedClientsSensor(CoordinatorEntity, SensorEntity):
     def _update_state(self) -> None:
         """Update the native value of the sensor based on coordinator data."""
         all_clients = self.coordinator.data.get("clients", [])
-<<<<<<< HEAD
         ssid = self.coordinator.get_ssid(self._network_id, self._ssid_number)
         ssid_name = ssid.get("name") if ssid else None
 
         if not ssid_name or not all_clients:
-=======
-        if not all_clients:
-            self._attr_native_value = 0
-            return
-
-        ssid_name = None
-        for ssid in self.coordinator.data.get("ssids", []):
-            if (
-                ssid.get("networkId") == self._network_id
-                and ssid.get("number") == self._ssid_number
-            ):
-                ssid_name = ssid.get("name")
-                break
-
-        if not ssid_name:
->>>>>>> 9bc35b7 (Merge pull request #845 from brewmarsh/fix/frontend-build-2299669574949783162)
             self._attr_native_value = 0
             return
 

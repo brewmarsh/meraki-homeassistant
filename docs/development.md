@@ -6,19 +6,11 @@ This document provides instructions for setting up a development environment for
 
 The backend of the integration is written in Python and uses the `meraki` library to interact with the Meraki API.
 
-<<<<<<< HEAD
 \*\*Backend Code Location
 
 The source code for the backend is located in the `custom_components/meraki_ha/` directory.
 
 \*\*Installing Dependencies
-=======
-### Backend Code Location
-
-The source code for the backend is located in the `custom_components/meraki_ha/` directory.
-
-### Installing Dependencies
->>>>>>> 9bc35b7 (Merge pull request #845 from brewmarsh/fix/frontend-build-2299669574949783162)
 
 To work with the backend code, you must first install the necessary Python dependencies. It is recommended to use a virtual environment to avoid conflicts with other projects.
 
@@ -28,11 +20,7 @@ source venv/bin/activate
 pip install -r requirements_dev.txt
 ```
 
-<<<<<<< HEAD
 \*\*Running the Linter and Tests
-=======
-### Running the Linter and Tests
->>>>>>> 9bc35b7 (Merge pull request #845 from brewmarsh/fix/frontend-build-2299669574949783162)
 
 To ensure that your code is up to the project's standards, you should run the linter and tests before submitting a pull request.
 
@@ -48,19 +36,11 @@ pytest
 
 The Meraki side panel is a modern web application built with React, Vite, and TypeScript.
 
-<<<<<<< HEAD
 \*\*Frontend Code Location
 
 The source code for the frontend panel is located in the `custom_components/meraki_ha/www/` directory.
 
 \*\*Frontend Dependencies
-=======
-### Frontend Code Location
-
-The source code for the frontend panel is located in the `custom_components/meraki_ha/www/` directory.
-
-### Installing Dependencies
->>>>>>> 9bc35b7 (Merge pull request #845 from brewmarsh/fix/frontend-build-2299669574949783162)
 
 To work with the frontend code, you must first install the necessary Node.js dependencies. Navigate to the frontend directory and run the following command:
 
@@ -69,11 +49,7 @@ cd custom_components/meraki_ha/www/
 npm install
 ```
 
-<<<<<<< HEAD
 \*\*Building the Frontend
-=======
-### Building the Frontend
->>>>>>> 9bc35b7 (Merge pull request #845 from brewmarsh/fix/frontend-build-2299669574949783162)
 
 After making changes to the frontend code, you must rebuild the panel to generate the final JavaScript and CSS files. To do this, run the following command from the `custom_components/meraki_ha/www/` directory:
 
@@ -83,11 +59,7 @@ npm run build
 
 This will compile the frontend application and place the necessary `meraki-panel.js` and `style.css` files in the `custom_components/meraki_ha/www/` directory. These are the files that are served to Home Assistant.
 
-<<<<<<< HEAD
 \*\*Development Server
-=======
-### Development Server
->>>>>>> 9bc35b7 (Merge pull request #845 from brewmarsh/fix/frontend-build-2299669574949783162)
 
 For a more interactive development experience, you can run the Vite development server:
 

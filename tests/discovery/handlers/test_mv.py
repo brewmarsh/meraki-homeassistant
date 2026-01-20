@@ -1,5 +1,6 @@
 """Tests for the MVHandler."""
 
+import dataclasses
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
@@ -52,7 +53,7 @@ async def test_mv_handler_all_features(
 ) -> None:
     """Test that the MVHandler discovers all entities for a capable camera."""
     # Arrange
-    device = MOCK_DEVICE.copy()
+    device = dataclasses.replace(MOCK_DEVICE)
     with patch.multiple(MVHandler, __abstractmethods__=set()):
         handler = MVHandler(
             mock_coordinator,
@@ -85,7 +86,7 @@ async def test_mv_handler_some_features(
 ) -> None:
     """Test that the MVHandler discovers some entities for a less capable camera."""
     # Arrange
-    device = MOCK_DEVICE.copy()
+    device = dataclasses.replace(MOCK_DEVICE)
     mock_camera_service.get_supported_analytics = AsyncMock(
         return_value=["person_detection"]
     )
@@ -121,7 +122,7 @@ async def test_mv_handler_no_extra_features(
 ) -> None:
     """Test that the MVHandler discovers only basic entities for a basic camera."""
     # Arrange
-    device = MOCK_DEVICE.copy()
+    device = dataclasses.replace(MOCK_DEVICE)
     mock_camera_service.get_supported_analytics = AsyncMock(return_value=[])
     with patch.multiple(MVHandler, __abstractmethods__=set()):
         handler = MVHandler(

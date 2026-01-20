@@ -9,16 +9,9 @@ from homeassistant.components.switch import SwitchEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import callback
 
-<<<<<<< HEAD
 from ..coordinator import MerakiDataUpdateCoordinator
 from ..core.entities.meraki_vlan_entity import MerakiVLANEntity
 from ..core.utils.entity_id_utils import get_vlan_entity_id
-from ..core.utils.naming_utils import format_entity_name
-=======
-from ..core.entities.meraki_vlan_entity import MerakiVLANEntity
-from ..core.utils.entity_id_utils import get_vlan_entity_id
-from ..meraki_data_coordinator import MerakiDataCoordinator
->>>>>>> 9bc35b7 (Merge pull request #845 from brewmarsh/fix/frontend-build-2299669574949783162)
 from ..types import MerakiVlan
 
 _LOGGER = logging.getLogger(__name__)
@@ -29,11 +22,7 @@ class MerakiVLANDHCPSwitch(MerakiVLANEntity, SwitchEntity):
 
     def __init__(
         self,
-<<<<<<< HEAD
         coordinator: MerakiDataUpdateCoordinator,
-=======
-        coordinator: MerakiDataCoordinator,
->>>>>>> 9bc35b7 (Merge pull request #845 from brewmarsh/fix/frontend-build-2299669574949783162)
         config_entry: ConfigEntry,
         network_id: str,
         vlan: MerakiVlan,
@@ -66,7 +55,7 @@ class MerakiVLANDHCPSwitch(MerakiVLANEntity, SwitchEntity):
         """Handle updated data from the coordinator."""
         vlans = self.coordinator.data.get("vlans", {}).get(self._network_id, [])
         for vlan in vlans:
-            if vlan["id"] == self._vlan["id"]:
+            if vlan.get("id") == self._vlan.get("id"):
                 self._vlan = vlan
                 break
         self._update_internal_state()
@@ -74,22 +63,30 @@ class MerakiVLANDHCPSwitch(MerakiVLANEntity, SwitchEntity):
 
     async def async_turn_on(self, **kwargs: Any) -> None:
         """Turn the switch on."""
+        vlan_id = self._vlan.get("id")
+        if not vlan_id:
+            _LOGGER.error("Cannot turn on DHCP for VLAN without an ID")
+            return
         self._attr_is_on = True
         self.async_write_ha_state()
         self.coordinator.register_pending_update(self.unique_id)
         await self.coordinator.api.appliance.update_network_vlan(
             network_id=self._network_id,
-            vlan_id=self._vlan["id"],
+            vlan_id=vlan_id,
             dhcpHandling="Run a DHCP server",
         )
 
     async def async_turn_off(self, **kwargs: Any) -> None:
         """Turn the switch off."""
+        vlan_id = self._vlan.get("id")
+        if not vlan_id:
+            _LOGGER.error("Cannot turn off DHCP for VLAN without an ID")
+            return
         self._attr_is_on = False
         self.async_write_ha_state()
         self.coordinator.register_pending_update(self.unique_id)
         await self.coordinator.api.appliance.update_network_vlan(
             network_id=self._network_id,
-            vlan_id=self._vlan["id"],
+            vlan_id=vlan_id,
             dhcpHandling="Do not respond to DHCP requests",
         )

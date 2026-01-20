@@ -10,7 +10,6 @@
         "charliermarsh.ruff"
       ]
     }
-<<<<<<< HEAD
   },
   "features": {
     "ghcr.io/rocker-org/devcontainer-features/apt-packages:1": {
@@ -21,7 +20,5 @@
     "ghcr.io/rocker-org/devcontainer-features/apt-packages:1": {
       "packages": "gcc,python3-dev,musl-dev"
     }
-=======
->>>>>>> 9bc35b7 (Merge pull request #845 from brewmarsh/fix/frontend-build-2299669574949783162)
   }
 }

@@ -1,9 +1,12 @@
 """Parsers for Meraki network data."""
+
 from __future__ import annotations
+
 import logging
 from typing import Any
-from ..errors import MerakiInformationalError
+
 from ...types import MerakiNetwork
+from ..errors import MerakiInformationalError
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -23,7 +26,8 @@ def parse_network_data(
         previous_data: The previous data from the coordinator.
         coordinator: The data update coordinator.
 
-    Returns:
+    Returns
+    -------
         A dictionary of processed network data.
     """
     appliance_traffic: dict[str, Any] = {}
@@ -90,9 +94,7 @@ def parse_network_data(
         if isinstance(traffic_shaping, dict):
             traffic_shaping_by_network[network_id] = traffic_shaping
         elif previous_data and traffic_shaping_key in previous_data:
-            traffic_shaping_by_network[network_id] = previous_data[
-                traffic_shaping_key
-            ]
+            traffic_shaping_by_network[network_id] = previous_data[traffic_shaping_key]
 
         # VPN Status
         vpn_status_key = f"vpn_status_{network_id}"
@@ -108,9 +110,7 @@ def parse_network_data(
         if isinstance(network_rf_profiles, list):
             rf_profiles_by_network[network.id] = network_rf_profiles
         elif previous_data and network_rf_profiles_key in previous_data:
-            rf_profiles_by_network[network.id] = previous_data[
-                network_rf_profiles_key
-            ]
+            rf_profiles_by_network[network.id] = previous_data[network_rf_profiles_key]
 
         # Content Filtering
         content_filtering_key = f"content_filtering_{network_id}"

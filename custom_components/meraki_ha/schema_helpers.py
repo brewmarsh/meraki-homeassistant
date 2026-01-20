@@ -24,7 +24,7 @@ def populate_schema_defaults(
         defaults: The default values.
         network_options: A list of network options for the ignored networks selector.
 
-    Returns:
+    Returns
     -------
         The populated schema.
 

@@ -2,11 +2,7 @@
 
 ## Core Functionality
 
-<<<<<<< HEAD
 \*\*Meraki API Integration
-=======
-### Meraki API Integration
->>>>>>> 9bc35b7 (Merge pull request #845 from brewmarsh/fix/frontend-build-2299669574949783162)
 
 | Requirement                                                                   | Status   |
 | :---------------------------------------------------------------------------- | :------- |
@@ -14,11 +10,7 @@
 | It requires an API key and organization ID for authentication.                | Included |
 | The API key must be stored securely.                                          | Included |
 
-<<<<<<< HEAD
 \*\*Meraki Device Discovery and Setup
-=======
-### Meraki Device Discovery and Setup
->>>>>>> 9bc35b7 (Merge pull request #845 from brewmarsh/fix/frontend-build-2299669574949783162)
 
 | Requirement                                                                                                 | Status   |
 | :---------------------------------------------------------------------------------------------------------- | :------- |
@@ -28,11 +20,7 @@
 | Device names should be formattable, with options for prefixes, suffixes, or omission of device type labels. | Included |
 | Devices should include the model name, serial number, MAC address(es) and firmware version.                 | Included |
 
-<<<<<<< HEAD
 \*\*Data Retrieval
-=======
-### Data Retrieval
->>>>>>> 9bc35b7 (Merge pull request #845 from brewmarsh/fix/frontend-build-2299669574949783162)
 
 | Requirement                                                                                             | Status   |
 | :------------------------------------------------------------------------------------------------------ | :------- |
@@ -41,11 +29,7 @@
 | The integration should retrieve device data, including connected clients for network switches (MS, GS). | Included |
 | Data should be updated at a configurable scan interval.                                                 | Included |
 
-<<<<<<< HEAD
 \*\*Home Assistant Integration
-=======
-### Home Assistant Integration
->>>>>>> 9bc35b7 (Merge pull request #845 from brewmarsh/fix/frontend-build-2299669574949783162)
 
 | Requirement                                                                                     | Status   |
 | :---------------------------------------------------------------------------------------------- | :------- |
@@ -55,11 +39,7 @@
 | The integration should have option flow, to set scan interval and device name format.           | Included |
 | The integration should handle re-authentication of the API key.                                 | Included |
 
-<<<<<<< HEAD
 \*\*Mapping Meraki objects to Home Assistant objects
-=======
-### Mapping Meraki objects to Home Assistant objects
->>>>>>> 9bc35b7 (Merge pull request #845 from brewmarsh/fix/frontend-build-2299669574949783162)
 
 | Requirement                                                                                                           | Status   |
 | :-------------------------------------------------------------------------------------------------------------------- | :------- |
@@ -68,11 +48,7 @@
 | Meraki SSIDs (wireless networks) will be shown as Home Assistant devices.                                             | Included |
 | Meraki VLANs will be shown as Home Assistant devices.                                                                 | Included |
 
-<<<<<<< HEAD
 \*\*Meraki Appliances
-=======
-### Meraki Appliances
->>>>>>> 9bc35b7 (Merge pull request #845 from brewmarsh/fix/frontend-build-2299669574949783162)
 
 | Requirement                                                                                              | Status   |
 | :------------------------------------------------------------------------------------------------------- | :------- |
@@ -84,11 +60,7 @@
 | Meraki appliances should have a sensor that tracks the number of ports available.                        | Included |
 | Meraki appliances should show the status of the appliance uplinks                                        | Included |
 
-<<<<<<< HEAD
 \*\*Meraki Wireless
-=======
-### Meraki Wireless
->>>>>>> 9bc35b7 (Merge pull request #845 from brewmarsh/fix/frontend-build-2299669574949783162)
 
 | Requirement                                                                                                                                                                                                   | Status   |
 | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | :------- |
@@ -100,11 +72,7 @@
 | SSIDs should be able to have the "Broadcast SSID" feature enabled / disabled                                                                                                                                  | Fixed    |
 | Meraki SSIDs should have sensors for splash page, auth mode, encryption mode, WPA encryption mode, IP assignment mode, band selection, per-client bandwidth limits, per-SSID bandwidth limits, and visibility | Included |
 
-<<<<<<< HEAD
 \*\*Meraki Switches
-=======
-### Meraki Switches
->>>>>>> 9bc35b7 (Merge pull request #845 from brewmarsh/fix/frontend-build-2299669574949783162)
 
 | Requirement                                                                                  | Status   |
 | :------------------------------------------------------------------------------------------- | :------- |
@@ -112,22 +80,14 @@
 | Meraki switches should have a sensor that tracks the number of ports in use.                 | Included |
 | Meraki switches should have a sensor that tracks the number of ports available.              | Included |
 
-<<<<<<< HEAD
 \*\*Meraki Cameras
-=======
-### Meraki Cameras
->>>>>>> 9bc35b7 (Merge pull request #845 from brewmarsh/fix/frontend-build-2299669574949783162)
 
 | Requirement                                                                           | Status   |
 | :------------------------------------------------------------------------------------ | :------- |
 | Meraki cameras should have a data element that reflects the URL of the camera stream. | Included |
 | Meraki cameras should have a Home Assistant switch that enables RTSP streaming.       | Included |
 
-<<<<<<< HEAD
 \*\*Meraki Sensors
-=======
-### Meraki Sensors
->>>>>>> 9bc35b7 (Merge pull request #845 from brewmarsh/fix/frontend-build-2299669574949783162)
 
 | Requirement                                                                           | Status   |
 | :------------------------------------------------------------------------------------ | :------- |
@@ -135,73 +95,45 @@
 
 ## Technical Requirements
 
-<<<<<<< HEAD
 \*\*Asynchronous Operations
-=======
-### Asynchronous Operations
->>>>>>> 9bc35b7 (Merge pull request #845 from brewmarsh/fix/frontend-build-2299669574949783162)
 
 | Requirement                                                         | Status   |
 | :------------------------------------------------------------------ | :------- |
 | All API calls and Home Assistant interactions must be asynchronous. | Included |
 
-<<<<<<< HEAD
 \*\*Error Handling
-=======
-### Error Handling
->>>>>>> 9bc35b7 (Merge pull request #845 from brewmarsh/fix/frontend-build-2299669574949783162)
 
 | Requirement                                                                                | Status   |
 | :----------------------------------------------------------------------------------------- | :------- |
 | The integration should handle API errors, network issues, and other exceptions gracefully. | Included |
 | Logging should be used for debugging and error reporting.                                  | Included |
 
-<<<<<<< HEAD
 \*\*Data Coordination
-=======
-### Data Coordination
->>>>>>> 9bc35b7 (Merge pull request #845 from brewmarsh/fix/frontend-build-2299669574949783162)
 
 | Requirement                                                                                    | Status   |
 | :--------------------------------------------------------------------------------------------- | :------- |
 | A DataUpdateCoordinator should be used to manage data updates and prevent excessive API calls. | Included |
 | A separate coordinator should be created to manage the device creations.                       | Included |
 
-<<<<<<< HEAD
 \*\*Configuration Flow
-=======
-### Configuration Flow
->>>>>>> 9bc35b7 (Merge pull request #845 from brewmarsh/fix/frontend-build-2299669574949783162)
 
 | Requirement                                                                                        | Status   |
 | :------------------------------------------------------------------------------------------------- | :------- |
 | The integration must provide a configuration flow for users to enter their Meraki API credentials. | Included |
 
-<<<<<<< HEAD
 \*\*Home Assistant API
-=======
-### Home Assistant API
->>>>>>> 9bc35b7 (Merge pull request #845 from brewmarsh/fix/frontend-build-2299669574949783162)
 
 | Requirement                                                                       | Status   |
 | :-------------------------------------------------------------------------------- | :------- |
 | The integration must adhere to the Home Assistant API guidelines and conventions. | Included |
 
-<<<<<<< HEAD
 \*\*Use of AIOHTTP
-=======
-### Use of AIOHTTP
->>>>>>> 9bc35b7 (Merge pull request #845 from brewmarsh/fix/frontend-build-2299669574949783162)
 
 | Requirement                                     | Status   |
 | :---------------------------------------------- | :------- |
 | The Integration uses AIOHTTP for the API calls. | Included |
 
-<<<<<<< HEAD
 \*\*Use of Voluptuous
-=======
-### Use of Voluptuous
->>>>>>> 9bc35b7 (Merge pull request #845 from brewmarsh/fix/frontend-build-2299669574949783162)
 
 | Requirement                                            | Status   |
 | :----------------------------------------------------- | :------- |
@@ -220,22 +152,14 @@
 
 ## Future Work
 
-<<<<<<< HEAD
 \*\*High Priority / Core Functionality
-=======
-### High Priority / Core Functionality
->>>>>>> 9bc35b7 (Merge pull request #845 from brewmarsh/fix/frontend-build-2299669574949783162)
 
 - [ ] **Refactor to use `core` components:** The highest priority is to refactor the codebase to use the new `core` components and remove the old, redundant code. This will involve updating the platforms to use the new `core` entities and coordinators, and removing the old API client, coordinators, and entities.
 - [ ] **Improve Error Handling and Logging:** Enhance error catching, provide more user-friendly error messages, and ensure consistent logging across the integration.
 - [ ] **Optimize Data Retrieval:** Review API call patterns to optimize for performance and minimize API rate limit impact, especially for large organizations.
 - [ ] **Real-time Updates:** Investigate using webhooks or WebSockets for real-time data updates.
 
-<<<<<<< HEAD
 \*\*New Features / Entities
-=======
-### New Features / Entities
->>>>>>> 9bc35b7 (Merge pull request #845 from brewmarsh/fix/frontend-build-2299669574949783162)
 
 - [ ] **Implement Switches for Internet Ports:** Allow control over WAN/Internet ports on MX appliances if API supports.
 - [ ] **Device Services:** Add services to reboot a device and blink its LEDs.
@@ -260,11 +184,7 @@
 - [ ] **PoE Control for Smart Homes (MS Switches):**
   - [ ] **Per-Port PoE Control:** Create a `switch` entity for each PoE-capable port.
 
-<<<<<<< HEAD
 \*\*Enhancements / Bug Fixes
-=======
-### Enhancements / Bug Fixes
->>>>>>> 9bc35b7 (Merge pull request #845 from brewmarsh/fix/frontend-build-2299669574949783162)
 
 - [ ] **Relaxed Tag Matching:** Add an option to allow for relaxed tag matching when associating SSIDs with wireless devices.
 - [ ] **Configuration Option for SSID Sensor Selection:** Allow users to choose which specific sensors (availability, channel, client count, etc.) they want to enable per SSID to reduce entity clutter.
@@ -275,11 +195,7 @@
 - [ ] **Fix SSID entity `device_info`:** Correctly link to parent AP via `via_device` attribute in `MerakiEntity` for SSID-specific entities.
 - [ ] **Tag-based SSID Control Review:** The current `MerakiSSIDSwitch` uses device tags to control SSID state. Evaluate if a more direct API method for enabling/disabling SSIDs per AP (if available and appropriate) would be better, or if the tag strategy is the most robust.
 
-<<<<<<< HEAD
 \*\*Documentation
-=======
-### Documentation
->>>>>>> 9bc35b7 (Merge pull request #845 from brewmarsh/fix/frontend-build-2299669574949783162)
 
 - [ ] **Troubleshooting Section:** Add a comprehensive troubleshooting section to `README.md` covering common issues (API key errors, rate limits, device discovery problems).
 - [ ] **Configuration Guide:** Create a more detailed guide on configuring the integration, including explanations of all options in the config flow and options flow.
@@ -287,10 +203,6 @@
 - [ ] **MkDocs for Documentation Generation:** Set up MkDocs (or similar like Sphinx) for generating more structured and navigable documentation, potentially hosted on GitHub Pages.
 - [ ] **Developer Documentation:** Add notes or a separate document for developers looking to contribute, explaining the coordinator structure, API client usage, and entity creation patterns.
 
-<<<<<<< HEAD
 \*\*Code Quality & Refactoring
-=======
-### Code Quality & Refactoring
->>>>>>> 9bc35b7 (Merge pull request #845 from brewmarsh/fix/frontend-build-2299669574949783162)
 
 - [ ] **Unit and Integration Tests:** Expand test coverage significantly.

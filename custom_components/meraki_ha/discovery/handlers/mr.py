@@ -1,22 +1,14 @@
-<<<<<<< HEAD
 """
 MR (Wireless) Device Handler.
 
 This module defines the MRHandler class, which is responsible for discovering
 entities for Meraki MR series (wireless) devices.
 """
-=======
-"""MR (Wireless) Device Handler."""
->>>>>>> 9bc35b7 (Merge pull request #845 from brewmarsh/fix/frontend-build-2299669574949783162)
 
 from __future__ import annotations
 
 import logging
-<<<<<<< HEAD
 from typing import TYPE_CHECKING, Any
-=======
-from typing import TYPE_CHECKING
->>>>>>> 9bc35b7 (Merge pull request #845 from brewmarsh/fix/frontend-build-2299669574949783162)
 
 from .base import BaseDeviceHandler
 
@@ -24,18 +16,11 @@ if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
     from homeassistant.helpers.entity import Entity
 
-<<<<<<< HEAD
     from ....coordinator import MerakiDataUpdateCoordinator
     from ....services.camera_service import CameraService
     from ....services.device_control_service import DeviceControlService
     from ....services.network_control_service import NetworkControlService
     from ....types import MerakiDevice
-=======
-    from ....services.network_control_service import NetworkControlService
-    from ....types import MerakiDevice
-    from ...meraki_data_coordinator import MerakiDataCoordinator
-    from ...services.device_control_service import DeviceControlService
->>>>>>> 9bc35b7 (Merge pull request #845 from brewmarsh/fix/frontend-build-2299669574949783162)
 
 
 _LOGGER = logging.getLogger(__name__)
@@ -46,7 +31,6 @@ class MRHandler(BaseDeviceHandler):
 
     def __init__(
         self,
-<<<<<<< HEAD
         coordinator: MerakiDataUpdateCoordinator,
         device: MerakiDevice,
         config_entry: ConfigEntry,
@@ -64,23 +48,10 @@ class MRHandler(BaseDeviceHandler):
         """
         super().__init__(coordinator, device, config_entry)
         self._control_service = control_service
-=======
-        coordinator: MerakiDataCoordinator,
-        device: MerakiDevice,
-        config_entry: ConfigEntry,
-        control_service: DeviceControlService,
-        network_control_service: NetworkControlService,
-    ) -> None:
-        """Initialize the MRHandler."""
-        super().__init__(coordinator, device, config_entry)
-        self._control_service = control_service
-        self._network_control_service = network_control_service
->>>>>>> 9bc35b7 (Merge pull request #845 from brewmarsh/fix/frontend-build-2299669574949783162)
 
     @classmethod
     def create(
         cls,
-<<<<<<< HEAD
         coordinator: MerakiDataUpdateCoordinator,
         device: MerakiDevice,
         config_entry: ConfigEntry,
@@ -102,22 +73,11 @@ class MRHandler(BaseDeviceHandler):
             switch_port_coordinator: The switch port coordinator.
 
         """
-=======
-        coordinator: MerakiDataCoordinator,
-        device: MerakiDevice,
-        config_entry: ConfigEntry,
-        camera_service,  # Unused
-        control_service: DeviceControlService,
-        network_control_service: NetworkControlService,
-    ) -> MRHandler:
-        """Create an instance of the handler."""
->>>>>>> 9bc35b7 (Merge pull request #845 from brewmarsh/fix/frontend-build-2299669574949783162)
         return cls(
             coordinator,
             device,
             config_entry,
             control_service,
-<<<<<<< HEAD
         )
 
     async def discover_entities(self) -> list[Entity]:
@@ -129,13 +89,6 @@ class MRHandler(BaseDeviceHandler):
             A list of entities.
 
         """
-=======
-            network_control_service,
-        )
-
-    async def discover_entities(self) -> list[Entity]:
-        """Discover entities for a wireless device."""
->>>>>>> 9bc35b7 (Merge pull request #845 from brewmarsh/fix/frontend-build-2299669574949783162)
         entities: list[Entity] = []
 
         # In the future, this is where we would create entities like:
