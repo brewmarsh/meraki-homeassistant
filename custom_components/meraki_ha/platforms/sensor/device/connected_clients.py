@@ -41,14 +41,26 @@ class MerakiConnectedClientsSensor(MerakiDeviceEntity):
     @property
     def native_value(self) -> int | None:
         """Return the number of connected clients."""
-        return self.device_data.get("clients") if self.device_data else None
+        if not self.device_data:
+            return None
+
+        if isinstance(self.device_data, dict):
+            return self.device_data.get("clients")
+        return getattr(self.device_data, "clients", None)
 
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
         """Return the state attributes."""
         if not self.device_data:
             return {}
+
+        if isinstance(self.device_data, dict):
+             return {
+                "network_id": self.device_data.get("networkId"),
+                "tags": self.device_data.get("tags", []),
+            }
+
         return {
-            "network_id": self.device_data.get("networkId"),
-            "tags": self.device_data.get("tags", []),
+            "network_id": getattr(self.device_data, "network_id", None),
+            "tags": getattr(self.device_data, "tags", []),
         }

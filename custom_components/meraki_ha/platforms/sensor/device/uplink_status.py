@@ -39,7 +39,12 @@ class MerakiUplinkStatusSensor(MerakiDeviceEntity):
     @property
     def native_value(self) -> str:
         """Return the uplink status."""
-        status = self.device_data.get("status", STATE_UNKNOWN_UPLINK).lower()
+        if isinstance(self.device_data, dict):
+            status = self.device_data.get("status", STATE_UNKNOWN_UPLINK)
+        else:
+            status = getattr(self.device_data, "status", STATE_UNKNOWN_UPLINK)
+
+        status = (status or STATE_UNKNOWN_UPLINK).lower()
         if status == "online":
             return "Online"
         if status in ["offline", "dormant"]:
@@ -49,11 +54,21 @@ class MerakiUplinkStatusSensor(MerakiDeviceEntity):
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
         """Return the state attributes."""
+        if isinstance(self.device_data, dict):
+            return {
+                "wan1_ip": self.device_data.get("wan1Ip"),
+                "wan2_ip": self.device_data.get("wan2Ip"),
+                "public_ip": self.device_data.get("publicIp"),
+                "lan_ip": self.device_data.get("lanIp"),
+                "tags": self.device_data.get("tags", []),
+                "network_id": self.device_data.get("networkId"),
+            }
+
         return {
-            "wan1_ip": self.device_data.get("wan1Ip"),
-            "wan2_ip": self.device_data.get("wan2Ip"),
-            "public_ip": self.device_data.get("publicIp"),
-            "lan_ip": self.device_data.get("lanIp"),
-            "tags": self.device_data.get("tags", []),
-            "network_id": self.device_data.get("networkId"),
+            "wan1_ip": getattr(self.device_data, "wan1_ip", None),
+            "wan2_ip": getattr(self.device_data, "wan2_ip", None),
+            "public_ip": getattr(self.device_data, "public_ip", None),
+            "lan_ip": getattr(self.device_data, "lan_ip", None),
+            "tags": getattr(self.device_data, "tags", []),
+            "network_id": getattr(self.device_data, "network_id", None),
         }
