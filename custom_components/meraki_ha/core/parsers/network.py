@@ -5,7 +5,13 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-from ...types import MerakiNetwork
+from ...types import (
+    MerakiFirewallRule,
+    MerakiNetwork,
+    MerakiTrafficShaping,
+    MerakiVlan,
+    MerakiVpn,
+)
 from ..errors import MerakiInformationalError
 
 _LOGGER = logging.getLogger(__name__)
@@ -31,17 +37,17 @@ def parse_network_data(
         A dictionary of processed network data.
     """
     appliance_traffic: dict[str, Any] = {}
-    vlan_by_network: dict[str, Any] = {}
-    l3_firewall_rules_by_network: dict[str, Any] = {}
-    traffic_shaping_by_network: dict[str, Any] = {}
-    vpn_status_by_network: dict[str, Any] = {}
+    vlan_by_network: dict[str, list[MerakiVlan]] = {}
+    l3_firewall_rules_by_network: dict[str, list[MerakiFirewallRule]] = {}
+    traffic_shaping_by_network: dict[str, MerakiTrafficShaping] = {}
+    vpn_status_by_network: dict[str, MerakiVpn] = {}
     rf_profiles_by_network: dict[str, Any] = {}
     content_filtering_by_network: dict[str, Any] = {}
 
     for network in networks:
         network_id = network.id
 
-        # Appliance Traffic
+        # Appliance Traffic (Keep as dict for now, no dataclass yet)
         network_traffic_key = f"traffic_{network_id}"
         network_traffic = detail_data.get(network_traffic_key)
         if isinstance(network_traffic, MerakiInformationalError):
@@ -74,35 +80,49 @@ def parse_network_data(
                     coordinator.mark_vlan_check_done(network_id)
             vlan_by_network[network_id] = []
         elif isinstance(network_vlans, list):
-            vlan_by_network[network_id] = network_vlans
-        elif previous_data and network_vlans_key in previous_data:
-            vlan_by_network[network_id] = previous_data[network_vlans_key]
+            vlan_by_network[network_id] = [
+                MerakiVlan.from_dict(v) for v in network_vlans
+            ]
+        elif previous_data and "vlans" in previous_data:
+             # Try to get from previous data if available
+             prev_vlans = previous_data["vlans"].get(network_id)
+             if prev_vlans:
+                 vlan_by_network[network_id] = prev_vlans
 
         # L3 Firewall Rules
         l3_firewall_rules_key = f"l3_firewall_rules_{network_id}"
         l3_firewall_rules = detail_data.get(l3_firewall_rules_key)
         if isinstance(l3_firewall_rules, dict):
-            l3_firewall_rules_by_network[network_id] = l3_firewall_rules
-        elif previous_data and l3_firewall_rules_key in previous_data:
-            l3_firewall_rules_by_network[network_id] = previous_data[
-                l3_firewall_rules_key
+            rules = l3_firewall_rules.get("rules", [])
+            l3_firewall_rules_by_network[network_id] = [
+                MerakiFirewallRule.from_dict(r) for r in rules
             ]
+        elif previous_data and "l3_firewall_rules" in previous_data:
+            prev_rules = previous_data["l3_firewall_rules"].get(network_id)
+            if prev_rules:
+                l3_firewall_rules_by_network[network_id] = prev_rules
 
         # Traffic Shaping
         traffic_shaping_key = f"traffic_shaping_{network_id}"
         traffic_shaping = detail_data.get(traffic_shaping_key)
         if isinstance(traffic_shaping, dict):
-            traffic_shaping_by_network[network_id] = traffic_shaping
-        elif previous_data and traffic_shaping_key in previous_data:
-            traffic_shaping_by_network[network_id] = previous_data[traffic_shaping_key]
+            traffic_shaping_by_network[network_id] = MerakiTrafficShaping.from_dict(
+                traffic_shaping
+            )
+        elif previous_data and "traffic_shaping" in previous_data:
+            prev_shaping = previous_data["traffic_shaping"].get(network_id)
+            if prev_shaping:
+                traffic_shaping_by_network[network_id] = prev_shaping
 
         # VPN Status
         vpn_status_key = f"vpn_status_{network_id}"
         vpn_status = detail_data.get(vpn_status_key)
         if isinstance(vpn_status, dict):
-            vpn_status_by_network[network_id] = vpn_status
-        elif previous_data and vpn_status_key in previous_data:
-            vpn_status_by_network[network_id] = previous_data[vpn_status_key]
+            vpn_status_by_network[network_id] = MerakiVpn.from_dict(vpn_status)
+        elif previous_data and "vpn_status" in previous_data:
+            prev_vpn = previous_data["vpn_status"].get(network_id)
+            if prev_vpn:
+                vpn_status_by_network[network_id] = prev_vpn
 
         # RF Profiles
         network_rf_profiles_key = f"rf_profiles_{network.id}"

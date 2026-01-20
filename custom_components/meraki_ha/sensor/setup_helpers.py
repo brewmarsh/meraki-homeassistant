@@ -180,23 +180,25 @@ def _setup_vlan_sensors(
         if not isinstance(vlans, list):
             continue
         for vlan in vlans:
-            if isinstance(vlan, dict):
-                vlan_id = vlan.get("id")
-                if not vlan_id:
-                    continue
+            if not isinstance(vlan, MerakiVlan):
+                continue
 
-                for sensor_class, suffix in vlan_sensors:
-                    unique_id = f"meraki_vlan_{network_id}_{vlan_id}_{suffix}"
-                    if unique_id not in added_entities:
-                        entities.append(
-                            sensor_class(
-                                coordinator,
-                                config_entry,
-                                network_id,
-                                cast(MerakiVlan, vlan),
-                            )
+            vlan_id = vlan.id
+            if not vlan_id:
+                continue
+
+            for sensor_class, suffix in vlan_sensors:
+                unique_id = f"meraki_vlan_{network_id}_{vlan_id}_{suffix}"
+                if unique_id not in added_entities:
+                    entities.append(
+                        sensor_class(
+                            coordinator,
+                            config_entry,
+                            network_id,
+                            vlan,
                         )
-                        added_entities.add(unique_id)
+                    )
+                    added_entities.add(unique_id)
     return entities
 
 

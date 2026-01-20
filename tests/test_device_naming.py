@@ -13,6 +13,7 @@ from custom_components.meraki_ha.sensor.network.vlan import MerakiVLANIDSensor
 from custom_components.meraki_ha.sensor.org.org_clients import (
     MerakiOrganizationSSIDClientsSensor,
 )
+from custom_components.meraki_ha.types import MerakiVlan
 
 
 @pytest.fixture
@@ -30,7 +31,7 @@ def mock_coordinator() -> MagicMock:
         ],
         "vlans": {
             "net1": [
-                {"id": 1, "name": "Test VLAN", "enabled": True},
+                MerakiVlan(id=1, name="Test VLAN"),
             ],
         },
     }

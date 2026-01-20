@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import dataclasses
+
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.entity import DeviceInfo
 
@@ -43,7 +45,10 @@ class MerakiFirewallRuleEntity(BaseMerakiEntity):
         self._rule_index = rule_index
         if self._network_id is None:
             raise ValueError("Network ID cannot be None for a firewall rule entity")
-        rule_device_data = {**rule, "productType": "firewall_rule"}
+
+        rule_device_data = dataclasses.asdict(rule)
+        rule_device_data["productType"] = "firewall_rule"
+
         formatted_name = format_device_name(
             device=rule_device_data,
             config=self._config_entry.options,

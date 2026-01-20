@@ -38,22 +38,24 @@ def _setup_vlan_switches(
         if not isinstance(vlans, list):
             continue
         for vlan in vlans:
-            if isinstance(vlan, dict):
-                vlan_id = vlan.get("id")
-                if not vlan_id:
-                    continue
+            if not isinstance(vlan, MerakiVlan):
+                continue
 
-                unique_id = f"meraki_vlan_{network_id}_{vlan_id}_dhcp"
-                if unique_id not in added_entities:
-                    entities.append(
-                        MerakiVLANDHCPSwitch(
-                            coordinator,
-                            config_entry,
-                            network_id,
-                            cast(MerakiVlan, vlan),
-                        )
+            vlan_id = vlan.id
+            if not vlan_id:
+                continue
+
+            unique_id = f"meraki_vlan_{network_id}_{vlan_id}_dhcp"
+            if unique_id not in added_entities:
+                entities.append(
+                    MerakiVLANDHCPSwitch(
+                        coordinator,
+                        config_entry,
+                        network_id,
+                        vlan,
                     )
-                    added_entities.add(unique_id)
+                )
+                added_entities.add(unique_id)
     return entities
 
 

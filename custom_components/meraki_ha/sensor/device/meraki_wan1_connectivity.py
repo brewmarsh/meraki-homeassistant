@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import logging
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from homeassistant.components.sensor import SensorEntity
 from homeassistant.config_entries import ConfigEntry
@@ -15,6 +15,9 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from ...const import DOMAIN
 from ...coordinator import MerakiDataUpdateCoordinator
 from ...core.utils.naming_utils import format_device_name
+
+if TYPE_CHECKING:
+    from ...types import MerakiDevice
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -36,7 +39,7 @@ class MerakiWAN1ConnectivitySensor(
     def __init__(
         self,
         coordinator: MerakiDataUpdateCoordinator,
-        device_data: "MerakiDevice",
+        device_data: MerakiDevice,
         config_entry: ConfigEntry,
     ) -> None:
         """
@@ -63,7 +66,7 @@ class MerakiWAN1ConnectivitySensor(
         )
         self._update_state()
 
-    def _get_current_device_data(self) -> "MerakiDevice" | None:
+    def _get_current_device_data(self) -> MerakiDevice | None:
         """Retrieve the latest data for this sensor's device from the coordinator."""
         return self.coordinator.get_device(self._device_serial)
 
