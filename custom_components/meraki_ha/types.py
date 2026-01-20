@@ -80,39 +80,85 @@ class MerakiNetwork:
         )
 
 
-class MerakiVlan(TypedDict):
+@dataclass
+class MerakiVlan:
     """Represents a Meraki VLAN."""
 
     id: str
     name: str
-    subnet: str | None
-    applianceIp: str | None
-    ipv6: dict | None
+    subnet: str | None = None
+    appliance_ip: str | None = None
+    ipv6: dict | None = None
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> "MerakiVlan":
+        """Create a MerakiVlan instance from a dictionary."""
+        return cls(
+            id=data.get("id"),
+            name=data.get("name"),
+            subnet=data.get("subnet"),
+            appliance_ip=data.get("applianceIp"),
+            ipv6=data.get("ipv6"),
+        )
 
 
-class MerakiFirewallRule(TypedDict):
+@dataclass
+class MerakiFirewallRule:
     """Represents a Meraki L3 Firewall Rule."""
 
     comment: str
     policy: str
     protocol: str
-    destPort: str
-    destCidr: str
-    srcPort: str
-    srcCidr: str
-    syslogEnabled: bool
+    dest_port: str | None = None
+    dest_cidr: str | None = None
+    src_port: str | None = None
+    src_cidr: str | None = None
+    syslog_enabled: bool = False
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> "MerakiFirewallRule":
+        """Create a MerakiFirewallRule instance from a dictionary."""
+        return cls(
+            comment=data.get("comment"),
+            policy=data.get("policy"),
+            protocol=data.get("protocol"),
+            dest_port=data.get("destPort"),
+            dest_cidr=data.get("destCidr"),
+            src_port=data.get("srcPort"),
+            src_cidr=data.get("srcCidr"),
+            syslog_enabled=data.get("syslogEnabled", False),
+        )
 
 
-class MerakiTrafficShaping(TypedDict):
+@dataclass
+class MerakiTrafficShaping:
     """Represents Meraki Traffic Shaping settings."""
 
-    enabled: bool
-    rules: list
+    enabled: bool = False
+    rules: list = field(default_factory=list)
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> "MerakiTrafficShaping":
+        """Create a MerakiTrafficShaping instance from a dictionary."""
+        return cls(
+            enabled=data.get("enabled", False),
+            rules=data.get("rules", []),
+        )
 
 
-class MerakiVpn(TypedDict):
+@dataclass
+class MerakiVpn:
     """Represents Meraki Site-to-Site VPN settings."""
 
     mode: str
-    hubs: list
-    subnets: list
+    hubs: list = field(default_factory=list)
+    subnets: list = field(default_factory=list)
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> "MerakiVpn":
+        """Create a MerakiVpn instance from a dictionary."""
+        return cls(
+            mode=data.get("mode"),
+            hubs=data.get("hubs", []),
+            subnets=data.get("subnets", []),
+        )

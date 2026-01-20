@@ -36,7 +36,7 @@ class MerakiWAN2ConnectivitySensor(
     def __init__(
         self,
         coordinator: MerakiDataUpdateCoordinator,
-        device_data: dict[str, Any],
+        device_data: "MerakiDevice",
         config_entry: ConfigEntry,
     ) -> None:
         """
@@ -50,7 +50,7 @@ class MerakiWAN2ConnectivitySensor(
 
         """
         super().__init__(coordinator)
-        self._device_serial: str = device_data["serial"]
+        self._device_serial: str = device_data.serial
         self._config_entry = config_entry
         self._attr_unique_id = f"{self._device_serial}_wan2_connectivity"
         self._attr_name = "WAN 2 Connectivity"
@@ -58,23 +58,14 @@ class MerakiWAN2ConnectivitySensor(
         self._attr_device_info = DeviceInfo(
             identifiers={(DOMAIN, self._device_serial)},
             name=format_device_name(device_data, self._config_entry.options),
-            model=device_data.get("model"),
+            model=device_data.model,
             manufacturer="Meraki",
         )
         self._update_state()
 
-    def _get_current_device_data(self) -> dict[str, Any] | None:
+    def _get_current_device_data(self) -> "MerakiDevice" | None:
         """Retrieve the latest data for this sensor's device from the coordinator."""
-        if self.coordinator.data and self.coordinator.data.get("devices"):
-            return next(
-                (
-                    device
-                    for device in self.coordinator.data["devices"]
-                    if device.get("serial") == self._device_serial
-                ),
-                None,
-            )
-        return None
+        return self.coordinator.get_device(self._device_serial)
 
     @callback
     def _update_state(self) -> None:
@@ -86,8 +77,8 @@ class MerakiWAN2ConnectivitySensor(
             self._attr_extra_state_attributes = {}
             return
 
-        wan2_ip = current_device_data.get("wan2Ip")
-        device_status = str(current_device_data.get("status", "")).lower()
+        wan2_ip = current_device_data.wan2_ip
+        device_status = str(current_device_data.status or "").lower()
 
         if wan2_ip and device_status == "online":
             self._attr_native_value = STATE_CONNECTED

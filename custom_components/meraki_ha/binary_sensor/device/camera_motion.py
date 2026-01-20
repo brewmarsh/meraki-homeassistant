@@ -31,7 +31,7 @@ class MerakiMotionSensor(CoordinatorEntity, BinarySensorEntity):
     def __init__(
         self,
         coordinator: MerakiDataUpdateCoordinator,
-        device: dict[str, Any] | Any,
+        device: "MerakiDevice",
         camera_service: CameraService,
         config_entry: ConfigEntry,
     ) -> None:
@@ -40,10 +40,8 @@ class MerakiMotionSensor(CoordinatorEntity, BinarySensorEntity):
         self._device = device
         self._camera_service = camera_service
         self._config_entry = config_entry
-        serial = device.serial if hasattr(device, "serial") else device["serial"]
-        name = device.name if hasattr(device, "name") else device["name"]
-        self._attr_unique_id = f"{serial}-motion"
-        self._attr_name = f"[Camera] {name} Motion"
+        self._attr_unique_id = f"{device.serial}-motion"
+        self._attr_name = f"[Camera] {device.name} Motion"
         self._motion_events: list[dict[str, Any]] = []
 
     @property
@@ -63,13 +61,12 @@ class MerakiMotionSensor(CoordinatorEntity, BinarySensorEntity):
 
     async def async_update(self) -> None:
         """Update the sensor."""
-        serial = (
-            self._device.serial
-            if hasattr(self._device, "serial")
-            else self._device["serial"]
-        )
         try:
-            self._motion_events = await self._camera_service.get_motion_history(serial)
+            self._motion_events = await self._camera_service.get_motion_history(
+                self._device.serial
+            )
         except Exception as e:
-            _LOGGER.error("Error updating motion sensor for %s: %s", serial, e)
+            _LOGGER.error(
+                "Error updating motion sensor for %s: %s", self._device.serial, e
+            )
             self._motion_events = []

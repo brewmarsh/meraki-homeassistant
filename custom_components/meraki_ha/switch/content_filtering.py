@@ -25,7 +25,7 @@ class MerakiContentFilteringSwitch(
         self,
         coordinator: MerakiDataUpdateCoordinator,
         config_entry: ConfigEntry,
-        network: dict[str, Any],
+        network: "MerakiNetwork",
         category: dict[str, Any],
     ) -> None:
         """
@@ -46,14 +46,14 @@ class MerakiContentFilteringSwitch(
         self._client = coordinator.api
 
         self.entity_description = SwitchEntityDescription(
-            key=f"content_filtering_{network['id']}_{category['id']}",
+            key=f"content_filtering_{network.id}_{category['id']}",
             name=f"Block {category['name']}",
         )
 
     @property
     def unique_id(self) -> str:
         """Return a unique ID."""
-        return f"meraki-content-filtering-{self._network['id']}-{self._category['id']}"
+        return f"meraki-content-filtering-{self._network.id}-{self._category['id']}"
 
     @property
     def device_info(self) -> DeviceInfo | None:
@@ -64,7 +64,7 @@ class MerakiContentFilteringSwitch(
     def is_on(self) -> bool:
         """Return true if the switch is on."""
         content_filtering = self.coordinator.data.get("content_filtering", {}).get(
-            self._network["id"],
+            self._network.id,
             {},
         )
         return self._category["id"] in content_filtering.get("blockedUrlCategories", [])
