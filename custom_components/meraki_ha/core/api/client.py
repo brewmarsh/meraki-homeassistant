@@ -307,9 +307,7 @@ class MerakiAPIClient:
                         self.appliance.get_vpn_status(network.id),
                     )
                 )
-                detail_tasks[
-                    f"content_filtering_{network.id}"
-                ] = asyncio.create_task(
+                detail_tasks[f"content_filtering_{network.id}"] = asyncio.create_task(
                     self._run_with_semaphore(
                         self.appliance.get_network_appliance_content_filtering(
                             network.id,
@@ -334,9 +332,7 @@ class MerakiAPIClient:
                         self.camera.get_camera_sense_settings(device.serial),
                     )
                 )
-                detail_tasks[
-                    f"camera_analytics_{device.serial}"
-                ] = asyncio.create_task(
+                detail_tasks[f"camera_analytics_{device.serial}"] = asyncio.create_task(
                     self._run_with_semaphore(
                         self.camera.get_device_camera_analytics_recent(
                             device.serial,
@@ -344,21 +340,19 @@ class MerakiAPIClient:
                     )
                 )
             elif device.product_type == "switch":
-                detail_tasks[
-                    f"ports_statuses_{device.serial}"
-                ] = asyncio.create_task(
+                detail_tasks[f"ports_statuses_{device.serial}"] = asyncio.create_task(
                     self._run_with_semaphore(
                         self.switch.get_device_switch_ports_statuses(device.serial),
                     )
                 )
             elif device.product_type == "appliance" and device.network_id:
-                detail_tasks[
-                    f"appliance_settings_{device.serial}"
-                ] = asyncio.create_task(
-                    self._run_with_semaphore(
-                        self.appliance.get_network_appliance_settings(
-                            device.network_id,
-                        ),
+                detail_tasks[f"appliance_settings_{device.serial}"] = (
+                    asyncio.create_task(
+                        self._run_with_semaphore(
+                            self.appliance.get_network_appliance_settings(
+                                device.network_id,
+                            ),
+                        )
                     )
                 )
         return detail_tasks
@@ -439,7 +433,6 @@ class MerakiAPIClient:
             self._async_fetch_device_clients(devices),
             return_exceptions=True,
         )
-
 
         processed_network_data = parse_network_data(
             detail_data,
@@ -530,21 +523,21 @@ class MerakiAPIClient:
         """
         return await self.switch.get_device_switch_ports_statuses(serial)
 
-    async def async_cycle_switch_port(
+    async def async_cycle_switch_ports(
         self,
         serial: str,
-        port_id: str,
+        ports: list[str],
     ) -> dict[str, Any]:
         """
-        Cycle a switch port.
+        Cycle a set of switch ports.
 
         Args:
             serial: The serial number of the switch.
-            port_id: The ID of the port to cycle.
+            ports: A list of port IDs to cycle.
 
         Returns
         -------
             The API response.
 
         """
-        return await self.switch.cycle_switch_port(serial, port_id)
+        return await self.switch.cycle_device_switch_ports(serial, ports)

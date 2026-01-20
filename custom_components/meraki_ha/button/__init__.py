@@ -28,7 +28,9 @@ async def async_setup_entry(
     entry_data = hass.data[DOMAIN][config_entry.entry_id]
     coordinator = entry_data["coordinator"]
     device_control_service = entry_data["device_control_service"]
-    switch_port_service = entry_data.get("switch_port_service")
+    switch_port_service = entry_data.get(
+        "switch_port_service"
+    )  # Keeping HEAD's .get() for safety
     camera_service = entry_data["camera_service"]
     meraki_client = entry_data.get("meraki_client")
     if not meraki_client:
@@ -36,7 +38,8 @@ async def async_setup_entry(
         return False
     button_entities: list[Entity] = []
 
-    switch_ports_statuses = coordinator.data.get("switch_ports_statuses", {})
+    # switch_ports_statuses is not used with the new logic
+    # switch_ports_statuses = coordinator.data.get("switch_ports_statuses", {})
 
     for device in coordinator.data.get("devices", []):
         # Add reboot button for all devices
@@ -59,19 +62,17 @@ async def async_setup_entry(
             )
 
         # Add switch port cycle buttons
-        if device.product_type == "switch" and switch_port_service:
-            ports = switch_ports_statuses.get(device.serial, [])
-            for port in ports:
-                if port_id := port.get("portId"):
-                    button_entities.append(
-                        MerakiSwitchPortCycleButton(
-                            switch_port_service,
-                            device,
-                            config_entry,
-                            port_id,
-                            port,
-                        )
+        if (
+            device.product_type == "switch"
+            and switch_port_service
+            and device.ports_statuses
+        ):  # Combine conditions for safety
+            for port in device.ports_statuses:
+                button_entities.append(
+                    MerakiSwitchPortCycleButton(
+                        switch_port_service, device, port, config_entry
                     )
+                )
 
     if button_entities:
         async_add_entities(button_entities)

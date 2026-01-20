@@ -85,14 +85,18 @@ class SwitchEndpoints:
         return validated
 
     @handle_meraki_errors
-    async def cycle_switch_port(self, serial: str, port_id: str) -> dict[str, Any]:
+    async def cycle_device_switch_ports(
+        self,
+        serial: str,
+        ports: list[str],
+    ) -> dict[str, Any]:
         """
-        Cycle a switch port.
+        Cycle a set of switch ports.
 
         Args:
         ----
             serial: The serial number of the switch.
-            port_id: The ID of the port to cycle.
+            ports: A list of port IDs to cycle.
 
         Returns
         -------
@@ -100,8 +104,6 @@ class SwitchEndpoints:
 
         """
         response = await self._api_client.run_sync(
-            self._dashboard.switch.cycleDeviceSwitchPorts,
-            serial=serial,
-            ports=[port_id],
+            self._dashboard.switch.cycleDeviceSwitchPorts, serial=serial, ports=ports
         )
         return validate_response(response)
