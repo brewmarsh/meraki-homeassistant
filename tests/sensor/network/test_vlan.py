@@ -5,6 +5,7 @@ from unittest.mock import MagicMock
 import pytest
 
 from custom_components.meraki_ha.sensor.setup_helpers import async_setup_sensors
+from custom_components.meraki_ha.types import MerakiNetwork
 
 
 @pytest.fixture
@@ -13,8 +14,17 @@ def mock_coordinator():
     coordinator = MagicMock()
     coordinator.config_entry = MagicMock()
     coordinator.config_entry.options = {}
+
+    # Create a mock network using the Dataclass
+    mock_network = MerakiNetwork(
+        id="net1",
+        name="Test Network",
+        organization_id="org1",
+        product_types=["appliance"],
+    )
+
     coordinator.data = {
-        "networks": [{"id": "net1", "name": "Test Network"}],
+        "networks": [mock_network],
         "vlans": {
             "net1": [
                 {
