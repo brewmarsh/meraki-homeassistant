@@ -1,0 +1,28 @@
+name: AI Code Reviewer
+on:
+  pull_request:
+    types: [opened, synchronize]
+    branches: [beta]
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Invoke Jules Reviewer
+        uses: google-labs-code/jules-invoke@v1
+        with:
+          jules_api_key: ${{ secrets.JULES_API_KEY }}
+          model: "gemini-2.0-flash-thinking" # Use a fast/smart model
+          prompt: |
+            You are the Repository Compliance Officer. Read 'AGENTS.md'.
+            Review the code changes in this PR.
+            
+            **Failure Criteria (Request Changes immediately if found):**
+            1. Forbidden `select/` folder name (Shadowing standard lib).
+            2. Hardcoded `homeassistant` version in `requirements_dev.txt`.
+            3. Raw types in `config_flow.py` (Must use selectors).
+            4. Missing test files or updated `manifest.json`.
+
+            **Action:**
+            * If violations exist: Post a PR comment listing them and tag the author to fix.
+            * If clean: Post a comment "✅ Compliance Check Passed."
