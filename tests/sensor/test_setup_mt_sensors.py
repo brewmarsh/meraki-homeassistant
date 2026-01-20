@@ -1,6 +1,8 @@
+
 """Tests for the Meraki MT sensor setup."""
 
 from unittest.mock import MagicMock
+import copy
 
 import pytest
 
@@ -252,7 +254,9 @@ def test_availability(mock_coordinator_with_mt_devices: MagicMock) -> None:
     assert temp_sensor.available is True
 
     # Remove readings and check availability
-    device.readings = []
+    device_without_readings = copy.deepcopy(device)
+    device_without_readings.readings = []
+    mock_coordinator_with_mt_devices.get_device.return_value = device_without_readings
     temp_sensor._handle_coordinator_update()
     assert temp_sensor.available is False
 

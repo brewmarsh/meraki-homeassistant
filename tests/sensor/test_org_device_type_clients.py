@@ -1,3 +1,4 @@
+
 """Tests for the Meraki organization device type clients sensor."""
 
 from unittest.mock import MagicMock
@@ -21,7 +22,10 @@ async def test_meraki_organization_device_type_clients_sensor(
             {"deviceType": "appliance"},
         ]
     }
+    config_entry = MagicMock()
+    config_entry.options = {}
     sensor = MerakiOrganizationDeviceTypeClientsSensor(
-        coordinator, MagicMock(), "wireless"
+        coordinator, config_entry, "wireless"
     )
+    sensor._update_sensor_data()
     assert sensor.native_value == 2
