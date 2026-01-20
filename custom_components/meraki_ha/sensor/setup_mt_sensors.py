@@ -1,6 +1,7 @@
 """Setup helper for Meraki MT sensors."""
 
 import logging
+from typing import TYPE_CHECKING
 
 from homeassistant.helpers.entity import Entity
 
@@ -8,16 +9,19 @@ from ..coordinator import MerakiDataUpdateCoordinator
 from ..descriptions import MT_SENSOR_MODELS
 from .device.meraki_mt_base import MerakiMtSensor
 
+if TYPE_CHECKING:
+    from ..types import MerakiDevice
+
 _LOGGER = logging.getLogger(__name__)
 
 
 def async_setup_mt_sensors(
     coordinator: MerakiDataUpdateCoordinator,
-    device_info: dict,
+    device: "MerakiDevice",
 ) -> list[Entity]:
     """Set up Meraki MT sensor entities for a given device."""
     entities: list[Entity] = []
-    model = device_info.get("model")
+    model = device.model
 
     if not model or not model.startswith("MT"):
         return []
@@ -40,6 +44,6 @@ def async_setup_mt_sensors(
         sensor_descriptions = unique_descriptions
 
     for description in sensor_descriptions:
-        entities.append(MerakiMtSensor(coordinator, device_info, description))
+        entities.append(MerakiMtSensor(coordinator, device, description))
 
     return entities

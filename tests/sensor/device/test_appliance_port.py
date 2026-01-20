@@ -7,60 +7,70 @@ import pytest
 from custom_components.meraki_ha.sensor.device.appliance_port import (
     MerakiAppliancePortSensor,
 )
+from custom_components.meraki_ha.types import MerakiDevice, MerakiAppliancePort
 
 
 @pytest.fixture
 def mock_device_coordinator():
     """Fixture for a mocked MerakiDeviceCoordinator."""
     coordinator = MagicMock()
+
+    device = MerakiDevice(
+        serial="dev1",
+        name="Appliance",
+        model="MX64",
+        mac="00:11:22:33:44:55",
+        product_type="appliance",
+    )
+
+    device.appliance_ports = [
+        MerakiAppliancePort(
+            number=1,
+            enabled=True,
+            status="connected",
+            speed="1000 Mbps",
+            vlan=1,
+            type="access",
+            access_policy=None,
+        ),
+        MerakiAppliancePort(
+            number=2,
+            enabled=True,
+            status="disconnected",
+            speed=None,
+            vlan=1,
+            type="access",
+            access_policy=None,
+        ),
+        MerakiAppliancePort(
+            number=3,
+            enabled=False,
+            status="disconnected",
+            speed=None,
+            vlan=1,
+            type="access",
+            access_policy=None,
+        ),
+    ]
+
     coordinator.data = {
-        "devices": [
-            {
-                "serial": "dev1",
-                "name": "Appliance",
-                "model": "MX64",
-                "productType": "appliance",
-                "ports": [
-                    {
-                        "number": 1,
-                        "enabled": True,
-                        "status": "connected",
-                        "speed": "1000 Mbps",
-                        "vlan": 1,
-                        "type": "access",
-                        "accessPolicy": None,
-                    },
-                    {
-                        "number": 2,
-                        "enabled": True,
-                        "status": "disconnected",
-                        "speed": None,
-                        "vlan": 1,
-                        "type": "access",
-                        "accessPolicy": None,
-                    },
-                    {
-                        "number": 3,
-                        "enabled": False,
-                        "status": "disconnected",
-                        "speed": None,
-                        "vlan": 1,
-                        "type": "access",
-                        "accessPolicy": None,
-                    },
-                ],
-            }
-        ]
+        "devices": [device]
     }
+    # coordinator.get_device needs to return the device
+    coordinator.get_device.return_value = device
+
+    # Mock config entry options
+    coordinator.config_entry.options = {}
+
     return coordinator
 
 
 def test_appliance_port_sensor(mock_device_coordinator):
     """Test the appliance port sensor."""
     device = mock_device_coordinator.data["devices"][0]
-    port1 = device["ports"][0]
-    port2 = device["ports"][1]
-    port3 = device["ports"][2]
+    port1 = device.appliance_ports[0]
+    port2 = device.appliance_ports[1]
+    port3 = device.appliance_ports[2]
 
     # Test connected port
     sensor1 = MerakiAppliancePortSensor(mock_device_coordinator, device, port1)

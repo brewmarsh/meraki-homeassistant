@@ -29,6 +29,7 @@ class MerakiDevice:
     sense_settings: dict[str, Any] | None = None
     analytics: list[dict[str, Any]] = field(default_factory=list)
     ports_statuses: list[dict[str, Any]] = field(default_factory=list)
+    appliance_ports: list["MerakiAppliancePort"] = field(default_factory=list)
     dynamic_dns: dict[str, Any] | None = None
     status_messages: list[str] = field(default_factory=list)
     entity_id: str | None = None
@@ -162,4 +163,34 @@ class MerakiVpn:
             mode=data.get("mode"),
             hubs=data.get("hubs", []),
             subnets=data.get("subnets", []),
+        )
+
+
+@dataclass
+class MerakiAppliancePort:
+    """Represents a Meraki Appliance Port."""
+
+    number: int
+    enabled: bool = False
+    type: str | None = None
+    drop_untagged_traffic: bool = False
+    vlan: int | None = None
+    access_policy: str | None = None
+    allowed_vlans: str | None = None
+    status: str | None = None
+    speed: str | None = None
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> "MerakiAppliancePort":
+        """Create a MerakiAppliancePort instance from a dictionary."""
+        return cls(
+            number=data.get("number"),
+            enabled=data.get("enabled", False),
+            type=data.get("type"),
+            drop_untagged_traffic=data.get("dropUntaggedTraffic", False),
+            vlan=data.get("vlan"),
+            access_policy=data.get("accessPolicy"),
+            allowed_vlans=data.get("allowedVlans"),
+            status=data.get("status"),
+            speed=data.get("speed"),
         )
