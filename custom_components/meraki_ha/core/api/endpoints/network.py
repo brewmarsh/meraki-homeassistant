@@ -222,15 +222,15 @@ class NetworkEndpoints:
 
     @handle_meraki_errors
     @async_timed_cache(timeout=60)
-    async def get_network_camera_analytics_history(
-        self, network_id: str, object_type: str
+    async def get_device_camera_analytics_history(
+        self, serial: str, object_type: str
     ) -> list[dict[str, Any]]:
         """
-        Get analytics history for a network.
+        Get analytics history for a device.
 
         Args:
         ----
-            network_id: The ID of the network.
+            serial: The serial of the device.
             object_type: The type of object to get analytics for.
 
         Returns
@@ -239,14 +239,14 @@ class NetworkEndpoints:
 
         """
         history = await self._api_client.run_sync(
-            self._dashboard.camera.getNetworkCameraAnalyticsRecent,
-            networkId=network_id,
+            self._dashboard.camera.getDeviceCameraAnalyticsRecent,
+            serial=serial,
             objectType=object_type,
         )
         validated = validate_response(history)
         if not isinstance(validated, list):
             _LOGGER.warning(
-                "get_network_camera_analytics_history did not return a list."
+                "get_device_camera_analytics_history did not return a list."
             )
             return []
         return validated

@@ -146,14 +146,18 @@ async def test_get_all_data_handles_informational_errors(api_client):
     )
 
 
-def test_build_detail_tasks_for_wireless_device(api_client):
+@pytest.mark.asyncio
+async def test_build_detail_tasks_for_wireless_device(api_client):
     """Test that _build_detail_tasks creates the correct tasks for a wireless device."""
     # Arrange
     devices = [MOCK_DEVICE]
     networks = [MOCK_NETWORK]
 
     # Mock _run_with_semaphore to return the task directly so we can close it
-    api_client._run_with_semaphore = MagicMock(side_effect=lambda x: x)
+    async def side_effect(coro):
+        return await coro
+
+    api_client._run_with_semaphore = MagicMock(side_effect=side_effect)
 
     # Act
     tasks = api_client._build_detail_tasks(networks, devices)
@@ -164,7 +168,7 @@ def test_build_detail_tasks_for_wireless_device(api_client):
 
     # Clean up coroutines to avoid warnings
     for task in tasks.values():
-        task.close()
+        await task
 
 
 @pytest.mark.asyncio
@@ -198,7 +202,8 @@ async def test_get_all_data_includes_switch_ports(api_client):
     ]
 
 
-def test_build_detail_tasks_for_switch_device(api_client):
+@pytest.mark.asyncio
+async def test_build_detail_tasks_for_switch_device(api_client):
     """Test that _build_detail_tasks creates the correct tasks for a switch device."""
     # Arrange
     switch_device = MerakiDevice.from_dict({"serial": "s123", "productType": "switch"})
@@ -206,7 +211,10 @@ def test_build_detail_tasks_for_switch_device(api_client):
     networks = []
 
     # Mock _run_with_semaphore to return the task directly so we can close it
-    api_client._run_with_semaphore = MagicMock(side_effect=lambda x: x)
+    async def side_effect(coro):
+        return await coro
+
+    api_client._run_with_semaphore = MagicMock(side_effect=side_effect)
 
     # Act
     tasks = api_client._build_detail_tasks(networks, devices)
@@ -216,10 +224,11 @@ def test_build_detail_tasks_for_switch_device(api_client):
 
     # Clean up coroutines to avoid warnings
     for task in tasks.values():
-        task.close()
+        await task
 
 
-def test_build_detail_tasks_for_camera_device(api_client):
+@pytest.mark.asyncio
+async def test_build_detail_tasks_for_camera_device(api_client):
     """Test that _build_detail_tasks creates the correct tasks for a camera device."""
     # Arrange
     camera_device = MerakiDevice.from_dict({"serial": "c123", "productType": "camera"})
@@ -227,7 +236,10 @@ def test_build_detail_tasks_for_camera_device(api_client):
     networks = []
 
     # Mock _run_with_semaphore to return the task directly so we can close it
-    api_client._run_with_semaphore = MagicMock(side_effect=lambda x: x)
+    async def side_effect(coro):
+        return await coro
+
+    api_client._run_with_semaphore = MagicMock(side_effect=side_effect)
 
     # Act
     tasks = api_client._build_detail_tasks(networks, devices)
@@ -238,10 +250,11 @@ def test_build_detail_tasks_for_camera_device(api_client):
 
     # Clean up coroutines to avoid warnings
     for task in tasks.values():
-        task.close()
+        await task
 
 
-def test_build_detail_tasks_for_appliance_device(api_client):
+@pytest.mark.asyncio
+async def test_build_detail_tasks_for_appliance_device(api_client):
     """Test that _build_detail_tasks creates tasks for an appliance device."""
     # Arrange
     appliance_device = MerakiDevice.from_dict({
@@ -254,7 +267,10 @@ def test_build_detail_tasks_for_appliance_device(api_client):
     networks = [network_with_appliance]
 
     # Mock _run_with_semaphore to return the task directly so we can close it
-    api_client._run_with_semaphore = MagicMock(side_effect=lambda x: x)
+    async def side_effect(coro):
+        return await coro
+
+    api_client._run_with_semaphore = MagicMock(side_effect=side_effect)
 
     # Act
     tasks = api_client._build_detail_tasks(networks, devices)
@@ -266,4 +282,4 @@ def test_build_detail_tasks_for_appliance_device(api_client):
 
     # Clean up coroutines to avoid warnings
     for task in tasks.values():
-        task.close()
+        await task

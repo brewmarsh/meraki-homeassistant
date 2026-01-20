@@ -5,6 +5,7 @@ import random
 import string
 
 from homeassistant import config_entries
+from homeassistant.components.http import StaticPathConfig
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.components.http import StaticPathConfig
@@ -27,6 +28,7 @@ from .services.switch_port_service import SwitchPortService
 from .web_api import async_setup_api
 from .webhook import async_register_webhook
 from .frontend import async_register_frontend, async_remove_frontend
+from homeassistant.components.http import StaticPathConfig
 
 _LOGGER = logging.getLogger(__name__)
 
