@@ -3,11 +3,8 @@
 import logging
 import random
 import string
-from pathlib import Path
 
 from homeassistant import config_entries
-from homeassistant.components import frontend as hass_frontend
-from homeassistant.components.http import StaticPathConfig
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import config_validation as cv
@@ -27,6 +24,7 @@ from .services.camera_service import CameraService
 from .services.device_control_service import DeviceControlService
 from .web_api import async_setup_api
 from .webhook import async_register_webhook
+from .frontend import async_register_frontend, async_remove_frontend
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -66,35 +64,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         Whether the setup was successful.
 
     """
-    # Modern, async-safe asset registration
-    path_to_www = Path(__file__).parent / "www"
-    await hass.http.async_register_static_paths(
-        [StaticPathConfig(f"/local/{DOMAIN}", str(path_to_www), False)]
-    )
-
-    # Sidebar registration with a guard
-    if "meraki" not in hass.data.get("frontend_panels", {}):
-        try:
-            hass_frontend.async_register_built_in_panel(
-                hass,
-                component_name="custom",
-                sidebar_title=entry.title,
-                sidebar_icon="mdi:router-network",
-                frontend_url_path="meraki",
-                config={
-                    "config_entry_id": entry.entry_id,
-                    "_panel_custom": {
-                        "name": "meraki-panel",
-                        "module_url": f"/local/{DOMAIN}/meraki-panel.js",
-                        "embed_iframe": False,
-                        "trust_external_script": True,
-                    },
-                },
-                require_admin=True,
-            )
-        except Exception:
-            _LOGGER.exception("Failed to register sidebar")
-
+    await async_register_frontend(hass, entry)
     async_setup_api(hass)
     async_setup_websocket_api(hass)
     coordinator = MerakiDataUpdateCoordinator(hass, entry)
@@ -149,7 +119,7 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     unload_ok = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
     if unload_ok:
         hass.data[DOMAIN].pop(entry.entry_id)
-        hass_frontend.async_remove_panel(hass, "meraki")
+        await async_remove_frontend(hass)
 
     return unload_ok
 
