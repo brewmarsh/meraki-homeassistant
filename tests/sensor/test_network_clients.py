@@ -19,8 +19,12 @@ async def test_network_clients_sensor(
     coordinator = MagicMock()
     coordinator.data = {}  # Data is no longer read from coordinator
     config_entry = MagicMock()
+    service = MagicMock()
+    service.get_network_client_count.return_value = 0
     sensor = MerakiNetworkClientsSensor(
-        coordinator, config_entry, MOCK_NETWORK, MagicMock()
+        coordinator, config_entry, MOCK_NETWORK, service
     )
-    sensor._update_sensor_data()
+    sensor.hass = MagicMock()
+    sensor.async_write_ha_state = MagicMock()
+    sensor._handle_coordinator_update()
     assert sensor.native_value == 0

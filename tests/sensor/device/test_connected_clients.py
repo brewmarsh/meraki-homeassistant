@@ -81,6 +81,14 @@ def mock_data_coordinator():
             {"id": "net2", "name": "Network 2"},
         ],
     }
+
+    def get_device(serial):
+        for d in coordinator.data["devices"]:
+            if d.serial == serial:
+                return d
+        return None
+
+    coordinator.get_device.side_effect = get_device
     return coordinator
 
 

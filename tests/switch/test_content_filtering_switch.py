@@ -7,6 +7,7 @@ import pytest
 from custom_components.meraki_ha.switch.content_filtering import (
     MerakiContentFilteringSwitch,
 )
+from custom_components.meraki_ha.types import MerakiNetwork
 
 
 @pytest.fixture
@@ -27,7 +28,7 @@ def test_switch_creation(
     mock_coordinator_with_content_filtering: MagicMock, mock_config_entry: MagicMock
 ) -> None:
     """Test the creation of the content filtering switch."""
-    network = {"id": "net_1", "name": "Test Network"}
+    network = MerakiNetwork(id="net_1", name="Test Network", organization_id="org1")
     category = {"id": "meraki:contentFiltering/category/1", "name": "Social Media"}
     switch = MerakiContentFilteringSwitch(
         mock_coordinator_with_content_filtering, mock_config_entry, network, category
@@ -43,7 +44,7 @@ def test_is_on(
     mock_coordinator_with_content_filtering: MagicMock, mock_config_entry: MagicMock
 ) -> None:
     """Test the is_on property."""
-    network = {"id": "net_1", "name": "Test Network"}
+    network = MerakiNetwork(id="net_1", name="Test Network", organization_id="org1")
     category_on = {"id": "meraki:contentFiltering/category/2", "name": "Gambling"}
     category_off = {"id": "meraki:contentFiltering/category/1", "name": "Social Media"}
 
@@ -68,7 +69,7 @@ async def test_turn_on(
     mock_coordinator_with_content_filtering: MagicMock, mock_config_entry: MagicMock
 ) -> None:
     """Test turning the switch on."""
-    network = {"id": "net_1", "name": "Test Network"}
+    network = MerakiNetwork(id="net_1", name="Test Network", organization_id="org1")
     category = {"id": "meraki:contentFiltering/category/1", "name": "Social Media"}
     switch = MerakiContentFilteringSwitch(
         mock_coordinator_with_content_filtering, mock_config_entry, network, category
@@ -105,7 +106,7 @@ async def test_turn_off(
     mock_coordinator_with_content_filtering: MagicMock, mock_config_entry: MagicMock
 ) -> None:
     """Test turning the switch off."""
-    network = {"id": "net_1", "name": "Test Network"}
+    network = MerakiNetwork(id="net_1", name="Test Network", organization_id="org1")
     category = {"id": "meraki:contentFiltering/category/2", "name": "Gambling"}
     switch = MerakiContentFilteringSwitch(
         mock_coordinator_with_content_filtering, mock_config_entry, network, category

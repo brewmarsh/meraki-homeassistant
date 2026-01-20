@@ -102,7 +102,7 @@ class MerakiContentFilteringSwitch(
         """
         current_settings = (
             await self._client.appliance.get_network_appliance_content_filtering(
-                self._network["id"],
+                self._network.id,
             )
         )
         blocked_categories = current_settings.get("blockedUrlCategories", [])
@@ -114,7 +114,7 @@ class MerakiContentFilteringSwitch(
             blocked_categories.remove(self._category["id"])
 
         await self._client.appliance.update_network_appliance_content_filtering(
-            self._network["id"],
+            self._network.id,
             blockedUrlCategories=blocked_categories,
         )
         await self.coordinator.async_request_refresh()

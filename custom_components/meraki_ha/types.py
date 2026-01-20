@@ -27,7 +27,6 @@ class MerakiDevice:
     address: str | None = None
     notes: str | None = None
     url: str | None = None
-    firmware: str | None = None
     firmware_upgrades: dict[str, Any] | None = None
     readings: list[dict[str, Any]] = field(default_factory=list)
     video_settings: dict[str, Any] | None = None
@@ -60,8 +59,18 @@ class MerakiDevice:
             address=data.get("address"),
             notes=data.get("notes"),
             url=data.get("url"),
-            firmware=data.get("firmware"),
             firmware_upgrades=data.get("firmwareUpgrades"),
+            readings=data.get("readings", []),
+            video_settings=data.get("video_settings"),
+            rtsp_url=data.get("rtspUrl"),
+            sense_settings=data.get("sense_settings"),
+            analytics=data.get("analytics", []),
+            ports_statuses=data.get("ports_statuses", []),
+            appliance_ports=[
+                MerakiAppliancePort.from_dict(p)
+                for p in data.get("appliance_ports", [])
+            ],
+            dynamic_dns=data.get("dynamicDns"),
         )
 
 

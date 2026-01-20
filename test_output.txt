@@ -1,0 +1,1481 @@
+/home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages/pytest_asyncio/plugin.py:208: PytestDeprecationWarning: The configuration option "asyncio_default_fixture_loop_scope" is unset.
+The event loop scope for asynchronous fixtures will default to the fixture caching scope. Future versions of pytest-asyncio will default the loop scope for asynchronous fixtures to function scope. Set the default fixture loop scope explicitly in order to avoid unexpected behavior in the future. Valid fixture loop scopes are: "function", "class", "module", "package", "session"
+
+  warnings.warn(PytestDeprecationWarning(_DEFAULT_FIXTURE_LOOP_SCOPE_UNSET))
+============================= test session starts ==============================
+platform linux -- Python 3.12.12, pytest-8.3.4, pluggy-1.6.0
+rootdir: /app
+configfile: pytest.ini
+plugins: requests-mock-1.12.1, github-actions-annotate-failures-0.2.0, mock-3.15.1, respx-0.21.1, cov-6.0.0, homeassistant-custom-component-0.13.205, xdist-3.6.1, syrupy-4.8.0, socket-0.7.0, asyncio-0.24.0, timeout-2.3.1, sugar-1.0.0, pytest_freezer-0.4.8, unordered-0.6.1, anyio-4.12.1, picked-0.5.0, aiohttp-1.0.5
+asyncio: mode=Mode.AUTO, default_loop_scope=None
+collected 159 items
+
+tests/binary_sensor/device/test_camera_motion.py ..                      [  1%]
+tests/binary_sensor/device/test_mt20_open_close.py FFF                   [  3%]
+tests/binary_sensor/test_switch_port.py FFF                              [  5%]
+tests/button/device/test_mt15_refresh_data.py FF                         [  6%]
+tests/button/device/test_switch_port_cycle.py ..                         [  7%]
+tests/camera/test_camera.py FFFF.....F                                   [ 13%]
+tests/core/api/endpoints/test_appliance.py ........                      [ 18%]
+tests/core/api/test_client.py .........                                  [ 24%]
+tests/core/test_entities.py ...                                          [ 26%]
+tests/core/utils/test_api_utils.py ...                                   [ 28%]
+tests/core/utils/test_naming_utils.py ....                               [ 30%]
+tests/core/utils/test_validation_utils.py ....                           [ 33%]
+tests/discovery/handlers/test_base.py ..                                 [ 34%]
+tests/discovery/handlers/test_gx.py .                                    [ 35%]
+tests/discovery/handlers/test_mr.py .                                    [ 35%]
+tests/discovery/handlers/test_ms.py F                                    [ 36%]
+tests/discovery/handlers/test_mv.py FFF                                  [ 38%]
+tests/discovery/handlers/test_mx.py .                                    [ 38%]
+tests/discovery/handlers/test_network.py F                               [ 39%]
+tests/discovery/test_service.py ..                                       [ 40%]
+tests/helpers/test_device_info_helpers.py ..                             [ 42%]
+tests/helpers/test_entity_helpers.py .                                   [ 42%]
+tests/helpers/test_schema.py ..                                          [ 44%]
+tests/helpers/test_ssid_status_calculator.py .                           [ 44%]
+tests/helpers/test_ssid_status_calculator_extended.py ....               [ 47%]
+tests/hubs/test_network.py .....                                         [ 50%]
+tests/hubs/test_organization.py .F..                                     [ 52%]
+tests/meraki_select/test_content_filtering_select.py .                   [ 53%]
+tests/meraki_select/test_meraki_content_filtering.py .                   [ 54%]
+tests/sensor/device/test_appliance_port.py .                             [ 54%]
+tests/sensor/device/test_appliance_uplink.py .                           [ 55%]
+tests/sensor/device/test_camera_analytics.py ..                          [ 56%]
+tests/sensor/device/test_connected_clients.py FF..                       [ 59%]
+tests/sensor/device/test_data_usage.py ..                                [ 60%]
+tests/sensor/device/test_device_status.py .                              [ 61%]
+tests/sensor/device/test_meraki_firmware_status.py .                     [ 61%]
+tests/sensor/device/test_poe_usage.py F                                  [ 62%]
+tests/sensor/network/test_vlan.py .                                      [ 62%]
+tests/sensor/ssid/test_ssid_connected_clients.py F                       [ 63%]
+tests/sensor/test_meraki_wan1_connectivity.py F                          [ 64%]
+tests/sensor/test_meraki_wan2_connectivity.py F                          [ 64%]
+tests/sensor/test_network_clients.py F                                   [ 65%]
+tests/sensor/test_org_clients.py ...                                     [ 67%]
+tests/sensor/test_org_device_type_clients.py F                           [ 67%]
+tests/sensor/test_setup_mt_sensors.py ....F                              [ 71%]
+tests/services/test_device_control_service.py .                          [ 71%]
+tests/services/test_network_control_service.py ..                        [ 72%]
+tests/services/test_switch_port_service.py ....                          [ 75%]
+tests/switch/test_adult_content_filtering.py ....                        [ 77%]
+tests/switch/test_camera_profiles.py ss                                  [ 79%]
+tests/switch/test_content_filtering_switch.py FFFF                       [ 81%]
+tests/switch/test_meraki_ssid_device_switch.py ..                        [ 83%]
+tests/switch/test_mt40_power_outlet.py ....                              [ 85%]
+tests/switch/test_vlan_dhcp.py ...                                       [ 87%]
+tests/test_authentication.py ...                                         [ 89%]
+tests/test_camera_control.py EE                                          [ 90%]
+tests/test_config_flow.py ...                                            [ 92%]
+tests/test_device_naming.py ...                                          [ 94%]
+tests/test_e2e_web_ui.py s                                               [ 94%]
+tests/test_integration_setup.py ..                                       [ 96%]
+tests/test_simple.py .                                                   [ 96%]
+tests/test_ssid_device_representation.py .                               [ 97%]
+tests/test_webhook.py ...                                                [ 99%]
+tests/text/test_meraki_ssid_name.py .                                    [100%]
+
+==================================== ERRORS ====================================
+___________ ERROR at setup of test_camera_turn_on_optimistic_update ____________
+
+    @pytest.fixture
+    def mock_coordinator() -> MagicMock:
+        """Fixture for a mocked MerakiDataUpdateCoordinator."""
+        coordinator = MagicMock()
+        coordinator.config_entry.options = {}
+        # The coordinator's data is a dictionary that the entity will access
+        coordinator.data = {
+            "devices": [
+>               {
+                    **MOCK_DEVICE,
+                    "productType": "camera",
+                    "model": "MV12",
+                    "video_settings": {"rtspServerEnabled": False},
+                    "lanIp": "192.168.1.100",
+                },
+            ],
+        }
+E       TypeError: 'MerakiDevice' object is not a mapping
+
+tests/test_camera_control.py:22: TypeError
+___________ ERROR at setup of test_camera_turn_off_optimistic_update ___________
+
+    @pytest.fixture
+    def mock_coordinator() -> MagicMock:
+        """Fixture for a mocked MerakiDataUpdateCoordinator."""
+        coordinator = MagicMock()
+        coordinator.config_entry.options = {}
+        # The coordinator's data is a dictionary that the entity will access
+        coordinator.data = {
+            "devices": [
+>               {
+                    **MOCK_DEVICE,
+                    "productType": "camera",
+                    "model": "MV12",
+                    "video_settings": {"rtspServerEnabled": False},
+                    "lanIp": "192.168.1.100",
+                },
+            ],
+        }
+E       TypeError: 'MerakiDevice' object is not a mapping
+
+tests/test_camera_control.py:22: TypeError
+=================================== FAILURES ===================================
+____________________________ test_mt20_open_sensor _____________________________
+
+mock_coordinator_mt20 = <MagicMock id='139709438650480'>
+mock_config_entry = <MagicMock id='139709440255056'>
+
+    def test_mt20_open_sensor(
+        mock_coordinator_mt20: MagicMock, mock_config_entry: MagicMock
+    ):
+        """Test the MT20 open/close sensor when the door is open."""
+        device_info = mock_coordinator_mt20.data["devices"][0]
+>       sensor = MerakiMt20OpenCloseSensor(
+            mock_coordinator_mt20, device_info, mock_config_entry
+        )
+
+tests/binary_sensor/device/test_mt20_open_close.py:45:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <entity unknown.unknown=unknown>
+coordinator = <MagicMock id='139709438650480'>
+device_info = {'model': 'MT20', 'name': 'MT20 Sensor', 'productType': 'sensor', 'readings': [{'metric': 'door', 'value': True}], ...}
+config_entry = <MagicMock id='139709440255056'>
+
+    def __init__(
+        self,
+        coordinator: MerakiDataUpdateCoordinator,
+        device_info: MerakiDevice,
+        config_entry: ConfigEntry,
+    ) -> None:
+        """Initialize the sensor."""
+        super().__init__(coordinator)
+        self._device_info = device_info
+        self._config_entry = config_entry
+>       self._attr_unique_id = f"{self._device_info.serial}-door"
+E       AttributeError: 'dict' object has no attribute 'serial'
+
+custom_components/meraki_ha/binary_sensor/device/mt20_open_close.py:39: AttributeError
+___________________________ test_mt20_closed_sensor ____________________________
+
+mock_coordinator_mt20 = <MagicMock id='139709440805248'>
+mock_config_entry = <MagicMock id='139709439257840'>
+
+    def test_mt20_closed_sensor(
+        mock_coordinator_mt20: MagicMock, mock_config_entry: MagicMock
+    ):
+        """Test the MT20 open/close sensor when the door is closed."""
+        device_info = mock_coordinator_mt20.data["devices"][1]
+>       sensor = MerakiMt20OpenCloseSensor(
+            mock_coordinator_mt20, device_info, mock_config_entry
+        )
+
+tests/binary_sensor/device/test_mt20_open_close.py:60:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <entity unknown.unknown=unknown>
+coordinator = <MagicMock id='139709440805248'>
+device_info = {'model': 'MT20', 'name': 'MT20 Sensor Closed', 'productType': 'sensor', 'readings': [{'metric': 'door', 'value': False}], ...}
+config_entry = <MagicMock id='139709439257840'>
+
+    def __init__(
+        self,
+        coordinator: MerakiDataUpdateCoordinator,
+        device_info: MerakiDevice,
+        config_entry: ConfigEntry,
+    ) -> None:
+        """Initialize the sensor."""
+        super().__init__(coordinator)
+        self._device_info = device_info
+        self._config_entry = config_entry
+>       self._attr_unique_id = f"{self._device_info.serial}-door"
+E       AttributeError: 'dict' object has no attribute 'serial'
+
+custom_components/meraki_ha/binary_sensor/device/mt20_open_close.py:39: AttributeError
+____________________________ test_mt20_availability ____________________________
+
+mock_coordinator_mt20 = <MagicMock id='139709427756320'>
+mock_config_entry = <MagicMock id='139709427918816'>
+
+    def test_mt20_availability(
+        mock_coordinator_mt20: MagicMock, mock_config_entry: MagicMock
+    ):
+        """Test sensor availability for the MT20 sensor."""
+        device_info = mock_coordinator_mt20.data["devices"][0]
+>       sensor = MerakiMt20OpenCloseSensor(
+            mock_coordinator_mt20, device_info, mock_config_entry
+        )
+
+tests/binary_sensor/device/test_mt20_open_close.py:75:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <entity unknown.unknown=unknown>
+coordinator = <MagicMock id='139709427756320'>
+device_info = {'model': 'MT20', 'name': 'MT20 Sensor', 'productType': 'sensor', 'readings': [{'metric': 'door', 'value': True}], ...}
+config_entry = <MagicMock id='139709427918816'>
+
+    def __init__(
+        self,
+        coordinator: MerakiDataUpdateCoordinator,
+        device_info: MerakiDevice,
+        config_entry: ConfigEntry,
+    ) -> None:
+        """Initialize the sensor."""
+        super().__init__(coordinator)
+        self._device_info = device_info
+        self._config_entry = config_entry
+>       self._attr_unique_id = f"{self._device_info.serial}-door"
+E       AttributeError: 'dict' object has no attribute 'serial'
+
+custom_components/meraki_ha/binary_sensor/device/mt20_open_close.py:39: AttributeError
+______________________ test_switch_port_sensor_connected _______________________
+
+    def test_switch_port_sensor_connected():
+        """Test the sensor when the port is connected."""
+        # Arrange
+        mock_coordinator = MagicMock()
+        mock_device = {"serial": "s1", "name": "d1"}
+        mock_port = {"portId": "p1", "status": "Connected"}
+
+>       sensor = SwitchPortSensor(mock_coordinator, mock_device, mock_port)
+
+tests/binary_sensor/test_switch_port.py:17:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <entity unknown.unknown=unknown>
+coordinator = <MagicMock id='139709427752144'>
+device = {'name': 'd1', 'serial': 's1'}
+port = {'portId': 'p1', 'status': 'Connected'}
+
+    def __init__(
+        self,
+        coordinator: MerakiDataUpdateCoordinator,
+        device: "MerakiDevice",
+        port: dict[str, Any],
+    ) -> None:
+        """Initialize the sensor."""
+        super().__init__(coordinator)
+        self._device = device
+        self._port = port
+>       self._attr_unique_id = f"{device.serial}_{self._port['portId']}"
+E       AttributeError: 'dict' object has no attribute 'serial'
+
+custom_components/meraki_ha/binary_sensor/switch_port.py:36: AttributeError
+_____________________ test_switch_port_sensor_disconnected _____________________
+
+    def test_switch_port_sensor_disconnected():
+        """Test the sensor when the port is disconnected."""
+        # Arrange
+        mock_coordinator = MagicMock()
+        mock_device = {"serial": "s1", "name": "d1"}
+        mock_port = {"portId": "p1", "status": "Disconnected"}
+
+>       sensor = SwitchPortSensor(mock_coordinator, mock_device, mock_port)
+
+tests/binary_sensor/test_switch_port.py:33:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <entity unknown.unknown=unknown>
+coordinator = <MagicMock id='139709439150608'>
+device = {'name': 'd1', 'serial': 's1'}
+port = {'portId': 'p1', 'status': 'Disconnected'}
+
+    def __init__(
+        self,
+        coordinator: MerakiDataUpdateCoordinator,
+        device: "MerakiDevice",
+        port: dict[str, Any],
+    ) -> None:
+        """Initialize the sensor."""
+        super().__init__(coordinator)
+        self._device = device
+        self._port = port
+>       self._attr_unique_id = f"{device.serial}_{self._port['portId']}"
+E       AttributeError: 'dict' object has no attribute 'serial'
+
+custom_components/meraki_ha/binary_sensor/switch_port.py:36: AttributeError
+_________________________ test_extra_state_attributes __________________________
+
+    def test_extra_state_attributes():
+        """Test the extra state attributes of the sensor."""
+        # Arrange
+        mock_coordinator = MagicMock()
+        mock_device = {"serial": "s1", "name": "d1"}
+        mock_port = {
+            "portId": "p1",
+            "speed": "1000",
+            "duplex": "full",
+            "vlan": 1,
+            "enabled": True,
+        }
+
+>       sensor = SwitchPortSensor(mock_coordinator, mock_device, mock_port)
+
+tests/binary_sensor/test_switch_port.py:52:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <entity unknown.unknown=unknown>
+coordinator = <MagicMock id='139709653191664'>
+device = {'name': 'd1', 'serial': 's1'}
+port = {'duplex': 'full', 'enabled': True, 'portId': 'p1', 'speed': '1000', ...}
+
+    def __init__(
+        self,
+        coordinator: MerakiDataUpdateCoordinator,
+        device: "MerakiDevice",
+        port: dict[str, Any],
+    ) -> None:
+        """Initialize the sensor."""
+        super().__init__(coordinator)
+        self._device = device
+        self._port = port
+>       self._attr_unique_id = f"{device.serial}_{self._port['portId']}"
+E       AttributeError: 'dict' object has no attribute 'serial'
+
+custom_components/meraki_ha/binary_sensor/switch_port.py:36: AttributeError
+__________________________ test_mt15_button_creation ___________________________
+
+mock_coordinator_mt15 = <MagicMock id='139709439227184'>
+mock_config_entry = <MagicMock id='139709440811680'>
+mock_meraki_client = <MagicMock id='139709439218256'>
+
+    def test_mt15_button_creation(
+        mock_coordinator_mt15: MagicMock,
+        mock_config_entry: MagicMock,
+        mock_meraki_client: MagicMock,
+    ):
+        """Test the creation of the MT15 refresh data button."""
+        device_info = mock_coordinator_mt15.data["devices"][0]
+>       button = MerakiMt15RefreshDataButton(
+            mock_coordinator_mt15, device_info, mock_config_entry, mock_meraki_client
+        )
+
+tests/button/device/test_mt15_refresh_data.py:44:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <entity unknown.unknown=unknown>
+coordinator = <MagicMock id='139709439227184'>
+device = {'model': 'MT15', 'name': 'MT15 Sensor', 'productType': 'sensor', 'serial': 'mt15-1'}
+config_entry = <MagicMock id='139709440811680'>
+meraki_client = <MagicMock id='139709439218256'>
+
+    def __init__(
+        self,
+        coordinator: MerakiDataUpdateCoordinator,
+        device: MerakiDevice,
+        config_entry: ConfigEntry,
+        meraki_client: MerakiAPIClient,
+    ) -> None:
+        """Initialize the button."""
+        super().__init__(coordinator)
+        self._device = device
+        self._config_entry = config_entry
+        self._meraki_client = meraki_client
+>       self._attr_unique_id = f"{self._device.serial}-refresh"
+E       AttributeError: 'dict' object has no attribute 'serial'
+
+custom_components/meraki_ha/button/device/mt15_refresh_data.py:35: AttributeError
+____________________________ test_mt15_button_press ____________________________
+
+mock_coordinator_mt15 = <MagicMock id='139709427754448'>
+mock_config_entry = <MagicMock id='139709439152336'>
+mock_meraki_client = <MagicMock id='139709439150560'>
+
+    @pytest.mark.asyncio
+    async def test_mt15_button_press(
+        mock_coordinator_mt15: MagicMock,
+        mock_config_entry: MagicMock,
+        mock_meraki_client: MagicMock,
+    ):
+        """Test pressing the MT15 refresh data button."""
+        device_info = mock_coordinator_mt15.data["devices"][0]
+>       button = MerakiMt15RefreshDataButton(
+            mock_coordinator_mt15, device_info, mock_config_entry, mock_meraki_client
+        )
+
+tests/button/device/test_mt15_refresh_data.py:61:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <entity unknown.unknown=unknown>
+coordinator = <MagicMock id='139709427754448'>
+device = {'model': 'MT15', 'name': 'MT15 Sensor', 'productType': 'sensor', 'serial': 'mt15-1'}
+config_entry = <MagicMock id='139709439152336'>
+meraki_client = <MagicMock id='139709439150560'>
+
+    def __init__(
+        self,
+        coordinator: MerakiDataUpdateCoordinator,
+        device: MerakiDevice,
+        config_entry: ConfigEntry,
+        meraki_client: MerakiAPIClient,
+    ) -> None:
+        """Initialize the button."""
+        super().__init__(coordinator)
+        self._device = device
+        self._config_entry = config_entry
+        self._meraki_client = meraki_client
+>       self._attr_unique_id = f"{self._device.serial}-refresh"
+E       AttributeError: 'dict' object has no attribute 'serial'
+
+custom_components/meraki_ha/button/device/mt15_refresh_data.py:35: AttributeError
+__________________________ test_camera_stream_source ___________________________
+
+mock_camera = <entity unknown.unknown=unknown>
+
+    @pytest.mark.asyncio
+    async def test_camera_stream_source(mock_camera: MerakiCamera) -> None:
+        """
+        Test the camera stream source relies on coordinator data.
+
+        Args:
+        ----
+            mock_camera: The mocked camera.
+
+        """
+        # Act
+        source = await mock_camera.stream_source()
+
+        # Assert
+>       assert source == "rtsp://1.2.3.4:9000/live"
+E       AssertionError: assert None == 'rtsp://1.2.3.4:9000/live'
+
+tests/camera/test_camera.py:61: AssertionError
+_____________________________ test_camera_turn_on ______________________________
+
+hass = <HomeAssistant RUNNING>, mock_camera = <entity unknown.unknown=unknown>
+mock_coordinator = <MagicMock id='139709440258320'>
+mock_camera_service = <MagicMock id='139709438740432'>
+
+    @pytest.mark.asyncio
+    async def test_camera_turn_on(
+        hass: HomeAssistant,
+        mock_camera: MerakiCamera,
+        mock_coordinator: MagicMock,
+        mock_camera_service: AsyncMock,
+    ) -> None:
+        """
+        Test turning the camera stream on.
+
+        Args:
+        ----
+            hass: The Home Assistant instance.
+            mock_camera: The mocked camera.
+            mock_coordinator: The mocked coordinator.
+            mock_camera_service: The mocked camera service.
+
+        """
+        # Arrange
+        mock_camera.hass = hass
+        mock_camera.entity_id = "camera.test_camera"
+
+        # Act
+>       await mock_camera.async_turn_on()
+
+tests/camera/test_camera.py:87:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <entity unknown.unknown=unknown>
+
+    async def async_turn_on(self) -> None:
+        """Turn on the camera stream."""
+        _LOGGER.debug("Turning on stream for camera %s", self._device_serial)
+>       await self._camera_service.async_set_rtsp_stream_enabled(
+            self._device_serial, True
+        )
+E       TypeError: object MagicMock can't be used in 'await' expression
+
+custom_components/meraki_ha/camera.py:182: TypeError
+_____________________________ test_camera_turn_off _____________________________
+
+hass = <HomeAssistant RUNNING>, mock_camera = <entity unknown.unknown=unknown>
+mock_coordinator = <MagicMock id='139709438465264'>
+mock_camera_service = <MagicMock id='139709611844880'>
+
+    @pytest.mark.asyncio
+    async def test_camera_turn_off(
+        hass: HomeAssistant,
+        mock_camera: MerakiCamera,
+        mock_coordinator: MagicMock,
+        mock_camera_service: AsyncMock,
+    ) -> None:
+        """
+        Test turning the camera stream off.
+
+        Args:
+        ----
+            hass: The Home Assistant instance.
+            mock_camera: The mocked camera.
+            mock_coordinator: The mocked coordinator.
+            mock_camera_service: The mocked camera service.
+
+        """
+        # Arrange
+        mock_camera.hass = hass
+        mock_camera.entity_id = "camera.test_camera"
+
+        # Act
+>       await mock_camera.async_turn_off()
+
+tests/camera/test_camera.py:122:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <entity unknown.unknown=unknown>
+
+    async def async_turn_off(self) -> None:
+        """Turn off the camera stream."""
+        _LOGGER.debug("Turning off stream for camera %s", self._device_serial)
+>       await self._camera_service.async_set_rtsp_stream_enabled(
+            self._device_serial, False
+        )
+E       TypeError: object MagicMock can't be used in 'await' expression
+
+custom_components/meraki_ha/camera.py:190: TypeError
+________________ test_is_streaming_logic[video_settings0-True] _________________
+
+mock_coordinator = <MagicMock id='139709428275328'>
+mock_config_entry = <MagicMock id='139709428421584'>
+mock_camera_service = <MagicMock id='139709428425376'>
+video_settings = {'rtspServerEnabled': True, 'rtspUrl': 'rtsp://test.com/stream'}
+expected_is_streaming = True
+
+    @pytest.mark.parametrize(
+        ("video_settings", "expected_is_streaming"),
+        [
+            ({"rtspServerEnabled": True, "rtspUrl": "rtsp://test.com/stream"}, True),
+            ({"rtspServerEnabled": False, "rtspUrl": "rtsp://test.com/stream"}, False),
+            ({"rtspServerEnabled": True, "rtspUrl": None}, False),
+            ({"rtspServerEnabled": True, "rtspUrl": "http://test.com/stream"}, False),
+            ({"rtspUrl": "rtsp://test.com/stream"}, False),
+        ],
+    )
+    def test_is_streaming_logic(
+        mock_coordinator: MagicMock,
+        mock_config_entry: MagicMock,
+        mock_camera_service: AsyncMock,
+        video_settings: dict,
+        expected_is_streaming: bool,
+    ) -> None:
+        """
+        Test the logic of the is_streaming property.
+
+        Args:
+        ----
+            mock_coordinator: The mocked coordinator.
+            mock_config_entry: The mocked config entry.
+            mock_camera_service: The mocked camera service.
+            video_settings: The video settings to test.
+            expected_is_streaming: The expected result.
+
+        """
+        # Arrange
+        mock_device_data = dataclasses.replace(
+            MOCK_CAMERA_DEVICE,
+            video_settings=video_settings,
+            # Ensure lanIp is None for this test to isolate rtspUrl logic
+            lan_ip=None,
+            rtsp_url=video_settings.get("rtspUrl"),
+        )
+        # The entity is initialized with this data, so we pass it directly
+        camera = MerakiCamera(
+            mock_coordinator,
+            mock_config_entry,
+            mock_device_data,
+            mock_camera_service,
+        )
+
+        # Act & Assert
+>       assert camera.is_streaming == expected_is_streaming
+E       assert False == True
+E        +  where False = <entity unknown.unknown=unknown>.is_streaming
+
+tests/camera/test_camera.py:180: AssertionError
+________________________ test_entity_disabled_if_no_url ________________________
+
+mock_coordinator = <MagicMock id='139709417631344'>
+mock_config_entry = <MagicMock id='139709417609104'>
+mock_camera_service = <MagicMock id='139709417605168'>
+
+    def test_entity_disabled_if_no_url(
+        mock_coordinator: MagicMock,
+        mock_config_entry: MagicMock,
+        mock_camera_service: AsyncMock,
+    ) -> None:
+        """
+        Test that the camera entity is disabled if no stream URL is available.
+
+        Args:
+        ----
+            mock_coordinator: The mocked coordinator.
+            mock_config_entry: The mocked config entry.
+            mock_camera_service: The mocked camera service.
+
+        """
+        # Arrange
+        # Create a mock device with no way to determine a stream URL
+        mock_device_no_url = dataclasses.replace(
+            MOCK_CAMERA_DEVICE,
+            video_settings={
+                "rtspServerEnabled": True,
+                "rtspUrl": None,
+            },
+            lan_ip=None,
+        )
+
+        # Act
+        camera = MerakiCamera(
+            mock_coordinator,
+            mock_config_entry,
+            mock_device_no_url,
+            mock_camera_service,
+        )
+
+        # Assert
+>       assert not camera.entity_registry_enabled_default
+E       assert not True
+E        +  where True = <entity unknown.unknown=unknown>.entity_registry_enabled_default
+
+tests/camera/test_camera.py:259: AssertionError
+____________________________ test_discover_entities ____________________________
+
+    @pytest.mark.asyncio
+    async def test_discover_entities():
+        """Test that the handler discovers entities correctly."""
+        # Arrange
+        mock_coordinator = MagicMock()
+        mock_config_entry = MagicMock()
+        mock_control_service = MagicMock()
+        mock_switch_port_coordinator = MagicMock()
+        mock_switch_device = MerakiDevice(
+            serial="Q234-ABCD-5678",
+            name="My Switch",
+            model="MS220-8P",
+            mac="00:11:22:33:44:55",
+            ports_statuses=[
+                {"portId": 1, "enabled": True},
+                {"portId": 2, "enabled": True},
+            ],
+        )
+
+        handler = MSHandler(
+            mock_coordinator,
+            mock_switch_device,
+            mock_config_entry,
+            mock_switch_port_coordinator,
+            mock_control_service,
+        )
+
+        # Act
+>       entities = await handler.discover_entities()
+
+tests/discovery/handlers/test_ms.py:39:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <custom_components.meraki_ha.discovery.handlers.ms.MSHandler object at 0x7f10a2301a60>
+
+    async def discover_entities(self) -> list[Entity]:
+        """Discover entities for the MS switch."""
+        entities: list[Entity] = []
+
+        # Add switch port sensors, but only for enabled ports to avoid flooding
+        # the entity registry.
+        ports = self.device.ports_statuses
+        for port in ports:
+            if port.get("enabled"):
+                entities.append(
+>                   SwitchPortSensor(
+                        self._switch_port_coordinator,
+                        self.device,
+                        port,
+                        SWITCH_PORT_DESCRIPTION,
+                    )
+                )
+E               TypeError: SwitchPortSensor.__init__() takes 4 positional arguments but 5 were given
+
+custom_components/meraki_ha/discovery/handlers/ms.py:83: TypeError
+_________________________ test_mv_handler_all_features _________________________
+
+mock_coordinator = <MagicMock id='139709428251104'>
+mock_config_entry = <MagicMock id='139709428250960'>
+mock_camera_service = <AsyncMock id='139709428249376'>
+mock_control_service = <MagicMock id='139709428284448'>
+
+    @pytest.mark.asyncio
+    async def test_mv_handler_all_features(
+        mock_coordinator: MagicMock,
+        mock_config_entry: MagicMock,
+        mock_camera_service: AsyncMock,
+        mock_control_service: MagicMock,
+    ) -> None:
+        """Test that the MVHandler discovers all entities for a capable camera."""
+        # Arrange
+        device = dataclasses.replace(MOCK_DEVICE)
+        with patch.multiple(MVHandler, __abstractmethods__=set()):
+            handler = MVHandler(
+                mock_coordinator,
+                device,
+                mock_config_entry,
+                mock_camera_service,
+                mock_control_service,
+            )
+
+        # Act
+>       entities = await handler.discover_entities()
+
+tests/discovery/handlers/test_mv.py:67:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <custom_components.meraki_ha.discovery.handlers.mv.MVHandler object at 0x7f10a2d815e0>
+
+    async def discover_entities(self) -> list[Entity]:
+        """Discover entities for a camera device."""
+        entities: list[Entity] = []
+        serial = self.device.serial
+
+        # If configured, ensure the RTSP stream is enabled by default
+        if self._config_entry.options.get("rtsp_stream_enabled", False):
+            try:
+                _LOGGER.debug(
+                    "RTSP stream is defaulted to on, enabling for camera %s",
+                    serial,
+                )
+                await self._camera_service.async_set_rtsp_stream_enabled(serial, True)
+            except MerakiInformationalError as e:
+                _LOGGER.warning("Could not enable RTSP stream for %s: %s", serial, e)
+                self._coordinator.add_status_message(
+                    serial, f"Could not enable RTSP stream: {e}"
+                )
+
+        # Always create the base camera entity
+        entities.append(
+            MerakiCamera(
+                self._coordinator,
+                self._config_entry,
+                self.device,
+                self._camera_service,
+            )
+        )
+
+        # The rest of the sensors should probably be created
+        # regardless of stream availability
+        features = await self._camera_service.get_supported_analytics(serial)
+
+        if "person_detection" in features:
+            entities.append(
+>               MerakiPersonCountSensor(
+                    self._coordinator,
+                    self.device,
+                    self._camera_service,
+                )
+            )
+E           TypeError: MerakiPersonCountSensor.__init__() takes 3 positional arguments but 4 were given
+
+custom_components/meraki_ha/discovery/handlers/mv.py:120: TypeError
+________________________ test_mv_handler_some_features _________________________
+
+mock_coordinator = <MagicMock id='139709438655808'>
+mock_config_entry = <MagicMock id='139709439221040'>
+mock_camera_service = <AsyncMock id='139709439227040'>
+mock_control_service = <MagicMock id='139709438475440'>
+
+    @pytest.mark.asyncio
+    async def test_mv_handler_some_features(
+        mock_coordinator: MagicMock,
+        mock_config_entry: MagicMock,
+        mock_camera_service: AsyncMock,
+        mock_control_service: MagicMock,
+    ) -> None:
+        """Test that the MVHandler discovers some entities for a less capable camera."""
+        # Arrange
+        device = dataclasses.replace(MOCK_DEVICE)
+        mock_camera_service.get_supported_analytics = AsyncMock(
+            return_value=["person_detection"]
+        )
+        with patch.multiple(MVHandler, __abstractmethods__=set()):
+            handler = MVHandler(
+                mock_coordinator,
+                device,
+                mock_config_entry,
+                mock_camera_service,
+                mock_control_service,
+            )
+
+        # Act
+>       entities = await handler.discover_entities()
+
+tests/discovery/handlers/test_mv.py:103:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <custom_components.meraki_ha.discovery.handlers.mv.MVHandler object at 0x7f10a373aa50>
+
+    async def discover_entities(self) -> list[Entity]:
+        """Discover entities for a camera device."""
+        entities: list[Entity] = []
+        serial = self.device.serial
+
+        # If configured, ensure the RTSP stream is enabled by default
+        if self._config_entry.options.get("rtsp_stream_enabled", False):
+            try:
+                _LOGGER.debug(
+                    "RTSP stream is defaulted to on, enabling for camera %s",
+                    serial,
+                )
+                await self._camera_service.async_set_rtsp_stream_enabled(serial, True)
+            except MerakiInformationalError as e:
+                _LOGGER.warning("Could not enable RTSP stream for %s: %s", serial, e)
+                self._coordinator.add_status_message(
+                    serial, f"Could not enable RTSP stream: {e}"
+                )
+
+        # Always create the base camera entity
+        entities.append(
+            MerakiCamera(
+                self._coordinator,
+                self._config_entry,
+                self.device,
+                self._camera_service,
+            )
+        )
+
+        # The rest of the sensors should probably be created
+        # regardless of stream availability
+        features = await self._camera_service.get_supported_analytics(serial)
+
+        if "person_detection" in features:
+            entities.append(
+>               MerakiPersonCountSensor(
+                    self._coordinator,
+                    self.device,
+                    self._camera_service,
+                )
+            )
+E           TypeError: MerakiPersonCountSensor.__init__() takes 3 positional arguments but 4 were given
+
+custom_components/meraki_ha/discovery/handlers/mv.py:120: TypeError
+______________________ test_mv_handler_no_extra_features _______________________
+
+mock_coordinator = <MagicMock id='139709439151040'>
+mock_config_entry = <MagicMock id='139709427917040'>
+mock_camera_service = <AsyncMock id='139709427908784'>
+mock_control_service = <MagicMock id='139709438749792'>
+
+    @pytest.mark.asyncio
+    async def test_mv_handler_no_extra_features(
+        mock_coordinator: MagicMock,
+        mock_config_entry: MagicMock,
+        mock_camera_service: AsyncMock,
+        mock_control_service: MagicMock,
+    ) -> None:
+        """Test that the MVHandler discovers only basic entities for a basic camera."""
+        # Arrange
+        device = dataclasses.replace(MOCK_DEVICE)
+        mock_camera_service.get_supported_analytics = AsyncMock(return_value=[])
+        with patch.multiple(MVHandler, __abstractmethods__=set()):
+            handler = MVHandler(
+                mock_coordinator,
+                device,
+                mock_config_entry,
+                mock_camera_service,
+                mock_control_service,
+            )
+
+        # Act
+>       entities = await handler.discover_entities()
+
+tests/discovery/handlers/test_mv.py:137:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <custom_components.meraki_ha.discovery.handlers.mv.MVHandler object at 0x7f10a377f020>
+
+    async def discover_entities(self) -> list[Entity]:
+        """Discover entities for a camera device."""
+        entities: list[Entity] = []
+        serial = self.device.serial
+
+        # If configured, ensure the RTSP stream is enabled by default
+        if self._config_entry.options.get("rtsp_stream_enabled", False):
+            try:
+                _LOGGER.debug(
+                    "RTSP stream is defaulted to on, enabling for camera %s",
+                    serial,
+                )
+                await self._camera_service.async_set_rtsp_stream_enabled(serial, True)
+            except MerakiInformationalError as e:
+                _LOGGER.warning("Could not enable RTSP stream for %s: %s", serial, e)
+                self._coordinator.add_status_message(
+                    serial, f"Could not enable RTSP stream: {e}"
+                )
+
+        # Always create the base camera entity
+        entities.append(
+            MerakiCamera(
+                self._coordinator,
+                self._config_entry,
+                self.device,
+                self._camera_service,
+            )
+        )
+
+        # The rest of the sensors should probably be created
+        # regardless of stream availability
+        features = await self._camera_service.get_supported_analytics(serial)
+
+        if "person_detection" in features:
+            entities.append(
+                MerakiPersonCountSensor(
+                    self._coordinator,
+                    self.device,
+                    self._camera_service,
+                )
+            )
+
+        if "vehicle_detection" in features:
+            entities.append(
+                MerakiVehicleCountSensor(
+                    self._coordinator,
+                    self.device,
+                    self._camera_service,
+                )
+            )
+
+        # Add motion sensor
+        entities.append(
+>           MerakiMotionSensor(
+                self._coordinator,
+                self.device,
+                self._camera_service,
+                self._config_entry,
+                CAMERA_MOTION_DESCRIPTION,
+            )
+        )
+E       TypeError: MerakiMotionSensor.__init__() takes 5 positional arguments but 6 were given
+
+custom_components/meraki_ha/discovery/handlers/mv.py:138: TypeError
+________________ test_discover_entities_creates_network_sensors ________________
+
+mock_coordinator = <MagicMock id='139709438748256'>
+mock_network_control_service = <MagicMock id='139709438750224'>
+
+    async def test_discover_entities_creates_network_sensors(
+        mock_coordinator, mock_network_control_service
+    ):
+        """Test that discover_entities creates a client sensor for each network."""
+        handler = NetworkHandler(
+            mock_coordinator, MOCK_CONFIG_ENTRY, mock_network_control_service
+        )
+
+>       entities = await handler.discover_entities()
+
+tests/discovery/handlers/test_network.py:47:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <custom_components.meraki_ha.discovery.handlers.network.NetworkHandler object at 0x7f10a2d2af00>
+
+    async def discover_entities(self) -> list[Entity]:
+        """Discover network-level entities."""
+        entities: list[Entity] = []
+        networks = self._coordinator.data.get("networks", [])
+        if not networks:
+            _LOGGER.debug("No networks found to create network-level entities.")
+            return entities
+
+        for network in networks:
+            entities.append(
+                MerakiNetworkClientsSensor(
+                    coordinator=self._coordinator,
+                    config_entry=self._config_entry,
+                    network_data=network,
+                    network_control_service=self._network_control_service,
+                )
+            )
+>           if "appliance" in network.get("productTypes", []):
+E           AttributeError: 'MerakiNetwork' object has no attribute 'get'
+
+custom_components/meraki_ha/discovery/handlers/network.py:82: AttributeError
+________________________ test_organization_id_property _________________________
+
+mock_coordinator_with_network = <MagicMock id='139709427754160'>
+
+    def test_organization_id_property(mock_coordinator_with_network: MagicMock) -> None:
+        """Test the organization_id property."""
+        hub = OrganizationHub(mock_coordinator_with_network)
+>       assert hub.organization_id == MOCK_NETWORK["organizationId"]
+E       TypeError: 'MerakiNetwork' object is not subscriptable
+
+tests/hubs/test_organization.py:27: TypeError
+___________________ test_connected_clients_sensor_appliance ____________________
+
+mock_data_coordinator = <MagicMock id='139709684171216'>
+
+    def test_connected_clients_sensor_appliance(mock_data_coordinator):
+        """Test the connected clients sensor for an appliance."""
+        device = mock_data_coordinator.data["devices"][0]  # The appliance
+        config_entry = mock_data_coordinator.config_entry
+        mock_data_coordinator.config_entry.options = {"device_name_format": "prefix"}
+        sensor = MerakiDeviceConnectedClientsSensor(
+            mock_data_coordinator, device, config_entry
+        )
+        sensor.hass = MagicMock()
+        sensor.async_write_ha_state = MagicMock()
+        sensor._handle_coordinator_update()
+        # Expects 2: the two online clients on net1 from the main `clients` list
+>       assert sensor.native_value == 2
+E       assert 0 == 2
+E        +  where 0 = <entity unknown.unknown=unknown>.native_value
+
+tests/sensor/device/test_connected_clients.py:99: AssertionError
+____________________ test_connected_clients_sensor_gateway _____________________
+
+mock_data_coordinator = <MagicMock id='139709417525552'>
+
+    def test_connected_clients_sensor_gateway(mock_data_coordinator):
+        """Test the connected clients sensor for a cellular gateway."""
+        device = mock_data_coordinator.data["devices"][3]  # The gateway
+        config_entry = mock_data_coordinator.config_entry
+        mock_data_coordinator.config_entry.options = {"device_name_format": "prefix"}
+        sensor = MerakiDeviceConnectedClientsSensor(
+            mock_data_coordinator, device, config_entry
+        )
+        sensor.hass = MagicMock()
+        sensor.async_write_ha_state = MagicMock()
+        sensor._handle_coordinator_update()
+        # Expects 2: the two online clients on net1 from the main `clients` list
+>       assert sensor.native_value == 2
+E       assert 0 == 2
+E        +  where 0 = <entity unknown.unknown=unknown>.native_value
+
+tests/sensor/device/test_connected_clients.py:115: AssertionError
+____________________________ test_poe_usage_sensor _____________________________
+
+mock_device_coordinator = <MagicMock id='139709417611024'>
+
+    def test_poe_usage_sensor(mock_device_coordinator):
+        """Test the PoE usage sensor."""
+        device = mock_device_coordinator.data["devices"][0]
+        sensor = MerakiPoeUsageSensor(mock_device_coordinator, device)
+        assert sensor.unique_id == "dev1_poe_usage"
+        assert sensor.name == "[Switch] Switch PoE Usage"
+>       assert sensor.native_value == 15.7
+E       assert 0.0 == 15.7
+E        +  where 0.0 = <entity unknown.unknown=unknown>.native_value
+
+tests/sensor/device/test_poe_usage.py:42: AssertionError
+______________________ test_ssid_connected_clients_sensor ______________________
+
+mock_data_coordinator = <MagicMock id='139709438653984'>
+
+    def test_ssid_connected_clients_sensor(mock_data_coordinator):
+        """Test the connected clients sensor for an SSID."""
+        network_id = "net1"
+        ssid_data = mock_data_coordinator.data["ssids"][0]  # My SSID 1
+        config_entry = mock_data_coordinator.config_entry
+        sensor = MerakiSsidConnectedClientsSensor(
+            mock_data_coordinator, network_id, ssid_data, config_entry
+        )
+>       sensor._handle_coordinator_update()
+
+tests/sensor/ssid/test_ssid_connected_clients.py:97:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+custom_components/meraki_ha/sensor/ssid/connected_clients.py:72: in _handle_coordinator_update
+    self.async_write_ha_state()
+/home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages/homeassistant/helpers/entity.py:1020: in async_write_ha_state
+    self._async_verify_state_writable()
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <entity unknown.unknown=unknown>
+
+    @callback
+    def _async_verify_state_writable(self) -> None:
+        """Verify the entity is in a writable state."""
+        if self.hass is None:
+>           raise RuntimeError(f"Attribute hass is None for {self}")
+E           RuntimeError: Attribute hass is None for <entity unknown.unknown=unknown>
+
+/home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages/homeassistant/helpers/entity.py:984: RuntimeError
+_____________________ test_meraki_wan1_connectivity_sensor _____________________
+
+hass = <HomeAssistant RUNNING>
+
+    async def test_meraki_wan1_connectivity_sensor(
+        hass: HomeAssistant,
+    ) -> None:
+        """Test the Meraki WAN1 connectivity sensor."""
+        coordinator = MagicMock()
+        online_device = MerakiDevice.from_dict({**MOCK_DEVICE.__dict__, "status": "online", "wan1Ip": "1.2.3.4"})
+        coordinator.get_device.return_value = online_device
+        config_entry = MagicMock()
+        config_entry.options = {}
+        sensor = MerakiWAN1ConnectivitySensor(coordinator, online_device, config_entry)
+>       sensor._update_sensor_data()
+E       AttributeError: 'MerakiWAN1ConnectivitySensor' object has no attribute '_update_sensor_data'
+
+tests/sensor/test_meraki_wan1_connectivity.py:25: AttributeError
+_____________________ test_meraki_wan2_connectivity_sensor _____________________
+
+hass = <HomeAssistant RUNNING>
+
+    async def test_meraki_wan2_connectivity_sensor(
+        hass: HomeAssistant,
+    ) -> None:
+        """Test the Meraki WAN2 connectivity sensor."""
+        coordinator = MagicMock()
+        online_device = MerakiDevice.from_dict({**MOCK_DEVICE.__dict__, "status": "online", "wan2Ip": "1.2.3.4"})
+        coordinator.get_device.return_value = online_device
+        config_entry = MagicMock()
+        config_entry.options = {}
+        sensor = MerakiWAN2ConnectivitySensor(coordinator, online_device, config_entry)
+>       sensor._update_sensor_data()
+E       AttributeError: 'MerakiWAN2ConnectivitySensor' object has no attribute '_update_sensor_data'
+
+tests/sensor/test_meraki_wan2_connectivity.py:25: AttributeError
+_________________________ test_network_clients_sensor __________________________
+
+hass = <HomeAssistant RUNNING>
+
+    async def test_network_clients_sensor(
+        hass: HomeAssistant,
+    ) -> None:
+        """Test the Meraki network clients sensor."""
+        coordinator = MagicMock()
+        coordinator.data = {}  # Data is no longer read from coordinator
+        config_entry = MagicMock()
+        sensor = MerakiNetworkClientsSensor(
+            coordinator, config_entry, MOCK_NETWORK, MagicMock()
+        )
+>       sensor._update_sensor_data()
+E       AttributeError: 'MerakiNetworkClientsSensor' object has no attribute '_update_sensor_data'
+
+tests/sensor/test_network_clients.py:25: AttributeError
+_____________ test_meraki_organization_device_type_clients_sensor ______________
+
+hass = <HomeAssistant RUNNING>
+
+    async def test_meraki_organization_device_type_clients_sensor(
+        hass: HomeAssistant,
+    ) -> None:
+        """Test the Meraki organization device type clients sensor."""
+        coordinator = MagicMock()
+        coordinator.data = {
+            "clients": [
+                {"deviceType": "wireless"},
+                {"deviceType": "wireless"},
+                {"deviceType": "appliance"},
+            ]
+        }
+        config_entry = MagicMock()
+        config_entry.options = {}
+>       sensor = MerakiOrganizationDeviceTypeClientsSensor(
+            coordinator, config_entry, "wireless"
+        )
+
+tests/sensor/test_org_device_type_clients.py:27:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <entity unknown.unknown=unknown>
+coordinator = <MagicMock id='139709417629184'>
+config_entry = <MagicMock id='139709440248720'>, device_type = 'wireless'
+
+    def __init__(
+        self,
+        coordinator: MerakiDataUpdateCoordinator,
+        config_entry: ConfigEntry,
+        device_type: str,
+    ) -> None:
+        """Initialize the sensor."""
+        super().__init__(coordinator)
+        self._config_entry = config_entry
+        self._device_type = device_type
+        self._org_id = self.coordinator.api_client.organization_id
+        self._attr_unique_id = f"{self._org_id}_{self._device_type}_clients"
+>       self._attr_name = format_entity_name(self._device_type.capitalize(), "Clients")
+E       TypeError: format_entity_name() missing 1 required positional argument: 'entity_name'
+
+custom_components/meraki_ha/sensor/org/org_device_type_clients.py:36: TypeError
+______________________________ test_availability _______________________________
+
+mock_coordinator_with_mt_devices = <MagicMock id='139709428168800'>
+
+    def test_availability(mock_coordinator_with_mt_devices: MagicMock) -> None:
+        """Test sensor availability."""
+        device = mock_coordinator_with_mt_devices.data["devices"][0]  # MT10
+        entities = async_setup_mt_sensors(mock_coordinator_with_mt_devices, device)
+        temp_sensor = entities[0]
+        temp_sensor.hass = MagicMock()
+        temp_sensor.entity_id = "sensor.test"
+        temp_sensor.async_write_ha_state = MagicMock()
+        temp_sensor._handle_coordinator_update()
+
+        # Sensor should be available
+        assert temp_sensor.available is True
+
+        # Remove readings and check availability
+        device_without_readings = copy.deepcopy(device)
+        device_without_readings.readings = []
+        mock_coordinator_with_mt_devices.get_device.return_value = device_without_readings
+        temp_sensor._handle_coordinator_update()
+>       assert temp_sensor.available is False
+E       assert True is False
+E        +  where True = <entity unknown.unknown=unknown>.available
+
+tests/sensor/test_setup_mt_sensors.py:261: AssertionError
+_____________________________ test_switch_creation _____________________________
+
+mock_coordinator_with_content_filtering = <MagicMock id='139709428481632'>
+mock_config_entry = <MagicMock id='139709428278640'>
+
+    def test_switch_creation(
+        mock_coordinator_with_content_filtering: MagicMock, mock_config_entry: MagicMock
+    ) -> None:
+        """Test the creation of the content filtering switch."""
+        network = {"id": "net_1", "name": "Test Network"}
+        category = {"id": "meraki:contentFiltering/category/1", "name": "Social Media"}
+>       switch = MerakiContentFilteringSwitch(
+            mock_coordinator_with_content_filtering, mock_config_entry, network, category
+        )
+
+tests/switch/test_content_filtering_switch.py:32:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <entity unknown.unknown=unknown>
+coordinator = <MagicMock id='139709428481632'>
+config_entry = <MagicMock id='139709428278640'>
+network = {'id': 'net_1', 'name': 'Test Network'}
+category = {'id': 'meraki:contentFiltering/category/1', 'name': 'Social Media'}
+
+    def __init__(
+        self,
+        coordinator: MerakiDataUpdateCoordinator,
+        config_entry: ConfigEntry,
+        network: "MerakiNetwork",
+        category: dict[str, Any],
+    ) -> None:
+        """
+        Initialize the Meraki Content Filtering switch.
+
+        Args:
+        ----
+            coordinator: The data update coordinator.
+            config_entry: The config entry.
+            network: The network data.
+            category: The content filtering category.
+
+        """
+        super().__init__(coordinator)
+        self._config_entry = config_entry
+        self._network = network
+        self._category = category
+        self._client = coordinator.api
+
+        self.entity_description = SwitchEntityDescription(
+>           key=f"content_filtering_{network.id}_{category['id']}",
+            name=f"Block {category['name']}",
+        )
+E       AttributeError: 'dict' object has no attribute 'id'
+
+custom_components/meraki_ha/switch/content_filtering.py:49: AttributeError
+__________________________________ test_is_on __________________________________
+
+mock_coordinator_with_content_filtering = <MagicMock id='139709417522912'>
+mock_config_entry = <MagicMock id='139709417562688'>
+
+    def test_is_on(
+        mock_coordinator_with_content_filtering: MagicMock, mock_config_entry: MagicMock
+    ) -> None:
+        """Test the is_on property."""
+        network = {"id": "net_1", "name": "Test Network"}
+        category_on = {"id": "meraki:contentFiltering/category/2", "name": "Gambling"}
+        category_off = {"id": "meraki:contentFiltering/category/1", "name": "Social Media"}
+
+>       switch_on = MerakiContentFilteringSwitch(
+            mock_coordinator_with_content_filtering,
+            mock_config_entry,
+            network,
+            category_on,
+        )
+
+tests/switch/test_content_filtering_switch.py:50:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <entity unknown.unknown=unknown>
+coordinator = <MagicMock id='139709417522912'>
+config_entry = <MagicMock id='139709417562688'>
+network = {'id': 'net_1', 'name': 'Test Network'}
+category = {'id': 'meraki:contentFiltering/category/2', 'name': 'Gambling'}
+
+    def __init__(
+        self,
+        coordinator: MerakiDataUpdateCoordinator,
+        config_entry: ConfigEntry,
+        network: "MerakiNetwork",
+        category: dict[str, Any],
+    ) -> None:
+        """
+        Initialize the Meraki Content Filtering switch.
+
+        Args:
+        ----
+            coordinator: The data update coordinator.
+            config_entry: The config entry.
+            network: The network data.
+            category: The content filtering category.
+
+        """
+        super().__init__(coordinator)
+        self._config_entry = config_entry
+        self._network = network
+        self._category = category
+        self._client = coordinator.api
+
+        self.entity_description = SwitchEntityDescription(
+>           key=f"content_filtering_{network.id}_{category['id']}",
+            name=f"Block {category['name']}",
+        )
+E       AttributeError: 'dict' object has no attribute 'id'
+
+custom_components/meraki_ha/switch/content_filtering.py:49: AttributeError
+_________________________________ test_turn_on _________________________________
+
+mock_coordinator_with_content_filtering = <MagicMock id='139709417284256'>
+mock_config_entry = <MagicMock id='139709417416672'>
+
+    async def test_turn_on(
+        mock_coordinator_with_content_filtering: MagicMock, mock_config_entry: MagicMock
+    ) -> None:
+        """Test turning the switch on."""
+        network = {"id": "net_1", "name": "Test Network"}
+        category = {"id": "meraki:contentFiltering/category/1", "name": "Social Media"}
+>       switch = MerakiContentFilteringSwitch(
+            mock_coordinator_with_content_filtering, mock_config_entry, network, category
+        )
+
+tests/switch/test_content_filtering_switch.py:73:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <entity unknown.unknown=unknown>
+coordinator = <MagicMock id='139709417284256'>
+config_entry = <MagicMock id='139709417416672'>
+network = {'id': 'net_1', 'name': 'Test Network'}
+category = {'id': 'meraki:contentFiltering/category/1', 'name': 'Social Media'}
+
+    def __init__(
+        self,
+        coordinator: MerakiDataUpdateCoordinator,
+        config_entry: ConfigEntry,
+        network: "MerakiNetwork",
+        category: dict[str, Any],
+    ) -> None:
+        """
+        Initialize the Meraki Content Filtering switch.
+
+        Args:
+        ----
+            coordinator: The data update coordinator.
+            config_entry: The config entry.
+            network: The network data.
+            category: The content filtering category.
+
+        """
+        super().__init__(coordinator)
+        self._config_entry = config_entry
+        self._network = network
+        self._category = category
+        self._client = coordinator.api
+
+        self.entity_description = SwitchEntityDescription(
+>           key=f"content_filtering_{network.id}_{category['id']}",
+            name=f"Block {category['name']}",
+        )
+E       AttributeError: 'dict' object has no attribute 'id'
+
+custom_components/meraki_ha/switch/content_filtering.py:49: AttributeError
+________________________________ test_turn_off _________________________________
+
+mock_coordinator_with_content_filtering = <MagicMock id='139709438313296'>
+mock_config_entry = <MagicMock id='139709440803808'>
+
+    async def test_turn_off(
+        mock_coordinator_with_content_filtering: MagicMock, mock_config_entry: MagicMock
+    ) -> None:
+        """Test turning the switch off."""
+        network = {"id": "net_1", "name": "Test Network"}
+        category = {"id": "meraki:contentFiltering/category/2", "name": "Gambling"}
+>       switch = MerakiContentFilteringSwitch(
+            mock_coordinator_with_content_filtering, mock_config_entry, network, category
+        )
+
+tests/switch/test_content_filtering_switch.py:110:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <entity unknown.unknown=unknown>
+coordinator = <MagicMock id='139709438313296'>
+config_entry = <MagicMock id='139709440803808'>
+network = {'id': 'net_1', 'name': 'Test Network'}
+category = {'id': 'meraki:contentFiltering/category/2', 'name': 'Gambling'}
+
+    def __init__(
+        self,
+        coordinator: MerakiDataUpdateCoordinator,
+        config_entry: ConfigEntry,
+        network: "MerakiNetwork",
+        category: dict[str, Any],
+    ) -> None:
+        """
+        Initialize the Meraki Content Filtering switch.
+
+        Args:
+        ----
+            coordinator: The data update coordinator.
+            config_entry: The config entry.
+            network: The network data.
+            category: The content filtering category.
+
+        """
+        super().__init__(coordinator)
+        self._config_entry = config_entry
+        self._network = network
+        self._category = category
+        self._client = coordinator.api
+
+        self.entity_description = SwitchEntityDescription(
+>           key=f"content_filtering_{network.id}_{category['id']}",
+            name=f"Block {category['name']}",
+        )
+E       AttributeError: 'dict' object has no attribute 'id'
+
+custom_components/meraki_ha/switch/content_filtering.py:49: AttributeError
+=========================== short test summary info ============================
+FAILED tests/binary_sensor/device/test_mt20_open_close.py::test_mt20_open_sensor
+FAILED tests/binary_sensor/device/test_mt20_open_close.py::test_mt20_closed_sensor
+FAILED tests/binary_sensor/device/test_mt20_open_close.py::test_mt20_availability
+FAILED tests/binary_sensor/test_switch_port.py::test_switch_port_sensor_connected
+FAILED tests/binary_sensor/test_switch_port.py::test_switch_port_sensor_disconnected
+FAILED tests/binary_sensor/test_switch_port.py::test_extra_state_attributes
+FAILED tests/button/device/test_mt15_refresh_data.py::test_mt15_button_creation
+FAILED tests/button/device/test_mt15_refresh_data.py::test_mt15_button_press
+FAILED tests/camera/test_camera.py::test_camera_stream_source - AssertionErro...
+FAILED tests/camera/test_camera.py::test_camera_turn_on - TypeError: object M...
+FAILED tests/camera/test_camera.py::test_camera_turn_off - TypeError: object ...
+FAILED tests/camera/test_camera.py::test_is_streaming_logic[video_settings0-True]
+FAILED tests/camera/test_camera.py::test_entity_disabled_if_no_url - assert n...
+FAILED tests/discovery/handlers/test_ms.py::test_discover_entities - TypeErro...
+FAILED tests/discovery/handlers/test_mv.py::test_mv_handler_all_features - Ty...
+FAILED tests/discovery/handlers/test_mv.py::test_mv_handler_some_features - T...
+FAILED tests/discovery/handlers/test_mv.py::test_mv_handler_no_extra_features
+FAILED tests/discovery/handlers/test_network.py::test_discover_entities_creates_network_sensors
+FAILED tests/hubs/test_organization.py::test_organization_id_property - TypeE...
+FAILED tests/sensor/device/test_connected_clients.py::test_connected_clients_sensor_appliance
+FAILED tests/sensor/device/test_connected_clients.py::test_connected_clients_sensor_gateway
+FAILED tests/sensor/device/test_poe_usage.py::test_poe_usage_sensor - assert ...
+FAILED tests/sensor/ssid/test_ssid_connected_clients.py::test_ssid_connected_clients_sensor
+FAILED tests/sensor/test_meraki_wan1_connectivity.py::test_meraki_wan1_connectivity_sensor
+FAILED tests/sensor/test_meraki_wan2_connectivity.py::test_meraki_wan2_connectivity_sensor
+FAILED tests/sensor/test_network_clients.py::test_network_clients_sensor - At...
+FAILED tests/sensor/test_org_device_type_clients.py::test_meraki_organization_device_type_clients_sensor
+FAILED tests/sensor/test_setup_mt_sensors.py::test_availability - assert True...
+FAILED tests/switch/test_content_filtering_switch.py::test_switch_creation - ...
+FAILED tests/switch/test_content_filtering_switch.py::test_is_on - AttributeE...
+FAILED tests/switch/test_content_filtering_switch.py::test_turn_on - Attribut...
+FAILED tests/switch/test_content_filtering_switch.py::test_turn_off - Attribu...
+ERROR tests/test_camera_control.py::test_camera_turn_on_optimistic_update - T...
+ERROR tests/test_camera_control.py::test_camera_turn_off_optimistic_update - ...
+============= 32 failed, 122 passed, 3 skipped, 2 errors in 17.01s =============

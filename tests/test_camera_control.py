@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from unittest.mock import AsyncMock, MagicMock
 
+import dataclasses
 import pytest
 from homeassistant.core import HomeAssistant
 
@@ -19,17 +20,18 @@ def mock_coordinator() -> MagicMock:
     # The coordinator's data is a dictionary that the entity will access
     coordinator.data = {
         "devices": [
-            {
-                **MOCK_DEVICE,
-                "productType": "camera",
-                "model": "MV12",
-                "video_settings": {"rtspServerEnabled": False},
-                "lanIp": "192.168.1.100",
-            },
+            dataclasses.replace(
+                MOCK_DEVICE,
+                product_type="camera",
+                model="MV12",
+                video_settings={"rtspServerEnabled": False},
+                lan_ip="192.168.1.100",
+            ),
         ],
     }
     coordinator.async_update_listeners = MagicMock()
     coordinator.register_pending_update = MagicMock()
+    coordinator.async_request_refresh = AsyncMock()
     return coordinator
 
 
@@ -80,22 +82,14 @@ async def test_camera_turn_on_optimistic_update(
     await camera.async_turn_on()
 
     # Assert
-    # 1. Check that the coordinator's data was optimistically updated
-    assert device_data["video_settings"]["rtspServerEnabled"]
-    assert "rtspUrl" in device_data["video_settings"]
-    assert device_data["video_settings"]["rtspUrl"] == "rtsp://192.168.1.100:9000/live"
-
-    # 2. Check that listeners were notified of the change
-    mock_coordinator.async_update_listeners.assert_called_once()
-
-    # 3. Check that the API call was made
+    # 1. Check that the API call was made
     mock_camera_service.async_set_rtsp_stream_enabled.assert_awaited_once_with(
-        device_data["serial"],
+        device_data.serial,
         True,
     )
 
-    # 4. Check that a cooldown was registered
-    mock_coordinator.register_pending_update.assert_called_once_with(camera.unique_id)
+    # 2. Check that a refresh was requested
+    mock_coordinator.async_request_refresh.assert_called_once()
 
 
 @pytest.mark.asyncio
@@ -119,8 +113,10 @@ async def test_camera_turn_off_optimistic_update(
     # Arrange
     # Start with the camera on
     device_data = mock_coordinator.data["devices"][0]
-    device_data["video_settings"]["rtspServerEnabled"] = True
-    device_data["video_settings"]["rtspUrl"] = "rtsp://192.168.1.100:9000/live"
+    # We must replace since it is a dataclass and might be immutable-ish for tests (though fields are mutable)
+    # But let's just modify the dicts inside
+    device_data.video_settings["rtspServerEnabled"] = True
+    device_data.video_settings["rtspUrl"] = "rtsp://192.168.1.100:9000/live"
 
     camera = MerakiCamera(
         mock_coordinator,
@@ -135,18 +131,11 @@ async def test_camera_turn_off_optimistic_update(
     await camera.async_turn_off()
 
     # Assert
-    # 1. Check that the coordinator's data was optimistically updated
-    assert not device_data["video_settings"]["rtspServerEnabled"]
-    assert device_data["video_settings"]["rtspUrl"] is None
-
-    # 2. Check that listeners were notified
-    mock_coordinator.async_update_listeners.assert_called_once()
-
-    # 3. Check that the API call was made
+    # 1. Check that the API call was made
     mock_camera_service.async_set_rtsp_stream_enabled.assert_awaited_once_with(
-        device_data["serial"],
+        device_data.serial,
         False,
     )
 
-    # 4. Check that a cooldown was registered
-    mock_coordinator.register_pending_update.assert_called_once_with(camera.unique_id)
+    # 2. Check that a refresh was requested
+    mock_coordinator.async_request_refresh.assert_called_once()

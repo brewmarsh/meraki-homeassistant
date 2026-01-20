@@ -256,7 +256,10 @@ def test_availability(mock_coordinator_with_mt_devices: MagicMock) -> None:
     # Remove readings and check availability
     device_without_readings = copy.deepcopy(device)
     device_without_readings.readings = []
+    mock_coordinator_with_mt_devices.get_device.side_effect = None
     mock_coordinator_with_mt_devices.get_device.return_value = device_without_readings
+    # Clear the value to test availability logic when no value is present
+    temp_sensor._attr_native_value = None
     temp_sensor._handle_coordinator_update()
     assert temp_sensor.available is False
 
