@@ -56,41 +56,43 @@ class MerakiMtSensor(CoordinatorEntity, RestoreSensor):
 
     def _update_native_value(self) -> None:
         """Update the native value of the sensor."""
-        readings = self._device.readings
-        if not readings or not isinstance(readings, list):
-            self._attr_native_value = None
-            return
-
-        for reading in readings:
-            if reading.get("metric") == self.entity_description.key:
-                metric_data = reading.get(self.entity_description.key)
-                if isinstance(metric_data, dict):
-                    # Map metric to the key holding its value
-                    key_map = {
-                        "battery": "percentage",
-                        "temperature": "celsius",
-                        "humidity": "relativePercentage",
-                        "pm25": "concentration",
-                        "tvoc": "concentration",
-                        "co2": "concentration",
-                        "noise": "ambient",
-                        "water": "present",
-                        "power": "draw",
-                        "voltage": "level",
-                        "current": "draw",
-                    }
-                    value_key = key_map.get(self.entity_description.key)
-                    if value_key:
-                        if value_key == "ambient":
-                            self._attr_native_value = metric_data.get(
-                                "ambient", {}
-                            ).get("level")
-                        else:
-                            self._attr_native_value = metric_data.get(value_key)
-                        return
-
-        # If metric not found in readings, set to None
         self._attr_native_value = None
+        key = self.entity_description.key
+
+        if key == "noise":
+            self._attr_native_value = self._device.ambient_noise
+        elif key == "pm25":
+            self._attr_native_value = self._device.pm25
+        elif key == "power":
+            self._attr_native_value = self._device.real_power
+        elif key == "power_factor":
+            self._attr_native_value = self._device.power_factor
+        elif key == "current":
+            self._attr_native_value = self._device.current
+        elif key == "door":
+            self._attr_native_value = self._device.door_open
+        else:
+            readings = self._device.readings
+            if not readings or not isinstance(readings, list):
+                return
+
+            for reading in readings:
+                if reading.get("metric") == key:
+                    metric_data = reading.get(key)
+                    if isinstance(metric_data, dict):
+                        key_map = {
+                            "battery": "percentage",
+                            "temperature": "celsius",
+                            "humidity": "relativePercentage",
+                            "tvoc": "concentration",
+                            "co2": "concentration",
+                            "water": "present",
+                            "voltage": "level",
+                        }
+                        value_key = key_map.get(key)
+                        if value_key:
+                            self._attr_native_value = metric_data.get(value_key)
+                            return
 
     @callback
     def _handle_coordinator_update(self) -> None:

@@ -38,6 +38,12 @@ class MerakiDevice:
     dynamic_dns: dict[str, Any] | None = None
     status_messages: list[str] = field(default_factory=list)
     entity_id: str | None = None
+    ambient_noise: float | None = None
+    pm25: float | None = None
+    real_power: float | None = None
+    power_factor: float | None = None
+    current: float | None = None
+    door_open: bool | None = None
 
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> MerakiDevice:
