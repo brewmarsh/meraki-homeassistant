@@ -46,3 +46,8 @@ async def async_register_frontend(hass: HomeAssistant, entry: ConfigEntry) -> No
         },
         require_admin=True,
     )
+
+
+async def async_remove_frontend(hass: HomeAssistant) -> None:
+    """Remove the frontend panel."""
+    frontend.async_remove_panel(hass, "meraki")
