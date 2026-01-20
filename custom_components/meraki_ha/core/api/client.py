@@ -338,7 +338,9 @@ class MerakiAPIClient:
                     f"camera_analytics_{device.serial}"
                 ] = asyncio.create_task(
                     self._run_with_semaphore(
-                        self.camera.get_device_camera_analytics_recent(device.serial),
+                        self.camera.get_device_camera_analytics_recent(
+                            device.serial,
+                        ),
                     )
                 )
             elif device.product_type == "switch":
