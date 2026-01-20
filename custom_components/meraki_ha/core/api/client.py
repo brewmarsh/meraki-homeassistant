@@ -17,6 +17,7 @@ import meraki
 from homeassistant.core import HomeAssistant
 
 from ...core.parsers.appliance import parse_appliance_data
+from ...core.parsers.camera import parse_camera_data
 from ...core.parsers.devices import parse_device_data
 from ...core.parsers.network import parse_network_data
 from ...core.parsers.sensors import parse_sensor_data
@@ -321,6 +322,11 @@ class MerakiAPIClient:
                         self.camera.get_camera_sense_settings(device.serial),
                     )
                 )
+                detail_tasks[f"camera_analytics_{device.serial}"] = (
+                    self._run_with_semaphore(
+                        self.camera.get_camera_analytics_recent(device.serial),
+                    )
+                )
             elif device.product_type == "switch":
                 detail_tasks[f"ports_statuses_{device.serial}"] = (
                     self._run_with_semaphore(
@@ -399,18 +405,21 @@ class MerakiAPIClient:
         parse_appliance_data(devices, appliance_uplink_statuses)
         parse_sensor_data(devices, sensor_readings, battery_readings)
 
-        network_clients, device_clients = await asyncio.gather(
-            self._async_fetch_network_clients(networks),
-            self._async_fetch_device_clients(devices),
-            return_exceptions=True,
-        )
-
         detail_tasks = self._build_detail_tasks(networks, devices)
         detail_results = await asyncio.gather(
             *detail_tasks.values(),
             return_exceptions=True,
         )
         detail_data = dict(zip(detail_tasks.keys(), detail_results, strict=True))
+
+        parse_camera_data(devices, detail_data)
+
+        network_clients, device_clients = await asyncio.gather(
+            self._async_fetch_network_clients(networks),
+            self._async_fetch_device_clients(devices),
+            return_exceptions=True,
+        )
+
 
         processed_network_data = parse_network_data(
             detail_data,

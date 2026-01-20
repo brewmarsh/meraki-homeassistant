@@ -33,7 +33,8 @@ class MerakiAppliancePortSensor(CoordinatorEntity, SensorEntity):
         self._port = port
         self._attr_unique_id = f"{self._device['serial']}_port_{self._port['number']}"
         self._attr_name = format_entity_name(
-            self._device["name"],
+            self._device,
+            self.coordinator.config_entry.options,
             f"Port {self._port['number']}",
         )
         self._attr_icon = "mdi:ethernet-port"

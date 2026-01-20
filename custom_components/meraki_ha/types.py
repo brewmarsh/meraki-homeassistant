@@ -28,6 +28,7 @@ class MerakiDevice:
     video_settings: dict[str, Any] | None = None
     rtsp_url: str | None = None
     sense_settings: dict[str, Any] | None = None
+    analytics: list[dict[str, Any]] = field(default_factory=list)
     ports_statuses: list[dict[str, Any]] = field(default_factory=list)
     dynamic_dns: dict[str, Any] | None = None
     status_messages: list[str] = field(default_factory=list)

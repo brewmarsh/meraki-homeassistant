@@ -46,7 +46,6 @@ def _setup_device_sensors(
     config_entry: ConfigEntry,
     coordinator: MerakiDataUpdateCoordinator,
     added_entities: set[str],
-    camera_service: "CameraService",
 ) -> list[Entity]:
     """Set up device-specific sensors."""
     entities: list[Entity] = []
@@ -268,7 +267,6 @@ def async_setup_sensors(
     hass: HomeAssistant,
     config_entry: ConfigEntry,
     coordinator: MerakiDataUpdateCoordinator,
-    camera_service: "CameraService",
 ) -> list[Entity]:
     """Set up all sensor entities from the central coordinator."""
     entities: list[Entity] = []
@@ -279,7 +277,7 @@ def async_setup_sensors(
         return entities
 
     entities.extend(
-        _setup_device_sensors(config_entry, coordinator, added_entities, camera_service)
+        _setup_device_sensors(config_entry, coordinator, added_entities)
     )
     entities.extend(_setup_network_sensors(config_entry, coordinator, added_entities))
     entities.extend(_setup_client_tracker_sensors(config_entry, coordinator))

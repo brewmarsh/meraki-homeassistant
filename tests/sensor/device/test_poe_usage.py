@@ -34,7 +34,7 @@ def test_poe_usage_sensor(mock_device_coordinator):
     device = mock_device_coordinator.data["devices"][0]
     sensor = MerakiPoeUsageSensor(mock_device_coordinator, device)
     assert sensor.unique_id == "dev1_poe_usage"
-    assert sensor.name == "Switch PoE Usage"
+    assert sensor.name == "[Switch] Switch PoE Usage"
     assert sensor.native_value == 15.7
     assert sensor.extra_state_attributes["port_1_power_usage_wh"] == 252
     assert sensor.extra_state_attributes["port_2_power_usage_wh"] == 124.8

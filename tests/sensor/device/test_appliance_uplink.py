@@ -59,10 +59,9 @@ def test_appliance_uplink_sensor_creation(mock_coordinator):
     """Test that appliance uplink sensors are created correctly."""
     hass = MagicMock()
     config_entry = MagicMock()
-    camera_service = MagicMock()
 
     # Run the setup
-    sensors = async_setup_sensors(hass, config_entry, mock_coordinator, camera_service)
+    sensors = async_setup_sensors(hass, config_entry, mock_coordinator)
 
     # Filter for just the uplink sensors
     uplink_sensors = [s for s in sensors if "Uplink" in s.__class__.__name__]
