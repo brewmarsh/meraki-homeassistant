@@ -38,9 +38,7 @@ class MerakiSnapshotButton(CoordinatorEntity, ButtonEntity):
         self._camera_service = camera_service
         self._config_entry = config_entry
         self._attr_unique_id = f"{self._device.serial}-snapshot"
-        self._attr_name = format_entity_name(
-            format_device_name(device, config_entry.options), "Snapshot"
-        )
+        self._attr_name = format_entity_name(device, config_entry.options, "Snapshot")
 
     @property
     def device_info(self) -> DeviceInfo | None:
