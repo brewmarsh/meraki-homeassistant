@@ -96,7 +96,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             _LOGGER.exception("Failed to register sidebar")
 
     async_setup_api(hass)
-    async_setup_websocket_api(hass)  # Added from incoming branch
+    async_setup_websocket_api(hass)
     coordinator = MerakiDataUpdateCoordinator(hass, entry)
     await coordinator.async_config_entry_first_refresh()
 
