@@ -21,7 +21,7 @@ class MerakiCameraSenseSwitch(MerakiCameraSettingSwitchBase):
         self,
         coordinator: MerakiDataUpdateCoordinator,
         meraki_client: MerakiAPIClient,
-        device_data: dict[str, Any],
+        device_data: "MerakiDevice",
     ) -> None:
         """Initialize the Camera Sense switch."""
         super().__init__(
@@ -50,7 +50,7 @@ class MerakiCameraSenseSwitch(MerakiCameraSettingSwitchBase):
             is_on: Whether the setting is on or off.
         """
         await self.client.camera.update_camera_sense_settings(
-            serial=self._device_data["serial"], senseEnabled=is_on
+            serial=self._device_data.serial, senseEnabled=is_on
         )
 
 
@@ -61,7 +61,7 @@ class MerakiCameraAudioDetectionSwitch(MerakiCameraSettingSwitchBase):
         self,
         coordinator: MerakiDataUpdateCoordinator,
         meraki_client: MerakiAPIClient,
-        device_data: dict[str, Any],
+        device_data: "MerakiDevice",
     ) -> None:
         """Initialize the Camera Audio Detection switch."""
         super().__init__(
@@ -90,6 +90,6 @@ class MerakiCameraAudioDetectionSwitch(MerakiCameraSettingSwitchBase):
             is_on: Whether the setting is on or off.
         """
         await self.client.camera.update_camera_sense_settings(
-            serial=self._device_data["serial"],
+            serial=self._device_data.serial,
             audioDetection={"enabled": is_on},
         )

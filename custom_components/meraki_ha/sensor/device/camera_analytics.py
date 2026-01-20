@@ -25,17 +25,15 @@ class MerakiAnalyticsSensor(CoordinatorEntity, SensorEntity):
     def __init__(
         self,
         coordinator: MerakiDataUpdateCoordinator,
-        device: dict[str, Any] | Any,
+        device: "MerakiDevice",
         object_type: str,
     ) -> None:
         """Initialize the sensor."""
         super().__init__(coordinator)
         self._device = device
         self._object_type = object_type
-        serial = device.serial if hasattr(device, "serial") else device["serial"]
-        name = device.name if hasattr(device, "name") else device["name"]
-        self._attr_unique_id = f"{serial}-{object_type}-count"
-        self._attr_name = f"[Camera] {name} {object_type.capitalize()} Count"
+        self._attr_unique_id = f"{device.serial}-{object_type}-count"
+        self._attr_name = f"[Camera] {device.name} {object_type.capitalize()} Count"
 
     @property
     def device_info(self) -> DeviceInfo | None:
@@ -45,12 +43,7 @@ class MerakiAnalyticsSensor(CoordinatorEntity, SensorEntity):
     @property
     def native_value(self) -> int | None:
         """Return the state of the sensor."""
-        serial = (
-            self._device.serial
-            if hasattr(self._device, "serial")
-            else self._device["serial"]
-        )
-        device = self.coordinator.get_device(serial)
+        device = self.coordinator.get_device(self._device.serial)
         if device and device.analytics:
             for reading in device.analytics:
                 if reading.get("zoneId") == 0:  # Assuming zone 0 is the entire frame
@@ -60,12 +53,7 @@ class MerakiAnalyticsSensor(CoordinatorEntity, SensorEntity):
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
         """Return the state attributes."""
-        serial = (
-            self._device.serial
-            if hasattr(self._device, "serial")
-            else self._device["serial"]
-        )
-        device = self.coordinator.get_device(serial)
+        device = self.coordinator.get_device(self._device.serial)
         if device and device.analytics:
             return {"raw_data": device.analytics}
         return {}
@@ -77,7 +65,7 @@ class MerakiPersonCountSensor(MerakiAnalyticsSensor):
     def __init__(
         self,
         coordinator: MerakiDataUpdateCoordinator,
-        device: dict[str, Any] | Any,
+        device: "MerakiDevice",
     ) -> None:
         """Initialize the sensor."""
         super().__init__(coordinator, device, "person")
@@ -90,7 +78,7 @@ class MerakiVehicleCountSensor(MerakiAnalyticsSensor):
     def __init__(
         self,
         coordinator: MerakiDataUpdateCoordinator,
-        device: dict[str, Any] | Any,
+        device: "MerakiDevice",
     ) -> None:
         """Initialize the sensor."""
         super().__init__(coordinator, device, "vehicle")

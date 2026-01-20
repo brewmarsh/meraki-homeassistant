@@ -52,7 +52,7 @@ class MerakiDeviceStatusSensor(CoordinatorEntity, SensorEntity):
     def __init__(
         self,
         coordinator: MerakiDataUpdateCoordinator,
-        device_data: dict[str, Any],  # Initial device_data snapshot
+        device_data: "MerakiDevice",  # Initial device_data snapshot
         config_entry: ConfigEntry,
     ) -> None:
         """
@@ -67,7 +67,7 @@ class MerakiDeviceStatusSensor(CoordinatorEntity, SensorEntity):
 
         """
         super().__init__(coordinator)
-        self._device_serial: str = device_data["serial"]  # Serial is mandatory
+        self._device_serial: str = device_data.serial  # Serial is mandatory
 
         # Set up unique ID
         self._attr_unique_id = f"{self._device_serial}_device_status"
@@ -77,10 +77,10 @@ class MerakiDeviceStatusSensor(CoordinatorEntity, SensorEntity):
         self._attr_device_info = DeviceInfo(
             identifiers={(DOMAIN, self._device_serial)},
             name=format_device_name(device_data, config_entry.options),
-            model=device_data.get("model"),
+            model=device_data.model,
             manufacturer="Cisco Meraki",
             serial_number=self._device_serial,
-            sw_version=device_data.get("firmware"),
+            sw_version=device_data.firmware,
         )
 
         # _attr_name is not explicitly set
@@ -114,11 +114,7 @@ class MerakiDeviceStatusSensor(CoordinatorEntity, SensorEntity):
 
     def _get_current_device_data(self) -> MerakiDevice | None:
         """Retrieve the latest data for this sensor's device from the coordinator."""
-        if self.coordinator.data and self.coordinator.data.get("devices"):
-            for dev_data in self.coordinator.data["devices"]:
-                if dev_data.serial == self._device_serial:
-                    return dev_data
-        return None
+        return self.coordinator.get_device(self._device_serial)
 
     def _update_sensor_data(self) -> None:
         """Update sensor state and attributes from coordinator data."""

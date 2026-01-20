@@ -24,16 +24,16 @@ class MerakiAppliancePortSensor(CoordinatorEntity, SensorEntity):
     def __init__(
         self,
         coordinator: MerakiDataUpdateCoordinator,
-        device: dict[str, Any],
+        device: "MerakiDevice",
         port: dict[str, Any],
     ) -> None:
         """Initialize the sensor."""
         super().__init__(coordinator)
         self._device = device
         self._port = port
-        self._attr_unique_id = f"{self._device['serial']}_port_{self._port['number']}"
+        self._attr_unique_id = f"{device.serial}_port_{self._port['number']}"
         self._attr_name = format_entity_name(
-            self._device,
+            device,
             self.coordinator.config_entry.options,
             f"Port {self._port['number']}",
         )
@@ -43,24 +43,25 @@ class MerakiAppliancePortSensor(CoordinatorEntity, SensorEntity):
     def device_info(self) -> DeviceInfo:
         """Return device information."""
         return DeviceInfo(
-            identifiers={(DOMAIN, self._device["serial"])},
+            identifiers={(DOMAIN, self._device.serial)},
             name=format_device_name(
                 self._device, self.coordinator.config_entry.options
             ),
-            model=self._device["model"],
+            model=self._device.model,
             manufacturer="Cisco Meraki",
         )
 
     @callback
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
-        for device in self.coordinator.data.get("devices", []):
-            if device["serial"] == self._device["serial"]:
-                for port in device.get("ports", []):
-                    if port["number"] == self._port["number"]:
-                        self._port = port
-                        self.async_write_ha_state()
-                        return
+        device = self.coordinator.get_device(self._device.serial)
+        if device:
+            self._device = device
+            for port in device.ports:
+                if port["number"] == self._port["number"]:
+                    self._port = port
+                    self.async_write_ha_state()
+                    return
 
     @property
     def native_value(self) -> str:

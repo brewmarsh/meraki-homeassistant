@@ -36,7 +36,7 @@ class MerakiPoeUsageSensor(
     def __init__(
         self,
         coordinator: MerakiDataUpdateCoordinator,
-        device: dict[str, Any],
+        device: "MerakiDevice",
     ) -> None:
         """
         Initialize the sensor.
@@ -49,35 +49,28 @@ class MerakiPoeUsageSensor(
         """
         super().__init__(coordinator)
         self._device = device
-        self._attr_unique_id = f"{self._device['serial']}_poe_usage"
+        self._attr_unique_id = f"{device.serial}_poe_usage"
         self._attr_name = format_entity_name(
-            self._device, self.coordinator.config_entry.options, "PoE Usage"
+            device, self.coordinator.config_entry.options, "PoE Usage"
         )
 
     @property
     def device_info(self) -> DeviceInfo:
         """Return device information."""
         return DeviceInfo(
-            identifiers={(DOMAIN, self._device["serial"])},
+            identifiers={(DOMAIN, self._device.serial)},
             name=format_device_name(
                 self._device,
                 self.coordinator.config_entry.options,
             ),
-            model=self._device["model"],
+            model=self._device.model,
             manufacturer="Cisco Meraki",
         )
 
     @callback
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
-        device = next(
-            (
-                d
-                for d in self.coordinator.data.get("devices", [])
-                if d["serial"] == self._device["serial"]
-            ),
-            None,
-        )
+        device = self.coordinator.get_device(self._device.serial)
         if device:
             self._device = device
             self.async_write_ha_state()
@@ -85,7 +78,7 @@ class MerakiPoeUsageSensor(
     @property
     def native_value(self) -> float | None:
         """Return the state of the sensor."""
-        ports_statuses = self._device.get("ports_statuses")
+        ports_statuses = self._device.ports_statuses
         if not isinstance(ports_statuses, list):
             return None
 
@@ -102,7 +95,7 @@ class MerakiPoeUsageSensor(
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
         """Return the state attributes."""
-        ports_statuses = self._device.get("ports_statuses")
+        ports_statuses = self._device.ports_statuses
         if not isinstance(ports_statuses, list):
             return {}
 

@@ -26,15 +26,14 @@ class SwitchPortSensor(CoordinatorEntity, BinarySensorEntity):
     def __init__(
         self,
         coordinator: MerakiDataUpdateCoordinator,
-        device: dict[str, Any] | Any,
+        device: "MerakiDevice",
         port: dict[str, Any],
     ) -> None:
         """Initialize the sensor."""
         super().__init__(coordinator)
         self._device = device
         self._port = port
-        serial = device.serial if hasattr(device, "serial") else device["serial"]
-        self._attr_unique_id = f"{serial}_{self._port['portId']}"
+        self._attr_unique_id = f"{device.serial}_{self._port['portId']}"
         self._attr_name = f"Port {self._port['portId']}"
 
     @property
@@ -45,22 +44,10 @@ class SwitchPortSensor(CoordinatorEntity, BinarySensorEntity):
     @callback
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
-        serial = (
-            self._device.serial
-            if hasattr(self._device, "serial")
-            else self._device["serial"]
-        )
-        device = self.coordinator.get_device(serial)
+        device = self.coordinator.get_device(self._device.serial)
         if device:
             self._device = device
-            # device is a MerakiDevice dataclass here (from get_device)
-            # ports_statuses is a list of dicts
-            ports = (
-                device.ports_statuses
-                if hasattr(device, "ports_statuses")
-                else device.get("ports_statuses", [])
-            )
-            for port in ports:
+            for port in device.ports_statuses:
                 if port["portId"] == self._port["portId"]:
                     self._port = port
                     self.async_write_ha_state()
