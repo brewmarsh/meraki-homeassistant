@@ -83,18 +83,21 @@ class SwitchPortService:
                     return port.get("speed")
         return None
 
-    async def async_cycle_port(self, serial: str, port_id: str) -> dict[str, Any] | None:
+    async def async_cycle_ports(
+        self, serial: str, ports: list[str]
+    ) -> dict[str, Any] | None:
         """
-        Cycle a switch port.
+        Cycle a set of switch ports.
 
         Args:
         ----
             serial: The serial number of the switch.
-            port_id: The ID of the port to cycle.
+            ports: A list of port IDs to cycle.
 
         Returns
         -------
-            The API response, or None if an error occurred.
+            A dictionary containing the API response, or None if an error occurred.
 
         """
-        return await self._repository.async_cycle_switch_port(serial, port_id)
+        _LOGGER.info("Cycling ports %s on device %s", ports, serial)
+        return await self._repository.async_cycle_switch_ports(serial, ports)

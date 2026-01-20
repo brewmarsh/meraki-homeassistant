@@ -1,51 +1,46 @@
 """
-Meraki-HA button platform.
+Meraki Switch Port Cycle Button.
 
-This module defines the MerakiSwitchPortCycleButton class, a button entity
-for cycling a switch port.
+This module defines the MerakiSwitchPortCycleButton class.
 """
 
 from __future__ import annotations
 
-import logging
 from typing import TYPE_CHECKING, Any
 
 from homeassistant.components.button import ButtonEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.entity import DeviceInfo
 
-from ...core.utils.naming_utils import format_entity_name
 from ...helpers.device_info_helpers import resolve_device_info
 
 if TYPE_CHECKING:
     from ...services.switch_port_service import SwitchPortService
     from ...types import MerakiDevice
 
-_LOGGER = logging.getLogger(__name__)
-
 
 class MerakiSwitchPortCycleButton(ButtonEntity):
-    """A button to cycle a switch port."""
+    """A button to cycle a Meraki switch port."""
 
     def __init__(
         self,
-        switch_port_service: SwitchPortService,
+        service: SwitchPortService,
         device: MerakiDevice,
-        config_entry: ConfigEntry,
-        port_id: str,
         port_info: dict[str, Any],
+        config_entry: ConfigEntry,
     ) -> None:
         """Initialize the switch port cycle button."""
-        self._service = switch_port_service
+        self._service = service
         self._device = device
+        self._port_id = port_info["portId"]
+        self._port_number = port_info.get(
+            "portId"
+        )  # Meraki uses portId as number usually
         self._config_entry = config_entry
-        self._port_id = port_id
-        self._port_info = port_info
 
-        self._attr_name = format_entity_name(
-            device, config_entry.options, f"Cycle Port {port_id}"
-        )
-        self._attr_unique_id = f"{device.serial}_cycle_port_{port_id}"
+        self._attr_name = f"{device.name} Port {self._port_id} Cycle"
+        self._attr_unique_id = f"{device.serial}_port_{self._port_id}_cycle"
+        self._attr_icon = "mdi:restart"
 
     @property
     def device_info(self) -> DeviceInfo | None:
@@ -54,4 +49,4 @@ class MerakiSwitchPortCycleButton(ButtonEntity):
 
     async def async_press(self) -> None:
         """Handle the button press."""
-        await self._service.async_cycle_port(self._device.serial, self._port_id)
+        await self._service.async_cycle_ports(self._device.serial, [self._port_id])
