@@ -72,35 +72,37 @@ async def add_integration():
 
             # Start Flow
             print("Starting Config Flow...")
-            await ws.send_json({
-                "id": 1,
-                "type": "config_entries/flow/start",
-                "handler": "meraki_ha",
-            })
+            await ws.send_json(
+                {"id": 1, "type": "config_entries/flow/start", "handler": "meraki_ha"}
+            )
             resp = await ws.receive_json()
             flow_id = resp["result"]["flow_id"]
 
             # Step 1: API Key
             print("Sending API Key...")
-            await ws.send_json({
-                "id": 2,
-                "type": "config_entries/flow/handle_step",
-                "flow_id": flow_id,
-                "step_id": "user",
-                "user_input": {"api_key": MERAKI_API_KEY},
-            })
+            await ws.send_json(
+                {
+                    "id": 2,
+                    "type": "config_entries/flow/handle_step",
+                    "flow_id": flow_id,
+                    "step_id": "user",
+                    "user_input": {"api_key": MERAKI_API_KEY},
+                }
+            )
             resp = await ws.receive_json()
 
             # Handle optional Step 2 (Org Selection) if it occurs
             if resp["result"].get("step_id") == "pick_organization":
                 print("Selecting Organization...")
-                await ws.send_json({
-                    "id": 3,
-                    "type": "config_entries/flow/handle_step",
-                    "flow_id": flow_id,
-                    "step_id": "pick_organization",
-                    "user_input": {"organization_id": MERAKI_ORG_ID},
-                })
+                await ws.send_json(
+                    {
+                        "id": 3,
+                        "type": "config_entries/flow/handle_step",
+                        "flow_id": flow_id,
+                        "step_id": "pick_organization",
+                        "user_input": {"organization_id": MERAKI_ORG_ID},
+                    }
+                )
                 resp = await ws.receive_json()
 
             if resp["success"] and resp["result"]["type"] == "create_entry":

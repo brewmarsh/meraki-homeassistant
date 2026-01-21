@@ -1,7 +1,7 @@
 """Tests for the DeviceDiscoveryService."""
 
 from dataclasses import replace
-from unittest.mock import ANY, AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
@@ -14,7 +14,9 @@ def mock_coordinator_with_devices(mock_coordinator: MagicMock) -> MagicMock:
     """Fixture for a mocked MerakiDataUpdateCoordinator with various devices."""
     wireless_device = replace(MOCK_DEVICE, model="MR36")
     camera_device = replace(MOCK_DEVICE, serial="camera_serial", model="MV12")
-    unsupported_device = replace(MOCK_DEVICE, serial="unsupported_serial", model="unsupported")
+    unsupported_device = replace(
+        MOCK_DEVICE, serial="unsupported_serial", model="unsupported"
+    )
     mock_coordinator.data = {
         "devices": [wireless_device, camera_device, unsupported_device],
         "networks": [],

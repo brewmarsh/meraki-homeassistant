@@ -2,9 +2,9 @@
 
 from __future__ import annotations
 
+import dataclasses
 from unittest.mock import AsyncMock, MagicMock
 
-import dataclasses
 import pytest
 from homeassistant.core import HomeAssistant
 

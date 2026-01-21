@@ -8,7 +8,6 @@ from custom_components.meraki_ha.sensor.device.camera_analytics import (
     MerakiPersonCountSensor,
     MerakiVehicleCountSensor,
 )
-from tests.const import MOCK_DEVICE
 
 
 @pytest.fixture

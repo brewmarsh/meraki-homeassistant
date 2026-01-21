@@ -38,7 +38,7 @@ def mock_hass_with_webhook_data(hass: HomeAssistant) -> HomeAssistant:
         status="online",
         name="Test Device",
         model="MR33",
-        mac="00:11:22:33:44:55"
+        mac="00:11:22:33:44:55",
     )
 
     coordinator.data = {

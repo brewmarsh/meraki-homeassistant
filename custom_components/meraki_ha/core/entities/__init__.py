@@ -78,7 +78,8 @@ class BaseMerakiEntity(CoordinatorEntity, Entity, ABC):
                     sw_version=device.firmware or "unknown",
                     suggested_area=device.address or "",
                     hw_version=model,
-                    configuration_url=device.url or f"https://dashboard.meraki.com/devices/{self._serial}",
+                    configuration_url=device.url
+                    or f"https://dashboard.meraki.com/devices/{self._serial}",
                 )
 
         return None

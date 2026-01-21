@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import logging
-from typing import TYPE_CHECKING
+
 
 from homeassistant.components.switch import SwitchEntityDescription
 from homeassistant.helpers.typing import UNDEFINED
@@ -12,9 +12,9 @@ from custom_components.meraki_ha.coordinator import MerakiDataUpdateCoordinator
 
 from ..core.api.client import MerakiAPIClient
 from .camera_settings import MerakiCameraSettingSwitchBase
+from ..types import MerakiDevice
 
-if TYPE_CHECKING:
-    from ..types import MerakiDevice
+
 
 _LOGGER = logging.getLogger(__name__)
 
