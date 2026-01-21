@@ -19,8 +19,3 @@ jobs:
     permissions:
       contents: read
       pull-requests: write
-    steps:
-      - uses: codereview-ai-agent/codereview-ai-agent-action@main
-        with:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          JULES_API_KEY: ${{ secrets.JULES_API_KEY }}
