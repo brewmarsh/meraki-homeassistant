@@ -13,6 +13,7 @@ HEADERS = {"Authorization": f"Bearer {HA_TOKEN}", "Content-Type": "application/j
 
 
 async def delete_existing_entries(session):
+    """Delete any existing Meraki HA config entries."""
     print("Checking for existing Meraki HA entries...")
     async with session.get(f"{HA_URL}/api/config/config_entries/entry") as resp:
         if resp.status != 200:
@@ -36,6 +37,7 @@ async def delete_existing_entries(session):
 
 
 async def restart_and_wait(session):
+    """Restart Home Assistant and wait for it to come back online."""
     print("Restarting Home Assistant...")
     async with session.post(f"{HA_URL}/api/services/homeassistant/restart") as resp:
         if resp.status == 200:
@@ -68,6 +70,7 @@ async def restart_and_wait(session):
 
 
 async def add_integration():
+    """Add the Meraki HA integration via WebSocket."""
     ws_url = HA_URL.replace("http", "ws").replace("https", "wss") + "/api/websocket"
     print(f"Connecting to WebSocket: {ws_url}")
     async with aiohttp.ClientSession() as session:
@@ -85,18 +88,20 @@ async def add_integration():
             flow_id = None
             message_id = 1
             for i in range(10):  # 10 attempts
-                await ws.send_json({
-                    "id": message_id,
-                    "type": "config_entries/flow/start",
-                    "handler": "meraki_ha",
-                })
+                await ws.send_json(
+                    {
+                        "id": message_id,
+                        "type": "config_entries/flow/start",
+                        "handler": "meraki_ha",
+                    }
+                )
                 resp = await ws.receive_json()
                 if resp.get("success"):
                     flow_id = resp["result"]["flow_id"]
                     print("Config flow started successfully.")
                     break
                 else:
-                    print(f"Attempt {i+1}/10 failed: {resp}")
+                    print(f"Attempt {i + 1}/10 failed: {resp}")
                     message_id += 1
                     await asyncio.sleep(5)  # 5-second delay
 
@@ -107,26 +112,32 @@ async def add_integration():
             # Step 1: API Key
             print("Sending API Key...")
             message_id += 1
-            await ws.send_json({
-                "id": message_id,
-                "type": "config_entries/flow/handle_step",
-                "flow_id": flow_id,
-                "step_id": "user",
-                "user_input": {"api_key": MERAKI_API_KEY},
-            })
-            resp = await ws.receive_json()
-
-            # Handle optional Step 2 (Org Selection) if it occurs
-            if resp.get("success") and resp["result"].get("step_id") == "pick_organization":
-                print("Selecting Organization...")
-                message_id += 1
-                await ws.send_json({
+            await ws.send_json(
+                {
                     "id": message_id,
                     "type": "config_entries/flow/handle_step",
                     "flow_id": flow_id,
-                    "step_id": "pick_organization",
-                    "user_input": {"organization_id": MERAKI_ORG_ID},
-                })
+                    "step_id": "user",
+                    "user_input": {"api_key": MERAKI_API_KEY},
+                }
+            )
+            resp = await ws.receive_json()
+
+            # Handle optional Step 2 (Org Selection) if it occurs
+            if resp.get("success") and (
+                resp["result"].get("step_id") == "pick_organization"
+            ):
+                print("Selecting Organization...")
+                message_id += 1
+                await ws.send_json(
+                    {
+                        "id": message_id,
+                        "type": "config_entries/flow/handle_step",
+                        "flow_id": flow_id,
+                        "step_id": "pick_organization",
+                        "user_input": {"organization_id": MERAKI_ORG_ID},
+                    }
+                )
                 resp = await ws.receive_json()
 
             if resp["success"] and resp["result"]["type"] == "create_entry":
@@ -138,6 +149,7 @@ async def add_integration():
 
 
 async def main():
+    """Run the integration reset script."""
     async with aiohttp.ClientSession(headers=HEADERS) as session:
         if not await delete_existing_entries(session):
             sys.exit(1)

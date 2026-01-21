@@ -1,13 +1,14 @@
 """Tests for the Meraki API client."""
 
 from unittest.mock import AsyncMock, MagicMock, patch
+
 import pytest
 
 from custom_components.meraki_ha.coordinator import MerakiDataUpdateCoordinator
 from custom_components.meraki_ha.core.api.client import MerakiAPIClient
 from custom_components.meraki_ha.core.errors import MerakiInformationalError
 from custom_components.meraki_ha.types import MerakiDevice, MerakiNetwork
-from tests.const import MOCK_DEVICE, MOCK_NETWORK, MOCK_DEVICE_INIT, MOCK_NETWORK_INIT
+from tests.const import MOCK_DEVICE, MOCK_DEVICE_INIT, MOCK_NETWORK, MOCK_NETWORK_INIT
 
 
 @pytest.fixture
@@ -60,11 +61,19 @@ async def test_get_all_data_orchestration(api_client):
     # Assert
     api_client._async_fetch_initial_data.assert_awaited_once()
 
-    assert api_client._async_fetch_network_clients.await_args[0][0][0].id == MOCK_NETWORK.id
-    assert api_client._async_fetch_device_clients.await_args[0][0][0].serial == MOCK_DEVICE.serial
+    assert (
+        api_client._async_fetch_network_clients.await_args[0][0][0].id
+        == MOCK_NETWORK.id
+    )
+    assert (
+        api_client._async_fetch_device_clients.await_args[0][0][0].serial
+        == MOCK_DEVICE.serial
+    )
     api_client._build_detail_tasks.assert_called_once()
     assert api_client._build_detail_tasks.call_args[0][0][0].id == MOCK_NETWORK.id
-    assert api_client._build_detail_tasks.call_args[0][1][0].serial == MOCK_DEVICE.serial
+    assert (
+        api_client._build_detail_tasks.call_args[0][1][0].serial == MOCK_DEVICE.serial
+    )
 
 
 @pytest.mark.asyncio
@@ -256,12 +265,16 @@ async def test_build_detail_tasks_for_camera_device(api_client):
 async def test_build_detail_tasks_for_appliance_device(api_client):
     """Test that _build_detail_tasks creates tasks for an appliance device."""
     # Arrange
-    appliance_device = MerakiDevice.from_dict({
-        "serial": "a123",
-        "productType": "appliance",
-        "networkId": "N_123",
-    })
-    network_with_appliance = MerakiNetwork.from_dict({"id": "N_123", "productTypes": ["appliance"]})
+    appliance_device = MerakiDevice.from_dict(
+        {
+            "serial": "a123",
+            "productType": "appliance",
+            "networkId": "N_123",
+        }
+    )
+    network_with_appliance = MerakiNetwork.from_dict(
+        {"id": "N_123", "productTypes": ["appliance"]}
+    )
     devices = [appliance_device]
     networks = [network_with_appliance]
 

@@ -1,8 +1,10 @@
 """Data update coordinator for the Meraki HA integration."""
 
+from __future__ import annotations
+
 import logging
 from datetime import datetime, timedelta
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
@@ -21,6 +23,12 @@ from .const import (
 )
 from .core.api.client import MerakiAPIClient as ApiClient
 from .types import MerakiDevice, MerakiNetwork
+
+if TYPE_CHECKING:
+    from .services.camera_service import CameraService
+    from .services.device_control_service import DeviceControlService
+    from .services.switch_port_service import SwitchPortService
+
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -57,6 +65,9 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self._pending_updates: dict[str, datetime] = {}
         self._vlan_check_timestamps: dict[str, datetime] = {}
         self._traffic_check_timestamps: dict[str, datetime] = {}
+        self.device_control_service: DeviceControlService | None = None
+        self.switch_port_service: SwitchPortService | None = None
+        self.camera_service: CameraService | None = None
 
         try:
             scan_interval = int(

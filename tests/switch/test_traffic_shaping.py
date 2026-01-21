@@ -8,13 +8,17 @@ from custom_components.meraki_ha.const import (
     CONF_ENABLE_TRAFFIC_SHAPING,
 )
 from custom_components.meraki_ha.switch.setup_helpers import async_setup_switches
-from custom_components.meraki_ha.switch.traffic_shaping import MerakiTrafficShapingSwitch
+from custom_components.meraki_ha.switch.traffic_shaping import (
+    MerakiTrafficShapingSwitch,
+)
 from custom_components.meraki_ha.types import MerakiNetwork, MerakiTrafficShaping
 
 
 @pytest.fixture
-def mock_coordinator_with_traffic_shaping_data(mock_coordinator: MagicMock) -> MagicMock:
-    """Fixture for a mocked MerakiDataUpdateCoordinator with Traffic Shaping data."""
+def mock_coordinator_with_traffic_shaping_data(
+    mock_coordinator: MagicMock,
+) -> MagicMock:
+    """Fixture for a mocked MerakiDataUpdateCoordinator with traffic shaping data."""
     ts_enabled = MerakiTrafficShaping(enabled=True)
     ts_disabled = MerakiTrafficShaping(enabled=False)
 
@@ -48,7 +52,7 @@ def mock_coordinator_with_traffic_shaping_data(mock_coordinator: MagicMock) -> M
 
 @pytest.fixture
 def mock_config_entry_with_traffic_shaping(mock_config_entry: MagicMock) -> MagicMock:
-    """Fixture for a mocked ConfigEntry with Traffic Shaping enabled."""
+    """Fixture for a mocked ConfigEntry with traffic shaping enabled."""
     mock_config_entry.options = {CONF_ENABLE_TRAFFIC_SHAPING: True}
     return mock_config_entry
 
@@ -91,7 +95,7 @@ def test_traffic_shaping_switch_creation_disabled(
     mock_config_entry: MagicMock,
     mock_meraki_client: MagicMock,
 ) -> None:
-    """Test that the traffic shaping switches are not created if the feature is disabled."""
+    """Traffic shaping switches are not created when the feature is disabled."""
     mock_config_entry.options = {CONF_ENABLE_TRAFFIC_SHAPING: False}
     hass = MagicMock()
     entities = async_setup_switches(
@@ -100,9 +104,9 @@ def test_traffic_shaping_switch_creation_disabled(
         mock_coordinator_with_traffic_shaping_data,
         mock_meraki_client,
     )
-    # entities might contain other switches if data present, but in our mock only traffic shaping data is present
-    # wait, setup_helpers checks for other things. But coordinator data only has "traffic_shaping".
-    # so others should return empty.
+    # Entities might contain other switches if data present, but our mock contains
+    # only traffic shaping data. setup_helpers checks other things, but since
+    # coordinator data only has "traffic_shaping" the others should be empty.
     assert len(entities) == 0
 
 
