@@ -10,8 +10,6 @@ from homeassistant.components import frontend
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 
-from .const import DOMAIN
-
 
 async def async_register_frontend(hass: HomeAssistant, entry: ConfigEntry) -> None:
     """Register the frontend panel."""

@@ -7,7 +7,7 @@ import pytest
 from custom_components.meraki_ha.sensor.device.appliance_port import (
     MerakiAppliancePortSensor,
 )
-from custom_components.meraki_ha.types import MerakiDevice, MerakiAppliancePort
+from custom_components.meraki_ha.types import MerakiAppliancePort, MerakiDevice
 
 
 @pytest.fixture
@@ -53,9 +53,7 @@ def mock_device_coordinator():
         ),
     ]
 
-    coordinator.data = {
-        "devices": [device]
-    }
+    coordinator.data = {"devices": [device]}
     # coordinator.get_device needs to return the device
     coordinator.get_device.return_value = device
 

@@ -1,7 +1,6 @@
 """Switch entities for controlling Meraki Camera profiles."""
 
 import logging
-from typing import Any
 
 from homeassistant.components.switch import SwitchEntityDescription
 from homeassistant.helpers.typing import UNDEFINED

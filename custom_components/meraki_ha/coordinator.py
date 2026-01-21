@@ -6,11 +6,6 @@ import logging
 from datetime import datetime, timedelta
 from typing import TYPE_CHECKING, Any
 
-if TYPE_CHECKING:
-    from .services.camera_service import CameraService
-    from .services.device_control_service import DeviceControlService
-    from .services.switch_port_service import SwitchPortService
-
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import device_registry as dr
@@ -28,6 +23,12 @@ from .const import (
 )
 from .core.api.client import MerakiAPIClient as ApiClient
 from .types import MerakiDevice, MerakiNetwork
+
+if TYPE_CHECKING:
+    from .services.camera_service import CameraService
+    from .services.device_control_service import DeviceControlService
+    from .services.switch_port_service import SwitchPortService
+
 
 _LOGGER = logging.getLogger(__name__)
 

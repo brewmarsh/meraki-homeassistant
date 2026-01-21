@@ -1,6 +1,4 @@
-"""
-Parser for Meraki camera data.
-"""
+"""Parser for Meraki camera data."""
 
 from __future__ import annotations
 

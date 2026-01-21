@@ -1,4 +1,3 @@
-
 """Tests for the Meraki device firmware status sensor."""
 
 from unittest.mock import MagicMock
@@ -43,15 +42,14 @@ def mock_device_coordinator():
         },
     )
 
-    coordinator.data = {
-        "devices": [device1, device2]
-    }
+    coordinator.data = {"devices": [device1, device2]}
 
     def get_device(serial):
         for d in coordinator.data["devices"]:
             if d.serial == serial:
                 return d
         return None
+
     coordinator.get_device.side_effect = get_device
 
     return coordinator

@@ -1,7 +1,6 @@
 """Base class for Meraki MT sensor entities."""
 
 import logging
-from typing import Any
 
 from homeassistant.components.sensor import (
     RestoreSensor,

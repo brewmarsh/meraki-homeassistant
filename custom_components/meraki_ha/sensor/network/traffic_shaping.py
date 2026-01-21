@@ -22,11 +22,7 @@ class TrafficShapingSensor(MerakiNetworkEntity, SensorEntity):
     ) -> None:
         """Initialize the sensor."""
         network: MerakiNetwork | None = next(
-            (
-                net
-                for net in coordinator.data["networks"]
-                if net.id == network_id
-            ),
+            (net for net in coordinator.data["networks"] if net.id == network_id),
             None,
         )
         assert network is not None

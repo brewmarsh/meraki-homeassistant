@@ -1,11 +1,16 @@
 """Services for the Meraki integration."""
+
 from __future__ import annotations
+
 import logging
 from typing import TYPE_CHECKING
+
+import voluptuous as vol
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import config_validation as cv
-import voluptuous as vol
+
 from ..const import DOMAIN
+
 if TYPE_CHECKING:
     from ..coordinator import MerakiDataUpdateCoordinator
 

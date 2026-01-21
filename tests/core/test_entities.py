@@ -1,15 +1,19 @@
 """Tests for BaseMerakiEntity."""
 
 from unittest.mock import MagicMock
+
 import pytest
+
 from custom_components.meraki_ha.core.entities import BaseMerakiEntity
 from custom_components.meraki_ha.types import MerakiDevice, MerakiNetwork
-from homeassistant.helpers.device_registry import DeviceInfo
+
 
 class MockEntity(BaseMerakiEntity):
     """Mock entity for testing."""
+
     def __init__(self, coordinator, config_entry, serial=None, network_id=None):
         super().__init__(coordinator, config_entry, serial, network_id)
+
 
 @pytest.fixture
 def mock_coordinator():
@@ -36,16 +40,14 @@ def mock_coordinator():
         time_zone="America/Los_Angeles",
     )
 
-    coordinator.data = {
-        "devices": [device],
-        "networks": [network]
-    }
+    coordinator.data = {"devices": [device], "networks": [network]}
 
     coordinator.get_device.return_value = device
     coordinator.get_network.return_value = network
     coordinator.last_update_success = True
 
     return coordinator
+
 
 def test_base_meraki_entity_device(mock_coordinator):
     """Test BaseMerakiEntity with a device."""
@@ -64,6 +66,7 @@ def test_base_meraki_entity_device(mock_coordinator):
     assert device_info["suggested_area"] == "123 Street"
     assert device_info["configuration_url"] == "https://dashboard.meraki.com/device"
 
+
 def test_base_meraki_entity_network(mock_coordinator):
     """Test BaseMerakiEntity with a network."""
     config_entry = MagicMock()
@@ -78,6 +81,7 @@ def test_base_meraki_entity_network(mock_coordinator):
     assert device_info["identifiers"] == {("meraki_ha", "network_N_12345")}
     assert device_info["model"] == "Network"
     assert device_info["sw_version"] == "unknown"
+
 
 def test_base_meraki_entity_unavailable(mock_coordinator):
     """Test BaseMerakiEntity unavailability."""
