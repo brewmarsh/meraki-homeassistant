@@ -6,6 +6,9 @@ on:
       python-version:
         required: true
         type: string
+    secrets:
+      CODECOV_TOKEN:
+        required: false
 
 permissions:
   contents: write
