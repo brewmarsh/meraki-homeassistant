@@ -5,6 +5,7 @@ import pytest
 from custom_components.meraki_ha.sensor.device.device_status import MerakiDeviceStatusSensor
 from custom_components.meraki_ha.types import MerakiDevice
 
+
 @pytest.fixture
 def mock_device_coordinator():
     """Fixture for a mocked MerakiDeviceCoordinator."""
@@ -59,6 +60,7 @@ def mock_device_coordinator():
     coordinator.last_update_success = True
 
     return coordinator
+
 
 def test_device_status_sensor(mock_device_coordinator):
     """Test the device status sensor."""
