@@ -50,10 +50,16 @@ async def restart_and_wait(session):
     await asyncio.sleep(15)  # Initial buffer
     for i in range(30):  # Try for 5 minutes (30 * 10s)
         try:
-            async with session.get(f"{HA_URL}/api/", timeout=5) as resp:
+            async with session.get(f"{HA_URL}/api/config", timeout=5) as resp:
                 if resp.status == 200:
-                    print("Home Assistant is online.")
-                    return True
+                    resp_json = await resp.json()
+                    state = resp_json.get("state")
+                    if state == "RUNNING":
+                        print("Home Assistant is RUNNING.")
+                        return True
+                    else:
+                        print(f"Home Assistant state: {state}")
+
         except Exception:
             pass
         await asyncio.sleep(10)
