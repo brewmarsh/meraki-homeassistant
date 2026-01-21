@@ -55,7 +55,7 @@ class MerakiConnectedClientsSensor(MerakiDeviceEntity):
             return {}
 
         if isinstance(self.device_data, dict):
-             return {
+            return {
                 "network_id": self.device_data.get("networkId"),
                 "tags": self.device_data.get("tags", []),
             }

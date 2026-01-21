@@ -49,7 +49,7 @@ def mock_coordinator():
         name="VLAN 2",
         subnet="192.168.2.0/24",
         appliance_ip="192.168.2.1",
-        ipv6=None, # Explicitly None if not enabled/present
+        ipv6=None,  # Explicitly None if not enabled/present
         dhcp_handling="Do not respond to DHCP requests"
     )
     # vlan2 enabled=False is not in MerakiVlan?

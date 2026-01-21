@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import logging
-from typing import Any
+from typing import TYPE_CHECKING
 
 from homeassistant.components.sensor import SensorEntity
 from homeassistant.config_entries import ConfigEntry
@@ -15,6 +15,9 @@ from ...const import DOMAIN
 from ...coordinator import MerakiDataUpdateCoordinator
 from ...core.utils.naming_utils import format_device_name
 from ...core.utils.network_utils import construct_rtsp_url
+
+if TYPE_CHECKING:
+    from ...types import MerakiDevice
 
 _LOGGER = logging.getLogger(__name__)
 

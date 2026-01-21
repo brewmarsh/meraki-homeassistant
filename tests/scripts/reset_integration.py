@@ -1,8 +1,8 @@
 import asyncio
 import os
 import sys
+
 import aiohttp
-import json
 
 # Configuration
 HA_URL = os.getenv("HA_URL")
@@ -10,6 +10,8 @@ HA_TOKEN = os.getenv("HA_TOKEN")
 MERAKI_API_KEY = os.getenv("MERAKI_API_KEY")
 MERAKI_ORG_ID = os.getenv("MERAKI_ORG_ID")
 HEADERS = {"Authorization": f"Bearer {HA_TOKEN}", "Content-Type": "application/json"}
+
+
 async def delete_existing_entries(session):
     print("Checking for existing Meraki HA entries...")
     async with session.get(f"{HA_URL}/api/config/config_entries/entry") as resp:
@@ -30,6 +32,7 @@ async def delete_existing_entries(session):
                     return False
         return True
 
+
 async def restart_and_wait(session):
     print("Restarting Home Assistant...")
     async with session.post(f"{HA_URL}/api/services/homeassistant/restart") as resp:
@@ -38,18 +41,19 @@ async def restart_and_wait(session):
             return False
     # Wait loop
     print("Waiting for Home Assistant to restart...")
-    await asyncio.sleep(15) # Initial buffer
-    for i in range(30): # Try for 5 minutes (30 * 10s)
+    await asyncio.sleep(15)  # Initial buffer
+    for i in range(30):  # Try for 5 minutes (30 * 10s)
         try:
             async with session.get(f"{HA_URL}/api/", timeout=5) as resp:
                 if resp.status == 200:
                     print("Home Assistant is online.")
                     return True
-        except:
+        except Exception:
             pass
         await asyncio.sleep(10)
         print(f"Waiting... ({i + 1}/30)")
     return False
+
 
 async def add_integration():
     ws_url = HA_URL.replace("http", "ws").replace("https", "wss") + "/api/websocket"
@@ -57,7 +61,7 @@ async def add_integration():
     async with aiohttp.ClientSession() as session:
         async with session.ws_connect(ws_url) as ws:
             # Auth
-            await ws.receive_json() # auth_required
+            await ws.receive_json()  # auth_required
             await ws.send_json({"type": "auth", "access_token": HA_TOKEN})
             auth_resp = await ws.receive_json()
             if auth_resp["type"] != "auth_ok":
@@ -99,6 +103,7 @@ async def add_integration():
             else:
                 print(f"FAILED: {resp}")
                 return False
+
 
 async def main():
     async with aiohttp.ClientSession(headers=HEADERS) as session:

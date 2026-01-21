@@ -1,7 +1,6 @@
 """Tests for the Meraki API client."""
 
 from unittest.mock import AsyncMock, MagicMock, patch
-from dataclasses import asdict
 import pytest
 
 from custom_components.meraki_ha.coordinator import MerakiDataUpdateCoordinator

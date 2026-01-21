@@ -5,6 +5,7 @@ from homeassistant.helpers import selector
 from custom_components.meraki_ha.helpers.schema import populate_schema_defaults
 from custom_components.meraki_ha.const import CONF_IGNORED_NETWORKS
 
+
 def test_populate_schema_defaults():
     """Test populating schema defaults."""
     schema = vol.Schema({
@@ -33,6 +34,7 @@ def test_populate_schema_defaults():
         if key.schema == CONF_IGNORED_NETWORKS:
             assert isinstance(value, selector.SelectSelector)
             assert value.config["options"] == network_options
+
 
 def test_populate_schema_defaults_no_defaults():
     """Test populating schema defaults with no defaults provided."""
