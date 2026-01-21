@@ -38,7 +38,11 @@ async def delete_existing_entries(session):
 async def restart_and_wait(session):
     print("Restarting Home Assistant...")
     async with session.post(f"{HA_URL}/api/services/homeassistant/restart") as resp:
-        if resp.status != 200:
+        if resp.status == 200:
+            print("Success")
+        elif resp.status in [502, 504]:
+            print("Server disconnected (Restarting)...")
+        else:
             print(f"Restart call failed: {resp.status}")
             return False
     # Wait loop
