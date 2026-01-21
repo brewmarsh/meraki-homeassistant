@@ -1,3 +1,14 @@
+# TODO:
+# SETUP-P0-01: Test successful setup with valid API key and organization ID
+# - Mock the Meraki API client to return valid data.
+# - Trigger the config flow with the mock client.
+# - Assert that the flow completes successfully and a config entry is created.
+#
+# SETUP-P0-02: Test setup failure with invalid API key
+# - Mock the Meraki API client to raise an AuthenticationError.
+# - Trigger the config flow.
+# - Assert that the flow shows an "invalid_auth" error.
+
 """Test the Meraki HA config flow."""
 
 from unittest.mock import patch
