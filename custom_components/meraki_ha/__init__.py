@@ -24,7 +24,6 @@ from .core.repository import MerakiRepository
 from .services.camera_service import CameraService
 from .services.device_control_service import DeviceControlService
 from .services.switch_port_service import SwitchPortService
-from .web_api import async_setup_api
 from .webhook import async_register_webhook
 from .frontend import async_register_frontend, async_remove_frontend
 from homeassistant.components.http import StaticPathConfig
@@ -81,7 +80,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     """
     await async_register_frontend(hass, entry)
-    async_setup_api(hass)
     async_setup_websocket_api(hass)
     coordinator = MerakiDataUpdateCoordinator(hass, entry)
     await coordinator.async_config_entry_first_refresh()
