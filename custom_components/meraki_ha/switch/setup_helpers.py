@@ -1,7 +1,6 @@
 """Helper function for setting up all switch entities."""
 
 import logging
-from typing import cast
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
