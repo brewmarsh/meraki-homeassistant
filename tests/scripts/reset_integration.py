@@ -48,7 +48,7 @@ async def restart_and_wait(session):
         except:
             pass
         await asyncio.sleep(10)
-        print(f"Waiting... ({i+1}/30)")
+        print(f"Waiting... ({i + 1}/30)")
     return False
 
 async def add_integration():
