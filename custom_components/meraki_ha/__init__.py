@@ -21,13 +21,12 @@ from .const import (
 from .coordinator import MerakiDataUpdateCoordinator
 from .core.repositories.camera_repository import CameraRepository
 from .core.repository import MerakiRepository
+from .frontend import async_register_frontend, async_remove_frontend
 from .services.camera_service import CameraService
 from .services.device_control_service import DeviceControlService
 from .services.switch_port_service import SwitchPortService
 from .web_api import async_setup_api
 from .webhook import async_register_webhook
-from .frontend import async_register_frontend, async_remove_frontend
-from homeassistant.components.http import StaticPathConfig
 
 _LOGGER = logging.getLogger(__name__)
 

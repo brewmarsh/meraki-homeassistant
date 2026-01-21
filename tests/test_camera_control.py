@@ -2,9 +2,9 @@
 
 from __future__ import annotations
 
+import dataclasses
 from unittest.mock import AsyncMock, MagicMock
 
-import dataclasses
 import pytest
 from homeassistant.core import HomeAssistant
 
@@ -113,8 +113,8 @@ async def test_camera_turn_off_optimistic_update(
     # Arrange
     # Start with the camera on
     device_data = mock_coordinator.data["devices"][0]
-    # We must replace since it is a dataclass and might be immutable-ish for tests (though fields are mutable)
-    # But let's just modify the dicts inside
+    # We must replace since it is a dataclass and might be immutable-ish for tests
+    # (though fields are mutable) But let's just modify the dicts inside
     device_data.video_settings["rtspServerEnabled"] = True
     device_data.video_settings["rtspUrl"] = "rtsp://192.168.1.100:9000/live"
 
