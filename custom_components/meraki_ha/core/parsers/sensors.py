@@ -56,7 +56,9 @@ def parse_sensor_data(
             for reading in device_readings:
                 metric = reading.get("metric")
                 if metric == "noise":
-                    device.ambient_noise = reading.get("noise", {}).get("ambient", {}).get("level")
+                    device.ambient_noise = (
+                        reading.get("noise", {}).get("ambient", {}).get("level")
+                    )
                 elif metric == "pm25":
                     device.pm25 = reading.get("pm25", {}).get("concentration")
                 elif metric == "power":

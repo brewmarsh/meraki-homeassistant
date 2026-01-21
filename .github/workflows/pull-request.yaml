@@ -6,6 +6,11 @@ on:
       - main
       - beta
 
+permissions:
+  contents: write
+  pull-requests: write
+  checks: write
+
 jobs:
   validate:
     uses: ./.github/workflows/reusable-quality-checks.yaml
@@ -13,14 +18,3 @@ jobs:
       python-version: '3.13'
     secrets:
       CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
-
-  code-review:
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      pull-requests: write
-    steps:
-      - uses: codereview-ai-agent/codereview-ai-agent-action@main
-        with:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          JULES_API_KEY: ${{ secrets.JULES_API_KEY }}

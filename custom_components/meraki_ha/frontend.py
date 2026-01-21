@@ -10,11 +10,13 @@ from homeassistant.components import frontend
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 
-from .const import DOMAIN
-
 
 async def async_register_frontend(hass: HomeAssistant, entry: ConfigEntry) -> None:
     """Register the frontend panel."""
+    # Check if the panel is already registered
+    if "meraki" in hass.data.get("frontend_panels", {}):
+        return
+
     # Load version from manifest to bust browser cache
     manifest_path = Path(__file__).parent / "manifest.json"
     async with aiofiles.open(manifest_path, encoding="utf-8") as f:
