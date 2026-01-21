@@ -21,6 +21,7 @@ from ...core.parsers.camera import parse_camera_data
 from ...core.parsers.devices import parse_device_data
 from ...core.parsers.network import parse_network_data
 from ...core.parsers.sensors import parse_sensor_data
+from ...core.parsers.switch import parse_switch_data
 from ...core.parsers.wireless import parse_wireless_data
 from ...types import MerakiDevice, MerakiNetwork
 from .endpoints.appliance import ApplianceEndpoints
@@ -216,6 +217,9 @@ class MerakiAPIClient:
         for i, network in enumerate(networks):
             result = clients_results[i]
             if isinstance(result, list):
+                _LOGGER.debug(
+                    "Fetched %d clients for network %s", len(result), network.name
+                )
                 for client in result:
                     client["networkId"] = network.id
                 clients.extend(result)
@@ -430,6 +434,7 @@ class MerakiAPIClient:
         detail_data = dict(zip(detail_tasks.keys(), detail_results, strict=True))
 
         parse_camera_data(devices, detail_data)
+        parse_switch_data(devices, detail_data)
 
         network_clients, device_clients = await asyncio.gather(
             self._async_fetch_network_clients(networks),

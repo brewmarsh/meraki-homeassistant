@@ -20,32 +20,27 @@ def mock_coordinator():
         product_type="appliance",
         network_id="net1",
         mac="00:11:22:33:44:55",
-        lan_ip="1.2.3.4"
+        lan_ip="1.2.3.4",
+        appliance_uplink_statuses=[
+            {
+                "interface": "wan1",
+                "status": "active",
+                "ip": "1.2.3.4",
+            },
+            {
+                "interface": "wan2",
+                "status": "failed",
+                "ip": "5.6.7.8",
+            },
+            {
+                "interface": "cellular",
+                "status": "ready",
+                "ip": "9.10.11.12",
+            },
+        ],
     )
     coordinator.data = {
         "devices": [mock_device_data],
-        "appliance_uplink_statuses": [
-            {
-                "serial": "dev1",
-                "uplinks": [
-                    {
-                        "interface": "wan1",
-                        "status": "active",
-                        "ip": "1.2.3.4",
-                    },
-                    {
-                        "interface": "wan2",
-                        "status": "failed",
-                        "ip": "5.6.7.8",
-                    },
-                    {
-                        "interface": "cellular",
-                        "status": "ready",
-                        "ip": "9.10.11.12",
-                    },
-                ],
-            }
-        ],
         # Add other required data structures for setup_helpers
         "clients": [],
         "ssids": [],
