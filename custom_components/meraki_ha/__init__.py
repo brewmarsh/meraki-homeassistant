@@ -21,12 +21,12 @@ from .const import (
 from .coordinator import MerakiDataUpdateCoordinator
 from .core.repositories.camera_repository import CameraRepository
 from .core.repository import MerakiRepository
+from .frontend import async_register_frontend, async_remove_frontend
+from .services import async_setup_services
 from .services.camera_service import CameraService
 from .services.device_control_service import DeviceControlService
 from .services.switch_port_service import SwitchPortService
 from .webhook import async_register_webhook
-from .frontend import async_register_frontend, async_remove_frontend
-from homeassistant.components.http import StaticPathConfig
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -90,12 +90,15 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     camera_repo = CameraRepository(coordinator.api, entry.data[CONF_MERAKI_ORG_ID])
     camera_service = CameraService(camera_repo)
 
+    coordinator.device_control_service = device_control_service
+    coordinator.switch_port_service = switch_port_service
+    coordinator.camera_service = camera_service
+
+    await async_setup_services(hass, coordinator)
+
     hass.data[DOMAIN][entry.entry_id] = {
         "coordinator": coordinator,
         "meraki_client": coordinator.api,
-        "device_control_service": device_control_service,
-        "switch_port_service": switch_port_service,
-        "camera_service": camera_service,
     }
 
     # Set up webhook

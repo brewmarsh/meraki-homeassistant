@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import logging
-from typing import TYPE_CHECKING
 
 from homeassistant.components.switch import SwitchEntityDescription
 from homeassistant.helpers.typing import UNDEFINED
@@ -11,10 +10,8 @@ from homeassistant.helpers.typing import UNDEFINED
 from custom_components.meraki_ha.coordinator import MerakiDataUpdateCoordinator
 
 from ..core.api.client import MerakiAPIClient
+from ..types import MerakiDevice
 from .camera_settings import MerakiCameraSettingSwitchBase
-
-if TYPE_CHECKING:
-    from ..types import MerakiDevice
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -26,7 +23,7 @@ class MerakiCameraSenseSwitch(MerakiCameraSettingSwitchBase):
         self,
         coordinator: MerakiDataUpdateCoordinator,
         meraki_client: MerakiAPIClient,
-        device_data: "MerakiDevice",
+        device_data: MerakiDevice,
     ) -> None:
         """Initialize the Camera Sense switch."""
         super().__init__(
@@ -66,7 +63,7 @@ class MerakiCameraAudioDetectionSwitch(MerakiCameraSettingSwitchBase):
         self,
         coordinator: MerakiDataUpdateCoordinator,
         meraki_client: MerakiAPIClient,
-        device_data: "MerakiDevice",
+        device_data: MerakiDevice,
     ) -> None:
         """Initialize the Camera Audio Detection switch."""
         super().__init__(

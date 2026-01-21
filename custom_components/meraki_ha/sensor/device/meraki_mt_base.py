@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import logging
-from typing import TYPE_CHECKING
 
 from homeassistant.components.sensor import (
     RestoreSensor,
@@ -16,9 +15,7 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from ...const import DOMAIN
 from ...coordinator import MerakiDataUpdateCoordinator
 from ...core.utils.naming_utils import format_device_name
-
-if TYPE_CHECKING:
-    from ...types import MerakiDevice
+from ...types import MerakiDevice
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -29,7 +26,7 @@ class MerakiMtSensor(CoordinatorEntity, RestoreSensor):
     def __init__(
         self,
         coordinator: MerakiDataUpdateCoordinator,
-        device: "MerakiDevice",
+        device: MerakiDevice,
         entity_description: SensorEntityDescription,
     ) -> None:
         """Initialize the sensor."""

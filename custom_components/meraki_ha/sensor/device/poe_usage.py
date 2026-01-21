@@ -39,7 +39,7 @@ class MerakiPoeUsageSensor(
     def __init__(
         self,
         coordinator: MerakiDataUpdateCoordinator,
-        device: "MerakiDevice",
+        device: MerakiDevice,
     ) -> None:
         """
         Initialize the sensor.
