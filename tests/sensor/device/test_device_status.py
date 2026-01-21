@@ -1,9 +1,14 @@
 """Tests for the Meraki Device Status Sensor."""
 
 from unittest.mock import MagicMock
+
 import pytest
-from custom_components.meraki_ha.sensor.device.device_status import MerakiDeviceStatusSensor
+
+from custom_components.meraki_ha.sensor.device.device_status import (
+    MerakiDeviceStatusSensor,
+)
 from custom_components.meraki_ha.types import MerakiDevice
+
 
 @pytest.fixture
 def mock_device_coordinator():

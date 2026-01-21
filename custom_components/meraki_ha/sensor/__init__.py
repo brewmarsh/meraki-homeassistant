@@ -23,7 +23,6 @@ async def async_setup_entry(
         return False
     entry_data = hass.data[DOMAIN][config_entry.entry_id]
     coordinator = entry_data["coordinator"]
-    camera_service = entry_data["camera_service"]
 
     # Set up the sensors
     sensor_entities = async_setup_sensors(

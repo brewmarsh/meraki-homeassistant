@@ -3,10 +3,10 @@
 from __future__ import annotations
 
 import logging
-from typing import Any
 
 from ..coordinator import MerakiDataUpdateCoordinator
 from ..core.api.client import MerakiAPIClient
+from ..types import MerakiDevice
 from .camera_settings import MerakiCameraSettingSwitchBase
 
 _LOGGER = logging.getLogger(__name__)
@@ -19,7 +19,7 @@ class AnalyticsSwitch(MerakiCameraSettingSwitchBase):
         self,
         coordinator: MerakiDataUpdateCoordinator,
         meraki_client: MerakiAPIClient,
-        device_data: "MerakiDevice",
+        device_data: MerakiDevice,
     ) -> None:
         """
         Initialize the analytics switch.

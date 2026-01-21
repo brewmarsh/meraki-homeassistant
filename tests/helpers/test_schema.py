@@ -2,8 +2,10 @@
 
 import voluptuous as vol
 from homeassistant.helpers import selector
-from custom_components.meraki_ha.helpers.schema import populate_schema_defaults
+
 from custom_components.meraki_ha.const import CONF_IGNORED_NETWORKS
+from custom_components.meraki_ha.helpers.schema import populate_schema_defaults
+
 
 def test_populate_schema_defaults():
     """Test populating schema defaults."""
@@ -45,6 +47,6 @@ def test_populate_schema_defaults_no_defaults():
 
     new_schema = populate_schema_defaults(schema, defaults, network_options)
 
-    for key, value in new_schema.schema.items():
+    for key, _value in new_schema.schema.items():
         if key.schema == "test_option":
             assert key.default() == "default"

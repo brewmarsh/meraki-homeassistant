@@ -7,7 +7,7 @@ import pytest
 from custom_components.meraki_ha.sensor.device.appliance_port import (
     MerakiAppliancePortSensor,
 )
-from custom_components.meraki_ha.types import MerakiDevice, MerakiAppliancePort
+from custom_components.meraki_ha.types import MerakiAppliancePort, MerakiDevice
 
 
 @pytest.fixture

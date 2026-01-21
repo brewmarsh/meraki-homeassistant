@@ -1,7 +1,6 @@
 """Switch entities for controlling Meraki Camera profiles."""
 
 import logging
-from typing import Any
 
 from homeassistant.components.switch import SwitchEntityDescription
 from homeassistant.helpers.typing import UNDEFINED
@@ -9,6 +8,7 @@ from homeassistant.helpers.typing import UNDEFINED
 from custom_components.meraki_ha.coordinator import MerakiDataUpdateCoordinator
 
 from ..core.api.client import MerakiAPIClient
+from ..types import MerakiDevice
 from .camera_settings import MerakiCameraSettingSwitchBase
 
 _LOGGER = logging.getLogger(__name__)
@@ -21,7 +21,7 @@ class MerakiCameraSenseSwitch(MerakiCameraSettingSwitchBase):
         self,
         coordinator: MerakiDataUpdateCoordinator,
         meraki_client: MerakiAPIClient,
-        device_data: "MerakiDevice",
+        device_data: MerakiDevice,
     ) -> None:
         """Initialize the Camera Sense switch."""
         super().__init__(
@@ -61,7 +61,7 @@ class MerakiCameraAudioDetectionSwitch(MerakiCameraSettingSwitchBase):
         self,
         coordinator: MerakiDataUpdateCoordinator,
         meraki_client: MerakiAPIClient,
-        device_data: "MerakiDevice",
+        device_data: MerakiDevice,
     ) -> None:
         """Initialize the Camera Audio Detection switch."""
         super().__init__(

@@ -1,6 +1,4 @@
-"""
-Parser for Meraki camera data.
-"""
+"""Parser for Meraki camera data."""
 
 from __future__ import annotations
 
@@ -18,9 +16,12 @@ def parse_camera_data(
 ) -> None:
     """
     Parse and enrich camera device data.
+
     Args:
+        ----
         devices: A list of Meraki devices.
         detail_data: A dictionary of detailed data from the API.
+
     """
     for device in devices:
         if device.product_type == "camera":

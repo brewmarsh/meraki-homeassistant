@@ -13,6 +13,7 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from ...const import DOMAIN
 from ...coordinator import MerakiDataUpdateCoordinator
 from ...core.utils.naming_utils import format_device_name
+from ...types import MerakiDevice
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -25,7 +26,7 @@ class MerakiApplianceUplinkSensor(CoordinatorEntity, SensorEntity):
     def __init__(
         self,
         coordinator: MerakiDataUpdateCoordinator,
-        device_data: "MerakiDevice",
+        device_data: MerakiDevice,
         config_entry: ConfigEntry,
         uplink_data: dict[str, Any],
     ) -> None:
