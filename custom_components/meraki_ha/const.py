@@ -52,6 +52,9 @@ CONF_ENABLE_VLAN_MANAGEMENT: Final = "enable_vlan_management"
 CONF_ENABLE_FIREWALL_RULES: Final = "enable_firewall_rules"
 """Configuration key for enabling firewall rules."""
 
+CONF_ENABLE_TRAFFIC_SHAPING: Final = "enable_traffic_shaping"
+"""Configuration key for enabling traffic shaping."""
+
 
 DEFAULT_IGNORED_NETWORKS: Final[list[str]] = []
 """Default value for the ignored networks list."""
@@ -61,6 +64,9 @@ DEFAULT_ENABLE_VLAN_MANAGEMENT: Final = False
 
 DEFAULT_ENABLE_FIREWALL_RULES: Final = False
 """Default value for enabling firewall rules."""
+
+DEFAULT_ENABLE_TRAFFIC_SHAPING: Final = False
+"""Default value for enabling traffic shaping."""
 
 DATA_SSID_DEVICES_COORDINATOR: Final = "ssid_devices"
 """Key for the SSID devices coordinator."""
