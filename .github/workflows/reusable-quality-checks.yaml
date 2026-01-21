@@ -60,12 +60,6 @@ jobs:
           enable-cache: true
       - name: Install dependencies
         run: pip install -r requirements_dev.txt
-      - name: Install dependencies
-        run: pip install -r requirements_dev.txt
-      - name: Install dependencies
-        run: pip install -r requirements_dev.txt
-      - name: Install dependencies
-        run: pip install -r requirements_dev.txt
       - name: Install tools
         run: pip install pip-audit bandit
       - name: Run Bandit
@@ -85,16 +79,14 @@ jobs:
           python-version: ${{ inputs.python-version }}
           enable-cache: true
 
-      # --- FORCE CLEAN STEP: THE DEFINITIVE FIX ---
+      - name: Install dependencies
+        run: pip install -r requirements_dev.txt
+
       - name: Force Clean DNS Stack
         run: |
           # Forcibly remove existing/cached versions that cause the AttributeError on Python 3.13
-          pip uninstall -y pycares aiodns
-          # Freshly install the Home Assistant 2026.1 official pins
-          pip install --no-cache-dir pycares==4.11.0 aiodns==3.2.0
-
-      - name: Install dependencies
-        run: pip install -r requirements_dev.txt
+          # Then install the specific required versions
+          pip install --force-reinstall --no-cache-dir pycares==4.11.0 aiodns==3.6.1
 
       - name: Run Tests
         run: pytest --cov=custom_components.meraki_ha --cov-report=xml tests/

@@ -37,10 +37,8 @@ def auto_enable_custom_integrations(
 @pytest.fixture(autouse=True)
 def bypass_platform_setup() -> Generator[None, None, None]:
     """Bypass platform setup to avoid hass_frontend dependency."""
-    from unittest.mock import patch
-
-    with patch("homeassistant.setup.async_setup_component", return_value=True):
-        yield
+    # We yield directly without patching async_setup_component to allow real setup to run
+    yield
 
 
 @pytest.fixture
