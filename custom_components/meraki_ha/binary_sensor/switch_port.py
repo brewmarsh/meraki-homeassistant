@@ -1,7 +1,7 @@
 """Binary sensor for Meraki switch port status."""
 
 import logging
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from homeassistant.components.binary_sensor import (
     BinarySensorDeviceClass,
@@ -13,6 +13,9 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from ..coordinator import MerakiDataUpdateCoordinator
 from ..helpers.device_info_helpers import resolve_device_info
+
+if TYPE_CHECKING:
+    from ..types import MerakiDevice
 
 _LOGGER = logging.getLogger(__name__)
 

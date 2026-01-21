@@ -18,6 +18,7 @@ from ...helpers.device_info_helpers import resolve_device_info
 
 if TYPE_CHECKING:
     from ...services.camera_service import CameraService
+    from ...types import MerakiDevice
 
 
 _LOGGER = logging.getLogger(__name__)
@@ -31,7 +32,7 @@ class MerakiMotionSensor(CoordinatorEntity, BinarySensorEntity):
     def __init__(
         self,
         coordinator: MerakiDataUpdateCoordinator,
-        device: "MerakiDevice",
+        device: MerakiDevice,
         camera_service: CameraService,
         config_entry: ConfigEntry,
     ) -> None:
