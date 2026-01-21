@@ -99,6 +99,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     hass.data[DOMAIN][entry.entry_id] = {
         "coordinator": coordinator,
         "meraki_client": coordinator.api,
+        "camera_service": camera_service,
+        "device_control_service": device_control_service,
+        "switch_port_service": switch_port_service,
     }
 
     # Set up webhook

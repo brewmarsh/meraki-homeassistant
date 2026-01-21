@@ -98,8 +98,9 @@ async def test_subscribe_meraki_data(
         "data" not in response["result"] or "org_name" not in response["result"]["data"]
     )
 
+    await client.close()
     await hass.async_block_till_done()
-    await asyncio.sleep(0.1)  # Allow background threads to close
+    await asyncio.sleep(0.5)  # Allow background threads to close
 
 
 @pytest.mark.asyncio
@@ -121,6 +122,9 @@ async def test_get_version(
     response = await client.receive_json()
     assert response["success"]
     assert "version" in response["result"]
+
+    await hass.async_block_till_done()
+    await asyncio.sleep(0.5)
 
 
 @pytest.mark.asyncio
@@ -150,6 +154,9 @@ async def test_get_camera_stream_url(
 
     mock_get_stream.assert_called_with("test-serial")
 
+    await hass.async_block_till_done()
+    await asyncio.sleep(0.5)
+
 
 @pytest.mark.asyncio
 async def test_get_camera_snapshot(
@@ -177,3 +184,6 @@ async def test_get_camera_snapshot(
     assert response["result"]["url"] == "https://snapshot-url"
 
     mock_get_snapshot.assert_called_with("test-serial")
+
+    await hass.async_block_till_done()
+    await asyncio.sleep(0.5)
