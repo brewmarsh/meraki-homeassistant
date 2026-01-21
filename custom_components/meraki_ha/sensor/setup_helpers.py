@@ -21,6 +21,7 @@ from .client_tracker import ClientTrackerDeviceSensor, MerakiClientSensor
 from .device.appliance_port import MerakiAppliancePortSensor
 from .device.appliance_uplink import MerakiApplianceUplinkSensor
 from .device.rtsp_url import MerakiRtspUrlSensor
+from .device.switch_port import MerakiSwitchPortSensor
 from .network.vlan import (
     MerakiVLANIDSensor,
     MerakiVLANIPv4EnabledSensor,
@@ -100,6 +101,19 @@ def _setup_device_sensors(
                 if unique_id not in added_entities:
                     entities.append(
                         MerakiAppliancePortSensor(coordinator, device, port)  # type: ignore[call-arg]
+                    )
+                    added_entities.add(unique_id)
+
+        # Switch port sensors
+        if product_type == "switch":
+            for port in device.ports_statuses:
+                port_id = port.get("portId")
+                if not port_id:
+                    continue
+                unique_id = f"{serial}_port_{port_id}"
+                if unique_id not in added_entities:
+                    entities.append(
+                        MerakiSwitchPortSensor(coordinator, device, port, config_entry)
                     )
                     added_entities.add(unique_id)
 
@@ -210,25 +224,20 @@ def _setup_uplink_sensors(
 ) -> list[Entity]:
     """Set up appliance uplink sensors."""
     entities: list[Entity] = []
-    appliance_uplinks = coordinator.data.get("appliance_uplink_statuses", [])
-    for uplink_status in appliance_uplinks:
-        serial = uplink_status.get("serial")
-        if not serial:
+    devices = coordinator.data.get("devices", [])
+    for device in devices:
+        if device.product_type != "appliance":
             continue
 
-        device = coordinator.get_device(serial)
-        if not device:
-            continue
+        if not device.name:
+            device.name = f"Meraki Device {device.serial}"
 
-        if not device.name:  # Added from incoming branch
-            device.name = f"Meraki Device {serial}"
-
-        for uplink in uplink_status.get("uplinks", []):
+        for uplink in device.appliance_uplink_statuses:
             interface = uplink.get("interface")
             if not interface:
                 continue
 
-            unique_id = f"{serial}_uplink_{interface}"
+            unique_id = f"{device.serial}_uplink_{interface}"
             if unique_id not in added_entities:
                 entities.append(
                     MerakiApplianceUplinkSensor(

@@ -47,6 +47,9 @@ def parse_network_data(
     for network in networks:
         network_id = network.id
 
+        # Initialize with empty lists to prevent KeyErrors
+        vlan_by_network[network_id] = []
+
         # Appliance Traffic (Keep as dict for now, no dataclass yet)
         network_traffic_key = f"traffic_{network_id}"
         network_traffic = detail_data.get(network_traffic_key)
@@ -84,10 +87,15 @@ def parse_network_data(
                 MerakiVlan.from_dict(v) for v in network_vlans
             ]
         elif previous_data and "vlans" in previous_data:
-             # Try to get from previous data if available
-             prev_vlans = previous_data["vlans"].get(network_id)
-             if prev_vlans:
-                 vlan_by_network[network_id] = prev_vlans
+            # Try to get from previous data if available
+            prev_vlans = previous_data["vlans"].get(network_id)
+            if prev_vlans:
+                vlan_by_network[network_id] = prev_vlans
+        else:
+            _LOGGER.warning(
+                "Could not fetch VLANs for network %s and no previous data available",
+                network.name,
+            )
 
         # L3 Firewall Rules
         l3_firewall_rules_key = f"l3_firewall_rules_{network_id}"
