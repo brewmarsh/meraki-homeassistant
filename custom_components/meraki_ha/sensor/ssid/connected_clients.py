@@ -50,7 +50,7 @@ class MerakiSsidConnectedClientsSensor(CoordinatorEntity, SensorEntity):
         """Update the native value of the sensor based on coordinator data."""
         all_clients = self.coordinator.data.get("clients", [])
         ssid = self.coordinator.get_ssid(self._network_id, self._ssid_number)
-        ssid_name = ssid.name if ssid else None
+        ssid_name = ssid.get("name") if ssid else None
 
         if not ssid_name or not all_clients:
             self._attr_native_value = 0
