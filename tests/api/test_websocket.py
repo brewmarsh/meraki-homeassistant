@@ -1,5 +1,6 @@
 """Tests for the Meraki HA WebSocket API."""
 
+import asyncio
 from unittest.mock import AsyncMock, patch
 
 import pytest

@@ -10,6 +10,7 @@ from .const import (
     CONF_ENABLE_FIREWALL_RULES,
     CONF_ENABLE_TRAFFIC_SHAPING,
     CONF_ENABLE_VLAN_MANAGEMENT,
+    CONF_ENABLE_VPN_MANAGEMENT,
     CONF_IGNORED_NETWORKS,
     CONF_MERAKI_API_KEY,
     CONF_MERAKI_ORG_ID,
@@ -17,6 +18,7 @@ from .const import (
     DEFAULT_ENABLE_FIREWALL_RULES,
     DEFAULT_ENABLE_TRAFFIC_SHAPING,
     DEFAULT_ENABLE_VLAN_MANAGEMENT,
+    DEFAULT_ENABLE_VPN_MANAGEMENT,
     DEFAULT_IGNORED_NETWORKS,
     DEFAULT_SCAN_INTERVAL,
 )
@@ -44,6 +46,9 @@ OPTIONS_SCHEMA = vol.Schema(
         ): selector.BooleanSelector(),
         vol.Required(
             CONF_ENABLE_VLAN_MANAGEMENT, default=DEFAULT_ENABLE_VLAN_MANAGEMENT
+        ): selector.BooleanSelector(),
+        vol.Required(
+            CONF_ENABLE_VPN_MANAGEMENT, default=DEFAULT_ENABLE_VPN_MANAGEMENT
         ): selector.BooleanSelector(),
         vol.Required(
             CONF_ENABLE_FIREWALL_RULES, default=DEFAULT_ENABLE_FIREWALL_RULES
