@@ -3,11 +3,14 @@
 from __future__ import annotations
 
 import logging
-from typing import Any
+from typing import TYPE_CHECKING
 
 from ..coordinator import MerakiDataUpdateCoordinator
 from ..core.api.client import MerakiAPIClient
 from .camera_settings import MerakiCameraSettingSwitchBase
+
+if TYPE_CHECKING:
+    from ..types import MerakiDevice
 
 _LOGGER = logging.getLogger(__name__)
 
