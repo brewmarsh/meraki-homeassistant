@@ -26,9 +26,7 @@ def mock_coordinator():
 
     coordinator.data = {
         "networks": [mock_network],
-        "traffic_shaping": {
-            "net1": {"enabled": True}
-        },
+        "traffic_shaping": {"net1": {"enabled": True}},
         "devices": [],
         "clients": [],
         "ssids": [],
@@ -44,9 +42,7 @@ def test_traffic_shaping_sensor_creation_enabled(mock_coordinator):
     mock_coordinator.config_entry.options = {CONF_ENABLE_TRAFFIC_SHAPING: True}
 
     # Run the setup
-    sensors = async_setup_sensors(
-        hass, mock_coordinator.config_entry, mock_coordinator
-    )
+    sensors = async_setup_sensors(hass, mock_coordinator.config_entry, mock_coordinator)
 
     # Filter for TrafficShapingSensor
     ts_sensors = [s for s in sensors if s.__class__.__name__ == "TrafficShapingSensor"]
@@ -75,9 +71,7 @@ def test_traffic_shaping_sensor_creation_disabled(mock_coordinator):
     mock_coordinator.config_entry.options = {CONF_ENABLE_TRAFFIC_SHAPING: False}
 
     # Run the setup
-    sensors = async_setup_sensors(
-        hass, mock_coordinator.config_entry, mock_coordinator
-    )
+    sensors = async_setup_sensors(hass, mock_coordinator.config_entry, mock_coordinator)
 
     # Filter for TrafficShapingSensor
     ts_sensors = [s for s in sensors if s.__class__.__name__ == "TrafficShapingSensor"]
