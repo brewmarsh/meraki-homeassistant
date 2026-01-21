@@ -82,11 +82,13 @@ async def add_integration():
             flow_id = None
             message_id = 1
             for i in range(10):  # 10 attempts
-                await ws.send_json({
-                    "id": message_id,
-                    "type": "config_entries/flow/start",
-                    "handler": "meraki_ha",
-                })
+                await ws.send_json(
+                    {
+                        "id": message_id,
+                        "type": "config_entries/flow/start",
+                        "handler": "meraki_ha",
+                    }
+                )
                 resp = await ws.receive_json()
                 if resp.get("success"):
                     flow_id = resp["result"]["flow_id"]
@@ -104,26 +106,32 @@ async def add_integration():
             # Step 1: API Key
             print("Sending API Key...")
             message_id += 1
-            await ws.send_json({
-                "id": message_id,
-                "type": "config_entries/flow/handle_step",
-                "flow_id": flow_id,
-                "step_id": "user",
-                "user_input": {"api_key": MERAKI_API_KEY},
-            })
-            resp = await ws.receive_json()
-
-            # Handle optional Step 2 (Org Selection) if it occurs
-            if resp.get("success") and resp["result"].get("step_id") == "pick_organization":
-                print("Selecting Organization...")
-                message_id += 1
-                await ws.send_json({
+            await ws.send_json(
+                {
                     "id": message_id,
                     "type": "config_entries/flow/handle_step",
                     "flow_id": flow_id,
-                    "step_id": "pick_organization",
-                    "user_input": {"organization_id": MERAKI_ORG_ID},
-                })
+                    "step_id": "user",
+                    "user_input": {"api_key": MERAKI_API_KEY},
+                }
+            )
+            resp = await ws.receive_json()
+
+            # Handle optional Step 2 (Org Selection) if it occurs
+            if resp.get("success") and (
+                resp["result"].get("step_id") == "pick_organization"
+            ):
+                print("Selecting Organization...")
+                message_id += 1
+                await ws.send_json(
+                    {
+                        "id": message_id,
+                        "type": "config_entries/flow/handle_step",
+                        "flow_id": flow_id,
+                        "step_id": "pick_organization",
+                        "user_input": {"organization_id": MERAKI_ORG_ID},
+                    }
+                )
                 resp = await ws.receive_json()
 
             if resp["success"] and resp["result"]["type"] == "create_entry":
