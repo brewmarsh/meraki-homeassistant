@@ -6,15 +6,13 @@ on:
       - main
       - beta
 
-permissions:
-  contents: write
-
 jobs:
   validate:
     uses: ./.github/workflows/reusable-quality-checks.yaml
     with:
       python-version: '3.13'
-    secrets: inherit
+    secrets:
+      CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
   code-review:
     runs-on: ubuntu-latest

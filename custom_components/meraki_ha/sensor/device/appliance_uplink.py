@@ -1,5 +1,7 @@
 """Sensor for Meraki appliance uplink status."""
 
+from __future__ import annotations
+
 import logging
 from typing import TYPE_CHECKING, Any
 
@@ -28,7 +30,7 @@ class MerakiApplianceUplinkSensor(CoordinatorEntity, SensorEntity):
     def __init__(
         self,
         coordinator: MerakiDataUpdateCoordinator,
-        device_data: "MerakiDevice",
+        device_data: MerakiDevice,
         config_entry: ConfigEntry,
         uplink_data: dict[str, Any],
     ) -> None:
