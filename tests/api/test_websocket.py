@@ -42,6 +42,7 @@ async def setup_integration(hass: HomeAssistant, socket_enabled) -> MockConfigEn
     with (
         patch(
             "custom_components.meraki_ha.MerakiDataUpdateCoordinator._async_update_data",
+            new_callable=AsyncMock,
             return_value=MOCK_DATA,
         ),
         patch(
@@ -99,7 +100,7 @@ async def test_subscribe_meraki_data(
     )
 
     await hass.async_block_till_done()
-    await asyncio.sleep(0.1)  # Allow background threads to close
+    await asyncio.sleep(1.0)  # Allow background threads to close
 
 
 @pytest.mark.asyncio
