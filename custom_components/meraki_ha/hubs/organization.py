@@ -2,7 +2,11 @@
 Organization Hub.
 
 This module defines the OrganizationHub class, which is responsible for
+<<<<<<< HEAD
+processing and managing organization-level data from the MerakiDataCoordinator.
+=======
 processing and managing organization-level data from the MerakiDataUpdateCoordinator.
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
 """
 
 from __future__ import annotations
@@ -11,7 +15,11 @@ import logging
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
+<<<<<<< HEAD
+    from ..meraki_data_coordinator import MerakiDataCoordinator
+=======
     from ..coordinator import MerakiDataUpdateCoordinator
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -19,7 +27,11 @@ _LOGGER = logging.getLogger(__name__)
 class OrganizationHub:
     """A hub for processing organization-level data."""
 
+<<<<<<< HEAD
+    def __init__(self, coordinator: MerakiDataCoordinator) -> None:
+=======
     def __init__(self, coordinator: MerakiDataUpdateCoordinator) -> None:
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
         """Initialize the OrganizationHub."""
         self._coordinator = coordinator
         self.data: dict = {}
@@ -29,7 +41,11 @@ class OrganizationHub:
         """Return the organization ID."""
         if self._coordinator.data and self._coordinator.data.get("networks"):
             # All networks belong to the same org, so we can take the first one
+<<<<<<< HEAD
+            return self._coordinator.data["networks"][0].get("organizationId")
+=======
             return self._coordinator.data["networks"][0].organization_id
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
         return None
 
     async def async_update_data(self) -> None:

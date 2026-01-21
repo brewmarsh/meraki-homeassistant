@@ -64,6 +64,8 @@ class MerakiRepository:
         except Exception as e:
             _LOGGER.error("Failed to get switch port statuses for %s: %s", serial, e)
             return None
+<<<<<<< HEAD
+=======
 
     async def async_cycle_switch_ports(
         self, serial: str, ports: list[str]
@@ -87,3 +89,4 @@ class MerakiRepository:
         except Exception as e:
             _LOGGER.error("Failed to cycle switch ports for %s: %s", serial, e)
             return None
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)

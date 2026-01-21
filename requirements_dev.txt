@@ -1,3 +1,16 @@
+<<<<<<< HEAD
+uv==0.9.17
+aiofiles==23.2.1
+types-aiofiles==25.1.0.20251011
+meraki==1.40.1
+PyTurboJPEG==1.7.2
+ruff==0.5.5
+pip-audit==2.7.3
+bandit[toml]==1.7.9
+mypy==1.11.0
+voluptuous==0.16.0
+pyyaml==6.0.3
+=======
 uv
 aiofiles==23.2.1
 types-aiofiles==25.1.0.20251011
@@ -9,6 +22,7 @@ bandit==1.7.9
 mypy==1.11.0
 voluptuous
 pyyaml
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
 playwright
 pytest-homeassistant-custom-component
 pytest
@@ -19,6 +33,10 @@ aiohttp>=3.13.2
 urllib3>=2.6.2
 aiodns==3.6.1
 pycares==4.11.0
+<<<<<<< HEAD
+filelock==3.20.3
+=======
 pre-commit
 filelock==3.20.3
 webrtc-models==0.3.0
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)

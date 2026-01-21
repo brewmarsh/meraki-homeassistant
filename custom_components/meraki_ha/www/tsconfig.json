@@ -1,8 +1,12 @@
 {
   "compilerOptions": {
     "target": "ES2020",
+<<<<<<< HEAD
+    "useDefineForClassFields": true,
+=======
     "experimentalDecorators": true,
     "useDefineForClassFields": false,
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
     "lib": ["ES2020", "DOM", "DOM.Iterable"],
     "module": "ESNext",
     "skipLibCheck": true,
@@ -11,6 +15,10 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "noEmit": true,
+<<<<<<< HEAD
+    "jsx": "react-jsx",
+=======
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
     "strict": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,

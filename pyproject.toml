@@ -12,6 +12,12 @@ follow_imports = "silent"
 module = "aiofiles"
 ignore_missing_imports = true
 
+<<<<<<< HEAD
+[tool.ruff]
+exclude = [".pyenv"]
+line-length = 88
+
+=======
 # Required for the AI-assisted "Gatekeeper" workflow.
 [tool.ruff]
 fix = true
@@ -22,6 +28,7 @@ line-length = 88
 [tool.ruff.format]
 docstring-code-format = true
 
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
 [tool.ruff.lint]
 select = [
     "E",  # pycodestyle errors
@@ -36,6 +43,8 @@ select = [
 ignore = ["D100", "D104", "D107", "D211", "D212"]
 [tool.ruff.lint.pydocstyle]
 convention = "numpy"
+<<<<<<< HEAD
+=======
 
 [tool.bumpversion]
 current_version = "2.0.0-beta.69"
@@ -54,3 +63,4 @@ replace = '"version": "{new_version}"'
 
 [tool.bumpversion.parts.beta]
 first_value = 1
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)

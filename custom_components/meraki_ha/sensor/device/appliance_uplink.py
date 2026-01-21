@@ -1,9 +1,7 @@
 """Sensor for Meraki appliance uplink status."""
 
-from __future__ import annotations
-
 import logging
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
 from homeassistant.components.sensor import SensorEntity
 from homeassistant.config_entries import ConfigEntry
@@ -13,12 +11,13 @@ from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from ...const import DOMAIN
+<<<<<<< HEAD
+from ...core.utils.naming_utils import format_device_name
+from ...meraki_data_coordinator import MerakiDataCoordinator
+=======
 from ...coordinator import MerakiDataUpdateCoordinator
 from ...core.utils.naming_utils import format_device_name
-from ...types import MerakiDevice
-
-if TYPE_CHECKING:
-    from ...types import MerakiDevice
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -30,14 +29,23 @@ class MerakiApplianceUplinkSensor(CoordinatorEntity, SensorEntity):
 
     def __init__(
         self,
+<<<<<<< HEAD
+        coordinator: MerakiDataCoordinator,
+        device_data: dict[str, Any],
+=======
         coordinator: MerakiDataUpdateCoordinator,
-        device_data: MerakiDevice,
+        device_data: "MerakiDevice",
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
         config_entry: ConfigEntry,
         uplink_data: dict[str, Any],
     ) -> None:
         """Initialize the sensor."""
         super().__init__(coordinator)
+<<<<<<< HEAD
+        self._device_serial: str = device_data["serial"]
+=======
         self._device_serial: str = device_data.serial
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
         self._config_entry = config_entry
         self._uplink_interface: str = uplink_data["interface"]
 
@@ -47,18 +55,33 @@ class MerakiApplianceUplinkSensor(CoordinatorEntity, SensorEntity):
         self._attr_device_info = DeviceInfo(
             identifiers={(DOMAIN, self._device_serial)},
             name=format_device_name(device_data, self._config_entry.options),
+<<<<<<< HEAD
+            model=device_data.get("model"),
+=======
             model=device_data.model,
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
             manufacturer="Cisco Meraki",
         )
         self._update_state()
 
     def _get_current_uplink_data(self) -> dict[str, Any] | None:
         """Retrieve the latest data for this sensor's uplink from the coordinator."""
+<<<<<<< HEAD
+        if self.coordinator.data and self.coordinator.data.get(
+            "appliance_uplink_statuses"
+        ):
+            for status in self.coordinator.data["appliance_uplink_statuses"]:
+                if status.get("serial") == self._device_serial:
+                    for uplink in status.get("uplinks", []):
+                        if uplink.get("interface") == self._uplink_interface:
+                            return uplink
+=======
         device = self.coordinator.get_device(self._device_serial)
         if device:
             for uplink in device.appliance_uplink_statuses:
                 if uplink.get("interface") == self._uplink_interface:
                     return uplink
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
         return None
 
     @callback

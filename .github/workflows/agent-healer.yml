@@ -1,9 +1,20 @@
+<<<<<<< HEAD
+name: Agent Healer
+
+on:
+  workflow_run:
+    workflows: ['Validate Code']
+    types: [completed]
+  pull_request:
+    branches: [beta]
+=======
 ﻿name: Agent Healer
 
 on:
   workflow_run:
     workflows: ['Pull Request Validation']
     types: [completed]
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
 
 permissions:
   contents: write
@@ -11,6 +22,35 @@ permissions:
 
 jobs:
   heal:
+<<<<<<< HEAD
+    # Only run if the validation failed OR if specifically triggered by you/dependabot
+    if: |
+      (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'failure') ||
+      (github.event_name == 'pull_request' && (github.actor == 'dependabot[bot]' || github.actor == 'brewmarsh'))
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Jules to Fix CI
+        uses: google-labs-code/jules-action@main
+        with:
+          jules_api_key: ${{ secrets.JULES_API_KEY }}
+          starting_branch: ${{ github.head_ref || github.event.workflow_run.head_branch || github.ref_name }}
+          include_last_commit: true
+          include_commit_log: true
+          prompt: |
+            The CI validation failed for this change.
+
+            **Context:**
+            - **Triggering Actor:** ${{ github.actor }}
+            - **Event:** ${{ github.event_name }}
+            - **Branch:** ${{ github.head_ref || github.event.workflow_run.head_branch || github.ref_name }}
+
+            **Instructions:**
+            1. Analyze the logs from the 'Validate Code' workflow.
+            2. Review any linting (Ruff) or test (Pytest) errors.
+            3. If this is a Dependabot PR, resolve version conflicts in manifest.json and requirements.txt.
+            4. Ensure 'webrtc-models==0.3.0' is present if required by HA Core.
+            5. Apply the fix and push directly to the branch.
+=======
     # 1. Only run if Pull Request Validation failed
     # 2. Prevent infinite loops (only heal failures from specific actors)
     if: |
@@ -52,3 +92,4 @@ jobs:
             3. Fix any linting (Ruff) or test (Pytest) errors.
 
             Apply fixes directly to: ${{ github.event.workflow_run.head_branch }}
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)

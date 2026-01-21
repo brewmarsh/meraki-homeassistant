@@ -82,6 +82,8 @@ class SwitchPortService:
                 if port.get("portId") == port_id:
                     return port.get("speed")
         return None
+<<<<<<< HEAD
+=======
 
     async def async_cycle_ports(
         self, serial: str, ports: list[str]
@@ -101,3 +103,4 @@ class SwitchPortService:
         """
         _LOGGER.info("Cycling ports %s on device %s", ports, serial)
         return await self._repository.async_cycle_switch_ports(serial, ports)
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)

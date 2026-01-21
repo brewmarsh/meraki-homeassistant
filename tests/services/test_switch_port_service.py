@@ -66,6 +66,8 @@ async def test_async_get_port_speed():
 
     # Assert
     assert result == "1000 Mbps"
+<<<<<<< HEAD
+=======
 
 
 @pytest.mark.asyncio
@@ -83,3 +85,4 @@ async def test_async_cycle_ports():
 
     # Assert
     mock_repository.async_cycle_switch_ports.assert_called_once_with(serial, ports)
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)

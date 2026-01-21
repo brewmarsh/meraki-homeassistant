@@ -2,6 +2,10 @@
 
 from __future__ import annotations
 
+<<<<<<< HEAD
+=======
+from dataclasses import asdict
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
 from unittest.mock import MagicMock
 
 from custom_components.meraki_ha.types import MerakiDevice, MerakiNetwork
@@ -11,6 +15,20 @@ MOCK_CONFIG_ENTRY = MagicMock()
 MOCK_CONFIG_ENTRY.entry_id = MOCK_CONFIG_ENTRY_ID
 
 
+<<<<<<< HEAD
+MOCK_NETWORK: MerakiNetwork = {
+    "id": "N_12345",
+    "organizationId": "test-org",
+    "name": "Test Network",
+    "productTypes": ["appliance", "switch", "wireless", "cellularGateway"],
+    "tags": "e2e-test",
+    "clientCount": 5,
+}
+
+MOCK_DEVICE: MerakiDevice = {
+    "serial": "Q234-ABCD-5678",
+    "name": "Test Device",
+=======
 MOCK_NETWORK_INIT = {
     "id": "N_12345",
     "name": "Test Network",
@@ -25,16 +43,22 @@ MOCK_DEVICE_INIT = {
     "serial": "Q234-ABCD-5678",
     "name": "Test Device",
     "mac": "00:11:22:33:44:55",
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
     "model": "MR33",
     "networkId": "N_12345",
     "productType": "wireless",
     "lanIp": "1.2.3.4",
     "status": "online",
 }
+<<<<<<< HEAD
+
+MOCK_MX_DEVICE: MerakiDevice = {
+=======
 MOCK_DEVICE = MerakiDevice.from_dict(MOCK_DEVICE_INIT)
 
 
 MOCK_MX_DEVICE_INIT = {
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
     "serial": "Q234-ABCD-MX",
     "name": "Test MX Device",
     "model": "MX67",
@@ -42,11 +66,17 @@ MOCK_MX_DEVICE_INIT = {
     "productType": "appliance",
     "lanIp": "1.2.3.5",
     "status": "online",
+<<<<<<< HEAD
+}
+
+MOCK_GX_DEVICE: MerakiDevice = {
+=======
     "mac": "00:11:22:33:44:56",
 }
 MOCK_MX_DEVICE = MerakiDevice.from_dict(MOCK_MX_DEVICE_INIT)
 
 MOCK_GX_DEVICE_INIT = {
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
     "serial": "Q234-ABCD-GX",
     "name": "Test GX Device",
     "model": "GX20",
@@ -54,9 +84,13 @@ MOCK_GX_DEVICE_INIT = {
     "productType": "cellularGateway",
     "lanIp": "1.2.3.6",
     "status": "online",
+<<<<<<< HEAD
+}
+=======
     "mac": "00:11:22:33:44:57",
 }
 MOCK_GX_DEVICE = MerakiDevice.from_dict(MOCK_GX_DEVICE_INIT)
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
 
 MOCK_SSID = {
     "number": 0,
@@ -106,6 +140,17 @@ MOCK_ALL_DATA = {
     "l7_firewall_rules": MOCK_L7_FIREWALL_RULES,
 }
 
+<<<<<<< HEAD
+MOCK_CAMERA_DEVICE = {
+    **MOCK_DEVICE,
+    "productType": "camera",
+    "model": "MV12",
+    "video_settings": {
+        "rtspServerEnabled": True,
+        "rtspUrl": "rtsp://test.com/stream",
+    },
+}
+=======
 MOCK_CAMERA_DEVICE = MerakiDevice(
     serial="Q234-ABCD-5678",
     name="Test Device",
@@ -121,3 +166,4 @@ MOCK_CAMERA_DEVICE = MerakiDevice(
     },
     rtsp_url="rtsp://test.com/stream",
 )
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)

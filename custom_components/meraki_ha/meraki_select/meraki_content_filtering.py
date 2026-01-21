@@ -1,6 +1,10 @@
 """Select entity for controlling Meraki Content Filtering."""
 
 import logging
+<<<<<<< HEAD
+from typing import Any
+=======
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
 
 from homeassistant.components.select import SelectEntity, SelectEntityDescription
 from homeassistant.config_entries import ConfigEntry
@@ -10,10 +14,16 @@ from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
+<<<<<<< HEAD
+from ..core.api.client import MerakiAPIClient
+from ..helpers.device_info_helpers import resolve_device_info
+from ..meraki_data_coordinator import MerakiDataCoordinator
+=======
 from ..coordinator import MerakiDataUpdateCoordinator
 from ..core.api.client import MerakiAPIClient
 from ..helpers.device_info_helpers import resolve_device_info
 from ..types import MerakiNetwork
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -26,17 +36,28 @@ class MerakiContentFilteringSelect(CoordinatorEntity, SelectEntity):
 
     def __init__(
         self,
+<<<<<<< HEAD
+        coordinator: MerakiDataCoordinator,
+        meraki_client: MerakiAPIClient,
+        config_entry: ConfigEntry,
+        network_data: dict[str, Any],
+=======
         coordinator: MerakiDataUpdateCoordinator,
         meraki_client: MerakiAPIClient,
         config_entry: ConfigEntry,
         network_data: MerakiNetwork,
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
     ) -> None:
         """Initialize the Meraki Content Filtering select entity."""
         super().__init__(coordinator)
         self._meraki_client = meraki_client
         self._config_entry = config_entry
         self._network_data = network_data
+<<<<<<< HEAD
+        self._network_id = network_data["id"]
+=======
         self._network_id = network_data.id
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
 
         self.entity_description = SelectEntityDescription(
             key=f"content_filtering_{self._network_id}",

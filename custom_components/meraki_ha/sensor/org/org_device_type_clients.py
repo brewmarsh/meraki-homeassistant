@@ -9,8 +9,13 @@ from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from ...const import DOMAIN
-from ...coordinator import MerakiDataUpdateCoordinator
+<<<<<<< HEAD
+from ...helpers.entity_helpers import format_entity_name
+from ...meraki_data_coordinator import MerakiDataCoordinator
 
+=======
+from ...coordinator import MerakiDataUpdateCoordinator
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
 _LOGGER = logging.getLogger(__name__)
 
 
@@ -22,7 +27,11 @@ class MerakiOrganizationDeviceTypeClientsSensor(CoordinatorEntity, SensorEntity)
 
     def __init__(
         self,
+<<<<<<< HEAD
+        coordinator: MerakiDataCoordinator,
+=======
         coordinator: MerakiDataUpdateCoordinator,
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
         config_entry: ConfigEntry,
         device_type: str,
     ) -> None:
@@ -32,7 +41,11 @@ class MerakiOrganizationDeviceTypeClientsSensor(CoordinatorEntity, SensorEntity)
         self._device_type = device_type
         self._org_id = self.coordinator.api_client.organization_id
         self._attr_unique_id = f"{self._org_id}_{self._device_type}_clients"
+<<<<<<< HEAD
+        self._attr_name = format_entity_name(self._device_type.capitalize(), "Clients")
+=======
         self._attr_name = f"{self._device_type.capitalize()} Clients"
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
 
     @property
     def device_info(self) -> DeviceInfo:

@@ -1,6 +1,9 @@
 """Utility functions for naming Meraki devices and entities."""
 
+<<<<<<< HEAD
+=======
 import dataclasses
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
 import logging
 from collections.abc import Mapping
 from typing import Any
@@ -8,11 +11,16 @@ from typing import Any
 _LOGGER = logging.getLogger(__name__)
 
 
+<<<<<<< HEAD
+def format_device_name(device: dict[str, Any], config: Mapping[str, Any]) -> str:
+    """Format the device name based on the user's preference."""
+=======
 def format_device_name(device: dict[str, Any] | Any, config: Mapping[str, Any]) -> str:
     """Format the device name based on the user's preference."""
     if dataclasses.is_dataclass(device):
         device = dataclasses.asdict(device)
 
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
     name = device.get("name")
     if not name:
         if device.get("productType") == "ssid":
@@ -27,6 +35,24 @@ def format_device_name(device: dict[str, Any] | Any, config: Mapping[str, Any]) 
         return name
 
     product_type = device.get("productType")
+<<<<<<< HEAD
+    if not product_type and "productTypes" in device:
+        product_type = "network"
+
+    if not product_type:
+        product_type = "device"  # default to device
+
+    if product_type == "network":
+        product_type_str = "Network"
+    elif product_type == "organization":
+        product_type_str = "Organization"
+    elif product_type == "switch":
+        product_type_str = "Switch"
+    elif product_type == "appliance":
+        product_type_str = "Appliance"
+    elif product_type == "camera":
+        product_type_str = "Camera"
+=======
     # For MerakiDevice/Network dataclasses, fields are snake_case (product_type)
     if not product_type:
         product_type = device.get("product_type")
@@ -56,6 +82,7 @@ def format_device_name(device: dict[str, Any] | Any, config: Mapping[str, Any]) 
         product_type_str = "Network"
     elif product_type == "organization":
         product_type_str = "Organization"
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
     elif product_type == "ssid":
         product_type_str = "SSID"
     elif product_type == "vlan":
@@ -64,6 +91,8 @@ def format_device_name(device: dict[str, Any] | Any, config: Mapping[str, Any]) 
         product_type_str = product_type.capitalize()
 
     return f"[{product_type_str}] {name}"
+<<<<<<< HEAD
+=======
 
 
 def format_entity_name(
@@ -74,3 +103,4 @@ def format_entity_name(
     if entity_name and entity_name.strip():
         return f"{device_name} {entity_name.strip()}"
     return device_name
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)

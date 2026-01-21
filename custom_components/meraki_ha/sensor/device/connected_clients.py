@@ -1,20 +1,32 @@
+<<<<<<< HEAD
 """Sensor entity for monitoring connected clients on a Meraki device."""
 
+import logging
+from typing import Any
+=======
 from __future__ import annotations
 
+"""Sensor entity for monitoring connected clients on a Meraki device."""
+
 import logging
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
 
 from homeassistant.components.sensor import SensorEntity, SensorStateClass
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import callback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
+<<<<<<< HEAD
+from ...helpers.device_info_helpers import resolve_device_info
+from ...meraki_data_coordinator import MerakiDataCoordinator
+=======
 from ...coordinator import MerakiDataUpdateCoordinator
 from ...helpers.device_info_helpers import resolve_device_info
 
 if TYPE_CHECKING:
     from ...types import MerakiDevice
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -29,13 +41,22 @@ class MerakiDeviceConnectedClientsSensor(CoordinatorEntity, SensorEntity):
 
     def __init__(
         self,
+<<<<<<< HEAD
+        coordinator: MerakiDataCoordinator,
+        device_data: dict[str, Any],
+=======
         coordinator: MerakiDataUpdateCoordinator,
         device_data: MerakiDevice,
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
         config_entry: ConfigEntry,
     ) -> None:
         """Initialize the sensor."""
         super().__init__(coordinator)
+<<<<<<< HEAD
+        self._device_serial: str = device_data["serial"]
+=======
         self._device_serial: str = device_data.serial
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
         self._config_entry = config_entry
         self._attr_unique_id = f"{self._device_serial}_connected_clients"
         self._attr_name = "Connected Clients"
@@ -46,9 +67,19 @@ class MerakiDeviceConnectedClientsSensor(CoordinatorEntity, SensorEntity):
         )
         self._update_state()
 
+<<<<<<< HEAD
+    def _get_current_device_data(self) -> dict[str, Any] | None:
+        """Retrieve the latest data for this sensor's device from the coordinator."""
+        if self.coordinator.data and self.coordinator.data.get("devices"):
+            for device in self.coordinator.data["devices"]:
+                if device.get("serial") == self._device_serial:
+                    return device
+        return None
+=======
     def _get_current_device_data(self) -> MerakiDevice | None:
         """Retrieve the latest data for this sensor's device from the coordinator."""
         return self.coordinator.get_device(self._device_serial)
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
 
     @callback
     def _update_state(self) -> None:
@@ -58,12 +89,20 @@ class MerakiDeviceConnectedClientsSensor(CoordinatorEntity, SensorEntity):
             self._attr_native_value = 0
             return
 
+<<<<<<< HEAD
+        product_type = device.get("productType")
+=======
         product_type = device.product_type
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
 
         # For routers (appliances), the client count is all online clients
         # in the network.
         if product_type in ["appliance", "cellularGateway"]:
+<<<<<<< HEAD
+            network_id = device.get("networkId")
+=======
             network_id = device.network_id
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
             all_clients = self.coordinator.data.get("clients", [])
             if not all_clients:
                 self._attr_native_value = 0

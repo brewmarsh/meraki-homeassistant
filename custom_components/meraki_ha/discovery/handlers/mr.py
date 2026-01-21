@@ -1,14 +1,22 @@
+<<<<<<< HEAD
+"""MR (Wireless) Device Handler."""
+=======
 """
 MR (Wireless) Device Handler.
 
 This module defines the MRHandler class, which is responsible for discovering
 entities for Meraki MR series (wireless) devices.
 """
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
 
 from __future__ import annotations
 
 import logging
+<<<<<<< HEAD
+from typing import TYPE_CHECKING
+=======
 from typing import TYPE_CHECKING, Any
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
 
 from .base import BaseDeviceHandler
 
@@ -16,11 +24,18 @@ if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
     from homeassistant.helpers.entity import Entity
 
+<<<<<<< HEAD
+    from ....services.network_control_service import NetworkControlService
+    from ....types import MerakiDevice
+    from ...meraki_data_coordinator import MerakiDataCoordinator
+    from ...services.device_control_service import DeviceControlService
+=======
     from ....coordinator import MerakiDataUpdateCoordinator
     from ....services.camera_service import CameraService
     from ....services.device_control_service import DeviceControlService
     from ....services.network_control_service import NetworkControlService
     from ....types import MerakiDevice
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
 
 
 _LOGGER = logging.getLogger(__name__)
@@ -31,6 +46,18 @@ class MRHandler(BaseDeviceHandler):
 
     def __init__(
         self,
+<<<<<<< HEAD
+        coordinator: MerakiDataCoordinator,
+        device: MerakiDevice,
+        config_entry: ConfigEntry,
+        control_service: DeviceControlService,
+        network_control_service: NetworkControlService,
+    ) -> None:
+        """Initialize the MRHandler."""
+        super().__init__(coordinator, device, config_entry)
+        self._control_service = control_service
+        self._network_control_service = network_control_service
+=======
         coordinator: MerakiDataUpdateCoordinator,
         device: MerakiDevice,
         config_entry: ConfigEntry,
@@ -48,10 +75,21 @@ class MRHandler(BaseDeviceHandler):
         """
         super().__init__(coordinator, device, config_entry)
         self._control_service = control_service
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
 
     @classmethod
     def create(
         cls,
+<<<<<<< HEAD
+        coordinator: MerakiDataCoordinator,
+        device: MerakiDevice,
+        config_entry: ConfigEntry,
+        camera_service,  # Unused
+        control_service: DeviceControlService,
+        network_control_service: NetworkControlService,
+    ) -> MRHandler:
+        """Create an instance of the handler."""
+=======
         coordinator: MerakiDataUpdateCoordinator,
         device: MerakiDevice,
         config_entry: ConfigEntry,
@@ -73,11 +111,19 @@ class MRHandler(BaseDeviceHandler):
             switch_port_coordinator: The switch port coordinator.
 
         """
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
         return cls(
             coordinator,
             device,
             config_entry,
             control_service,
+<<<<<<< HEAD
+            network_control_service,
+        )
+
+    async def discover_entities(self) -> list[Entity]:
+        """Discover entities for a wireless device."""
+=======
         )
 
     async def discover_entities(self) -> list[Entity]:
@@ -89,6 +135,7 @@ class MRHandler(BaseDeviceHandler):
             A list of entities.
 
         """
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
         entities: list[Entity] = []
 
         # In the future, this is where we would create entities like:

@@ -1,17 +1,32 @@
+<<<<<<< HEAD
+name: Jules Agent Trigger
+
+on:
+  issues:
+    types: [labeled, commented]
+=======
 name: 'Agent: Cognitive Loop'
 
 on:
   issues:
     types: [labeled, commented, reopened]
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
   pull_request:
     types: [labeled]
 
 jobs:
+<<<<<<< HEAD
+  jules-process:
+    if: >
+      github.event.label.name == 'jules' ||
+      contains(github.event.comment.body, '@jules')
+=======
   cognitive-loop:
     if: >
       github.event.label.name == 'jules' ||
       contains(github.event.comment.body, '@jules') ||
       (github.event.action == 'reopened' && contains(github.event.issue.labels.*.name, 'jules'))
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -19,6 +34,16 @@ jobs:
       pull-requests: write
 
     steps:
+<<<<<<< HEAD
+      # We REMOVED the "Checkout" step here
+      - name: Run Jules Agent
+        uses: google-labs-code/jules-invoke@main
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          # Explicitly tell Jules to use the beta branch
+          base_branch: 'beta'
+          instructions_path: 'ROADMAP.md' # Change this to ROADMAP.md if that's where your list is
+=======
       # Step 1: Plan and Execute
       # The agent (Jules) first creates a plan, posts it as a comment,
       # and then executes the plan by creating a branch and committing code.
@@ -64,3 +89,4 @@ jobs:
           ruff check custom_components/meraki_ha/
           python -m compileall -q custom_components/meraki_ha/
           echo "Validation checks passed."
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)

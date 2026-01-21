@@ -1,9 +1,16 @@
+<<<<<<< HEAD
 """Sensor for Meraki Device Firmware Status."""
 
+import logging
+from typing import Any
+=======
 from __future__ import annotations
+
+"""Sensor for Meraki Device Firmware Status."""
 
 import logging
 from typing import TYPE_CHECKING, Any
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
 
 from homeassistant.components.sensor import SensorDeviceClass, SensorEntity
 from homeassistant.config_entries import ConfigEntry
@@ -13,11 +20,16 @@ from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from ...const import DOMAIN
+<<<<<<< HEAD
+from ...core.utils.naming_utils import format_device_name
+from ...meraki_data_coordinator import MerakiDataCoordinator
+=======
 from ...coordinator import MerakiDataUpdateCoordinator
 from ...core.utils.naming_utils import format_device_name
 
 if TYPE_CHECKING:
     from ...types import MerakiDevice
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -33,13 +45,22 @@ class MerakiFirmwareStatusSensor(CoordinatorEntity, SensorEntity):
 
     def __init__(
         self,
+<<<<<<< HEAD
+        coordinator: MerakiDataCoordinator,
+        device_data: dict[str, Any],
+=======
         coordinator: MerakiDataUpdateCoordinator,
         device_data: MerakiDevice,
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
         config_entry: ConfigEntry,
     ) -> None:
         """Initialize the sensor."""
         super().__init__(coordinator)
+<<<<<<< HEAD
+        self._device_serial: str = device_data["serial"]
+=======
         self._device_serial: str = device_data.serial
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
         self._config_entry = config_entry
         self._attr_unique_id = f"{self._device_serial}_firmware_status"
         self._attr_name = "Firmware Status"
@@ -47,17 +68,33 @@ class MerakiFirmwareStatusSensor(CoordinatorEntity, SensorEntity):
         self._attr_device_info = DeviceInfo(
             identifiers={(DOMAIN, self._device_serial)},
             name=format_device_name(device_data, self._config_entry.options),
+<<<<<<< HEAD
+            model=device_data.get("model"),
+            manufacturer="Cisco Meraki",
+            sw_version=device_data.get("firmware"),
+=======
             model=device_data.model,
             manufacturer="Cisco Meraki",
             sw_version=device_data.firmware,
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
         )
 
         self._attr_extra_state_attributes: dict[str, Any] = {}
         self._update_state()
 
+<<<<<<< HEAD
+    def _get_current_device_data(self) -> dict[str, Any] | None:
+        """Retrieve the latest data for this sensor's device from the coordinator."""
+        if self.coordinator.data and self.coordinator.data.get("devices"):
+            for device in self.coordinator.data["devices"]:
+                if device.get("serial") == self._device_serial:
+                    return device
+        return None
+=======
     def _get_current_device_data(self) -> MerakiDevice | None:
         """Retrieve the latest data for this sensor's device from the coordinator."""
         return self.coordinator.get_device(self._device_serial)
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
 
     @callback
     def _update_state(self) -> None:
@@ -69,14 +106,22 @@ class MerakiFirmwareStatusSensor(CoordinatorEntity, SensorEntity):
             self._attr_extra_state_attributes = {}
             return
 
+<<<<<<< HEAD
+        firmware_upgrades = current_device_data.get("firmware_upgrades", {})
+=======
         firmware_upgrades = current_device_data.firmware_upgrades or {}
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
         if firmware_upgrades.get("available"):
             self._attr_native_value = "update_available"
         else:
             self._attr_native_value = "up_to_date"
 
         attributes = {
+<<<<<<< HEAD
+            "current_firmware_version": current_device_data.get("firmware"),
+=======
             "current_firmware_version": current_device_data.firmware,
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
             "latest_available_firmware_version": firmware_upgrades.get(
                 "latestVersion", {}
             ).get("shortName"),
@@ -84,7 +129,11 @@ class MerakiFirmwareStatusSensor(CoordinatorEntity, SensorEntity):
             .get("toVersion", {})
             .get("shortName"),
             "next_upgrade_time": firmware_upgrades.get("nextUpgrade", {}).get("time"),
+<<<<<<< HEAD
+            "model": current_device_data.get("model"),
+=======
             "model": current_device_data.model,
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
         }
 
         self._attr_extra_state_attributes = {

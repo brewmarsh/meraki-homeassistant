@@ -1,6 +1,10 @@
 """Tests for the Meraki VLAN DHCP switch."""
 
 from unittest.mock import MagicMock
+<<<<<<< HEAD
+=======
+import dataclasses
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
 
 import pytest
 
@@ -9,11 +13,26 @@ from custom_components.meraki_ha.const import (
 )
 from custom_components.meraki_ha.switch.setup_helpers import async_setup_switches
 from custom_components.meraki_ha.switch.vlan_dhcp import MerakiVLANDHCPSwitch
+<<<<<<< HEAD
+=======
 from custom_components.meraki_ha.types import MerakiVlan
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
 
 
 @pytest.fixture
 def mock_coordinator_with_vlan_data(mock_coordinator: MagicMock) -> MagicMock:
+<<<<<<< HEAD
+    """Fixture for a mocked MerakiDataCoordinator with VLAN data."""
+    mock_coordinator.data = {
+        "vlans": {
+            "net1": [
+                {
+                    "id": 1,
+                    "name": "VLAN 1",
+                    "dhcpHandling": "Run a DHCP server",
+                },
+            ]
+=======
     """Fixture for a mocked MerakiDataUpdateCoordinator with VLAN data."""
     vlan1 = MerakiVlan(
         id=1,
@@ -23,6 +42,7 @@ def mock_coordinator_with_vlan_data(mock_coordinator: MagicMock) -> MagicMock:
     mock_coordinator.data = {
         "vlans": {
             "net1": [vlan1]
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
         },
     }
     mock_coordinator.is_pending.return_value = False
@@ -71,8 +91,12 @@ def test_vlan_dhcp_switch_off_state(
     mock_meraki_client: MagicMock,
 ) -> None:
     """Test the off state of the VLAN DHCP switch."""
+<<<<<<< HEAD
+    mock_coordinator_with_vlan_data.data["vlans"]["net1"][0]["dhcpHandling"] = (
+=======
     # Modify the dataclass object
     mock_coordinator_with_vlan_data.data["vlans"]["net1"][0].dhcp_handling = (
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
         "Do not respond to DHCP requests"
     )
 

@@ -116,7 +116,11 @@ async def async_register_webhook(
 
 async def async_unregister_webhook(
     hass: HomeAssistant,
+<<<<<<< HEAD
+    webhook_url: str,
+=======
     webhook_id: str,
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
     api_client: MerakiAPIClient,
 ) -> None:
     """
@@ -125,11 +129,19 @@ async def async_unregister_webhook(
     Args:
     ----
         hass: The Home Assistant instance.
+<<<<<<< HEAD
+        webhook_url: The URL of the webhook to unregister.
+        api_client: The Meraki API client.
+
+    """
+    await api_client.unregister_webhook(webhook_url)
+=======
         webhook_id: The httpServerId from Meraki.
         api_client: The Meraki API client.
 
     """
     await api_client.unregister_webhook(webhook_id)
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
 
 
 async def async_handle_webhook(
@@ -174,12 +186,20 @@ async def async_handle_webhook(
         device_serial = data.get("deviceSerial")
         if device_serial and coordinator.data:
             for i, device in enumerate(coordinator.data.get("devices", [])):
+<<<<<<< HEAD
+                if device.get("serial") == device_serial:
+=======
                 if device.serial == device_serial:
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
                     _LOGGER.info(
                         "Device %s reported as down via webhook",
                         device_serial,
                     )
+<<<<<<< HEAD
+                    coordinator.data["devices"][i]["status"] = "offline"
+=======
                     coordinator.data["devices"][i].status = "offline"
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
                     coordinator.async_update_listeners()
                     break
     elif alert_type == "Client connectivity changed":

@@ -1,6 +1,9 @@
 """Base classes for Meraki camera switch entities."""
 
+<<<<<<< HEAD
+=======
 import dataclasses
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
 import logging
 from typing import Any
 
@@ -8,9 +11,14 @@ from homeassistant.components.switch import SwitchEntity
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
+<<<<<<< HEAD
+from ..core.api.client import MerakiAPIClient
+from ..meraki_data_coordinator import MerakiDataCoordinator
+=======
 from custom_components.meraki_ha.coordinator import MerakiDataUpdateCoordinator
 
 from ..core.api.client import MerakiAPIClient
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
 from ..types import MerakiDevice
 
 _LOGGER = logging.getLogger(__name__)
@@ -24,9 +32,15 @@ class MerakiCameraSettingSwitchBase(
 
     def __init__(
         self,
+<<<<<<< HEAD
+        coordinator: MerakiDataCoordinator,
+        meraki_client: MerakiAPIClient,
+        device_data: dict[str, Any],
+=======
         coordinator: MerakiDataUpdateCoordinator,
         meraki_client: MerakiAPIClient,
         device_data: "MerakiDevice",
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
         key: str,
         api_field: str,
     ) -> None:
@@ -47,7 +61,11 @@ class MerakiCameraSettingSwitchBase(
         self._device_data = device_data
         self._key = key
         self._api_field = api_field
+<<<<<<< HEAD
+        self._attr_unique_id = f"{self._device_data['serial']}_{self._key}"
+=======
         self._attr_unique_id = f"{device_data.serial}_{self._key}"
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
         self._attr_is_on = False
         self._update_state()  # Set initial state
 
@@ -71,15 +89,22 @@ class MerakiCameraSettingSwitchBase(
         for key in keys:
             if isinstance(value, dict):
                 value = value.get(key)
+<<<<<<< HEAD
+=======
             elif dataclasses.is_dataclass(value) and hasattr(value, key):
                 value = getattr(value, key)
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
             else:
                 return False
         return bool(value)
 
     def _update_state(self) -> None:
         """Update the internal state of the switch."""
+<<<<<<< HEAD
+        device = self.coordinator.get_device(self._device_data["serial"])
+=======
         device = self.coordinator.get_device(self._device_data.serial)
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
         if device is not None:
             self._device_data = device
             self._attr_is_on = self._get_value_from_device(device)
@@ -133,8 +158,15 @@ class MerakiCameraSettingSwitchBase(
     def device_info(self) -> DeviceInfo:
         """Return device information."""
         return DeviceInfo(
+<<<<<<< HEAD
+            identifiers={("meraki_ha", self._device_data["serial"])},
+            name=self._device_data["name"],
+            manufacturer="Cisco Meraki",
+            model=self._device_data["model"],
+=======
             identifiers={("meraki_ha", self._device_data.serial)},
             name=self._device_data.name,
             manufacturer="Cisco Meraki",
             model=self._device_data.model,
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
         )

@@ -23,8 +23,12 @@ const App: React.FC<AppProps> = ({ hass, config_entry_id }) => {
   const socketRef = useRef<WebSocket | null>(null);
 
   // If we are in standalone mode, config_entry_id might come from window
+<<<<<<< HEAD
+  const finalConfigEntryId = config_entry_id || (window as any).CONFIG_ENTRY_ID;
+=======
   const finalConfigEntryId =
     config_entry_id || (window as any).CONFIG_ENTRY_ID;
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
 
   useEffect(() => {
     // 1. Mock Data for Localhost (No Backend)
@@ -91,9 +95,13 @@ const App: React.FC<AppProps> = ({ hass, config_entry_id }) => {
           setData(resultData);
         } catch (err: any) {
           console.error('Error fetching Meraki data:', err);
+<<<<<<< HEAD
+          setError(`Failed to fetch Meraki data: ${err.message || 'Unknown error'}`);
+=======
           setError(
             `Failed to fetch Meraki data: ${err.message || 'Unknown error'}`
           );
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
         } finally {
           setLoading(false);
         }
@@ -212,6 +220,32 @@ const App: React.FC<AppProps> = ({ hass, config_entry_id }) => {
       .map((network: any) => network.id);
 
     if (hass) {
+<<<<<<< HEAD
+        try {
+            await hass.connection.sendMessagePromise({
+                type: 'meraki_ha/update_enabled_networks',
+                config_entry_id: finalConfigEntryId,
+                enabled_networks: enabledNetworkIds,
+            });
+        } catch (err) {
+            console.error('Error updating enabled networks:', err);
+            // Revert on error?
+        }
+    } else {
+        const socket = socketRef.current;
+        if (socket && socket.readyState === 1) {
+          socket.send(
+            JSON.stringify({
+              id: Date.now(),
+              type: 'meraki_ha/update_enabled_networks',
+              config_entry_id: finalConfigEntryId,
+              enabled_networks: enabledNetworkIds,
+            })
+          );
+        } else {
+          console.error('WebSocket is not connected.');
+        }
+=======
       try {
         await hass.connection.sendMessagePromise({
           type: 'meraki_ha/update_enabled_networks',
@@ -236,6 +270,7 @@ const App: React.FC<AppProps> = ({ hass, config_entry_id }) => {
       } else {
         console.error('WebSocket is not connected.');
       }
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
     }
   };
 

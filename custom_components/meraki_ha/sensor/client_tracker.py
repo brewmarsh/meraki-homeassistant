@@ -10,8 +10,13 @@ from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from ..const import DOMAIN
+<<<<<<< HEAD
+from ..core.utils.naming_utils import format_device_name
+from ..meraki_data_coordinator import MerakiDataCoordinator
+=======
 from ..coordinator import MerakiDataUpdateCoordinator
 from ..core.utils.naming_utils import format_device_name
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -29,7 +34,11 @@ class ClientTrackerDeviceSensor(CoordinatorEntity, SensorEntity):
     )
 
     def __init__(
+<<<<<<< HEAD
+        self, coordinator: MerakiDataCoordinator, config_entry: ConfigEntry
+=======
         self, coordinator: MerakiDataUpdateCoordinator, config_entry: ConfigEntry
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
     ) -> None:
         """Initialize the sensor."""
         super().__init__(coordinator)
@@ -75,7 +84,11 @@ class MerakiClientSensor(CoordinatorEntity, SensorEntity):
 
     def __init__(
         self,
+<<<<<<< HEAD
+        coordinator: MerakiDataCoordinator,
+=======
         coordinator: MerakiDataUpdateCoordinator,
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
         config_entry: ConfigEntry,
         client_data: dict[str, Any],
     ) -> None:

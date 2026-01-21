@@ -1,15 +1,25 @@
+<<<<<<< HEAD
+=======
 
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
 """Tests for the appliance API endpoints."""
 
 from unittest.mock import MagicMock, patch
 
 import pytest
 
+<<<<<<< HEAD
+=======
 from custom_components.meraki_ha.coordinator import MerakiDataUpdateCoordinator
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
 from custom_components.meraki_ha.core.api.client import MerakiAPIClient
 from custom_components.meraki_ha.core.api.endpoints.appliance import (
     ApplianceEndpoints,
 )
+<<<<<<< HEAD
+from custom_components.meraki_ha.meraki_data_coordinator import MerakiDataCoordinator
+=======
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
 from tests.const import MOCK_NETWORK
 
 
@@ -29,13 +39,24 @@ def hass():
 @pytest.fixture
 def coordinator():
     """Fixture for a mocked coordinator."""
+<<<<<<< HEAD
+    mock = MagicMock(spec=MerakiDataCoordinator)
+=======
     mock = MagicMock(spec=MerakiDataUpdateCoordinator)
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
     mock.is_vlan_check_due.return_value = True
     mock.is_traffic_check_due.return_value = True
     return mock
 
 
 @pytest.fixture
+<<<<<<< HEAD
+def api_client(hass, mock_dashboard):
+    """Fixture for a MerakiAPIClient instance."""
+    client = MerakiAPIClient(hass=hass, api_key="test-key", org_id="test-org")
+    client.dashboard = mock_dashboard
+    yield client
+=======
 def api_client(hass, mock_dashboard, coordinator):
     """Fixture for a MerakiAPIClient instance."""
     with patch("meraki.DashboardAPI", return_value=mock_dashboard):
@@ -43,6 +64,7 @@ def api_client(hass, mock_dashboard, coordinator):
             hass=hass, api_key="test-key", org_id="test-org", coordinator=coordinator
         )
         yield client
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
 
 
 @pytest.fixture
@@ -55,9 +77,15 @@ def appliance_endpoints(api_client, hass):
 async def test_get_network_vlans(appliance_endpoints, mock_dashboard):
     """Test get_network_vlans."""
     mock_dashboard.appliance.getNetworkApplianceVlans = MagicMock(return_value=[])
+<<<<<<< HEAD
+    await appliance_endpoints.get_network_vlans(MOCK_NETWORK["id"])
+    mock_dashboard.appliance.getNetworkApplianceVlans.assert_called_once_with(
+        networkId=MOCK_NETWORK["id"]
+=======
     await appliance_endpoints.get_network_vlans(MOCK_NETWORK.id)
     mock_dashboard.appliance.getNetworkApplianceVlans.assert_called_once_with(
         networkId=MOCK_NETWORK.id
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
     )
 
 
@@ -65,9 +93,15 @@ async def test_get_network_vlans(appliance_endpoints, mock_dashboard):
 async def test_update_network_vlan(appliance_endpoints, mock_dashboard):
     """Test update_network_vlan."""
     mock_dashboard.appliance.updateNetworkApplianceVlan = MagicMock(return_value={})
+<<<<<<< HEAD
+    await appliance_endpoints.update_network_vlan(MOCK_NETWORK["id"], "1", name="test")
+    mock_dashboard.appliance.updateNetworkApplianceVlan.assert_called_once_with(
+        networkId=MOCK_NETWORK["id"], vlanId="1", name="test"
+=======
     await appliance_endpoints.update_network_vlan(MOCK_NETWORK.id, "1", name="test")
     mock_dashboard.appliance.updateNetworkApplianceVlan.assert_called_once_with(
         networkId=MOCK_NETWORK.id, vlanId="1", name="test"
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
     )
 
 
@@ -77,9 +111,15 @@ async def test_get_l3_firewall_rules(appliance_endpoints, mock_dashboard):
     mock_dashboard.appliance.getNetworkApplianceFirewallL3FirewallRules = MagicMock(
         return_value={}
     )
+<<<<<<< HEAD
+    await appliance_endpoints.get_l3_firewall_rules(MOCK_NETWORK["id"])
+    mock_dashboard.appliance.getNetworkApplianceFirewallL3FirewallRules.assert_called_once_with(
+        networkId=MOCK_NETWORK["id"]
+=======
     await appliance_endpoints.get_l3_firewall_rules(MOCK_NETWORK.id)
     mock_dashboard.appliance.getNetworkApplianceFirewallL3FirewallRules.assert_called_once_with(
         networkId=MOCK_NETWORK.id
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
     )
 
 
@@ -89,9 +129,15 @@ async def test_update_l3_firewall_rules(appliance_endpoints, mock_dashboard):
     mock_dashboard.appliance.updateNetworkApplianceFirewallL3FirewallRules = MagicMock(
         return_value={}
     )
+<<<<<<< HEAD
+    await appliance_endpoints.update_l3_firewall_rules(MOCK_NETWORK["id"], rules=[])
+    mock_dashboard.appliance.updateNetworkApplianceFirewallL3FirewallRules.assert_called_once_with(
+        networkId=MOCK_NETWORK["id"], rules=[]
+=======
     await appliance_endpoints.update_l3_firewall_rules(MOCK_NETWORK.id, rules=[])
     mock_dashboard.appliance.updateNetworkApplianceFirewallL3FirewallRules.assert_called_once_with(
         networkId=MOCK_NETWORK.id, rules=[]
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
     )
 
 
@@ -101,9 +147,15 @@ async def test_get_traffic_shaping(appliance_endpoints, mock_dashboard):
     mock_dashboard.appliance.getNetworkApplianceTrafficShaping = MagicMock(
         return_value={}
     )
+<<<<<<< HEAD
+    await appliance_endpoints.get_traffic_shaping(MOCK_NETWORK["id"])
+    mock_dashboard.appliance.getNetworkApplianceTrafficShaping.assert_called_once_with(
+        networkId=MOCK_NETWORK["id"]
+=======
     await appliance_endpoints.get_traffic_shaping(MOCK_NETWORK.id)
     mock_dashboard.appliance.getNetworkApplianceTrafficShaping.assert_called_once_with(
         networkId=MOCK_NETWORK.id
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
     )
 
 
@@ -113,9 +165,15 @@ async def test_update_traffic_shaping(appliance_endpoints, mock_dashboard):
     mock_dashboard.appliance.updateNetworkApplianceTrafficShaping = MagicMock(
         return_value={}
     )
+<<<<<<< HEAD
+    await appliance_endpoints.update_traffic_shaping(MOCK_NETWORK["id"], enabled=True)
+    mock_dashboard.appliance.updateNetworkApplianceTrafficShaping.assert_called_once_with(
+        networkId=MOCK_NETWORK["id"], enabled=True
+=======
     await appliance_endpoints.update_traffic_shaping(MOCK_NETWORK.id, enabled=True)
     mock_dashboard.appliance.updateNetworkApplianceTrafficShaping.assert_called_once_with(
         networkId=MOCK_NETWORK.id, enabled=True
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
     )
 
 
@@ -125,9 +183,15 @@ async def test_get_vpn_status(appliance_endpoints, mock_dashboard):
     mock_dashboard.appliance.getNetworkApplianceVpnSiteToSiteVpn = MagicMock(
         return_value={}
     )
+<<<<<<< HEAD
+    await appliance_endpoints.get_vpn_status(MOCK_NETWORK["id"])
+    mock_dashboard.appliance.getNetworkApplianceVpnSiteToSiteVpn.assert_called_once_with(
+        networkId=MOCK_NETWORK["id"]
+=======
     await appliance_endpoints.get_vpn_status(MOCK_NETWORK.id)
     mock_dashboard.appliance.getNetworkApplianceVpnSiteToSiteVpn.assert_called_once_with(
         networkId=MOCK_NETWORK.id
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
     )
 
 
@@ -137,7 +201,13 @@ async def test_update_vpn_status(appliance_endpoints, mock_dashboard):
     mock_dashboard.appliance.updateNetworkApplianceVpnSiteToSiteVpn = MagicMock(
         return_value={}
     )
+<<<<<<< HEAD
+    await appliance_endpoints.update_vpn_status(MOCK_NETWORK["id"], mode="hub")
+    mock_dashboard.appliance.updateNetworkApplianceVpnSiteToSiteVpn.assert_called_once_with(
+        networkId=MOCK_NETWORK["id"], mode="hub"
+=======
     await appliance_endpoints.update_vpn_status(MOCK_NETWORK.id, mode="hub")
     mock_dashboard.appliance.updateNetworkApplianceVpnSiteToSiteVpn.assert_called_once_with(
         networkId=MOCK_NETWORK.id, mode="hub"
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
     )

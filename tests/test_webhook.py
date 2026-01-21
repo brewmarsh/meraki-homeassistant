@@ -8,8 +8,12 @@ import pytest
 from homeassistant.core import HomeAssistant
 
 from custom_components.meraki_ha.const import DOMAIN
+<<<<<<< HEAD
+from custom_components.meraki_ha.meraki_data_coordinator import MerakiDataCoordinator
+=======
 from custom_components.meraki_ha.coordinator import MerakiDataUpdateCoordinator
 from custom_components.meraki_ha.types import MerakiDevice
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
 from custom_components.meraki_ha.webhook import async_handle_webhook
 
 
@@ -28,6 +32,16 @@ def mock_hass_with_webhook_data(hass: HomeAssistant) -> HomeAssistant:
 
     """
     config_entry = MagicMock()
+<<<<<<< HEAD
+    coordinator = MerakiDataCoordinator(
+        hass,
+        api_client=MagicMock(),
+        scan_interval=300,
+        entry=config_entry,
+    )
+    coordinator.data = {
+        "devices": [{"serial": "Q234-ABCD-5678", "status": "online"}],
+=======
     coordinator = MerakiDataUpdateCoordinator(
         hass,
         config_entry,
@@ -43,6 +57,7 @@ def mock_hass_with_webhook_data(hass: HomeAssistant) -> HomeAssistant:
 
     coordinator.data = {
         "devices": [device],
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
         "clients": [],
     }
     hass.data[DOMAIN] = {
@@ -81,7 +96,11 @@ async def test_handle_webhook_device_down(
     await async_handle_webhook(mock_hass_with_webhook_data, webhook_id, request)
 
     # Assert
+<<<<<<< HEAD
+    assert coordinator.data["devices"][0]["status"] == "offline"
+=======
     assert coordinator.data["devices"][0].status == "offline"
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
     coordinator.async_update_listeners.assert_called_once()
 
 
@@ -112,7 +131,11 @@ async def test_handle_webhook_invalid_secret(
     await async_handle_webhook(mock_hass_with_webhook_data, webhook_id, request)
 
     # Assert
+<<<<<<< HEAD
+    assert coordinator.data["devices"][0]["status"] == "online"  # Should not change
+=======
     assert coordinator.data["devices"][0].status == "online"  # Should not change
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
     coordinator.async_update_listeners.assert_not_called()
 
 

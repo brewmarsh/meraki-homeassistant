@@ -1,7 +1,10 @@
 """Helper functions for creating Home Assistant DeviceInfo objects."""
 
 import logging
+<<<<<<< HEAD
+=======
 from dataclasses import asdict, is_dataclass
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
 from typing import Any
 
 from homeassistant.config_entries import ConfigEntry
@@ -26,6 +29,12 @@ def resolve_device_info(
     Assistant device registry.
     """
     # Determine the effective data to use for device resolution.
+<<<<<<< HEAD
+    # If ssid_data is explicitly passed, it takes precedence for SSID devices.
+    # Otherwise, check if the entity_data itself represents an SSID.
+    effective_data = entity_data
+    is_ssid = "number" in effective_data and "networkId" in effective_data
+=======
     effective_data = entity_data
     is_ssid = False
     if is_dataclass(effective_data):
@@ -35,16 +44,20 @@ def resolve_device_info(
     else:
         is_ssid = "number" in effective_data and "networkId" in effective_data
 
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
     if ssid_data:
         is_ssid = True
         effective_data = ssid_data
 
+<<<<<<< HEAD
+=======
     # Convert dataclasses to dicts for consistent access below
     if is_dataclass(entity_data):
         entity_data = asdict(entity_data)
     if is_dataclass(effective_data):
         effective_data = asdict(effective_data)
 
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
     # Create device info for an SSID
     if is_ssid:
         network_id = effective_data.get("networkId")

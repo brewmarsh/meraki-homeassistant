@@ -13,5 +13,9 @@
 
 ## Phase 3: Advanced Media
 
+<<<<<<< HEAD
+- [ ] Implement Native WebRTC for MV Camera streams
+=======
 - [x] Implement Native WebRTC for MV Camera streams
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
 - [ ] Update translation strings for all new entities

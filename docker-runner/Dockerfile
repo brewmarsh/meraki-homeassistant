@@ -1,5 +1,9 @@
 # Use a stable, minimal Ubuntu base
+<<<<<<< HEAD
+FROM ubuntu:22.04
+=======
 FROM ubuntu:24.04
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
 
 # Define the official runner version (Check GitHub releases for latest)
 ARG RUNNER_VERSION="2.329.0"

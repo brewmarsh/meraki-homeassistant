@@ -14,6 +14,10 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import DOMAIN
 from .core.utils.naming_utils import format_device_name
+<<<<<<< HEAD
+from .helpers.entity_helpers import format_entity_name
+=======
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
 
 if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
@@ -61,13 +65,26 @@ class MerakiCamera(CoordinatorEntity, Camera):
         self,
         coordinator: MerakiDataCoordinator,
         config_entry: ConfigEntry,
+<<<<<<< HEAD
+        device: dict[str, Any],
+=======
         device: dict[str, Any] | Any,
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
         camera_service: CameraService,
     ) -> None:
         """Initialize the camera."""
         super().__init__(coordinator)
         Camera.__init__(self)
         self._config_entry = config_entry
+<<<<<<< HEAD
+        self._device_serial = device["serial"]
+        self._camera_service = camera_service
+        self._attr_unique_id = f"{self._device_serial}-camera"
+        self._attr_name = format_entity_name(
+            format_device_name(self.device_data, self.coordinator.config_entry.options),
+            "",
+        )
+=======
         # Handle both dict and dataclass for device
         self._device_serial = (
             device.get("serial") if isinstance(device, dict) else device.serial
@@ -76,17 +93,22 @@ class MerakiCamera(CoordinatorEntity, Camera):
         self._camera_service = camera_service
         self._attr_unique_id = f"{self._device_serial}-camera"
         self._attr_name = f"[Camera] {name}"
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
         self._attr_model = self.device_data.get("model")
 
     @property
     def device_data(self) -> dict[str, Any]:
         """Return the device data from the coordinator."""
+<<<<<<< HEAD
+        return self.coordinator.get_device(self._device_serial) or {}
+=======
         import dataclasses
 
         data = self.coordinator.get_device(self._device_serial)
         if dataclasses.is_dataclass(data):
             return dataclasses.asdict(data)
         return data or {}
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
 
     @property
     def device_info(self) -> DeviceInfo:
@@ -176,17 +198,20 @@ class MerakiCamera(CoordinatorEntity, Camera):
         url = self.device_data.get("rtsp_url")
         return url is not None and isinstance(url, str) and url.startswith("rtsp://")
 
+<<<<<<< HEAD
+=======
     @property
     def entity_registry_enabled_default(self) -> bool:
-        """Return if entity is enabled by default."""
+        """Return if the entity should be enabled when first added to the entity registry."""
         # Enable the entity if there is an RTSP URL available or if RTSP is enabled
-        # This ensures the entity is visible even if the URL is not valid or available
+        # This ensures the entity is visible even if the URL is not valid or available yet
         if self.device_data.get("rtsp_url"):
             return True
 
         video_settings = self.device_data.get("video_settings", {})
         return video_settings.get("rtspServerEnabled", False)
 
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
     async def async_turn_on(self) -> None:
         """Turn on the camera stream."""
         _LOGGER.debug("Turning on stream for camera %s", self._device_serial)

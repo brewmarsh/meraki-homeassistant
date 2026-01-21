@@ -21,6 +21,15 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+<<<<<<< HEAD
+          ref: beta
+
+      - name: Set up Python and Node.js
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+      - uses: actions/setup-node@v4
+=======
           ref: ${{ github.base_ref }}
 
       - name: Set up Python and Node.js
@@ -28,6 +37,7 @@ jobs:
         with:
           python-version: '3.x'
       - uses: actions/setup-node@v6
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
         with:
           node-version: '20'
 
@@ -39,6 +49,10 @@ jobs:
 
       - name: Increment Version
         id: increment
+<<<<<<< HEAD
+        run: |
+          bump-my-version bump patch --allow-dirty
+=======
         env:
           PR_TITLE: ${{ github.event.pull_request.title }}
         run: |
@@ -53,6 +67,7 @@ jobs:
             fi
             bump-my-version bump $increment_type --allow-dirty
           fi
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
           new_version=$(grep -oP '"version": "\K[^"]+' custom_components/meraki_ha/manifest.json)
           echo "new_version=$new_version" >> "$GITHUB_OUTPUT"
 
@@ -64,6 +79,16 @@ jobs:
 
       - name: Commit and push changes
         if: steps.increment.outputs.new_version != ''
+<<<<<<< HEAD
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: 'chore(release): update version to ${{ steps.increment.outputs.new_version }}'
+          file_pattern: 'custom_components/meraki_ha/manifest.json package.json .bumpversion.cfg package-lock.json'
+          commit_user_name: 'github-actions[bot]'
+          commit_user_email: 'github-actions[bot]@users.noreply.github.com'
+          commit_author: 'github-actions[bot] <github-actions[bot]@users.noreply.github.com>'
+          branch: beta
+=======
         uses: stefanzweifel/git-auto-commit-action@v7
         with:
           commit_message: 'chore(release): update version to ${{ steps.increment.outputs.new_version }}'
@@ -72,6 +97,7 @@ jobs:
           commit_user_email: 'github-actions[bot]@users.noreply.github.com'
           commit_author: 'github-actions[bot] <github-actions[bot]@users.noreply.github.com>'
           branch: ${{ github.base_ref }}
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
 
   release:
     runs-on: ubuntu-latest

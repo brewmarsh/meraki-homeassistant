@@ -5,13 +5,19 @@ from unittest.mock import MagicMock
 from homeassistant.components.binary_sensor import BinarySensorDeviceClass
 
 from custom_components.meraki_ha.binary_sensor.switch_port import SwitchPortSensor
+<<<<<<< HEAD
+=======
 from custom_components.meraki_ha.types import MerakiDevice
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
 
 
 def test_switch_port_sensor_connected():
     """Test the sensor when the port is connected."""
     # Arrange
     mock_coordinator = MagicMock()
+<<<<<<< HEAD
+    mock_device = {"serial": "s1", "name": "d1"}
+=======
     mock_device = MerakiDevice(
         serial="s1",
         name="d1",
@@ -19,6 +25,7 @@ def test_switch_port_sensor_connected():
         mac="00:11:22:33:44:55",
         product_type="switch",
     )
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
     mock_port = {"portId": "p1", "status": "Connected"}
 
     sensor = SwitchPortSensor(mock_coordinator, mock_device, mock_port)
@@ -34,6 +41,9 @@ def test_switch_port_sensor_disconnected():
     """Test the sensor when the port is disconnected."""
     # Arrange
     mock_coordinator = MagicMock()
+<<<<<<< HEAD
+    mock_device = {"serial": "s1", "name": "d1"}
+=======
     mock_device = MerakiDevice(
         serial="s1",
         name="d1",
@@ -41,6 +51,7 @@ def test_switch_port_sensor_disconnected():
         mac="00:11:22:33:44:55",
         product_type="switch",
     )
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
     mock_port = {"portId": "p1", "status": "Disconnected"}
 
     sensor = SwitchPortSensor(mock_coordinator, mock_device, mock_port)
@@ -53,6 +64,9 @@ def test_extra_state_attributes():
     """Test the extra state attributes of the sensor."""
     # Arrange
     mock_coordinator = MagicMock()
+<<<<<<< HEAD
+    mock_device = {"serial": "s1", "name": "d1"}
+=======
     mock_device = MerakiDevice(
         serial="s1",
         name="d1",
@@ -60,6 +74,7 @@ def test_extra_state_attributes():
         mac="00:11:22:33:44:55",
         product_type="switch",
     )
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
     mock_port = {
         "portId": "p1",
         "speed": "1000",

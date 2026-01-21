@@ -8,8 +8,13 @@ from homeassistant.components.number import NumberEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import callback
 
+<<<<<<< HEAD
+from ..core.entities.meraki_network_entity import MerakiNetworkEntity
+from ..meraki_data_coordinator import MerakiDataCoordinator
+=======
 from ..coordinator import MerakiDataUpdateCoordinator
 from ..core.entities.meraki_network_entity import MerakiNetworkEntity
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
 from ..types import MerakiNetwork
 
 _LOGGER = logging.getLogger(__name__)
@@ -20,7 +25,11 @@ class MerakiUplinkBandwidthNumber(MerakiNetworkEntity, NumberEntity):
 
     def __init__(
         self,
+<<<<<<< HEAD
+        coordinator: MerakiDataCoordinator,
+=======
         coordinator: MerakiDataUpdateCoordinator,
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
         config_entry: ConfigEntry,
         network: MerakiNetwork,
         uplink: str,

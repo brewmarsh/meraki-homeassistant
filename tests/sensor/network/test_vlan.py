@@ -5,11 +5,51 @@ from unittest.mock import MagicMock
 import pytest
 
 from custom_components.meraki_ha.sensor.setup_helpers import async_setup_sensors
+<<<<<<< HEAD
+=======
 from custom_components.meraki_ha.types import MerakiNetwork, MerakiVlan
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
 
 
 @pytest.fixture
 def mock_coordinator():
+<<<<<<< HEAD
+    """Fixture for a mocked MerakiDataCoordinator."""
+    coordinator = MagicMock()
+    coordinator.config_entry = MagicMock()
+    coordinator.config_entry.options = {}
+    coordinator.data = {
+        "networks": [{"id": "net1", "name": "Test Network"}],
+        "vlans": {
+            "net1": [
+                {
+                    "id": 1,
+                    "name": "VLAN 1",
+                    "subnet": "192.168.1.0/24",
+                    "applianceIp": "192.168.1.1",
+                    "enabled": True,
+                    "ipv6": {
+                        "enabled": True,
+                        "prefix": "2001:db8:1::/64",
+                        "prefixAssignments": [
+                            {
+                                "origin": {
+                                    "type": "internet",
+                                    "interfaces": ["WAN 1", "WAN 2"],
+                                }
+                            }
+                        ],
+                    },
+                },
+                {
+                    "id": 2,
+                    "name": "VLAN 2",
+                    "subnet": "192.168.2.0/24",
+                    "applianceIp": "192.168.2.1",
+                    "enabled": False,
+                },
+            ]
+=======
     """Fixture for a mocked MerakiDataUpdateCoordinator."""
     coordinator = MagicMock()
     coordinator.config_entry = MagicMock()
@@ -67,6 +107,7 @@ def mock_coordinator():
         "networks": [mock_network],
         "vlans": {
             "net1": [vlan1, vlan2]
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
         },
         "devices": [],
         "clients": [],
@@ -78,10 +119,18 @@ def mock_coordinator():
 def test_vlan_sensor_creation(mock_coordinator):
     """Test that VLAN sensors are created correctly."""
     hass = MagicMock()
+<<<<<<< HEAD
+    camera_service = MagicMock()
+
+    # Run the setup
+    sensors = async_setup_sensors(
+        hass, mock_coordinator.config_entry, mock_coordinator, camera_service
+=======
 
     # Run the setup
     sensors = async_setup_sensors(
         hass, mock_coordinator.config_entry, mock_coordinator
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
     )
 
     # We expect 7 sensors for each of the two VLANs
@@ -113,8 +162,11 @@ def test_vlan_sensor_creation(mock_coordinator):
     assert ipv4_enabled_sensor.unique_id == "meraki_vlan_net1_1_ipv4_enabled"
     assert ipv4_enabled_sensor.name == "IPv4 Enabled"
     assert ipv4_enabled_sensor.native_value is True
+<<<<<<< HEAD
+=======
     # Logic for IPv4 Enabled: return self._vlan.appliance_ip is not None
     # vlan1 has appliance_ip, so True.
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
 
     # Assertions for IPv4 Interface IP Sensor
     assert ipv4_ip_sensor.unique_id == "meraki_vlan_net1_1_ipv4_interface_ip"

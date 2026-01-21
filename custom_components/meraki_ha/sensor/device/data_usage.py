@@ -1,9 +1,16 @@
+<<<<<<< HEAD
 """Sensor for Meraki appliance data usage."""
 
+import logging
+from typing import Any
+=======
 from __future__ import annotations
+
+"""Sensor for Meraki appliance data usage."""
 
 import logging
 from typing import TYPE_CHECKING, Any
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
 
 from homeassistant.components.sensor import SensorEntity, SensorStateClass
 from homeassistant.config_entries import ConfigEntry
@@ -13,11 +20,16 @@ from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from ...const import DOMAIN
+<<<<<<< HEAD
+from ...core.utils.naming_utils import format_device_name
+from ...meraki_data_coordinator import MerakiDataCoordinator
+=======
 from ...coordinator import MerakiDataUpdateCoordinator
 from ...core.utils.naming_utils import format_device_name
 
 if TYPE_CHECKING:
     from ...types import MerakiDevice
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -35,14 +47,24 @@ class MerakiDataUsageSensor(CoordinatorEntity, SensorEntity):
 
     def __init__(
         self,
+<<<<<<< HEAD
+        coordinator: MerakiDataCoordinator,
+        device_data: dict[str, Any],
+=======
         coordinator: MerakiDataUpdateCoordinator,
         device_data: MerakiDevice,
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
         config_entry: ConfigEntry,
     ) -> None:
         """Initialize the sensor."""
         super().__init__(coordinator)
+<<<<<<< HEAD
+        self._device_serial: str = device_data["serial"]
+        self._network_id: str = device_data["networkId"]
+=======
         self._device_serial: str = device_data.serial
         self._network_id: str = device_data.network_id
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
         self._config_entry = config_entry
         self._attr_unique_id = f"{self._device_serial}_data_usage"
         self._attr_name = "Data Usage"
@@ -50,6 +72,21 @@ class MerakiDataUsageSensor(CoordinatorEntity, SensorEntity):
         self._attr_device_info = DeviceInfo(
             identifiers={(DOMAIN, self._device_serial)},
             name=format_device_name(device_data, self._config_entry.options),
+<<<<<<< HEAD
+            model=device_data.get("model"),
+            manufacturer="Cisco Meraki",
+            sw_version=device_data.get("firmware"),
+        )
+        self._update_state()
+
+    def _get_current_device_data(self) -> dict[str, Any] | None:
+        """Retrieve the latest data for this sensor's device from the coordinator."""
+        if self.coordinator.data and self.coordinator.data.get("devices"):
+            for device in self.coordinator.data["devices"]:
+                if device.get("serial") == self._device_serial:
+                    return device
+        return None
+=======
             model=device_data.model,
             manufacturer="Cisco Meraki",
             sw_version=device_data.firmware,
@@ -59,6 +96,7 @@ class MerakiDataUsageSensor(CoordinatorEntity, SensorEntity):
     def _get_current_device_data(self) -> MerakiDevice | None:
         """Retrieve the latest data for this sensor's device from the coordinator."""
         return self.coordinator.get_device(self._device_serial)
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
 
     @callback
     def _update_state(self) -> None:

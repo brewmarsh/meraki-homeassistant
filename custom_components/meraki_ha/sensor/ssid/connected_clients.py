@@ -1,4 +1,7 @@
+<<<<<<< HEAD
+=======
 
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
 """Sensor entity for monitoring connected clients on a Meraki SSID."""
 
 import logging
@@ -9,8 +12,13 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import callback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
+<<<<<<< HEAD
+from ...helpers.device_info_helpers import resolve_device_info
+from ...meraki_data_coordinator import MerakiDataCoordinator
+=======
 from ...coordinator import MerakiDataUpdateCoordinator
 from ...helpers.device_info_helpers import resolve_device_info
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -25,7 +33,11 @@ class MerakiSsidConnectedClientsSensor(CoordinatorEntity, SensorEntity):
 
     def __init__(
         self,
+<<<<<<< HEAD
+        coordinator: MerakiDataCoordinator,
+=======
         coordinator: MerakiDataUpdateCoordinator,
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
         network_id: str,
         ssid_data: dict[str, Any],
         config_entry: ConfigEntry,
@@ -38,21 +50,46 @@ class MerakiSsidConnectedClientsSensor(CoordinatorEntity, SensorEntity):
         self._attr_unique_id = (
             f"{self._network_id}_{self._ssid_number}_connected_clients"
         )
+<<<<<<< HEAD
+        self._attr_name = f"{ssid_data['name']} Connected Clients"
+=======
         self._attr_name = "Connected clients"
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
 
         self._attr_device_info = resolve_device_info(
             entity_data=ssid_data,
             config_entry=self._config_entry,
         )
+<<<<<<< HEAD
+        self._update_state()
+=======
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
 
     @callback
     def _update_state(self) -> None:
         """Update the native value of the sensor based on coordinator data."""
         all_clients = self.coordinator.data.get("clients", [])
+<<<<<<< HEAD
+        if not all_clients:
+            self._attr_native_value = 0
+            return
+
+        ssid_name = None
+        for ssid in self.coordinator.data.get("ssids", []):
+            if (
+                ssid.get("networkId") == self._network_id
+                and ssid.get("number") == self._ssid_number
+            ):
+                ssid_name = ssid.get("name")
+                break
+
+        if not ssid_name:
+=======
         ssid = self.coordinator.get_ssid(self._network_id, self._ssid_number)
         ssid_name = ssid.get("name") if ssid else None
 
         if not ssid_name or not all_clients:
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
             self._attr_native_value = 0
             return
 

@@ -18,6 +18,35 @@ This is the **most critical pattern** in this codebase for all entities that mod
 
 The required logic is as follows:
 
+<<<<<<< HEAD
+1.  **Optimistic State Update:** The entity's action method (e.g., `async_turn_on`) **must** immediately update its own state and tell Home Assistant to write this state to the UI.
+
+    ```python
+    # Example from a switch
+    self._attr_is_on = True
+    self.async_write_ha_state()
+    ```
+
+2.  **Fire-and-Forget API Call:** The method should then make the API call to Meraki without waiting for a response to be confirmed by a refresh.
+
+3.  **Register a Cooldown:** After making the API call, the entity **must** register a "pending update" with the central `MerakiDataCoordinator`. This acts as a cooldown period (default 150 seconds).
+
+    ```python
+    # Example
+    self.coordinator.register_pending_update(self.unique_id)
+    ```
+
+4.  **Ignore Coordinator Updates:** The entity's state update method (`_update_internal_state`) **must** check if it is in a cooldown period before processing new data. If it is, it must `return` and do nothing.
+
+    ```python
+    # Example
+    def _update_internal_state(self) -> None:
+        if self.coordinator.is_pending(self.unique_id):
+            return  # Ignore update, optimistic state is in control
+
+        # ... rest of the update logic ...
+    ```
+=======
 1. **Optimistic State Update:** The entity's action method (e.g., `async_turn_on`) **must** immediately update its own state and tell Home Assistant to write this state to the UI.
 
    ```python
@@ -45,6 +74,7 @@ The required logic is as follows:
 
        # ... rest of the update logic ...
    ```
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
 
 **Do not attempt to "fix" this by forcing an immediate refresh after an action.** This will not work and will re-introduce the original bug.
 
@@ -61,27 +91,42 @@ The required logic is as follows:
 Follow these rules to ensure consistency with Home Assistant's design patterns and this integration's helpers.
 
 - **Device & Entity Helpers:**
+<<<<<<< HEAD
+=======
 
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
   - **Device Info:** **Do not** create `DeviceInfo` objects manually. Always use the `resolve_device_info` helper in `custom_components/meraki_ha/helpers/device_info_helpers.py`.
   - **Device Name:** Use the `format_device_name` utility for the `name` field within `DeviceInfo`.
   - **Entity Name:** Use the `format_entity_name` helper for the entity's own name (`_attr_name`).
 
 - **Handling Disabled Features:**
+<<<<<<< HEAD
+=======
 
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
   - When an API call fails because a feature (like Traffic Analysis or VLANs) is disabled in the Meraki Dashboard, the corresponding entity should not become `unknown`.
   - Instead, its state **must** be set to `Disabled`, and an attribute should be added to explain the reason.
 
 - **Testing New Entities:**
+<<<<<<< HEAD
+=======
 
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
   - A useful pattern for testing new, dynamically created sensors is to call `async_setup_sensors` (or the equivalent setup helper) with mock coordinator data.
   - You can then inspect the list of entities returned by the helper to validate their properties. This is often more effective than testing the sensor class in isolation.
 
 - **Constants:**
+<<<<<<< HEAD
+  - All constants (domain names, default values, keys) **must** be defined in `custom_components/meraki_ha/const.py`. Do not use magic strings in entity or coordinator code.
+
+- **Configuration Validation:**
+=======
 
   - All constants (domain names, default values, keys) **must** be defined in `custom_components/meraki_ha/const.py`. Do not use magic strings in entity or coordinator code.
 
 - **Configuration Validation:**
 
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
   - All configuration data (from `configuration.yaml` or UI config flows) **must** be validated using `voluptuous` schemas.
 
 - **API Documentation:**
@@ -95,12 +140,18 @@ Follow these rules to ensure consistency with Home Assistant's design patterns a
 The self-hosted web interface is a React application located in `custom_components/meraki_ha/web_ui/`.
 
 - **Source vs. Build:**
+<<<<<<< HEAD
+=======
 
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
   - The human-readable source code is in the `src/` directory.
   - The code actually served to the browser is the compiled/optimized output in the `dist/` directory.
 
 - **Agent Build Simulation:**
+<<<<<<< HEAD
+=======
 
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
   - As an agent, you **cannot** run the `npm run build` command.
   - If you make changes to any files in the `src/` directory, you **must** manually update the corresponding file in `dist/` to reflect your changes.
   - The most important file to keep updated for E2E tests is `dist/assets/index.js`. You may need to write a simplified, non-JSX version of the React logic in this file to ensure tests pass.
@@ -118,6 +169,16 @@ The self-hosted web interface is a React application located in `custom_componen
 
 This project uses [Poetry](https://python-poetry.org/) for dependency management.
 
+<<<<<<< HEAD
+1.  Install dependencies:
+    ```bash
+    poetry install
+    ```
+2.  Activate the virtual environment:
+    ```bash
+    poetry shell
+    ```
+=======
 1. Install dependencies:
    ```bash
    poetry install
@@ -126,11 +187,44 @@ This project uses [Poetry](https://python-poetry.org/) for dependency management
    ```bash
    poetry shell
    ```
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
 
 ### Running Quality Checks
 
 Before submitting, you **must** run all quality checks. These are also enforced by pre-commit hooks.
 
+<<<<<<< HEAD
+1.  **Linting & Formatting (Ruff):**
+
+    ```bash
+    poetry run ruff check --fix .
+    poetry run ruff format .
+    ```
+
+2.  **Type Checking (mypy):**
+
+    ```bash
+    poetry run mypy .
+    ```
+
+3.  **Security Analysis (bandit):**
+
+    ```bash
+    poetry run bandit -r custom_components/meraki_ha/
+    ```
+
+4.  **Run Tests (pytest):**
+
+    ```bash
+    poetry run pytest
+    ```
+
+5.  **Home Assistant Validation (hassfest):**
+    This ensures the integration's manifest and structure are valid.
+    ```bash
+    poetry run python -m script.hassfest
+    ```
+=======
 1. **Linting & Formatting (Ruff):**
 
    ```bash
@@ -161,6 +255,7 @@ Before submitting, you **must** run all quality checks. These are also enforced 
    ```bash
    poetry run python -m script.hassfest
    ```
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
 
 ### Debugging
 

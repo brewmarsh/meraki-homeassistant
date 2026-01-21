@@ -13,7 +13,11 @@ from custom_components.meraki_ha.switch.meraki_ssid_device_switch import (
 
 @pytest.fixture
 def mock_coordinator_with_ssid_data(mock_coordinator: MagicMock) -> MagicMock:
+<<<<<<< HEAD
+    """Fixture for a mocked MerakiDataCoordinator with SSID data."""
+=======
     """Fixture for a mocked MerakiDataUpdateCoordinator with SSID data."""
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
     mock_coordinator.config_entry.options = {}
     mock_coordinator.async_request_refresh = AsyncMock()
     mock_coordinator.is_pending.return_value = False
@@ -62,8 +66,12 @@ async def test_meraki_ssid_enabled_switch(
     assert switch.is_on is True
     assert switch.name == "Enabled Control"
     device_info = switch.device_info
+<<<<<<< HEAD
+    assert device_info is not None
+=======
     if device_info is None:
         pytest.fail("Device info is None")
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
     assert device_info["name"] == "[SSID] Test SSID"
 
     # Test with omit format
@@ -76,8 +84,12 @@ async def test_meraki_ssid_enabled_switch(
     )
     assert switch.name == "Enabled Control"
     device_info = switch.device_info
+<<<<<<< HEAD
+    assert device_info is not None
+=======
     if device_info is None:
         pytest.fail("Device info is None")
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
     assert device_info["name"] == "Test SSID"
 
     switch.hass = hass
@@ -109,8 +121,12 @@ async def test_meraki_ssid_broadcast_switch(
     assert switch.is_on is True
     assert switch.name == "Broadcast Control"
     device_info = switch.device_info
+<<<<<<< HEAD
+    assert device_info is not None
+=======
     if device_info is None:
         pytest.fail("Device info is None")
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
     assert device_info["name"] == "[SSID] Test SSID"
 
     # Test with omit format
@@ -123,8 +139,12 @@ async def test_meraki_ssid_broadcast_switch(
     )
     assert switch.name == "Broadcast Control"
     device_info = switch.device_info
+<<<<<<< HEAD
+    assert device_info is not None
+=======
     if device_info is None:
         pytest.fail("Device info is None")
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
     assert device_info["name"] == "Test SSID"
 
     switch.hass = hass

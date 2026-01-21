@@ -1,16 +1,13 @@
 """Tests for BaseMerakiEntity."""
 
 from unittest.mock import MagicMock
-
 import pytest
-
 from custom_components.meraki_ha.core.entities import BaseMerakiEntity
 from custom_components.meraki_ha.types import MerakiDevice, MerakiNetwork
-
+from homeassistant.helpers.device_registry import DeviceInfo
 
 class MockEntity(BaseMerakiEntity):
     """Mock entity for testing."""
-
     def __init__(self, coordinator, config_entry, serial=None, network_id=None):
         super().__init__(coordinator, config_entry, serial, network_id)
 

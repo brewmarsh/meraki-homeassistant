@@ -5,6 +5,12 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING, Any
 
+<<<<<<< HEAD
+import meraki
+
+from custom_components.meraki_ha.core.errors import MerakiTrafficAnalysisError
+=======
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
 from custom_components.meraki_ha.core.utils.api_utils import (
     handle_meraki_errors,
     validate_response,
@@ -32,6 +38,12 @@ class NetworkEndpoints:
 
         """
         self._api_client = api_client
+<<<<<<< HEAD
+
+    @handle_meraki_errors
+    @async_timed_cache(timeout=60)
+    async def get_network_clients(self, network_id: str) -> list[dict[str, Any]]:
+=======
         self._dashboard = api_client.dashboard
 
     @handle_meraki_errors
@@ -44,22 +56,34 @@ class NetworkEndpoints:
         statuses: list[str] | None = None,
         total_pages: int | str = "all",
     ) -> list[dict[str, Any]]:
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
         """
         Get all clients in a network.
 
         Args:
         ----
             network_id: The ID of the network.
+<<<<<<< HEAD
+=======
             timespan: The timespan for which to query clients.
             perPage: The number of entries per page returned.
             statuses: Filter clients by status.
             total_pages: The number of pages to retrieve, or "all".
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
 
         Returns
         -------
             A list of clients.
 
         """
+<<<<<<< HEAD
+        if self._api_client.dashboard is None:
+            return []
+        clients = await self._api_client.run_sync(
+            self._api_client.dashboard.networks.getNetworkClients,
+            networkId=network_id,
+            total_pages="all",
+=======
         kwargs = {
             "networkId": network_id,
             "total_pages": total_pages,
@@ -74,6 +98,7 @@ class NetworkEndpoints:
         clients = await self._api_client.run_sync(
             self._dashboard.networks.getNetworkClients,
             **kwargs,
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
         )
         validated = validate_response(clients)
         if not isinstance(validated, list):
@@ -99,12 +124,36 @@ class NetworkEndpoints:
             A list of traffic data.
 
         """
+<<<<<<< HEAD
+        if self._api_client.dashboard is None:
+            return []
+        try:
+            traffic = await self._api_client.run_sync(
+                self._api_client.dashboard.networks.getNetworkTraffic,
+                networkId=network_id,
+                deviceType=device_type,
+                timespan=86400,  # 24 hours
+            )
+        except meraki.APIError as e:
+            if "Traffic Analysis with Hostname Visibility must be enabled" in str(e):
+                _LOGGER.info(
+                    "Traffic analysis is not enabled for network %s. "
+                    "Please enable it at "
+                    "https://documentation.meraki.com/MX/Design_and_Configure/Configuration_Guides/Firewall_and_Traffic_Shaping/Traffic_Analysis_and_Classification",
+                    network_id,
+                )
+                raise MerakiTrafficAnalysisError(
+                    f"Traffic analysis not enabled for network {network_id}"
+                ) from e
+            raise
+=======
         traffic = await self._api_client.run_sync(
             self._dashboard.networks.getNetworkTraffic,
             networkId=network_id,
             deviceType=device_type,
             timespan=86400,  # 24 hours
         )
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
         validated = validate_response(traffic)
         if not isinstance(validated, list):
             _LOGGER.warning("get_network_traffic did not return a list.")
@@ -126,8 +175,15 @@ class NetworkEndpoints:
             A list of webhooks.
 
         """
+<<<<<<< HEAD
+        if self._api_client.dashboard is None:
+            return []
+        webhooks = await self._api_client.run_sync(
+            self._api_client.dashboard.networks.getNetworkWebhooksHttpServers,
+=======
         webhooks = await self._api_client.run_sync(
             self._dashboard.networks.getNetworkWebhooksHttpServers,
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
             networkId=network_id,
         )
         validated = validate_response(webhooks)
@@ -147,8 +203,15 @@ class NetworkEndpoints:
             webhook_id: The ID of the webhook.
 
         """
+<<<<<<< HEAD
+        if self._api_client.dashboard is None:
+            return
+        await self._api_client.run_sync(
+            self._api_client.dashboard.networks.deleteNetworkWebhooksHttpServer,
+=======
         await self._api_client.run_sync(
             self._dashboard.networks.deleteNetworkWebhooksHttpServer,
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
             networkId=network_id,
             httpServerId=webhook_id,
         )
@@ -194,8 +257,15 @@ class NetworkEndpoints:
             if existing_webhook:
                 await self.delete_webhook(network_id, existing_webhook["id"])
 
+<<<<<<< HEAD
+            if self._api_client.dashboard is None:
+                return
+            await self._api_client.run_sync(
+                self._api_client.dashboard.networks.createNetworkWebhooksHttpServer,
+=======
             await self._api_client.run_sync(
                 self._dashboard.networks.createNetworkWebhooksHttpServer,
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
                 networkId=network_id,
                 url=webhook_url,
                 sharedSecret=secret,
@@ -203,17 +273,48 @@ class NetworkEndpoints:
             )
 
     @handle_meraki_errors
+<<<<<<< HEAD
+    async def unregister_webhook(self, webhook_url: str) -> None:
+=======
     async def unregister_webhook(self, webhook_id: str) -> None:
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
         """
         Unregister a webhook with the Meraki API.
 
         Args:
         ----
+<<<<<<< HEAD
+            webhook_url: The URL of the webhook to unregister.
+=======
             webhook_id: The ID of the webhook.
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
 
         """
         networks = await self._api_client.organization.get_organization_networks()
         for network in networks:
+<<<<<<< HEAD
+            network_id = network["id"]
+            webhook_to_delete = await self.find_webhook_by_url(network_id, webhook_url)
+            if webhook_to_delete and "id" in webhook_to_delete:
+                _LOGGER.debug(
+                    "Deleting webhook %s from network %s",
+                    webhook_to_delete["id"],
+                    network_id,
+                )
+                await self.delete_webhook(network_id, webhook_to_delete["id"])
+
+    @handle_meraki_errors
+    @async_timed_cache(timeout=60)
+    async def get_network_camera_analytics_history(
+        self, network_id: str, object_type: str
+    ) -> list[dict[str, Any]]:
+        """
+        Get analytics history for a network.
+
+        Args:
+        ----
+            network_id: The ID of the network.
+=======
             await self._api_client.run_sync(
                 self._dashboard.networks.deleteNetworkWebhooksHttpServer,
                 networkId=network["id"],
@@ -231,6 +332,7 @@ class NetworkEndpoints:
         Args:
         ----
             serial: The serial of the device.
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
             object_type: The type of object to get analytics for.
 
         Returns
@@ -238,15 +340,57 @@ class NetworkEndpoints:
             A list of analytics history.
 
         """
+<<<<<<< HEAD
+        if self._api_client.dashboard is None:
+            return []
+        history = await self._api_client.run_sync(
+            self._api_client.dashboard.camera.getNetworkCameraAnalyticsRecent,
+            networkId=network_id,
+=======
         history = await self._api_client.run_sync(
             self._dashboard.camera.getDeviceCameraAnalyticsRecent,
             serial=serial,
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
             objectType=object_type,
         )
         validated = validate_response(history)
         if not isinstance(validated, list):
             _LOGGER.warning(
+<<<<<<< HEAD
+                "get_network_camera_analytics_history did not return a list."
+            )
+            return []
+        return validated
+
+    @handle_meraki_errors
+    @async_timed_cache(timeout=300)
+    async def get_network_group_policies(self, network_id: str) -> list[dict[str, Any]]:
+        """
+        Get all group policies for a network.
+
+        Args:
+        ----
+            network_id: The ID of the network.
+
+        Returns
+        -------
+            A list of group policies.
+
+        """
+        if self._api_client.dashboard is None:
+            return []
+        policies = await self._api_client.run_sync(
+            self._api_client.dashboard.networks.getNetworkGroupPolicies,
+            networkId=network_id,
+        )
+        validated = validate_response(policies)
+        if not isinstance(validated, list):
+            _LOGGER.warning("get_network_group_policies did not return a list.")
+            return []
+        return validated
+=======
                 "get_device_camera_analytics_history did not return a list."
             )
             return []
         return validated
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)

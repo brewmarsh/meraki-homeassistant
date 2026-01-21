@@ -10,8 +10,13 @@ import logging
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
+<<<<<<< HEAD
+    from ..core.api.client import MerakiAPIClient
+    from ..meraki_data_coordinator import MerakiDataCoordinator
+=======
     from ..coordinator import MerakiDataUpdateCoordinator
     from ..core.api.client import MerakiAPIClient
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
 
 
 _LOGGER = logging.getLogger(__name__)
@@ -23,7 +28,11 @@ class NetworkControlService:
     def __init__(
         self,
         api_client: MerakiAPIClient,
+<<<<<<< HEAD
+        coordinator: MerakiDataCoordinator,
+=======
         coordinator: MerakiDataUpdateCoordinator,
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
     ) -> None:
         """Initialize the network control service."""
         self._api_client = api_client
@@ -34,6 +43,13 @@ class NetworkControlService:
         if not self._coordinator.data or not self._coordinator.data.get("clients"):
             return 0
 
+<<<<<<< HEAD
+        count = 0
+        for client in self._coordinator.data["clients"]:
+            if client.get("networkId") == network_id:
+                count += 1
+        return count
+=======
         return len(
             [
                 client
@@ -41,3 +57,4 @@ class NetworkControlService:
                 if client.get("networkId") == network_id
             ]
         )
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)

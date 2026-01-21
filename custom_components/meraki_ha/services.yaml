@@ -1,0 +1,3 @@
+# Services configuration for Meraki HA
+# Currently no custom services are registered.
+# This file is required by the integration validator.

@@ -2,6 +2,12 @@
 
 from __future__ import annotations
 
+<<<<<<< HEAD
+from typing import TypedDict
+
+
+class MerakiVlan(TypedDict):
+=======
 from dataclasses import dataclass, field
 from typing import Any
 
@@ -111,10 +117,30 @@ class MerakiNetwork:
 
 @dataclass
 class MerakiVlan:
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
     """Represents a Meraki VLAN."""
 
     id: str
     name: str
+<<<<<<< HEAD
+    subnet: str | None
+    applianceIp: str | None
+    ipv6: dict | None
+
+
+class MerakiNetwork(TypedDict):
+    """Represents a Meraki Network."""
+
+    id: str
+    name: str
+    productTypes: list[str]
+    organizationId: str
+    tags: str | None
+    clientCount: int | None
+
+
+class MerakiFirewallRule(TypedDict):
+=======
     subnet: str | None = None
     appliance_ip: str | None = None
     ipv6: dict | None = None
@@ -135,11 +161,53 @@ class MerakiVlan:
 
 @dataclass
 class MerakiFirewallRule:
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
     """Represents a Meraki L3 Firewall Rule."""
 
     comment: str
     policy: str
     protocol: str
+<<<<<<< HEAD
+    destPort: str
+    destCidr: str
+    srcPort: str
+    srcCidr: str
+    syslogEnabled: bool
+
+
+class MerakiTrafficShaping(TypedDict):
+    """Represents Meraki Traffic Shaping settings."""
+
+    enabled: bool
+    rules: list
+
+
+class MerakiVpn(TypedDict):
+    """Represents Meraki Site-to-Site VPN settings."""
+
+    mode: str
+    hubs: list
+    subnets: list
+
+
+class MerakiDevice(TypedDict, total=False):
+    """Represents a Meraki Device. Not all keys are guaranteed."""
+
+    serial: str
+    name: str
+    model: str
+    networkId: str
+    status: str | None
+    productType: str
+    lanIp: str | None
+    video_settings: dict
+    ports_statuses: list
+    radio_settings: dict
+    dynamicDns: dict
+    rtsp_url: str | None
+    sense_settings: dict
+    readings: list[dict]
+=======
     dest_port: str | None = None
     dest_cidr: str | None = None
     src_port: str | None = None
@@ -223,3 +291,4 @@ class MerakiAppliancePort:
             status=data.get("status"),
             speed=data.get("speed"),
         )
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)

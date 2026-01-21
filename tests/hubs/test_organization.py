@@ -10,7 +10,11 @@ from tests.const import MOCK_NETWORK
 
 @pytest.fixture
 def mock_coordinator_with_network(mock_coordinator: MagicMock) -> MagicMock:
+<<<<<<< HEAD
+    """Fixture for a mocked MerakiDataCoordinator with a network."""
+=======
     """Fixture for a mocked MerakiDataUpdateCoordinator with a network."""
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
     mock_coordinator.data = {"networks": [MOCK_NETWORK]}
     return mock_coordinator
 
@@ -24,7 +28,11 @@ def test_organization_hub_init(mock_coordinator_with_network: MagicMock) -> None
 def test_organization_id_property(mock_coordinator_with_network: MagicMock) -> None:
     """Test the organization_id property."""
     hub = OrganizationHub(mock_coordinator_with_network)
+<<<<<<< HEAD
+    assert hub.organization_id == MOCK_NETWORK["organizationId"]
+=======
     assert hub.organization_id == MOCK_NETWORK.organization_id
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
 
 
 def test_organization_id_property_no_data(

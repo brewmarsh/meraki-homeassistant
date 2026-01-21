@@ -2,6 +2,13 @@
 
 from __future__ import annotations
 
+<<<<<<< HEAD
+from homeassistant.config_entries import ConfigEntry
+from homeassistant.helpers.entity import DeviceInfo
+
+from ...core.utils.naming_utils import format_device_name
+from ...meraki_data_coordinator import MerakiDataCoordinator
+=======
 import dataclasses
 
 from homeassistant.config_entries import ConfigEntry
@@ -9,6 +16,7 @@ from homeassistant.helpers.entity import DeviceInfo
 
 from ...coordinator import MerakiDataUpdateCoordinator
 from ...core.utils.naming_utils import format_device_name
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
 from ...types import MerakiFirewallRule
 from . import BaseMerakiEntity
 
@@ -18,7 +26,11 @@ class MerakiFirewallRuleEntity(BaseMerakiEntity):
 
     def __init__(
         self,
+<<<<<<< HEAD
+        coordinator: MerakiDataCoordinator,
+=======
         coordinator: MerakiDataUpdateCoordinator,
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
         config_entry: ConfigEntry,
         network_id: str,
         rule: MerakiFirewallRule,
@@ -45,10 +57,14 @@ class MerakiFirewallRuleEntity(BaseMerakiEntity):
         self._rule_index = rule_index
         if self._network_id is None:
             raise ValueError("Network ID cannot be None for a firewall rule entity")
+<<<<<<< HEAD
+        rule_device_data = {**rule, "productType": "firewall_rule"}
+=======
 
         rule_device_data = dataclasses.asdict(rule)
         rule_device_data["productType"] = "firewall_rule"
 
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
         formatted_name = format_device_name(
             device=rule_device_data,
             config=self._config_entry.options,

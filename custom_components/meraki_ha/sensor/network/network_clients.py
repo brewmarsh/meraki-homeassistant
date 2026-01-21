@@ -1,14 +1,19 @@
 """Sensor for tracking clients on a specific network."""
 
 import logging
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, cast
 
 from homeassistant.components.sensor import SensorEntity, SensorStateClass
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import callback
 
+<<<<<<< HEAD
+from ...core.entities.meraki_network_entity import MerakiNetworkEntity
+from ...meraki_data_coordinator import MerakiDataCoordinator
+=======
 from ...coordinator import MerakiDataUpdateCoordinator
 from ...core.entities.meraki_network_entity import MerakiNetworkEntity
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
 from ...types import MerakiNetwork
 
 if TYPE_CHECKING:
@@ -26,6 +31,15 @@ class MerakiNetworkClientsSensor(MerakiNetworkEntity, SensorEntity):
 
     def __init__(
         self,
+<<<<<<< HEAD
+        coordinator: MerakiDataCoordinator,
+        config_entry: ConfigEntry,
+        network_data: dict[str, Any],
+        network_control_service: "NetworkControlService",
+    ) -> None:
+        """Initialize the sensor."""
+        super().__init__(coordinator, config_entry, cast(MerakiNetwork, network_data))
+=======
         coordinator: MerakiDataUpdateCoordinator,
         config_entry: ConfigEntry,
         network_data: MerakiNetwork,
@@ -33,6 +47,7 @@ class MerakiNetworkClientsSensor(MerakiNetworkEntity, SensorEntity):
     ) -> None:
         """Initialize the sensor."""
         super().__init__(coordinator, config_entry, network_data)
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
         self._network_control_service = network_control_service
         self._attr_unique_id = f"meraki_network_clients_{self._network_id}"
         self._attr_name = "Clients"

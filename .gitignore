@@ -1,3 +1,41 @@
+<<<<<<< HEAD
+# --- Meraki HA & Jules Environment (v2.4.0) ---
+
+# Python & Core Bytecode
+*.py[cod]
+*$py.class
+__pycache__/
+
+# Agent & Virtual Environment Artifacts
+.venv/
+.jules/
+archive/agent-artifacts/
+*.log
+
+# Testing & Linting Caches (The "File Multipliers")
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+coverage.xml
+test-output/
+
+# Node/npm & Frontend
+node_modules/
+custom_components/meraki_ha/www/node_modules/
+.cache/
+*.cache/
+.prettier-cache/
+
+# Home Assistant Local Storage & Builds
+.storage/
+.cloud/
+dist/
+
+# System/OS Junk
+.DS_Store
+Thumbs.db
+=======
 # Used by `pre-commit` to cache environments.
 .pre-commit-cache/
 
@@ -32,3 +70,5 @@ pip-wheel-metadata/
 
 # Jupyter
 .ipynb_checkpoints/
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
+node_modules/

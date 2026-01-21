@@ -8,7 +8,11 @@ from homeassistant.components.sensor import SensorEntityDescription
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import EntityCategory
 
+<<<<<<< HEAD
+from ...meraki_data_coordinator import MerakiDataCoordinator
+=======
 from ...coordinator import MerakiDataUpdateCoordinator
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
 from .base import MerakiSSIDBaseSensor
 
 
@@ -24,7 +28,11 @@ class MerakiSSIDChannelSensor(MerakiSSIDBaseSensor):
 
     def __init__(
         self,
+<<<<<<< HEAD
+        coordinator: MerakiDataCoordinator,
+=======
         coordinator: MerakiDataUpdateCoordinator,
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
         config_entry: ConfigEntry,
         ssid_data: dict[str, Any],
     ) -> None:

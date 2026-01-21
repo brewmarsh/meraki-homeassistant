@@ -11,9 +11,15 @@ from homeassistant.core import callback
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
+<<<<<<< HEAD
+from ..core.api.client import MerakiAPIClient
+from ..helpers.device_info_helpers import resolve_device_info
+from ..meraki_data_coordinator import MerakiDataCoordinator
+=======
 from ..coordinator import MerakiDataUpdateCoordinator
 from ..core.api.client import MerakiAPIClient
 from ..helpers.device_info_helpers import resolve_device_info
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -26,7 +32,11 @@ class MerakiMt40PowerOutlet(
 
     def __init__(
         self,
+<<<<<<< HEAD
+        coordinator: MerakiDataCoordinator,
+=======
         coordinator: MerakiDataUpdateCoordinator,
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
         device_info: dict[str, Any],
         config_entry: ConfigEntry,
         meraki_client: MerakiAPIClient,
@@ -46,8 +56,13 @@ class MerakiMt40PowerOutlet(
         self._device_info = device_info
         self._config_entry = config_entry
         self._meraki_client = meraki_client
+<<<<<<< HEAD
+        self._attr_unique_id = f"{self._device_info['serial']}-outlet"
+        self._attr_name = f"{self._device_info['name']} Outlet"
+=======
         self._attr_unique_id = f"{self._device_info.serial}-outlet"
         self._attr_name = f"{self._device_info.name} Outlet"
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
         self._attr_is_on: bool | None = None
 
     @property
@@ -58,7 +73,18 @@ class MerakiMt40PowerOutlet(
     @callback
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
+<<<<<<< HEAD
+        device = next(
+            (
+                d
+                for d in self.coordinator.data.get("devices", [])
+                if d.get("serial") == self._device_info["serial"]
+            ),
+            None,
+        )
+=======
         device = self.coordinator.get_device(serial=self._device_info.serial)
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
         if device:
             self._device_info = device
             if not self.coordinator.is_pending(self.unique_id):
@@ -69,12 +95,21 @@ class MerakiMt40PowerOutlet(
 
     def _get_power_state(self) -> bool | None:
         """Get the power state from the device's readings."""
+<<<<<<< HEAD
+        readings = self._device_info.get("readings")
+        if not isinstance(readings, list):
+=======
         if not isinstance(self._device_info.readings, list):
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
             return None
         return next(
             (
                 reading.get("value")
+<<<<<<< HEAD
+                for reading in readings
+=======
                 for reading in self._device_info.readings
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
                 if reading.get("metric") == "downstream_power"
             ),
             None,
@@ -95,7 +130,11 @@ class MerakiMt40PowerOutlet(
 
         try:
             await self._meraki_client.sensor.create_device_sensor_command(
+<<<<<<< HEAD
+                serial=self._device_info["serial"],
+=======
                 serial=self._device_info.serial,
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
                 operation="enableDownstreamPower",
             )
         except Exception as e:
@@ -117,7 +156,11 @@ class MerakiMt40PowerOutlet(
 
         try:
             await self._meraki_client.sensor.create_device_sensor_command(
+<<<<<<< HEAD
+                serial=self._device_info["serial"],
+=======
                 serial=self._device_info.serial,
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
                 operation="disableDownstreamPower",
             )
         except Exception as e:

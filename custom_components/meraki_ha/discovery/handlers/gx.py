@@ -13,6 +13,12 @@ if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
     from homeassistant.helpers.entity import Entity
 
+<<<<<<< HEAD
+    from ....types import MerakiDevice
+    from ...meraki_data_coordinator import (
+        MerakiDataCoordinator,
+    )
+=======
     from ....core.coordinators.meraki_data_coordinator import (
         MerakiDataUpdateCoordinator,
     )
@@ -21,6 +27,7 @@ if TYPE_CHECKING:
     )
     from ....services.camera_service import CameraService
     from ....types import MerakiDevice
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
     from ...services.device_control_service import DeviceControlService
     from ...services.network_control_service import NetworkControlService
 
@@ -33,7 +40,11 @@ class GXHandler(BaseDeviceHandler):
 
     def __init__(
         self,
+<<<<<<< HEAD
+        coordinator: MerakiDataCoordinator,
+=======
         coordinator: MerakiDataUpdateCoordinator,
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
         device: MerakiDevice,
         config_entry: ConfigEntry,
         control_service: DeviceControlService,
@@ -47,6 +58,14 @@ class GXHandler(BaseDeviceHandler):
     @classmethod
     def create(
         cls,
+<<<<<<< HEAD
+        coordinator: MerakiDataCoordinator,
+        device: MerakiDevice,
+        config_entry: ConfigEntry,
+        camera_service,  # Unused
+        control_service: DeviceControlService,
+        network_control_service: NetworkControlService,
+=======
         coordinator: MerakiDataUpdateCoordinator,
         device: MerakiDevice,
         config_entry: ConfigEntry,
@@ -54,6 +73,7 @@ class GXHandler(BaseDeviceHandler):
         control_service: DeviceControlService,
         network_control_service: NetworkControlService,
         switch_port_coordinator: SwitchPortStatusCoordinator,
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
     ) -> GXHandler:
         """Create an instance of the handler."""
         return cls(
@@ -75,7 +95,11 @@ class GXHandler(BaseDeviceHandler):
             "appliance_uplink_statuses"
         ):
             for status in self._coordinator.data["appliance_uplink_statuses"]:
+<<<<<<< HEAD
+                if status.get("serial") == self.device["serial"]:
+=======
                 if status.get("serial") == self.device.serial:
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
                     for uplink in status.get("uplinks", []):
                         entities.append(
                             MerakiApplianceUplinkSensor(

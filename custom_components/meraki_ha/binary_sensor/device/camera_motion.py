@@ -13,12 +13,20 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
+<<<<<<< HEAD
+from ...helpers.device_info_helpers import resolve_device_info
+from ...meraki_data_coordinator import MerakiDataCoordinator
+
+if TYPE_CHECKING:
+    from ...services.camera_service import CameraService
+=======
 from ...coordinator import MerakiDataUpdateCoordinator
 from ...helpers.device_info_helpers import resolve_device_info
 
 if TYPE_CHECKING:
     from ...services.camera_service import CameraService
     from ...types import MerakiDevice
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
 
 
 _LOGGER = logging.getLogger(__name__)
@@ -31,8 +39,13 @@ class MerakiMotionSensor(CoordinatorEntity, BinarySensorEntity):
 
     def __init__(
         self,
+<<<<<<< HEAD
+        coordinator: MerakiDataCoordinator,
+        device: dict[str, Any],
+=======
         coordinator: MerakiDataUpdateCoordinator,
         device: MerakiDevice,
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
         camera_service: CameraService,
         config_entry: ConfigEntry,
     ) -> None:
@@ -41,8 +54,13 @@ class MerakiMotionSensor(CoordinatorEntity, BinarySensorEntity):
         self._device = device
         self._camera_service = camera_service
         self._config_entry = config_entry
+<<<<<<< HEAD
+        self._attr_unique_id = f"{self._device['serial']}-motion"
+        self._attr_name = f"{self._device['name']} Motion"
+=======
         self._attr_unique_id = f"{device.serial}-motion"
         self._attr_name = f"[Camera] {device.name} Motion"
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
         self._motion_events: list[dict[str, Any]] = []
 
     @property
@@ -62,6 +80,13 @@ class MerakiMotionSensor(CoordinatorEntity, BinarySensorEntity):
 
     async def async_update(self) -> None:
         """Update the sensor."""
+<<<<<<< HEAD
+        serial = self._device["serial"]
+        try:
+            self._motion_events = await self._camera_service.get_motion_history(serial)
+        except Exception as e:
+            _LOGGER.error("Error updating motion sensor for %s: %s", serial, e)
+=======
         try:
             self._motion_events = await self._camera_service.get_motion_history(
                 self._device.serial
@@ -70,4 +95,5 @@ class MerakiMotionSensor(CoordinatorEntity, BinarySensorEntity):
             _LOGGER.error(
                 "Error updating motion sensor for %s: %s", self._device.serial, e
             )
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
             self._motion_events = []

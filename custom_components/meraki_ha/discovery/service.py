@@ -25,11 +25,16 @@ if TYPE_CHECKING:
     from homeassistant.helpers.entity import Entity
 
     from ...types import MerakiDevice
+<<<<<<< HEAD
+    from ..core.api.client import MerakiAPIClient
+    from ..meraki_data_coordinator import MerakiDataCoordinator
+=======
     from ..coordinator import MerakiDataUpdateCoordinator
     from ..core.api.client import MerakiAPIClient
     from ..core.coordinators.switch_port_status_coordinator import (
         SwitchPortStatusCoordinator,
     )
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
     from ..services.camera_service import CameraService
     from ..services.device_control_service import DeviceControlService
     from ..services.network_control_service import NetworkControlService
@@ -54,10 +59,16 @@ class DeviceDiscoveryService:
 
     def __init__(
         self,
+<<<<<<< HEAD
+        coordinator: MerakiDataCoordinator,
+        config_entry: ConfigEntry,
+        meraki_client: MerakiAPIClient,
+=======
         coordinator: MerakiDataUpdateCoordinator,
         config_entry: ConfigEntry,
         meraki_client: MerakiAPIClient,
         switch_port_coordinator: SwitchPortStatusCoordinator,
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
         camera_service: CameraService,
         control_service: DeviceControlService,
         network_control_service: NetworkControlService,
@@ -66,7 +77,10 @@ class DeviceDiscoveryService:
         self._coordinator = coordinator
         self._config_entry = config_entry
         self._meraki_client = meraki_client
+<<<<<<< HEAD
+=======
         self._switch_port_coordinator = switch_port_coordinator
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
         self._camera_service = camera_service
         self._control_service = control_service
         self._network_control_service = network_control_service
@@ -91,7 +105,10 @@ class DeviceDiscoveryService:
             self._camera_service,
             self._control_service,
             self._network_control_service,
+<<<<<<< HEAD
+=======
             self._switch_port_coordinator,
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
         )
         network_entities = await network_handler.discover_entities()
         all_entities.extend(network_entities)
@@ -99,10 +116,17 @@ class DeviceDiscoveryService:
         _LOGGER.debug("Starting entity discovery for %d devices", len(self._devices))
 
         for device in self._devices:
+<<<<<<< HEAD
+            model = device.get("model")
+            if not model:
+                _LOGGER.warning(
+                    "Device %s has no model, skipping", device.get("serial")
+=======
             model = device.model
             if not model:
                 _LOGGER.warning(
                     "Device %s has no model, skipping", device.serial
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
                 )
                 continue
 
@@ -114,14 +138,22 @@ class DeviceDiscoveryService:
                 _LOGGER.debug(
                     "No handler found for model '%s', skipping device %s",
                     model,
+<<<<<<< HEAD
+                    device.get("serial"),
+=======
                     device.serial,
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
                 )
                 continue
 
             _LOGGER.debug(
                 "Using handler %s for device %s",
                 handler_class.__name__,
+<<<<<<< HEAD
+                device.get("serial"),
+=======
                 device.serial,
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
             )
 
             # Pass the correct services to the handler based on its type
@@ -132,6 +164,11 @@ class DeviceDiscoveryService:
                     self._config_entry,
                     self._camera_service,
                     self._control_service,
+<<<<<<< HEAD
+                    self._network_control_service,
+                    self._meraki_client,
+=======
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
                 )
             elif model_prefix in ("MX", "GX", "GR"):
                 handler = handler_class(
@@ -146,8 +183,21 @@ class DeviceDiscoveryService:
                     self._coordinator,
                     device,
                     self._config_entry,
+<<<<<<< HEAD
+                    self._control_service,
+                    self._network_control_service,
+                )
+            elif model_prefix == "MR":
+                handler = handler_class(
+                    self._coordinator,
+                    device,
+                    self._config_entry,
+                    self._control_service,
+                    self._network_control_service,
+=======
                     self._switch_port_coordinator,
                     self._control_service,
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
                 )
             else:
                 handler = handler_class(

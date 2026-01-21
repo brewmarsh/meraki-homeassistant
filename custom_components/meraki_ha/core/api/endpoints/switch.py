@@ -32,7 +32,10 @@ class SwitchEndpoints:
 
         """
         self._api_client = api_client
+<<<<<<< HEAD
+=======
         self._dashboard = api_client.dashboard
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
 
     @handle_meraki_errors
     @async_timed_cache(timeout=60)
@@ -51,8 +54,16 @@ class SwitchEndpoints:
             A list of port statuses.
 
         """
+<<<<<<< HEAD
+        if self._api_client.dashboard is None:
+            return []
+        statuses = await self._api_client.run_sync(
+            self._api_client.dashboard.switch.getDeviceSwitchPortsStatuses,
+            serial=serial,
+=======
         statuses = await self._api_client.run_sync(
             self._dashboard.switch.getDeviceSwitchPortsStatuses, serial=serial
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
         )
         validated = validate_response(statuses)
         if not isinstance(validated, list):
@@ -75,14 +86,23 @@ class SwitchEndpoints:
             A list of ports.
 
         """
+<<<<<<< HEAD
+        if self._api_client.dashboard is None:
+            return []
+        ports = await self._api_client.run_sync(
+            self._api_client.dashboard.switch.getDeviceSwitchPorts, serial=serial
+=======
         ports = await self._api_client.run_sync(
             self._dashboard.switch.getDeviceSwitchPorts, serial=serial
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
         )
         validated = validate_response(ports)
         if not isinstance(validated, list):
             _LOGGER.warning("get_switch_ports did not return a list.")
             return []
         return validated
+<<<<<<< HEAD
+=======
 
     @handle_meraki_errors
     async def cycle_device_switch_ports(
@@ -107,3 +127,4 @@ class SwitchEndpoints:
             self._dashboard.switch.cycleDeviceSwitchPorts, serial=serial, ports=ports
         )
         return validate_response(response)
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)

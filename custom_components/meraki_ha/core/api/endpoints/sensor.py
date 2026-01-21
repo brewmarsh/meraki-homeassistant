@@ -44,12 +44,19 @@ class SensorEndpoints:
 
         """
         _LOGGER.debug("Sending command '%s' to sensor %s", operation, serial)
+<<<<<<< HEAD
+        if self._client.dashboard is None:
+            return {}
+=======
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
         return await self._client.run_sync(
             self._client.dashboard.sensor.createDeviceSensorCommand,
             serial=serial,
             operation=operation,
         )
 
+<<<<<<< HEAD
+=======
     async def get_organization_sensor_readings_latest_for_serials(
         self,
         serials: list[str],
@@ -83,6 +90,7 @@ class SensorEndpoints:
             total_pages="all",
         )
 
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
     async def get_organization_sensor_readings_latest(
         self,
     ) -> list[dict[str, Any]]:
@@ -94,6 +102,14 @@ class SensorEndpoints:
             The response from the API.
 
         """
+<<<<<<< HEAD
+        _LOGGER.debug("Getting latest sensor readings for organization")
+        if self._client.dashboard is None:
+            return []
+        return await self._client.run_sync(
+            self._client.dashboard.sensor.getOrganizationSensorReadingsLatest,
+            organizationId=self._client.organization_id,
+=======
         metrics = [
             "battery",
             "co2",
@@ -111,5 +127,6 @@ class SensorEndpoints:
             self._client.dashboard.sensor.getOrganizationSensorReadingsLatest,
             organizationId=self._client.organization_id,
             metrics=metrics,
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
             total_pages="all",
         )

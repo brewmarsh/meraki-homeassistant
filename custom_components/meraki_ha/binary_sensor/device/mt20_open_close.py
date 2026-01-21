@@ -14,9 +14,14 @@ from homeassistant.core import callback
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
+<<<<<<< HEAD
+from ...helpers.device_info_helpers import resolve_device_info
+from ...meraki_data_coordinator import MerakiDataCoordinator
+=======
 from ...coordinator import MerakiDataUpdateCoordinator
 from ...helpers.device_info_helpers import resolve_device_info
 from ...types import MerakiDevice
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -28,16 +33,26 @@ class MerakiMt20OpenCloseSensor(CoordinatorEntity, BinarySensorEntity):
 
     def __init__(
         self,
+<<<<<<< HEAD
+        coordinator: MerakiDataCoordinator,
+        device_info: dict[str, Any],
+=======
         coordinator: MerakiDataUpdateCoordinator,
         device_info: MerakiDevice,
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
         config_entry: ConfigEntry,
     ) -> None:
         """Initialize the sensor."""
         super().__init__(coordinator)
         self._device_info = device_info
         self._config_entry = config_entry
+<<<<<<< HEAD
+        self._attr_unique_id = f"{self._device_info['serial']}-door"
+        self._attr_name = f"{self._device_info['name']} Door"
+=======
         self._attr_unique_id = f"{self._device_info.serial}-door"
         self._attr_name = f"{self._device_info.name} Door"
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
 
     @property
     def device_info(self) -> DeviceInfo | None:
@@ -48,7 +63,11 @@ class MerakiMt20OpenCloseSensor(CoordinatorEntity, BinarySensorEntity):
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
         for device in self.coordinator.data.get("devices", []):
+<<<<<<< HEAD
+            if device.get("serial") == self._device_info["serial"]:
+=======
             if device.serial == self._device_info.serial:
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
                 self._device_info = device
                 self.async_write_ha_state()
                 return
@@ -57,7 +76,11 @@ class MerakiMt20OpenCloseSensor(CoordinatorEntity, BinarySensorEntity):
     @property
     def _door_reading(self) -> Any | None:
         """Get the 'door' reading value from the device data."""
+<<<<<<< HEAD
+        readings = self._device_info.get("readings")
+=======
         readings = self._device_info.readings
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
         if not isinstance(readings, list):
             return None
         for reading in readings:

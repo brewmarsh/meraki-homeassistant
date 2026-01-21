@@ -15,16 +15,25 @@ if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
     from homeassistant.helpers.entity import Entity
 
+<<<<<<< HEAD
+=======
     from ....core.coordinators.meraki_data_coordinator import (
         MerakiDataUpdateCoordinator,
     )
     from ....core.coordinators.switch_port_status_coordinator import (
         SwitchPortStatusCoordinator,
     )
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
     from ....services.camera_service import CameraService
     from ....services.device_control_service import DeviceControlService
     from ....services.network_control_service import NetworkControlService
     from ....types import MerakiDevice
+<<<<<<< HEAD
+    from ...meraki_data_coordinator import (
+        MerakiDataCoordinator,
+    )
+=======
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
 
 
 _LOGGER = logging.getLogger(__name__)
@@ -35,7 +44,11 @@ class BaseHandler(ABC):
 
     def __init__(
         self,
+<<<<<<< HEAD
+        coordinator: MerakiDataCoordinator,
+=======
         coordinator: MerakiDataUpdateCoordinator,
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
         config_entry: ConfigEntry,
     ) -> None:
         """Initialize the BaseHandler."""
@@ -53,7 +66,11 @@ class BaseDeviceHandler(BaseHandler, ABC):
 
     def __init__(
         self,
+<<<<<<< HEAD
+        coordinator: MerakiDataCoordinator,
+=======
         coordinator: MerakiDataUpdateCoordinator,
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
         device: MerakiDevice,
         config_entry: ConfigEntry,
     ) -> None:
@@ -65,13 +82,20 @@ class BaseDeviceHandler(BaseHandler, ABC):
     @abstractmethod
     def create(
         cls,
+<<<<<<< HEAD
+        coordinator: MerakiDataCoordinator,
+=======
         coordinator: MerakiDataUpdateCoordinator,
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
         device: MerakiDevice,
         config_entry: ConfigEntry,
         camera_service: CameraService,
         control_service: DeviceControlService,
         network_control_service: NetworkControlService,
+<<<<<<< HEAD
+=======
         switch_port_coordinator: SwitchPortStatusCoordinator,
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
     ) -> BaseDeviceHandler:
         """Create an instance of the handler."""
         raise NotImplementedError

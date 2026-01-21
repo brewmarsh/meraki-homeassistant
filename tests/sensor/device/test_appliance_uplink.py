@@ -5,11 +5,50 @@ from unittest.mock import MagicMock
 import pytest
 
 from custom_components.meraki_ha.sensor.setup_helpers import async_setup_sensors
+<<<<<<< HEAD
+=======
 from custom_components.meraki_ha.types import MerakiDevice
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
 
 
 @pytest.fixture
 def mock_coordinator():
+<<<<<<< HEAD
+    """Fixture for a mocked MerakiDataCoordinator."""
+    coordinator = MagicMock()
+    coordinator.config_entry.options = {}
+    mock_device_data = {
+        "serial": "dev1",
+        "name": "Test Appliance",
+        "model": "MX64",
+        "product_type": "appliance",
+        "networkId": "net1",
+    }
+    coordinator.data = {
+        "devices": [mock_device_data],
+        "appliance_uplink_statuses": [
+            {
+                "serial": "dev1",
+                "uplinks": [
+                    {
+                        "interface": "wan1",
+                        "status": "active",
+                        "ip": "1.2.3.4",
+                    },
+                    {
+                        "interface": "wan2",
+                        "status": "failed",
+                        "ip": "5.6.7.8",
+                    },
+                    {
+                        "interface": "cellular",
+                        "status": "ready",
+                        "ip": "9.10.11.12",
+                    },
+                ],
+            }
+        ],
+=======
     """Fixture for a mocked MerakiDataUpdateCoordinator."""
     coordinator = MagicMock()
     coordinator.config_entry.options = {}
@@ -41,6 +80,7 @@ def mock_coordinator():
     )
     coordinator.data = {
         "devices": [mock_device_data],
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
         # Add other required data structures for setup_helpers
         "clients": [],
         "ssids": [],
@@ -54,9 +94,16 @@ def test_appliance_uplink_sensor_creation(mock_coordinator):
     """Test that appliance uplink sensors are created correctly."""
     hass = MagicMock()
     config_entry = MagicMock()
+<<<<<<< HEAD
+    camera_service = MagicMock()
+
+    # Run the setup
+    sensors = async_setup_sensors(hass, config_entry, mock_coordinator, camera_service)
+=======
 
     # Run the setup
     sensors = async_setup_sensors(hass, config_entry, mock_coordinator)
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
 
     # Filter for just the uplink sensors
     uplink_sensors = [s for s in sensors if "Uplink" in s.__class__.__name__]

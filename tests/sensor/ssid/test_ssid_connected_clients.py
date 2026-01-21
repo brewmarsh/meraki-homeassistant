@@ -12,7 +12,11 @@ from custom_components.meraki_ha.sensor.ssid.connected_clients import (
 
 @pytest.fixture
 def mock_data_coordinator():
+<<<<<<< HEAD
+    """Fixture for a mocked MerakiDataCoordinator."""
+=======
     """Fixture for a mocked MerakiDataUpdateCoordinator."""
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
     coordinator = MagicMock()
     coordinator.config_entry.options = {}
     coordinator.data = {
@@ -76,6 +80,8 @@ def mock_data_coordinator():
             {"id": "net2", "name": "Network 2"},
         ],
     }
+<<<<<<< HEAD
+=======
 
     def get_ssid(network_id, ssid_number):
         for ssid in coordinator.data["ssids"]:
@@ -84,6 +90,7 @@ def mock_data_coordinator():
         return None
 
     coordinator.get_ssid.side_effect = get_ssid
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
     return coordinator
 
 
@@ -95,6 +102,11 @@ def test_ssid_connected_clients_sensor(mock_data_coordinator):
     sensor = MerakiSsidConnectedClientsSensor(
         mock_data_coordinator, network_id, ssid_data, config_entry
     )
+<<<<<<< HEAD
+    # Expects 2: the two online clients on "My SSID 1" and "net1"
+    assert sensor.native_value == 2
+    assert sensor.name == "My SSID 1 Connected Clients"
+=======
     sensor.hass = MagicMock()
     sensor.entity_id = "sensor.test"
     sensor.async_write_ha_state = MagicMock()
@@ -102,4 +114,5 @@ def test_ssid_connected_clients_sensor(mock_data_coordinator):
     # Expects 2: the two online clients on "My SSID 1" and "net1"
     assert sensor.native_value == 2
     assert sensor.name == "Connected clients"
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
     assert sensor.device_info["identifiers"] == {(DOMAIN, "net1_0")}

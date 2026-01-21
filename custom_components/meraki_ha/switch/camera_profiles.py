@@ -1,14 +1,18 @@
 """Switch entities for controlling Meraki Camera profiles."""
 
 import logging
+from typing import Any
 
 from homeassistant.components.switch import SwitchEntityDescription
 from homeassistant.helpers.typing import UNDEFINED
 
+<<<<<<< HEAD
+from custom_components.meraki_ha.meraki_data_coordinator import MerakiDataCoordinator
+=======
 from custom_components.meraki_ha.coordinator import MerakiDataUpdateCoordinator
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
 
 from ..core.api.client import MerakiAPIClient
-from ..types import MerakiDevice
 from .camera_settings import MerakiCameraSettingSwitchBase
 
 _LOGGER = logging.getLogger(__name__)
@@ -19,9 +23,15 @@ class MerakiCameraSenseSwitch(MerakiCameraSettingSwitchBase):
 
     def __init__(
         self,
+<<<<<<< HEAD
+        coordinator: MerakiDataCoordinator,
+        meraki_client: MerakiAPIClient,
+        device_data: dict[str, Any],
+=======
         coordinator: MerakiDataUpdateCoordinator,
         meraki_client: MerakiAPIClient,
-        device_data: MerakiDevice,
+        device_data: "MerakiDevice",
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
     ) -> None:
         """Initialize the Camera Sense switch."""
         super().__init__(
@@ -50,7 +60,11 @@ class MerakiCameraSenseSwitch(MerakiCameraSettingSwitchBase):
             is_on: Whether the setting is on or off.
         """
         await self.client.camera.update_camera_sense_settings(
+<<<<<<< HEAD
+            serial=self._device_data["serial"], senseEnabled=is_on
+=======
             serial=self._device_data.serial, senseEnabled=is_on
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
         )
 
 
@@ -59,9 +73,15 @@ class MerakiCameraAudioDetectionSwitch(MerakiCameraSettingSwitchBase):
 
     def __init__(
         self,
+<<<<<<< HEAD
+        coordinator: MerakiDataCoordinator,
+        meraki_client: MerakiAPIClient,
+        device_data: dict[str, Any],
+=======
         coordinator: MerakiDataUpdateCoordinator,
         meraki_client: MerakiAPIClient,
-        device_data: MerakiDevice,
+        device_data: "MerakiDevice",
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
     ) -> None:
         """Initialize the Camera Audio Detection switch."""
         super().__init__(
@@ -90,6 +110,10 @@ class MerakiCameraAudioDetectionSwitch(MerakiCameraSettingSwitchBase):
             is_on: Whether the setting is on or off.
         """
         await self.client.camera.update_camera_sense_settings(
+<<<<<<< HEAD
+            serial=self._device_data["serial"],
+=======
             serial=self._device_data.serial,
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
             audioDetection={"enabled": is_on},
         )

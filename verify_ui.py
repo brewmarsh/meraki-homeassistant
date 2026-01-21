@@ -2,7 +2,10 @@ import asyncio
 import http.server
 import os
 import socketserver
+<<<<<<< HEAD
+=======
 import subprocess
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
 import sys
 import threading
 
@@ -27,8 +30,13 @@ async def main():
 
         # 1. Build the panel (App.tsx contains mock data logic for localhost)
         print("Building frontend...")
+<<<<<<< HEAD
+        build_result = os.system("npm run build")
+        if build_result != 0:
+=======
         build_result = subprocess.run("npm run build", shell=True, check=False)  # nosec
         if build_result.returncode != 0:
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
             print("Build failed. Aborting verification.", file=sys.stderr)
             sys.exit(1)
         print("Build successful.")

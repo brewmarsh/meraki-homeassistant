@@ -21,6 +21,11 @@ async def test_meraki_organization_device_type_clients_sensor(
             {"deviceType": "appliance"},
         ]
     }
+<<<<<<< HEAD
+    sensor = MerakiOrganizationDeviceTypeClientsSensor(
+        coordinator, MagicMock(), "wireless"
+    )
+=======
     config_entry = MagicMock()
     config_entry.options = {}
     sensor = MerakiOrganizationDeviceTypeClientsSensor(
@@ -29,4 +34,5 @@ async def test_meraki_organization_device_type_clients_sensor(
     sensor.hass = MagicMock()
     sensor.async_write_ha_state = MagicMock()
     sensor._handle_coordinator_update()
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
     assert sensor.native_value == 2

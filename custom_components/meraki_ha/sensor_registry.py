@@ -4,10 +4,13 @@ from __future__ import annotations
 
 from homeassistant.helpers.entity import Entity
 
+<<<<<<< HEAD
+=======
 from .sensor.device.camera_analytics import (
     MerakiPersonCountSensor,
     MerakiVehicleCountSensor,
 )
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
 from .sensor.device.camera_audio_detection import MerakiCameraAudioDetectionSensor
 from .sensor.device.camera_sense_status import MerakiCameraSenseStatusSensor
 from .sensor.device.connected_clients import MerakiDeviceConnectedClientsSensor
@@ -25,10 +28,13 @@ SENSORS_COORD_DEV: dict[str, SensorClassList] = {
     "switch": [
         MerakiPoeUsageSensor,
     ],
+<<<<<<< HEAD
+=======
     "camera": [
         MerakiPersonCountSensor,
         MerakiVehicleCountSensor,
     ],
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
 }
 
 # Sensors with __init__(coordinator, device_info, config_entry)

@@ -1,3 +1,16 @@
+<<<<<<< HEAD
+meraki==1.36.0
+protobuf==4.25.3
+diskcache==5.6.3
+aiofiles==23.2.1
+yarl
+playwright
+pytest-homeassistant-custom-component
+aiohttp>=3.13.2
+urllib3>=2.6.2
+aiodns==3.6.1
+pycares==4.11.0
+=======
 aiofiles==23.2.1
 aiodns==3.6.1
 aiohttp>=3.13.2
@@ -10,3 +23,4 @@ pytest-homeassistant-custom-component
 urllib3>=2.6.2
 webrtc-models==0.3.0
 yarl
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)

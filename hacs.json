@@ -5,5 +5,9 @@
   "content_in_root": false,
   "zip_release": false,
   "country": ["US", "CA", "GB", "AU", "DE", "FR", "JP"],
+<<<<<<< HEAD
+  "filename": "meraki_ha.zip",
+=======
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
   "hide_default_branch": true
 }

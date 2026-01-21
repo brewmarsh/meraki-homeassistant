@@ -9,9 +9,14 @@ from homeassistant.core import callback
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
+<<<<<<< HEAD
+from ..helpers.device_info_helpers import resolve_device_info
+from ..meraki_data_coordinator import MerakiDataCoordinator
+=======
 from ..coordinator import MerakiDataUpdateCoordinator
 from ..helpers.device_info_helpers import resolve_device_info
 from ..types import MerakiNetwork
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -24,9 +29,15 @@ class MerakiContentFilteringSwitch(
 
     def __init__(
         self,
+<<<<<<< HEAD
+        coordinator: MerakiDataCoordinator,
+        config_entry: ConfigEntry,
+        network: dict[str, Any],
+=======
         coordinator: MerakiDataUpdateCoordinator,
         config_entry: ConfigEntry,
         network: "MerakiNetwork",
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
         category: dict[str, Any],
     ) -> None:
         """
@@ -41,22 +52,33 @@ class MerakiContentFilteringSwitch(
 
         """
         super().__init__(coordinator)
+<<<<<<< HEAD
+=======
         if isinstance(network, dict):
             network = MerakiNetwork.from_dict(network)
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
         self._config_entry = config_entry
         self._network = network
         self._category = category
         self._client = coordinator.api
 
         self.entity_description = SwitchEntityDescription(
+<<<<<<< HEAD
+            key=f"content_filtering_{network['id']}_{category['id']}",
+=======
             key=f"content_filtering_{network.id}_{category['id']}",
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
             name=f"Block {category['name']}",
         )
 
     @property
     def unique_id(self) -> str:
         """Return a unique ID."""
+<<<<<<< HEAD
+        return f"meraki-content-filtering-{self._network['id']}-{self._category['id']}"
+=======
         return f"meraki-content-filtering-{self._network.id}-{self._category['id']}"
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
 
     @property
     def device_info(self) -> DeviceInfo | None:
@@ -67,7 +89,11 @@ class MerakiContentFilteringSwitch(
     def is_on(self) -> bool:
         """Return true if the switch is on."""
         content_filtering = self.coordinator.data.get("content_filtering", {}).get(
+<<<<<<< HEAD
+            self._network["id"],
+=======
             self._network.id,
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
             {},
         )
         return self._category["id"] in content_filtering.get("blockedUrlCategories", [])
@@ -105,7 +131,11 @@ class MerakiContentFilteringSwitch(
         """
         current_settings = (
             await self._client.appliance.get_network_appliance_content_filtering(
+<<<<<<< HEAD
+                self._network["id"],
+=======
                 self._network.id,
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
             )
         )
         blocked_categories = current_settings.get("blockedUrlCategories", [])
@@ -117,7 +147,11 @@ class MerakiContentFilteringSwitch(
             blocked_categories.remove(self._category["id"])
 
         await self._client.appliance.update_network_appliance_content_filtering(
+<<<<<<< HEAD
+            self._network["id"],
+=======
             self._network.id,
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
             blockedUrlCategories=blocked_categories,
         )
         await self.coordinator.async_request_refresh()

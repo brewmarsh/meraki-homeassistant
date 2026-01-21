@@ -17,5 +17,9 @@ export default defineConfig({
   },
   define: {
     'process.env.NODE_ENV': '"production"',
+<<<<<<< HEAD
+  }
+=======
   },
+>>>>>>> 44727ea (fix: ci workflow permissions, dependencies and services file)
 });
