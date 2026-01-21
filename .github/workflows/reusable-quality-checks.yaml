@@ -6,6 +6,10 @@ on:
       python-version:
         required: true
         type: string
+    secrets:
+      CODECOV_TOKEN:
+        required: false
+        description: "Token for uploading coverage reports"
 
 permissions:
   contents: write
