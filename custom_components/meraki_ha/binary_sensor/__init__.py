@@ -8,9 +8,6 @@ from homeassistant.helpers.entity import Entity
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from ..const import DOMAIN
-from ..entity_descriptions import (
-    SWITCH_PORT_DESCRIPTION,
-)
 from .device.camera_motion import MerakiMotionSensor
 from .device.mt20_open_close import MerakiMt20OpenCloseSensor
 from .switch_port import SwitchPortSensor
@@ -59,7 +56,7 @@ async def async_setup_entry(
         if product_type == "switch":
             for port in getattr(device, "ports_statuses", []):
                 binary_sensor_entities.append(
-                    SwitchPortSensor(coordinator, device, port, SWITCH_PORT_DESCRIPTION)
+                    SwitchPortSensor(coordinator, device, port)
                 )
 
     if binary_sensor_entities:
