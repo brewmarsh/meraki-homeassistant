@@ -101,7 +101,9 @@ class DeviceDiscoveryService:
         for device in self._devices:
             model = device.model
             if not model:
-                _LOGGER.warning("Device %s has no model, skipping", device.serial)
+                _LOGGER.warning(
+                    "Device %s has no model, skipping", device.serial
+                )
                 continue
 
             # Get the first two letters of the model (e.g., "MR" from "MR36")

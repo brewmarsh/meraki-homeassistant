@@ -18,6 +18,7 @@ from custom_components.meraki_ha.button.device.camera_snapshot import (
 )
 from custom_components.meraki_ha.camera import MerakiCamera
 from custom_components.meraki_ha.core.errors import MerakiInformationalError
+from custom_components.meraki_ha.entity_descriptions import CAMERA_MOTION_DESCRIPTION
 from custom_components.meraki_ha.sensor.device.camera_analytics import (
     MerakiPersonCountSensor,
     MerakiVehicleCountSensor,

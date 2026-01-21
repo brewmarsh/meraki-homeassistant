@@ -73,7 +73,8 @@ class MerakiDevice:
             analytics=data.get("analytics", []),
             ports_statuses=data.get("portsStatuses", []),
             appliance_ports=[
-                MerakiAppliancePort.from_dict(p) for p in data.get("appliancePorts", [])
+                MerakiAppliancePort.from_dict(p)
+                for p in data.get("appliancePorts", [])
             ],
             dynamic_dns=data.get("dynamicDns"),
             status_messages=data.get("statusMessages", []),

@@ -7,6 +7,7 @@ of a specific Meraki device.
 """
 
 import logging
+from typing import Any
 
 from homeassistant.components.sensor import (
     SensorDeviceClass,

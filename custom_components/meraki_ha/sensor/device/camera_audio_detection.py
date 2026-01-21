@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import logging
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from homeassistant.components.sensor import SensorEntity, SensorEntityDescription
 from homeassistant.config_entries import ConfigEntry
@@ -69,9 +69,9 @@ class MerakiCameraAudioDetectionSensor(CoordinatorEntity, SensorEntity):
         sense_settings = getattr(current_device_data, "sense_settings", None)
 
         if not isinstance(sense_settings, dict):
-            self._attr_native_value = None
-            self._attr_icon = "mdi:microphone-question"
-            return
+             self._attr_native_value = None
+             self._attr_icon = "mdi:microphone-question"
+             return
 
         audio_detection_data = sense_settings.get("audioDetection")
 

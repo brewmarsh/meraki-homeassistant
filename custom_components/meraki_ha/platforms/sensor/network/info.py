@@ -43,7 +43,7 @@ class MerakiNetworkInfoSensor(MerakiNetworkEntity):
         if not self.network_data:
             return None
         if isinstance(self.network_data, dict):
-            return self.network_data.get("name")
+             return self.network_data.get("name")
         return getattr(self.network_data, "name", None)
 
     @property
@@ -53,7 +53,7 @@ class MerakiNetworkInfoSensor(MerakiNetworkEntity):
             return {}
 
         if isinstance(self.network_data, dict):
-            return {
+             return {
                 "hostname": self.network_data.get("name"),
                 "notes": self.network_data.get("notes"),
                 "network_id": self.network_data.get("id"),

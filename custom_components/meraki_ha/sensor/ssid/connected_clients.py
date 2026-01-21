@@ -1,3 +1,4 @@
+
 """Sensor entity for monitoring connected clients on a Meraki SSID."""
 
 import logging

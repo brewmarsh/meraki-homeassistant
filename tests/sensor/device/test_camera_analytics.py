@@ -8,7 +8,7 @@ from custom_components.meraki_ha.sensor.device.camera_analytics import (
     MerakiPersonCountSensor,
     MerakiVehicleCountSensor,
 )
-from custom_components.meraki_ha.types import MerakiDevice
+from tests.const import MOCK_DEVICE
 
 
 @pytest.fixture
@@ -23,6 +23,9 @@ def mock_camera_service():
     service = AsyncMock()
     service.get_analytics_data = AsyncMock(return_value=[{"person": 5, "vehicle": 2}])
     return service
+
+
+from custom_components.meraki_ha.types import MerakiDevice
 
 
 @pytest.mark.asyncio

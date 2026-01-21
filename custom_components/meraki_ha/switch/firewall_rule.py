@@ -85,14 +85,10 @@ class MerakiFirewallRuleSwitch(MerakiFirewallRuleEntity, SwitchEntity):
         self.coordinator.register_pending_update(self.unique_id)
         if self._network_id in self.coordinator.data.get("l3_firewall_rules", {}):
             rules_objects = self.coordinator.data["l3_firewall_rules"][self._network_id]
-            if (
-                isinstance(rules_objects, list)
-                and len(rules_objects) > self._rule_index
-            ):
+            if isinstance(rules_objects, list) and len(rules_objects) > self._rule_index:
                 # We need to send dicts to the API
                 # Convert all rule objects to dicts
                 import dataclasses
-
                 rules_dicts = [dataclasses.asdict(r) for r in rules_objects]
 
                 # Update the specific rule
@@ -117,13 +113,9 @@ class MerakiFirewallRuleSwitch(MerakiFirewallRuleEntity, SwitchEntity):
         self.coordinator.register_pending_update(self.unique_id)
         if self._network_id in self.coordinator.data.get("l3_firewall_rules", {}):
             rules_objects = self.coordinator.data["l3_firewall_rules"][self._network_id]
-            if (
-                isinstance(rules_objects, list)
-                and len(rules_objects) > self._rule_index
-            ):
+            if isinstance(rules_objects, list) and len(rules_objects) > self._rule_index:
                 # We need to send dicts to the API
                 import dataclasses
-
                 rules_dicts = [dataclasses.asdict(r) for r in rules_objects]
 
                 rules_dicts[self._rule_index]["policy"] = "deny"

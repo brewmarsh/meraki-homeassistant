@@ -81,8 +81,8 @@ def mock_coordinator_with_mt_devices(mock_coordinator: MagicMock) -> MagicMock:
                     elif metric == "power":
                         device.real_power = reading.get("power", {}).get("draw")
                     elif metric == "power_factor":
-                        device.power_factor = reading.get("power_factor", {}).get(
-                            "factor"
+                        device.power_factor = (
+                            reading.get("power_factor", {}).get("factor")
                         )
                     elif metric == "current":
                         device.current = reading.get("current", {}).get("draw")

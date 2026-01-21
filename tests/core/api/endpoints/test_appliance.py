@@ -1,3 +1,4 @@
+
 """Tests for the appliance API endpoints."""
 
 from unittest.mock import MagicMock, patch

@@ -1,3 +1,4 @@
+
 """Tests for the Meraki PoE usage sensor."""
 
 from unittest.mock import MagicMock
