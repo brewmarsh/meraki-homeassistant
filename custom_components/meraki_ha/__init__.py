@@ -26,7 +26,6 @@ from .services.device_control_service import DeviceControlService
 from .services.switch_port_service import SwitchPortService
 from .webhook import async_register_webhook
 from .frontend import async_register_frontend, async_remove_frontend
-from homeassistant.components.http import StaticPathConfig
 
 _LOGGER = logging.getLogger(__name__)
 

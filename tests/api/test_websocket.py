@@ -1,6 +1,5 @@
 """Tests for the Meraki HA WebSocket API."""
 
-import json
 from unittest.mock import AsyncMock, patch
 
 import pytest

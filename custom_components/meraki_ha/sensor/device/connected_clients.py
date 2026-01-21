@@ -3,7 +3,7 @@ from __future__ import annotations
 """Sensor entity for monitoring connected clients on a Meraki device."""
 
 import logging
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 from homeassistant.components.sensor import SensorEntity, SensorStateClass
 from homeassistant.config_entries import ConfigEntry

@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from dataclasses import asdict
 from unittest.mock import MagicMock
 
 from custom_components.meraki_ha.types import MerakiDevice, MerakiNetwork
