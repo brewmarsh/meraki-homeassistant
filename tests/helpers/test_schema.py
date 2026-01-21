@@ -7,7 +7,6 @@ from custom_components.meraki_ha.const import CONF_IGNORED_NETWORKS
 from custom_components.meraki_ha.helpers.schema import populate_schema_defaults
 
 
-
 def test_populate_schema_defaults():
     """Test populating schema defaults."""
     schema = vol.Schema(

@@ -27,7 +27,6 @@ from .services.camera_service import CameraService
 from .services.device_control_service import DeviceControlService
 from .services.switch_port_service import SwitchPortService
 from .webhook import async_register_webhook
-from .frontend import async_register_frontend, async_remove_frontend
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -100,6 +99,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     hass.data[DOMAIN][entry.entry_id] = {
         "coordinator": coordinator,
         "meraki_client": coordinator.api,
+        "camera_service": camera_service,
+        "device_control_service": device_control_service,
+        "switch_port_service": switch_port_service,
     }
 
     # Set up webhook

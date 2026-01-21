@@ -93,7 +93,7 @@ async def add_integration():
                     print("Config flow started successfully.")
                     break
                 else:
-                    print(f"Attempt {i+1}/10 failed: {resp}")
+                    print(f"Attempt {i + 1}/10 failed: {resp}")
                     message_id += 1
                     await asyncio.sleep(5)  # 5-second delay
 
@@ -114,7 +114,10 @@ async def add_integration():
             resp = await ws.receive_json()
 
             # Handle optional Step 2 (Org Selection) if it occurs
-            if resp.get("success") and resp["result"].get("step_id") == "pick_organization":
+            if (
+                resp.get("success")
+                and resp["result"].get("step_id") == "pick_organization"
+            ):
                 print("Selecting Organization...")
                 message_id += 1
                 await ws.send_json({

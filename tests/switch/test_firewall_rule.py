@@ -7,8 +7,8 @@ import pytest
 from custom_components.meraki_ha.const import (
     CONF_ENABLE_FIREWALL_RULES,
 )
-from custom_components.meraki_ha.switch.setup_helpers import async_setup_switches
 from custom_components.meraki_ha.switch.firewall_rule import MerakiFirewallRuleSwitch
+from custom_components.meraki_ha.switch.setup_helpers import async_setup_switches
 from custom_components.meraki_ha.types import MerakiFirewallRule
 
 
@@ -91,7 +91,7 @@ def test_firewall_rule_switch_creation_disabled(
     mock_config_entry: MagicMock,
     mock_meraki_client: MagicMock,
 ) -> None:
-    """Test that the firewall rule switches are not created if the feature is disabled."""
+    """Test firewall rule switches are not created if feature is disabled."""
     mock_config_entry.options = {CONF_ENABLE_FIREWALL_RULES: False}
     hass = MagicMock()
     entities = async_setup_switches(
