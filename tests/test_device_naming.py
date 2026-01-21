@@ -6,6 +6,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
+from custom_components.meraki_ha.core.utils.naming_utils import format_device_name
 from custom_components.meraki_ha.sensor.network.network_clients import (
     MerakiNetworkClientsSensor,
 )
@@ -112,3 +113,15 @@ def test_vlan_device_naming(mock_coordinator: MagicMock) -> None:
     if device_info is None:
         pytest.fail("VLAN sensor device_info is None")
     assert device_info["name"] == "[VLAN] Test VLAN"
+
+
+def test_camera_device_naming():
+    """Test that camera devices are correctly prefixed."""
+    camera_device = {
+        "name": "Test Camera",
+        "model": "MV12",
+        "serial": "Q234-ABCD-5678",
+    }
+    config = {}
+    formatted_name = format_device_name(camera_device, config)
+    assert formatted_name == "[Camera] Test Camera"

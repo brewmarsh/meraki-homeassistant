@@ -34,6 +34,11 @@ def format_device_name(device: dict[str, Any] | Any, config: Mapping[str, Any]) 
     if not product_type and ("productTypes" in device or "product_types" in device):
         product_type = "network"
 
+    # Force product_type to camera if model starts with MV (Meraki Vision)
+    model = device.get("model", "")
+    if isinstance(model, str) and model.upper().startswith("MV"):
+        product_type = "camera"
+
     if not product_type:
         product_type = "device"  # default to device
 
