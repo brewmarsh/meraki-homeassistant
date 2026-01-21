@@ -113,8 +113,8 @@ async def test_camera_turn_off_optimistic_update(
     # Arrange
     # Start with the camera on
     device_data = mock_coordinator.data["devices"][0]
-    # We must replace since it is a dataclass and might be immutable-ish for tests (though fields are mutable)
-    # But let's just modify the dicts inside
+    # The device is a dataclass; modify its internal dicts for the test.
+    # Modify the dicts inside rather than replacing the object.
     device_data.video_settings["rtspServerEnabled"] = True
     device_data.video_settings["rtspUrl"] = "rtsp://192.168.1.100:9000/live"
 

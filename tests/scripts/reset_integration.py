@@ -13,6 +13,7 @@ HEADERS = {"Authorization": f"Bearer {HA_TOKEN}", "Content-Type": "application/j
 
 
 async def delete_existing_entries(session):
+    """Delete any existing Meraki HA config entries."""
     print("Checking for existing Meraki HA entries...")
     async with session.get(f"{HA_URL}/api/config/config_entries/entry") as resp:
         if resp.status != 200:
@@ -36,6 +37,7 @@ async def delete_existing_entries(session):
 
 
 async def restart_and_wait(session):
+    """Restart Home Assistant and wait for it to come back online."""
     print("Restarting Home Assistant...")
     async with session.post(f"{HA_URL}/api/services/homeassistant/restart") as resp:
         if resp.status != 200:
@@ -58,6 +60,7 @@ async def restart_and_wait(session):
 
 
 async def add_integration():
+    """Add the Meraki HA integration via WebSocket."""
     ws_url = HA_URL.replace("http", "ws").replace("https", "wss") + "/api/websocket"
     print(f"Connecting to WebSocket: {ws_url}")
     async with aiohttp.ClientSession() as session:
@@ -114,6 +117,7 @@ async def add_integration():
 
 
 async def main():
+    """Run the integration reset script."""
     async with aiohttp.ClientSession(headers=HEADERS) as session:
         if not await delete_existing_entries(session):
             sys.exit(1)

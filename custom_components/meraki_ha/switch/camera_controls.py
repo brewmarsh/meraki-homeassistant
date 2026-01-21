@@ -4,13 +4,10 @@ from __future__ import annotations
 
 import logging
 
-
 from ..coordinator import MerakiDataUpdateCoordinator
 from ..core.api.client import MerakiAPIClient
-from .camera_settings import MerakiCameraSettingSwitchBase
 from ..types import MerakiDevice
-
-
+from .camera_settings import MerakiCameraSettingSwitchBase
 
 _LOGGER = logging.getLogger(__name__)
 

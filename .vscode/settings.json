@@ -1,5 +1,9 @@
 {
   "chat.tools.terminal.autoApprove": {
-    "ruff": true
+    "ruff": true,
+    "/^ruff check \\. --output-format=json 2>\\$null \\| ConvertFrom-Json \\| ConvertTo-Json -Depth 10$/": {
+      "approve": true,
+      "matchCommandLine": true
+    }
   }
 }
