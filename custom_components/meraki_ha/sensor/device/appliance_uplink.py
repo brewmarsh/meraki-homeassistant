@@ -1,7 +1,7 @@
 """Sensor for Meraki appliance uplink status."""
 
 import logging
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from homeassistant.components.sensor import SensorEntity
 from homeassistant.config_entries import ConfigEntry
@@ -13,6 +13,9 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from ...const import DOMAIN
 from ...coordinator import MerakiDataUpdateCoordinator
 from ...core.utils.naming_utils import format_device_name
+
+if TYPE_CHECKING:
+    from ...types import MerakiDevice
 
 _LOGGER = logging.getLogger(__name__)
 
