@@ -16,6 +16,7 @@ def parse_camera_data(
 ) -> None:
     """
     Parse and enrich camera device data.
+
     Args:
         devices: A list of Meraki devices.
         detail_data: A dictionary of detailed data from the API.

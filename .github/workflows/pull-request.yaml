@@ -6,6 +6,11 @@ on:
       - main
       - beta
 
+permissions:
+  contents: write
+  pull-requests: write
+  checks: write
+
 jobs:
   validate:
     uses: ./.github/workflows/reusable-quality-checks.yaml

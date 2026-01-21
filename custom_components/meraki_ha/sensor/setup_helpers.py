@@ -9,6 +9,7 @@ from homeassistant.helpers.entity import Entity
 
 from ..const import (
     CONF_ENABLE_DEVICE_TRACKER,
+    CONF_ENABLE_TRAFFIC_SHAPING,
     CONF_ENABLE_VLAN_MANAGEMENT,
 )
 from ..coordinator import MerakiDataUpdateCoordinator
@@ -22,6 +23,7 @@ from .device.appliance_port import MerakiAppliancePortSensor
 from .device.appliance_uplink import MerakiApplianceUplinkSensor
 from .device.rtsp_url import MerakiRtspUrlSensor
 from .device.switch_port import MerakiSwitchPortSensor
+from .network.traffic_shaping import TrafficShapingSensor
 from .network.vlan import (
     MerakiVLANIDSensor,
     MerakiVLANIPv4EnabledSensor,
@@ -147,6 +149,16 @@ def _setup_network_sensors(
                     VlansListSensor(coordinator, config_entry, network_data)
                 )
                 added_entities.add(unique_id)
+
+        # Traffic Shaping Sensor
+        if config_entry.options.get(CONF_ENABLE_TRAFFIC_SHAPING):
+            unique_id = f"{network_id}-traffic-shaping"
+            if unique_id not in added_entities:
+                entities.append(
+                    TrafficShapingSensor(coordinator, config_entry, network_id)
+                )
+                added_entities.add(unique_id)
+
     return entities
 
 

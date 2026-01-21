@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import logging
 
-
 from homeassistant.components.sensor import SensorEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import EntityCategory
@@ -16,8 +15,6 @@ from ...coordinator import MerakiDataUpdateCoordinator
 from ...core.utils.naming_utils import format_device_name
 from ...core.utils.network_utils import construct_rtsp_url
 from ...types import MerakiDevice
-
-
 
 _LOGGER = logging.getLogger(__name__)
 

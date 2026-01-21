@@ -1,6 +1,6 @@
 """Tests for the Meraki HA WebSocket API."""
 
-import json
+import asyncio
 from unittest.mock import AsyncMock, patch
 
 import pytest
@@ -79,11 +79,13 @@ async def test_subscribe_meraki_data(
     """Test subscribing to Meraki data."""
     client = await hass_ws_client(hass)
 
-    await client.send_json({
-        "id": 1,
-        "type": "meraki_ha/subscribe_meraki_data",
-        "config_entry_id": setup_integration.entry_id,
-    })
+    await client.send_json(
+        {
+            "id": 1,
+            "type": "meraki_ha/subscribe_meraki_data",
+            "config_entry_id": setup_integration.entry_id,
+        }
+    )
 
     response = await client.receive_json()
     assert response["success"]
@@ -92,7 +94,12 @@ async def test_subscribe_meraki_data(
     # Check that data is NOT wrapped in {"data": ...}
     # It should be the MOCK_DATA directly
     assert response["result"]["org_name"] == "Test Org"
-    assert "data" not in response["result"] or "org_name" not in response["result"]["data"]
+    assert (
+        "data" not in response["result"] or "org_name" not in response["result"]["data"]
+    )
+
+    await hass.async_block_till_done()
+    await asyncio.sleep(0.1)  # Allow background threads to close
 
 
 @pytest.mark.asyncio
@@ -104,10 +111,12 @@ async def test_get_version(
     """Test getting the version."""
     client = await hass_ws_client(hass)
 
-    await client.send_json({
-        "id": 1,
-        "type": "meraki_ha/get_version",
-    })
+    await client.send_json(
+        {
+            "id": 1,
+            "type": "meraki_ha/get_version",
+        }
+    )
 
     response = await client.receive_json()
     assert response["success"]
@@ -126,12 +135,14 @@ async def test_get_camera_stream_url(
 
     client = await hass_ws_client(hass)
 
-    await client.send_json({
-        "id": 1,
-        "type": "meraki_ha/get_camera_stream_url",
-        "config_entry_id": setup_integration.entry_id,
-        "serial": "test-serial",
-    })
+    await client.send_json(
+        {
+            "id": 1,
+            "type": "meraki_ha/get_camera_stream_url",
+            "config_entry_id": setup_integration.entry_id,
+            "serial": "test-serial",
+        }
+    )
 
     response = await client.receive_json()
     assert response["success"]
@@ -152,12 +163,14 @@ async def test_get_camera_snapshot(
 
     client = await hass_ws_client(hass)
 
-    await client.send_json({
-        "id": 1,
-        "type": "meraki_ha/get_camera_snapshot",
-        "config_entry_id": setup_integration.entry_id,
-        "serial": "test-serial",
-    })
+    await client.send_json(
+        {
+            "id": 1,
+            "type": "meraki_ha/get_camera_snapshot",
+            "config_entry_id": setup_integration.entry_id,
+            "serial": "test-serial",
+        }
+    )
 
     response = await client.receive_json()
     assert response["success"]
