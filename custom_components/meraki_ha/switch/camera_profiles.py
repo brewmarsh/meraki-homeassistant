@@ -14,7 +14,7 @@ from ..core.api.client import MerakiAPIClient
 from .camera_settings import MerakiCameraSettingSwitchBase
 
 if TYPE_CHECKING:
-    from ..types import MerakiDevice
+    from ...types import MerakiDevice
 
 _LOGGER = logging.getLogger(__name__)
 
