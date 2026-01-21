@@ -1,7 +1,7 @@
 """Switch entities for controlling Meraki Camera profiles."""
 
 import logging
-from typing import Any
+from typing import TYPE_CHECKING
 
 from homeassistant.components.switch import SwitchEntityDescription
 from homeassistant.helpers.typing import UNDEFINED
@@ -10,6 +10,9 @@ from custom_components.meraki_ha.coordinator import MerakiDataUpdateCoordinator
 
 from ..core.api.client import MerakiAPIClient
 from .camera_settings import MerakiCameraSettingSwitchBase
+
+if TYPE_CHECKING:
+    from ...types import MerakiDevice
 
 _LOGGER = logging.getLogger(__name__)
 

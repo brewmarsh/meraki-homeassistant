@@ -1,4 +1,3 @@
-
 """Tests for the Meraki connected clients sensor."""
 
 from unittest.mock import MagicMock

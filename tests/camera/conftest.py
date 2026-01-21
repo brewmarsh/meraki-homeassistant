@@ -1,6 +1,6 @@
 """Fixtures for camera tests."""
 
-from unittest.mock import AsyncMock, MagicMock
+from unittest.mock import AsyncMock
 
 import pytest
 
