@@ -7,8 +7,8 @@ import pytest
 from custom_components.meraki_ha.const import (
     CONF_ENABLE_FIREWALL_RULES,
 )
-from custom_components.meraki_ha.switch.setup_helpers import async_setup_switches
 from custom_components.meraki_ha.switch.firewall_rule import MerakiFirewallRuleSwitch
+from custom_components.meraki_ha.switch.setup_helpers import async_setup_switches
 from custom_components.meraki_ha.types import MerakiFirewallRule
 
 
@@ -36,9 +36,7 @@ def mock_coordinator_with_firewall_data(mock_coordinator: MagicMock) -> MagicMoc
         syslog_enabled=True,
     )
     mock_coordinator.data = {
-        "l3_firewall_rules": {
-            "net1": [rule1, rule2]
-        },
+        "l3_firewall_rules": {"net1": [rule1, rule2]},
     }
     mock_coordinator.is_pending.return_value = False
     return mock_coordinator

@@ -8,12 +8,16 @@ from custom_components.meraki_ha.const import (
     CONF_ENABLE_TRAFFIC_SHAPING,
 )
 from custom_components.meraki_ha.switch.setup_helpers import async_setup_switches
-from custom_components.meraki_ha.switch.traffic_shaping import MerakiTrafficShapingSwitch
+from custom_components.meraki_ha.switch.traffic_shaping import (
+    MerakiTrafficShapingSwitch,
+)
 from custom_components.meraki_ha.types import MerakiNetwork, MerakiTrafficShaping
 
 
 @pytest.fixture
-def mock_coordinator_with_traffic_shaping_data(mock_coordinator: MagicMock) -> MagicMock:
+def mock_coordinator_with_traffic_shaping_data(
+    mock_coordinator: MagicMock,
+) -> MagicMock:
     """Fixture for a mocked MerakiDataUpdateCoordinator with Traffic Shaping data."""
     ts_enabled = MerakiTrafficShaping(enabled=True)
     ts_disabled = MerakiTrafficShaping(enabled=False)
@@ -100,7 +104,8 @@ def test_traffic_shaping_switch_creation_disabled(
         mock_coordinator_with_traffic_shaping_data,
         mock_meraki_client,
     )
-    # entities might contain other switches if data present, but in our mock only traffic shaping data is present
+    # entities might contain other switches if data present,
+    # but in our mock only traffic shaping data is present
     # wait, setup_helpers checks for other things. But coordinator data only has "traffic_shaping".
     # so others should return empty.
     assert len(entities) == 0
