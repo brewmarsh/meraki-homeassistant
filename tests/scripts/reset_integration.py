@@ -40,7 +40,11 @@ async def restart_and_wait(session):
     """Restart Home Assistant and wait for it to come back online."""
     print("Restarting Home Assistant...")
     async with session.post(f"{HA_URL}/api/services/homeassistant/restart") as resp:
-        if resp.status != 200:
+        if resp.status == 200:
+            print("Success")
+        elif resp.status in [502, 504]:
+            print("Server disconnected (Restarting)...")
+        else:
             print(f"Restart call failed: {resp.status}")
             return False
     # Wait loop
@@ -75,37 +79,51 @@ async def add_integration():
 
             # Start Flow
             print("Starting Config Flow...")
-            await ws.send_json(
-                {"id": 1, "type": "config_entries/flow/start", "handler": "meraki_ha"}
-            )
-            resp = await ws.receive_json()
-            flow_id = resp["result"]["flow_id"]
+            flow_id = None
+            message_id = 1
+            for i in range(10):  # 10 attempts
+                await ws.send_json({
+                    "id": message_id,
+                    "type": "config_entries/flow/start",
+                    "handler": "meraki_ha",
+                })
+                resp = await ws.receive_json()
+                if resp.get("success"):
+                    flow_id = resp["result"]["flow_id"]
+                    print("Config flow started successfully.")
+                    break
+                else:
+                    print(f"Attempt {i+1}/10 failed: {resp}")
+                    message_id += 1
+                    await asyncio.sleep(5)  # 5-second delay
+
+            if not flow_id:
+                print("Failed to start config flow after multiple attempts.")
+                return False
 
             # Step 1: API Key
             print("Sending API Key...")
-            await ws.send_json(
-                {
-                    "id": 2,
-                    "type": "config_entries/flow/handle_step",
-                    "flow_id": flow_id,
-                    "step_id": "user",
-                    "user_input": {"api_key": MERAKI_API_KEY},
-                }
-            )
+            message_id += 1
+            await ws.send_json({
+                "id": message_id,
+                "type": "config_entries/flow/handle_step",
+                "flow_id": flow_id,
+                "step_id": "user",
+                "user_input": {"api_key": MERAKI_API_KEY},
+            })
             resp = await ws.receive_json()
 
             # Handle optional Step 2 (Org Selection) if it occurs
-            if resp["result"].get("step_id") == "pick_organization":
+            if resp.get("success") and resp["result"].get("step_id") == "pick_organization":
                 print("Selecting Organization...")
-                await ws.send_json(
-                    {
-                        "id": 3,
-                        "type": "config_entries/flow/handle_step",
-                        "flow_id": flow_id,
-                        "step_id": "pick_organization",
-                        "user_input": {"organization_id": MERAKI_ORG_ID},
-                    }
-                )
+                message_id += 1
+                await ws.send_json({
+                    "id": message_id,
+                    "type": "config_entries/flow/handle_step",
+                    "flow_id": flow_id,
+                    "step_id": "pick_organization",
+                    "user_input": {"organization_id": MERAKI_ORG_ID},
+                })
                 resp = await ws.receive_json()
 
             if resp["success"] and resp["result"]["type"] == "create_entry":
