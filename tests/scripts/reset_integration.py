@@ -76,18 +76,33 @@ async def add_integration():
 
             # Start Flow
             print("Starting Config Flow...")
-            await ws.send_json({
-                "id": 1,
-                "type": "config_entries/flow/start",
-                "handler": "meraki_ha",
-            })
-            resp = await ws.receive_json()
-            flow_id = resp["result"]["flow_id"]
+            flow_id = None
+            message_id = 1
+            for i in range(10):  # 10 attempts
+                await ws.send_json({
+                    "id": message_id,
+                    "type": "config_entries/flow/start",
+                    "handler": "meraki_ha",
+                })
+                resp = await ws.receive_json()
+                if resp.get("success"):
+                    flow_id = resp["result"]["flow_id"]
+                    print("Config flow started successfully.")
+                    break
+                else:
+                    print(f"Attempt {i+1}/10 failed: {resp}")
+                    message_id += 1
+                    await asyncio.sleep(5)  # 5-second delay
+
+            if not flow_id:
+                print("Failed to start config flow after multiple attempts.")
+                return False
 
             # Step 1: API Key
             print("Sending API Key...")
+            message_id += 1
             await ws.send_json({
-                "id": 2,
+                "id": message_id,
                 "type": "config_entries/flow/handle_step",
                 "flow_id": flow_id,
                 "step_id": "user",
@@ -96,10 +111,11 @@ async def add_integration():
             resp = await ws.receive_json()
 
             # Handle optional Step 2 (Org Selection) if it occurs
-            if resp["result"].get("step_id") == "pick_organization":
+            if resp.get("success") and resp["result"].get("step_id") == "pick_organization":
                 print("Selecting Organization...")
+                message_id += 1
                 await ws.send_json({
-                    "id": 3,
+                    "id": message_id,
                     "type": "config_entries/flow/handle_step",
                     "flow_id": flow_id,
                     "step_id": "pick_organization",
