@@ -90,7 +90,7 @@ async def add_integration():
                     print("Config flow started successfully.")
                     break
                 else:
-                    print(f"Attempt {i+1}/10 failed: {resp}")
+                    print(f"Attempt {i + 1}/10 failed: {resp}")
                     message_id += 1
                     await asyncio.sleep(5)  # 5-second delay
 

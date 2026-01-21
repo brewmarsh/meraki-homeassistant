@@ -14,8 +14,6 @@ from ..core.api.client import MerakiAPIClient
 from .camera_settings import MerakiCameraSettingSwitchBase
 from ..types import MerakiDevice
 
-
-
 _LOGGER = logging.getLogger(__name__)
 
 
