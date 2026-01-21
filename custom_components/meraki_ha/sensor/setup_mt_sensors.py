@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import logging
-from typing import TYPE_CHECKING
 
 from homeassistant.helpers.entity import Entity
 
@@ -12,8 +11,6 @@ from ..descriptions import MT_SENSOR_MODELS
 from ..types import MerakiDevice
 from .device.meraki_mt_base import MerakiMtSensor
 
-if TYPE_CHECKING:
-    from ..types import MerakiDevice
 _LOGGER = logging.getLogger(__name__)
 
 
