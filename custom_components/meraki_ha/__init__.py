@@ -1,7 +1,7 @@
 """The Meraki Home Assistant integration."""
 
 import logging
-import random
+import secrets
 import string
 
 from homeassistant import config_entries
@@ -99,13 +99,16 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     hass.data[DOMAIN][entry.entry_id] = {
         "coordinator": coordinator,
         "meraki_client": coordinator.api,
+        "camera_service": camera_service,
+        "device_control_service": device_control_service,
+        "switch_port_service": switch_port_service,
     }
 
     # Set up webhook
     webhook_id = WEBHOOK_ID_FORMAT.format(entry_id=entry.entry_id)
     hass.data[DOMAIN][entry.entry_id]["webhook_id"] = webhook_id
     if not entry.data.get("webhook_secret"):
-        secret = "".join(random.choice(string.ascii_letters) for _ in range(32))
+        secret = "".join(secrets.choice(string.ascii_letters) for _ in range(32))
         hass.config_entries.async_update_entry(
             entry,
             data={**entry.data, "webhook_secret": secret},
