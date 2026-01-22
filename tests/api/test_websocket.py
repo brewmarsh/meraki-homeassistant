@@ -28,7 +28,7 @@ def bypass_platform_setup():
 
 @pytest.fixture(autouse=True)
 def verify_cleanup():
-    """Override verify_cleanup to avoid thread errors."""
+    """Override verify_cleanup to avoid spurious thread errors."""
     yield
 
 
@@ -54,7 +54,6 @@ async def setup_integration(hass: HomeAssistant, socket_enabled) -> MockConfigEn
             "custom_components.meraki_ha.async_register_webhook",
             return_value=None,
         ),
-        patch("custom_components.meraki_ha.PLATFORMS", []),
         patch(
             "custom_components.meraki_ha.services.camera_service.CameraService.get_video_stream_url",
             new_callable=AsyncMock,
@@ -118,9 +117,11 @@ async def test_subscribe_meraki_data(
         "data" not in response["result"] or "org_name" not in response["result"]["data"]
     )
 
+    # Verify listener was attached
+    mock_coordinator.async_add_listener.assert_called_once()
+
     await client.close()
     await hass.async_block_till_done()
-    await asyncio.sleep(1.0)  # Allow background threads to close
 
 
 @pytest.mark.asyncio
@@ -143,8 +144,8 @@ async def test_get_version(
     assert response["success"]
     assert "version" in response["result"]
 
+    await client.close()
     await hass.async_block_till_done()
-    await asyncio.sleep(0.5)  # Allow background threads to close
 
 
 @pytest.mark.asyncio
@@ -174,8 +175,8 @@ async def test_get_camera_stream_url(
 
     mock_get_stream.assert_called_with("test-serial")
 
+    await client.close()
     await hass.async_block_till_done()
-    await asyncio.sleep(0.5)  # Allow background threads to close
 
 
 @pytest.mark.asyncio
@@ -205,5 +206,5 @@ async def test_get_camera_snapshot(
 
     mock_get_snapshot.assert_called_with("test-serial")
 
+    await client.close()
     await hass.async_block_till_done()
-    await asyncio.sleep(0.5)  # Allow background threads to close

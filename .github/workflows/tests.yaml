@@ -19,5 +19,12 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements_test.txt
 
+      - name: Force Clean DNS Stack
+        run: |
+          # Forcibly remove existing/cached versions that cause the AttributeError on Python 3.13
+          pip uninstall -y pycares aiodns
+          # Freshly install the versions compatible with Python 3.13
+          pip install --no-cache-dir pycares==4.11.0 aiodns==3.6.1
+
       - name: Run Tests
         run: pytest tests/

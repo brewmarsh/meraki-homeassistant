@@ -18,5 +18,5 @@
     "pycares==4.11.0",
     "urllib3>=2.6.2"
   ],
-  "version": "2.1.0-beta.100"
+  "version": "2.1.0-beta.99"
 }
