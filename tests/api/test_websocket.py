@@ -14,9 +14,8 @@ from custom_components.meraki_ha.const import (
 )
 
 # Suggestion: add verify_cleanup to ignore the specific thread
-# We need to import threading to use it in the fixture
-import threading
 from typing import Generator
+
 
 @pytest.fixture(autouse=True)
 def verify_cleanup() -> Generator[None, None, None]:
@@ -30,6 +29,7 @@ def verify_cleanup() -> Generator[None, None, None]:
     # However, to be cleaner, we should probably try to clean up if we can.
     # But simply overriding disables the check which is enough for this known issue.
 
+
 MOCK_DATA = {
     "org_name": "Test Org",
     "networks": [],
@@ -40,12 +40,6 @@ MOCK_DATA = {
 @pytest.fixture(autouse=True)
 def bypass_platform_setup():
     """Override global fixture to allow component setup."""
-    yield
-
-
-@pytest.fixture(autouse=True)
-def verify_cleanup():
-    """Override verify_cleanup to allow for lingering threads."""
     yield
 
 
@@ -125,8 +119,7 @@ async def test_subscribe_meraki_data(
     # Clean up the client to prevent lingering threads
     await client.close()
     await hass.async_block_till_done()
-    await client.close()
-    await asyncio.sleep(1.0)  # Allow background threads to close
+    await asyncio.sleep(0.1)  # Allow background threads to close
 
 
 @pytest.mark.asyncio
