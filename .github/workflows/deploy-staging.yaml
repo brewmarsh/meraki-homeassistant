@@ -57,7 +57,7 @@ jobs:
         run: |
           echo "Installing dependencies..."
           sudo apt-get update && sudo apt-get install -y python3-pip && sudo python3 -m pip install aiohttp > /dev/null
-          
+
           echo "Running Reset Script..."
           # Pass secrets implicitly via env vars defined above
           python3 tests/scripts/reset_integration.py

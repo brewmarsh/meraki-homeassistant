@@ -36,7 +36,6 @@ This plan is a step-by-step guide for an AI agent to build the new UI from scrat
 **Phase 1: Backend Data & API**
 
 1. **Create WebSocket Endpoint:**
-
    - Create a new file, `custom_components/meraki_ha/api/websocket.py`.
    - Define a WebSocket handler that, when a connection is established, immediately sends a complete snapshot of the integration's data from `hass.data[DOMAIN][config_entry.entry_id]`.
    - Implement a state change listener (e.g., using a Home Assistant `callback`) that pushes updates to all connected WebSocket clients whenever the coordinator's data changes. This ensures the UI is always in sync.
