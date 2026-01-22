@@ -34,7 +34,10 @@ def main():
     now = datetime.now(timezone.utc)
     five_minutes_ago = now - timedelta(minutes=5)
 
-    query = f"SELECT * FROM logs WHERE level = 'error' AND message LIKE '%meraki_ha%' AND to_timestamp(dt) >= '{five_minutes_ago.isoformat()}'"  # nosec
+    query = (
+        "SELECT * FROM logs WHERE level = 'error' AND message LIKE '%meraki_ha%' "
+        f"AND to_timestamp(dt) >= '{five_minutes_ago.isoformat()}'"
+    )  # nosec
 
     response = requests.post(
         url, headers=headers, json={"query": query}, timeout=30

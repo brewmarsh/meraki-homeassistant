@@ -94,4 +94,6 @@ class MerakiVpnSelect(CoordinatorEntity, SelectEntity):
                 self._network_id,
                 e,
             )
-            raise HomeAssistantError(f"Failed to set VPN mode to '{option}': {e}") from e
+            raise HomeAssistantError(
+                f"Failed to set VPN mode to '{option}': {e}"
+            ) from e
