@@ -33,8 +33,7 @@ class MerakiMt15RefreshDataButton(CoordinatorEntity, ButtonEntity):
         self._config_entry = config_entry
         self._meraki_client = meraki_client
         self._attr_unique_id = f"{self._device.serial}-refresh"
-        self._attr_has_entity_name = True
-        self._attr_name = "Refresh Data"
+        self._attr_name = f"{(device.name or 'Device')} Refresh Data"
 
     @property
     def device_info(self) -> DeviceInfo | None:
@@ -44,8 +43,6 @@ class MerakiMt15RefreshDataButton(CoordinatorEntity, ButtonEntity):
     async def async_press(self) -> None:
         """Handle the button press."""
         serial = self._device.serial
-        if not serial:
-            return
         _LOGGER.info("MT15 refresh data button pressed for %s", serial)
         try:
             await self._meraki_client.sensor.create_device_sensor_command(

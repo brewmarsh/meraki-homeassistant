@@ -48,7 +48,6 @@ class MerakiCameraSettingSwitchBase(
         self._key = key
         self._api_field = api_field
         self._attr_unique_id = f"{device_data.serial}_{self._key}"
-        self._attr_has_entity_name = True
         self._attr_is_on = False
         self._update_state()  # Set initial state
 

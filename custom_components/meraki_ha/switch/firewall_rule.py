@@ -47,7 +47,6 @@ class MerakiFirewallRuleSwitch(MerakiFirewallRuleEntity, SwitchEntity):
             self._network_id,
             self._rule_index,
         )
-        self._attr_has_entity_name = True
         self._attr_name = self._rule.comment or f"Rule {self._rule_index + 1}"
         self._update_internal_state()
 

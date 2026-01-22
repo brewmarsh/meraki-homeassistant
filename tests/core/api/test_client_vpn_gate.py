@@ -15,11 +15,7 @@ def mock_hass():
 @pytest.fixture
 def mock_coordinator():
     """Mock Coordinator."""
-    coordinator = MagicMock()
-    # Mock synchronous check methods to return False by default
-    coordinator.is_traffic_check_due.return_value = False
-    coordinator.is_vlan_check_due.return_value = False
-    return coordinator
+    return MagicMock()
 
 
 @pytest.mark.asyncio
@@ -36,6 +32,10 @@ async def test_vpn_status_not_fetched_when_disabled(mock_hass, mock_coordinator)
     # Mock endpoint methods
     client.appliance = AsyncMock()
     client.appliance.get_vpn_status = AsyncMock()
+
+    # Mock coordinator sync methods to avoid RuntimeWarning
+    client.coordinator.is_traffic_check_due = MagicMock(return_value=True)
+    client.coordinator.is_vlan_check_due = MagicMock(return_value=True)
 
     # Mock other methods called by get_all_data
     client._async_fetch_initial_data = AsyncMock(return_value={
@@ -66,6 +66,10 @@ async def test_vpn_status_fetched_when_enabled(mock_hass, mock_coordinator):
     # Mock endpoint methods
     client.appliance = AsyncMock()
     client.appliance.get_vpn_status = AsyncMock()
+
+    # Mock coordinator sync methods to avoid RuntimeWarning
+    client.coordinator.is_traffic_check_due = MagicMock(return_value=True)
+    client.coordinator.is_vlan_check_due = MagicMock(return_value=True)
 
     # Mock other methods called by get_all_data
     client._async_fetch_initial_data = AsyncMock(return_value={

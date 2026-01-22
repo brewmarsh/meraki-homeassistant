@@ -10,8 +10,7 @@ jobs:
     runs-on: [self-hosted, meraki-smoketest]
 
     env:
-      # Path mapped via fstab to 192.168.5.14
-      DESTINATION_PATH: '/mnt/homeassistant-smoketest/custom_components/meraki_ha'
+      DESTINATION_PATH: '/ha_config/custom_components/meraki_ha'
 
     steps:
       - name: Checkout repository
@@ -47,6 +46,11 @@ jobs:
       - name: Install jq
         run: sudo apt-get update && sudo apt-get install -y jq
 
+      - uses: astral-sh/setup-uv@v7
+        with:
+          python-version: '3.13'
+          enable-cache: true
+
       - name: Full Integration Reset (Delete > Restart > Add)
         shell: bash
         env:
@@ -56,8 +60,8 @@ jobs:
           MERAKI_ORG_ID: ${{ secrets.MERAKI_ORG_ID }}
         run: |
           echo "Installing dependencies..."
-          sudo apt-get update && sudo apt-get install -y python3-pip && sudo python3 -m pip install aiohttp > /dev/null
-          
+          uv pip install --system aiohttp > /dev/null
+
           echo "Running Reset Script..."
           # Pass secrets implicitly via env vars defined above
           python3 tests/scripts/reset_integration.py

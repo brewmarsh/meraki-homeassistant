@@ -37,7 +37,6 @@ class SwitchPortSensor(CoordinatorEntity, BinarySensorEntity):
         self._device = device
         self._port = port
         self._attr_unique_id = f"{device.serial}_{self._port['portId']}"
-        self._attr_has_entity_name = True
         self._attr_name = f"Port {self._port['portId']}"
 
     @property

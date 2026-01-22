@@ -46,9 +46,6 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
         Whether the setup was successful.
 
     """
-    from . import config_flow
-
-    config_entries.HANDLERS.register(DOMAIN)(config_flow.ConfigFlowHandler)
     hass.data.setdefault(DOMAIN, {})
 
     # Register the static path for the custom panel

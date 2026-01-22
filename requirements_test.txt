@@ -21,3 +21,5 @@ flake8==7.0.0
 webrtc-models==0.3.0
 PyTurboJPEG
 numpy>=1.26.0
+aiodhcpwatcher
+aiodiscover
