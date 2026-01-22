@@ -10,10 +10,10 @@ from typing import Any
 class MerakiDevice:
     """Dataclass for a Meraki device."""
 
-    serial: str
-    name: str
-    model: str
-    mac: str
+    serial: str | None = None
+    name: str | None = None
+    model: str | None = None
+    mac: str | None = None
     lan_ip: str | None = None
     wan1_ip: str | None = None
     wan2_ip: str | None = None
@@ -73,8 +73,7 @@ class MerakiDevice:
             analytics=data.get("analytics", []),
             ports_statuses=data.get("portsStatuses", []),
             appliance_ports=[
-                MerakiAppliancePort.from_dict(p)
-                for p in data.get("appliancePorts", [])
+                MerakiAppliancePort.from_dict(p) for p in data.get("appliancePorts", [])
             ],
             dynamic_dns=data.get("dynamicDns"),
             status_messages=data.get("statusMessages", []),
@@ -86,9 +85,9 @@ class MerakiDevice:
 class MerakiNetwork:
     """Dataclass for a Meraki network."""
 
-    id: str
-    name: str
-    organization_id: str
+    id: str | None = None
+    name: str | None = None
+    organization_id: str | None = None
     product_types: list[str] = field(default_factory=list)
     time_zone: str | None = None
     tags: list[str] = field(default_factory=list)
@@ -113,8 +112,8 @@ class MerakiNetwork:
 class MerakiVlan:
     """Represents a Meraki VLAN."""
 
-    id: str
-    name: str
+    id: str | None = None
+    name: str | None = None
     subnet: str | None = None
     appliance_ip: str | None = None
     ipv6: dict | None = None
@@ -137,9 +136,9 @@ class MerakiVlan:
 class MerakiFirewallRule:
     """Represents a Meraki L3 Firewall Rule."""
 
-    comment: str
-    policy: str
-    protocol: str
+    comment: str | None = None
+    policy: str | None = None
+    protocol: str | None = None
     dest_port: str | None = None
     dest_cidr: str | None = None
     src_port: str | None = None
@@ -181,7 +180,7 @@ class MerakiTrafficShaping:
 class MerakiVpn:
     """Represents Meraki Site-to-Site VPN settings."""
 
-    mode: str
+    mode: str | None = None
     hubs: list = field(default_factory=list)
     subnets: list = field(default_factory=list)
 
@@ -199,7 +198,7 @@ class MerakiVpn:
 class MerakiAppliancePort:
     """Represents a Meraki Appliance Port."""
 
-    number: int
+    number: int | None = None
     enabled: bool = False
     type: str | None = None
     drop_untagged_traffic: bool = False

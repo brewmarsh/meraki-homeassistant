@@ -1,7 +1,9 @@
 """Tests for BaseMerakiEntity."""
 
 from unittest.mock import MagicMock
+
 import pytest
+
 from custom_components.meraki_ha.core.entities import BaseMerakiEntity
 from custom_components.meraki_ha.types import MerakiDevice, MerakiNetwork
 
@@ -38,10 +40,7 @@ def mock_coordinator():
         time_zone="America/Los_Angeles",
     )
 
-    coordinator.data = {
-        "devices": [device],
-        "networks": [network]
-    }
+    coordinator.data = {"devices": [device], "networks": [network]}
 
     coordinator.get_device.return_value = device
     coordinator.get_network.return_value = network

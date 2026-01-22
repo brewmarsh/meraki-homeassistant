@@ -1,7 +1,7 @@
 """Tests for the Meraki HA WebSocket API."""
 
 import asyncio
-from unittest.mock import AsyncMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 from homeassistant.core import HomeAssistant

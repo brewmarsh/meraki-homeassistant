@@ -1,8 +1,12 @@
 """Tests for the Meraki Device Status Sensor."""
 
 from unittest.mock import MagicMock
+
 import pytest
-from custom_components.meraki_ha.sensor.device.device_status import MerakiDeviceStatusSensor
+
+from custom_components.meraki_ha.sensor.device.device_status import (
+    MerakiDeviceStatusSensor,
+)
 from custom_components.meraki_ha.types import MerakiDevice
 
 
@@ -42,12 +46,10 @@ def mock_device_coordinator():
                 "publicIp": "8.8.8.8",
                 "dns": "8.8.4.4",
             }
-        ]
+        ],
     )
 
-    coordinator.data = {
-        "devices": [device1, device2]
-    }
+    coordinator.data = {"devices": [device1, device2]}
 
     # Setup get_device return values
     def get_device(serial):

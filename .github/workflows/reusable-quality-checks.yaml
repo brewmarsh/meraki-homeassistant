@@ -9,7 +9,7 @@ on:
     secrets:
       CODECOV_TOKEN:
         required: false
-        description: "Token for uploading coverage reports"
+        description: 'Token for uploading coverage reports'
 
 permissions:
   contents: write
@@ -23,7 +23,7 @@ jobs:
       - uses: astral-sh/setup-uv@v7
         with:
           python-version: ${{ inputs.python-version }}
-          enable-cache: true
+          enable-cache: false
       - name: Install Ruff
         run: pip install ruff
       - name: Run Ruff Linter
@@ -44,7 +44,7 @@ jobs:
       - uses: astral-sh/setup-uv@v7
         with:
           python-version: ${{ inputs.python-version }}
-          enable-cache: true
+          enable-cache: false
       - name: Install dependencies
         run: pip install -r requirements_dev.txt
       - run: mypy --ignore-missing-imports custom_components/meraki_ha/ tests/
@@ -57,13 +57,9 @@ jobs:
       - uses: astral-sh/setup-uv@v7
         with:
           python-version: ${{ inputs.python-version }}
-          enable-cache: true
-      - name: Install dependencies
-        run: pip install -r requirements_dev.txt
-      - name: Install dependencies
-        run: pip install -r requirements_dev.txt
-      - name: Install dependencies
-        run: pip install -r requirements_dev.txt
+          enable-cache: false
+      - name: Upgrade build tools
+        run: python -m pip install --upgrade pip setuptools wheel
       - name: Install dependencies
         run: pip install -r requirements_dev.txt
       - name: Install tools
@@ -83,18 +79,18 @@ jobs:
       - uses: astral-sh/setup-uv@v7
         with:
           python-version: ${{ inputs.python-version }}
-          enable-cache: true
+          enable-cache: false
 
       # --- FORCE CLEAN STEP: THE DEFINITIVE FIX ---
+      - name: Install dependencies
+        run: pip install -r requirements_dev.txt
+
       - name: Force Clean DNS Stack
         run: |
           # Forcibly remove existing/cached versions that cause the AttributeError on Python 3.13
           pip uninstall -y pycares aiodns
-          # Freshly install the Home Assistant 2026.1 official pins
-          pip install --no-cache-dir pycares==4.11.0 aiodns==3.2.0
-
-      - name: Install dependencies
-        run: pip install -r requirements_dev.txt
+          # Freshly install the versions compatible with Python 3.13
+          pip install --no-cache-dir pycares==4.11.0 aiodns==3.6.1
 
       - name: Run Tests
         run: pytest --cov=custom_components.meraki_ha --cov-report=xml tests/

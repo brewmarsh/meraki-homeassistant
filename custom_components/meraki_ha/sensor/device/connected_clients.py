@@ -1,6 +1,6 @@
-from __future__ import annotations
-
 """Sensor entity for monitoring connected clients on a Meraki device."""
+
+from __future__ import annotations
 
 import logging
 from typing import TYPE_CHECKING

@@ -41,7 +41,7 @@ def mock_coordinator():
                 }
             ],
         },
-        dhcp_handling="Run a DHCP server"
+        dhcp_handling="Run a DHCP server",
     )
 
     vlan2 = MerakiVlan(
@@ -50,7 +50,7 @@ def mock_coordinator():
         subnet="192.168.2.0/24",
         appliance_ip="192.168.2.1",
         ipv6=None,  # Explicitly None if not enabled/present
-        dhcp_handling="Do not respond to DHCP requests"
+        dhcp_handling="Do not respond to DHCP requests",
     )
     # vlan2 enabled=False is not in MerakiVlan?
     # Check MerakiVlan definition in types.py:
@@ -65,9 +65,7 @@ def mock_coordinator():
 
     coordinator.data = {
         "networks": [mock_network],
-        "vlans": {
-            "net1": [vlan1, vlan2]
-        },
+        "vlans": {"net1": [vlan1, vlan2]},
         "devices": [],
         "clients": [],
         "ssids": [],
@@ -80,9 +78,7 @@ def test_vlan_sensor_creation(mock_coordinator):
     hass = MagicMock()
 
     # Run the setup
-    sensors = async_setup_sensors(
-        hass, mock_coordinator.config_entry, mock_coordinator
-    )
+    sensors = async_setup_sensors(hass, mock_coordinator.config_entry, mock_coordinator)
 
     # We expect 7 sensors for each of the two VLANs
     vlan_sensors = [s for s in sensors if "VLAN" in s.__class__.__name__]

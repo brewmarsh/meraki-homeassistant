@@ -9,12 +9,13 @@ from homeassistant.helpers.device_registry import DeviceInfo
 
 from ..const import DOMAIN
 from ..core.utils.naming_utils import format_device_name
+from ..types import MerakiDevice, MerakiNetwork
 
 _LOGGER = logging.getLogger(__name__)
 
 
 def resolve_device_info(
-    entity_data: dict[str, Any],
+    entity_data: MerakiDevice | MerakiNetwork | dict[str, Any],
     config_entry: ConfigEntry,
     ssid_data: dict[str, Any] | None = None,
 ) -> DeviceInfo | None:

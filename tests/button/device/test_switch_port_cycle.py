@@ -53,6 +53,7 @@ async def test_button_initialization(
     mock_config_entry: ConfigEntry,
 ):
     """Test the button initialization."""
+    assert mock_device.ports_statuses is not None
     port_info = mock_device.ports_statuses[0]
     button = MerakiSwitchPortCycleButton(
         mock_service, mock_device, port_info, mock_config_entry
@@ -61,7 +62,9 @@ async def test_button_initialization(
     assert button.name == "Test Switch Port 1 Cycle"
     assert button.unique_id == "Q2XX-XXXX-XXXX_port_1_cycle"
     assert button.icon == "mdi:restart"
-    assert button.device_info["identifiers"] == {("meraki_ha", "Q2XX-XXXX-XXXX")}
+    device_info = button.device_info
+    assert device_info is not None
+    assert device_info["identifiers"] == {("meraki_ha", "Q2XX-XXXX-XXXX")}
 
 
 async def test_button_press(
@@ -71,6 +74,7 @@ async def test_button_press(
     mock_config_entry: ConfigEntry,
 ):
     """Test the button press action."""
+    assert mock_device.ports_statuses is not None
     port_info = mock_device.ports_statuses[0]
     button = MerakiSwitchPortCycleButton(
         mock_service, mock_device, port_info, mock_config_entry
