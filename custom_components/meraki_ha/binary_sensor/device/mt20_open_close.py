@@ -37,7 +37,8 @@ class MerakiMt20OpenCloseSensor(CoordinatorEntity, BinarySensorEntity):
         self._device_info = device_info
         self._config_entry = config_entry
         self._attr_unique_id = f"{self._device_info.serial}-door"
-        self._attr_name = f"{self._device_info.name} Door"
+        self._attr_has_entity_name = True
+        self._attr_name = "Door"
 
     @property
     def device_info(self) -> DeviceInfo | None:

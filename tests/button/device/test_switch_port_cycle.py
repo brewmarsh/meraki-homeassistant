@@ -1,5 +1,6 @@
 """Test the Meraki switch port cycle button."""
 
+from typing import cast
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
@@ -59,7 +60,7 @@ async def test_button_initialization(
         mock_service, mock_device, port_info, mock_config_entry
     )
 
-    assert button.name == "Test Switch Port 1 Cycle"
+    assert button.name == "Port 1 Cycle"
     assert button.unique_id == "Q2XX-XXXX-XXXX_port_1_cycle"
     assert button.icon == "mdi:restart"
     device_info = button.device_info
@@ -82,4 +83,6 @@ async def test_button_press(
 
     await button.async_press()
 
-    mock_service.async_cycle_ports.assert_called_once_with("Q2XX-XXXX-XXXX", ["1"])
+    cast(AsyncMock, mock_service.async_cycle_ports).assert_called_once_with(
+        "Q2XX-XXXX-XXXX", ["1"]
+    )

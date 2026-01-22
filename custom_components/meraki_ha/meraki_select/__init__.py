@@ -8,8 +8,9 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from ..const import DOMAIN
+from ..const import CONF_ENABLE_VPN_MANAGEMENT, DOMAIN
 from .meraki_content_filtering import MerakiContentFilteringSelect
+from .vpn import MerakiVpnSelect
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -35,4 +36,14 @@ async def async_setup_entry(
                     network,
                 )
             )
+            if config_entry.options.get(CONF_ENABLE_VPN_MANAGEMENT):
+                select_entities.append(
+                    MerakiVpnSelect(
+                        coordinator,
+                        meraki_client,
+                        config_entry,
+                        network,
+                    )
+                )
+
         async_add_entities(select_entities)

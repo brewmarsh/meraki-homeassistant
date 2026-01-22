@@ -48,7 +48,7 @@ def test_mt15_button_creation(
     )
 
     assert button.unique_id == "mt15-1-refresh"
-    assert button.name == "MT15 Sensor Refresh Data"
+    assert button.name == "Refresh Data"
     assert button.available is True
 
 
