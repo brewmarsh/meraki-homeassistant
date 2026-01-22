@@ -12,15 +12,8 @@ permissions:
   checks: write
 
 jobs:
-  validate:
+  quality-gate:
     uses: ./.github/workflows/reusable-quality-checks.yaml
     with:
       python-version: '3.13'
-    secrets:
-      CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
-
-  code-review:
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      pull-requests: write
+    secrets: inherit
