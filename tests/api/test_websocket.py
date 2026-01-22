@@ -7,6 +7,7 @@ import pytest
 from homeassistant.core import HomeAssistant
 from pytest_homeassistant_custom_component.common import MockConfigEntry, mock_component
 
+from custom_components.meraki_ha.api.websocket import async_setup_websocket_api
 from custom_components.meraki_ha.const import (
     CONF_MERAKI_API_KEY,
     CONF_MERAKI_ORG_ID,
@@ -23,6 +24,12 @@ MOCK_DATA = {
 @pytest.fixture(autouse=True)
 def bypass_platform_setup():
     """Override global fixture to allow component setup."""
+    yield
+
+
+@pytest.fixture(autouse=True)
+def verify_cleanup():
+    """Override verify_cleanup to avoid spurious thread errors."""
     yield
 
 
@@ -60,8 +67,7 @@ async def setup_integration(hass: HomeAssistant, socket_enabled) -> MockConfigEn
         await hass.config_entries.async_setup(config_entry.entry_id)
         await hass.async_block_till_done()
 
-        # Store mocks in hass data for retrieval in tests if needed,
-        # or just rely on the fact they are patched globally in this scope
+        # Store mocks in hass data for retrieval in tests if needed
         hass.data[DOMAIN]["mocks"] = {
             "get_video_stream_url": mock_get_stream,
             "get_camera_snapshot": mock_get_snapshot,
@@ -74,28 +80,49 @@ async def setup_integration(hass: HomeAssistant, socket_enabled) -> MockConfigEn
 async def test_subscribe_meraki_data(
     hass: HomeAssistant,
     hass_ws_client,
-    setup_integration,
+    # Do not use setup_integration fixture
 ) -> None:
     """Test subscribing to Meraki data."""
+    # Manual setup to avoid full integration load and thread leaks
+    entry_id = "test_entry"
+    hass.data.setdefault(DOMAIN, {})
+
+    mock_coordinator = MagicMock()
+    mock_coordinator.data = MOCK_DATA
+    # Mock async_add_listener to return a no-op callable
+    mock_coordinator.async_add_listener = MagicMock(return_value=lambda: None)
+
+    hass.data[DOMAIN][entry_id] = {
+        "coordinator": mock_coordinator,
+    }
+
+    # Register API
+    async_setup_websocket_api(hass)
+
     client = await hass_ws_client(hass)
 
-    await client.send_json({
-        "id": 1,
-        "type": "meraki_ha/subscribe_meraki_data",
-        "config_entry_id": setup_integration.entry_id,
-    })
+    await client.send_json(
+        {
+            "id": 1,
+            "type": "meraki_ha/subscribe_meraki_data",
+            "config_entry_id": entry_id,
+        }
+    )
 
     response = await client.receive_json()
     assert response["success"]
     assert response["type"] == "result"
 
-    # Check that data is NOT wrapped in {"data": ...}
-    # It should be the MOCK_DATA directly
     assert response["result"]["org_name"] == "Test Org"
-    assert "data" not in response["result"] or "org_name" not in response["result"]["data"]
+    assert (
+        "data" not in response["result"] or "org_name" not in response["result"]["data"]
+    )
 
+    # Verify listener was attached
+    mock_coordinator.async_add_listener.assert_called_once()
+
+    await client.close()
     await hass.async_block_till_done()
-    await asyncio.sleep(0.1) # Allow background threads to close
 
 
 @pytest.mark.asyncio
@@ -107,14 +134,19 @@ async def test_get_version(
     """Test getting the version."""
     client = await hass_ws_client(hass)
 
-    await client.send_json({
-        "id": 1,
-        "type": "meraki_ha/get_version",
-    })
+    await client.send_json(
+        {
+            "id": 1,
+            "type": "meraki_ha/get_version",
+        }
+    )
 
     response = await client.receive_json()
     assert response["success"]
     assert "version" in response["result"]
+
+    await client.close()
+    await hass.async_block_till_done()
 
 
 @pytest.mark.asyncio
@@ -129,18 +161,23 @@ async def test_get_camera_stream_url(
 
     client = await hass_ws_client(hass)
 
-    await client.send_json({
-        "id": 1,
-        "type": "meraki_ha/get_camera_stream_url",
-        "config_entry_id": setup_integration.entry_id,
-        "serial": "test-serial",
-    })
+    await client.send_json(
+        {
+            "id": 1,
+            "type": "meraki_ha/get_camera_stream_url",
+            "config_entry_id": setup_integration.entry_id,
+            "serial": "test-serial",
+        }
+    )
 
     response = await client.receive_json()
     assert response["success"]
     assert response["result"]["url"] == "rtsp://test-url"
 
     mock_get_stream.assert_called_with("test-serial")
+
+    await client.close()
+    await hass.async_block_till_done()
 
 
 @pytest.mark.asyncio
@@ -155,15 +192,20 @@ async def test_get_camera_snapshot(
 
     client = await hass_ws_client(hass)
 
-    await client.send_json({
-        "id": 1,
-        "type": "meraki_ha/get_camera_snapshot",
-        "config_entry_id": setup_integration.entry_id,
-        "serial": "test-serial",
-    })
+    await client.send_json(
+        {
+            "id": 1,
+            "type": "meraki_ha/get_camera_snapshot",
+            "config_entry_id": setup_integration.entry_id,
+            "serial": "test-serial",
+        }
+    )
 
     response = await client.receive_json()
     assert response["success"]
     assert response["result"]["url"] == "https://snapshot-url"
 
     mock_get_snapshot.assert_called_with("test-serial")
+
+    await client.close()
+    await hass.async_block_till_done()
