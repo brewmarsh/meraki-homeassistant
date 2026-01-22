@@ -46,11 +46,6 @@ jobs:
       - name: Install jq
         run: sudo apt-get update && sudo apt-get install -y jq
 
-      # FIX 1: Install Python 3.13 first so 'uv --system' has a target
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.13'
-
       - uses: astral-sh/setup-uv@v7
         with:
           python-version: '3.13'
@@ -77,10 +72,10 @@ jobs:
           echo "Scanning logs for Meraki errors..."
           # Give HA a moment to settle after the reset script
           sleep 10
-          # FIX 2: Use internal runner path /ha_config instead of host path /mnt/...
-          if grep -i "ERROR" /ha_config/home-assistant.log | grep "custom_components.meraki_ha"; then
+          # Grep for lines containing BOTH "ERROR" and "meraki_ha"
+          if grep -i "ERROR" /mnt/homeassistant-smoketest/home-assistant.log | grep "custom_components.meraki_ha"; then
             echo "::error::CRITICAL: Found Meraki errors in the log!"
-            grep -i "ERROR" /ha_config/home-assistant.log | grep "custom_components.meraki_ha"
+            grep -i "ERROR" /mnt/homeassistant-smoketest/home-assistant.log | grep "custom_components.meraki_ha"
             exit 1
           else
             echo "Logs are clean. Smoke test passed."
