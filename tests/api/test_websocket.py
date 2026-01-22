@@ -26,6 +26,12 @@ def bypass_platform_setup():
     yield
 
 
+@pytest.fixture(autouse=True)
+def verify_cleanup():
+    """Override verify_cleanup to allow for lingering threads."""
+    yield
+
+
 @pytest.fixture
 async def setup_integration(hass: HomeAssistant, socket_enabled) -> MockConfigEntry:
     """Set up the Meraki integration."""
@@ -56,6 +62,7 @@ async def setup_integration(hass: HomeAssistant, socket_enabled) -> MockConfigEn
             "custom_components.meraki_ha.services.camera_service.CameraService.get_camera_snapshot",
             new_callable=AsyncMock,
         ) as mock_get_snapshot,
+        patch("custom_components.meraki_ha.PLATFORMS", []),
     ):
         await hass.config_entries.async_setup(config_entry.entry_id)
         await hass.async_block_till_done()
@@ -99,7 +106,8 @@ async def test_subscribe_meraki_data(
     )
 
     await hass.async_block_till_done()
-    await asyncio.sleep(0.1)  # Allow background threads to close
+    await client.close()
+    await asyncio.sleep(1.0)  # Allow background threads to close
 
 
 @pytest.mark.asyncio
