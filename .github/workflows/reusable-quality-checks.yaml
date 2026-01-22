@@ -128,7 +128,7 @@ jobs:
           uv pip install --system --no-cache-dir pycares==4.11.0 aiodns==3.6.1
 
       - name: Run Tests
-        run: pytest --cov=custom_components.meraki_ha --cov-report=xml tests/
+        run: pytest --cov=custom_components/meraki_ha --cov-report=xml tests/
 
       - name: Upload coverage
         uses: codecov/codecov-action@v5

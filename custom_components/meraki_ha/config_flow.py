@@ -45,10 +45,14 @@ class MerakiHAConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     ) -> ConfigFlowResult:
         """
         Handle DHCP discovery.
+
         Args:
             discovery_info: The discovery info.
-        Returns:
+
+        Returns
+        -------
             The flow result.
+
         """
         if self._async_current_entries():
             return self.async_abort(reason="already_configured")
