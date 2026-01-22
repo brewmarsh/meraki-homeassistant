@@ -13,10 +13,12 @@ from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
 from .const import (
+    CONF_ENABLE_VPN_MANAGEMENT,
     CONF_IGNORED_NETWORKS,
     CONF_MERAKI_API_KEY,
     CONF_MERAKI_ORG_ID,
     CONF_SCAN_INTERVAL,
+    DEFAULT_ENABLE_VPN_MANAGEMENT,
     DEFAULT_IGNORED_NETWORKS,
     DEFAULT_SCAN_INTERVAL,
     DOMAIN,
@@ -55,6 +57,9 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             api_key=entry.data[CONF_MERAKI_API_KEY],
             org_id=entry.data[CONF_MERAKI_ORG_ID],
             coordinator=self,
+            enable_vpn_management=entry.options.get(
+                CONF_ENABLE_VPN_MANAGEMENT, DEFAULT_ENABLE_VPN_MANAGEMENT
+            ),
         )
         self.config_entry = entry
         self.devices_by_serial: dict[str, MerakiDevice] = {}
