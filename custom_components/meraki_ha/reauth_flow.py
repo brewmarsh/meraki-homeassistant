@@ -14,14 +14,14 @@ from .authentication import validate_meraki_credentials
 from .const import CONF_MERAKI_API_KEY, CONF_MERAKI_ORG_ID
 
 if TYPE_CHECKING:
-    from .config_flow import ConfigFlowHandler
+    from .config_flow import MerakiHAConfigFlow
 
 
 _LOGGER = logging.getLogger(__name__)
 
 
 async def async_step_reauth(
-    self: ConfigFlowHandler,
+    self: MerakiHAConfigFlow,
     user_input: dict[str, Any] | None = None,
 ) -> data_entry_flow.FlowResult:
     """
