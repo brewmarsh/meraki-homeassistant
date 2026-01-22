@@ -40,9 +40,7 @@ def main():
         f"to_timestamp(dt) >= '{five_minutes_ago.isoformat()}'"
     )  # nosec
 
-    response = requests.post(
-        url, headers=headers, json={"query": query}, timeout=30
-    )
+    response = requests.post(url, headers=headers, json={"query": query}, timeout=30)
 
     if response.status_code != 200:
         print(
