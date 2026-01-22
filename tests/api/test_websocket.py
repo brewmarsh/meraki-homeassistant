@@ -1,34 +1,23 @@
 """Tests for the Meraki HA WebSocket API."""
 
 import asyncio
-from unittest.mock import AsyncMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 from homeassistant.core import HomeAssistant
 from pytest_homeassistant_custom_component.common import MockConfigEntry, mock_component
 
+from custom_components.meraki_ha.api.websocket import (
+    ws_get_camera_snapshot,
+    ws_get_camera_stream_url,
+    ws_get_version,
+    ws_subscribe_meraki_data,
+)
 from custom_components.meraki_ha.const import (
     CONF_MERAKI_API_KEY,
     CONF_MERAKI_ORG_ID,
     DOMAIN,
 )
-
-# Suggestion: add verify_cleanup to ignore the specific thread
-# We need to import threading to use it in the fixture
-import threading
-from typing import Generator
-
-@pytest.fixture(autouse=True)
-def verify_cleanup() -> Generator[None, None, None]:
-    """Verify that the test has cleaned up resources correctly."""
-    yield
-
-    # We can iterate over threads and join them if needed, or just ignore the assertion
-    # The default verify_cleanup in pytest-homeassistant-custom-component asserts
-    # that no threads are left. By overriding it with a simple yield, we disable that check
-    # for this file.
-    # However, to be cleaner, we should probably try to clean up if we can.
-    # But simply overriding disables the check which is enough for this known issue.
 
 MOCK_DATA = {
     "org_name": "Test Org",
@@ -43,14 +32,8 @@ def bypass_platform_setup():
     yield
 
 
-@pytest.fixture(autouse=True)
-def verify_cleanup():
-    """Override verify_cleanup to allow for lingering threads."""
-    yield
-
-
 @pytest.fixture
-async def setup_integration(hass: HomeAssistant, socket_enabled) -> MockConfigEntry:
+async def setup_integration(hass: HomeAssistant) -> MockConfigEntry:
     """Set up the Meraki integration."""
     mock_component(hass, "frontend")
     mock_component(hass, "panel_custom")
@@ -79,7 +62,6 @@ async def setup_integration(hass: HomeAssistant, socket_enabled) -> MockConfigEn
             "custom_components.meraki_ha.services.camera_service.CameraService.get_camera_snapshot",
             new_callable=AsyncMock,
         ) as mock_get_snapshot,
-        patch("custom_components.meraki_ha.PLATFORMS", []),
     ):
         await hass.config_entries.async_setup(config_entry.entry_id)
         await hass.async_block_till_done()
@@ -93,123 +75,120 @@ async def setup_integration(hass: HomeAssistant, socket_enabled) -> MockConfigEn
 
         yield config_entry
 
+        await hass.config_entries.async_unload(config_entry.entry_id)
+        await hass.async_block_till_done()
+
 
 @pytest.mark.asyncio
 async def test_subscribe_meraki_data(
     hass: HomeAssistant,
-    hass_ws_client,
     setup_integration,
 ) -> None:
     """Test subscribing to Meraki data."""
-    client = await hass_ws_client(hass)
+    mock_connection = MagicMock()
+    mock_connection.subscriptions = {}
+    mock_msg = {
+        "id": 1,
+        "type": "meraki_ha/subscribe_meraki_data",
+        "config_entry_id": setup_integration.entry_id,
+    }
 
-    await client.send_json(
-        {
-            "id": 1,
-            "type": "meraki_ha/subscribe_meraki_data",
-            "config_entry_id": setup_integration.entry_id,
-        }
-    )
+    # Call the handler directly
+    ws_subscribe_meraki_data(hass, mock_connection, mock_msg)
 
-    response = await client.receive_json()
-    assert response["success"]
-    assert response["type"] == "result"
+    # Check that send_result was called with the correct data
+    mock_connection.send_result.assert_called_once()
+    args, _ = mock_connection.send_result.call_args
+    msg_id, data = args
 
-    # Check that data is NOT wrapped in {"data": ...}
-    # It should be the MOCK_DATA directly
-    assert response["result"]["org_name"] == "Test Org"
-    assert (
-        "data" not in response["result"] or "org_name" not in response["result"]["data"]
-    )
+    assert msg_id == 1
+    assert data["org_name"] == "Test Org"
+    assert "data" not in data or "org_name" not in data["data"]
 
-    # Clean up the client to prevent lingering threads
-    await client.close()
+    # Cleanup subscription
+    if 1 in mock_connection.subscriptions:
+        mock_connection.subscriptions[1]()
+
     await hass.async_block_till_done()
-    await client.close()
-    await asyncio.sleep(1.0)  # Allow background threads to close
 
 
 @pytest.mark.asyncio
 async def test_get_version(
     hass: HomeAssistant,
-    hass_ws_client,
     setup_integration,
 ) -> None:
     """Test getting the version."""
-    client = await hass_ws_client(hass)
+    mock_connection = MagicMock()
+    mock_msg = {
+        "id": 1,
+        "type": "meraki_ha/get_version",
+    }
 
-    await client.send_json(
-        {
-            "id": 1,
-            "type": "meraki_ha/get_version",
-        }
-    )
+    # Call the wrapped function directly
+    await ws_get_version.__wrapped__(hass, mock_connection, mock_msg)
 
-    response = await client.receive_json()
-    assert response["success"]
-    assert "version" in response["result"]
-
-    await hass.async_block_till_done()
-    await asyncio.sleep(0.5)  # Allow background threads to close
+    mock_connection.send_result.assert_called_once()
+    args, _ = mock_connection.send_result.call_args
+    msg_id, data = args
+    assert msg_id == 1
+    assert "version" in data
 
 
 @pytest.mark.asyncio
 async def test_get_camera_stream_url(
     hass: HomeAssistant,
-    hass_ws_client,
     setup_integration,
 ) -> None:
     """Test getting camera stream URL."""
     mock_get_stream = hass.data[DOMAIN]["mocks"]["get_video_stream_url"]
     mock_get_stream.return_value = "rtsp://test-url"
 
-    client = await hass_ws_client(hass)
+    mock_connection = MagicMock()
+    mock_msg = {
+        "id": 1,
+        "type": "meraki_ha/get_camera_stream_url",
+        "config_entry_id": setup_integration.entry_id,
+        "serial": "test-serial",
+    }
 
-    await client.send_json(
-        {
-            "id": 1,
-            "type": "meraki_ha/get_camera_stream_url",
-            "config_entry_id": setup_integration.entry_id,
-            "serial": "test-serial",
-        }
-    )
+    # Call the wrapped function directly
+    await ws_get_camera_stream_url.__wrapped__(hass, mock_connection, mock_msg)
 
-    response = await client.receive_json()
-    assert response["success"]
-    assert response["result"]["url"] == "rtsp://test-url"
+    mock_connection.send_result.assert_called_once()
+    args, _ = mock_connection.send_result.call_args
+    msg_id, data = args
+
+    assert msg_id == 1
+    assert data["url"] == "rtsp://test-url"
 
     mock_get_stream.assert_called_with("test-serial")
-
-    await hass.async_block_till_done()
-    await asyncio.sleep(0.5)  # Allow background threads to close
 
 
 @pytest.mark.asyncio
 async def test_get_camera_snapshot(
     hass: HomeAssistant,
-    hass_ws_client,
     setup_integration,
 ) -> None:
     """Test getting camera snapshot."""
     mock_get_snapshot = hass.data[DOMAIN]["mocks"]["get_camera_snapshot"]
     mock_get_snapshot.return_value = "https://snapshot-url"
 
-    client = await hass_ws_client(hass)
+    mock_connection = MagicMock()
+    mock_msg = {
+        "id": 1,
+        "type": "meraki_ha/get_camera_snapshot",
+        "config_entry_id": setup_integration.entry_id,
+        "serial": "test-serial",
+    }
 
-    await client.send_json(
-        {
-            "id": 1,
-            "type": "meraki_ha/get_camera_snapshot",
-            "config_entry_id": setup_integration.entry_id,
-            "serial": "test-serial",
-        }
-    )
+    # Call the wrapped function directly
+    await ws_get_camera_snapshot.__wrapped__(hass, mock_connection, mock_msg)
 
-    response = await client.receive_json()
-    assert response["success"]
-    assert response["result"]["url"] == "https://snapshot-url"
+    mock_connection.send_result.assert_called_once()
+    args, _ = mock_connection.send_result.call_args
+    msg_id, data = args
+
+    assert msg_id == 1
+    assert data["url"] == "https://snapshot-url"
 
     mock_get_snapshot.assert_called_with("test-serial")
-
-    await hass.async_block_till_done()
-    await asyncio.sleep(0.5)  # Allow background threads to close

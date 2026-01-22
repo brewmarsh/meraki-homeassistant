@@ -9,7 +9,7 @@ on:
     secrets:
       CODECOV_TOKEN:
         required: false
-        description: 'Token for uploading coverage reports'
+        description: "Token for uploading coverage reports"
 
 permissions:
   contents: write
@@ -23,7 +23,7 @@ jobs:
       - uses: astral-sh/setup-uv@v7
         with:
           python-version: ${{ inputs.python-version }}
-          enable-cache: false
+          enable-cache: true
       - name: Install Ruff
         run: pip install ruff
       - name: Run Ruff Linter
@@ -44,7 +44,7 @@ jobs:
       - uses: astral-sh/setup-uv@v7
         with:
           python-version: ${{ inputs.python-version }}
-          enable-cache: false
+          enable-cache: true
       - name: Install dependencies
         run: pip install -r requirements_dev.txt
       - run: mypy --ignore-missing-imports custom_components/meraki_ha/ tests/
@@ -57,7 +57,7 @@ jobs:
       - uses: astral-sh/setup-uv@v7
         with:
           python-version: ${{ inputs.python-version }}
-          enable-cache: false
+          enable-cache: true
       - name: Install dependencies
         run: pip install -r requirements_dev.txt
       - name: Install dependencies
@@ -83,7 +83,7 @@ jobs:
       - uses: astral-sh/setup-uv@v7
         with:
           python-version: ${{ inputs.python-version }}
-          enable-cache: false
+          enable-cache: true
 
       # --- FORCE CLEAN STEP: THE DEFINITIVE FIX ---
       - name: Force Clean DNS Stack
