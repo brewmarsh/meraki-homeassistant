@@ -58,10 +58,12 @@ jobs:
         with:
           python-version: ${{ inputs.python-version }}
           enable-cache: true
-      - name: Upgrade build tools
-        run: uv pip install --system --upgrade pip setuptools wheel
       - name: Install dependencies
         run: uv pip install --system -r requirements_dev.txt
+      - name: Force Clean DNS Stack
+        run: |
+          uv pip uninstall -y pycares aiodns
+          uv pip install --system --no-cache-dir pycares==4.11.0 aiodns==3.6.1
       - name: Install tools
         run: uv pip install --system pip-audit bandit
       - name: Run Bandit
@@ -69,7 +71,7 @@ jobs:
       - name: Run Pip-Audit
         env:
           PIP_AUDIT_IGNORE_VULN: 'GHSA-6mq8-rvhq-8wgg GHSA-69f9-5gxw-wvc2 GHSA-6jhg-hg63-jvvf GHSA-g84x-mcqj-x9qq GHSA-fh55-r93g-j68g GHSA-54jq-c3m8-4m76 GHSA-jj3x-wxrx-4x23 GHSA-mqqc-3gqh-h2x8 PYSEC-2020-49 PYSEC-2022-42969 GHSA-g7vv-2v7x-gj9p'
-        run: python -m pip_audit -r custom_components/meraki_ha/requirements.txt -l
+        run: cd /tmp && python -m pip_audit -r $GITHUB_WORKSPACE/custom_components/meraki_ha/requirements.txt -l
 
   # Job 4: Unit Tests
   test:
@@ -93,7 +95,7 @@ jobs:
           uv pip install --system --no-cache-dir pycares==4.11.0 aiodns==3.6.1
 
       - name: Run Tests
-        run: pytest --cov=custom_components.meraki_ha --cov-report=xml tests/
+        run: pytest --cov=custom_components/meraki_ha --cov-report=xml tests/
 
       - name: Upload coverage
         uses: codecov/codecov-action@v5
