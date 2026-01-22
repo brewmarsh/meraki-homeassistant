@@ -14,7 +14,6 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from ..coordinator import MerakiDataUpdateCoordinator
 from ..core.api.client import MerakiAPIClient
 from ..helpers.device_info_helpers import resolve_device_info
-from ..types import MerakiDevice
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -59,9 +58,7 @@ class MerakiMt40PowerOutlet(
     @callback
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
-        device: MerakiDevice | None = self.coordinator.get_device(
-            serial=self._device_info.serial
-        )
+        device = self.coordinator.get_device(serial=self._device_info.serial)
         if device:
             self._device_info = device
             if not self.coordinator.is_pending(self.unique_id):
