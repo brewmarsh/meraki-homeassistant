@@ -1,11 +1,23 @@
 """Global fixtures for meraki_ha integration."""
 
+import sys
 from collections.abc import Generator
-from unittest.mock import AsyncMock, MagicMock
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
 from tests.const import MOCK_ALL_DATA
+
+
+@pytest.fixture(autouse=True)
+def mock_aiortc():
+    """Mock aiortc module to avoid installation issues."""
+    if "aiortc" not in sys.modules:
+        sys.modules["aiortc"] = MagicMock()
+    if "aiortc.contrib" not in sys.modules:
+        sys.modules["aiortc.contrib"] = MagicMock()
+    if "aiortc.contrib.media" not in sys.modules:
+        sys.modules["aiortc.contrib.media"] = MagicMock()
 
 
 @pytest.fixture(autouse=True)
@@ -22,17 +34,21 @@ def auto_enable_custom_integrations(
     yield
 
 
+@pytest.fixture(autouse=True)
+def bypass_platform_setup() -> Generator[None, None, None]:
+    """Bypass platform setup to avoid hass_frontend dependency."""
+    with patch("homeassistant.setup.async_setup_component", return_value=True):
+        yield
+
+
 @pytest.fixture
 def mock_coordinator() -> MagicMock:
-    """Fixture for a mocked MerakiDataCoordinator."""
+    """Fixture for a mocked MerakiDataUpdateCoordinator."""
     coordinator = MagicMock()
     coordinator.config_entry.options = {}
     coordinator.data = MOCK_ALL_DATA
     coordinator.async_request_refresh = AsyncMock()
     coordinator.async_write_ha_state = MagicMock()
-    coordinator.is_update_pending = MagicMock(return_value=False)
-    coordinator.register_update_pending = MagicMock()
-    coordinator.async_request_refresh = AsyncMock()
     return coordinator
 
 
@@ -44,21 +60,18 @@ def mock_config_entry() -> MagicMock:
     return entry
 
 
-@pytest.fixture(autouse=True)
-def mock_dns_resolution(monkeypatch):
-    """Mock DNS resolution to prevent test crashes."""
-    monkeypatch.setattr("aiodns.DNSResolver", MagicMock())
-
-
-@pytest.fixture(autouse=True)
-def prevent_socket_and_camera_load() -> Generator[None, None, None]:
-    """Patch asyncio to prevent opening a real socket."""
-    from unittest.mock import MagicMock, patch
-
-    with (
-        patch(
-            "asyncio.base_events.BaseEventLoop.create_server", new_callable=AsyncMock
-        ),
-        patch("turbojpeg.TurboJPEG", MagicMock()),
-    ):
-        yield
+@pytest.fixture
+def mock_meraki_client():
+    """Fixture for a mocked Meraki API client."""
+    with patch(
+        "custom_components.meraki_ha.authentication.meraki.AsyncDashboardAPI",
+        autospec=True,
+    ) as mock_api:
+        mock_dashboard = mock_api.return_value.__aenter__.return_value
+        mock_dashboard.organizations.getOrganizations = AsyncMock(
+            return_value=[{"id": "12345", "name": "Test Organization"}]
+        )
+        mock_dashboard.networks.getOrganizationNetworks = AsyncMock(
+            return_value=[{"id": "N_123", "name": "Test Network"}]
+        )
+        yield mock_api

@@ -13,11 +13,12 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
+from ...coordinator import MerakiDataUpdateCoordinator
 from ...helpers.device_info_helpers import resolve_device_info
-from ...meraki_data_coordinator import MerakiDataCoordinator
 
 if TYPE_CHECKING:
     from ...services.camera_service import CameraService
+    from ...types import MerakiDevice
 
 
 _LOGGER = logging.getLogger(__name__)
@@ -30,8 +31,8 @@ class MerakiMotionSensor(CoordinatorEntity, BinarySensorEntity):
 
     def __init__(
         self,
-        coordinator: MerakiDataCoordinator,
-        device: dict[str, Any],
+        coordinator: MerakiDataUpdateCoordinator,
+        device: MerakiDevice,
         camera_service: CameraService,
         config_entry: ConfigEntry,
     ) -> None:
@@ -40,8 +41,8 @@ class MerakiMotionSensor(CoordinatorEntity, BinarySensorEntity):
         self._device = device
         self._camera_service = camera_service
         self._config_entry = config_entry
-        self._attr_unique_id = f"{self._device['serial']}-motion"
-        self._attr_name = f"{self._device['name']} Motion"
+        self._attr_unique_id = f"{device.serial}-motion"
+        self._attr_name = f"[Camera] {device.name} Motion"
         self._motion_events: list[dict[str, Any]] = []
 
     @property
@@ -61,9 +62,12 @@ class MerakiMotionSensor(CoordinatorEntity, BinarySensorEntity):
 
     async def async_update(self) -> None:
         """Update the sensor."""
-        serial = self._device["serial"]
         try:
-            self._motion_events = await self._camera_service.get_motion_history(serial)
+            self._motion_events = await self._camera_service.get_motion_history(
+                self._device.serial
+            )
         except Exception as e:
-            _LOGGER.error("Error updating motion sensor for %s: %s", serial, e)
+            _LOGGER.error(
+                "Error updating motion sensor for %s: %s", self._device.serial, e
+            )
             self._motion_events = []

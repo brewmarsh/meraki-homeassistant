@@ -21,7 +21,12 @@ async def test_meraki_organization_device_type_clients_sensor(
             {"deviceType": "appliance"},
         ]
     }
+    config_entry = MagicMock()
+    config_entry.options = {}
     sensor = MerakiOrganizationDeviceTypeClientsSensor(
-        coordinator, MagicMock(), "wireless"
+        coordinator, config_entry, "wireless"
     )
+    sensor.hass = MagicMock()
+    sensor.async_write_ha_state = MagicMock()
+    sensor._handle_coordinator_update()
     assert sensor.native_value == 2

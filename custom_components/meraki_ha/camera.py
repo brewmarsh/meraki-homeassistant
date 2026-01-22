@@ -14,7 +14,6 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import DOMAIN
 from .core.utils.naming_utils import format_device_name
-from .helpers.entity_helpers import format_entity_name
 
 if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
@@ -62,26 +61,32 @@ class MerakiCamera(CoordinatorEntity, Camera):
         self,
         coordinator: MerakiDataCoordinator,
         config_entry: ConfigEntry,
-        device: dict[str, Any],
+        device: dict[str, Any] | Any,
         camera_service: CameraService,
     ) -> None:
         """Initialize the camera."""
         super().__init__(coordinator)
         Camera.__init__(self)
         self._config_entry = config_entry
-        self._device_serial = device["serial"]
+        # Handle both dict and dataclass for device
+        self._device_serial = (
+            device.get("serial") if isinstance(device, dict) else device.serial
+        )
+        name = device.get("name") if isinstance(device, dict) else device.name
         self._camera_service = camera_service
         self._attr_unique_id = f"{self._device_serial}-camera"
-        self._attr_name = format_entity_name(
-            format_device_name(self.device_data, self.coordinator.config_entry.options),
-            "",
-        )
+        self._attr_name = f"[Camera] {name}"
         self._attr_model = self.device_data.get("model")
 
     @property
     def device_data(self) -> dict[str, Any]:
         """Return the device data from the coordinator."""
-        return self.coordinator.get_device(self._device_serial) or {}
+        import dataclasses
+
+        data = self.coordinator.get_device(self._device_serial)
+        if dataclasses.is_dataclass(data):
+            return dataclasses.asdict(data)
+        return data or {}
 
     @property
     def device_info(self) -> DeviceInfo:
@@ -170,6 +175,17 @@ class MerakiCamera(CoordinatorEntity, Camera):
 
         url = self.device_data.get("rtsp_url")
         return url is not None and isinstance(url, str) and url.startswith("rtsp://")
+
+    @property
+    def entity_registry_enabled_default(self) -> bool:
+        """Return whether the entity should be enabled by default."""
+        # Enable the entity if there is an RTSP URL available or if RTSP is enabled.
+        # This keeps the entity visible even if the URL is not valid yet.
+        if self.device_data.get("rtsp_url"):
+            return True
+
+        video_settings = self.device_data.get("video_settings", {})
+        return video_settings.get("rtspServerEnabled", False)
 
     async def async_turn_on(self) -> None:
         """Turn on the camera stream."""

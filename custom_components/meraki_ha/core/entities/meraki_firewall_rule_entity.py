@@ -2,11 +2,13 @@
 
 from __future__ import annotations
 
+import dataclasses
+
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.entity import DeviceInfo
 
+from ...coordinator import MerakiDataUpdateCoordinator
 from ...core.utils.naming_utils import format_device_name
-from ...meraki_data_coordinator import MerakiDataCoordinator
 from ...types import MerakiFirewallRule
 from . import BaseMerakiEntity
 
@@ -16,7 +18,7 @@ class MerakiFirewallRuleEntity(BaseMerakiEntity):
 
     def __init__(
         self,
-        coordinator: MerakiDataCoordinator,
+        coordinator: MerakiDataUpdateCoordinator,
         config_entry: ConfigEntry,
         network_id: str,
         rule: MerakiFirewallRule,
@@ -43,7 +45,10 @@ class MerakiFirewallRuleEntity(BaseMerakiEntity):
         self._rule_index = rule_index
         if self._network_id is None:
             raise ValueError("Network ID cannot be None for a firewall rule entity")
-        rule_device_data = {**rule, "productType": "firewall_rule"}
+
+        rule_device_data = dataclasses.asdict(rule)
+        rule_device_data["productType"] = "firewall_rule"
+
         formatted_name = format_device_name(
             device=rule_device_data,
             config=self._config_entry.options,

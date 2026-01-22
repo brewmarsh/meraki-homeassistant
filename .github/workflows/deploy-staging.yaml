@@ -1,0 +1,78 @@
+name: Deploy Beta to Staging (Smoke Test)
+
+on:
+  push:
+    branches:
+      - beta
+
+jobs:
+  deploy-to-staging:
+    runs-on: [self-hosted, meraki-smoketest]
+
+    env:
+      # Path mapped via fstab to 192.168.5.14
+      DESTINATION_PATH: '/mnt/homeassistant-smoketest/custom_components/meraki_ha'
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Copy files to Staging (rsync)
+        shell: bash
+        env:
+          DEPLOY_PATH: ${{ env.DESTINATION_PATH }}
+        run: |
+          SourceComponentDir="${GITHUB_WORKSPACE}/custom_components/meraki_ha/"
+          DestinationPath="${DEPLOY_PATH}"
+
+          echo "Starting Staging Deployment..."
+          echo "Source: ${SourceComponentDir}"
+          echo "Destination: ${DestinationPath}"
+
+          # Ensure destination exists
+          sudo mkdir -p "${DestinationPath}"
+
+          # Sync files
+          sudo rsync -rltpD --inplace --delete \
+            --exclude '.git' \
+            --exclude 'node_modules' \
+            --exclude 'tests' \
+            --exclude '*.log' \
+            --exclude '__pycache__' \
+            --exclude '.DS_Store' \
+            "${SourceComponentDir}" "${DestinationPath}"
+
+          echo "Deployment to Staging Complete."
+
+      - name: Install jq
+        run: sudo apt-get update && sudo apt-get install -y jq
+
+      - name: Full Integration Reset (Delete > Restart > Add)
+        shell: bash
+        env:
+          HA_URL: ${{ secrets.HA_STAGING_URL }}
+          HA_TOKEN: ${{ secrets.HA_STAGING_TOKEN }}
+          MERAKI_API_KEY: ${{ secrets.MERAKI_API_KEY }}
+          MERAKI_ORG_ID: ${{ secrets.MERAKI_ORG_ID }}
+        run: |
+          echo "Installing dependencies..."
+          sudo apt-get update && sudo apt-get install -y python3-pip && sudo python3 -m pip install aiohttp > /dev/null
+
+          echo "Running Reset Script..."
+          # Pass secrets implicitly via env vars defined above
+          python3 tests/scripts/reset_integration.py
+
+      - name: Audit Logs for Errors
+        shell: bash
+        run: |
+          echo "Scanning logs for Meraki errors..."
+          # Give HA a moment to settle after the reset script
+          sleep 10
+          # Grep for lines containing BOTH "ERROR" and "meraki_ha"
+          if grep -i "ERROR" /mnt/homeassistant-smoketest/home-assistant.log | grep "custom_components.meraki_ha"; then
+            echo "::error::CRITICAL: Found Meraki errors in the log!"
+            grep -i "ERROR" /mnt/homeassistant-smoketest/home-assistant.log | grep "custom_components.meraki_ha"
+            exit 1
+          else
+            echo "Logs are clean. Smoke test passed."
+          fi

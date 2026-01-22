@@ -1,0 +1,17 @@
+{
+  "chat.tools.terminal.autoApprove": {
+    "ruff": true,
+    "/^ruff check \\. --output-format=json 2>\\$null \\| ConvertFrom-Json \\| ConvertTo-Json -Depth 10$/": {
+      "approve": true,
+      "matchCommandLine": true
+    },
+    "/^ruff check \\. --select=F821,E501 2>&1 \\| ConvertTo-Json -Depth 10$/": {
+      "approve": true,
+      "matchCommandLine": true
+    },
+    "/^ruff check \\. --select=F821,E501 2>&1 ; true$/": {
+      "approve": true,
+      "matchCommandLine": true
+    }
+  }
+}

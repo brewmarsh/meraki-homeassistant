@@ -6,6 +6,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
+from custom_components.meraki_ha.core.utils.naming_utils import format_device_name
 from custom_components.meraki_ha.sensor.network.network_clients import (
     MerakiNetworkClientsSensor,
 )
@@ -13,11 +14,12 @@ from custom_components.meraki_ha.sensor.network.vlan import MerakiVLANIDSensor
 from custom_components.meraki_ha.sensor.org.org_clients import (
     MerakiOrganizationSSIDClientsSensor,
 )
+from custom_components.meraki_ha.types import MerakiVlan
 
 
 @pytest.fixture
 def mock_coordinator() -> MagicMock:
-    """Fixture for a mocked MerakiDataCoordinator."""
+    """Fixture for a mocked MerakiDataUpdateCoordinator."""
     coordinator = MagicMock()
     coordinator.config_entry.options = {}
     coordinator.data = {
@@ -30,7 +32,7 @@ def mock_coordinator() -> MagicMock:
         ],
         "vlans": {
             "net1": [
-                {"id": 1, "name": "Test VLAN", "enabled": True},
+                MerakiVlan(id="1", name="Test VLAN"),
             ],
         },
     }
@@ -67,11 +69,14 @@ def test_network_device_naming(mock_coordinator: MagicMock) -> None:
     network_id = "net1"
     network_name = "Test Network"
 
-    network_data = {
-        "id": network_id,
-        "name": network_name,
-        "productTypes": ["wireless"],
-    }
+    from custom_components.meraki_ha.types import MerakiNetwork
+
+    network_data = MerakiNetwork(
+        id=network_id,
+        name=network_name,
+        product_types=["wireless"],
+        organization_id="org1",
+    )
 
     sensor = MerakiNetworkClientsSensor(
         mock_coordinator,
@@ -105,3 +110,15 @@ def test_vlan_device_naming(mock_coordinator: MagicMock) -> None:
     device_info = sensor.device_info
     assert device_info is not None
     assert device_info["name"] == "[VLAN] Test VLAN"
+
+
+def test_camera_device_naming():
+    """Test that camera devices are correctly prefixed."""
+    camera_device = {
+        "name": "Test Camera",
+        "model": "MV12",
+        "serial": "Q234-ABCD-5678",
+    }
+    config = {}
+    formatted_name = format_device_name(camera_device, config)
+    assert formatted_name == "[Camera] Test Camera"

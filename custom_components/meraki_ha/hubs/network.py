@@ -12,7 +12,7 @@ from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from ...types import MerakiDevice, MerakiNetwork
-    from ..meraki_data_coordinator import MerakiDataCoordinator
+    from ..coordinator import MerakiDataUpdateCoordinator
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -20,7 +20,9 @@ _LOGGER = logging.getLogger(__name__)
 class NetworkHub:
     """A hub for processing data for a specific network."""
 
-    def __init__(self, coordinator: MerakiDataCoordinator, network_id: str) -> None:
+    def __init__(
+        self, coordinator: MerakiDataUpdateCoordinator, network_id: str
+    ) -> None:
         """Initialize the NetworkHub."""
         self._coordinator = coordinator
         self.network_id = network_id
@@ -37,7 +39,7 @@ class NetworkHub:
             return [
                 d
                 for d in self._coordinator.data["devices"]
-                if d.get("networkId") == self.network_id
+                if d.network_id == self.network_id
             ]
         return []
 

@@ -66,3 +66,20 @@ async def test_async_get_port_speed():
 
     # Assert
     assert result == "1000 Mbps"
+
+
+@pytest.mark.asyncio
+async def test_async_cycle_ports():
+    """Test cycling ports."""
+    # Arrange
+    mock_repository = MagicMock()
+    mock_repository.async_cycle_switch_ports = AsyncMock(return_value={})
+    service = SwitchPortService(mock_repository)
+    serial = "Q234-ABCD-5678"
+    ports = ["1"]
+
+    # Act
+    await service.async_cycle_ports(serial, ports)
+
+    # Assert
+    mock_repository.async_cycle_switch_ports.assert_called_once_with(serial, ports)

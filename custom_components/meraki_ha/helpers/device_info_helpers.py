@@ -1,6 +1,7 @@
 """Helper functions for creating Home Assistant DeviceInfo objects."""
 
 import logging
+from dataclasses import asdict, is_dataclass
 from typing import Any
 
 from homeassistant.config_entries import ConfigEntry
@@ -8,12 +9,13 @@ from homeassistant.helpers.device_registry import DeviceInfo
 
 from ..const import DOMAIN
 from ..core.utils.naming_utils import format_device_name
+from ..types import MerakiDevice, MerakiNetwork
 
 _LOGGER = logging.getLogger(__name__)
 
 
 def resolve_device_info(
-    entity_data: dict[str, Any],
+    entity_data: MerakiDevice | MerakiNetwork | dict[str, Any],
     config_entry: ConfigEntry,
     ssid_data: dict[str, Any] | None = None,
 ) -> DeviceInfo | None:
@@ -25,13 +27,24 @@ def resolve_device_info(
     Assistant device registry.
     """
     # Determine the effective data to use for device resolution.
-    # If ssid_data is explicitly passed, it takes precedence for SSID devices.
-    # Otherwise, check if the entity_data itself represents an SSID.
     effective_data = entity_data
-    is_ssid = "number" in effective_data and "networkId" in effective_data
+    is_ssid = False
+    if is_dataclass(effective_data):
+        is_ssid = hasattr(effective_data, "number") and hasattr(
+            effective_data, "networkId"
+        )
+    else:
+        is_ssid = "number" in effective_data and "networkId" in effective_data
+
     if ssid_data:
         is_ssid = True
         effective_data = ssid_data
+
+    # Convert dataclasses to dicts for consistent access below
+    if is_dataclass(entity_data):
+        entity_data = asdict(entity_data)
+    if is_dataclass(effective_data):
+        effective_data = asdict(effective_data)
 
     # Create device info for an SSID
     if is_ssid:

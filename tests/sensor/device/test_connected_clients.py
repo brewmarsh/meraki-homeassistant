@@ -7,43 +7,52 @@ import pytest
 from custom_components.meraki_ha.sensor.device.connected_clients import (
     MerakiDeviceConnectedClientsSensor,
 )
+from custom_components.meraki_ha.types import MerakiDevice
 
 
 @pytest.fixture
 def mock_data_coordinator():
-    """Fixture for a mocked MerakiDataCoordinator."""
+    """Fixture for a mocked MerakiDataUpdateCoordinator."""
     coordinator = MagicMock()
     coordinator.config_entry.options = {}
     coordinator.data = {
         "devices": [
-            {
-                "serial": "dev_appliance",
-                "name": "Appliance",
-                "model": "MX64",
-                "productType": "appliance",
-                "networkId": "net1",
-            },
-            {
-                "serial": "dev_switch",
-                "name": "Switch",
-                "model": "MS220",
-                "productType": "switch",
-                "networkId": "net1",
-            },
-            {
-                "serial": "dev_wireless",
-                "name": "Access Point",
-                "model": "MR52",
-                "productType": "wireless",
-                "networkId": "net1",
-            },
-            {
-                "serial": "dev_gateway",
-                "name": "Gateway",
-                "model": "GX20",
-                "productType": "cellularGateway",
-                "networkId": "net1",
-            },
+            MerakiDevice.from_dict(
+                {
+                    "serial": "dev_appliance",
+                    "name": "Appliance",
+                    "model": "MX64",
+                    "productType": "appliance",
+                    "networkId": "net1",
+                }
+            ),
+            MerakiDevice.from_dict(
+                {
+                    "serial": "dev_switch",
+                    "name": "Switch",
+                    "model": "MS220",
+                    "productType": "switch",
+                    "networkId": "net1",
+                }
+            ),
+            MerakiDevice.from_dict(
+                {
+                    "serial": "dev_wireless",
+                    "name": "Access Point",
+                    "model": "MR52",
+                    "productType": "wireless",
+                    "networkId": "net1",
+                }
+            ),
+            MerakiDevice.from_dict(
+                {
+                    "serial": "dev_gateway",
+                    "name": "Gateway",
+                    "model": "GX20",
+                    "productType": "cellularGateway",
+                    "networkId": "net1",
+                }
+            ),
         ],
         "clients": [
             # Client 1: Online, on net1
@@ -71,6 +80,14 @@ def mock_data_coordinator():
             {"id": "net2", "name": "Network 2"},
         ],
     }
+
+    def get_device(serial):
+        for d in coordinator.data["devices"]:
+            if d.serial == serial:
+                return d
+        return None
+
+    coordinator.get_device.side_effect = get_device
     return coordinator
 
 
@@ -82,6 +99,9 @@ def test_connected_clients_sensor_appliance(mock_data_coordinator):
     sensor = MerakiDeviceConnectedClientsSensor(
         mock_data_coordinator, device, config_entry
     )
+    sensor.hass = MagicMock()
+    sensor.async_write_ha_state = MagicMock()
+    sensor._handle_coordinator_update()
     # Expects 2: the two online clients on net1 from the main `clients` list
     assert sensor.native_value == 2
     assert sensor.device_info["name"] == "[Appliance] Appliance"
@@ -95,6 +115,9 @@ def test_connected_clients_sensor_gateway(mock_data_coordinator):
     sensor = MerakiDeviceConnectedClientsSensor(
         mock_data_coordinator, device, config_entry
     )
+    sensor.hass = MagicMock()
+    sensor.async_write_ha_state = MagicMock()
+    sensor._handle_coordinator_update()
     # Expects 2: the two online clients on net1 from the main `clients` list
     assert sensor.native_value == 2
     assert sensor.device_info["name"] == "[Cellulargateway] Gateway"
@@ -108,6 +131,9 @@ def test_connected_clients_sensor_switch(mock_data_coordinator):
     sensor = MerakiDeviceConnectedClientsSensor(
         mock_data_coordinator, device, config_entry
     )
+    sensor.hass = MagicMock()
+    sensor.async_write_ha_state = MagicMock()
+    sensor._handle_coordinator_update()
     # Expects 1 from the `clients_by_serial` data
     assert sensor.native_value == 1
     assert sensor.device_info["name"] == "[Switch] Switch"
@@ -121,6 +147,9 @@ def test_connected_clients_sensor_wireless(mock_data_coordinator):
     sensor = MerakiDeviceConnectedClientsSensor(
         mock_data_coordinator, device, config_entry
     )
+    sensor.hass = MagicMock()
+    sensor.async_write_ha_state = MagicMock()
+    sensor._handle_coordinator_update()
     # Expects 3 from the `clients_by_serial` data
     assert sensor.native_value == 3
     assert sensor.device_info["name"] == "[Wireless] Access Point"

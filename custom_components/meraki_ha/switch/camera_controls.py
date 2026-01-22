@@ -3,12 +3,10 @@
 from __future__ import annotations
 
 import logging
-from typing import Any
 
+from ..coordinator import MerakiDataUpdateCoordinator
 from ..core.api.client import MerakiAPIClient
-from ..core.utils.naming_utils import format_device_name
-from ..helpers.entity_helpers import format_entity_name
-from ..meraki_data_coordinator import MerakiDataCoordinator
+from ..types import MerakiDevice
 from .camera_settings import MerakiCameraSettingSwitchBase
 
 _LOGGER = logging.getLogger(__name__)
@@ -19,9 +17,9 @@ class AnalyticsSwitch(MerakiCameraSettingSwitchBase):
 
     def __init__(
         self,
-        coordinator: MerakiDataCoordinator,
+        coordinator: MerakiDataUpdateCoordinator,
         meraki_client: MerakiAPIClient,
-        device_data: dict[str, Any],
+        device_data: MerakiDevice,
     ) -> None:
         """
         Initialize the analytics switch.
@@ -38,15 +36,9 @@ class AnalyticsSwitch(MerakiCameraSettingSwitchBase):
             meraki_client,
             device_data,
             "sense_enabled",
-            "sense.analyticsEnabled",
+            "sense_settings.analyticsEnabled",
         )
-        config_options = (
-            coordinator.config_entry.options if coordinator.config_entry else {}
-        )
-        self._attr_name = format_entity_name(
-            format_device_name(device_data, config_options),
-            "Analytics",
-        )
+        self._attr_name = f"[Camera] {device_data.name} Analytics"
         self._attr_icon = "mdi:chart-bar"
 
     async def _async_update_setting(self, is_on: bool) -> None:
@@ -58,9 +50,10 @@ class AnalyticsSwitch(MerakiCameraSettingSwitchBase):
             is_on: Whether the setting is on or off.
 
         """
+        serial = self._device_data.serial
         try:
             await self.client.camera.update_camera_sense_settings(
-                serial=self._device_data["serial"],
+                serial=serial,
                 sense_enabled=is_on,
             )
             await self.coordinator.async_request_refresh()
@@ -68,6 +61,6 @@ class AnalyticsSwitch(MerakiCameraSettingSwitchBase):
             _LOGGER.error(
                 "Failed to update camera setting %s for %s: %s",
                 self._key,
-                self._device_data["serial"],
+                serial,
                 e,
             )

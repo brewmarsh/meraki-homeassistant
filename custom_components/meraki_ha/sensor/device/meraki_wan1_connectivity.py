@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import logging
-from typing import Any
+from typing import TYPE_CHECKING
 
 from homeassistant.components.sensor import SensorEntity
 from homeassistant.config_entries import ConfigEntry
@@ -13,8 +13,11 @@ from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from ...const import DOMAIN
+from ...coordinator import MerakiDataUpdateCoordinator
 from ...core.utils.naming_utils import format_device_name
-from ...meraki_data_coordinator import MerakiDataCoordinator
+
+if TYPE_CHECKING:
+    from ...types import MerakiDevice
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -35,8 +38,8 @@ class MerakiWAN1ConnectivitySensor(
 
     def __init__(
         self,
-        coordinator: MerakiDataCoordinator,
-        device_data: dict[str, Any],
+        coordinator: MerakiDataUpdateCoordinator,
+        device_data: MerakiDevice,
         config_entry: ConfigEntry,
     ) -> None:
         """
@@ -50,7 +53,7 @@ class MerakiWAN1ConnectivitySensor(
 
         """
         super().__init__(coordinator)
-        self._device_serial: str = device_data["serial"]
+        self._device_serial: str = device_data.serial
         self._config_entry = config_entry
         self._attr_unique_id = f"{self._device_serial}_wan1_connectivity"
         self._attr_name = "WAN 1 Connectivity"
@@ -58,23 +61,14 @@ class MerakiWAN1ConnectivitySensor(
         self._attr_device_info = DeviceInfo(
             identifiers={(DOMAIN, self._device_serial)},
             name=format_device_name(device_data, self._config_entry.options),
-            model=device_data.get("model"),
+            model=device_data.model,
             manufacturer="Meraki",
         )
         self._update_state()
 
-    def _get_current_device_data(self) -> dict[str, Any] | None:
+    def _get_current_device_data(self) -> MerakiDevice | None:
         """Retrieve the latest data for this sensor's device from the coordinator."""
-        if self.coordinator.data and self.coordinator.data.get("devices"):
-            return next(
-                (
-                    device
-                    for device in self.coordinator.data["devices"]
-                    if device.get("serial") == self._device_serial
-                ),
-                None,
-            )
-        return None
+        return self.coordinator.get_device(self._device_serial)
 
     @callback
     def _update_state(self) -> None:
@@ -86,8 +80,8 @@ class MerakiWAN1ConnectivitySensor(
             self._attr_extra_state_attributes = {}
             return
 
-        wan1_ip = current_device_data.get("wan1Ip")
-        device_status = str(current_device_data.get("status", "")).lower()
+        wan1_ip = current_device_data.wan1_ip
+        device_status = str(current_device_data.status or "").lower()
 
         if wan1_ip and device_status == "online":
             self._attr_native_value = STATE_CONNECTED

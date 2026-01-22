@@ -1,0 +1,41 @@
+name: Conflict Watchdog & Auto-Solver
+on:
+  push:
+    branches: [beta]
+  pull_request:
+    types: [synchronize, opened]
+
+jobs:
+  auto-resolve:
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+    steps:
+      - name: Detect and Summon Jules
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const { data: pullRequests } = await github.rest.pulls.list({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              base: 'beta'
+            });
+
+            for (const pr of pullRequests) {
+              const { data: detail } = await github.rest.pulls.get({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: pr.number
+              });
+
+              if (detail.mergeable === false) {
+                // Summoning Jules via a comment
+                await github.rest.issues.createComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: pr.number,
+                  body: "@jules merge conflicts detected with beta branch. Please rebase this branch onto beta, resolve all conflicts in config_flow.py and manifest.json by favoring beta for versions and our local changes for logic. Verify the build and force-push to resolve."
+                });
+              }
+            }

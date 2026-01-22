@@ -12,7 +12,7 @@ from ...const import (
     DOMAIN,
     MANUFACTURER,
 )
-from ...meraki_data_coordinator import MerakiDataCoordinator
+from ...coordinator import MerakiDataUpdateCoordinator
 from ..utils.naming_utils import format_device_name
 
 
@@ -28,7 +28,7 @@ class BaseMerakiEntity(CoordinatorEntity, Entity, ABC):
 
     def __init__(
         self,
-        coordinator: MerakiDataCoordinator,
+        coordinator: MerakiDataUpdateCoordinator,
         config_entry: ConfigEntry,
         serial: str | None = None,
         network_id: str | None = None,
@@ -62,23 +62,24 @@ class BaseMerakiEntity(CoordinatorEntity, Entity, ABC):
                     name=format_device_name(network, self._config_entry.options),
                     manufacturer=MANUFACTURER,
                     model="Network",
-                    sw_version=network.get("firmware", "unknown"),
+                    sw_version="unknown",
                 )
 
         # Handle device-based entities
         if self._serial:
             device = self.coordinator.get_device(self._serial)
             if device:
-                model = device.get("model", "unknown")
+                model = device.model
                 return DeviceInfo(
                     identifiers={(DOMAIN, self._serial)},
                     name=format_device_name(device, self._config_entry.options),
                     manufacturer=MANUFACTURER,
                     model=model,
-                    sw_version=device.get("firmware", "unknown"),
-                    suggested_area=device.get("address", ""),
+                    sw_version=device.firmware or "unknown",
+                    suggested_area=device.address or "",
                     hw_version=model,
-                    configuration_url=f"https://dashboard.meraki.com/devices/{self._serial}",
+                    configuration_url=device.url
+                    or f"https://dashboard.meraki.com/devices/{self._serial}",
                 )
 
         return None
@@ -93,7 +94,7 @@ class BaseMerakiEntity(CoordinatorEntity, Entity, ABC):
         # For device-based entities, check device status
         if self._serial:
             device = self.coordinator.get_device(self._serial)
-            return bool(device and device.get("status") == "online")
+            return bool(device and device.status == "online")
 
         # For network-based entities, check network status
         if self._network_id:

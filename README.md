@@ -1,38 +1,38 @@
+# Meraki Home Assistant Integration 🤖
+
 [![Current Version](https://img.shields.io/github/v/release/brewmarsh/meraki-homeassistant?include_prereleases&label=Current%20Version)](https://github.com/brewmarsh/meraki-homeassistant/releases)
 [![Beta Python Linting](https://github.com/brewmarsh/meraki-homeassistant/actions/workflows/beta-validation.yaml/badge.svg)](https://github.com/brewmarsh/meraki-homeassistant/actions/workflows/beta-validation.yaml)
 [![codecov](https://codecov.io/gh/brewmarsh/meraki-homeassistant/branch/main/graph/badge.svg)](https://codecov.io/gh/brewmarsh/meraki-homeassistant)
-[![Python Version](https://img.shields.io/badge/python-3.9-blue.svg)]()
+[![Python Version](https://img.shields.io/badge/python-3.9-blue.svg)](https://www.python.org/downloads/)
 [![Code style: ruff](https://img.shields.io/badge/code%20style-ruff-000000.svg)](https://github.com/astral-sh/ruff)
-
-# Meraki Home Assistant Integration 🤖
 
 This Home Assistant integration allows you to monitor and manage your Cisco Meraki network, including devices, networks, and SSIDs. It leverages the Meraki API to bring data from your Meraki dashboard into Home Assistant, enabling you to gain insights into your network and automate actions based on its status.
 
-## Table of Contents
+## Table of contents
 
-- [Key Features](#key-features-)
-- [Installation](#installation-️)
+- [Key features](#key-features-✨)
+- [Installation](#installation-🛠️)
 - [Configuration](#configuration-⚙️)
-- [Web UI](#web-ui-)
-- [Services & Controls](#services--controls-)
-  - [Parental Controls (Client Blocking)](#parental-controls-client-blocking)
-  - [Content Filtering](#content-filtering)
-  - [SSID Control](#ssid-control)
-- [Entities](#entities-)
-  - [Device & Entity Model](#device--entity-model)
-  - [Organization-Wide Sensors](#organization-wide-sensors)
-  - [Camera Entities & Sensors](#camera-entities--sensors)
-  - [Physical Device Sensors](#physical-device-sensors)
-  - [Network Sensors](#network-sensors)
-  - [VLAN Sensors](#vlan-sensors)
-  - [Appliance Port Sensors](#appliance-port-sensors)
-  - [SSID Sensors](#ssid-sensors)
-  - [Environmental Sensors (MT Series)](#environmental-sensors-mt-series)
-- [Automation Examples](#automation-examples-)
-- [Troubleshooting](#troubleshooting-)
-- [How to Contribute](#how-to-contribute-)
-- [Known Issues & Limitations](#known-issues--limitations-️)
-- [Disclaimer](#disclaimer-)
+- [Web UI](#web-ui-🖼️)
+- [Services & controls](#services--controls-🛗️)
+  - [Parental controls (client blocking)](#parental-controls-client-blocking)
+  - [Content filtering](#content-filtering)
+  - [SSID control](#ssid-control)
+- [Entities](#entities-🧩)
+  - [Device & entity model](#device--entity-model)
+  - [Organization-wide sensors](#organization-wide-sensors)
+  - [Camera entities & sensors](#camera-entities--sensors)
+  - [Physical device sensors](#physical-device-sensors)
+  - [Network sensors](#network-sensors)
+  - [VLAN sensors](#vlan-sensors)
+  - [Appliance port sensors](#appliance-port-sensors)
+  - [SSID sensors](#ssid-sensors)
+  - [Environmental sensors (MT series)](#environmental-sensors-mt-series)
+- [Automation examples](#automation-examples-🚀)
+- [Troubleshooting](#troubleshooting)
+- [How to contribute](#how-to-contribute)
+- [Known issues & limitations](#known-issues--limitations)
+- [Disclaimer](#disclaimer)
 
 ## Screenshots 📸
 
@@ -40,21 +40,13 @@ This Home Assistant integration allows you to monitor and manage your Cisco Mera
 | :-------------------------------------------------------------------------------------------------------------------: | :-------------------------------------------------------------------------------------------------------------------------: |
 | ![Network View](https://user-images.githubusercontent.com/1099616/279869151-24702f37-646d-4176-963d-2103f6f3630d.png) | ![Device Detail View](https://user-images.githubusercontent.com/1099616/279869158-2947a195-5c02-4580-b7a4-315111956f46.png) |
 
-## Key Features ✨
+## Key features ✨
 
 - **Comprehensive Monitoring:** Keep tabs on all your Meraki hardware, including Wireless Access Points (MR/GR), Switches (MS/GS), Security Appliances (MX), Cameras (MV), and Environmental Sensors (MT).
 - **Powerful Controls:** Enable/disable SSIDs, block specific clients (Parental Controls), and manage content filtering categories directly from Home Assistant.
 - **Web Interface:** A dedicated web UI for advanced features like guest Wi-Fi management and viewing event logs.
 - **Rich Sensor Data:** Creates a wide array of sensors for device status, client counts, data usage, firmware updates, PoE consumption, and much more.
 - **Camera Integration:** View live RTSP streams from your Meraki cameras within Home Assistant.
-- **Device & Entity Model:** The integration represents different aspects of your Meraki setup as devices within Home Assistant to create a logical hierarchy.
-- **Organization-Wide Sensors:** These sensors provide aggregate client counts across your entire Meraki organization and are linked to the Organization device.
-- **Physical Device Sensors:** These sensors are linked to specific physical Meraki hardware devices.
-- **Network Sensors:** These sensors are linked to Meraki Network "devices" in Home Assistant.
-- **VLAN Sensors:** For each VLAN configured in a network, sensors are created to monitor its status.
-- **Appliance Port Sensors:** For each port on a Meraki MX security appliance, a sensor is created to monitor its status.
-- **SSID Sensors:** A variety of sensors are created for each SSID, including client count, bandwidth limits, and more.
-- **Environmental Sensors (MT Series):** For each Meraki environmental sensor (MT series), entities are created to monitor real-time conditions.
 
 ## Troubleshooting
 
@@ -76,7 +68,7 @@ If you're still having trouble, please open an issue on the GitHub repository.
 - Your Meraki API key.
 - Your Meraki Organization ID.
 
-### Installation Steps
+### Installation steps
 
 1. **Ensure HACS is installed:** If you haven't already, install the [Home Assistant Community Store (HACS)](https://hacs.xyz/).
 2. **Add Custom Repository:**
@@ -92,34 +84,36 @@ If you're still having trouble, please open an issue on the GitHub repository.
 
 ## Configuration ⚙️
 
-### Obtaining Meraki API Credentials
+### Obtaining Meraki API credentials
 
 To use this integration, you will need a Meraki API key and your Organization ID.
 
-1.  **Log in to the Meraki Dashboard:** Go to [https://dashboard.meraki.com/](https://dashboard.meraki.com/).
-2.  **Enable API Access:**
-    - Navigate to **Organization** > **Settings**.
-    - Under the **Dashboard API access** section, ensure API access is enabled.
-3.  **Generate API Key:**
-    - Go to your **Profile** (click your name/email in the top right) > **My profile**.
-    - Scroll down to the **API access** section.
-    - Click **Generate new API key**.
-    - **Important:** Copy the generated API key and store it securely. You will not be able to see it again after navigating away from this page.
-4.  **Find Organization ID:**
-    - **Easiest Method:** The Organization ID is displayed at the bottom of every page in the Meraki dashboard.
-    - **Alternative Method (API):** You can find it by making a simple API call to the `/organizations` endpoint with your API key.
-    ```bash
-    curl -L -H 'X-Cisco-Meraki-API-Key: <your_api_key>' -H 'Content-Type: application/json' '[https://api.meraki.com/api/v1/organizations](https://api.meraki.com/api/v1/organizations)'
-    ```
+1. **Log in to the Meraki Dashboard:** Go to [https://dashboard.meraki.com/](https://dashboard.meraki.com/).
+2. **Enable API Access:**
+   - Navigate to **Organization** > **Settings**.
+   - Under the **Dashboard API access** section, ensure API access is enabled.
+3. **Generate API Key:**
+   - Go to your **Profile** (click your name/email in the top right) > **My profile**.
+   - Scroll down to the **API access** section.
+   - Click **Generate new API key**.
+   - **Important:** Copy the generated API key and store it securely. You will not be able to see it again after navigating away from this page.
+4. **Find Organization ID:**
 
-### Setting up the Integration
+   - **Easiest Method:** The Organization ID is displayed at the bottom of every page in the Meraki dashboard.
+   - **Alternative Method (API):** You can find it by making a simple API call to the `/organizations` endpoint with your API key.
 
-1.  Navigate to **Settings** > **Devices & Services** in your Home Assistant UI.
-2.  Click the **+ ADD INTEGRATION** button in the bottom right.
-3.  Search for "Meraki" and select it.
-4.  Follow the on-screen prompts to enter your API Key and Organization ID.
+   ```bash
+   curl -L -H 'X-Cisco-Meraki-API-Key: <your_api_key>' -H 'Content-Type: application/json' '[https://api.meraki.com/api/v1/organizations](https://api.meraki.com/api/v1/organizations)'
+   ```
 
-### Configuration Options
+### Setting up the integration
+
+1. Navigate to **Settings** > **Devices & Services** in your Home Assistant UI.
+2. Click the **+ ADD INTEGRATION** button in the bottom right.
+3. Search for "Meraki" and select it.
+4. Follow the on-screen prompts to enter your API Key and Organization ID.
+
+### Configuration options
 
 The following options can be configured when you first set up the integration, or at any time by navigating to the integration's card in **Settings -> Devices & Services** and clicking **Configure**.
 
@@ -139,11 +133,11 @@ The Web UI provides a comprehensive overview of your Meraki network, including:
 - **Client Details:** A list of all the clients on your network, with the ability to block or unblock them.
 - **Event Log:** A log of all the events on your network, including device connectivity, client activity, and configuration changes.
 
-## Services & Controls 🎛️
+## Services & controls 🛗️
 
 This integration provides several ways to control your Meraki network directly from Home Assistant.
 
-### Parental Controls (Client Blocking)
+### Parental controls (client blocking)
 
 For each client device that connects to your network, a `switch` entity is created. This switch allows you to block or unblock that specific client from accessing the network.
 
@@ -151,21 +145,21 @@ For each client device that connects to your network, a `switch` entity is creat
 - **How it Works:** When you turn the switch `on`, the integration adds a firewall rule to the network to block the client's traffic. Turning it `off` removes the rule.
 - **Use Case:** Easily implement parental controls, such as turning off a child's internet access at bedtime through an automation.
 
-### Content Filtering
+### Content filtering
 
 For each network, a `select` entity is created to manage Meraki's content filtering policies.
 
 - **Entity ID:** `select.<network_name>_content_filtering_policy`
 - **How it Works:** This dropdown allows you to select the content filtering policy for the network from a list of available options ("topSites" or "fullList").
 
-### SSID Control
+### SSID control
 
 You can enable or disable an entire SSID using a `switch` entity.
 
 - **Entity ID:** `switch.<ssid_name>_enabled_control`
 - **How it Works:** This switch directly enables or disables the SSID via the Meraki API.
 
-### Device Reboot
+### Device reboot
 
 A `reboot_device` service is available to reboot any Meraki device.
 
@@ -175,7 +169,7 @@ A `reboot_device` service is available to reboot any Meraki device.
 
 ## Entities 🧩
 
-### Device & Entity Model
+### Device & entity model
 
 The integration represents different aspects of your Meraki setup as devices within Home Assistant to create a logical hierarchy:
 
@@ -185,7 +179,7 @@ The integration represents different aspects of your Meraki setup as devices wit
 - **Meraki SSIDs:** Wireless SSIDs are registered as "devices," parented by their network.
 - **Meraki VLANs:** Each VLAN is registered as a "device" to group its associated sensors.
 
-### Organization-Wide Sensors
+### Organization-wide sensors
 
 These sensors provide aggregate client counts across your entire Meraki organization and are linked to the Organization device. The client data for these sensors is based on activity within the **last day**.
 
@@ -196,7 +190,7 @@ These sensors provide aggregate client counts across your entire Meraki organiza
 | `sensor`    | `Organization Appliance Clients` | Total clients that have routed traffic through security appliances (MX series). |
 | `sensor`    | `Organization Client Types`      | A breakdown of client counts by type (SSID, Appliance, Wireless).               |
 
-### Camera Entities & Sensors
+### Camera entities & sensors
 
 For each Meraki camera (MV series), a `camera` entity is created.
 
@@ -207,7 +201,7 @@ For each Meraki camera (MV series), a `camera` entity is created.
 
 **Note:** To view the camera stream, you must enable RTSP. You can do this by turning on the `camera` entity itself.
 
-### Physical Device Sensors
+### Physical device sensors
 
 These sensors are linked to specific physical Meraki hardware devices.
 
@@ -221,7 +215,7 @@ These sensors are linked to specific physical Meraki hardware devices.
 | `sensor`    | `[Device Name] WAN 1 Connectivity` | The connectivity status of the WAN 1 port.                                | Appliances                         |
 | `sensor`    | `[Device Name] WAN 2 Connectivity` | The connectivity status of the WAN 2 port.                                | Appliances                         |
 
-### Network Sensors
+### Network sensors
 
 These sensors are linked to Meraki Network "devices" in Home Assistant.
 
@@ -230,7 +224,7 @@ These sensors are linked to Meraki Network "devices" in Home Assistant.
 - **`[Network Name] Network Information`**: Provides detailed information about the network as attributes (notes, tags, time zone).
 - **`[Network Name] Network Identity`**: Provides basic identity information about the network as attributes (ID, type).
 
-### VLAN Sensors
+### VLAN sensors
 
 For each VLAN configured in a network, the following sensors are created.
 
@@ -239,7 +233,7 @@ For each VLAN configured in a network, the following sensors are created.
 | `sensor`    | `[VLAN Name] Subnet`       | The subnet of the VLAN.                |
 | `sensor`    | `[VLAN Name] Appliance IP` | The appliance IP address for the VLAN. |
 
-### Appliance Port Sensors
+### Appliance port sensors
 
 For each port on a Meraki MX security appliance, a sensor is created to monitor its status.
 
@@ -247,7 +241,7 @@ For each port on a Meraki MX security appliance, a sensor is created to monitor 
 | :---------- | :------------------------------------ | :----------------------------------------------------------------------- |
 | `sensor`    | `[Appliance Name] Port [Port Number]` | The status of a specific port on a Meraki appliance (e.g., "connected"). |
 
-### SSID Sensors
+### SSID sensors
 
 | Entity Type | Name                                          | Description                                        |
 | :---------- | :-------------------------------------------- | :------------------------------------------------- |
@@ -270,7 +264,7 @@ For each port on a Meraki MX security appliance, a sensor is created to monitor 
 | `sensor`    | `[SSID Name] Minimum Bitrate 2.4GHz`          | The minimum bitrate for the 2.4GHz band.           |
 | `sensor`    | `[SSID Name] Minimum Bitrate 5GHz`            | The minimum bitrate for the 5GHz band.             |
 
-### Environmental Sensors (MT Series)
+### Environmental sensors (MT series)
 
 For each Meraki environmental sensor (MT series), entities are created to monitor real-time conditions.
 
@@ -281,7 +275,7 @@ For each Meraki environmental sensor (MT series), entities are created to monito
 | `sensor`        | `[Sensor Name] Water Detection` | Whether water has been detected.     | MT12         |
 | `binary_sensor` | `[Sensor Name] Door`            | The state of the door (open/closed). | MT20         |
 
-## Automation Examples 🚀
+## Automation examples 🚀
 
 ### Notify when a device goes offline
 

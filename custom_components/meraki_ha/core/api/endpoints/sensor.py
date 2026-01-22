@@ -44,12 +44,43 @@ class SensorEndpoints:
 
         """
         _LOGGER.debug("Sending command '%s' to sensor %s", operation, serial)
-        if self._client.dashboard is None:
-            return {}
         return await self._client.run_sync(
             self._client.dashboard.sensor.createDeviceSensorCommand,
             serial=serial,
             operation=operation,
+        )
+
+    async def get_organization_sensor_readings_latest_for_serials(
+        self,
+        serials: list[str],
+        metrics: list[str],
+    ) -> list[dict[str, Any]]:
+        """
+        Return the latest readings for specified metrics from a list of sensors.
+
+        Args:
+        ----
+            serials: A list of sensor serials to fetch data for.
+            metrics: A list of metrics to fetch.
+
+        Returns
+        -------
+            The response from the API.
+
+        """
+        if not serials:
+            return []
+        _LOGGER.debug(
+            "Getting latest sensor readings for serials: %s, metrics: %s",
+            serials,
+            metrics,
+        )
+        return await self._client.run_sync(
+            self._client.dashboard.sensor.getOrganizationSensorReadingsLatest,
+            organizationId=self._client.organization_id,
+            serials=serials,
+            metrics=metrics,
+            total_pages="all",
         )
 
     async def get_organization_sensor_readings_latest(
@@ -63,11 +94,22 @@ class SensorEndpoints:
             The response from the API.
 
         """
-        _LOGGER.debug("Getting latest sensor readings for organization")
-        if self._client.dashboard is None:
-            return []
+        metrics = [
+            "battery",
+            "co2",
+            "humidity",
+            "noise",
+            "pm25",
+            "temperature",
+            "tvoc",
+        ]
+        _LOGGER.debug(
+            "Getting latest sensor readings for organization with metrics: %s",
+            ", ".join(metrics),
+        )
         return await self._client.run_sync(
             self._client.dashboard.sensor.getOrganizationSensorReadingsLatest,
             organizationId=self._client.organization_id,
+            metrics=metrics,
             total_pages="all",
         )

@@ -6,8 +6,8 @@ from homeassistant.components.sensor import SensorEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import callback
 
+from ...coordinator import MerakiDataUpdateCoordinator
 from ...core.entities.meraki_network_entity import MerakiNetworkEntity
-from ...meraki_data_coordinator import MerakiDataCoordinator
 from ...types import MerakiNetwork
 
 
@@ -16,13 +16,13 @@ class TrafficShapingSensor(MerakiNetworkEntity, SensorEntity):
 
     def __init__(
         self,
-        coordinator: MerakiDataCoordinator,
+        coordinator: MerakiDataUpdateCoordinator,
         config_entry: ConfigEntry,
         network_id: str,
     ) -> None:
         """Initialize the sensor."""
         network: MerakiNetwork | None = next(
-            (net for net in coordinator.data["networks"] if net["id"] == network_id),
+            (net for net in coordinator.data["networks"] if net.id == network_id),
             None,
         )
         assert network is not None

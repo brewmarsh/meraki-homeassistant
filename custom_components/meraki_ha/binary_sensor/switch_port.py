@@ -1,7 +1,7 @@
 """Binary sensor for Meraki switch port status."""
 
 import logging
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from homeassistant.components.binary_sensor import (
     BinarySensorDeviceClass,
@@ -11,9 +11,11 @@ from homeassistant.core import callback
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
+from ..coordinator import MerakiDataUpdateCoordinator
 from ..helpers.device_info_helpers import resolve_device_info
-from ..helpers.entity_helpers import get_device_from_coordinator
-from ..meraki_data_coordinator import MerakiDataCoordinator
+
+if TYPE_CHECKING:
+    from ..types import MerakiDevice
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -26,15 +28,15 @@ class SwitchPortSensor(CoordinatorEntity, BinarySensorEntity):
 
     def __init__(
         self,
-        coordinator: MerakiDataCoordinator,
-        device: dict[str, Any],
+        coordinator: MerakiDataUpdateCoordinator,
+        device: "MerakiDevice",
         port: dict[str, Any],
     ) -> None:
         """Initialize the sensor."""
         super().__init__(coordinator)
         self._device = device
         self._port = port
-        self._attr_unique_id = f"{self._device['serial']}_{self._port['portId']}"
+        self._attr_unique_id = f"{device.serial}_{self._port['portId']}"
         self._attr_name = f"Port {self._port['portId']}"
 
     @property
@@ -45,10 +47,10 @@ class SwitchPortSensor(CoordinatorEntity, BinarySensorEntity):
     @callback
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
-        device = get_device_from_coordinator(self.coordinator, self._device["serial"])
+        device = self.coordinator.get_device(self._device.serial)
         if device:
             self._device = device
-            for port in self._device.get("ports_statuses", []):
+            for port in device.ports_statuses:
                 if port["portId"] == self._port["portId"]:
                     self._port = port
                     self.async_write_ha_state()
