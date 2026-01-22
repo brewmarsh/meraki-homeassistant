@@ -2,7 +2,7 @@
 
 import sys
 from collections.abc import Generator
-from unittest.mock import AsyncMock, MagicMock
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
@@ -37,10 +37,7 @@ def auto_enable_custom_integrations(
 @pytest.fixture(autouse=True)
 def bypass_platform_setup() -> Generator[None, None, None]:
     """Bypass platform setup to avoid hass_frontend dependency."""
-    from unittest.mock import patch
-
-    with patch("homeassistant.setup.async_setup_component", return_value=True):
-        yield
+    yield
 
 
 @pytest.fixture
@@ -60,3 +57,20 @@ def mock_config_entry() -> MagicMock:
     entry = MagicMock()
     entry.options = {}
     return entry
+
+
+@pytest.fixture
+def mock_meraki_client():
+    """Fixture for a mocked Meraki API client."""
+    with patch(
+        "custom_components.meraki_ha.authentication.meraki.AsyncDashboardAPI",
+        autospec=True,
+    ) as mock_api:
+        mock_dashboard = mock_api.return_value.__aenter__.return_value
+        mock_dashboard.organizations.getOrganizations = AsyncMock(
+            return_value=[{"id": "12345", "name": "Test Organization"}]
+        )
+        mock_dashboard.networks.getOrganizationNetworks = AsyncMock(
+            return_value=[{"id": "N_123", "name": "Test Network"}]
+        )
+        yield mock_api
