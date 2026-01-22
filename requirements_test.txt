@@ -1,4 +1,4 @@
-meraki==1.40.1
+meraki>=1.53.0
 diskcache==5.6.3
 aiofiles==23.2.1
 setuptools==78.1.1
@@ -8,7 +8,7 @@ bandit==1.7.9
 pytest-homeassistant-custom-component==0.13.205
 pytest-mock
 pytest-asyncio
-types-aiofiles==23.2.0.20240106
+types-aiofiles==25.1.0.20251011
 playwright==1.39.0
 pytest-cov
 py==1.11.0
