@@ -49,10 +49,12 @@ class MerakiVPNSwitch(MerakiNetworkEntity, SwitchEntity):
                 self.unique_id,
             )
             return
-        if self._network_id in self.coordinator.data.get("vpn_status", {}):
+        if self._network_id and self._network_id in self.coordinator.data.get(
+            "vpn_status", {}
+        ):
             vpn_status = self.coordinator.data["vpn_status"][self._network_id]
             if vpn_status:
-                self._attr_is_on = vpn_status.get("mode") != "disabled"
+                self._attr_is_on = vpn_status.mode != "none"
 
     @callback
     def _handle_coordinator_update(self) -> None:
@@ -93,5 +95,5 @@ class MerakiVPNSwitch(MerakiNetworkEntity, SwitchEntity):
         if self._network_id:
             await self.coordinator.api.appliance.update_vpn_status(
                 network_id=self._network_id,
-                mode="disabled",
+                mode="none",
             )

@@ -46,6 +46,8 @@ def parse_network_data(
 
     for network in networks:
         network_id = network.id
+        if not network_id:
+            continue
 
         # Initialize with empty lists to prevent KeyErrors
         vlan_by_network[network_id] = []
@@ -133,12 +135,12 @@ def parse_network_data(
                 vpn_status_by_network[network_id] = prev_vpn
 
         # RF Profiles
-        network_rf_profiles_key = f"rf_profiles_{network.id}"
+        network_rf_profiles_key = f"rf_profiles_{network_id}"
         network_rf_profiles = detail_data.get(network_rf_profiles_key)
         if isinstance(network_rf_profiles, list):
-            rf_profiles_by_network[network.id] = network_rf_profiles
+            rf_profiles_by_network[network_id] = network_rf_profiles
         elif previous_data and network_rf_profiles_key in previous_data:
-            rf_profiles_by_network[network.id] = previous_data[network_rf_profiles_key]
+            rf_profiles_by_network[network_id] = previous_data[network_rf_profiles_key]
 
         # Content Filtering
         content_filtering_key = f"content_filtering_{network_id}"
