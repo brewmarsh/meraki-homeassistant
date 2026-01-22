@@ -1,6 +1,6 @@
 """Test the Meraki API client VPN gating logic."""
 
-from unittest.mock import AsyncMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 
 from custom_components.meraki_ha.core.api.client import MerakiAPIClient
@@ -33,6 +33,10 @@ async def test_vpn_status_not_fetched_when_disabled(mock_hass, mock_coordinator)
     client.appliance = AsyncMock()
     client.appliance.get_vpn_status = AsyncMock()
 
+    # Mock coordinator sync methods to avoid RuntimeWarning
+    client.coordinator.is_traffic_check_due = MagicMock(return_value=True)
+    client.coordinator.is_vlan_check_due = MagicMock(return_value=True)
+
     # Mock other methods called by get_all_data
     client._async_fetch_initial_data = AsyncMock(return_value={
         "networks": [{"id": "N_123", "productTypes": ["appliance"]}],
@@ -62,6 +66,10 @@ async def test_vpn_status_fetched_when_enabled(mock_hass, mock_coordinator):
     # Mock endpoint methods
     client.appliance = AsyncMock()
     client.appliance.get_vpn_status = AsyncMock()
+
+    # Mock coordinator sync methods to avoid RuntimeWarning
+    client.coordinator.is_traffic_check_due = MagicMock(return_value=True)
+    client.coordinator.is_vlan_check_due = MagicMock(return_value=True)
 
     # Mock other methods called by get_all_data
     client._async_fetch_initial_data = AsyncMock(return_value={
