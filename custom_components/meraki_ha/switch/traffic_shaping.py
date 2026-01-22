@@ -46,7 +46,6 @@ class MerakiTrafficShapingSwitch(MerakiNetworkEntity, SwitchEntity):
         super().__init__(coordinator, config_entry, network)
         self._traffic_shaping = traffic_shaping
         self._attr_unique_id = f"{network_id}_traffic_shaping_switch"
-        self._attr_has_entity_name = True
         self._attr_name = "Traffic Shaping"
         self._update_internal_state()
 
