@@ -1,5 +1,6 @@
 """Tests for the Meraki HA WebSocket API."""
 
+import asyncio
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
@@ -122,6 +123,7 @@ async def test_subscribe_meraki_data(
 
     await client.close()
     await hass.async_block_till_done()
+    await asyncio.sleep(0.5)
 
 
 @pytest.mark.asyncio
