@@ -50,7 +50,7 @@ def test_mt20_open_sensor(
     )
 
     assert sensor.unique_id == "mt20-1-door"
-    assert sensor.name == "Door"
+    assert sensor.name == "MT20 Sensor Door"
     assert sensor.is_on is True
     assert sensor.available is True
 
@@ -65,7 +65,7 @@ def test_mt20_closed_sensor(
     )
 
     assert sensor.unique_id == "mt20-2-door"
-    assert sensor.name == "Door"
+    assert sensor.name == "MT20 Sensor Closed Door"
     assert sensor.is_on is False
     assert sensor.available is True
 
