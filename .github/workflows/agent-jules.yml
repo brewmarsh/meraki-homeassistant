@@ -49,17 +49,12 @@ jobs:
         uses: actions/setup-python@v6
         with:
           python-version-file: '.python-version'
-
-      - name: Install uv
-        if: success() && steps.jules.outputs.branch_name != ''
-        uses: astral-sh/setup-uv@v7
-        with:
-          enable-cache: true
+          cache: 'pip'
 
       - name: Install dependencies
         if: success() && steps.jules.outputs.branch_name != ''
         # Using -q to reduce noise
-        run: uv pip install --system -r requirements_dev.txt
+        run: pip -q install -r requirements_dev.txt
 
       - name: Validation
         if: success() && steps.jules.outputs.branch_name != ''
