@@ -27,10 +27,11 @@ from .schemas import CONFIG_SCHEMA, OPTIONS_SCHEMA
 _LOGGER = logging.getLogger(__name__)
 
 
-class ConfigFlowHandler(config_entries.ConfigFlow):
+class MerakiHAConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     """Handle a config flow for Meraki."""
 
     VERSION = 1
+    DOMAIN = DOMAIN
     CONNECTION_CLASS = config_entries.CONN_CLASS_CLOUD_POLL
 
     def __init__(self) -> None:
