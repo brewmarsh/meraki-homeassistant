@@ -1,6 +1,6 @@
 """Test the Meraki API client VPN gating logic."""
 
-from unittest.mock import AsyncMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 
 from custom_components.meraki_ha.core.api.client import MerakiAPIClient
@@ -15,7 +15,7 @@ def mock_hass():
 @pytest.fixture
 def mock_coordinator():
     """Mock Coordinator."""
-    return AsyncMock()
+    return MagicMock()
 
 
 @pytest.mark.asyncio
