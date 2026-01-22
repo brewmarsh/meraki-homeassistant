@@ -4,6 +4,7 @@ import copy
 from unittest.mock import MagicMock
 
 import pytest
+from homeassistant.components.sensor import SensorEntity
 
 from custom_components.meraki_ha.sensor.setup_mt_sensors import async_setup_mt_sensors
 from custom_components.meraki_ha.types import MerakiDevice
@@ -118,6 +119,7 @@ def test_async_setup_mt10_sensors(
     # Test Temperature Sensor
     assert "temperature" in sensors_by_key
     temp_sensor = sensors_by_key["temperature"]
+    assert isinstance(temp_sensor, SensorEntity)
     assert temp_sensor.unique_id == "mt10-1_temperature"
     assert temp_sensor.name == "Temperature"
     assert temp_sensor.native_value == 25.5
@@ -126,6 +128,7 @@ def test_async_setup_mt10_sensors(
     # Test Humidity Sensor
     assert "humidity" in sensors_by_key
     humidity_sensor = sensors_by_key["humidity"]
+    assert isinstance(humidity_sensor, SensorEntity)
     assert humidity_sensor.unique_id == "mt10-1_humidity"
     assert humidity_sensor.name == "Humidity"
     assert humidity_sensor.native_value == 60.0
@@ -154,6 +157,7 @@ def test_async_setup_mt15_sensors(
     # Verify Temperature Sensor
     temp_sensor = sensors_by_key.get("temperature")
     assert temp_sensor is not None
+    assert isinstance(temp_sensor, SensorEntity)
     assert temp_sensor.unique_id == "mt15-1_temperature"
     assert temp_sensor.name == "Temperature"
     assert temp_sensor.native_value == 22.1
@@ -162,6 +166,7 @@ def test_async_setup_mt15_sensors(
     # Verify Humidity Sensor
     humidity_sensor = sensors_by_key.get("humidity")
     assert humidity_sensor is not None
+    assert isinstance(humidity_sensor, SensorEntity)
     assert humidity_sensor.unique_id == "mt15-1_humidity"
     assert humidity_sensor.name == "Humidity"
     assert humidity_sensor.native_value == 45.2
@@ -170,6 +175,7 @@ def test_async_setup_mt15_sensors(
     # Verify CO2 Sensor
     co2_sensor = sensors_by_key.get("co2")
     assert co2_sensor is not None
+    assert isinstance(co2_sensor, SensorEntity)
     assert co2_sensor.unique_id == "mt15-1_co2"
     assert co2_sensor.name == "CO2"
     assert co2_sensor.native_value == 450
@@ -178,6 +184,7 @@ def test_async_setup_mt15_sensors(
     # Verify TVOC Sensor
     tvoc_sensor = sensors_by_key.get("tvoc")
     assert tvoc_sensor is not None
+    assert isinstance(tvoc_sensor, SensorEntity)
     assert tvoc_sensor.unique_id == "mt15-1_tvoc"
     assert tvoc_sensor.name == "TVOC"
     assert tvoc_sensor.native_value == 150
@@ -186,6 +193,7 @@ def test_async_setup_mt15_sensors(
     # Verify PM2.5 Sensor
     pm25_sensor = sensors_by_key.get("pm25")
     assert pm25_sensor is not None
+    assert isinstance(pm25_sensor, SensorEntity)
     assert pm25_sensor.unique_id == "mt15-1_pm25"
     assert pm25_sensor.name == "PM2.5"
     assert pm25_sensor.native_value == 10.5
@@ -194,6 +202,7 @@ def test_async_setup_mt15_sensors(
     # Verify Noise Sensor
     noise_sensor = sensors_by_key.get("noise")
     assert noise_sensor is not None
+    assert isinstance(noise_sensor, SensorEntity)
     assert noise_sensor.unique_id == "mt15-1_noise"
     assert noise_sensor.name == "Ambient Noise"
     assert noise_sensor.native_value == 35.2
@@ -217,6 +226,7 @@ def test_async_setup_mt12_sensors(
 
     assert len(entities) == 2
     water_sensor = entities[0]
+    assert isinstance(water_sensor, SensorEntity)
     assert water_sensor.unique_id == "mt12-1_water"
     assert water_sensor.name == "Water Detection"
     assert water_sensor.native_value is False
@@ -245,6 +255,7 @@ def test_async_setup_mt40_sensors(
     # Verify Power Sensor
     power_sensor = sensors_by_key.get("power")
     assert power_sensor is not None
+    assert isinstance(power_sensor, SensorEntity)
     assert power_sensor.unique_id == "mt40-1_power"
     assert power_sensor.name == "Power"
     assert power_sensor.native_value == 120.5
@@ -253,6 +264,7 @@ def test_async_setup_mt40_sensors(
     # Verify Voltage Sensor
     voltage_sensor = sensors_by_key.get("voltage")
     assert voltage_sensor is not None
+    assert isinstance(voltage_sensor, SensorEntity)
     assert voltage_sensor.unique_id == "mt40-1_voltage"
     assert voltage_sensor.name == "Voltage"
     assert voltage_sensor.native_value == 120.1
@@ -261,6 +273,7 @@ def test_async_setup_mt40_sensors(
     # Verify Current Sensor
     current_sensor = sensors_by_key.get("current")
     assert current_sensor is not None
+    assert isinstance(current_sensor, SensorEntity)
     assert current_sensor.unique_id == "mt40-1_current"
     assert current_sensor.name == "Current"
     assert current_sensor.native_value == 1.0
@@ -275,6 +288,7 @@ def test_availability(mock_coordinator_with_mt_devices: MagicMock) -> None:
 
     entities = async_setup_mt_sensors(mock_coordinator_with_mt_devices, mt10_device)
     temp_sensor = entities[0]
+    assert isinstance(temp_sensor, SensorEntity)
     temp_sensor.hass = MagicMock()
     temp_sensor.entity_id = "sensor.test"
     temp_sensor.async_write_ha_state = MagicMock()
