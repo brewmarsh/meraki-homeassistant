@@ -49,6 +49,12 @@
       }
     }
   },
+  "issues": {
+    "missing_webrtc": {
+      "title": "WebRTC Integration Missing",
+      "description": "The Meraki HA integration requires the 'WebRTC Camera' custom component to stream video. Please install it via HACS or disable the camera entities."
+    }
+  },
   "entity": {
     "sensor": {
       "meraki_wan1_connectivity": {

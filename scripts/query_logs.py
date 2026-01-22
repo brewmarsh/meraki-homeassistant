@@ -36,9 +36,7 @@ def main():
 
     query = f"SELECT * FROM logs WHERE level = 'error' AND message LIKE '%meraki_ha%' AND to_timestamp(dt) >= '{five_minutes_ago.isoformat()}'"  # nosec
 
-    response = requests.post(
-        url, headers=headers, json={"query": query}, timeout=30
-    )
+    response = requests.post(url, headers=headers, json={"query": query}, timeout=30)
 
     if response.status_code != 200:
         print(

@@ -9,6 +9,7 @@ from homeassistant.components.http import StaticPathConfig
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import config_validation as cv
+from homeassistant.helpers import issue_registry as ir
 from homeassistant.helpers.typing import ConfigType
 
 from .api.websocket import async_setup_websocket_api
@@ -95,6 +96,19 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     coordinator.camera_service = camera_service
 
     await async_setup_services(hass, coordinator)
+
+    if "webrtc" not in hass.config.components:
+        ir.async_create_issue(
+            hass,
+            DOMAIN,
+            "missing_webrtc_component",
+            is_fixable=False,
+            severity=ir.IssueSeverity.WARNING,
+            translation_key="missing_webrtc",
+            learn_more_url="https://github.com/AlexxIT/WebRTC",
+        )
+    else:
+        ir.async_delete_issue(hass, DOMAIN, "missing_webrtc_component")
 
     hass.data[DOMAIN][entry.entry_id] = {
         "coordinator": coordinator,
