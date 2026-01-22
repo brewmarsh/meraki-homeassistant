@@ -8,6 +8,21 @@
   "documentation": "https://github.com/brewmarsh/meraki-homeassistant",
   "integration_type": "hub",
   "iot_class": "cloud_polling",
+  "dhcp": [
+    {
+      "hostname": "meraki*",
+      "macaddress": "E0553D*"
+    },
+    {
+      "macaddress": "00180A*"
+    },
+    {
+      "macaddress": "AC17C8*"
+    },
+    {
+      "macaddress": "881544*"
+    }
+  ],
   "issue_tracker": "https://github.com/brewmarsh/meraki-homeassistant/issues",
   "loggers": ["meraki_ha"],
   "quality_scale": "platinum",
