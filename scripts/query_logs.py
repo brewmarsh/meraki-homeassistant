@@ -34,10 +34,13 @@ def main():
     now = datetime.now(timezone.utc)
     five_minutes_ago = now - timedelta(minutes=5)
 
-    query = f"SELECT * FROM logs WHERE level = 'error' AND message LIKE '%meraki_ha%' AND to_timestamp(dt) >= '{five_minutes_ago.isoformat()}'"  # nosec
+    query = (
+        f"SELECT * FROM logs WHERE level = 'error' AND message LIKE '%meraki_ha%' "  # nosec B608
+        f"AND to_timestamp(dt) >= '{five_minutes_ago.isoformat()}'"
+    )
 
     response = requests.post(
-        url, headers=headers, json={"query": query}, timeout=30
+        url, headers=headers, json={"query": query}, timeout=10
     )
 
     if response.status_code != 200:
