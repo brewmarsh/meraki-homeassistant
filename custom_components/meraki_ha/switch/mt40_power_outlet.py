@@ -48,7 +48,8 @@ class MerakiMt40PowerOutlet(
         self._config_entry = config_entry
         self._meraki_client = meraki_client
         self._attr_unique_id = f"{self._device_info.serial}-outlet"
-        self._attr_name = f"{self._device_info.name} Outlet"
+        self._attr_has_entity_name = True
+        self._attr_name = "Outlet"
         self._attr_is_on: bool | None = None
 
     @property

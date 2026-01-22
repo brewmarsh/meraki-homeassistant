@@ -58,7 +58,7 @@ def test_mt40_switch_state(
     switch.entity_id = "switch.mt40_power_controller_outlet"
 
     assert switch.unique_id == "mt40-1-outlet"
-    assert switch.name == "MT40 Power Controller Outlet"
+    assert switch.name == "Outlet"
     # Initial state might be None depending on initialization, but we check update
 
     # Simulate coordinator update

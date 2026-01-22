@@ -33,7 +33,8 @@ class MerakiMt15RefreshDataButton(CoordinatorEntity, ButtonEntity):
         self._config_entry = config_entry
         self._meraki_client = meraki_client
         self._attr_unique_id = f"{self._device.serial}-refresh"
-        self._attr_name = f"{(device.name or 'Device')} Refresh Data"
+        self._attr_has_entity_name = True
+        self._attr_name = "Refresh Data"
 
     @property
     def device_info(self) -> DeviceInfo | None:

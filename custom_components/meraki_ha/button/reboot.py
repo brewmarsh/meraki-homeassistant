@@ -36,7 +36,8 @@ class MerakiRebootButton(ButtonEntity):
         self._control_service = control_service
         self._device = device
         self._config_entry = config_entry
-        self._attr_name = f"{(device.name or 'Device')} Reboot"
+        self._attr_has_entity_name = True
+        self._attr_name = "Reboot"
         self._attr_unique_id = f"{device.serial}-reboot"
 
     @property
