@@ -35,11 +35,13 @@ def main():
     five_minutes_ago = now - timedelta(minutes=5)
 
     query = (
-        f"SELECT * FROM logs WHERE level = 'error' AND message LIKE '%meraki_ha%' "
+        f"SELECT * FROM logs WHERE level = 'error' AND message LIKE '%meraki_ha%' "  # nosec B608
         f"AND to_timestamp(dt) >= '{five_minutes_ago.isoformat()}'"
     )
 
-    response = requests.post(url, headers=headers, json={"query": query})
+    response = requests.post(
+        url, headers=headers, json={"query": query}, timeout=10
+    )
 
     if response.status_code != 200:
         print(
