@@ -20,18 +20,28 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
+      # FIX: Install Python first so 'uv --system' has a target
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ inputs.python-version }}
+
       - uses: astral-sh/setup-uv@v7
         with:
           python-version: ${{ inputs.python-version }}
           enable-cache: true
+
       - name: Install Ruff
         run: uv pip install --system ruff
+
       - name: Run Ruff Linter
         run: ruff check --fix .
+
       - name: Run Ruff Formatter
         run: ruff format .
+
       - name: Commit fixes
-        uses: stefanzweifel/git-auto-commit-action@v7
+        uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: 'chore(lint): auto-fix with ruff'
           branch: ${{ github.head_ref }}
@@ -41,12 +51,20 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
+      # FIX: Install Python first
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ inputs.python-version }}
+
       - uses: astral-sh/setup-uv@v7
         with:
           python-version: ${{ inputs.python-version }}
           enable-cache: true
+
       - name: Install dependencies
         run: uv pip install --system -r requirements_dev.txt
+
       - run: mypy --ignore-missing-imports custom_components/meraki_ha/ tests/
 
   # Job 3: Security & Audit
@@ -54,42 +72,59 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
+      # FIX: Install Python first
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ inputs.python-version }}
+
       - uses: astral-sh/setup-uv@v7
         with:
           python-version: ${{ inputs.python-version }}
           enable-cache: true
+
       - name: Upgrade build tools
         run: uv pip install --system --upgrade pip setuptools wheel
+
       - name: Install dependencies
         run: uv pip install --system -r requirements_dev.txt
+
       - name: Install tools
         run: uv pip install --system pip-audit bandit
+
       - name: Run Bandit
         run: bandit -r custom_components/meraki_ha/ -c .bandit.yaml
+
       - name: Run Pip-Audit
         env:
           PIP_AUDIT_IGNORE_VULN: 'GHSA-6mq8-rvhq-8wgg GHSA-69f9-5gxw-wvc2 GHSA-6jhg-hg63-jvvf GHSA-g84x-mcqj-x9qq GHSA-fh55-r93g-j68g GHSA-54jq-c3m8-4m76 GHSA-jj3x-wxrx-4x23 GHSA-mqqc-3gqh-h2x8 PYSEC-2020-49 PYSEC-2022-42969 GHSA-g7vv-2v7x-gj9p'
-        run: cd custom_components/meraki_ha && python -m pip_audit -r requirements.txt -l
+        # FIX: Run from root to avoid shadowing types.py
+        run: python -m pip_audit -r custom_components/meraki_ha/requirements.txt -l
 
   # Job 4: Unit Tests
   test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
+      # FIX: Install Python first
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ inputs.python-version }}
+
       - uses: astral-sh/setup-uv@v7
         with:
           python-version: ${{ inputs.python-version }}
           enable-cache: true
 
-      # --- FORCE CLEAN STEP: THE DEFINITIVE FIX ---
+      # FIX: Allow pre-releases for Home Assistant deps
       - name: Install dependencies
-        run: uv pip install --system -r requirements_dev.txt
+        run: uv pip install --system --prerelease=allow -r requirements_dev.txt
 
       - name: Force Clean DNS Stack
         run: |
-          # Forcibly remove existing/cached versions that cause the AttributeError on Python 3.13
-          uv pip uninstall -y pycares aiodns
-          # Freshly install the versions compatible with Python 3.13
+          # FIX: removed -y flag which uv does not support
+          uv pip uninstall pycares aiodns
           uv pip install --system --no-cache-dir pycares==4.11.0 aiodns==3.6.1
 
       - name: Run Tests
