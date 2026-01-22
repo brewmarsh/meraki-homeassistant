@@ -72,7 +72,6 @@ class MerakiCamera(CoordinatorEntity, Camera):
         self._device_serial = (
             device.get("serial") if isinstance(device, dict) else device.serial
         )
-        name = device.get("name") if isinstance(device, dict) else device.name
         self._camera_service = camera_service
         self._attr_unique_id = f"{self._device_serial}-camera"
         self._attr_has_entity_name = True
