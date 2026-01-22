@@ -82,12 +82,11 @@ async def test_vpn_select_entity(
         # Look for the entity
         target_entity = None
         for e in entries:
-            if "vpn" in str(e.unique_id):
+            if e.domain == "select" and "vpn" in str(e.unique_id):
                 target_entity = e
                 break
 
         assert target_entity is not None
-        assert target_entity.domain == "select"
 
         # Verify state
         state = hass.states.get(target_entity.entity_id)

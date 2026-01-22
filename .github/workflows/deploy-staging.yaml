@@ -10,8 +10,7 @@ jobs:
     runs-on: [self-hosted, meraki-smoketest]
 
     env:
-      # Path mapped via fstab to 192.168.5.14
-      DESTINATION_PATH: '/mnt/homeassistant-smoketest/custom_components/meraki_ha'
+      DESTINATION_PATH: '/ha_config/custom_components/meraki_ha'
 
     steps:
       - name: Checkout repository

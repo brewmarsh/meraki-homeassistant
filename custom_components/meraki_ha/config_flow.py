@@ -6,6 +6,7 @@ import logging
 from typing import Any
 
 from homeassistant import config_entries
+from homeassistant.components.dhcp import DhcpServiceInfo
 from homeassistant.config_entries import ConfigFlowResult
 from homeassistant.core import callback
 from homeassistant.data_entry_flow import AbortFlow
@@ -26,16 +27,36 @@ from .schemas import CONFIG_SCHEMA, OPTIONS_SCHEMA
 _LOGGER = logging.getLogger(__name__)
 
 
-class ConfigFlowHandler(config_entries.ConfigFlow):
+class MerakiHAConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     """Handle a config flow for Meraki."""
 
     VERSION = 1
+    DOMAIN = DOMAIN
     CONNECTION_CLASS = config_entries.CONN_CLASS_CLOUD_POLL
 
     def __init__(self) -> None:
         """Initialize the config flow."""
         self.data: dict[str, Any] = {}
         self.options: dict[str, Any] = {}
+
+    async def async_step_dhcp(
+        self,
+        discovery_info: DhcpServiceInfo,
+    ) -> ConfigFlowResult:
+        """
+        Handle DHCP discovery.
+
+        Args:
+            discovery_info: The discovery info.
+
+        Returns
+        -------
+            The flow result.
+
+        """
+        if self._async_current_entries():
+            return self.async_abort(reason="already_configured")
+        return await self.async_step_user()
 
     async def async_step_user(
         self,

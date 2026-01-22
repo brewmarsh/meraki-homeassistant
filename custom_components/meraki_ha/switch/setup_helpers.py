@@ -10,11 +10,12 @@ from ..const import (
     CONF_ENABLE_FIREWALL_RULES,
     CONF_ENABLE_TRAFFIC_SHAPING,
     CONF_ENABLE_VLAN_MANAGEMENT,
+    CONF_ENABLE_VPN_MANAGEMENT,
 )
 from ..coordinator import MerakiDataUpdateCoordinator
 from ..core.api.client import MerakiAPIClient
 from ..core.utils.entity_id_utils import get_firewall_rule_entity_id
-from ..types import MerakiTrafficShaping, MerakiVlan
+from ..types import MerakiTrafficShaping, MerakiVlan, MerakiVpn
 from .camera_controls import AnalyticsSwitch
 from .firewall_rule import MerakiFirewallRuleSwitch
 from .meraki_ssid_device_switch import (
@@ -24,6 +25,7 @@ from .meraki_ssid_device_switch import (
 from .mt40_power_outlet import MerakiMt40PowerOutlet
 from .traffic_shaping import MerakiTrafficShapingSwitch
 from .vlan_dhcp import MerakiVLANDHCPSwitch
+from .vpn import MerakiVPNSwitch
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -87,6 +89,37 @@ def _setup_traffic_shaping_switches(
                 )
             )
             added_entities.add(unique_id)
+    return entities
+
+
+def _setup_vpn_switches(
+    config_entry: ConfigEntry,
+    coordinator: MerakiDataUpdateCoordinator,
+    added_entities: set[str],
+) -> list[Entity]:
+    """Set up VPN switches."""
+    if not config_entry.options.get(CONF_ENABLE_VPN_MANAGEMENT):
+        return []
+
+    entities: list[Entity] = []
+    vpn_status_by_network = coordinator.data.get("vpn_status", {})
+    for network_id, vpn_status in vpn_status_by_network.items():
+        if not isinstance(vpn_status, MerakiVpn):
+            continue
+
+        unique_id = f"vpn_{network_id}"
+        if unique_id not in added_entities:
+            # We need to fetch the network object for the entity
+            network = coordinator.get_network(network_id)
+            if network:
+                entities.append(
+                    MerakiVPNSwitch(
+                        coordinator,
+                        config_entry,
+                        network,
+                    )
+                )
+                added_entities.add(unique_id)
     return entities
 
 
@@ -231,6 +264,7 @@ def async_setup_switches(
     entities.extend(
         _setup_traffic_shaping_switches(config_entry, coordinator, added_entities)
     )
+    entities.extend(_setup_vpn_switches(config_entry, coordinator, added_entities))
     entities.extend(_setup_ssid_switches(config_entry, coordinator, added_entities))
     entities.extend(_setup_camera_switches(config_entry, coordinator, added_entities))
     entities.extend(

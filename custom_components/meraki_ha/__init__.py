@@ -4,7 +4,6 @@ import logging
 import random
 import string
 
-from homeassistant import config_entries
 from homeassistant.components.http import StaticPathConfig
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
@@ -46,9 +45,6 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
         Whether the setup was successful.
 
     """
-    from . import config_flow
-
-    config_entries.HANDLERS.register(DOMAIN)(config_flow.ConfigFlowHandler)
     hass.data.setdefault(DOMAIN, {})
 
     # Register the static path for the custom panel
