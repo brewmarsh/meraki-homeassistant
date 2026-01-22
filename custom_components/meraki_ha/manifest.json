@@ -1,7 +1,7 @@
 {
   "domain": "meraki_ha",
   "name": "Meraki for Home Assistant",
-  "after_dependencies": ["frontend"],
+  "after_dependencies": ["frontend", "webrtc"],
   "codeowners": ["@brewmarsh"],
   "config_flow": true,
   "dependencies": ["http", "panel_custom"],
