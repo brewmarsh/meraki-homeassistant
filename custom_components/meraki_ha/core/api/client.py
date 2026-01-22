@@ -55,6 +55,7 @@ class MerakiAPIClient:
         org_id: str,
         coordinator: MerakiDataUpdateCoordinator | None = None,
         base_url: str = "https://api.meraki.com/api/v1",
+        enable_vpn_management: bool = False,
     ) -> None:
         """
         Initialize the API client.
@@ -65,12 +66,14 @@ class MerakiAPIClient:
             org_id: The organization ID.
             coordinator: The data update coordinator.
             base_url: The base URL for the Meraki API.
+            enable_vpn_management: Whether to enable VPN management.
 
         """
         self._api_key = api_key
         self._org_id = org_id
         self._hass = hass
         self.coordinator = coordinator
+        self._enable_vpn_management = enable_vpn_management
 
         self.dashboard: meraki.DashboardAPI = meraki.DashboardAPI(
             api_key=api_key,
@@ -309,11 +312,12 @@ class MerakiAPIClient:
                         self.appliance.get_traffic_shaping(network.id),
                     )
                 )
-                detail_tasks[f"vpn_status_{network.id}"] = asyncio.create_task(
-                    self._run_with_semaphore(
-                        self.appliance.get_vpn_status(network.id),
+                if self._enable_vpn_management:
+                    detail_tasks[f"vpn_status_{network.id}"] = asyncio.create_task(
+                        self._run_with_semaphore(
+                            self.appliance.get_vpn_status(network.id),
+                        )
                     )
-                )
                 detail_tasks[f"content_filtering_{network.id}"] = asyncio.create_task(
                     self._run_with_semaphore(
                         self.appliance.get_network_appliance_content_filtering(

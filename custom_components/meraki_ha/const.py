@@ -55,6 +55,9 @@ CONF_ENABLE_FIREWALL_RULES: Final = "enable_firewall_rules"
 CONF_ENABLE_TRAFFIC_SHAPING: Final = "enable_traffic_shaping"
 """Configuration key for enabling traffic shaping."""
 
+CONF_ENABLE_VPN_MANAGEMENT: Final = "enable_vpn_management"
+"""Configuration key for enabling vpn management."""
+
 
 DEFAULT_IGNORED_NETWORKS: Final[list[str]] = []
 """Default value for the ignored networks list."""
@@ -67,6 +70,9 @@ DEFAULT_ENABLE_FIREWALL_RULES: Final = False
 
 DEFAULT_ENABLE_TRAFFIC_SHAPING: Final = False
 """Default value for enabling traffic shaping."""
+
+DEFAULT_ENABLE_VPN_MANAGEMENT: Final = False
+"""Default value for enabling vpn management."""
 
 DATA_SSID_DEVICES_COORDINATOR: Final = "ssid_devices"
 """Key for the SSID devices coordinator."""
