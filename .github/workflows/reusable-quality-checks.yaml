@@ -23,9 +23,9 @@ jobs:
       - uses: astral-sh/setup-uv@v7
         with:
           python-version: ${{ inputs.python-version }}
-          enable-cache: true
+          enable-cache: false
       - name: Install Ruff
-        run: uv pip install --system ruff
+        run: pip install ruff
       - name: Run Ruff Linter
         run: ruff check --fix .
       - name: Run Ruff Formatter
@@ -44,9 +44,9 @@ jobs:
       - uses: astral-sh/setup-uv@v7
         with:
           python-version: ${{ inputs.python-version }}
-          enable-cache: true
+          enable-cache: false
       - name: Install dependencies
-        run: uv pip install --system -r requirements_dev.txt
+        run: pip install -r requirements_dev.txt
       - run: mypy --ignore-missing-imports custom_components/meraki_ha/ tests/
 
   # Job 3: Security & Audit
@@ -57,21 +57,19 @@ jobs:
       - uses: astral-sh/setup-uv@v7
         with:
           python-version: ${{ inputs.python-version }}
-          enable-cache: true
+          enable-cache: false
+      - name: Upgrade build tools
+        run: python -m pip install --upgrade pip setuptools wheel
       - name: Install dependencies
-        run: uv pip install --system -r requirements_dev.txt
-      - name: Force Clean DNS Stack
-        run: |
-          uv pip uninstall -y pycares aiodns
-          uv pip install --system --no-cache-dir pycares==4.11.0 aiodns==3.6.1
+        run: pip install -r requirements_dev.txt
       - name: Install tools
-        run: uv pip install --system pip-audit bandit
+        run: pip install pip-audit bandit
       - name: Run Bandit
         run: bandit -r custom_components/meraki_ha/ -c .bandit.yaml
       - name: Run Pip-Audit
         env:
           PIP_AUDIT_IGNORE_VULN: 'GHSA-6mq8-rvhq-8wgg GHSA-69f9-5gxw-wvc2 GHSA-6jhg-hg63-jvvf GHSA-g84x-mcqj-x9qq GHSA-fh55-r93g-j68g GHSA-54jq-c3m8-4m76 GHSA-jj3x-wxrx-4x23 GHSA-mqqc-3gqh-h2x8 PYSEC-2020-49 PYSEC-2022-42969 GHSA-g7vv-2v7x-gj9p'
-        run: cd /tmp && python -m pip_audit -r $GITHUB_WORKSPACE/custom_components/meraki_ha/requirements.txt -l
+        run: cd custom_components/meraki_ha && python -m pip_audit -r requirements.txt -l
 
   # Job 4: Unit Tests
   test:
@@ -81,21 +79,21 @@ jobs:
       - uses: astral-sh/setup-uv@v7
         with:
           python-version: ${{ inputs.python-version }}
-          enable-cache: true
+          enable-cache: false
 
       # --- FORCE CLEAN STEP: THE DEFINITIVE FIX ---
       - name: Install dependencies
-        run: uv pip install --system -r requirements_dev.txt
+        run: pip install -r requirements_dev.txt
 
       - name: Force Clean DNS Stack
         run: |
           # Forcibly remove existing/cached versions that cause the AttributeError on Python 3.13
-          uv pip uninstall -y pycares aiodns
+          pip uninstall -y pycares aiodns
           # Freshly install the versions compatible with Python 3.13
-          uv pip install --system --no-cache-dir pycares==4.11.0 aiodns==3.6.1
+          pip install --no-cache-dir pycares==4.11.0 aiodns==3.6.1
 
       - name: Run Tests
-        run: pytest --cov=custom_components/meraki_ha --cov-report=xml tests/
+        run: pytest --cov=custom_components.meraki_ha --cov-report=xml tests/
 
       - name: Upload coverage
         uses: codecov/codecov-action@v5
