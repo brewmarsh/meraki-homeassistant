@@ -15,7 +15,7 @@ from custom_components.meraki_ha.types import MerakiVlan
 @pytest.fixture
 def mock_coordinator_with_vlan_data(mock_coordinator: MagicMock) -> MagicMock:
     """Fixture for a mocked MerakiDataUpdateCoordinator with VLAN data."""
-    vlan1 = MerakiVlan(id=1, name="VLAN 1", dhcp_handling="Run a DHCP server")
+    vlan1 = MerakiVlan(id="1", name="VLAN 1", dhcp_handling="Run a DHCP server")
     mock_coordinator.data = {
         "vlans": {"net1": [vlan1]},
     }
@@ -56,7 +56,7 @@ def test_vlan_dhcp_switch_creation(
     assert isinstance(switch, MerakiVLANDHCPSwitch)
     assert switch.unique_id == "meraki_vlan_net1_1_dhcp_handling"
     assert switch.name == "DHCP"
-    assert switch.is_on is True  # type: ignore[attr-defined]
+    assert switch.is_on is True
 
 
 def test_vlan_dhcp_switch_off_state(
@@ -81,7 +81,7 @@ def test_vlan_dhcp_switch_off_state(
     assert len(entities) == 1
     switch = entities[0]
 
-    assert switch.is_on is False  # type: ignore[attr-defined]
+    assert switch.is_on is False
 
 
 def test_vlan_dhcp_switch_creation_disabled(
