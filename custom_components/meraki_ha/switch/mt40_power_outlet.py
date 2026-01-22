@@ -28,7 +28,7 @@ class MerakiMt40PowerOutlet(
     def __init__(
         self,
         coordinator: MerakiDataUpdateCoordinator,
-        device_info: dict[str, Any],
+        device_info: MerakiDevice,
         config_entry: ConfigEntry,
         meraki_client: MerakiAPIClient,
     ) -> None:
@@ -48,7 +48,8 @@ class MerakiMt40PowerOutlet(
         self._config_entry = config_entry
         self._meraki_client = meraki_client
         self._attr_unique_id = f"{self._device_info.serial}-outlet"
-        self._attr_name = f"{self._device_info.name} Outlet"
+        self._attr_has_entity_name = True
+        self._attr_name = "Outlet"
         self._attr_is_on: bool | None = None
 
     @property
@@ -72,7 +73,7 @@ class MerakiMt40PowerOutlet(
 
     def _get_power_state(self) -> bool | None:
         """Get the power state from the device's readings."""
-        if not isinstance(self._device_info.readings, list):
+        if not self._device_info.readings or not isinstance(self._device_info.readings, list):
             return None
         return next(
             (
@@ -92,6 +93,9 @@ class MerakiMt40PowerOutlet(
             **kwargs: Additional arguments.
 
         """
+        if not self._device_info.serial:
+            return
+
         self._attr_is_on = True
         self.async_write_ha_state()
         self.coordinator.register_pending_update(self.unique_id)
@@ -114,6 +118,9 @@ class MerakiMt40PowerOutlet(
             **kwargs: Additional arguments.
 
         """
+        if not self._device_info.serial:
+            return
+
         self._attr_is_on = False
         self.async_write_ha_state()
         self.coordinator.register_pending_update(self.unique_id)

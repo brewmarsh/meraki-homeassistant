@@ -38,7 +38,8 @@ class MerakiSwitchPortCycleButton(ButtonEntity):
         )  # Meraki uses portId as number usually
         self._config_entry = config_entry
 
-        self._attr_name = f"{device.name} Port {self._port_id} Cycle"
+        self._attr_has_entity_name = True
+        self._attr_name = f"Port {self._port_id} Cycle"
         self._attr_unique_id = f"{device.serial}_port_{self._port_id}_cycle"
         self._attr_icon = "mdi:restart"
 
@@ -49,4 +50,5 @@ class MerakiSwitchPortCycleButton(ButtonEntity):
 
     async def async_press(self) -> None:
         """Handle the button press."""
-        await self._service.async_cycle_ports(self._device.serial, [self._port_id])
+        if self._device.serial:
+            await self._service.async_cycle_ports(self._device.serial, [self._port_id])
