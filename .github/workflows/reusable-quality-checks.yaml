@@ -60,12 +60,6 @@ jobs:
           enable-cache: false
       - name: Install dependencies
         run: pip install -r requirements_dev.txt
-      - name: Install dependencies
-        run: pip install -r requirements_dev.txt
-      - name: Install dependencies
-        run: pip install -r requirements_dev.txt
-      - name: Install dependencies
-        run: pip install -r requirements_dev.txt
       - name: Install tools
         run: pip install pip-audit bandit
       - name: Run Bandit
