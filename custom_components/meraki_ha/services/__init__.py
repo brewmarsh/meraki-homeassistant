@@ -47,17 +47,20 @@ async def async_setup_services(
 
     async def _async_reboot_device(call) -> None:
         """Reboot a device."""
-        await device_control_service.async_reboot(call.data["serial"])
+        if device_control_service:
+            await device_control_service.async_reboot(call.data["serial"])
 
     async def _async_cycle_port(call) -> None:
         """Cycle a switch port."""
-        await switch_port_service.async_cycle_port(
-            call.data["serial"], call.data["port_id"]
-        )
+        if switch_port_service:
+            await switch_port_service.async_cycle_port(
+                call.data["serial"], call.data["port_id"]
+            )
 
     async def _async_generate_snapshot(call) -> None:
         """Generate a camera snapshot."""
-        await camera_service.async_generate_snapshot(call.data["serial"])
+        if camera_service:
+            await camera_service.async_generate_snapshot(call.data["serial"])
 
     hass.services.async_register(
         DOMAIN,
