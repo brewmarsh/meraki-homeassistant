@@ -28,7 +28,7 @@ class MerakiMt40PowerOutlet(
     def __init__(
         self,
         coordinator: MerakiDataUpdateCoordinator,
-        device_info: dict[str, Any],
+        device_info: MerakiDevice,
         config_entry: ConfigEntry,
         meraki_client: MerakiAPIClient,
     ) -> None:
@@ -96,6 +96,10 @@ class MerakiMt40PowerOutlet(
         self.async_write_ha_state()
         self.coordinator.register_pending_update(self.unique_id)
 
+        if not self._device_info.serial:
+            _LOGGER.warning("Device serial not available for %s", self.name)
+            return
+
         try:
             await self._meraki_client.sensor.create_device_sensor_command(
                 serial=self._device_info.serial,
@@ -117,6 +121,10 @@ class MerakiMt40PowerOutlet(
         self._attr_is_on = False
         self.async_write_ha_state()
         self.coordinator.register_pending_update(self.unique_id)
+
+        if not self._device_info.serial:
+            _LOGGER.warning("Device serial not available for %s", self.name)
+            return
 
         try:
             await self._meraki_client.sensor.create_device_sensor_command(

@@ -250,6 +250,7 @@ class MerakiAPIClient:
             for device in devices
             if device.product_type
             in ["wireless", "appliance", "switch", "cellularGateway"]
+            and device.serial
         }
         results = await asyncio.gather(*client_tasks.values(), return_exceptions=True)
         clients_by_serial: dict[str, list[dict[str, Any]]] = {}
@@ -285,7 +286,7 @@ class MerakiAPIClient:
                         self.wireless.get_network_ssids(network.id),
                     )
                 )
-            if "appliance" in product_types:
+            if "appliance" in product_types and network.id:
                 if not self.coordinator or self.coordinator.is_traffic_check_due(
                     network.id,
                 ):
@@ -390,28 +391,26 @@ class MerakiAPIClient:
         initial_results = await self._async_fetch_initial_data()
 
         networks_res = initial_results.get("networks", [])
+        networks: list[MerakiNetwork]
         if isinstance(networks_res, Exception):
             _LOGGER.warning(
                 "Could not fetch networks, network data will be unavailable: %s",
                 networks_res,
             )
-            networks: list[MerakiNetwork] = []
+            networks = []
         else:
-            networks: list[MerakiNetwork] = [
-                MerakiNetwork.from_dict(n) for n in networks_res
-            ]
+            networks = [MerakiNetwork.from_dict(n) for n in networks_res]
 
         devices_res = initial_results.get("devices", [])
+        devices: list[MerakiDevice]
         if isinstance(devices_res, Exception):
             _LOGGER.warning(
                 "Could not fetch devices, device data will be unavailable: %s",
                 devices_res,
             )
-            devices: list[MerakiDevice] = []
+            devices = []
         else:
-            devices: list[MerakiDevice] = [
-                MerakiDevice.from_dict(d) for d in devices_res
-            ]
+            devices = [MerakiDevice.from_dict(d) for d in devices_res]
 
         device_statuses = initial_results.get("device_statuses", [])
         if isinstance(device_statuses, Exception):

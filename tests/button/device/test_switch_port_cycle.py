@@ -69,7 +69,7 @@ async def test_button_initialization(
 
 async def test_button_press(
     hass: HomeAssistant,
-    mock_service: SwitchPortService,
+    mock_service: MagicMock,
     mock_device: MerakiDevice,
     mock_config_entry: ConfigEntry,
 ):

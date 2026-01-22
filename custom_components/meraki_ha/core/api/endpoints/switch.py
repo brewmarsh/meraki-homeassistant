@@ -106,4 +106,8 @@ class SwitchEndpoints:
         response = await self._api_client.run_sync(
             self._dashboard.switch.cycleDeviceSwitchPorts, serial=serial, ports=ports
         )
-        return validate_response(response)
+        validated = validate_response(response)
+        if isinstance(validated, list):
+            _LOGGER.warning("cycle_device_switch_ports returned a list, expected dict")
+            return {}
+        return validated
