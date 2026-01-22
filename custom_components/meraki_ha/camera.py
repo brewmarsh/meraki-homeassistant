@@ -69,9 +69,10 @@ class MerakiCamera(CoordinatorEntity, Camera):
         Camera.__init__(self)
         self._config_entry = config_entry
         # Handle both dict and dataclass for device
-        self._device_serial = (
-            device.get("serial") if isinstance(device, dict) else device.serial
-        )
+        serial = device.get("serial") if isinstance(device, dict) else device.serial
+        if not serial:
+            raise ValueError("Camera serial is missing")
+        self._device_serial: str = serial
         name = device.get("name") if isinstance(device, dict) else device.name
         self._camera_service = camera_service
         self._attr_unique_id = f"{self._device_serial}-camera"
@@ -84,9 +85,9 @@ class MerakiCamera(CoordinatorEntity, Camera):
         import dataclasses
 
         data = self.coordinator.get_device(self._device_serial)
-        if dataclasses.is_dataclass(data):
+        if dataclasses.is_dataclass(data) and not isinstance(data, type):
             return dataclasses.asdict(data)
-        return data or {}
+        return data or {}  # type: ignore[return-value]
 
     @property
     def device_info(self) -> DeviceInfo:

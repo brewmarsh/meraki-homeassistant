@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+from typing import Any
 
 from homeassistant.components.sensor import (
     RestoreSensor,
@@ -36,7 +37,7 @@ class MerakiMtSensor(CoordinatorEntity, RestoreSensor):
         self._attr_unique_id = f"{device.serial}_{self.entity_description.key}"
         self._attr_has_entity_name = True
         self._attr_name = self.entity_description.name
-        self._attr_native_value = None
+        self._attr_native_value: Any = None
 
     async def async_added_to_hass(self) -> None:
         """Handle entity which provides state restoration."""
@@ -45,8 +46,10 @@ class MerakiMtSensor(CoordinatorEntity, RestoreSensor):
             self._attr_native_value = last_sensor_data.native_value
 
     @property
-    def device_info(self) -> DeviceInfo:
+    def device_info(self) -> DeviceInfo | None:
         """Return device information."""
+        if not self._device.serial:
+            return None
         return DeviceInfo(
             identifiers={(DOMAIN, self._device.serial)},
             name=format_device_name(
@@ -99,6 +102,8 @@ class MerakiMtSensor(CoordinatorEntity, RestoreSensor):
     @callback
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
+        if not self._device.serial:
+            return
         device = self.coordinator.get_device(self._device.serial)
         if device:
             self._device = device

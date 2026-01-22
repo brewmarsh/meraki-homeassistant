@@ -2,23 +2,27 @@
 set -e
 
 echo "Installing dependencies..."
-pip install -r requirements_test.txt
+uv pip install --system --prerelease=allow -r requirements_dev.txt
 
 # Force reinstall aiodns and pycares to match Python 3.13 compatibility requirements
-# even if Home Assistant pins older versions.
 echo "Force reinstalling aiodns and pycares..."
-pip install --force-reinstall aiodns==3.6.1 pycares==4.11.0
+uv pip uninstall pycares aiodns || true
+uv pip install --system --force-reinstall aiodns==3.6.1 pycares==4.11.0
 
 export PYTHONPATH=$PYTHONPATH:.
 echo "PYTHONPATH: $PYTHONPATH"
 
-echo "Running tests..."
-pytest
+echo "Running Ruff..."
+ruff check .
+ruff format --check .
 
-echo "Running flake8..."
-flake8 .
+echo "Running Mypy..."
+mypy --ignore-missing-imports custom_components/meraki_ha/ tests/
 
-echo "Running bandit..."
-bandit -c .bandit.yaml -r .
+echo "Running Bandit..."
+bandit -c .bandit.yaml -r custom_components/meraki_ha/
+
+echo "Running Tests..."
+python -m pytest
 
 echo "All checks passed!"

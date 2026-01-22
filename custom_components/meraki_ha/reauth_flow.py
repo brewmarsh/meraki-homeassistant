@@ -14,7 +14,7 @@ from .authentication import validate_meraki_credentials
 from .const import CONF_MERAKI_API_KEY, CONF_MERAKI_ORG_ID
 
 if TYPE_CHECKING:
-    from .config_flow import ConfigFlowHandler
+    from .config_flow import MerakiHAConfigFlow as ConfigFlowHandler
 
 
 _LOGGER = logging.getLogger(__name__)

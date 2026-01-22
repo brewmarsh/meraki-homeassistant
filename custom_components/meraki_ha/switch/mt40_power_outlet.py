@@ -28,7 +28,7 @@ class MerakiMt40PowerOutlet(
     def __init__(
         self,
         coordinator: MerakiDataUpdateCoordinator,
-        device_info: dict[str, Any],
+        device_info: MerakiDevice,
         config_entry: ConfigEntry,
         meraki_client: MerakiAPIClient,
     ) -> None:
@@ -44,7 +44,9 @@ class MerakiMt40PowerOutlet(
 
         """
         super().__init__(coordinator)
-        self._device_info = device_info
+        if not device_info.serial:
+            raise ValueError("Device serial is missing")
+        self._device_info: MerakiDevice = device_info
         self._config_entry = config_entry
         self._meraki_client = meraki_client
         self._attr_unique_id = f"{self._device_info.serial}-outlet"
@@ -59,6 +61,8 @@ class MerakiMt40PowerOutlet(
     @callback
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
+        if not self._device_info.serial:
+            return
         device: MerakiDevice | None = self.coordinator.get_device(
             serial=self._device_info.serial
         )
@@ -92,6 +96,8 @@ class MerakiMt40PowerOutlet(
             **kwargs: Additional arguments.
 
         """
+        if not self._device_info.serial:
+            return
         self._attr_is_on = True
         self.async_write_ha_state()
         self.coordinator.register_pending_update(self.unique_id)
@@ -114,6 +120,8 @@ class MerakiMt40PowerOutlet(
             **kwargs: Additional arguments.
 
         """
+        if not self._device_info.serial:
+            return
         self._attr_is_on = False
         self.async_write_ha_state()
         self.coordinator.register_pending_update(self.unique_id)

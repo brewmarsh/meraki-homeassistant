@@ -46,4 +46,6 @@ class MerakiRebootButton(ButtonEntity):
 
     async def async_press(self) -> None:
         """Handle the button press."""
+        if not self._device.serial:
+            return
         await self._control_service.async_reboot(self._device.serial)
