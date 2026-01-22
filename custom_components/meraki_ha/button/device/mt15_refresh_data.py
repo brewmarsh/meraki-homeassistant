@@ -44,6 +44,8 @@ class MerakiMt15RefreshDataButton(CoordinatorEntity, ButtonEntity):
     async def async_press(self) -> None:
         """Handle the button press."""
         serial = self._device.serial
+        if not serial:
+            return
         _LOGGER.info("MT15 refresh data button pressed for %s", serial)
         try:
             await self._meraki_client.sensor.create_device_sensor_command(

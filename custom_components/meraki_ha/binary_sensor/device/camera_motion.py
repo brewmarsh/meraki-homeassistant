@@ -63,6 +63,8 @@ class MerakiMotionSensor(CoordinatorEntity, BinarySensorEntity):
 
     async def async_update(self) -> None:
         """Update the sensor."""
+        if not self._device.serial:
+            return
         try:
             self._motion_events = await self._camera_service.get_motion_history(
                 self._device.serial

@@ -84,7 +84,7 @@ class MerakiCamera(CoordinatorEntity, Camera):
         import dataclasses
 
         data = self.coordinator.get_device(self._device_serial)
-        if dataclasses.is_dataclass(data):
+        if dataclasses.is_dataclass(data) and not isinstance(data, type):
             return dataclasses.asdict(data)
         return data or {}
 
@@ -106,6 +106,9 @@ class MerakiCamera(CoordinatorEntity, Camera):
         """Return a still image from the camera."""
         if self.device_data.get("status") != "online":
             _LOGGER.debug("Skipping snapshot for offline camera: %s", self.name)
+            return None
+
+        if not self._device_serial:
             return None
 
         url = await self._camera_service.generate_snapshot(self._device_serial)
@@ -189,6 +192,8 @@ class MerakiCamera(CoordinatorEntity, Camera):
 
     async def async_turn_on(self) -> None:
         """Turn on the camera stream."""
+        if not self._device_serial:
+            return
         _LOGGER.debug("Turning on stream for camera %s", self._device_serial)
         await self._camera_service.async_set_rtsp_stream_enabled(
             self._device_serial, True
@@ -197,6 +202,8 @@ class MerakiCamera(CoordinatorEntity, Camera):
 
     async def async_turn_off(self) -> None:
         """Turn off the camera stream."""
+        if not self._device_serial:
+            return
         _LOGGER.debug("Turning off stream for camera %s", self._device_serial)
         await self._camera_service.async_set_rtsp_stream_enabled(
             self._device_serial, False

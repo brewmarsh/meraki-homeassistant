@@ -48,6 +48,8 @@ class MerakiSnapshotButton(CoordinatorEntity, ButtonEntity):
     async def async_press(self) -> None:
         """Handle the button press."""
         serial = self._device.serial
+        if not serial:
+            return
         _LOGGER.info("Snapshot button pressed for %s", serial)
         try:
             url = await self._camera_service.generate_snapshot(serial)
