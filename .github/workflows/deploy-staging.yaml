@@ -60,7 +60,7 @@ jobs:
           MERAKI_ORG_ID: ${{ secrets.MERAKI_ORG_ID }}
         run: |
           echo "Installing dependencies..."
-          uv pip install --system aiohttp > /dev/null
+          uv pip install --system --prerelease=allow aiohttp > /dev/null
 
           echo "Running Reset Script..."
           # Pass secrets implicitly via env vars defined above

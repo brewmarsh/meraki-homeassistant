@@ -46,7 +46,7 @@ jobs:
           python-version: ${{ inputs.python-version }}
           enable-cache: true
       - name: Install dependencies
-        run: uv pip install --system -r requirements_dev.txt
+        run: uv pip install --system --prerelease=allow -r requirements_dev.txt
       - run: mypy --ignore-missing-imports custom_components/meraki_ha/ tests/
 
   # Job 3: Security & Audit
@@ -61,7 +61,7 @@ jobs:
       - name: Upgrade build tools
         run: uv pip install --system --upgrade pip setuptools wheel
       - name: Install dependencies
-        run: uv pip install --system -r requirements_dev.txt
+        run: uv pip install --system --prerelease=allow -r requirements_dev.txt
       - name: Install tools
         run: uv pip install --system pip-audit bandit
       - name: Run Bandit
@@ -83,7 +83,7 @@ jobs:
 
       # --- FORCE CLEAN STEP: THE DEFINITIVE FIX ---
       - name: Install dependencies
-        run: uv pip install --system -r requirements_dev.txt
+        run: uv pip install --system --prerelease=allow -r requirements_dev.txt
 
       - name: Force Clean DNS Stack
         run: |

@@ -17,7 +17,7 @@ jobs:
           enable-cache: true
 
       - name: Install dependencies
-        run: uv pip install --system -r requirements_test.txt
+        run: uv pip install --system --prerelease=allow -r requirements_test.txt
 
       - name: Force Clean DNS Stack
         run: |
