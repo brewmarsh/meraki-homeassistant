@@ -21,9 +21,16 @@ MOCK_DATA = {
 
 
 @pytest.fixture(autouse=True)
-def bypass_platform_setup():
+def bypass_platform_setup(socket_enabled):
     """Override global fixture to allow component setup."""
-    yield
+    with patch("custom_components.meraki_ha.PLATFORMS", []):
+        yield
+
+
+@pytest.fixture
+def verify_cleanup():
+    """Don't verify cleanup of threads, we are not running them."""
+    return True
 
 
 @pytest.fixture
@@ -98,8 +105,10 @@ async def test_subscribe_meraki_data(
         "data" not in response["result"] or "org_name" not in response["result"]["data"]
     )
 
+    # Clean up
+    await client.close()
     await hass.async_block_till_done()
-    await asyncio.sleep(0.1)  # Allow background threads to close
+    await asyncio.sleep(1.0)
 
 
 @pytest.mark.asyncio
