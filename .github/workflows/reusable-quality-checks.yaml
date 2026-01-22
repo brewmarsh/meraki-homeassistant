@@ -58,12 +58,8 @@ jobs:
         with:
           python-version: ${{ inputs.python-version }}
           enable-cache: false
-      - name: Install dependencies
-        run: pip install -r requirements_dev.txt
-      - name: Install dependencies
-        run: pip install -r requirements_dev.txt
-      - name: Install dependencies
-        run: pip install -r requirements_dev.txt
+      - name: Upgrade build tools
+        run: python -m pip install --upgrade pip setuptools wheel
       - name: Install dependencies
         run: pip install -r requirements_dev.txt
       - name: Install tools
