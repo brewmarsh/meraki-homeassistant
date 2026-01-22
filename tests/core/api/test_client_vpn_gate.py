@@ -1,6 +1,7 @@
 """Test the Meraki API client VPN gating logic."""
 
 from unittest.mock import AsyncMock, MagicMock, patch
+
 import pytest
 
 from custom_components.meraki_ha.core.api.client import MerakiAPIClient
@@ -80,13 +81,21 @@ async def test_vpn_status_fetched_when_enabled(mock_hass, mock_coordinator):
     client._async_fetch_device_clients = AsyncMock(return_value={})
 
     # Mock parsers to avoid errors with minimal data
-    with patch("custom_components.meraki_ha.core.api.client.parse_network_data", return_value={}), \
-         patch("custom_components.meraki_ha.core.api.client.parse_wireless_data", return_value={}), \
-         patch("custom_components.meraki_ha.core.api.client.parse_device_data"), \
-         patch("custom_components.meraki_ha.core.api.client.parse_appliance_data"), \
-         patch("custom_components.meraki_ha.core.api.client.parse_sensor_data"), \
-         patch("custom_components.meraki_ha.core.api.client.parse_camera_data"), \
-         patch("custom_components.meraki_ha.core.api.client.parse_switch_data"):
+    with (
+        patch(
+            "custom_components.meraki_ha.core.api.client.parse_network_data",
+            return_value={},
+        ),
+        patch(
+            "custom_components.meraki_ha.core.api.client.parse_wireless_data",
+            return_value={},
+        ),
+        patch("custom_components.meraki_ha.core.api.client.parse_device_data"),
+        patch("custom_components.meraki_ha.core.api.client.parse_appliance_data"),
+        patch("custom_components.meraki_ha.core.api.client.parse_sensor_data"),
+        patch("custom_components.meraki_ha.core.api.client.parse_camera_data"),
+        patch("custom_components.meraki_ha.core.api.client.parse_switch_data"),
+    ):
 
         # Run get_all_data
         await client.get_all_data()
