@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+from typing import cast
 
 from homeassistant.components.sensor import SensorEntity
 from homeassistant.config_entries import ConfigEntry
@@ -80,7 +81,7 @@ class MerakiRtspUrlSensor(CoordinatorEntity, SensorEntity):
     def device_info(self) -> DeviceInfo:
         """Return device information."""
         return DeviceInfo(
-            identifiers={(DOMAIN, self._device_data.serial)},
+            identifiers={(DOMAIN, cast(str, self._device_data.serial))},
             name=format_device_name(self._device_data, self._config_entry.options),
             model=self._device_data.model,
             manufacturer="Cisco Meraki",
