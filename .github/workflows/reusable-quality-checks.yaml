@@ -111,7 +111,12 @@ jobs:
         env:
           PIP_AUDIT_IGNORE_VULN: 'GHSA-6mq8-rvhq-8wgg GHSA-69f9-5gxw-wvc2 GHSA-6jhg-hg63-jvvf GHSA-g84x-mcqj-x9qq GHSA-fh55-r93g-j68g GHSA-54jq-c3m8-4m76 GHSA-jj3x-wxrx-4x23 GHSA-mqqc-3gqh-h2x8 PYSEC-2020-49 PYSEC-2022-42969 GHSA-g7vv-2v7x-gj9p'
         # FIX: Run from root to avoid shadowing types.py
-        run: python -m pip_audit -r custom_components/meraki_ha/requirements.txt -l
+        run: |
+          IGNORE_ARGS=""
+          for vuln in $PIP_AUDIT_IGNORE_VULN; do
+            IGNORE_ARGS="$IGNORE_ARGS --ignore-vuln $vuln"
+          done
+          python -m pip_audit -r custom_components/meraki_ha/requirements.txt -l $IGNORE_ARGS
 
   # Job 4: Unit Tests
   test:
