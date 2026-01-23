@@ -46,10 +46,10 @@ jobs:
       - name: Install jq
         run: sudo apt-get update && sudo apt-get install -y jq
 
-      - uses: astral-sh/setup-uv@v7
+      - name: Setup Python and uv
+        uses: astral-sh/setup-uv@v7
         with:
-          python-version: '3.13'
-          enable-cache: true
+          python-version: "3.11"
 
       - name: Full Integration Reset (Delete > Restart > Add)
         shell: bash
@@ -60,8 +60,8 @@ jobs:
           MERAKI_ORG_ID: ${{ secrets.MERAKI_ORG_ID }}
         run: |
           echo "Installing dependencies..."
-          uv pip install --system aiohttp > /dev/null
-
+          uv pip install --system aiohttp
+          
           echo "Running Reset Script..."
           # Pass secrets implicitly via env vars defined above
           python3 tests/scripts/reset_integration.py

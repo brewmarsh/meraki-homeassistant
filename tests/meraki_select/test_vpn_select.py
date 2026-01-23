@@ -34,9 +34,7 @@ def mock_meraki_client() -> AsyncMock:
         return_value={
             "devices": [],
             "networks": [MOCK_NETWORK],
-            "vpn_status": {
-                network_id: MerakiVpn(mode="spoke", hubs=[], subnets=[])
-            },
+            "vpn_status": {network_id: MerakiVpn(mode="spoke", hubs=[], subnets=[])},
             "ssids": [],
             "clients": [],
             "vlans": {},
