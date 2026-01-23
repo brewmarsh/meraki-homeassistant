@@ -46,7 +46,7 @@ class MerakiRtspUrlSensor(CoordinatorEntity, SensorEntity):
         self._attr_icon = "mdi:cctv"
 
         # Set availability based on model
-        if device_data.model.startswith("MV2"):
+        if device_data.model and device_data.model.startswith("MV2"):
             self._attr_available = False
 
         # Set initial state
@@ -89,4 +89,4 @@ class MerakiRtspUrlSensor(CoordinatorEntity, SensorEntity):
     @property
     def entity_registry_enabled_default(self) -> bool:
         """Return if the entity should be enabled by default."""
-        return not self._device_data.model.startswith("MV2")
+        return not (self._device_data.model and self._device_data.model.startswith("MV2"))

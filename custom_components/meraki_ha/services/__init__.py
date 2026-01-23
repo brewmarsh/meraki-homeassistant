@@ -61,9 +61,6 @@ async def async_setup_services(
         """Generate a camera snapshot."""
         if camera_service and call.data["serial"]:
             await camera_service.generate_snapshot(call.data["serial"])
-        """Generate a camera snapshot."""
-        if camera_service:
-            await camera_service.async_generate_snapshot(call.data["serial"])
 
     hass.services.async_register(
         DOMAIN,
