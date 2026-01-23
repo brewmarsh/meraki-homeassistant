@@ -10,7 +10,7 @@ pytest>=8.3.4
 pytest-mock
 pytest-asyncio
 types-aiofiles==25.1.0.20251011
-playwright==1.39.0
+playwright>=1.48.0
 pytest-cov
 py==1.11.0
 tzdata==2024.1
@@ -25,3 +25,4 @@ aiodhcpwatcher
 aiodiscover
 aiohttp>=3.8.1
 urllib3>=1.26.5
+wheel>=0.46.2
