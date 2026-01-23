@@ -97,6 +97,8 @@ class MerakiMt40PowerOutlet(
         self.coordinator.register_pending_update(self.unique_id)
 
         try:
+            if self._device_info.serial is None:
+                raise ValueError("Device serial is missing")
             await self._meraki_client.sensor.create_device_sensor_command(
                 serial=self._device_info.serial,
                 operation="enableDownstreamPower",
@@ -119,6 +121,8 @@ class MerakiMt40PowerOutlet(
         self.coordinator.register_pending_update(self.unique_id)
 
         try:
+            if self._device_info.serial is None:
+                raise ValueError("Device serial is missing")
             await self._meraki_client.sensor.create_device_sensor_command(
                 serial=self._device_info.serial,
                 operation="disableDownstreamPower",

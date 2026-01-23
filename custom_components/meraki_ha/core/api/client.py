@@ -560,4 +560,6 @@ class MerakiAPIClient:
             The API response.
 
         """
-        return await self.switch.cycle_device_switch_ports(serial, ports)
+        return cast(
+            dict[str, Any], await self.switch.cycle_device_switch_ports(serial, ports)
+        )
