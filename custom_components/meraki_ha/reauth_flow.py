@@ -87,7 +87,10 @@ async def async_step_reauth(
             {
                 vol.Required(CONF_MERAKI_API_KEY): str,
                 vol.Required(CONF_MERAKI_ORG_ID, default=org_id): str,
-            },
+            }
         ),
         errors=errors,
+        description_placeholders={
+            "org_id": org_id,
+        },
     )

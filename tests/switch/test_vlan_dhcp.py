@@ -81,7 +81,7 @@ def test_vlan_dhcp_switch_off_state(
     assert len(entities) == 1
     switch = entities[0]
 
-    assert switch.is_on is False
+    assert switch.is_on is False  # type: ignore[attr-defined]
 
 
 def test_vlan_dhcp_switch_creation_disabled(

@@ -89,7 +89,7 @@ class SwitchEndpoints:
         self,
         serial: str,
         ports: list[str],
-    ) -> dict[str, Any]:
+    ) -> dict[str, Any] | list[Any]:
         """
         Cycle a set of switch ports.
 
