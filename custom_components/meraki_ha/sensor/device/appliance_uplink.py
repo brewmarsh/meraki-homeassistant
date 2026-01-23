@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import logging
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, cast
 
 from homeassistant.components.sensor import SensorEntity
 from homeassistant.config_entries import ConfigEntry
@@ -36,7 +36,7 @@ class MerakiApplianceUplinkSensor(CoordinatorEntity, SensorEntity):
     ) -> None:
         """Initialize the sensor."""
         super().__init__(coordinator)
-        self._device_serial: str = device_data.serial
+        self._device_serial: str = cast(str, device_data.serial)
         self._config_entry = config_entry
         self._uplink_interface: str = uplink_data["interface"]
 

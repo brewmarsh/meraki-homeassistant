@@ -97,10 +97,11 @@ class MerakiMt40PowerOutlet(
         self.coordinator.register_pending_update(self.unique_id)
 
         try:
-            await self._meraki_client.sensor.create_device_sensor_command(
-                serial=self._device_info.serial,
-                operation="enableDownstreamPower",
-            )
+            if self._device_info.serial:
+                await self._meraki_client.sensor.create_device_sensor_command(
+                    serial=self._device_info.serial,
+                    operation="enableDownstreamPower",
+                )
         except Exception as e:
             _LOGGER.error("Error turning on MT40 outlet %s: %s", self.unique_id, e)
             self.coordinator.cancel_pending_update(self.unique_id)
@@ -119,10 +120,11 @@ class MerakiMt40PowerOutlet(
         self.coordinator.register_pending_update(self.unique_id)
 
         try:
-            await self._meraki_client.sensor.create_device_sensor_command(
-                serial=self._device_info.serial,
-                operation="disableDownstreamPower",
-            )
+            if self._device_info.serial:
+                await self._meraki_client.sensor.create_device_sensor_command(
+                    serial=self._device_info.serial,
+                    operation="disableDownstreamPower",
+                )
         except Exception as e:
             _LOGGER.error("Error turning off MT40 outlet %s: %s", self.unique_id, e)
             self.coordinator.cancel_pending_update(self.unique_id)
