@@ -23,5 +23,3 @@ PyTurboJPEG
 numpy>=1.26.0
 aiodhcpwatcher
 aiodiscover
-aiodns==3.6.1
-pycares==4.11.0
