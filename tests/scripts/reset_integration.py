@@ -193,7 +193,7 @@ async def add_integration():
                     )
                     sys.exit(1)
                 else:
-                    logger.error(f"Attempt {i+1} failed with error: {error_msg}")
+                    logger.error(f"Attempt {i + 1} failed with error: {error_msg}")
 
                 message_id += 1
                 await asyncio.sleep(5)
