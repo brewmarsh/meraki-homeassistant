@@ -38,7 +38,7 @@ class MerakiMtSensor(CoordinatorEntity, RestoreSensor):
         self._attr_unique_id = f"{device.serial}_{self.entity_description.key}"
         self._attr_has_entity_name = True
         if self.entity_description.name is not UNDEFINED:
-            self._attr_name = self.entity_description.name
+            self._attr_name = cast(str | None, self.entity_description.name)
         self._attr_native_value: Any = None
 
     def _maybe_get_value(self, value: Any) -> Any | None:
