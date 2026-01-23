@@ -113,8 +113,8 @@ jobs:
         # FIX: Run from root to avoid shadowing types.py
         run: |
           IGNORE_ARGS=""
-          for vul in $PIP_AUDIT_IGNORE_VULN; do
-            IGNORE_ARGS="$IGNORE_ARGS --ignore-vuln $vul"
+          for vuln in $PIP_AUDIT_IGNORE_VULN; do
+            IGNORE_ARGS="$IGNORE_ARGS --ignore-vuln $vuln"
           done
           python -m pip_audit -r custom_components/meraki_ha/requirements.txt -l $IGNORE_ARGS
 
