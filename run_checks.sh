@@ -7,21 +7,22 @@ uv pip install --system -r requirements_test.txt --prerelease=allow
 # Force reinstall aiodns and pycares to match Python 3.13 compatibility requirements
 # even if Home Assistant pins older versions.
 echo "Force reinstalling aiodns and pycares..."
-uv pip install --system --force-reinstall aiodns==3.6.1 pycares==4.11.0
+uv pip uninstall --system pycares aiodns
+uv pip install --system --no-cache-dir aiodns==3.6.1 pycares==4.11.0
 
 export PYTHONPATH=$PYTHONPATH:.
 echo "PYTHONPATH: $PYTHONPATH"
 
 echo "Running tests..."
-pytest
+python -m pytest
 
 echo "Running ruff..."
-ruff check .
+python -m ruff check .
 
 echo "Running flake8..."
-flake8 .
+python -m flake8 .
 
 echo "Running bandit..."
-bandit -c .bandit.yaml -r .
+python -m bandit -c .bandit.yaml -r .
 
 echo "All checks passed!"
