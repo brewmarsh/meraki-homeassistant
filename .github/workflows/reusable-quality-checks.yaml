@@ -65,10 +65,16 @@ jobs:
       - name: Install dependencies
         run: uv pip install --system -r requirements_dev.txt
 
+      - name: Force Clean DNS Stack
+        run: |
+          uv pip uninstall --system pycares aiodns
+          uv pip install --system --no-cache-dir pycares==4.11.0 aiodns==3.6.1
+
       - run: mypy --ignore-missing-imports custom_components/meraki_ha/ tests/
 
   # Job 3: Security & Audit
   security:
+    needs: [lint, type-check]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -103,6 +109,7 @@ jobs:
 
   # Job 4: Unit Tests
   test:
+    needs: [lint, type-check]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

@@ -9,7 +9,7 @@ pytest-homeassistant-custom-component>=0.13.205
 pytest-mock
 pytest-asyncio
 types-aiofiles==25.1.0.20251011
-playwright==1.39.0
+playwright>=1.48.0
 pytest-cov
 py==1.11.0
 tzdata==2024.1

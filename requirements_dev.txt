@@ -9,7 +9,7 @@ bandit==1.7.9
 mypy==1.11.0
 voluptuous
 pyyaml
-playwright
+playwright>=1.48.0
 pytest-homeassistant-custom-component>=0.13.205
 pytest
 pytest-cov
