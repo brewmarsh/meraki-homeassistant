@@ -19,9 +19,6 @@ python -m pytest
 echo "Running ruff..."
 python -m ruff check .
 
-echo "Running flake8..."
-python -m flake8 .
-
 echo "Running bandit..."
 python -m bandit -c .bandit.yaml -r .
 
