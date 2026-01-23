@@ -64,7 +64,7 @@ jobs:
 
       - name: Create Pull Request with version bump
         if: steps.increment.outputs.new_version != ''
-        uses: peter-evans/create-pull-request@v6
+        uses: peter-evans/create-pull-request@v8
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           commit-message: 'chore(release): update version to ${{ steps.increment.outputs.new_version }}'
