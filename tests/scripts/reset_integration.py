@@ -39,18 +39,30 @@ async def delete_existing_entries(session):
 async def restart_and_wait(session):
     """Restart Home Assistant and wait for it to come back online."""
     print("Restarting Home Assistant...")
-    async with session.post(f"{HA_URL}/api/services/homeassistant/restart") as resp:
-        if resp.status == 200:
-            print("Success")
-        elif resp.status in [502, 504]:
-            print("Server disconnected (Restarting)...")
-        else:
-            print(f"Restart call failed: {resp.status}")
-            return False
+
+    try:
+        # We assume the restart command might sever the connection immediately
+        async with session.post(f"{HA_URL}/api/services/homeassistant/restart") as resp:
+            if resp.status == 200:
+                print("Restart command sent successfully.")
+            else:
+                print(f"Restart command sent, status: {resp.status}")
+    except (
+        aiohttp.ServerDisconnectedError,
+        aiohttp.ClientConnectionError,
+        aiohttp.ClientOSError,
+    ):
+        # This is EXPECTED. The server died because we told it to.
+        print("Server disconnected immediately (Restart successful).")
+    except Exception as e:
+        print(f"Unexpected error during restart: {e}")
+        return False
+
     # Wait loop
     print("Waiting for Home Assistant to restart...")
     await asyncio.sleep(15)  # Initial buffer
-    for i in range(30):  # Try for 5 minutes (30 * 10s)
+
+    for i in range(30):  # Try for 5 minutes
         try:
             async with session.get(f"{HA_URL}/api/config", timeout=5) as resp:
                 if resp.status == 200:
@@ -61,11 +73,12 @@ async def restart_and_wait(session):
                         return True
                     else:
                         print(f"Home Assistant state: {state}")
-
         except Exception:
             pass
+
         await asyncio.sleep(10)
         print(f"Waiting... ({i + 1}/30)")
+
     return False
 
 
