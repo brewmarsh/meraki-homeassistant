@@ -1,3 +1,6 @@
-meraki==1.40.1
-aiohttp
+meraki>=1.53.0
+aiohttp>=3.8.1
 homeassistant
+aiodns==3.6.1
+pycares==4.11.0
+webrtc-models==0.3.0
