@@ -41,8 +41,8 @@ class MerakiDataUsageSensor(CoordinatorEntity, SensorEntity):
     ) -> None:
         """Initialize the sensor."""
         super().__init__(coordinator)
-        self._device_serial: str = device_data.serial
-        self._network_id: str = device_data.network_id
+        self._device_serial: str | None = device_data.serial
+        self._network_id: str | None = device_data.network_id
         self._config_entry = config_entry
         self._attr_unique_id = f"{self._device_serial}_data_usage"
         self._attr_name = "Data Usage"

@@ -42,7 +42,9 @@ class MerakiMtSensor(CoordinatorEntity, RestoreSensor):
         """Handle entity which provides state restoration."""
         await super().async_added_to_hass()
         if (last_sensor_data := await self.async_get_last_sensor_data()) is not None:
-            self._attr_native_value = last_sensor_data.native_value
+            self._attr_native_value: str | None | int | float | bool = (
+                last_sensor_data.native_value
+            )
 
     @property
     def device_info(self) -> DeviceInfo:

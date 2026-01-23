@@ -34,7 +34,7 @@ class MerakiCameraAudioDetectionSensor(CoordinatorEntity, SensorEntity):
     ) -> None:
         """Initialize the Meraki Camera Audio Detection sensor."""
         super().__init__(coordinator)
-        self._device_serial: str = device_data.serial
+        self._device_serial: str | None = device_data.serial
         self._attr_unique_id = f"{self._device_serial}_camera_audio_detection_status"
 
         self._attr_device_info = DeviceInfo(

@@ -110,7 +110,7 @@ def test_async_setup_mt10_sensors(
         entity.hass = MagicMock()
         entity.entity_id = "sensor.test"
         entity.async_write_ha_state = MagicMock()
-        entity._handle_coordinator_update()
+        entity._handle_coordinator_update()  # type: ignore[attr-defined]
 
     assert len(entities) == 3
 
@@ -148,7 +148,7 @@ def test_async_setup_mt15_sensors(
         entity.hass = MagicMock()
         entity.entity_id = "sensor.test"
         entity.async_write_ha_state = MagicMock()
-        entity._handle_coordinator_update()
+        entity._handle_coordinator_update()  # type: ignore[attr-defined]
 
     assert len(entities) == 7
 
@@ -222,7 +222,7 @@ def test_async_setup_mt12_sensors(
         entity.hass = MagicMock()
         entity.entity_id = "sensor.test"
         entity.async_write_ha_state = MagicMock()
-        entity._handle_coordinator_update()
+        entity._handle_coordinator_update()  # type: ignore[attr-defined]
 
     assert len(entities) == 2
     water_sensor = entities[0]
@@ -246,7 +246,7 @@ def test_async_setup_mt40_sensors(
         entity.hass = MagicMock()
         entity.entity_id = "sensor.test"
         entity.async_write_ha_state = MagicMock()
-        entity._handle_coordinator_update()
+        entity._handle_coordinator_update()  # type: ignore[attr-defined]
 
     assert len(entities) == 3
 
