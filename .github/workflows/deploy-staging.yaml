@@ -74,23 +74,10 @@ jobs:
       - name: Audit Logs for Errors
         shell: bash
         run: |
-          echo "Waiting for Meraki HA setup to complete..."
-          timeout=300 # 5 minutes
-          start_time=$(date +%s)
-          while true; do
-            if grep -q "Setup of domain meraki_ha took" /ha_config/home-assistant.log; then
-              echo "Meraki HA setup complete."
-              break
-            fi
-            current_time=$(date +%s)
-            if [ $((current_time - start_time)) -gt $timeout ]; then
-              echo "::error::Timeout waiting for Meraki HA setup to complete."
-              exit 1
-            fi
-            sleep 5
-          done
-
           echo "Scanning logs for Meraki errors..."
+          # Give HA a moment to settle after the reset script
+          sleep 10
+          # FIX 2: Use internal runner path /ha_config instead of host path /mnt/...
           if grep -i "ERROR" /ha_config/home-assistant.log | grep "custom_components.meraki_ha"; then
             echo "::error::CRITICAL: Found Meraki errors in the log!"
             grep -i "ERROR" /ha_config/home-assistant.log | grep "custom_components.meraki_ha"

@@ -60,7 +60,7 @@ class NetworkEndpoints:
             A list of clients.
 
         """
-        kwargs: dict[str, Any] = {
+        kwargs = {
             "networkId": network_id,
             "total_pages": total_pages,
         }
