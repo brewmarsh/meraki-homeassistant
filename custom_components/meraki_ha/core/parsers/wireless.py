@@ -48,8 +48,8 @@ def parse_wireless_data(
                 ):
                     ssid["networkId"] = network_id
                     ssid_name = ssid.get("name")
-                    if ssid_name and network_id:
-                        count_key = (network_id, str(ssid_name))
+                    if ssid_name:
+                        count_key = (network_id, ssid_name)
                         ssid["clientCount"] = client_counts.get(count_key, 0)
                     else:
                         ssid["clientCount"] = 0
