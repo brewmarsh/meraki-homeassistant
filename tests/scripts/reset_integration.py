@@ -104,6 +104,37 @@ async def restart_and_wait(session):
     return False
 
 
+async def check_loaded_components(session):
+    """Check if the 'config' integration is actually loaded."""
+    logger.info("Checking loaded components...")
+    async with session.get(f"{HA_URL}/api/config") as resp:
+        if resp.status != 200:
+            logger.error(f"Failed to get config: {resp.status}")
+            return False
+
+        data = await resp.json()
+        components = set(data.get("components", []))
+
+        if "config" in components:
+            logger.info("✅ 'config' integration is LOADED.")
+            return True
+        else:
+            logger.error("❌ 'config' integration is MISSING!")
+            logger.error(f"Loaded components: {sorted(components)}")
+
+            # Fetch Error Log
+            logger.info("Fetching error log to diagnose failure...")
+            async with session.get(f"{HA_URL}/api/error/log") as log_resp:
+                if log_resp.status == 200:
+                    log_text = await log_resp.text()
+                    logger.error("--- SYSTEM LOG (Last 20 lines) ---")
+                    lines = log_text.splitlines()
+                    for line in lines[-20:]:
+                        logger.error(line)
+                    logger.error("----------------------------------")
+            return False
+
+
 async def add_integration():
     """Add the Meraki HA integration via WebSocket."""
     ws_url = HA_URL.replace("http", "ws").replace("https", "wss") + "/api/websocket"
