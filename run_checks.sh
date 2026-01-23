@@ -1,8 +1,10 @@
 #!/bin/bash
 set -e
 
+echo "Installing uv..."
+pip install uv
+
 echo "Installing dependencies..."
-# Use requirements_dev.txt to include all tools (mypy, ruff, bandit, etc.)
 uv pip install --system --prerelease=allow -r requirements_dev.txt
 
 # Force reinstall aiodns and pycares to match Python 3.13 compatibility requirements
