@@ -6,10 +6,10 @@ import logging
 from typing import Any
 
 from homeassistant import config_entries
-from homeassistant.helpers.service_info.dhcp import DhcpServiceInfo
 from homeassistant.config_entries import ConfigFlowResult
 from homeassistant.core import callback
 from homeassistant.data_entry_flow import AbortFlow
+from homeassistant.helpers.service_info.dhcp import DhcpServiceInfo
 
 from .authentication import validate_meraki_credentials
 from .const import (
