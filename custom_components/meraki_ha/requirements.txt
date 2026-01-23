@@ -1,6 +1,6 @@
 aiodns==3.6.1
 aiohttp>=3.13.2
-meraki
+meraki>=1.53.0
 pycares==4.11.0
 urllib3>=2.6.2
 webrtc-models==0.3.0

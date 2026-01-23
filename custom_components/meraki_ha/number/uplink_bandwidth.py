@@ -34,7 +34,7 @@ class MerakiUplinkBandwidthNumber(MerakiNetworkEntity, NumberEntity):
             f"uplink_bandwidth_{self._network_id}_{self._uplink}_{self._direction}"
         )
         self._attr_name = (
-            f"{self._network.name} {self._uplink.capitalize()} "
+            f"{self._network['name']} {self._uplink.capitalize()} "
             f"{self._direction.capitalize()} Limit"
         )
         self._attr_native_unit_of_measurement = "kbps"

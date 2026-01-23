@@ -250,7 +250,6 @@ class MerakiAPIClient:
             for device in devices
             if device.product_type
             in ["wireless", "appliance", "switch", "cellularGateway"]
-            and device.serial
         }
         results = await asyncio.gather(*client_tasks.values(), return_exceptions=True)
         clients_by_serial: dict[str, list[dict[str, Any]]] = {}
@@ -394,28 +393,26 @@ class MerakiAPIClient:
         initial_results = await self._async_fetch_initial_data()
 
         networks_res = initial_results.get("networks", [])
-        networks_list: list[MerakiNetwork]
         if isinstance(networks_res, Exception):
             _LOGGER.warning(
                 "Could not fetch networks, network data will be unavailable: %s",
                 networks_res,
             )
-            networks_list = []
+            networks_list: list[MerakiNetwork] = []
         else:
-            networks_list = [
+            networks_list: list[MerakiNetwork] = [
                 MerakiNetwork.from_dict(n) for n in networks_res
             ]
 
         devices_res = initial_results.get("devices", [])
-        devices_list: list[MerakiDevice]
         if isinstance(devices_res, Exception):
             _LOGGER.warning(
                 "Could not fetch devices, device data will be unavailable: %s",
                 devices_res,
             )
-            devices_list = []
+            devices_list: list[MerakiDevice] = []
         else:
-            devices_list = [
+            devices_list: list[MerakiDevice] = [
                 MerakiDevice.from_dict(d) for d in devices_res
             ]
 
@@ -566,7 +563,4 @@ class MerakiAPIClient:
             The API response.
 
         """
-        result = await self.switch.cycle_device_switch_ports(serial, ports)
-        if isinstance(result, list):
-            return {"result": result}
-        return result
+        return await self.switch.cycle_device_switch_ports(serial, ports)
