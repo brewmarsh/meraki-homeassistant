@@ -6,6 +6,10 @@ on:
   pull_request:
     types: [labeled]
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   cognitive-loop:
     if: >
@@ -14,7 +18,7 @@ jobs:
         contains(github.event.comment.body, '@jules') ||
         (github.event.action == 'reopened' && contains(github.event.issue.labels.*.name, 'jules'))
       ) &&
-      github.actor != 'dependabot[bot]'
+      github.actor != 'dependabot[bot]' and github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
     permissions:
       contents: write
