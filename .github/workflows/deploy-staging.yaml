@@ -67,6 +67,10 @@ jobs:
           echo "Installing dependencies..."
           uv pip install --system aiohttp > /dev/null
 
+          echo "Force reinstalling aiodns and pycares..."
+          uv pip uninstall --system pycares aiodns
+          uv pip install --system --no-cache-dir pycares==4.11.0 aiodns==3.6.1
+
           echo "Running Reset Script..."
           # Pass secrets implicitly via env vars defined above
           python3 tests/scripts/reset_integration.py
