@@ -1,7 +1,12 @@
 aiodns==3.6.1
+aiofiles==23.2.1
 aiohttp>=3.13.2
+diskcache==5.6.3
 meraki>=1.53.0
+playwright
+protobuf==4.25.3
 pycares==4.11.0
+pytest-homeassistant-custom-component
 urllib3>=1.26.5
 webrtc-models==0.3.0
 yarl

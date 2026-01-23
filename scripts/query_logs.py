@@ -34,7 +34,7 @@ def main():
     five_minutes_ago = now - timedelta(minutes=5)
 
     query = (
-        f"SELECT * FROM logs WHERE level = 'error' AND "  # nosec B608
+        f"SELECT * FROM logs WHERE level = 'error' AND "  # nosec
         f"message LIKE '%meraki_ha%' AND "
         f"to_timestamp(dt) >= '{five_minutes_ago.isoformat()}'"
     )

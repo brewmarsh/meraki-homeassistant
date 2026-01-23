@@ -2,7 +2,7 @@
 set -e
 
 echo "Installing dependencies..."
-uv pip install --system -r requirements_test.txt --prerelease=allow
+uv pip install --system --prerelease=allow -r requirements_test.txt
 
 # Force reinstall aiodns and pycares to match Python 3.13 compatibility requirements
 # even if Home Assistant pins older versions.

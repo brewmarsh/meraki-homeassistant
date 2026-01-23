@@ -17,7 +17,6 @@ janus==1.0.0
 psutil-home-assistant==0.0.1
 pillow>=11.0.0
 fnv-hash-fast
-flake8==7.0.0
 webrtc-models==0.3.0
 PyTurboJPEG
 numpy>=1.26.0
