@@ -1,18 +1,10 @@
 {
   "domain": "meraki_ha",
   "name": "Meraki for Home Assistant",
-  "after_dependencies": [
-    "frontend",
-    "webrtc"
-  ],
-  "codeowners": [
-    "@brewmarsh"
-  ],
+  "after_dependencies": ["frontend", "webrtc"],
+  "codeowners": ["@brewmarsh"],
   "config_flow": true,
-  "dependencies": [
-    "http",
-    "panel_custom"
-  ],
+  "dependencies": ["http", "panel_custom"],
   "dhcp": [
     {
       "hostname": "meraki*",
@@ -32,12 +24,10 @@
   "integration_type": "hub",
   "iot_class": "cloud_polling",
   "issue_tracker": "https://github.com/brewmarsh/meraki-homeassistant/issues",
-  "loggers": [
-    "meraki_ha"
-  ],
+  "loggers": ["meraki_ha"],
   "quality_scale": "platinum",
   "requirements": [
-    "aiofiles==23.2.1",
+    "aiofiles>=24.1.0",
     "aiodns==3.6.1",
     "aiohttp>=3.8.1",
     "meraki>=1.53.0",
