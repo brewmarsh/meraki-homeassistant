@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import logging
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 
 from homeassistant.components.sensor import SensorEntity, SensorEntityDescription
 from homeassistant.config_entries import ConfigEntry
@@ -34,7 +34,7 @@ class MerakiCameraSenseStatusSensor(CoordinatorEntity, SensorEntity):
     ) -> None:
         """Initialize the Meraki Camera Sense Status sensor."""
         super().__init__(coordinator)
-        self._device_serial: str = device_data.serial
+        self._device_serial: str = cast(str, device_data.serial)
         self._attr_unique_id = f"{self._device_serial}_camera_sense_status"
 
         self._attr_device_info = DeviceInfo(

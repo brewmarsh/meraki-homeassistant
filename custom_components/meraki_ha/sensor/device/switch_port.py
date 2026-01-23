@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, cast
 
 from homeassistant.components.sensor import SensorEntity
 from homeassistant.config_entries import ConfigEntry
@@ -35,12 +35,13 @@ class MerakiSwitchPortSensor(CoordinatorEntity, SensorEntity):
 
         self._attr_unique_id = f"{self._device.serial}_port_{self._port['portId']}"
         self._attr_name = f"{self._device.name} Port {self._port['portId']}"
+        self._attr_native_value = self._port.get("status")
 
     @property
     def device_info(self) -> DeviceInfo | None:
         """Return the device info."""
         return DeviceInfo(
-            identifiers={(self.coordinator.DOMAIN, self._device.serial)},
+            identifiers={(self.coordinator.DOMAIN, cast(str, self._device.serial))},
         )
 
     @property
@@ -59,12 +60,8 @@ class MerakiSwitchPortSensor(CoordinatorEntity, SensorEntity):
                         self._port = port
                         break
                 break
+        self._attr_native_value = self._port.get("status")
         self.async_write_ha_state()
-
-    @property
-    def state(self) -> str | None:
-        """Return the state of the sensor."""
-        return self._port.get("status")
 
     @property
     def extra_state_attributes(self) -> dict[str, Any]:

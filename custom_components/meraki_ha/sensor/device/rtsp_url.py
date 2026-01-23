@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+from typing import cast
 
 from homeassistant.components.sensor import SensorEntity
 from homeassistant.config_entries import ConfigEntry
@@ -46,7 +47,7 @@ class MerakiRtspUrlSensor(CoordinatorEntity, SensorEntity):
         self._attr_icon = "mdi:cctv"
 
         # Set availability based on model
-        if device_data.model.startswith("MV2"):
+        if device_data.model and device_data.model.startswith("MV2"):
             self._attr_available = False
 
         # Set initial state
@@ -80,7 +81,7 @@ class MerakiRtspUrlSensor(CoordinatorEntity, SensorEntity):
     def device_info(self) -> DeviceInfo:
         """Return device information."""
         return DeviceInfo(
-            identifiers={(DOMAIN, self._device_data.serial)},
+            identifiers={(DOMAIN, cast(str, self._device_data.serial))},
             name=format_device_name(self._device_data, self._config_entry.options),
             model=self._device_data.model,
             manufacturer="Cisco Meraki",
@@ -89,4 +90,6 @@ class MerakiRtspUrlSensor(CoordinatorEntity, SensorEntity):
     @property
     def entity_registry_enabled_default(self) -> bool:
         """Return if the entity should be enabled by default."""
-        return not self._device_data.model.startswith("MV2")
+        return not (
+            self._device_data.model and self._device_data.model.startswith("MV2")
+        )
