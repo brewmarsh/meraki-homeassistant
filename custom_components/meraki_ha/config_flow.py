@@ -27,7 +27,7 @@ from .schemas import CONFIG_SCHEMA, OPTIONS_SCHEMA
 _LOGGER = logging.getLogger(__name__)
 
 
-class MerakiHAConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
+class MerakiHAConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call-arg]
     """Handle a config flow for Meraki."""
 
     VERSION = 1

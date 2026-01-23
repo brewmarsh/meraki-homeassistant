@@ -142,7 +142,7 @@ def _is_informational_error(err: APIError) -> bool:
     )
 
 
-def validate_response(response: Any) -> dict[str, Any] | list[Any]:
+def validate_response(response: Any) -> Any:
     """
     Validate and normalize an API response.
 

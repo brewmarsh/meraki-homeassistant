@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import logging
-from typing import Any
+from typing import Any, cast
 
 from homeassistant.components.sensor import SensorEntity
 from homeassistant.const import EntityCategory
@@ -46,7 +46,7 @@ class MerakiAppliancePortSensor(CoordinatorEntity, SensorEntity):
     def device_info(self) -> DeviceInfo:
         """Return device information."""
         return DeviceInfo(
-            identifiers={(DOMAIN, self._device.serial)},
+            identifiers={(DOMAIN, cast(str, self._device.serial))},
             name=format_device_name(
                 self._device, self.coordinator.config_entry.options
             ),

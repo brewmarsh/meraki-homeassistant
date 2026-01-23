@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+from typing import Any, cast
 
 from homeassistant.components.sensor import (
     RestoreSensor,
@@ -10,6 +11,7 @@ from homeassistant.components.sensor import (
 )
 from homeassistant.core import callback
 from homeassistant.helpers.device_registry import DeviceInfo
+from homeassistant.helpers.typing import UNDEFINED
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from ...const import DOMAIN
@@ -35,21 +37,26 @@ class MerakiMtSensor(CoordinatorEntity, RestoreSensor):
         self.entity_description = entity_description
         self._attr_unique_id = f"{device.serial}_{self.entity_description.key}"
         self._attr_has_entity_name = True
-        self._attr_name = self.entity_description.name
-        self._attr_native_value = None
+        if self.entity_description.name is not UNDEFINED:
+            self._attr_name = cast(str | None, self.entity_description.name)
+        self._attr_native_value: Any = None
+
+    def _maybe_get_value(self, value: Any) -> Any | None:
+        """Return the value if not UNDEFINED, else None."""
+        return value if value is not UNDEFINED else None
 
     async def async_added_to_hass(self) -> None:
         """Handle entity which provides state restoration."""
         await super().async_added_to_hass()
         if (last_sensor_data := await self.async_get_last_sensor_data()) is not None:
-            # Type ignore because RestoreSensor data can be complex
-            self._attr_native_value = last_sensor_data.native_value  # type: ignore[assignment]
+            if last_sensor_data.native_value is not UNDEFINED:
+                self._attr_native_value = last_sensor_data.native_value
 
     @property
     def device_info(self) -> DeviceInfo:
         """Return device information."""
         return DeviceInfo(
-            identifiers={(DOMAIN, str(self._device.serial))},
+            identifiers={(DOMAIN, cast(str, self._device.serial))},
             name=format_device_name(
                 self._device, self.coordinator.config_entry.options
             ),
@@ -63,17 +70,17 @@ class MerakiMtSensor(CoordinatorEntity, RestoreSensor):
         key = self.entity_description.key
 
         if key == "noise":
-            self._attr_native_value = self._device.ambient_noise
+            self._attr_native_value = self._maybe_get_value(self._device.ambient_noise)
         elif key == "pm25":
-            self._attr_native_value = self._device.pm25
+            self._attr_native_value = self._maybe_get_value(self._device.pm25)
         elif key == "power":
-            self._attr_native_value = self._device.real_power
+            self._attr_native_value = self._maybe_get_value(self._device.real_power)
         elif key == "power_factor":
-            self._attr_native_value = self._device.power_factor
+            self._attr_native_value = self._maybe_get_value(self._device.power_factor)
         elif key == "current":
-            self._attr_native_value = self._device.current
+            self._attr_native_value = self._maybe_get_value(self._device.current)
         elif key == "door":
-            self._attr_native_value = self._device.door_open
+            self._attr_native_value = self._maybe_get_value(self._device.door_open)
         else:
             readings = self._device.readings
             if not readings or not isinstance(readings, list):
@@ -94,7 +101,9 @@ class MerakiMtSensor(CoordinatorEntity, RestoreSensor):
                         }
                         value_key = key_map.get(key)
                         if value_key:
-                            self._attr_native_value = metric_data.get(value_key)
+                            self._attr_native_value = self._maybe_get_value(
+                                metric_data.get(value_key)
+                            )
                             return
 
     @callback
