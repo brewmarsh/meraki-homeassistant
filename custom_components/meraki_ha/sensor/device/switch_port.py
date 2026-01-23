@@ -30,6 +30,7 @@ class MerakiSwitchPortSensor(CoordinatorEntity, SensorEntity):
         """Initialize the sensor."""
         super().__init__(coordinator)
         self._device = device
+        assert self._device.serial
         self._port = port
         self._config_entry = config_entry
 
@@ -62,7 +63,7 @@ class MerakiSwitchPortSensor(CoordinatorEntity, SensorEntity):
         self.async_write_ha_state()
 
     @property
-    def state(self) -> str | None:
+    def native_value(self) -> str | None:
         """Return the state of the sensor."""
         return self._port.get("status")
 

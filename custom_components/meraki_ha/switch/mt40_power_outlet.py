@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import logging
-from typing import Any
+from typing import Any, cast
 
 from homeassistant.components.switch import SwitchEntity
 from homeassistant.config_entries import ConfigEntry
@@ -45,6 +45,7 @@ class MerakiMt40PowerOutlet(
         """
         super().__init__(coordinator)
         self._device_info = device_info
+        assert self._device_info.serial
         self._config_entry = config_entry
         self._meraki_client = meraki_client
         self._attr_unique_id = f"{self._device_info.serial}-outlet"
@@ -98,7 +99,7 @@ class MerakiMt40PowerOutlet(
 
         try:
             await self._meraki_client.sensor.create_device_sensor_command(
-                serial=self._device_info.serial,
+                serial=cast(str, self._device_info.serial),
                 operation="enableDownstreamPower",
             )
         except Exception as e:
@@ -120,7 +121,7 @@ class MerakiMt40PowerOutlet(
 
         try:
             await self._meraki_client.sensor.create_device_sensor_command(
-                serial=self._device_info.serial,
+                serial=cast(str, self._device_info.serial),
                 operation="disableDownstreamPower",
             )
         except Exception as e:

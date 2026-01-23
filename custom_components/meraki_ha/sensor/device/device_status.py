@@ -66,7 +66,8 @@ class MerakiDeviceStatusSensor(CoordinatorEntity, SensorEntity):
 
         """
         super().__init__(coordinator)
-        self._device_serial: str | None = device_data.serial  # Serial is mandatory
+        assert device_data.serial
+        self._device_serial: str = device_data.serial  # Serial is mandatory
 
         # Set up unique ID
         self._attr_unique_id = f"{self._device_serial}_device_status"

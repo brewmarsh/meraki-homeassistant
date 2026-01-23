@@ -39,7 +39,8 @@ class MerakiFirmwareStatusSensor(CoordinatorEntity, SensorEntity):
     ) -> None:
         """Initialize the sensor."""
         super().__init__(coordinator)
-        self._device_serial: str | None = device_data.serial
+        assert device_data.serial
+        self._device_serial: str = device_data.serial
         self._config_entry = config_entry
         self._attr_unique_id = f"{self._device_serial}_firmware_status"
         self._attr_name = "Firmware Status"

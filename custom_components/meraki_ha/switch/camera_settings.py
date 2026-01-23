@@ -2,7 +2,7 @@
 
 import dataclasses
 import logging
-from typing import Any
+from typing import Any, cast
 
 from homeassistant.components.switch import SwitchEntity
 from homeassistant.helpers.device_registry import DeviceInfo
@@ -45,6 +45,7 @@ class MerakiCameraSettingSwitchBase(
         super().__init__(coordinator)
         self.client = meraki_client
         self._device_data = device_data
+        assert self._device_data.serial
         self._key = key
         self._api_field = api_field
         self._attr_unique_id = f"{device_data.serial}_{self._key}"
@@ -133,7 +134,7 @@ class MerakiCameraSettingSwitchBase(
     def device_info(self) -> DeviceInfo:
         """Return device information."""
         return DeviceInfo(
-            identifiers={("meraki_ha", self._device_data.serial)},
+            identifiers={("meraki_ha", cast(str, self._device_data.serial))},
             name=self._device_data.name,
             manufacturer="Cisco Meraki",
             model=self._device_data.model,

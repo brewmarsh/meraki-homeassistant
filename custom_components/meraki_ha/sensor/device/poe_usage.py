@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import logging
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, cast
 
 from homeassistant.components.sensor import SensorEntity, SensorStateClass
 from homeassistant.const import UnitOfPower
@@ -52,6 +52,7 @@ class MerakiPoeUsageSensor(
         """
         super().__init__(coordinator)
         self._device = device
+        assert self._device.serial
         self._attr_unique_id = f"{device.serial}_poe_usage"
         self._attr_name = format_entity_name(
             device, self.coordinator.config_entry.options, "PoE Usage"
@@ -61,7 +62,7 @@ class MerakiPoeUsageSensor(
     def device_info(self) -> DeviceInfo:
         """Return device information."""
         return DeviceInfo(
-            identifiers={(DOMAIN, self._device.serial)},
+            identifiers={(DOMAIN, cast(str, self._device.serial))},
             name=format_device_name(
                 self._device,
                 self.coordinator.config_entry.options,

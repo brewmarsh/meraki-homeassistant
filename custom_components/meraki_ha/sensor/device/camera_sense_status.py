@@ -34,6 +34,7 @@ class MerakiCameraSenseStatusSensor(CoordinatorEntity, SensorEntity):
     ) -> None:
         """Initialize the Meraki Camera Sense Status sensor."""
         super().__init__(coordinator)
+        assert device_data.serial
         self._device_serial: str = device_data.serial
         self._attr_unique_id = f"{self._device_serial}_camera_sense_status"
 

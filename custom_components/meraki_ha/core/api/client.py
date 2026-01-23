@@ -11,7 +11,7 @@ import asyncio
 import logging
 from collections.abc import Awaitable, Callable
 from functools import partial
-from typing import TYPE_CHECKING, Any, cast
+from typing import TYPE_CHECKING, Any
 
 import meraki
 from homeassistant.core import HomeAssistant
@@ -524,7 +524,10 @@ class MerakiAPIClient:
             The API response.
 
         """
-        return cast(dict[str, Any], await self.appliance.reboot_device(serial))
+        result = await self.appliance.reboot_device(serial)
+        if isinstance(result, dict):
+            return result
+        return {}
 
     async def async_get_switch_port_statuses(
         self,
