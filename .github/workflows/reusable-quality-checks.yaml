@@ -71,11 +71,6 @@ jobs:
           uv pip uninstall --system pycares aiodns
           uv pip install --system --no-cache-dir pycares==4.11.0 aiodns==3.6.1
 
-      - name: Force Clean DNS Stack
-        run: |
-          uv pip uninstall --system pycares aiodns
-          uv pip install --system --no-cache-dir pycares==4.11.0 aiodns==3.6.1
-
       - run: mypy --ignore-missing-imports custom_components/meraki_ha/ tests/
 
   # Job 3: Security & Audit
@@ -103,11 +98,6 @@ jobs:
       - name: Force Clean DNS Stack
         run: |
           # FIX: removed -y flag which uv does not support
-          uv pip uninstall --system pycares aiodns
-          uv pip install --system --no-cache-dir pycares==4.11.0 aiodns==3.6.1
-
-      - name: Force Clean DNS Stack
-        run: |
           uv pip uninstall --system pycares aiodns
           uv pip install --system --no-cache-dir pycares==4.11.0 aiodns==3.6.1
 

@@ -23,6 +23,6 @@ PyTurboJPEG
 numpy>=1.26.0
 aiodhcpwatcher
 aiodiscover
-aiohttp>=3.13.2
+aiohttp>=3.8.1
 urllib3>=1.26.5
 wheel>=0.46.2
