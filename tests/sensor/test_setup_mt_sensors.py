@@ -1,10 +1,12 @@
 """Tests for the Meraki MT sensor setup."""
 
 import copy
+from typing import cast
 from unittest.mock import MagicMock
 
 import pytest
 from homeassistant.components.sensor import SensorEntity
+from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from custom_components.meraki_ha.sensor.setup_mt_sensors import async_setup_mt_sensors
 from custom_components.meraki_ha.types import MerakiDevice
@@ -110,7 +112,7 @@ def test_async_setup_mt10_sensors(
         entity.hass = MagicMock()
         entity.entity_id = "sensor.test"
         entity.async_write_ha_state = MagicMock()
-        entity._handle_coordinator_update()  # type: ignore[attr-defined]
+        cast(CoordinatorEntity, entity)._handle_coordinator_update()
 
     assert len(entities) == 3
 
@@ -148,7 +150,7 @@ def test_async_setup_mt15_sensors(
         entity.hass = MagicMock()
         entity.entity_id = "sensor.test"
         entity.async_write_ha_state = MagicMock()
-        entity._handle_coordinator_update()  # type: ignore[attr-defined]
+        cast(CoordinatorEntity, entity)._handle_coordinator_update()
 
     assert len(entities) == 7
 
@@ -222,7 +224,7 @@ def test_async_setup_mt12_sensors(
         entity.hass = MagicMock()
         entity.entity_id = "sensor.test"
         entity.async_write_ha_state = MagicMock()
-        entity._handle_coordinator_update()  # type: ignore[attr-defined]
+        cast(CoordinatorEntity, entity)._handle_coordinator_update()
 
     assert len(entities) == 2
     water_sensor = entities[0]
@@ -246,7 +248,7 @@ def test_async_setup_mt40_sensors(
         entity.hass = MagicMock()
         entity.entity_id = "sensor.test"
         entity.async_write_ha_state = MagicMock()
-        entity._handle_coordinator_update()  # type: ignore[attr-defined]
+        cast(CoordinatorEntity, entity)._handle_coordinator_update()
 
     assert len(entities) == 3
 
@@ -292,7 +294,7 @@ def test_availability(mock_coordinator_with_mt_devices: MagicMock) -> None:
     temp_sensor.hass = MagicMock()
     temp_sensor.entity_id = "sensor.test"
     temp_sensor.async_write_ha_state = MagicMock()
-    temp_sensor._handle_coordinator_update()
+    cast(CoordinatorEntity, temp_sensor)._handle_coordinator_update()
 
     # Sensor should be available
     assert temp_sensor.available is True
@@ -305,7 +307,7 @@ def test_availability(mock_coordinator_with_mt_devices: MagicMock) -> None:
     mock_coordinator_with_mt_devices.get_device.return_value = device_without_readings
     # Clear the value to test availability logic when no value is present
     temp_sensor._attr_native_value = None
-    temp_sensor._handle_coordinator_update()
+    cast(CoordinatorEntity, temp_sensor)._handle_coordinator_update()
     assert temp_sensor.available is False
 
     # No readings key? dataclass has default factory list

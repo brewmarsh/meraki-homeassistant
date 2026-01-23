@@ -50,7 +50,7 @@ class MerakiSnapshotButton(CoordinatorEntity, ButtonEntity):
         serial = self._device.serial
         _LOGGER.info("Snapshot button pressed for %s", serial)
         try:
-            url = await self._camera_service.generate_snapshot(serial)
+            url = await self._camera_service.generate_snapshot(str(serial))
             if url:
                 _LOGGER.info("Snapshot URL for %s: %s", serial, url)
             else:

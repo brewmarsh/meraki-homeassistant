@@ -11,7 +11,7 @@ import asyncio
 import logging
 from collections.abc import Awaitable, Callable
 from functools import partial
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, cast
 
 import meraki
 from homeassistant.core import HomeAssistant
@@ -248,7 +248,8 @@ class MerakiAPIClient:
                 self.devices.get_device_clients(device.serial),
             )
             for device in devices
-            if device.product_type
+            if device.serial
+            and device.product_type
             in ["wireless", "appliance", "switch", "cellularGateway"]
         }
         results = await asyncio.gather(*client_tasks.values(), return_exceptions=True)
@@ -398,11 +399,9 @@ class MerakiAPIClient:
                 "Could not fetch networks, network data will be unavailable: %s",
                 networks_res,
             )
-            networks_list: list[MerakiNetwork] = []
+            networks_list = []
         else:
-            networks_list: list[MerakiNetwork] = [
-                MerakiNetwork.from_dict(n) for n in networks_res
-            ]
+            networks_list = [MerakiNetwork.from_dict(n) for n in networks_res]
 
         devices_res = initial_results.get("devices", [])
         if isinstance(devices_res, Exception):
@@ -410,11 +409,9 @@ class MerakiAPIClient:
                 "Could not fetch devices, device data will be unavailable: %s",
                 devices_res,
             )
-            devices_list: list[MerakiDevice] = []
+            devices_list = []
         else:
-            devices_list: list[MerakiDevice] = [
-                MerakiDevice.from_dict(d) for d in devices_res
-            ]
+            devices_list = [MerakiDevice.from_dict(d) for d in devices_res]
 
         device_statuses = initial_results.get("device_statuses", [])
         if isinstance(device_statuses, Exception):
@@ -527,7 +524,7 @@ class MerakiAPIClient:
             The API response.
 
         """
-        return await self.appliance.reboot_device(serial)
+        return cast(dict[str, Any], await self.appliance.reboot_device(serial))
 
     async def async_get_switch_port_statuses(
         self,
@@ -563,4 +560,6 @@ class MerakiAPIClient:
             The API response.
 
         """
-        return await self.switch.cycle_device_switch_ports(serial, ports)
+        return cast(
+            dict[str, Any], await self.switch.cycle_device_switch_ports(serial, ports)
+        )

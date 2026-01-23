@@ -101,17 +101,15 @@ async def add_integration():
                     print("Config flow started successfully.")
                     break
                 else:
-                    error = resp.get("error", {})
-                    if error.get("code") == "unknown_command":
-                        print(f"Attempt {i + 1}/10: Command not ready. Waiting...")
-                        await asyncio.sleep(10)  # Wait longer for core components
-                    elif error.get("message") == "Invalid handler specified":
+                    if (
+                        resp.get("error", {}).get("message")
+                        == "Invalid handler specified"
+                    ):
                         print("❌ Critical Error: Config Flow Handler mismatch.")
                         sys.exit(1)
-                    else:
-                        print(f"Attempt {i + 1}/10 failed: {resp}")
-                        await asyncio.sleep(5)  # Shorter delay for other errors
+                    print(f"Attempt {i + 1}/10 failed: {resp}")
                     message_id += 1
+                    await asyncio.sleep(5)  # 5-second delay
 
             if not flow_id:
                 print("Failed to start config flow after multiple attempts.")

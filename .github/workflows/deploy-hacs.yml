@@ -13,7 +13,7 @@ jobs:
     if: github.event.pull_request.merged == true
     permissions:
       contents: write
-      pull-requests: write
+      pull-requests: read
     outputs:
       new_version: ${{ steps.increment.outputs.new_version }}
     steps:
@@ -62,17 +62,16 @@ jobs:
           echo "Synchronizing package.json version to: ${{ steps.increment.outputs.new_version }}"
           npm version ${{ steps.increment.outputs.new_version }} --no-git-tag-version --allow-same-version
 
-      - name: Create Pull Request with version bump
+      - name: Commit and push changes
         if: steps.increment.outputs.new_version != ''
-        uses: peter-evans/create-pull-request@v6
+        uses: stefanzweifel/git-auto-commit-action@v7
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          commit-message: 'chore(release): update version to ${{ steps.increment.outputs.new_version }}'
-          title: 'chore(release): update version to ${{ steps.increment.outputs.new_version }}'
-          body: 'This PR updates the version to ${{ steps.increment.outputs.new_version }} for the next release.'
-          branch: 'release/version-bump-${{ steps.increment.outputs.new_version }}'
-          base: ${{ github.base_ref }}
-          labels: 'release'
+          commit_message: 'chore(release): update version to ${{ steps.increment.outputs.new_version }}'
+          file_pattern: 'custom_components/meraki_ha/manifest.json package.json pyproject.toml package-lock.json'
+          commit_user_name: 'github-actions[bot]'
+          commit_user_email: 'github-actions[bot]@users.noreply.github.com'
+          commit_author: 'github-actions[bot] <github-actions[bot]@users.noreply.github.com>'
+          branch: ${{ github.base_ref }}
 
   release:
     runs-on: ubuntu-latest

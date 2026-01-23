@@ -27,4 +27,5 @@ async def test_meraki_wan2_connectivity_sensor(
     sensor.async_write_ha_state = MagicMock()
     sensor._handle_coordinator_update()
     assert sensor.native_value == "Connected"
+    assert sensor.extra_state_attributes is not None
     assert sensor.extra_state_attributes["wan2_ip_address"] == "1.2.3.4"
