@@ -1,7 +1,7 @@
 aiodns==3.6.1
-aiohttp>=3.13.2
+aiohttp>=3.8.1
 meraki
 pycares==4.11.0
-urllib3>=2.6.2
+urllib3>=1.26.5
 webrtc-models==0.3.0
 wheel>=0.46.2
