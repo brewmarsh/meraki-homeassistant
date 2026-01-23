@@ -63,13 +63,7 @@ jobs:
           enable-cache: true
 
       - name: Install dependencies
-        run: uv pip install --system --prerelease=allow -r requirements_dev.txt
-
-      - name: Force Clean DNS Stack
-        run: |
-          # FIX: removed -y flag which uv does not support
-          uv pip uninstall --system pycares aiodns
-          uv pip install --system --no-cache-dir pycares==4.11.0 aiodns==3.6.1
+        run: uv pip install --system --prerelease=allow -r requirements_dev.txt --overrides requirements_overrides.txt
 
       - run: mypy --ignore-missing-imports custom_components/meraki_ha/ tests/
 
@@ -93,13 +87,7 @@ jobs:
         run: uv pip install --system --upgrade pip setuptools "wheel>=0.46.2"
 
       - name: Install dependencies
-        run: uv pip install --system --prerelease=allow -r requirements_dev.txt
-
-      - name: Force Clean DNS Stack
-        run: |
-          # FIX: removed -y flag which uv does not support
-          uv pip uninstall --system pycares aiodns
-          uv pip install --system --no-cache-dir pycares==4.11.0 aiodns==3.6.1
+        run: uv pip install --system --prerelease=allow -r requirements_dev.txt --overrides requirements_overrides.txt
 
       - name: Install tools
         run: uv pip install --system pip-audit bandit
@@ -136,13 +124,7 @@ jobs:
 
       # FIX: Allow pre-releases for Home Assistant deps
       - name: Install dependencies
-        run: uv pip install --system --prerelease=allow -r requirements_dev.txt
-
-      - name: Force Clean DNS Stack
-        run: |
-          # FIX: removed -y flag which uv does not support
-          uv pip uninstall --system pycares aiodns
-          uv pip install --system --no-cache-dir pycares==4.11.0 aiodns==3.6.1
+        run: uv pip install --system --prerelease=allow -r requirements_dev.txt --overrides requirements_overrides.txt
 
       - name: Run Tests
         run: pytest --cov=custom_components/meraki_ha --cov-report=xml tests/
