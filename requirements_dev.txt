@@ -1,12 +1,14 @@
 uv
 aiodhcpwatcher
 aiodiscover
+aiodns==3.6.1
+pycares==4.11.0
 aiofiles==23.2.1
 types-aiofiles==25.1.0.20251011
 aiohttp>=3.13.2
 meraki>=1.53.0
 PyTurboJPEG==1.8.2
-ruff==0.5.5
+ruff
 pip-audit==2.7.3
 bandit==1.7.9
 codecov
