@@ -38,7 +38,11 @@ class MerakiMtSensor(CoordinatorEntity, RestoreSensor):
         self._attr_unique_id = f"{device.serial}_{self.entity_description.key}"
         self._attr_has_entity_name = True
         self._attr_name = self.entity_description.name
-        self._attr_native_value: Any = None
+        self._attr_native_value: str | None = None
+
+    def _maybe_get_value(self, value: Any) -> Any | None:
+        """Return the value if not UNDEFINED, else None."""
+        return value if value is not UNDEFINED else None
 
     async def async_added_to_hass(self) -> None:
         """Handle entity which provides state restoration."""
@@ -65,17 +69,17 @@ class MerakiMtSensor(CoordinatorEntity, RestoreSensor):
         key = self.entity_description.key
 
         if key == "noise":
-            self._attr_native_value = self._device.ambient_noise
+            self._attr_native_value = self._maybe_get_value(self._device.ambient_noise)
         elif key == "pm25":
-            self._attr_native_value = self._device.pm25
+            self._attr_native_value = self._maybe_get_value(self._device.pm25)
         elif key == "power":
-            self._attr_native_value = self._device.real_power
+            self._attr_native_value = self._maybe_get_value(self._device.real_power)
         elif key == "power_factor":
-            self._attr_native_value = self._device.power_factor
+            self._attr_native_value = self._maybe_get_value(self._device.power_factor)
         elif key == "current":
-            self._attr_native_value = self._device.current
+            self._attr_native_value = self._maybe_get_value(self._device.current)
         elif key == "door":
-            self._attr_native_value = self._device.door_open
+            self._attr_native_value = self._maybe_get_value(self._device.door_open)
         else:
             readings = self._device.readings
             if not readings or not isinstance(readings, list):
@@ -96,7 +100,9 @@ class MerakiMtSensor(CoordinatorEntity, RestoreSensor):
                         }
                         value_key = key_map.get(key)
                         if value_key:
-                            self._attr_native_value = metric_data.get(value_key)
+                            self._attr_native_value = self._maybe_get_value(
+                                metric_data.get(value_key)
+                            )
                             return
 
     @callback
