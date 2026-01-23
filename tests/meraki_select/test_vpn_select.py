@@ -4,6 +4,7 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers import entity_registry as er
 from homeassistant.setup import async_setup_component
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
@@ -72,8 +73,6 @@ async def test_vpn_select_entity(
         await hass.async_block_till_done()
 
         # Find the entity by searching the registry
-        from homeassistant.helpers import entity_registry as er
-
         entity_registry = er.async_get(hass)
         entries = list(entity_registry.entities.values())
 

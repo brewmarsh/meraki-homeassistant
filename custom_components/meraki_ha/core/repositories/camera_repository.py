@@ -128,13 +128,8 @@ class CameraRepository:
         self, network_id: str, object_type: str
     ) -> list[dict[str, Any]]:
         """Get analytics history for a network."""
-        try:
-            return await self._api_client.network.get_network_camera_analytics_history(
-                network_id, object_type
-            )
-        except Exception as e:
-            _LOGGER.error("Error fetching analytics history: %s", e)
-            return []
+        # This endpoint is not yet available in the Meraki API or client
+        return []
 
     async def generate_snapshot(self, serial: str) -> str | None:
         """Generate a snapshot and return the URL."""

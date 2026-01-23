@@ -64,10 +64,10 @@ class MerakiMotionSensor(CoordinatorEntity, BinarySensorEntity):
         """Update the sensor."""
         try:
             self._motion_events = await self._camera_service.get_motion_history(
-                self._device.serial
+                str(self._device.serial), object_type="person"
             )
         except Exception as e:
             _LOGGER.error(
-                "Error updating motion sensor for %s: %s", self._device.serial, e
+                "Error updating motion sensor for %s: %s", str(self._device.serial), e
             )
             self._motion_events = []

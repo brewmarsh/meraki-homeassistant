@@ -40,7 +40,7 @@ class MerakiSwitchPortSensor(CoordinatorEntity, SensorEntity):
     def device_info(self) -> DeviceInfo | None:
         """Return the device info."""
         return DeviceInfo(
-            identifiers={(self.coordinator.DOMAIN, self._device.serial)},
+            identifiers={(self.coordinator.DOMAIN, str(self._device.serial))},
         )
 
     @property

@@ -49,4 +49,4 @@ class MerakiSwitchPortCycleButton(ButtonEntity):
 
     async def async_press(self) -> None:
         """Handle the button press."""
-        await self._service.async_cycle_ports(self._device.serial, [self._port_id])
+        await self._service.async_cycle_ports(str(self._device.serial), [self._port_id])

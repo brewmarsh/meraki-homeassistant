@@ -46,7 +46,7 @@ class MerakiMt15RefreshDataButton(CoordinatorEntity, ButtonEntity):
         _LOGGER.info("MT15 refresh data button pressed for %s", serial)
         try:
             await self._meraki_client.sensor.create_device_sensor_command(
-                serial=serial, operation="refreshData"
+                serial=str(serial), operation="refreshData"
             )
             _LOGGER.debug("Successfully triggered refresh for MT15 sensor %s", serial)
         except Exception as e:
