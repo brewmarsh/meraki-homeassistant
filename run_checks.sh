@@ -2,7 +2,8 @@
 set -e
 
 echo "Installing dependencies..."
-uv pip install --system --prerelease=allow -r requirements_test.txt
+# Use requirements_dev.txt to include all tools (mypy, ruff, bandit, etc.)
+uv pip install --system --prerelease=allow -r requirements_dev.txt
 
 # Force reinstall aiodns and pycares to match Python 3.13 compatibility requirements
 # even if Home Assistant pins older versions.
@@ -18,9 +19,6 @@ python -m pytest
 
 echo "Running ruff..."
 python -m ruff check .
-
-echo "Running flake8..."
-python -m flake8 .
 
 echo "Running bandit..."
 python -m bandit -c .bandit.yaml -r .

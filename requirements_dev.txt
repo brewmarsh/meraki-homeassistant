@@ -3,7 +3,7 @@ aiofiles==23.2.1
 types-aiofiles==25.1.0.20251011
 meraki>=1.53.0
 PyTurboJPEG==1.8.2
-ruff==0.5.5
+ruff
 pip-audit==2.7.3
 bandit==1.7.9
 mypy==1.11.0
@@ -20,5 +20,5 @@ filelock==3.20.3
 webrtc-models==0.3.0
 aiodhcpwatcher
 aiodiscover
-aiohttp>=3.13.2
+aiohttp>=3.8.1
 urllib3>=1.26.5
