@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+from typing import Any, cast
 
 from homeassistant.components.sensor import (
     RestoreSensor,
@@ -10,6 +11,7 @@ from homeassistant.components.sensor import (
 )
 from homeassistant.core import callback
 from homeassistant.helpers.device_registry import DeviceInfo
+from homeassistant.helpers.typing import UNDEFINED
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from ...const import DOMAIN
@@ -36,20 +38,20 @@ class MerakiMtSensor(CoordinatorEntity, RestoreSensor):
         self._attr_unique_id = f"{device.serial}_{self.entity_description.key}"
         self._attr_has_entity_name = True
         self._attr_name = self.entity_description.name
-        self._attr_native_value = None
+        self._attr_native_value: Any = None
 
     async def async_added_to_hass(self) -> None:
         """Handle entity which provides state restoration."""
         await super().async_added_to_hass()
         if (last_sensor_data := await self.async_get_last_sensor_data()) is not None:
-            # Type ignore because RestoreSensor data can be complex
-            self._attr_native_value = last_sensor_data.native_value  # type: ignore[assignment]
+            if last_sensor_data.native_value is not UNDEFINED:
+                self._attr_native_value = last_sensor_data.native_value
 
     @property
     def device_info(self) -> DeviceInfo:
         """Return device information."""
         return DeviceInfo(
-            identifiers={(DOMAIN, str(self._device.serial))},
+            identifiers={(DOMAIN, cast(str, self._device.serial))},
             name=format_device_name(
                 self._device, self.coordinator.config_entry.options
             ),

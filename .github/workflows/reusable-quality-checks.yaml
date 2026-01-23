@@ -67,7 +67,6 @@ jobs:
 
       - name: Force Clean DNS Stack
         run: |
-          # FIX: removed -y flag which uv does not support
           uv pip uninstall --system pycares aiodns
           uv pip install --system --no-cache-dir pycares==4.11.0 aiodns==3.6.1
 
@@ -97,7 +96,6 @@ jobs:
 
       - name: Force Clean DNS Stack
         run: |
-          # FIX: removed -y flag which uv does not support
           uv pip uninstall --system pycares aiodns
           uv pip install --system --no-cache-dir pycares==4.11.0 aiodns==3.6.1
 
