@@ -25,4 +25,7 @@ python -m ruff check .
 echo "Running bandit..."
 python -m bandit -c .bandit.yaml -r .
 
+echo "Running mypy..."
+python -m mypy --ignore-missing-imports custom_components/meraki_ha/ tests/
+
 echo "All checks passed!"
