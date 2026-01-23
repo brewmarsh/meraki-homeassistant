@@ -2,7 +2,7 @@ meraki>=1.53.0
 diskcache==5.6.3
 aiofiles==23.2.1
 setuptools==78.1.1
-ruff==0.5.5
+ruff
 pip-audit==2.7.3
 bandit==1.7.9
 pytest-homeassistant-custom-component>=0.13.205
