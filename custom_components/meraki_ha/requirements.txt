@@ -4,3 +4,4 @@ meraki
 pycares==4.11.0
 urllib3>=2.6.2
 webrtc-models==0.3.0
+wheel>=0.46.2
