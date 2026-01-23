@@ -18,7 +18,5 @@ codecov
 pre-commit
 filelock==3.20.3
 webrtc-models==0.3.0
-aiodns==3.6.1
-pycares==4.11.0
 aiodhcpwatcher
 aiodiscover
