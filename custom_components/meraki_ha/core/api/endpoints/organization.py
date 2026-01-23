@@ -205,3 +205,5 @@ class OrganizationEndpoints:
         validated = validate_response(statuses)
         if not isinstance(validated, list):
             _LOGGER.warning("Wireless SSIDs statuses by device did not return a list.")
+            return []
+        return validated
