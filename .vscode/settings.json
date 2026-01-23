@@ -12,6 +12,8 @@
     "/^ruff check \\. --select=F821,E501 2>&1 ; true$/": {
       "approve": true,
       "matchCommandLine": true
-    }
+    },
+    "mypy": true,
+    "mv": true
   }
 }

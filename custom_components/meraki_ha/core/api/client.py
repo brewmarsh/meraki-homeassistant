@@ -278,38 +278,41 @@ class MerakiAPIClient:
         """
         detail_tasks: dict[str, asyncio.Task[Any]] = {}
         for network in networks:
+            network_id: str | None = network.id
+            if not network_id:
+                continue
             product_types = network.product_types
             if "wireless" in product_types:
-                detail_tasks[f"ssids_{network.id}"] = asyncio.create_task(
+                detail_tasks[f"ssids_{network_id}"] = asyncio.create_task(
                     self._run_with_semaphore(
-                        self.wireless.get_network_ssids(network.id),
+                        self.wireless.get_network_ssids(network_id),
                     )
                 )
             if "appliance" in product_types:
                 if not self.coordinator or self.coordinator.is_traffic_check_due(
-                    network.id,
+                    network_id,
                 ):
-                    detail_tasks[f"traffic_{network.id}"] = asyncio.create_task(
+                    detail_tasks[f"traffic_{network_id}"] = asyncio.create_task(
                         self._run_with_semaphore(
-                            self.network.get_network_traffic(network.id, "appliance"),
+                            self.network.get_network_traffic(network_id, "appliance"),
                         )
                     )
                 if not self.coordinator or self.coordinator.is_vlan_check_due(
-                    network.id,
+                    network_id,
                 ):
-                    detail_tasks[f"vlans_{network.id}"] = asyncio.create_task(
+                    detail_tasks[f"vlans_{network_id}"] = asyncio.create_task(
                         self._run_with_semaphore(
-                            self.appliance.get_network_vlans(network.id),
+                            self.appliance.get_network_vlans(network_id),
                         )
                     )
-                detail_tasks[f"l3_firewall_rules_{network.id}"] = asyncio.create_task(
+                detail_tasks[f"l3_firewall_rules_{network_id}"] = asyncio.create_task(
                     self._run_with_semaphore(
-                        self.appliance.get_l3_firewall_rules(network.id),
+                        self.appliance.get_l3_firewall_rules(network_id),
                     )
                 )
-                detail_tasks[f"traffic_shaping_{network.id}"] = asyncio.create_task(
+                detail_tasks[f"traffic_shaping_{network_id}"] = asyncio.create_task(
                     self._run_with_semaphore(
-                        self.appliance.get_traffic_shaping(network.id),
+                        self.appliance.get_traffic_shaping(network_id),
                     )
                 )
                 if self._enable_vpn_management:
@@ -395,9 +398,9 @@ class MerakiAPIClient:
                 "Could not fetch networks, network data will be unavailable: %s",
                 networks_res,
             )
-            networks: list[MerakiNetwork] = []
+            networks_list: list[MerakiNetwork] = []
         else:
-            networks: list[MerakiNetwork] = [
+            networks_list: list[MerakiNetwork] = [
                 MerakiNetwork.from_dict(n) for n in networks_res
             ]
 
@@ -407,9 +410,9 @@ class MerakiAPIClient:
                 "Could not fetch devices, device data will be unavailable: %s",
                 devices_res,
             )
-            devices: list[MerakiDevice] = []
+            devices_list: list[MerakiDevice] = []
         else:
-            devices: list[MerakiDevice] = [
+            devices_list: list[MerakiDevice] = [
                 MerakiDevice.from_dict(d) for d in devices_res
             ]
 
@@ -422,39 +425,39 @@ class MerakiAPIClient:
             )
             device_statuses = []
 
-        parse_device_data(devices, device_statuses)
+        parse_device_data(devices_list, device_statuses)
         appliance_uplink_statuses = initial_results.get("appliance_uplink_statuses")
         sensor_readings = initial_results.get("sensor_readings")
         battery_readings = initial_results.get("battery_readings")
 
-        parse_appliance_data(devices, appliance_uplink_statuses)
-        parse_sensor_data(devices, sensor_readings, battery_readings)
+        parse_appliance_data(devices_list, appliance_uplink_statuses)
+        parse_sensor_data(devices_list, sensor_readings, battery_readings)
 
-        detail_tasks = self._build_detail_tasks(networks, devices)
+        detail_tasks = self._build_detail_tasks(networks_list, devices_list)
         detail_results = await asyncio.gather(
             *detail_tasks.values(),
             return_exceptions=True,
         )
         detail_data = dict(zip(detail_tasks.keys(), detail_results, strict=True))
 
-        parse_camera_data(devices, detail_data)
-        parse_switch_data(devices, detail_data)
+        parse_camera_data(devices_list, detail_data)
+        parse_switch_data(devices_list, detail_data)
 
         network_clients, device_clients = await asyncio.gather(
-            self._async_fetch_network_clients(networks),
-            self._async_fetch_device_clients(devices),
+            self._async_fetch_network_clients(networks_list),
+            self._async_fetch_device_clients(devices_list),
             return_exceptions=True,
         )
 
         processed_network_data = parse_network_data(
             detail_data,
-            networks,
+            networks_list,
             previous_data,
             self.coordinator,
         )
         processed_wireless_data = parse_wireless_data(
             detail_data,
-            networks,
+            networks_list,
             previous_data,
             clients=network_clients if isinstance(network_clients, list) else [],
         )
@@ -475,8 +478,8 @@ class MerakiAPIClient:
 
         return {
             "org_name": org_name,
-            "networks": networks,
-            "devices": devices,
+            "networks": networks_list,
+            "devices": devices_list,
             "clients": network_clients if isinstance(network_clients, list) else [],
             "clients_by_serial": (
                 device_clients if isinstance(device_clients, dict) else {}

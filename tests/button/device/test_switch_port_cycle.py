@@ -82,4 +82,4 @@ async def test_button_press(
 
     await button.async_press()
 
-    mock_service.async_cycle_ports.assert_called_once_with("Q2XX-XXXX-XXXX", ["1"])
+    mock_service.async_cycle_ports.assert_called_once_with("Q2XX-XXXX-XXXX", ["1"])  # type: ignore[attr-defined]
