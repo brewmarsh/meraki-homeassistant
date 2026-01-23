@@ -5,7 +5,6 @@ Query the Better Stack Logs API for recent error logs from the `meraki_ha` integ
 This script queries the Better Stack API for any "error" level logs containing
 "meraki_ha" that occurred in the last 5 minutes. If found,
 it prints them to stderr and exits with a status code of 1; otherwise, it exits with 0.
-it prints them to stderr and exits with a status code of 1. Otherwise, it exits with 0.
 
 Configuration is provided via environment variables:
 - `BETTER_STACK_API_TOKEN`: An API token for the Better Stack Logs API.
@@ -34,11 +33,13 @@ def main():
     now = datetime.now(timezone.utc)
     five_minutes_ago = now - timedelta(minutes=5)
 
-    query = f"SELECT * FROM logs WHERE level = 'error' AND message LIKE '%meraki_ha%' AND to_timestamp(dt) >= '{five_minutes_ago.isoformat()}'"  # nosec
-
-    response = requests.post(
-        url, headers=headers, json={"query": query}, timeout=30
+    query = (
+        f"SELECT * FROM logs WHERE level = 'error' AND "  # nosec B608
+        f"message LIKE '%meraki_ha%' AND "
+        f"to_timestamp(dt) >= '{five_minutes_ago.isoformat()}'"
     )
+
+    response = requests.post(url, headers=headers, json={"query": query}, timeout=30)
 
     if response.status_code != 200:
         print(

@@ -71,7 +71,7 @@ class MerakiRtspUrlSensor(CoordinatorEntity, SensorEntity):
             return
 
         api_url = video_settings.get("rtspUrl")
-        if api_url and api_url.startswith("rtsp://"):
+        if api_url and isinstance(api_url, str) and api_url.startswith("rtsp://"):
             self._attr_native_value = api_url
             return
 

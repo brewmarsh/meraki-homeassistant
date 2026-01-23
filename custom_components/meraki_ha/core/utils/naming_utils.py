@@ -3,15 +3,15 @@
 import dataclasses
 import logging
 from collections.abc import Mapping
-from typing import Any
+from typing import Any, cast
 
 _LOGGER = logging.getLogger(__name__)
 
 
 def format_device_name(device: dict[str, Any] | Any, config: Mapping[str, Any]) -> str:
     """Format the device name based on the user's preference."""
-    if dataclasses.is_dataclass(device):
-        device = dataclasses.asdict(device)
+    if dataclasses.is_dataclass(type(device)):
+        device = dataclasses.asdict(cast(Any, device))
 
     name = device.get("name")
     if not name:

@@ -34,36 +34,40 @@ def mock_coordinator_with_devices_and_ssids(mock_coordinator: MagicMock) -> Magi
 
 def test_network_hub_init(mock_coordinator_with_devices_and_ssids: MagicMock) -> None:
     """Test the initialization of the NetworkHub."""
-    hub = NetworkHub(mock_coordinator_with_devices_and_ssids, MOCK_NETWORK.id)
+    network_id: str = MOCK_NETWORK.id or "test_network"
+    hub = NetworkHub(mock_coordinator_with_devices_and_ssids, network_id)
     assert hub._coordinator is mock_coordinator_with_devices_and_ssids
-    assert hub.network_id == MOCK_NETWORK.id
+    assert hub.network_id == network_id
 
 
 def test_network_info_property(
     mock_coordinator_with_devices_and_ssids: MagicMock,
 ) -> None:
     """Test the network_info property."""
-    hub = NetworkHub(mock_coordinator_with_devices_and_ssids, MOCK_NETWORK.id)
+    network_id: str = MOCK_NETWORK.id or "test_network"
+    hub = NetworkHub(mock_coordinator_with_devices_and_ssids, network_id)
     assert hub.network_info == MOCK_NETWORK
     mock_coordinator_with_devices_and_ssids.get_network.assert_called_once_with(
-        MOCK_NETWORK.id
+        network_id
     )
 
 
 def test_devices_property(mock_coordinator_with_devices_and_ssids: MagicMock) -> None:
     """Test the devices property filters correctly."""
-    hub = NetworkHub(mock_coordinator_with_devices_and_ssids, MOCK_NETWORK.id)
+    network_id: str = MOCK_NETWORK.id or "test_network"
+    hub = NetworkHub(mock_coordinator_with_devices_and_ssids, network_id)
     devices = hub.devices
     assert len(devices) == 1
-    assert devices[0].network_id == MOCK_NETWORK.id
+    assert devices[0].network_id == network_id
 
 
 def test_ssids_property(mock_coordinator_with_devices_and_ssids: MagicMock) -> None:
     """Test the ssids property filters correctly."""
-    hub = NetworkHub(mock_coordinator_with_devices_and_ssids, MOCK_NETWORK.id)
+    network_id: str = MOCK_NETWORK.id or "test_network"
+    hub = NetworkHub(mock_coordinator_with_devices_and_ssids, network_id)
     ssids = hub.ssids
     assert len(ssids) == 1
-    assert ssids[0]["networkId"] == MOCK_NETWORK.id
+    assert ssids[0]["networkId"] == network_id
 
 
 @pytest.mark.asyncio
@@ -71,6 +75,7 @@ async def test_async_update_data(
     mock_coordinator_with_devices_and_ssids: MagicMock,
 ) -> None:
     """Test the async_update_data method."""
-    hub = NetworkHub(mock_coordinator_with_devices_and_ssids, MOCK_NETWORK.id)
+    network_id: str = MOCK_NETWORK.id or "test_network"
+    hub = NetworkHub(mock_coordinator_with_devices_and_ssids, network_id)
     # This method is a placeholder, so we just call it to ensure no errors
     await hub.async_update_data()

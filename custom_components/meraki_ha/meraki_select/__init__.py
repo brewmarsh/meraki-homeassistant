@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+from typing import Any
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
@@ -26,7 +27,7 @@ async def async_setup_entry(
     meraki_client = coordinator.api
 
     if coordinator.data:
-        select_entities = []
+        select_entities: list[Any] = []
         for network in coordinator.data.get("networks", []):
             select_entities.append(
                 MerakiContentFilteringSelect(

@@ -84,7 +84,7 @@ class MerakiCamera(CoordinatorEntity, Camera):
         import dataclasses
 
         data = self.coordinator.get_device(self._device_serial)
-        if dataclasses.is_dataclass(data):
+        if dataclasses.is_dataclass(type(data)):
             return dataclasses.asdict(data)
         return data or {}
 

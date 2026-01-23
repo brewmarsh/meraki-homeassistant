@@ -65,7 +65,8 @@ def parse_appliance_ports(
         return
 
     for device in devices:
-        if ports_data := ports_by_serial.get(device.serial):
+        serial: str | None = device.serial
+        if serial and (ports_data := ports_by_serial.get(serial)):
             device.appliance_ports = [
                 MerakiAppliancePort.from_dict(port) for port in ports_data
             ]

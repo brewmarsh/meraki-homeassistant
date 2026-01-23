@@ -1,6 +1,7 @@
 """Test the Meraki API client VPN gating logic."""
 
 from unittest.mock import AsyncMock, MagicMock, patch
+
 import pytest
 
 from custom_components.meraki_ha.core.api.client import MerakiAPIClient
@@ -38,10 +39,12 @@ async def test_vpn_status_not_fetched_when_disabled(mock_hass, mock_coordinator)
     client.coordinator.is_vlan_check_due = MagicMock(return_value=True)
 
     # Mock other methods called by get_all_data
-    client._async_fetch_initial_data = AsyncMock(return_value={
-        "networks": [{"id": "N_123", "productTypes": ["appliance"]}],
-        "devices": [],
-    })
+    client._async_fetch_initial_data = AsyncMock(
+        return_value={
+            "networks": [{"id": "N_123", "productTypes": ["appliance"]}],
+            "devices": [],
+        }
+    )
     client._async_fetch_network_clients = AsyncMock(return_value=[])
     client._async_fetch_device_clients = AsyncMock(return_value={})
 
@@ -72,22 +75,31 @@ async def test_vpn_status_fetched_when_enabled(mock_hass, mock_coordinator):
     client.coordinator.is_vlan_check_due = MagicMock(return_value=True)
 
     # Mock other methods called by get_all_data
-    client._async_fetch_initial_data = AsyncMock(return_value={
-        "networks": [{"id": "N_123", "productTypes": ["appliance"]}],
-        "devices": [],
-    })
+    client._async_fetch_initial_data = AsyncMock(
+        return_value={
+            "networks": [{"id": "N_123", "productTypes": ["appliance"]}],
+            "devices": [],
+        }
+    )
     client._async_fetch_network_clients = AsyncMock(return_value=[])
     client._async_fetch_device_clients = AsyncMock(return_value={})
 
     # Mock parsers to avoid errors with minimal data
-    with patch("custom_components.meraki_ha.core.api.client.parse_network_data", return_value={}), \
-         patch("custom_components.meraki_ha.core.api.client.parse_wireless_data", return_value={}), \
-         patch("custom_components.meraki_ha.core.api.client.parse_device_data"), \
-         patch("custom_components.meraki_ha.core.api.client.parse_appliance_data"), \
-         patch("custom_components.meraki_ha.core.api.client.parse_sensor_data"), \
-         patch("custom_components.meraki_ha.core.api.client.parse_camera_data"), \
-         patch("custom_components.meraki_ha.core.api.client.parse_switch_data"):
-
+    with (
+        patch(
+            "custom_components.meraki_ha.core.api.client.parse_network_data",
+            return_value={},
+        ),
+        patch(
+            "custom_components.meraki_ha.core.api.client.parse_wireless_data",
+            return_value={},
+        ),
+        patch("custom_components.meraki_ha.core.api.client.parse_device_data"),
+        patch("custom_components.meraki_ha.core.api.client.parse_appliance_data"),
+        patch("custom_components.meraki_ha.core.api.client.parse_sensor_data"),
+        patch("custom_components.meraki_ha.core.api.client.parse_camera_data"),
+        patch("custom_components.meraki_ha.core.api.client.parse_switch_data"),
+    ):
         # Run get_all_data
         await client.get_all_data()
 

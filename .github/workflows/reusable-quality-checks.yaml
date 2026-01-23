@@ -65,6 +65,11 @@ jobs:
       - name: Install dependencies
         run: uv pip install --system -r requirements_dev.txt
 
+      - name: Force Clean DNS Stack
+        run: |
+          uv pip uninstall --system pycares aiodns
+          uv pip install --system --no-cache-dir pycares==4.11.0 aiodns==3.6.1
+
       - run: mypy --ignore-missing-imports custom_components/meraki_ha/ tests/
 
   # Job 3: Security & Audit
@@ -84,10 +89,15 @@ jobs:
           enable-cache: true
 
       - name: Upgrade build tools
-        run: uv pip install --system --upgrade pip setuptools wheel
+        run: uv pip install --system --upgrade pip setuptools "wheel>=0.46.2"
 
       - name: Install dependencies
         run: uv pip install --system -r requirements_dev.txt
+
+      - name: Force Clean DNS Stack
+        run: |
+          uv pip uninstall --system pycares aiodns
+          uv pip install --system --no-cache-dir pycares==4.11.0 aiodns==3.6.1
 
       - name: Install tools
         run: uv pip install --system pip-audit bandit
@@ -124,11 +134,11 @@ jobs:
       - name: Force Clean DNS Stack
         run: |
           # FIX: removed -y flag which uv does not support
-          uv pip uninstall pycares aiodns
+          uv pip uninstall --system pycares aiodns
           uv pip install --system --no-cache-dir pycares==4.11.0 aiodns==3.6.1
 
       - name: Run Tests
-        run: pytest --cov=custom_components.meraki_ha --cov-report=xml tests/
+        run: pytest --cov=custom_components/meraki_ha --cov-report=xml tests/
 
       - name: Upload coverage
         uses: codecov/codecov-action@v5
