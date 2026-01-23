@@ -11,14 +11,15 @@ voluptuous
 pyyaml
 playwright>=1.48.0
 pytest-homeassistant-custom-component>=0.13.205
-pytest
+pytest>=8.3.4
 pytest-cov
 pytest-asyncio
 codecov
 pre-commit
 filelock==3.20.3
 webrtc-models==0.3.0
+wheel>=0.46.2
 aiodhcpwatcher
 aiodiscover
-aiohttp>=3.13.2
+aiohttp>=3.8.1
 urllib3>=1.26.5
