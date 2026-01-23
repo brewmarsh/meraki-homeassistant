@@ -1,6 +1,9 @@
 #!/bin/bash
 set -e
 
+echo "Installing uv..."
+pip install uv
+
 echo "Installing dependencies..."
 uv pip install --system --prerelease=allow -r requirements_test.txt
 
