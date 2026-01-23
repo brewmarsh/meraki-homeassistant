@@ -28,7 +28,7 @@ class MerakiMt40PowerOutlet(
     def __init__(
         self,
         coordinator: MerakiDataUpdateCoordinator,
-        device_info: dict[str, Any],
+        device_info: MerakiDevice,
         config_entry: ConfigEntry,
         meraki_client: MerakiAPIClient,
     ) -> None:

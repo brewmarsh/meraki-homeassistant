@@ -89,6 +89,4 @@ class MerakiRtspUrlSensor(CoordinatorEntity, SensorEntity):
     @property
     def entity_registry_enabled_default(self) -> bool:
         """Return if the entity should be enabled by default."""
-        return not (
-            self._device_data.model and self._device_data.model.startswith("MV2")
-        )
+        return not self._device_data.model.startswith("MV2")
