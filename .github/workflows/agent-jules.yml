@@ -9,9 +9,12 @@ on:
 jobs:
   cognitive-loop:
     if: >
-      github.event.label.name == 'jules' ||
-      contains(github.event.comment.body, '@jules') ||
-      (github.event.action == 'reopened' && contains(github.event.issue.labels.*.name, 'jules'))
+      (
+        github.event.label.name == 'jules' ||
+        contains(github.event.comment.body, '@jules') ||
+        (github.event.action == 'reopened' && contains(github.event.issue.labels.*.name, 'jules'))
+      ) &&
+      github.actor != 'dependabot[bot]'
     runs-on: ubuntu-latest
     permissions:
       contents: write
