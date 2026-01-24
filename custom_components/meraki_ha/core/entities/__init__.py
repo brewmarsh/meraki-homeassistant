@@ -13,7 +13,6 @@ from ...const import (
     MANUFACTURER,
 )
 from ...coordinator import MerakiDataUpdateCoordinator
-from ..utils.naming_utils import format_device_name
 
 
 class BaseMerakiEntity(CoordinatorEntity, Entity, ABC):

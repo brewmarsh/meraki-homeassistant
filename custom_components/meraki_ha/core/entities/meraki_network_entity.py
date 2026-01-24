@@ -19,8 +19,6 @@ class MerakiNetworkEntity(CoordinatorEntity):
         config_entry: ConfigEntry,
         network: MerakiNetwork,
     ) -> None:
-        from dataclasses import asdict
-
         """Initialize the network entity."""
         super().__init__(coordinator=coordinator)
         self._config_entry = config_entry
