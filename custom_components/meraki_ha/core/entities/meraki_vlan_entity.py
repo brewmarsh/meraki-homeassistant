@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import dataclasses
-
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.entity import DeviceInfo
 
