@@ -8,6 +8,7 @@ from homeassistant.components.http import StaticPathConfig
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import config_validation as cv
+from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers.typing import ConfigType
 
 from .api.websocket import async_setup_websocket_api
@@ -79,6 +80,17 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     async_setup_websocket_api(hass)
     coordinator = MerakiDataUpdateCoordinator(hass, entry)
     await coordinator.async_config_entry_first_refresh()
+
+    device_registry = dr.async_get(hass)
+    if coordinator.data.get("networks"):
+        for network in coordinator.data["networks"]:
+            device_registry.async_get_or_create(
+                config_entry_id=entry.entry_id,
+                identifiers={(DOMAIN, network["id"])},
+                manufacturer="Cisco Meraki",
+                model="Meraki Network",
+                name=network["name"],
+            )
 
     repo = MerakiRepository(coordinator.api)
     device_control_service = DeviceControlService(repo)

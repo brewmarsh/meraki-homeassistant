@@ -10,6 +10,7 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from ..const import DOMAIN
 from .device.camera_motion import MerakiMotionSensor
 from .device.mt20_open_close import MerakiMt20OpenCloseSensor
+from .network import async_setup_entry as async_setup_network_entry
 from .switch_port import SwitchPortSensor
 
 _LOGGER = logging.getLogger(__name__)
@@ -61,5 +62,7 @@ async def async_setup_entry(
 
     if binary_sensor_entities:
         async_add_entities(binary_sensor_entities)
+
+    await async_setup_network_entry(hass, config_entry, async_add_entities)
 
     return True

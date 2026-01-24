@@ -64,14 +64,17 @@ def mock_config_entry() -> MagicMock:
 def mock_meraki_client():
     """Fixture for a mocked Meraki API client."""
     with patch(
-        "custom_components.meraki_ha.authentication.meraki.AsyncDashboardAPI",
-        autospec=True,
+        "custom_components.meraki_ha.core.api.client.meraki.DashboardAPI"
     ) as mock_api:
-        mock_dashboard = mock_api.return_value.__aenter__.return_value
-        mock_dashboard.organizations.getOrganizations = AsyncMock(
-            return_value=[{"id": "12345", "name": "Test Organization"}]
-        )
-        mock_dashboard.networks.getOrganizationNetworks = AsyncMock(
-            return_value=[{"id": "N_123", "name": "Test Network"}]
-        )
+        mock_dashboard = mock_api.return_value
+        mock_dashboard.organizations = MagicMock()
+        mock_dashboard.networks = MagicMock()
+        mock_dashboard.devices = MagicMock()
+        mock_dashboard.organizations.getOrganizations.return_value = [
+            {"id": "12345", "name": "Test Organization"}
+        ]
+        mock_dashboard.networks.getOrganizationNetworks.return_value = [
+            {"id": "N_123", "name": "Test Network"}
+        ]
+        mock_dashboard.devices.getOrganizationDevices.return_value = []
         yield mock_api
