@@ -8,7 +8,6 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.device_registry import DeviceInfo
 
 from ..const import DOMAIN
-from ..core.utils.naming_utils import format_device_name
 from ..types import MerakiDevice, MerakiNetwork
 
 _LOGGER = logging.getLogger(__name__)
@@ -52,14 +51,9 @@ def resolve_device_info(
         ssid_number = effective_data.get("number")
         if network_id:
             identifier = (DOMAIN, f"{network_id}_{ssid_number}")
-            device_data_for_naming = {**effective_data, "productType": "ssid"}
-            formatted_name = format_device_name(
-                device=device_data_for_naming,
-                config=config_entry.options,
-            )
             return DeviceInfo(
                 identifiers={identifier},
-                name=formatted_name,
+                name=effective_data.get("name"),
                 model="Wireless SSID",
                 manufacturer="Cisco Meraki",
             )
@@ -79,27 +73,9 @@ def resolve_device_info(
     network_id = entity_data.get("id")
     is_network = "productTypes" in entity_data and not entity_data.get("serial")
     if is_network and network_id:
-        device_data_for_naming = {**entity_data, "productType": "network"}
-        formatted_name = format_device_name(
-            device=device_data_for_naming,
-            config=config_entry.options,
-        )
         return DeviceInfo(
             identifiers={(DOMAIN, f"network_{network_id}")},
-            name=formatted_name,
-            manufacturer="Cisco Meraki",
-            model="Network",
-        )
-
-    if is_network and network_id:
-        device_data_for_naming = {**entity_data, "productType": "network"}
-        formatted_name = format_device_name(
-            device=device_data_for_naming,
-            config=config_entry.options,
-        )
-        return DeviceInfo(
-            identifiers={(DOMAIN, f"network_{network_id}")},
-            name=formatted_name,
+            name=entity_data.get("name"),
             manufacturer="Cisco Meraki",
             model="Network",
         )
@@ -107,13 +83,9 @@ def resolve_device_info(
     # Fallback to creating device info for a physical device
     device_serial = entity_data.get("serial")
     if device_serial:
-        formatted_name = format_device_name(
-            device=entity_data,
-            config=config_entry.options,
-        )
         return DeviceInfo(
             identifiers={(DOMAIN, device_serial)},
-            name=str(formatted_name),
+            name=str(entity_data.get("name")),
             manufacturer="Cisco Meraki",
             model=str(entity_data.get("model") or "Unknown"),
             sw_version=str(entity_data.get("firmware") or ""),

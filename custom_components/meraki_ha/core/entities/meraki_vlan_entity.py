@@ -8,7 +8,6 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.entity import DeviceInfo
 
 from ...coordinator import MerakiDataUpdateCoordinator
-from ...core.utils.naming_utils import format_device_name
 from ...types import MerakiVlan
 from . import BaseMerakiEntity
 
@@ -33,21 +32,12 @@ class MerakiVLANEntity(BaseMerakiEntity):
         if self._network_id is None:
             raise ValueError("Network ID cannot be None for a VLAN entity")
 
-        # vlan is a dataclass, so we need to convert it to a dict for format_device_name
-        vlan_device_data = dataclasses.asdict(vlan)
-        vlan_device_data["productType"] = "vlan"
-
-        formatted_name = format_device_name(
-            device=vlan_device_data,
-            config=self._config_entry.options,
-        )
-
         vlan_id = vlan.id
         if not vlan_id:
             raise ValueError("VLAN ID not found in VLAN data")
         self._attr_device_info = DeviceInfo(
             identifiers={(self._config_entry.domain, f"vlan_{network_id}_{vlan_id}")},
-            name=formatted_name,
+            name=vlan.name,
             manufacturer="Cisco Meraki",
             model="VLAN",
             via_device=(self._config_entry.domain, f"network_{network_id}"),
