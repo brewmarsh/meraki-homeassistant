@@ -1,4 +1,5 @@
 """Tests for the Meraki integration."""
+
 from __future__ import annotations
 
 from typing import Any
@@ -7,6 +8,7 @@ from homeassistant.core import HomeAssistant
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.meraki_ha.const import DOMAIN
+
 from .const import MERAKI_TEST_API_KEY, MERAKI_TEST_ORG_ID
 
 

@@ -16,7 +16,6 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from ..const import DOMAIN
 from ..coordinator import MerakiDataUpdateCoordinator
 
-
 MerakiNetwork = dict[str, Any]
 
 
@@ -32,10 +31,7 @@ async def async_setup_entry(
 
     if coordinator.data.get("networks"):
         async_add_entities(
-            [
-                MerakiNetworkStatus(network)
-                for network in coordinator.data["networks"]
-            ]
+            [MerakiNetworkStatus(network) for network in coordinator.data["networks"]]
         )
 
 

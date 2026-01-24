@@ -6,7 +6,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers import device_registry as dr
 
 from . import async_get_config_entry
-from .const import MERAKI_TEST_ORG_ID, MERAKI_TEST_NETWORK_ID
+from .const import MERAKI_TEST_NETWORK_ID, MERAKI_TEST_ORG_ID
 
 
 async def test_network_device_creation(
