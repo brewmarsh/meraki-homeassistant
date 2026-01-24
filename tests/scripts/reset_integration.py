@@ -104,25 +104,51 @@ async def restart_and_wait(session):
     return False
 
 
-async def check_loaded_components(session):
-    """Check if the 'config' integration is actually loaded."""
-    logger.info("Checking loaded components...")
+async def diagnose_server_state(session):
+    """Diagnose server state.
+
+    Perform deep diagnostics to check permissions, components, and safe mode.
+    Replaces the simple 'check_loaded_components'.
+    """
+    logger.info("--- DIAGNOSTIC CHECK ---")
+
+    # 1. Check User Permissions (Authentication Check)
+    async with session.get(f"{HA_URL}/api/") as resp:
+        if resp.status == 200:
+            msg = await resp.json()
+            logger.info(f"✅ API Connection OK. Message: {msg.get('message')}")
+        else:
+            logger.error(
+                f"❌ API Connection Failed: {resp.status} (Check HA_TOKEN permissions)"
+            )
+            return False
+
+    # 2. Check Loaded Components & Safe Mode
     async with session.get(f"{HA_URL}/api/config") as resp:
         if resp.status != 200:
-            logger.error(f"Failed to get config: {resp.status}")
+            logger.error(f"❌ Failed to fetch config: {resp.status}")
             return False
 
         data = await resp.json()
         components = set(data.get("components", []))
 
+        # A. Check for 'config' integration
         if "config" in components:
-            logger.info("✅ 'config' integration is LOADED.")
-            return True
+            logger.info("✅ 'config' component is LOADED.")
         else:
-            logger.error("❌ 'config' integration is MISSING!")
-            logger.error(f"Loaded components: {sorted(components)}")
+            logger.error(
+                "🚨 'config' component is MISSING! (This is why WebSocket fails)"
+            )
+            logger.debug(f"Loaded components: {sorted(components)}")
 
-            # Fetch Error Log
+        # B. Check for Safe Mode
+        if data.get("safe_mode", False):
+            logger.error("🚨 SAFE MODE IS ENABLED! (Commands are disabled)")
+        else:
+            logger.info("✅ Safe Mode is OFF.")
+
+        # C. Dump Error Log if things look bad
+        if "config" not in components or data.get("safe_mode", False):
             logger.info("Fetching error log to diagnose failure...")
             async with session.get(f"{HA_URL}/api/error/log") as log_resp:
                 if log_resp.status == 200:
@@ -133,6 +159,9 @@ async def check_loaded_components(session):
                         logger.error(line)
                     logger.error("----------------------------------")
             return False
+
+    logger.info("------------------------")
+    return True
 
 
 async def add_integration():
@@ -248,13 +277,17 @@ async def add_integration():
 async def main():
     """
     Remove existing Meraki entries, restart Home Assistant,
-    and re-add integration.
+    verify server state, and re-add integration.
     """  # noqa: D205
     async with aiohttp.ClientSession(headers=HEADERS) as session:
         if not await delete_existing_entries(session):
             sys.exit(1)
         if not await restart_and_wait(session):
             sys.exit(1)
+        # Added Diagnostic Step:
+        if not await diagnose_server_state(session):
+            sys.exit(1)
+
     if not await add_integration():
         sys.exit(1)
 
