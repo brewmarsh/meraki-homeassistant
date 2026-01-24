@@ -38,7 +38,7 @@ class AnalyticsSwitch(MerakiCameraSettingSwitchBase):
             "sense_enabled",
             "sense_settings.analyticsEnabled",
         )
-        self._attr_name = f"[Camera] {device_data.name} Analytics"
+        self._attr_name = "Analytics"
         self._attr_icon = "mdi:chart-bar"
 
     async def _async_update_setting(self, is_on: bool) -> None:

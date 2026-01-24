@@ -8,7 +8,6 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from ...coordinator import MerakiDataUpdateCoordinator
 from ...types import MerakiNetwork
-from ..utils.naming_utils import format_device_name
 
 
 class MerakiNetworkEntity(CoordinatorEntity):
@@ -20,22 +19,15 @@ class MerakiNetworkEntity(CoordinatorEntity):
         config_entry: ConfigEntry,
         network: MerakiNetwork,
     ) -> None:
-        from dataclasses import asdict
-
         """Initialize the network entity."""
         super().__init__(coordinator=coordinator)
         self._config_entry = config_entry
         self._network = network
         self._network_id = network.id
 
-        device_data_for_naming = {**asdict(network), "productType": "network"}
-        formatted_name = format_device_name(
-            device=device_data_for_naming,
-            config=config_entry.options,
-        )
         self._attr_device_info = DeviceInfo(
             identifiers={(self._config_entry.domain, f"network_{network.id}")},
-            name=formatted_name,
+            name=network.name,
             manufacturer="Cisco Meraki",
             model="Network",
         )

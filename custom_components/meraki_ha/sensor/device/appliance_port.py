@@ -13,7 +13,7 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from ...const import DOMAIN
 from ...coordinator import MerakiDataUpdateCoordinator
-from ...core.utils.naming_utils import format_device_name, format_entity_name
+from ...core.utils.naming_utils import format_device_name
 from ...types import MerakiAppliancePort, MerakiDevice
 
 _LOGGER = logging.getLogger(__name__)
@@ -34,12 +34,9 @@ class MerakiAppliancePortSensor(CoordinatorEntity, SensorEntity):
         super().__init__(coordinator)
         self._device = device
         self._port = port
+        self._attr_has_entity_name = True
         self._attr_unique_id = f"{device.serial}_port_{self._port.number}"
-        self._attr_name = format_entity_name(
-            device,
-            self.coordinator.config_entry.options,
-            f"Port {self._port.number}",
-        )
+        self._attr_name = f"Port {self._port.number}"
         self._attr_icon = "mdi:ethernet-port"
 
     @property

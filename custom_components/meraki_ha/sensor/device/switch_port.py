@@ -33,8 +33,9 @@ class MerakiSwitchPortSensor(CoordinatorEntity, SensorEntity):
         self._port = port
         self._config_entry = config_entry
 
+        self._attr_has_entity_name = True
         self._attr_unique_id = f"{self._device.serial}_port_{self._port['portId']}"
-        self._attr_name = f"{self._device.name} Port {self._port['portId']}"
+        self._attr_name = f"Port {self._port['portId']}"
         self._attr_native_value = self._port.get("status")
 
     @property

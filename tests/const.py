@@ -121,3 +121,7 @@ MOCK_CAMERA_DEVICE = MerakiDevice(
     },
     rtsp_url="rtsp://test.com/stream",
 )
+
+MERAKI_TEST_API_KEY = "test_api_key"
+MERAKI_TEST_ORG_ID = "test_org_id"
+MERAKI_TEST_NETWORK_ID = "test_network_id"
