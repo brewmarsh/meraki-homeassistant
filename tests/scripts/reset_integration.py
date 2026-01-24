@@ -184,9 +184,12 @@ async def add_integration():
                 return False
             logger.info("WebSocket Authentication Successful.")
 
+            message_id = 1  # Initialize ONCE here
+
             # --- DIAGNOSTIC: Check User Permissions ---
             logger.info("Checking WebSocket User Permissions...")
-            await ws.send_json({"id": 999, "type": "auth/current_user"})
+            await ws.send_json({"id": message_id, "type": "auth/current_user"})
+            message_id += 1  # Increment!
             user_resp = await ws.receive_json()
 
             if user_resp.get("success"):
@@ -206,7 +209,6 @@ async def add_integration():
             # 2. Start Config Flow
             logger.info("Starting Config Flow...")
             flow_id = None
-            message_id = 1
 
             for i in range(10):
                 msg = {
