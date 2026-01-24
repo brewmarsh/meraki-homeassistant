@@ -41,6 +41,7 @@ class MerakiApplianceUplinkSensor(CoordinatorEntity, SensorEntity):
         self._config_entry = config_entry
         self._uplink_interface: str = uplink_data["interface"]
 
+        self._attr_has_entity_name = True
         self._attr_unique_id = f"{self._device_serial}_uplink_{self._uplink_interface}"
         self._attr_name = f"Uplink {self._uplink_interface.upper()}"
 
