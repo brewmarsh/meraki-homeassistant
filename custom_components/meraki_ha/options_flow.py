@@ -51,7 +51,7 @@ class MerakiOptionsFlowHandler(config_entries.OptionsFlow):
 
         coordinator: MerakiDataUpdateCoordinator = self.hass.data[DOMAIN][
             self.config_entry.entry_id
-        ]
+        ]["coordinator"]
         network_options = []
         if coordinator.data and coordinator.data.get("networks"):
             network_options = [
