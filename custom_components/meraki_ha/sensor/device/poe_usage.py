@@ -13,7 +13,7 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from ...const import DOMAIN
 from ...coordinator import MerakiDataUpdateCoordinator
-from ...core.utils.naming_utils import format_device_name, format_entity_name
+from ...core.utils.naming_utils import format_device_name
 
 if TYPE_CHECKING:
     from ...types import MerakiDevice
@@ -52,10 +52,9 @@ class MerakiPoeUsageSensor(
         """
         super().__init__(coordinator)
         self._device = device
+        self._attr_has_entity_name = True
         self._attr_unique_id = f"{device.serial}_poe_usage"
-        self._attr_name = format_entity_name(
-            device, self.coordinator.config_entry.options, "PoE Usage"
-        )
+        self._attr_name = "PoE Usage"
 
     @property
     def device_info(self) -> DeviceInfo:

@@ -41,9 +41,9 @@ class MerakiRtspUrlSensor(CoordinatorEntity, SensorEntity):
         super().__init__(coordinator)
         self._device_data = device_data
         self._config_entry = config_entry
+        self._attr_has_entity_name = True
         self._attr_unique_id = f"{device_data.serial}-rtsp-url"
-        device_name = format_device_name(self._device_data, self._config_entry.options)
-        self._attr_name = f"[Camera] {device_name} RTSP URL"
+        self._attr_name = "RTSP URL"
         self._attr_icon = "mdi:cctv"
 
         # Set availability based on model

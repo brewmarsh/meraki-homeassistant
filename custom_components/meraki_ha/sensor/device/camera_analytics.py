@@ -31,8 +31,9 @@ class MerakiAnalyticsSensor(CoordinatorEntity, SensorEntity):
         super().__init__(coordinator)
         self._device = device
         self._object_type = object_type
+        self._attr_has_entity_name = True
         self._attr_unique_id = f"{device.serial}-{object_type}-count"
-        self._attr_name = f"[Camera] {device.name} {object_type.capitalize()} Count"
+        self._attr_name = f"{object_type.capitalize()} Count"
 
     @property
     def device_info(self) -> DeviceInfo | None:
