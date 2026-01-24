@@ -86,10 +86,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         for network in coordinator.data["networks"]:
             device_registry.async_get_or_create(
                 config_entry_id=entry.entry_id,
-                identifiers={(DOMAIN, network["id"])},
+                identifiers={(DOMAIN, network.id)},
                 manufacturer="Cisco Meraki",
                 model="Meraki Network",
-                name=network["name"],
+                name=network.name,
             )
 
     repo = MerakiRepository(coordinator.api)

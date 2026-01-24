@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-from typing import Any
-
 from homeassistant.components.binary_sensor import (
     BinarySensorDeviceClass,
     BinarySensorEntity,
@@ -15,8 +13,7 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from ..const import DOMAIN
 from ..coordinator import MerakiDataUpdateCoordinator
-
-MerakiNetwork = dict[str, Any]
+from ..types import MerakiNetwork
 
 
 async def async_setup_entry(
@@ -48,14 +45,18 @@ class MerakiNetworkStatus(BinarySensorEntity):
         """Initialize the sensor."""
         self._network = network
 
-        self._attr_unique_id = f"{network['id']}-status"
+        # Ensure network ID is available
+        network_id = network.id if network.id else "unknown_network"
+        self._attr_unique_id = f"{network_id}-status"
         self._attr_name = "Status"
 
     @property
     def device_info(self) -> DeviceInfo:
         """Return device information."""
+        # Ensure network ID is available
+        network_id = self._network.id if self._network.id else "unknown_network"
         return DeviceInfo(
-            identifiers={(DOMAIN, self._network["id"])},
+            identifiers={(DOMAIN, network_id)},
         )
 
     @property
