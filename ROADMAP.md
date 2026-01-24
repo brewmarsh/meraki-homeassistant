@@ -2,7 +2,7 @@
 
 ## Phase 1: Architecture & UI
 
-- [ ] Implement `has_entity_name = True` (Naming Schema Refactor)
+- [x] Implement `has_entity_name = True` (Naming Schema Refactor)
 - [ ] Categorize technical sensors as `EntityCategory.DIAGNOSTIC`
 - [ ] Migrate MV/MT momentary events to `EventEntity` class
 
