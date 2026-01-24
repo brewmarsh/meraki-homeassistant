@@ -50,7 +50,6 @@ async def test_meraki_ssid_enabled_switch(
     """Test the Meraki SSID enabled switch."""
     ssid_data = mock_coordinator_with_ssid_data.data["ssids"][0]
 
-    # Test with prefix format
     switch = MerakiSSIDEnabledSwitch(
         mock_coordinator_with_ssid_data,
         mock_meraki_client,
@@ -81,7 +80,6 @@ async def test_meraki_ssid_broadcast_switch(
     """Test the Meraki SSID broadcast switch."""
     ssid_data = mock_coordinator_with_ssid_data.data["ssids"][0]
 
-    # Test with prefix format
     switch = MerakiSSIDBroadcastSwitch(
         mock_coordinator_with_ssid_data,
         mock_meraki_client,
