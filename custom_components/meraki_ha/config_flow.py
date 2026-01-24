@@ -187,13 +187,20 @@ class MerakiHAConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ign
 
         coordinator: MerakiDataUpdateCoordinator = self.hass.data[DOMAIN][
             entry.entry_id
-        ]
+        ]["coordinator"]
         network_options = []
         if coordinator.data and coordinator.data.get("networks"):
-            network_options = [
-                {"label": network["name"], "value": network["id"]}
-                for network in coordinator.data["networks"]
-            ]
+            for network in coordinator.data["networks"]:
+                name = getattr(network, "name", None)
+                if name is None and isinstance(network, dict):
+                    name = network.get("name")
+
+                net_id = getattr(network, "id", None)
+                if net_id is None and isinstance(network, dict):
+                    net_id = network.get("id")
+
+                if name and net_id:
+                    network_options.append({"label": name, "value": net_id})
 
         schema_with_defaults = populate_schema_defaults(
             OPTIONS_SCHEMA,
