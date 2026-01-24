@@ -184,6 +184,25 @@ async def add_integration():
                 return False
             logger.info("WebSocket Authentication Successful.")
 
+            # --- DIAGNOSTIC: Check User Permissions ---
+            logger.info("Checking WebSocket User Permissions...")
+            await ws.send_json({"id": 999, "type": "auth/current_user"})
+            user_resp = await ws.receive_json()
+
+            if user_resp.get("success"):
+                user = user_resp["result"]
+                logger.info(f"User: {user['name']} (ID: {user['id']})")
+                logger.info(f"Is Owner: {user.get('is_owner')}")
+                logger.info(f"Is Admin: {user.get('is_admin')}")
+
+                if not user.get("is_admin") and not user.get("is_owner"):
+                    logger.critical(
+                        "❌ CRITICAL: WebSocket user is not an admin; "
+                        "config flow commands will be hidden."
+                    )
+            else:
+                logger.error(f"Failed to get current user: {user_resp}")
+
             # 2. Start Config Flow
             logger.info("Starting Config Flow...")
             flow_id = None
