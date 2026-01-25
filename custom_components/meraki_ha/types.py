@@ -43,6 +43,8 @@ class MerakiDevice:
     real_power: float | None = None
     power_factor: float | None = None
     current: float | None = None
+    voltage: float | None = None
+    voltage: float | None = None
     door_open: bool | None = None
 
     @classmethod
