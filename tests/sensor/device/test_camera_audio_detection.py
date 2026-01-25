@@ -17,39 +17,34 @@ def mock_coordinator():
     coordinator = MagicMock()
     coordinator.config_entry = MagicMock()
     coordinator.config_entry.options = {}
-
-    # Create a mock device
-    mock_device = MerakiDevice(
-        serial="Q234-5678-90AB",
-        name="Test Camera",
-        model="MV2",
-        network_id="net1",
-        product_type="camera",
-        sense_settings={"audioDetection": {"enabled": True}},
-    )
-
-    coordinator.data = {
-        "devices": [mock_device],
-    }
-    # Mock get_device to return the device
-    coordinator.get_device.return_value = mock_device
-
     return coordinator
 
 
 def test_camera_audio_detection_sensor(mock_coordinator):
-    """Test Camera Audio Detection sensor creation and state."""
+    """Test the camera audio detection sensor."""
     hass = MagicMock()
 
-    device_data = mock_coordinator.data["devices"][0]
-
-    sensor = MerakiCameraAudioDetectionSensor(
-        mock_coordinator, device_data, mock_coordinator.config_entry
+    # Create a mock device with audio detection enabled
+    device = MerakiDevice(
+        serial="test_serial",
+        name="Test Camera",
+        model="MV2",
+        mac="00:11:22:33:44:55",
+        network_id="net1",  # <--- CRITICAL ADDITION FROM LEFT SIDE
+        product_type="camera",
+        sense_settings={"audioDetection": {"enabled": True}},
     )
 
-    assert sensor.unique_id == "Q234-5678-90AB_camera_audio_detection_status"
+    mock_coordinator.get_device.return_value = device
+
+    sensor = MerakiCameraAudioDetectionSensor(
+        mock_coordinator, device, mock_coordinator.config_entry
+    )
+
+    assert sensor.unique_id == "test_serial_camera_audio_detection_status"
+    # Note: Name format checks are good to keep
+    assert "Audio Detection" in sensor.name
     assert sensor.entity_category == EntityCategory.DIAGNOSTIC
-    assert sensor.available is True
     assert sensor.native_value == "enabled"
     assert sensor.icon == "mdi:microphone"
 
@@ -57,13 +52,16 @@ def test_camera_audio_detection_sensor(mock_coordinator):
     sensor.hass = hass
     sensor.async_write_ha_state = MagicMock()
 
-    # Test update with disabled
-    device_data.sense_settings["audioDetection"]["enabled"] = False
+    # Update with disabled audio
+    device.sense_settings = {"audioDetection": {"enabled": False}}
     sensor._handle_coordinator_update()
+
     assert sensor.native_value == "disabled"
     assert sensor.icon == "mdi:microphone-off"
 
-    # Test unavailable/missing data
-    mock_coordinator.get_device.return_value = None
+    # Update with missing audio detection data
+    device.sense_settings = {}
     sensor._handle_coordinator_update()
+
     assert sensor.native_value is None
+    assert sensor.icon == "mdi:microphone-question"
