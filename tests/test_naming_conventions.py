@@ -8,6 +8,12 @@ from custom_components.meraki_ha.binary_sensor.device.camera_motion import (
     MerakiMotionSensor,
 )
 from custom_components.meraki_ha.camera import MerakiCamera
+from custom_components.meraki_ha.sensor.device.connected_clients import (
+    MerakiDeviceConnectedClientsSensor,
+)
+from custom_components.meraki_ha.sensor.device.device_status import (
+    MerakiDeviceStatusSensor,
+)
 from custom_components.meraki_ha.types import MerakiDevice
 
 
@@ -46,3 +52,20 @@ async def test_naming_conventions():
         config_entry=mock_config_entry,
     )
     assert motion_sensor.name == "Motion"
+    assert motion_sensor.has_entity_name is True
+
+    status_sensor = MerakiDeviceStatusSensor(
+        coordinator=mock_coordinator,
+        device_data=device,
+        config_entry=mock_config_entry,
+    )
+    assert status_sensor.name == "Status"
+    assert status_sensor.has_entity_name is True
+
+    connected_clients_sensor = MerakiDeviceConnectedClientsSensor(
+        coordinator=mock_coordinator,
+        device_data=device,
+        config_entry=mock_config_entry,
+    )
+    assert connected_clients_sensor.name == "Connected Clients"
+    assert connected_clients_sensor.has_entity_name is True

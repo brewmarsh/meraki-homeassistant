@@ -10,9 +10,9 @@ import aiohttp
 from homeassistant.components.camera import Camera, CameraEntityFeature
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.device_registry import DeviceInfo
-from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import DOMAIN
+from .entity import MerakiEntity
 from .helpers.device_info_helpers import resolve_device_info
 
 if TYPE_CHECKING:
@@ -48,7 +48,7 @@ async def async_setup_entry(
                 await asyncio.sleep(1)
 
 
-class MerakiCamera(CoordinatorEntity, Camera):
+class MerakiCamera(MerakiEntity, Camera):
     """
     Representation of a Meraki camera.
 
@@ -73,7 +73,6 @@ class MerakiCamera(CoordinatorEntity, Camera):
         assert serial is not None
         self._device_serial: str = serial
         self._camera_service = camera_service
-        self._attr_has_entity_name = True
         self._attr_unique_id = f"{self._device_serial}-camera"
         self._attr_name = None
         self._attr_model = self.device_data.get("model")
