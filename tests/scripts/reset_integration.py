@@ -15,6 +15,19 @@ logger = logging.getLogger(__name__)
 
 # --- Configuration ---
 HA_URL = os.getenv("HA_URL")
+
+
+async def dump_error_log(session):
+    """Dump the last 50 lines of the HA error log."""
+    print("\n--- FORCED LOG DUMP (Server Side Error) ---")
+    async with session.get(f"{HA_URL}/api/error/log") as resp:
+        if resp.status == 200:
+            print(await resp.text())
+        else:
+            print(f"Failed to fetch logs: {resp.status}")
+    print("-------------------------------------------\n")
+
+
 HA_TOKEN = os.getenv("HA_TOKEN")
 MERAKI_API_KEY = os.getenv("MERAKI_API_KEY")
 MERAKI_ORG_ID = os.getenv("MERAKI_ORG_ID")
@@ -164,135 +177,132 @@ async def diagnose_server_state(session):
     return True
 
 
-async def add_integration():
+async def add_integration(session):
     """Add the Meraki HA integration via WebSocket."""
     ws_url = HA_URL.replace("http", "ws").replace("https", "wss") + "/api/websocket"
     logger.info(f"Connecting to WebSocket: {ws_url}")
 
-    async with aiohttp.ClientSession() as session:
-        async with session.ws_connect(ws_url) as ws:
-            # 1. Authenticate
-            logger.debug("Waiting for auth_required...")
-            await ws.receive_json()  # Consume 'auth_required'
+    async with session.ws_connect(ws_url) as ws:
+        # 1. Authenticate
+        logger.debug("Waiting for auth_required...")
+        await ws.receive_json()  # Consume 'auth_required'
 
-            logger.debug("Sending auth token...")
-            await ws.send_json({"type": "auth", "access_token": HA_TOKEN})
+        logger.debug("Sending auth token...")
+        await ws.send_json({"type": "auth", "access_token": HA_TOKEN})
 
-            auth_resp = await ws.receive_json()
-            if auth_resp["type"] != "auth_ok":
-                logger.error(f"WebSocket Auth Failed: {auth_resp}")
-                return False
-            logger.info("WebSocket Authentication Successful.")
+        auth_resp = await ws.receive_json()
+        if auth_resp["type"] != "auth_ok":
+            logger.error(f"WebSocket Auth Failed: {auth_resp}")
+            return False
+        logger.info("WebSocket Authentication Successful.")
 
-            message_id = 1  # Initialize ONCE here
+        message_id = 1  # Initialize ONCE here
 
-            # --- DIAGNOSTIC: Check User Permissions ---
-            logger.info("Checking WebSocket User Permissions...")
-            await ws.send_json({"id": message_id, "type": "auth/current_user"})
-            message_id += 1  # Increment!
-            user_resp = await ws.receive_json()
+        # --- DIAGNOSTIC: Check User Permissions ---
+        logger.info("Checking WebSocket User Permissions...")
+        await ws.send_json({"id": message_id, "type": "auth/current_user"})
+        message_id += 1  # Increment!
+        user_resp = await ws.receive_json()
 
-            if user_resp.get("success"):
-                user = user_resp["result"]
-                logger.info(f"User: {user['name']} (ID: {user['id']})")
-                logger.info(f"Is Owner: {user.get('is_owner')}")
-                logger.info(f"Is Admin: {user.get('is_admin')}")
+        if user_resp.get("success"):
+            user = user_resp["result"]
+            logger.info(f"User: {user['name']} (ID: {user['id']})")
+            logger.info(f"Is Owner: {user.get('is_owner')}")
+            logger.info(f"Is Admin: {user.get('is_admin')}")
 
-                if not user.get("is_admin") and not user.get("is_owner"):
-                    logger.critical(
-                        "❌ CRITICAL: WebSocket user is not an admin; "
-                        "config flow commands will be hidden."
-                    )
+            if not user.get("is_admin") and not user.get("is_owner"):
+                logger.critical(
+                    "❌ CRITICAL: WebSocket user is not an admin; "
+                    "config flow commands will be hidden."
+                )
+        else:
+            logger.error(f"Failed to get current user: {user_resp}")
+
+        # 2. Start Config Flow
+        logger.info("Starting Config Flow...")
+        flow_id = None
+
+        for i in range(10):
+            msg = {
+                "id": message_id,
+                "type": "config_entries/flow/start",
+                "handler": "meraki_ha",
+            }
+            logger.debug(f"Sending: {msg}")
+            await ws.send_json(msg)
+
+            resp = await ws.receive_json()
+            logger.debug(f"Received: {resp}")
+
+            if resp.get("success"):
+                flow_id = resp["result"]["flow_id"]
+                logger.info(f"Config flow started successfully. ID: {flow_id}")
+                break
+
+            error_code = resp.get("error", {}).get("code")
+            error_msg = resp.get("error", {}).get("message")
+
+            if error_code == "unknown_command":
+                logger.warning(
+                    "Attempt %s: 'unknown_command'. The 'config' integration "
+                    "failed to register commands.",
+                    i + 1,
+                )
+                await dump_error_log(session)
+            elif error_msg == "Invalid handler specified":
+                logger.critical(
+                    "❌ Critical Error: Config Flow Handler mismatch. "
+                    "Is 'meraki_ha' installed?"
+                )
+                sys.exit(1)
             else:
-                logger.error(f"Failed to get current user: {user_resp}")
+                logger.error(f"Attempt {i + 1} failed with error: {error_msg}")
 
-            # 2. Start Config Flow
-            logger.info("Starting Config Flow...")
-            flow_id = None
+            message_id += 1
+            await asyncio.sleep(5)
 
-            for i in range(10):
-                msg = {
-                    "id": message_id,
-                    "type": "config_entries/flow/start",
-                    "handler": "meraki_ha",
-                }
-                logger.debug(f"Sending: {msg}")
-                await ws.send_json(msg)
+        if not flow_id:
+            logger.error("Failed to start config flow after multiple attempts.")
+            return False
 
-                resp = await ws.receive_json()
-                logger.debug(f"Received: {resp}")
+        # 3. Submit API Key
+        logger.info("Sending API Key...")
+        message_id += 1
+        await ws.send_json(
+            {
+                "id": message_id,
+                "type": "config_entries/flow/handle_step",
+                "flow_id": flow_id,
+                "step_id": "user",
+                "user_input": {"api_key": MERAKI_API_KEY},
+            }
+        )
+        resp = await ws.receive_json()
+        logger.debug(f"API Key Response: {resp}")
 
-                if resp.get("success"):
-                    flow_id = resp["result"]["flow_id"]
-                    logger.info(f"Config flow started successfully. ID: {flow_id}")
-                    break
-
-                error_code = resp.get("error", {}).get("code")
-                error_msg = resp.get("error", {}).get("message")
-
-                if error_code == "unknown_command":
-                    logger.warning(
-                        "Attempt %s: 'unknown_command'. The 'config' integration "
-                        "is not loaded yet.",
-                        i + 1,
-                    )
-                elif error_msg == "Invalid handler specified":
-                    logger.critical(
-                        "❌ Critical Error: Config Flow Handler mismatch. "
-                        "Is 'meraki_ha' installed?"
-                    )
-                    sys.exit(1)
-                else:
-                    logger.error(f"Attempt {i + 1} failed with error: {error_msg}")
-
-                message_id += 1
-                await asyncio.sleep(5)
-
-            if not flow_id:
-                logger.error("Failed to start config flow after multiple attempts.")
-                return False
-
-            # 3. Submit API Key
-            logger.info("Sending API Key...")
+        # 4. Handle Optional Organization Step
+        if resp.get("success") and resp["result"].get("step_id") == "pick_organization":
+            logger.info("Selecting Organization...")
             message_id += 1
             await ws.send_json(
                 {
                     "id": message_id,
                     "type": "config_entries/flow/handle_step",
                     "flow_id": flow_id,
-                    "step_id": "user",
-                    "user_input": {"api_key": MERAKI_API_KEY},
+                    "step_id": "pick_organization",
+                    "user_input": {"organization_id": MERAKI_ORG_ID},
                 }
             )
             resp = await ws.receive_json()
-            logger.debug(f"API Key Response: {resp}")
+            logger.debug(f"Org Selection Response: {resp}")
 
-            # 4. Handle Optional Organization Step
-            if (
-                resp.get("success")
-                and resp["result"].get("step_id") == "pick_organization"
-            ):
-                logger.info("Selecting Organization...")
-                message_id += 1
-                await ws.send_json(
-                    {
-                        "id": message_id,
-                        "type": "config_entries/flow/handle_step",
-                        "flow_id": flow_id,
-                        "step_id": "pick_organization",
-                        "user_input": {"organization_id": MERAKI_ORG_ID},
-                    }
-                )
-                resp = await ws.receive_json()
-                logger.debug(f"Org Selection Response: {resp}")
-
-            # 5. Final Verification
-            if resp.get("success") and resp["result"].get("type") == "create_entry":
-                logger.info("SUCCESS: Integration re-added.")
-                return True
-            else:
-                logger.error(f"FAILED: {resp}")
-                return False
+        # 5. Final Verification
+        if resp.get("success") and resp["result"].get("type") == "create_entry":
+            logger.info("SUCCESS: Integration re-added.")
+            return True
+        else:
+            logger.error(f"FAILED: {resp}")
+            return False
 
 
 async def main():
@@ -309,8 +319,8 @@ async def main():
         if not await diagnose_server_state(session):
             sys.exit(1)
 
-    if not await add_integration():
-        sys.exit(1)
+        if not await add_integration(session):
+            sys.exit(1)
 
 
 if __name__ == "__main__":
