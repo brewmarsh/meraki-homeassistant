@@ -281,10 +281,7 @@ async def add_integration(session):
         logger.debug(f"API Key Response: {resp}")
 
         # 4. Handle Optional Organization Step
-        if (
-            resp.get("success")
-            and resp["result"].get("step_id") == "pick_organization"
-        ):
+        if resp.get("success") and resp["result"].get("step_id") == "pick_organization":
             logger.info("Selecting Organization...")
             message_id += 1
             await ws.send_json(
