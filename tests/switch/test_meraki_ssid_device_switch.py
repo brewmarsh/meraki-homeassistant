@@ -62,7 +62,7 @@ async def test_meraki_ssid_enabled_switch(
     assert switch.name == "Enabled Control"
     device_info = switch.device_info
     assert device_info is not None
-    assert device_info["name"] == "Test SSID"
+    assert device_info["name"] == "[SSID] Test SSID"
 
     switch.hass = hass
     switch.entity_id = "switch.test"
@@ -93,7 +93,7 @@ async def test_meraki_ssid_broadcast_switch(
     assert switch.name == "Broadcast Control"
     device_info = switch.device_info
     assert device_info is not None
-    assert device_info["name"] == "Test SSID"
+    assert device_info["name"] == "[SSID] Test SSID"
 
     switch.hass = hass
     switch.entity_id = "switch.test"
