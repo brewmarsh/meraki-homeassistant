@@ -32,6 +32,7 @@ def format_device_name(entity_data: dict[str, Any]) -> str:
         return f"[{type_prefix}] {name}"
     return name
 
+
 def resolve_device_info(
     entity_data: MerakiDevice | MerakiNetwork | dict[str, Any],
     config_entry: ConfigEntry,
