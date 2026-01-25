@@ -13,6 +13,25 @@ from ..types import MerakiDevice, MerakiNetwork
 _LOGGER = logging.getLogger(__name__)
 
 
+def format_device_name(entity_data: dict[str, Any]) -> str:
+    """Format the device name with a type prefix."""
+    product_type = entity_data.get("productType") or entity_data.get("product_type")
+    name = str(entity_data.get("name") or "Unknown Device")
+
+    if product_type:
+        if "switch" in product_type.lower():
+            type_prefix = "Switch"
+        elif "camera" in product_type.lower():
+            type_prefix = "Camera"
+        elif "appliance" in product_type.lower():
+            type_prefix = "Appliance"
+        elif "wireless" in product_type.lower():
+            type_prefix = "Wireless"
+        else:
+            type_prefix = "Device"
+        return f"[{type_prefix}] {name}"
+    return name
+
 def resolve_device_info(
     entity_data: MerakiDevice | MerakiNetwork | dict[str, Any],
     config_entry: ConfigEntry,
@@ -85,7 +104,7 @@ def resolve_device_info(
     if device_serial:
         return DeviceInfo(
             identifiers={(DOMAIN, device_serial)},
-            name=str(entity_data.get("name")),
+            name=format_device_name(entity_data),
             manufacturer="Cisco Meraki",
             model=str(entity_data.get("model") or "Unknown"),
             sw_version=str(entity_data.get("firmware") or ""),
