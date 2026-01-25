@@ -8,9 +8,9 @@ from typing import TYPE_CHECKING
 from homeassistant.components.sensor import SensorEntity, SensorStateClass
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import callback
-from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from ...coordinator import MerakiDataUpdateCoordinator
+from ...entity import MerakiEntity
 from ...helpers.device_info_helpers import resolve_device_info
 
 if TYPE_CHECKING:
@@ -19,13 +19,12 @@ if TYPE_CHECKING:
 _LOGGER = logging.getLogger(__name__)
 
 
-class MerakiDeviceConnectedClientsSensor(CoordinatorEntity, SensorEntity):
+class MerakiDeviceConnectedClientsSensor(MerakiEntity, SensorEntity):
     """Representation of a Meraki Connected Clients sensor."""
 
     _attr_icon = "mdi:account-network"
     _attr_native_unit_of_measurement = "clients"
     _attr_state_class = SensorStateClass.MEASUREMENT
-    _attr_has_entity_name = True
 
     def __init__(
         self,

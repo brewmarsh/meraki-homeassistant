@@ -72,6 +72,7 @@ jobs:
           commit_user_email: 'github-actions[bot]@users.noreply.github.com'
           commit_author: 'github-actions[bot] <github-actions[bot]@users.noreply.github.com>'
           branch: ${{ github.base_ref }}
+          token: ${{ secrets.PAT_TOKEN }}
 
   release:
     runs-on: ubuntu-latest
