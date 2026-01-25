@@ -12,6 +12,15 @@ from ..types import MerakiDevice, MerakiNetwork
 
 _LOGGER = logging.getLogger(__name__)
 
+DEVICE_TYPE_MAPPING = {
+    "camera": "Camera",
+    "switch": "Switch",
+    "wireless": "Wireless",
+    "appliance": "Appliance",
+    "security": "Appliance",
+    "cellularGateway": "Gateway",
+}
+
 
 def resolve_device_info(
     entity_data: MerakiDevice | MerakiNetwork | dict[str, Any],
@@ -51,9 +60,10 @@ def resolve_device_info(
         ssid_number = effective_data.get("number")
         if network_id:
             identifier = (DOMAIN, f"{network_id}_{ssid_number}")
+            name = effective_data.get("name")
             return DeviceInfo(
                 identifiers={identifier},
-                name=effective_data.get("name"),
+                name=f"[SSID] {name}",
                 model="Wireless SSID",
                 manufacturer="Cisco Meraki",
             )
@@ -83,9 +93,14 @@ def resolve_device_info(
     # Fallback to creating device info for a physical device
     device_serial = entity_data.get("serial")
     if device_serial:
+        product_type = str(
+            entity_data.get("productType") or entity_data.get("product_type")
+        )
+        prefix = DEVICE_TYPE_MAPPING.get(product_type, "Device")
+        name = entity_data.get("name")
         return DeviceInfo(
             identifiers={(DOMAIN, device_serial)},
-            name=str(entity_data.get("name")),
+            name=f"[{prefix}] {name}",
             manufacturer="Cisco Meraki",
             model=str(entity_data.get("model") or "Unknown"),
             sw_version=str(entity_data.get("firmware") or ""),
