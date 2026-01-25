@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from homeassistant.components.sensor import SensorEntity
 from homeassistant.config_entries import ConfigEntry
+from homeassistant.const import EntityCategory
 from homeassistant.core import callback
 
 from ...coordinator import MerakiDataUpdateCoordinator
@@ -13,6 +14,8 @@ from ...types import MerakiNetwork
 
 class VlansListSensor(MerakiNetworkEntity, SensorEntity):
     """Representation of a sensor that lists all VLANs in a network."""
+
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
 
     def __init__(
         self,
