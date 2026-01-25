@@ -12,16 +12,16 @@ from homeassistant.components.binary_sensor import (
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import callback
 from homeassistant.helpers.device_registry import DeviceInfo
-from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from ...coordinator import MerakiDataUpdateCoordinator
+from ...entity import MerakiEntity
 from ...helpers.device_info_helpers import resolve_device_info
 from ...types import MerakiDevice
 
 _LOGGER = logging.getLogger(__name__)
 
 
-class MerakiMt20OpenCloseSensor(CoordinatorEntity, BinarySensorEntity):
+class MerakiMt20OpenCloseSensor(MerakiEntity, BinarySensorEntity):
     """Representation of a Meraki MT20 open/close sensor."""
 
     _attr_device_class = BinarySensorDeviceClass.DOOR
@@ -36,7 +36,6 @@ class MerakiMt20OpenCloseSensor(CoordinatorEntity, BinarySensorEntity):
         super().__init__(coordinator)
         self._device_info = device_info
         self._config_entry = config_entry
-        self._attr_has_entity_name = True
         self._attr_unique_id = f"{self._device_info.serial}-door"
         self._attr_name = "Door"
 
