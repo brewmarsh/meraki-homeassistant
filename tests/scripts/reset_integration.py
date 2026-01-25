@@ -38,7 +38,7 @@ if missing:
         ".github/workflows/test.yml mappings."
     )
     sys.exit(1)
-logger.info("The HA_STAGING_TOKEN is [%s].".format())
+logger.info("The HA_STAGING_TOKEN is set: %s", bool(HA_STAGING_TOKEN))
 
 HEADERS = {
     "Authorization": f"Bearer {HA_STAGING_TOKEN}",
