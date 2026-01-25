@@ -7,7 +7,7 @@ from unittest.mock import MagicMock
 
 # Mock meraki if not installed to avoid ModuleNotFoundError during collection
 try:
-    import meraki
+    import meraki  # noqa: F401
 except ImportError:
     sys.modules["meraki"] = MagicMock()
     sys.modules["meraki.exceptions"] = MagicMock()
