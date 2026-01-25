@@ -17,17 +17,6 @@ logger = logging.getLogger(__name__)
 HA_URL = os.getenv("HA_URL")
 
 
-async def dump_error_log(session):
-    """Dump the last 50 lines of the HA error log."""
-    print("\n--- FORCED LOG DUMP (Server Side Error) ---")
-    async with session.get(f"{HA_URL}/api/error/log") as resp:
-        if resp.status == 200:
-            print(await resp.text())
-        else:
-            print(f"Failed to fetch logs: {resp.status}")
-    print("-------------------------------------------\n")
-
-
 HA_STAGING_TOKEN = os.getenv("HA_STAGING_TOKEN")
 MERAKI_API_KEY = os.getenv("MERAKI_API_KEY")
 MERAKI_ORG_ID = os.getenv("MERAKI_ORG_ID")
