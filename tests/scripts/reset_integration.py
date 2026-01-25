@@ -15,14 +15,14 @@ logger = logging.getLogger(__name__)
 
 # --- Configuration ---
 HA_URL = os.getenv("HA_URL")
-HA_STAGING_TOKEN = os.getenv("HA_TOKEN")
+HA_TOKEN = os.getenv("HA_TOKEN")
 MERAKI_API_KEY = os.getenv("MERAKI_API_KEY")
 MERAKI_ORG_ID = os.getenv("MERAKI_ORG_ID")
 
 # IMPROVED Sanity Check
 required_vars = {
     "HA_URL": HA_URL,
-    "HA_STAGING_TOKEN": HA_STAGING_TOKEN,
+    "HA_TOKEN": HA_TOKEN,
     "MERAKI_API_KEY": MERAKI_API_KEY,
     "MERAKI_ORG_ID": MERAKI_ORG_ID,
 }
@@ -38,10 +38,9 @@ if missing:
         ".github/workflows/test.yml mappings."
     )
     sys.exit(1)
-logger.info("The HA_STAGING_TOKEN is [%s].".format())
 
 HEADERS = {
-    "Authorization": f"Bearer {HA_STAGING_TOKEN}",
+    "Authorization": f"Bearer {HA_TOKEN}",
     "Content-Type": "application/json",
 }
 
@@ -203,7 +202,7 @@ async def add_integration(session):
         await ws.receive_json()  # Consume 'auth_required'
 
         logger.debug("Sending auth token...")
-        await ws.send_json({"type": "auth", "access_token": HA_STAGING_TOKEN})
+        await ws.send_json({"type": "auth", "access_token": HA_TOKEN})
 
         auth_resp = await ws.receive_json()
         if auth_resp["type"] != "auth_ok":
