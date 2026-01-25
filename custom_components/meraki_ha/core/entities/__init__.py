@@ -13,7 +13,6 @@ from ...const import (
     MANUFACTURER,
 )
 from ...coordinator import MerakiDataUpdateCoordinator
-from ..utils.naming_utils import format_device_name
 
 
 class BaseMerakiEntity(CoordinatorEntity, Entity, ABC):
@@ -59,7 +58,7 @@ class BaseMerakiEntity(CoordinatorEntity, Entity, ABC):
             if network:
                 return DeviceInfo(
                     identifiers={(DOMAIN, f"network_{self._network_id}")},
-                    name=format_device_name(network, self._config_entry.options),
+                    name=network.name,
                     manufacturer=MANUFACTURER,
                     model="Network",
                     sw_version="unknown",
@@ -72,7 +71,7 @@ class BaseMerakiEntity(CoordinatorEntity, Entity, ABC):
                 model = device.model
                 return DeviceInfo(
                     identifiers={(DOMAIN, self._serial)},
-                    name=format_device_name(device, self._config_entry.options),
+                    name=device.name,
                     manufacturer=MANUFACTURER,
                     model=model,
                     sw_version=device.firmware or "unknown",
