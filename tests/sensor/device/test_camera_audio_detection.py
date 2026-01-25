@@ -25,7 +25,7 @@ def mock_coordinator():
         model="MV2",
         network_id="net1",
         product_type="camera",
-        sense_settings={"audioDetection": {"enabled": True}}
+        sense_settings={"audioDetection": {"enabled": True}},
     )
 
     coordinator.data = {
@@ -36,6 +36,7 @@ def mock_coordinator():
 
     return coordinator
 
+
 def test_camera_audio_detection_sensor(mock_coordinator):
     """Test Camera Audio Detection sensor creation and state."""
     hass = MagicMock()
@@ -43,9 +44,7 @@ def test_camera_audio_detection_sensor(mock_coordinator):
     device_data = mock_coordinator.data["devices"][0]
 
     sensor = MerakiCameraAudioDetectionSensor(
-        mock_coordinator,
-        device_data,
-        mock_coordinator.config_entry
+        mock_coordinator, device_data, mock_coordinator.config_entry
     )
 
     assert sensor.unique_id == "Q234-5678-90AB_camera_audio_detection_status"

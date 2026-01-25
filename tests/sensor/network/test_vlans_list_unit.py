@@ -41,6 +41,7 @@ def mock_coordinator():
     }
     return coordinator
 
+
 def test_vlans_list_sensor(mock_coordinator):
     """Test VLANs List sensor creation and state."""
     hass = MagicMock()
@@ -48,9 +49,7 @@ def test_vlans_list_sensor(mock_coordinator):
     network_data = mock_coordinator.data["networks"][0]
 
     sensor = VlansListSensor(
-        mock_coordinator,
-        mock_coordinator.config_entry,
-        network_data
+        mock_coordinator, mock_coordinator.config_entry, network_data
     )
 
     assert sensor.unique_id == "net1_vlans"
