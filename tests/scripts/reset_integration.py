@@ -15,30 +15,25 @@ logger = logging.getLogger(__name__)
 
 # --- Configuration ---
 HA_URL = os.getenv("HA_URL")
-
-
-async def dump_error_log(session):
-    """Dump the last 50 lines of the HA error log."""
-    print("\n--- FORCED LOG DUMP (Server Side Error) ---")
-    async with session.get(f"{HA_URL}/api/error/log") as resp:
-        if resp.status == 200:
-            print(await resp.text())
-        else:
-            print(f"Failed to fetch logs: {resp.status}")
-    print("-------------------------------------------\n")
-
-
-HA_STAGING_TOKEN = os.getenv("HA_STAGING_TOKEN")
+HA_TOKEN = os.getenv("HA_TOKEN")
 MERAKI_API_KEY = os.getenv("MERAKI_API_KEY")
 MERAKI_ORG_ID = os.getenv("MERAKI_ORG_ID")
 
-# Sanity Check
-if not all([HA_URL, HA_STAGING_TOKEN, MERAKI_API_KEY, MERAKI_ORG_ID]):
-    logger.error("Missing required environment variables.")
+# IMPROVED Sanity Check
+required_vars = {
+    "HA_URL": HA_URL,
+    "HA_TOKEN": HA_TOKEN,
+    "MERAKI_API_KEY": MERAKI_API_KEY,
+    "MERAKI_ORG_ID": MERAKI_ORG_ID,
+}
+missing = [key for key, val in required_vars.items() if not val]
+if missing:
+    logger.critical(f"❌ CRITICAL: The following environment variables are MISSING or EMPTY: {', '.join(missing)}")
+    logger.critical("Please check your GitHub Repository Secrets and .github/workflows/test.yml mappings.")
     sys.exit(1)
 
 HEADERS = {
-    "Authorization": f"Bearer {HA_STAGING_TOKEN}",
+    "Authorization": f"Bearer {HA_TOKEN}",
     "Content-Type": "application/json",
 }
 
@@ -151,7 +146,7 @@ async def diagnose_server_state(session):
         else:
             logger.error(
                 f"❌ API Connection Failed: {resp.status} "
-                "(Check HA_STAGING_TOKEN permissions)"
+                "(Check HA_TOKEN permissions)"
             )
             return False
 
@@ -200,7 +195,7 @@ async def add_integration(session):
         await ws.receive_json()  # Consume 'auth_required'
 
         logger.debug("Sending auth token...")
-        await ws.send_json({"type": "auth", "access_token": HA_STAGING_TOKEN})
+        await ws.send_json({"type": "auth", "access_token": HA_TOKEN})
 
         auth_resp = await ws.receive_json()
         if auth_resp["type"] != "auth_ok":
