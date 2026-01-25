@@ -183,10 +183,39 @@ async def add_integration(session):
     ws_url = HA_URL.replace("http", "ws").replace("https-", "wss") + "/api/websocket"
     logger.info(f"Connecting to WebSocket: {ws_url}")
 
-    async with session.ws_connect(ws_url) as ws:
-        # 1. Authenticate
-        logger.debug("Waiting for auth_required...")
-        await ws.receive_json()  # Consume 'auth_required'
+    async with aiohttp.ClientSession() as session:
+        async with session.ws_connect(ws_url) as ws:
+            # 1. Authenticate
+            logger.debug("Waiting for auth_required...")
+            await ws.receive_json()  # Consume 'auth_required'
+
+            logger.debug("Sending auth token...")
+            await ws.send_json({"type": "auth", "access_token": HA_STAGING_TOKEN})
+
+            auth_resp = await ws.receive_json()
+            if auth_resp["type"] != "auth_ok":
+                logger.error(f"WebSocket Auth Failed: {auth_resp}")
+                return False
+            logger.info("WebSocket Authentication Successful.")
+
+            # --- DIAGNOSTIC: Check User Permissions ---
+            logger.info("Checking WebSocket User Permissions...")
+            await ws.send_json({"id": 999, "type": "auth/current_user"})
+            user_resp = await ws.receive_json()
+
+            if user_resp.get("success"):
+                user = user_resp["result"]
+                logger.info(f"User: {user['name']} (ID: {user['id']})")
+                logger.info(f"Is Owner: {user.get('is_owner')}")
+                logger.info(f"Is Admin: {user.get('is_admin')}")
+
+                if not user.get("is_admin") and not user.get("is_owner"):
+                    logger.critical(
+                        "❌ CRITICAL: WebSocket user is not an admin; "
+                        "config flow commands will be hidden."
+                    )
+            else:
+                logger.error(f"Failed to get current user: {user_resp}")
 
         logger.debug("Sending auth token...")
         await ws.send_json({"type": "auth", "access_token": HA_STAGING_TOKEN})
