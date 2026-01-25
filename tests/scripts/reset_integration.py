@@ -15,6 +15,10 @@ logger = logging.getLogger(__name__)
 
 # --- Configuration ---
 HA_URL = os.getenv("HA_URL")
+
+
+
+
 HA_TOKEN = os.getenv("HA_TOKEN")
 MERAKI_API_KEY = os.getenv("MERAKI_API_KEY")
 MERAKI_ORG_ID = os.getenv("MERAKI_ORG_ID")
@@ -28,8 +32,14 @@ required_vars = {
 }
 missing = [key for key, val in required_vars.items() if not val]
 if missing:
-    logger.critical(f"❌ CRITICAL: The following environment variables are MISSING or EMPTY: {', '.join(missing)}")
-    logger.critical("Please check your GitHub Repository Secrets and .github/workflows/test.yml mappings.")
+    logger.critical(
+        "❌ CRITICAL: The following environment variables are MISSING or EMPTY: %s",
+        ", ".join(missing),
+    )
+    logger.critical(
+        "Please check your GitHub Repository Secrets and "
+        ".github/workflows/test.yml mappings."
+    )
     sys.exit(1)
 
 HEADERS = {
