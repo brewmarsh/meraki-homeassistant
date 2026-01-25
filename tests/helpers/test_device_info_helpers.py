@@ -23,7 +23,7 @@ def test_resolve_device_info_ssid_naming(mock_config_entry):
     device_info = resolve_device_info(
         entity_data=ssid_data, config_entry=mock_config_entry
     )
-    assert device_info["name"] == "My Test SSID"
+    assert device_info["name"] == "[SSID] My Test SSID"
     assert device_info["identifiers"] == {(DOMAIN, "net1_1")}
 
 
@@ -39,7 +39,7 @@ def test_resolve_device_info_physical_device(mock_config_entry):
     device_info = resolve_device_info(
         entity_data=device_data, config_entry=mock_config_entry
     )
-    assert device_info["name"] == "Living Room AP"
+    assert device_info["name"] == "[Wireless] Living Room AP"
     assert device_info["identifiers"] == {(DOMAIN, "Q234-ABCD-5678")}
     assert device_info["model"] == "MR33"
     assert device_info["sw_version"] == "29.1.1"

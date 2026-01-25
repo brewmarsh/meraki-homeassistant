@@ -15,14 +15,30 @@ logger = logging.getLogger(__name__)
 
 # --- Configuration ---
 HA_URL = os.getenv("HA_URL")
-HA_STAGING_TOKEN = os.getenv("HA_STAGING_TOKEN")
+HA_STAGING_TOKEN = os.getenv("HA_TOKEN")
 MERAKI_API_KEY = os.getenv("MERAKI_API_KEY")
 MERAKI_ORG_ID = os.getenv("MERAKI_ORG_ID")
 
-# Sanity Check
-if not all([HA_URL, HA_STAGING_TOKEN, MERAKI_API_KEY, MERAKI_ORG_ID]):
-    logger.error("Missing required environment variables.")
+# IMPROVED Sanity Check
+required_vars = {
+    "HA_URL": HA_URL,
+    "HA_STAGING_TOKEN": HA_STAGING_TOKEN,
+    "MERAKI_API_KEY": MERAKI_API_KEY,
+    "MERAKI_ORG_ID": MERAKI_ORG_ID,
+}
+missing = [key for key, val in required_vars.items() if not val]
+
+if missing:
+    logger.critical(
+        "❌ CRITICAL: The following environment variables are MISSING or EMPTY: %s",
+        ", ".join(missing),
+    )
+    logger.critical(
+        "Please check your GitHub Repository Secrets and "
+        ".github/workflows/test.yml mappings."
+    )
     sys.exit(1)
+logger.info("The HA_STAGING_TOKEN is [%s].".format())
 
 HEADERS = {
     "Authorization": f"Bearer {HA_STAGING_TOKEN}",
@@ -137,7 +153,8 @@ async def diagnose_server_state(session):
             logger.info(f"✅ API Connection OK. Message: {msg.get('message')}")
         else:
             logger.error(
-                f"❌ API Connection Failed: {resp.status} (Check HA_TOKEN permissions)"
+                f"❌ API Connection Failed: {resp.status} "
+                "(Check HA_STAGING_TOKEN permissions)"
             )
             return False
 
@@ -176,7 +193,7 @@ async def diagnose_server_state(session):
 
 async def add_integration(session):
     """Add the Meraki HA integration via WebSocket."""
-    ws_url = HA_URL.replace("http", "ws").replace("https-", "wss") + "/api/websocket"
+    ws_url = HA_URL.replace("http", "ws").replace("https", "wss") + "/api/websocket"
     logger.info(f"Connecting to WebSocket: {ws_url}")
 
     # Use the existing session but connect to WS

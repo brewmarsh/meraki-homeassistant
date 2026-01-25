@@ -104,6 +104,8 @@ PLATFORM_NUMBER: Final = "number"
 """Represents the number platform."""
 PLATFORM_SELECT: Final = "select"
 """Represents the select platform."""
+PLATFORM_EVENT: Final = "event"
+"""Represents the event platform."""
 
 PLATFORMS: Final = [
     PLATFORM_SENSOR,
@@ -114,6 +116,7 @@ PLATFORMS: Final = [
     PLATFORM_CAMERA,
     PLATFORM_NUMBER,
     PLATFORM_SELECT,
+    PLATFORM_EVENT,
 ]
 """List of platforms supported by the integration."""
 
