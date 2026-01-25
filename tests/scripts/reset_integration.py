@@ -179,7 +179,7 @@ async def diagnose_server_state(session):
 
 async def add_integration(session):
     """Add the Meraki HA integration via WebSocket."""
-    ws_url = HA_URL.replace("http", "ws").replace("https", "wss") + "/api/websocket"
+    ws_url = HA_URL.replace("http", "ws").replace("https-", "wss") + "/api/websocket"
     logger.info(f"Connecting to WebSocket: {ws_url}")
 
     async with session.ws_connect(ws_url) as ws:
