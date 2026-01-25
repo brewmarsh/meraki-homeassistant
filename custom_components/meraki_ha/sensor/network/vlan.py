@@ -6,6 +6,7 @@ import logging
 
 from homeassistant.components.sensor import SensorEntity
 from homeassistant.config_entries import ConfigEntry
+from homeassistant.const import EntityCategory
 
 from ...coordinator import MerakiDataUpdateCoordinator
 from ...core.entities.meraki_vlan_entity import MerakiVLANEntity
@@ -17,6 +18,8 @@ _LOGGER = logging.getLogger(__name__)
 
 class MerakiVLANIDSensor(MerakiVLANEntity, SensorEntity):
     """Representation of a Meraki VLAN ID sensor."""
+
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
 
     def __init__(
         self,
@@ -43,6 +46,8 @@ class MerakiVLANIDSensor(MerakiVLANEntity, SensorEntity):
 
 class MerakiVLANIPv4EnabledSensor(MerakiVLANEntity, SensorEntity):
     """Representation of a Meraki VLAN IPv4 Enabled sensor."""
+
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
 
     def __init__(
         self,
@@ -72,6 +77,8 @@ class MerakiVLANIPv4EnabledSensor(MerakiVLANEntity, SensorEntity):
 class MerakiVLANIPv4InterfaceSensor(MerakiVLANEntity, SensorEntity):
     """Representation of a Meraki VLAN IPv4 Interface IP sensor."""
 
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
+
     def __init__(
         self,
         coordinator: MerakiDataUpdateCoordinator,
@@ -99,6 +106,8 @@ class MerakiVLANIPv4InterfaceSensor(MerakiVLANEntity, SensorEntity):
 
 class MerakiVLANIPv4UplinkSensor(MerakiVLANEntity, SensorEntity):
     """Representation of a Meraki VLAN IPv4 Uplink sensor."""
+
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
 
     def __init__(
         self,
@@ -128,6 +137,8 @@ class MerakiVLANIPv4UplinkSensor(MerakiVLANEntity, SensorEntity):
 
 class MerakiVLANIPv6EnabledSensor(MerakiVLANEntity, SensorEntity):
     """Representation of a Meraki VLAN IPv6 Enabled sensor."""
+
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
 
     def __init__(
         self,
@@ -160,6 +171,8 @@ class MerakiVLANIPv6EnabledSensor(MerakiVLANEntity, SensorEntity):
 class MerakiVLANIPv6InterfaceSensor(MerakiVLANEntity, SensorEntity):
     """Representation of a Meraki VLAN IPv6 Interface IP sensor."""
 
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
+
     def __init__(
         self,
         coordinator: MerakiDataUpdateCoordinator,
@@ -190,6 +203,8 @@ class MerakiVLANIPv6InterfaceSensor(MerakiVLANEntity, SensorEntity):
 
 class MerakiVLANIPv6UplinkSensor(MerakiVLANEntity, SensorEntity):
     """Representation of a Meraki VLAN IPv6 Uplink sensor."""
+
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
 
     def __init__(
         self,
