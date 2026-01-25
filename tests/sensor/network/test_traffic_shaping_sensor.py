@@ -4,6 +4,8 @@ from unittest.mock import MagicMock
 
 import pytest
 
+from homeassistant.const import EntityCategory
+
 from custom_components.meraki_ha.const import CONF_ENABLE_TRAFFIC_SHAPING
 from custom_components.meraki_ha.sensor.setup_helpers import async_setup_sensors
 from custom_components.meraki_ha.types import MerakiNetwork
@@ -51,6 +53,7 @@ def test_traffic_shaping_sensor_creation_enabled(mock_coordinator):
     sensor = ts_sensors[0]
     assert sensor.unique_id == "net1-traffic-shaping"
     assert sensor.name == "Traffic Shaping"
+    assert sensor.entity_category == EntityCategory.DIAGNOSTIC
 
     # Mock hass for the sensor
     sensor.hass = hass
