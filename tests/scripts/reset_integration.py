@@ -28,8 +28,14 @@ required_vars = {
 }
 missing = [key for key, val in required_vars.items() if not val]
 if missing:
-    logger.critical(f"❌ CRITICAL: The following environment variables are MISSING or EMPTY: {', '.join(missing)}")
-    logger.critical("Please check your GitHub Repository Secrets and .github/workflows/test.yml mappings.")
+    logger.critical(
+        "❌ CRITICAL: The following environment variables are MISSING or EMPTY: "
+        f"{', '.join(missing)}"
+    )
+    logger.critical(
+        "Please check your GitHub Repository Secrets and "
+        ".github/workflows/test.yml mappings."
+    )
     sys.exit(1)
 
 HEADERS = {
