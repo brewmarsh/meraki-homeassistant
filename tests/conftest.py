@@ -16,6 +16,26 @@ from tests.const import (
 
 
 @pytest.fixture(autouse=True)
+def mock_meraki():
+    """Mock meraki module to avoid installation issues."""
+    if "meraki" not in sys.modules:
+        mock_meraki_module = MagicMock()
+        mock_exceptions_module = MagicMock()
+
+        # Create a mock exception class
+        class MockAPIError(Exception):
+            pass
+
+        mock_exceptions_module.APIError = MockAPIError
+
+        # Link them
+        mock_meraki_module.exceptions = mock_exceptions_module
+
+        sys.modules["meraki"] = mock_meraki_module
+        sys.modules["meraki.exceptions"] = mock_exceptions_module
+
+
+@pytest.fixture(autouse=True)
 def mock_aiortc():
     """Mock aiortc module to avoid installation issues."""
     if "aiortc" not in sys.modules:

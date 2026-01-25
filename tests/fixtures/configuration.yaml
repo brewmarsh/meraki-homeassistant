@@ -1,0 +1,6 @@
+default_config:
+
+system_log: {}
+
+logger:
+  default: info

@@ -13,12 +13,14 @@ from ..types import MerakiDevice, MerakiNetwork
 _LOGGER = logging.getLogger(__name__)
 
 DEVICE_TYPE_MAPPING = {
+    "sensor": "Sensor",
     "camera": "Camera",
     "switch": "Switch",
     "wireless": "Wireless",
     "appliance": "Appliance",
     "security": "Appliance",
     "cellularGateway": "Gateway",
+    "sensor": "Sensor",
 }
 
 

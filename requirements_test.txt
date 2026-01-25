@@ -13,12 +13,12 @@ pip-audit==2.7.3
 playwright>=1.48.0
 psutil-home-assistant==0.0.1
 py==1.11.0
-pytest>=8.3.4
 pytest-asyncio
 pytest-cov
 pytest-homeassistant-custom-component>=0.13.205
 pytest-mock
-PyTurboJPEG==1.8.2
+pytest>=8.3.4
+PyTurboJPEG
 ruff
 setuptools==78.1.1
 types-aiofiles==25.1.0.20251011

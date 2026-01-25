@@ -89,6 +89,8 @@ def mock_coordinator_with_mt_devices(mock_coordinator: MagicMock) -> MagicMock:
                         )
                     elif metric == "current":
                         device.current = reading.get("current", {}).get("draw")
+                    elif metric == "voltage":
+                        device.voltage = reading.get("voltage", {}).get("level")
                     elif metric == "door":
                         device.door_open = reading.get("door", {}).get("open")
                 return device
