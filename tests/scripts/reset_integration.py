@@ -22,32 +22,14 @@ MERAKI_API_KEY = os.getenv("MERAKI_API_KEY")
 MERAKI_ORG_ID = os.getenv("MERAKI_ORG_ID")
 
 # Sanity Check
-if not all([HA_URL, HA_STAGING_TOKEN, MERAKI_API_KEY, MERAKI_ORG_ID]):
+if not all([HA_URL, HA_TOKEN, MERAKI_API_KEY, MERAKI_ORG_ID]):
     logger.error("Missing required environment variables.")
     sys.exit(1)
 
 HEADERS = {
-    "Authorization": f"Bearer {HA_STAGING_TOKEN}",
+    "Authorization": f"Bearer {HA_TOKEN}",
     "Content-Type": "application/json",
 }
-
-
-async def dump_error_log(session):
-    """Fetch and log the last 20 lines of the Home Assistant error log."""
-    logger.info("Fetching error log to diagnose failure...")
-    try:
-        async with session.get(f"{HA_URL}/api/error/log") as log_resp:
-            if log_resp.status == 200:
-                log_text = await log_resp.text()
-                logger.error("--- SYSTEM LOG (Last 20 lines) ---")
-                lines = log_text.splitlines()
-                for line in lines[-20:]:
-                    logger.error(line)
-                logger.error("----------------------------------")
-            else:
-                logger.error(f"Failed to fetch error log: {log_resp.status}")
-    except Exception as e:
-        logger.error(f"Error fetching error log: {e}")
 
 
 async def delete_existing_entries(session):
@@ -139,8 +121,7 @@ async def diagnose_server_state(session):
             logger.info(f"✅ API Connection OK. Message: {msg.get('message')}")
         else:
             logger.error(
-                f"❌ API Connection Failed: {resp.status} "
-                "(Check HA_STAGING_TOKEN permissions)"
+                f"❌ API Connection Failed: {resp.status} (Check HA_TOKEN permissions)"
             )
             return False
 
@@ -170,7 +151,15 @@ async def diagnose_server_state(session):
 
         # C. Dump Error Log if things look bad
         if "config" not in components or data.get("safe_mode", False):
-            await dump_error_log(session)
+            logger.info("Fetching error log to diagnose failure...")
+            async with session.get(f"{HA_URL}/api/error/log") as log_resp:
+                if log_resp.status == 200:
+                    log_text = await log_resp.text()
+                    logger.error("--- SYSTEM LOG (Last 20 lines) ---")
+                    lines = log_text.splitlines()
+                    for line in lines[-20:]:
+                        logger.error(line)
+                    logger.error("----------------------------------")
             return False
 
     logger.info("------------------------")
@@ -182,14 +171,13 @@ async def add_integration(session):
     ws_url = HA_URL.replace("http", "ws").replace("https-", "wss") + "/api/websocket"
     logger.info(f"Connecting to WebSocket: {ws_url}")
 
-    # Use the existing session but connect to WS
     async with session.ws_connect(ws_url) as ws:
         # 1. Authenticate
         logger.debug("Waiting for auth_required...")
         await ws.receive_json()  # Consume 'auth_required'
 
         logger.debug("Sending auth token...")
-        await ws.send_json({"type": "auth", "access_token": HA_STAGING_TOKEN})
+        await ws.send_json({"type": "auth", "access_token": HA_TOKEN})
 
         auth_resp = await ws.receive_json()
         if auth_resp["type"] != "auth_ok":
