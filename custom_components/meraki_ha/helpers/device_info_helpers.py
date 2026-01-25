@@ -20,7 +20,6 @@ DEVICE_TYPE_MAPPING = {
     "appliance": "Appliance",
     "security": "Appliance",
     "cellularGateway": "Gateway",
-    "sensor": "Sensor",
 }
 
 
