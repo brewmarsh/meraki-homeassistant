@@ -30,6 +30,7 @@ def test_camera_audio_detection_sensor(mock_coordinator):
         name="Test Camera",
         model="MV2",
         mac="00:11:22:33:44:55",
+        network_id="net1",  # <--- CRITICAL ADDITION FROM LEFT SIDE
         product_type="camera",
         sense_settings={"audioDetection": {"enabled": True}},
     )
@@ -41,9 +42,7 @@ def test_camera_audio_detection_sensor(mock_coordinator):
     )
 
     assert sensor.unique_id == "test_serial_camera_audio_detection_status"
-    # Note: Name format might vary based on naming_utils
-    # Typically: "Device Name Audio Detection"
-    # Let's verify the name is present
+    # Note: Name format checks are good to keep
     assert "Audio Detection" in sensor.name
     assert sensor.entity_category == EntityCategory.DIAGNOSTIC
     assert sensor.native_value == "enabled"
