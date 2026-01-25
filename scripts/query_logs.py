@@ -14,7 +14,7 @@ import os
 import sys
 from datetime import datetime, timedelta, timezone
 
-import requests
+import requests  # type: ignore[import-untyped]
 
 
 def main():
