@@ -45,7 +45,8 @@ def test_camera_audio_detection_sensor(mock_coordinator):
     )
 
     assert sensor.unique_id == "test_serial_camera_audio_detection_status"
-    # Note: Name format might vary based on naming_utils, but typically "Device Name Audio Detection"
+    # Note: Name format might vary based on naming_utils
+    # Typically: "Device Name Audio Detection"
     # Let's verify the name is present
     assert "Audio Detection" in sensor.name
     assert sensor.entity_category == EntityCategory.DIAGNOSTIC
