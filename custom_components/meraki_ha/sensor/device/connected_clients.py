@@ -10,6 +10,8 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import callback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
+from dataclasses import asdict
+
 from ...coordinator import MerakiDataUpdateCoordinator
 from ...helpers.device_info_helpers import resolve_device_info
 
@@ -41,7 +43,7 @@ class MerakiDeviceConnectedClientsSensor(CoordinatorEntity, SensorEntity):
         self._attr_name = "Connected Clients"
 
         self._attr_device_info = resolve_device_info(
-            entity_data=device_data,
+            entity_data=asdict(device_data),
             config_entry=self._config_entry,
         )
         self._update_state()
