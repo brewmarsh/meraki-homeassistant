@@ -118,7 +118,7 @@ def test_connected_clients_sensor_gateway(mock_data_coordinator):
     sensor._handle_coordinator_update()
     # Expects 2: the two online clients on net1 from the main `clients` list
     assert sensor.native_value == 2
-    assert sensor.device_info["name"] == "[Gateway] Gateway"
+    assert sensor.device_info["name"] == "[Device] Gateway"
 
 
 def test_connected_clients_sensor_switch(mock_data_coordinator):

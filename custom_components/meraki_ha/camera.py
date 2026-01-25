@@ -12,8 +12,8 @@ from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.device_registry import DeviceInfo
 
 from .const import DOMAIN
+from .core.utils.naming_utils import format_device_name
 from .entity import MerakiEntity
-from .helpers.device_info_helpers import resolve_device_info
 
 if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
@@ -88,9 +88,16 @@ class MerakiCamera(MerakiEntity, Camera):
         return data or {}
 
     @property
-    def device_info(self) -> DeviceInfo | None:
+    def device_info(self) -> DeviceInfo:
         """Return device information."""
-        return resolve_device_info(self.device_data, self._config_entry)
+        return DeviceInfo(
+            identifiers={(DOMAIN, self._device_serial)},
+            name=format_device_name(
+                self.device_data, self.coordinator.config_entry.options
+            ),
+            model=self.device_data.get("model"),
+            manufacturer="Cisco Meraki",
+        )
 
     async def async_camera_image(
         self, width: int | None = None, height: int | None = None

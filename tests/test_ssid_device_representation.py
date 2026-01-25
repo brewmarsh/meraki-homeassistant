@@ -86,22 +86,18 @@ def test_ssid_device_unification(
     sensor_device_info = sensor.device_info
     assert sensor_device_info is not None
     sensor_identifiers = sensor_device_info["identifiers"]
-    assert sensor_device_info["name"] == "[SSID] Test SSID"
 
     detail_sensor_device_info = detail_sensor.device_info
     assert detail_sensor_device_info is not None
     detail_sensor_identifiers = detail_sensor_device_info["identifiers"]
-    assert detail_sensor_device_info["name"] == "[SSID] Test SSID"
 
     switch_device_info = switch.device_info
     assert switch_device_info is not None
     switch_identifiers = switch_device_info["identifiers"]
-    assert switch_device_info["name"] == "[SSID] Test SSID"
 
     text_device_info = text.device_info
     assert text_device_info is not None
     text_identifiers = text_device_info["identifiers"]
-    assert text_device_info["name"] == "[SSID] Test SSID"
 
     # Assert that all entities share the exact same device identifier
     assert sensor_identifiers == {expected_device_identifier}

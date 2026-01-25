@@ -121,7 +121,7 @@ def mock_meraki_client():
 
         # Appliance
         mock_dashboard.appliance = MagicMock()
-        mock_dashboard.appliance.getOrganizationApplianceUplinkStatuses.return_value = []  # noqa: E501
+        mock_dashboard.appliance.getOrganizationApplianceUplinkStatuses.return_value = []
         mock_dashboard.appliance.getNetworkApplianceVlans.return_value = []
         mock_dashboard.appliance.getNetworkApplianceFirewallL3FirewallRules.return_value = {}  # noqa: E501
         mock_dashboard.appliance.getNetworkApplianceTrafficShaping.return_value = {}

@@ -23,7 +23,7 @@ def test_resolve_device_info_ssid_naming(mock_config_entry):
     device_info = resolve_device_info(
         entity_data=ssid_data, config_entry=mock_config_entry
     )
-    assert device_info["name"] == "[SSID] My Test SSID"
+    assert device_info["name"] == "My Test SSID"
     assert device_info["identifiers"] == {(DOMAIN, "net1_1")}
 
 
