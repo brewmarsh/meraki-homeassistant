@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import logging
-from dataclasses import asdict
 from typing import TYPE_CHECKING
 
 from homeassistant.components.sensor import SensorEntity, SensorStateClass
@@ -41,7 +40,7 @@ class MerakiDeviceConnectedClientsSensor(MerakiEntity, SensorEntity):
         self._attr_name = "Connected Clients"
 
         self._attr_device_info = resolve_device_info(
-            entity_data=asdict(device_data),
+            entity_data=device_data,
             config_entry=self._config_entry,
         )
         self._update_state()

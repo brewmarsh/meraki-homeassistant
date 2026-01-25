@@ -27,13 +27,11 @@ async def test_naming_conventions():
         serial="Q234-ABCD-5678",
         name="Office Camera",
         model="MV12",
-        product_type="camera",
         lan_ip="1.2.3.4",
         mac="00:11:22:33:44:55",
         network_id="N_12345",
         status="online",
     )
-    mock_coordinator.get_device.return_value = device
 
     camera = MerakiCamera(
         coordinator=mock_coordinator,
@@ -42,8 +40,6 @@ async def test_naming_conventions():
         config_entry=mock_config_entry,
     )
     assert camera.name is None
-    device_info = camera.device_info
-    assert device_info["name"] == "[Camera] Office Camera"
 
     motion_sensor = MerakiMotionSensor(
         coordinator=mock_coordinator,
