@@ -5,6 +5,7 @@ from unittest.mock import MagicMock
 import pytest
 from homeassistant.components.sensor import SensorEntityDescription
 
+from custom_components.meraki_ha.descriptions import MT_VOLTAGE_DESCRIPTION
 from custom_components.meraki_ha.sensor.device.meraki_mt_base import MerakiMtSensor
 from custom_components.meraki_ha.types import MerakiDevice
 
@@ -51,3 +52,28 @@ def test_meraki_mt_sensor_entity_id(mock_coordinator: MagicMock) -> None:
     assert sensor.name == "Temperature"
     assert sensor.has_entity_name is True
     assert sensor.entity_id is None
+
+
+def test_mt40_voltage_sensor(mock_coordinator):
+    """Test the MT40 voltage sensor."""
+    device_data = {
+        "serial": "Q3CA-2CG4-6LBM",
+        "name": "Power Controller",
+        "model": "MT40",
+        "productType": "sensor",
+        "readings": [{"metric": "voltage", "voltage": {"level": 120.5}}],
+    }
+    device = MerakiDevice.from_dict(device_data)
+    device.voltage = 120.5  # Simulate the parser's behavior
+    mock_coordinator.get_device.return_value = device
+
+    sensor = MerakiMtSensor(
+        coordinator=mock_coordinator,
+        device=device,
+        entity_description=MT_VOLTAGE_DESCRIPTION,
+    )
+    sensor.hass = MagicMock()
+    sensor.async_write_ha_state = MagicMock()
+
+    sensor._handle_coordinator_update()
+    assert sensor.native_value == 120.5
