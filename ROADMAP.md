@@ -4,8 +4,7 @@
 
 - [x] Implement `has_entity_name = True` (Naming Schema Refactor)
 - [x] Categorize technical sensors as `EntityCategory.DIAGNOSTIC`
-- [x] Migrate MV momentary events to `EventEntity` class
-- [ ] Migrate MT momentary events to `EventEntity` class
+- [ ] Migrate MV/MT momentary events to `EventEntity` class
 
 ## Phase 2: Energy & Power
 
