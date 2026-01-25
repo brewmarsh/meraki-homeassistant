@@ -120,16 +120,16 @@ def mock_meraki_client():
         ]
 
         # Appliance
-        mock_dashboard.appliance = MagicMock()
-        mock_dashboard.appliance.getOrganizationApplianceUplinkStatuses.return_value = []
-        mock_dashboard.appliance.getNetworkApplianceVlans.return_value = []
-        mock_dashboard.appliance.getNetworkApplianceFirewallL3FirewallRules.return_value = {}  # noqa: E501
-        mock_dashboard.appliance.getNetworkApplianceTrafficShaping.return_value = {}
-        mock_dashboard.appliance.getNetworkApplianceVpnSiteToSiteVpn.return_value = {}
-        mock_dashboard.appliance.getNetworkApplianceContentFiltering.return_value = {}
-        mock_dashboard.appliance.getNetworkApplianceSettings.return_value = {}
-        mock_dashboard.appliance.getNetworkApplianceL7FirewallRules.return_value = {}
-        mock_dashboard.appliance.getNetworkAppliancePorts.return_value = []
+        appliance = mock_dashboard.appliance = MagicMock()
+        appliance.getOrganizationApplianceUplinkStatuses.return_value = []
+        appliance.getNetworkApplianceVlans.return_value = []
+        appliance.getNetworkApplianceFirewallL3FirewallRules.return_value = {}
+        appliance.getNetworkApplianceTrafficShaping.return_value = {}
+        appliance.getNetworkApplianceVpnSiteToSiteVpn.return_value = {}
+        appliance.getNetworkApplianceContentFiltering.return_value = {}
+        appliance.getNetworkApplianceSettings.return_value = {}
+        appliance.getNetworkApplianceL7FirewallRules.return_value = {}
+        appliance.getNetworkAppliancePorts.return_value = []
 
         # Sensor
         mock_dashboard.sensor = MagicMock()
