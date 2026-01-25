@@ -26,7 +26,7 @@ MERAKI_ORG_ID = os.getenv("MERAKI_ORG_ID")
 # IMPROVED Sanity Check
 required_vars = {
     "HA_URL": HA_URL,
-    "HA_TOKEN": HA_STAGING_TOKEN,
+    "HA_TOKEN": HA_TOKEN,
     "MERAKI_API_KEY": MERAKI_API_KEY,
     "MERAKI_ORG_ID": MERAKI_ORG_ID,
 }
@@ -43,7 +43,7 @@ if missing:
     sys.exit(1)
 
 HEADERS = {
-    "Authorization": f"Bearer {HA_STAGING_TOKEN}",
+    "Authorization": f"Bearer {HA_TOKEN}",
     "Content-Type": "application/json",
 }
 
@@ -122,6 +122,19 @@ async def restart_and_wait(session):
     return False
 
 
+async def dump_error_log(session):
+    """Dump the last 20 lines of the system log."""
+    logger.info("Fetching error log to diagnose failure...")
+    async with session.get(f"{HA_URL}/api/error/log") as log_resp:
+        if log_resp.status == 200:
+            log_text = await log_resp.text()
+            logger.error("--- SYSTEM LOG (Last 20 lines) ---")
+            lines = log_text.splitlines()
+            for line in lines[-20:]:
+                logger.error(line)
+            logger.error("----------------------------------")
+
+
 async def diagnose_server_state(session):
     """Diagnose server state.
 
@@ -168,15 +181,7 @@ async def diagnose_server_state(session):
 
         # C. Dump Error Log if things look bad
         if "config" not in components or data.get("safe_mode", False):
-            logger.info("Fetching error log to diagnose failure...")
-            async with session.get(f"{HA_URL}/api/error/log") as log_resp:
-                if log_resp.status == 200:
-                    log_text = await log_resp.text()
-                    logger.error("--- SYSTEM LOG (Last 20 lines) ---")
-                    lines = log_text.splitlines()
-                    for line in lines[-20:]:
-                        logger.error(line)
-                    logger.error("----------------------------------")
+            await dump_error_log(session)
             return False
 
     logger.info("------------------------")
