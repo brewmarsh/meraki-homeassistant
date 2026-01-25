@@ -12,7 +12,6 @@ from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from ...const import DOMAIN
-from ...const import DOMAIN
 from ...coordinator import MerakiDataUpdateCoordinator
 from ...types import MerakiDevice
 
