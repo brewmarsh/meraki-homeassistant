@@ -164,47 +164,31 @@ async def diagnose_server_state(session):
     return True
 
 
+async def dump_error_log(session):
+    """Dump the last 20 lines of the Home Assistant error log."""
+    logger.info("Fetching error log to diagnose failure...")
+    async with session.get(f"{HA_URL}/api/error/log") as log_resp:
+        if log_resp.status == 200:
+            log_text = await log_resp.text()
+            logger.error("--- SYSTEM LOG (Last 20 lines) ---")
+            lines = log_text.splitlines()
+            for line in lines[-20:]:
+                logger.error(line)
+            logger.error("----------------------------------")
+
+
 async def add_integration(session):
     """Add the Meraki HA integration via WebSocket."""
     ws_url = HA_URL.replace("http", "ws").replace("https-", "wss") + "/api/websocket"
     logger.info(f"Connecting to WebSocket: {ws_url}")
 
-    async with aiohttp.ClientSession() as session:
-        async with session.ws_connect(ws_url) as ws:
-            # 1. Authenticate
-            logger.debug("Waiting for auth_required...")
-            await ws.receive_json()  # Consume 'auth_required'
-
-            logger.debug("Sending auth token...")
-            await ws.send_json({"type": "auth", "access_token": HA_STAGING_TOKEN})
-
-            auth_resp = await ws.receive_json()
-            if auth_resp["type"] != "auth_ok":
-                logger.error(f"WebSocket Auth Failed: {auth_resp}")
-                return False
-            logger.info("WebSocket Authentication Successful.")
-
-            # --- DIAGNOSTIC: Check User Permissions ---
-            logger.info("Checking WebSocket User Permissions...")
-            await ws.send_json({"id": 999, "type": "auth/current_user"})
-            user_resp = await ws.receive_json()
-
-            if user_resp.get("success"):
-                user = user_resp["result"]
-                logger.info(f"User: {user['name']} (ID: {user['id']})")
-                logger.info(f"Is Owner: {user.get('is_owner')}")
-                logger.info(f"Is Admin: {user.get('is_admin')}")
-
-                if not user.get("is_admin") and not user.get("is_owner"):
-                    logger.critical(
-                        "❌ CRITICAL: WebSocket user is not an admin; "
-                        "config flow commands will be hidden."
-                    )
-            else:
-                logger.error(f"Failed to get current user: {user_resp}")
+    async with session.ws_connect(ws_url) as ws:
+        # 1. Authenticate
+        logger.debug("Waiting for auth_required...")
+        await ws.receive_json()  # Consume 'auth_required'
 
         logger.debug("Sending auth token...")
-        await ws.send_json({"type": "auth", "access_token": HA_TOKEN})
+        await ws.send_json({"type": "auth", "access_token": HA_STAGING_TOKEN})
 
         auth_resp = await ws.receive_json()
         if auth_resp["type"] != "auth_ok":
