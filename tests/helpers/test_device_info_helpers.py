@@ -43,3 +43,21 @@ def test_resolve_device_info_physical_device(mock_config_entry):
     assert device_info["identifiers"] == {(DOMAIN, "Q234-ABCD-5678")}
     assert device_info["model"] == "MR33"
     assert device_info["sw_version"] == "29.1.1"
+
+
+def test_resolve_device_info_sensor_device(mock_config_entry):
+    """Test that sensor device info is resolved correctly."""
+    device_data = {
+        "serial": "Q234-ABCD-5679",
+        "model": "MT10",
+        "name": "Temperature Sensor",
+        "firmware": "1.0.0",
+        "productType": "sensor",
+    }
+    device_info = resolve_device_info(
+        entity_data=device_data, config_entry=mock_config_entry
+    )
+    assert device_info["name"] == "[Sensor] Temperature Sensor"
+    assert device_info["identifiers"] == {(DOMAIN, "Q234-ABCD-5679")}
+    assert device_info["model"] == "MT10"
+    assert device_info["sw_version"] == "1.0.0"
