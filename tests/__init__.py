@@ -2,6 +2,16 @@
 
 from __future__ import annotations
 
+import sys
+from unittest.mock import MagicMock
+
+# Mock meraki if not installed to avoid ModuleNotFoundError during collection
+try:
+    import meraki  # noqa: F401
+except ImportError:
+    sys.modules["meraki"] = MagicMock()
+    sys.modules["meraki.exceptions"] = MagicMock()
+
 from typing import Any
 
 from homeassistant.core import HomeAssistant
