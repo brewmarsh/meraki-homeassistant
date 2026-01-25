@@ -28,17 +28,17 @@ async def dump_error_log(session):
     print("-------------------------------------------\n")
 
 
-HA_TOKEN = os.getenv("HA_TOKEN")
+HA_STAGING_TOKEN = os.getenv("HA_STAGING_TOKEN")
 MERAKI_API_KEY = os.getenv("MERAKI_API_KEY")
 MERAKI_ORG_ID = os.getenv("MERAKI_ORG_ID")
 
 # Sanity Check
-if not all([HA_URL, HA_TOKEN, MERAKI_API_KEY, MERAKI_ORG_ID]):
+if not all([HA_URL, HA_STAGING_TOKEN, MERAKI_API_KEY, MERAKI_ORG_ID]):
     logger.error("Missing required environment variables.")
     sys.exit(1)
 
 HEADERS = {
-    "Authorization": f"Bearer {HA_TOKEN}",
+    "Authorization": f"Bearer {HA_STAGING_TOKEN}",
     "Content-Type": "application/json",
 }
 
@@ -132,7 +132,8 @@ async def diagnose_server_state(session):
             logger.info(f"✅ API Connection OK. Message: {msg.get('message')}")
         else:
             logger.error(
-                f"❌ API Connection Failed: {resp.status} (Check HA_TOKEN permissions)"
+                f"❌ API Connection Failed: {resp.status} "
+                "(Check HA_STAGING_TOKEN permissions)"
             )
             return False
 
@@ -188,7 +189,7 @@ async def add_integration(session):
         await ws.receive_json()  # Consume 'auth_required'
 
         logger.debug("Sending auth token...")
-        await ws.send_json({"type": "auth", "access_token": HA_TOKEN})
+        await ws.send_json({"type": "auth", "access_token": HA_STAGING_TOKEN})
 
         auth_resp = await ws.receive_json()
         if auth_resp["type"] != "auth_ok":
