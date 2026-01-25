@@ -31,17 +31,13 @@ def test_camera_audio_detection_sensor(mock_coordinator):
         model="MV2",
         mac="00:11:22:33:44:55",
         product_type="camera",
-        sense_settings={
-            "audioDetection": {"enabled": True}
-        }
+        sense_settings={"audioDetection": {"enabled": True}},
     )
 
     mock_coordinator.get_device.return_value = device
 
     sensor = MerakiCameraAudioDetectionSensor(
-        mock_coordinator,
-        device,
-        mock_coordinator.config_entry
+        mock_coordinator, device, mock_coordinator.config_entry
     )
 
     assert sensor.unique_id == "test_serial_camera_audio_detection_status"
