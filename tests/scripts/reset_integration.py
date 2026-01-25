@@ -33,8 +33,8 @@ required_vars = {
 missing = [key for key, val in required_vars.items() if not val]
 if missing:
     logger.critical(
-        "❌ CRITICAL: The following environment variables are MISSING or EMPTY: %s",
-        ", ".join(missing),
+        "❌ CRITICAL: The following environment variables are MISSING or EMPTY: "
+        f"{', '.join(missing)}"
     )
     logger.critical(
         "Please check your GitHub Repository Secrets and "
