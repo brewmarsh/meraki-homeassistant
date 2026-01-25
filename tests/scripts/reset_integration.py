@@ -279,8 +279,8 @@ async def add_integration(session):
             logger.error("Failed to start config flow after multiple attempts.")
             return False
 
-        # 3. Submit API Key
-        logger.info("Sending API Key...")
+        # 3. Submit Credentials (API Key & Org ID)
+        logger.info("Sending Credentials...")
         message_id += 1
         await ws.send_json(
             {
@@ -288,29 +288,16 @@ async def add_integration(session):
                 "type": "config_entries/flow/handle_step",
                 "flow_id": flow_id,
                 "step_id": "user",
-                "user_input": {"api_key": MERAKI_API_KEY},
+                "user_input": {
+                    "meraki_api_key": MERAKI_API_KEY,
+                    "meraki_org_id": MERAKI_ORG_ID,
+                },
             }
         )
         resp = await ws.receive_json()
-        logger.debug(f"API Key Response: {resp}")
+        logger.debug(f"Credentials Response: {resp}")
 
-        # 4. Handle Optional Organization Step
-        if resp.get("success") and resp["result"].get("step_id") == "pick_organization":
-            logger.info("Selecting Organization...")
-            message_id += 1
-            await ws.send_json(
-                {
-                    "id": message_id,
-                    "type": "config_entries/flow/handle_step",
-                    "flow_id": flow_id,
-                    "step_id": "pick_organization",
-                    "user_input": {"organization_id": MERAKI_ORG_ID},
-                }
-            )
-            resp = await ws.receive_json()
-            logger.debug(f"Org Selection Response: {resp}")
-
-        # 5. Final Verification
+        # 4. Final Verification
         if resp.get("success") and resp["result"].get("type") == "create_entry":
             logger.info("SUCCESS: Integration re-added.")
             return True
