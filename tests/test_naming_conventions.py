@@ -27,6 +27,7 @@ async def test_naming_conventions():
         network_id="N_12345",
         status="online",
     )
+    mock_coordinator.get_device.return_value = device
 
     camera = MerakiCamera(
         coordinator=mock_coordinator,
