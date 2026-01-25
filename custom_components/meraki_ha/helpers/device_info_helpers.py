@@ -93,7 +93,9 @@ def resolve_device_info(
     # Fallback to creating device info for a physical device
     device_serial = entity_data.get("serial")
     if device_serial:
-        product_type = entity_data.get("productType")
+        product_type = str(
+            entity_data.get("productType") or entity_data.get("product_type")
+        )
         prefix = DEVICE_TYPE_MAPPING.get(product_type, "Device")
         name = entity_data.get("name")
         return DeviceInfo(
