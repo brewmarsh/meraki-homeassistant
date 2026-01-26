@@ -108,7 +108,7 @@ async def async_register_webhook(
     """
     if (
         "cloud" in hass.config.components
-        and hass.components.cloud.async_is_logged_in()
+        and hass.components.cloud.async_is_logged_in()  # type: ignore[attr-defined]
     ):
         try:
             webhook_url_from_entry = entry.data.get("webhook_url") if entry else None
@@ -117,7 +117,10 @@ async def async_register_webhook(
         except Exception as e:
             _LOGGER.warning("Failed to register webhook: %s", e)
     else:
-        _LOGGER.debug("Home Assistant Cloud not connected. Skipping Cloudhook registration.")
+        _LOGGER.debug(
+            "Home Assistant Cloud not connected. "
+            "Skipping Cloudhook registration."
+        )
 
 
 async def async_unregister_webhook(

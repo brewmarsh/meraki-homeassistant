@@ -275,9 +275,6 @@ For each Meraki environmental sensor (MT series), entities are created to monito
 | `sensor`        | `[Sensor Name] Humidity`        | The relative humidity.               | MT10, MT12   |
 | `sensor`        | `[Sensor Name] Water Detection` | Whether water has been detected.     | MT12         |
 | `binary_sensor` | `[Sensor Name] Door`            | The state of the door (open/closed). | MT20         |
-| `sensor`        | `[Sensor Name] Power`           | Power consumption.                   | MT40         |
-| `sensor`        | `[Sensor Name] Voltage`         | Voltage.                             | MT40         |
-| `sensor`        | `[Sensor Name] Current`         | Current.                             | MT40         |
 
 ## Automation examples 🚀
 

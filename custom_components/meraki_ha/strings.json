@@ -77,39 +77,6 @@
           "dormant": "Dormant",
           "unknown": "Unknown"
         }
-      },
-      "mt_temperature": {
-        "name": "Temperature"
-      },
-      "mt_humidity": {
-        "name": "Humidity"
-      },
-      "mt_water_detection": {
-        "name": "Water Detection"
-      },
-      "mt_pm25": {
-        "name": "PM2.5"
-      },
-      "mt_tvoc": {
-        "name": "TVOC"
-      },
-      "mt_co2": {
-        "name": "CO2"
-      },
-      "mt_noise": {
-        "name": "Ambient Noise"
-      },
-      "mt_power": {
-        "name": "Power"
-      },
-      "mt_voltage": {
-        "name": "Voltage"
-      },
-      "mt_current": {
-        "name": "Current"
-      },
-      "mt_battery": {
-        "name": "Battery"
       }
     },
     "switch": {

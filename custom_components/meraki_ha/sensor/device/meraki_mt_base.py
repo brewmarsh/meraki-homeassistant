@@ -81,6 +81,8 @@ class MerakiMtSensor(CoordinatorEntity, RestoreSensor):
             self._attr_native_value = self._maybe_get_value(self._device.current)
         elif key == "voltage":
             self._attr_native_value = self._maybe_get_value(self._device.voltage)
+        elif key == "voltage":
+            self._attr_native_value = self._maybe_get_value(self._device.voltage)
         elif key == "door":
             self._attr_native_value = self._maybe_get_value(self._device.door_open)
         else:

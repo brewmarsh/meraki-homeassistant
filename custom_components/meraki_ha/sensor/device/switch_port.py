@@ -11,7 +11,6 @@ from homeassistant.core import callback
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from ...const import DOMAIN
 from ...coordinator import MerakiDataUpdateCoordinator
 from ...types import MerakiDevice
 
@@ -43,7 +42,7 @@ class MerakiSwitchPortSensor(CoordinatorEntity, SensorEntity):
     def device_info(self) -> DeviceInfo | None:
         """Return the device info."""
         return DeviceInfo(
-            identifiers={(DOMAIN, cast(str, self._device.serial))},
+            identifiers={(self.coordinator.DOMAIN, cast(str, self._device.serial))},
         )
 
     @property
