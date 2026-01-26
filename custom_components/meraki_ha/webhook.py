@@ -106,10 +106,7 @@ async def async_register_webhook(
         entry: The config entry.
 
     """
-    if (
-        "cloud" in hass.config.components
-        and hass.components.cloud.async_is_logged_in()
-    ):
+    if "cloud" in hass.config.components and hass.components.cloud.async_is_logged_in():
         try:
             webhook_url_from_entry = entry.data.get("webhook_url") if entry else None
             webhook_url = get_webhook_url(hass, webhook_id, webhook_url_from_entry)
