@@ -152,8 +152,7 @@ async def diagnose_server_state(session):
             logger.info(f"✅ API Connection OK. Message: {msg.get('message')}")
         else:
             logger.error(
-                f"❌ API Connection Failed: {resp.status} "
-                "(Check HA_STAGING_TOKEN permissions)"
+                f"❌ API Connection Failed: {resp.status} (Check HA_TOKEN permissions)"
             )
             return False
 
@@ -258,11 +257,14 @@ async def add_integration(session):
 
             if error_code == "unknown_command":
                 logger.warning(
-                    "Attempt %s: 'unknown_command'. The 'config' integration "
-                    "failed to register commands.",
+                    "Attempt %s: Command not registered yet. "
+                    "Waiting for server to settle...",
                     i + 1,
                 )
-                await dump_error_log(session)
+                # INCREASE WAIT TIME
+                await asyncio.sleep(10)  # Give it time!
+                message_id += 1
+                continue
             elif error_msg == "Invalid handler specified":
                 logger.critical(
                     "❌ Critical Error: Config Flow Handler mismatch. "
