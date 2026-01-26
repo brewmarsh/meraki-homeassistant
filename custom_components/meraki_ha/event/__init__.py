@@ -11,6 +11,7 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from ..const import DOMAIN
 from ..coordinator import MerakiDataUpdateCoordinator
 from .device.camera_motion import MerakiCameraMotionEvent
+from .device.mt_button import MerakiMtButtonEvent
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -36,5 +37,7 @@ async def async_setup_entry(
             entities.append(
                 MerakiCameraMotionEvent(coordinator, device, camera_service, entry)
             )
+        elif device.model == "MT30":
+            entities.append(MerakiMtButtonEvent(coordinator, device, entry))
 
     async_add_entities(entities)
