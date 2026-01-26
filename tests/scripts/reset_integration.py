@@ -258,7 +258,8 @@ async def add_integration(session):
 
             if error_code == "unknown_command":
                 logger.warning(
-                    "Attempt %s: Command not registered yet. Waiting for server to settle...",
+                    "Attempt %s: Command not registered yet. "
+                    "Waiting for server to settle...",
                     i + 1,
                 )
                 # INCREASE WAIT TIME
