@@ -27,8 +27,8 @@
   "loggers": ["meraki_ha"],
   "quality_scale": "platinum",
   "requirements": [
-    "aiofiles>=24.1.0",
     "aiodns==3.6.1",
+    "aiofiles>=24.1.0",
     "aiohttp>=3.8.1",
     "meraki>=1.53.0",
     "pycares==4.11.0",
