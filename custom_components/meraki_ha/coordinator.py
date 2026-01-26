@@ -217,6 +217,19 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 d.serial: d for d in data.get("devices", []) if d.serial
             }
             self.networks_by_id = {n.id: n for n in data.get("networks", []) if n.id}
+
+            # Pre-register network devices to avoid "referencing a non existing
+            # via_device" warnings when downstream entities (like VLANs) initialize.
+            device_registry = dr.async_get(self.hass)
+            for network in data.get("networks", []):
+                device_registry.async_get_or_create(
+                    config_entry_id=self.config_entry.entry_id,
+                    identifiers={(DOMAIN, network.id)},
+                    name=network.name,
+                    manufacturer="Cisco Meraki",
+                    model="Network",
+                )
+
             self.ssids_by_network_and_number = {
                 (s.get("networkId"), s.get("number")): s
                 for s in data.get("ssids", [])
