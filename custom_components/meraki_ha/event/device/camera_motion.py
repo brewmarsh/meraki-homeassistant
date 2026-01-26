@@ -74,7 +74,7 @@ class MerakiCameraMotionEvent(MerakiEntity, EventEntity):
             return
 
         # Sort events by startTs
-        motion_events.sort(key=lambda x: x.get("startTs", 0))
+        motion_events.sort(key=lambda x: x.get("startTs", ""))
 
         if self._is_first_update:
             if motion_events:
