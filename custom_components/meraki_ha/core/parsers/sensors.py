@@ -69,5 +69,7 @@ def parse_sensor_data(
                     device.current = reading.get("current", {}).get("draw")
                 elif metric == "voltage":
                     device.voltage = reading.get("voltage", {}).get("level")
+                elif metric == "voltage":
+                    device.voltage = reading.get("voltage", {}).get("level")
                 elif metric == "door":
                     device.door_open = reading.get("door", {}).get("open")

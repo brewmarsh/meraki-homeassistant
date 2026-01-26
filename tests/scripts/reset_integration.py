@@ -152,7 +152,8 @@ async def diagnose_server_state(session):
             logger.info(f"✅ API Connection OK. Message: {msg.get('message')}")
         else:
             logger.error(
-                f"❌ API Connection Failed: {resp.status} (Check HA_TOKEN permissions)"
+                f"❌ API Connection Failed: {resp.status} "
+                "(Check HA_STAGING_TOKEN permissions)"
             )
             return False
 
@@ -257,14 +258,11 @@ async def add_integration(session):
 
             if error_code == "unknown_command":
                 logger.warning(
-                    "Attempt %s: Command not registered yet. "
-                    "Waiting for server to settle...",
+                    "Attempt %s: 'unknown_command'. The 'config' integration "
+                    "failed to register commands.",
                     i + 1,
                 )
-                # INCREASE WAIT TIME
-                await asyncio.sleep(10)  # Give it time!
-                message_id += 1
-                continue
+                await dump_error_log(session)
             elif error_msg == "Invalid handler specified":
                 logger.critical(
                     "❌ Critical Error: Config Flow Handler mismatch. "
@@ -314,9 +312,8 @@ async def main():
     verify server state, and re-add integration.
     """  # noqa: D205
     async with aiohttp.ClientSession(headers=HEADERS) as session:
-        # Removing the deletion step until we debug why installing is not working
-        #        if not await delete_existing_entries(session):
-        #            sys.exit(1)
+        if not await delete_existing_entries(session):
+            sys.exit(1)
         if not await restart_and_wait(session):
             sys.exit(1)
         # Added Diagnostic Step:

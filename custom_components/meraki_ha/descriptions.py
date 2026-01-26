@@ -19,7 +19,7 @@ from homeassistant.const import (
 # Descriptions for individual sensor metrics
 MT_TEMPERATURE_DESCRIPTION = SensorEntityDescription(
     key="temperature",
-    translation_key="mt_temperature",
+    name="Temperature",
     device_class=SensorDeviceClass.TEMPERATURE,
     state_class=SensorStateClass.MEASUREMENT,
     native_unit_of_measurement=UnitOfTemperature.CELSIUS,
@@ -27,7 +27,7 @@ MT_TEMPERATURE_DESCRIPTION = SensorEntityDescription(
 
 MT_HUMIDITY_DESCRIPTION = SensorEntityDescription(
     key="humidity",
-    translation_key="mt_humidity",
+    name="Humidity",
     device_class=SensorDeviceClass.HUMIDITY,
     state_class=SensorStateClass.MEASUREMENT,
     native_unit_of_measurement=PERCENTAGE,
@@ -35,13 +35,13 @@ MT_HUMIDITY_DESCRIPTION = SensorEntityDescription(
 
 MT_WATER_DESCRIPTION = SensorEntityDescription(
     key="water",
-    translation_key="mt_water_detection",
+    name="Water Detection",
     device_class=SensorDeviceClass.MOISTURE,
 )
 
 MT_PM25_DESCRIPTION = SensorEntityDescription(
     key="pm25",
-    translation_key="mt_pm25",
+    name="PM2.5",
     device_class=SensorDeviceClass.PM25,
     state_class=SensorStateClass.MEASUREMENT,
     native_unit_of_measurement=CONCENTRATION_MICROGRAMS_PER_CUBIC_METER,
@@ -49,7 +49,7 @@ MT_PM25_DESCRIPTION = SensorEntityDescription(
 
 MT_TVOC_DESCRIPTION = SensorEntityDescription(
     key="tvoc",
-    translation_key="mt_tvoc",
+    name="TVOC",
     device_class=SensorDeviceClass.VOLATILE_ORGANIC_COMPOUNDS,
     state_class=SensorStateClass.MEASUREMENT,
     native_unit_of_measurement=CONCENTRATION_MICROGRAMS_PER_CUBIC_METER,
@@ -57,7 +57,7 @@ MT_TVOC_DESCRIPTION = SensorEntityDescription(
 
 MT_CO2_DESCRIPTION = SensorEntityDescription(
     key="co2",
-    translation_key="mt_co2",
+    name="CO2",
     device_class=SensorDeviceClass.CO2,
     state_class=SensorStateClass.MEASUREMENT,
     native_unit_of_measurement=CONCENTRATION_PARTS_PER_MILLION,
@@ -65,7 +65,7 @@ MT_CO2_DESCRIPTION = SensorEntityDescription(
 
 MT_NOISE_DESCRIPTION = SensorEntityDescription(
     key="noise",
-    translation_key="mt_noise",
+    name="Ambient Noise",
     device_class=SensorDeviceClass.SOUND_PRESSURE,
     state_class=SensorStateClass.MEASUREMENT,
     native_unit_of_measurement=UnitOfSoundPressure.WEIGHTED_DECIBEL_A,
@@ -74,7 +74,7 @@ MT_NOISE_DESCRIPTION = SensorEntityDescription(
 
 MT_POWER_DESCRIPTION = SensorEntityDescription(
     key="power",
-    translation_key="mt_power",
+    name="Power",
     device_class=SensorDeviceClass.POWER,
     state_class=SensorStateClass.MEASUREMENT,
     native_unit_of_measurement=UnitOfPower.WATT,
@@ -82,7 +82,7 @@ MT_POWER_DESCRIPTION = SensorEntityDescription(
 
 MT_VOLTAGE_DESCRIPTION = SensorEntityDescription(
     key="voltage",
-    translation_key="mt_voltage",
+    name="Voltage",
     device_class=SensorDeviceClass.VOLTAGE,
     state_class=SensorStateClass.MEASUREMENT,
     native_unit_of_measurement=UnitOfElectricPotential.VOLT,
@@ -90,7 +90,7 @@ MT_VOLTAGE_DESCRIPTION = SensorEntityDescription(
 
 MT_CURRENT_DESCRIPTION = SensorEntityDescription(
     key="current",
-    translation_key="mt_current",
+    name="Current",
     device_class=SensorDeviceClass.CURRENT,
     state_class=SensorStateClass.MEASUREMENT,
     native_unit_of_measurement=UnitOfElectricCurrent.AMPERE,
@@ -98,7 +98,7 @@ MT_CURRENT_DESCRIPTION = SensorEntityDescription(
 
 MT_BATTERY_DESCRIPTION = SensorEntityDescription(
     key="battery",
-    translation_key="mt_battery",
+    name="Battery",
     device_class=SensorDeviceClass.BATTERY,
     state_class=SensorStateClass.MEASUREMENT,
     native_unit_of_measurement=PERCENTAGE,

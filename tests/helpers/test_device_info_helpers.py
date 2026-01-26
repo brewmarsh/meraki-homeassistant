@@ -46,7 +46,7 @@ def test_resolve_device_info_physical_device(mock_config_entry):
 
 
 def test_resolve_device_info_sensor(mock_config_entry):
-    """Test that MT40 sensor device info is resolved correctly."""
+    """Test that sensor device info is resolved correctly."""
     device_data = {
         "serial": "Q234-ABCD-5678",
         "model": "MT40",
@@ -64,7 +64,7 @@ def test_resolve_device_info_sensor(mock_config_entry):
 
 
 def test_resolve_device_info_sensor_device(mock_config_entry):
-    """Test that MT10 sensor device info is resolved correctly."""
+    """Test that sensor device info is resolved correctly."""
     device_data = {
         "serial": "Q234-ABCD-5679",
         "model": "MT10",
