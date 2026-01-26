@@ -62,6 +62,16 @@ def handle_meraki_errors(
             if _is_informational_error(err):
                 raise MerakiInformationalError(f"Informational error: {err}") from err
 
+            # Handle unsupported objectType error for cameras as a non-fatal warning
+            if err.status == 400 and "objectType" in str(err):
+                _LOGGER.debug(
+                    "API call %s failed because the camera does not support the"
+                    " requested object type: %s",
+                    func.__name__,
+                    err,
+                )
+                return cast(T, [])
+
             _LOGGER.error("Meraki API error: %s", err)
             if _is_auth_error(err):
                 raise MerakiAuthenticationError(
