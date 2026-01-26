@@ -2,6 +2,7 @@ aiofiles>=24.1.0
 aiodns==3.6.1
 aiohttp>=3.8.1
 meraki>=1.53.0
+orjson>=3.9.0
 pycares==4.11.0
 urllib3>=1.26.5
 webrtc-models==0.3.0
