@@ -103,7 +103,9 @@ class MerakiSwitchPortPowerSensor(CoordinatorEntity, SensorEntity):
         self._config_entry = config_entry
 
         self._attr_has_entity_name = True
-        self._attr_unique_id = f"{self._device.serial}_port_{self._port['portId']}_power"
+        self._attr_unique_id = (
+            f"{self._device.serial}_port_{self._port['portId']}_power"
+        )
         self._attr_name = f"Port {self._port['portId']} Power"
 
     @property
@@ -162,7 +164,9 @@ class MerakiSwitchPortEnergySensor(CoordinatorEntity, SensorEntity):
         self._config_entry = config_entry
 
         self._attr_has_entity_name = True
-        self._attr_unique_id = f"{self._device.serial}_port_{self._port['portId']}_energy"
+        self._attr_unique_id = (
+            f"{self._device.serial}_port_{self._port['portId']}_energy"
+        )
         self._attr_name = f"Port {self._port['portId']} Energy"
 
     @property
