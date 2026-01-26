@@ -11,6 +11,7 @@ import logging
 from typing import TYPE_CHECKING, Any
 
 from ..errors import MerakiInformationalError
+from ..utils.api_utils import handle_meraki_errors
 
 if TYPE_CHECKING:
     from ..api.client import MerakiAPIClient
@@ -55,18 +56,14 @@ class CameraRepository:
 
         return features
 
+    @handle_meraki_errors
     async def get_analytics_data(
         self, serial: str, object_type: str
     ) -> list[dict[str, Any]] | None:
         """Fetch object detection and motion data."""
-        try:
-            recent = await self._api_client.camera.get_device_camera_analytics_recent(
-                serial, object_type
-            )
-            return recent
-        except Exception as e:
-            _LOGGER.error("Error fetching analytics data for %s: %s", serial, e)
-            return None
+        return await self._api_client.camera.get_device_camera_analytics_recent(
+            serial, object_type
+        )
 
     async def async_get_rtsp_stream_url(self, serial: str) -> str | None:
         """

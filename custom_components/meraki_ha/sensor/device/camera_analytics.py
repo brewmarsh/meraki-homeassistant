@@ -9,6 +9,7 @@ from homeassistant.components.sensor import SensorEntity
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
+from ...core.errors import MerakiInformationalError
 from ...helpers.device_info_helpers import resolve_device_info
 from ...meraki_data_coordinator import MerakiDataCoordinator
 
@@ -66,6 +67,13 @@ class MerakiAnalyticsSensor(CoordinatorEntity, SensorEntity):
                 self._analytics_data = analytics_data[0]
             else:
                 self._analytics_data = {}
+        except MerakiInformationalError as e:
+            _LOGGER.debug(
+                "Analytics not supported for %s: %s",
+                serial,
+                e,
+            )
+            self._analytics_data = {}
         except Exception as e:
             _LOGGER.error("Error updating analytics sensor for %s: %s", serial, e)
             self._analytics_data = {}

@@ -4,6 +4,7 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
+from custom_components.meraki_ha.core.errors import MerakiInformationalError
 from custom_components.meraki_ha.sensor.device.camera_analytics import (
     MerakiPersonCountSensor,
     MerakiVehicleCountSensor,
@@ -53,3 +54,21 @@ async def test_vehicle_count_sensor(mock_coordinator, mock_camera_service):
     # Assert
     assert sensor.native_value == 2
     assert sensor.extra_state_attributes["raw_data"] == [{"person": 5, "vehicle": 2}]
+
+
+@pytest.mark.asyncio
+async def test_analytics_not_supported(mock_coordinator, mock_camera_service):
+    """Test when analytics are not supported."""
+    # Arrange
+    device = MOCK_DEVICE.copy()
+    mock_camera_service.get_analytics_data.side_effect = MerakiInformationalError(
+        "Not supported"
+    )
+    sensor = MerakiPersonCountSensor(mock_coordinator, device, mock_camera_service)
+
+    # Act
+    await sensor.async_update()
+
+    # Assert
+    assert sensor.native_value is None
+    assert sensor.extra_state_attributes == {}
