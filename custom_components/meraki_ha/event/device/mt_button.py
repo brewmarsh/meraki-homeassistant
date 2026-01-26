@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import logging
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 
 from homeassistant.components.event import (
     EventDeviceClass,
@@ -91,8 +91,10 @@ class MerakiMtButtonEvent(MerakiEntity, EventEntity):
 
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
-        device = self.coordinator.get_device(self._device.serial)
-        if device:
-            self._device = device
-            self._update_from_device()
+        coordinator = cast(MerakiDataUpdateCoordinator, self.coordinator)
+        if self._device.serial:
+            device = coordinator.get_device(self._device.serial)
+            if device:
+                self._device = device
+                self._update_from_device()
         super()._handle_coordinator_update()
