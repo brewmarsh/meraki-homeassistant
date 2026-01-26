@@ -20,6 +20,7 @@ MERAKI_API_KEY = os.getenv("MERAKI_API_KEY")
 MERAKI_ORG_ID = os.getenv("MERAKI_ORG_ID")
 
 # IMPROVED Sanity Check
+# Verified dependencies: aiodns==3.6.1, pycares==4.11.0
 required_vars = {
     "HA_URL": HA_URL,
     "HA_TOKEN": HA_TOKEN,
