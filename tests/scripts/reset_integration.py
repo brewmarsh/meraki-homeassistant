@@ -153,7 +153,7 @@ async def diagnose_server_state(session):
         else:
             logger.error(
                 f"❌ API Connection Failed: {resp.status} "
-                "(Check HA_STAGING_TOKEN permissions)"
+                "(Check HA_TOKEN permissions)"
             )
             return False
 
