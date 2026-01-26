@@ -32,9 +32,7 @@ async def test_mt_button_event_initialization(
     assert entity.should_poll is False
 
 
-async def test_mt_button_event_update(
-    hass, mock_coordinator, mock_config_entry
-):
+async def test_mt_button_event_update(hass, mock_coordinator, mock_config_entry):
     """Test that events are triggered on update."""
     device = MagicMock()
     device.serial = "Q2XX-XXXX-XXXX"
@@ -75,9 +73,7 @@ async def test_mt_button_event_update(
         entity._trigger_event.assert_not_called()
 
 
-async def test_mt_button_event_unknown_type(
-    hass, mock_coordinator, mock_config_entry
-):
+async def test_mt_button_event_unknown_type(hass, mock_coordinator, mock_config_entry):
     """Test handling of unknown event types."""
     device = MagicMock()
     device.serial = "Q2XX-XXXX-XXXX"
