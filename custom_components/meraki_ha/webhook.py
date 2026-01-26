@@ -117,7 +117,9 @@ async def async_register_webhook(
         except Exception as e:
             _LOGGER.warning("Failed to register webhook: %s", e)
     else:
-        _LOGGER.debug("Home Assistant Cloud not connected. Skipping Cloudhook registration.")
+        _LOGGER.debug(
+            "Home Assistant Cloud not connected. Skipping Cloudhook registration."
+        )
 
 
 async def async_unregister_webhook(
