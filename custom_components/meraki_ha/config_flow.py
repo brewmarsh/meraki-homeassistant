@@ -19,7 +19,11 @@ from .const import (
     DOMAIN,
 )
 from .coordinator import MerakiDataUpdateCoordinator
-from .core.errors import MerakiAuthenticationError, MerakiConnectionError
+from .core.errors import (
+    InvalidOrgID,
+    MerakiAuthenticationError,
+    MerakiConnectionError,
+)
 from .helpers.schema import populate_schema_defaults
 from .options_flow import MerakiOptionsFlowHandler
 from .schemas import CONFIG_SCHEMA, OPTIONS_SCHEMA
@@ -95,6 +99,8 @@ class MerakiHAConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ign
                 # Show the general form by default
                 return await self.async_step_init()
 
+            except InvalidOrgID:
+                errors["base"] = "invalid_org_id"
             except MerakiAuthenticationError:
                 errors["base"] = "invalid_auth"
             except MerakiConnectionError:

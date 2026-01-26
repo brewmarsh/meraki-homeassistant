@@ -24,6 +24,7 @@ from custom_components.meraki_ha.const import (
     DOMAIN,
 )
 from custom_components.meraki_ha.core.errors import (
+    InvalidOrgID,
     MerakiAuthenticationError,
     MerakiConnectionError,
 )
@@ -116,6 +117,28 @@ async def test_form_cannot_connect(hass: HomeAssistant) -> None:
 
     assert result2["type"] == FlowResultType.FORM
     assert result2["errors"] == {"base": "cannot_connect"}
+
+
+async def test_form_invalid_org_id(hass: HomeAssistant) -> None:
+    """Test we handle invalid org id error."""
+    result = await hass.config_entries.flow.async_init(
+        DOMAIN, context={"source": config_entries.SOURCE_USER}
+    )
+
+    with patch(
+        "custom_components.meraki_ha.config_flow.validate_meraki_credentials",
+        side_effect=InvalidOrgID,
+    ):
+        result2 = await hass.config_entries.flow.async_configure(
+            result["flow_id"],
+            {
+                "meraki_api_key": "test-api-key",
+                "meraki_org_id": "test-org-id",
+            },
+        )
+
+    assert result2["type"] == FlowResultType.FORM
+    assert result2["errors"] == {"base": "invalid_org_id"}
 
 
 async def test_reconfigure(hass: HomeAssistant) -> None:

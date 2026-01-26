@@ -22,7 +22,7 @@
     },
     "error": {
       "invalid_auth": "Invalid API key.",
-      "invalid_org_id": "Invalid Organization ID.",
+      "invalid_org_id": "The Organization ID is incorrect or not accessible with this API Key.",
       "cannot_connect": "Cannot connect to Meraki API.",
       "unknown": "An unknown error occurred."
     },
