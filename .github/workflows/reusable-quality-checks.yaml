@@ -65,6 +65,9 @@ jobs:
       - name: Install dependencies
         run: uv pip install --system --prerelease=allow -r requirements_dev.txt
 
+      - name: Install Test Component
+        run: uv pip install --system --prerelease=allow "pytest-homeassistant-custom-component>=0.13.205"
+
       - name: Force Clean DNS Stack
         run: |
           # FIX: removed -y flag which uv does not support
@@ -137,6 +140,9 @@ jobs:
       # FIX: Allow pre-releases for Home Assistant deps
       - name: Install dependencies
         run: uv pip install --system --prerelease=allow -r requirements_dev.txt
+
+      - name: Install Test Component
+        run: uv pip install --system --prerelease=allow "pytest-homeassistant-custom-component>=0.13.205"
 
       - name: Force Clean DNS Stack
         run: |
