@@ -74,7 +74,7 @@ MT_NOISE_DESCRIPTION = SensorEntityDescription(
 
 MT_POWER_DESCRIPTION = SensorEntityDescription(
     key="power",
-    name="Power",
+    translation_key="power",
     device_class=SensorDeviceClass.POWER,
     state_class=SensorStateClass.MEASUREMENT,
     native_unit_of_measurement=UnitOfPower.WATT,
@@ -82,7 +82,7 @@ MT_POWER_DESCRIPTION = SensorEntityDescription(
 
 MT_VOLTAGE_DESCRIPTION = SensorEntityDescription(
     key="voltage",
-    name="Voltage",
+    translation_key="voltage",
     device_class=SensorDeviceClass.VOLTAGE,
     state_class=SensorStateClass.MEASUREMENT,
     native_unit_of_measurement=UnitOfElectricPotential.VOLT,
@@ -90,7 +90,7 @@ MT_VOLTAGE_DESCRIPTION = SensorEntityDescription(
 
 MT_CURRENT_DESCRIPTION = SensorEntityDescription(
     key="current",
-    name="Current",
+    translation_key="current",
     device_class=SensorDeviceClass.CURRENT,
     state_class=SensorStateClass.MEASUREMENT,
     native_unit_of_measurement=UnitOfElectricCurrent.AMPERE,

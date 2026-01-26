@@ -62,13 +62,14 @@ def parse_sensor_data(
                 elif metric == "pm25":
                     device.pm25 = reading.get("pm25", {}).get("concentration")
                 elif metric == "power":
-                    device.real_power = reading.get("power", {}).get("draw")
+                    power_data = reading.get("power", {})
+                    device.real_power = power_data.get("realPower") or power_data.get(
+                        "draw"
+                    )
                 elif metric == "power_factor":
                     device.power_factor = reading.get("power_factor", {}).get("factor")
                 elif metric == "current":
                     device.current = reading.get("current", {}).get("draw")
-                elif metric == "voltage":
-                    device.voltage = reading.get("voltage", {}).get("level")
                 elif metric == "voltage":
                     device.voltage = reading.get("voltage", {}).get("level")
                 elif metric == "door":
