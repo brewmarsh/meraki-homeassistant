@@ -125,7 +125,7 @@ def test_async_setup_mt10_sensors(
     temp_sensor = sensors_by_key["temperature"]
     assert isinstance(temp_sensor, SensorEntity)
     assert temp_sensor.unique_id == "mt10-1_temperature"
-    assert temp_sensor.name == "Temperature"
+    assert temp_sensor.translation_key == "mt_temperature"
     assert temp_sensor.native_value == 25.5
     assert temp_sensor.available is True
 
@@ -134,7 +134,7 @@ def test_async_setup_mt10_sensors(
     humidity_sensor = sensors_by_key["humidity"]
     assert isinstance(humidity_sensor, SensorEntity)
     assert humidity_sensor.unique_id == "mt10-1_humidity"
-    assert humidity_sensor.name == "Humidity"
+    assert humidity_sensor.translation_key == "mt_humidity"
     assert humidity_sensor.native_value == 60.0
     assert humidity_sensor.available is True
 
@@ -163,7 +163,7 @@ def test_async_setup_mt15_sensors(
     assert temp_sensor is not None
     assert isinstance(temp_sensor, SensorEntity)
     assert temp_sensor.unique_id == "mt15-1_temperature"
-    assert temp_sensor.name == "Temperature"
+    assert temp_sensor.translation_key == "mt_temperature"
     assert temp_sensor.native_value == 22.1
     assert temp_sensor.available is True
 
@@ -172,7 +172,7 @@ def test_async_setup_mt15_sensors(
     assert humidity_sensor is not None
     assert isinstance(humidity_sensor, SensorEntity)
     assert humidity_sensor.unique_id == "mt15-1_humidity"
-    assert humidity_sensor.name == "Humidity"
+    assert humidity_sensor.translation_key == "mt_humidity"
     assert humidity_sensor.native_value == 45.2
     assert humidity_sensor.available is True
 
@@ -181,7 +181,7 @@ def test_async_setup_mt15_sensors(
     assert co2_sensor is not None
     assert isinstance(co2_sensor, SensorEntity)
     assert co2_sensor.unique_id == "mt15-1_co2"
-    assert co2_sensor.name == "CO2"
+    assert co2_sensor.translation_key == "mt_co2"
     assert co2_sensor.native_value == 450
     assert co2_sensor.available is True
 
@@ -190,7 +190,7 @@ def test_async_setup_mt15_sensors(
     assert tvoc_sensor is not None
     assert isinstance(tvoc_sensor, SensorEntity)
     assert tvoc_sensor.unique_id == "mt15-1_tvoc"
-    assert tvoc_sensor.name == "TVOC"
+    assert tvoc_sensor.translation_key == "mt_tvoc"
     assert tvoc_sensor.native_value == 150
     assert tvoc_sensor.available is True
 
@@ -199,7 +199,7 @@ def test_async_setup_mt15_sensors(
     assert pm25_sensor is not None
     assert isinstance(pm25_sensor, SensorEntity)
     assert pm25_sensor.unique_id == "mt15-1_pm25"
-    assert pm25_sensor.name == "PM2.5"
+    assert pm25_sensor.translation_key == "mt_pm25"
     assert pm25_sensor.native_value == 10.5
     assert pm25_sensor.available is True
 
@@ -208,7 +208,7 @@ def test_async_setup_mt15_sensors(
     assert noise_sensor is not None
     assert isinstance(noise_sensor, SensorEntity)
     assert noise_sensor.unique_id == "mt15-1_noise"
-    assert noise_sensor.name == "Ambient Noise"
+    assert noise_sensor.translation_key == "mt_noise"
     assert noise_sensor.native_value == 35.2
     assert noise_sensor.available is True
 
@@ -232,7 +232,7 @@ def test_async_setup_mt12_sensors(
     water_sensor = entities[0]
     assert isinstance(water_sensor, SensorEntity)
     assert water_sensor.unique_id == "mt12-1_water"
-    assert water_sensor.name == "Water Detection"
+    assert water_sensor.translation_key == "mt_water_detection"
     assert water_sensor.native_value is False
     assert water_sensor.available is True
 
@@ -261,7 +261,7 @@ def test_async_setup_mt40_sensors(
     assert power_sensor is not None
     assert isinstance(power_sensor, SensorEntity)
     assert power_sensor.unique_id == "mt40-1_power"
-    assert power_sensor.name == "Power"
+    assert power_sensor.translation_key == "mt_power"
     assert power_sensor.native_value == 120.5
     assert power_sensor.available is True
 
@@ -270,7 +270,7 @@ def test_async_setup_mt40_sensors(
     assert voltage_sensor is not None
     assert isinstance(voltage_sensor, SensorEntity)
     assert voltage_sensor.unique_id == "mt40-1_voltage"
-    assert voltage_sensor.name == "Voltage"
+    assert voltage_sensor.translation_key == "mt_voltage"
     assert voltage_sensor.native_value == 120.1
     assert voltage_sensor.available is True
 
@@ -279,7 +279,7 @@ def test_async_setup_mt40_sensors(
     assert current_sensor is not None
     assert isinstance(current_sensor, SensorEntity)
     assert current_sensor.unique_id == "mt40-1_current"
-    assert current_sensor.name == "Current"
+    assert current_sensor.translation_key == "mt_current"
     assert current_sensor.native_value == 1.0
     assert current_sensor.available is True
 
