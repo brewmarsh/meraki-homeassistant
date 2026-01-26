@@ -92,7 +92,8 @@ async def test_mt_button_event_unknown_type(
     ):
         entity = MerakiMtButtonEvent(mock_coordinator, device, mock_config_entry)
         entity.hass = hass
-        entity.async_write_ha_state = MagicMock() # Mock this to avoid NoEntitySpecifiedError
+        # Mock this to avoid NoEntitySpecifiedError
+        entity.async_write_ha_state = MagicMock()
         entity._trigger_event = MagicMock()
 
         # Initial setup

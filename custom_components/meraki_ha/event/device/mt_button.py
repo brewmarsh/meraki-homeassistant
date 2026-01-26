@@ -61,7 +61,8 @@ class MerakiMtButtonEvent(MerakiEntity, EventEntity):
         if not ts or not press_type:
             return
 
-        # If it's the first update, just store the timestamp to avoid triggering old events
+        # If it's the first update, just store the timestamp to avoid triggering
+        # old events
         if self._is_first_update:
             self._last_ts = ts
             self._is_first_update = False
