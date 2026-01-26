@@ -185,6 +185,8 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
         for device in devices:
             device.status_messages = []
+            if not device.serial:
+                continue
             ha_device = dev_reg.async_get_device(
                 identifiers={(DOMAIN, device.serial)},
             )
@@ -222,6 +224,7 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             # via_device" warnings when downstream entities (like VLANs) initialize.
             device_registry = dr.async_get(self.hass)
             for network in data.get("networks", []):
+                assert self.config_entry is not None
                 device_registry.async_get_or_create(
                     config_entry_id=self.config_entry.entry_id,
                     identifiers={(DOMAIN, network.id)},
