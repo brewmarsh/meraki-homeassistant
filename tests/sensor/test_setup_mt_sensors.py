@@ -261,7 +261,7 @@ def test_async_setup_mt40_sensors(
     assert power_sensor is not None
     assert isinstance(power_sensor, SensorEntity)
     assert power_sensor.unique_id == "mt40-1_power"
-    assert power_sensor.name == "Power"
+    assert power_sensor.translation_key == "power"
     assert power_sensor.native_value == 120.5
     assert power_sensor.available is True
 
@@ -270,7 +270,7 @@ def test_async_setup_mt40_sensors(
     assert voltage_sensor is not None
     assert isinstance(voltage_sensor, SensorEntity)
     assert voltage_sensor.unique_id == "mt40-1_voltage"
-    assert voltage_sensor.name == "Voltage"
+    assert voltage_sensor.translation_key == "voltage"
     assert voltage_sensor.native_value == 120.1
     assert voltage_sensor.available is True
 
@@ -279,7 +279,7 @@ def test_async_setup_mt40_sensors(
     assert current_sensor is not None
     assert isinstance(current_sensor, SensorEntity)
     assert current_sensor.unique_id == "mt40-1_current"
-    assert current_sensor.name == "Current"
+    assert current_sensor.translation_key == "current"
     assert current_sensor.native_value == 1.0
     assert current_sensor.available is True
 

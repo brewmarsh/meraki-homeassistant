@@ -77,6 +77,15 @@
           "dormant": "Dormant",
           "unknown": "Unknown"
         }
+      },
+      "power": {
+        "name": "Power"
+      },
+      "voltage": {
+        "name": "Voltage"
+      },
+      "current": {
+        "name": "Current"
       }
     },
     "switch": {
