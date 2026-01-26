@@ -61,7 +61,7 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 CONF_ENABLE_VPN_MANAGEMENT, DEFAULT_ENABLE_VPN_MANAGEMENT
             ),
         )
-        self.config_entry = entry
+        self.config_entry: ConfigEntry | None = entry
         self.devices_by_serial: dict[str, MerakiDevice] = {}
         self.networks_by_id: dict[str, MerakiNetwork] = {}
         self.ssids_by_network_and_number: dict[tuple[str, int], dict[str, Any]] = {}
@@ -153,11 +153,8 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             data: The data dictionary to filter.
 
         """
-        if not self.config_entry or not hasattr(self.config_entry, "options"):
-            _LOGGER.debug(
-                "Config entry or options not available, "
-                "cannot filter ignored networks.",
-            )
+        if not self.config_entry:
+            _LOGGER.debug("Config entry not available, cannot filter ignored networks.")
             return
         ignored_network_ids = self.config_entry.options.get(
             CONF_IGNORED_NETWORKS,
