@@ -1,104 +1,59 @@
 # Agent Instructions & Project Standards
 
 ## 1. Chain of Thought (Mandatory)
-
 Before writing any code, the agent must provide a **Technical Plan** in the task response:
-
-- **Context:** Identify the current branch and confirm it is derived from `beta`.
-- **Impact:** List every file to be modified and justify the change.
-- **Risk:** Identify if the change affects shared files like `manifest.json` or `strings.json`.
-- **Verification:** State exactly which command will be used to test the fix.
+* **Context:** Identify the current branch and confirm it is derived from `beta`.
+* **Impact:** List every file to be modified and justify the change.
+* **Risk:** Identify if the change affects shared files like `manifest.json` or `strings.json`.
+* **Verification:** State exactly which command will be used to test the fix.
 
 ## 2. Git & Branch Management
-
-- **Targeting:** ALL work MUST target the `beta` branch. `main` is protected for production releases only.
-- **Branch Naming:** Use the following prefixes:
-  - `feat/` for new capabilities.
-  - `fix/` for bug fixes.
-  - `chore/` for maintenance (security audits, dependency updates).
-  - `refactor/` for code structure changes (like the `meraki_select` rename).
-- **Linear History:** Use `git rebase origin/beta`. Merge commits are forbidden.
+* **Targeting:** ALL work MUST target the `beta` branch. `main` is protected for production releases only.
+* **Branch Naming:** Use the following prefixes:
+    * `feat/` for new capabilities.
+    * `fix/` for bug fixes.
+    * `chore/` for maintenance (security audits, dependency updates).
+    * `refactor/` for code structure changes (like the `meraki_select` rename).
+* **Linear History:** Use `git rebase origin/beta`. Merge commits are forbidden.
 
 ## 3. Separation of Concerns & Architecture
-
-- **Platform Isolation:** Keep logic for `sensor`, `binary_sensor`, and `select` strictly within their respective files.
-- **Module Shadowing:** NEVER name a local folder after a standard Python library.
-  - _Rule:_ `custom_components/meraki_ha/select/` MUST be `custom_components/meraki_ha/meraki_select/`.
-- **UI vs Logic:** Integration setup logic belongs in `config_flow.py`; hardware communication belongs in `api.py` or `coordinator.py`.
-- **Selectors:** Raw Voluptuous types are forbidden in `config_flow.py`. Use `homeassistant.helpers.selector`.
+* **Platform Isolation:** Keep logic for `sensor`, `binary_sensor`, and `select` strictly within their respective files.
+* **Module Shadowing:** NEVER name a local folder after a standard Python library.
+    * *Rule:* `custom_components/meraki_ha/select/` MUST be `custom_components/meraki_ha/meraki_select/`.
+* **UI vs Logic:** Integration setup logic belongs in `config_flow.py`; hardware communication belongs in `api.py` or `coordinator.py`.
+* **Selectors:** Raw Voluptuous types are forbidden in `config_flow.py`. Use `homeassistant.helpers.selector`.
 
 ## 4. Environment & Dependencies
-
-- **Testing Stubs:** Do not install `homeassistant` core in CI. Use `pytest-homeassistant-custom-component`.
-- **Security:** `pip-audit` must be run with the `-l` (local) flag to ignore system packages (e.g., `ufw`, `cloud-init`).
+* **Testing Stubs:** Do not install `homeassistant` core in CI. Use `pytest-homeassistant-custom-component`.
+* **Security:** `pip-audit` must be run with the `-l` (local) flag to ignore system packages (e.g., `ufw`, `cloud-init`).
 
 ## 5. Automated Self-Correction
-
-- If a merge conflict is detected, the agent is authorized to self-initiate a rebase onto `beta`.
-- If a CI failure occurs, the agent must read the error log, explain the failure in the PR, and attempt one automated fix before requesting human intervention.
+* If a merge conflict is detected, the agent is authorized to self-initiate a rebase onto `beta`.
+* If a CI failure occurs, the agent must read the error log, explain the failure in the PR, and attempt one automated fix before requesting human intervention.
 
 ## 6. Repository Map (Source of Truth)
-
-- `custom_components/meraki_ha/`: Root of the integration.
-- `config_flow.py`: UI setup and validation logic.
-- `coordinator.py`: Data update coordinator (API polling logic).
-- `api.py`: Direct interactions with the Meraki Dashboard API.
-- `tests/`: All pytest logic (do not create tests outside this folder).
+* `custom_components/meraki_ha/`: Root of the integration.
+* `config_flow.py`: UI setup and validation logic.
+* `coordinator.py`: Data update coordinator (API polling logic).
+* `api.py`: Direct interactions with the Meraki Dashboard API.
+* `tests/`: All pytest logic (do not create tests outside this folder).
 
 ## 7. Code Style Examples
-
-- **Async/Await:** All I/O bound operations MUST be async.
-  - _Bad:_ `requests.get(url)`
-  - _Good:_ `await hass.async_add_executor_job(requests.get, url)` OR use `aiohttp`.
-- **Logging:** Use the integration logger, not print.
-  - _Good:_ `_LOGGER.debug("Meraki device %s found", device_id)`
-- **Type Hinting:** Strictly enforce `Callables`, `Awaitables`, and `ConfigEntry` types.
+* **Async/Await:** All I/O bound operations MUST be async.
+  * *Bad:* `requests.get(url)`
+  * *Good:* `await hass.async_add_executor_job(requests.get, url)` OR use `aiohttp`.
+* **Logging:** Use the integration logger, not print.
+  * *Good:* `_LOGGER.debug("Meraki device %s found", device_id)`
+* **Type Hinting:** Strictly enforce `Callables`, `Awaitables`, and `ConfigEntry` types.
 
 ## 8. Forbidden Patterns (Strict)
-
-- **NO** `time.sleep()`: This blocks the Home Assistant event loop.
-- **NO** generic `except Exception:`: You must catch specific errors (e.g., `ClientError`, `TimeoutError`) to prevent swallowing bugs.
-- **NO** hardcoded secrets: Never hardcode API keys or Org IDs in tests; use `tests/conftest.py` fixtures.
+* **NO** `time.sleep()`: This blocks the Home Assistant event loop.
+* **NO** generic `except Exception:`: You must catch specific errors (e.g., `ClientError`, `TimeoutError`) to prevent swallowing bugs.
+* **NO** hardcoded secrets: Never hardcode API keys or Org IDs in tests; use `tests/conftest.py` fixtures.
 
 ## 9. Pull Request Requirements
-
 Every PR description generated by an agent MUST include:
-
 1. **Summary:** One sentence explaining the "Why".
 2. **Type:** (Bugfix/Feature/Chore).
 3. **Test Proof:** A snippet of the successful `pytest` or `pip-audit` output.
 4. **Manual Verification:** A statement confirming the code was checked against the `AGENTS.md` rules.
-
-## 10. 🛑 Anti-Patterns & Critical Rules (Lessons Learned)
-
-### 1. Code Modularity & File Size
-
-- **Limit File Size:** Files should ideally remain under 400 lines.
-  - _Why?_ Large files increase cognitive load for AI agents, causing context window exhaustion and "hallucinated" code insertions.
-- **Component-Based Architecture:** Do not dump all logic into `sensor.py`. Split entity platforms by device type (e.g., `sensor/device/camera.py`, `sensor/device/switch.py`) and import them dynamically.
-
-### 2. Entity Hierarchy & Registry
-
-- **Enforce Parent-Child Order:** Never rely on "implicit" linking. "Parent" devices (Hubs, Networks) MUST be explicitly registered in the Data Coordinator (`device_registry.async_get_or_create`) _before_ processing child entities (Sensors, VLANs, Clients).
-  - _Why?_ To prevent "referencing non-existing `via_device`" registry warnings.
-- **Strict Entity Naming:** All entities MUST set `_attr_has_entity_name = True` and populate `device_info`.
-  - _Why?_ Prevents regression where entities lose their prefixes.
-
-### 3. Scalability & Performance
-
-- **Disable High-Volume Entities:** Any entity class instantiated in high quantities (e.g., Switch Ports, Network Clients, VLANs) MUST set `_attr_entity_registry_enabled_default = False`.
-  - _Why?_ Prevents "Thundering Herd" WebSocket disconnects (4096+ pending messages) during startup.
-- **Async polling vs. Events:** Prefer polling low-priority data. Do not push updates for 100+ entities simultaneously unless absolutely necessary.
-
-### 4. Defensive Data Handling
-
-- **Trust No Types:** API data is untrusted. Always provide type-matching defaults when sorting or comparing.
-  - _Bad:_ `data.get("ts", 0)` (Mixed Types: Int vs String)
-  - _Good:_ `data.get("ts", "")` (Consistent Types)
-- **Graceful API Failures:** Catch specific HTTP codes (400, 404) for optional features.
-  - _Why?_ A camera rejecting an analytics request for "vehicles" (400) is a supported state, not a system failure.
-
-### 5. Integration Stability & Testing
-
-- **Robust CI Configs:** In `tests/fixtures/configuration.yaml`, avoid `default_config`. Explicitly list only core components (`api`, `config`, `auth`) to avoid network discovery crashes (`zeroconf`, `dhcp`) in Docker/CI environments.
-- **Wait for Readiness:** When scripting WebSocket tests, never assume immediate readiness. Implement polling/retry logic to handle async component loading times.
