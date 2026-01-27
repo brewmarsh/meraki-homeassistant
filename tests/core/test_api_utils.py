@@ -1,5 +1,4 @@
 """Test the API utility functions."""
-import asyncio
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest

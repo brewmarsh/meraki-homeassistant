@@ -53,7 +53,8 @@ def handle_meraki_errors(
                     func.__name__,
                     err,
                 )
-                # Inspect the wrapped function's return type to return a safe empty value
+                # Inspect the wrapped function's return type
+                # to return a safe empty value
                 sig = inspect.signature(func)
                 return_type = sig.return_annotation
                 if return_type is list or getattr(
@@ -106,7 +107,9 @@ def handle_meraki_errors(
                 _LOGGER.error("Unexpected error: %s", err)
                 raise MerakiConnectionError(f"Unexpected error: {err}") from err
 
-        raise MerakiConnectionError("API call failed after multiple retries") from last_err
+        raise MerakiConnectionError(
+            "API call failed after multiple retries"
+        ) from last_err
 
     return cast(Callable[..., Awaitable[T]], wrapper)
 
