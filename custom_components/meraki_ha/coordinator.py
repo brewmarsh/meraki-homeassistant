@@ -223,6 +223,9 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             # Pre-register network devices to avoid "referencing a non existing
             # via_device" warnings when downstream entities (like VLANs) initialize.
             device_registry = dr.async_get(self.hass)
+
+            assert self.config_entry is not None
+
             for network in data.get("networks", []):
                 assert self.config_entry is not None
                 device_registry.async_get_or_create(

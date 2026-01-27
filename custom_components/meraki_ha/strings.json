@@ -86,6 +86,9 @@
       },
       "current": {
         "name": "Current"
+      },
+      "energy": {
+        "name": "Energy"
       }
     },
     "switch": {
