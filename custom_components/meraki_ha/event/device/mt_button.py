@@ -28,6 +28,7 @@ class MerakiMtButtonEvent(MerakiEntity, EventEntity):
 
     _attr_device_class = EventDeviceClass.BUTTON
     _attr_event_types = ["short_press", "long_press"]
+    _attr_translation_key = "button_press"
 
     def __init__(
         self,
@@ -40,7 +41,6 @@ class MerakiMtButtonEvent(MerakiEntity, EventEntity):
         self._device = device
         self._config_entry = config_entry
         self._attr_unique_id = f"{device.serial}-button-event"
-        self._attr_name = "Button Press"
         self._last_ts: str = ""
 
     @property
