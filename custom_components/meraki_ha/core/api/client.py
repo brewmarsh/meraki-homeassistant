@@ -18,6 +18,7 @@ from homeassistant.core import HomeAssistant
 
 from ...core.parsers.appliance import parse_appliance_data
 from ...core.parsers.camera import parse_camera_data
+from ...core.parsers.devices import parse_device_data
 from ...core.parsers.network import parse_network_data
 from ...core.parsers.sensors import parse_sensor_data
 from ...core.parsers.switch import parse_switch_data
@@ -168,6 +169,7 @@ class MerakiAPIClient:
         data = dict(zip(tasks.keys(), results, strict=True))
 
         return data
+
 
     def _build_detail_tasks(
         self,

@@ -1,5 +1,4 @@
 """Fetches client data for the Meraki coordinator."""
-
 from __future__ import annotations
 
 import asyncio
