@@ -15,7 +15,11 @@ from homeassistant.exceptions import ConfigEntryAuthFailed
 from meraki.exceptions import APIError as MerakiSDKAPIError
 
 from .core.api.client import MerakiAPIClient
-from .core.errors import MerakiAuthenticationError, MerakiConnectionError
+from .core.errors import (
+    InvalidOrgID,
+    MerakiAuthenticationError,
+    MerakiConnectionError,
+)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -124,7 +128,7 @@ class MerakiAuthentication:
                     "Query failed (HTTP 404) for org %s.",
                     self.organization_id,
                 )
-                raise ConfigEntryAuthFailed(
+                raise InvalidOrgID(
                     f"Organization ID {self.organization_id} not found.",
                 ) from e
 
