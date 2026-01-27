@@ -10,9 +10,7 @@ from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from ...const import DOMAIN
-from ...core.utils.naming_utils import format_device_name
-from ...helpers.entity_helpers import format_entity_name
-from ...meraki_data_coordinator import MerakiDataCoordinator
+from ...coordinator import MerakiDataUpdateCoordinator
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -29,7 +27,7 @@ class MerakiOrganizationSSIDClientsSensor(
 
     def __init__(
         self,
-        coordinator: MerakiDataCoordinator,
+        coordinator: MerakiDataUpdateCoordinator,
         org_id: str,
         org_name: str,
     ) -> None:
@@ -47,17 +45,11 @@ class MerakiOrganizationSSIDClientsSensor(
         self._org_id = org_id
         self._org_name = org_name
 
-        self._attr_name = format_entity_name(org_name, "SSID Clients")
+        self._attr_name = "SSID Clients"
         self._attr_unique_id = f"{org_id}_clients_ssid"
-
-        org_device_data = {"name": org_name, "productType": "organization"}
-        formatted_name = format_device_name(
-            device=org_device_data,
-            config=self.coordinator.config_entry.options,
-        )
         self._attr_device_info = DeviceInfo(
             identifiers={(DOMAIN, org_id)},
-            name=formatted_name,
+            name=org_name,
             manufacturer="Cisco Meraki",
             model="Organization",
         )
@@ -92,7 +84,7 @@ class MerakiOrganizationWirelessClientsSensor(
 
     def __init__(
         self,
-        coordinator: MerakiDataCoordinator,
+        coordinator: MerakiDataUpdateCoordinator,
         org_id: str,
         org_name: str,
     ) -> None:
@@ -110,17 +102,11 @@ class MerakiOrganizationWirelessClientsSensor(
         self._org_id = org_id
         self._org_name = org_name
 
-        self._attr_name = format_entity_name(org_name, "Wireless Clients")
+        self._attr_name = "Wireless Clients"
         self._attr_unique_id = f"{org_id}_clients_wireless"
-
-        org_device_data = {"name": org_name, "productType": "organization"}
-        formatted_name = format_device_name(
-            device=org_device_data,
-            config=self.coordinator.config_entry.options,
-        )
         self._attr_device_info = DeviceInfo(
             identifiers={(DOMAIN, org_id)},
-            name=formatted_name,
+            name=org_name,
             manufacturer="Cisco Meraki",
             model="Organization",
         )
@@ -154,7 +140,7 @@ class MerakiOrganizationApplianceClientsSensor(
 
     def __init__(
         self,
-        coordinator: MerakiDataCoordinator,
+        coordinator: MerakiDataUpdateCoordinator,
         org_id: str,
         org_name: str,
     ) -> None:
@@ -172,17 +158,11 @@ class MerakiOrganizationApplianceClientsSensor(
         self._org_id = org_id
         self._org_name = org_name
 
-        self._attr_name = format_entity_name(org_name, "Appliance Clients")
+        self._attr_name = "Appliance Clients"
         self._attr_unique_id = f"{org_id}_clients_appliance"
-
-        org_device_data = {"name": org_name, "productType": "organization"}
-        formatted_name = format_device_name(
-            device=org_device_data,
-            config=self.coordinator.config_entry.options,
-        )
         self._attr_device_info = DeviceInfo(
             identifiers={(DOMAIN, org_id)},
-            name=formatted_name,
+            name=org_name,
             manufacturer="Cisco Meraki",
             model="Organization",
         )

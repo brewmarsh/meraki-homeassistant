@@ -2,15 +2,16 @@
 
 from __future__ import annotations
 
-import asyncio
 import logging
+from typing import Any
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from ..const import DOMAIN
+from ..const import CONF_ENABLE_VPN_MANAGEMENT, DOMAIN
 from .meraki_content_filtering import MerakiContentFilteringSelect
+from .vpn import MerakiVpnSelect
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -26,7 +27,7 @@ async def async_setup_entry(
     meraki_client = coordinator.api
 
     if coordinator.data:
-        select_entities = []
+        select_entities: list[Any] = []
         for network in coordinator.data.get("networks", []):
             select_entities.append(
                 MerakiContentFilteringSelect(
@@ -36,12 +37,14 @@ async def async_setup_entry(
                     network,
                 )
             )
+            if config_entry.options.get(CONF_ENABLE_VPN_MANAGEMENT):
+                select_entities.append(
+                    MerakiVpnSelect(
+                        coordinator,
+                        meraki_client,
+                        config_entry,
+                        network,
+                    )
+                )
 
-        if select_entities:
-            _LOGGER.debug("Adding %d select entities", len(select_entities))
-            chunk_size = 50
-            for i in range(0, len(select_entities), chunk_size):
-                chunk = select_entities[i : i + chunk_size]
-                async_add_entities(chunk)
-                if len(select_entities) > chunk_size:
-                    await asyncio.sleep(1)
+        async_add_entities(select_entities)

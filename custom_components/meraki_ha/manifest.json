@@ -1,10 +1,25 @@
 {
   "domain": "meraki_ha",
   "name": "Meraki for Home Assistant",
-  "after_dependencies": [],
+  "after_dependencies": ["frontend", "webrtc"],
   "codeowners": ["@brewmarsh"],
   "config_flow": true,
-  "dependencies": ["frontend", "panel_custom", "http", "webrtc"],
+  "dependencies": ["http", "panel_custom"],
+  "dhcp": [
+    {
+      "hostname": "meraki*",
+      "macaddress": "E0553D*"
+    },
+    {
+      "macaddress": "00180A*"
+    },
+    {
+      "macaddress": "AC17C8*"
+    },
+    {
+      "macaddress": "881544*"
+    }
+  ],
   "documentation": "https://github.com/brewmarsh/meraki-homeassistant",
   "integration_type": "hub",
   "iot_class": "cloud_polling",
@@ -13,9 +28,13 @@
   "quality_scale": "platinum",
   "requirements": [
     "aiodns==3.6.1",
-    "aiohttp>=3.13.2",
+    "aiofiles>=24.1.0",
+    "aiohttp>=3.8.1",
+    "meraki>=1.53.0",
+    "orjson>=3.9.0",
     "pycares==4.11.0",
-    "urllib3>=2.6.2"
+    "urllib3>=1.26.5",
+    "webrtc-models==0.3.0"
   ],
-  "version": "2.0.0-beta.70"
+  "version": "2.1.0-beta.104"
 }

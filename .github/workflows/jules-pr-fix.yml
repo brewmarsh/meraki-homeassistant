@@ -1,0 +1,51 @@
+name: 'Jules PR Fixer'
+
+on:
+  workflow_run:
+    workflows: ['Pull Request Validation']
+    types:
+      - completed
+
+jobs:
+  jules-fixer:
+    if: github.event.workflow_run.conclusion == 'failure'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+    steps:
+      - name: 'Invoke Jules PR Fixer'
+        uses: google-labs-code/jules-invoke@main
+        with:
+          jules_api_key: ${{ secrets.JULES_API_KEY }}
+          prompt: |
+            You are the Jules PR Fixer. You have been summoned because the quality checks on a pull request have failed.
+            Your mission is to fix the pull request.
+
+            **Context:**
+            - **Pull Request:** ${{ github.event.workflow_run.pull_requests[0].html_url }}
+            - **Branch:** ${{ github.event.workflow_run.head_branch }}
+            - **Commit:** ${{ github.event.workflow_run.head_sha }}
+            - **Workflow Run:** ${{ github.event.workflow_run.html_url }}
+
+            **Your Plan of Action:**
+
+            1.  **Analyze the Failure:** The quality checks failed. Your first step is to understand why.
+            2.  **Read Compliance Rules:** Read the `AGENTS.md` file in the repository to understand the project's compliance and coding standards.
+            3.  **Checkout the Code:** Checkout the pull request branch (`${{ github.event.workflow_run.head_branch }}`).
+            4.  **Run Quality Checks:** Run the same quality checks that failed. You can find them in the `.github/workflows/reusable-quality-checks.yaml` file.
+                - `ruff check --fix .`
+                - `ruff format .`
+                - `mypy --ignore-missing-imports custom_components/meraki_ha/ tests/`
+                - `bandit -r custom_components/meraki_ha/ -c .bandit.yaml`
+                - `pytest`
+            5.  **Fix the Code:** Based on the output of the quality checks and the compliance rules in `AGENTS.md`, fix the code.
+            6.  **Commit and Push:** If you are confident in your fixes, commit them to the branch `${{ github.event.workflow_run.head_branch }}`. Use the commit message 'fix(jules): attempt to fix quality check failures'.
+            7.  **Handle Failure:** If you cannot fix the issues, create a new GitHub issue. The issue should include:
+                - A title like "Jules failed to fix PR #${{ github.event.workflow_run.pull_requests[0].number }}"
+                - A summary of the errors you encountered.
+                - The logs from the failed quality checks.
+                - A link to the pull request.
+                - Assign the issue to the pull request author: `${{ github.event.pull_request.user.login }}`.
+                - Add the `jules-failed` label to the issue.

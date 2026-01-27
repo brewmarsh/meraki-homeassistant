@@ -2,9 +2,10 @@
 
 ## Phase 1: Architecture & UI
 
-- [ ] Implement `has_entity_name = True` (Naming Schema Refactor)
-- [ ] Categorize technical sensors as `EntityCategory.DIAGNOSTIC`
-- [ ] Migrate MV/MT momentary events to `EventEntity` class
+- [x] Implement `has_entity_name = True` (Naming Schema Refactor)
+- [x] Categorize technical sensors as `EntityCategory.DIAGNOSTIC`
+- [x] Migrate MV momentary events to `EventEntity` class
+- [x] Migrate MT momentary events to `EventEntity` class
 
 ## Phase 2: Energy & Power
 
@@ -13,5 +14,5 @@
 
 ## Phase 3: Advanced Media
 
-- [ ] Implement Native WebRTC for MV Camera streams
+- [x] Implement Native WebRTC for MV Camera streams
 - [ ] Update translation strings for all new entities

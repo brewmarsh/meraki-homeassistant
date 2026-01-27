@@ -6,10 +6,11 @@ import logging
 
 from homeassistant.components.sensor import SensorEntity
 from homeassistant.config_entries import ConfigEntry
+from homeassistant.const import EntityCategory
 
+from ...coordinator import MerakiDataUpdateCoordinator
 from ...core.entities.meraki_vlan_entity import MerakiVLANEntity
 from ...core.utils.entity_id_utils import get_vlan_entity_id
-from ...meraki_data_coordinator import MerakiDataCoordinator
 from ...types import MerakiVlan
 
 _LOGGER = logging.getLogger(__name__)
@@ -18,9 +19,11 @@ _LOGGER = logging.getLogger(__name__)
 class MerakiVLANIDSensor(MerakiVLANEntity, SensorEntity):
     """Representation of a Meraki VLAN ID sensor."""
 
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
+
     def __init__(
         self,
-        coordinator: MerakiDataCoordinator,
+        coordinator: MerakiDataUpdateCoordinator,
         config_entry: ConfigEntry,
         network_id: str,
         vlan: MerakiVlan,
@@ -29,7 +32,7 @@ class MerakiVLANIDSensor(MerakiVLANEntity, SensorEntity):
         super().__init__(coordinator, config_entry, network_id, vlan)
         if not self._network_id:
             raise ValueError("Network ID cannot be None for a VLAN entity")
-        vlan_id = self._vlan.get("id")
+        vlan_id = self._vlan.id
         if not vlan_id:
             raise ValueError("VLAN ID should not be None here")
         self._attr_unique_id = get_vlan_entity_id(self._network_id, vlan_id, "vlan_id")
@@ -38,15 +41,17 @@ class MerakiVLANIDSensor(MerakiVLANEntity, SensorEntity):
     @property
     def native_value(self) -> str | None:
         """Return the state of the sensor."""
-        return self._vlan.get("id")
+        return self._vlan.id
 
 
 class MerakiVLANIPv4EnabledSensor(MerakiVLANEntity, SensorEntity):
     """Representation of a Meraki VLAN IPv4 Enabled sensor."""
 
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
+
     def __init__(
         self,
-        coordinator: MerakiDataCoordinator,
+        coordinator: MerakiDataUpdateCoordinator,
         config_entry: ConfigEntry,
         network_id: str,
         vlan: MerakiVlan,
@@ -55,7 +60,7 @@ class MerakiVLANIPv4EnabledSensor(MerakiVLANEntity, SensorEntity):
         super().__init__(coordinator, config_entry, network_id, vlan)
         if not self._network_id:
             raise ValueError("Network ID cannot be None for a VLAN entity")
-        vlan_id = self._vlan.get("id")
+        vlan_id = self._vlan.id
         if not vlan_id:
             raise ValueError("VLAN ID should not be None here")
         self._attr_unique_id = get_vlan_entity_id(
@@ -66,15 +71,17 @@ class MerakiVLANIPv4EnabledSensor(MerakiVLANEntity, SensorEntity):
     @property
     def native_value(self) -> bool:
         """Return the state of the sensor."""
-        return self._vlan.get("applianceIp") is not None
+        return self._vlan.appliance_ip is not None
 
 
 class MerakiVLANIPv4InterfaceSensor(MerakiVLANEntity, SensorEntity):
     """Representation of a Meraki VLAN IPv4 Interface IP sensor."""
 
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
+
     def __init__(
         self,
-        coordinator: MerakiDataCoordinator,
+        coordinator: MerakiDataUpdateCoordinator,
         config_entry: ConfigEntry,
         network_id: str,
         vlan: MerakiVlan,
@@ -83,7 +90,7 @@ class MerakiVLANIPv4InterfaceSensor(MerakiVLANEntity, SensorEntity):
         super().__init__(coordinator, config_entry, network_id, vlan)
         if not self._network_id:
             raise ValueError("Network ID cannot be None for a VLAN entity")
-        vlan_id = self._vlan.get("id")
+        vlan_id = self._vlan.id
         if not vlan_id:
             raise ValueError("VLAN ID should not be None here")
         self._attr_unique_id = get_vlan_entity_id(
@@ -94,15 +101,17 @@ class MerakiVLANIPv4InterfaceSensor(MerakiVLANEntity, SensorEntity):
     @property
     def native_value(self) -> str | None:
         """Return the state of the sensor."""
-        return self._vlan.get("applianceIp")
+        return self._vlan.appliance_ip
 
 
 class MerakiVLANIPv4UplinkSensor(MerakiVLANEntity, SensorEntity):
     """Representation of a Meraki VLAN IPv4 Uplink sensor."""
 
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
+
     def __init__(
         self,
-        coordinator: MerakiDataCoordinator,
+        coordinator: MerakiDataUpdateCoordinator,
         config_entry: ConfigEntry,
         network_id: str,
         vlan: MerakiVlan,
@@ -111,7 +120,7 @@ class MerakiVLANIPv4UplinkSensor(MerakiVLANEntity, SensorEntity):
         super().__init__(coordinator, config_entry, network_id, vlan)
         if not self._network_id:
             raise ValueError("Network ID cannot be None for a VLAN entity")
-        vlan_id = self._vlan.get("id")
+        vlan_id = self._vlan.id
         if not vlan_id:
             raise ValueError("VLAN ID should not be None here")
         self._attr_unique_id = get_vlan_entity_id(
@@ -129,9 +138,11 @@ class MerakiVLANIPv4UplinkSensor(MerakiVLANEntity, SensorEntity):
 class MerakiVLANIPv6EnabledSensor(MerakiVLANEntity, SensorEntity):
     """Representation of a Meraki VLAN IPv6 Enabled sensor."""
 
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
+
     def __init__(
         self,
-        coordinator: MerakiDataCoordinator,
+        coordinator: MerakiDataUpdateCoordinator,
         config_entry: ConfigEntry,
         network_id: str,
         vlan: MerakiVlan,
@@ -140,7 +151,7 @@ class MerakiVLANIPv6EnabledSensor(MerakiVLANEntity, SensorEntity):
         super().__init__(coordinator, config_entry, network_id, vlan)
         if not self._network_id:
             raise ValueError("Network ID cannot be None for a VLAN entity")
-        vlan_id = self._vlan.get("id")
+        vlan_id = self._vlan.id
         if not vlan_id:
             raise ValueError("VLAN ID should not be None here")
         self._attr_unique_id = get_vlan_entity_id(
@@ -151,7 +162,7 @@ class MerakiVLANIPv6EnabledSensor(MerakiVLANEntity, SensorEntity):
     @property
     def native_value(self) -> bool:
         """Return the state of the sensor."""
-        ipv6_data = self._vlan.get("ipv6")
+        ipv6_data = self._vlan.ipv6
         if ipv6_data is None:
             return False
         return ipv6_data.get("enabled", False)
@@ -160,9 +171,11 @@ class MerakiVLANIPv6EnabledSensor(MerakiVLANEntity, SensorEntity):
 class MerakiVLANIPv6InterfaceSensor(MerakiVLANEntity, SensorEntity):
     """Representation of a Meraki VLAN IPv6 Interface IP sensor."""
 
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
+
     def __init__(
         self,
-        coordinator: MerakiDataCoordinator,
+        coordinator: MerakiDataUpdateCoordinator,
         config_entry: ConfigEntry,
         network_id: str,
         vlan: MerakiVlan,
@@ -171,7 +184,7 @@ class MerakiVLANIPv6InterfaceSensor(MerakiVLANEntity, SensorEntity):
         super().__init__(coordinator, config_entry, network_id, vlan)
         if not self._network_id:
             raise ValueError("Network ID cannot be None for a VLAN entity")
-        vlan_id = self._vlan.get("id")
+        vlan_id = self._vlan.id
         if not vlan_id:
             raise ValueError("VLAN ID should not be None here")
         self._attr_unique_id = get_vlan_entity_id(
@@ -182,7 +195,7 @@ class MerakiVLANIPv6InterfaceSensor(MerakiVLANEntity, SensorEntity):
     @property
     def native_value(self) -> str | None:
         """Return the state of the sensor."""
-        ipv6_data = self._vlan.get("ipv6")
+        ipv6_data = self._vlan.ipv6
         if ipv6_data is None:
             return None
         return ipv6_data.get("prefix")
@@ -191,9 +204,11 @@ class MerakiVLANIPv6InterfaceSensor(MerakiVLANEntity, SensorEntity):
 class MerakiVLANIPv6UplinkSensor(MerakiVLANEntity, SensorEntity):
     """Representation of a Meraki VLAN IPv6 Uplink sensor."""
 
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
+
     def __init__(
         self,
-        coordinator: MerakiDataCoordinator,
+        coordinator: MerakiDataUpdateCoordinator,
         config_entry: ConfigEntry,
         network_id: str,
         vlan: MerakiVlan,
@@ -202,7 +217,7 @@ class MerakiVLANIPv6UplinkSensor(MerakiVLANEntity, SensorEntity):
         super().__init__(coordinator, config_entry, network_id, vlan)
         if not self._network_id:
             raise ValueError("Network ID cannot be None for a VLAN entity")
-        vlan_id = self._vlan.get("id")
+        vlan_id = self._vlan.id
         if not vlan_id:
             raise ValueError("VLAN ID should not be None here")
         self._attr_unique_id = get_vlan_entity_id(
@@ -213,7 +228,7 @@ class MerakiVLANIPv6UplinkSensor(MerakiVLANEntity, SensorEntity):
     @property
     def native_value(self) -> str | None:
         """Return the state of the sensor."""
-        ipv6_data = self._vlan.get("ipv6")
+        ipv6_data = self._vlan.ipv6
         if ipv6_data is None or not ipv6_data.get("enabled"):
             return None
         assignments = ipv6_data.get("prefixAssignments")
