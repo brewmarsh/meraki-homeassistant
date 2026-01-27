@@ -3,11 +3,11 @@
 from unittest.mock import MagicMock, patch
 
 import pytest
+from custom_components.meraki_ha.meraki_data_coordinator import MerakiDataCoordinator
 from homeassistant.helpers.device_registry import DeviceEntry
 from homeassistant.helpers.entity_registry import RegistryEntry
 
 from custom_components.meraki_ha.const import DOMAIN
-from custom_components.meraki_ha.meraki_data_coordinator import MerakiDataCoordinator
 
 
 @pytest.fixture
@@ -56,13 +56,17 @@ async def test_populate_ssid_entities(coordinator, hass):
 
     mock_ent_reg.async_entries_for_device.return_value = [mock_entity]
 
-    with patch(
-        "homeassistant.helpers.device_registry.async_get", return_value=mock_dev_reg
-    ), patch(
-        "homeassistant.helpers.entity_registry.async_get", return_value=mock_ent_reg
-    ), patch(
-        "homeassistant.helpers.entity_registry.async_entries_for_device",
-        return_value=[mock_entity],
+    with (
+        patch(
+            "homeassistant.helpers.device_registry.async_get", return_value=mock_dev_reg
+        ),
+        patch(
+            "homeassistant.helpers.entity_registry.async_get", return_value=mock_ent_reg
+        ),
+        patch(
+            "homeassistant.helpers.entity_registry.async_entries_for_device",
+            return_value=[mock_entity],
+        ),
     ):
         # Act
         # The method is not yet created, so this will fail if run now.
