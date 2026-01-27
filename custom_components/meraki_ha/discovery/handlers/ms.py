@@ -10,20 +10,15 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING
 
-from custom_components.meraki_ha.binary_sensor.switch_port import SwitchPortSensor
-
+from ...binary_sensor.switch_port import SwitchPortSensor
+from ...const import CONF_ENABLE_PORT_SENSORS
 from .base import BaseDeviceHandler
 
 if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
     from homeassistant.helpers.entity import Entity
 
-    from ....core.coordinators.meraki_data_coordinator import (
-        MerakiDataUpdateCoordinator,
-    )
-    from ....core.coordinators.switch_port_status_coordinator import (
-        SwitchPortStatusCoordinator,
-    )
+    from ....coordinator import MerakiDataUpdateCoordinator
     from ....services.camera_service import CameraService
     from ....services.device_control_service import DeviceControlService
     from ....services.network_control_service import NetworkControlService
@@ -41,12 +36,10 @@ class MSHandler(BaseDeviceHandler):
         coordinator: MerakiDataUpdateCoordinator,
         device: MerakiDevice,
         config_entry: ConfigEntry,
-        switch_port_coordinator: SwitchPortStatusCoordinator,
         control_service: DeviceControlService,
     ) -> None:
         """Initialize the MSHandler."""
         super().__init__(coordinator, device, config_entry)
-        self._switch_port_coordinator = switch_port_coordinator
         self._control_service = control_service
 
     @classmethod
@@ -58,14 +51,12 @@ class MSHandler(BaseDeviceHandler):
         camera_service: CameraService,
         control_service: DeviceControlService,
         network_control_service: NetworkControlService,
-        switch_port_coordinator: SwitchPortStatusCoordinator,
     ) -> MSHandler:
         """Create an instance of the handler."""
         return cls(
             coordinator,
             device,
             config_entry,
-            switch_port_coordinator,
             control_service,
         )
 
@@ -73,17 +64,14 @@ class MSHandler(BaseDeviceHandler):
         """Discover entities for the MS switch."""
         entities: list[Entity] = []
 
-        # Add switch port sensors, but only for enabled ports to avoid flooding
-        # the entity registry.
-        ports = self.device.ports_statuses
-        for port in ports:
-            if port.get("enabled"):
-                entities.append(
-                    SwitchPortSensor(
-                        self._switch_port_coordinator,
-                        self.device,
-                        port,
+        # Check if port sensors are enabled
+        if self._config_entry.options.get(CONF_ENABLE_PORT_SENSORS, True):
+            if self.device and self.device.ports_statuses:
+                for port in self.device.ports_statuses:
+                    entities.append(
+                        SwitchPortSensor(self._coordinator, self.device, port)
                     )
-                )
+        else:
+            _LOGGER.debug("Port sensors disabled for device %s", self.device.serial)
 
         return entities

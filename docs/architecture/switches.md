@@ -14,17 +14,27 @@ This plan will integrate switch port monitoring into the existing architecture b
 
 \*\*Phase 1: API and Repository Updates
 
+<<<<<<< HEAD
+
 1. **Add `getDeviceSwitchPortsStatuses` to `MerakiApiClient`**:
 
    - Add a new asynchronous method, `async_get_switch_port_statuses(serial)`, that calls the Meraki API's `/devices/{serial}/switch/ports/statuses` endpoint. This will return a list of all ports and their current status.
 
 2. **Add `get_switch_port_statuses` to `MerakiRepository`**:
    - Create a new method, `async_get_switch_port_statuses(serial)`, in the repository.
-   - This method will accept the switch's serial number and call the API client. The repository will handle caching the results with a short TTL (e.g., 60 seconds) since port status can change frequently.
+   - # This method will accept the switch's serial number and call the API client. The repository will handle caching the results with a short TTL (e.g., 60 seconds) since port status can change frequently.
+3. **Add `getDeviceSwitchPortsStatuses` to `MerakiApiClient`**:
+
+   - Add a new asynchronous method, `async_get_switch_port_statuses(serial)`, that calls the Meraki API's `/devices/{serial}/switch/ports/statuses` endpoint. This will return a list of all ports and their current status.
+
+4. **Add `get_switch_port_statuses` to `MerakiRepository`**: - Create a new method, `async_get_switch_port_statuses(serial)`, in the repository. - This method will accept the switch's serial number and call the API client. The repository will handle caching the results with a short TTL (e.g., 60 seconds) since port status can change frequently.
+   > > > > > > > fix/camera-prefix-inference-8324397860843535137
 
 ---
 
 \*\*Phase 2: Create a Dedicated Switch Port Service
+
+<<<<<<< HEAD
 
 1. **Develop `SwitchPortService` (`meraki_ha/services/switch_port_service.py`)**:
 
@@ -34,27 +44,47 @@ This plan will integrate switch port monitoring into the existing architecture b
      - `async_get_port_speed(serial, port_id)`: A similar method to get the port's current speed.
 
 2. **Update `MSHandler`**:
-   - The `MSHandler` needs to be updated to accept the `SwitchPortService` via **Dependency Injection**.
+   - # The `MSHandler` needs to be updated to accept the `SwitchPortService` via **Dependency Injection**.
+3. **Develop `SwitchPortService` (`meraki_ha/services/switch_port_service.py`)**:
+
+   - Create a new class, `SwitchPortService`, that is injected with the `MerakiRepository`.
+   - This service will contain methods for handling switch port data, such as:
+     - `async_get_port_status(serial, port_id)`: A method that queries the repository and returns the status (`Connected` or `Disconnected`) for a specific port.
+     - `async_get_port_speed(serial, port_id)`: A similar method to get the port's current speed.
+
+4. **Update `MSHandler`**: - The `MSHandler` needs to be updated to accept the `SwitchPortService` via **Dependency Injection**.
+   > > > > > > > fix/camera-prefix-inference-8324397860843535137
 
 ---
 
 \*\*Phase 3: Dynamic Entity Creation and Visual Indicators
 
+<<<<<<< HEAD
+
 1. **Refactor `MSHandler`**:
    - During device discovery, after identifying a Meraki MS switch, the handler must iterate through all of its ports.
    - For each port, the handler will create a new **binary sensor** Home Assistant entity. A binary sensor is ideal for representing a simple "on/off" or "connected/disconnected" state.
    - The sensor's state will be set to `on` if the port status is 'Connected' and `off` if it's 'Disconnected'.
-   - **Implement the visual indicator**: When creating the binary sensor entity, use the `device_class` property with `connectivity`. This tells Home Assistant to use a specific icon set for connected devices. For a more direct visual, you can also set the `icon` attribute and the `state_color` attribute to `True` on the entity. Home Assistant will then automatically color the icon based on the state. For example, the icon will be green when the state is `on` and gray when the state is `off`.
+   - # **Implement the visual indicator**: When creating the binary sensor entity, use the `device_class` property with `connectivity`. This tells Home Assistant to use a specific icon set for connected devices. For a more direct visual, you can also set the `icon` attribute and the `state_color` attribute to `True` on the entity. Home Assistant will then automatically color the icon based on the state. For example, the icon will be green when the state is `on` and gray when the state is `off`.
+1. **Refactor `MSHandler`**: - During device discovery, after identifying a Meraki MS switch, the handler must iterate through all of its ports. - For each port, the handler will create a new **binary sensor** Home Assistant entity. A binary sensor is ideal for representing a simple "on/off" or "connected/disconnected" state. - The sensor's state will be set to `on` if the port status is 'Connected' and `off` if it's 'Disconnected'. - **Implement the visual indicator**: When creating the binary sensor entity, use the `device_class` property with `connectivity`. This tells Home Assistant to use a specific icon set for connected devices. For a more direct visual, you can also set the `icon` attribute and the `state_color` attribute to `True` on the entity. Home Assistant will then automatically color the icon based on the state. For example, the icon will be green when the state is `on` and gray when the state is `off`.
+   > > > > > > > fix/camera-prefix-inference-8324397860843535137
 
 ---
 
 \*\*Phase 4: Testing and Cleanup
 
+<<<<<<< HEAD
+
 1. **Write New Unit Tests**:
    - Write tests for the `SwitchPortService` to ensure it correctly parses data from mock API responses.
    - Create tests for the `MSHandler` that verify it correctly creates a binary sensor for each port on a mock switch and sets the `device_class` and other properties correctly.
 2. **Remove Old Code**:
-   - Remove any old or incorrect methods for retrieving switch port status. All status checks must now be routed through the new `SwitchPortService`.
+   - # Remove any old or incorrect methods for retrieving switch port status. All status checks must now be routed through the new `SwitchPortService`.
+3. **Write New Unit Tests**:
+   - Write tests for the `SwitchPortService` to ensure it correctly parses data from mock API responses.
+   - Create tests for the `MSHandler` that verify it correctly creates a binary sensor for each port on a mock switch and sets the `device_class` and other properties correctly.
+4. **Remove Old Code**: - Remove any old or incorrect methods for retrieving switch port status. All status checks must now be routed through the new `SwitchPortService`.
+   > > > > > > > fix/camera-prefix-inference-8324397860843535137
 
 ---
 

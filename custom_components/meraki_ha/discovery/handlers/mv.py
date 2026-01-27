@@ -10,35 +10,28 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING
 
-from custom_components.meraki_ha.binary_sensor.device.camera_motion import (
-    MerakiMotionSensor,
-)
-from custom_components.meraki_ha.button.device.camera_snapshot import (
-    MerakiSnapshotButton,
-)
-from custom_components.meraki_ha.camera import MerakiCamera
-from custom_components.meraki_ha.core.errors import MerakiInformationalError
-from custom_components.meraki_ha.sensor.device.camera_analytics import (
+from ...binary_sensor.device.camera_motion import MerakiMotionSensor
+from ...button.device.camera_snapshot import MerakiSnapshotButton
+from ...camera import MerakiCamera
+from ...const import CONF_ENABLE_CAMERA_ENTITIES
+from ...core.errors import MerakiInformationalError
+from ...sensor.device.camera_analytics import (
     MerakiPersonCountSensor,
     MerakiVehicleCountSensor,
 )
-from custom_components.meraki_ha.sensor.device.rtsp_url import MerakiRtspUrlSensor
-from custom_components.meraki_ha.switch.camera_controls import AnalyticsSwitch
-
+from ...sensor.device.rtsp_url import MerakiRtspUrlSensor
+from ...switch.camera_controls import AnalyticsSwitch
 from .base import BaseDeviceHandler
 
 if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
     from homeassistant.helpers.entity import Entity
 
+    from ....coordinator import MerakiDataUpdateCoordinator
+    from ....services.camera_service import CameraService
+    from ....services.device_control_service import DeviceControlService
+    from ....services.network_control_service import NetworkControlService
     from ....types import MerakiDevice
-    from ...coordinator import MerakiDataUpdateCoordinator
-    from ...core.coordinators.switch_port_status_coordinator import (
-        SwitchPortStatusCoordinator,
-    )
-    from ...services.camera_service import CameraService
-    from ...services.device_control_service import DeviceControlService
-    from ...services.network_control_service import NetworkControlService
 
 
 _LOGGER = logging.getLogger(__name__)
@@ -70,7 +63,6 @@ class MVHandler(BaseDeviceHandler):
         camera_service: CameraService,
         control_service: DeviceControlService,
         network_control_service: NetworkControlService,
-        switch_port_coordinator: SwitchPortStatusCoordinator,
     ) -> MVHandler:
         """Create an instance of the handler."""
         return cls(
@@ -99,6 +91,10 @@ class MVHandler(BaseDeviceHandler):
                 self._coordinator.add_status_message(
                     serial, f"Could not enable RTSP stream: {e}"
                 )
+
+        # Check if camera entities are enabled
+        if not self._config_entry.options.get(CONF_ENABLE_CAMERA_ENTITIES, True):
+            return entities
 
         # Always create the base camera entity
         entities.append(

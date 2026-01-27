@@ -8,7 +8,6 @@ from homeassistant.components.http import StaticPathConfig
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import config_validation as cv
-from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers.typing import ConfigType
 
 from .api.websocket import async_setup_websocket_api
@@ -21,12 +20,15 @@ from .const import (
 from .coordinator import MerakiDataUpdateCoordinator
 from .core.repositories.camera_repository import CameraRepository
 from .core.repository import MerakiRepository
+from .core.timed_access_manager import TimedAccessManager
+from .discovery.service import DeviceDiscoveryService
 from .frontend import async_register_frontend, async_remove_frontend
 from .services import async_setup_services
 from .services.camera_service import CameraService
 from .services.device_control_service import DeviceControlService
+from .services.network_control_service import NetworkControlService
 from .services.switch_port_service import SwitchPortService
-from .webhook import async_register_webhook
+from .webhook import async_register_webhook, async_unregister_webhook
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -81,28 +83,28 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     coordinator = MerakiDataUpdateCoordinator(hass, entry)
     await coordinator.async_config_entry_first_refresh()
 
-    device_registry = dr.async_get(hass)
-    if coordinator.data.get("networks"):
-        for network in coordinator.data["networks"]:
-            device_registry.async_get_or_create(
-                config_entry_id=entry.entry_id,
-                identifiers={(DOMAIN, network.id)},
-                manufacturer="Cisco Meraki",
-                model="Meraki Network",
-                name=network.name,
-            )
-
     repo = MerakiRepository(coordinator.api)
     device_control_service = DeviceControlService(repo)
     switch_port_service = SwitchPortService(repo)
     camera_repo = CameraRepository(coordinator.api, entry.data[CONF_MERAKI_ORG_ID])
     camera_service = CameraService(camera_repo)
+    network_control_service = NetworkControlService(coordinator.api, coordinator)
 
     coordinator.device_control_service = device_control_service
     coordinator.switch_port_service = switch_port_service
     coordinator.camera_service = camera_service
 
-    await async_setup_services(hass, coordinator)
+    discovery_service = DeviceDiscoveryService(
+        coordinator=coordinator,
+        config_entry=entry,
+        meraki_client=coordinator.api,
+        camera_service=camera_service,
+        control_service=device_control_service,
+        network_control_service=network_control_service,
+    )
+
+    timed_access_manager = TimedAccessManager(hass)
+    await timed_access_manager.async_setup()
 
     hass.data[DOMAIN][entry.entry_id] = {
         "coordinator": coordinator,
@@ -110,7 +112,13 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         "camera_service": camera_service,
         "device_control_service": device_control_service,
         "switch_port_service": switch_port_service,
+        "network_control_service": network_control_service,
+        "discovery_service": discovery_service,
+        "timed_access_manager": timed_access_manager,
     }
+
+    await discovery_service.discover_entities()
+    await async_setup_services(hass, coordinator)
 
     # Set up webhook
     webhook_id = WEBHOOK_ID_FORMAT.format(entry_id=entry.entry_id)
@@ -148,7 +156,11 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """
     unload_ok = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
     if unload_ok:
-        hass.data[DOMAIN].pop(entry.entry_id)
+        entry_data = hass.data[DOMAIN].pop(entry.entry_id)
+        if "webhook_id" in entry_data:
+            await async_unregister_webhook(
+                hass, entry_data["webhook_id"], entry_data["meraki_client"]
+            )
         await async_remove_frontend(hass)
 
     return unload_ok

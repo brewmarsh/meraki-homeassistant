@@ -83,6 +83,9 @@ def mock_coordinator() -> MagicMock:
     coordinator.data = MOCK_ALL_DATA
     coordinator.async_request_refresh = AsyncMock()
     coordinator.async_write_ha_state = MagicMock()
+    coordinator.is_update_pending = MagicMock(return_value=False)
+    coordinator.register_pending_update = MagicMock()
+    coordinator.async_request_refresh = AsyncMock()
     return coordinator
 
 

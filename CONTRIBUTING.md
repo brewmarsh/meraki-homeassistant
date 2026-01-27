@@ -1,22 +1,25 @@
 # Contributing to Meraki Home Assistant
 
-Thank you for your interest in contributing to this integration!
+Thank you for your interest in contributing to this integration! We welcome all contributions, from bug reports to new features.
 
 This document provides project-specific rules, architectural patterns, and guidelines that are essential for successful development. **Please read this file _after_ reading the main `AGENTS.md` file** in this repository.
 
-## 1. Core Architectural Principles
+### Reporting Bugs
 
-These are the most important patterns to understand before writing any code. Failure to follow them will re-introduce known, high-impact bugs.
+If you find a bug, please [open an issue](https://github.com/brewmarsh/meraki-homeassistant/issues) on our GitHub repository. Please include the following information in your bug report:
 
-### Pattern 1: The "Optimistic UI with Cooldown" (for Configuration Entities)
+- A clear and concise description of the bug.
+- Steps to reproduce the bug.
+- The version of the integration you are using.
+- Any relevant logs from Home Assistant.
 
-This is the **most critical pattern** in this codebase for all entities that modify configuration (e.g., `switch`, `select`, `text`).
+### Proposing New Features
 
 - **Problem:** The Meraki Cloud API has a significant **provisioning delay**. When you send a `PUT` request (e.g., to disable an SSID), the API returns a `200 OK` immediately. However, the change can take several minutes to actually apply. During this time, any `GET` request will return the _old, stale data_.
 - **Bug:** This delay causes the Home Assistant UI to "flicker." The user toggles a switch, the UI updates, the integration refreshes, the API returns the _old_ state, and the UI toggle reverts to its original, incorrect position.
 - **Solution:** We **must** use an optimistic state with a timed cooldown.
 
-The required logic is as follows:
+### Submitting Pull Requests
 
 1. **Optimistic State Update:** The entity's action method (e.g., `async_turn_on`) **must** immediately update its own state and tell Home Assistant to write this state to the UI.
 

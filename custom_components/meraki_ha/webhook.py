@@ -93,6 +93,7 @@ async def async_register_webhook(
     secret: str,
     api_client: MerakiAPIClient,
     entry: ConfigEntry | None = None,
+    config_entry_id: str | None = None,
 ) -> None:
     """
     Register a webhook with the Meraki API.
@@ -106,24 +107,18 @@ async def async_register_webhook(
         entry: The config entry.
 
     """
-    if (
-        "cloud" in hass.config.components and hass.components.cloud.async_is_logged_in()  # type: ignore[attr-defined]
-    ):
-        try:
-            webhook_url_from_entry = entry.data.get("webhook_url") if entry else None
-            webhook_url = get_webhook_url(hass, webhook_id, webhook_url_from_entry)
-            await api_client.register_webhook(webhook_url, secret)
-        except Exception as e:
-            _LOGGER.warning("Failed to register webhook: %s", e)
-    else:
-        _LOGGER.debug(
-            "Home Assistant Cloud not connected. Skipping Cloudhook registration."
-        )
+    try:
+        webhook_url_from_entry = entry.data.get("webhook_url") if entry else None
+        webhook_url = get_webhook_url(hass, webhook_id, webhook_url_from_entry)
+        if config_entry_id:
+            await api_client.register_webhook(webhook_url, secret, config_entry_id)
+    except Exception as err:
+        _LOGGER.error("Failed to register webhook: %s", err)
 
 
 async def async_unregister_webhook(
     hass: HomeAssistant,
-    webhook_id: str,
+    config_entry_id: str,
     api_client: MerakiAPIClient,
 ) -> None:
     """
@@ -136,7 +131,7 @@ async def async_unregister_webhook(
         api_client: The Meraki API client.
 
     """
-    await api_client.unregister_webhook(webhook_id)
+    await api_client.unregister_webhook(config_entry_id)
 
 
 async def async_handle_webhook(

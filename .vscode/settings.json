@@ -14,6 +14,18 @@
       "matchCommandLine": true
     },
     "mypy": true,
-    "mv": true
+    "mv": true,
+    "git rebase": true,
+    "git stash": true,
+    "/^python tools\\\\resolve_conflicts\\.py$/": {
+      "approve": true,
+      "matchCommandLine": true
+    },
+    "true": true,
+    "/^python D:\\\\Code\\\\meraki-homeassistant\\\\tools\\\\resolve_conflicts\\.py$/": {
+      "approve": true,
+      "matchCommandLine": true
+    },
+    "pre-commit": true
   }
 }

@@ -18,7 +18,7 @@ jobs:
       new_version: ${{ steps.increment.outputs.new_version }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
           ref: ${{ github.base_ref }}
@@ -26,7 +26,7 @@ jobs:
       - name: Set up Python and Node.js
         uses: actions/setup-python@v6
         with:
-          python-version: '3.x'
+          python-version: '3.13'
       - uses: actions/setup-node@v6
         with:
           node-version: '20'
@@ -34,8 +34,9 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install bump-my-version
+          pip install bump-my-version playwright
           npm install
+          npm install --prefix custom_components/meraki_ha/www
 
       - name: Increment Version
         id: increment
@@ -62,12 +63,27 @@ jobs:
           echo "Synchronizing package.json version to: ${{ steps.increment.outputs.new_version }}"
           npm version ${{ steps.increment.outputs.new_version }} --no-git-tag-version --allow-same-version
 
+      - name: Build frontend
+        if: steps.increment.outputs.new_version != ''
+        run: |
+          npm run build --prefix custom_components/meraki_ha/www
+
+      - name: Install Playwright Browsers
+        if: steps.increment.outputs.new_version != ''
+        run: |
+          playwright install chromium
+
+      - name: Generate Screenshots
+        if: steps.increment.outputs.new_version != ''
+        run: |
+          python scripts/generate_screenshots.py
+
       - name: Commit and push changes
         if: steps.increment.outputs.new_version != ''
         uses: stefanzweifel/git-auto-commit-action@v7
         with:
-          commit_message: 'chore(release): update version to ${{ steps.increment.outputs.new_version }}'
-          file_pattern: 'custom_components/meraki_ha/manifest.json package.json pyproject.toml package-lock.json'
+          commit_message: 'chore(release): update version to ${{ steps.increment.outputs.new_version }} [skip ci]'
+          file_pattern: 'custom_components/meraki_ha/manifest.json package.json pyproject.toml package-lock.json custom_components/meraki_ha/www/meraki-panel.js docs/images/network_view.png docs/images/device_detail_view.png'
           commit_user_name: 'github-actions[bot]'
           commit_user_email: 'github-actions[bot]@users.noreply.github.com'
           commit_author: 'github-actions[bot] <github-actions[bot]@users.noreply.github.com>'
@@ -80,12 +96,15 @@ jobs:
     if: needs.version.outputs.new_version != ''
     permissions:
       contents: write
+      pull-requests: read
     steps:
       - name: Create Release
-        uses: softprops/action-gh-release@v2
+        uses: release-drafter/release-drafter@v6
         with:
-          tag_name: 'v${{ needs.version.outputs.new_version }}'
+          tag: 'v${{ needs.version.outputs.new_version }}'
           name: 'Release v${{ needs.version.outputs.new_version }}'
-          generate_release_notes: true
-          draft: false
+          version: 'v${{ needs.version.outputs.new_version }}'
+          publish: true
           prerelease: ${{ github.base_ref == 'beta' }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
