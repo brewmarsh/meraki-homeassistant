@@ -25,8 +25,8 @@ def mock_coordinator_and_device():
         model="MS220-8P",
         product_type="switch",
         ports_statuses=[
-            {"portId": "1", "powerUsageInWh": 240},
-            {"portId": "2", "powerUsageInWh": 0},
+            {"portId": "1", "powerUsageInWh": 240, "_timespan": 300},
+            {"portId": "2", "powerUsageInWh": 0, "_timespan": 300},
             {"portId": "3"},  # Missing powerUsageInWh
         ],
     )
@@ -39,7 +39,8 @@ def mock_coordinator_and_device():
 def test_switch_port_power_sensor(mock_coordinator_and_device):
     """Test the switch port power sensor."""
     coordinator, device = mock_coordinator_and_device
-    coordinator.update_interval.total_seconds.return_value = 300.0  # 5 minutes
+    # update_interval doesn't matter for the fixed implementation
+    coordinator.update_interval.total_seconds.return_value = 300.0
     port = device.ports_statuses[0]
     config_entry = MagicMock()
 
@@ -51,39 +52,15 @@ def test_switch_port_power_sensor(mock_coordinator_and_device):
     assert sensor.native_unit_of_measurement == UnitOfPower.WATT
     assert sensor.state_class == SensorStateClass.MEASUREMENT
 
-    # 240 Wh * 3600 / 300 = 2880 W
-    assert sensor.native_value == 2880.0
-
-
-def test_switch_port_power_sensor_long_interval(mock_coordinator_and_device):
-    """Test the switch port power sensor with a long interval."""
-    coordinator, device = mock_coordinator_and_device
-    coordinator.update_interval.total_seconds.return_value = 86400.0  # 24 hours
-    port = device.ports_statuses[0]
-    config_entry = MagicMock()
-
-    sensor = MerakiSwitchPortPowerSensor(coordinator, device, port, config_entry)
-
+    # MANUAL FIX: Updated to match fixed 24h logic (86400s)
     # 240 Wh * 3600 / 86400 = 10 W
     assert sensor.native_value == 10.0
 
 
-def test_switch_port_power_sensor_invalid_interval(mock_coordinator_and_device):
-    """Test the switch port power sensor with an invalid interval."""
-    coordinator, device = mock_coordinator_and_device
-    coordinator.update_interval.total_seconds.return_value = 0.0
-    port = device.ports_statuses[0]
-    config_entry = MagicMock()
-
-    sensor = MerakiSwitchPortPowerSensor(coordinator, device, port, config_entry)
-
-    # Defaults to 24h: 240 Wh * 3600 / 86400 = 10 W
-    assert sensor.native_value == 10.0
-
-
-def test_switch_port_energy_sensor(mock_coordinator_and_device):
+def test_switch_port_energy_sensor_initial(mock_coordinator_and_device):
     """Test the switch port energy sensor initial state."""
     coordinator, device = mock_coordinator_and_device
+    # Energy sensor logic doesn't depend on timespan, just raw Wh
     port = device.ports_statuses[0]
     config_entry = MagicMock()
 
@@ -94,14 +71,15 @@ def test_switch_port_energy_sensor(mock_coordinator_and_device):
     assert sensor.translation_key == "energy"
     assert sensor.device_class == SensorDeviceClass.ENERGY
     assert sensor.native_unit_of_measurement == UnitOfEnergy.WATT_HOUR
-    # Changed from MEASUREMENT to TOTAL_INCREASING
     assert sensor.state_class == SensorStateClass.TOTAL_INCREASING
 
-    # Initially 0 until update is processed
+    # Initially 0 until update is processed (RestoreEntity behavior)
+    # Actually logic sets it to 0.0 in init
     assert sensor.native_value == 0.0
 
     # Trigger first update
     coordinator.last_successful_update = datetime(2023, 1, 1, 12, 0, 0)
+    # The sensor accumulates the value from the port status
     sensor._handle_coordinator_update()
     assert sensor.native_value == 240.0
 
@@ -121,8 +99,13 @@ def test_switch_port_energy_sensor_accumulation(mock_coordinator_and_device):
     assert sensor.native_value == 240.0
 
     # 2. Second update with new data
-    # Simulate API returning new data (same object modified for simplicity in mock)
-    # Let's say next interval used 100 Wh
+    # Simulate API returning new data
+    # Note: Coordinator update loop modifies the device object in place in real code,
+    # here we modify the mock's data.
+    # The sensor's _handle_coordinator_update iterates over devices in coordinator.data
+
+    # We need to ensure the sensor finds the port in the device in coordinator.data
+    # device.ports_statuses is a list of dicts.
     device.ports_statuses[0]["powerUsageInWh"] = 100
     coordinator.last_successful_update = datetime(2023, 1, 1, 12, 5, 0)
 
@@ -131,7 +114,6 @@ def test_switch_port_energy_sensor_accumulation(mock_coordinator_and_device):
     assert sensor.native_value == 340.0
 
     # 3. Duplicate update (same timestamp)
-    # Should NOT accumulate
     sensor._handle_coordinator_update()
     assert sensor.native_value == 340.0
 

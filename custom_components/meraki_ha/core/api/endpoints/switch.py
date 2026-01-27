@@ -65,6 +65,11 @@ class SwitchEndpoints:
         if not isinstance(validated, list):
             _LOGGER.warning("get_device_switch_ports_statuses did not return a list.")
             return []
+
+        if timespan:
+            for status in validated:
+                status["_timespan"] = timespan
+
         return validated
 
     @handle_meraki_errors
