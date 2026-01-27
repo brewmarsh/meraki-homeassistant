@@ -7,7 +7,7 @@ bandit==1.7.9
 codecov
 diskcache==5.6.3
 fnv-hash-fast
-hassil
+hassil==3.5.0
 janus==1.0.0
 meraki>=1.53.0
 numpy>=1.26.0
@@ -22,7 +22,7 @@ pytest-asyncio
 pytest-cov
 pytest-mock
 pytest>=8.3.4
-PyTurboJPEG
+PyTurboJPEG==1.8.2
 ruff
 setuptools==78.1.1
 types-aiofiles==25.1.0.20251011
