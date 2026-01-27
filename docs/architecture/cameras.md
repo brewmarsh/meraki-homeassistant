@@ -38,24 +38,19 @@ This plan builds on the existing architecture to implement a dynamic and feature
 
 #\*\*Phase 1: API and Repository Updates
 
-1. **Enhance `MerakiApiClient`**:
+1.  **Develop `CameraService` (`meraki_ha/services/camera_service.py`)**: - This new service will be injected with the `MerakiRepository`. - It will contain methods like `get_supported_analytics(serial)` that query the repository and return a list of features (e.g., `["person_detection", "vehicle_detection"]`). - Other methods will retrieve the actual analytics data and the video stream URL. The `CameraService`'s job is to shield the handlers from the complexities of the repository's API calls.
 
-   - Add new methods to retrieve **camera analytics data** (`get_device_camera_analytics`, `get_network_camera_analytics_history`). These endpoints allow access to rich data like object counts (people/vehicles) and motion history.
-   - Add a method to get **live video stream URLs** (`get_device_camera_video_link`), which is the correct way to get the RTSP stream.
+    > > > > > > > fix/camera-prefix-inference-8324397860843535137
 
-2. **Add `CameraRepository` Methods**:
-   - Create a new `CameraRepository` or expand the existing `MerakiRepository` to include camera-specific methods. This repository layer will abstract the different API calls based on a camera's model and capabilities.
-   - Methods should include `get_camera_features(serial)` to retrieve a camera's model-specific capabilities, `get_analytics_data(serial)` to fetch object detection and motion data, and `get_video_url(serial)` for the stream.
+1.  **Develop `CameraService` (`meraki_ha/services/camera_service.py`)**:
+    - This new service will be injected with the `MerakiRepository`.
+    - It will contain methods like `get_supported_analytics(serial)` that query the repository and return a list of features (e.g., `["person_detection", "vehicle_detection"]`).
+    - Other methods will retrieve the actual analytics data and the video stream URL. The `CameraService`'s job is to shield the handlers from the complexities of the repository's API calls.
 
-#\*\*Phase 2: Create a Dedicated Camera Service
-
-1. **Develop `CameraService` (`meraki_ha/services/camera_service.py`)**:
-   - This new service will be injected with the `MerakiRepository`.
-   - It will contain methods like `get_supported_analytics(serial)` that query the repository and return a list of features (e.g., `["person_detection", "vehicle_detection"]`).
-   - Other methods will retrieve the actual analytics data and the video stream URL. The `CameraService`'s job is to shield the handlers from the complexities of the repository's API calls.
-
+<<<<<<< HEAD
 #\*\*Phase 3: Dynamic Entity Creation with `MVHandler`
 
+1. # **Refactor `MVHandler`**:
 1. **Refactor `MVHandler`**:
 
    - Update the `MVHandler` to be **type-aware**. When it's created, it should get the device's model and query the `CameraService` for supported features.
@@ -65,10 +60,24 @@ This plan builds on the existing architecture to implement a dynamic and feature
      - **Binary Sensor Entities**: Create motion detection binary sensors based on motion history data from the `CameraService`.
      - **Button Entities**: For models that support snapshots, create a "Take Snapshot" button that calls the snapshot API endpoint via the `CameraService`.
 
-2. **Update `config_flow`**:
-   - Ensure the `CameraService` is instantiated and injected into the `MVHandler`.
+1. **Update `config_flow`**: - Ensure the `CameraService` is instantiated and injected into the `MVHandler`.
+   > > > > > > > fix/camera-prefix-inference-8324397860843535137
+
+- Update the `MVHandler` to be **type-aware**. When it's created, it should get the device's model and query the `CameraService` for supported features.
+- The handler will then **conditionally create** Home Assistant entities based on the returned feature list.
+  - **Camera Entity**: Always create a base camera entity for the video stream. The stream URL will come from the `CameraService`.
+  - **Sensor Entities**: If the `CameraService` reports "person_detection" is supported, create a `person_count` sensor. If it supports "vehicle_detection," create a `vehicle_count` sensor.
+  - **Binary Sensor Entities**: Create motion detection binary sensors based on motion history data from the `CameraService`.
+  - **Button Entities**: For models that support snapshots, create a "Take Snapshot" button that calls the snapshot API endpoint via the `CameraService`.
+
+<<<<<<< HEAD 2. **Update `config_flow`**:
+
+- Ensure the `CameraService` is instantiated and injected into the `MVHandler`.
 
 #\*\*Phase 4: Testing and Cleanup
 
 1. **Create Model-Specific Mock Data**: When testing, use mock API responses that represent different camera models (e.g., one mock for an MV12, another for an MV93 with 360° view and analytics). This will allow you to test that the `MVHandler` correctly creates the right entities for each model.
-2. **Remove Legacy Code**: Delete any old code that handles MV cameras in a monolithic or non-modular way, ensuring all new logic is routed through the repository and the new `CameraService`.
+2. # **Remove Legacy Code**: Delete any old code that handles MV cameras in a monolithic or non-modular way, ensuring all new logic is routed through the repository and the new `CameraService`.
+3. **Create Model-Specific Mock Data**: When testing, use mock API responses that represent different camera models (e.g., one mock for an MV12, another for an MV93 with 360° view and analytics). This will allow you to test that the `MVHandler` correctly creates the right entities for each model.
+4. **Remove Legacy Code**: Delete any old code that handles MV cameras in a monolithic or non-modular way, ensuring all new logic is routed through the repository and the new `CameraService`.
+   > > > > > > > fix/camera-prefix-inference-8324397860843535137

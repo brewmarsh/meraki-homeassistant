@@ -11,6 +11,13 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING
 
+from ..const import (
+    CONF_ENABLE_CAMERA_ENTITIES,
+    CONF_ENABLE_DEVICE_SENSORS,
+    CONF_ENABLE_DEVICE_STATUS,
+    CONF_ENABLE_NETWORK_SENSORS,
+    CONF_ENABLE_SSID_SENSORS,
+)
 from .handlers.gx import GXHandler
 from .handlers.mr import MRHandler
 from .handlers.ms import MSHandler
@@ -27,9 +34,6 @@ if TYPE_CHECKING:
     from ...types import MerakiDevice
     from ..coordinator import MerakiDataUpdateCoordinator
     from ..core.api.client import MerakiAPIClient
-    from ..core.coordinators.switch_port_status_coordinator import (
-        SwitchPortStatusCoordinator,
-    )
     from ..services.camera_service import CameraService
     from ..services.device_control_service import DeviceControlService
     from ..services.network_control_service import NetworkControlService
@@ -57,7 +61,6 @@ class DeviceDiscoveryService:
         coordinator: MerakiDataUpdateCoordinator,
         config_entry: ConfigEntry,
         meraki_client: MerakiAPIClient,
-        switch_port_coordinator: SwitchPortStatusCoordinator,
         camera_service: CameraService,
         control_service: DeviceControlService,
         network_control_service: NetworkControlService,
@@ -66,7 +69,6 @@ class DeviceDiscoveryService:
         self._coordinator = coordinator
         self._config_entry = config_entry
         self._meraki_client = meraki_client
-        self._switch_port_coordinator = switch_port_coordinator
         self._camera_service = camera_service
         self._control_service = control_service
         self._network_control_service = network_control_service
@@ -84,19 +86,29 @@ class DeviceDiscoveryService:
         all_entities: list[Entity] = []
 
         # Discover network-level entities
-        network_handler = NetworkHandler.create(
-            self._coordinator,
-            None,
-            self._config_entry,
-            self._camera_service,
-            self._control_service,
-            self._network_control_service,
-            self._switch_port_coordinator,
-        )
-        network_entities = await network_handler.discover_entities()
-        all_entities.extend(network_entities)
+        if self._config_entry.options.get(CONF_ENABLE_NETWORK_SENSORS, True):
+            network_handler = NetworkHandler.create(
+                self._coordinator,
+                None,
+                self._config_entry,
+                self._camera_service,
+                self._control_service,
+                self._network_control_service,
+            )
+            network_entities = await network_handler.discover_entities()
+            all_entities.extend(network_entities)
+        else:
+            _LOGGER.debug("Network sensors are disabled.")
 
         _LOGGER.debug("Starting entity discovery for %d devices", len(self._devices))
+
+        # Check global device entity processing
+        process_devices = self._config_entry.options.get(
+            CONF_ENABLE_DEVICE_STATUS, True
+        )
+
+        if not process_devices:
+            _LOGGER.debug("Device processing (Device & Entity Model) is disabled.")
 
         for device in self._devices:
             model = device.model
@@ -115,6 +127,66 @@ class DeviceDiscoveryService:
                     device.serial,
                 )
                 continue
+
+            # Check configuration options before creating handlers
+
+            # If basic device processing is disabled, we might still want to process
+            # specialized sensors if they are enabled separately (e.g. cameras),
+            # but typically "Device & Entity Model" implies the core device
+            # representation. However, Home Assistant entities need a device
+            # association. If we disable "Device & Entity Model", we probably
+            # shouldn't create *any* entities for the device, unless a specific
+            # override exists. For now, if process_devices is False, we skip
+            # unless it is a specialized type that has its own toggle which is ON.
+
+            # Actually, the simplest interpretation is:
+            # CONF_ENABLE_DEVICE_STATUS -> generic device entities (like reboot
+            # button, status sensors)
+            # CONF_ENABLE_CAMERA_ENTITIES -> camera entities
+            # CONF_ENABLE_DEVICE_SENSORS -> MT sensors
+
+            # But handlers create multiple things.
+            # I will pass the config down or decide here.
+
+            # Special case for cameras:
+            if model_prefix == "MV":
+                if not self._config_entry.options.get(
+                    CONF_ENABLE_CAMERA_ENTITIES, True
+                ):
+                    _LOGGER.debug(
+                        "Camera entities are disabled, skipping device %s",
+                        device.serial,
+                    )
+                    continue
+
+            # Special case for MT sensors:
+            elif model_prefix == "MT":
+                if not self._config_entry.options.get(CONF_ENABLE_DEVICE_SENSORS, True):
+                    _LOGGER.debug(
+                        "Device sensors are disabled, skipping device %s",
+                        device.serial,
+                    )
+                    continue
+
+            # For other devices (MR, MS, MX, GX), if generic device status is disabled,
+            # we check if they have other enabled features.
+            # MS has Port Sensors.
+            # MX/GX has Port Sensors (uplinks).
+            # MR doesn't have specific toggle other than Network/SSID which are
+            # separate.
+
+            elif not process_devices:
+                # Check exceptions for devices with sub-features that are enabled
+                has_enabled_features = False
+                if model_prefix in (
+                    "MS",
+                    "MX",
+                    "GX",
+                ) and self._config_entry.options.get("enable_port_sensors", True):
+                    has_enabled_features = True
+
+                if not has_enabled_features:
+                    continue
 
             _LOGGER.debug(
                 "Using handler %s for device %s",
@@ -144,7 +216,6 @@ class DeviceDiscoveryService:
                     self._coordinator,
                     device,
                     self._config_entry,
-                    self._switch_port_coordinator,
                     self._control_service,
                 )
             else:
@@ -159,11 +230,14 @@ class DeviceDiscoveryService:
             all_entities.extend(entities)
 
         # Create SSID handler for virtual SSID devices
-        ssid_handler = SSIDHandler.create(
-            self._coordinator, self._config_entry, self._meraki_client
-        )
-        ssid_entities = await ssid_handler.discover_entities()
-        all_entities.extend(ssid_entities)
+        if self._config_entry.options.get(CONF_ENABLE_SSID_SENSORS, True):
+            ssid_handler = SSIDHandler.create(
+                self._coordinator, self._config_entry, self._meraki_client
+            )
+            ssid_entities = await ssid_handler.discover_entities()
+            all_entities.extend(ssid_entities)
+        else:
+            _LOGGER.debug("SSID sensors are disabled.")
 
         _LOGGER.info("Entity discovery complete. Found %d entities.", len(all_entities))
         return all_entities

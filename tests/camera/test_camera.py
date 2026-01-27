@@ -1,7 +1,3 @@
-"""Tests for the Meraki camera entity."""
-
-from __future__ import annotations
-
 import dataclasses
 from unittest.mock import AsyncMock, MagicMock, patch
 
@@ -12,53 +8,83 @@ from custom_components.meraki_ha.camera import MerakiCamera
 from tests.const import MOCK_CAMERA_DEVICE
 
 
-@pytest.fixture
-def mock_camera(
-    mock_coordinator: MagicMock,
-    mock_config_entry: MagicMock,
-    mock_camera_service: AsyncMock,
-) -> MerakiCamera:
-    """Fixture for a mocked MerakiCamera."""
-    # Ensure the camera device is available in the coordinator data
-    if "devices" in mock_coordinator.data:
-        # Check if already present to avoid duplicates
-        if not any(
-            d.serial == MOCK_CAMERA_DEVICE.serial
-            for d in mock_coordinator.data["devices"]
-        ):
-            mock_coordinator.data["devices"].append(MOCK_CAMERA_DEVICE)
+async def test_camera_rtsp_enabled_via_fallback(mock_coordinator, mock_config_entry):
+    """Test RTSP enabled via fallback when flag is False but LAN IP is present."""
+    device_data = {
+        "serial": "Q234-ABCD-CAM1",
+        "name": "Test Camera",
+        "model": "MV33",
+        "networkId": "N_12345",
+        "productType": "camera",
+        "lanIp": "192.168.1.100",
+        "status": "online",
+        "video_settings": {
+            "rtspServerEnabled": False,
+        },
+        "rtsp_url": None,
+    }
 
-    # Mock get_device to return the camera device when requested
-    def get_device_side_effect(serial: str):
-        if serial == MOCK_CAMERA_DEVICE.serial:
-            return MOCK_CAMERA_DEVICE
-        return None
+    # Setup coordinator to return this device
+    mock_coordinator.get_device.return_value = device_data
+    mock_coordinator.config_entry = mock_config_entry
 
-    mock_coordinator.get_device.side_effect = get_device_side_effect
+    camera_service = MagicMock()
 
-    return MerakiCamera(
-        mock_coordinator,
-        mock_config_entry,
-        MOCK_CAMERA_DEVICE,
-        mock_camera_service,
+    camera = MerakiCamera(
+        coordinator=mock_coordinator,
+        config_entry=mock_config_entry,
+        device=device_data,
+        camera_service=camera_service,
     )
 
+    # Check extra_state_attributes
+    attrs = camera.extra_state_attributes
 
-@pytest.mark.asyncio
-async def test_camera_stream_source(mock_camera: MerakiCamera) -> None:
-    """
-    Test the camera stream source relies on coordinator data.
+    # Should be enabled now because of LAN IP fallback
+    assert attrs["stream_status"] == "Enabled"
+    assert attrs["rtsp_url"] == "rtsp://192.168.1.100:9000/live"
+    assert camera.is_streaming is True
 
-    Args:
-    ----
-        mock_camera: The mocked camera.
+    # Verify no status message added
+    mock_coordinator.add_status_message.assert_not_called()
 
-    """
-    # Act
-    source = await mock_camera.stream_source()
 
-    # Assert
-    assert source == "rtsp://test.com/stream"
+async def test_camera_rtsp_disabled_when_no_ip(mock_coordinator, mock_config_entry):
+    """Test RTSP disabled message shown when flag is False and no IP available."""
+    device_data = {
+        "serial": "Q234-ABCD-CAM2",
+        "name": "Test Camera 2",
+        "model": "MV33",
+        "networkId": "N_12345",
+        "productType": "camera",
+        "lanIp": None,  # No IP
+        "status": "online",
+        "video_settings": {
+            "rtspServerEnabled": False,
+        },
+        "rtsp_url": None,
+    }
+
+    mock_coordinator.get_device.return_value = device_data
+    mock_coordinator.config_entry = mock_config_entry
+
+    camera_service = MagicMock()
+
+    camera = MerakiCamera(
+        coordinator=mock_coordinator,
+        config_entry=mock_config_entry,
+        device=device_data,
+        camera_service=camera_service,
+    )
+
+    # Check extra_state_attributes
+    attrs = camera.extra_state_attributes
+
+    assert attrs["stream_status"] == "Disabled in Meraki Dashboard"
+    mock_coordinator.add_status_message.assert_called_with(
+        "Q234-ABCD-CAM2", "RTSP stream is disabled in the Meraki dashboard."
+    )
+    # end test
 
 
 @pytest.mark.asyncio

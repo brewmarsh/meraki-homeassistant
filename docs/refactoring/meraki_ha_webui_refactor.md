@@ -27,36 +27,67 @@ The new UI will be a single-page application (SPA) built with **React** and styl
 
 \*\*Phase 1: Backend Data & API
 
+<<<<<<< HEAD:docs/meraki_ha_webui_refactor.md
+
 1. **Create WebSocket Endpoint:**
    - Define a WebSocket handler in `custom_components/meraki_ha/api/websocket.py`.
    - The handler will send a complete data snapshot on connection and push updates when the coordinator's data changes.
 2. **Enrich Data with Status Messages:**
    - Add a `status_messages` list to each device's data payload in the Meraki data coordinator.
-   - Log significant events to this list for display in the UI.
+   - # Log significant events to this list for display in the UI.
+3. **Create WebSocket Endpoint:**
+   - Define a WebSocket handler in `custom_components/meraki_ha/api/websocket.py`.
+   - The handler will send a complete data snapshot on connection and push updates when the coordinator's data changes.
+4. **Enrich Data with Status Messages:** - Add a `status_messages` list to each device's data payload in the Meraki data coordinator. - Log significant events to this list for display in the UI.
+   > > > > > > > fix/camera-prefix-inference-8324397860843535137:docs/refactoring/meraki_ha_webui_refactor.md
 
 \*\*Phase 2: Frontend Foundation (React)
+
+<<<<<<< HEAD:docs/meraki_ha_webui_refactor.md
 
 1. **Set up the React App:**
    - Create a new React app in `custom_components/meraki_ha/www`.
 2. **Connect to Backend:**
    - Establish a WebSocket connection in `App.tsx` to receive data from the Home Assistant backend.
 3. **Implement Routing:**
-   - Create a simple state-based routing system in `App.tsx`.
+   - # Create a simple state-based routing system in `App.tsx`.
+4. **Set up the React App:**
+   - Create a new React app in `custom_components/meraki_ha/www`.
+5. **Connect to Backend:**
+   - Establish a WebSocket connection in `App.tsx` to receive data from the Home Assistant backend.
+6. **Implement Routing:** - Create a simple state-based routing system in `App.tsx`.
+   > > > > > > > fix/camera-prefix-inference-8324397860843535137:docs/refactoring/meraki_ha_webui_refactor.md
 
 \*\*Phase 3: Dashboard & Core Components
+
+<<<<<<< HEAD:docs/meraki_ha_webui_refactor.md
 
 1. **Build `StatusCard.tsx`:**
    - Create a reusable component for displaying metrics.
 2. **Build `Dashboard.tsx`:**
    - Create a responsive card layout for key metrics.
 3. **Build `DeviceTable.tsx`:**
-   - Create a searchable, sortable table of devices.
+   - # Create a searchable, sortable table of devices.
+4. **Build `StatusCard.tsx`:**
+   - Create a reusable component for displaying metrics.
+5. **Build `Dashboard.tsx`:**
+   - Create a responsive card layout for key metrics.
+6. **Build `DeviceTable.tsx`:** - Create a searchable, sortable table of devices.
+   > > > > > > > fix/camera-prefix-inference-8324397860843535137:docs/refactoring/meraki_ha_webui_refactor.md
 
 \*\*Phase 4: Device Details & Final Touches
+
+<<<<<<< HEAD:docs/meraki_ha_webui_refactor.md
 
 1. **Build `DeviceView.tsx`:**
    - Display detailed information for a single device, including `status_messages`.
 2. **Implement Dark Mode:**
    - Ensure all components support dark mode.
 3. **Add Final Polish:**
-   - Implement smooth transitions, icons, and ensure proper spacing.
+   - # Implement smooth transitions, icons, and ensure proper spacing.
+4. **Build `DeviceView.tsx`:**
+   - Display detailed information for a single device, including `status_messages`.
+5. **Implement Dark Mode:**
+   - Ensure all components support dark mode.
+6. **Add Final Polish:** - Implement smooth transitions, icons, and ensure proper spacing.
+   > > > > > > > fix/camera-prefix-inference-8324397860843535137:docs/refactoring/meraki_ha_webui_refactor.md

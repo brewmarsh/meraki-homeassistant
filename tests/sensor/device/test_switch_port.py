@@ -93,6 +93,8 @@ def test_switch_port_energy_sensor_missing_data(mock_coordinator_and_device):
     sensor.async_write_ha_state = MagicMock()
     sensor._handle_coordinator_update()
     assert sensor.native_value == 0.0
+<<<<<<< Updated upstream
+=======
 
 
 def test_switch_port_energy_sensor_accumulation(mock_coordinator_and_device):
@@ -115,3 +117,4 @@ def test_switch_port_energy_sensor_accumulation(mock_coordinator_and_device):
 
     # Total should be 240 + 100 = 340
     assert sensor.native_value == 340
+>>>>>>> Stashed changes

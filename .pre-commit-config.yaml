@@ -3,46 +3,55 @@ repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v6.0.0
     hooks:
-      # - id: trailing-whitespace # Temporarily commented out
-      # - id: mixed-line-ending # Temporarily commented out
-      #   args: [--fix=lf]
       - id: check-merge-conflict
+        exclude: 'node_modules/'
       - id: check-toml
       - id: check-json
-        exclude: (.vscode|.devcontainer|node_modules)
+        exclude: '(?x)(?:\.(?:vscode|devcontainer)\/.*|node_modules\/.*)'
       - id: check-executables-have-shebangs
         stages: [manual]
       - id: end-of-file-fixer
-  #  - repo: https://github.com/pycqa/isort
-  #    rev: 5.13.2
-  #    hooks:
-  #      - id: isort
-  #        name: isort (python)
+      - id: trailing-whitespace
+      - id: mixed-line-ending
+        args: [--fix=lf]
+
+  # Python specific hooks
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.5.5
     hooks:
       - id: ruff
-        args:
-          - --fix
+        args: [--fix]
+        # Ruff will use pyproject.toml for configuration.
       - id: ruff-format
-  - repo: https://github.com/codespell-project/codespell
-    rev: v2.4.1
-    hooks:
-      - id: codespell
-        args:
-          - --ignore-words-list=hass,thirdparty
-          - --skip="./.*,*.csv,*.json"
-          - --quiet-level=2
-        exclude_types: [csv, json]
-        exclude: (^node_modules/|custom_components/meraki_ha/www/meraki-panel\.js|custom_components/meraki_ha/www/dist/)
-  #  - repo: https://github.com/adrienverge/yamllint.git
-  #    rev: v1.35.1
-  #    hooks:
-  #      - id: yamllint
+
+  # JavaScript/TypeScript/CSS/HTML formatting
   - repo: https://github.com/pre-commit/mirrors-prettier
     rev: v4.0.0-alpha.8
     hooks:
       - id: prettier
+        files: \.(js|jsx|ts|tsx|json|css|scss|md|yaml|yml|html)$
+        exclude: 'node_modules/'
+
+  # Markdown linting - targeting specific directories and excluding node_modules
+  - repo: https://github.com/DavidAnson/markdownlint-cli2
+    rev: v0.11.0
+    hooks:
+      - id: markdownlint-cli2
+        files: '^(README.md|\.github\/.*\.md|docs\/.*\.md)$'
+        exclude: '^node_modules\/'
+
+  # Spell checking
+  - repo: https://github.com/codespell-project/codespell
+    rev: v2.3.0
+    hooks:
+      - id: codespell
+        args:
+          - --ignore-words-list=hass,thirdparty
+          - --quiet-level=2
+        exclude_types: [csv, json]
+        files: '^(custom_components|tests|tools|docs)/'
+        exclude: '^(custom_components/meraki_ha/www/.*|node_modules/|custom_components/meraki_ha/www/meraki-panel\.js|custom_components/meraki_ha/www/dist/)'
+
   - repo: https://github.com/cdce8p/python-typing-update
     rev: v0.8.1
     hooks:
@@ -53,9 +62,23 @@ repos:
           - --force
           - --keep-updates
         files: ^(custom_components|tests)/.+\.py$
-  # TODO: Fix markdown issues and re-enable
-  # - repo: https://github.com/DavidAnson/markdownlint-cli2
-  #   rev: v0.20.0
+
+  # Uncomment and configure if needed
+  # - repo: https://github.com/pycqa/isort
+  #   rev: 5.13.2
   #   hooks:
-  #     - id: markdownlint-cli2
-  #       exclude: ^node_modules/
+  #     - id: isort
+  #       name: isort (python)
+  # - repo: https://github.com/adrienverge/yamllint.git
+  #   rev: v1.35.1
+  #   hooks:
+  #     - id: yamllint
+
+  # Local hooks
+  - repo: local
+    hooks:
+      - id: forbid-agent-artifacts
+        name: Forbid agent artifacts
+        entry: python tools/check_artifacts.py
+        language: python
+        files: '' # Apply to all files
