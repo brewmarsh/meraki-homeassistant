@@ -47,6 +47,6 @@ class MerakiInformationalError(MerakiError):
 
 
 class InvalidOrgID(MerakiError):
-    """Error to indicate an invalid Meraki Organization ID."""
+    """Error to indicate an invalid or inaccessible Meraki Organization ID."""
 
     pass
