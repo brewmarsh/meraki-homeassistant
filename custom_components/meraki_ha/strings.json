@@ -112,6 +112,14 @@
       "meraki_ssid_name": {
         "name": "SSID Name"
       }
+    },
+    "event": {
+      "motion_event": {
+        "name": "Motion Event"
+      },
+      "button_press": {
+        "name": "Button Press"
+      }
     }
   }
 }

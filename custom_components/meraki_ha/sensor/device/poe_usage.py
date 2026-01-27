@@ -56,8 +56,6 @@ class MerakiPoeUsageSensor(
         self._attr_has_entity_name = True
         self._attr_unique_id = f"{device.serial}_poe_usage"
         self._attr_name = "PoE Usage"
-        self._last_update_timestamp: float | None = None
-        self._duration_seconds: float = 300.0
 
     @property
     def device_info(self) -> DeviceInfo:
@@ -80,7 +78,7 @@ class MerakiPoeUsageSensor(
             self._device = device
 
             now = time.time()
-            if self._last_update_timestamp is not None:
+            if hasattr(self, "_last_update_timestamp"):
                 self._duration_seconds = now - self._last_update_timestamp
             else:
                 self._duration_seconds = (
@@ -106,7 +104,7 @@ class MerakiPoeUsageSensor(
         if total_poe_usage_wh <= 0:
             return 0.0
 
-        duration_hours = self._duration_seconds / 3600
+        duration_hours = getattr(self, "_duration_seconds", 300) / 3600
         if duration_hours <= 0:
             return 0.0
 

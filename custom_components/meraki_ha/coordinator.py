@@ -237,7 +237,6 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 device_registry.async_get_or_create(
                     config_entry_id=self.config_entry.entry_id,
                     identifiers={(DOMAIN, network.id)},
-                    # AGENT RULE: Apply standardized [Network] prefix
                     name=f"[Network] {network.name}",
                     manufacturer="Cisco Meraki",
                     model="Network",
