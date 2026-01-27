@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, cast
 
 from ...core.parsers.devices import parse_device_data
 from ...types import MerakiDevice
@@ -56,11 +56,12 @@ class DeviceFetcher:
                 "Could not fetch devices, device data will be unavailable: %s",
                 devices_res,
             )
-            devices_list = []
-            devices_raw = []
+            devices_list: list[MerakiDevice] = []
+            devices_raw: list[dict[str, Any]] = []
         else:
-            devices_list = [MerakiDevice.from_dict(d) for d in devices_res]
-            devices_raw = devices_res
+            devices_res_list = cast(list[dict[str, Any]], devices_res)
+            devices_list = [MerakiDevice.from_dict(d) for d in devices_res_list]
+            devices_raw = devices_res_list
 
         device_statuses = data.get("device_statuses", [])
         if isinstance(device_statuses, Exception):
@@ -70,6 +71,8 @@ class DeviceFetcher:
                 device_statuses,
             )
             device_statuses = []
+        else:
+            device_statuses = cast(list[dict[str, Any]], device_statuses)
 
         parse_device_data(devices_list, device_statuses)
 
