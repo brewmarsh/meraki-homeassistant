@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import logging
 
+from homeassistant.components.event import EventEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
@@ -30,7 +31,7 @@ async def async_setup_entry(
         _LOGGER.warning("Meraki client not available; skipping event setup.")
         return
 
-    entities = []
+    entities: list[EventEntity] = []
 
     for device in coordinator.data["devices"]:
         if device.product_type == "camera":
