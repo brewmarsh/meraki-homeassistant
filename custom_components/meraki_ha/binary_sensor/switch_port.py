@@ -51,8 +51,8 @@ class SwitchPortSensor(CoordinatorEntity, BinarySensorEntity):
         device = self.coordinator.get_device(self._device.serial)
         if device:
             self._device = device
-            for port in device.ports_statuses:
-                if port["portId"] == self._port["portId"]:
+            for port in getattr(device, "ports_statuses", []):
+                if port.get("portId") == self._port.get("portId"):
                     self._port = port
                     self.async_write_ha_state()
                     return
