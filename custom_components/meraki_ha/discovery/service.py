@@ -32,8 +32,8 @@ if TYPE_CHECKING:
     from homeassistant.helpers.entity import Entity
 
     from ...types import MerakiDevice
-    from ..coordinator import MerakiDataUpdateCoordinator
     from ..core.api.client import MerakiAPIClient
+    from ..meraki_data_coordinator import MerakiDataCoordinator
     from ..services.camera_service import CameraService
     from ..services.device_control_service import DeviceControlService
     from ..services.network_control_service import NetworkControlService
@@ -58,7 +58,7 @@ class DeviceDiscoveryService:
 
     def __init__(
         self,
-        coordinator: MerakiDataUpdateCoordinator,
+        coordinator: MerakiDataCoordinator,
         config_entry: ConfigEntry,
         meraki_client: MerakiAPIClient,
         camera_service: CameraService,
@@ -111,9 +111,11 @@ class DeviceDiscoveryService:
             _LOGGER.debug("Device processing (Device & Entity Model) is disabled.")
 
         for device in self._devices:
-            model = device.model
+            model = device.get("model")
             if not model:
-                _LOGGER.warning("Device %s has no model, skipping", device.serial)
+                _LOGGER.warning(
+                    "Device %s has no model, skipping", device.get("serial")
+                )
                 continue
 
             # Get the first two letters of the model (e.g., "MR" from "MR36")
@@ -124,7 +126,7 @@ class DeviceDiscoveryService:
                 _LOGGER.debug(
                     "No handler found for model '%s', skipping device %s",
                     model,
-                    device.serial,
+                    device.get("serial"),
                 )
                 continue
 
@@ -155,7 +157,7 @@ class DeviceDiscoveryService:
                 ):
                     _LOGGER.debug(
                         "Camera entities are disabled, skipping device %s",
-                        device.serial,
+                        device.get("serial"),
                     )
                     continue
 
@@ -164,7 +166,7 @@ class DeviceDiscoveryService:
                 if not self._config_entry.options.get(CONF_ENABLE_DEVICE_SENSORS, True):
                     _LOGGER.debug(
                         "Device sensors are disabled, skipping device %s",
-                        device.serial,
+                        device.get("serial"),
                     )
                     continue
 
@@ -191,7 +193,7 @@ class DeviceDiscoveryService:
             _LOGGER.debug(
                 "Using handler %s for device %s",
                 handler_class.__name__,
-                device.serial,
+                device.get("serial"),
             )
 
             # Pass the correct services to the handler based on its type
@@ -202,6 +204,8 @@ class DeviceDiscoveryService:
                     self._config_entry,
                     self._camera_service,
                     self._control_service,
+                    self._network_control_service,
+                    self._meraki_client,
                 )
             elif model_prefix in ("MX", "GX", "GR"):
                 handler = handler_class(
@@ -217,6 +221,15 @@ class DeviceDiscoveryService:
                     device,
                     self._config_entry,
                     self._control_service,
+                    self._network_control_service,
+                )
+            elif model_prefix == "MR":
+                handler = handler_class(
+                    self._coordinator,
+                    device,
+                    self._config_entry,
+                    self._control_service,
+                    self._network_control_service,
                 )
             else:
                 handler = handler_class(

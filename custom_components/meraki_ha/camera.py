@@ -10,10 +10,11 @@ import aiohttp
 from homeassistant.components.camera import Camera, CameraEntityFeature
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.device_registry import DeviceInfo
+from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import DOMAIN
-from .entity import MerakiEntity
-from .helpers.device_info_helpers import resolve_device_info
+from .core.utils.naming_utils import format_device_name
+from .helpers.entity_helpers import format_entity_name
 
 if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
@@ -48,7 +49,7 @@ async def async_setup_entry(
                 await asyncio.sleep(1)
 
 
-class MerakiCamera(MerakiEntity, Camera):
+class MerakiCamera(CoordinatorEntity, Camera):
     """
     Representation of a Meraki camera.
 
@@ -61,36 +62,38 @@ class MerakiCamera(MerakiEntity, Camera):
         self,
         coordinator: MerakiDataCoordinator,
         config_entry: ConfigEntry,
-        device: dict[str, Any] | Any,
+        device: dict[str, Any],
         camera_service: CameraService,
     ) -> None:
         """Initialize the camera."""
         super().__init__(coordinator)
         Camera.__init__(self)
         self._config_entry = config_entry
-        # Handle both dict and dataclass for device
-        serial = device.get("serial") if isinstance(device, dict) else device.serial
-        assert serial is not None
-        self._device_serial: str = serial
+        self._device_serial = device["serial"]
         self._camera_service = camera_service
         self._attr_unique_id = f"{self._device_serial}-camera"
-        self._attr_name = None
+        self._attr_name = format_entity_name(
+            format_device_name(self.device_data, self.coordinator.config_entry.options),
+            "",
+        )
         self._attr_model = self.device_data.get("model")
 
     @property
     def device_data(self) -> dict[str, Any]:
         """Return the device data from the coordinator."""
-        import dataclasses
-
-        data = self.coordinator.get_device(self._device_serial)
-        if dataclasses.is_dataclass(type(data)):
-            return dataclasses.asdict(data)
-        return data or {}
+        return self.coordinator.get_device(self._device_serial) or {}
 
     @property
-    def device_info(self) -> DeviceInfo | None:
+    def device_info(self) -> DeviceInfo:
         """Return device information."""
-        return resolve_device_info(self.device_data, self._config_entry)
+        return DeviceInfo(
+            identifiers={(DOMAIN, self._device_serial)},
+            name=format_device_name(
+                self.device_data, self.coordinator.config_entry.options
+            ),
+            model=self.device_data.get("model"),
+            manufacturer="Cisco Meraki",
+        )
 
     async def async_camera_image(
         self, width: int | None = None, height: int | None = None
@@ -182,17 +185,6 @@ class MerakiCamera(MerakiEntity, Camera):
         as the primary indicator, as the rtspServerEnabled flag can be unreliable.
         """
         return self._rtsp_url is not None
-
-    @property
-    def entity_registry_enabled_default(self) -> bool:
-        """Return whether the entity should be enabled by default."""
-        # Enable the entity if there is an RTSP URL available or if RTSP is enabled.
-        # This keeps the entity visible even if the URL is not valid yet.
-        if self.device_data.get("rtsp_url"):
-            return True
-
-        video_settings = self.device_data.get("video_settings", {})
-        return video_settings.get("rtspServerEnabled", False)
 
     async def async_turn_on(self) -> None:
         """Turn on the camera stream."""

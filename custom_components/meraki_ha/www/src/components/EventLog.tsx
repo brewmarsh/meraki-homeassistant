@@ -1,6 +1,12 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 
-// Define the types for our data
+interface EventLogProps {
+  hass: any;
+  networkId?: string;
+  configEntryId: string;
+  productTypes?: string[];
+}
+
 interface MerakiEvent {
   occurredAt: string;
   type: string;
@@ -11,13 +17,6 @@ interface MerakiEvent {
   deviceName?: string;
 }
 
-interface EventLogProps {
-  hass: any;
-  networkId?: string;
-  configEntryId: string;
-  productTypes?: string[];
-}
-
 const EventLog: React.FC<EventLogProps> = ({
   hass,
   networkId,
@@ -25,20 +24,26 @@ const EventLog: React.FC<EventLogProps> = ({
   productTypes,
 }) => {
   const [events, setEvents] = useState<MerakiEvent[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
+  const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
-  const socketRef = useRef<WebSocket | null>(null); // Keep WebSocket instance
 
   useEffect(() => {
     const fetchEvents = async () => {
       if (!networkId) return;
+
+      // Determine product type to use
+      const productType =
+        productTypes && productTypes.length > 0 ? productTypes[0] : undefined;
+
+      // If no product type, and meraki api requires it, we might skip fetching or try without it.
+      // But given the error, let's try to send it if available.
 
       setLoading(true);
       setError(null);
 
       try {
         if (window.location.hostname === 'localhost') {
-          // Mock Data for Localhost (No Backend)
+          // Mock data for development
           setEvents([
             {
               occurredAt: new Date().toISOString(),
@@ -61,22 +66,21 @@ const EventLog: React.FC<EventLogProps> = ({
           throw new Error('Hass connection not available');
         }
 
-        const resultData = await hass.callWS({
+        const response = await hass.callWS({
           type: 'meraki_ha/get_network_events',
           config_entry_id: configEntryId,
           network_id: networkId,
           per_page: 10,
-          product_type: productTypes ? productTypes[0] : undefined, // Use first product type if available
+          product_type: productType,
         });
 
-        if (resultData && Array.isArray(resultData.events)) {
-          setEvents(resultData.events);
+        if (response && response.events) {
+          setEvents(response.events);
         } else {
           setEvents([]);
         }
-        setError(null);
       } catch (err: any) {
-        console.error('Error fetching Meraki events:', err);
+        console.error('Error fetching events:', err);
         setError(err.message || 'Failed to fetch events');
       } finally {
         setLoading(false);
@@ -84,14 +88,7 @@ const EventLog: React.FC<EventLogProps> = ({
     };
 
     fetchEvents();
-
-    // Cleanup WebSocket connection on unmount if it exists and is open
-    return () => {
-      if (socketRef.current && socketRef.current.readyState === WebSocket.OPEN) {
-        socketRef.current.close();
-      }
-    };
-  }, [hass, networkId, configEntryId, productTypes]); // Dependencies for useEffect
+  }, [hass, networkId, configEntryId, productTypes]);
 
   if (!networkId) {
     return (

@@ -18,9 +18,11 @@ if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
     from homeassistant.helpers.entity import Entity
 
-    from ....coordinator import MerakiDataUpdateCoordinator
     from ....services.camera_service import CameraService
     from ....types import MerakiDevice
+    from ...meraki_data_coordinator import (
+        MerakiDataCoordinator,
+    )
     from ...services.device_control_service import DeviceControlService
     from ...services.network_control_service import NetworkControlService
 
@@ -33,7 +35,7 @@ class MXHandler(BaseDeviceHandler):
 
     def __init__(
         self,
-        coordinator: MerakiDataUpdateCoordinator,
+        coordinator: MerakiDataCoordinator,
         device: MerakiDevice,
         config_entry: ConfigEntry,
         control_service: DeviceControlService,
@@ -47,7 +49,7 @@ class MXHandler(BaseDeviceHandler):
     @classmethod
     def create(
         cls,
-        coordinator: MerakiDataUpdateCoordinator,
+        coordinator: MerakiDataCoordinator,
         device: MerakiDevice,
         config_entry: ConfigEntry,
         camera_service: CameraService,
@@ -86,7 +88,7 @@ class MXHandler(BaseDeviceHandler):
                 "appliance_uplink_statuses"
             ):
                 for status in self._coordinator.data["appliance_uplink_statuses"]:
-                    if status.get("serial") == self.device.serial:
+                    if status.get("serial") == self.device["serial"]:
                         for uplink in status.get("uplinks", []):
                             if interface := uplink.get("interface"):
                                 uplink_data_by_interface[interface] = uplink
@@ -98,7 +100,7 @@ class MXHandler(BaseDeviceHandler):
             dev_reg = dr.async_get(self._coordinator.hass)
 
             device_entry = dev_reg.async_get_device(
-                identifiers={(DOMAIN, self.device.serial)}
+                identifiers={(DOMAIN, self.device["serial"])}
             )
             if device_entry:
                 reg_entities = er.async_entries_for_device(ent_reg, device_entry.id)
@@ -106,10 +108,10 @@ class MXHandler(BaseDeviceHandler):
                     # Check if it looks like an uplink sensor
                     # Format: {serial}_uplink_{interface}
                     if ent.unique_id and ent.unique_id.startswith(
-                        f"{self.device.serial}_uplink_"
+                        f"{self.device['serial']}_uplink_"
                     ):
                         interface = ent.unique_id.replace(
-                            f"{self.device.serial}_uplink_", ""
+                            f"{self.device['serial']}_uplink_", ""
                         )
                         registry_interfaces.add(interface)
 
@@ -131,6 +133,8 @@ class MXHandler(BaseDeviceHandler):
                     )
                 )
         else:
-            _LOGGER.debug("Uplink sensors disabled for device %s", self.device.serial)
+            _LOGGER.debug(
+                "Uplink sensors disabled for device %s", self.device.get("serial")
+            )
 
         return entities
