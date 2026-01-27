@@ -139,7 +139,11 @@ class MerakiSwitchPortPowerSensor(CoordinatorEntity, SensorEntity):
         """Return the state of the sensor."""
         power_usage_wh = self._port.get("powerUsageInWh", 0) or 0
         if power_usage_wh > 0:
-            return round(power_usage_wh / 24, 2)
+            # FIX: Force 24h window (86400s) as discussed
+            timespan = 86400
+
+            # Power (W) = Energy (Wh) * 3600 (s/h) / Timespan (s)
+            return round(power_usage_wh * 3600 / timespan, 2)
         return 0.0
 
 
@@ -198,4 +202,4 @@ class MerakiSwitchPortEnergySensor(CoordinatorEntity, SensorEntity):
     @property
     def native_value(self) -> float:
         """Return the state of the sensor."""
-        return self._port.get("powerUsageInWh", 0) or 0
+        return round(self._total_energy, 2)
