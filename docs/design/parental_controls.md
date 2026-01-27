@@ -11,7 +11,7 @@ This plan will focus on two core features:
 
 ---
 
-### **2. Core Features & User Stories**
+\***\*2. Core Features & User Stories**
 
 - **Content Filtering Policy Selection:** \* **User Story:** As a parent, I want to quickly switch my network’s content filtering policy from "school" to "gaming" to "bedtime" directly from Home Assistant, so I can easily manage my family's internet access throughout the day.
 
@@ -23,9 +23,9 @@ This plan will focus on two core features:
 
 ---
 
-### **3. Technical Design**
+\***\*3. Technical Design**
 
-#### **3.1. Home Assistant Entities**
+#\***\*3.1. Home Assistant Entities**
 
 - **Entity 1: Content Filtering `select` Entity**
 
@@ -42,7 +42,7 @@ This plan will focus on two core features:
     - `GET /networks/{networkId}/appliance/firewall/l7FirewallRules` (to check for existing rules)
     - `PUT /networks/{networkId}/appliance/firewall/l7FirewallRules` (to add/remove rules)
 
-#### **3.2. Meraki API Interaction**
+#\***\*3.2. Meraki API Interaction**
 
 - **Content Filtering:** The API endpoints are correctly identified. The agent should be aware that the `PUT` request to update content filtering requires the entire object, including the `allowedUrlPatterns` and `blockedUrlPatterns`. It should **read the current state first, update only the policy, and then write the complete object back**.
 - **Client Firewall Rules:** This is the most critical part of the implementation. The agent must:
@@ -57,7 +57,7 @@ This plan will focus on two core features:
 3. When a switch is toggled **off** (to allow), the agent will find the rule with the unique comment and the matching client IP and remove it from the list of rules before sending the `PUT` request.
 4. **Important:** The Meraki API has an endpoint to get a client's IP address (`GET /networks/{networkId}/clients/{clientId}/status`). The agent should use this to get the IP, as the `/networks/{networkId}/clients` endpoint might not always have the most up-to-date IP address.
 
-#### **3.3. State Management & Polling**
+#\***\*3.3. State Management & Polling**
 
 - The integration must poll the Meraki API at a reasonable interval (e.g., every 3-5 minutes) to update the state of the Home Assistant entities.
 - The `select` entity's state should reflect the current Meraki network policy.
@@ -65,7 +65,7 @@ This plan will focus on two core features:
 
 ---
 
-### **4. Risks & Mitigations**
+\***\*4. Risks & Mitigations**
 
 - **Risk:** Overwriting user-defined firewall rules.
 
@@ -80,7 +80,7 @@ This plan will focus on two core features:
 
 ---
 
-### **5. Additional & Optional Features**
+\***\*5. Additional & Optional Features**
 
 Based on the capabilities of Meraki devices, here are a few more advanced features that would significantly enhance the user experience and create a more robust parental controls solution.
 

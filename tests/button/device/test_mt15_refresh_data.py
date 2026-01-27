@@ -7,19 +7,21 @@ import pytest
 from custom_components.meraki_ha.button.device.mt15_refresh_data import (
     MerakiMt15RefreshDataButton,
 )
+from custom_components.meraki_ha.types import MerakiDevice
 
 
 @pytest.fixture
 def mock_coordinator_mt15(mock_coordinator: MagicMock) -> MagicMock:
-    """Fixture for a mocked MerakiDataCoordinator with MT15 data."""
+    """Fixture for a mocked MerakiDataUpdateCoordinator with MT15 data."""
     mock_coordinator.data = {
         "devices": [
-            {
-                "serial": "mt15-1",
-                "name": "MT15 Sensor",
-                "model": "MT15",
-                "productType": "sensor",
-            },
+            MerakiDevice(
+                serial="mt15-1",
+                name="MT15 Sensor",
+                model="MT15",
+                product_type="sensor",
+                mac="00:11:22:33:44:55",
+            ),
         ]
     }
     mock_coordinator.last_update_success = True

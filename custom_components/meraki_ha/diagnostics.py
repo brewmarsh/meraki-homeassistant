@@ -8,7 +8,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 
 from .const import DOMAIN
-from .meraki_data_coordinator import MerakiDataCoordinator
+from .coordinator import MerakiDataUpdateCoordinator
 
 
 async def async_get_config_entry_diagnostics(
@@ -28,7 +28,7 @@ async def async_get_config_entry_diagnostics(
         A dictionary of diagnostics.
 
     """
-    coordinator: MerakiDataCoordinator = hass.data[DOMAIN][entry.entry_id][
+    coordinator: MerakiDataUpdateCoordinator = hass.data[DOMAIN][entry.entry_id][
         "coordinator"
     ]
     return {

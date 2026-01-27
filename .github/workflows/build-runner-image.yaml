@@ -31,5 +31,5 @@ jobs:
           context: ./docker-runner
           push: true
           tags: 80m1/meraki-runner:latest
-          no-cache: true 
+          no-cache: true
           # ----------------------------------

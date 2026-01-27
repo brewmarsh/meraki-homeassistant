@@ -9,8 +9,7 @@ from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from ...const import DOMAIN
-from ...helpers.entity_helpers import format_entity_name
-from ...meraki_data_coordinator import MerakiDataCoordinator
+from ...coordinator import MerakiDataUpdateCoordinator
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -23,7 +22,7 @@ class MerakiOrganizationDeviceTypeClientsSensor(CoordinatorEntity, SensorEntity)
 
     def __init__(
         self,
-        coordinator: MerakiDataCoordinator,
+        coordinator: MerakiDataUpdateCoordinator,
         config_entry: ConfigEntry,
         device_type: str,
     ) -> None:
@@ -33,7 +32,7 @@ class MerakiOrganizationDeviceTypeClientsSensor(CoordinatorEntity, SensorEntity)
         self._device_type = device_type
         self._org_id = self.coordinator.api_client.organization_id
         self._attr_unique_id = f"{self._org_id}_{self._device_type}_clients"
-        self._attr_name = format_entity_name(self._device_type.capitalize(), "Clients")
+        self._attr_name = f"{self._device_type.capitalize()} Clients"
 
     @property
     def device_info(self) -> DeviceInfo:
