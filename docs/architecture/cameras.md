@@ -39,7 +39,6 @@ This plan builds on the existing architecture to implement a dynamic and feature
 #\*\*Phase 1: API and Repository Updates
 
 1. **Enhance `MerakiApiClient`**:
-
    - Add new methods to retrieve **camera analytics data** (`get_device_camera_analytics`, `get_network_camera_analytics_history`). These endpoints allow access to rich data like object counts (people/vehicles) and motion history.
    - Add a method to get **live video stream URLs** (`get_device_camera_video_link`), which is the correct way to get the RTSP stream.
 
@@ -57,7 +56,6 @@ This plan builds on the existing architecture to implement a dynamic and feature
 #\*\*Phase 3: Dynamic Entity Creation with `MVHandler`
 
 1. **Refactor `MVHandler`**:
-
    - Update the `MVHandler` to be **type-aware**. When it's created, it should get the device's model and query the `CameraService` for supported features.
    - The handler will then **conditionally create** Home Assistant entities based on the returned feature list.
      - **Camera Entity**: Always create a base camera entity for the video stream. The stream URL will come from the `CameraService`.

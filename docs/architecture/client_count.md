@@ -17,7 +17,6 @@ This plan builds on the existing modular architecture, adding a new service laye
 #\*\*Phase 1: API Client and Repository Updates
 
 1. **Add new endpoints to `MerakiApiClient`**:
-
    - Add a new method, `get_network_wireless_client_count_history(network_id, **kwargs)`, that calls the Meraki API's `/networks/{networkId}/wireless/clientCountHistory` endpoint. This endpoint can filter by device serial, SSID, or other parameters.
    - Add other relevant endpoints for getting client lists or stats from specific devices (e.g., `get_device_clients` for individual devices) if needed for more granular data.
 
@@ -40,7 +39,6 @@ This plan builds on the existing modular architecture, adding a new service laye
 #\*\*Phase 3: Integration and Entity Refinement
 
 1. **Update `NetworkHub`**:
-
    - **Inject the `ClientCountService`**: The `NetworkHub` should be updated to accept an instance of the `ClientCountService` in its constructor.
    - **Call the service in `_async_update_data`**: During the data update, the hub will call the `get_aggregated_counts` method from the injected service.
 
@@ -51,7 +49,6 @@ This plan builds on the existing modular architecture, adding a new service laye
 #\*\*Phase 4: Testing and Cleanup
 
 1. **Create new unit tests**:
-
    - Write new tests for the `MerakiRepository` methods that fetch client counts, ensuring they correctly handle API responses.
    - Write unit tests for the `ClientCountService` to verify that it correctly aggregates data from various mock API responses.
    - Test the `NetworkHub` to ensure it correctly calls the `ClientCountService` and updates the entities.
