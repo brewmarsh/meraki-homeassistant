@@ -57,9 +57,7 @@ def handle_meraki_errors(
                 # to return a safe empty value
                 sig = inspect.signature(func)
                 return_type = sig.return_annotation
-                if return_type is list or getattr(
-                    return_type, "__origin__", None
-                ) in (
+                if return_type is list or getattr(return_type, "__origin__", None) in (
                     list,
                     list,
                 ):
