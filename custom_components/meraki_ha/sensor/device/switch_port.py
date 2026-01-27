@@ -145,7 +145,6 @@ class MerakiSwitchPortPowerSensor(CoordinatorEntity, SensorEntity):
         """Return the state of the sensor."""
         power_usage_wh = self._port.get("powerUsageInWh", 0) or 0
         if power_usage_wh > 0:
-            # MERGE DECISION: Keep Left Side (Fixed 24h window)
             # Meraki returns energy for the last 24 hours (86400s) by default
             timespan = 86400
 
@@ -204,37 +203,36 @@ class MerakiSwitchPortEnergySensor(CoordinatorEntity, SensorEntity, RestoreEntit
     async def async_added_to_hass(self) -> None:
         """Handle entity which will be added."""
         await super().async_added_to_hass()
-        if (last_state := await self.async_get_last_state()) is not None:
-            if last_state.state not in (None, "unknown", "unavailable"):
-                try:
-                    self._total_energy = float(last_state.state)
-                except ValueError:
-                    self._total_energy = 0.0
+        last_state = await self.async_get_last_state()
+        if last_state and last_state.state not in ("unknown", "unavailable"):
+            try:
+                self._total_energy = float(last_state.state)
+            except ValueError:
+                self._total_energy = 0.0
 
     @callback
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
+        # Only process if we have a new update
+        if (
+            self.coordinator.last_successful_update is None
+            or self.coordinator.last_successful_update == self._last_update_timestamp
+        ):
+            return
+
+        self._last_update_timestamp = self.coordinator.last_successful_update
+
         for device in self.coordinator.data.get("devices", []):
             if device.serial == self._device.serial:
                 self._device = device
                 for port in self._device.ports_statuses:
                     if port["portId"] == self._port["portId"]:
                         self._port = port
+                        # Add incremental energy
+                        increment = self._port.get("powerUsageInWh", 0) or 0
+                        self._total_energy += increment
                         break
                 break
-
-        # Calculate incremental energy
-        power_usage_wh = self._port.get("powerUsageInWh", 0) or 0
-        if power_usage_wh > 0:
-            # Check for duplicate updates
-            current_time = self.coordinator.last_successful_update
-            if (
-                self._last_update_timestamp is None
-                or current_time > self._last_update_timestamp
-            ):
-                self._total_energy += power_usage_wh
-                self._last_update_timestamp = current_time
-
         self.async_write_ha_state()
 
     @property
