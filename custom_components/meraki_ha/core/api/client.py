@@ -10,6 +10,7 @@ from __future__ import annotations
 import asyncio
 import logging
 from collections.abc import Awaitable, Callable
+from datetime import datetime
 from functools import partial
 from typing import TYPE_CHECKING, Any, cast
 
@@ -18,13 +19,12 @@ from homeassistant.core import HomeAssistant
 
 from ...core.parsers.appliance import parse_appliance_data
 from ...core.parsers.camera import parse_camera_data
+from ...core.parsers.devices import parse_device_data
 from ...core.parsers.network import parse_network_data
 from ...core.parsers.sensors import parse_sensor_data
 from ...core.parsers.switch import parse_switch_data
 from ...core.parsers.wireless import parse_wireless_data
 from ...types import MerakiDevice, MerakiNetwork
-from ..coordinator_helpers.client_fetcher import ClientFetcher
-from ..coordinator_helpers.device_fetcher import DeviceFetcher
 from .endpoints.appliance import ApplianceEndpoints
 from .endpoints.camera import CameraEndpoints
 from .endpoints.devices import DevicesEndpoints
@@ -97,10 +97,6 @@ class MerakiAPIClient:
         self.wireless = WirelessEndpoints(self)
         self.sensor = SensorEndpoints(self)
 
-        # Initialize helper classes
-        self.client_fetcher = ClientFetcher(self)
-        self.device_fetcher = DeviceFetcher(self)
-
         # Semaphore to limit concurrent API calls
         self._semaphore = asyncio.Semaphore(2)
 
@@ -157,6 +153,15 @@ class MerakiAPIClient:
             "networks": self._run_with_semaphore(
                 self.organization.get_organization_networks(),
             ),
+            "devices": self._run_with_semaphore(
+                self.organization.get_organization_devices(),
+            ),
+            "device_statuses": self._run_with_semaphore(
+                self.organization.get_organization_devices_statuses(),
+            ),
+            "devices_availabilities": self._run_with_semaphore(
+                self.organization.get_organization_devices_availabilities(),
+            ),
             "appliance_uplink_statuses": self._run_with_semaphore(
                 self.appliance.get_organization_appliance_uplink_statuses(),
             ),
@@ -167,13 +172,101 @@ class MerakiAPIClient:
         results = await asyncio.gather(*tasks.values(), return_exceptions=True)
         data = dict(zip(tasks.keys(), results, strict=True))
 
+        # Fetch battery data separately
+        devices_res = data.get("devices")
+        if isinstance(devices_res, list):
+            mt_serials = [
+                device["serial"]
+                for device in devices_res
+                if device.get("model", "").startswith("MT")
+            ]
+            if mt_serials:
+                battery_data_res = await self._run_with_semaphore(
+                    self.sensor.get_organization_sensor_readings_latest_for_serials(
+                        serials=mt_serials,
+                        metrics=["battery"],
+                    ),
+                )
+                data["battery_readings"] = battery_data_res
+
         return data
+
+    async def _async_fetch_network_clients(
+        self,
+        networks: list[MerakiNetwork],
+    ) -> list[dict[str, Any]]:
+        """
+        Fetch client data for all networks, used for SSID sensors.
+
+        Args:
+            networks: A list of networks to fetch clients for.
+
+        Returns
+        -------
+            A list of clients.
+
+        """
+        client_tasks = [
+            self._run_with_semaphore(
+                self.network.get_network_clients(
+                    network.id,
+                    perPage=1000,
+                    total_pages="all",
+                ),
+            )
+            for network in networks
+        ]
+        clients_results = await asyncio.gather(*client_tasks, return_exceptions=True)
+        clients: list[dict[str, Any]] = []
+        for i, network in enumerate(networks):
+            result = clients_results[i]
+            if isinstance(result, list):
+                _LOGGER.debug(
+                    "Fetched %d clients for network %s", len(result), network.name
+                )
+                for client in result:
+                    client["networkId"] = network.id
+                clients.extend(result)
+        return clients
+
+    async def _async_fetch_device_clients(
+        self,
+        devices: list[MerakiDevice],
+    ) -> dict[str, list[dict[str, Any]]]:
+        """
+        Fetch client data for each device.
+
+        Args:
+            devices: A list of devices to fetch clients for.
+
+        Returns
+        -------
+            A dictionary of clients by device serial.
+
+        """
+        client_tasks = {
+            device.serial: self._run_with_semaphore(
+                self.devices.get_device_clients(device.serial),
+            )
+            for device in devices
+            if device.serial
+            and device.product_type
+            in ["wireless", "appliance", "switch", "cellularGateway"]
+        }
+        results = await asyncio.gather(*client_tasks.values(), return_exceptions=True)
+        clients_by_serial: dict[str, list[dict[str, Any]]] = {}
+        for i, serial in enumerate(client_tasks.keys()):
+            result = results[i]
+            if isinstance(result, list):
+                clients_by_serial[serial] = result
+        return clients_by_serial
 
     def _build_detail_tasks(
         self,
         networks: list[MerakiNetwork],
         devices: list[MerakiDevice],
-        timespan: int | None = None,
+        t0: datetime | None = None,
+        timespan: int = 300,
     ) -> dict[str, asyncio.Task[Any]]:
         """
         Build a dictionary of tasks to fetch detailed data.
@@ -181,7 +274,8 @@ class MerakiAPIClient:
         Args:
             networks: A list of networks.
             devices: A list of devices.
-            timespan: The timespan to use for switch port statuses.
+            t0: The beginning of the timespan for the data.
+            timespan: The timespan for which the information will be fetched.
 
         Returns
         -------
@@ -266,10 +360,15 @@ class MerakiAPIClient:
                     )
                 )
             elif device.product_type == "switch":
+                kwargs: dict[str, Any] = {}
+                if t0:
+                    kwargs["t0"] = t0.isoformat()
+                else:
+                    kwargs["timespan"] = timespan
                 detail_tasks[f"ports_statuses_{device.serial}"] = asyncio.create_task(
                     self._run_with_semaphore(
                         self.switch.get_device_switch_ports_statuses(
-                            device.serial, timespan=timespan
+                            device.serial, **kwargs
                         ),
                     )
                 )
@@ -288,14 +387,16 @@ class MerakiAPIClient:
     async def get_all_data(
         self,
         previous_data: dict[str, Any] | None = None,
-        timespan: int | None = None,
+        t0: datetime | None = None,
+        timespan: int = 300,
     ) -> dict[str, Any]:
         """
         Fetch all data from the Meraki API concurrently, with caching.
 
         Args:
             previous_data: The previous data from the coordinator.
-            timespan: The timespan to use for switch port statuses.
+            t0: The beginning of the timespan for the data.
+            timespan: The timespan for which the information will be fetched.
 
         Returns
         -------
@@ -306,10 +407,7 @@ class MerakiAPIClient:
             previous_data = {}
 
         _LOGGER.debug("Fetching fresh Meraki data from API")
-        initial_results, device_fetcher_result = await asyncio.gather(
-            self._async_fetch_initial_data(),
-            self.device_fetcher.async_fetch_devices(),
-        )
+        initial_results = await self._async_fetch_initial_data()
 
         networks_res = initial_results.get("networks", [])
         if isinstance(networks_res, Exception):
@@ -321,16 +419,35 @@ class MerakiAPIClient:
         else:
             networks_list = [MerakiNetwork.from_dict(n) for n in networks_res]
 
-        devices_list = device_fetcher_result.get("devices", [])
-        battery_readings = device_fetcher_result.get("battery_readings")
+        devices_res = initial_results.get("devices", [])
+        if isinstance(devices_res, Exception):
+            _LOGGER.warning(
+                "Could not fetch devices, device data will be unavailable: %s",
+                devices_res,
+            )
+            devices_list = []
+        else:
+            devices_list = [MerakiDevice.from_dict(d) for d in devices_res]
+
+        device_statuses = initial_results.get("device_statuses", [])
+        if isinstance(device_statuses, Exception):
+            _LOGGER.warning(
+                "Could not fetch device statuses, "
+                "device status data will be unavailable: %s",
+                device_statuses,
+            )
+            device_statuses = []
+
+        parse_device_data(devices_list, device_statuses)
         appliance_uplink_statuses = initial_results.get("appliance_uplink_statuses")
         sensor_readings = initial_results.get("sensor_readings")
+        battery_readings = initial_results.get("battery_readings")
 
         parse_appliance_data(devices_list, appliance_uplink_statuses)
         parse_sensor_data(devices_list, sensor_readings, battery_readings)
 
         detail_tasks = self._build_detail_tasks(
-            networks_list, devices_list, timespan=timespan
+            networks_list, devices_list, t0=t0, timespan=timespan
         )
         detail_results = await asyncio.gather(
             *detail_tasks.values(),
@@ -342,8 +459,8 @@ class MerakiAPIClient:
         parse_switch_data(devices_list, detail_data)
 
         network_clients, device_clients = await asyncio.gather(
-            self.client_fetcher.async_fetch_network_clients(networks_list),
-            self.client_fetcher.async_fetch_device_clients(devices_list),
+            self._async_fetch_network_clients(networks_list),
+            self._async_fetch_device_clients(devices_list),
             return_exceptions=True,
         )
 

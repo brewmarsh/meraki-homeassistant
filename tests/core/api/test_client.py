@@ -48,13 +48,11 @@ async def test_get_all_data_orchestration(api_client):
     api_client._async_fetch_initial_data = AsyncMock(
         return_value={
             "networks": [MOCK_NETWORK_INIT],
+            "devices": [MOCK_DEVICE_INIT],
         }
     )
-    api_client.device_fetcher.async_fetch_devices = AsyncMock(
-        return_value={"devices": [MOCK_DEVICE], "battery_readings": None}
-    )
-    api_client.client_fetcher.async_fetch_network_clients = AsyncMock(return_value=[])
-    api_client.client_fetcher.async_fetch_device_clients = AsyncMock(return_value={})
+    api_client._async_fetch_network_clients = AsyncMock(return_value=[])
+    api_client._async_fetch_device_clients = AsyncMock(return_value={})
     api_client._build_detail_tasks = MagicMock(return_value={})
 
     # Act
@@ -62,9 +60,20 @@ async def test_get_all_data_orchestration(api_client):
 
     # Assert
     api_client._async_fetch_initial_data.assert_awaited_once()
-    api_client.device_fetcher.async_fetch_devices.assert_awaited_once()
-    api_client.client_fetcher.async_fetch_network_clients.assert_awaited_once()
-    api_client.client_fetcher.async_fetch_device_clients.assert_awaited_once()
+
+    assert (
+        api_client._async_fetch_network_clients.await_args[0][0][0].id
+        == MOCK_NETWORK.id
+    )
+    assert (
+        api_client._async_fetch_device_clients.await_args[0][0][0].serial
+        == MOCK_DEVICE.serial
+    )
+    api_client._build_detail_tasks.assert_called_once()
+    assert api_client._build_detail_tasks.call_args[0][0][0].id == MOCK_NETWORK.id
+    assert (
+        api_client._build_detail_tasks.call_args[0][1][0].serial == MOCK_DEVICE.serial
+    )
 
 
 @pytest.mark.asyncio
@@ -74,16 +83,9 @@ async def test_get_all_data_handles_api_errors(api_client, caplog):
     api_client._async_fetch_initial_data = AsyncMock(
         return_value={
             "networks": Exception("Network error"),
+            "devices": Exception("Device error"),
+            "device_statuses": Exception("Device status error"),
         }
-    )
-    api_client.device_fetcher.async_fetch_devices = AsyncMock(
-        return_value={"devices": [], "battery_readings": None}
-    )
-    api_client.client_fetcher.async_fetch_network_clients = AsyncMock(
-        side_effect=Exception("Client fetch error")
-    )
-    api_client.client_fetcher.async_fetch_device_clients = AsyncMock(
-        side_effect=Exception("Device client fetch error")
     )
 
     # Act
@@ -93,25 +95,24 @@ async def test_get_all_data_handles_api_errors(api_client, caplog):
     assert data["networks"] == []
     assert data["devices"] == []
     assert "Could not fetch networks" in caplog.text
+    assert "Could not fetch devices" in caplog.text
+    assert "Could not fetch device statuses" in caplog.text
 
 
 @pytest.mark.asyncio
 async def test_get_all_data_merges_availability(api_client):
     """Test that get_all_data merges device availability."""
     # Arrange
-    online_device = MerakiDevice.from_dict(
-        {"serial": MOCK_DEVICE.serial, "status": "online"}
-    )
+    availabilities = [{"serial": MOCK_DEVICE.serial, "status": "online"}]
     api_client._async_fetch_initial_data = AsyncMock(
         return_value={
             "networks": [MOCK_NETWORK_INIT],
+            "devices": [MOCK_DEVICE_INIT],
+            "devices_availabilities": availabilities,
         }
     )
-    api_client.device_fetcher.async_fetch_devices = AsyncMock(
-        return_value={"devices": [online_device], "battery_readings": None}
-    )
-    api_client.client_fetcher.async_fetch_network_clients = AsyncMock(return_value=[])
-    api_client.client_fetcher.async_fetch_device_clients = AsyncMock(return_value={})
+    api_client._async_fetch_network_clients = AsyncMock(return_value=[])
+    api_client._async_fetch_device_clients = AsyncMock(return_value={})
     api_client._build_detail_tasks = MagicMock(return_value={})
 
     # Act
