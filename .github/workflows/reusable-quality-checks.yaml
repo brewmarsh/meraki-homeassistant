@@ -63,13 +63,18 @@ jobs:
           enable-cache: true
 
       - name: Install dependencies
-        run: uv pip install --system --prerelease=allow -r requirements_dev.txt
+        run: |
+          uv pip install --system --prerelease=allow -r requirements_dev.txt
+          uv pip install --system --prerelease=allow pytest-homeassistant-custom-component>=0.13.205
 
       - name: Force Clean DNS Stack
         run: |
-          # FIX: removed -y flag which uv does not support
-          uv pip uninstall --system pycares aiodns
+          # FIX: use pip uninstall -y for forced removal
+          python -m pip uninstall -y pycares aiodns
           uv pip install --system --no-cache-dir pycares==4.11.0 aiodns==3.6.1
+
+      - name: Install mypy
+        run: uv pip install --system mypy
 
       - run: mypy --ignore-missing-imports custom_components/meraki_ha/ tests/
 
@@ -95,10 +100,14 @@ jobs:
       - name: Install dependencies
         run: uv pip install --system --prerelease=allow -r requirements_dev.txt
 
+      - name: Install HA Custom Component
+        # Note: This may temporarily downgrade aiodns, but the next step enforces strict versions.
+        run: uv pip install --system "pytest-homeassistant-custom-component>=0.13.205"
+
       - name: Force Clean DNS Stack
         run: |
-          # FIX: removed -y flag which uv does not support
-          uv pip uninstall --system pycares aiodns
+          # FIX: use pip uninstall -y for forced removal
+          python -m pip uninstall -y pycares aiodns
           uv pip install --system --no-cache-dir pycares==4.11.0 aiodns==3.6.1
 
       - name: Install tools
@@ -136,12 +145,14 @@ jobs:
 
       # FIX: Allow pre-releases for Home Assistant deps
       - name: Install dependencies
-        run: uv pip install --system --prerelease=allow -r requirements_dev.txt
+        run: |
+          uv pip install --system --prerelease=allow -r requirements_dev.txt
+          uv pip install --system --prerelease=allow pytest-homeassistant-custom-component>=0.13.205
 
       - name: Force Clean DNS Stack
         run: |
-          # FIX: removed -y flag which uv does not support
-          uv pip uninstall --system pycares aiodns
+          # FIX: use pip uninstall -y for forced removal
+          python -m pip uninstall -y pycares aiodns
           uv pip install --system --no-cache-dir pycares==4.11.0 aiodns==3.6.1
 
       - name: Run Tests
