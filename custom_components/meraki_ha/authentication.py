@@ -16,7 +16,7 @@ from meraki.exceptions import APIError as MerakiSDKAPIError
 
 from .core.api.client import MerakiAPIClient
 from .core.errors import (
-    InvalidOrgID,
+    InvalidOrgID,  # Ensure this is imported for validation logic
     MerakiAuthenticationError,
     MerakiConnectionError,
 )
@@ -61,7 +61,7 @@ class MerakiAuthentication:
         Raises
         ------
             ConfigEntryAuthFailed: If authentication fails.
-            ValueError: If the organization ID is not found.
+            InvalidOrgID: If the organization ID is not found.
             MerakiConnectionError: If there is a connection error.
 
         """
@@ -91,7 +91,7 @@ class MerakiAuthentication:
                     "Organization ID %s not found in accessible organizations.",
                     self.organization_id,
                 )
-                raise ValueError(
+                raise InvalidOrgID(
                     f"Org ID {self.organization_id} not accessible with this API key.",
                 )
 
@@ -147,6 +147,8 @@ class MerakiAuthentication:
                 e,
             )
             raise
+        except InvalidOrgID:
+            raise
         except Exception as e:
             _LOGGER.error(
                 "Unexpected error during validation for org %s: %s",
@@ -179,7 +181,7 @@ async def validate_meraki_credentials(
     Raises
     ------
         ConfigEntryAuthFailed: If authentication fails.
-        ValueError: If the organization ID is invalid.
+        InvalidOrgID: If the organization ID is invalid.
         MerakiConnectionError: For Meraki connection errors.
 
     """

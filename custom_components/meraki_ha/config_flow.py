@@ -20,7 +20,7 @@ from .const import (
 )
 from .coordinator import MerakiDataUpdateCoordinator
 from .core.errors import (
-    InvalidOrgID,
+    InvalidOrgID,  # Specific error for config flow
     MerakiAuthenticationError,
     MerakiConnectionError,
 )
@@ -100,6 +100,7 @@ class MerakiHAConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ign
                 return await self.async_step_init()
 
             except InvalidOrgID:
+                # Specific error for invalid Org ID
                 errors["base"] = "invalid_org_id"
             except MerakiAuthenticationError:
                 errors["base"] = "invalid_auth"
