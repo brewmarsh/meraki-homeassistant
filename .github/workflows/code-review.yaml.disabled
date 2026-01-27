@@ -15,7 +15,7 @@ jobs:
           prompt: |
             You are the Repository Compliance Officer. Read 'AGENTS.md'.
             Review the code changes in this PR.
-            
+
             **Failure Criteria (Request Changes immediately if found):**
             1. Forbidden `select/` folder name (Shadowing standard lib).
             2. Hardcoded `homeassistant` version in `requirements_dev.txt`.
