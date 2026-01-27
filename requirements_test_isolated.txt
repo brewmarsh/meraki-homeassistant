@@ -5,7 +5,6 @@ pycares==4.11.0
 pytest
 pytest-asyncio
 pytest-cov
-pytest-homeassistant-custom-component
 pytest-mock
 pytest-socket
 webrtc-models==0.3.0

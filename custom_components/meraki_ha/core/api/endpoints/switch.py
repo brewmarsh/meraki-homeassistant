@@ -52,7 +52,7 @@ class SwitchEndpoints:
             A list of port statuses.
 
         """
-        kwargs = {"serial": serial}
+        kwargs: dict[str, Any] = {"serial": serial}
         if timespan:
             kwargs["timespan"] = timespan
 
