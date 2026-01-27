@@ -42,6 +42,7 @@ cryptography==46.0.2
 cyclonedx-python-lib==7.6.2
 dbus-fast==3.1.2
 defusedxml==0.7.1
+diskcache==5.6.3
 envs==1.4
 execnet==2.1.2
 filelock==3.20.2
@@ -60,6 +61,7 @@ httpx==0.28.1
 idna==3.11
 ifaddr==0.2.0
 iniconfig==2.3.0
+janus==1.0.0
 Jinja2==3.1.6
 jmespath==1.0.1
 josepy==2.2.0
@@ -70,7 +72,7 @@ markdown-it-py==4.0.0
 MarkupSafe==3.0.3
 mashumaro==3.17
 mdurl==0.1.2
-meraki==1.40.1
+meraki>=1.53.0
 mock-open==1.4.0
 msgpack==1.1.2
 multidict==6.7.0
@@ -121,7 +123,7 @@ pytest-xdist==3.8.0
 pytest_freezer==0.4.9
 python-dateutil==2.9.0.post0
 python-slugify==8.0.4
-PyTurboJPEG==1.7.2
+PyTurboJPEG==1.8.2
 pytz==2025.2
 PyYAML==6.0.3
 regex==2025.11.3
