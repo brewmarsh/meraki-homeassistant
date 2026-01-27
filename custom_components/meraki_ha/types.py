@@ -45,7 +45,6 @@ class MerakiDevice:
     current: float | None = None
     voltage: float | None = None
     door_open: bool | None = None
-    button_press: dict[str, Any] | None = None
 
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> MerakiDevice:

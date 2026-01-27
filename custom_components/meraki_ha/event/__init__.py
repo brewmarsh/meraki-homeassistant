@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import logging
 
-from homeassistant.components.event import EventEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
@@ -12,7 +11,6 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from ..const import DOMAIN
 from ..coordinator import MerakiDataUpdateCoordinator
 from .device.camera_motion import MerakiCameraMotionEvent
-from .device.mt_button import MerakiMtButtonEvent
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -31,14 +29,12 @@ async def async_setup_entry(
         _LOGGER.warning("Meraki client not available; skipping event setup.")
         return
 
-    entities: list[EventEntity] = []
+    entities = []
 
     for device in coordinator.data["devices"]:
         if device.product_type == "camera":
             entities.append(
                 MerakiCameraMotionEvent(coordinator, device, camera_service, entry)
             )
-        elif device.model == "MT30":
-            entities.append(MerakiMtButtonEvent(coordinator, device, entry))
 
     async_add_entities(entities)

@@ -185,8 +185,6 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
         for device in devices:
             device.status_messages = []
-            if not device.serial:
-                continue
             ha_device = dev_reg.async_get_device(
                 identifiers={(DOMAIN, device.serial)},
             )
@@ -223,15 +221,15 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             # Pre-register network devices to avoid "referencing a non existing
             # via_device" warnings when downstream entities (like VLANs) initialize.
             device_registry = dr.async_get(self.hass)
-            for network in data.get("networks", []):
-                assert self.config_entry is not None
-                device_registry.async_get_or_create(
-                    config_entry_id=self.config_entry.entry_id,
-                    identifiers={(DOMAIN, network.id)},
-                    name=network.name,
-                    manufacturer="Cisco Meraki",
-                    model="Network",
-                )
+            if self.config_entry:
+                for network in data.get("networks", []):
+                    device_registry.async_get_or_create(
+                        config_entry_id=self.config_entry.entry_id,
+                        identifiers={(DOMAIN, network.id)},
+                        name=network.name,
+                        manufacturer="Cisco Meraki",
+                        model="Network",
+                    )
 
             self.ssids_by_network_and_number = {
                 (s.get("networkId"), s.get("number")): s
