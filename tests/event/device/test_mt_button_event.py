@@ -2,13 +2,14 @@
 
 from unittest.mock import MagicMock, patch
 
-import pytest
 from homeassistant.components.event import EventDeviceClass
 
 from custom_components.meraki_ha.event.device.mt_button import MerakiMtButtonEvent
 
 
-async def test_mt_button_event_initialization(hass, mock_coordinator, mock_config_entry):
+async def test_mt_button_event_initialization(
+    hass, mock_coordinator, mock_config_entry
+):
     """Test the initialization of the MT button event entity."""
     device = MagicMock()
     device.serial = "Q2XX-XXXX-XXXX"
