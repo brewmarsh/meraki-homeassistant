@@ -22,7 +22,7 @@ pytest-cov
 pytest-homeassistant-custom-component==0.13.294
 pytest-mock
 pytest>=8.3.4
-PyTurboJPEG
+PyTurboJPEG==1.8.2
 ruff
 setuptools==78.1.1
 types-aiofiles==25.1.0.20251011
