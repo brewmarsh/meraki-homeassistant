@@ -203,10 +203,13 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         """Fetch data from API endpoint, apply filters, and handle exceptions."""
         try:
             # Pass the last known successful data to the API client
-            assert self.update_interval is not None
+            timespan = (
+                int(self.update_interval.total_seconds())
+                if self.update_interval
+                else None
+            )
             data = await self.api.get_all_data(
-                self.last_successful_data,
-                timespan=int(self.update_interval.total_seconds()),
+                self.last_successful_data, timespan=timespan
             )
 
             if not data:
@@ -233,7 +236,6 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 device_registry.async_get_or_create(
                     config_entry_id=self.config_entry.entry_id,
                     identifiers={(DOMAIN, network.id)},
-                    # AGENT RULE: Apply standardized [Network] prefix
                     name=f"[Network] {network.name}",
                     manufacturer="Cisco Meraki",
                     model="Network",

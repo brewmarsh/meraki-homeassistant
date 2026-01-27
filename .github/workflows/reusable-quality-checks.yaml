@@ -65,7 +65,7 @@ jobs:
       - name: Install dependencies
         run: |
           uv pip install --system --prerelease=allow -r requirements_dev.txt
-          uv pip install --system --prerelease=allow "pytest-homeassistant-custom-component>=0.13.205" "pytest>=8.3.4"
+          uv pip install --system --prerelease=allow pytest-homeassistant-custom-component>=0.13.205
 
       - name: Force Clean DNS Stack
         run: |
@@ -102,7 +102,7 @@ jobs:
 
       - name: Install HA Custom Component
         # Note: This may temporarily downgrade aiodns, but the next step enforces strict versions.
-        run: uv pip install --system "pytest-homeassistant-custom-component>=0.13.205" "pytest>=8.3.4"
+        run: uv pip install --system "pytest-homeassistant-custom-component>=0.13.205"
 
       - name: Force Clean DNS Stack
         run: |
@@ -147,7 +147,7 @@ jobs:
       - name: Install dependencies
         run: |
           uv pip install --system --prerelease=allow -r requirements_dev.txt
-          uv pip install --system --prerelease=allow "pytest-homeassistant-custom-component>=0.13.205" "pytest>=8.3.4"
+          uv pip install --system --prerelease=allow pytest-homeassistant-custom-component>=0.13.205
 
       - name: Force Clean DNS Stack
         run: |

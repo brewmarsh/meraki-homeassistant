@@ -272,7 +272,7 @@ class MerakiAPIClient:
         Args:
             networks: A list of networks.
             devices: A list of devices.
-            timespan: The timespan for which the information will be fetched.
+            timespan: The timespan to use for switch port statuses.
 
         Returns
         -------
@@ -386,7 +386,7 @@ class MerakiAPIClient:
 
         Args:
             previous_data: The previous data from the coordinator.
-            timespan: The timespan for which the information will be fetched.
+            timespan: The timespan to use for switch port statuses.
 
         Returns
         -------

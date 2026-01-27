@@ -24,7 +24,7 @@ async def test_mt_button_event_initialization(
         entity = MerakiMtButtonEvent(mock_coordinator, device, mock_config_entry)
 
         assert entity.unique_id == "Q2XX-XXXX-XXXX-button-event"
-        assert entity.name == "Button Press"
+        assert entity.translation_key == "button_press"
         assert entity.device_class == EventDeviceClass.BUTTON
         assert entity.event_types == ["short_press", "long_press"]
         assert entity._last_ts == ""

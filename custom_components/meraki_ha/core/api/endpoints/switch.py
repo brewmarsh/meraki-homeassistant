@@ -37,7 +37,9 @@ class SwitchEndpoints:
     @handle_meraki_errors
     @async_timed_cache(timeout=60)
     async def get_device_switch_ports_statuses(
-        self, serial: str, timespan: int | None = None
+        self,
+        serial: str,
+        timespan: int | None = None,
     ) -> list[dict[str, Any]]:
         """
         Get statuses for all ports of a switch.
