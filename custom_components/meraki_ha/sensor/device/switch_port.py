@@ -17,7 +17,6 @@ from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.restore_state import RestoreEntity
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-# FIX: Import DOMAIN here
 from ...const import DOMAIN
 from ...coordinator import MerakiDataUpdateCoordinator
 from ...types import MerakiDevice
@@ -51,7 +50,6 @@ class MerakiSwitchPortSensor(CoordinatorEntity, SensorEntity):
     def device_info(self) -> DeviceInfo | None:
         """Return the device info."""
         return DeviceInfo(
-            # FIX: Use DOMAIN, not self.coordinator.DOMAIN
             identifiers={(DOMAIN, cast(str, self._device.serial))},
         )
 
@@ -118,7 +116,6 @@ class MerakiSwitchPortPowerSensor(CoordinatorEntity, SensorEntity):
     def device_info(self) -> DeviceInfo | None:
         """Return the device info."""
         return DeviceInfo(
-            # FIX: Use DOMAIN, not self.coordinator.DOMAIN
             identifiers={(DOMAIN, cast(str, self._device.serial))},
         )
 
@@ -145,8 +142,10 @@ class MerakiSwitchPortPowerSensor(CoordinatorEntity, SensorEntity):
         """Return the state of the sensor."""
         power_usage_wh = self._port.get("powerUsageInWh", 0) or 0
         if power_usage_wh > 0:
-            # MERGE DECISION: Use fixed 24h logic (86400s)
+            # Meraki returns energy for the last 24 hours (86400s) by default
             timespan = 86400
+
+            # Power (W) = Energy (Wh) * 3600 (s/h) / Timespan (s)
             return round(power_usage_wh * 3600 / timespan, 2)
         return 0.0
 
@@ -189,7 +188,6 @@ class MerakiSwitchPortEnergySensor(CoordinatorEntity, SensorEntity, RestoreEntit
     def device_info(self) -> DeviceInfo | None:
         """Return the device info."""
         return DeviceInfo(
-            # FIX: Use DOMAIN, not self.coordinator.DOMAIN
             identifiers={(DOMAIN, cast(str, self._device.serial))},
         )
 
@@ -231,9 +229,6 @@ class MerakiSwitchPortEnergySensor(CoordinatorEntity, SensorEntity, RestoreEntit
                         self._total_energy += increment
                         break
                 break
-        
-        # MERGE CLEANUP: Removed the redundant block that updated _attr_native_value
-        
         self.async_write_ha_state()
 
     @property
