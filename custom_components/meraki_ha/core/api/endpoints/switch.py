@@ -32,11 +32,14 @@ class SwitchEndpoints:
 
         """
         self._api_client = api_client
+        self._dashboard = api_client.dashboard
 
     @handle_meraki_errors
     @async_timed_cache(timeout=60)
     async def get_device_switch_ports_statuses(
-        self, serial: str
+        self,
+        serial: str,
+        timespan: int | None = None,
     ) -> list[dict[str, Any]]:
         """
         Get statuses for all ports of a switch.
@@ -44,17 +47,19 @@ class SwitchEndpoints:
         Args:
         ----
             serial: The serial number of the switch.
+            timespan: The timespan for which the information will be fetched.
 
         Returns
         -------
             A list of port statuses.
 
         """
-        if self._api_client.dashboard is None:
-            return []
+        kwargs: dict[str, Any] = {"serial": serial}
+        if timespan:
+            kwargs["timespan"] = timespan
+
         statuses = await self._api_client.run_sync(
-            self._api_client.dashboard.switch.getDeviceSwitchPortsStatuses,
-            serial=serial,
+            self._dashboard.switch.getDeviceSwitchPortsStatuses, **kwargs
         )
         validated = validate_response(statuses)
         if not isinstance(validated, list):
@@ -77,13 +82,35 @@ class SwitchEndpoints:
             A list of ports.
 
         """
-        if self._api_client.dashboard is None:
-            return []
         ports = await self._api_client.run_sync(
-            self._api_client.dashboard.switch.getDeviceSwitchPorts, serial=serial
+            self._dashboard.switch.getDeviceSwitchPorts, serial=serial
         )
         validated = validate_response(ports)
         if not isinstance(validated, list):
             _LOGGER.warning("get_switch_ports did not return a list.")
             return []
         return validated
+
+    @handle_meraki_errors
+    async def cycle_device_switch_ports(
+        self,
+        serial: str,
+        ports: list[str],
+    ) -> dict[str, Any] | list[Any]:
+        """
+        Cycle a set of switch ports.
+
+        Args:
+        ----
+            serial: The serial number of the switch.
+            ports: A list of port IDs to cycle.
+
+        Returns
+        -------
+            The API response.
+
+        """
+        response = await self._api_client.run_sync(
+            self._dashboard.switch.cycleDeviceSwitchPorts, serial=serial, ports=ports
+        )
+        return validate_response(response)

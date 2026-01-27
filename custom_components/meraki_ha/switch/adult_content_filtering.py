@@ -6,20 +6,20 @@ from typing import Any
 from homeassistant.components.switch import SwitchEntity, SwitchEntityDescription
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import callback
-from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
+from ..coordinator import MerakiDataUpdateCoordinator
+from ..entity import MerakiEntity
 from ..helpers.device_info_helpers import resolve_device_info
-from ..meraki_data_coordinator import MerakiDataCoordinator
 
 _LOGGER = logging.getLogger(__name__)
 
 
-class MerakiAdultContentFilteringSwitch(CoordinatorEntity, SwitchEntity):
+class MerakiAdultContentFilteringSwitch(MerakiEntity, SwitchEntity):
     """Representation of a Meraki Adult Content Filtering switch."""
 
     def __init__(
         self,
-        coordinator: MerakiDataCoordinator,
+        coordinator: MerakiDataUpdateCoordinator,
         config_entry: ConfigEntry,
         ssid: dict[str, Any],
     ) -> None:

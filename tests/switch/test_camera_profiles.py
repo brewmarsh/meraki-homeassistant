@@ -8,22 +8,24 @@ from custom_components.meraki_ha.switch.camera_profiles import (
     MerakiCameraAudioDetectionSwitch,
     MerakiCameraSenseSwitch,
 )
+from custom_components.meraki_ha.types import MerakiDevice
 
 
 @pytest.fixture
 def mock_device_coordinator():
     """Fixture for a mocked MerakiDeviceCoordinator."""
     coordinator = MagicMock()
-    mock_device_data = {
-        "serial": "cam1",
-        "name": "Camera",
-        "model": "MV12",
-        "product_type": "camera",
-        "sense_settings": {"sense_enabled": True},
-        "video_settings": {"audio_detection": {"enabled": True}},
-    }
+    mock_device_data = MerakiDevice(
+        serial="cam1",
+        name="Camera",
+        model="MV12",
+        product_type="camera",
+        sense_settings={"sense_enabled": True},
+        video_settings={"audio_detection": {"enabled": True}},
+    )
     coordinator.data = {"devices": [mock_device_data]}
     coordinator.get_device.return_value = mock_device_data
+    coordinator.async_request_refresh = AsyncMock()
     return coordinator
 
 
@@ -37,7 +39,6 @@ def mock_api_client():
     return client
 
 
-@pytest.mark.skip(reason="Test is failing and needs to be fixed")
 async def test_camera_sense_switch(hass, mock_device_coordinator, mock_api_client):
     """Test the camera sense switch."""
     device = mock_device_coordinator.data["devices"][0]
@@ -61,9 +62,7 @@ async def test_camera_sense_switch(hass, mock_device_coordinator, mock_api_clien
     mock_device_coordinator.async_request_refresh.reset_mock()
 
     # Simulate the coordinator updating the state
-    mock_device_coordinator.data["devices"][0]["sense_settings"]["sense_enabled"] = (
-        False
-    )
+    mock_device_coordinator.data["devices"][0].sense_settings["sense_enabled"] = False
     switch._handle_coordinator_update()
     assert switch.is_on is False
 
@@ -74,7 +73,6 @@ async def test_camera_sense_switch(hass, mock_device_coordinator, mock_api_clien
     mock_device_coordinator.async_request_refresh.assert_called_once()
 
 
-@pytest.mark.skip(reason="Test is failing and needs to be fixed")
 async def test_camera_audio_detection_switch(
     hass, mock_device_coordinator, mock_api_client
 ):
@@ -102,7 +100,7 @@ async def test_camera_audio_detection_switch(
     mock_device_coordinator.async_request_refresh.reset_mock()
 
     # Simulate the coordinator updating the state
-    mock_device_coordinator.data["devices"][0]["video_settings"]["audio_detection"][
+    mock_device_coordinator.data["devices"][0].video_settings["audio_detection"][
         "enabled"
     ] = False
     switch._handle_coordinator_update()

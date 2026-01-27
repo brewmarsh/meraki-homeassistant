@@ -43,10 +43,10 @@ class MerakiNetworkError(MerakiError):
 class MerakiInformationalError(MerakiError):
     """Error to indicate an informational/non-critical problem."""
 
-
-class MerakiTrafficAnalysisError(MerakiInformationalError):
-    """Error to indicate that traffic analysis is not enabled."""
+    pass
 
 
-class MerakiVlansDisabledError(MerakiInformationalError):
-    """Error to indicate that VLANs are not enabled for a network."""
+class InvalidOrgID(MerakiError):
+    """Error to indicate an invalid or inaccessible Meraki Organization ID."""
+
+    pass

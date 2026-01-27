@@ -7,13 +7,19 @@ from homeassistant.helpers import selector
 
 from .const import (
     CONF_ENABLE_DEVICE_TRACKER,
+    CONF_ENABLE_FIREWALL_RULES,
+    CONF_ENABLE_TRAFFIC_SHAPING,
     CONF_ENABLE_VLAN_MANAGEMENT,
-    CONF_ENABLED_NETWORKS,
+    CONF_ENABLE_VPN_MANAGEMENT,
+    CONF_IGNORED_NETWORKS,
     CONF_MERAKI_API_KEY,
     CONF_MERAKI_ORG_ID,
     CONF_SCAN_INTERVAL,
+    DEFAULT_ENABLE_FIREWALL_RULES,
+    DEFAULT_ENABLE_TRAFFIC_SHAPING,
     DEFAULT_ENABLE_VLAN_MANAGEMENT,
-    DEFAULT_ENABLED_NETWORKS,
+    DEFAULT_ENABLE_VPN_MANAGEMENT,
+    DEFAULT_IGNORED_NETWORKS,
     DEFAULT_SCAN_INTERVAL,
 )
 
@@ -41,13 +47,22 @@ OPTIONS_SCHEMA = vol.Schema(
         vol.Required(
             CONF_ENABLE_VLAN_MANAGEMENT, default=DEFAULT_ENABLE_VLAN_MANAGEMENT
         ): selector.BooleanSelector(),
+        vol.Required(
+            CONF_ENABLE_FIREWALL_RULES, default=DEFAULT_ENABLE_FIREWALL_RULES
+        ): selector.BooleanSelector(),
+        vol.Required(
+            CONF_ENABLE_TRAFFIC_SHAPING, default=DEFAULT_ENABLE_TRAFFIC_SHAPING
+        ): selector.BooleanSelector(),
+        vol.Required(
+            CONF_ENABLE_VPN_MANAGEMENT, default=DEFAULT_ENABLE_VPN_MANAGEMENT
+        ): selector.BooleanSelector(),
         vol.Optional(
-            CONF_ENABLED_NETWORKS, default=DEFAULT_ENABLED_NETWORKS
+            CONF_IGNORED_NETWORKS, default=DEFAULT_IGNORED_NETWORKS
         ): selector.SelectSelector(
             selector.SelectSelectorConfig(
                 options=[],
                 multiple=True,
-                custom_value=False,
+                custom_value=True,
                 mode=selector.SelectSelectorMode.DROPDOWN,
             )
         ),

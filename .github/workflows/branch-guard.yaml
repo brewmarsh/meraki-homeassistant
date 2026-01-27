@@ -1,0 +1,16 @@
+name: Branch Guard
+on:
+  pull_request:
+    types: [opened, reopened, edited, synchronize]
+
+jobs:
+  enforce-branching:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Block Main Target
+        if: github.base_ref == 'main' && !startsWith(github.head_ref, 'release/')
+        run: |
+          echo "::error::⛔ VIOLATION: Direct PRs to 'main' are FORBIDDEN."
+          echo "::error::All feature work and fixes MUST target 'beta'."
+          echo "::error::Please retarget this PR to 'beta' in the sidebar."
+          exit 1
