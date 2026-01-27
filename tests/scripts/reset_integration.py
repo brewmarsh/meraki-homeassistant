@@ -312,8 +312,9 @@ async def main():
     verify server state, and re-add integration.
     """  # noqa: D205
     async with aiohttp.ClientSession(headers=HEADERS) as session:
-        if not await delete_existing_entries(session):
-            sys.exit(1)
+        # --- Stop Delete Existing Entries ---
+        #        if not await delete_existing_entries(session):
+        #            sys.exit(1)
         if not await restart_and_wait(session):
             sys.exit(1)
         # Added Diagnostic Step:

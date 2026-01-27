@@ -57,8 +57,9 @@ for dirpath, _dirnames, filenames in os.walk(root):
                 if i < len(lines) and lines[i].lstrip().startswith(">>>>>>>"):
                     i += 1
                 changed_file = True
-            elif line.lstrip().startswith("=======") or \
-                    line.lstrip().startswith(">>>>>>>"):
+            elif line.lstrip().startswith("=======") or line.lstrip().startswith(
+                ">>>>>>>"
+            ):
                 # Stray separator or end marker: drop it.
                 i += 1
                 changed_file = True
