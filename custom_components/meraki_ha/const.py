@@ -57,6 +57,9 @@ CONF_ENABLE_VPN_MANAGEMENT: Final = "enable_vpn_management"
 CONF_ENABLED_NETWORKS: Final = "enabled_networks"
 """Configuration key for a list of network IDs to enable."""
 
+CONF_IGNORED_NETWORKS: Final = "ignored_networks"
+"""Configuration key for a list of network IDs to ignore."""
+
 # New Configuration Options
 CONF_ENABLE_DEVICE_STATUS: Final = "enable_device_status"
 CONF_ENABLE_ORG_SENSORS: Final = "enable_org_sensors"
@@ -70,6 +73,9 @@ CONF_ENABLE_SSID_SENSORS: Final = "enable_ssid_sensors"
 
 DEFAULT_ENABLED_NETWORKS: Final[list[str]] = []
 """Default value for the enabled networks list."""
+
+DEFAULT_IGNORED_NETWORKS: Final[list[str]] = []
+"""Default value for the ignored networks list."""
 
 DEFAULT_ENABLE_VLAN_MANAGEMENT: Final = False
 """Default value for enabling vlan management."""
