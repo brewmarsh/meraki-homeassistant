@@ -29,6 +29,7 @@ class MerakiCameraMotionEvent(MerakiEntity, EventEntity):
 
     _attr_device_class = EventDeviceClass.MOTION
     _attr_event_types = ["motion", "person", "vehicle"]
+    _attr_translation_key = "motion_event"
 
     def __init__(
         self,
@@ -43,7 +44,6 @@ class MerakiCameraMotionEvent(MerakiEntity, EventEntity):
         self._camera_service = camera_service
         self._config_entry = config_entry
         self._attr_unique_id = f"{device.serial}-motion-event"
-        self._attr_name = "Motion Event"
         self._last_timestamp: float = 0
         self._is_first_update = True
 
