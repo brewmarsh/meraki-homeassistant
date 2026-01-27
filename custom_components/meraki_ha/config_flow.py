@@ -6,6 +6,7 @@ import logging
 from typing import Any
 
 from homeassistant import config_entries
+
 try:
     from homeassistant.helpers.service_info.dhcp import DhcpServiceInfo
 except ImportError:
