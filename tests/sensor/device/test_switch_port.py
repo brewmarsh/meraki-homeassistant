@@ -1,7 +1,7 @@
 """Tests for the Switch Port Power and Energy sensors."""
 
-from unittest.mock import MagicMock
 from datetime import timedelta
+from unittest.mock import MagicMock
 
 import pytest
 from homeassistant.components.sensor import SensorDeviceClass, SensorStateClass

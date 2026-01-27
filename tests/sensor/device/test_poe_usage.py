@@ -36,6 +36,7 @@ def mock_device_coordinator():
 def test_poe_usage_sensor(mock_device_coordinator):
     """Test the PoE usage sensor."""
     from datetime import timedelta
+
     mock_device_coordinator.update_interval = timedelta(hours=24)
 
     device = mock_device_coordinator.data["devices"][0]
