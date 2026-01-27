@@ -131,7 +131,7 @@ class MerakiSwitchPortPowerSensor(CoordinatorEntity, SensorEntity):
             if device.serial == self._device.serial:
                 self._device = device
                 for port in self._device.ports_statuses:
-                    if port["portId"] == self._port['portId']:
+                    if port["portId"] == self._port["portId"]:
                         self._port = port
                         break
                 break
