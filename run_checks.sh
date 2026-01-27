@@ -6,7 +6,6 @@ pip install uv
 
 echo "Installing dependencies..."
 uv pip install --system --prerelease=allow -r requirements_dev.txt
-uv pip install --system --prerelease=allow "pytest-homeassistant-custom-component>=0.13.205"
 
 echo "Installing test dependencies..."
 uv pip install --system --prerelease=allow "pytest-homeassistant-custom-component>=0.13.205" "pytest>=8.3.4"
