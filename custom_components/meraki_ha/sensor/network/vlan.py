@@ -36,7 +36,7 @@ class MerakiVLANIDSensor(MerakiVLANEntity, SensorEntity):
         if not vlan_id:
             raise ValueError("VLAN ID should not be None here")
         self._attr_unique_id = get_vlan_entity_id(self._network_id, vlan_id, "vlan_id")
-        self._attr_name = "VLAN ID"
+        self._attr_translation_key = "vlan_id"
 
     @property
     def native_value(self) -> str | None:
@@ -66,7 +66,7 @@ class MerakiVLANIPv4EnabledSensor(MerakiVLANEntity, SensorEntity):
         self._attr_unique_id = get_vlan_entity_id(
             self._network_id, vlan_id, "ipv4_enabled"
         )
-        self._attr_name = "IPv4 Enabled"
+        self._attr_translation_key = "ipv4_enabled"
 
     @property
     def native_value(self) -> bool:
@@ -96,7 +96,7 @@ class MerakiVLANIPv4InterfaceSensor(MerakiVLANEntity, SensorEntity):
         self._attr_unique_id = get_vlan_entity_id(
             self._network_id, vlan_id, "ipv4_interface_ip"
         )
-        self._attr_name = "IPv4 Interface IP"
+        self._attr_translation_key = "ipv4_interface_ip"
 
     @property
     def native_value(self) -> str | None:
@@ -126,7 +126,7 @@ class MerakiVLANIPv4UplinkSensor(MerakiVLANEntity, SensorEntity):
         self._attr_unique_id = get_vlan_entity_id(
             self._network_id, vlan_id, "ipv4_uplink"
         )
-        self._attr_name = "IPv4 Uplink"
+        self._attr_translation_key = "ipv4_uplink"
 
     @property
     def native_value(self) -> str | None:
@@ -157,7 +157,7 @@ class MerakiVLANIPv6EnabledSensor(MerakiVLANEntity, SensorEntity):
         self._attr_unique_id = get_vlan_entity_id(
             self._network_id, vlan_id, "ipv6_enabled"
         )
-        self._attr_name = "IPv6 Enabled"
+        self._attr_translation_key = "ipv6_enabled"
 
     @property
     def native_value(self) -> bool:
@@ -190,7 +190,7 @@ class MerakiVLANIPv6InterfaceSensor(MerakiVLANEntity, SensorEntity):
         self._attr_unique_id = get_vlan_entity_id(
             self._network_id, vlan_id, "ipv6_interface_ip"
         )
-        self._attr_name = "IPv6 Interface IP"
+        self._attr_translation_key = "ipv6_interface_ip"
 
     @property
     def native_value(self) -> str | None:
@@ -223,7 +223,7 @@ class MerakiVLANIPv6UplinkSensor(MerakiVLANEntity, SensorEntity):
         self._attr_unique_id = get_vlan_entity_id(
             self._network_id, vlan_id, "ipv6_uplink"
         )
-        self._attr_name = "IPv6 Uplink"
+        self._attr_translation_key = "ipv6_uplink"
 
     @property
     def native_value(self) -> str | None:

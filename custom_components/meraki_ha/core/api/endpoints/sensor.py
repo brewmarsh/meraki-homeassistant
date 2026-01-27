@@ -98,16 +98,11 @@ class SensorEndpoints:
             "battery",
             "button",
             "co2",
-            "current",
-            "door",
             "humidity",
             "noise",
             "pm25",
-            "power",
             "temperature",
             "tvoc",
-            "voltage",
-            "water",
         ]
         _LOGGER.debug(
             "Getting latest sensor readings for organization with metrics: %s",

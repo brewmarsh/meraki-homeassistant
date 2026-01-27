@@ -33,9 +33,10 @@ class MerakiVLANEntity(BaseMerakiEntity):
         vlan_id = vlan.id
         if not vlan_id:
             raise ValueError("VLAN ID not found in VLAN data")
+        self._attr_has_entity_name = True
         self._attr_device_info = DeviceInfo(
             identifiers={(self._config_entry.domain, f"vlan_{network_id}_{vlan_id}")},
-            name=vlan.name,
+            name=f"[VLAN] {vlan.id} - {vlan.name}",
             manufacturer="Cisco Meraki",
             model="VLAN",
             via_device=(self._config_entry.domain, f"network_{network_id}"),

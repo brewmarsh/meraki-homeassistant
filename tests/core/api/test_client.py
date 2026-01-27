@@ -179,6 +179,51 @@ async def test_build_detail_tasks_for_wireless_device(api_client):
 
 
 @pytest.mark.asyncio
+async def test_build_detail_tasks_propagates_timespan(api_client):
+    """Test that _build_detail_tasks passes timespan to switch endpoint."""
+    # Arrange
+    api_client.switch.get_device_switch_ports_statuses = AsyncMock()
+
+    # Mock _run_with_semaphore to return the task directly
+    async def side_effect(coro):
+        return await coro
+
+    api_client._run_with_semaphore = MagicMock(side_effect=side_effect)
+
+    device = MerakiDevice(
+        serial="Q123", product_type="switch", model="MS120", name="Switch"
+    )
+
+    # Act
+    tasks = api_client._build_detail_tasks([], [device], timespan=300)
+
+    # Cleanup
+    for task in tasks.values():
+        await task
+
+    # Assert
+    api_client.switch.get_device_switch_ports_statuses.assert_called_with(
+        "Q123", timespan=300
+    )
+
+
+@pytest.mark.asyncio
+async def test_get_all_data_propagates_timespan(api_client):
+    """Test that get_all_data passes timespan to _build_detail_tasks."""
+    # Arrange
+    api_client._async_fetch_initial_data = AsyncMock(return_value={})
+    api_client._build_detail_tasks = MagicMock(return_value={})
+    api_client._async_fetch_network_clients = AsyncMock(return_value=[])
+    api_client._async_fetch_device_clients = AsyncMock(return_value={})
+
+    # Act
+    await api_client.get_all_data(timespan=300)
+
+    # Assert
+    api_client._build_detail_tasks.assert_called_with([], [], timespan=300)
+
+
+@pytest.mark.asyncio
 async def test_get_all_data_includes_switch_ports(api_client):
     """Test that get_all_data returns switch ports statuses."""
     # Arrange
