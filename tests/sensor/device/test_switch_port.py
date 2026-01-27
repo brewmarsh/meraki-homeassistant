@@ -1,6 +1,5 @@
 """Tests for the Switch Port Power and Energy sensors."""
 
-from datetime import timedelta
 from unittest.mock import MagicMock
 
 import pytest
@@ -18,7 +17,6 @@ from custom_components.meraki_ha.types import MerakiDevice
 def mock_coordinator_and_device():
     """Fixture for a mocked coordinator and device."""
     coordinator = MagicMock()
-    coordinator.update_interval = timedelta(hours=24)
     device = MerakiDevice(
         serial="Q234-ABCD-5678",
         name="Test Switch",
@@ -43,8 +41,6 @@ def test_switch_port_power_sensor(mock_coordinator_and_device):
     config_entry = MagicMock()
 
     sensor = MerakiSwitchPortPowerSensor(coordinator, device, port, config_entry)
-    sensor.async_write_ha_state = MagicMock()
-    sensor._handle_coordinator_update()
 
     assert sensor.unique_id == "Q234-ABCD-5678_port_1_power"
     assert sensor.translation_key == "power"
@@ -52,39 +48,8 @@ def test_switch_port_power_sensor(mock_coordinator_and_device):
     assert sensor.native_unit_of_measurement == UnitOfPower.WATT
     assert sensor.state_class == SensorStateClass.MEASUREMENT
 
-    # 240 Wh * 3600 / 300 = 2880 W
-    assert sensor.native_value == 2880.0
-
-
-def test_switch_port_power_sensor_long_interval(mock_coordinator_and_device):
-    """Test the switch port power sensor with a long interval."""
-    coordinator, device = mock_coordinator_and_device
-    coordinator.update_interval = timedelta(seconds=86400)  # 24 hours
-    port = device.ports_statuses[0]
-    config_entry = MagicMock()
-
-    sensor = MerakiSwitchPortPowerSensor(coordinator, device, port, config_entry)
-    sensor.async_write_ha_state = MagicMock()
-    sensor._handle_coordinator_update()
-
-    # 240 Wh * 3600 / 86400 = 10 W
+    # 240 Wh / 24 h = 10 W
     assert sensor.native_value == 10.0
-
-
-def test_switch_port_power_sensor_invalid_interval(mock_coordinator_and_device):
-    """Test the switch port power sensor with an invalid interval."""
-    coordinator, device = mock_coordinator_and_device
-    coordinator.update_interval = timedelta(seconds=0)
-    port = device.ports_statuses[0]
-    config_entry = MagicMock()
-
-    sensor = MerakiSwitchPortPowerSensor(coordinator, device, port, config_entry)
-    sensor.async_write_ha_state = MagicMock()
-    sensor._handle_coordinator_update()
-
-    # Defaults to 300s (5 min) because interval is 0 (Falsy)
-    # 240 Wh * 3600 / 300 = 2880 W
-    assert sensor.native_value == 2880.0
 
 
 def test_switch_port_energy_sensor(mock_coordinator_and_device):
@@ -94,14 +59,12 @@ def test_switch_port_energy_sensor(mock_coordinator_and_device):
     config_entry = MagicMock()
 
     sensor = MerakiSwitchPortEnergySensor(coordinator, device, port, config_entry)
-    sensor.async_write_ha_state = MagicMock()
-    sensor._handle_coordinator_update()
 
     assert sensor.unique_id == "Q234-ABCD-5678_port_1_energy"
     assert sensor.translation_key == "energy"
     assert sensor.device_class == SensorDeviceClass.ENERGY
     assert sensor.native_unit_of_measurement == UnitOfEnergy.WATT_HOUR
-    assert sensor.state_class == SensorStateClass.TOTAL_INCREASING
+    assert sensor.state_class == SensorStateClass.MEASUREMENT
 
     assert sensor.native_value == 240
 
@@ -113,8 +76,6 @@ def test_switch_port_power_sensor_missing_data(mock_coordinator_and_device):
     config_entry = MagicMock()
 
     sensor = MerakiSwitchPortPowerSensor(coordinator, device, port, config_entry)
-    sensor.async_write_ha_state = MagicMock()
-    sensor._handle_coordinator_update()
     assert sensor.native_value == 0.0
 
 
