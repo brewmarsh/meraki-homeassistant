@@ -1,0 +1,30 @@
+88c10fa chore(release): update version to 2.1.0-beta.110
+010ddd2 Merge pull request #1395 from brewmarsh/fix/webhook-attribute-error-1245809443419363980
+0c9e20e chore(release): update version to 2.1.0-beta.109
+e0acdd9 Merge pull request #1387 from brewmarsh/beta-11765570818856321020
+30d6e39 chore(lint): auto-fix with ruff
+8ceb586 chore: Add missing test dependencies to CI
+e82e867 chore(release): update version to 2.1.0-beta.108
+2218bea Merge pull request #1364 from brewmarsh/beta-9056550980169603815
+39bf0f1 Merge pull request #1371 from brewmarsh/beta-2026376032422672723
+8e085bf Merge pull request #1393 from brewmarsh/fix/webhook-attribute-error-1245809443419363980-8004780681262929908
+760a53f Merge pull request #1394 from brewmarsh/beta-11765570818856321020-8845839373271303314
+68b19f8 fix(ci): Resolve pycares/aiodns conflicts and fix dependencies
+ba43efe fix: add cloud to after_dependencies in manifest
+0fb666b chore(lint): auto-fix with ruff
+fffe482 Merge branch 'beta' into beta-9056550980169603815
+b195ac8 Merge pull request #1391 from brewmarsh/beta-11765570818856321020-13125202614060118197
+1f0b1a1 Merge pull request #1392 from brewmarsh/beta-9056550980169603815-827238658526594993
+23bf852 fix(ci): Resolve pycares/aiodns conflicts and add missing test deps
+111124f fix: resolve ci dependency conflicts and verify requirements
+a7630ea chore: fix linting and verify dependencies
+ebc2fc2 chore(release): update version to 2.1.0-beta.107
+51d6a38 Merge pull request #1389 from brewmarsh/feat/cumulative-energy-sensors-4440601947518594558
+0320ba2 chore(release): update version to 2.1.0-beta.106
+6db498c Merge pull request #1390 from brewmarsh/fix/webhook-attribute-error-1245809443419363980
+95ca3c7 chore(lint): auto-fix with ruff
+c515248 fix(webhook): Correct AttributeError and refactor webhook logic
+7bbd6ce feat: implement cumulative energy sensor for switch ports
+dba4ede chore(lint): auto-fix with ruff
+85b4e22 chore(release): update version to 2.1.0-beta.105
+391efa0 fix: harden binary sensor against missing api fields
