@@ -6,14 +6,14 @@ import logging
 from typing import Any
 
 from homeassistant import config_entries
+from homeassistant.config_entries import ConfigFlowResult
+from homeassistant.core import callback
+from homeassistant.data_entry_flow import AbortFlow
 
 try:
     from homeassistant.helpers.service_info.dhcp import DhcpServiceInfo
 except ImportError:
     from homeassistant.components.dhcp import DhcpServiceInfo
-from homeassistant.config_entries import ConfigFlowResult
-from homeassistant.core import callback
-from homeassistant.data_entry_flow import AbortFlow
 
 from .authentication import validate_meraki_credentials
 from .const import (
@@ -51,10 +51,10 @@ class MerakiHAConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ign
         self,
         discovery_info: DhcpServiceInfo,
     ) -> ConfigFlowResult:
-        """Handle DHCP discovery.
+        """
+        Handle DHCP discovery.
 
         Args:
-        ----
             discovery_info: The discovery info.
 
         Returns

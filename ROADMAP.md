@@ -9,7 +9,7 @@
 
 ## Phase 2: Energy & Power
 
-- [x] Add real-time Power (W) sensors for MS Switches
+- [ ] Add real-time Power (W) sensors for MS Switches
 - [ ] Add cumulative Energy (kWh) sensors for Energy Dashboard
 
 ## Phase 3: Advanced Media

@@ -39,8 +39,7 @@ def mock_coordinator_and_device():
 def test_switch_port_power_sensor(mock_coordinator_and_device):
     """Test the switch port power sensor."""
     coordinator, device = mock_coordinator_and_device
-    # update_interval doesn't matter for the fixed implementation
-    coordinator.update_interval.total_seconds.return_value = 300.0
+    coordinator.update_interval.total_seconds.return_value = 300.0  # 5 minutes
     port = device.ports_statuses[0]
     config_entry = MagicMock()
 
