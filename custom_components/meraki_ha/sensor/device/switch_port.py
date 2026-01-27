@@ -17,6 +17,8 @@ from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.restore_state import RestoreEntity
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
+# FIX: Import DOMAIN here
+from ...const import DOMAIN
 from ...coordinator import MerakiDataUpdateCoordinator
 from ...types import MerakiDevice
 
@@ -49,7 +51,8 @@ class MerakiSwitchPortSensor(CoordinatorEntity, SensorEntity):
     def device_info(self) -> DeviceInfo | None:
         """Return the device info."""
         return DeviceInfo(
-            identifiers={(self.coordinator.DOMAIN, cast(str, self._device.serial))},
+            # FIX: Use DOMAIN, not self.coordinator.DOMAIN
+            identifiers={(DOMAIN, cast(str, self._device.serial))},
         )
 
     @property
@@ -115,7 +118,8 @@ class MerakiSwitchPortPowerSensor(CoordinatorEntity, SensorEntity):
     def device_info(self) -> DeviceInfo | None:
         """Return the device info."""
         return DeviceInfo(
-            identifiers={(self.coordinator.DOMAIN, cast(str, self._device.serial))},
+            # FIX: Use DOMAIN, not self.coordinator.DOMAIN
+            identifiers={(DOMAIN, cast(str, self._device.serial))},
         )
 
     @property
@@ -187,7 +191,8 @@ class MerakiSwitchPortEnergySensor(CoordinatorEntity, SensorEntity, RestoreEntit
     def device_info(self) -> DeviceInfo | None:
         """Return the device info."""
         return DeviceInfo(
-            identifiers={(self.coordinator.DOMAIN, cast(str, self._device.serial))},
+            # FIX: Use DOMAIN, not self.coordinator.DOMAIN
+            identifiers={(DOMAIN, cast(str, self._device.serial))},
         )
 
     @property

@@ -6,4 +6,4 @@ pytest-socket
 pytest-mock
 aiortc
 meraki
-webrtc-models
+webrtc-models==0.3.0
