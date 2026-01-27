@@ -193,4 +193,51 @@ class MerakiSwitchPortEnergySensor(CoordinatorEntity, SensorEntity, RestoreEntit
         """Return the device info."""
         return DeviceInfo(
             # FIX: Use DOMAIN, not self.coordinator.DOMAIN
-            identifiers={(DOMAIN, cast(str,
+            identifiers={(DOMAIN, cast(str, self._device.serial))},
+        )
+
+    @property
+    def available(self) -> bool:
+        """Return if the entity is available."""
+        return self._device.status == "online"
+
+    async def async_added_to_hass(self) -> None:
+        """Handle entity which will be added."""
+        await super().async_added_to_hass()
+        if (last_state := await self.async_get_last_state()) is not None:
+            if last_state.state not in (None, "unknown", "unavailable"):
+                try:
+                    self._total_energy = float(last_state.state)
+                except ValueError:
+                    self._total_energy = 0.0
+
+    @callback
+    def _handle_coordinator_update(self) -> None:
+        """Handle updated data from the coordinator."""
+        for device in self.coordinator.data.get("devices", []):
+            if device.serial == self._device.serial:
+                self._device = device
+                for port in self._device.ports_statuses:
+                    if port["portId"] == self._port["portId"]:
+                        self._port = port
+                        break
+                break
+
+        # Calculate incremental energy
+        power_usage_wh = self._port.get("powerUsageInWh", 0) or 0
+        if power_usage_wh > 0:
+            # Check for duplicate updates
+            current_time = self.coordinator.last_successful_update
+            if (
+                self._last_update_timestamp is None
+                or current_time > self._last_update_timestamp
+            ):
+                self._total_energy += power_usage_wh
+                self._last_update_timestamp = current_time
+
+        self.async_write_ha_state()
+
+    @property
+    def native_value(self) -> float:
+        """Return the state of the sensor."""
+        return round(self._total_energy, 2)
