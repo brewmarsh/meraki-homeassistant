@@ -91,7 +91,7 @@ class MerakiAuthentication:
                     "Organization ID %s not found in accessible organizations.",
                     self.organization_id,
                 )
-                raise ValueError(
+                raise InvalidOrgID(
                     f"Org ID {self.organization_id} not accessible with this API key.",
                 )
 
@@ -146,6 +146,8 @@ class MerakiAuthentication:
                 self.organization_id,
                 e,
             )
+            raise
+        except InvalidOrgID:
             raise
         except Exception as e:
             _LOGGER.error(
