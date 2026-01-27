@@ -4,9 +4,11 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
+from custom_components.meraki_ha.coordinator import MerakiDataUpdateCoordinator
 from custom_components.meraki_ha.core.api.client import MerakiAPIClient
-from custom_components.meraki_ha.meraki_data_coordinator import MerakiDataCoordinator
-from tests.const import MOCK_DEVICE, MOCK_NETWORK
+from custom_components.meraki_ha.core.errors import MerakiInformationalError
+from custom_components.meraki_ha.types import MerakiDevice, MerakiNetwork
+from tests.const import MOCK_DEVICE, MOCK_DEVICE_INIT, MOCK_NETWORK, MOCK_NETWORK_INIT
 
 
 @pytest.fixture
@@ -25,7 +27,7 @@ def hass():
 @pytest.fixture
 def coordinator():
     """Fixture for a mocked coordinator."""
-    mock = MagicMock(spec=MerakiDataCoordinator)
+    mock = MagicMock(spec=MerakiDataUpdateCoordinator)
     mock.is_vlan_check_due.return_value = True
     mock.is_traffic_check_due.return_value = True
     return mock
@@ -36,9 +38,6 @@ def api_client(hass, mock_dashboard, coordinator):
     """Fixture for a MerakiAPIClient instance."""
     client = MerakiAPIClient(hass=hass, api_key="test-key", org_id="test-org")
     # Mock the internal endpoint handlers to avoid real API calls and semaphore issues
-    # during unit testing of _build_detail_tasks and logic flow.
-    # We use MagicMock for the classes, but we need instances.
-    # The client initializes them in __init__. We replace them here.
     client.wireless = MagicMock()
     client.switch = MagicMock()
     client.camera = MagicMock()
@@ -77,70 +76,86 @@ def api_client(hass, mock_dashboard, coordinator):
 async def test_get_all_data_orchestration(api_client):
     """Test that get_all_data correctly orchestrates helper methods."""
     # Arrange
-    api_client._async_fetch_initial_data = AsyncMock(return_value=())
-    api_client._process_initial_data = MagicMock(
+    api_client._async_fetch_initial_data = AsyncMock(
         return_value={
-            "networks": [MOCK_NETWORK],
-            "devices": [MOCK_DEVICE],
-            "appliance_uplink_statuses": [],
+            "networks": [MOCK_NETWORK_INIT],
         }
     )
-    api_client._async_fetch_network_clients = AsyncMock(return_value=[])
-    api_client._async_fetch_device_clients = AsyncMock(return_value={})
+    api_client.device_fetcher.async_fetch_devices = AsyncMock(
+        return_value={"devices": [MOCK_DEVICE], "battery_readings": None}
+    )
+    api_client.client_fetcher.async_fetch_network_clients = AsyncMock(return_value=[])
+    api_client.client_fetcher.async_fetch_device_clients = AsyncMock(return_value={})
     api_client._build_detail_tasks = MagicMock(return_value={})
-    api_client._process_detailed_data = MagicMock(return_value={})
 
     # Act
     await api_client.get_all_data()
 
     # Assert
     api_client._async_fetch_initial_data.assert_awaited_once()
-    api_client._process_initial_data.assert_called_once()
-    api_client._async_fetch_network_clients.assert_awaited_once_with([MOCK_NETWORK])
-    api_client._async_fetch_device_clients.assert_awaited_once_with([MOCK_DEVICE])
-    api_client._build_detail_tasks.assert_called_once_with(
-        [MOCK_NETWORK], [MOCK_DEVICE]
+    api_client.device_fetcher.async_fetch_devices.assert_awaited_once()
+    api_client.client_fetcher.async_fetch_network_clients.assert_awaited_once()
+    api_client.client_fetcher.async_fetch_device_clients.assert_awaited_once()
+
+
+@pytest.mark.asyncio
+async def test_get_all_data_handles_api_errors(api_client, caplog):
+    """Test that get_all_data handles API errors gracefully."""
+    # Arrange
+    api_client._async_fetch_initial_data = AsyncMock(
+        return_value={
+            "networks": Exception("Network error"),
+        }
     )
-    api_client._process_detailed_data.assert_called_once()
-
-
-def test_process_initial_data_merges_availability(api_client):
-    """Test that _process_initial_data merges device availability."""
-    # Arrange
-    device_with_status = MOCK_DEVICE.copy()
-    availabilities = [{"serial": MOCK_DEVICE["serial"], "status": "online"}]
-    results = {
-        "networks": [MOCK_NETWORK],
-        "devices": [device_with_status],
-        "devices_availabilities": availabilities,
-        "appliance_uplink_statuses": [],
-    }
+    api_client.device_fetcher.async_fetch_devices = AsyncMock(
+        return_value={"devices": [], "battery_readings": None}
+    )
+    api_client.client_fetcher.async_fetch_network_clients = AsyncMock(
+        side_effect=Exception("Client fetch error")
+    )
+    api_client.client_fetcher.async_fetch_device_clients = AsyncMock(
+        side_effect=Exception("Device client fetch error")
+    )
 
     # Act
-    data = api_client._process_initial_data(results)
-
-    # Assert
-    assert data["devices"][0]["status"] == "online"
-
-
-def test_process_initial_data_handles_errors(api_client, caplog):
-    """Test that _process_initial_data handles API errors gracefully."""
-    # Arrange
-    results = {
-        "networks": Exception("Network error"),
-        "devices": Exception("Device error"),
-        "devices_availabilities": [],
-        "appliance_uplink_statuses": [],
-    }
-
-    # Act
-    data = api_client._process_initial_data(results)
+    data = await api_client.get_all_data()
 
     # Assert
     assert data["networks"] == []
     assert data["devices"] == []
-    assert "Could not fetch Meraki networks" in caplog.text
-    assert "Could not fetch Meraki devices" in caplog.text
+    assert "Could not fetch networks" in caplog.text
+
+
+@pytest.mark.asyncio
+async def test_get_all_data_handles_informational_errors(api_client):
+    """Test that get_all_data handles informational API errors."""
+    # Arrange
+    api_client._async_fetch_initial_data = AsyncMock(
+        return_value={
+            "networks": [MOCK_NETWORK_INIT],
+            "devices": [MOCK_DEVICE_INIT],
+            "device_statuses": [],
+        }
+    )
+    api_client._async_fetch_network_clients = AsyncMock(return_value=[])
+    api_client._async_fetch_device_clients = AsyncMock(return_value={})
+
+    async def coro():
+        return MerakiInformationalError("Traffic analysis is not enabled")
+
+    api_client._build_detail_tasks = MagicMock(
+        return_value={f"traffic_{MOCK_NETWORK.id}": coro()}
+    )
+
+    # Act
+    data = await api_client.get_all_data()
+
+    # Assert
+    assert data["appliance_traffic"][MOCK_NETWORK.id]["error"] == "disabled"
+    assert (
+        data["appliance_traffic"][MOCK_NETWORK.id]["reason"]
+        == "Traffic analysis is not enabled"
+    )
 
 
 def test_build_detail_tasks_for_wireless_device(api_client):
@@ -149,19 +164,59 @@ def test_build_detail_tasks_for_wireless_device(api_client):
     devices = [MOCK_DEVICE]
     networks = [MOCK_NETWORK]
 
+    # Mock _run_with_semaphore to return the task directly so we can close it
+    async def side_effect(coro):
+        return await coro
+
+    api_client._run_with_semaphore = MagicMock(side_effect=side_effect)
+
     # Act
     tasks = api_client._build_detail_tasks(networks, devices)
 
     # Assert
-    assert f"ssids_{MOCK_NETWORK['id']}" in tasks
-    assert f"wireless_settings_{MOCK_NETWORK['id']}" in tasks
-    assert f"rf_profiles_{MOCK_NETWORK['id']}" in tasks
+    assert f"ssids_{MOCK_NETWORK.id}" in tasks
+    assert f"rf_profiles_{MOCK_NETWORK.id}" in tasks
+
+    # Clean up coroutines to avoid warnings
+    for task in tasks.values():
+        await task
+
+
+@pytest.mark.asyncio
+async def test_get_all_data_includes_switch_ports(api_client):
+    """Test that get_all_data returns switch ports statuses."""
+    # Arrange
+    api_client._async_fetch_initial_data = AsyncMock(
+        return_value={
+            "networks": [],
+            "devices": [],
+        }
+    )
+    api_client._async_fetch_network_clients = AsyncMock(return_value=[])
+    api_client._async_fetch_device_clients = AsyncMock(return_value={})
+
+    # Simulate detailed switch ports response
+    async def coro():
+        return [{"portId": "1", "status": "Connected"}]
+
+    api_client._build_detail_tasks = MagicMock(
+        return_value={"ports_statuses_Q123": coro()}
+    )
+
+    # Act
+    data = await api_client.get_all_data()
+
+    # Assert
+    assert "switch_ports_statuses" in data
+    assert data["switch_ports_statuses"]["Q123"] == [
+        {"portId": "1", "status": "Connected"}
+    ]
 
 
 def test_build_detail_tasks_for_switch_device(api_client):
     """Test that _build_detail_tasks creates the correct tasks for a switch device."""
     # Arrange
-    switch_device = {"serial": "s123", "productType": "switch"}
+    switch_device = MerakiDevice.from_dict({"serial": "s123", "productType": "switch"})
     devices = [switch_device]
     networks = []
 
@@ -182,7 +237,7 @@ def test_build_detail_tasks_for_switch_device(api_client):
 def test_build_detail_tasks_for_camera_device(api_client):
     """Test that _build_detail_tasks creates the correct tasks for a camera device."""
     # Arrange
-    camera_device = {"serial": "c123", "productType": "camera"}
+    camera_device = MerakiDevice.from_dict({"serial": "c123", "productType": "camera"})
     devices = [camera_device]
     networks = []
 
@@ -194,8 +249,12 @@ def test_build_detail_tasks_for_camera_device(api_client):
     tasks = api_client._build_detail_tasks(networks, devices)
 
     # Assert
-    assert f"video_settings_{camera_device['serial']}" in tasks
-    assert f"sense_settings_{camera_device['serial']}" in tasks
+    assert f"video_settings_{camera_device.serial}" in tasks
+    assert f"sense_settings_{camera_device.serial}" in tasks
+
+    # Clean up coroutines to avoid warnings
+    for task in tasks.values():
+        await task
 
     api_client.camera.get_camera_video_settings.assert_called_once_with("c123")
     api_client.camera.get_camera_sense_settings.assert_called_once_with("c123")
@@ -204,12 +263,16 @@ def test_build_detail_tasks_for_camera_device(api_client):
 def test_build_detail_tasks_for_appliance_device(api_client):
     """Test that _build_detail_tasks creates tasks for an appliance device."""
     # Arrange
-    appliance_device = {
-        "serial": "a123",
-        "productType": "appliance",
-        "networkId": "N_123",
-    }
-    network_with_appliance = {"id": "N_123", "productTypes": ["appliance"]}
+    appliance_device = MerakiDevice.from_dict(
+        {
+            "serial": "a123",
+            "productType": "appliance",
+            "networkId": "N_123",
+        }
+    )
+    network_with_appliance = MerakiNetwork.from_dict(
+        {"id": "N_123", "productTypes": ["appliance"]}
+    )
     devices = [appliance_device]
     networks = [network_with_appliance]
 

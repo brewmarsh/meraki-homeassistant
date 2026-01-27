@@ -1,52 +1,36 @@
-name: Deploy Latest Code to Local Folder on Linux Runner
+name: Deploy Main to Production (Local)
 
 on:
   push:
     branches:
-      - beta
+      - main
 
 jobs:
-  deploy-to-linux-folder:
-    # This job runs on the self-hosted runner.
-    runs-on: self-hosted
-    permissions:
-      contents: read # Explicitly grant read permission for the GITHUB_TOKEN
+  deploy-to-prod:
+    runs-on: [self-hosted, meraki-prod]
 
-    # Define environment variables
     env:
-      # This is the path inside your runner container, mapping to the Host OS config.
       DESTINATION_PATH: '/ha_config/custom_components/meraki_ha'
 
     steps:
       - name: Checkout repository
-        # Checks out your repository code into $GITHUB_WORKSPACE.
         uses: actions/checkout@v6
 
-      - name: Copy files to destination folder (rsync)
-        # Use 'bash' and 'sudo rsync' to bypass symlink and permission issues.
+      - name: Copy files to Production (rsync)
         shell: bash
         env:
           DEPLOY_PATH: ${{ env.DESTINATION_PATH }}
         run: |
-          # The source directory containing ONLY the component files (with trailing slash)
           SourceComponentDir="${GITHUB_WORKSPACE}/custom_components/meraki_ha/"
           DestinationPath="${DEPLOY_PATH}"
 
-          echo "Starting deployment..."
-          echo "Source path: ${SourceComponentDir}"
-          echo "Destination path: ${DestinationPath}"
-
-          # 1. Create the destination directory if it doesn't exist
-          # Use sudo to elevate permissions for file system operations.
-          # The -p flag prevents an error if the directory already exists.
+          echo "Starting Production Deployment..."
           sudo mkdir -p "${DestinationPath}"
 
-          # 2. Copy files using rsync for robustness
           # rsync -ah --delete:
           #   -a: archive mode (preserves permissions, timestamps, etc.)
           #   -h: human-readable output
           #   --delete: removes files from destination that aren't in source (ensures clean state)
-
           # CRITICAL: Exclude development files/symlinks to avoid 'Operation not supported' errors.
           sudo rsync -rltpD --inplace --delete \
             --exclude '.git' \
@@ -56,8 +40,7 @@ jobs:
             --exclude 'docker-runner' \
             "${SourceComponentDir}" "${DestinationPath}"
 
-          echo "Successfully copied latest code to ${DestinationPath}."
-          echo "Deployment complete."
+          echo "Production Deployment Complete."
 
       - name: Install jq
         run: sudo apt-get update && sudo apt-get install -y jq
@@ -86,17 +69,13 @@ jobs:
           HA_URL: ${{ secrets.HA_URL }}
           HA_TOKEN: ${{ secrets.HA_TOKEN }}
         run: |
-          echo "Attempting to restart Home Assistant..."
-
-          # Sanitize the Home Assistant token to remove any trailing newlines or whitespace.
+          echo "Restarting Production HA..."
           CLEAN_HA_TOKEN=$(echo -n "$HA_TOKEN" | tr -d '\n\r')
 
-          # Step 1a: Basic Connectivity Test
-          echo "Testing basic connectivity to Home Assistant..."
-          API_STATUS=$(curl -sS -o /dev/null -w "%{http_code}" -X GET \
-              -H "Authorization: Bearer $CLEAN_HA_TOKEN" \
-              -H "Content-Type: application/json" \
-              "$HA_URL/api/")
+          # Check Config
+          curl -s -f -X POST \
+            -H "Authorization: Bearer $CLEAN_HA_TOKEN" \
+            "$HA_URL/api/config/core/check_config" || exit 1
 
           if [[ "$API_STATUS" -ne 200 ]]; then
               echo "Error: Could not connect to the Home Assistant API. HTTP status code: $API_STATUS."

@@ -87,6 +87,11 @@ class MerakiMtSensor(CoordinatorEntity, SensorEntity):
         return None
 
     @property
+    def native_value(self) -> str | float | bool | None:
+        """Return the state of the sensor."""
+        return self._attr_native_value
+
+    @property
     def available(self) -> bool:
         """Return if the sensor is available."""
         # The sensor is available if there is a reading for its metric.

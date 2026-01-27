@@ -10,12 +10,15 @@ from .const import (
     CONF_ENABLE_DEVICE_SENSORS,
     CONF_ENABLE_DEVICE_STATUS,
     CONF_ENABLE_DEVICE_TRACKER,
+    CONF_ENABLE_FIREWALL_RULES,
     CONF_ENABLE_NETWORK_SENSORS,
     CONF_ENABLE_ORG_SENSORS,
     CONF_ENABLE_PORT_SENSORS,
     CONF_ENABLE_SSID_SENSORS,
+    CONF_ENABLE_TRAFFIC_SHAPING,
     CONF_ENABLE_VLAN_MANAGEMENT,
     CONF_ENABLE_VLAN_SENSORS,
+    CONF_ENABLE_VPN_MANAGEMENT,
     CONF_ENABLED_NETWORKS,
     CONF_MERAKI_API_KEY,
     CONF_MERAKI_ORG_ID,
@@ -23,12 +26,15 @@ from .const import (
     DEFAULT_ENABLE_CAMERA_ENTITIES,
     DEFAULT_ENABLE_DEVICE_SENSORS,
     DEFAULT_ENABLE_DEVICE_STATUS,
+    DEFAULT_ENABLE_FIREWALL_RULES,
     DEFAULT_ENABLE_NETWORK_SENSORS,
     DEFAULT_ENABLE_ORG_SENSORS,
     DEFAULT_ENABLE_PORT_SENSORS,
     DEFAULT_ENABLE_SSID_SENSORS,
+    DEFAULT_ENABLE_TRAFFIC_SHAPING,
     DEFAULT_ENABLE_VLAN_MANAGEMENT,
     DEFAULT_ENABLE_VLAN_SENSORS,
+    DEFAULT_ENABLE_VPN_MANAGEMENT,
     DEFAULT_ENABLED_NETWORKS,
     DEFAULT_SCAN_INTERVAL,
 )
@@ -56,6 +62,15 @@ OPTIONS_SCHEMA = vol.Schema(
         ): selector.BooleanSelector(),
         vol.Required(
             CONF_ENABLE_VLAN_MANAGEMENT, default=DEFAULT_ENABLE_VLAN_MANAGEMENT
+        ): selector.BooleanSelector(),
+        vol.Required(
+            CONF_ENABLE_FIREWALL_RULES, default=DEFAULT_ENABLE_FIREWALL_RULES
+        ): selector.BooleanSelector(),
+        vol.Required(
+            CONF_ENABLE_TRAFFIC_SHAPING, default=DEFAULT_ENABLE_TRAFFIC_SHAPING
+        ): selector.BooleanSelector(),
+        vol.Required(
+            CONF_ENABLE_VPN_MANAGEMENT, default=DEFAULT_ENABLE_VPN_MANAGEMENT
         ): selector.BooleanSelector(),
         vol.Required(
             CONF_ENABLE_DEVICE_STATUS, default=DEFAULT_ENABLE_DEVICE_STATUS
@@ -87,7 +102,7 @@ OPTIONS_SCHEMA = vol.Schema(
             selector.SelectSelectorConfig(
                 options=[],
                 multiple=True,
-                custom_value=False,
+                custom_value=True,
                 mode=selector.SelectSelectorMode.DROPDOWN,
             )
         ),

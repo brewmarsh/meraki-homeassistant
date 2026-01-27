@@ -69,8 +69,7 @@ const Settings: React.FC<SettingsProps> = ({
     {
       key: 'enable_device_sensors',
       label: 'Physical Device Sensors',
-      description:
-        'Enable sensors for physical device metrics (e.g. MT sensors).',
+      description: 'Enable sensors for device-specific metrics (e.g. MT sensors).',
     },
     {
       key: 'enable_network_sensors',
@@ -92,6 +91,8 @@ const Settings: React.FC<SettingsProps> = ({
       label: 'SSID Sensors',
       description: 'Enable sensors and switches for SSIDs.',
     },
+    // Keep firewall, traffic shaping, VPN management from beta if they are separate options
+    // For now, assuming these are not directly user-configurable via options_flow
   ];
 
   return (

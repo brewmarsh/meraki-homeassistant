@@ -1,16 +1,14 @@
-"""
-Network Handler.
-
-This module defines the NetworkHandler class, which is responsible for
-discovering and creating network-level entities.
-"""
+"""Discovery handler for Network-level entities."""
 
 from __future__ import annotations
 
 import logging
 from typing import TYPE_CHECKING
 
-from ...const import CONF_ENABLE_NETWORK_SENSORS, CONF_ENABLE_VLAN_SENSORS
+from ...const import (
+    CONF_ENABLE_NETWORK_SENSORS,
+    CONF_ENABLE_VLAN_SENSORS,
+)
 from ...sensor.network.network_clients import MerakiNetworkClientsSensor
 from ...switch.content_filtering import MerakiContentFilteringSwitch
 from .base import BaseHandler
@@ -19,10 +17,12 @@ if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
     from homeassistant.helpers.entity import Entity
 
+    from ....core.coordinators.meraki_data_coordinator import (
+        MerakiDataUpdateCoordinator,
+    )
     from ....services.camera_service import CameraService
-    from ....services.device_control_service import DeviceControlService
     from ....types import MerakiDevice
-    from ...meraki_data_coordinator import MerakiDataCoordinator
+    from ...services.device_control_service import DeviceControlService
     from ...services.network_control_service import NetworkControlService
 
 
@@ -34,7 +34,7 @@ class NetworkHandler(BaseHandler):
 
     def __init__(
         self,
-        coordinator: MerakiDataCoordinator,
+        coordinator: MerakiDataUpdateCoordinator,
         config_entry: ConfigEntry,
         network_control_service: NetworkControlService,
     ) -> None:
@@ -45,7 +45,7 @@ class NetworkHandler(BaseHandler):
     @classmethod
     def create(
         cls,
-        coordinator: MerakiDataCoordinator,
+        coordinator: MerakiDataUpdateCoordinator,
         device: MerakiDevice,
         config_entry: ConfigEntry,
         camera_service: CameraService,
@@ -65,6 +65,7 @@ class NetworkHandler(BaseHandler):
 
         # Check if network sensors are enabled
         if not self._config_entry.options.get(CONF_ENABLE_NETWORK_SENSORS, True):
+            _LOGGER.debug("Network sensors are disabled.")
             return entities
 
         networks = self._coordinator.data.get("networks", [])
@@ -73,6 +74,7 @@ class NetworkHandler(BaseHandler):
             return entities
 
         for network in networks:
+            # Network Clients Sensor
             entities.append(
                 MerakiNetworkClientsSensor(
                     coordinator=self._coordinator,
@@ -81,10 +83,11 @@ class NetworkHandler(BaseHandler):
                     network_control_service=self._network_control_service,
                 )
             )
-            if "appliance" in network.get("productTypes", []):
+            # Content Filtering Switch
+            if "appliance" in network.product_types:
                 try:
-                    categories = await self._coordinator.api.appliance.get_network_appliance_content_filtering_categories(  # noqa: E501
-                        network["id"]
+                    categories = await self._coordinator.meraki_client.appliance.get_network_appliance_content_filtering_categories(  # noqa: E501
+                        network.id
                     )
                     for category in categories.get("categories", []):
                         entities.append(
@@ -98,7 +101,7 @@ class NetworkHandler(BaseHandler):
                 except Exception as e:
                     _LOGGER.warning(
                         "Could not get content filtering categories for network %s: %s",
-                        network["id"],
+                        network.id,
                         e,
                     )
 
@@ -106,6 +109,7 @@ class NetworkHandler(BaseHandler):
             if self._config_entry.options.get(CONF_ENABLE_VLAN_SENSORS, True):
                 vlans = self._coordinator.data.get("vlans", {}).get(network["id"], [])
                 if vlans:
+                    # Dynamically import VLAN sensors only if enabled
                     from ...sensor.network.vlan import (
                         MerakiVLANIDSensor,
                         MerakiVLANIPv4EnabledSensor,

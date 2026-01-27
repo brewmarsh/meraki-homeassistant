@@ -1,85 +1,64 @@
 # Meraki Home Assistant Integration 🏠☁️
 
+[![Current Version](https://img.shields.io/github/v/release/brewmarsh/meraki-homeassistant?include_prereleases&label=Current%20Version)](https://github.com/brewmarsh/meraki-homeassistant/releases)
+[![Pull Request Validation](https://github.com/brewmarsh/meraki-homeassistant/actions/workflows/pull-request.yaml/badge.svg)](https://github.com/brewmarsh/meraki-homeassistant/actions/workflows/pull-request.yaml)
+[![Hassfest Validation](https://github.com/brewmarsh/meraki-homeassistant/actions/workflows/hassfest.yaml/badge.svg)](https://github.com/brewmarsh/meraki-homeassistant/actions/workflows/hassfest.yaml)
+[![codecov](https://codecov.io/gh/brewmarsh/meraki-homeassistant/branch/main/graph/badge.svg)](https://codecov.io/gh/brewmarsh/meraki-homeassistant)
+[![Python Version](https://img.shields.io/badge/python-3.9-blue.svg)](https://www.python.org/downloads/)
+[![Code style: ruff](https://img.shields.io/badge/code%20style-ruff-000000.svg)](https://github.com/astral-sh/ruff)
+
 Welcome to the **Meraki Home Assistant Integration**! This project bridges the gap between your Cisco Meraki cloud-managed network and your local Home Assistant instance. Whether you're managing a home lab, a small business, or just love having total control over your network gear, this integration has you covered.
 
 **Note:** This is currently in **Beta**. We're moving fast and improving stability, so feedback is always welcome!
 
-## ✨ Features
+## Table of contents
 
-We support a wide range of Meraki devices and features, bringing cloud management down to earth:
+- [Key features](#key-features-✨)
+- [Installation](#installation-🛠️)
+- [Configuration](#configuration-⚙️)
+- [Web UI](#web-ui-🖼️)
+- [Services & controls](#services--controls-🛗️)
+  - [Parental controls (client blocking)](#parental-controls-client-blocking)
+  - [Content filtering](#content-filtering)
+  - [SSID control](#ssid-control)
+- [Entities](#entities-🧩)
+  - [Device & entity model](#device--entity-model)
+  - [Organization-wide sensors](#organization-wide-sensors)
+  - [Camera entities & sensors](#camera-entities--sensors)
+  - [Physical device sensors](#physical-device-sensors)
+  - [Network sensors](#network-sensors)
+  - [VLAN sensors](#vlan-sensors)
+  - [Appliance port sensors](#appliance-port-sensors)
+  - [SSID sensors](#ssid-sensors)
+  - [Environmental sensors (MT series)](#environmental-sensors-mt-series)
+- [Automation examples](#automation-examples-🚀)
+- [Troubleshooting](#troubleshooting)
+- [How to contribute](#how-to-contribute)
+- [Known issues & limitations](#known-issues--limitations)
+- [Disclaimer](#disclaimer)
 
-### 📹 Cameras (MV Series)
+## Screenshots 📸
 
-Keep an eye on things with robust camera integration.
+|                                                     Network View                                                      |                                                     Device Detail View                                                      |
+| :-------------------------------------------------------------------------------------------------------------------: | :-------------------------------------------------------------------------------------------------------------------------: |
+| ![Network View](https://user-images.githubusercontent.com/1099616/279869151-24702f37-646d-4176-963d-2103f6f3630d.png) | ![Device Detail View](https://user-images.githubusercontent.com/1099616/279869158-2947a195-5c02-4580-b7a4-315111956f46.png) |
 
-- Live Status: See if your cameras are online or offline instantly.
-- Streaming: View RTSP streams directly in your dashboard (requires local access).
-- Motion Detection: (Where supported) trigger automations based on camera activity.
+## Key features ✨
 
-### 🔌 Switches (MS)
+- **Comprehensive Monitoring:** Keep tabs on all your Meraki hardware, including Wireless Access Points (MR/GR), Switches (MS/GS), Security Appliances (MX), Cameras (MV), and Environmental Sensors (MT).
+- **Powerful Controls:** Enable/disable SSIDs, block specific clients (Parental Controls), and manage content filtering categories directly from Home Assistant.
+- **Web Interface:** A dedicated web UI for advanced features like guest Wi-Fi management and viewing event logs.
+- **Rich Sensor Data:** Creates a wide array of sensors for device status, client counts, data usage, firmware updates, PoE consumption, and much more.
+- **Camera Integration:** View live RTSP streams from your Meraki cameras within Home Assistant.
 
-Manage your wired network like a pro.
+## Troubleshooting
 
-- Port Control: Cycle power to PoE ports to reboot sticky devices remotely.
-- Monitoring: Track power usage (PoE) and connectivity status per port.
-- VLANs: View VLAN configurations and status.
+If you encounter issues with the integration, please check the following:
 
-### 🌡️ Sensors (MT Series)
-
-Environmental monitoring made easy.
-
-- Complete Range: Support for MT10 (Temp/Humidity), MT11 (Temp/Probe), MT12 (Water Leak), MT14 (Air Quality), and MT20 (Door Open/Close).
-- MT40: Full support for the MT40 Smart Power Controller (new!).
-
-### 📶 Wireless (MR)
-
-Control your Wi-Fi experience.
-
-- SSID Management: Toggle SSIDs on or off dynamically.
-- Client Counts: See how many devices are connected to each network in real-time.
-
-### 🛡️ Gateways (MX)
-
-- Uplink Status: Monitor your internet connection health and failover status.
-
-## 🖥️ The Dashboard
-
-We've built a custom **Meraki Panel** right into Home Assistant. It gives you a bird's-eye view of your organization without needing to clutter your standard Lovelace dashboard with hundreds of entities.
-
-![Network View](docs/images/network_view.png)
-_The Network View provides a quick summary of all your sites._
-
-![Device Detail](docs/images/device_detail_view.png)
-_Drill down into specific devices for detailed controls and metrics._
-
-## 🚀 Getting Started
-
-1. **Install:** Use HACS (recommended) to install "Meraki Home Assistant". Alternatively, copy the `custom_components/meraki_ha` folder to your HA `custom_components` directory.
-2. **Configure:** Go to **Settings > Devices & Services > Add Integration** and search for "Meraki".
-3. **API Key:** Enter your Meraki Dashboard API Key. The integration will discover your organizations.
-4. **Enjoy:** Check out the new "Meraki" panel in your sidebar!
-
-## 🤝 Contributing
-
-We love contributions! Please read our [CONTRIBUTING.md](CONTRIBUTING.md) and [DEVELOPMENT.md](DEVELOPMENT.md) guides to get started.
-
-## 🤖 Development & AI Collaboration
-
-This project uses **Jules AI** as an asynchronous coding partner to accelerate development and maintain 2026.1 architectural standards.
-
-### 🛠 How We Build
-
-- **Branches:** All active development happens on the `beta` branch. The `main` branch is protected and reserved for stable production releases.
-- **Task Delegation:** We use the `[Jules]` issue template to assign specific refactors or features to the AI.
-- **Human Oversight:** Every AI-generated Pull Request undergoes a human code review. We verify 2026.1 compliance (Sentence case, Diagnostic categories, and `has_entity_name`) before merging.
-
-### 🤝 Contributing Alongside AI
-
-Humans are welcome! If you'd like to contribute:
-
-1. Check the `ROADMAP.md` to see what Jules is currently working on to avoid merge conflicts.
-2. Use our Issue Templates so both the maintainers and Jules can understand your bug reports or feature requests.
-3. If you're a developer, refer to `AGENTS.md` for our specific AI coding conventions.
+- **API Key and Organization ID:** Ensure that your API key and organization ID are correct.
+- **API Access:** Make sure that API access is enabled in your Meraki dashboard.
+- **Home Assistant Logs:** Check the Home Assistant logs for any error messages related to the integration.
+- **Restart Home Assistant:** If you've made any changes to the integration's configuration, restart Home Assistant to apply them.
 
 ---
 

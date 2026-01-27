@@ -29,6 +29,10 @@ const App: React.FC<AppProps> = ({ hass, panel }) => {
 
   const configEntryId = panel?.config?.config_entry_id;
 
+  // If we are in standalone mode, config_entry_id might come from window
+  const finalConfigEntryId =
+    config_entry_id || (window as any).CONFIG_ENTRY_ID;
+
   useEffect(() => {
     if (window.location.hostname === 'localhost') {
       setData({
