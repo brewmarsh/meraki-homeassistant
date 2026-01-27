@@ -1,5 +1,6 @@
 """Global fixtures for meraki_ha integration."""
 
+import asyncio
 import sys
 from collections.abc import Generator
 from unittest.mock import AsyncMock, MagicMock, patch
@@ -13,6 +14,14 @@ from tests.const import (
     MOCK_MX_DEVICE_INIT,
     MOCK_NETWORK_INIT,
 )
+
+
+@pytest.fixture(scope="session")
+def event_loop():
+    """Create an instance of the default event loop for each test case."""
+    loop = asyncio.new_event_loop()
+    yield loop
+    loop.close()
 
 
 @pytest.fixture(autouse=True)

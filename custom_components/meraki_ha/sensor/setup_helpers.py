@@ -22,7 +22,7 @@ from .client_tracker import ClientTrackerDeviceSensor, MerakiClientSensor
 from .device.appliance_port import MerakiAppliancePortSensor
 from .device.appliance_uplink import MerakiApplianceUplinkSensor
 from .device.rtsp_url import MerakiRtspUrlSensor
-from .device.switch_port import MerakiSwitchPortSensor
+from .device.switch_port import MerakiSwitchPortPowerSensor, MerakiSwitchPortSensor
 from .network.traffic_shaping import TrafficShapingSensor
 from .network.vlan import (
     MerakiVLANIDSensor,
@@ -118,6 +118,16 @@ def _setup_device_sensors(
                         MerakiSwitchPortSensor(coordinator, device, port, config_entry)
                     )
                     added_entities.add(unique_id)
+
+                if "powerUsageInWh" in port:
+                    unique_id = f"{serial}_port_{port_id}_power"
+                    if unique_id not in added_entities:
+                        entities.append(
+                            MerakiSwitchPortPowerSensor(
+                                coordinator, device, port, config_entry
+                            )
+                        )
+                        added_entities.add(unique_id)
 
         # MT sensor setup
         if product_type == "sensor":
