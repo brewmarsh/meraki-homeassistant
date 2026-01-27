@@ -44,3 +44,9 @@ class MerakiInformationalError(MerakiError):
     """Error to indicate an informational/non-critical problem."""
 
     pass
+
+
+class InvalidOrgID(MerakiConfigError):
+    """Error to indicate an invalid Organization ID."""
+
+    pass
