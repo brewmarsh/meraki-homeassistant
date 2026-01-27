@@ -96,6 +96,7 @@ class SensorEndpoints:
         """
         metrics = [
             "battery",
+            "button",
             "co2",
             "humidity",
             "noise",
