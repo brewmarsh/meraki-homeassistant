@@ -38,7 +38,7 @@ async def async_setup_entry(
             entities.append(
                 MerakiCameraMotionEvent(coordinator, device, camera_service, entry)
             )
-        elif device.model and device.model.startswith("MT30"):
+        elif device.model == "MT30":
             entities.append(MerakiMtButtonEvent(coordinator, device, entry))
 
     async_add_entities(entities)

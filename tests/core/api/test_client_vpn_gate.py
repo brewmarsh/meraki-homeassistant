@@ -94,7 +94,9 @@ async def test_vpn_status_fetched_when_enabled(mock_hass, mock_coordinator):
             "custom_components.meraki_ha.core.api.client.parse_wireless_data",
             return_value={},
         ),
-        patch("custom_components.meraki_ha.core.api.client.parse_device_data"),
+        patch(
+            "custom_components.meraki_ha.core.coordinator_helpers.device_fetcher.parse_device_data"
+        ),
         patch("custom_components.meraki_ha.core.api.client.parse_appliance_data"),
         patch("custom_components.meraki_ha.core.api.client.parse_sensor_data"),
         patch("custom_components.meraki_ha.core.api.client.parse_camera_data"),

@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import time
 from typing import Any, cast
 
 from homeassistant.components.sensor import (
@@ -14,7 +13,6 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import EntityCategory, UnitOfEnergy, UnitOfPower
 from homeassistant.core import callback
 from homeassistant.helpers.entity import DeviceInfo
-from homeassistant.helpers.restore_state import RestoreEntity
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from ...coordinator import MerakiDataUpdateCoordinator
@@ -134,40 +132,23 @@ class MerakiSwitchPortPowerSensor(CoordinatorEntity, SensorEntity):
                         self._port = port
                         break
                 break
-
-        now = time.time()
-        if hasattr(self, "_last_update_timestamp"):
-            self._duration_seconds = now - self._last_update_timestamp
-        else:
-            self._duration_seconds = (
-                self.coordinator.update_interval.total_seconds()
-                if self.coordinator.update_interval
-                else 300
-            )
-        self._last_update_timestamp = now
-
         self.async_write_ha_state()
 
     @property
     def native_value(self) -> float:
         """Return the state of the sensor."""
         power_usage_wh = self._port.get("powerUsageInWh", 0) or 0
-        if power_usage_wh <= 0:
-            return 0.0
-
-        duration_hours = getattr(self, "_duration_seconds", 300) / 3600
-        if duration_hours <= 0:
-            return 0.0
-
-        return round(power_usage_wh / duration_hours, 2)
+        if power_usage_wh > 0:
+            return round(power_usage_wh / 24, 2)
+        return 0.0
 
 
-class MerakiSwitchPortEnergySensor(CoordinatorEntity, RestoreEntity, SensorEntity):
+class MerakiSwitchPortEnergySensor(CoordinatorEntity, SensorEntity):
     """Representation of a Meraki switch port energy sensor."""
 
     _attr_device_class = SensorDeviceClass.ENERGY
     _attr_native_unit_of_measurement = UnitOfEnergy.WATT_HOUR
-    _attr_state_class = SensorStateClass.TOTAL_INCREASING
+    _attr_state_class = SensorStateClass.MEASUREMENT
     _attr_translation_key = "energy"
 
     def __init__(
@@ -188,7 +169,6 @@ class MerakiSwitchPortEnergySensor(CoordinatorEntity, RestoreEntity, SensorEntit
             f"{self._device.serial}_port_{self._port['portId']}_energy"
         )
         self._attr_name = f"Port {self._port['portId']} Energy"
-        self._attr_native_value = 0.0
 
     @property
     def device_info(self) -> DeviceInfo | None:
@@ -202,15 +182,6 @@ class MerakiSwitchPortEnergySensor(CoordinatorEntity, RestoreEntity, SensorEntit
         """Return if the entity is available."""
         return self._device.status == "online"
 
-    async def async_added_to_hass(self) -> None:
-        """Restore last state."""
-        await super().async_added_to_hass()
-        if (state := await self.async_get_last_state()) is not None:
-            try:
-                self._attr_native_value = float(state.state)
-            except ValueError:
-                self._attr_native_value = 0.0
-
     @callback
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
@@ -222,17 +193,9 @@ class MerakiSwitchPortEnergySensor(CoordinatorEntity, RestoreEntity, SensorEntit
                         self._port = port
                         break
                 break
-
-        # Accumulate energy from this interval
-        power_usage_wh = self._port.get("powerUsageInWh", 0) or 0
-        if isinstance(self._attr_native_value, (int, float)):
-            self._attr_native_value += float(power_usage_wh)
-        else:
-            self._attr_native_value = float(power_usage_wh)
-
         self.async_write_ha_state()
 
     @property
     def native_value(self) -> float:
         """Return the state of the sensor."""
-        return cast(float, self._attr_native_value)
+        return self._port.get("powerUsageInWh", 0) or 0

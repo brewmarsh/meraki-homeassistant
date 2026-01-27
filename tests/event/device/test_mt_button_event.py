@@ -23,11 +23,13 @@ async def test_mt_button_event_initialization(
     ):
         entity = MerakiMtButtonEvent(mock_coordinator, device, mock_config_entry)
 
-        assert entity.unique_id == "Q2XX-XXXX-XXXX-button-event"
-        assert entity.translation_key == "button_press"
+        assert entity.unique_id == "Q2XX-XXXX-XXXX_button_event"
+        assert entity.name == "Button Press"
         assert entity.device_class == EventDeviceClass.BUTTON
         assert entity.event_types == ["short_press", "long_press"]
-        assert entity._last_ts == ""
+
+    # CoordinatorEntity should not poll
+    assert entity.should_poll is False
 
 
 async def test_mt_button_event_update(hass, mock_coordinator, mock_config_entry):
@@ -36,6 +38,7 @@ async def test_mt_button_event_update(hass, mock_coordinator, mock_config_entry)
     device.serial = "Q2XX-XXXX-XXXX"
     device.button_press = None
 
+    # Ensure coordinator returns our device mock
     mock_coordinator.get_device.return_value = device
 
     with patch(
@@ -47,41 +50,36 @@ async def test_mt_button_event_update(hass, mock_coordinator, mock_config_entry)
         entity.async_write_ha_state = MagicMock()
         entity._trigger_event = MagicMock()
 
-        # Simulate async_added_to_hass
-        await entity.async_added_to_hass()
-        assert entity._last_ts == ""
-
-        # Update with a button press
-        device.button_press = {"ts": "2023-01-01T12:00:00Z", "pressType": "short"}
-        mock_coordinator.get_device.return_value = device
-
+        # Initial update - should set _last_ts but not trigger
+        device.button_press = {"ts": "2023-01-01T00:00:00Z", "pressType": "short"}
         entity._handle_coordinator_update()
 
-        assert entity._last_ts == "2023-01-01T12:00:00Z"
-        entity._trigger_event.assert_called_once_with("short_press")
-        entity.async_write_ha_state.assert_called()
-
-        # Update with same timestamp - should not trigger
-        entity._trigger_event.reset_mock()
-        entity.async_write_ha_state.reset_mock()
-        entity._handle_coordinator_update()
-
+        assert entity._last_ts == "2023-01-01T00:00:00Z"
         entity._trigger_event.assert_not_called()
 
-        # Update with new timestamp - long press
-        device.button_press = {"ts": "2023-01-01T12:01:00Z", "pressType": "long"}
+        # Update with new timestamp - trigger event
+        device.button_press = {"ts": "2023-01-01T00:01:00Z", "pressType": "long"}
+
         entity._handle_coordinator_update()
 
-        assert entity._last_ts == "2023-01-01T12:01:00Z"
-        entity._trigger_event.assert_called_once_with("long_press")
+        assert entity._last_ts == "2023-01-01T00:01:00Z"
+        entity._trigger_event.assert_called_once_with(
+            "long_press", {"press_type": "long", "ts": "2023-01-01T00:01:00Z"}
+        )
+
+        # Update with same timestamp - no event
+        entity._trigger_event.reset_mock()
+        entity._handle_coordinator_update()
+        entity._trigger_event.assert_not_called()
 
 
-async def test_mt_button_event_initial_state(hass, mock_coordinator, mock_config_entry):
-    """Test that existing events on startup are not replayed."""
+async def test_mt_button_event_unknown_type(hass, mock_coordinator, mock_config_entry):
+    """Test handling of unknown event types."""
     device = MagicMock()
     device.serial = "Q2XX-XXXX-XXXX"
-    device.button_press = {"ts": "2023-01-01T12:00:00Z", "pressType": "short"}
+    device.button_press = None
 
+    # Ensure coordinator returns our device mock
     mock_coordinator.get_device.return_value = device
 
     with patch(
@@ -90,15 +88,18 @@ async def test_mt_button_event_initial_state(hass, mock_coordinator, mock_config
     ):
         entity = MerakiMtButtonEvent(mock_coordinator, device, mock_config_entry)
         entity.hass = hass
+        # Mock this to avoid NoEntitySpecifiedError
         entity.async_write_ha_state = MagicMock()
         entity._trigger_event = MagicMock()
 
-        # Simulate async_added_to_hass
-        await entity.async_added_to_hass()
+        # Initial setup
+        entity._last_ts = "2023-01-01T00:00:00Z"
+        entity._is_first_update = False
 
-        # Should have captured the timestamp
-        assert entity._last_ts == "2023-01-01T12:00:00Z"
+        # Update with unknown type
+        device.button_press = {"ts": "2023-01-01T00:02:00Z", "pressType": "triple"}
 
-        # Coordinator update with same data should not trigger
         entity._handle_coordinator_update()
+
+        assert entity._last_ts == "2023-01-01T00:02:00Z"
         entity._trigger_event.assert_not_called()

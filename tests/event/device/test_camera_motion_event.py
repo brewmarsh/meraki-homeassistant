@@ -36,7 +36,7 @@ async def test_camera_motion_event_initialization(
         )
 
         assert entity.unique_id == "Q2XX-XXXX-XXXX-motion-event"
-        assert entity.translation_key == "motion_event"
+        assert entity.name == "Motion Event"
         assert entity.device_class == EventDeviceClass.MOTION
         assert entity.event_types == ["motion", "person", "vehicle"]
     assert entity.should_poll is True
