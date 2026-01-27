@@ -39,3 +39,7 @@ class MerakiNetworkError(MerakiHAException):
 
 class MerakiVlansDisabledError(MerakiInformationalError):
     """Error to indicate that VLANs are not enabled for a network."""
+
+
+class InvalidOrgID(MerakiHAException):
+    """Error to indicate the Organization ID is invalid."""
