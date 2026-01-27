@@ -18,6 +18,7 @@ from ...types import MerakiDevice
 class MerakiSwitchPortSensor(CoordinatorEntity, SensorEntity):
     """Representation of a Meraki switch port sensor."""
 
+    _attr_entity_registry_enabled_default = False
     _attr_entity_category = EntityCategory.DIAGNOSTIC
 
     def __init__(
