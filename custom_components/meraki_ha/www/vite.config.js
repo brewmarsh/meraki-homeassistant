@@ -5,17 +5,22 @@ import path from 'path';
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react()],
-  build: {
-    lib: {
-      entry: path.resolve(__dirname, 'src/entry.tsx'),
-      name: 'MerakiPanel',
-      fileName: () => 'meraki-panel.js',
-      formats: ['es'],
-    },
-    outDir: '.',
-    emptyOutDir: false,
+  esbuild: {
+    keepNames: true, // Keep original names for better debugging
   },
-  define: {
-    'process.env.NODE_ENV': '"production"',
+  build: {
+    // Build directly to the current directory (www)
+    outDir: '.',
+    // Prevent Vite from emptying the directory and deleting source files
+    emptyOutDir: false,
+    rollupOptions: {
+      output: {
+        // Force the output filename to be meraki-panel.js
+        entryFileNames: 'meraki-panel.js',
+        // Ensure assets don't clutter the root
+        assetFileNames: 'assets/[name]-[hash].[ext]',
+        chunkFileNames: 'assets/[name]-[hash].js',
+      },
+    },
   },
 });

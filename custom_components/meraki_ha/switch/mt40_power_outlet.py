@@ -74,14 +74,20 @@ class MerakiMt40PowerOutlet(
         """Get the power state from the device's readings."""
         if not isinstance(self._device_info.readings, list):
             return None
-        return next(
-            (
-                reading.get("value")
-                for reading in self._device_info.readings
-                if reading.get("metric") == "downstream_power"
-            ),
-            None,
-        )
+        # Support both legacy and newer Meraki MT40 reading formats
+        for reading in self._device_info.readings:
+            metric = reading.get("metric")
+            if metric in ("downstreamPower", "downstream_power"):
+                # Newer format uses nested downstreamPower dict
+                if "downstreamPower" in reading:
+                    data = reading.get("downstreamPower")
+                    if isinstance(data, dict):
+                        return data.get("enabled")
+                # Legacy format may expose a simple `value` field
+                if "value" in reading:
+                    return reading.get("value")
+
+        return None
 
     async def async_turn_on(self, **kwargs: Any) -> None:
         """

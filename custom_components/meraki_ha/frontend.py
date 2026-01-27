@@ -29,7 +29,6 @@ async def async_register_frontend(hass: HomeAssistant, entry: ConfigEntry) -> No
     # from `/meraki_ha_static/` which points to `custom_components/meraki_ha/www`.
     module_url = f"/meraki_ha_static/meraki-panel.js?v={version}"
 
-    # Register a custom panel using the modern `module_url` approach
     frontend.async_register_built_in_panel(
         hass,
         component_name="custom",
@@ -46,6 +45,8 @@ async def async_register_frontend(hass: HomeAssistant, entry: ConfigEntry) -> No
             "config_entry_id": entry.entry_id,
         },
         require_admin=True,
+        # Allow updating the panel registration to prevent conflicts on reload
+        update=True,
     )
 
 

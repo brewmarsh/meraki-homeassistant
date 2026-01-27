@@ -118,6 +118,11 @@ class MerakiMtSensor(CoordinatorEntity, RestoreSensor):
             self.async_write_ha_state()
 
     @property
+    def native_value(self) -> str | float | bool | None:
+        """Return the state of the sensor."""
+        return self._attr_native_value
+
+    @property
     def available(self) -> bool:
         """Return if the sensor is available."""
         # Available if it has a value from the coordinator or a restored state

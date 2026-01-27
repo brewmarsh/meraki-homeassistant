@@ -54,3 +54,6 @@ replace = '"version": "{new_version}"'
 
 [tool.bumpversion.parts.beta]
 first_value = 1
+
+[tool.codespell]
+skip = "*meraki-panel.js,*/dist/*"

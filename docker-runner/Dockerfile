@@ -24,7 +24,7 @@ RUN apt-get update && \
     # Clean up APT cache
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# CRITICAL: Create the dedicated 'runner' user, as the GitHub Actions Runner software 
+# CRITICAL: Create the dedicated 'runner' user, as the GitHub Actions Runner software
 # must NOT run as root for security reasons.
 RUN useradd -m runner
 
@@ -51,8 +51,8 @@ RUN mkdir -p /ha_config
 COPY entrypoint.sh /usr/local/bin/runner-entrypoint.sh
 RUN chmod +x /usr/local/bin/runner-entrypoint.sh
 
-# FINAL PERMISSION FIX: The container runs as 'root' (default user) to allow 
-# write access to the Host OS volume. The entrypoint script uses 'sudo' to switch 
+# FINAL PERMISSION FIX: The container runs as 'root' (default user) to allow
+# write access to the Host OS volume. The entrypoint script uses 'sudo' to switch
 # to the non-root 'runner' user for the final runner commands.
 # Do NOT set USER here.
 
