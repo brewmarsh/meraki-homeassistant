@@ -48,8 +48,8 @@ def test_switch_port_power_sensor(mock_coordinator_and_device):
     assert sensor.native_unit_of_measurement == UnitOfPower.WATT
     assert sensor.state_class == SensorStateClass.MEASUREMENT
 
-    # 240 Wh / 24 h = 10 W
-    assert sensor.native_value == 10.0
+    # 240 Wh in 300s (5 min) -> Power = 240 * (3600/300) = 240 * 12 = 2880 W
+    assert sensor.native_value == 2880.0
 
 
 def test_switch_port_energy_sensor(mock_coordinator_and_device):
@@ -60,11 +60,15 @@ def test_switch_port_energy_sensor(mock_coordinator_and_device):
 
     sensor = MerakiSwitchPortEnergySensor(coordinator, device, port, config_entry)
 
+    # Simulate first update to populate energy
+    sensor.async_write_ha_state = MagicMock()
+    sensor._handle_coordinator_update()
+
     assert sensor.unique_id == "Q234-ABCD-5678_port_1_energy"
     assert sensor.translation_key == "energy"
     assert sensor.device_class == SensorDeviceClass.ENERGY
     assert sensor.native_unit_of_measurement == UnitOfEnergy.WATT_HOUR
-    assert sensor.state_class == SensorStateClass.MEASUREMENT
+    assert sensor.state_class == SensorStateClass.TOTAL_INCREASING
 
     assert sensor.native_value == 240
 
@@ -89,3 +93,25 @@ def test_switch_port_energy_sensor_missing_data(mock_coordinator_and_device):
     sensor.async_write_ha_state = MagicMock()
     sensor._handle_coordinator_update()
     assert sensor.native_value == 0.0
+
+
+def test_switch_port_energy_sensor_accumulation(mock_coordinator_and_device):
+    """Test that the switch port energy sensor accumulates value."""
+    coordinator, device = mock_coordinator_and_device
+    port = device.ports_statuses[0]  # Has 240 Wh initially
+    config_entry = MagicMock()
+
+    sensor = MerakiSwitchPortEnergySensor(coordinator, device, port, config_entry)
+
+    # First update: 240 Wh added
+    sensor.async_write_ha_state = MagicMock()
+    sensor._handle_coordinator_update()
+    assert sensor.native_value == 240
+
+    # Simulate next update with another 100 Wh
+    # We need to update the device in the coordinator data
+    device.ports_statuses[0]["powerUsageInWh"] = 100
+    sensor._handle_coordinator_update()
+
+    # Total should be 240 + 100 = 340
+    assert sensor.native_value == 340

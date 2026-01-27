@@ -173,6 +173,7 @@ class MerakiAPIClient:
         self,
         networks: list[MerakiNetwork],
         devices: list[MerakiDevice],
+        timespan: int = 300,
     ) -> dict[str, asyncio.Task[Any]]:
         """
         Build a dictionary of tasks to fetch detailed data.
@@ -180,6 +181,7 @@ class MerakiAPIClient:
         Args:
             networks: A list of networks.
             devices: A list of devices.
+            timespan: The timespan in seconds for switch port data (default: 300).
 
         Returns
         -------
@@ -266,7 +268,9 @@ class MerakiAPIClient:
             elif device.product_type == "switch":
                 detail_tasks[f"ports_statuses_{device.serial}"] = asyncio.create_task(
                     self._run_with_semaphore(
-                        self.switch.get_device_switch_ports_statuses(device.serial),
+                        self.switch.get_device_switch_ports_statuses(
+                            device.serial, timespan=timespan
+                        ),
                     )
                 )
             elif device.product_type == "appliance" and device.network_id:
@@ -323,7 +327,14 @@ class MerakiAPIClient:
         parse_appliance_data(devices_list, appliance_uplink_statuses)
         parse_sensor_data(devices_list, sensor_readings, battery_readings)
 
-        detail_tasks = self._build_detail_tasks(networks_list, devices_list)
+        # Determine timespan for switch port statuses
+        timespan = 300  # Default
+        if self.coordinator and self.coordinator.update_interval:
+            timespan = int(self.coordinator.update_interval.total_seconds())
+
+        detail_tasks = self._build_detail_tasks(
+            networks_list, devices_list, timespan=timespan
+        )
         detail_results = await asyncio.gather(
             *detail_tasks.values(),
             return_exceptions=True,
