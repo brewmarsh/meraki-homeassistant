@@ -139,12 +139,26 @@ class MerakiSwitchPortPowerSensor(CoordinatorEntity, SensorEntity):
         """Return the state of the sensor."""
         power_usage_wh = self._port.get("powerUsageInWh", 0) or 0
         if power_usage_wh > 0:
-            return round(power_usage_wh / 24, 2)
+            timespan = (
+                self.coordinator.update_interval.total_seconds()
+                if self.coordinator.update_interval
+                else 86400
+            )
+            # Avoid division by zero
+            if timespan <= 0:
+                timespan = 86400
+
+            # Power (W) = Energy (Wh) * 3600 (s/h) / Timespan (s)
+            return round(power_usage_wh * 3600 / timespan, 2)
         return 0.0
 
 
 class MerakiSwitchPortEnergySensor(CoordinatorEntity, SensorEntity):
-    """Representation of a Meraki switch port energy sensor."""
+    """
+    Representation of a Meraki switch port energy sensor.
+
+    This sensor reports the energy consumed during the last scan interval.
+    """
 
     _attr_device_class = SensorDeviceClass.ENERGY
     _attr_native_unit_of_measurement = UnitOfEnergy.WATT_HOUR
