@@ -1,0 +1,148 @@
+import React, { useState, useEffect, useRef } from 'react';
+
+// Define the types for our data
+interface MerakiEvent {
+  occurredAt: string;
+  type: string;
+  description: string;
+  clientId?: string;
+  clientDescription?: string;
+  deviceSerial?: string;
+  deviceName?: string;
+}
+
+interface EventLogProps {
+  hass: any;
+  networkId?: string;
+  configEntryId: string;
+  productTypes?: string[];
+}
+
+const EventLog: React.FC<EventLogProps> = ({
+  hass,
+  networkId,
+  configEntryId,
+  productTypes,
+}) => {
+  const [events, setEvents] = useState<MerakiEvent[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+  const socketRef = useRef<WebSocket | null>(null); // Keep WebSocket instance
+
+  useEffect(() => {
+    const fetchEvents = async () => {
+      if (!networkId) return;
+
+      setLoading(true);
+      setError(null);
+
+      try {
+        if (window.location.hostname === 'localhost') {
+          // Mock Data for Localhost (No Backend)
+          setEvents([
+            {
+              occurredAt: new Date().toISOString(),
+              type: 'client_connect',
+              description: 'Client connected',
+              clientDescription: 'iPhone',
+            },
+            {
+              occurredAt: new Date(Date.now() - 3600000).toISOString(),
+              type: 'device_online',
+              description: 'Device came online',
+              deviceName: 'Living Room AP',
+            },
+          ]);
+          setLoading(false);
+          return;
+        }
+
+        if (!hass) {
+          throw new Error('Hass connection not available');
+        }
+
+        const resultData = await hass.callWS({
+          type: 'meraki_ha/get_network_events',
+          config_entry_id: configEntryId,
+          network_id: networkId,
+          per_page: 10,
+          product_type: productTypes ? productTypes[0] : undefined, // Use first product type if available
+        });
+
+        if (resultData && Array.isArray(resultData.events)) {
+          setEvents(resultData.events);
+        } else {
+          setEvents([]);
+        }
+        setError(null);
+      } catch (err: any) {
+        console.error('Error fetching Meraki events:', err);
+        setError(err.message || 'Failed to fetch events');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchEvents();
+
+    // Cleanup WebSocket connection on unmount if it exists and is open
+    return () => {
+      if (socketRef.current && socketRef.current.readyState === WebSocket.OPEN) {
+        socketRef.current.close();
+      }
+    };
+  }, [hass, networkId, configEntryId, productTypes]); // Dependencies for useEffect
+
+  if (!networkId) {
+    return (
+      <div className="p-4 text-gray-500">Select a network to view events.</div>
+    );
+  }
+
+  return (
+    <div className="mt-4">
+      <h3 className="text-lg font-semibold mb-2">Recent Events</h3>
+      {loading && <p>Loading events...</p>}
+      {error && <p className="text-red-500">Error: {error}</p>}
+      {!loading && !error && events.length === 0 && <p>No events found.</p>}
+
+      {!loading && !error && events.length > 0 && (
+        <div className="overflow-x-auto bg-light-card dark:bg-dark-card rounded-lg shadow-md">
+          <table className="min-w-full text-sm">
+            <thead>
+              <tr className="border-b border-light-border dark:border-dark-border bg-gray-50 dark:bg-gray-800">
+                <th className="text-left p-3 font-medium">Time</th>
+                <th className="text-left p-3 font-medium">Type</th>
+                <th className="text-left p-3 font-medium">Description</th>
+                <th className="text-left p-3 font-medium">Source</th>
+              </tr>
+            </thead>
+            <tbody>
+              {events.map((event, index) => (
+                <tr
+                  key={index}
+                  className="border-b border-light-border dark:border-dark-border hover:bg-gray-50 dark:hover:bg-gray-700"
+                >
+                  <td className="p-3 whitespace-nowrap">
+                    {new Date(event.occurredAt).toLocaleString()}
+                  </td>
+                  <td className="p-3">{event.type}</td>
+                  <td className="p-3">{event.description}</td>
+                  <td className="p-3">
+                    {event.clientDescription ||
+                      event.deviceName ||
+                      event.clientId ||
+                      event.deviceSerial ||
+                      '-'}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default EventLog;

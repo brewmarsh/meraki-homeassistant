@@ -6,29 +6,39 @@ import pytest
 from homeassistant.core import HomeAssistant
 
 from custom_components.meraki_ha.switch.mt40_power_outlet import MerakiMt40PowerOutlet
-from custom_components.meraki_ha.types import MerakiDevice
 
 
 @pytest.fixture
 def mock_coordinator_with_mt40_data(mock_coordinator: MagicMock) -> MagicMock:
-    """Fixture for a mocked MerakiDataUpdateCoordinator with MT40 data."""
-    device = MerakiDevice(
-        serial="mt40-1",
-        name="MT40 Power Controller",
-        model="MT40",
-        product_type="sensor",
-        mac="00:11:22:33:44:55",
-        readings=[
-            {"metric": "downstream_power", "value": True},  # Outlet is on
-        ],
-    )
+    """Fixture for a mocked MerakiDataCoordinator with MT40 data."""
+    mock_coordinator.data = {
+        "devices": [
+            {
+                "serial": "mt40-1",
+                "name": "MT40 Power Controller",
+                "model": "MT40",
+                "productType": "sensor",
+                "readings": [
+                    {
+                        "metric": "downstreamPower",
+                        "downstreamPower": {"enabled": True},
+                    },  # Outlet is on
+                ],
+            }
+        ]
+    }
 
-    mock_coordinator.data = {"devices": [device]}
     mock_coordinator.is_pending = MagicMock(return_value=False)
-    # Ensure get_device returns the device
-    mock_coordinator.get_device.side_effect = lambda serial: next(
-        (d for d in mock_coordinator.data["devices"] if d.serial == serial), None
-    )
+
+    def _get_device(serial):
+        for d in mock_coordinator.data["devices"]:
+            if getattr(d, "serial", None) == serial:
+                return d
+            if isinstance(d, dict) and d.get("serial") == serial:
+                return d
+        return None
+
+    mock_coordinator.get_device.side_effect = _get_device
     return mock_coordinator
 
 

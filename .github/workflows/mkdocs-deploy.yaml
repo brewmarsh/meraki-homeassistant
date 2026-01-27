@@ -12,9 +12,9 @@ jobs:
 
     steps:
       - uses: actions/setup-python@v6
-      - uses: actions/checkout@v5
         with:
           python-version: 3.x
+      - uses: actions/checkout@v6
 
       - run: pip install -r requirements_dev.txt
       - run: mkdocs build

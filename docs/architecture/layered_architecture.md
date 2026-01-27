@@ -35,65 +35,9 @@ The architecture is based on a clean separation of concerns, ensuring each compo
 
 **Phase 1: Foundational Layers (API Client & Repository)**
 
-1. **Develop `MerakiApiClient` (`meraki_ha/api/client.py`)**:
-
-   - Create a class to handle all raw Meraki API calls.
-   - Integrate a **circuit breaker** pattern to handle API rate limits (`429`) and server errors gracefully. Use `tenacity` for asynchronous retries with exponential backoff.
-   - Do not implement caching at this layer.
-
-2. **Develop `MerakiRepository` (`meraki_ha/repository/repository.py`)**:
-   - Create this new class to act as the primary data source for the hubs. It will take the `MerakiApiClient` as a constructor argument (**Dependency Injection**).
-   - Implement an **in-memory caching** mechanism with a time-to-live (TTL) for each data type.
-   - Implement a **Finite State Machine (FSM)** to track the API connection status (e.g., `CONNECTED`, `RATE_LIMITED`, `DISCONNECTED`). The state will determine whether API calls are made.
-
-**Phase 2: Core Logic and Dependency Injection**
-
-1. **Refactor `OrganizationHub` and `NetworkHub` (`meraki_ha/hubs/`)**:
-
-   - Update the `OrganizationHub` and `NetworkHub` classes to accept the `MerakiRepository` via their constructors.
-   - All data retrieval logic within these hubs must now go through the injected repository.
-   - Update the polling logic to leverage the repository's FSM state.
-
-2. **Update `__init__.py` and `config_flow.py`**:
-   - In the `config_flow`, create a single instance of the `MerakiApiClient`.
-   - Pass this client to create a single instance of the `MerakiRepository`.
-   - Finally, pass the `MerakiRepository` to the new `OrganizationHub` when it is set up.
-
-**Phase 3: Modular Entity Discovery**
-
-1. **Develop `DeviceHandlers` (`meraki_ha/discovery/handlers/`)**:
-
-   - Create a base `BaseDeviceHandler` class.
-   - Create individual handler classes for each device type (e.g., `MTHandler`, `MRHandler`, `MSHandler`) that inherit from `BaseDeviceHandler`.
-   - Each handler will contain the logic to check if a device is of its type and, if so, to create the correct Home Assistant entities (sensors, binary sensors, etc.).
-
-2. **Create `DeviceDiscoveryService` (`meraki_ha/discovery/service.py`)**:
-
-   - Create a service class that takes a list of all the `DeviceHandlers` in its constructor.
-   - Add a single method, `discover_entities(devices)`, that iterates through the list of Meraki devices and passes each one to the handlers to process.
-
-3. **Integrate Service into `NetworkHub`**:
-   - Modify the `NetworkHub`'s update method to call the new `DeviceDiscoveryService`.
-
-**Phase 4: Testing and Project Cleanup**
-
-1. **Write Comprehensive Unit Tests:**
-
-   - Write isolated unit tests for the `MerakiRepository` using an in-memory mock for the `MerakiApiClient`.
-   - Write unit tests for the `OrganizationHub` and `NetworkHub` by injecting a mock `MerakiRepository`.
-   - Create unit tests for each `DeviceHandler` class to confirm it correctly identifies devices and creates entities.
-   - Adhere to a `pytest` structure that allows for running only unit tests via a marker, reducing overhead.
-
-2. **Final Project Cleanup:**
-   - Remove all old, deprecated polling logic.
-   - Ensure all new files and directories are correctly added to version control.
-   - Confirm docstrings and inline comments are clear and concise.
-
-A common source of these issues is **monolithic files** that contain too much logic. While the previous plan focused on architectural patterns, we can refine the implementation details to specifically combat file complexity. The solution is to prioritize **function decomposition** and **separation of concerns** at a granular level.
-
 ---
 
-\*\*Updated AI Agent Instructions
+> > > > > > > fix/camera-prefix-inference-8324397860843535137
 
 1. **Strictly Enforce File Size Limits:** Do not create any single Python file with more than **300 lines of code**. If a file approaches this limit, stop and refactor the logic into new, smaller files.
 2. **Prioritize Function Decomposition:** Every function must have a single, clear responsibility. If a function's name includes "and" or "or," it likely needs to be broken into smaller functions.
@@ -108,25 +52,26 @@ The core architectural plan remains sound, but this update adds an additional la
 
 #\*\*Phase 1: Foundational Layers (API Client & Repository)
 
-1. **Develop `MerakiApiClient` (`meraki_ha/api/client.py`)**:
+1.  **Refactor `OrganizationHub` and `NetworkHub` (`meraki_ha/hubs/`)**: - **Extract Logic into Helper Methods:** The main `_async_update_data` method should primarily serve as an orchestrator. Move complex data processing, filtering, or transformation logic into private helper methods within the same file. - **Maintain Small File Sizes:** If a hub's file becomes too large, consider whether some of its logic could be moved to a dedicated service class (e.g., `meraki_ha/services/state_manager.py`).
 
-   - **Focus on Single-Responsibility Methods:** Each method should correspond to a single Meraki API endpoint (e.g., `get_network_devices`, `get_mt_sensors`).
-   - **Limit Indentation:** Use guard clauses to handle invalid inputs or API errors upfront, minimizing nested `try-except` blocks.
+    > > > > > > > fix/camera-prefix-inference-8324397860843535137
 
-2. **Develop `MerakiRepository` (`meraki_ha/repository/repository.py`)**:
-   - **Decompose Complex Logic:** The methods here (e.g., `_async_update_cache`) should be broken down into smaller, private methods if they exceed 30 lines of code.
+1.  **Refactor `OrganizationHub` and `NetworkHub` (`meraki_ha/hubs/`)**:
+    - **Extract Logic into Helper Methods:** The main `_async_update_data` method should primarily serve as an orchestrator. Move complex data processing, filtering, or transformation logic into private helper methods within the same file.
+    - **Maintain Small File Sizes:** If a hub's file becomes too large, consider whether some of its logic could be moved to a dedicated service class (e.g., `meraki_ha/services/state_manager.py`).
 
-#\*\*Phase 2: Core Logic and Dependency Injection
-
-1. **Refactor `OrganizationHub` and `NetworkHub` (`meraki_ha/hubs/`)**:
-   - **Extract Logic into Helper Methods:** The main `_async_update_data` method should primarily serve as an orchestrator. Move complex data processing, filtering, or transformation logic into private helper methods within the same file.
-   - **Maintain Small File Sizes:** If a hub's file becomes too large, consider whether some of its logic could be moved to a dedicated service class (e.g., `meraki_ha/services/state_manager.py`).
-
+<<<<<<< HEAD
 #\*\*Phase 3: Modular Entity Discovery
 
+1. # **Develop `DeviceHandlers` (`meraki_ha/discovery/handlers/`)**:
 1. **Develop `DeviceHandlers` (`meraki_ha/discovery/handlers/`)**:
 
    - **Enforce the 300-Line Limit:** If a handler file (e.g., `MRHandler.py`) becomes too large, it suggests that the handler is trying to do too much. Break its entity creation logic into multiple, separate functions.
+
+1. **Create `DeviceDiscoveryService` (`meraki_ha/discovery/service.py`)**: - **Simplify the Core Loop:** Ensure the `discover_entities` method is a simple loop that delegates all complex work to the `DeviceHandlers`. The code should be clear and have a low cyclomatic complexity.
+   > > > > > > > fix/camera-prefix-inference-8324397860843535137
+
+- **Enforce the 300-Line Limit:** If a handler file (e.g., `MRHandler.py`) becomes too large, it suggests that the handler is trying to do too much. Break its entity creation logic into multiple, separate functions.
 
 2. **Create `DeviceDiscoveryService` (`meraki_ha/discovery/service.py`)**:
    - **Simplify the Core Loop:** Ensure the `discover_entities` method is a simple loop that delegates all complex work to the `DeviceHandlers`. The code should be clear and have a low cyclomatic complexity.

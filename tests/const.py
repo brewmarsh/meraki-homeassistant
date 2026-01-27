@@ -13,10 +13,11 @@ MOCK_CONFIG_ENTRY.entry_id = MOCK_CONFIG_ENTRY_ID
 
 MOCK_NETWORK_INIT = {
     "id": "N_12345",
-    "name": "Test Network",
+    "organizationId": "test-org",
+    "name": "Main Office",
     "productTypes": ["appliance", "switch", "wireless", "cellularGateway"],
     "tags": "e2e-test",
-    "organizationId": "12345",
+    # organizationId is provided above as "test-org"; remove duplicate entry.
 }
 MOCK_NETWORK = MerakiNetwork.from_dict(MOCK_NETWORK_INIT)
 
