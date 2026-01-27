@@ -86,3 +86,23 @@ def test_switch_port_energy_sensor_missing_data(mock_coordinator_and_device):
 
     sensor = MerakiSwitchPortEnergySensor(coordinator, device, port, config_entry)
     assert sensor.native_value == 0
+
+
+def test_switch_port_power_sensor_with_timespan(mock_coordinator_and_device):
+    """Test the switch port power sensor with explicit timespan."""
+    coordinator, device = mock_coordinator_and_device
+    # Add a port with _timespan
+    port = {"portId": "4", "powerUsageInWh": 10, "_timespan": 3600}
+
+    config_entry = MagicMock()
+    sensor = MerakiSwitchPortPowerSensor(coordinator, device, port, config_entry)
+
+    # 10 Wh / 1 h = 10 W
+    assert sensor.native_value == 10.0
+
+    # Another test with 300s (5 min)
+    port2 = {"portId": "5", "powerUsageInWh": 10, "_timespan": 300}
+    sensor2 = MerakiSwitchPortPowerSensor(coordinator, device, port2, config_entry)
+
+    # 10 Wh / (300/3600) h = 10 * 12 = 120 W
+    assert sensor2.native_value == 120.0

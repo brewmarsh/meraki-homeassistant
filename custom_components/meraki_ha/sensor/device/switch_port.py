@@ -139,6 +139,9 @@ class MerakiSwitchPortPowerSensor(CoordinatorEntity, SensorEntity):
         """Return the state of the sensor."""
         power_usage_wh = self._port.get("powerUsageInWh", 0) or 0
         if power_usage_wh > 0:
+            timespan = self._port.get("_timespan")
+            if timespan and timespan > 0:
+                return round(power_usage_wh * 3600 / timespan, 2)
             return round(power_usage_wh / 24, 2)
         return 0.0
 
