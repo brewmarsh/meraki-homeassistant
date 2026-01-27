@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+import time
 from typing import TYPE_CHECKING, Any, cast
 
 from homeassistant.components.sensor import SensorEntity, SensorStateClass
@@ -75,6 +76,18 @@ class MerakiPoeUsageSensor(
         device = self.coordinator.get_device(self._device.serial)
         if device:
             self._device = device
+
+            now = time.time()
+            if hasattr(self, "_last_update_timestamp"):
+                self._duration_seconds = now - self._last_update_timestamp
+            else:
+                self._duration_seconds = (
+                    self.coordinator.update_interval.total_seconds()
+                    if self.coordinator.update_interval
+                    else 300
+                )
+            self._last_update_timestamp = now
+
             self.async_write_ha_state()
 
     @property
@@ -88,14 +101,14 @@ class MerakiPoeUsageSensor(
             port.get("powerUsageInWh", 0) or 0 for port in ports_statuses
         )
 
-        if total_poe_usage_wh > 0:
-            # MERGE DECISION: Use fixed 24h logic (86400s)
-            # Meraki returns energy for the last 24 hours by default.
-            timespan = 86400
-            
-            # Power (W) = Energy (Wh) * 3600 (s/h) / Timespan (s)
-            return round(total_poe_usage_wh * 3600 / timespan, 2)
-        return 0.0
+        if total_poe_usage_wh <= 0:
+            return 0.0
+
+        duration_hours = getattr(self, "_duration_seconds", 300) / 3600
+        if duration_hours <= 0:
+            return 0.0
+
+        return round(total_poe_usage_wh / duration_hours, 2)
 
     @property
     def extra_state_attributes(self) -> dict[str, Any]:

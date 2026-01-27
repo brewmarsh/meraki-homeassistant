@@ -26,10 +26,7 @@ from .services import async_setup_services
 from .services.camera_service import CameraService
 from .services.device_control_service import DeviceControlService
 from .services.switch_port_service import SwitchPortService
-from .webhook_registration import (
-    async_register_webhook,
-    async_unregister_webhook,
-)
+from .webhook import async_register_webhook
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -149,13 +146,6 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         Whether the unload was successful.
 
     """
-    if "webhook_id" in hass.data[DOMAIN][entry.entry_id]:
-        await async_unregister_webhook(
-            hass,
-            hass.data[DOMAIN][entry.entry_id]["webhook_id"],
-            hass.data[DOMAIN][entry.entry_id]["meraki_client"],
-        )
-
     unload_ok = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
     if unload_ok:
         hass.data[DOMAIN].pop(entry.entry_id)

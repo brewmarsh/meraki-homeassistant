@@ -63,11 +63,9 @@ jobs:
           enable-cache: true
 
       - name: Install dependencies
-        run: uv pip install --system --prerelease=allow -r requirements_dev.txt
-
-      - name: Install HA Custom Component
-        # Note: This may temporarily downgrade aiodns, but the next step enforces strict versions.
-        run: uv pip install --system --prerelease=allow "pytest-homeassistant-custom-component>=0.13.205" "pytest>=8.3.4"
+        run: |
+          uv pip install --system --prerelease=allow -r requirements_dev.txt
+          uv pip install --system --prerelease=allow pytest-homeassistant-custom-component>=0.13.205
 
       - name: Force Clean DNS Stack
         run: |
@@ -104,7 +102,7 @@ jobs:
 
       - name: Install HA Custom Component
         # Note: This may temporarily downgrade aiodns, but the next step enforces strict versions.
-        run: uv pip install --system --prerelease=allow "pytest-homeassistant-custom-component>=0.13.205" "pytest>=8.3.4"
+        run: uv pip install --system "pytest-homeassistant-custom-component>=0.13.205"
 
       - name: Force Clean DNS Stack
         run: |
@@ -145,18 +143,11 @@ jobs:
           python-version: ${{ inputs.python-version }}
           enable-cache: true
 
-      - name: Install System Dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y libturbojpeg0
-
       # FIX: Allow pre-releases for Home Assistant deps
       - name: Install dependencies
-        run: uv pip install --system --prerelease=allow -r requirements_dev.txt
-
-      - name: Install HA Custom Component
-        # Note: This may temporarily downgrade aiodns, but the next step enforces strict versions.
-        run: uv pip install --system --prerelease=allow "pytest-homeassistant-custom-component>=0.13.205" "pytest>=8.3.4"
+        run: |
+          uv pip install --system --prerelease=allow -r requirements_dev.txt
+          uv pip install --system --prerelease=allow pytest-homeassistant-custom-component>=0.13.205
 
       - name: Force Clean DNS Stack
         run: |

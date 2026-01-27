@@ -56,12 +56,6 @@ async def async_setup_entry(
         # Add switch port sensors
         if product_type == "switch":
             for port in getattr(device, "ports_statuses", []):
-                if not port.get("portId"):
-                    _LOGGER.warning(
-                        "Port missing portId on device %s, skipping",
-                        device.serial,
-                    )
-                    continue
                 binary_sensor_entities.append(
                     SwitchPortSensor(coordinator, device, port)
                 )
