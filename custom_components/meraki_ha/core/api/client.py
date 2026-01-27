@@ -169,7 +169,6 @@ class MerakiAPIClient:
 
         return data
 
-
     def _build_detail_tasks(
         self,
         networks: list[MerakiNetwork],
