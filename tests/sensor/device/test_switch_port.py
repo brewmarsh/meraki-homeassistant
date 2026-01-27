@@ -16,7 +16,10 @@ from custom_components.meraki_ha.types import MerakiDevice
 @pytest.fixture
 def mock_coordinator_and_device():
     """Fixture for a mocked coordinator and device."""
+    from datetime import timedelta
+
     coordinator = MagicMock()
+    coordinator.update_interval = timedelta(hours=24)
     device = MerakiDevice(
         serial="Q234-ABCD-5678",
         name="Test Switch",
@@ -40,6 +43,8 @@ def test_switch_port_power_sensor(mock_coordinator_and_device):
     config_entry = MagicMock()
 
     sensor = MerakiSwitchPortPowerSensor(coordinator, device, port, config_entry)
+    sensor.async_write_ha_state = MagicMock()
+    sensor._handle_coordinator_update()
 
     assert sensor.unique_id == "Q234-ABCD-5678_port_1_power"
     assert sensor.translation_key == "power"
@@ -58,12 +63,14 @@ def test_switch_port_energy_sensor(mock_coordinator_and_device):
     config_entry = MagicMock()
 
     sensor = MerakiSwitchPortEnergySensor(coordinator, device, port, config_entry)
+    sensor.async_write_ha_state = MagicMock()
+    sensor._handle_coordinator_update()
 
     assert sensor.unique_id == "Q234-ABCD-5678_port_1_energy"
     assert sensor.translation_key == "energy"
     assert sensor.device_class == SensorDeviceClass.ENERGY
     assert sensor.native_unit_of_measurement == UnitOfEnergy.WATT_HOUR
-    assert sensor.state_class == SensorStateClass.MEASUREMENT
+    assert sensor.state_class == SensorStateClass.TOTAL_INCREASING
 
     assert sensor.native_value == 240
 
@@ -75,6 +82,8 @@ def test_switch_port_power_sensor_missing_data(mock_coordinator_and_device):
     config_entry = MagicMock()
 
     sensor = MerakiSwitchPortPowerSensor(coordinator, device, port, config_entry)
+    sensor.async_write_ha_state = MagicMock()
+    sensor._handle_coordinator_update()
     assert sensor.native_value == 0.0
 
 
@@ -85,4 +94,6 @@ def test_switch_port_energy_sensor_missing_data(mock_coordinator_and_device):
     config_entry = MagicMock()
 
     sensor = MerakiSwitchPortEnergySensor(coordinator, device, port, config_entry)
+    sensor.async_write_ha_state = MagicMock()
+    sensor._handle_coordinator_update()
     assert sensor.native_value == 0

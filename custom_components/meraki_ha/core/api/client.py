@@ -10,6 +10,7 @@ from __future__ import annotations
 import asyncio
 import logging
 from collections.abc import Awaitable, Callable
+from datetime import datetime
 from functools import partial
 from typing import TYPE_CHECKING, Any, cast
 
@@ -264,6 +265,8 @@ class MerakiAPIClient:
         self,
         networks: list[MerakiNetwork],
         devices: list[MerakiDevice],
+        t0: datetime | None = None,
+        timespan: int = 300,
     ) -> dict[str, asyncio.Task[Any]]:
         """
         Build a dictionary of tasks to fetch detailed data.
@@ -271,6 +274,8 @@ class MerakiAPIClient:
         Args:
             networks: A list of networks.
             devices: A list of devices.
+            t0: The beginning of the timespan for the data.
+            timespan: The timespan for which the information will be fetched.
 
         Returns
         -------
@@ -355,9 +360,16 @@ class MerakiAPIClient:
                     )
                 )
             elif device.product_type == "switch":
+                kwargs: dict[str, Any] = {}
+                if t0:
+                    kwargs["t0"] = t0.isoformat()
+                else:
+                    kwargs["timespan"] = timespan
                 detail_tasks[f"ports_statuses_{device.serial}"] = asyncio.create_task(
                     self._run_with_semaphore(
-                        self.switch.get_device_switch_ports_statuses(device.serial),
+                        self.switch.get_device_switch_ports_statuses(
+                            device.serial, **kwargs
+                        ),
                     )
                 )
             elif device.product_type == "appliance" and device.network_id:
@@ -375,12 +387,16 @@ class MerakiAPIClient:
     async def get_all_data(
         self,
         previous_data: dict[str, Any] | None = None,
+        t0: datetime | None = None,
+        timespan: int = 300,
     ) -> dict[str, Any]:
         """
         Fetch all data from the Meraki API concurrently, with caching.
 
         Args:
             previous_data: The previous data from the coordinator.
+            t0: The beginning of the timespan for the data.
+            timespan: The timespan for which the information will be fetched.
 
         Returns
         -------
@@ -430,7 +446,9 @@ class MerakiAPIClient:
         parse_appliance_data(devices_list, appliance_uplink_statuses)
         parse_sensor_data(devices_list, sensor_readings, battery_readings)
 
-        detail_tasks = self._build_detail_tasks(networks_list, devices_list)
+        detail_tasks = self._build_detail_tasks(
+            networks_list, devices_list, t0=t0, timespan=timespan
+        )
         detail_results = await asyncio.gather(
             *detail_tasks.values(),
             return_exceptions=True,

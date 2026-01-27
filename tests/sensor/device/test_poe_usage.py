@@ -29,13 +29,20 @@ def mock_device_coordinator():
             )
         ]
     }
+    coordinator.get_device.return_value = coordinator.data["devices"][0]
     return coordinator
 
 
 def test_poe_usage_sensor(mock_device_coordinator):
     """Test the PoE usage sensor."""
+    from datetime import timedelta
+    mock_device_coordinator.update_interval = timedelta(hours=24)
+
     device = mock_device_coordinator.data["devices"][0]
     sensor = MerakiPoeUsageSensor(mock_device_coordinator, device)
+    sensor.async_write_ha_state = MagicMock()
+    sensor._handle_coordinator_update()
+
     assert sensor.unique_id == "dev1_poe_usage"
     assert sensor.name == "PoE Usage"
     assert sensor.native_value == 15.7
