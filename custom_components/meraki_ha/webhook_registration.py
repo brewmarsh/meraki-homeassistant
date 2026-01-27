@@ -14,6 +14,7 @@ from .core.errors import MerakiConnectionError
 
 if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
+
     from .core.api import MerakiAPIClient
 
 
