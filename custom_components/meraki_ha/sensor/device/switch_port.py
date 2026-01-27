@@ -110,6 +110,8 @@ class MerakiSwitchPortPowerSensor(CoordinatorEntity, SensorEntity):
             f"{self._device.serial}_port_{self._port['portId']}_power"
         )
         self._attr_name = f"Port {self._port['portId']} Power"
+        self._last_update_timestamp: float | None = None
+        self._duration_seconds: float = 300.0
 
     @property
     def device_info(self) -> DeviceInfo | None:
@@ -136,7 +138,7 @@ class MerakiSwitchPortPowerSensor(CoordinatorEntity, SensorEntity):
                 break
 
         now = time.time()
-        if hasattr(self, "_last_update_timestamp"):
+        if self._last_update_timestamp is not None:
             self._duration_seconds = now - self._last_update_timestamp
         else:
             self._duration_seconds = (
@@ -155,7 +157,7 @@ class MerakiSwitchPortPowerSensor(CoordinatorEntity, SensorEntity):
         if power_usage_wh <= 0:
             return 0.0
 
-        duration_hours = getattr(self, "_duration_seconds", 300) / 3600
+        duration_hours = self._duration_seconds / 3600
         if duration_hours <= 0:
             return 0.0
 
