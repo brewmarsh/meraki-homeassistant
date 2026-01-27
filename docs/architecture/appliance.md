@@ -17,7 +17,6 @@ This plan focuses on making device controls stateless and declarative by central
 \*\*Phase 1: API and Repository Updates
 
 1. **Add `rebootDevice` to `MerakiApiClient`**:
-
    - Add a new asynchronous method, `async_reboot_device(serial)`, that calls the Meraki API's `rebootDevice` endpoint. This method will send the command to the Meraki cloud.
 
 2. **Add `reboot_device` to `MerakiRepository`**:

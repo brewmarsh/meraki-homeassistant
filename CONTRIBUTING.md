@@ -61,27 +61,22 @@ The required logic is as follows:
 Follow these rules to ensure consistency with Home Assistant's design patterns and this integration's helpers.
 
 - **Device & Entity Helpers:**
-
   - **Device Info:** **Do not** create `DeviceInfo` objects manually. Always use the `resolve_device_info` helper in `custom_components/meraki_ha/helpers/device_info_helpers.py`.
   - **Device Name:** Use the `format_device_name` utility for the `name` field within `DeviceInfo`.
   - **Entity Name:** Use the `format_entity_name` helper for the entity's own name (`_attr_name`).
 
 - **Handling Disabled Features:**
-
   - When an API call fails because a feature (like Traffic Analysis or VLANs) is disabled in the Meraki Dashboard, the corresponding entity should not become `unknown`.
   - Instead, its state **must** be set to `Disabled`, and an attribute should be added to explain the reason.
 
 - **Testing New Entities:**
-
   - A useful pattern for testing new, dynamically created sensors is to call `async_setup_sensors` (or the equivalent setup helper) with mock coordinator data.
   - You can then inspect the list of entities returned by the helper to validate their properties. This is often more effective than testing the sensor class in isolation.
 
 - **Constants:**
-
   - All constants (domain names, default values, keys) **must** be defined in `custom_components/meraki_ha/const.py`. Do not use magic strings in entity or coordinator code.
 
 - **Configuration Validation:**
-
   - All configuration data (from `configuration.yaml` or UI config flows) **must** be validated using `voluptuous` schemas.
 
 - **API Documentation:**
@@ -95,12 +90,10 @@ Follow these rules to ensure consistency with Home Assistant's design patterns a
 The self-hosted web interface is a React application located in `custom_components/meraki_ha/web_ui/`.
 
 - **Source vs. Build:**
-
   - The human-readable source code is in the `src/` directory.
   - The code actually served to the browser is the compiled/optimized output in the `dist/` directory.
 
 - **Agent Build Simulation:**
-
   - As an agent, you **cannot** run the `npm run build` command.
   - If you make changes to any files in the `src/` directory, you **must** manually update the corresponding file in `dist/` to reflect your changes.
   - The most important file to keep updated for E2E tests is `dist/assets/index.js`. You may need to write a simplified, non-JSX version of the React logic in this file to ensure tests pass.
