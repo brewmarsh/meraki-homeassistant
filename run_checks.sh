@@ -6,7 +6,6 @@ pip install uv
 
 echo "Installing dependencies..."
 uv pip install --system --prerelease=allow -r requirements_dev.txt
-uv pip install --system --prerelease=allow pytest-homeassistant-custom-component>=0.13.205
 
 # Force reinstall aiodns and pycares to match Python 3.13 compatibility requirements
 # even if Home Assistant pins older versions.

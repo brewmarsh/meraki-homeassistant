@@ -36,6 +36,7 @@ The architecture is based on a clean separation of concerns, ensuring each compo
 **Phase 1: Foundational Layers (API Client & Repository)**
 
 1. **Develop `MerakiApiClient` (`meraki_ha/api/client.py`)**:
+
    - Create a class to handle all raw Meraki API calls.
    - Integrate a **circuit breaker** pattern to handle API rate limits (`429`) and server errors gracefully. Use `tenacity` for asynchronous retries with exponential backoff.
    - Do not implement caching at this layer.
@@ -48,6 +49,7 @@ The architecture is based on a clean separation of concerns, ensuring each compo
 **Phase 2: Core Logic and Dependency Injection**
 
 1. **Refactor `OrganizationHub` and `NetworkHub` (`meraki_ha/hubs/`)**:
+
    - Update the `OrganizationHub` and `NetworkHub` classes to accept the `MerakiRepository` via their constructors.
    - All data retrieval logic within these hubs must now go through the injected repository.
    - Update the polling logic to leverage the repository's FSM state.
@@ -60,11 +62,13 @@ The architecture is based on a clean separation of concerns, ensuring each compo
 **Phase 3: Modular Entity Discovery**
 
 1. **Develop `DeviceHandlers` (`meraki_ha/discovery/handlers/`)**:
+
    - Create a base `BaseDeviceHandler` class.
    - Create individual handler classes for each device type (e.g., `MTHandler`, `MRHandler`, `MSHandler`) that inherit from `BaseDeviceHandler`.
    - Each handler will contain the logic to check if a device is of its type and, if so, to create the correct Home Assistant entities (sensors, binary sensors, etc.).
 
 2. **Create `DeviceDiscoveryService` (`meraki_ha/discovery/service.py`)**:
+
    - Create a service class that takes a list of all the `DeviceHandlers` in its constructor.
    - Add a single method, `discover_entities(devices)`, that iterates through the list of Meraki devices and passes each one to the handlers to process.
 
@@ -74,6 +78,7 @@ The architecture is based on a clean separation of concerns, ensuring each compo
 **Phase 4: Testing and Project Cleanup**
 
 1. **Write Comprehensive Unit Tests:**
+
    - Write isolated unit tests for the `MerakiRepository` using an in-memory mock for the `MerakiApiClient`.
    - Write unit tests for the `OrganizationHub` and `NetworkHub` by injecting a mock `MerakiRepository`.
    - Create unit tests for each `DeviceHandler` class to confirm it correctly identifies devices and creates entities.
@@ -104,6 +109,7 @@ The core architectural plan remains sound, but this update adds an additional la
 #\*\*Phase 1: Foundational Layers (API Client & Repository)
 
 1. **Develop `MerakiApiClient` (`meraki_ha/api/client.py`)**:
+
    - **Focus on Single-Responsibility Methods:** Each method should correspond to a single Meraki API endpoint (e.g., `get_network_devices`, `get_mt_sensors`).
    - **Limit Indentation:** Use guard clauses to handle invalid inputs or API errors upfront, minimizing nested `try-except` blocks.
 
@@ -119,6 +125,7 @@ The core architectural plan remains sound, but this update adds an additional la
 #\*\*Phase 3: Modular Entity Discovery
 
 1. **Develop `DeviceHandlers` (`meraki_ha/discovery/handlers/`)**:
+
    - **Enforce the 300-Line Limit:** If a handler file (e.g., `MRHandler.py`) becomes too large, it suggests that the handler is trying to do too much. Break its entity creation logic into multiple, separate functions.
 
 2. **Create `DeviceDiscoveryService` (`meraki_ha/discovery/service.py`)**:

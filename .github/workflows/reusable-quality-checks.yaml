@@ -143,6 +143,11 @@ jobs:
           python-version: ${{ inputs.python-version }}
           enable-cache: true
 
+      - name: Install System Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libturbojpeg0
+
       # FIX: Allow pre-releases for Home Assistant deps
       - name: Install dependencies
         run: |
