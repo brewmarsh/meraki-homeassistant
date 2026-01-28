@@ -65,7 +65,7 @@ class MTHandler(BaseDeviceHandler):
     async def discover_entities(self) -> list[Entity]:
         """Discover entities for the device."""
         entities: list[Entity] = []
-        model = self.device.get("model")
+        model = self.device.model
         if not model:
             return []
 
