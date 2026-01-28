@@ -15,7 +15,7 @@ from ..const import (
 from ..coordinator import MerakiDataUpdateCoordinator
 from ..core.api.client import MerakiAPIClient
 from ..core.utils.entity_id_utils import get_firewall_rule_entity_id
-from ..types import MerakiTrafficShaping, MerakiVlan, MerakiVpn
+from ..types import MerakiTrafficShaping, MerakiVpn
 from .camera_controls import AnalyticsSwitch
 from .firewall_rule import MerakiFirewallRuleSwitch
 from .meraki_ssid_device_switch import (
@@ -137,10 +137,7 @@ def _setup_vlan_switches(
         if not isinstance(vlans, list):
             continue
         for vlan in vlans:
-            if not isinstance(vlan, MerakiVlan):
-                continue
-
-            vlan_id = vlan.id
+            vlan_id = vlan.get("id")
             if not vlan_id:
                 continue
 

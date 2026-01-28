@@ -12,7 +12,6 @@ from homeassistant.core import callback
 from ..coordinator import MerakiDataUpdateCoordinator
 from ..core.entities.meraki_vlan_entity import MerakiVLANEntity
 from ..core.utils.entity_id_utils import get_vlan_entity_id
-from ..types import MerakiVlan
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -25,13 +24,13 @@ class MerakiVLANDHCPSwitch(MerakiVLANEntity, SwitchEntity):
         coordinator: MerakiDataUpdateCoordinator,
         config_entry: ConfigEntry,
         network_id: str,
-        vlan: MerakiVlan,
+        vlan: dict,
     ) -> None:
         """Initialize the switch."""
         super().__init__(coordinator, config_entry, network_id, vlan)
         if not self._network_id:
             raise ValueError("Network ID cannot be None for a VLAN entity")
-        vlan_id = self._vlan.id
+        vlan_id = self._vlan["id"]
         if not vlan_id:
             raise ValueError("VLAN ID should not be None here")
         self._attr_unique_id = get_vlan_entity_id(
@@ -49,14 +48,14 @@ class MerakiVLANDHCPSwitch(MerakiVLANEntity, SwitchEntity):
             )
             return
 
-        self._attr_is_on = self._vlan.dhcp_handling == "Run a DHCP server"
+        self._attr_is_on = self._vlan["dhcpHandling"] == "Run a DHCP server"
 
     @callback
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
         vlans = self.coordinator.data.get("vlans", {}).get(self._network_id, [])
         for vlan in vlans:
-            if vlan.id == self._vlan.id:
+            if vlan["id"] == self._vlan["id"]:
                 self._vlan = vlan
                 break
         self._update_internal_state()
@@ -64,7 +63,7 @@ class MerakiVLANDHCPSwitch(MerakiVLANEntity, SwitchEntity):
 
     async def async_turn_on(self, **kwargs: Any) -> None:
         """Turn the switch on."""
-        vlan_id = self._vlan.id
+        vlan_id = self._vlan["id"]
         if not vlan_id:
             _LOGGER.error("Cannot turn on DHCP for VLAN without an ID")
             return
@@ -79,7 +78,7 @@ class MerakiVLANDHCPSwitch(MerakiVLANEntity, SwitchEntity):
 
     async def async_turn_off(self, **kwargs: Any) -> None:
         """Turn the switch off."""
-        vlan_id = self._vlan.id
+        vlan_id = self._vlan["id"]
         if not vlan_id:
             _LOGGER.error("Cannot turn off DHCP for VLAN without an ID")
             return
