@@ -30,7 +30,12 @@ class DevicesEndpoints:
 
         """
         self._api_client = api_client
-        self._dashboard = api_client.dashboard
+
+    @property
+    def _dashboard(self) -> Any:
+        """Return the dashboard API instance."""
+        assert self._api_client.dashboard is not None
+        return self._api_client.dashboard
 
     @handle_meraki_errors
     async def get_device_clients(self, serial: str) -> list[dict[str, Any]]:

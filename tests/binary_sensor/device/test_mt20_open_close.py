@@ -3,10 +3,10 @@
 from unittest.mock import MagicMock
 
 import pytest
+
 from custom_components.meraki_ha.binary_sensor.device.mt20_open_close import (
     MerakiMt20OpenCloseSensor,
 )
-
 from custom_components.meraki_ha.types import MerakiDevice
 
 
