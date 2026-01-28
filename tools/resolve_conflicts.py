@@ -5,7 +5,6 @@ Usage: python tools/resolve_conflicts.py
 
 This scans the repository for files containing conflict markers and replaces
 each conflict region with the incoming section (the text between ======= and
->>>>>>>). It skips the .git and node_modules directories.
 """
 
 import os

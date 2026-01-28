@@ -88,10 +88,18 @@ class MerakiPoeUsageSensor(
             port.get("powerUsageInWh", 0) or 0 for port in ports_statuses
         )
 
-        # The API returns power usage in Wh over the last day.
-        # We divide by 24 to get the average power in Watts.
+        # The API returns power usage in Wh over the scan interval (timespan).
+        # Power (W) = Energy (Wh) * 3600 (s/h) / Timespan (s)
         if total_poe_usage_wh > 0:
-            return round(total_poe_usage_wh / 24, 2)
+            scan_interval = 300
+            if (
+                self.coordinator
+                and self.coordinator.update_interval
+                and self.coordinator.update_interval.total_seconds() > 0
+            ):
+                scan_interval = int(self.coordinator.update_interval.total_seconds())
+
+            return round(total_poe_usage_wh * 3600 / scan_interval, 2)
         return 0.0
 
     @property

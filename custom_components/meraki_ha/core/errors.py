@@ -37,6 +37,16 @@ class MerakiNetworkError(MerakiHAException):
     """Exception to indicate a network-specific error with the Meraki API."""
 
 
+class MerakiInformationalError(MerakiError):
+    """Error to indicate an informational/non-critical problem."""
+
+    pass
+
+
+class InvalidOrgID(MerakiConfigError):
+    """Error to indicate an invalid Organization ID."""
+
+    pass
 class MerakiVlansDisabledError(MerakiInformationalError):
     """Error to indicate that VLANs are not enabled for a network."""
 
