@@ -6,7 +6,6 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.entity import DeviceInfo
 
 from ...coordinator import MerakiDataUpdateCoordinator
-from ...types import MerakiVlan
 from . import BaseMerakiEntity
 
 

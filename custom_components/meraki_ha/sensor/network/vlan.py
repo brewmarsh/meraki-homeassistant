@@ -11,6 +11,7 @@ from homeassistant.const import EntityCategory
 from ...coordinator import MerakiDataUpdateCoordinator
 from ...core.entities.meraki_vlan_entity import MerakiVLANEntity
 from ...core.utils.entity_id_utils import get_vlan_entity_id
+
 _LOGGER = logging.getLogger(__name__)
 
 
