@@ -8,7 +8,6 @@ from typing import TYPE_CHECKING
 from ...const import (
     CONF_ENABLE_NETWORK_SENSORS,
     CONF_ENABLE_TRAFFIC_SHAPING,
-    CONF_ENABLE_VLAN_MANAGEMENT,
     CONF_ENABLE_VLAN_SENSORS,
 )
 from ...sensor.network.network_clients import MerakiNetworkClientsSensor
@@ -108,29 +107,17 @@ class NetworkHandler(BaseHandler):
                         e,
                     )
 
-                # Traffic Shaping Sensor
-                if self._config_entry.options.get(CONF_ENABLE_TRAFFIC_SHAPING, False):
-                    entities.append(
-                        TrafficShapingSensor(
-                            self._coordinator,
-                            self._config_entry,
-                            network.id,
-                        )
-                    )
-
-            # VLAN Sensors
-            # VLANs List Sensor
-            if self._config_entry.options.get(CONF_ENABLE_VLAN_MANAGEMENT, False):
-                from ...sensor.network.vlans_list import VlansListSensor
-
+            # Traffic Shaping Sensor
+            if self._config_entry.options.get(CONF_ENABLE_TRAFFIC_SHAPING, False):
                 entities.append(
-                    VlansListSensor(
+                    TrafficShapingSensor(
                         self._coordinator,
                         self._config_entry,
-                        network,
+                        network.id,
                     )
                 )
 
+            # VLAN Sensors
             if self._config_entry.options.get(CONF_ENABLE_VLAN_SENSORS, True):
                 vlans = self._coordinator.data.get("vlans", {}).get(network.id, [])
                 if vlans:

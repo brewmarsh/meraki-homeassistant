@@ -29,7 +29,8 @@ class MerakiVLANEntity(BaseMerakiEntity):
         if self._network_id is None:
             raise ValueError("Network ID cannot be None for a VLAN entity")
 
-        vlan_id = vlan.id
+        # Handle vlan as a dictionary
+        vlan_id = vlan["id"]
 
         if not vlan_id:
             raise ValueError("VLAN ID not found in VLAN data")
