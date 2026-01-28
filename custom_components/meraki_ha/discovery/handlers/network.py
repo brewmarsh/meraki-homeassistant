@@ -86,7 +86,7 @@ class NetworkHandler(BaseHandler):
             # Content Filtering Switch
             if "appliance" in network.product_types:
                 try:
-                    categories = await self._coordinator.meraki_client.appliance.get_network_appliance_content_filtering_categories(  # noqa: E501
+                    categories = await self._coordinator.api.appliance.get_network_appliance_content_filtering_categories(  # noqa: E501
                         network.id
                     )
                     for category in categories.get("categories", []):
@@ -107,7 +107,7 @@ class NetworkHandler(BaseHandler):
 
             # VLAN Sensors
             if self._config_entry.options.get(CONF_ENABLE_VLAN_SENSORS, True):
-                vlans = self._coordinator.data.get("vlans", {}).get(network["id"], [])
+                vlans = self._coordinator.data.get("vlans", {}).get(network.id, [])
                 if vlans:
                     # Dynamically import VLAN sensors only if enabled
                     from ...sensor.network.vlan import (
@@ -126,49 +126,49 @@ class NetworkHandler(BaseHandler):
                                 MerakiVLANIDSensor(
                                     self._coordinator,
                                     self._config_entry,
-                                    network["id"],
+                                    network.id,
                                     vlan,
                                 ),
                                 MerakiVLANIPv4EnabledSensor(
                                     self._coordinator,
                                     self._config_entry,
-                                    network["id"],
+                                    network.id,
                                     vlan,
                                 ),
                                 MerakiVLANIPv4InterfaceSensor(
                                     self._coordinator,
                                     self._config_entry,
-                                    network["id"],
+                                    network.id,
                                     vlan,
                                 ),
                                 MerakiVLANIPv4UplinkSensor(
                                     self._coordinator,
                                     self._config_entry,
-                                    network["id"],
+                                    network.id,
                                     vlan,
                                 ),
                                 MerakiVLANIPv6EnabledSensor(
                                     self._coordinator,
                                     self._config_entry,
-                                    network["id"],
+                                    network.id,
                                     vlan,
                                 ),
                                 MerakiVLANIPv6InterfaceSensor(
                                     self._coordinator,
                                     self._config_entry,
-                                    network["id"],
+                                    network.id,
                                     vlan,
                                 ),
                                 MerakiVLANIPv6UplinkSensor(
                                     self._coordinator,
                                     self._config_entry,
-                                    network["id"],
+                                    network.id,
                                     vlan,
                                 ),
                             ]
                         )
                 else:
-                    _LOGGER.debug("No VLANs found for network %s", network["id"])
+                    _LOGGER.debug("No VLANs found for network %s", network.id)
             else:
                 _LOGGER.debug("VLAN sensors are disabled.")
 

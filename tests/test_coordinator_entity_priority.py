@@ -20,21 +20,34 @@ def mock_api_client():
 @pytest.fixture
 def coordinator(hass, mock_api_client):
     """Fixture for a MerakiDataCoordinator instance."""
+    from custom_components.meraki_ha.const import (
+        CONF_MERAKI_API_KEY,
+        CONF_MERAKI_ORG_ID,
+    )
+
     entry = MagicMock()
     entry.options = {}
-    return MerakiDataCoordinator(hass=hass, api_client=mock_api_client, entry=entry)
+    entry.data = {CONF_MERAKI_API_KEY: "test", CONF_MERAKI_ORG_ID: "test"}
+    # Patch the internal ApiClient creation to avoid real init
+    with patch(
+        "custom_components.meraki_ha.coordinator.ApiClient",
+        return_value=mock_api_client,
+    ):
+        return MerakiDataCoordinator(hass=hass, entry=entry)
 
 
 async def test_populate_device_entities_picks_camera(coordinator, hass):
     """Test that _populate_device_entities picks the camera entity over sensor."""
     # Mock data
+    from custom_components.meraki_ha.types import MerakiDevice
+
     data = {
         "devices": [
-            {
-                "serial": "Q234-ABCD-5678",
-                "model": "MV12",
-                "name": "Test Camera",
-            }
+            MerakiDevice(
+                serial="Q234-ABCD-5678",
+                model="MV12",
+                name="Test Camera",
+            )
         ]
     }
 
@@ -87,9 +100,9 @@ async def test_populate_device_entities_picks_camera(coordinator, hass):
             return_value=mock_entries,
         ),
     ):
-        coordinator._populate_device_entities(data)
+        coordinator._populate_device_entities(data["devices"])
 
         device = data["devices"][0]
 
         # We expect camera.test_camera
-        assert device.get("entity_id") == "camera.test_camera"
+        assert device.entity_id == "camera.test_camera"

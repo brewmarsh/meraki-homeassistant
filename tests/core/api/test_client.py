@@ -230,8 +230,8 @@ def test_build_detail_tasks_for_switch_device(api_client):
     tasks = api_client._build_detail_tasks(networks, devices)
 
     # Assert
-    assert f"ports_statuses_{switch_device['serial']}" in tasks
-    assert tasks[f"ports_statuses_{switch_device['serial']}"] == "mock_switch_coro"
+    assert f"ports_statuses_{switch_device.serial}" in tasks
+    assert tasks[f"ports_statuses_{switch_device.serial}"] == "mock_switch_coro"
     api_client.switch.get_device_switch_ports_statuses.assert_called_once_with("s123")
 
 
@@ -299,33 +299,30 @@ def test_build_detail_tasks_for_appliance_device(api_client):
 
     # Assert
     # Check network tasks
-    assert tasks[f"traffic_{network_with_appliance['id']}"] == "task_traffic"
-    assert tasks[f"vlans_{network_with_appliance['id']}"] == "task_vlans"
-    assert tasks[f"l3_firewall_rules_{network_with_appliance['id']}"] == "task_firewall"
-    assert tasks[f"traffic_shaping_{network_with_appliance['id']}"] == "task_shaping"
-    assert tasks[f"vpn_status_{network_with_appliance['id']}"] == "task_vpn"
-    assert (
-        tasks[f"content_filtering_{network_with_appliance['id']}"] == "task_filtering"
-    )
+    assert tasks[f"traffic_{network_with_appliance.id}"] == "task_traffic"
+    assert tasks[f"vlans_{network_with_appliance.id}"] == "task_vlans"
+    assert tasks[f"l3_firewall_rules_{network_with_appliance.id}"] == "task_firewall"
+    assert tasks[f"traffic_shaping_{network_with_appliance.id}"] == "task_shaping"
+    assert tasks[f"vpn_status_{network_with_appliance.id}"] == "task_vpn"
+    assert tasks[f"content_filtering_{network_with_appliance.id}"] == "task_filtering"
 
     # Check device tasks
-    assert tasks[f"appliance_settings_{appliance_device['serial']}"] == "task_settings"
+    assert tasks[f"appliance_settings_{appliance_device.serial}"] == "task_settings"
 
 
 def test_process_detailed_data_merges_device_info(api_client):
     """Test that _process_detailed_data merges details into device objects."""
     # Arrange
-    device = {"serial": "c123", "productType": "camera"}
-    video_settings = {"rtsp_url": "rtsp://test"}
-    detail_data = {f"video_settings_{device['serial']}": video_settings}
+    device = MerakiDevice(serial="c123", product_type="camera")
+    video_settings = {"rtsp_url": "rtsp://test", "rtspServerEnabled": True}
+    detail_data = {f"video_settings_{device.serial}": video_settings}
 
     # Act
     api_client._process_detailed_data(detail_data, [], [device], previous_data={})
 
     # Assert
-    assert "video_settings" in device
-    assert device["video_settings"] == video_settings
-    assert device["rtsp_url"] == "rtsp://test"
+    assert device.video_settings == video_settings
+    assert device.rtsp_url == "rtsp://test"
 
 
 @pytest.mark.asyncio
