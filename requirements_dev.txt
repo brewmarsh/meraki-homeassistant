@@ -1,4 +1,5 @@
 acme==5.1.0
+aiodns==3.6.1
 aiofiles==23.2.1
 aiohappyeyeballs==2.6.1
 aiohasupervisor==0.3.3
@@ -70,7 +71,7 @@ markdown-it-py==4.0.0
 MarkupSafe==3.0.3
 mashumaro==3.17
 mdurl==0.1.2
-meraki==1.40.1
+meraki==1.53.0
 mock-open==1.4.0
 msgpack==1.1.2
 multidict==6.7.0
