@@ -2,7 +2,7 @@ name: 'Agent: Cognitive Loop'
 
 on:
   issues:
-    types: [labeled, commented, reopened]
+    types: [labeled, edited, reopened]
   pull_request:
     types: [labeled]
 
