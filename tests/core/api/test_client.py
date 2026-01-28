@@ -158,8 +158,7 @@ async def test_get_all_data_handles_informational_errors(api_client):
     )
 
 
-@pytest.mark.asyncio
-async def test_build_detail_tasks_for_wireless_device(api_client):
+def test_build_detail_tasks_for_wireless_device(api_client):
     """Test that _build_detail_tasks creates the correct tasks for a wireless device."""
     # Arrange
     devices = [MOCK_DEVICE]
@@ -235,8 +234,7 @@ def test_build_detail_tasks_for_switch_device(api_client):
     api_client.switch.get_device_switch_ports_statuses.assert_called_once_with("s123")
 
 
-@pytest.mark.asyncio
-async def test_build_detail_tasks_for_camera_device(api_client):
+def test_build_detail_tasks_for_camera_device(api_client):
     """Test that _build_detail_tasks creates the correct tasks for a camera device."""
     # Arrange
     camera_device = MerakiDevice.from_dict({"serial": "c123", "productType": "camera"})

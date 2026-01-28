@@ -4,7 +4,7 @@
   "after_dependencies": ["frontend", "webrtc"],
   "codeowners": ["@brewmarsh"],
   "config_flow": true,
-  "dependencies": ["frontend", "http", "panel_custom", "webrtc"],
+  "dependencies": ["http", "panel_custom"],
   "dhcp": [
     {
       "hostname": "meraki*",
@@ -35,8 +35,7 @@
     "orjson>=3.9.0",
     "pycares==4.11.0",
     "urllib3>=1.26.5",
-    "webrtc-models==0.3.0",
-    "diskcache==5.6.3"
+    "webrtc-models==0.3.0"
   ],
   "version": "2.2.1-beta.34"
 }

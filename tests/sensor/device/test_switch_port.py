@@ -48,8 +48,8 @@ def test_switch_port_power_sensor(mock_coordinator_and_device):
     assert sensor.native_unit_of_measurement == UnitOfPower.WATT
     assert sensor.state_class == SensorStateClass.MEASUREMENT
 
-    # 240 Wh over 5 minutes = 2880 W
-    assert sensor.native_value == 2880.0
+    # 240 Wh / 24 h = 10 W
+    assert sensor.native_value == 10.0
 
 
 def test_switch_port_energy_sensor(mock_coordinator_and_device):
@@ -64,9 +64,9 @@ def test_switch_port_energy_sensor(mock_coordinator_and_device):
     assert sensor.translation_key == "energy"
     assert sensor.device_class == SensorDeviceClass.ENERGY
     assert sensor.native_unit_of_measurement == UnitOfEnergy.WATT_HOUR
-    assert sensor.state_class == SensorStateClass.TOTAL_INCREASING
+    assert sensor.state_class == SensorStateClass.MEASUREMENT
 
-    assert sensor.native_value == 0.0 # Initially 0 until update
+    assert sensor.native_value == 240
 
 
 def test_switch_port_power_sensor_missing_data(mock_coordinator_and_device):

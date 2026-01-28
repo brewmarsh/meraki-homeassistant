@@ -3,11 +3,11 @@
 from unittest.mock import MagicMock, patch
 
 import pytest
+from custom_components.meraki_ha.meraki_data_coordinator import MerakiDataCoordinator
 from homeassistant.helpers.device_registry import DeviceEntry
 from homeassistant.helpers.entity_registry import RegistryEntry
 
 from custom_components.meraki_ha.const import DOMAIN
-from custom_components.meraki_ha.meraki_data_coordinator import MerakiDataCoordinator
 
 
 @pytest.fixture

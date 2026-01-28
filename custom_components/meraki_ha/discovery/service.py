@@ -34,9 +34,6 @@ if TYPE_CHECKING:
     from ...types import MerakiDevice
     from ..coordinator import MerakiDataUpdateCoordinator
     from ..core.api.client import MerakiAPIClient
-    from ..core.coordinators.switch_port_status_coordinator import (
-        SwitchPortStatusCoordinator,
-    )
     from ..services.camera_service import CameraService
     from ..services.device_control_service import DeviceControlService
     from ..services.network_control_service import NetworkControlService
@@ -67,7 +64,6 @@ class DeviceDiscoveryService:
         camera_service: CameraService,
         control_service: DeviceControlService,
         network_control_service: NetworkControlService,
-        switch_port_coordinator: SwitchPortStatusCoordinator | None = None,
     ) -> None:
         """Initialize the DeviceDiscoveryService."""
         self._coordinator = coordinator
@@ -76,9 +72,7 @@ class DeviceDiscoveryService:
         self._camera_service = camera_service
         self._control_service = control_service
         self._network_control_service = network_control_service
-        self._switch_port_coordinator = switch_port_coordinator
         self._devices: list[MerakiDevice] = self._coordinator.data.get("devices", [])
-        self.all_entities: list[Entity] = []
 
     async def discover_entities(self) -> list[Entity]:
         """
@@ -246,5 +240,4 @@ class DeviceDiscoveryService:
             _LOGGER.debug("SSID sensors are disabled.")
 
         _LOGGER.info("Entity discovery complete. Found %d entities.", len(all_entities))
-        self.all_entities = all_entities
         return all_entities

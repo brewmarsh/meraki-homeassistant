@@ -25,12 +25,6 @@ class SensorEndpoints:
         """
         self._client = client
 
-    @property
-    def _dashboard(self) -> Any:
-        """Return the dashboard API instance."""
-        assert self._client.dashboard is not None
-        return self._client.dashboard
-
     async def create_device_sensor_command(
         self,
         serial: str,
@@ -51,7 +45,7 @@ class SensorEndpoints:
         """
         _LOGGER.debug("Sending command '%s' to sensor %s", operation, serial)
         return await self._client.run_sync(
-            self._dashboard.sensor.createDeviceSensorCommand,
+            self._client.dashboard.sensor.createDeviceSensorCommand,
             serial=serial,
             operation=operation,
         )
@@ -82,7 +76,7 @@ class SensorEndpoints:
             metrics,
         )
         return await self._client.run_sync(
-            self._dashboard.sensor.getOrganizationSensorReadingsLatest,
+            self._client.dashboard.sensor.getOrganizationSensorReadingsLatest,
             organizationId=self._client.organization_id,
             serials=serials,
             metrics=metrics,
@@ -120,7 +114,7 @@ class SensorEndpoints:
             ", ".join(metrics),
         )
         return await self._client.run_sync(
-            self._dashboard.sensor.getOrganizationSensorReadingsLatest,
+            self._client.dashboard.sensor.getOrganizationSensorReadingsLatest,
             organizationId=self._client.organization_id,
             metrics=metrics,
             total_pages="all",

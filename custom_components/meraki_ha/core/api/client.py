@@ -232,7 +232,6 @@ class MerakiAPIClient:
         self,
         networks: list[MerakiNetwork],
         devices: list[MerakiDevice],
-        timespan: int = 300,
     ) -> dict[str, asyncio.Task[Any]]:
         """
         Build a dictionary of tasks to fetch detailed data.
@@ -240,7 +239,6 @@ class MerakiAPIClient:
         Args:
             networks: A list of networks.
             devices: A list of devices.
-            timespan: The timespan in seconds for switch port data (default: 300).
 
         Returns
         -------
@@ -325,9 +323,7 @@ class MerakiAPIClient:
             elif device.product_type == "switch":
                 detail_tasks[f"ports_statuses_{device.serial}"] = asyncio.create_task(
                     self._run_with_semaphore(
-                        self.switch.get_device_switch_ports_statuses(
-                            device.serial, timespan=timespan
-                        ),
+                        self.switch.get_device_switch_ports_statuses(device.serial),
                     )
                 )
             elif device.product_type == "appliance" and device.network_id:
@@ -374,9 +370,6 @@ class MerakiAPIClient:
         wireless_settings_by_network: dict[str, Any] = {}
 
         for network in networks:
-            if not network.id:
-                continue
-
             network_ssids_key = f"ssids_{network.id}"
             network_ssids = detail_data.get(network_ssids_key)
             if isinstance(network_ssids, list):
@@ -516,9 +509,9 @@ class MerakiAPIClient:
                     f"appliance_settings_{device.serial}",
                 ):
                     if isinstance(settings.get("dynamicDns"), dict):
-                        device.dynamic_dns = settings["dynamicDns"]
+                        device.dynamicDns = settings["dynamicDns"]
                 elif prev_device and "dynamicDns" in prev_device:
-                    device.dynamic_dns = prev_device["dynamicDns"]
+                    device.dynamicDns = prev_device["dynamicDns"]
 
         return {
             "ssids": ssids,
@@ -576,15 +569,8 @@ class MerakiAPIClient:
         initial_results.get("appliance_uplink_statuses")
         initial_results.get("sensor_readings")
 
-        # Determine timespan for switch port statuses
-        timespan = 300  # Default
-        if self.coordinator and self.coordinator.update_interval:
-            timespan = int(self.coordinator.update_interval.total_seconds())
-
-        detail_tasks = self._build_detail_tasks(
-            networks_list, devices_list, timespan=timespan
-        )
-        detail_results = await asyncio.gather(
+        detail_tasks = self._build_detail_tasks(networks_list, devices_list)
+        detail_data_results = await asyncio.gather(
             *detail_tasks.values(),
             return_exceptions=True,
         )
@@ -756,8 +742,6 @@ class MerakiAPIClient:
         """
         if not self.dashboard:
             await self.async_setup()
-
-        assert self.dashboard is not None
 
         # Create dictionary of arguments and filter out None values
         kwargs = {

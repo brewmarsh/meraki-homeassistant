@@ -1,10 +1,8 @@
-aiodns==3.6.1
+pytest
+pytest-cov
+pytest-asyncio
+pytest-socket
+pytest-mock
 aiortc
 meraki
-pycares==4.11.0
-pytest
-pytest-asyncio
-pytest-cov
-pytest-mock
-pytest-socket
-webrtc-models==0.3.0
+webrtc-models

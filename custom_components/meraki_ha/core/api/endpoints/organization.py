@@ -32,12 +32,7 @@ class OrganizationEndpoints:
 
         """
         self._api_client = api_client
-
-    @property
-    def _dashboard(self) -> Any:
-        """Return the dashboard API instance."""
-        assert self._api_client.dashboard is not None
-        return self._api_client.dashboard
+        self._dashboard = api_client.dashboard
 
     @handle_meraki_errors
     @async_timed_cache(timeout=3600)
