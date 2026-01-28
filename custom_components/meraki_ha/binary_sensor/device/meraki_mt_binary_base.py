@@ -1,7 +1,6 @@
 """Base class for Meraki MT binary sensor entities."""
 
 import logging
-from typing import Any
 
 from homeassistant.components.binary_sensor import (
     BinarySensorEntity,
@@ -14,6 +13,7 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from ...const import DOMAIN
 from ...coordinator import MerakiDataUpdateCoordinator as MerakiDataCoordinator
 from ...core.utils.naming_utils import format_device_name
+from ...types import MerakiDevice
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -24,25 +24,25 @@ class MerakiMtBinarySensor(CoordinatorEntity, BinarySensorEntity):
     def __init__(
         self,
         coordinator: MerakiDataCoordinator,
-        device: dict[str, Any],
+        device: MerakiDevice,
         entity_description: BinarySensorEntityDescription,
     ) -> None:
         """Initialize the binary sensor."""
         super().__init__(coordinator)
         self._device = device
         self.entity_description = entity_description
-        self._attr_unique_id = f"{self._device['serial']}_{self.entity_description.key}"
-        self._attr_name = f"{self._device['name']} {self.entity_description.name}"
+        self._attr_unique_id = f"{self._device.serial}_{self.entity_description.key}"
+        self._attr_name = f"{self._device.name} {self.entity_description.name}"
 
     @property
     def device_info(self) -> DeviceInfo:
         """Return device information."""
         return DeviceInfo(
-            identifiers={(DOMAIN, self._device["serial"])},
+            identifiers={(DOMAIN, self._device.serial)},
             name=format_device_name(
                 self._device, self.coordinator.config_entry.options
             ),
-            model=self._device["model"],
+            model=self._device.model,
             manufacturer="Cisco Meraki",
         )
 
@@ -50,7 +50,7 @@ class MerakiMtBinarySensor(CoordinatorEntity, BinarySensorEntity):
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
         for device in self.coordinator.data.get("devices", []):
-            if device["serial"] == self._device["serial"]:
+            if device.serial == self._device.serial:
                 self._device = device
                 self.async_write_ha_state()
                 return
@@ -58,7 +58,7 @@ class MerakiMtBinarySensor(CoordinatorEntity, BinarySensorEntity):
     @property
     def is_on(self) -> bool | None:
         """Return true if the binary sensor is on."""
-        readings = self._device.get("readings")
+        readings = self._device.readings
         if not readings or not isinstance(readings, list):
             return None
 
@@ -83,7 +83,7 @@ class MerakiMtBinarySensor(CoordinatorEntity, BinarySensorEntity):
     def available(self) -> bool:
         """Return if the sensor is available."""
         # The sensor is available if there is a reading for its metric.
-        readings = self._device.get("readings")
+        readings = self._device.readings
         if not readings or not isinstance(readings, list):
             return False
 
