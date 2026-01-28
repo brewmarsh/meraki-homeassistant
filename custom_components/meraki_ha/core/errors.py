@@ -50,3 +50,7 @@ class MerakiTrafficAnalysisError(MerakiInformationalError):
 
 class MerakiVlansDisabledError(MerakiInformationalError):
     """Error to indicate that VLANs are not enabled for a network."""
+
+
+class InvalidOrgID(MerakiError):
+    """Error to indicate an invalid organization ID."""

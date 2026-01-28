@@ -63,7 +63,7 @@ async def test_get_all_data_orchestration(api_client):
     api_client._async_fetch_network_clients.assert_awaited_once_with([MOCK_NETWORK])
     api_client._async_fetch_device_clients.assert_awaited_once_with([MOCK_DEVICE])
     api_client._build_detail_tasks.assert_called_once_with(
-        [MOCK_NETWORK], [MOCK_DEVICE]
+        [MOCK_NETWORK], [MOCK_DEVICE], timespan=None
     )
     api_client._process_detailed_data.assert_called_once()
 
