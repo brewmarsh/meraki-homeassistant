@@ -1,7 +1,7 @@
 aiodhcpwatcher
 aiodiscover
 aiodns==3.6.1
-aiofiles>=23.2.1
+aiofiles>=24.1.0
 aiohttp>=3.8.1
 bandit==1.7.9
 codecov

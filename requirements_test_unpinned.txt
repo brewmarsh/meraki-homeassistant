@@ -40,4 +40,5 @@ janus
 psutil-home-assistant
 pillow
 fnv-hash-fast
+flake8
 urllib3

@@ -1,10 +1,7 @@
-aiodns==3.6.1
-aiofiles>=23.2.1
 bandit==1.7.9
+flake8==7.0.0
 meraki>=1.53.0
-pycares==4.11.0
 pytest-cov
 pytest-homeassistant-custom-component
 pytest-mock==3.12.0
 ruff==0.5.5
-webrtc-models==0.3.0
