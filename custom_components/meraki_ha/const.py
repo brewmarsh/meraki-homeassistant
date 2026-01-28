@@ -58,6 +58,15 @@ CONF_ENABLE_DEVICE_TRACKER: Final = "enable_device_tracker"
 CONF_ENABLE_VLAN_MANAGEMENT: Final = "enable_vlan_management"
 """Configuration key for enabling vlan management."""
 
+CONF_ENABLE_VPN_MANAGEMENT: Final = "enable_vpn_management"
+"""Configuration key for enabling VPN management."""
+
+CONF_ENABLE_FIREWALL_RULES: Final = "enable_firewall_rules"
+"""Configuration key for enabling firewall rules."""
+
+CONF_ENABLE_TRAFFIC_SHAPING: Final = "enable_traffic_shaping"
+"""Configuration key for enabling traffic shaping."""
+
 
 CONF_ENABLED_NETWORKS: Final = "enabled_networks"
 """Configuration key for a list of network IDs to enable."""
