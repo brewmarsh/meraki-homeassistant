@@ -137,10 +137,7 @@ def _setup_vlan_switches(
         if not isinstance(vlans, list):
             continue
         for vlan in vlans:
-            if not isinstance(vlan, MerakiVlan):
-                continue
-
-            vlan_id = vlan.id
+            vlan_id = vlan.get("id")
             if not vlan_id:
                 continue
 
