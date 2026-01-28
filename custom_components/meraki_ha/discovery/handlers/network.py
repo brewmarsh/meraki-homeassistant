@@ -7,9 +7,11 @@ from typing import TYPE_CHECKING
 
 from ...const import (
     CONF_ENABLE_NETWORK_SENSORS,
+    CONF_ENABLE_TRAFFIC_SHAPING,
     CONF_ENABLE_VLAN_SENSORS,
 )
 from ...sensor.network.network_clients import MerakiNetworkClientsSensor
+from ...sensor.network.traffic_shaping import TrafficShapingSensor
 from ...switch.content_filtering import MerakiContentFilteringSwitch
 from .base import BaseHandler
 
@@ -103,6 +105,16 @@ class NetworkHandler(BaseHandler):
                         "Could not get content filtering categories for network %s: %s",
                         network.id,
                         e,
+                    )
+
+                # Traffic Shaping Sensor
+                if self._config_entry.options.get(CONF_ENABLE_TRAFFIC_SHAPING, False):
+                    entities.append(
+                        TrafficShapingSensor(
+                            self._coordinator,
+                            self._config_entry,
+                            network.id,
+                        )
                     )
 
             # VLAN Sensors
