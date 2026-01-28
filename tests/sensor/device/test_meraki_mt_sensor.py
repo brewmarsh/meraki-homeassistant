@@ -3,7 +3,7 @@
 from unittest.mock import MagicMock
 
 import pytest
-from custom_components.meraki_ha.sensor_defs.mt_sensors import (
+from custom_components.meraki_ha.descriptions import (
     MT_BATTERY_DESCRIPTION,
     MT_BUTTON_DESCRIPTION,
     MT_TEMPERATURE_DESCRIPTION,

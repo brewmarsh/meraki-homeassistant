@@ -509,9 +509,9 @@ class MerakiAPIClient:
                     f"appliance_settings_{device.serial}",
                 ):
                     if isinstance(settings.get("dynamicDns"), dict):
-                        device.dynamicDns = settings["dynamicDns"]
+                        device.dynamic_dns = settings["dynamicDns"]
                 elif prev_device and "dynamicDns" in prev_device:
-                    device.dynamicDns = prev_device["dynamicDns"]
+                    device.dynamic_dns = prev_device["dynamicDns"]
 
         return {
             "ssids": ssids,
@@ -528,6 +528,7 @@ class MerakiAPIClient:
     async def get_all_data(
         self,
         previous_data: dict[str, Any] | None = None,
+        timespan: int | None = None,
     ) -> dict[str, Any]:
         """
         Fetch all data from the Meraki API concurrently, with caching.

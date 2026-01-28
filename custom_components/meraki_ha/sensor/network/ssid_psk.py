@@ -6,7 +6,7 @@ from homeassistant.components.sensor import SensorEntityDescription
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import EntityCategory
 
-from ...meraki_data_coordinator import MerakiDataCoordinator
+from ...coordinator import MerakiDataUpdateCoordinator as MerakiDataCoordinator
 from .base import MerakiSSIDBaseSensor
 
 
