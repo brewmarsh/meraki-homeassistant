@@ -3,8 +3,8 @@
 from unittest.mock import MagicMock
 
 import pytest
-from custom_components.meraki_ha.sensor.setup_helpers import async_setup_sensors
 
+from custom_components.meraki_ha.sensor.setup_helpers import async_setup_sensors
 from custom_components.meraki_ha.types import MerakiDevice
 
 

@@ -39,6 +39,9 @@ DATA_COORDINATORS: Final = "coordinators"
 CONF_IGNORED_NETWORKS: Final = "ignored_networks"
 """Configuration key for a list of network names to ignore."""
 
+CONF_ENABLED_NETWORKS: Final = "enabled_networks"
+"""Configuration key for a list of network names to enable."""
+
 CONF_HIDE_UNCONFIGURED_SSIDS: Final = "hide_unconfigured_ssids"
 """Configuration key for hiding unconfigured SSIDs."""
 

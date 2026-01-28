@@ -12,8 +12,8 @@ from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from ...const import DOMAIN
-from ...core.utils.naming_utils import format_device_name
 from ...coordinator import MerakiDataUpdateCoordinator as MerakiDataCoordinator
+from ...core.utils.naming_utils import format_device_name
 
 _LOGGER = logging.getLogger(__name__)
 
