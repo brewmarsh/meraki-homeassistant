@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from datetime import datetime
 from typing import Any, cast
 
 from homeassistant.components.sensor import (
@@ -139,17 +140,19 @@ class MerakiSwitchPortPowerSensor(CoordinatorEntity, SensorEntity):
     def native_value(self) -> float:
         """Return the state of the sensor."""
         power_usage_wh = self._port.get("powerUsageInWh", 0) or 0
-        if (
-            power_usage_wh > 0
-            and self.coordinator.update_interval
-            and (timespan := self.coordinator.update_interval.total_seconds()) > 0
-        ):
+        if power_usage_wh > 0:
+            timespan = 86400
+            if self.coordinator.update_interval:
+                timespan = int(self.coordinator.update_interval.total_seconds())
+
             # Power (W) = Energy (Wh) * 3600 (s/h) / Timespan (s)
             return round(power_usage_wh * 3600 / timespan, 2)
         return 0.0
 
 
-class MerakiSwitchPortEnergySensor(CoordinatorEntity, RestoreEntity, SensorEntity):
+class MerakiSwitchPortEnergySensor(
+    CoordinatorEntity, SensorEntity, RestoreEntity
+):
     """Representation of a Meraki switch port energy sensor."""
 
     _attr_device_class = SensorDeviceClass.ENERGY
@@ -169,23 +172,14 @@ class MerakiSwitchPortEnergySensor(CoordinatorEntity, RestoreEntity, SensorEntit
         self._device = device
         self._port = port
         self._config_entry = config_entry
-        self._total_energy: float = 0.0
-        self._last_update_timestamp: float | None = None
+        self._total_energy = 0.0
+        self._last_updated: datetime | None = None
 
         self._attr_has_entity_name = True
         self._attr_unique_id = (
             f"{self._device.serial}_port_{self._port['portId']}_energy"
         )
         self._attr_name = f"Port {self._port['portId']} Energy"
-
-    async def async_added_to_hass(self) -> None:
-        """Handle entity which will be added."""
-        await super().async_added_to_hass()
-        if (state := await self.async_get_last_state()) is not None:
-            try:
-                self._total_energy = float(state.state)
-            except (ValueError, TypeError):
-                self._total_energy = 0.0
 
     @property
     def device_info(self) -> DeviceInfo | None:
@@ -199,6 +193,15 @@ class MerakiSwitchPortEnergySensor(CoordinatorEntity, RestoreEntity, SensorEntit
         """Return if the entity is available."""
         return self._device.status == "online"
 
+    async def async_added_to_hass(self) -> None:
+        """Restore last state."""
+        await super().async_added_to_hass()
+        if (state := await self.async_get_last_state()) is not None:
+            try:
+                self._total_energy = float(state.state)
+            except (ValueError, TypeError):
+                self._total_energy = 0.0
+
     @callback
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
@@ -208,16 +211,21 @@ class MerakiSwitchPortEnergySensor(CoordinatorEntity, RestoreEntity, SensorEntit
                 for port in self._device.ports_statuses:
                     if port["portId"] == self._port["portId"]:
                         self._port = port
+
+                        # Accumulation Logic
+                        if self.coordinator.last_successful_update:
+                            if (
+                                self._last_updated is None
+                                or self.coordinator.last_successful_update
+                                > self._last_updated
+                            ):
+                                usage = self._port.get("powerUsageInWh", 0) or 0
+                                self._total_energy += usage
+                                self._last_updated = (
+                                    self.coordinator.last_successful_update
+                                )
                         break
                 break
-
-        # Calculate energy accumulation
-        if self.coordinator.last_successful_update != self._last_update_timestamp:
-            power_usage_wh = self._port.get("powerUsageInWh", 0) or 0
-            if power_usage_wh > 0:
-                self._total_energy += power_usage_wh
-            self._last_update_timestamp = self.coordinator.last_successful_update.timestamp()
-
         self.async_write_ha_state()
 
     @property
