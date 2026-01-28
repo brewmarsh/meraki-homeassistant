@@ -1,7 +1,6 @@
 """Base class for Meraki MT binary sensor entities."""
 
 import logging
-from typing import Any
 
 from homeassistant.components.binary_sensor import (
     BinarySensorEntity,
