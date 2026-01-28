@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING
 
 from ...binary_sensor.device.meraki_mt_binary_base import MerakiMtBinarySensor
 from ...sensor.device.meraki_mt_base import MerakiMtSensor
-from ...sensor_defs.mt_sensors import MT_BINARY_SENSOR_MODELS, MT_SENSOR_MODELS
+from ...descriptions import MT_BINARY_SENSOR_MODELS, MT_SENSOR_MODELS
 from .base import BaseDeviceHandler
 
 if TYPE_CHECKING:

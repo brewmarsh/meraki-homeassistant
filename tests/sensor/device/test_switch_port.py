@@ -23,7 +23,7 @@ def mock_coordinator_and_device():
         model="MS220-8P",
         product_type="switch",
         ports_statuses=[
-            {"portId": "1", "powerUsageInWh": 240},
+            {"portId": "1", "powerUsageInWh": 5},  # 5 Wh over 5 min = 60 W
             {"portId": "2", "powerUsageInWh": 0},
             {"portId": "3"},  # Missing powerUsageInWh
         ],
@@ -48,25 +48,45 @@ def test_switch_port_power_sensor(mock_coordinator_and_device):
     assert sensor.native_unit_of_measurement == UnitOfPower.WATT
     assert sensor.state_class == SensorStateClass.MEASUREMENT
 
-    # 240 Wh / 24 h = 10 W
-    assert sensor.native_value == 10.0
+    # 5 Wh * 3600 s/h / 300 s = 60 W
+    assert sensor.native_value == 60.0
 
 
 def test_switch_port_energy_sensor(mock_coordinator_and_device):
     """Test the switch port energy sensor."""
+    from datetime import datetime, timedelta
+
     coordinator, device = mock_coordinator_and_device
     port = device.ports_statuses[0]
     config_entry = MagicMock()
 
+    # Mock last_successful_update
+    coordinator.last_successful_update = datetime.now()
+
     sensor = MerakiSwitchPortEnergySensor(coordinator, device, port, config_entry)
+    sensor.async_write_ha_state = MagicMock()
 
     assert sensor.unique_id == "Q234-ABCD-5678_port_1_energy"
     assert sensor.translation_key == "energy"
     assert sensor.device_class == SensorDeviceClass.ENERGY
     assert sensor.native_unit_of_measurement == UnitOfEnergy.WATT_HOUR
-    assert sensor.state_class == SensorStateClass.MEASUREMENT
+    assert sensor.state_class == SensorStateClass.TOTAL_INCREASING
 
-    assert sensor.native_value == 240
+    # Initial state should be 0
+    assert sensor.native_value == 0.0
+
+    # Simulate update
+    sensor._handle_coordinator_update()
+
+    # Should accumulate 5 Wh
+    assert sensor.native_value == 5.0
+
+    # Simulate another update with new data and new timestamp
+    coordinator.last_successful_update += timedelta(minutes=5)
+    # Assume 5 Wh again
+    sensor._handle_coordinator_update()
+
+    assert sensor.native_value == 10.0
 
 
 def test_switch_port_power_sensor_missing_data(mock_coordinator_and_device):

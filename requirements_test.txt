@@ -8,11 +8,10 @@ requests==2.32.5
 setuptools==78.1.1
 tqdm==4.67.1
 urllib3==2.6.3
-homeassistant==2026.1.0b4
+homeassistant
 ruff==0.1.6
-pip-audit==2.7.2
 bandit==1.7.8
-pytest-homeassistant-custom-component==0.13.304
+pytest-homeassistant-custom-component==0.13.205
 pytest-mock==3.12.0
 types-aiofiles==23.2.0.20240106
 playwright==1.57.0
@@ -20,12 +19,9 @@ pytest-cov==7.0.0
 py==1.11.0
 tzdata==2024.1
 janus==1.0.0
-meraki>=1.53.0
 numpy>=1.26.0
 orjson>=3.9.0
 pillow>=11.0.0
-pip-audit==2.7.3
-playwright>=1.48.0
 psutil-home-assistant==0.0.1
 flake8==7.0.0
 greenlet==3.3.0
