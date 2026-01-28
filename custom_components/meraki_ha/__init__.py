@@ -1,8 +1,11 @@
 """The Meraki Home Assistant integration."""
 
+from __future__ import annotations
+
 import logging
 import random
 import string
+from typing import TYPE_CHECKING
 
 from homeassistant.components.http import StaticPathConfig
 from homeassistant.config_entries import ConfigEntry
@@ -21,7 +24,6 @@ from .coordinator import MerakiDataUpdateCoordinator
 from .core.repositories.camera_repository import CameraRepository
 from .core.repository import MerakiRepository
 from .core.timed_access_manager import TimedAccessManager
-from .discovery.service import DeviceDiscoveryService
 from .frontend import async_register_frontend, async_remove_frontend
 from .services import async_setup_services
 from .services.camera_service import CameraService
@@ -29,6 +31,10 @@ from .services.device_control_service import DeviceControlService
 from .services.network_control_service import NetworkControlService
 from .services.switch_port_service import SwitchPortService
 from .webhook import async_register_webhook, async_unregister_webhook
+
+if TYPE_CHECKING:
+    from .discovery.service import DeviceDiscoveryService
+
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -78,6 +84,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         Whether the setup was successful.
 
     """
+    # Defer import to avoid circular dependency
+    from .discovery.service import DeviceDiscoveryService
+
     await async_register_frontend(hass, entry)
     async_setup_websocket_api(hass)
     coordinator = MerakiDataUpdateCoordinator(hass, entry)
@@ -94,7 +103,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     coordinator.switch_port_service = switch_port_service
     coordinator.camera_service = camera_service
 
-    discovery_service = DeviceDiscoveryService(
+    discovery_service: DeviceDiscoveryService = DeviceDiscoveryService(
         coordinator=coordinator,
         config_entry=entry,
         meraki_client=coordinator.api,
