@@ -3,13 +3,13 @@
 from unittest.mock import MagicMock
 
 import pytest
+from homeassistant.components.sensor import SensorDeviceClass
+
 from custom_components.meraki_ha.descriptions import (
     MT_BATTERY_DESCRIPTION,
     MT_BUTTON_DESCRIPTION,
     MT_TEMPERATURE_DESCRIPTION,
 )
-from homeassistant.components.sensor import SensorDeviceClass
-
 from custom_components.meraki_ha.sensor.device.meraki_mt_base import MerakiMtSensor
 
 

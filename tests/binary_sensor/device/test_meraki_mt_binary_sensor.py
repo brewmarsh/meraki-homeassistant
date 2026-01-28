@@ -3,13 +3,13 @@
 from unittest.mock import MagicMock
 
 import pytest
-from custom_components.meraki_ha.descriptions import (
-    MT_DOOR_DESCRIPTION,
-    MT_WATER_DESCRIPTION,
-)
 
 from custom_components.meraki_ha.binary_sensor.device.meraki_mt_binary_base import (
     MerakiMtBinarySensor,
+)
+from custom_components.meraki_ha.descriptions import (
+    MT_DOOR_DESCRIPTION,
+    MT_WATER_DESCRIPTION,
 )
 
 
