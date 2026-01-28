@@ -49,9 +49,12 @@ async def test_validate_meraki_credentials_invalid_org(hass: HomeAssistant) -> N
         hass: The Home Assistant instance.
 
     """
-    with patch(
-        "custom_components.meraki_ha.authentication.MerakiAPIClient",
-    ) as mock_client, pytest.raises(InvalidOrgID):
+    with (
+        patch(
+            "custom_components.meraki_ha.authentication.MerakiAPIClient",
+        ) as mock_client,
+        pytest.raises(InvalidOrgID),
+    ):
         mock_client.return_value.async_setup = AsyncMock()
         mock_client.return_value.dashboard.organization.get_organizations = AsyncMock(
             return_value=[{"id": "other-org-id", "name": "Other Org"}],
@@ -69,9 +72,12 @@ async def test_validate_meraki_credentials_auth_failed(hass: HomeAssistant) -> N
         hass: The Home Assistant instance.
 
     """
-    with patch(
-        "custom_components.meraki_ha.authentication.MerakiAPIClient",
-    ) as mock_client, pytest.raises(ConfigEntryAuthFailed):
+    with (
+        patch(
+            "custom_components.meraki_ha.authentication.MerakiAPIClient",
+        ) as mock_client,
+        pytest.raises(ConfigEntryAuthFailed),
+    ):
         mock_client.return_value.async_setup = AsyncMock()
         mock_client.return_value.dashboard.organization.get_organizations = AsyncMock(
             side_effect=MerakiAuthenticationError("test"),
@@ -89,9 +95,12 @@ async def test_validate_meraki_credentials_no_dashboard(hass: HomeAssistant) -> 
         hass: The Home Assistant instance.
 
     """
-    with patch(
-        "custom_components.meraki_ha.authentication.MerakiAPIClient",
-    ) as mock_client, pytest.raises(MerakiConnectionError):
+    with (
+        patch(
+            "custom_components.meraki_ha.authentication.MerakiAPIClient",
+        ) as mock_client,
+        pytest.raises(MerakiConnectionError),
+    ):
         mock_client.return_value.async_setup = AsyncMock()
         mock_client.return_value.dashboard = None
         await validate_meraki_credentials(hass, "test-api-key", "test-org-id")
