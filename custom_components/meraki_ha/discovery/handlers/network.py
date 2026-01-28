@@ -7,7 +7,6 @@ from typing import TYPE_CHECKING
 
 from ...const import (
     CONF_ENABLE_NETWORK_SENSORS,
-    CONF_ENABLE_VLAN_MANAGEMENT,
     CONF_ENABLE_VLAN_SENSORS,
 )
 from ...sensor.network.network_clients import MerakiNetworkClientsSensor
@@ -107,18 +106,6 @@ class NetworkHandler(BaseHandler):
                     )
 
             # VLAN Sensors
-            # VLANs List Sensor
-            if self._config_entry.options.get(CONF_ENABLE_VLAN_MANAGEMENT, False):
-                from ...sensor.network.vlans_list import VlansListSensor
-
-                entities.append(
-                    VlansListSensor(
-                        self._coordinator,
-                        self._config_entry,
-                        network,
-                    )
-                )
-
             if self._config_entry.options.get(CONF_ENABLE_VLAN_SENSORS, True):
                 vlans = self._coordinator.data.get("vlans", {}).get(network.id, [])
                 if vlans:

@@ -6,7 +6,6 @@ import pytest
 from homeassistant.core import HomeAssistant
 
 from custom_components.meraki_ha.switch.mt40_power_outlet import MerakiMt40PowerOutlet
-from custom_components.meraki_ha.types import MerakiDevice
 
 
 @pytest.fixture
@@ -14,7 +13,7 @@ def mock_coordinator_with_mt40_data(mock_coordinator: MagicMock) -> MagicMock:
     """Fixture for a mocked MerakiDataCoordinator with MT40 data."""
     mock_coordinator.data = {
         "devices": [
-            MerakiDevice.from_dict({
+            {
                 "serial": "mt40-1",
                 "name": "MT40 Power Controller",
                 "model": "MT40",
@@ -25,7 +24,7 @@ def mock_coordinator_with_mt40_data(mock_coordinator: MagicMock) -> MagicMock:
                         "downstreamPower": {"enabled": True},
                     },  # Outlet is on
                 ],
-            })
+            }
         ]
     }
 
