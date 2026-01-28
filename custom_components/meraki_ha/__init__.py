@@ -8,7 +8,10 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryNotReady
 
-from .api.websocket import async_setup_websocket_api
+try:
+    from .api.websocket import async_setup_websocket_api
+except Exception:
+    async_setup_websocket_api = None
 from .const import (
     CONF_ENABLE_WEB_UI,
     CONF_MERAKI_API_KEY,
