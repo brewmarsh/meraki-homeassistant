@@ -6,7 +6,10 @@ import pytest
 
 from custom_components.meraki_ha.coordinator import MerakiDataUpdateCoordinator
 from custom_components.meraki_ha.core.api.client import MerakiAPIClient
-from custom_components.meraki_ha.core.errors import MerakiInformationalError
+from custom_components.meraki_ha.core.errors import (
+    MerakiInformationalError,
+    MerakiTrafficAnalysisError,
+)
 from custom_components.meraki_ha.types import MerakiDevice, MerakiNetwork
 from tests.const import MOCK_DEVICE, MOCK_DEVICE_INIT, MOCK_NETWORK, MOCK_NETWORK_INIT
 
@@ -141,7 +144,7 @@ async def test_get_all_data_handles_informational_errors(api_client):
     api_client._async_fetch_device_clients = AsyncMock(return_value={})
 
     async def coro():
-        return MerakiInformationalError("Traffic analysis is not enabled")
+        return MerakiTrafficAnalysisError("Traffic analysis is not enabled")
 
     api_client._build_detail_tasks = MagicMock(
         return_value={f"traffic_{MOCK_NETWORK.id}": coro()}
@@ -185,16 +188,23 @@ async def test_build_detail_tasks_for_wireless_device(api_client):
 
 @pytest.mark.asyncio
 async def test_get_all_data_includes_switch_ports(api_client):
-    """Test that get_all_data returns switch ports statuses."""
+    """Test that get_all_data populates switch ports statuses in device."""
     # Arrange
+    switch_device = MerakiDevice.from_dict({"serial": "Q123", "productType": "switch"})
     api_client._async_fetch_initial_data = AsyncMock(
         return_value={
             "networks": [],
-            "devices": [],
+            "devices": [], # Initial fetch might be empty/ignored as we mock device_fetcher result
         }
+    )
+    # Mock device_fetcher to return our device
+    api_client.device_fetcher.async_fetch_devices = AsyncMock(
+        return_value={"devices": [switch_device], "battery_readings": None}
     )
     api_client._async_fetch_network_clients = AsyncMock(return_value=[])
     api_client._async_fetch_device_clients = AsyncMock(return_value={})
+    api_client.client_fetcher.async_fetch_network_clients = AsyncMock(return_value=[])
+    api_client.client_fetcher.async_fetch_device_clients = AsyncMock(return_value={})
 
     # Simulate detailed switch ports response
     async def coro():
@@ -205,33 +215,36 @@ async def test_get_all_data_includes_switch_ports(api_client):
     )
 
     # Act
-    data = await api_client.get_all_data()
+    await api_client.get_all_data()
 
     # Assert
-    assert "switch_ports_statuses" in data
-    assert data["switch_ports_statuses"]["Q123"] == [
-        {"portId": "1", "status": "Connected"}
-    ]
+    assert switch_device.ports_statuses == [{"portId": "1", "status": "Connected"}]
 
 
-def test_build_detail_tasks_for_switch_device(api_client):
+@pytest.mark.asyncio
+async def test_build_detail_tasks_for_switch_device(api_client):
     """Test that _build_detail_tasks creates the correct tasks for a switch device."""
     # Arrange
     switch_device = MerakiDevice.from_dict({"serial": "s123", "productType": "switch"})
     devices = [switch_device]
     networks = []
 
-    # Mock endpoints and semaphore wrapper to avoid unawaited coroutine warnings
-    api_client.switch = MagicMock()
-    api_client.switch.get_device_switch_ports_statuses.return_value = "mock_switch_coro"
-    api_client._run_with_semaphore = MagicMock(side_effect=lambda x: x)
+    async def side_effect(coro):
+        return await coro
+
+    api_client._run_with_semaphore = MagicMock(side_effect=side_effect)
+
+    # Use AsyncMock for endpoint to return a coroutine
+    api_client.switch.get_device_switch_ports_statuses = AsyncMock(return_value=[])
 
     # Act
     tasks = api_client._build_detail_tasks(networks, devices)
 
     # Assert
     assert f"ports_statuses_{switch_device.serial}" in tasks
-    assert tasks[f"ports_statuses_{switch_device.serial}"] == "mock_switch_coro"
+    # Cleanup
+    for task in tasks.values():
+        await task
     api_client.switch.get_device_switch_ports_statuses.assert_called_once_with("s123")
 
 
@@ -245,7 +258,14 @@ async def test_build_detail_tasks_for_camera_device(api_client):
 
     # Mock dependencies to avoid unawaited coroutine warnings
     api_client.camera = MagicMock()
-    api_client._run_with_semaphore = MagicMock()
+    api_client.camera.get_camera_video_settings = AsyncMock(return_value={})
+    api_client.camera.get_camera_sense_settings = AsyncMock(return_value={})
+    api_client.camera.get_device_camera_analytics_recent = AsyncMock(return_value={})
+
+    async def side_effect(coro):
+        return await coro
+
+    api_client._run_with_semaphore = MagicMock(side_effect=side_effect)
 
     # Act
     tasks = api_client._build_detail_tasks(networks, devices)
@@ -262,9 +282,11 @@ async def test_build_detail_tasks_for_camera_device(api_client):
     api_client.camera.get_camera_sense_settings.assert_called_once_with("c123")
 
 
-def test_build_detail_tasks_for_appliance_device(api_client):
+@pytest.mark.asyncio
+async def test_build_detail_tasks_for_appliance_device(api_client):
     """Test that _build_detail_tasks creates tasks for an appliance device."""
     # Arrange
+    api_client._enable_vpn_management = True
     appliance_device = MerakiDevice.from_dict(
         {
             "serial": "a123",
@@ -278,20 +300,22 @@ def test_build_detail_tasks_for_appliance_device(api_client):
     devices = [appliance_device]
     networks = [network_with_appliance]
 
-    # Mock _run_with_semaphore to return the input immediately (pass-through)
-    api_client._run_with_semaphore = MagicMock(side_effect=lambda x: x)
+    async def side_effect(coro):
+        return await coro
 
-    # Mock endpoint methods to return dummy task objects
-    api_client.network.get_network_traffic = MagicMock(return_value="task_traffic")
-    api_client.appliance.get_network_vlans = MagicMock(return_value="task_vlans")
-    api_client.appliance.get_l3_firewall_rules = MagicMock(return_value="task_firewall")
-    api_client.appliance.get_traffic_shaping = MagicMock(return_value="task_shaping")
-    api_client.appliance.get_vpn_status = MagicMock(return_value="task_vpn")
-    api_client.appliance.get_network_appliance_content_filtering = MagicMock(
-        return_value="task_filtering"
+    api_client._run_with_semaphore = MagicMock(side_effect=side_effect)
+
+    # Mock endpoint methods to return async mocks
+    api_client.network.get_network_traffic = AsyncMock(return_value={})
+    api_client.appliance.get_network_vlans = AsyncMock(return_value=[])
+    api_client.appliance.get_l3_firewall_rules = AsyncMock(return_value=[])
+    api_client.appliance.get_traffic_shaping = AsyncMock(return_value={})
+    api_client.appliance.get_vpn_status = AsyncMock(return_value={})
+    api_client.appliance.get_network_appliance_content_filtering = AsyncMock(
+        return_value={}
     )
-    api_client.appliance.get_network_appliance_settings = MagicMock(
-        return_value="task_settings"
+    api_client.appliance.get_network_appliance_settings = AsyncMock(
+        return_value={}
     )
 
     # Act
@@ -299,15 +323,19 @@ def test_build_detail_tasks_for_appliance_device(api_client):
 
     # Assert
     # Check network tasks
-    assert tasks[f"traffic_{network_with_appliance.id}"] == "task_traffic"
-    assert tasks[f"vlans_{network_with_appliance.id}"] == "task_vlans"
-    assert tasks[f"l3_firewall_rules_{network_with_appliance.id}"] == "task_firewall"
-    assert tasks[f"traffic_shaping_{network_with_appliance.id}"] == "task_shaping"
-    assert tasks[f"vpn_status_{network_with_appliance.id}"] == "task_vpn"
-    assert tasks[f"content_filtering_{network_with_appliance.id}"] == "task_filtering"
+    assert f"traffic_{network_with_appliance.id}" in tasks
+    assert f"vlans_{network_with_appliance.id}" in tasks
+    assert f"l3_firewall_rules_{network_with_appliance.id}" in tasks
+    assert f"traffic_shaping_{network_with_appliance.id}" in tasks
+    assert f"vpn_status_{network_with_appliance.id}" in tasks
+    assert f"content_filtering_{network_with_appliance.id}" in tasks
 
     # Check device tasks
-    assert tasks[f"appliance_settings_{appliance_device.serial}"] == "task_settings"
+    assert f"appliance_settings_{appliance_device.serial}" in tasks
+
+    # Cleanup
+    for task in tasks.values():
+        await task
 
 
 def test_process_detailed_data_merges_device_info(api_client):

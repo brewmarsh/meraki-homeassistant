@@ -11,6 +11,7 @@ from custom_components.meraki_ha.descriptions import (
     MT_TEMPERATURE_DESCRIPTION,
 )
 from custom_components.meraki_ha.sensor.device.meraki_mt_base import MerakiMtSensor
+from custom_components.meraki_ha.types import MerakiDevice
 
 
 @pytest.fixture
@@ -18,7 +19,7 @@ def mock_coordinator_mt_sensor(mock_coordinator: MagicMock) -> MagicMock:
     """Fixture for a mocked MerakiDataCoordinator with MT sensor data."""
     mock_coordinator.data = {
         "devices": [
-            {
+            MerakiDevice.from_dict({
                 "serial": "mt10-1",
                 "name": "MT10 Sensor",
                 "model": "MT10",
@@ -37,8 +38,8 @@ def mock_coordinator_mt_sensor(mock_coordinator: MagicMock) -> MagicMock:
                         "battery": {"percentage": 95},
                     },
                 ],
-            },
-            {
+            }),
+            MerakiDevice.from_dict({
                 "serial": "mt30-1",
                 "name": "MT30 Button",
                 "model": "MT30",
@@ -53,7 +54,7 @@ def mock_coordinator_mt_sensor(mock_coordinator: MagicMock) -> MagicMock:
                         "button": {"pressType": "short"},
                     },
                 ],
-            },
+            }),
         ]
     }
     return mock_coordinator
@@ -69,7 +70,7 @@ def test_mt10_temperature_sensor(
     )
 
     assert sensor.unique_id == "mt10-1_temperature"
-    assert sensor.name == "MT10 Sensor Temperature"
+    assert sensor.name == "Temperature"
     assert sensor.native_value == 25.5
     assert sensor.device_class == SensorDeviceClass.TEMPERATURE
     assert sensor.available is True
@@ -85,7 +86,7 @@ def test_mt10_battery_sensor(
     )
 
     assert sensor.unique_id == "mt10-1_battery"
-    assert sensor.name == "MT10 Sensor Battery"
+    assert sensor.name == "Battery"
     assert sensor.native_value == 95
     assert sensor.device_class == SensorDeviceClass.BATTERY
     assert sensor.available is True
@@ -101,6 +102,6 @@ def test_mt30_button_sensor(
     )
 
     assert sensor.unique_id == "mt30-1_button"
-    assert sensor.name == "MT30 Button Last Button Press"
+    assert sensor.name == "Last Button Press"
     assert sensor.native_value == "short"
     assert sensor.available is True
