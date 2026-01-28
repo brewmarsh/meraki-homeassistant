@@ -119,6 +119,11 @@ class NetworkHandler(BaseHandler):
                         MerakiVLANIPv6InterfaceSensor,
                         MerakiVLANIPv6UplinkSensor,
                     )
+                    from ...sensor.network.vlans_list import VlansListSensor
+
+                    entities.append(
+                        VlansListSensor(self._coordinator, self._config_entry, network)
+                    )
 
                     for vlan in vlans:
                         entities.extend(
