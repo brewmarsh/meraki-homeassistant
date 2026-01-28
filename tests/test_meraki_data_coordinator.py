@@ -3,8 +3,8 @@
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
-
 from custom_components.meraki_ha.meraki_data_coordinator import MerakiDataCoordinator
+
 from tests.const import MOCK_NETWORK
 
 
