@@ -37,7 +37,7 @@ class SwitchEndpoints:
     @handle_meraki_errors
     @async_timed_cache(timeout=60)
     async def get_device_switch_ports_statuses(
-        self, serial: str, timespan: int = 86400, **kwargs: Any
+        self, serial: str, **kwargs: Any
     ) -> list[dict[str, Any]]:
         """
         Get statuses for all ports of a switch.
@@ -45,7 +45,6 @@ class SwitchEndpoints:
         Args:
         ----
             serial: The serial number of the switch.
-            timespan: The timespan in seconds for the data.
             **kwargs: Additional arguments to pass to the API.
 
         Returns
@@ -56,7 +55,6 @@ class SwitchEndpoints:
         statuses = await self._api_client.run_sync(
             self._dashboard.switch.getDeviceSwitchPortsStatuses,
             serial=serial,
-            timespan=timespan,
             **kwargs,
         )
         validated = validate_response(statuses)

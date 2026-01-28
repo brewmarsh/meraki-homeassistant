@@ -370,7 +370,7 @@ class MerakiAPIClient:
         Args:
             networks: A list of networks.
             devices: A list of devices.
-            timespan: The timespan in seconds for the data.
+            timespan: The timespan in seconds for data fetching.
 
         Returns
         -------
@@ -437,11 +437,10 @@ class MerakiAPIClient:
                     )
                 )
             elif device.get("productType") == "switch":
-                kwargs = {"timespan": timespan} if timespan else {}
                 detail_tasks[f"ports_statuses_{device['serial']}"] = (
                     self._run_with_semaphore(
                         self.switch.get_device_switch_ports_statuses(
-                            device["serial"], **kwargs
+                            device["serial"], timespan=timespan
                         ),
                     )
                 )
@@ -652,7 +651,7 @@ class MerakiAPIClient:
 
         Args:
             previous_data: The previous data from the coordinator.
-            timespan: The timespan in seconds for the data.
+            timespan: The timespan in seconds for data fetching.
 
         Returns
         -------

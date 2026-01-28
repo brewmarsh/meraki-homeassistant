@@ -37,7 +37,8 @@ def test_poe_usage_sensor(mock_device_coordinator):
     """Test the PoE usage sensor."""
     from datetime import timedelta
 
-    mock_device_coordinator.update_interval = timedelta(hours=24)
+    # Set update interval to 1 hour (3600 seconds)
+    mock_device_coordinator.update_interval = timedelta(hours=1)
 
     device = mock_device_coordinator.data["devices"][0]
     sensor = MerakiPoeUsageSensor(mock_device_coordinator, device)
@@ -46,7 +47,9 @@ def test_poe_usage_sensor(mock_device_coordinator):
 
     assert sensor.unique_id == "dev1_poe_usage"
     assert sensor.name == "PoE Usage"
-    assert sensor.native_value == 15.7
+    # Total usage = 252 + 124.8 = 376.8 Wh
+    # Power = 376.8 Wh * 3600 s/h / 3600 s = 376.8 W
+    assert sensor.native_value == 376.8
     assert sensor.extra_state_attributes["port_1_power_usage_wh"] == 252
     assert sensor.extra_state_attributes["port_2_power_usage_wh"] == 124.8
     assert sensor.extra_state_attributes["port_3_power_usage_wh"] == 0
