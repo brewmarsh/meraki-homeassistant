@@ -1,6 +1,6 @@
 """Tests for the Meraki Traffic Shaping sensor."""
 
-from unittest.mock import MagicMock
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 from homeassistant.const import EntityCategory
@@ -16,6 +16,13 @@ def mock_coordinator():
     coordinator = MagicMock()
     coordinator.config_entry = MagicMock()
     coordinator.config_entry.options = {}
+
+    # Mock the API client
+    coordinator.api = MagicMock()
+    coordinator.api.appliance = MagicMock()
+    coordinator.api.appliance.get_network_appliance_content_filtering_categories = (
+        AsyncMock(return_value={"categories": []})
+    )
 
     # Create a mock network
     mock_network = MerakiNetwork(

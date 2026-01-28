@@ -196,10 +196,20 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                     ha_device.id,
                 )
                 if entities_for_device:
-                    # For simplicity, link to the first entity found.
-                    # A more robust solution might involve identifying a "primary"
-                    # entity.
-                    device.entity_id = entities_for_device[0].entity_id
+                    # Prioritize camera entities, then switch, then fallback to first
+                    # This ensures the "navigate to entity" button on device page
+                    # goes to the most useful control entity.
+                    primary_entity = entities_for_device[0]
+                    for entity in entities_for_device:
+                        if entity.domain == "camera":
+                            primary_entity = entity
+                            break
+                        if (
+                            entity.domain == "switch"
+                            and primary_entity.domain != "camera"
+                        ):
+                            primary_entity = entity
+                    device.entity_id = primary_entity.entity_id
 
     async def _async_update_data(self) -> dict[str, Any]:
         """Fetch data from API endpoint, apply filters, and handle exceptions."""

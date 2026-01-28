@@ -63,6 +63,10 @@ def mock_meraki_client() -> AsyncMock:
         },
     )
     client.unregister_webhook = AsyncMock(return_value=None)
+    client.appliance = AsyncMock()
+    client.appliance.get_network_appliance_content_filtering_categories = AsyncMock(
+        return_value={"categories": []}
+    )
     return client
 
 
