@@ -87,7 +87,7 @@ async def test_vpn_status_fetched_when_enabled(mock_hass, mock_coordinator):
     # Mock parsers to avoid errors with minimal data
     with (
         patch(
-            "custom_components.meraki_ha.core.api.client.parse_network_data",
+            "custom_components.meraki_ha.core.parsers.network.parse_network_data",
             return_value={},
         ),
         patch(
