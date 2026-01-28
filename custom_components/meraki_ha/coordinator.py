@@ -204,8 +204,15 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
     async def _async_update_data(self) -> dict[str, Any]:
         """Fetch data from API endpoint, apply filters, and handle exceptions."""
         try:
-            # Pass the last known successful data to the API client
-            data = await self.api.get_all_data(self.last_successful_data)
+            # Pass the last known successful data and timespan to the API client
+            timespan = (
+                int(self.update_interval.total_seconds())
+                if self.update_interval
+                else None
+            )
+            data = await self.api.get_all_data(
+                self.last_successful_data, timespan=timespan
+            )
 
             if not data:
                 _LOGGER.warning("API call to get_all_data returned no data.")

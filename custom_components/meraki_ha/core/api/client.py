@@ -362,6 +362,7 @@ class MerakiAPIClient:
         self,
         networks: list[MerakiNetwork],
         devices: list[MerakiDevice],
+        timespan: int | None = None,
     ) -> dict[str, Awaitable[Any]]:
         """
         Build a dictionary of tasks to fetch detailed data.
@@ -369,6 +370,7 @@ class MerakiAPIClient:
         Args:
             networks: A list of networks.
             devices: A list of devices.
+            timespan: The timespan in seconds for the data.
 
         Returns
         -------
@@ -435,9 +437,12 @@ class MerakiAPIClient:
                     )
                 )
             elif device.get("productType") == "switch":
+                kwargs = {"timespan": timespan} if timespan else {}
                 detail_tasks[f"ports_statuses_{device['serial']}"] = (
                     self._run_with_semaphore(
-                        self.switch.get_device_switch_ports_statuses(device["serial"]),
+                        self.switch.get_device_switch_ports_statuses(
+                            device["serial"], **kwargs
+                        ),
                     )
                 )
             elif device.get("productType") == "appliance" and "networkId" in device:
@@ -640,12 +645,14 @@ class MerakiAPIClient:
     async def get_all_data(
         self,
         previous_data: dict[str, Any] | None = None,
+        timespan: int | None = None,
     ) -> dict[str, Any]:
         """
         Fetch all data from the Meraki API concurrently, with caching.
 
         Args:
             previous_data: The previous data from the coordinator.
+            timespan: The timespan in seconds for the data.
 
         Returns
         -------
@@ -668,7 +675,7 @@ class MerakiAPIClient:
             return_exceptions=True,
         )
 
-        detail_tasks = self._build_detail_tasks(networks, devices)
+        detail_tasks = self._build_detail_tasks(networks, devices, timespan=timespan)
         detail_data = await asyncio.gather(
             *detail_tasks.values(),
             return_exceptions=True,
