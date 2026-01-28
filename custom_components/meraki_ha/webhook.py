@@ -112,8 +112,8 @@ async def async_register_webhook(
         webhook_url = get_webhook_url(hass, webhook_id, webhook_url_from_entry)
         if config_entry_id:
             await api_client.register_webhook(webhook_url, secret, config_entry_id)
-    except Exception as err:
-        _LOGGER.error("Failed to register webhook: %s", err)
+    except Exception:
+        _LOGGER.error("Failed to register webhook", exc_info=True)
 
 
 async def async_unregister_webhook(
