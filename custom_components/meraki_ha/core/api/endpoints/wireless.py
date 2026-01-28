@@ -22,7 +22,12 @@ class WirelessEndpoints:
     def __init__(self, api_client: "MerakiAPIClient") -> None:
         """Initialize the endpoint."""
         self._api_client = api_client
-        self._dashboard = api_client.dashboard
+
+    @property
+    def _dashboard(self) -> Any:
+        """Return the dashboard API instance."""
+        assert self._api_client.dashboard is not None
+        return self._api_client.dashboard
 
     @handle_meraki_errors
     @async_timed_cache()

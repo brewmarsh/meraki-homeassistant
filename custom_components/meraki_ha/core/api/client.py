@@ -370,6 +370,9 @@ class MerakiAPIClient:
         wireless_settings_by_network: dict[str, Any] = {}
 
         for network in networks:
+            if not network.id:
+                continue
+
             network_ssids_key = f"ssids_{network.id}"
             network_ssids = detail_data.get(network_ssids_key)
             if isinstance(network_ssids, list):
@@ -509,9 +512,9 @@ class MerakiAPIClient:
                     f"appliance_settings_{device.serial}",
                 ):
                     if isinstance(settings.get("dynamicDns"), dict):
-                        device.dynamicDns = settings["dynamicDns"]
+                        device.dynamic_dns = settings["dynamicDns"]
                 elif prev_device and "dynamicDns" in prev_device:
-                    device.dynamicDns = prev_device["dynamicDns"]
+                    device.dynamic_dns = prev_device["dynamicDns"]
 
         return {
             "ssids": ssids,
@@ -742,6 +745,8 @@ class MerakiAPIClient:
         """
         if not self.dashboard:
             await self.async_setup()
+
+        assert self.dashboard is not None
 
         # Create dictionary of arguments and filter out None values
         kwargs = {
