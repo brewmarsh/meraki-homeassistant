@@ -78,7 +78,8 @@ class MerakiAuthentication:
             )
 
         # The client's endpoints are initialized before the dashboard is.
-        # We need to re-initialize the organization endpoint to ensure it has the dashboard.
+        # We need to re-initialize the organization endpoint to ensure
+        # it has the dashboard.
         from .core.api.endpoints.organization import OrganizationEndpoints
 
         client.organization = OrganizationEndpoints(client)

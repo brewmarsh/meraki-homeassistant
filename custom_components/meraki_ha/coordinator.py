@@ -88,6 +88,7 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             _LOGGER,
             name=DOMAIN,
             update_interval=timedelta(seconds=scan_interval),
+            config_entry=entry,
         )
 
     def register_pending_update(
@@ -196,10 +197,12 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                     ha_device.id,
                 )
                 if entities_for_device:
-                    # For simplicity, link to the first entity found.
-                    # A more robust solution might involve identifying a "primary"
-                    # entity.
+                    # Prioritize camera entities
                     device.entity_id = entities_for_device[0].entity_id
+                    for entity in entities_for_device:
+                        if entity.domain == "camera":
+                            device.entity_id = entity.entity_id
+                            break
 
     async def _async_update_data(self) -> dict[str, Any]:
         """Fetch data from API endpoint, apply filters, and handle exceptions."""
@@ -248,6 +251,21 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 for s in data.get("ssids", [])
                 if s.get("networkId") and s.get("number") is not None
             }
+
+            # Check for feature availability errors
+            for net_id, result in data.get("appliance_traffic", {}).items():
+                if isinstance(result, dict) and result.get("error") == "disabled":
+                    self.add_network_status_message(
+                        net_id, "Traffic Analysis is not enabled for this network."
+                    )
+                    self.mark_traffic_check_done(net_id)
+
+            for net_id, result in data.get("vlans", {}).items():
+                if isinstance(result, dict) and result.get("error") == "disabled":
+                    self.add_network_status_message(
+                        net_id, "VLANs are not enabled for this network."
+                    )
+                    self.mark_vlan_check_done(net_id)
 
             self._populate_device_entities(data.get("devices", []))
 

@@ -2,12 +2,16 @@
 
 from __future__ import annotations
 
-from unittest.mock import AsyncMock, MagicMock
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 from homeassistant.core import HomeAssistant
 
-from custom_components.meraki_ha.const import DOMAIN
+from custom_components.meraki_ha.const import (
+    CONF_MERAKI_API_KEY,
+    CONF_MERAKI_ORG_ID,
+    DOMAIN,
+)
 from custom_components.meraki_ha.coordinator import MerakiDataUpdateCoordinator
 from custom_components.meraki_ha.types import MerakiDevice
 from custom_components.meraki_ha.webhook import async_handle_webhook
@@ -28,11 +32,16 @@ def mock_hass_with_webhook_data(hass: HomeAssistant) -> HomeAssistant:
 
     """
     config_entry = MagicMock()
-    coordinator = MerakiDataUpdateCoordinator(
-        hass,
-        api_client=MagicMock(),
-        entry=config_entry,
-    )
+    config_entry.data = {
+        CONF_MERAKI_API_KEY: "test_key",
+        CONF_MERAKI_ORG_ID: "test_org",
+    }
+    with patch("custom_components.meraki_ha.coordinator.ApiClient") as MockApiClient:
+        MockApiClient.return_value = MagicMock()
+        coordinator = MerakiDataUpdateCoordinator(
+            hass,
+            entry=config_entry,
+        )
 
     device = MerakiDevice(
         serial="Q234-ABCD-5678",

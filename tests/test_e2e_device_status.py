@@ -70,7 +70,7 @@ async def setup_integration_fixture(
 
     with (
         patch(
-            "custom_components.meraki_ha.MerakiDataCoordinator._async_update_data",
+            "custom_components.meraki_ha.coordinator.MerakiDataUpdateCoordinator._async_update_data",
             return_value=MOCK_REPRO_DATA,
         ),
         patch(

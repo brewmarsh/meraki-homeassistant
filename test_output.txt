@@ -1,0 +1,14 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.12, pytest-8.3.3, pluggy-1.6.0
+rootdir: /app
+configfile: pytest.ini
+plugins: respx-0.21.1, socket-0.7.0, mock-3.15.1, homeassistant-custom-component-0.13.195, requests-mock-1.12.1, github-actions-annotate-failures-0.2.0, sugar-1.0.0, asyncio-0.24.0, unordered-0.6.1, xdist-3.6.1, picked-0.5.0, aiohttp-1.0.5, syrupy-4.7.2, pytest_freezer-0.4.8, timeout-2.3.1, anyio-4.12.1, cov-6.0.0
+asyncio: mode=Mode.AUTO, default_loop_scope=function
+collected 6 items
+
+tests/test_webhook.py ...                                                [ 50%]
+tests/test_coordinator.py .                                              [ 66%]
+tests/test_coordinator_entity_priority.py .                              [ 83%]
+tests/test_coordinator_ssid_population.py .                              [100%]
+
+============================== 6 passed in 0.88s ===============================
