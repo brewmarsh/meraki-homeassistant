@@ -18,15 +18,6 @@ from ..const import (
     CONF_ENABLE_NETWORK_SENSORS,
     CONF_ENABLE_SSID_SENSORS,
 )
-from .handlers.gx import GXHandler
-from .handlers.mr import MRHandler
-from .handlers.ms import MSHandler
-from .handlers.mt import MTHandler
-from .handlers.mv import MVHandler
-from .handlers.mx import MXHandler
-from .handlers.network import NetworkHandler
-from .handlers.ssid import SSIDHandler
-
 if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
     from homeassistant.helpers.entity import Entity
@@ -40,17 +31,6 @@ if TYPE_CHECKING:
 
 
 _LOGGER = logging.getLogger(__name__)
-
-HANDLER_MAPPING = {
-    "MR": MRHandler,
-    "MV": MVHandler,
-    "MX": MXHandler,
-    "GX": GXHandler,
-    "MS": MSHandler,
-    "GS": MSHandler,
-    "MT": MTHandler,
-    "GR": GXHandler,
-}
 
 
 class DeviceDiscoveryService:
@@ -83,6 +63,25 @@ class DeviceDiscoveryService:
         handler based on the device's model type. It also discovers
         network-level and virtual SSID entities.
         """
+        from .handlers.gx import GXHandler
+        from .handlers.mr import MRHandler
+        from .handlers.ms import MSHandler
+        from .handlers.mt import MTHandler
+        from .handlers.mv import MVHandler
+        from .handlers.mx import MXHandler
+        from .handlers.network import NetworkHandler
+        from .handlers.ssid import SSIDHandler
+
+        HANDLER_MAPPING = {
+            "MR": MRHandler,
+            "MV": MVHandler,
+            "MX": MXHandler,
+            "GX": GXHandler,
+            "MS": MSHandler,
+            "GS": MSHandler,
+            "MT": MTHandler,
+            "GR": GXHandler,
+        }
         all_entities: list[Entity] = []
 
         # Discover network-level entities
