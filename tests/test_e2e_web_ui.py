@@ -135,11 +135,15 @@ async def test_e2e_panel_comprehensive(
             mock_data: dict[str, Any] = MOCK_ALL_DATA.copy()
             # Convert dataclasses to dicts
             mock_data["networks"] = [
-                dataclasses.asdict(n) if dataclasses.is_dataclass(n) else n
+                dataclasses.asdict(n)
+                if dataclasses.is_dataclass(n) and not isinstance(n, type)
+                else n
                 for n in mock_data.get("networks", [])
             ]
             mock_data["devices"] = [
-                dataclasses.asdict(d) if dataclasses.is_dataclass(d) else d
+                dataclasses.asdict(d)
+                if dataclasses.is_dataclass(d) and not isinstance(d, type)
+                else d
                 for d in mock_data.get("devices", [])
             ]
 
