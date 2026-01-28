@@ -1,5 +1,4 @@
 aiofiles==23.2.1
-aiohttp>=3.13.2
 bandit[toml]==1.7.9
 codecov
 filelock==3.20.3
@@ -12,9 +11,6 @@ pytest-asyncio
 pytest-cov
 pytest-homeassistant-custom-component
 PyTurboJPEG==1.7.2
-pyyaml==6.0.3
 ruff==0.5.5
 types-aiofiles==25.1.0.20251011
-urllib3>=2.6.2
-uv==0.9.17
-voluptuous==0.16.0
+uv
