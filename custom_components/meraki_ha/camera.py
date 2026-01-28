@@ -20,7 +20,6 @@ if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
     from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-    from .coordinator import MerakiDataUpdateCoordinator
     from .services.camera_service import CameraService
 
 

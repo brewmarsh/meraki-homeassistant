@@ -22,7 +22,6 @@ class WirelessEndpoints:
     def __init__(self, api_client: "MerakiAPIClient") -> None:
         """Initialize the endpoint."""
         self._api_client = api_client
-        self._dashboard = api_client.dashboard
 
     @handle_meraki_errors
     @async_timed_cache()
@@ -40,7 +39,7 @@ class WirelessEndpoints:
 
         """
         ssids = await self._api_client.run_sync(
-            self._dashboard.wireless.getNetworkWirelessSsids,
+            self._api_client.dashboard.wireless.getNetworkWirelessSsids,
             networkId=network_id,
         )
         validated = validate_response(ssids)
@@ -65,7 +64,7 @@ class WirelessEndpoints:
 
         """
         settings = await self._api_client.run_sync(
-            self._dashboard.wireless.getDeviceWirelessRadioSettings,
+            self._api_client.dashboard.wireless.getDeviceWirelessRadioSettings,
             serial=serial,
         )
         validated = validate_response(settings)
@@ -95,7 +94,7 @@ class WirelessEndpoints:
 
         """
         ssid = await self._api_client.run_sync(
-            self._dashboard.wireless.getNetworkWirelessSsid,
+            self._api_client.dashboard.wireless.getNetworkWirelessSsid,
             networkId=network_id,
             number=number,
         )
@@ -127,7 +126,7 @@ class WirelessEndpoints:
 
         """
         ssid = await self._api_client.run_sync(
-            self._dashboard.wireless.updateNetworkWirelessSsid,
+            self._api_client.dashboard.wireless.updateNetworkWirelessSsid,
             networkId=network_id,
             number=number,
             **kwargs,
@@ -157,7 +156,7 @@ class WirelessEndpoints:
 
         """
         profiles = await self._api_client.run_sync(
-            self._dashboard.wireless.getNetworkWirelessRfProfiles,
+            self._api_client.dashboard.wireless.getNetworkWirelessRfProfiles,
             networkId=network_id,
         )
         validated = validate_response(profiles)
@@ -187,7 +186,7 @@ class WirelessEndpoints:
 
         """
         rules = await self._api_client.run_sync(
-            self._dashboard.wireless.getNetworkWirelessSsidL7FirewallRules,
+            self._api_client.dashboard.wireless.getNetworkWirelessSsidL7FirewallRules,
             networkId=network_id,
             number=number,
         )
@@ -304,7 +303,7 @@ class WirelessEndpoints:
 
         """
         rules = await self._api_client.run_sync(
-            self._dashboard.wireless.updateNetworkWirelessSsidL7FirewallRules,
+            self._api_client.dashboard.wireless.updateNetworkWirelessSsidL7FirewallRules,
             networkId=network_id,
             number=number,
             **kwargs,
