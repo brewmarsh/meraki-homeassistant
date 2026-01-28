@@ -33,7 +33,7 @@ async def async_setup_entry(
 
     for device in devices:
         product_type = getattr(device, "productType", "")
-        model = getattr(device, "model", "")
+        getattr(device, "model", "")
 
         # Add motion sensors for cameras
         if product_type.startswith("camera") and has_camera_service:
