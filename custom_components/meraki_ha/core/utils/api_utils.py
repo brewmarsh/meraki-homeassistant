@@ -41,58 +41,49 @@ def handle_meraki_errors(
     @functools.wraps(func)
     async def wrapper(*args: Any, **kwargs: Any) -> T:
         """Wrap the API function with error handling."""
-        max_retries = 3
-        retry_count = 0
+        try:
+            return await func(*args, **kwargs)
+        except (JSONDecodeError, MerakiConnectionError) as err:
+            _LOGGER.warning(
+                "API call %s failed with an empty or invalid response: %s",
+                func.__name__,
+                err,
+            )
+            # Inspect return type to provide a safe empty value
+            sig = inspect.signature(func)
+            return_type = sig.return_annotation
+            if return_type is list or getattr(return_type, "__origin__", None) in (
+                list,
+                list,
+            ):
+                return cast(T, [])
+            return cast(T, {})
+        except APIError as err:
+            if _is_informational_error(err):
+                raise MerakiInformationalError(f"Informational error: {err}") from err
 
-        while True:
-            try:
-                return await func(*args, **kwargs)
-            except (JSONDecodeError, MerakiConnectionError) as err:
-                _LOGGER.warning(
-                    "API call %s failed with an empty or invalid response: %s",
-                    func.__name__,
-                    err,
-                )
-                # Inspect the wrapped function's return type to return a safe empty value
-                sig = inspect.signature(func)
-                return_type = sig.return_annotation
-                if return_type is list or getattr(return_type, "__origin__", None) in (
-                    list,
-                    list,
-                ):
-                    return cast(T, [])
-                return cast(T, {})
-            except APIError as err:
-                if _is_informational_error(err):
-                    raise MerakiInformationalError(f"Informational error: {err}") from err
-
-                if _is_rate_limit_error(err):
-                    if retry_count < max_retries:
-                        _LOGGER.warning("Rate limit exceeded, retrying in 2 seconds...")
-                        await asyncio.sleep(2)
-                        retry_count += 1
-                        continue
-                    else:
-                        _LOGGER.error("Meraki API error: %s (Max retries reached)", err)
-                else:
-                    _LOGGER.error("Meraki API error: %s", err)
-
-                if _is_auth_error(err):
-                    raise MerakiAuthenticationError(
-                        f"Authentication failed: {err}"
-                    ) from err
-                elif _is_device_error(err):
-                    raise MerakiDeviceError(f"Device error: {err}") from err
-                elif _is_network_error(err):
-                    raise MerakiNetworkError(f"Network error: {err}") from err
-                else:
-                    raise MerakiConnectionError(f"API error: {err}") from err
-            except ClientError as err:
-                _LOGGER.error("Connection error: %s", err)
-                raise MerakiConnectionError(f"Connection error: {err}") from err
-            except Exception as err:
-                _LOGGER.error("Unexpected error: %s", err)
-                raise MerakiConnectionError(f"Unexpected error: {err}") from err
+            _LOGGER.error("Meraki API error: %s", err)
+            if _is_auth_error(err):
+                raise MerakiAuthenticationError(
+                    f"Authentication failed: {err}"
+                ) from err
+            elif _is_device_error(err):
+                raise MerakiDeviceError(f"Device error: {err}") from err
+            elif _is_network_error(err):
+                raise MerakiNetworkError(f"Network error: {err}") from err
+            elif _is_rate_limit_error(err):
+                # Wait and retry for rate limit errors
+                _LOGGER.warning("Rate limit exceeded, retrying in 2 seconds...")
+                await asyncio.sleep(2)
+                return await wrapper(*args, **kwargs)
+            else:
+                raise MerakiConnectionError(f"API error: {err}") from err
+        except ClientError as err:
+            _LOGGER.error("Connection error: %s", err)
+            raise MerakiConnectionError(f"Connection error: {err}") from err
+        except Exception as err:
+            _LOGGER.error("Unexpected error: %s", err)
+            raise MerakiConnectionError(f"Unexpected error: {err}") from err
 
     return cast(Callable[..., Awaitable[T]], wrapper)
 

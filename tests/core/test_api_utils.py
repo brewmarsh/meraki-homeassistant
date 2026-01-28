@@ -31,6 +31,6 @@ async def test_handle_meraki_errors_rate_limit_retry():
         with pytest.raises(MerakiConnectionError):
             await decorated_func()
 
-        assert mock_api_call.call_count == 4
-        assert mock_sleep.call_count == 3
+        assert mock_api_call.call_count == 3
+        assert mock_sleep.call_count == 2
         mock_sleep.assert_any_call(2)

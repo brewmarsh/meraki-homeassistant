@@ -1,4 +1,4 @@
-"""Sensor entity descriptions for Meraki MT sensors."""
+"""Sensor entity descriptions for Meraki entities."""
 
 from homeassistant.components.binary_sensor import (
     BinarySensorDeviceClass,
@@ -37,6 +37,12 @@ MT_HUMIDITY_DESCRIPTION = SensorEntityDescription(
     native_unit_of_measurement=PERCENTAGE,
 )
 
+MT_WATER_DESCRIPTION = SensorEntityDescription(
+    key="water",
+    name="Water Detection",
+    device_class=SensorDeviceClass.MOISTURE,
+)
+
 MT_PM25_DESCRIPTION = SensorEntityDescription(
     key="pm25",
     name="PM2.5",
@@ -69,8 +75,9 @@ MT_NOISE_DESCRIPTION = SensorEntityDescription(
     native_unit_of_measurement=UnitOfSoundPressure.WEIGHTED_DECIBEL_A,
 )
 
+
 MT_POWER_DESCRIPTION = SensorEntityDescription(
-    key="realPower",
+    key="power",
     name="Power",
     device_class=SensorDeviceClass.POWER,
     state_class=SensorStateClass.MEASUREMENT,
@@ -101,25 +108,6 @@ MT_BATTERY_DESCRIPTION = SensorEntityDescription(
     native_unit_of_measurement=PERCENTAGE,
 )
 
-MT_BUTTON_DESCRIPTION = SensorEntityDescription(
-    key="button",
-    name="Last Button Press",
-    icon="mdi:gesture-tap-button",
-    # No device class for enum/string
-)
-
-# Binary Sensors
-MT_WATER_DESCRIPTION = BinarySensorEntityDescription(
-    key="water",
-    name="Water Leak",
-    device_class=BinarySensorDeviceClass.MOISTURE,
-)
-
-MT_DOOR_DESCRIPTION = BinarySensorEntityDescription(
-    key="door",
-    name="Door",
-    device_class=BinarySensorDeviceClass.DOOR,
-)
 
 # Mapping of MT models to their supported sensor descriptions
 MT_SENSOR_MODELS = {
@@ -129,13 +117,12 @@ MT_SENSOR_MODELS = {
         MT_BATTERY_DESCRIPTION,
     ],
     "MT11": [MT_TEMPERATURE_DESCRIPTION, MT_BATTERY_DESCRIPTION],
-    "MT12": [MT_TEMPERATURE_DESCRIPTION, MT_BATTERY_DESCRIPTION],
+    "MT12": [MT_WATER_DESCRIPTION, MT_BATTERY_DESCRIPTION],
     "MT14": [
         MT_PM25_DESCRIPTION,
         MT_TVOC_DESCRIPTION,
         MT_TEMPERATURE_DESCRIPTION,
         MT_HUMIDITY_DESCRIPTION,
-        MT_NOISE_DESCRIPTION,
         MT_BATTERY_DESCRIPTION,
     ],
     "MT15": [
@@ -145,13 +132,10 @@ MT_SENSOR_MODELS = {
         MT_TEMPERATURE_DESCRIPTION,
         MT_HUMIDITY_DESCRIPTION,
         MT_NOISE_DESCRIPTION,
-    ],
-    "MT20": [
-        MT_TEMPERATURE_DESCRIPTION,
-        MT_HUMIDITY_DESCRIPTION,
         MT_BATTERY_DESCRIPTION,
     ],
-    "MT30": [MT_BATTERY_DESCRIPTION, MT_BUTTON_DESCRIPTION],
+    "MT20": [MT_BATTERY_DESCRIPTION],
+    "MT30": [MT_BATTERY_DESCRIPTION],
     "MT40": [
         MT_POWER_DESCRIPTION,
         MT_VOLTAGE_DESCRIPTION,
@@ -159,14 +143,22 @@ MT_SENSOR_MODELS = {
     ],
 }
 
-# Mapping of MT models to their supported binary sensor descriptions
-MT_BINARY_SENSOR_MODELS = {
-    "MT10": [],
-    "MT11": [],
-    "MT12": [MT_WATER_DESCRIPTION],
-    "MT14": [],
-    "MT15": [],
-    "MT20": [MT_DOOR_DESCRIPTION],
-    "MT30": [],
-    "MT40": [],
-}
+
+CAMERA_MOTION_DESCRIPTION = BinarySensorEntityDescription(
+    key="motion",
+    name="Motion",
+    device_class=BinarySensorDeviceClass.MOTION,
+)
+
+
+MT20_DOOR_DESCRIPTION = BinarySensorEntityDescription(
+    key="door",
+    name="Door",
+    device_class=BinarySensorDeviceClass.DOOR,
+)
+
+SWITCH_PORT_DESCRIPTION = BinarySensorEntityDescription(
+    key="switch_port",
+    name="Switch Port",
+    device_class=BinarySensorDeviceClass.CONNECTIVITY,
+)
