@@ -3,7 +3,7 @@
 from unittest.mock import MagicMock
 
 import pytest
-from custom_components.meraki_ha.sensor.setup_helpers import async_setup_sensors
+from custom_components.meraki_ha.discovery.service import DeviceDiscoveryService
 from homeassistant.const import EntityCategory
 
 from custom_components.meraki_ha.const import CONF_ENABLE_TRAFFIC_SHAPING
@@ -35,7 +35,7 @@ def mock_coordinator():
     return coordinator
 
 
-def test_traffic_shaping_sensor_creation_enabled(mock_coordinator):
+async def test_traffic_shaping_sensor_creation_enabled(mock_coordinator):
     """Test that Traffic Shaping sensor is created when enabled."""
     hass = MagicMock()
 
@@ -43,7 +43,16 @@ def test_traffic_shaping_sensor_creation_enabled(mock_coordinator):
     mock_coordinator.config_entry.options = {CONF_ENABLE_TRAFFIC_SHAPING: True}
 
     # Run the setup
-    sensors = async_setup_sensors(hass, mock_coordinator.config_entry, mock_coordinator)
+    discovery_service = DeviceDiscoveryService(
+        mock_coordinator,
+        mock_coordinator.config_entry,
+        MagicMock(),
+        MagicMock(),
+        MagicMock(),
+        MagicMock(),
+    )
+    await discovery_service.discover_entities()
+    sensors = discovery_service.all_entities
 
     # Filter for TrafficShapingSensor
     ts_sensors = [s for s in sensors if s.__class__.__name__ == "TrafficShapingSensor"]
@@ -65,7 +74,7 @@ def test_traffic_shaping_sensor_creation_enabled(mock_coordinator):
     assert sensor.native_value == "Enabled"
 
 
-def test_traffic_shaping_sensor_creation_disabled(mock_coordinator):
+async def test_traffic_shaping_sensor_creation_disabled(mock_coordinator):
     """Test that Traffic Shaping sensor is NOT created when disabled."""
     hass = MagicMock()
 
@@ -73,7 +82,16 @@ def test_traffic_shaping_sensor_creation_disabled(mock_coordinator):
     mock_coordinator.config_entry.options = {CONF_ENABLE_TRAFFIC_SHAPING: False}
 
     # Run the setup
-    sensors = async_setup_sensors(hass, mock_coordinator.config_entry, mock_coordinator)
+    discovery_service = DeviceDiscoveryService(
+        mock_coordinator,
+        mock_coordinator.config_entry,
+        MagicMock(),
+        MagicMock(),
+        MagicMock(),
+        MagicMock(),
+    )
+    await discovery_service.discover_entities()
+    sensors = discovery_service.all_entities
 
     # Filter for TrafficShapingSensor
     ts_sensors = [s for s in sensors if s.__class__.__name__ == "TrafficShapingSensor"]

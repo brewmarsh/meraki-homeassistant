@@ -5,7 +5,7 @@ from typing import cast
 from unittest.mock import MagicMock
 
 import pytest
-from custom_components.meraki_ha.sensor.setup_mt_sensors import async_setup_mt_sensors
+from custom_components.meraki_ha.discovery.service import DeviceDiscoveryService
 from homeassistant.components.sensor import SensorEntity
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
@@ -101,7 +101,7 @@ def mock_coordinator_with_mt_devices(mock_coordinator: MagicMock) -> MagicMock:
     return mock_coordinator
 
 
-def test_async_setup_mt10_sensors(
+async def test_async_setup_mt10_sensors(
     mock_coordinator_with_mt_devices: MagicMock,
 ) -> None:
     """Test the setup of sensors for an MT10 device."""
@@ -109,7 +109,18 @@ def test_async_setup_mt10_sensors(
     mt10_device_dict = mock_coordinator_with_mt_devices.data["devices"][0]
     mt10_device = MerakiDevice.from_dict(mt10_device_dict)
 
-    entities = async_setup_mt_sensors(mock_coordinator_with_mt_devices, mt10_device)
+    discovery_service = DeviceDiscoveryService(
+        mock_coordinator_with_mt_devices,
+        MagicMock(),
+        MagicMock(),
+        MagicMock(),
+        MagicMock(),
+        MagicMock(),
+    )
+    discovery_service._devices = [mt10_device]
+    await discovery_service.discover_entities()
+    entities = discovery_service.all_entities
+
     for entity in entities:
         entity.hass = MagicMock()
         entity.entity_id = "sensor.test"
@@ -139,7 +150,7 @@ def test_async_setup_mt10_sensors(
     assert humidity_sensor.available is True
 
 
-def test_async_setup_mt15_sensors(
+async def test_async_setup_mt15_sensors(
     mock_coordinator_with_mt_devices: MagicMock,
 ) -> None:
     """Test the setup of sensors for an MT15 device."""
@@ -147,7 +158,18 @@ def test_async_setup_mt15_sensors(
     mt15_device_dict = mock_coordinator_with_mt_devices.data["devices"][1]
     mt15_device = MerakiDevice.from_dict(mt15_device_dict)
 
-    entities = async_setup_mt_sensors(mock_coordinator_with_mt_devices, mt15_device)
+    discovery_service = DeviceDiscoveryService(
+        mock_coordinator_with_mt_devices,
+        MagicMock(),
+        MagicMock(),
+        MagicMock(),
+        MagicMock(),
+        MagicMock(),
+    )
+    discovery_service._devices = [mt15_device]
+    await discovery_service.discover_entities()
+    entities = discovery_service.all_entities
+
     for entity in entities:
         entity.hass = MagicMock()
         entity.entity_id = "sensor.test"
@@ -213,7 +235,7 @@ def test_async_setup_mt15_sensors(
     assert noise_sensor.available is True
 
 
-def test_async_setup_mt12_sensors(
+async def test_async_setup_mt12_sensors(
     mock_coordinator_with_mt_devices: MagicMock,
 ) -> None:
     """Test the setup of sensors for an MT12 device."""
@@ -221,7 +243,18 @@ def test_async_setup_mt12_sensors(
     mt12_device_dict = mock_coordinator_with_mt_devices.data["devices"][2]
     mt12_device = MerakiDevice.from_dict(mt12_device_dict)
 
-    entities = async_setup_mt_sensors(mock_coordinator_with_mt_devices, mt12_device)
+    discovery_service = DeviceDiscoveryService(
+        mock_coordinator_with_mt_devices,
+        MagicMock(),
+        MagicMock(),
+        MagicMock(),
+        MagicMock(),
+        MagicMock(),
+    )
+    discovery_service._devices = [mt12_device]
+    await discovery_service.discover_entities()
+    entities = discovery_service.all_entities
+
     for entity in entities:
         entity.hass = MagicMock()
         entity.entity_id = "sensor.test"
@@ -237,7 +270,7 @@ def test_async_setup_mt12_sensors(
     assert water_sensor.available is True
 
 
-def test_async_setup_mt40_sensors(
+async def test_async_setup_mt40_sensors(
     mock_coordinator_with_mt_devices: MagicMock,
 ) -> None:
     """Test the setup of sensors for an MT40 device."""
@@ -245,7 +278,18 @@ def test_async_setup_mt40_sensors(
     mt40_device_dict = mock_coordinator_with_mt_devices.data["devices"][3]
     mt40_device = MerakiDevice.from_dict(mt40_device_dict)
 
-    entities = async_setup_mt_sensors(mock_coordinator_with_mt_devices, mt40_device)
+    discovery_service = DeviceDiscoveryService(
+        mock_coordinator_with_mt_devices,
+        MagicMock(),
+        MagicMock(),
+        MagicMock(),
+        MagicMock(),
+        MagicMock(),
+    )
+    discovery_service._devices = [mt40_device]
+    await discovery_service.discover_entities()
+    entities = discovery_service.all_entities
+
     for entity in entities:
         entity.hass = MagicMock()
         entity.entity_id = "sensor.test"
@@ -284,13 +328,24 @@ def test_async_setup_mt40_sensors(
     assert current_sensor.available is True
 
 
-def test_availability(mock_coordinator_with_mt_devices: MagicMock) -> None:
+async def test_availability(mock_coordinator_with_mt_devices: MagicMock) -> None:
     """Test sensor availability."""
     # Get an MT10 device
     mt10_device_dict = mock_coordinator_with_mt_devices.data["devices"][0]
     mt10_device = MerakiDevice.from_dict(mt10_device_dict)
 
-    entities = async_setup_mt_sensors(mock_coordinator_with_mt_devices, mt10_device)
+    discovery_service = DeviceDiscoveryService(
+        mock_coordinator_with_mt_devices,
+        MagicMock(),
+        MagicMock(),
+        MagicMock(),
+        MagicMock(),
+        MagicMock(),
+    )
+    discovery_service._devices = [mt10_device]
+    await discovery_service.discover_entities()
+    entities = discovery_service.all_entities
+
     temp_sensor = entities[0]
     assert isinstance(temp_sensor, SensorEntity)
     temp_sensor.hass = MagicMock()

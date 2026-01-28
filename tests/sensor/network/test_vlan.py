@@ -3,7 +3,7 @@
 from unittest.mock import MagicMock
 
 import pytest
-from custom_components.meraki_ha.sensor.setup_helpers import async_setup_sensors
+from custom_components.meraki_ha.discovery.service import DeviceDiscoveryService
 
 from custom_components.meraki_ha.types import MerakiNetwork, MerakiVlan
 
@@ -52,16 +52,6 @@ def mock_coordinator():
         ipv6=None,  # Explicitly None if not enabled/present
         dhcp_handling="Do not respond to DHCP requests",
     )
-    # vlan2 enabled=False is not in MerakiVlan?
-    # Check MerakiVlan definition in types.py:
-    # id, name, subnet, appliance_ip, ipv6, dhcp_handling.
-    # It does NOT have 'enabled' field!
-    # The dict in original test had 'enabled': True.
-    # So 'enabled' was lost in my types.py update?
-    # Meraki API 'getNetworkApplianceVlans' returns object that has no 'enabled' field?
-    # It seems Meraki VLANs are always enabled if they exist?
-    # Or maybe I missed it.
-    # Let's assume for now it's fine.
 
     coordinator.data = {
         "networks": [mock_network],
@@ -73,12 +63,21 @@ def mock_coordinator():
     return coordinator
 
 
-def test_vlan_sensor_creation(mock_coordinator):
+async def test_vlan_sensor_creation(mock_coordinator):
     """Test that VLAN sensors are created correctly."""
     hass = MagicMock()
 
     # Run the setup
-    sensors = async_setup_sensors(hass, mock_coordinator.config_entry, mock_coordinator)
+    discovery_service = DeviceDiscoveryService(
+        mock_coordinator,
+        mock_coordinator.config_entry,
+        MagicMock(),
+        MagicMock(),
+        MagicMock(),
+        MagicMock(),
+    )
+    await discovery_service.discover_entities()
+    sensors = discovery_service.all_entities
 
     # We expect 7 sensors for each of the two VLANs
     vlan_sensors = [s for s in sensors if "VLAN" in s.__class__.__name__]
