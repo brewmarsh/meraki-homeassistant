@@ -89,7 +89,9 @@ async def test_vlan_sensor_creation(mock_coordinator):
     assert len(vlan1_sensors) == 7
 
     # Find the specific sensors for VLAN 1 by translation_key
-    id_sensor = next(s for s in vlan1_sensors if s.translation_key == "vlan_id")
+    id_sensor = next(
+        s for s in vlan1_sensors if s.translation_key == "vlan_id"
+    )
     ipv4_enabled_sensor = next(
         s for s in vlan1_sensors if s.translation_key == "ipv4_enabled"
     )
