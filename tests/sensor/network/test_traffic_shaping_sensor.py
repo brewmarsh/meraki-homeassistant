@@ -3,10 +3,10 @@
 from unittest.mock import MagicMock
 
 import pytest
-from custom_components.meraki_ha.discovery.service import DeviceDiscoveryService
 from homeassistant.const import EntityCategory
 
 from custom_components.meraki_ha.const import CONF_ENABLE_TRAFFIC_SHAPING
+from custom_components.meraki_ha.discovery.service import DeviceDiscoveryService
 from custom_components.meraki_ha.types import MerakiNetwork
 
 
@@ -76,7 +76,7 @@ async def test_traffic_shaping_sensor_creation_enabled(mock_coordinator):
 
 async def test_traffic_shaping_sensor_creation_disabled(mock_coordinator):
     """Test that Traffic Shaping sensor is NOT created when disabled."""
-    hass = MagicMock()
+    MagicMock()
 
     # Disable the option (default)
     mock_coordinator.config_entry.options = {CONF_ENABLE_TRAFFIC_SHAPING: False}

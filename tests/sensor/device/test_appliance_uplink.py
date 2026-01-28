@@ -3,8 +3,8 @@
 from unittest.mock import MagicMock
 
 import pytest
-from custom_components.meraki_ha.discovery.service import DeviceDiscoveryService
 
+from custom_components.meraki_ha.discovery.service import DeviceDiscoveryService
 from custom_components.meraki_ha.types import MerakiDevice
 
 

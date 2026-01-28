@@ -3,8 +3,8 @@
 from unittest.mock import MagicMock
 
 import pytest
-from custom_components.meraki_ha.discovery.service import DeviceDiscoveryService
 
+from custom_components.meraki_ha.discovery.service import DeviceDiscoveryService
 from custom_components.meraki_ha.types import MerakiNetwork, MerakiVlan
 
 
@@ -65,7 +65,7 @@ def mock_coordinator():
 
 async def test_vlan_sensor_creation(mock_coordinator):
     """Test that VLAN sensors are created correctly."""
-    hass = MagicMock()
+    MagicMock()
 
     # Run the setup
     discovery_service = DeviceDiscoveryService(
