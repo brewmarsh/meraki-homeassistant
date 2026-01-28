@@ -41,8 +41,8 @@ MOCK_UNAVAILABLE_DEVICE = {
 MOCK_REPRO_DATA: dict[str, Any] = MOCK_ALL_DATA.copy()
 MOCK_REPRO_DATA["devices"] = [MOCK_UNAVAILABLE_DEVICE]
 if MOCK_REPRO_DATA["networks"]:
-    MOCK_REPRO_DATA["networks"][0]["is_enabled"] = True
-    MOCK_REPRO_DATA["networks"][0]["ssids"] = []  # Clear SSIDs to simplify
+    MOCK_REPRO_DATA["networks"][0].is_enabled = True
+    MOCK_REPRO_DATA["networks"][0].ssids = []  # Clear SSIDs to simplify
 
 
 class ReuseAddrTCPServer(socketserver.TCPServer):

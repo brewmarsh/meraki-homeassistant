@@ -4,7 +4,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from custom_components.meraki_ha.sensor.setup_helpers import async_setup_sensors
+from custom_components.meraki_ha.discovery.service import DeviceDiscoveryService
 from custom_components.meraki_ha.types import MerakiDevice
 
 
@@ -41,7 +41,6 @@ def mock_coordinator():
     )
     coordinator.data = {
         "devices": [mock_device_data],
-        # Add other required data structures for setup_helpers
         "clients": [],
         "ssids": [],
         "vlans": {},
@@ -50,13 +49,24 @@ def mock_coordinator():
     return coordinator
 
 
-def test_appliance_uplink_sensor_creation(mock_coordinator):
+async def test_appliance_uplink_sensor_creation(mock_coordinator):
     """Test that appliance uplink sensors are created correctly."""
-    hass = MagicMock()
     config_entry = MagicMock()
+    meraki_client = MagicMock()
+    camera_service = MagicMock()
+    control_service = MagicMock()
+    network_control_service = MagicMock()
 
-    # Run the setup
-    sensors = async_setup_sensors(hass, config_entry, mock_coordinator)
+    discovery_service = DeviceDiscoveryService(
+        mock_coordinator,
+        config_entry,
+        meraki_client,
+        camera_service,
+        control_service,
+        network_control_service,
+    )
+    await discovery_service.discover_entities()
+    sensors = discovery_service.all_entities
 
     # Filter for just the uplink sensors
     uplink_sensors = [s for s in sensors if "Uplink" in s.__class__.__name__]

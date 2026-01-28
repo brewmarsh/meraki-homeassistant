@@ -77,12 +77,6 @@ class MerakiAuthentication:
                 "Meraki Dashboard API client is not initialized."
             )
 
-        # The client's endpoints are initialized before the dashboard is.
-        # We need to re-initialize the organization endpoint to ensure it has the dashboard.
-        from .core.api.endpoints.organization import OrganizationEndpoints
-
-        client.organization = OrganizationEndpoints(client)
-
         try:
             all_organizations: list[
                 dict[str, Any]

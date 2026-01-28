@@ -59,7 +59,7 @@ class MerakiCamera(CoordinatorEntity, Camera):
 
     def __init__(
         self,
-        coordinator: MerakiDataCoordinator,
+        coordinator: MerakiDataUpdateCoordinator,
         config_entry: ConfigEntry,
         device: dict[str, Any],
         camera_service: CameraService,

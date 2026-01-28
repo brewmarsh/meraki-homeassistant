@@ -32,7 +32,6 @@ class NetworkEndpoints:
 
         """
         self._api_client = api_client
-        self._dashboard = api_client.dashboard
 
     @handle_meraki_errors
     @async_timed_cache(timeout=60)
@@ -72,7 +71,7 @@ class NetworkEndpoints:
             kwargs["statuses"] = statuses
 
         clients = await self._api_client.run_sync(
-            self._dashboard.networks.getNetworkClients,
+            self._api_client.dashboard.networks.getNetworkClients,
             **kwargs,
         )
         validated = validate_response(clients)
@@ -100,7 +99,7 @@ class NetworkEndpoints:
 
         """
         traffic = await self._api_client.run_sync(
-            self._dashboard.networks.getNetworkTraffic,
+            self._api_client.dashboard.networks.getNetworkTraffic,
             networkId=network_id,
             deviceType=device_type,
             timespan=86400,  # 24 hours
@@ -127,7 +126,7 @@ class NetworkEndpoints:
 
         """
         webhooks = await self._api_client.run_sync(
-            self._dashboard.networks.getNetworkWebhooksHttpServers,
+            self._api_client.dashboard.networks.getNetworkWebhooksHttpServers,
             networkId=network_id,
         )
         validated = validate_response(webhooks)
@@ -148,7 +147,7 @@ class NetworkEndpoints:
 
         """
         await self._api_client.run_sync(
-            self._dashboard.networks.deleteNetworkWebhooksHttpServer,
+            self._api_client.dashboard.networks.deleteNetworkWebhooksHttpServer,
             networkId=network_id,
             httpServerId=webhook_id,
         )
@@ -247,7 +246,7 @@ class NetworkEndpoints:
                 await self.delete_webhook(network_id, existing_webhook["id"])
 
             await self._api_client.run_sync(
-                self._dashboard.networks.createNetworkWebhooksHttpServer,
+                self._api_client.dashboard.networks.createNetworkWebhooksHttpServer,
                 networkId=network_id,
                 url=webhook_url,
                 sharedSecret=secret,
@@ -325,7 +324,7 @@ class NetworkEndpoints:
 
         """
         history = await self._api_client.run_sync(
-            self._dashboard.camera.getDeviceCameraAnalyticsRecent,
+            self._api_client.dashboard.camera.getDeviceCameraAnalyticsRecent,
             serial=serial,
             objectType=object_type,
         )
