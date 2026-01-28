@@ -100,6 +100,7 @@ class MerakiMtSensor(CoordinatorEntity, RestoreSensor):
                             "co2": "concentration",
                             "water": "present",
                             "voltage": "level",
+                            "button": "pressType",
                         }
                         value_key = key_map.get(key)
                         if value_key:
