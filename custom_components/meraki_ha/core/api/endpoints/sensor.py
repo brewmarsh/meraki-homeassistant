@@ -95,6 +95,7 @@ class SensorEndpoints:
 
         """
         metrics = [
+            "apparentPower",
             "battery",
             "button",
             "co2",
@@ -103,7 +104,7 @@ class SensorEndpoints:
             "humidity",
             "noise",
             "pm25",
-            "power",
+            "realPower",
             "temperature",
             "tvoc",
             "voltage",
