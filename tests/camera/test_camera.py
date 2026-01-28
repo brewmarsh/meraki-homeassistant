@@ -10,7 +10,7 @@ from tests.const import MOCK_CAMERA_DEVICE
 
 async def test_camera_rtsp_enabled_via_fallback(mock_coordinator, mock_config_entry):
     """Test RTSP enabled via fallback when flag is False but LAN IP is present."""
-    device_data = {
+    device_data_dict = {
         "serial": "Q234-ABCD-CAM1",
         "name": "Test Camera",
         "model": "MV33",
@@ -18,11 +18,14 @@ async def test_camera_rtsp_enabled_via_fallback(mock_coordinator, mock_config_en
         "productType": "camera",
         "lanIp": "192.168.1.100",
         "status": "online",
-        "video_settings": {
+        "videoSettings": {
             "rtspServerEnabled": False,
         },
-        "rtsp_url": None,
+        "rtspUrl": None,
     }
+    from custom_components.meraki_ha.types import MerakiDevice
+
+    device_data = MerakiDevice.from_dict(device_data_dict)
 
     # Setup coordinator to return this device
     mock_coordinator.get_device.return_value = device_data
@@ -51,7 +54,7 @@ async def test_camera_rtsp_enabled_via_fallback(mock_coordinator, mock_config_en
 
 async def test_camera_rtsp_disabled_when_no_ip(mock_coordinator, mock_config_entry):
     """Test RTSP disabled message shown when flag is False and no IP available."""
-    device_data = {
+    device_data_dict = {
         "serial": "Q234-ABCD-CAM2",
         "name": "Test Camera 2",
         "model": "MV33",
@@ -59,11 +62,14 @@ async def test_camera_rtsp_disabled_when_no_ip(mock_coordinator, mock_config_ent
         "productType": "camera",
         "lanIp": None,  # No IP
         "status": "online",
-        "video_settings": {
+        "videoSettings": {
             "rtspServerEnabled": False,
         },
-        "rtsp_url": None,
+        "rtspUrl": None,
     }
+    from custom_components.meraki_ha.types import MerakiDevice
+
+    device_data = MerakiDevice.from_dict(device_data_dict)
 
     mock_coordinator.get_device.return_value = device_data
     mock_coordinator.config_entry = mock_config_entry

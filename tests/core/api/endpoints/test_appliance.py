@@ -41,6 +41,7 @@ def api_client(hass, mock_dashboard, coordinator):
         client = MerakiAPIClient(
             hass=hass, api_key="test-key", org_id="test-org", coordinator=coordinator
         )
+        client.dashboard = mock_dashboard
         yield client
 
 

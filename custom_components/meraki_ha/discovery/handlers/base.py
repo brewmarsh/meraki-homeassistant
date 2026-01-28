@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import logging
 from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
@@ -63,15 +63,6 @@ class BaseDeviceHandler(BaseHandler, ABC):
 
     @classmethod
     @abstractmethod
-    def create(
-        cls,
-        coordinator: MerakiDataUpdateCoordinator,
-        device: MerakiDevice,
-        config_entry: ConfigEntry,
-        camera_service: CameraService,
-        control_service: DeviceControlService,
-        network_control_service: NetworkControlService,
-        switch_port_coordinator: SwitchPortStatusCoordinator,
-    ) -> BaseDeviceHandler:
+    def create(cls, *args: Any, **kwargs: Any) -> BaseDeviceHandler:
         """Create an instance of the handler."""
         raise NotImplementedError

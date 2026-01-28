@@ -31,7 +31,6 @@ async def test_discover_entities():
         mock_coordinator,
         mock_switch_device,
         mock_config_entry,
-        mock_switch_port_coordinator,
         mock_control_service,
     )
 
