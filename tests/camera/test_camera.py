@@ -8,6 +8,22 @@ from custom_components.meraki_ha.camera import MerakiCamera
 from tests.const import MOCK_CAMERA_DEVICE
 
 
+@pytest.fixture
+def mock_camera(
+    mock_coordinator: MagicMock,
+    mock_config_entry: MagicMock,
+    mock_camera_service: AsyncMock,
+) -> MerakiCamera:
+    """Create a mock MerakiCamera entity."""
+    mock_coordinator.get_device.return_value = MOCK_CAMERA_DEVICE
+    return MerakiCamera(
+        coordinator=mock_coordinator,
+        config_entry=mock_config_entry,
+        device=MOCK_CAMERA_DEVICE,
+        camera_service=mock_camera_service,
+    )
+
+
 async def test_camera_rtsp_enabled_via_fallback(mock_coordinator, mock_config_entry):
     """Test RTSP enabled via fallback when flag is False but LAN IP is present."""
     device_data_dict = {
