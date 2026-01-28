@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import dataclasses
 import http.server
 import json
 import os
@@ -132,6 +133,16 @@ async def test_e2e_panel_comprehensive(
 
             # Prepare mock data with enabled network and enhanced devices
             mock_data: dict[str, Any] = MOCK_ALL_DATA.copy()
+            # Convert dataclasses to dicts
+            mock_data["networks"] = [
+                dataclasses.asdict(n) if dataclasses.is_dataclass(n) else n
+                for n in mock_data.get("networks", [])
+            ]
+            mock_data["devices"] = [
+                dataclasses.asdict(d) if dataclasses.is_dataclass(d) else d
+                for d in mock_data.get("devices", [])
+            ]
+
             if mock_data["networks"]:
                 mock_data["networks"][0]["is_enabled"] = True
 

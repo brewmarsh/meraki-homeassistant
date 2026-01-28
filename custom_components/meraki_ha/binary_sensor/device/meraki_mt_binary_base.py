@@ -39,14 +39,14 @@ class MerakiMtBinarySensor(CoordinatorEntity, BinarySensorEntity):
         """Return device information."""
         device_identifiers = set()
         if self._device.serial:
-            device_identifiers = {(DOMAIN, self._device.serial)}
+            device_identifiers = {(DOMAIN, str(self._device.serial))}
 
         return DeviceInfo(
             identifiers=device_identifiers,
             name=format_device_name(
                 self._device, self.coordinator.config_entry.options
             ),
-            model=self._device.model,
+            model=str(self._device.model),
             manufacturer="Cisco Meraki",
         )
 
