@@ -13,7 +13,7 @@ from unittest.mock import patch
 
 import pytest
 from homeassistant.core import HomeAssistant
-from playwright.async_api import async_playwright, expect
+from playwright.async_api import Error, async_playwright, expect
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.meraki_ha.const import (
@@ -123,9 +123,17 @@ async def test_e2e_panel_comprehensive(
         httpd_thread.daemon = True
         httpd_thread.start()
 
-        async with async_playwright() as p:
-            browser = await p.chromium.launch()
-            page = await browser.new_page()
+        try:
+            async with async_playwright() as p:
+                browser = await p.chromium.launch()
+                page = await browser.new_page()
+        except Error as e:
+            if "Executable doesn't exist at" in str(e):
+                pytest.skip(
+                    "Playwright browsers not installed. "
+                    "Run `playwright install` to run this test."
+                )
+            raise
 
             # Capture console logs and errors
             page.on("console", lambda msg: print(f"BROWSER CONSOLE: {msg.text}"))

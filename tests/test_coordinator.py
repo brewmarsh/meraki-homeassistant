@@ -1,9 +1,13 @@
 """Tests for the Meraki data coordinator."""
 
-from unittest.mock import AsyncMock, MagicMock
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
+from custom_components.meraki_ha.const import (
+    CONF_MERAKI_API_KEY,
+    CONF_MERAKI_ORG_ID,
+)
 from custom_components.meraki_ha.coordinator import (
     MerakiDataUpdateCoordinator as MerakiDataCoordinator,
 )
@@ -23,7 +27,12 @@ def coordinator(hass, mock_api_client):
     """Fixture for a MerakiDataCoordinator instance."""
     entry = MagicMock()
     entry.options = {}
-    return MerakiDataCoordinator(hass=hass, api_client=mock_api_client, entry=entry)
+    entry.data = {CONF_MERAKI_API_KEY: "test-key", CONF_MERAKI_ORG_ID: "test-org"}
+    with patch(
+        "custom_components.meraki_ha.coordinator.ApiClient",
+        return_value=mock_api_client,
+    ):
+        yield MerakiDataCoordinator(hass=hass, entry=entry)
 
 
 @pytest.mark.asyncio
