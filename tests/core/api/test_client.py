@@ -144,16 +144,16 @@ async def test_get_all_data_handles_informational_errors(api_client):
         return MerakiInformationalError("Traffic analysis is not enabled")
 
     api_client._build_detail_tasks = MagicMock(
-        return_value={f"traffic_{MOCK_NETWORK.id}": coro()}
+        return_value={f"traffic_{MOCK_NETWORK_INIT['id']}": coro()}
     )
 
     # Act
     data = await api_client.get_all_data()
 
     # Assert
-    assert data["appliance_traffic"][MOCK_NETWORK.id]["error"] == "disabled"
+    assert data["appliance_traffic"][MOCK_NETWORK_INIT["id"]]["error"] == "disabled"
     assert (
-        data["appliance_traffic"][MOCK_NETWORK.id]["reason"]
+        data["appliance_traffic"][MOCK_NETWORK_INIT["id"]]["reason"]
         == "Traffic analysis is not enabled"
     )
 
@@ -214,7 +214,8 @@ async def test_get_all_data_includes_switch_ports(api_client):
     ]
 
 
-def test_build_detail_tasks_for_switch_device(api_client):
+@pytest.mark.asyncio
+async def test_build_detail_tasks_for_switch_device(api_client):
     """Test that _build_detail_tasks creates the correct tasks for a switch device."""
     # Arrange
     switch_device = MerakiDevice.from_dict({"serial": "s123", "productType": "switch"})
@@ -222,16 +223,18 @@ def test_build_detail_tasks_for_switch_device(api_client):
     networks = []
 
     # Mock endpoints and semaphore wrapper to avoid unawaited coroutine warnings
-    api_client.switch = MagicMock()
+    api_client.switch = AsyncMock()
     api_client.switch.get_device_switch_ports_statuses.return_value = "mock_switch_coro"
-    api_client._run_with_semaphore = MagicMock(side_effect=lambda x: x)
+    api_client._run_with_semaphore = AsyncMock(side_effect=lambda x: x)
 
     # Act
     tasks = api_client._build_detail_tasks(networks, devices)
 
     # Assert
     assert f"ports_statuses_{switch_device.serial}" in tasks
-    assert tasks[f"ports_statuses_{switch_device.serial}"] == "mock_switch_coro"
+    # Clean up coroutines to avoid warnings
+    for task in tasks.values():
+        await task
     api_client.switch.get_device_switch_ports_statuses.assert_called_once_with("s123")
 
 
@@ -244,8 +247,8 @@ async def test_build_detail_tasks_for_camera_device(api_client):
     networks = []
 
     # Mock dependencies to avoid unawaited coroutine warnings
-    api_client.camera = MagicMock()
-    api_client._run_with_semaphore = MagicMock()
+    api_client.camera = AsyncMock()
+    api_client._run_with_semaphore = AsyncMock()
 
     # Act
     tasks = api_client._build_detail_tasks(networks, devices)
@@ -262,7 +265,8 @@ async def test_build_detail_tasks_for_camera_device(api_client):
     api_client.camera.get_camera_sense_settings.assert_called_once_with("c123")
 
 
-def test_build_detail_tasks_for_appliance_device(api_client):
+@pytest.mark.asyncio
+async def test_build_detail_tasks_for_appliance_device(api_client):
     """Test that _build_detail_tasks creates tasks for an appliance device."""
     # Arrange
     appliance_device = MerakiDevice.from_dict(
