@@ -3,10 +3,10 @@
 from unittest.mock import MagicMock
 
 import pytest
+from custom_components.meraki_ha.sensor.setup_helpers import async_setup_sensors
 from homeassistant.const import EntityCategory
 
 from custom_components.meraki_ha.const import CONF_ENABLE_TRAFFIC_SHAPING
-from custom_components.meraki_ha.sensor.setup_helpers import async_setup_sensors
 from custom_components.meraki_ha.types import MerakiNetwork
 
 
