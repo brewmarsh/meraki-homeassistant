@@ -6,7 +6,11 @@ import pytest
 from homeassistant.helpers.device_registry import DeviceEntry
 from homeassistant.helpers.entity_registry import RegistryEntry
 
-from custom_components.meraki_ha.const import DOMAIN
+from custom_components.meraki_ha.const import (
+    CONF_MERAKI_API_KEY,
+    CONF_MERAKI_ORG_ID,
+    DOMAIN,
+)
 from custom_components.meraki_ha.coordinator import (
     MerakiDataUpdateCoordinator as MerakiDataCoordinator,
 )
@@ -24,7 +28,13 @@ def coordinator(hass, mock_api_client):
     """Fixture for a MerakiDataCoordinator instance."""
     entry = MagicMock()
     entry.options = {}
-    return MerakiDataCoordinator(hass=hass, api_client=mock_api_client, entry=entry)
+    entry.data = {
+        CONF_MERAKI_API_KEY: "test_key",
+        CONF_MERAKI_ORG_ID: "test_org",
+    }
+    with patch("custom_components.meraki_ha.coordinator.ApiClient") as MockApiClient:
+        MockApiClient.return_value = mock_api_client
+        return MerakiDataCoordinator(hass=hass, entry=entry)
 
 
 @pytest.mark.asyncio

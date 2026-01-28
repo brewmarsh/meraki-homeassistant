@@ -1,9 +1,15 @@
 """Tests for the Meraki data coordinator."""
 
-from unittest.mock import AsyncMock, MagicMock
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
+from pytest_homeassistant_custom_component.common import MockConfigEntry
 
+from custom_components.meraki_ha.const import (
+    CONF_MERAKI_API_KEY,
+    CONF_MERAKI_ORG_ID,
+    DOMAIN,
+)
 from custom_components.meraki_ha.coordinator import (
     MerakiDataUpdateCoordinator as MerakiDataCoordinator,
 )
@@ -21,9 +27,19 @@ def mock_api_client():
 @pytest.fixture
 def coordinator(hass, mock_api_client):
     """Fixture for a MerakiDataCoordinator instance."""
-    entry = MagicMock()
-    entry.options = {}
-    return MerakiDataCoordinator(hass=hass, api_client=mock_api_client, entry=entry)
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        data={
+            CONF_MERAKI_API_KEY: "test_key",
+            CONF_MERAKI_ORG_ID: "test_org",
+        },
+        options={},
+    )
+    entry.add_to_hass(hass)
+
+    with patch("custom_components.meraki_ha.coordinator.ApiClient") as MockApiClient:
+        MockApiClient.return_value = mock_api_client
+        return MerakiDataCoordinator(hass=hass, entry=entry)
 
 
 @pytest.mark.asyncio
@@ -34,12 +50,17 @@ async def test_update_data_handles_errors(coordinator, mock_api_client):
         "networks": [MOCK_NETWORK],
         "devices": [],
         "appliance_traffic": {
-            MOCK_NETWORK["id"]: {
+            MOCK_NETWORK.id: {
                 "error": "disabled",
                 "reason": "Traffic analysis is not enabled",
             }
         },
-        "vlans": {MOCK_NETWORK["id"]: []},
+        "vlans": {
+            MOCK_NETWORK.id: {
+                "error": "disabled",
+                "reason": "VLANs are not enabled",
+            }
+        },
     }
     coordinator.add_network_status_message = MagicMock()
     coordinator.mark_traffic_check_done = MagicMock()
@@ -50,10 +71,10 @@ async def test_update_data_handles_errors(coordinator, mock_api_client):
 
     # Assert
     coordinator.add_network_status_message.assert_any_call(
-        MOCK_NETWORK["id"], "Traffic Analysis is not enabled for this network."
+        MOCK_NETWORK.id, "Traffic Analysis is not enabled for this network."
     )
-    coordinator.mark_traffic_check_done.assert_called_once_with(MOCK_NETWORK["id"])
+    coordinator.mark_traffic_check_done.assert_called_once_with(MOCK_NETWORK.id)
     coordinator.add_network_status_message.assert_any_call(
-        MOCK_NETWORK["id"], "VLANs are not enabled for this network."
+        MOCK_NETWORK.id, "VLANs are not enabled for this network."
     )
-    coordinator.mark_vlan_check_done.assert_called_once_with(MOCK_NETWORK["id"])
+    coordinator.mark_vlan_check_done.assert_called_once_with(MOCK_NETWORK.id)

@@ -5,8 +5,10 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING, Any
 
+import meraki
 from homeassistant.core import HomeAssistant
 
+from custom_components.meraki_ha.core.errors import MerakiConnectionError
 from custom_components.meraki_ha.core.utils.api_utils import (
     handle_meraki_errors,
     validate_response,
@@ -37,10 +39,12 @@ class ApplianceEndpoints:
         self._hass = hass
 
     @property
-    def _dashboard(self) -> "meraki.DashboardAPI":
+    def _dashboard(self) -> meraki.DashboardAPI:
         """
         Return the dashboard API client, ensuring it's initialized.
-        Raises:
+
+        Raises
+        ------
             MerakiConnectionError: If the dashboard API client is not initialized.
         """
         if self._api_client.dashboard is None:
