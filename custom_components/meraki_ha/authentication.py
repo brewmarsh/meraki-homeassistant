@@ -74,7 +74,7 @@ class MerakiAuthentication:
         try:
             all_organizations: list[
                 dict[str, Any]
-            ] = await client.organization.get_organizations()
+            ] = await client.organization.getOrganizations()
 
             org_found = False
             fetched_org_name: str | None = None
