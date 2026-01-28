@@ -18,7 +18,6 @@ from ..const import (
     CONF_ENABLE_NETWORK_SENSORS,
     CONF_ENABLE_SSID_SENSORS,
 )
-
 if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
     from homeassistant.helpers.entity import Entity
@@ -54,6 +53,7 @@ class DeviceDiscoveryService:
         self._control_service = control_service
         self._network_control_service = network_control_service
         self._devices: list[MerakiDevice] = self._coordinator.data.get("devices", [])
+        self.all_entities: list[Entity] = []
 
     async def discover_entities(self) -> list[Entity]:
         """
@@ -240,4 +240,5 @@ class DeviceDiscoveryService:
             _LOGGER.debug("SSID sensors are disabled.")
 
         _LOGGER.info("Entity discovery complete. Found %d entities.", len(all_entities))
-        return all_entities
+        self.all_entities = all_entities
+        return self.all_entities

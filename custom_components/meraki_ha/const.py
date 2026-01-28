@@ -60,12 +60,6 @@ CONF_ENABLE_FIREWALL_RULES: Final = "enable_firewall_rules"
 CONF_ENABLE_TRAFFIC_SHAPING: Final = "enable_traffic_shaping"
 """Configuration key for enabling traffic shaping."""
 
-CONF_ENABLED_NETWORKS: Final = "enabled_networks"
-"""Configuration key for a list of network IDs to enable."""
-
-CONF_IGNORED_NETWORKS: Final = "ignored_networks"
-"""Configuration key for a list of network IDs to ignore."""
-
 # New Configuration Options
 CONF_ENABLE_DEVICE_STATUS: Final = "enable_device_status"
 CONF_ENABLE_ORG_SENSORS: Final = "enable_org_sensors"
@@ -93,9 +87,6 @@ DEFAULT_ENABLE_FIREWALL_RULES: Final = False
 
 DEFAULT_ENABLE_TRAFFIC_SHAPING: Final = False
 """Default value for enabling traffic shaping."""
-
-DEFAULT_IGNORED_NETWORKS: Final = ""
-"""Default value for the ignored networks list."""
 
 DEFAULT_HIDE_UNCONFIGURED_SSIDS: Final = False
 """Default value for hiding unconfigured SSIDs."""
