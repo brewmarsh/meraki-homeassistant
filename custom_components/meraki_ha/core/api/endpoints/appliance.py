@@ -34,8 +34,20 @@ class ApplianceEndpoints:
 
         """
         self._api_client = api_client
-        self._dashboard = api_client.dashboard
         self._hass = hass
+
+    @property
+    def _dashboard(self) -> "meraki.DashboardAPI":
+        """
+        Return the dashboard API client, ensuring it's initialized.
+        Raises:
+            MerakiConnectionError: If the dashboard API client is not initialized.
+        """
+        if self._api_client.dashboard is None:
+            raise MerakiConnectionError(
+                "Meraki Dashboard API client is not initialized."
+            )
+        return self._api_client.dashboard
 
     @handle_meraki_errors
     @async_timed_cache(timeout=60)
