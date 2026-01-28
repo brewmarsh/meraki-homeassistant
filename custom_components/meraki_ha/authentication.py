@@ -70,11 +70,17 @@ class MerakiAuthentication:
             api_key=self.api_key,
             org_id=self.organization_id,
         )
+        await client.async_setup()
+
+        if client.dashboard is None:
+            raise MerakiConnectionError(
+                "Meraki Dashboard API client is not initialized."
+            )
 
         try:
             all_organizations: list[
                 dict[str, Any]
-            ] = await client.organization.get_organizations()
+            ] = await client.dashboard.organization.get_organizations()
 
             org_found = False
             fetched_org_name: str | None = None
