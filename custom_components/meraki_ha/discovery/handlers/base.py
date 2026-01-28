@@ -18,12 +18,6 @@ if TYPE_CHECKING:
     from ....coordinator import (
         MerakiDataUpdateCoordinator,
     )
-    from ....core.coordinators.switch_port_status_coordinator import (
-        SwitchPortStatusCoordinator,
-    )
-    from ....services.camera_service import CameraService
-    from ....services.device_control_service import DeviceControlService
-    from ....services.network_control_service import NetworkControlService
     from ....types import MerakiDevice
 
 

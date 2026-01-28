@@ -20,7 +20,10 @@ def mock_api_client():
 @pytest.fixture
 def coordinator(hass, mock_api_client):
     """Fixture for a MerakiDataCoordinator instance."""
-    from custom_components.meraki_ha.const import CONF_MERAKI_API_KEY, CONF_MERAKI_ORG_ID
+    from custom_components.meraki_ha.const import (
+        CONF_MERAKI_API_KEY,
+        CONF_MERAKI_ORG_ID,
+    )
 
     entry = MagicMock()
     entry.options = {}

@@ -15,7 +15,7 @@ async def test_discover_entities():
     mock_coordinator = MagicMock()
     mock_config_entry = MagicMock()
     mock_control_service = MagicMock()
-    mock_switch_port_coordinator = MagicMock()
+    MagicMock()
     mock_switch_device = MerakiDevice(
         serial="Q234-ABCD-5678",
         name="My Switch",
