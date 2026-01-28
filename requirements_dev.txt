@@ -1,4 +1,4 @@
-acme
+acme==5.1.0
 aiodns==3.6.1
 aiofiles==23.2.1
 aiohappyeyeballs
