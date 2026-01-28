@@ -202,4 +202,4 @@ class MerakiSwitchPortEnergySensor(CoordinatorEntity, SensorEntity):
     @property
     def native_value(self) -> float:
         """Return the state of the sensor."""
-        return round(self._total_energy, 2)
+        return round(float(self._port.get("powerUsageInWh", 0) or 0), 2)

@@ -22,6 +22,7 @@ if TYPE_CHECKING:
 
     from .coordinator import MerakiDataUpdateCoordinator
     from .services.camera_service import CameraService
+    from .types import MerakiDevice
 
 
 _LOGGER = logging.getLogger(__name__)
@@ -61,24 +62,27 @@ class MerakiCamera(CoordinatorEntity, Camera):
         self,
         coordinator: MerakiDataUpdateCoordinator,
         config_entry: ConfigEntry,
-        device: dict[str, Any],
+        device: MerakiDevice,
         camera_service: CameraService,
     ) -> None:
         """Initialize the camera."""
         super().__init__(coordinator)
         Camera.__init__(self)
         self._config_entry = config_entry
-        self._device_serial = device["serial"]
+        # device is passed as MerakiDevice
+        self._device_serial = device.serial if device.serial else ""
         self._camera_service = camera_service
         self._attr_unique_id = f"{self._device_serial}-camera"
         self._attr_has_entity_name = True
         self._attr_name = None
-        self._attr_model = self.device_data.get("model")
+        self._attr_model = self.device_data.model
 
     @property
-    def device_data(self) -> dict[str, Any]:
+    def device_data(self) -> MerakiDevice:
         """Return the device data from the coordinator."""
-        return self.coordinator.get_device(self._device_serial) or {}
+        from .types import MerakiDevice
+
+        return self.coordinator.get_device(self._device_serial) or MerakiDevice()
 
     @property
     def device_info(self) -> DeviceInfo:
@@ -88,7 +92,7 @@ class MerakiCamera(CoordinatorEntity, Camera):
             name=format_device_name(
                 self.device_data, self.coordinator.config_entry.options
             ),
-            model=self.device_data.get("model"),
+            model=self.device_data.model,
             manufacturer="Cisco Meraki",
         )
 
@@ -96,7 +100,7 @@ class MerakiCamera(CoordinatorEntity, Camera):
         self, width: int | None = None, height: int | None = None
     ) -> bytes | None:
         """Return a still image from the camera."""
-        if self.device_data.get("status") != "online":
+        if self.device_data.status != "online":
             _LOGGER.debug("Skipping snapshot for offline camera: %s", self.name)
             return None
 
@@ -121,14 +125,14 @@ class MerakiCamera(CoordinatorEntity, Camera):
     @property
     def _rtsp_url(self) -> str | None:
         """Return the RTSP URL, either from API or constructed."""
-        if url := self.device_data.get("rtsp_url"):
-            return url  # type: ignore[no-any-return]
+        if url := self.device_data.rtsp_url:
+            return url
 
         # Fallback for MV cameras with LAN IP
         # The rtspServerEnabled flag is unreliable, so we fallback to
         # constructing the URL if the device is online and has a LAN IP.
-        model = self.device_data.get("model", "")
-        lan_ip = self.device_data.get("lanIp")
+        model = self.device_data.model or ""
+        lan_ip = self.device_data.lan_ip
         if model.startswith("MV") and lan_ip:
             return f"rtsp://{lan_ip}:9000/live"
 
@@ -145,7 +149,7 @@ class MerakiCamera(CoordinatorEntity, Camera):
         """Return the state attributes."""
         attrs = {}
         rtsp_url = self._rtsp_url
-        video_settings = self.device_data.get("video_settings", {})
+        video_settings = self.device_data.video_settings or {}
         rtsp_server_enabled = video_settings.get("rtspServerEnabled", False)
 
         if rtsp_url:
