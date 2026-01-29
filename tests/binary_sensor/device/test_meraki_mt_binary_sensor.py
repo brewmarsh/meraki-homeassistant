@@ -1,7 +1,6 @@
 """Tests for the Meraki MT binary sensor."""
 
 from unittest.mock import MagicMock
-from copy import deepcopy
 
 import pytest
 

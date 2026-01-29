@@ -12,7 +12,8 @@ from unittest.mock import patch
 
 import pytest
 from homeassistant.core import HomeAssistant
-from playwright.async_api import async_playwright, expect, Error as PlaywrightError
+from playwright.async_api import Error as PlaywrightError
+from playwright.async_api import async_playwright, expect
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.meraki_ha.const import (
