@@ -79,11 +79,10 @@ async def test_discover_entities_delegates_to_handler(
     mock_mv_handler_instance.discover_entities = AsyncMock(return_value=["mv_entity"])
     MockMVHandler.return_value = mock_mv_handler_instance
 
+    # Mocking locally imported handlers
     with (
-        patch.dict(
-            "custom_components.meraki_ha.discovery.service.HANDLER_MAPPING",
-            {"MR": MockMRHandler, "MV": MockMVHandler},
-        ),
+        patch("custom_components.meraki_ha.discovery.handlers.mr.MRHandler", MockMRHandler),
+        patch("custom_components.meraki_ha.discovery.handlers.mv.MVHandler", MockMVHandler),
         patch(
             "custom_components.meraki_ha.discovery.handlers.network.NetworkHandler"
         ) as MockNetworkHandler,
