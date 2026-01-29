@@ -1,6 +1,7 @@
 """Tests for the Meraki MT binary sensor."""
 
 from unittest.mock import MagicMock
+from copy import deepcopy
 
 import pytest
 
@@ -11,6 +12,7 @@ from custom_components.meraki_ha.descriptions import (
     MT_DOOR_DESCRIPTION,
     MT_WATER_DESCRIPTION,
 )
+from custom_components.meraki_ha.types import MerakiDevice
 
 
 @pytest.fixture
@@ -18,7 +20,7 @@ def mock_coordinator_mt_binary(mock_coordinator: MagicMock) -> MagicMock:
     """Fixture for a mocked MerakiDataCoordinator with MT binary data."""
     mock_coordinator.data = {
         "devices": [
-            {
+            MerakiDevice.from_dict({
                 "serial": "mt20-1",
                 "name": "MT20 Sensor",
                 "model": "MT20",
@@ -33,8 +35,8 @@ def mock_coordinator_mt_binary(mock_coordinator: MagicMock) -> MagicMock:
                         "temperature": {"celsius": 20.0},
                     },
                 ],
-            },
-            {
+            }),
+            MerakiDevice.from_dict({
                 "serial": "mt12-1",
                 "name": "MT12 Sensor",
                 "model": "MT12",
@@ -45,8 +47,8 @@ def mock_coordinator_mt_binary(mock_coordinator: MagicMock) -> MagicMock:
                         "water": {"present": True},
                     },  # Water detected
                 ],
-            },
-            {
+            }),
+            MerakiDevice.from_dict({
                 "serial": "mt12-2",
                 "name": "MT12 Sensor Dry",
                 "model": "MT12",
@@ -57,7 +59,7 @@ def mock_coordinator_mt_binary(mock_coordinator: MagicMock) -> MagicMock:
                         "water": {"present": False},
                     },  # Dry
                 ],
-            },
+            }),
         ]
     }
     return mock_coordinator
@@ -114,8 +116,8 @@ def test_sensor_availability(
     """Test sensor availability."""
     device_info = mock_coordinator_mt_binary.data["devices"][0]
     # Remove readings to test unavailability
-    device_info_no_readings = device_info.copy()
-    device_info_no_readings["readings"] = []
+    device_info_no_readings = deepcopy(device_info)
+    device_info_no_readings.readings = []
 
     sensor = MerakiMtBinarySensor(
         mock_coordinator_mt_binary, device_info_no_readings, MT_DOOR_DESCRIPTION
@@ -123,8 +125,8 @@ def test_sensor_availability(
     assert sensor.available is False
 
     # Test with readings but missing specific metric
-    device_info_missing_metric = device_info.copy()
-    device_info_missing_metric["readings"] = [
+    device_info_missing_metric = deepcopy(device_info)
+    device_info_missing_metric.readings = [
         {
             "metric": "temperature",
             "temperature": {"celsius": 20.0},

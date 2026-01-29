@@ -12,7 +12,7 @@ from unittest.mock import patch
 
 import pytest
 from homeassistant.core import HomeAssistant
-from playwright.async_api import async_playwright, expect
+from playwright.async_api import async_playwright, expect, Error as PlaywrightError
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.meraki_ha.const import (
@@ -122,7 +122,12 @@ async def test_repro_unavailable_status(
         httpd_thread.start()
 
         async with async_playwright() as p:
-            browser = await p.chromium.launch()
+            try:
+                browser = await p.chromium.launch()
+            except PlaywrightError:
+                pytest.skip("Playwright browser not installed")
+                return
+
             page = await browser.new_page()
 
             mock_data = MOCK_REPRO_DATA.copy()
