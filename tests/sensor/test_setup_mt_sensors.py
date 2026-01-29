@@ -86,8 +86,6 @@ def mock_coordinator_with_mt_devices(mock_coordinator: MagicMock) -> MagicMock:
                 device.voltage = reading.get("voltage", {}).get("level")
             elif metric == "door":
                 device.door_open = reading.get("door", {}).get("open")
-            elif metric == "water":
-                device.water_present = reading.get("water", {}).get("present")
 
     mock_coordinator.data = {"devices": devices_data}
 
@@ -263,7 +261,7 @@ async def test_async_setup_mt12_sensors(
     assert len(entities) >= 2
     water_sensor = next(e for e in entities if e.unique_id == "mt12-1_water")
     assert isinstance(water_sensor, BinarySensorEntity)
-    assert water_sensor.name == "Water Leak"
+    assert water_sensor.name == "MT12 Sensor Water Leak"
     assert water_sensor.is_on is False
     assert water_sensor.available is True
 
@@ -302,7 +300,8 @@ async def test_async_setup_mt40_sensors(
     assert power_sensor is not None
     assert isinstance(power_sensor, SensorEntity)
     assert power_sensor.unique_id == "mt40-1_power"
-    # The translation key is not set in MT_POWER_DESCRIPTION, so it defaults to None (or name is used)
+    # The translation key is not set in MT_POWER_DESCRIPTION, so it defaults to None
+    # (or name is used)
     # assert power_sensor.translation_key == "power"
     assert power_sensor.native_value == 120.5
     assert power_sensor.available is True

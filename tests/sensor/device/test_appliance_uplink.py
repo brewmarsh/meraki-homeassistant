@@ -65,6 +65,8 @@ async def test_appliance_uplink_sensor_creation(mock_coordinator):
         control_service,
         network_control_service,
     )
+    # The discovery service caches devices in _devices attribute from coordinator
+    discovery_service._devices = mock_coordinator.data["devices"]
     await discovery_service.discover_entities()
     sensors = discovery_service.all_entities
 
