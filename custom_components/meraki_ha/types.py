@@ -45,6 +45,7 @@ class MerakiDevice:
     current: float | None = None
     voltage: float | None = None
     door_open: bool | None = None
+    water_present: bool | None = None
     button_press: dict[str, Any] | None = None
 
     @classmethod
