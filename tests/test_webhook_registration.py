@@ -1,4 +1,5 @@
 """Tests for Meraki webhook registration."""
+
 from unittest.mock import AsyncMock, patch
 
 import pytest

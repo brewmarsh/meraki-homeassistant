@@ -332,9 +332,7 @@ async def test_build_detail_tasks_for_appliance_device(api_client):
     assert results[f"l3_firewall_rules_{network_with_appliance.id}"] == "task_firewall"
     assert results[f"traffic_shaping_{network_with_appliance.id}"] == "task_shaping"
     assert results[f"vpn_status_{network_with_appliance.id}"] == "task_vpn"
-    assert (
-        results[f"content_filtering_{network_with_appliance.id}"] == "task_filtering"
-    )
+    assert results[f"content_filtering_{network_with_appliance.id}"] == "task_filtering"
 
     # Check device tasks
     assert results[f"appliance_settings_{appliance_device.serial}"] == "task_settings"
