@@ -302,7 +302,8 @@ async def test_async_setup_mt40_sensors(
     assert power_sensor is not None
     assert isinstance(power_sensor, SensorEntity)
     assert power_sensor.unique_id == "mt40-1_power"
-    # The translation key is not set in MT_POWER_DESCRIPTION, so it defaults to None (or name is used)
+    # The translation key is not set in MT_POWER_DESCRIPTION,
+    # so it defaults to None (or name is used)
     # assert power_sensor.translation_key == "power"
     assert power_sensor.native_value == 120.5
     assert power_sensor.available is True
