@@ -8,7 +8,7 @@ from urllib.parse import urlparse
 
 from aiohttp import web
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.network import get_url
+from homeassistant.helpers.network import NoURLAvailableError, get_url
 
 from .const import DOMAIN
 from .core.errors import MerakiConnectionError
@@ -26,7 +26,7 @@ def get_webhook_url(
     hass: HomeAssistant,
     webhook_id: str,
     entry_webhook_url: str | None = None,
-) -> str:
+) -> str | None:
     """
     Get the URL for a webhook.
 
@@ -40,25 +40,35 @@ def get_webhook_url(
 
     Returns
     -------
-        The full webhook URL.
+        The full webhook URL, or None if it cannot be determined.
 
     Raises
     ------
         MerakiConnectionError: If the URL doesn't meet Meraki's requirements.
 
     """
-    # Use configured webhook URL if provided, otherwise fall back to HA's external URL
-    base_url = (
-        entry_webhook_url
-        if entry_webhook_url
-        else get_url(hass, allow_internal=False, prefer_external=True)
-    )
+    base_url: str | None = entry_webhook_url
 
     if not base_url:
-        raise MerakiConnectionError(
-            "No webhook URL configured. Please either configure an external URL in the "
-            "integration options or in your Home Assistant configuration.",
-        )
+        try:
+            base_url = get_url(hass, allow_internal=False, prefer_external=True)
+        except NoURLAvailableError:
+            _LOGGER.warning(
+                "Could not determine external URL for Meraki webhooks. "
+                "Trying internal URL as a fallback."
+            )
+            try:
+                base_url = get_url(hass, allow_internal=True, prefer_external=False)
+            except NoURLAvailableError:
+                _LOGGER.warning(
+                    "Could not determine internal URL for Meraki webhooks. "
+                    "Please configure an 'external_url' in Home Assistant or "
+                    "provide a manual override in the integration options."
+                )
+                base_url = None
+
+    if not base_url:
+        return None
 
     # Ensure the URL uses HTTPS
     if not base_url.startswith("https://"):
@@ -110,8 +120,10 @@ async def async_register_webhook(
     try:
         webhook_url_from_entry = entry.data.get("webhook_url") if entry else None
         webhook_url = get_webhook_url(hass, webhook_id, webhook_url_from_entry)
-        if config_entry_id:
+        if webhook_url and config_entry_id:
             await api_client.register_webhook(webhook_url, secret, config_entry_id)
+        elif not webhook_url:
+            _LOGGER.error("Could not register webhook, no URL available")
     except Exception:
         _LOGGER.error("Failed to register webhook", exc_info=True)
 
