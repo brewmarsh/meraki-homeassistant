@@ -47,7 +47,7 @@ def test_poe_usage_sensor(mock_device_coordinator):
     assert sensor.name == "PoE Usage"
     # Total usage = 252 + 124.8 = 376.8 Wh
     # The sensor implementation divides by 24 (assuming daily usage),
-    # regardless of update interval.
+    # regardless of update interval
     # 376.8 / 24 = 15.7 W
     assert sensor.native_value == 15.7
     assert sensor.extra_state_attributes["port_1_power_usage_wh"] == 252

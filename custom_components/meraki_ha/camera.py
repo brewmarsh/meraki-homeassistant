@@ -187,6 +187,17 @@ class MerakiCamera(CoordinatorEntity, Camera):
         """
         return self._rtsp_url is not None
 
+    @property
+    def entity_registry_enabled_default(self) -> bool:
+        """
+        Return if the entity should be enabled when first added to the entity registry.
+
+        We enable the camera if we have an RTSP URL or if RTSP is enabled in dashboard.
+        """
+        video_settings = self.device_data.video_settings or {}
+        rtsp_enabled = video_settings.get("rtspServerEnabled", False)
+        return self.is_streaming or rtsp_enabled
+
     async def async_turn_on(self) -> None:
         """Turn on the camera stream."""
         _LOGGER.debug("Turning on stream for camera %s", self._device_serial)
