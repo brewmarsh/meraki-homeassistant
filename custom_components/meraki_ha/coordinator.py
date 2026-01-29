@@ -196,10 +196,20 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                     ha_device.id,
                 )
                 if entities_for_device:
-                    # For simplicity, link to the first entity found.
-                    # A more robust solution might involve identifying a "primary"
-                    # entity.
-                    device.entity_id = entities_for_device[0].entity_id
+                    # Prioritize camera entities, then switch, then fallback to first
+                    # This ensures the "navigate to entity" button on device page
+                    # goes to the most useful control entity.
+                    primary_entity = entities_for_device[0]
+                    for entity in entities_for_device:
+                        if entity.domain == "camera":
+                            primary_entity = entity
+                            break
+                        if (
+                            entity.domain == "switch"
+                            and primary_entity.domain != "camera"
+                        ):
+                            primary_entity = entity
+                    device.entity_id = primary_entity.entity_id
 
     async def _async_update_data(self) -> dict[str, Any]:
         """Fetch data from API endpoint, apply filters, and handle exceptions."""
@@ -231,10 +241,12 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             # via_device" warnings when downstream entities (like VLANs) initialize.
             device_registry = dr.async_get(self.hass)
 
-            assert self.config_entry is not None
+            if self.config_entry is None:
+                raise RuntimeError("Config entry is None")
 
             for network in data.get("networks", []):
-                assert self.config_entry is not None
+                if self.config_entry is None:
+                    raise RuntimeError("Config entry is None")
                 device_registry.async_get_or_create(
                     config_entry_id=self.config_entry.entry_id,
                     identifiers={(DOMAIN, network.id)},

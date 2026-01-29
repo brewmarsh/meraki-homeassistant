@@ -2,15 +2,16 @@
 
 from __future__ import annotations
 
-from unittest.mock import AsyncMock, MagicMock
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers.network import NoURLAvailableError
 
 from custom_components.meraki_ha.const import DOMAIN
 from custom_components.meraki_ha.coordinator import MerakiDataUpdateCoordinator
 from custom_components.meraki_ha.types import MerakiDevice
-from custom_components.meraki_ha.webhook import async_handle_webhook
+from custom_components.meraki_ha.webhook import async_handle_webhook, get_webhook_url
 
 
 @pytest.fixture
@@ -143,3 +144,20 @@ async def test_handle_webhook_unknown_alert(
 
     # Assert
     coordinator.async_update_listeners.assert_not_called()
+
+
+def test_get_webhook_url_fallback(hass: HomeAssistant) -> None:
+    """Test get_webhook_url fallback logic."""
+    with patch(
+        "custom_components.meraki_ha.webhook.get_url",
+        side_effect=[NoURLAvailableError, "https://internal-url"],
+    ):
+        url = get_webhook_url(hass, "test_webhook_id")
+        assert url == "https://internal-url/api/webhook/test_webhook_id"
+
+    with patch(
+        "custom_components.meraki_ha.webhook.get_url",
+        side_effect=[NoURLAvailableError, NoURLAvailableError],
+    ):
+        url = get_webhook_url(hass, "test_webhook_id")
+        assert url is None

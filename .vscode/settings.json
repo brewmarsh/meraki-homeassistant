@@ -26,6 +26,8 @@
       "approve": true,
       "matchCommandLine": true
     },
-    "pre-commit": true
+    "pre-commit": true,
+    "pip": true,
+    "git merge": true
   }
 }
