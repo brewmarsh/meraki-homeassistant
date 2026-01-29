@@ -26,12 +26,15 @@ async def test_register_webhook_call(hass: HomeAssistant, mock_api_client):
     )
     entry.add_to_hass(hass)
 
-    with patch("custom_components.meraki_ha.webhook.get_webhook_url", return_value="https://example.com/api/webhook/test"):
+    with patch(
+        "custom_components.meraki_ha.webhook.get_webhook_url",
+        return_value="https://example.com/api/webhook/test",
+    ):
         await async_register_webhook(
             hass, "test_webhook_id", "test_secret", mock_api_client, entry=entry
         )
 
-    # This assertion is expected to FAIL before the fix because config_entry_id is not extracted from entry
+    # This assertion validates that the fix correctly extracts config_entry_id from entry
     mock_api_client.register_webhook.assert_called_once_with(
         "https://example.com/api/webhook/test", "test_secret", "test_entry_id"
     )
