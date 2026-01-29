@@ -241,10 +241,10 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             # via_device" warnings when downstream entities (like VLANs) initialize.
             device_registry = dr.async_get(self.hass)
 
-            assert self.config_entry is not None
+            if self.config_entry is None:
+                raise RuntimeError("Config entry is missing during update")
 
             for network in data.get("networks", []):
-                assert self.config_entry is not None
                 device_registry.async_get_or_create(
                     config_entry_id=self.config_entry.entry_id,
                     identifiers={(DOMAIN, network.id)},
