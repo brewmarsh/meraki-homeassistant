@@ -120,7 +120,11 @@ async def async_register_webhook(
     try:
         webhook_url_from_entry = entry.data.get("webhook_url") if entry else None
         webhook_url = get_webhook_url(hass, webhook_id, webhook_url_from_entry)
-        if webhook_url and config_entry_id:
+
+        if not config_entry_id and entry:
+            config_entry_id = entry.entry_id
+
+        if config_entry_id:
             await api_client.register_webhook(webhook_url, secret, config_entry_id)
         elif not webhook_url:
             _LOGGER.error("Could not register webhook, no URL available")
