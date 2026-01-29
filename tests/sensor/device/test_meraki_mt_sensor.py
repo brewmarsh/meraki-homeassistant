@@ -19,12 +19,12 @@ def mock_coordinator_mt_sensor(mock_coordinator: MagicMock) -> MagicMock:
     """Fixture for a mocked MerakiDataCoordinator with MT sensor data."""
     mock_coordinator.data = {
         "devices": [
-            MerakiDevice.from_dict({
-                "serial": "mt10-1",
-                "name": "MT10 Sensor",
-                "model": "MT10",
-                "productType": "sensor",
-                "readings": [
+            MerakiDevice(
+                serial="mt10-1",
+                name="MT10 Sensor",
+                model="MT10",
+                product_type="sensor",
+                readings=[
                     {
                         "metric": "temperature",
                         "temperature": {"celsius": 25.5},
@@ -38,13 +38,13 @@ def mock_coordinator_mt_sensor(mock_coordinator: MagicMock) -> MagicMock:
                         "battery": {"percentage": 95},
                     },
                 ],
-            }),
-            MerakiDevice.from_dict({
-                "serial": "mt30-1",
-                "name": "MT30 Button",
-                "model": "MT30",
-                "productType": "sensor",
-                "readings": [
+            ),
+            MerakiDevice(
+                serial="mt30-1",
+                name="MT30 Button",
+                model="MT30",
+                product_type="sensor",
+                readings=[
                     {
                         "metric": "battery",
                         "battery": {"percentage": 88},
@@ -54,7 +54,7 @@ def mock_coordinator_mt_sensor(mock_coordinator: MagicMock) -> MagicMock:
                         "button": {"pressType": "short"},
                     },
                 ],
-            }),
+            ),
         ]
     }
     return mock_coordinator
