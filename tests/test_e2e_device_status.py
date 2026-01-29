@@ -12,6 +12,7 @@ from unittest.mock import patch
 
 import pytest
 from homeassistant.core import HomeAssistant
+from playwright.async_api import Error as PlaywrightError
 from playwright.async_api import async_playwright, expect
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
@@ -125,8 +126,9 @@ async def test_repro_unavailable_status(
         async with async_playwright() as p:
             try:
                 browser = await p.chromium.launch()
-            except Exception:
-                pytest.skip("Playwright browser not available")
+            except PlaywrightError:
+                pytest.skip("Playwright browser not installed")
+                return
 
             page = await browser.new_page()
 

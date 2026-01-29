@@ -1,4 +1,5 @@
 """Tests for Meraki webhook registration."""
+
 from unittest.mock import AsyncMock, patch
 
 import pytest
@@ -34,7 +35,8 @@ async def test_register_webhook_call(hass: HomeAssistant, mock_api_client):
             hass, "test_webhook_id", "test_secret", mock_api_client, entry=entry
         )
 
-    # This assertion validates that the fix correctly extracts config_entry_id from entry
+    # This assertion validates that the fix correctly extracts config_entry_id from
+    # entry
     mock_api_client.register_webhook.assert_called_once_with(
         "https://example.com/api/webhook/test", "test_secret", "test_entry_id"
     )
