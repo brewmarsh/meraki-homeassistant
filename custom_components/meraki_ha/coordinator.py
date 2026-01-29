@@ -242,11 +242,11 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             device_registry = dr.async_get(self.hass)
 
             if self.config_entry is None:
-                raise RuntimeError("Config entry is None")
+                raise RuntimeError("Config entry is missing in coordinator update")
 
             for network in data.get("networks", []):
                 if self.config_entry is None:
-                    raise RuntimeError("Config entry is None")
+                    raise RuntimeError("Config entry is missing in coordinator update")
                 device_registry.async_get_or_create(
                     config_entry_id=self.config_entry.entry_id,
                     identifiers={(DOMAIN, network.id)},
