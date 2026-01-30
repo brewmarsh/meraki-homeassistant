@@ -72,9 +72,8 @@ def get_webhook_url(
 
     # Ensure the URL uses HTTPS
     if not base_url.startswith("https://"):
-        raise MerakiConnectionError(
-            "Meraki webhooks require HTTPS. Please configure an HTTPS URL.",
-        )
+        _LOGGER.warning("Meraki webhooks require HTTPS. Webhook registration skipped.")
+        return None
 
     # Parse the URL to check if it's a local address
     parsed = urlparse(base_url)
