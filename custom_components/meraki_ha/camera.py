@@ -7,6 +7,7 @@ import logging
 from typing import TYPE_CHECKING, Any
 
 import aiohttp
+
 from homeassistant.components.camera import Camera, CameraEntityFeature
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.device_registry import DeviceInfo
@@ -194,7 +195,10 @@ class MerakiCamera(CoordinatorEntity, Camera):
     @property
     def entity_registry_enabled_default(self) -> bool:
         """Return if the entity should be enabled when first added."""
-        return self.is_streaming
+        if self.is_streaming:
+            return True
+        video_settings = self.device_data.video_settings or {}
+        return video_settings.get("rtspServerEnabled", False)
 
     async def async_turn_on(self) -> None:
         """Turn on the camera stream."""

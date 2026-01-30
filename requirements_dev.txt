@@ -1,6 +1,7 @@
 aiodhcpwatcher
 aiodiscover
 aiofiles==24.1.0
+aiodns==3.6.1
 aiohappyeyeballs
 aiohasupervisor
 aiohttp
@@ -48,7 +49,6 @@ filelock==3.20.2
 fnv-hash-fast
 fnvhash
 freezegun
-frozenlist
 go2rtc-client==0.2.1
 h11
 habluetooth
