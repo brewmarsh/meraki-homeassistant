@@ -126,7 +126,8 @@ class MerakiCamera(CoordinatorEntity, Camera):
     def _rtsp_url(self) -> str | None:
         """Return the RTSP URL, either from API or constructed."""
         if url := self.device_data.rtsp_url:
-            return url
+            if url.startswith("rtsp"):
+                return url
 
         # Fallback for MV cameras with LAN IP
         # The rtspServerEnabled flag is unreliable, so we fallback to
@@ -186,6 +187,18 @@ class MerakiCamera(CoordinatorEntity, Camera):
         as the primary indicator, as the rtspServerEnabled flag can be unreliable.
         """
         return self._rtsp_url is not None
+
+    @property
+    def entity_registry_enabled_default(self) -> bool:
+        """Return if the entity should be enabled when first added."""
+        if self.is_streaming:
+            return True
+        # Also enable if we see 'rtspServerEnabled' in video settings,
+        # even if we don't have a URL yet.
+        # But wait, logic says "ignored".
+        # However, for default enablement, it's a hint.
+        video_settings = self.device_data.video_settings or {}
+        return video_settings.get("rtspServerEnabled", False)
 
     async def async_turn_on(self) -> None:
         """Turn on the camera stream."""

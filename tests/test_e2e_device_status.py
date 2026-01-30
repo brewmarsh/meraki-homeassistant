@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import dataclasses
 import http.server
 import json
 import os
@@ -21,6 +22,7 @@ from custom_components.meraki_ha.const import (
     CONF_MERAKI_ORG_ID,
     DOMAIN,
 )
+from custom_components.meraki_ha.types import MerakiDevice
 
 from .const import MOCK_ALL_DATA
 
@@ -28,7 +30,7 @@ TEST_PORT = 9989  # Different port to avoid conflict
 MOCK_SETTINGS = {"scan_interval": 300, "enable_device_status": True}
 
 # Create a modified mock data with an unavailable device
-MOCK_UNAVAILABLE_DEVICE = {
+MOCK_UNAVAILABLE_DEVICE_DICT = {
     "serial": "Q234-UNAVAILABLE",
     "name": "Unavailable Device",
     "model": "MR33",
@@ -39,11 +41,16 @@ MOCK_UNAVAILABLE_DEVICE = {
     "entity_id": "switch.unavailable_device",  # HA entity
 }
 
+MOCK_UNAVAILABLE_DEVICE = MerakiDevice.from_dict(MOCK_UNAVAILABLE_DEVICE_DICT)
+MOCK_UNAVAILABLE_DEVICE.entity_id = MOCK_UNAVAILABLE_DEVICE_DICT["entity_id"]
+
 MOCK_REPRO_DATA: dict[str, Any] = MOCK_ALL_DATA.copy()
 MOCK_REPRO_DATA["devices"] = [MOCK_UNAVAILABLE_DEVICE]
 if MOCK_REPRO_DATA["networks"]:
-    MOCK_REPRO_DATA["networks"][0].is_enabled = True
-    MOCK_REPRO_DATA["networks"][0].ssids = []  # Clear SSIDs to simplify
+    # MOCK_ALL_DATA["networks"] contains MerakiNetwork objects
+    # We modify the object in place.
+    # Since MOCK_ALL_DATA.copy() creates a shallow copy of the dict, the list is shared.
+    pass
 
 
 class ReuseAddrTCPServer(socketserver.TCPServer):
@@ -83,6 +90,16 @@ async def setup_integration_fixture(
         await hass.config_entries.async_setup(config_entry.entry_id)
         await hass.async_block_till_done()
         yield config_entry
+
+
+def _to_dict(obj):
+    if dataclasses.is_dataclass(obj):
+        return dataclasses.asdict(obj)
+    if isinstance(obj, list):
+        return [_to_dict(item) for item in obj]
+    if isinstance(obj, dict):
+        return {k: _to_dict(v) for k, v in obj.items()}
+    return obj
 
 
 @pytest.mark.asyncio
@@ -130,7 +147,8 @@ async def test_repro_unavailable_status(
                 return
             page = await browser.new_page()
 
-            mock_data = MOCK_REPRO_DATA.copy()
+            # Convert objects to dicts for JSON serialization
+            mock_data = _to_dict(MOCK_REPRO_DATA)
             mock_data["options"] = MOCK_SETTINGS
             mock_data_json = json.dumps(mock_data)
 
@@ -189,6 +207,7 @@ async def test_repro_unavailable_status(
             await page.goto(f"http://127.0.0.1:{TEST_PORT}/test_repro_index.html")
 
             # Wait for content
+            # Assuming the network name is "Main Office" from MOCK_ALL_DATA
             network_header = page.locator("span", has_text="[Network] Main Office")
             await expect(network_header).to_be_visible()
 

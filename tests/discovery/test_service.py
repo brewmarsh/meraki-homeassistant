@@ -65,40 +65,36 @@ async def test_discover_entities_delegates_to_handler(
     caplog,
 ):
     """Test that discover_entities delegates to the correct handlers."""
-    # We must mock the handlers directly to assert their instantiation arguments
-    MockMRHandler = MagicMock()
-    MockMRHandler.__name__ = "MRHandler"
-    MockMVHandler = MagicMock()
-    MockMVHandler.__name__ = "MVHandler"
-
-    mock_mr_handler_instance = MagicMock()
-    mock_mr_handler_instance.discover_entities = AsyncMock(return_value=["mr_entity"])
-    MockMRHandler.return_value = mock_mr_handler_instance
-
-    mock_mv_handler_instance = MagicMock()
-    mock_mv_handler_instance.discover_entities = AsyncMock(return_value=["mv_entity"])
-    MockMVHandler.return_value = mock_mv_handler_instance
-
-    def get_handler(model):
-        if model.startswith("MR"):
-            return MockMRHandler
-        if model.startswith("MV"):
-            return MockMVHandler
-        return None
+    import logging
+    caplog.set_level(logging.DEBUG)
 
     with (
         patch(
-            "custom_components.meraki_ha.discovery.service.DeviceDiscoveryService._get_handler_for_model",
-            side_effect=get_handler,
-        ),
+            "custom_components.meraki_ha.discovery.handlers.mr.MRHandler"
+        ) as MockMRHandler,
+        patch(
+            "custom_components.meraki_ha.discovery.handlers.mv.MVHandler"
+        ) as MockMVHandler,
         patch(
             "custom_components.meraki_ha.discovery.handlers.network.NetworkHandler"
         ) as MockNetworkHandler,
         patch("custom_components.meraki_ha.discovery.handlers.ssid.SSIDHandler"),
     ):
-        mock_network_handler_instance = MagicMock()
-        mock_network_handler_instance.discover_entities = AsyncMock(return_value=[])
-        MockNetworkHandler.create.return_value = mock_network_handler_instance
+        # Configure mocks
+        mock_mr_instance = MagicMock()
+        mock_mr_instance.discover_entities = AsyncMock(return_value=["mr_entity"])
+        MockMRHandler.return_value = mock_mr_instance
+        # Mock class name for logging
+        MockMRHandler.__name__ = "MRHandler"
+
+        mock_mv_instance = MagicMock()
+        mock_mv_instance.discover_entities = AsyncMock(return_value=["mv_entity"])
+        MockMVHandler.return_value = mock_mv_instance
+        MockMVHandler.__name__ = "MVHandler"
+
+        mock_network_instance = MagicMock()
+        mock_network_instance.discover_entities = AsyncMock(return_value=[])
+        MockNetworkHandler.create.return_value = mock_network_instance
 
         service = DeviceDiscoveryService(
             coordinator=mock_coordinator_with_devices,
@@ -117,12 +113,15 @@ async def test_discover_entities_delegates_to_handler(
         assert "mv_entity" in entities
 
         # Assert correct services are passed to each handler
+        # MR handler expects: coordinator, device, config_entry, control_service
         MockMRHandler.assert_called_once_with(
             mock_coordinator_with_devices,
             mock_coordinator_with_devices.data["devices"][0],
             mock_config_entry,
             mock_control_service,
         )
+        # MV handler expects: coordinator, device, config_entry, camera_service
+        # and control_service
         MockMVHandler.assert_called_once_with(
             mock_coordinator_with_devices,
             mock_coordinator_with_devices.data["devices"][1],
