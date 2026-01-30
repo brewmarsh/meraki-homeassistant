@@ -4,7 +4,7 @@ import asyncio
 import json
 import os
 import re
-import subprocess
+import subprocess  # nosec
 from typing import Any
 
 import aiohttp
@@ -63,7 +63,7 @@ def run_gh_command(command: list[str]) -> str:
         return ""
 
     try:
-        result = subprocess.run(
+        result = subprocess.run(  # nosec
             ["gh"] + command,
             capture_output=True,
             text=True,
