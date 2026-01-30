@@ -5,51 +5,21 @@ from unittest.mock import MagicMock, patch
 import pytest
 from homeassistant.helpers import entity_registry as er
 
-from custom_components.meraki_ha.coordinator import (
-    MerakiDataUpdateCoordinator as MerakiDataCoordinator,
-)
+from custom_components.meraki_ha.core.helpers import update_device_registry_info
 
 
-@pytest.fixture
-def mock_api_client():
-    """Fixture for a mocked MerakiAPIClient."""
-    client = MagicMock()
-    return client
-
-
-@pytest.fixture
-def coordinator(hass, mock_api_client):
-    """Fixture for a MerakiDataCoordinator instance."""
-    from custom_components.meraki_ha.const import (
-        CONF_MERAKI_API_KEY,
-        CONF_MERAKI_ORG_ID,
-    )
-
-    entry = MagicMock()
-    entry.options = {}
-    entry.data = {CONF_MERAKI_API_KEY: "test", CONF_MERAKI_ORG_ID: "test"}
-    # Patch the internal ApiClient creation to avoid real init
-    with patch(
-        "custom_components.meraki_ha.coordinator.ApiClient",
-        return_value=mock_api_client,
-    ):
-        return MerakiDataCoordinator(hass=hass, entry=entry)
-
-
-async def test_populate_device_entities_picks_camera(coordinator, hass):
-    """Test that _populate_device_entities picks the camera entity over sensor."""
+async def test_update_device_registry_info_picks_camera(hass):
+    """Test that update_device_registry_info picks the camera entity over sensor."""
     # Mock data
     from custom_components.meraki_ha.types import MerakiDevice
 
-    data = {
-        "devices": [
-            MerakiDevice(
-                serial="Q234-ABCD-5678",
-                model="MV12",
-                name="Test Camera",
-            )
-        ]
-    }
+    devices = [
+        MerakiDevice(
+            serial="Q234-ABCD-5678",
+            model="MV12",
+            name="Test Camera",
+        )
+    ]
 
     # Mock Device Registry
     mock_dr = MagicMock()
@@ -88,21 +58,21 @@ async def test_populate_device_entities_picks_camera(coordinator, hass):
 
     with (
         patch(
-            "custom_components.meraki_ha.coordinator.dr.async_get",
+            "custom_components.meraki_ha.core.helpers.dr.async_get",
             return_value=mock_dr,
         ),
         patch(
-            "custom_components.meraki_ha.coordinator.er.async_get",
+            "custom_components.meraki_ha.core.helpers.er.async_get",
             return_value=mock_er,
         ),
         patch(
-            "custom_components.meraki_ha.coordinator.er.async_entries_for_device",
+            "custom_components.meraki_ha.core.helpers.er.async_entries_for_device",
             return_value=mock_entries,
         ),
     ):
-        coordinator._populate_device_entities(data["devices"])
+        update_device_registry_info(hass, devices)
 
-        device = data["devices"][0]
+        device = devices[0]
 
         # We expect camera.test_camera as it is prioritized in coordinator.py
         assert device.entity_id == "camera.test_camera"

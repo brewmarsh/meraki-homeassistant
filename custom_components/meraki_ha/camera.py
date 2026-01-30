@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, cast
 
 import aiohttp
 from homeassistant.components.camera import Camera, CameraEntityFeature
@@ -13,6 +13,7 @@ from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import DOMAIN
+from .coordinator import MerakiDataUpdateCoordinator
 from .core.utils.naming_utils import format_device_name
 
 if TYPE_CHECKING:
@@ -58,6 +59,8 @@ class MerakiCamera(CoordinatorEntity, Camera):
 
     _attr_brand = "Cisco Meraki"
 
+    coordinator: MerakiDataUpdateCoordinator
+
     def __init__(
         self,
         coordinator: MerakiDataUpdateCoordinator,
@@ -70,10 +73,11 @@ class MerakiCamera(CoordinatorEntity, Camera):
         Camera.__init__(self)
         self._config_entry = config_entry
         # device is passed as MerakiDevice
-        self._device_serial = device.serial if device.serial else ""
+        self._device_serial = device.serial or ""
         self._camera_service = camera_service
         self._attr_unique_id = f"{self._device_serial}-camera"
-        self._attr_name = device.name
+        self._attr_has_entity_name = True
+        self._attr_name = None
         self._attr_model = self.device_data.model
 
     @property
@@ -185,6 +189,11 @@ class MerakiCamera(CoordinatorEntity, Camera):
         as the primary indicator, as the rtspServerEnabled flag can be unreliable.
         """
         return self._rtsp_url is not None
+
+    @property
+    def entity_registry_enabled_default(self) -> bool:
+        """Return if the entity should be enabled when first added."""
+        return self.is_streaming
 
     async def async_turn_on(self) -> None:
         """Turn on the camera stream."""

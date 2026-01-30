@@ -65,18 +65,16 @@ def get_active_vlans(network_data: dict[str, Any]) -> list[dict[str, Any]]:
         List of active VLAN dictionaries with id and subnet info.
 
     """
-    vlans = []
-    for vlan in network_data.get("vlans", []):
-        if vlan.get("enabled"):
-            vlans.append(
-                {
-                    "id": vlan.get("id"),
-                    "name": vlan.get("name"),
-                    "subnet": vlan.get("subnet"),
-                    "applianceIp": vlan.get("applianceIp"),
-                },
-            )
-    return vlans
+    return [
+        {
+            "id": vlan.get("id"),
+            "name": vlan.get("name"),
+            "subnet": vlan.get("subnet"),
+            "applianceIp": vlan.get("applianceIp"),
+        }
+        for vlan in network_data.get("vlans", [])
+        if vlan.get("enabled")
+    ]
 
 
 def get_ssid_status(network_data: dict[str, Any], ssid_number: int) -> str | None:

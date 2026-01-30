@@ -22,6 +22,7 @@ class MerakiNetworkClientsSensor(MerakiNetworkEntity, SensorEntity):
     """Representation of a Meraki network-level client counter."""
 
     _attr_state_class = SensorStateClass.MEASUREMENT
+    _attr_has_entity_name = True
 
     def __init__(
         self,

@@ -39,6 +39,8 @@ _LOGGER = logging.getLogger(__name__)
 class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
     """A centralized coordinator for Meraki API data."""
 
+    config_entry: ConfigEntry
+
     def __init__(
         self,
         hass: HomeAssistant,

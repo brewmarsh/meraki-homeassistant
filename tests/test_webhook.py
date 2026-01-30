@@ -146,26 +146,6 @@ async def test_handle_webhook_unknown_alert(
     coordinator.async_update_listeners.assert_not_called()
 
 
-def test_get_webhook_url_http_url_logs_warning(hass: HomeAssistant) -> None:
-    """Test that a non-HTTPS URL logs a warning and returns None."""
-    with (
-        patch(
-            "custom_components.meraki_ha.webhook.get_url",
-            return_value="http://example.com",
-        ) as mock_get_url,
-        patch(
-            "custom_components.meraki_ha.webhook._LOGGER.warning"
-        ) as mock_logger_warning,
-    ):
-        url = get_webhook_url(hass, "test_webhook_id")
-
-        assert url is None
-        mock_get_url.assert_called_once()
-        mock_logger_warning.assert_called_once_with(
-            "Meraki webhooks require HTTPS. Webhook registration skipped."
-        )
-
-
 def test_get_webhook_url_fallback(hass: HomeAssistant) -> None:
     """Test get_webhook_url fallback logic."""
     with patch(

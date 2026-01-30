@@ -124,7 +124,7 @@ async def test_async_setup_mt10_sensors(
     for entity in entities:
         entity.hass = MagicMock()
         entity.entity_id = "sensor.test"
-        entity.async_write_ha_state = MagicMock()
+        object.__setattr__(entity, "async_write_ha_state", MagicMock())
         cast(CoordinatorEntity, entity)._handle_coordinator_update()
 
     assert len(entities) == 3
@@ -352,7 +352,7 @@ async def test_availability(mock_coordinator_with_mt_devices: MagicMock) -> None
     assert isinstance(temp_sensor, SensorEntity)
     temp_sensor.hass = MagicMock()
     temp_sensor.entity_id = "sensor.test"
-    temp_sensor.async_write_ha_state = MagicMock()
+    object.__setattr__(temp_sensor, "async_write_ha_state", MagicMock())
     cast(CoordinatorEntity, temp_sensor)._handle_coordinator_update()
 
     # Sensor should be available

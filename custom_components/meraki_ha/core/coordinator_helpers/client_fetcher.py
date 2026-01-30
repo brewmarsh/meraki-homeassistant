@@ -84,7 +84,7 @@ class ClientFetcher:
             for device in devices
             if device.serial
             and device.product_type
-            in ["wireless", "appliance", "switch", "cellularGateway"]
+            in ("wireless", "appliance", "switch", "cellularGateway")
         }
         results = await asyncio.gather(*client_tasks.values(), return_exceptions=True)
         clients_by_serial: dict[str, list[dict[str, Any]]] = {}

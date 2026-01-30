@@ -1,7 +1,7 @@
 """Switch entity for blocking/unblocking Meraki clients."""
 
 import logging
-from typing import Any
+from typing import Any, cast
 
 from homeassistant.components.switch import SwitchEntity, SwitchEntityDescription
 from homeassistant.config_entries import ConfigEntry
@@ -47,6 +47,8 @@ class MerakiClientBlockerSwitch(
 
         self._attr_unique_id = f"meraki-client-{self._client_mac}-blocker"
         self._update_internal_state()
+
+    coordinator: SsidFirewallCoordinator
 
     @property
     def device_info(self) -> DeviceInfo | None:

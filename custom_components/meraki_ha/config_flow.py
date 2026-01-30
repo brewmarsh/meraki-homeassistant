@@ -208,7 +208,7 @@ class MerakiHAConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ign
 
         schema_with_defaults = populate_schema_defaults(
             OPTIONS_SCHEMA,
-            entry.options,
+            dict(entry.options),
             network_options,
         )
 

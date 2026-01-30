@@ -12,6 +12,8 @@ from ...const import (
     DOMAIN,
     MANUFACTURER,
 )
+from typing import cast
+
 from ...coordinator import MerakiDataUpdateCoordinator
 
 
@@ -24,6 +26,8 @@ class BaseMerakiEntity(CoordinatorEntity, Entity, ABC):
     - State availability tracking
     - Common properties and attributes
     """
+
+    coordinator: MerakiDataUpdateCoordinator
 
     def __init__(
         self,

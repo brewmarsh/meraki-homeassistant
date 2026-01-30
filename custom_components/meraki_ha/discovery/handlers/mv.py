@@ -126,42 +126,32 @@ class MVHandler(BaseDeviceHandler):
                 )
             )
 
-        # Add motion sensor
-        entities.append(
-            MerakiMotionSensor(
-                self._coordinator,
-                self.device,
-                self._camera_service,
-                self._config_entry,
-            )
-        )
-
-        # Add snapshot button
-        entities.append(
-            MerakiSnapshotButton(
-                self._coordinator,
-                self.device,
-                self._camera_service,
-                self._config_entry,
-            )
-        )
-
-        # Add RTSP URL sensor
-        entities.append(
-            MerakiRtspUrlSensor(
-                self._coordinator,
-                self.device,
-                self._config_entry,
-            )
-        )
-
-        # Add control switches
-        entities.append(
-            AnalyticsSwitch(
-                self._coordinator,
-                self._meraki_client,
-                self.device,
-            )
+        # Add motion sensor, snapshot button, RTSP URL sensor, and control switches
+        entities.extend(
+            [
+                MerakiMotionSensor(
+                    self._coordinator,
+                    self.device,
+                    self._camera_service,
+                    self._config_entry,
+                ),
+                MerakiSnapshotButton(
+                    self._coordinator,
+                    self.device,
+                    self._camera_service,
+                    self._config_entry,
+                ),
+                MerakiRtspUrlSensor(
+                    self._coordinator,
+                    self.device,
+                    self._config_entry,
+                ),
+                AnalyticsSwitch(
+                    self._coordinator,
+                    self._meraki_client,
+                    self.device,
+                ),
+            ]
         )
 
         return entities

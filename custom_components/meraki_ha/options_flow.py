@@ -29,7 +29,7 @@ class MerakiOptionsFlowHandler(config_entries.OptionsFlow):
     async def async_step_init(
         self,
         user_input: dict[str, Any] | None = None,
-    ) -> data_entry_flow.FlowResult:
+    ) -> config_entries.ConfigFlowResult:
         """
         Manage the options flow.
 
