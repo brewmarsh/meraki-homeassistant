@@ -1,4 +1,6 @@
 aiofiles==24.1.0
+aiodhcpwatcher
+aiodiscover
 aiodns==3.6.1
 aiohappyeyeballs
 aiohasupervisor
@@ -52,7 +54,17 @@ h11
 habluetooth
 home-assistant-bluetooth
 homeassistant==2026.1.0b4
+meraki==1.54.0
 mypy
 playwright==1.57.0
+pycares==4.11.0
+pytest
+pytest-asyncio
+pytest-cov
+pytest-homeassistant-custom-component
+pytest-socket
+pytest-sugar
+pytest-timeout
+pytest-xdist
 PyTurboJPEG==1.7.2
 ruff==0.5.5
