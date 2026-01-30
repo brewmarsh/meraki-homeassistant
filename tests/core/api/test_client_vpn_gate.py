@@ -1,6 +1,6 @@
 """Test the Meraki API client VPN gating logic."""
 
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
@@ -45,8 +45,11 @@ async def test_vpn_status_not_fetched_when_disabled(mock_hass, mock_coordinator)
             "devices": [],
         }
     )
-    client._async_fetch_network_clients = AsyncMock(return_value=[])
-    client._async_fetch_device_clients = AsyncMock(return_value={})
+    client.client_fetcher.async_fetch_network_clients = AsyncMock(return_value=[])
+    client.client_fetcher.async_fetch_device_clients = AsyncMock(return_value={})
+    client.device_fetcher.async_fetch_devices = AsyncMock(
+        return_value={"devices": [], "battery_readings": None}
+    )
 
     # Run get_all_data
     await client.get_all_data()
@@ -81,29 +84,14 @@ async def test_vpn_status_fetched_when_enabled(mock_hass, mock_coordinator):
             "devices": [],
         }
     )
-    client._async_fetch_network_clients = AsyncMock(return_value=[])
-    client._async_fetch_device_clients = AsyncMock(return_value={})
+    client.client_fetcher.async_fetch_network_clients = AsyncMock(return_value=[])
+    client.client_fetcher.async_fetch_device_clients = AsyncMock(return_value={})
+    client.device_fetcher.async_fetch_devices = AsyncMock(
+        return_value={"devices": [], "battery_readings": None}
+    )
 
-    # Mock parsers to avoid errors with minimal data
-    with (
-        patch(
-            "custom_components.meraki_ha.core.parsers.network.parse_network_data",
-            return_value={},
-        ),
-        patch(
-            "custom_components.meraki_ha.core.api.client.parse_wireless_data",
-            return_value={},
-        ),
-        patch(
-            "custom_components.meraki_ha.core.coordinator_helpers.device_fetcher.parse_device_data"
-        ),
-        patch("custom_components.meraki_ha.core.api.client.parse_appliance_data"),
-        patch("custom_components.meraki_ha.core.api.client.parse_sensor_data"),
-        patch("custom_components.meraki_ha.core.api.client.parse_camera_data"),
-        patch("custom_components.meraki_ha.core.api.client.parse_switch_data"),
-    ):
-        # Run get_all_data
-        await client.get_all_data()
+    # Run get_all_data
+    await client.get_all_data()
 
     # Verify get_vpn_status WAS called
     client.appliance.get_vpn_status.assert_called_once_with("N_123")

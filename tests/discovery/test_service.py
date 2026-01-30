@@ -79,10 +79,17 @@ async def test_discover_entities_delegates_to_handler(
     mock_mv_handler_instance.discover_entities = AsyncMock(return_value=["mv_entity"])
     MockMVHandler.return_value = mock_mv_handler_instance
 
+    def get_handler(model):
+        if model.startswith("MR"):
+            return MockMRHandler
+        if model.startswith("MV"):
+            return MockMVHandler
+        return None
+
     with (
-        patch.dict(
-            "custom_components.meraki_ha.discovery.service.HANDLER_MAPPING",
-            {"MR": MockMRHandler, "MV": MockMVHandler},
+        patch(
+            "custom_components.meraki_ha.discovery.service.DeviceDiscoveryService._get_handler_for_model",
+            side_effect=get_handler,
         ),
         patch(
             "custom_components.meraki_ha.discovery.handlers.network.NetworkHandler"

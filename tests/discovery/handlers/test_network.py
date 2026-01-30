@@ -46,8 +46,13 @@ async def test_discover_entities_creates_network_sensors(
 
     entities = await handler.discover_entities()
 
-    assert len(entities) == 2
-    assert isinstance(entities[0], MerakiNetworkClientsSensor)
-    assert isinstance(entities[1], MerakiNetworkClientsSensor)
-    assert entities[0]._network_id == "N_1234"
-    assert entities[1]._network_id == "N_5678"
+    # With recent changes, additional network entities (like TrafficShapingSensor
+    # and ContentFilteringSensor) may also be discovered if enabled. For this test,
+    # we verify that at least the client sensors are present.
+    assert len(entities) >= 2
+
+    client_sensors = [e for e in entities if isinstance(e, MerakiNetworkClientsSensor)]
+    assert len(client_sensors) == 2
+
+    network_ids = sorted([s._network_id for s in client_sensors])
+    assert network_ids == ["N_1234", "N_5678"]
