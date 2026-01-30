@@ -14,6 +14,7 @@ from functools import partial
 from typing import TYPE_CHECKING, Any, cast
 
 import meraki
+
 from homeassistant.core import HomeAssistant
 
 from ...core.errors import (
@@ -23,11 +24,11 @@ from ...core.errors import (
     MerakiVlanError,
     MerakiVlansDisabledError,
 )
-from ...core.parsers.appliance import parse_appliance_data
-from ...core.parsers.sensors import parse_sensor_data
 from ...types import MerakiDevice, MerakiNetwork
 from ..coordinator_helpers.client_fetcher import ClientFetcher
 from ..coordinator_helpers.device_fetcher import DeviceFetcher
+from ..parsers.appliance import parse_appliance_data
+from ..parsers.sensors import parse_sensor_data
 from .endpoints.appliance import ApplianceEndpoints
 from .endpoints.camera import CameraEndpoints
 from .endpoints.devices import DevicesEndpoints
