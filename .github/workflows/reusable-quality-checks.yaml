@@ -69,10 +69,6 @@ jobs:
         # Note: This may temporarily downgrade aiodns, but the next step enforces strict versions.
         run: uv pip install --system --prerelease=allow "pytest-homeassistant-custom-component>=0.13.205" "pytest>=8.3.4"
 
-      - name: Install HA Custom Component
-        # Note: This may temporarily downgrade aiodns, but the next step enforces strict versions.
-        run: uv pip install --system "pytest-homeassistant-custom-component>=0.13.205"
-
       - name: Force Clean DNS Stack
         run: |
           # FIX: removed -y flag which uv does not support
@@ -158,10 +154,6 @@ jobs:
       - name: Install HA Custom Component
         # Note: This may temporarily downgrade aiodns, but the next step enforces strict versions.
         run: uv pip install --system --prerelease=allow "pytest-homeassistant-custom-component>=0.13.205" "pytest>=8.3.4"
-
-      - name: Install HA Custom Component
-        # Note: This may temporarily downgrade aiodns, but the next step enforces strict versions.
-        run: uv pip install --system "pytest-homeassistant-custom-component>=0.13.205"
 
       - name: Force Clean DNS Stack
         run: |
