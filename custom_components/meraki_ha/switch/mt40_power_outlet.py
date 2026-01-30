@@ -25,6 +25,8 @@ class MerakiMt40PowerOutlet(
 ):
     """Representation of a Meraki MT40 power outlet."""
 
+    coordinator: MerakiDataUpdateCoordinator
+
     def __init__(
         self,
         coordinator: MerakiDataUpdateCoordinator,

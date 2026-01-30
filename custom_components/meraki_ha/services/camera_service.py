@@ -31,7 +31,7 @@ class CameraService:
         analytics = [
             feature
             for feature in features
-            if feature in ["person_detection", "vehicle_detection"]
+            if feature in ("person_detection", "vehicle_detection")
         ]
         return analytics
 

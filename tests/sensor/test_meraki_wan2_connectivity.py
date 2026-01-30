@@ -24,7 +24,7 @@ async def test_meraki_wan2_connectivity_sensor(
     config_entry.options = {}
     sensor = MerakiWAN2ConnectivitySensor(coordinator, online_device, config_entry)
     sensor.hass = MagicMock()
-    sensor.async_write_ha_state = MagicMock()
+    object.__setattr__(sensor, "async_write_ha_state", MagicMock())
     sensor._handle_coordinator_update()
     assert sensor.native_value == "Connected"
     assert sensor.extra_state_attributes is not None

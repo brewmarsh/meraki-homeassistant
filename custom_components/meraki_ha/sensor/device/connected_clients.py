@@ -62,7 +62,7 @@ class MerakiDeviceConnectedClientsSensor(MerakiEntity, SensorEntity):
 
         # For routers (appliances), the client count is all online clients
         # in the network.
-        if product_type in ["appliance", "cellularGateway"]:
+        if product_type in ("appliance", "cellularGateway"):
             network_id = device.network_id
             all_clients = self.coordinator.data.get("clients", [])
             if not all_clients:

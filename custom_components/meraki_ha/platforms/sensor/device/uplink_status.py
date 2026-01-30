@@ -47,7 +47,7 @@ class MerakiUplinkStatusSensor(MerakiDeviceEntity):
         status = (status or STATE_UNKNOWN_UPLINK).lower()
         if status == "online":
             return "Online"
-        if status in ["offline", "dormant"]:
+        if status in ("offline", "dormant"):
             return "Offline"
         return status.capitalize()
 

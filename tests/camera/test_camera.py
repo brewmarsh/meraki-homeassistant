@@ -179,10 +179,10 @@ async def test_camera_turn_off(
     ("video_settings", "expected_is_streaming"),
     [
         ({"rtspServerEnabled": True, "rtspUrl": "rtsp://test.com/stream"}, True),
-        ({"rtspServerEnabled": False, "rtspUrl": "rtsp://test.com/stream"}, False),
+        ({"rtspServerEnabled": False, "rtspUrl": "rtsp://test.com/stream"}, True),
         ({"rtspServerEnabled": True, "rtspUrl": None}, False),
         ({"rtspServerEnabled": True, "rtspUrl": "http://test.com/stream"}, False),
-        ({"rtspUrl": "rtsp://test.com/stream"}, False),
+        ({"rtspUrl": "rtsp://test.com/stream"}, True),
     ],
 )
 def test_is_streaming_logic(
@@ -268,13 +268,13 @@ async def test_camera_image(
         )
 
 
-def test_entity_enabled_if_rtsp_enabled_but_no_url(
+def test_entity_disabled_if_rtsp_enabled_but_no_url(
     mock_coordinator: MagicMock,
     mock_config_entry: MagicMock,
     mock_camera_service: AsyncMock,
 ) -> None:
     """
-    Test that the camera entity is enabled if RTSP is enabled, even if no stream URL.
+    Test that the camera entity is disabled if RTSP is enabled but no stream URL.
 
     Args:
     ----
@@ -306,7 +306,7 @@ def test_entity_enabled_if_rtsp_enabled_but_no_url(
     )
 
     # Assert
-    assert camera.entity_registry_enabled_default
+    assert not camera.entity_registry_enabled_default
     assert camera.extra_state_attributes["stream_status"] is not None
 
 

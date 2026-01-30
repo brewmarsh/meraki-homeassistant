@@ -32,6 +32,8 @@ class MerakiPoeUsageSensor(
     in watts. The attributes provide a breakdown of PoE usage per port.
     """
 
+    coordinator: MerakiDataUpdateCoordinator
+
     _attr_state_class = SensorStateClass.MEASUREMENT
     _attr_native_unit_of_measurement = UnitOfPower.WATT
     _attr_icon = "mdi:power-plug"

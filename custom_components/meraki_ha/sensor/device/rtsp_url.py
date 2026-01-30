@@ -29,6 +29,8 @@ class MerakiRtspUrlSensor(CoordinatorEntity, SensorEntity):
     Meraki API.
     """
 
+    coordinator: MerakiDataUpdateCoordinator
+
     _attr_entity_category = EntityCategory.DIAGNOSTIC
 
     def __init__(

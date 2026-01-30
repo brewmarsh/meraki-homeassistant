@@ -79,23 +79,29 @@ async def test_discover_entities_delegates_to_handler(
     mock_mv_handler_instance.discover_entities = AsyncMock(return_value=["mv_entity"])
     MockMVHandler.return_value = mock_mv_handler_instance
 
-    def get_handler(model):
-        if model.startswith("MR"):
-            return MockMRHandler
-        if model.startswith("MV"):
-            return MockMVHandler
-        return None
-
     with (
         patch(
-            "custom_components.meraki_ha.discovery.service.DeviceDiscoveryService._get_handler_for_model",
-            side_effect=get_handler,
-        ),
+            "custom_components.meraki_ha.discovery.handlers.mr.MRHandler",
+            return_value=mock_mr_handler_instance,
+        ) as MockMRHandlerClass,
+        patch(
+            "custom_components.meraki_ha.discovery.handlers.mv.MVHandler",
+            return_value=mock_mv_handler_instance,
+        ) as MockMVHandlerClass,
         patch(
             "custom_components.meraki_ha.discovery.handlers.network.NetworkHandler"
         ) as MockNetworkHandler,
         patch("custom_components.meraki_ha.discovery.handlers.ssid.SSIDHandler"),
     ):
+        # Assign the side effect/return value logic for the mock classes if needed,
+        # but here we just return the mocked instance directly via patch kwargs.
+        # Actually, the code instantiates the handler.
+        # Actually, the code instantiates the handler.
+        MockMRHandlerClass.return_value = mock_mr_handler_instance
+        MockMVHandlerClass.return_value = mock_mv_handler_instance
+        # Set __name__ for logging
+        MockMRHandlerClass.configure_mock(__name__="MRHandler")
+        MockMVHandlerClass.configure_mock(__name__="MVHandler")
         mock_network_handler_instance = MagicMock()
         mock_network_handler_instance.discover_entities = AsyncMock(return_value=[])
         MockNetworkHandler.create.return_value = mock_network_handler_instance
@@ -117,13 +123,13 @@ async def test_discover_entities_delegates_to_handler(
         assert "mv_entity" in entities
 
         # Assert correct services are passed to each handler
-        MockMRHandler.assert_called_once_with(
+        MockMRHandlerClass.assert_called_once_with(
             mock_coordinator_with_devices,
             mock_coordinator_with_devices.data["devices"][0],
             mock_config_entry,
             mock_control_service,
         )
-        MockMVHandler.assert_called_once_with(
+        MockMVHandlerClass.assert_called_once_with(
             mock_coordinator_with_devices,
             mock_coordinator_with_devices.data["devices"][1],
             mock_config_entry,

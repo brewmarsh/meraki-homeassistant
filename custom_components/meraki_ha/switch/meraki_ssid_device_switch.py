@@ -25,6 +25,8 @@ class MerakiSSIDBaseSwitch(CoordinatorEntity, SwitchEntity):
     entity_category = EntityCategory.CONFIG
     _attr_has_entity_name = True
 
+    coordinator: MerakiDataUpdateCoordinator
+
     def __init__(
         self,
         coordinator: MerakiDataUpdateCoordinator,

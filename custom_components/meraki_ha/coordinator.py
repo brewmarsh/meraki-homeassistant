@@ -39,6 +39,8 @@ _LOGGER = logging.getLogger(__name__)
 class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
     """A centralized coordinator for Meraki API data."""
 
+    config_entry: ConfigEntry
+
     def __init__(
         self,
         hass: HomeAssistant,
@@ -62,7 +64,6 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 CONF_ENABLE_VPN_MANAGEMENT, DEFAULT_ENABLE_VPN_MANAGEMENT
             ),
         )
-        self.config_entry = entry
         self.devices_by_serial: dict[str, MerakiDevice] = {}
         self.networks_by_id: dict[str, MerakiNetwork] = {}
         self.ssids_by_network_and_number: dict[tuple[str, int], dict[str, Any]] = {}
@@ -89,6 +90,7 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             name=DOMAIN,
             update_interval=timedelta(seconds=scan_interval),
         )
+        self.config_entry = entry
 
     def register_pending_update(
         self,
@@ -188,7 +190,8 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             # via_device" warnings when downstream entities (like VLANs) initialize.
             device_registry = dr.async_get(self.hass)
 
-            assert self.config_entry is not None
+            if self.config_entry is None:
+                raise UpdateFailed("Config entry is missing during update")
 
             for network in networks:
                 device_registry.async_get_or_create(

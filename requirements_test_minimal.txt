@@ -1,9 +1,7 @@
-aiodns==3.6.1
 aiofiles>=24.1.0
 bandit==1.7.9
 meraki==1.54.0
 mypy
-pycares==4.11.0
 pytest-cov
 pytest-homeassistant-custom-component
 pytest-mock==3.12.0
