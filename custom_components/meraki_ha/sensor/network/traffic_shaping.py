@@ -29,7 +29,7 @@ class TrafficShapingSensor(MerakiNetworkEntity, SensorEntity):
             None,
         )
         if network is None:
-            raise RuntimeError("Network not found")
+            raise ValueError(f"Network {network_id} not found in coordinator data")
 
         super().__init__(coordinator, config_entry, network)
         self._attr_unique_id = f"{network_id}-traffic-shaping"
