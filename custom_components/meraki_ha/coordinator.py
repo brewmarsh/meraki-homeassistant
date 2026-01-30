@@ -208,6 +208,24 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 if s.get("networkId") and s.get("number") is not None
             }
 
+            # Check for specific network feature errors/warnings
+            appliance_traffic = data.get("appliance_traffic", {})
+            for net_id, traffic in appliance_traffic.items():
+                if isinstance(traffic, dict) and traffic.get("error") == "disabled":
+                    if self.is_traffic_check_due(net_id):
+                        self.add_network_status_message(
+                            net_id, "Traffic Analysis is not enabled for this network."
+                        )
+                        self.mark_traffic_check_done(net_id)
+
+            vlans = data.get("vlans", {})
+            for net_id, vlan_list in vlans.items():
+                if not vlan_list and self.is_vlan_check_due(net_id):
+                    self.add_network_status_message(
+                        net_id, "VLANs are not enabled for this network."
+                    )
+                    self.mark_vlan_check_done(net_id)
+
             update_device_registry_info(self.hass, devices)
 
             self.last_successful_update = datetime.now()
