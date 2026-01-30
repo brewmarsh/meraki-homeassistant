@@ -170,10 +170,18 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 filter_ignored_networks(data, ignored_network_ids)
 
             # Create lookup tables for efficient access in entities
-            devices = [MerakiDevice.from_dict(d) for d in data.get("devices", [])]
+            devices_raw = data.get("devices", [])
+            devices = [
+                MerakiDevice.from_dict(d) if isinstance(d, dict) else d
+                for d in devices_raw
+            ]
             self.devices_by_serial = {d.serial: d for d in devices if d.serial}
 
-            networks = [MerakiNetwork.from_dict(n) for n in data.get("networks", [])]
+            networks_raw = data.get("networks", [])
+            networks = [
+                MerakiNetwork.from_dict(n) if isinstance(n, dict) else n
+                for n in networks_raw
+            ]
             self.networks_by_id = {n.id: n for n in networks if n.id}
 
             # Pre-register network devices to avoid "referencing a non existing
