@@ -150,6 +150,9 @@ def mock_meraki_client():
         appliance.getNetworkApplianceTrafficShaping.return_value = {}
         appliance.getNetworkApplianceVpnSiteToSiteVpn.return_value = {}
         appliance.getNetworkApplianceContentFiltering.return_value = {}
+        appliance.getNetworkApplianceContentFilteringCategories.return_value = {
+            "categories": []
+        }
         appliance.getNetworkApplianceSettings.return_value = {}
         appliance.getNetworkApplianceL7FirewallRules.return_value = {}
         appliance.getNetworkAppliancePorts.return_value = []

@@ -53,6 +53,9 @@ def mock_meraki_client() -> AsyncMock:
     # Mock the update method
     client.appliance = AsyncMock()
     client.appliance.update_vpn_status = AsyncMock()
+    client.appliance.get_network_appliance_content_filtering_categories = AsyncMock(
+        return_value={"categories": []}
+    )
 
     return client
 
