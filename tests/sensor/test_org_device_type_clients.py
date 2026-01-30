@@ -2,10 +2,11 @@
 
 from unittest.mock import MagicMock
 
+from homeassistant.core import HomeAssistant
+
 from custom_components.meraki_ha.sensor.org.org_device_type_clients import (
     MerakiOrganizationDeviceTypeClientsSensor,
 )
-from homeassistant.core import HomeAssistant
 
 
 async def test_meraki_organization_device_type_clients_sensor(

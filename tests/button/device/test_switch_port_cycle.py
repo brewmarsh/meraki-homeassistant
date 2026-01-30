@@ -3,14 +3,14 @@
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
+from homeassistant.config_entries import ConfigEntry
+from homeassistant.core import HomeAssistant
 
 from custom_components.meraki_ha.button.device.switch_port_cycle import (
     MerakiSwitchPortCycleButton,
 )
 from custom_components.meraki_ha.services.switch_port_service import SwitchPortService
 from custom_components.meraki_ha.types import MerakiDevice
-from homeassistant.config_entries import ConfigEntry
-from homeassistant.core import HomeAssistant
 
 
 @pytest.fixture
