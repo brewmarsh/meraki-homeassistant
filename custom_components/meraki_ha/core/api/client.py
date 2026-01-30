@@ -604,7 +604,7 @@ class MerakiAPIClient:
         sensor_readings = initial_results.get("sensor_readings")
 
         if sensor_readings and not isinstance(sensor_readings, Exception):
-            parse_sensor_data(devices_list, sensor_readings)
+            parse_sensor_data(devices_list, sensor_readings, None)
 
         if uplink_statuses and not isinstance(uplink_statuses, Exception):
             parse_appliance_data(devices_list, uplink_statuses)
