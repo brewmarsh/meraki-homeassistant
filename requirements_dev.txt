@@ -1,4 +1,3 @@
-acme
 aiodhcpwatcher
 aiodiscover
 aiofiles==24.1.0
@@ -54,7 +53,7 @@ go2rtc-client==0.2.1
 h11
 habluetooth
 home-assistant-bluetooth
-homeassistant==2024.12.0
+homeassistant==2024.12.5
 html5lib==1.1
 httpcore
 httpx

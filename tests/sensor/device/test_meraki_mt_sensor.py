@@ -72,6 +72,7 @@ def test_mt10_temperature_sensor(
     sensor = MerakiMtSensor(
         mock_coordinator_mt_sensor, device_info, MT_TEMPERATURE_DESCRIPTION
     )
+    sensor._update_native_value()
 
     assert sensor.unique_id == "mt10-1_temperature"
     assert sensor.name == "Temperature"
@@ -88,6 +89,7 @@ def test_mt10_battery_sensor(
     sensor = MerakiMtSensor(
         mock_coordinator_mt_sensor, device_info, MT_BATTERY_DESCRIPTION
     )
+    sensor._update_native_value()
 
     assert sensor.unique_id == "mt10-1_battery"
     assert sensor.name == "Battery"
@@ -104,6 +106,7 @@ def test_mt30_button_sensor(
     sensor = MerakiMtSensor(
         mock_coordinator_mt_sensor, device_info, MT_BUTTON_DESCRIPTION
     )
+    sensor._update_native_value()
 
     assert sensor.unique_id == "mt30-1_button"
     assert sensor.name == "Last Button Press"
