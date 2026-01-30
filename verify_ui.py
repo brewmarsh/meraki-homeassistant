@@ -2,6 +2,7 @@ import asyncio
 import http.server
 import os
 import socketserver
+import subprocess  # nosec
 import sys
 import threading
 
@@ -16,7 +17,7 @@ async def main():
     os.chdir("custom_components/meraki_ha/www")
 
     Handler = http.server.SimpleHTTPRequestHandler
-    httpd = socketserver.TCPServer(("", PORT), Handler)
+    httpd = socketserver.TCPServer(("", PORT), Handler)  # nosec
     server_thread = threading.Thread(target=httpd.serve_forever)
     server_thread.daemon = True
 
@@ -26,8 +27,8 @@ async def main():
 
         # 1. Build the panel (App.tsx contains mock data logic for localhost)
         print("Building frontend...")
-        build_result = os.system("npm run build")
-        if build_result != 0:
+        build_result = subprocess.run("npm run build", shell=True, check=False)  # nosec
+        if build_result.returncode != 0:
             print("Build failed. Aborting verification.", file=sys.stderr)
             sys.exit(1)
         print("Build successful.")

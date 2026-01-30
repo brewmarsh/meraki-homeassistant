@@ -5,22 +5,25 @@ from unittest.mock import MagicMock
 import pytest
 
 from custom_components.meraki_ha.sensor.device.data_usage import MerakiDataUsageSensor
+from custom_components.meraki_ha.types import MerakiDevice
 
 
 @pytest.fixture
 def mock_data_coordinator():
-    """Fixture for a mocked MerakiDataCoordinator."""
+    """Fixture for a mocked MerakiDataUpdateCoordinator."""
     coordinator = MagicMock()
     coordinator.config_entry.options = {}
     coordinator.data = {
         "devices": [
-            {
-                "serial": "dev1",
-                "name": "Appliance",
-                "model": "MX64",
-                "productType": "appliance",
-                "networkId": "net-123",
-            }
+            MerakiDevice.from_dict(
+                {
+                    "serial": "dev1",
+                    "name": "Appliance",
+                    "model": "MX64",
+                    "productType": "appliance",
+                    "networkId": "net-123",
+                }
+            )
         ],
         "appliance_traffic": {
             "net-123": [
@@ -37,6 +40,9 @@ def test_data_usage_sensor(mock_data_coordinator):
     device = mock_data_coordinator.data["devices"][0]
     config_entry = mock_data_coordinator.config_entry
     sensor = MerakiDataUsageSensor(mock_data_coordinator, device, config_entry)
+    sensor.hass = MagicMock()
+    sensor.async_write_ha_state = MagicMock()
+    sensor._handle_coordinator_update()
     assert sensor.unique_id == "dev1_data_usage"
     assert sensor.name == "Data Usage"
     assert sensor.native_value == 10.0  # (1+1) + (4+4) = 10 MB
@@ -52,6 +58,9 @@ def test_data_usage_sensor_disabled(mock_data_coordinator):
     device = mock_data_coordinator.data["devices"][0]
     config_entry = mock_data_coordinator.config_entry
     sensor = MerakiDataUsageSensor(mock_data_coordinator, device, config_entry)
+    sensor.hass = MagicMock()
+    sensor.async_write_ha_state = MagicMock()
+    sensor._handle_coordinator_update()
 
     assert sensor.native_value == "Disabled"
     assert (

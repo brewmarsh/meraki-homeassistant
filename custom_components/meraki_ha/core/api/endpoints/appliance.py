@@ -55,8 +55,6 @@ class ApplianceEndpoints:
             A list of traffic data.
 
         """
-        if self._api_client.dashboard is None:
-            return []
         traffic = await self._api_client.run_sync(
             self._api_client.dashboard.appliance.getNetworkApplianceTraffic,
             networkId=network_id,
@@ -82,8 +80,6 @@ class ApplianceEndpoints:
             A list of VLANs.
 
         """
-        if self._api_client.dashboard is None:
-            return []
         vlans = await self._api_client.run_sync(
             self._api_client.dashboard.appliance.getNetworkApplianceVlans,
             networkId=network_id,
@@ -114,8 +110,6 @@ class ApplianceEndpoints:
             The updated VLAN.
 
         """
-        if self._api_client.dashboard is None:
-            return {}
         vlan = await self._api_client.run_sync(
             self._api_client.dashboard.appliance.updateNetworkApplianceVlan,
             networkId=network_id,
@@ -142,8 +136,6 @@ class ApplianceEndpoints:
             The L3 firewall rules.
 
         """
-        if self._api_client.dashboard is None:
-            return {}
         rules = await self._api_client.run_sync(
             self._api_client.dashboard.appliance.getNetworkApplianceFirewallL3FirewallRules,
             networkId=network_id,
@@ -172,8 +164,6 @@ class ApplianceEndpoints:
             The updated L3 firewall rules.
 
         """
-        if self._api_client.dashboard is None:
-            return {}
         rules = await self._api_client.run_sync(
             self._api_client.dashboard.appliance.updateNetworkApplianceFirewallL3FirewallRules,
             networkId=network_id,
@@ -199,8 +189,6 @@ class ApplianceEndpoints:
             The traffic shaping settings.
 
         """
-        if self._api_client.dashboard is None:
-            return {}
         settings = await self._api_client.run_sync(
             self._api_client.dashboard.appliance.getNetworkApplianceTrafficShaping,
             networkId=network_id,
@@ -229,8 +217,6 @@ class ApplianceEndpoints:
             The updated traffic shaping settings.
 
         """
-        if self._api_client.dashboard is None:
-            return {}
         settings = await self._api_client.run_sync(
             self._api_client.dashboard.appliance.updateNetworkApplianceTrafficShaping,
             networkId=network_id,
@@ -256,8 +242,6 @@ class ApplianceEndpoints:
             The VPN status.
 
         """
-        if self._api_client.dashboard is None:
-            return {}
         status = await self._api_client.run_sync(
             self._api_client.dashboard.appliance.getNetworkApplianceVpnSiteToSiteVpn,
             networkId=network_id,
@@ -282,8 +266,6 @@ class ApplianceEndpoints:
             The updated VPN status.
 
         """
-        if self._api_client.dashboard is None:
-            return {}
         status = await self._api_client.run_sync(
             self._api_client.dashboard.appliance.updateNetworkApplianceVpnSiteToSiteVpn,
             networkId=network_id,
@@ -312,8 +294,6 @@ class ApplianceEndpoints:
             The uplinks settings.
 
         """
-        if self._api_client.dashboard is None:
-            return {}
         uplinks = await self._api_client.run_sync(
             self._api_client.dashboard.appliance.getDeviceApplianceUplinksSettings,
             serial=serial,
@@ -343,8 +323,6 @@ class ApplianceEndpoints:
             The content filtering settings.
 
         """
-        if self._api_client.dashboard is None:
-            return {}
         result = await self._api_client.run_sync(
             self._api_client.dashboard.appliance.getNetworkApplianceContentFiltering,
             networkId=network_id,
@@ -374,8 +352,6 @@ class ApplianceEndpoints:
             The content filtering categories.
 
         """
-        if self._api_client.dashboard is None:
-            return {}
         result = await self._api_client.run_sync(
             self._api_client.dashboard.appliance.getNetworkApplianceContentFilteringCategories,
             networkId=network_id,
@@ -402,8 +378,6 @@ class ApplianceEndpoints:
             The response from the API.
 
         """
-        if self._api_client.dashboard is None:
-            return {}
         result = await self._api_client.run_sync(
             self._api_client.dashboard.devices.rebootDevice,
             serial=serial,
@@ -428,8 +402,6 @@ class ApplianceEndpoints:
             A list of ports.
 
         """
-        if self._api_client.dashboard is None:
-            return []
         ports = await self._api_client.run_sync(
             self._api_client.dashboard.appliance.getNetworkAppliancePorts,
             networkId=network_id,
@@ -454,8 +426,6 @@ class ApplianceEndpoints:
             The settings for the network appliance.
 
         """
-        if self._api_client.dashboard is None:
-            return {}
         settings = await self._api_client.run_sync(
             self._api_client.dashboard.appliance.getNetworkApplianceSettings,
             networkId=network_id,
@@ -483,8 +453,6 @@ class ApplianceEndpoints:
             The L7 firewall rules.
 
         """
-        if self._api_client.dashboard is None:
-            return {}
         rules = await self._api_client.run_sync(
             self._api_client.dashboard.appliance.getNetworkApplianceL7FirewallRules,
             networkId=network_id,
@@ -515,8 +483,6 @@ class ApplianceEndpoints:
             The updated L7 firewall rules.
 
         """
-        if self._api_client.dashboard is None:
-            return {}
         rules = await self._api_client.run_sync(
             self._api_client.dashboard.appliance.updateNetworkApplianceL7FirewallRules,
             networkId=network_id,
@@ -548,8 +514,6 @@ class ApplianceEndpoints:
             The updated content filtering settings.
 
         """
-        if self._api_client.dashboard is None:
-            return {}
         result = await self._api_client.run_sync(
             self._api_client.dashboard.appliance.updateNetworkApplianceContentFiltering,
             networkId=network_id,
@@ -574,8 +538,6 @@ class ApplianceEndpoints:
             A list of uplink statuses.
 
         """
-        if self._api_client.dashboard is None:
-            return []
         statuses = await self._api_client.run_sync(
             self._api_client.dashboard.appliance.getOrganizationApplianceUplinkStatuses,
             organizationId=self._api_client.organization_id,

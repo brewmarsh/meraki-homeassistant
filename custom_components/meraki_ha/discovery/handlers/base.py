@@ -9,19 +9,16 @@ from __future__ import annotations
 
 import logging
 from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
     from homeassistant.helpers.entity import Entity
 
-    from ....services.camera_service import CameraService
-    from ....services.device_control_service import DeviceControlService
-    from ....services.network_control_service import NetworkControlService
-    from ....types import MerakiDevice
-    from ...meraki_data_coordinator import (
-        MerakiDataCoordinator,
+    from ....coordinator import (
+        MerakiDataUpdateCoordinator,
     )
+    from ....types import MerakiDevice
 
 
 _LOGGER = logging.getLogger(__name__)
@@ -32,7 +29,7 @@ class BaseHandler(ABC):
 
     def __init__(
         self,
-        coordinator: MerakiDataCoordinator,
+        coordinator: MerakiDataUpdateCoordinator,
         config_entry: ConfigEntry,
     ) -> None:
         """Initialize the BaseHandler."""
@@ -50,7 +47,7 @@ class BaseDeviceHandler(BaseHandler, ABC):
 
     def __init__(
         self,
-        coordinator: MerakiDataCoordinator,
+        coordinator: MerakiDataUpdateCoordinator,
         device: MerakiDevice,
         config_entry: ConfigEntry,
     ) -> None:
@@ -60,14 +57,6 @@ class BaseDeviceHandler(BaseHandler, ABC):
 
     @classmethod
     @abstractmethod
-    def create(
-        cls,
-        coordinator: MerakiDataCoordinator,
-        device: MerakiDevice,
-        config_entry: ConfigEntry,
-        camera_service: CameraService,
-        control_service: DeviceControlService,
-        network_control_service: NetworkControlService,
-    ) -> BaseDeviceHandler:
+    def create(cls, *args: Any, **kwargs: Any) -> BaseDeviceHandler:
         """Create an instance of the handler."""
         raise NotImplementedError

@@ -8,16 +8,18 @@ against the Meraki Dashboard API using the Meraki SDK.
 from __future__ import annotations
 
 import logging
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
+from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryAuthFailed
 from meraki.exceptions import APIError as MerakiSDKAPIError
 
-if TYPE_CHECKING:
-    from homeassistant.core import HomeAssistant
-
 from .core.api.client import MerakiAPIClient
-from .core.errors import MerakiAuthenticationError, MerakiConnectionError
+from .core.errors import (
+    InvalidOrgID,  # Ensure this is imported for validation logic
+    MerakiAuthenticationError,
+    MerakiConnectionError,
+)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -59,7 +61,7 @@ class MerakiAuthentication:
         Raises
         ------
             ConfigEntryAuthFailed: If authentication fails.
-            ValueError: If the organization ID is not found.
+            InvalidOrgID: If the organization ID is not found.
             MerakiConnectionError: If there is a connection error.
 
         """
@@ -69,6 +71,11 @@ class MerakiAuthentication:
             org_id=self.organization_id,
         )
         await client.async_setup()
+
+        if client.dashboard is None:
+            raise MerakiConnectionError(
+                "Meraki Dashboard API client is not initialized."
+            )
 
         try:
             all_organizations: list[
@@ -90,7 +97,7 @@ class MerakiAuthentication:
                     "Organization ID %s not found in accessible organizations.",
                     self.organization_id,
                 )
-                raise ValueError(
+                raise InvalidOrgID(
                     f"Org ID {self.organization_id} not accessible with this API key.",
                 )
 
@@ -102,11 +109,11 @@ class MerakiAuthentication:
             return {"valid": True, "org_name": fetched_org_name}
 
         except MerakiAuthenticationError as e:
-            _LOGGER.error("Authentication failed: %s", e.message)
-            raise ConfigEntryAuthFailed(f"Authentication failed: {e.message}") from e
+            _LOGGER.error("Authentication failed: %s", e)
+            raise ConfigEntryAuthFailed(f"Authentication failed: {e}") from e
         except MerakiConnectionError as e:
-            _LOGGER.error("Connection error: %s", e.message)
-            raise MerakiConnectionError(f"Connection error: {e.message}") from e
+            _LOGGER.error("Connection error: %s", e)
+            raise MerakiConnectionError(f"Connection error: {e}") from e
         except MerakiSDKAPIError as e:
             if e.status == 401:
                 _LOGGER.error(
@@ -127,7 +134,7 @@ class MerakiAuthentication:
                     "Query failed (HTTP 404) for org %s.",
                     self.organization_id,
                 )
-                raise ConfigEntryAuthFailed(
+                raise InvalidOrgID(
                     f"Organization ID {self.organization_id} not found.",
                 ) from e
 
@@ -145,6 +152,8 @@ class MerakiAuthentication:
                 self.organization_id,
                 e,
             )
+            raise
+        except InvalidOrgID:
             raise
         except Exception as e:
             _LOGGER.error(
@@ -178,7 +187,7 @@ async def validate_meraki_credentials(
     Raises
     ------
         ConfigEntryAuthFailed: If authentication fails.
-        ValueError: If the organization ID is invalid.
+        InvalidOrgID: If the organization ID is invalid.
         MerakiConnectionError: For Meraki connection errors.
 
     """

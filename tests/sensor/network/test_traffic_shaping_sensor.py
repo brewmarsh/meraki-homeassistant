@@ -1,0 +1,105 @@
+"""Tests for the Meraki Traffic Shaping sensor."""
+
+from unittest.mock import AsyncMock, MagicMock
+
+import pytest
+from homeassistant.const import EntityCategory
+
+from custom_components.meraki_ha.const import CONF_ENABLE_TRAFFIC_SHAPING
+from custom_components.meraki_ha.discovery.service import DeviceDiscoveryService
+from custom_components.meraki_ha.types import MerakiNetwork
+
+
+@pytest.fixture
+def mock_coordinator():
+    """Fixture for a mocked MerakiDataUpdateCoordinator."""
+    coordinator = MagicMock()
+    coordinator.config_entry = MagicMock()
+    coordinator.config_entry.options = {}
+
+    # Mock the API client
+    coordinator.api = MagicMock()
+    coordinator.api.appliance = MagicMock()
+    coordinator.api.appliance.get_network_appliance_content_filtering_categories = (
+        AsyncMock(return_value={"categories": []})
+    )
+
+    # Create a mock network
+    mock_network = MerakiNetwork(
+        id="net1",
+        name="Test Network",
+        organization_id="org1",
+        product_types=["appliance"],
+    )
+
+    coordinator.data = {
+        "networks": [mock_network],
+        "traffic_shaping": {"net1": {"enabled": True}},
+        "devices": [],
+        "clients": [],
+        "ssids": [],
+    }
+    return coordinator
+
+
+async def test_traffic_shaping_sensor_creation_enabled(mock_coordinator):
+    """Test that Traffic Shaping sensor is created when enabled."""
+    hass = MagicMock()
+
+    # Enable the option
+    mock_coordinator.config_entry.options = {CONF_ENABLE_TRAFFIC_SHAPING: True}
+
+    # Run the setup
+    discovery_service = DeviceDiscoveryService(
+        mock_coordinator,
+        mock_coordinator.config_entry,
+        MagicMock(),
+        MagicMock(),
+        MagicMock(),
+        MagicMock(),
+    )
+    await discovery_service.discover_entities()
+    sensors = discovery_service.all_entities
+
+    # Filter for TrafficShapingSensor
+    ts_sensors = [s for s in sensors if s.__class__.__name__ == "TrafficShapingSensor"]
+    assert len(ts_sensors) == 1
+
+    sensor = ts_sensors[0]
+    assert sensor.unique_id == "net1-traffic-shaping"
+    assert sensor.name == "Traffic Shaping"
+    assert sensor.entity_category == EntityCategory.DIAGNOSTIC
+
+    # Mock hass for the sensor
+    sensor.hass = hass
+
+    # Mock async_write_ha_state
+    sensor.async_write_ha_state = MagicMock()
+
+    # Simulate update
+    sensor._handle_coordinator_update()
+    assert sensor.native_value == "Enabled"
+
+
+async def test_traffic_shaping_sensor_creation_disabled(mock_coordinator):
+    """Test that Traffic Shaping sensor is NOT created when disabled."""
+    MagicMock()
+
+    # Disable the option (default)
+    mock_coordinator.config_entry.options = {CONF_ENABLE_TRAFFIC_SHAPING: False}
+
+    # Run the setup
+    discovery_service = DeviceDiscoveryService(
+        mock_coordinator,
+        mock_coordinator.config_entry,
+        MagicMock(),
+        MagicMock(),
+        MagicMock(),
+        MagicMock(),
+    )
+    await discovery_service.discover_entities()
+    sensors = discovery_service.all_entities
+
+    # Filter for TrafficShapingSensor
+    ts_sensors = [s for s in sensors if s.__class__.__name__ == "TrafficShapingSensor"]
+    assert len(ts_sensors) == 0

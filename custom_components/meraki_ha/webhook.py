@@ -8,7 +8,7 @@ from urllib.parse import urlparse
 
 from aiohttp import web
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.network import get_url
+from homeassistant.helpers.network import NoURLAvailableError, get_url
 
 from .const import DOMAIN
 from .core.errors import MerakiConnectionError
@@ -26,7 +26,7 @@ def get_webhook_url(
     hass: HomeAssistant,
     webhook_id: str,
     entry_webhook_url: str | None = None,
-) -> str:
+) -> str | None:
     """
     Get the URL for a webhook.
 
@@ -40,31 +40,40 @@ def get_webhook_url(
 
     Returns
     -------
-        The full webhook URL.
+        The full webhook URL, or None if it cannot be determined.
 
     Raises
     ------
         MerakiConnectionError: If the URL doesn't meet Meraki's requirements.
 
     """
-    # Use configured webhook URL if provided, otherwise fall back to HA's external URL
-    base_url = (
-        entry_webhook_url
-        if entry_webhook_url
-        else get_url(hass, allow_internal=False, prefer_external=True)
-    )
+    base_url: str | None = entry_webhook_url
 
     if not base_url:
-        raise MerakiConnectionError(
-            "No webhook URL configured. Please either configure an external URL in the "
-            "integration options or in your Home Assistant configuration.",
-        )
+        try:
+            base_url = get_url(hass, allow_internal=False, prefer_external=True)
+        except NoURLAvailableError:
+            _LOGGER.warning(
+                "Could not determine external URL for Meraki webhooks. "
+                "Trying internal URL as a fallback."
+            )
+            try:
+                base_url = get_url(hass, allow_internal=True, prefer_external=False)
+            except NoURLAvailableError:
+                _LOGGER.warning(
+                    "Could not determine internal URL for Meraki webhooks. "
+                    "Please configure an 'external_url' in Home Assistant or "
+                    "provide a manual override in the integration options."
+                )
+                base_url = None
+
+    if not base_url:
+        return None
 
     # Ensure the URL uses HTTPS
     if not base_url.startswith("https://"):
-        raise MerakiConnectionError(
-            "Meraki webhooks require HTTPS. Please configure an HTTPS URL.",
-        )
+        _LOGGER.warning("Meraki webhooks require HTTPS. Webhook registration skipped.")
+        return None
 
     # Parse the URL to check if it's a local address
     parsed = urlparse(base_url)
@@ -93,6 +102,7 @@ async def async_register_webhook(
     secret: str,
     api_client: MerakiAPIClient,
     entry: ConfigEntry | None = None,
+    config_entry_id: str | None = None,
 ) -> None:
     """
     Register a webhook with the Meraki API.
@@ -109,14 +119,19 @@ async def async_register_webhook(
     try:
         webhook_url_from_entry = entry.data.get("webhook_url") if entry else None
         webhook_url = get_webhook_url(hass, webhook_id, webhook_url_from_entry)
-        await api_client.register_webhook(webhook_url, secret)
-    except Exception as err:
-        _LOGGER.error("Failed to register webhook: %s", err)
+        if not config_entry_id and entry:
+            config_entry_id = entry.entry_id
+        if webhook_url and config_entry_id:
+            await api_client.register_webhook(webhook_url, secret, config_entry_id)
+        elif not webhook_url:
+            _LOGGER.error("Could not register webhook, no URL available")
+    except Exception:
+        _LOGGER.error("Failed to register webhook", exc_info=True)
 
 
 async def async_unregister_webhook(
     hass: HomeAssistant,
-    webhook_url: str,
+    config_entry_id: str,
     api_client: MerakiAPIClient,
 ) -> None:
     """
@@ -125,11 +140,11 @@ async def async_unregister_webhook(
     Args:
     ----
         hass: The Home Assistant instance.
-        webhook_url: The URL of the webhook to unregister.
+        webhook_id: The httpServerId from Meraki.
         api_client: The Meraki API client.
 
     """
-    await api_client.unregister_webhook(webhook_url)
+    await api_client.unregister_webhook(config_entry_id)
 
 
 async def async_handle_webhook(
@@ -174,12 +189,12 @@ async def async_handle_webhook(
         device_serial = data.get("deviceSerial")
         if device_serial and coordinator.data:
             for i, device in enumerate(coordinator.data.get("devices", [])):
-                if device.get("serial") == device_serial:
+                if device.serial == device_serial:
                     _LOGGER.info(
                         "Device %s reported as down via webhook",
                         device_serial,
                     )
-                    coordinator.data["devices"][i]["status"] = "offline"
+                    coordinator.data["devices"][i].status = "offline"
                     coordinator.async_update_listeners()
                     break
     elif alert_type == "Client connectivity changed":

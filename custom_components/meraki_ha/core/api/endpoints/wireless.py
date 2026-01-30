@@ -38,8 +38,6 @@ class WirelessEndpoints:
             A list of SSIDs.
 
         """
-        if self._api_client.dashboard is None:
-            return []
         ssids = await self._api_client.run_sync(
             self._api_client.dashboard.wireless.getNetworkWirelessSsids,
             networkId=network_id,
@@ -65,8 +63,6 @@ class WirelessEndpoints:
             The wireless settings.
 
         """
-        if self._api_client.dashboard is None:
-            return {}
         settings = await self._api_client.run_sync(
             self._api_client.dashboard.wireless.getDeviceWirelessRadioSettings,
             serial=serial,
@@ -74,49 +70,6 @@ class WirelessEndpoints:
         validated = validate_response(settings)
         if not isinstance(validated, dict):
             _LOGGER.warning("get_wireless_settings did not return a dict")
-            return {}
-        return validated
-
-    @handle_meraki_errors
-    async def create_network_wireless_ssid_identity_psk(
-        self,
-        network_id: str,
-        number: str,
-        name: str,
-        group_policy_id: str,
-        **kwargs: dict[str, Any],
-    ) -> dict[str, Any]:
-        """
-        Create an Identity PSK for an SSID.
-
-        Args:
-        ----
-            network_id: The ID of the network.
-            number: The SSID number.
-            name: The name of the Identity PSK.
-            group_policy_id: The group policy ID.
-            **kwargs: Additional arguments.
-
-        Returns
-        -------
-            The created Identity PSK.
-
-        """
-        if self._api_client.dashboard is None:
-            return {}
-        psk = await self._api_client.run_sync(
-            self._api_client.dashboard.wireless.createNetworkWirelessSsidIdentityPsk,
-            network_id,
-            number,
-            name,
-            group_policy_id,
-            **kwargs,
-        )
-        validated = validate_response(psk)
-        if not isinstance(validated, dict):
-            _LOGGER.warning(
-                "create_network_wireless_ssid_identity_psk did not return a dict"
-            )
             return {}
         return validated
 
@@ -140,8 +93,6 @@ class WirelessEndpoints:
             The SSID details.
 
         """
-        if self._api_client.dashboard is None:
-            return {}
         ssid = await self._api_client.run_sync(
             self._api_client.dashboard.wireless.getNetworkWirelessSsid,
             networkId=network_id,
@@ -150,61 +101,6 @@ class WirelessEndpoints:
         validated = validate_response(ssid)
         if not isinstance(validated, dict):
             _LOGGER.warning("get_network_wireless_ssid did not return a dict")
-            return {}
-        return validated
-
-    @handle_meraki_errors
-    @async_timed_cache()
-    async def get_network_wireless_settings(self, network_id: str) -> dict[str, Any]:
-        """
-        Get wireless settings for a network.
-
-        Args:
-        ----
-            network_id: The ID of the network.
-
-        Returns
-        -------
-            The wireless settings.
-        """
-        if self._api_client.dashboard is None:
-            return {}
-        settings = await self._api_client.run_sync(
-            self._api_client.dashboard.wireless.getNetworkWirelessSettings,
-            networkId=network_id,
-        )
-        validated = validate_response(settings)
-        if not isinstance(validated, dict):
-            _LOGGER.warning("get_network_wireless_settings did not return a dict")
-            return {}
-        return validated
-
-    @handle_meraki_errors
-    async def update_network_wireless_settings(
-        self, network_id: str, **kwargs: dict[str, Any]
-    ) -> dict[str, Any]:
-        """
-        Update wireless settings for a network.
-
-        Args:
-        ----
-            network_id: The ID of the network.
-            **kwargs: The settings to update.
-
-        Returns
-        -------
-            The updated settings.
-        """
-        if self._api_client.dashboard is None:
-            return {}
-        settings = await self._api_client.run_sync(
-            self._api_client.dashboard.wireless.updateNetworkWirelessSettings,
-            networkId=network_id,
-            **kwargs,
-        )
-        validated = validate_response(settings)
-        if not isinstance(validated, dict):
-            _LOGGER.warning("update_network_wireless_settings did not return a dict")
             return {}
         return validated
 
@@ -229,8 +125,6 @@ class WirelessEndpoints:
             The updated SSID.
 
         """
-        if self._api_client.dashboard is None:
-            return {}
         ssid = await self._api_client.run_sync(
             self._api_client.dashboard.wireless.updateNetworkWirelessSsid,
             networkId=network_id,
@@ -261,8 +155,6 @@ class WirelessEndpoints:
             A list of RF profiles.
 
         """
-        if self._api_client.dashboard is None:
-            return []
         profiles = await self._api_client.run_sync(
             self._api_client.dashboard.wireless.getNetworkWirelessRfProfiles,
             networkId=network_id,
@@ -293,8 +185,6 @@ class WirelessEndpoints:
             The L7 firewall rules.
 
         """
-        if self._api_client.dashboard is None:
-            return {}
         rules = await self._api_client.run_sync(
             self._api_client.dashboard.wireless.getNetworkWirelessSsidL7FirewallRules,
             networkId=network_id,
@@ -307,6 +197,89 @@ class WirelessEndpoints:
             )
             return {}
         return validated
+
+    @handle_meraki_errors
+    async def create_identity_psk(
+        self,
+        network_id: str,
+        number: str,
+        name: str,
+        group_policy_id: str | None = None,
+        passphrase: str | None = None,
+    ) -> dict[str, Any]:
+        """
+        Create an Identity PSK.
+
+        Args:
+        ----
+            network_id: The ID of the network.
+            number: The SSID number.
+            name: The name of the Identity PSK.
+            group_policy_id: The ID of the group policy to apply.
+            passphrase: The passphrase for the Identity PSK.
+
+        Returns
+        -------
+            The created Identity PSK.
+
+        """
+        if self._api_client.dashboard is None:
+            return {}
+
+        # Prepare kwargs for the library call
+        kwargs: dict[str, Any] = {
+            "name": name,
+            "groupPolicyId": group_policy_id or "Normal",
+        }
+
+        if passphrase:
+            kwargs["passphrase"] = passphrase
+
+        _LOGGER.debug(
+            "Calling createNetworkWirelessSsidIdentityPsk with networkId=%s, "
+            "number=%s, kwargs=%s",
+            network_id,
+            number,
+            {k: v if k != "passphrase" else "***" for k, v in kwargs.items()},
+        )
+
+        psk = await self._api_client.run_sync(
+            self._api_client.dashboard.wireless.createNetworkWirelessSsidIdentityPsk,
+            networkId=network_id,
+            number=number,
+            **kwargs,
+        )
+        validated = validate_response(psk)
+        if not isinstance(validated, dict):
+            _LOGGER.warning("create_identity_psk did not return a dict")
+            return {}
+        return validated
+
+    @handle_meraki_errors
+    async def delete_identity_psk(
+        self,
+        network_id: str,
+        number: str,
+        identity_psk_id: str,
+    ) -> None:
+        """
+        Delete an Identity PSK.
+
+        Args:
+        ----
+            network_id: The ID of the network.
+            number: The SSID number.
+            identity_psk_id: The ID of the Identity PSK to delete.
+
+        """
+        if self._api_client.dashboard is None:
+            return
+        await self._api_client.run_sync(
+            self._api_client.dashboard.wireless.deleteNetworkWirelessSsidIdentityPsk,
+            networkId=network_id,
+            number=number,
+            identityPskId=identity_psk_id,
+        )
 
     @handle_meraki_errors
     async def update_network_wireless_ssid_l7_firewall_rules(
@@ -329,8 +302,6 @@ class WirelessEndpoints:
             The updated L7 firewall rules.
 
         """
-        if self._api_client.dashboard is None:
-            return {}
         rules = await self._api_client.run_sync(
             self._api_client.dashboard.wireless.updateNetworkWirelessSsidL7FirewallRules,
             networkId=network_id,

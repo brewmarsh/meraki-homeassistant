@@ -10,12 +10,12 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING
 
+from ...const import CONF_ENABLE_SSID_SENSORS
 from ...sensor.network.ssid_auth_mode import MerakiSSIDAuthModeSensor
 
 # Import the specific sensor classes
 from ...sensor.network.ssid_availability import MerakiSSIDAvailabilitySensor
 from ...sensor.network.ssid_band_selection import MerakiSSIDBandSelectionSensor
-from ...sensor.network.ssid_channel import MerakiSSIDChannelSensor
 from ...sensor.network.ssid_client_count import MerakiSSIDClientCountSensor
 from ...sensor.network.ssid_details import (
     MerakiSSIDMandatoryDhcpSensor,
@@ -33,6 +33,7 @@ from ...sensor.network.ssid_per_client_bandwidth_limit import (
 from ...sensor.network.ssid_per_ssid_bandwidth_limit import (
     MerakiSSIDPerSsidBandwidthLimitSensor,
 )
+from ...sensor.network.ssid_psk import MerakiSSIDPSKSensor
 from ...sensor.network.ssid_splash_page import MerakiSSIDSplashPageSensor
 from ...sensor.network.ssid_visible import MerakiSSIDVisibleSensor
 from ...sensor.network.ssid_wpa_encryption_mode import MerakiSSIDWPAEncryptionModeSensor
@@ -44,8 +45,8 @@ if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
     from homeassistant.helpers.entity import Entity
 
+    from ...coordinator import MerakiDataUpdateCoordinator
     from ...core.api.client import MerakiAPIClient
-    from ...meraki_data_coordinator import MerakiDataCoordinator
 
 
 _LOGGER = logging.getLogger(__name__)
@@ -56,7 +57,7 @@ class SSIDHandler(BaseHandler):
 
     def __init__(
         self,
-        coordinator: MerakiDataCoordinator,
+        coordinator: MerakiDataUpdateCoordinator,
         config_entry: ConfigEntry,
         meraki_client: MerakiAPIClient,
     ) -> None:
@@ -67,7 +68,7 @@ class SSIDHandler(BaseHandler):
     @classmethod
     def create(
         cls,
-        coordinator: MerakiDataCoordinator,
+        coordinator: MerakiDataUpdateCoordinator,
         config_entry: ConfigEntry,
         meraki_client: MerakiAPIClient,
     ) -> SSIDHandler:
@@ -87,6 +88,10 @@ class SSIDHandler(BaseHandler):
 
         entities: list[Entity] = []
         if not self._coordinator.data or "ssids" not in self._coordinator.data:
+            return entities
+
+        # Check if SSID sensors/entities are enabled
+        if not self._config_entry.options.get(CONF_ENABLE_SSID_SENSORS, True):
             return entities
 
         for ssid in self._coordinator.data["ssids"]:
@@ -125,9 +130,6 @@ class SSIDHandler(BaseHandler):
                     MerakiSSIDAvailabilitySensor(
                         self._coordinator, self._config_entry, ssid
                     ),
-                    MerakiSSIDChannelSensor(
-                        self._coordinator, self._config_entry, ssid
-                    ),
                     MerakiSSIDClientCountSensor(
                         self._coordinator, self._config_entry, ssid
                     ),
@@ -137,6 +139,7 @@ class SSIDHandler(BaseHandler):
                     MerakiSSIDAuthModeSensor(
                         self._coordinator, self._config_entry, ssid
                     ),
+                    MerakiSSIDPSKSensor(self._coordinator, self._config_entry, ssid),
                     MerakiSSIDEncryptionModeSensor(
                         self._coordinator, self._config_entry, ssid
                     ),

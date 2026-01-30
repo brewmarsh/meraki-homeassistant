@@ -1,14 +1,15 @@
 """Switch entities for controlling Meraki Camera profiles."""
 
+from __future__ import annotations
+
 import logging
-from typing import Any
 
 from homeassistant.components.switch import SwitchEntityDescription
-from homeassistant.helpers.typing import UNDEFINED
 
-from custom_components.meraki_ha.meraki_data_coordinator import MerakiDataCoordinator
+from custom_components.meraki_ha.coordinator import MerakiDataUpdateCoordinator
 
 from ..core.api.client import MerakiAPIClient
+from ..types import MerakiDevice
 from .camera_settings import MerakiCameraSettingSwitchBase
 
 _LOGGER = logging.getLogger(__name__)
@@ -19,9 +20,9 @@ class MerakiCameraSenseSwitch(MerakiCameraSettingSwitchBase):
 
     def __init__(
         self,
-        coordinator: MerakiDataCoordinator,
+        coordinator: MerakiDataUpdateCoordinator,
         meraki_client: MerakiAPIClient,
-        device_data: dict[str, Any],
+        device_data: MerakiDevice,
     ) -> None:
         """Initialize the Camera Sense switch."""
         super().__init__(
@@ -35,13 +36,6 @@ class MerakiCameraSenseSwitch(MerakiCameraSettingSwitchBase):
             key="sense_enabled", name="MV Sense"
         )
 
-    @property
-    def name(self) -> str:
-        """Return the explicit name of the switch."""
-        if self.entity_description.name is UNDEFINED:
-            return ""
-        return self.entity_description.name or ""
-
     async def _async_update_setting(self, is_on: bool) -> None:
         """Update the setting via the Meraki API.
 
@@ -50,8 +44,9 @@ class MerakiCameraSenseSwitch(MerakiCameraSettingSwitchBase):
             is_on: Whether the setting is on or off.
         """
         await self.client.camera.update_camera_sense_settings(
-            serial=self._device_data["serial"], senseEnabled=is_on
+            serial=self._device_data.serial, sense_enabled=is_on
         )
+        await self.coordinator.async_request_refresh()
 
 
 class MerakiCameraAudioDetectionSwitch(MerakiCameraSettingSwitchBase):
@@ -59,9 +54,9 @@ class MerakiCameraAudioDetectionSwitch(MerakiCameraSettingSwitchBase):
 
     def __init__(
         self,
-        coordinator: MerakiDataCoordinator,
+        coordinator: MerakiDataUpdateCoordinator,
         meraki_client: MerakiAPIClient,
-        device_data: dict[str, Any],
+        device_data: MerakiDevice,
     ) -> None:
         """Initialize the Camera Audio Detection switch."""
         super().__init__(
@@ -75,13 +70,6 @@ class MerakiCameraAudioDetectionSwitch(MerakiCameraSettingSwitchBase):
             key="audio_detection", name="Audio Detection"
         )
 
-    @property
-    def name(self) -> str:
-        """Return the explicit name of the switch."""
-        if self.entity_description.name is UNDEFINED:
-            return ""
-        return self.entity_description.name or ""
-
     async def _async_update_setting(self, is_on: bool) -> None:
         """Update the setting via the Meraki API.
 
@@ -89,7 +77,8 @@ class MerakiCameraAudioDetectionSwitch(MerakiCameraSettingSwitchBase):
         ----
             is_on: Whether the setting is on or off.
         """
-        await self.client.camera.update_camera_sense_settings(
-            serial=self._device_data["serial"],
-            audioDetection={"enabled": is_on},
+        await self.client.camera.update_camera_video_settings(
+            serial=self._device_data.serial,
+            video_settings={"audio_detection": {"enabled": is_on}},
         )
+        await self.coordinator.async_request_refresh()

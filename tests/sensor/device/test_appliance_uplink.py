@@ -4,46 +4,45 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from custom_components.meraki_ha.sensor.setup_helpers import async_setup_sensors
+from custom_components.meraki_ha.discovery.service import DeviceDiscoveryService
+from custom_components.meraki_ha.types import MerakiDevice
 
 
 @pytest.fixture
 def mock_coordinator():
-    """Fixture for a mocked MerakiDataCoordinator."""
+    """Fixture for a mocked MerakiDataUpdateCoordinator."""
     coordinator = MagicMock()
     coordinator.config_entry.options = {}
-    mock_device_data = {
-        "serial": "dev1",
-        "name": "Test Appliance",
-        "model": "MX64",
-        "product_type": "appliance",
-        "networkId": "net1",
-    }
+    mock_device_data = MerakiDevice.from_dict(
+        {
+            "serial": "dev1",
+            "name": "Test Appliance",
+            "model": "MX64",
+            "productType": "appliance",
+            "networkId": "net1",
+            "mac": "00:11:22:33:44:55",
+            "lanIp": "1.2.3.4",
+            "appliance_uplink_statuses": [
+                {
+                    "interface": "wan1",
+                    "status": "active",
+                    "ip": "1.2.3.4",
+                },
+                {
+                    "interface": "wan2",
+                    "status": "failed",
+                    "ip": "5.6.7.8",
+                },
+                {
+                    "interface": "cellular",
+                    "status": "ready",
+                    "ip": "9.10.11.12",
+                },
+            ],
+        }
+    )
     coordinator.data = {
         "devices": [mock_device_data],
-        "appliance_uplink_statuses": [
-            {
-                "serial": "dev1",
-                "uplinks": [
-                    {
-                        "interface": "wan1",
-                        "status": "active",
-                        "ip": "1.2.3.4",
-                    },
-                    {
-                        "interface": "wan2",
-                        "status": "failed",
-                        "ip": "5.6.7.8",
-                    },
-                    {
-                        "interface": "cellular",
-                        "status": "ready",
-                        "ip": "9.10.11.12",
-                    },
-                ],
-            }
-        ],
-        # Add other required data structures for setup_helpers
         "clients": [],
         "ssids": [],
         "vlans": {},
@@ -52,14 +51,24 @@ def mock_coordinator():
     return coordinator
 
 
-def test_appliance_uplink_sensor_creation(mock_coordinator):
+async def test_appliance_uplink_sensor_creation(mock_coordinator):
     """Test that appliance uplink sensors are created correctly."""
-    hass = MagicMock()
     config_entry = MagicMock()
+    meraki_client = MagicMock()
     camera_service = MagicMock()
+    control_service = MagicMock()
+    network_control_service = MagicMock()
 
-    # Run the setup
-    sensors = async_setup_sensors(hass, config_entry, mock_coordinator, camera_service)
+    discovery_service = DeviceDiscoveryService(
+        mock_coordinator,
+        config_entry,
+        meraki_client,
+        camera_service,
+        control_service,
+        network_control_service,
+    )
+    await discovery_service.discover_entities()
+    sensors = discovery_service.all_entities
 
     # Filter for just the uplink sensors
     uplink_sensors = [s for s in sensors if "Uplink" in s.__class__.__name__]

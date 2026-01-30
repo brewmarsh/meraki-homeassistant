@@ -1,6 +1,5 @@
 """Sensor platform for the Meraki Home Assistant integration."""
 
-import asyncio
 import logging
 
 from homeassistant.components.sensor import SensorEntity
@@ -8,7 +7,8 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from ..const import DOMAIN
+from ..const import CONF_ENABLE_ORG_SENSORS, DOMAIN
+from ..discovery.service import DeviceDiscoveryService
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -19,18 +19,37 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ) -> bool:
     """Set up Meraki sensor entities from a config entry."""
-    entry_data = hass.data[DOMAIN][config_entry.entry_id]
+    if config_entry.entry_id not in hass.data[DOMAIN]:
+        return False
 
-    discovered_entities = entry_data.get("entities", [])
-    sensor_entities = [e for e in discovered_entities if isinstance(e, SensorEntity)]
+    entry_data = hass.data[DOMAIN][config_entry.entry_id]
+    discovery_service: DeviceDiscoveryService = entry_data["discovery_service"]
+
+    # Entities have already been discovered in __init__.py
+    sensor_entities = [
+        entity
+        for entity in discovery_service.all_entities
+        if isinstance(entity, SensorEntity)
+    ]
+
+    # Filter out organization sensors if disabled
+    if not config_entry.options.get(CONF_ENABLE_ORG_SENSORS, True):
+        _LOGGER.debug("Organization sensors are disabled.")
+        filtered_entities = []
+        for entity in sensor_entities:
+            if "MerakiOrganization" in entity.__class__.__name__:
+                _LOGGER.debug("Skipping organization sensor %s", entity.name)
+                continue
+            filtered_entities.append(entity)
+        sensor_entities = filtered_entities
 
     if sensor_entities:
-        _LOGGER.debug("Adding %d sensor entities", len(sensor_entities))
-        chunk_size = 50
-        for i in range(0, len(sensor_entities), chunk_size):
-            chunk = sensor_entities[i : i + chunk_size]
-            async_add_entities(chunk)
-            if len(sensor_entities) > chunk_size:
-                await asyncio.sleep(0)
+        async_add_entities(sensor_entities)
 
     return True
+
+
+async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+    """Unload a config entry."""
+    # Assuming that discovery_service.all_entities is cleared on unload
+    return True  # Entities are handled by the main __init__.py unload logic.

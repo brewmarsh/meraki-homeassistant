@@ -8,8 +8,8 @@ from homeassistant.components.number import NumberEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import callback
 
+from ..coordinator import MerakiDataUpdateCoordinator
 from ..core.entities.meraki_network_entity import MerakiNetworkEntity
-from ..meraki_data_coordinator import MerakiDataCoordinator
 from ..types import MerakiNetwork
 
 _LOGGER = logging.getLogger(__name__)
@@ -20,7 +20,7 @@ class MerakiUplinkBandwidthNumber(MerakiNetworkEntity, NumberEntity):
 
     def __init__(
         self,
-        coordinator: MerakiDataCoordinator,
+        coordinator: MerakiDataUpdateCoordinator,
         config_entry: ConfigEntry,
         network: MerakiNetwork,
         uplink: str,
@@ -34,7 +34,7 @@ class MerakiUplinkBandwidthNumber(MerakiNetworkEntity, NumberEntity):
             f"uplink_bandwidth_{self._network_id}_{self._uplink}_{self._direction}"
         )
         self._attr_name = (
-            f"{self._network['name']} {self._uplink.capitalize()} "
+            f"{self._network.name} {self._uplink.capitalize()} "
             f"{self._direction.capitalize()} Limit"
         )
         self._attr_native_unit_of_measurement = "kbps"

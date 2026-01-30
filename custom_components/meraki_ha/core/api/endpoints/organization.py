@@ -44,8 +44,6 @@ class OrganizationEndpoints:
             The organization details.
 
         """
-        if self._api_client.dashboard is None:
-            return {}
         org = await self._api_client.run_sync(
             self._api_client.dashboard.organizations.getOrganization,
             organizationId=self._api_client.organization_id,
@@ -67,8 +65,6 @@ class OrganizationEndpoints:
             A list of networks.
 
         """
-        if self._api_client.dashboard is None:
-            return []
         networks = await self._api_client.run_sync(
             self._api_client.dashboard.organizations.getOrganizationNetworks,
             organizationId=self._api_client.organization_id,
@@ -90,8 +86,6 @@ class OrganizationEndpoints:
             A list of firmware upgrades.
 
         """
-        if self._api_client.dashboard is None:
-            return []
         upgrades = await self._api_client.run_sync(
             self._api_client.dashboard.organizations.getOrganizationFirmwareUpgrades,
             organizationId=self._api_client.organization_id,
@@ -104,7 +98,7 @@ class OrganizationEndpoints:
 
     @handle_meraki_errors
     @async_timed_cache(timeout=60)
-    async def get_organization_device_statuses(self) -> list[dict[str, Any]]:
+    async def get_organization_devices_statuses(self) -> list[dict[str, Any]]:
         """
         Get status information for all devices in the organization.
 
@@ -113,15 +107,14 @@ class OrganizationEndpoints:
             A list of device statuses.
 
         """
-        if self._api_client.dashboard is None:
-            return []
         statuses = await self._api_client.run_sync(
-            self._api_client.dashboard.organizations.getOrganizationDeviceStatuses,
+            self._api_client.dashboard.organizations.getOrganizationDevicesStatuses,
             organizationId=self._api_client.organization_id,
+            total_pages="all",
         )
         validated = validate_response(statuses)
         if not isinstance(validated, list):
-            _LOGGER.warning("get_organization_device_statuses did not return a list.")
+            _LOGGER.warning("get_organization_devices_statuses did not return a list.")
             return []
         return validated
 
@@ -136,8 +129,6 @@ class OrganizationEndpoints:
             A list of device availabilities.
 
         """
-        if self._api_client.dashboard is None:
-            return []
         availabilities = await self._api_client.run_sync(
             self._api_client.dashboard.organizations.getOrganizationDevicesAvailabilities,
             organizationId=self._api_client.organization_id,
@@ -162,8 +153,6 @@ class OrganizationEndpoints:
             A list of devices.
 
         """
-        if self._api_client.dashboard is None:
-            return []
         devices = await self._api_client.run_sync(
             self._api_client.dashboard.organizations.getOrganizationDevices,
             organizationId=self._api_client.organization_id,
@@ -185,13 +174,35 @@ class OrganizationEndpoints:
             A list of organizations.
 
         """
-        if self._api_client.dashboard is None:
-            return []
         orgs = await self._api_client.run_sync(
             self._api_client.dashboard.organizations.getOrganizations
         )
         validated = validate_response(orgs)
         if not isinstance(validated, list):
             _LOGGER.warning("get_organizations did not return a list.")
+            return []
+        return validated
+
+    @handle_meraki_errors
+    @async_timed_cache()
+    async def get_organization_wireless_ssids_statuses_by_device(
+        self,
+    ) -> list[dict[str, Any]]:
+        """
+        Get organization-wide wireless SSIDs statuses by device.
+
+        Returns
+        -------
+            A list of wireless SSIDs statuses.
+
+        """
+        statuses = await self._api_client.run_sync(
+            self._api_client.dashboard.organizations.getOrganizationWirelessSsidsStatusesByDevice,
+            organizationId=self._api_client.organization_id,
+            total_pages="all",
+        )
+        validated = validate_response(statuses)
+        if not isinstance(validated, list):
+            _LOGGER.warning("Wireless SSIDs statuses by device did not return a list.")
             return []
         return validated
