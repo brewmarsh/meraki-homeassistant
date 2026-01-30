@@ -1,6 +1,6 @@
 aiodns==3.6.1
 bandit==1.7.9
-meraki>=1.53.0
+meraki==1.54.0
 pycares==4.11.0
 pytest-cov
 pytest-homeassistant-custom-component

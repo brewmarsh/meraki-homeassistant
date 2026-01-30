@@ -6,7 +6,7 @@ diskcache==5.6.3
 greenlet==3.3.0
 homeassistant==2026.1.0b4
 janus==1.0.0
-meraki>=1.53.0
+meraki==1.54.0
 numpy==2.3.2
 orjson==3.11.3
 pillow==12.0.0

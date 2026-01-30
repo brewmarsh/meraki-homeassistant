@@ -6,7 +6,6 @@ import pytest
 
 from custom_components.meraki_ha.coordinator import MerakiDataUpdateCoordinator
 from custom_components.meraki_ha.core.api.client import MerakiAPIClient
-from custom_components.meraki_ha.core.errors import MerakiInformationalError
 from custom_components.meraki_ha.types import MerakiDevice, MerakiNetwork
 from tests.const import MOCK_DEVICE, MOCK_DEVICE_INIT, MOCK_NETWORK, MOCK_NETWORK_INIT
 
