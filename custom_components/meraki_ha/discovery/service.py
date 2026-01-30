@@ -18,7 +18,6 @@ from ..const import (
     CONF_ENABLE_NETWORK_SENSORS,
     CONF_ENABLE_SSID_SENSORS,
 )
-
 from ..types import MerakiDevice
 
 if TYPE_CHECKING:
