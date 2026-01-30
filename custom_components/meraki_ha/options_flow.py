@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from homeassistant import config_entries
+from homeassistant import config_entries, data_entry_flow
 
 from .const import CONF_INTEGRATION_TITLE, DOMAIN
 from .coordinator import MerakiDataUpdateCoordinator

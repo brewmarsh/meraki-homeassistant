@@ -1,7 +1,6 @@
 acme
 aiodhcpwatcher
 aiodiscover
-aiodns==3.6.1
 aiofiles==24.1.0
 aiohappyeyeballs
 aiohasupervisor
@@ -94,7 +93,6 @@ propcache
 psutil
 psutil-home-assistant
 py-serializable==1.1.2
-pycares==4.11.0
 pycognito==2024.5.1
 pycparser
 pydantic

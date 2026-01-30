@@ -2,7 +2,7 @@
 """Switch entities for controlling Meraki SSID devices."""
 
 import logging
-from typing import Any
+from typing import Any, cast
 
 from homeassistant.components.switch import SwitchEntity
 from homeassistant.config_entries import ConfigEntry
