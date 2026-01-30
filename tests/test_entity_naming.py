@@ -1,4 +1,5 @@
 """Test entity naming conventions for Meraki HA."""
+
 from unittest.mock import MagicMock
 
 from custom_components.meraki_ha.camera import MerakiCamera
