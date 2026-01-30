@@ -2,7 +2,6 @@
 
 from unittest.mock import MagicMock, patch
 
-import pytest
 from homeassistant.helpers import entity_registry as er
 
 from custom_components.meraki_ha.core.helpers import update_device_registry_info

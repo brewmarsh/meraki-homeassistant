@@ -1,7 +1,5 @@
 """Base entity for all Meraki entities."""
 
-from typing import cast
-
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .coordinator import MerakiDataUpdateCoordinator

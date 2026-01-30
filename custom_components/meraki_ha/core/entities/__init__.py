@@ -12,7 +12,6 @@ from ...const import (
     DOMAIN,
     MANUFACTURER,
 )
-
 from ...coordinator import MerakiDataUpdateCoordinator
 
 
