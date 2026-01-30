@@ -7,7 +7,6 @@ from typing import TYPE_CHECKING, Any
 
 import aiohttp
 import voluptuous as vol
-
 from homeassistant import data_entry_flow
 from homeassistant.exceptions import ConfigEntryAuthFailed
 
