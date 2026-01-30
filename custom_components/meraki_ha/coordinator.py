@@ -179,7 +179,8 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             # via_device" warnings when downstream entities (like VLANs) initialize.
             device_registry = dr.async_get(self.hass)
 
-            assert self.config_entry is not None
+            if not self.config_entry:
+                raise UpdateFailed("Config entry not available")
 
             for network in data.get("networks", []):
                 device_registry.async_get_or_create(

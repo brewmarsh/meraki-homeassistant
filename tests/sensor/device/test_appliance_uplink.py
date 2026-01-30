@@ -12,7 +12,7 @@ from custom_components.meraki_ha.types import MerakiDevice
 def mock_coordinator():
     """Fixture for a mocked MerakiDataUpdateCoordinator."""
     coordinator = MagicMock()
-    coordinator.config_entry.options = {}
+    coordinator.config_entry.options = {"enable_port_sensors": True}
     mock_device_data = MerakiDevice.from_dict(
         {
             "serial": "dev1",
