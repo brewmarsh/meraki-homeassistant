@@ -38,14 +38,14 @@ def api_client(hass, mock_dashboard, coordinator):
     """Fixture for a MerakiAPIClient instance."""
     client = MerakiAPIClient(hass=hass, api_key="test-key", org_id="test-org")
     # Mock the internal endpoint handlers to avoid real API calls and semaphore issues
-    client.wireless = MagicMock()
-    client.switch = MagicMock()
-    client.camera = MagicMock()
-    client.appliance = MagicMock()
-    client.network = MagicMock()
-    client.organization = MagicMock()
-    client.devices = MagicMock()
-    client.sensor = MagicMock()
+    client.wireless = AsyncMock()
+    client.switch = AsyncMock()
+    client.camera = AsyncMock()
+    client.appliance = AsyncMock()
+    client.network = AsyncMock()
+    client.organization = AsyncMock()
+    client.devices = AsyncMock()
+    client.sensor = AsyncMock()
 
     # Mock methods to return Coroutines/Awaitables as expected by _run_with_semaphore.
     client.wireless.get_network_ssids = AsyncMock(return_value=[])
@@ -141,7 +141,9 @@ async def test_get_all_data_handles_informational_errors(api_client):
     api_client._async_fetch_device_clients = AsyncMock(return_value={})
 
     async def coro():
-        return MerakiInformationalError("Traffic analysis is not enabled")
+        from custom_components.meraki_ha.core.errors import MerakiTrafficAnalysisError
+
+        return MerakiTrafficAnalysisError("Traffic analysis is not enabled")
 
     api_client._build_detail_tasks = MagicMock(
         return_value={f"traffic_{MOCK_NETWORK_INIT['id']}": coro()}
@@ -187,14 +189,19 @@ async def test_build_detail_tasks_for_wireless_device(api_client):
 async def test_get_all_data_includes_switch_ports(api_client):
     """Test that get_all_data returns switch ports statuses."""
     # Arrange
+    switch_device = MerakiDevice.from_dict({"serial": "Q123", "productType": "switch"})
     api_client._async_fetch_initial_data = AsyncMock(
         return_value={
             "networks": [],
             "devices": [],
         }
     )
-    api_client._async_fetch_network_clients = AsyncMock(return_value=[])
-    api_client._async_fetch_device_clients = AsyncMock(return_value={})
+    # Ensure device_fetcher returns our switch device
+    api_client.device_fetcher.async_fetch_devices = AsyncMock(
+        return_value={"devices": [switch_device], "battery_readings": None}
+    )
+    api_client.client_fetcher.async_fetch_network_clients = AsyncMock(return_value=[])
+    api_client.client_fetcher.async_fetch_device_clients = AsyncMock(return_value={})
 
     # Simulate detailed switch ports response
     async def coro():
@@ -205,13 +212,10 @@ async def test_get_all_data_includes_switch_ports(api_client):
     )
 
     # Act
-    data = await api_client.get_all_data()
+    await api_client.get_all_data()
 
     # Assert
-    assert "switch_ports_statuses" in data
-    assert data["switch_ports_statuses"]["Q123"] == [
-        {"portId": "1", "status": "Connected"}
-    ]
+    assert switch_device.ports_statuses == [{"portId": "1", "status": "Connected"}]
 
 
 @pytest.mark.asyncio
@@ -225,7 +229,7 @@ async def test_build_detail_tasks_for_switch_device(api_client):
     # Mock endpoints and semaphore wrapper to avoid unawaited coroutine warnings
     api_client.switch = AsyncMock()
     api_client.switch.get_device_switch_ports_statuses.return_value = "mock_switch_coro"
-    api_client._run_with_semaphore = AsyncMock(side_effect=lambda x: x)
+    api_client._run_with_semaphore = MagicMock(side_effect=lambda x: x)
 
     # Act
     tasks = api_client._build_detail_tasks(networks, devices)
@@ -248,7 +252,7 @@ async def test_build_detail_tasks_for_camera_device(api_client):
 
     # Mock dependencies to avoid unawaited coroutine warnings
     api_client.camera = AsyncMock()
-    api_client._run_with_semaphore = AsyncMock()
+    api_client._run_with_semaphore = MagicMock(side_effect=lambda x: x)
 
     # Act
     tasks = api_client._build_detail_tasks(networks, devices)
@@ -282,6 +286,9 @@ async def test_build_detail_tasks_for_appliance_device(api_client):
     devices = [appliance_device]
     networks = [network_with_appliance]
 
+    # Enable VPN management to trigger vpn_status task
+    api_client._enable_vpn_management = True
+
     # Mock _run_with_semaphore to return the input immediately (pass-through)
     api_client._run_with_semaphore = MagicMock(side_effect=lambda x: x)
 
@@ -299,7 +306,8 @@ async def test_build_detail_tasks_for_appliance_device(api_client):
     )
 
     # Act
-    tasks = api_client._build_detail_tasks(networks, devices)
+    with patch("asyncio.create_task", side_effect=lambda x: x):
+        tasks = api_client._build_detail_tasks(networks, devices)
 
     # Assert
     # Check network tasks

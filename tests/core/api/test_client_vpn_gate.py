@@ -33,6 +33,16 @@ async def test_vpn_status_not_fetched_when_disabled(mock_hass, mock_coordinator)
     # Mock endpoint methods
     client.appliance = AsyncMock()
     client.appliance.get_vpn_status = AsyncMock()
+    client.network = AsyncMock()
+    client.wireless = AsyncMock()
+    client.device_fetcher = AsyncMock()
+    client.device_fetcher.async_fetch_devices = AsyncMock(
+        return_value={"devices": [], "battery_readings": None}
+    )
+    client.client_fetcher = AsyncMock()
+    client.client_fetcher.async_fetch_network_clients = AsyncMock(return_value=[])
+    client.client_fetcher.async_fetch_device_clients = AsyncMock(return_value={})
+    client._run_with_semaphore = MagicMock(side_effect=lambda x: x)
 
     # Mock coordinator sync methods to avoid RuntimeWarning
     client.coordinator.is_traffic_check_due = MagicMock(return_value=True)
@@ -45,8 +55,6 @@ async def test_vpn_status_not_fetched_when_disabled(mock_hass, mock_coordinator)
             "devices": [],
         }
     )
-    client._async_fetch_network_clients = AsyncMock(return_value=[])
-    client._async_fetch_device_clients = AsyncMock(return_value={})
 
     # Run get_all_data
     await client.get_all_data()
@@ -69,6 +77,16 @@ async def test_vpn_status_fetched_when_enabled(mock_hass, mock_coordinator):
     # Mock endpoint methods
     client.appliance = AsyncMock()
     client.appliance.get_vpn_status = AsyncMock()
+    client.network = AsyncMock()
+    client.wireless = AsyncMock()
+    client.device_fetcher = AsyncMock()
+    client.device_fetcher.async_fetch_devices = AsyncMock(
+        return_value={"devices": [], "battery_readings": None}
+    )
+    client.client_fetcher = AsyncMock()
+    client.client_fetcher.async_fetch_network_clients = AsyncMock(return_value=[])
+    client.client_fetcher.async_fetch_device_clients = AsyncMock(return_value={})
+    client._run_with_semaphore = MagicMock(side_effect=lambda x: x)
 
     # Mock coordinator sync methods to avoid RuntimeWarning
     client.coordinator.is_traffic_check_due = MagicMock(return_value=True)
@@ -81,26 +99,14 @@ async def test_vpn_status_fetched_when_enabled(mock_hass, mock_coordinator):
             "devices": [],
         }
     )
-    client._async_fetch_network_clients = AsyncMock(return_value=[])
-    client._async_fetch_device_clients = AsyncMock(return_value={})
 
     # Mock parsers to avoid errors with minimal data
     with (
-        patch(
-            "custom_components.meraki_ha.core.parsers.network.parse_network_data",
-            return_value={},
-        ),
-        patch(
-            "custom_components.meraki_ha.core.api.client.parse_wireless_data",
-            return_value={},
-        ),
         patch(
             "custom_components.meraki_ha.core.coordinator_helpers.device_fetcher.parse_device_data"
         ),
         patch("custom_components.meraki_ha.core.api.client.parse_appliance_data"),
         patch("custom_components.meraki_ha.core.api.client.parse_sensor_data"),
-        patch("custom_components.meraki_ha.core.api.client.parse_camera_data"),
-        patch("custom_components.meraki_ha.core.api.client.parse_switch_data"),
     ):
         # Run get_all_data
         await client.get_all_data()

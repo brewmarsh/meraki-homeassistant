@@ -26,6 +26,8 @@ from ...core.errors import (
 from ...types import MerakiDevice, MerakiNetwork
 from ..coordinator_helpers.client_fetcher import ClientFetcher
 from ..coordinator_helpers.device_fetcher import DeviceFetcher
+from ..parsers.appliance import parse_appliance_data
+from ..parsers.sensors import parse_sensor_data
 from .endpoints.appliance import ApplianceEndpoints
 from .endpoints.camera import CameraEndpoints
 from .endpoints.devices import DevicesEndpoints
@@ -598,9 +600,14 @@ class MerakiAPIClient:
             networks_list = [MerakiNetwork.from_dict(n) for n in networks_res]
 
         devices_list = device_fetcher_result.get("devices", [])
-        device_fetcher_result.get("battery_readings")
-        initial_results.get("appliance_uplink_statuses")
-        initial_results.get("sensor_readings")
+        uplink_statuses = initial_results.get("appliance_uplink_statuses")
+        sensor_readings = initial_results.get("sensor_readings")
+
+        if sensor_readings and not isinstance(sensor_readings, Exception):
+            parse_sensor_data(devices_list, sensor_readings)
+
+        if uplink_statuses and not isinstance(uplink_statuses, Exception):
+            parse_appliance_data(devices_list, uplink_statuses)
 
         detail_tasks = self._build_detail_tasks(networks_list, devices_list)
         detail_data_results = await asyncio.gather(
