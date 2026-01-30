@@ -61,6 +61,14 @@ def mock_coordinator_mt_sensor(mock_coordinator: MagicMock) -> MagicMock:
             ),
         ]
     }
+    # Mock get_device to return the correct device
+    def get_device(serial):
+        for d in mock_coordinator.data["devices"]:
+            if d.serial == serial:
+                return d
+        return None
+
+    mock_coordinator.get_device.side_effect = get_device
     return mock_coordinator
 
 

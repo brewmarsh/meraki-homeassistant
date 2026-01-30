@@ -42,6 +42,7 @@ class MerakiMtSensor(CoordinatorEntity, RestoreSensor):
         if self.entity_description.name is not UNDEFINED:
             self._attr_name = cast(str | None, self.entity_description.name)
         self._attr_native_value: Any = None
+        self._update_native_value()
 
     def _maybe_get_value(self, value: Any) -> Any | None:
         """Return the value if not UNDEFINED, else None."""
@@ -75,7 +76,7 @@ class MerakiMtSensor(CoordinatorEntity, RestoreSensor):
             self._attr_native_value = self._maybe_get_value(self._device.ambient_noise)
         elif key == "pm25":
             self._attr_native_value = self._maybe_get_value(self._device.pm25)
-        elif key == "power":
+        elif key in ("power", "realPower"):
             self._attr_native_value = self._maybe_get_value(self._device.real_power)
         elif key == "power_factor":
             self._attr_native_value = self._maybe_get_value(self._device.power_factor)
@@ -102,6 +103,7 @@ class MerakiMtSensor(CoordinatorEntity, RestoreSensor):
                             "co2": "concentration",
                             "water": "present",
                             "voltage": "level",
+                            "button": "pressType",
                         }
                         value_key = key_map.get(key)
                         if value_key:
