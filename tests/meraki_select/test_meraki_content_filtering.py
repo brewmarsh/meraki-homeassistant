@@ -57,6 +57,13 @@ def mock_meraki_client() -> AsyncMock:
     # Mock the update method
     client.appliance = AsyncMock()
     client.appliance.update_network_appliance_content_filtering = AsyncMock()
+    client.appliance.get_network_appliance_content_filtering_categories = AsyncMock(
+        return_value={
+            "categories": [
+                {"id": "meraki:contentFiltering:category:1", "name": "Gaming"}
+            ]
+        }
+    )
 
     return client
 

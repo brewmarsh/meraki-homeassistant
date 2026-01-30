@@ -5,6 +5,7 @@ from typing import cast
 from unittest.mock import MagicMock
 
 import pytest
+from homeassistant.components.binary_sensor import BinarySensorEntity
 from homeassistant.components.sensor import SensorEntity
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
@@ -15,99 +16,92 @@ from custom_components.meraki_ha.types import MerakiDevice
 @pytest.fixture
 def mock_coordinator_with_mt_devices(mock_coordinator: MagicMock) -> MagicMock:
     """Fixture for a mocked MerakiDataUpdateCoordinator with MT sensor data."""
-    mock_coordinator.data = {
-        "devices": [
-            MerakiDevice.from_dict(
-                {
-                    "serial": "mt10-1",
-                    "name": "MT10 Sensor",
-                    "model": "MT10",
-                    "productType": "sensor",
-                    "readings": [
-                        {"metric": "temperature", "temperature": {"celsius": 25.5}},
-                        {
-                            "metric": "humidity",
-                            "humidity": {"relativePercentage": 60.0},
-                        },
-                        {"metric": "battery", "battery": {"percentage": 100}},
-                    ],
-                }
-            ),
-            MerakiDevice.from_dict(
-                {
-                    "serial": "mt15-1",
-                    "name": "MT15 Sensor",
-                    "model": "MT15",
-                    "productType": "sensor",
-                    "readings": [
-                        {"metric": "temperature", "temperature": {"celsius": 22.1}},
-                        {
-                            "metric": "humidity",
-                            "humidity": {"relativePercentage": 45.2},
-                        },
-                        {"metric": "co2", "co2": {"concentration": 450}},
-                        {"metric": "tvoc", "tvoc": {"concentration": 150}},
-                        {"metric": "pm25", "pm25": {"concentration": 10.5}},
-                        {"metric": "noise", "noise": {"ambient": {"level": 35.2}}},
-                        {"metric": "battery", "battery": {"percentage": 100}},
-                    ],
-                }
-            ),
-            MerakiDevice.from_dict(
-                {
-                    "serial": "mt12-1",
-                    "name": "MT12 Sensor",
-                    "model": "MT12",
-                    "productType": "sensor",
-                    "readings": [
-                        {"metric": "water", "water": {"present": False}},
-                        {"metric": "battery", "battery": {"percentage": 100}},
-                    ],
-                }
-            ),
-            MerakiDevice.from_dict(
-                {
-                    "serial": "mt40-1",
-                    "name": "MT40 Power Controller",
-                    "model": "MT40",
-                    "productType": "sensor",
-                    "readings": [
-                        {"metric": "power", "power": {"draw": 120.5}},
-                        {"metric": "voltage", "voltage": {"level": 120.1}},
-                        {"metric": "current", "current": {"draw": 1.0}},
-                    ],
-                }
-            ),
-        ]
-    }
+    devices = [
+        MerakiDevice.from_dict(
+            {
+                "serial": "mt10-1",
+                "name": "MT10 Sensor",
+                "model": "MT10",
+                "productType": "sensor",
+                "readings": [
+                    {"metric": "temperature", "temperature": {"celsius": 25.5}},
+                    {"metric": "humidity", "humidity": {"relativePercentage": 60.0}},
+                    {"metric": "battery", "battery": {"percentage": 100}},
+                ],
+            }
+        ),
+        MerakiDevice.from_dict(
+            {
+                "serial": "mt15-1",
+                "name": "MT15 Sensor",
+                "model": "MT15",
+                "productType": "sensor",
+                "readings": [
+                    {"metric": "temperature", "temperature": {"celsius": 22.1}},
+                    {"metric": "humidity", "humidity": {"relativePercentage": 45.2}},
+                    {"metric": "co2", "co2": {"concentration": 450}},
+                    {"metric": "tvoc", "tvoc": {"concentration": 150}},
+                    {"metric": "pm25", "pm25": {"concentration": 10.5}},
+                    {"metric": "noise", "noise": {"ambient": {"level": 35.2}}},
+                    {"metric": "battery", "battery": {"percentage": 100}},
+                ],
+            }
+        ),
+        MerakiDevice.from_dict(
+            {
+                "serial": "mt12-1",
+                "name": "MT12 Sensor",
+                "model": "MT12",
+                "productType": "sensor",
+                "readings": [
+                    {"metric": "water", "water": {"present": False}},
+                    {"metric": "battery", "battery": {"percentage": 100}},
+                ],
+            }
+        ),
+        MerakiDevice.from_dict(
+            {
+                "serial": "mt40-1",
+                "name": "MT40 Power Controller",
+                "model": "MT40",
+                "productType": "sensor",
+                "readings": [
+                    {"metric": "power", "power": {"draw": 120.5}},
+                    {"metric": "voltage", "voltage": {"level": 120.1}},
+                    {"metric": "current", "current": {"draw": 1.0}},
+                ],
+            }
+        ),
+    ]
+
+    # Manually populate complex attributes
+    for device in devices:
+        for reading in device.readings:
+            metric = reading.get("metric")
+            if metric == "noise":
+                device.ambient_noise = (
+                    reading.get("noise", {}).get("ambient", {}).get("level")
+                )
+            elif metric == "pm25":
+                device.pm25 = reading.get("pm25", {}).get("concentration")
+            elif metric == "power":
+                device.real_power = reading.get("power", {}).get("draw")
+            elif metric == "power_factor":
+                device.power_factor = reading.get("power_factor", {}).get("factor")
+            elif metric == "current":
+                device.current = reading.get("current", {}).get("draw")
+            elif metric == "voltage":
+                device.voltage = reading.get("voltage", {}).get("level")
+            elif metric == "door":
+                device.door_open = reading.get("door", {}).get("open")
+
+    mock_coordinator.data = {"devices": devices}
 
     # Mock get_device to return the correct device
     def get_device(serial):
         for d in mock_coordinator.data["devices"]:
             if d.serial == serial:
-                device = d  # Already MerakiDevice
-                # Manually populate attributes that parse_sensor_data would handle
-                for reading in d.readings:
-                    metric = reading.get("metric")
-                    if metric == "noise":
-                        device.ambient_noise = (
-                            reading.get("noise", {}).get("ambient", {}).get("level")
-                        )
-                    elif metric == "pm25":
-                        device.pm25 = reading.get("pm25", {}).get("concentration")
-                    elif metric == "power":
-                        device.real_power = reading.get("power", {}).get("draw")
-                    elif metric == "power_factor":
-                        device.power_factor = reading.get("power_factor", {}).get(
-                            "factor"
-                        )
-                    elif metric == "current":
-                        device.current = reading.get("current", {}).get("draw")
-                    elif metric == "voltage":
-                        device.voltage = reading.get("voltage", {}).get("level")
-                    elif metric == "door":
-                        device.door_open = reading.get("door", {}).get("open")
-                return device
+                return d
         return None
 
     mock_coordinator.get_device.side_effect = get_device
@@ -272,12 +266,18 @@ async def test_async_setup_mt12_sensors(
         entity.async_write_ha_state = MagicMock()
         cast(CoordinatorEntity, entity)._handle_coordinator_update()
 
-    assert len(entities) == 2
-    water_sensor = entities[0]
-    assert isinstance(water_sensor, SensorEntity)
-    assert water_sensor.unique_id == "mt12-1_water"
-    assert water_sensor.name == "Water Detection"
-    assert water_sensor.native_value is False
+    assert len(entities) == 3
+    water_sensor = next(
+        (
+            e
+            for e in entities
+            if isinstance(e, BinarySensorEntity) and e.unique_id == "mt12-1_water"
+        ),
+        None,
+    )
+    assert water_sensor is not None
+    assert water_sensor.name == "Water Leak"
+    assert water_sensor.is_on is False
     assert water_sensor.available is True
 
 
@@ -311,10 +311,10 @@ async def test_async_setup_mt40_sensors(
     sensors_by_key = {entity.entity_description.key: entity for entity in entities}
 
     # Verify Power Sensor
-    power_sensor = sensors_by_key.get("power")
+    power_sensor = sensors_by_key.get("realPower")
     assert power_sensor is not None
     assert isinstance(power_sensor, SensorEntity)
-    assert power_sensor.unique_id == "mt40-1_power"
+    assert power_sensor.unique_id == "mt40-1_realPower"
     # The translation key is not set in MT_POWER_DESCRIPTION, so it defaults to
     # None (or name is used)
     # assert power_sensor.translation_key == "power"

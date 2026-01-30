@@ -22,7 +22,7 @@ def mock_coordinator():
             "networkId": "net1",
             "mac": "00:11:22:33:44:55",
             "lanIp": "1.2.3.4",
-            "appliance_uplink_statuses": [
+            "applianceUplinkStatuses": [
                 {
                     "interface": "wan1",
                     "status": "active",
@@ -46,6 +46,16 @@ def mock_coordinator():
         "clients": [],
         "ssids": [],
         "vlans": {},
+        "appliance_uplink_statuses": [
+            {
+                "serial": "dev1",
+                "uplinks": [
+                    {"interface": "wan1", "status": "active", "ip": "1.2.3.4"},
+                    {"interface": "wan2", "status": "failed", "ip": "5.6.7.8"},
+                    {"interface": "cellular", "status": "ready", "ip": "9.10.11.12"},
+                ],
+            }
+        ],
     }
     coordinator.get_device.return_value = mock_device_data
     return coordinator

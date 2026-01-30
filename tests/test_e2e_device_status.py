@@ -132,7 +132,10 @@ async def test_repro_unavailable_status(
 
             mock_data = MOCK_REPRO_DATA.copy()
             mock_data["options"] = MOCK_SETTINGS
-            mock_data_json = json.dumps(mock_data)
+            mock_data_json = json.dumps(
+                mock_data,
+                default=lambda o: o.to_dict() if hasattr(o, "to_dict") else o.__dict__,
+            )
 
             await page.add_init_script(
                 f"""

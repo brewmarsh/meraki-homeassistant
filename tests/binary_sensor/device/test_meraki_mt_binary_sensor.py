@@ -74,7 +74,7 @@ def test_mt20_open_sensor(
     )
 
     assert sensor.unique_id == "mt20-1_door"
-    assert sensor.name == "MT20 Sensor Door"
+    assert sensor.name == "Door"
     assert sensor.is_on is True
     assert sensor.available is True
 
@@ -89,7 +89,7 @@ def test_mt12_water_sensor(
     )
 
     assert sensor.unique_id == "mt12-1_water"
-    assert sensor.name == "MT12 Sensor Water Leak"
+    assert sensor.name == "Water Leak"
     assert sensor.is_on is True
     assert sensor.available is True
 
@@ -104,7 +104,7 @@ def test_mt12_dry_sensor(
     )
 
     assert sensor.unique_id == "mt12-2_water"
-    assert sensor.name == "MT12 Sensor Dry Water Leak"
+    assert sensor.name == "Water Leak"
     assert sensor.is_on is False
     assert sensor.available is True
 
