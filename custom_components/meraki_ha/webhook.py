@@ -7,7 +7,6 @@ from typing import TYPE_CHECKING
 from urllib.parse import urlparse
 
 from aiohttp import web
-
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.network import NoURLAvailableError, get_url
 
