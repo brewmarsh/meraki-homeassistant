@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import logging
-import secrets
+import random
 import string
 from typing import TYPE_CHECKING
 
@@ -133,7 +133,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     webhook_id = WEBHOOK_ID_FORMAT.format(entry_id=entry.entry_id)
     hass.data[DOMAIN][entry.entry_id]["webhook_id"] = webhook_id
     if not entry.data.get("webhook_secret"):
-        secret = "".join(secrets.choice(string.ascii_letters) for _ in range(32))
+        secret = "".join(random.choice(string.ascii_letters) for _ in range(32))
         hass.config_entries.async_update_entry(
             entry,
             data={**entry.data, "webhook_secret": secret},

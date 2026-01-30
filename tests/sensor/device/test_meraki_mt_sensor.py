@@ -11,7 +11,6 @@ from custom_components.meraki_ha.descriptions import (
     MT_TEMPERATURE_DESCRIPTION,
 )
 from custom_components.meraki_ha.sensor.device.meraki_mt_base import MerakiMtSensor
-from custom_components.meraki_ha.types import MerakiDevice
 
 
 @pytest.fixture
@@ -19,12 +18,12 @@ def mock_coordinator_mt_sensor(mock_coordinator: MagicMock) -> MagicMock:
     """Fixture for a mocked MerakiDataCoordinator with MT sensor data."""
     mock_coordinator.data = {
         "devices": [
-            MerakiDevice(
-                serial="mt10-1",
-                name="MT10 Sensor",
-                model="MT10",
-                product_type="sensor",
-                readings=[
+            {
+                "serial": "mt10-1",
+                "name": "MT10 Sensor",
+                "model": "MT10",
+                "productType": "sensor",
+                "readings": [
                     {
                         "metric": "temperature",
                         "temperature": {"celsius": 25.5},
@@ -38,13 +37,13 @@ def mock_coordinator_mt_sensor(mock_coordinator: MagicMock) -> MagicMock:
                         "battery": {"percentage": 95},
                     },
                 ],
-            ),
-            MerakiDevice(
-                serial="mt30-1",
-                name="MT30 Button",
-                model="MT30",
-                product_type="sensor",
-                readings=[
+            },
+            {
+                "serial": "mt30-1",
+                "name": "MT30 Button",
+                "model": "MT30",
+                "productType": "sensor",
+                "readings": [
                     {
                         "metric": "battery",
                         "battery": {"percentage": 88},
@@ -54,7 +53,7 @@ def mock_coordinator_mt_sensor(mock_coordinator: MagicMock) -> MagicMock:
                         "button": {"pressType": "short"},
                     },
                 ],
-            ),
+            },
         ]
     }
     return mock_coordinator

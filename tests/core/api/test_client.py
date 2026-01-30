@@ -4,13 +4,9 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-import asyncio
 from custom_components.meraki_ha.coordinator import MerakiDataUpdateCoordinator
 from custom_components.meraki_ha.core.api.client import MerakiAPIClient
-from custom_components.meraki_ha.core.errors import (
-    MerakiInformationalError,
-    MerakiTrafficAnalysisError,
-)
+from custom_components.meraki_ha.core.errors import MerakiInformationalError
 from custom_components.meraki_ha.types import MerakiDevice, MerakiNetwork
 from tests.const import MOCK_DEVICE, MOCK_DEVICE_INIT, MOCK_NETWORK, MOCK_NETWORK_INIT
 
@@ -60,7 +56,6 @@ def api_client(hass, mock_dashboard, coordinator):
 
     client.camera.get_camera_video_settings = AsyncMock(return_value={})
     client.camera.get_camera_sense_settings = AsyncMock(return_value={})
-    client.camera.get_device_camera_analytics_recent = AsyncMock(return_value=[])
 
     client.appliance.get_network_vlans = AsyncMock(return_value=[])
     client.appliance.get_l3_firewall_rules = AsyncMock(return_value=[])
@@ -142,31 +137,23 @@ async def test_get_all_data_handles_informational_errors(api_client):
             "device_statuses": [],
         }
     )
-    api_client.client_fetcher.async_fetch_network_clients = AsyncMock(return_value=[])
-    api_client.client_fetcher.async_fetch_device_clients = AsyncMock(return_value={})
-    api_client.device_fetcher.async_fetch_devices = AsyncMock(
-        return_value={
-            "devices": [MerakiDevice.from_dict(MOCK_DEVICE_INIT)],
-            "battery_readings": None,
-        }
-    )
+    api_client._async_fetch_network_clients = AsyncMock(return_value=[])
+    api_client._async_fetch_device_clients = AsyncMock(return_value={})
 
     async def coro():
-        return MerakiTrafficAnalysisError("Traffic analysis is not enabled")
+        return MerakiInformationalError("Traffic analysis is not enabled")
 
-    # Use a consistent mock network ID from MOCK_NETWORK_INIT
-    network_id = MOCK_NETWORK_INIT["id"]
     api_client._build_detail_tasks = MagicMock(
-        return_value={f"traffic_{network_id}": coro()}
+        return_value={f"traffic_{MOCK_NETWORK_INIT['id']}": coro()}
     )
 
     # Act
     data = await api_client.get_all_data()
 
     # Assert
-    assert data["appliance_traffic"][network_id]["error"] == "disabled"
+    assert data["appliance_traffic"][MOCK_NETWORK_INIT["id"]]["error"] == "disabled"
     assert (
-        data["appliance_traffic"][network_id]["reason"]
+        data["appliance_traffic"][MOCK_NETWORK_INIT["id"]]["reason"]
         == "Traffic analysis is not enabled"
     )
 
@@ -198,19 +185,16 @@ async def test_build_detail_tasks_for_wireless_device(api_client):
 
 @pytest.mark.asyncio
 async def test_get_all_data_includes_switch_ports(api_client):
-    """Test that get_all_data populates switch ports statuses on the device object."""
+    """Test that get_all_data returns switch ports statuses."""
     # Arrange
-    mock_switch = MerakiDevice(serial="Q123", product_type="switch")
     api_client._async_fetch_initial_data = AsyncMock(
         return_value={
             "networks": [],
+            "devices": [],
         }
     )
-    api_client.device_fetcher.async_fetch_devices = AsyncMock(
-        return_value={"devices": [mock_switch], "battery_readings": None}
-    )
-    api_client.client_fetcher.async_fetch_network_clients = AsyncMock(return_value=[])
-    api_client.client_fetcher.async_fetch_device_clients = AsyncMock(return_value={})
+    api_client._async_fetch_network_clients = AsyncMock(return_value=[])
+    api_client._async_fetch_device_clients = AsyncMock(return_value={})
 
     # Simulate detailed switch ports response
     async def coro():
@@ -224,9 +208,10 @@ async def test_get_all_data_includes_switch_ports(api_client):
     data = await api_client.get_all_data()
 
     # Assert
-    # The ports statuses should be on the device object in the devices list
-    device = next(d for d in data["devices"] if d.serial == "Q123")
-    assert device.ports_statuses == [{"portId": "1", "status": "Connected"}]
+    assert "switch_ports_statuses" in data
+    assert data["switch_ports_statuses"]["Q123"] == [
+        {"portId": "1", "status": "Connected"}
+    ]
 
 
 @pytest.mark.asyncio
@@ -298,48 +283,35 @@ async def test_build_detail_tasks_for_appliance_device(api_client):
     networks = [network_with_appliance]
 
     # Mock _run_with_semaphore to return the input immediately (pass-through)
-    async def side_effect(coro):
-        return await coro
+    api_client._run_with_semaphore = MagicMock(side_effect=lambda x: x)
 
-    api_client._run_with_semaphore = MagicMock(side_effect=side_effect)
-
-    # Enable VPN management to ensure vpn_status task is created
-    api_client._enable_vpn_management = True
-
-    # Mock endpoint methods to return awaitable mock objects
-    api_client.network.get_network_traffic = AsyncMock(return_value="task_traffic")
-    api_client.appliance.get_network_vlans = AsyncMock(return_value="task_vlans")
-    api_client.appliance.get_l3_firewall_rules = AsyncMock(return_value="task_firewall")
-    api_client.appliance.get_traffic_shaping = AsyncMock(return_value="task_shaping")
-    api_client.appliance.get_vpn_status = AsyncMock(return_value="task_vpn")
-    api_client.appliance.get_network_appliance_content_filtering = AsyncMock(
+    # Mock endpoint methods to return dummy task objects
+    api_client.network.get_network_traffic = MagicMock(return_value="task_traffic")
+    api_client.appliance.get_network_vlans = MagicMock(return_value="task_vlans")
+    api_client.appliance.get_l3_firewall_rules = MagicMock(return_value="task_firewall")
+    api_client.appliance.get_traffic_shaping = MagicMock(return_value="task_shaping")
+    api_client.appliance.get_vpn_status = MagicMock(return_value="task_vpn")
+    api_client.appliance.get_network_appliance_content_filtering = MagicMock(
         return_value="task_filtering"
     )
-    api_client.appliance.get_network_appliance_settings = AsyncMock(
+    api_client.appliance.get_network_appliance_settings = MagicMock(
         return_value="task_settings"
     )
 
     # Act
-    # Patch create_task to simply return the coroutine so we can inspect the result
-    with patch("asyncio.create_task", side_effect=lambda x: x):
-        tasks = api_client._build_detail_tasks(networks, devices)
-
-    # Await all tasks to ensure coroutines are executed and prevent warnings
-    results = {k: await v for k, v in tasks.items()}
+    tasks = api_client._build_detail_tasks(networks, devices)
 
     # Assert
-    # Verify values
-    assert results[f"traffic_{network_with_appliance.id}"] == "task_traffic"
-    assert results[f"vlans_{network_with_appliance.id}"] == "task_vlans"
-    assert results[f"l3_firewall_rules_{network_with_appliance.id}"] == "task_firewall"
-    assert results[f"traffic_shaping_{network_with_appliance.id}"] == "task_shaping"
-    assert results[f"vpn_status_{network_with_appliance.id}"] == "task_vpn"
-    assert (
-        results[f"content_filtering_{network_with_appliance.id}"] == "task_filtering"
-    )
+    # Check network tasks
+    assert tasks[f"traffic_{network_with_appliance.id}"] == "task_traffic"
+    assert tasks[f"vlans_{network_with_appliance.id}"] == "task_vlans"
+    assert tasks[f"l3_firewall_rules_{network_with_appliance.id}"] == "task_firewall"
+    assert tasks[f"traffic_shaping_{network_with_appliance.id}"] == "task_shaping"
+    assert tasks[f"vpn_status_{network_with_appliance.id}"] == "task_vpn"
+    assert tasks[f"content_filtering_{network_with_appliance.id}"] == "task_filtering"
 
     # Check device tasks
-    assert results[f"appliance_settings_{appliance_device.serial}"] == "task_settings"
+    assert tasks[f"appliance_settings_{appliance_device.serial}"] == "task_settings"
 
 
 def test_process_detailed_data_merges_device_info(api_client):
