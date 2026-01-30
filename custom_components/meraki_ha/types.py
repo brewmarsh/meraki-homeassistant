@@ -83,6 +83,41 @@ class MerakiDevice:
             appliance_uplink_statuses=data.get("applianceUplinkStatuses", []),
         )
 
+    def to_dict(self) -> dict[str, Any]:
+        """Convert MerakiDevice to a dictionary."""
+        data = {
+            "serial": self.serial,
+            "name": self.name,
+            "model": self.model,
+            "mac": self.mac,
+            "lanIp": self.lan_ip,
+            "wan1Ip": self.wan1_ip,
+            "wan2Ip": self.wan2_ip,
+            "publicIp": self.public_ip,
+            "networkId": self.network_id,
+            "status": self.status,
+            "firmware": self.firmware,
+            "productType": self.product_type,
+            "tags": self.tags,
+            "address": self.address,
+            "notes": self.notes,
+            "url": self.url,
+            "firmwareUpgrades": self.firmware_upgrades,
+            "readings": self.readings,
+            "videoSettings": self.video_settings,
+            "rtspUrl": self.rtsp_url,
+            "senseSettings": self.sense_settings,
+            "analytics": self.analytics,
+            "portsStatuses": self.ports_statuses,
+            "appliancePorts": [p.to_dict() for p in self.appliance_ports],
+            "dynamicDns": self.dynamic_dns,
+            "statusMessages": self.status_messages,
+            "applianceUplinkStatuses": self.appliance_uplink_statuses,
+        }
+        if self.entity_id:
+            data["entity_id"] = self.entity_id
+        return data
+
 
 @dataclass
 class MerakiNetwork:
@@ -109,6 +144,18 @@ class MerakiNetwork:
             tags=data.get("tags", []),
             notes=data.get("notes"),
         )
+
+    def to_dict(self) -> dict[str, Any]:
+        """Convert MerakiNetwork to a dictionary."""
+        return {
+            "id": self.id,
+            "name": self.name,
+            "organizationId": self.organization_id,
+            "productTypes": self.product_types,
+            "timeZone": self.time_zone,
+            "tags": self.tags,
+            "notes": self.notes,
+        }
 
 
 @dataclass
@@ -225,3 +272,17 @@ class MerakiAppliancePort:
             status=data.get("status"),
             speed=data.get("speed"),
         )
+
+    def to_dict(self) -> dict[str, Any]:
+        """Convert MerakiAppliancePort to a dictionary."""
+        return {
+            "number": self.number,
+            "enabled": self.enabled,
+            "type": self.type,
+            "dropUntaggedTraffic": self.drop_untagged_traffic,
+            "vlan": self.vlan,
+            "accessPolicy": self.access_policy,
+            "allowedVlans": self.allowed_vlans,
+            "status": self.status,
+            "speed": self.speed,
+        }

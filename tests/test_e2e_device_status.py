@@ -7,6 +7,7 @@ import json
 import os
 import socketserver
 import threading
+from dataclasses import asdict, is_dataclass
 from typing import Any
 from unittest.mock import patch
 
@@ -21,6 +22,7 @@ from custom_components.meraki_ha.const import (
     CONF_MERAKI_ORG_ID,
     DOMAIN,
 )
+from custom_components.meraki_ha.types import MerakiDevice
 
 from .const import MOCK_ALL_DATA
 
@@ -28,7 +30,7 @@ TEST_PORT = 9989  # Different port to avoid conflict
 MOCK_SETTINGS = {"scan_interval": 300, "enable_device_status": True}
 
 # Create a modified mock data with an unavailable device
-MOCK_UNAVAILABLE_DEVICE = {
+MOCK_UNAVAILABLE_DEVICE_DICT = {
     "serial": "Q234-UNAVAILABLE",
     "name": "Unavailable Device",
     "model": "MR33",
@@ -38,12 +40,14 @@ MOCK_UNAVAILABLE_DEVICE = {
     "status": "online",  # Meraki says online
     "entity_id": "switch.unavailable_device",  # HA entity
 }
+MOCK_UNAVAILABLE_DEVICE = MerakiDevice.from_dict(MOCK_UNAVAILABLE_DEVICE_DICT)
+MOCK_UNAVAILABLE_DEVICE.entity_id = "switch.unavailable_device"
+
 
 MOCK_REPRO_DATA: dict[str, Any] = MOCK_ALL_DATA.copy()
 MOCK_REPRO_DATA["devices"] = [MOCK_UNAVAILABLE_DEVICE]
 if MOCK_REPRO_DATA["networks"]:
     MOCK_REPRO_DATA["networks"][0].is_enabled = True
-    MOCK_REPRO_DATA["networks"][0].ssids = []  # Clear SSIDs to simplify
 
 
 class ReuseAddrTCPServer(socketserver.TCPServer):
@@ -69,10 +73,17 @@ async def setup_integration_fixture(
     )
     config_entry.add_to_hass(hass)
 
+    async def mock_async_update_data(self):
+        """Mock _async_update_data to populate devices_by_serial."""
+        self.devices_by_serial = {d.serial: d for d in MOCK_REPRO_DATA["devices"]}
+        self.networks_by_id = {n.id: n for n in MOCK_REPRO_DATA["networks"]}
+        return MOCK_REPRO_DATA
+
     with (
         patch(
             "custom_components.meraki_ha.coordinator.MerakiDataUpdateCoordinator._async_update_data",
-            return_value=MOCK_REPRO_DATA,
+            side_effect=mock_async_update_data,
+            autospec=True,
         ),
         patch(
             "custom_components.meraki_ha.api.websocket.ws_subscribe_meraki_data",
@@ -130,8 +141,13 @@ async def test_repro_unavailable_status(
                 return
             page = await browser.new_page()
 
+            from tests.const import MOCK_NETWORK_INIT
+
             mock_data = MOCK_REPRO_DATA.copy()
+            mock_data["devices"] = [MOCK_UNAVAILABLE_DEVICE_DICT]
+            mock_data["networks"] = [MOCK_NETWORK_INIT]
             mock_data["options"] = MOCK_SETTINGS
+
             mock_data_json = json.dumps(mock_data)
 
             await page.add_init_script(

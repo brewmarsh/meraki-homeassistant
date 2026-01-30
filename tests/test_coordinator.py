@@ -22,12 +22,19 @@ def mock_api_client():
     return client
 
 
+from pytest_homeassistant_custom_component.common import MockConfigEntry
+
 @pytest.fixture
 def coordinator(hass, mock_api_client):
     """Fixture for a MerakiDataCoordinator instance."""
-    entry = MagicMock()
-    entry.options = {}
-    entry.data = {CONF_MERAKI_API_KEY: "test-key", CONF_MERAKI_ORG_ID: "test-org"}
+    entry = MockConfigEntry(
+        domain="meraki_ha",
+        entry_id="test_entry",
+        data={CONF_MERAKI_API_KEY: "test-key", CONF_MERAKI_ORG_ID: "test-org"},
+        options={},
+    )
+    entry.add_to_hass(hass)
+
     with patch(
         "custom_components.meraki_ha.coordinator.ApiClient",
         return_value=mock_api_client,

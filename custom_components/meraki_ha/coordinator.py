@@ -177,6 +177,8 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 MerakiDevice.from_dict(d) if isinstance(d, dict) else d
                 for d in devices_raw
             ]
+            # Ensure the data dictionary contains objects, not raw dicts
+            data["devices"] = devices
             self.devices_by_serial = {d.serial: d for d in devices if d.serial}
 
             networks_raw = data.get("networks", [])
@@ -184,6 +186,8 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 MerakiNetwork.from_dict(n) if isinstance(n, dict) else n
                 for n in networks_raw
             ]
+            # Ensure the data dictionary contains objects, not raw dicts
+            data["networks"] = networks
             self.networks_by_id = {n.id: n for n in networks if n.id}
 
             # Pre-register network devices to avoid "referencing a non existing
