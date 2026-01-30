@@ -28,8 +28,7 @@ class TrafficShapingSensor(MerakiNetworkEntity, SensorEntity):
             (net for net in coordinator.data["networks"] if net.id == network_id),
             None,
         )
-        if network is None:
-            raise ValueError(f"Network {network_id} not found in coordinator data")
+        assert network is not None
 
         super().__init__(coordinator, config_entry, network)
         self._attr_unique_id = f"{network_id}-traffic-shaping"

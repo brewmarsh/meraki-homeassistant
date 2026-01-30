@@ -7,11 +7,11 @@ import pytest
 from custom_components.meraki_ha.binary_sensor.device.meraki_mt_binary_base import (
     MerakiMtBinarySensor,
 )
+from custom_components.meraki_ha.types import MerakiDevice
 from custom_components.meraki_ha.descriptions import (
     MT_DOOR_DESCRIPTION,
     MT_WATER_DESCRIPTION,
 )
-from custom_components.meraki_ha.types import MerakiDevice
 
 
 @pytest.fixture
@@ -19,12 +19,12 @@ def mock_coordinator_mt_binary(mock_coordinator: MagicMock) -> MagicMock:
     """Fixture for a mocked MerakiDataCoordinator with MT binary data."""
     mock_coordinator.data = {
         "devices": [
-            MerakiDevice(
-                serial="mt20-1",
-                name="MT20 Sensor",
-                model="MT20",
-                product_type="sensor",
-                readings=[
+            {
+                "serial": "mt20-1",
+                "name": "MT20 Sensor",
+                "model": "MT20",
+                "productType": "sensor",
+                "readings": [
                     {
                         "metric": "door",
                         "door": {"open": True},
@@ -34,31 +34,31 @@ def mock_coordinator_mt_binary(mock_coordinator: MagicMock) -> MagicMock:
                         "temperature": {"celsius": 20.0},
                     },
                 ],
-            ),
-            MerakiDevice(
-                serial="mt12-1",
-                name="MT12 Sensor",
-                model="MT12",
-                product_type="sensor",
-                readings=[
+            },
+            {
+                "serial": "mt12-1",
+                "name": "MT12 Sensor",
+                "model": "MT12",
+                "productType": "sensor",
+                "readings": [
                     {
                         "metric": "water",
                         "water": {"present": True},
                     },  # Water detected
                 ],
-            ),
-            MerakiDevice(
-                serial="mt12-2",
-                name="MT12 Sensor Dry",
-                model="MT12",
-                product_type="sensor",
-                readings=[
+            },
+            {
+                "serial": "mt12-2",
+                "name": "MT12 Sensor Dry",
+                "model": "MT12",
+                "productType": "sensor",
+                "readings": [
                     {
                         "metric": "water",
                         "water": {"present": False},
                     },  # Dry
                 ],
-            ),
+            },
         ]
     }
     return mock_coordinator
@@ -68,7 +68,9 @@ def test_mt20_open_sensor(
     mock_coordinator_mt_binary: MagicMock,
 ):
     """Test the MT20 open/close sensor when the door is open."""
-    device_info = mock_coordinator_mt_binary.data["devices"][0]
+    device_info = MerakiDevice.from_dict(
+        mock_coordinator_mt_binary.data["devices"][0]
+    )
     sensor = MerakiMtBinarySensor(
         mock_coordinator_mt_binary, device_info, MT_DOOR_DESCRIPTION
     )
@@ -83,7 +85,9 @@ def test_mt12_water_sensor(
     mock_coordinator_mt_binary: MagicMock,
 ):
     """Test the MT12 water sensor when water is present."""
-    device_info = mock_coordinator_mt_binary.data["devices"][1]
+    device_info = MerakiDevice.from_dict(
+        mock_coordinator_mt_binary.data["devices"][1]
+    )
     sensor = MerakiMtBinarySensor(
         mock_coordinator_mt_binary, device_info, MT_WATER_DESCRIPTION
     )
@@ -98,7 +102,9 @@ def test_mt12_dry_sensor(
     mock_coordinator_mt_binary: MagicMock,
 ):
     """Test the MT12 water sensor when it is dry."""
-    device_info = mock_coordinator_mt_binary.data["devices"][2]
+    device_info = MerakiDevice.from_dict(
+        mock_coordinator_mt_binary.data["devices"][2]
+    )
     sensor = MerakiMtBinarySensor(
         mock_coordinator_mt_binary, device_info, MT_WATER_DESCRIPTION
     )
@@ -115,26 +121,27 @@ def test_sensor_availability(
     """Test sensor availability."""
     device_info = mock_coordinator_mt_binary.data["devices"][0]
     # Remove readings to test unavailability
-    import dataclasses
-
-    device_info_no_readings = dataclasses.replace(device_info, readings=[])
+    device_info_no_readings = device_info.copy()
+    device_info_no_readings["readings"] = []
 
     sensor = MerakiMtBinarySensor(
-        mock_coordinator_mt_binary, device_info_no_readings, MT_DOOR_DESCRIPTION
+        mock_coordinator_mt_binary,
+        MerakiDevice.from_dict(device_info_no_readings),
+        MT_DOOR_DESCRIPTION,
     )
     assert sensor.available is False
 
     # Test with readings but missing specific metric
-    device_info_missing_metric = dataclasses.replace(
-        device_info,
-        readings=[
-            {
-                "metric": "temperature",
-                "temperature": {"celsius": 20.0},
-            }
-        ],
-    )
+    device_info_missing_metric = device_info.copy()
+    device_info_missing_metric["readings"] = [
+        {
+            "metric": "temperature",
+            "temperature": {"celsius": 20.0},
+        }
+    ]
     sensor = MerakiMtBinarySensor(
-        mock_coordinator_mt_binary, device_info_missing_metric, MT_DOOR_DESCRIPTION
+        mock_coordinator_mt_binary,
+        MerakiDevice.from_dict(device_info_missing_metric),
+        MT_DOOR_DESCRIPTION,
     )
     assert sensor.available is False

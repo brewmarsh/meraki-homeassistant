@@ -35,8 +35,7 @@ class MerakiApplianceUplinkSensor(CoordinatorEntity, SensorEntity):
     ) -> None:
         """Initialize the sensor."""
         super().__init__(coordinator)
-        if device_data.serial is None:
-            raise ValueError("Device serial cannot be None")
+        assert device_data.serial is not None
         self._device_serial: str = device_data.serial
         self._config_entry = config_entry
         self._uplink_interface: str = uplink_data["interface"]

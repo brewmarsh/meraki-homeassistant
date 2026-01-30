@@ -14,16 +14,18 @@ def mock_device_coordinator():
     coordinator = MagicMock()
     coordinator.data = {
         "devices": [
-            MerakiDevice(
-                serial="dev1",
-                name="Switch",
-                model="MS220-8P",
-                product_type="switch",
-                ports_statuses=[
-                    {"portId": 1, "powerUsageInWh": 252},
-                    {"portId": 2, "powerUsageInWh": 124.8},
-                    {"portId": 3, "powerUsageInWh": 0},
-                ],
+            MerakiDevice.from_dict(
+                {
+                    "serial": "dev1",
+                    "name": "Switch",
+                    "model": "MS220-8P",
+                    "productType": "switch",
+                    "portsStatuses": [
+                        {"portId": 1, "powerUsageInWh": 252},
+                        {"portId": 2, "powerUsageInWh": 124.8},
+                        {"portId": 3, "powerUsageInWh": 0},
+                    ],
+                }
             )
         ]
     }

@@ -13,9 +13,7 @@ from homeassistant.data_entry_flow import AbortFlow
 try:
     from homeassistant.helpers.service_info.dhcp import DhcpServiceInfo
 except ImportError:
-    from homeassistant.components.dhcp import (  # type: ignore[no-redef]
-        DhcpServiceInfo,
-    )
+    from homeassistant.components.dhcp import DhcpServiceInfo  # type: ignore[no-redef]
 
 from .authentication import validate_meraki_credentials
 from .const import (
