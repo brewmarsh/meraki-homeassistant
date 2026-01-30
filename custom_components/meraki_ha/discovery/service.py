@@ -55,7 +55,8 @@ class DeviceDiscoveryService:
         self._network_control_service = network_control_service
         devices_data = self._coordinator.data.get("devices", [])
         self._devices: list[MerakiDevice] = [
-            MerakiDevice.from_dict(d) for d in devices_data
+            MerakiDevice.from_dict(d) if isinstance(d, dict) else d
+            for d in devices_data
         ]
         self.all_entities: list[Entity] = []
 
