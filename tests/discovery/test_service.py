@@ -82,12 +82,14 @@ async def test_discover_entities_delegates_to_handler(
             return_value=["mr_entity"]
         )
         MockMRHandler.return_value = mock_mr_handler_instance
+        MockMRHandler.__name__ = "MRHandler"
 
         mock_mv_handler_instance = MagicMock()
         mock_mv_handler_instance.discover_entities = AsyncMock(
             return_value=["mv_entity"]
         )
         MockMVHandler.return_value = mock_mv_handler_instance
+        MockMVHandler.__name__ = "MVHandler"
 
         mock_network_handler_instance = MagicMock()
         mock_network_handler_instance.discover_entities = AsyncMock(return_value=[])
