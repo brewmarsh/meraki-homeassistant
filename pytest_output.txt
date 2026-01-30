@@ -1,0 +1,811 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.12, pytest-8.3.3, pluggy-1.6.0
+rootdir: /app
+configfile: pytest.ini
+plugins: respx-0.21.1, socket-0.7.0, homeassistant-custom-component-0.13.195, requests-mock-1.12.1, github-actions-annotate-failures-0.2.0, sugar-1.0.0, asyncio-0.24.0, unordered-0.6.1, xdist-3.6.1, picked-0.5.0, aiohttp-1.0.5, syrupy-4.7.2, pytest_freezer-0.4.8, timeout-2.3.1, anyio-4.12.1, cov-6.0.0
+asyncio: mode=Mode.AUTO, default_loop_scope=function
+collected 225 items
+
+tests/api/test_websocket.py ....                                         [  1%]
+tests/binary_sensor/device/test_camera_motion.py ..                      [  2%]
+tests/binary_sensor/device/test_meraki_mt_binary_sensor.py ....          [  4%]
+tests/binary_sensor/test_switch_port.py ...                              [  5%]
+tests/button/device/test_mt15_refresh_data.py ..                         [  6%]
+tests/button/device/test_switch_port_cycle.py ..                         [  7%]
+tests/camera/test_camera.py ..........F.                                 [ 12%]
+tests/core/api/endpoints/test_appliance.py ........                      [ 16%]
+tests/core/api/endpoints/test_network.py .                               [ 16%]
+tests/core/api/endpoints/test_wireless.py ...                            [ 18%]
+tests/core/api/test_client.py ...........                                [ 23%]
+tests/core/api/test_client_vpn_gate.py ..                                [ 24%]
+tests/core/test_api_utils.py .                                           [ 24%]
+tests/core/test_entities.py ...                                          [ 25%]
+tests/core/test_timed_access_manager.py .E..E.                           [ 27%]
+tests/core/utils/test_api_utils.py ...                                   [ 28%]
+tests/core/utils/test_naming_utils.py .....                              [ 31%]
+tests/core/utils/test_validation_utils.py ....                           [ 32%]
+tests/discovery/handlers/test_base.py ..                                 [ 33%]
+tests/discovery/handlers/test_gx.py .                                    [ 34%]
+tests/discovery/handlers/test_mr.py .                                    [ 34%]
+tests/discovery/handlers/test_ms.py .                                    [ 35%]
+tests/discovery/handlers/test_mv.py ...                                  [ 36%]
+tests/discovery/handlers/test_mx.py .                                    [ 36%]
+tests/discovery/handlers/test_network.py .                               [ 37%]
+tests/discovery/test_mt_handler.py ...                                   [ 38%]
+tests/discovery/test_service.py ..                                       [ 39%]
+tests/event/device/test_camera_motion_event.py ...                       [ 40%]
+tests/event/device/test_mt_button_event.py ...                           [ 42%]
+tests/helpers/test_device_info_helpers.py ....                           [ 44%]
+tests/helpers/test_entity_helpers.py .                                   [ 44%]
+tests/helpers/test_schema.py ..                                          [ 45%]
+tests/helpers/test_ssid_status_calculator.py .                           [ 45%]
+tests/helpers/test_ssid_status_calculator_extended.py ....               [ 47%]
+tests/hubs/test_network.py .....                                         [ 49%]
+tests/hubs/test_organization.py ....                                     [ 51%]
+tests/meraki_select/test_content_filtering_select.py F                   [ 52%]
+tests/meraki_select/test_meraki_content_filtering.py F                   [ 52%]
+tests/meraki_select/test_vpn_select.py F                                 [ 52%]
+tests/sensor/device/test_appliance_port.py .                             [ 53%]
+tests/sensor/device/test_appliance_uplink.py .                           [ 53%]
+tests/sensor/device/test_camera_analytics.py ..                          [ 54%]
+tests/sensor/device/test_camera_audio_detection.py .                     [ 55%]
+tests/sensor/device/test_connected_clients.py ....                       [ 56%]
+tests/sensor/device/test_data_usage.py ..                                [ 57%]
+tests/sensor/device/test_device_status.py .                              [ 58%]
+tests/sensor/device/test_meraki_firmware_status.py .                     [ 58%]
+tests/sensor/device/test_meraki_mt_base.py ..                            [ 59%]
+tests/sensor/device/test_meraki_mt_sensor.py ...                         [ 60%]
+tests/sensor/device/test_poe_usage.py .                                  [ 61%]
+tests/sensor/device/test_switch_port.py ....                             [ 63%]
+tests/sensor/network/test_ssid_client_count.py .                         [ 63%]
+tests/sensor/network/test_ssid_psk.py .                                  [ 64%]
+tests/sensor/network/test_traffic_shaping_sensor.py ..                   [ 64%]
+tests/sensor/network/test_vlan.py .                                      [ 65%]
+tests/sensor/network/test_vlans_list.py .                                [ 65%]
+tests/sensor/network/test_vlans_list_unit.py .                           [ 66%]
+tests/sensor/test_meraki_wan1_connectivity.py .                          [ 66%]
+tests/sensor/test_meraki_wan2_connectivity.py .                          [ 67%]
+tests/sensor/test_network_clients.py .                                   [ 67%]
+tests/sensor/test_org_clients.py ...                                     [ 68%]
+tests/sensor/test_org_device_type_clients.py .                           [ 69%]
+tests/sensor/test_setup_mt_sensors.py .....                              [ 71%]
+tests/services/test_device_control_service.py .                          [ 72%]
+tests/services/test_network_control_service.py ..                        [ 72%]
+tests/services/test_switch_port_service.py ....                          [ 74%]
+tests/switch/test_adult_content_filtering.py ....                        [ 76%]
+tests/switch/test_camera_profiles.py ..                                  [ 77%]
+tests/switch/test_content_filtering_switch.py ....                       [ 79%]
+tests/switch/test_firewall_rule.py ..                                    [ 80%]
+tests/switch/test_meraki_ssid_device_switch.py ..                        [ 80%]
+tests/switch/test_mt40_power_outlet.py ....                              [ 82%]
+tests/switch/test_traffic_shaping_switch.py ...                          [ 84%]
+tests/switch/test_vlan_dhcp.py ...                                       [ 85%]
+tests/switch/test_vpn_switch.py ...                                      [ 86%]
+tests/test_authentication.py ....                                        [ 88%]
+tests/test_camera_control.py ..                                          [ 89%]
+tests/test_config_flow.py ....                                           [ 91%]
+tests/test_coordinator.py .                                              [ 91%]
+tests/test_coordinator_entity_priority.py F                              [ 92%]
+tests/test_e2e_device_status.py .                                        [ 92%]
+tests/test_e2e_ipsk.py ..E                                               [ 93%]
+tests/test_e2e_live.py s                                                 [ 93%]
+tests/test_e2e_web_ui.py .                                               [ 94%]
+tests/test_integration_setup.py ..                                       [ 95%]
+tests/test_naming_conventions.py .                                       [ 95%]
+tests/test_options.py .                                                  [ 96%]
+tests/test_simple.py .                                                   [ 96%]
+tests/test_ssid_device_representation.py .                               [ 96%]
+tests/test_topology.py .                                                 [ 97%]
+tests/test_webhook.py ....                                               [ 99%]
+tests/test_webhook_registration.py .                                     [ 99%]
+tests/text/test_meraki_ssid_name.py .                                    [100%]
+
+==================================== ERRORS ====================================
+_____________________ ERROR at teardown of test_load_keys ______________________
+
+event_loop = <_UnixSelectorEventLoop running=False closed=True debug=True>
+expected_lingering_tasks = False, expected_lingering_timers = False
+
+    @pytest.fixture(autouse=True)
+    def verify_cleanup(
+        event_loop: asyncio.AbstractEventLoop,
+        expected_lingering_tasks: bool,
+        expected_lingering_timers: bool,
+    ) -> Generator[None]:
+        """Verify that the test has cleaned up resources correctly."""
+        threads_before = frozenset(threading.enumerate())
+        tasks_before = asyncio.all_tasks(event_loop)
+        yield
+
+        event_loop.run_until_complete(event_loop.shutdown_default_executor())
+
+        if len(INSTANCES) >= 2:
+            count = len(INSTANCES)
+            for inst in INSTANCES:
+                inst.stop()
+            pytest.exit(f"Detected non stopped instances ({count}), aborting test run")
+
+        # Warn and clean-up lingering tasks and timers
+        # before moving on to the next test.
+        tasks = asyncio.all_tasks(event_loop) - tasks_before
+        for task in tasks:
+            if expected_lingering_tasks:
+                _LOGGER.warning("Lingering task after test %r", task)
+            else:
+                pytest.fail(f"Lingering task after test {task!r}")
+            task.cancel()
+        if tasks:
+            event_loop.run_until_complete(asyncio.wait(tasks))
+
+        for handle in get_scheduled_timer_handles(event_loop):
+            if not handle.cancelled():
+                with long_repr_strings():
+                    if expected_lingering_timers:
+                        _LOGGER.warning("Lingering timer after test %r", handle)
+                    elif handle._args and isinstance(job := handle._args[-1], HassJob):
+                        if job.cancel_on_shutdown:
+                            continue
+                        pytest.fail(f"Lingering timer after job {job!r}")
+                    else:
+>                       pytest.fail(f"Lingering timer after test {handle!r}")
+E                       Failed: Lingering timer after test <TimerHandle when=4007.25941418 TimedAccessManager._schedule_removal.<locals>.<lambda>() at /app/custom_components/meraki_ha/core/timed_access_manager.py:95 created at /app/custom_components/meraki_ha/core/timed_access_manager.py:93>
+
+/home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages/pytest_homeassistant_custom_component/plugins.py:399: Failed
+_____________________ ERROR at teardown of test_create_key _____________________
+
+event_loop = <_UnixSelectorEventLoop running=False closed=True debug=True>
+expected_lingering_tasks = False, expected_lingering_timers = False
+
+    @pytest.fixture(autouse=True)
+    def verify_cleanup(
+        event_loop: asyncio.AbstractEventLoop,
+        expected_lingering_tasks: bool,
+        expected_lingering_timers: bool,
+    ) -> Generator[None]:
+        """Verify that the test has cleaned up resources correctly."""
+        threads_before = frozenset(threading.enumerate())
+        tasks_before = asyncio.all_tasks(event_loop)
+        yield
+
+        event_loop.run_until_complete(event_loop.shutdown_default_executor())
+
+        if len(INSTANCES) >= 2:
+            count = len(INSTANCES)
+            for inst in INSTANCES:
+                inst.stop()
+            pytest.exit(f"Detected non stopped instances ({count}), aborting test run")
+
+        # Warn and clean-up lingering tasks and timers
+        # before moving on to the next test.
+        tasks = asyncio.all_tasks(event_loop) - tasks_before
+        for task in tasks:
+            if expected_lingering_tasks:
+                _LOGGER.warning("Lingering task after test %r", task)
+            else:
+                pytest.fail(f"Lingering task after test {task!r}")
+            task.cancel()
+        if tasks:
+            event_loop.run_until_complete(asyncio.wait(tasks))
+
+        for handle in get_scheduled_timer_handles(event_loop):
+            if not handle.cancelled():
+                with long_repr_strings():
+                    if expected_lingering_timers:
+                        _LOGGER.warning("Lingering timer after test %r", handle)
+                    elif handle._args and isinstance(job := handle._args[-1], HassJob):
+                        if job.cancel_on_shutdown:
+                            continue
+                        pytest.fail(f"Lingering timer after job {job!r}")
+                    else:
+>                       pytest.fail(f"Lingering timer after test {handle!r}")
+E                       Failed: Lingering timer after test <TimerHandle when=4007.3465776079997 TimedAccessManager._schedule_removal.<locals>.<lambda>() at /app/custom_components/meraki_ha/core/timed_access_manager.py:95 created at /app/custom_components/meraki_ha/core/timed_access_manager.py:93>
+
+/home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages/pytest_homeassistant_custom_component/plugins.py:399: Failed
+____________ ERROR at teardown of test_e2e_ipsk_flow_real_endpoints ____________
+
+event_loop = <_UnixSelectorEventLoop running=False closed=True debug=True>
+expected_lingering_tasks = False, expected_lingering_timers = False
+
+    @pytest.fixture(autouse=True)
+    def verify_cleanup(
+        event_loop: asyncio.AbstractEventLoop,
+        expected_lingering_tasks: bool,
+        expected_lingering_timers: bool,
+    ) -> Generator[None]:
+        """Verify that the test has cleaned up resources correctly."""
+        threads_before = frozenset(threading.enumerate())
+        tasks_before = asyncio.all_tasks(event_loop)
+        yield
+
+        event_loop.run_until_complete(event_loop.shutdown_default_executor())
+
+        if len(INSTANCES) >= 2:
+            count = len(INSTANCES)
+            for inst in INSTANCES:
+                inst.stop()
+            pytest.exit(f"Detected non stopped instances ({count}), aborting test run")
+
+        # Warn and clean-up lingering tasks and timers
+        # before moving on to the next test.
+        tasks = asyncio.all_tasks(event_loop) - tasks_before
+        for task in tasks:
+            if expected_lingering_tasks:
+                _LOGGER.warning("Lingering task after test %r", task)
+            else:
+                pytest.fail(f"Lingering task after test {task!r}")
+            task.cancel()
+        if tasks:
+            event_loop.run_until_complete(asyncio.wait(tasks))
+
+        for handle in get_scheduled_timer_handles(event_loop):
+            if not handle.cancelled():
+                with long_repr_strings():
+                    if expected_lingering_timers:
+                        _LOGGER.warning("Lingering timer after test %r", handle)
+                    elif handle._args and isinstance(job := handle._args[-1], HassJob):
+                        if job.cancel_on_shutdown:
+                            continue
+                        pytest.fail(f"Lingering timer after job {job!r}")
+                    else:
+>                       pytest.fail(f"Lingering timer after test {handle!r}")
+E                       Failed: Lingering timer after test <TimerHandle when=4021.881042735 TimedAccessManager._schedule_removal.<locals>.<lambda>() at /app/custom_components/meraki_ha/core/timed_access_manager.py:95 created at /app/custom_components/meraki_ha/core/timed_access_manager.py:93>
+
+/home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages/pytest_homeassistant_custom_component/plugins.py:399: Failed
+=================================== FAILURES ===================================
+_______________ test_entity_disabled_if_rtsp_enabled_but_no_url ________________
+
+mock_coordinator = <MagicMock id='140637701024048'>
+mock_config_entry = <MagicMock id='140637705608064'>
+mock_camera_service = <AsyncMock id='140637705607920'>
+
+    def test_entity_disabled_if_rtsp_enabled_but_no_url(
+        mock_coordinator: MagicMock,
+        mock_config_entry: MagicMock,
+        mock_camera_service: AsyncMock,
+    ) -> None:
+        """
+        Test that the camera entity is disabled if RTSP is enabled but no stream URL.
+
+        Args:
+        ----
+            mock_coordinator: The mocked coordinator.
+            mock_config_entry: The mocked config entry.
+            mock_camera_service: The mocked camera service.
+
+        """
+        # Arrange
+        # Create a mock device with no way to determine a stream URL
+        mock_device_no_url = dataclasses.replace(
+            MOCK_CAMERA_DEVICE,
+            video_settings={
+                "rtspServerEnabled": True,
+                "rtspUrl": None,
+            },
+            lan_ip=None,
+            rtsp_url=None,
+        )
+
+        mock_coordinator.get_device.return_value = mock_device_no_url
+
+        # Act
+        camera = MerakiCamera(
+            mock_coordinator,
+            mock_config_entry,
+            mock_device_no_url,
+            mock_camera_service,
+        )
+
+        # Assert
+>       assert not camera.entity_registry_enabled_default
+E       assert not True
+E        +  where True = <entity unknown.unknown=unknown>.entity_registry_enabled_default
+
+tests/camera/test_camera.py:309: AssertionError
+_____________________ test_content_filtering_select_entity _____________________
+
+hass = <HomeAssistant RUNNING>
+mock_config_entry = <ConfigEntry entry_id=test_entry version=1 domain=meraki_ha title=Mock Title state=ConfigEntryState.LOADED unique_id=None>
+mock_meraki_client = <AsyncMock id='140637701528496'>
+
+    async def test_content_filtering_select_entity(
+        hass: HomeAssistant,
+        mock_config_entry: MockConfigEntry,
+        mock_meraki_client: AsyncMock,
+    ) -> None:
+        """Test the content filtering select entity is created and functional."""
+        assert await async_setup_component(hass, "http", {})
+        mock_config_entry.add_to_hass(hass)
+
+        with (
+            patch(
+                "custom_components.meraki_ha.coordinator.ApiClient",
+                return_value=mock_meraki_client,
+            ),
+            patch("custom_components.meraki_ha.async_register_webhook", return_value=None),
+        ):
+            assert await hass.config_entries.async_setup(mock_config_entry.entry_id)
+            await hass.async_block_till_done()
+
+            # Find the entity by searching the registry
+            from homeassistant.helpers import entity_registry as er
+
+            entity_registry = er.async_get(hass)
+            entries = list(entity_registry.entities.values())
+
+            # Look for the entity
+            target_entity = None
+            for e in entries:
+                if "content-filtering" in str(e.unique_id):
+                    target_entity = e
+                    break
+
+>           assert target_entity is not None
+E           assert None is not None
+
+tests/meraki_select/test_content_filtering_select.py:104: AssertionError
+----------------------------- Captured stderr call -----------------------------
+INFO:homeassistant.loader:Loaded meraki_ha from custom_components.meraki_ha
+WARNING:homeassistant.loader:We found a custom integration meraki_ha which has not been tested by Home Assistant. This component might cause stability problems, be sure to disable it if you experience issues with Home Assistant
+INFO:homeassistant.loader:Loaded http from homeassistant.components.http
+INFO:homeassistant.setup:Setting up http
+WARNING:aiohttp_fast_zlib:zlib_ng and isal are not available, falling back to zlib, performance will be degraded.
+INFO:homeassistant.loader:Loaded panel_custom from homeassistant.components.panel_custom
+INFO:homeassistant.loader:Loaded frontend from homeassistant.components.frontend
+INFO:homeassistant.loader:Loaded api from homeassistant.components.api
+INFO:homeassistant.loader:Loaded auth from homeassistant.components.auth
+INFO:homeassistant.loader:Loaded config from homeassistant.components.config
+INFO:homeassistant.loader:Loaded device_automation from homeassistant.components.device_automation
+INFO:homeassistant.loader:Loaded diagnostics from homeassistant.components.diagnostics
+INFO:homeassistant.loader:Loaded file_upload from homeassistant.components.file_upload
+INFO:homeassistant.loader:Loaded lovelace from homeassistant.components.lovelace
+INFO:homeassistant.loader:Loaded onboarding from homeassistant.components.onboarding
+INFO:homeassistant.loader:Loaded repairs from homeassistant.components.repairs
+INFO:homeassistant.loader:Loaded search from homeassistant.components.search
+INFO:homeassistant.loader:Loaded system_log from homeassistant.components.system_log
+INFO:homeassistant.loader:Loaded websocket_api from homeassistant.components.websocket_api
+INFO:homeassistant.loader:Loaded person from homeassistant.components.person
+INFO:homeassistant.loader:Loaded image_upload from homeassistant.components.image_upload
+INFO:homeassistant.setup:Setting up meraki_ha
+INFO:custom_components.meraki_ha.discovery.handlers.network:Discovered 3 network-level entities
+INFO:custom_components.meraki_ha.discovery.service:Entity discovery complete. Found 5 entities.
+INFO:homeassistant.loader:Loaded sensor from homeassistant.components.sensor
+INFO:homeassistant.loader:Loaded binary_sensor from homeassistant.components.binary_sensor
+INFO:homeassistant.loader:Loaded button from homeassistant.components.button
+INFO:homeassistant.loader:Loaded switch from homeassistant.components.switch
+INFO:homeassistant.loader:Loaded text from homeassistant.components.text
+INFO:homeassistant.loader:Loaded camera from homeassistant.components.camera
+INFO:homeassistant.loader:Loaded number from homeassistant.components.number
+INFO:homeassistant.setup:Setting up sensor
+INFO:homeassistant.components.sensor:Setting up meraki_ha.sensor
+INFO:homeassistant.helpers.entity_registry:Registered new sensor.meraki_ha entity: sensor.main_office_clients
+INFO:homeassistant.helpers.entity_registry:Registered new sensor.meraki_ha entity: sensor.filtering_appliance_status
+INFO:homeassistant.setup:Setting up binary_sensor
+INFO:homeassistant.components.binary_sensor:Setting up meraki_ha.binary_sensor
+INFO:homeassistant.helpers.entity_registry:Registered new binary_sensor.meraki_ha entity: binary_sensor.main_office_status
+INFO:homeassistant.setup:Setting up button
+INFO:homeassistant.components.button:Setting up meraki_ha.button
+INFO:homeassistant.helpers.entity_registry:Registered new button.meraki_ha entity: button.filtering_appliance_reboot
+INFO:homeassistant.setup:Setting up switch
+INFO:homeassistant.components.switch:Setting up meraki_ha.switch
+INFO:homeassistant.setup:Setting up text
+INFO:homeassistant.components.text:Setting up meraki_ha.text
+INFO:homeassistant.setup:Setting up camera
+INFO:homeassistant.components.camera:Setting up meraki_ha.camera
+INFO:homeassistant.setup:Setting up number
+INFO:homeassistant.components.number:Setting up meraki_ha.number
+------------------------------ Captured log call -------------------------------
+INFO     homeassistant.loader:loader.py:773 Loaded meraki_ha from custom_components.meraki_ha
+WARNING  homeassistant.loader:loader.py:687 We found a custom integration meraki_ha which has not been tested by Home Assistant. This component might cause stability problems, be sure to disable it if you experience issues with Home Assistant
+INFO     homeassistant.loader:loader.py:773 Loaded http from homeassistant.components.http
+INFO     homeassistant.setup:setup.py:384 Setting up http
+WARNING  aiohttp_fast_zlib:__init__.py:49 zlib_ng and isal are not available, falling back to zlib, performance will be degraded.
+INFO     homeassistant.loader:loader.py:773 Loaded panel_custom from homeassistant.components.panel_custom
+INFO     homeassistant.loader:loader.py:773 Loaded frontend from homeassistant.components.frontend
+INFO     homeassistant.loader:loader.py:773 Loaded api from homeassistant.components.api
+INFO     homeassistant.loader:loader.py:773 Loaded auth from homeassistant.components.auth
+INFO     homeassistant.loader:loader.py:773 Loaded config from homeassistant.components.config
+INFO     homeassistant.loader:loader.py:773 Loaded device_automation from homeassistant.components.device_automation
+INFO     homeassistant.loader:loader.py:773 Loaded diagnostics from homeassistant.components.diagnostics
+INFO     homeassistant.loader:loader.py:773 Loaded file_upload from homeassistant.components.file_upload
+INFO     homeassistant.loader:loader.py:773 Loaded lovelace from homeassistant.components.lovelace
+INFO     homeassistant.loader:loader.py:773 Loaded onboarding from homeassistant.components.onboarding
+INFO     homeassistant.loader:loader.py:773 Loaded repairs from homeassistant.components.repairs
+INFO     homeassistant.loader:loader.py:773 Loaded search from homeassistant.components.search
+INFO     homeassistant.loader:loader.py:773 Loaded system_log from homeassistant.components.system_log
+INFO     homeassistant.loader:loader.py:773 Loaded websocket_api from homeassistant.components.websocket_api
+INFO     homeassistant.loader:loader.py:773 Loaded person from homeassistant.components.person
+INFO     homeassistant.loader:loader.py:773 Loaded image_upload from homeassistant.components.image_upload
+INFO     homeassistant.setup:setup.py:384 Setting up meraki_ha
+INFO     custom_components.meraki_ha.discovery.handlers.network:network.py:192 Discovered 3 network-level entities
+INFO     custom_components.meraki_ha.discovery.service:service.py:244 Entity discovery complete. Found 5 entities.
+INFO     homeassistant.loader:loader.py:773 Loaded sensor from homeassistant.components.sensor
+INFO     homeassistant.loader:loader.py:773 Loaded binary_sensor from homeassistant.components.binary_sensor
+INFO     homeassistant.loader:loader.py:773 Loaded button from homeassistant.components.button
+INFO     homeassistant.loader:loader.py:773 Loaded switch from homeassistant.components.switch
+INFO     homeassistant.loader:loader.py:773 Loaded text from homeassistant.components.text
+INFO     homeassistant.loader:loader.py:773 Loaded camera from homeassistant.components.camera
+INFO     homeassistant.loader:loader.py:773 Loaded number from homeassistant.components.number
+INFO     homeassistant.setup:setup.py:384 Setting up sensor
+INFO     homeassistant.components.sensor:entity_platform.py:351 Setting up meraki_ha.sensor
+INFO     homeassistant.helpers.entity_registry:entity_registry.py:918 Registered new sensor.meraki_ha entity: sensor.main_office_clients
+INFO     homeassistant.helpers.entity_registry:entity_registry.py:918 Registered new sensor.meraki_ha entity: sensor.filtering_appliance_status
+INFO     homeassistant.setup:setup.py:384 Setting up binary_sensor
+INFO     homeassistant.components.binary_sensor:entity_platform.py:351 Setting up meraki_ha.binary_sensor
+INFO     homeassistant.helpers.entity_registry:entity_registry.py:918 Registered new binary_sensor.meraki_ha entity: binary_sensor.main_office_status
+INFO     homeassistant.setup:setup.py:384 Setting up button
+INFO     homeassistant.components.button:entity_platform.py:351 Setting up meraki_ha.button
+INFO     homeassistant.helpers.entity_registry:entity_registry.py:918 Registered new button.meraki_ha entity: button.filtering_appliance_reboot
+INFO     homeassistant.setup:setup.py:384 Setting up switch
+INFO     homeassistant.components.switch:entity_platform.py:351 Setting up meraki_ha.switch
+INFO     homeassistant.setup:setup.py:384 Setting up text
+INFO     homeassistant.components.text:entity_platform.py:351 Setting up meraki_ha.text
+INFO     homeassistant.setup:setup.py:384 Setting up camera
+INFO     homeassistant.components.camera:entity_platform.py:351 Setting up meraki_ha.camera
+INFO     homeassistant.setup:setup.py:384 Setting up number
+INFO     homeassistant.components.number:entity_platform.py:351 Setting up meraki_ha.number
+_____________________ test_content_filtering_select_entity _____________________
+
+hass = <HomeAssistant RUNNING>
+mock_config_entry = <ConfigEntry entry_id=test_entry version=1 domain=meraki_ha title=Mock Title state=ConfigEntryState.LOADED unique_id=None>
+mock_meraki_client = <AsyncMock id='140637898002496'>
+
+    async def test_content_filtering_select_entity(
+        hass: HomeAssistant,
+        mock_config_entry: MockConfigEntry,
+        mock_meraki_client: AsyncMock,
+    ) -> None:
+        """Test the content filtering select entity is created and functional."""
+        assert await async_setup_component(hass, "http", {})
+        mock_config_entry.add_to_hass(hass)
+
+        with (
+            patch(
+                "custom_components.meraki_ha.coordinator.ApiClient",
+                return_value=mock_meraki_client,
+            ),
+            patch("custom_components.meraki_ha.async_register_webhook", return_value=None),
+        ):
+            assert await hass.config_entries.async_setup(mock_config_entry.entry_id)
+            await hass.async_block_till_done()
+
+            # Find the entity by searching the registry
+            from homeassistant.helpers import entity_registry as er
+
+            entity_registry = er.async_get(hass)
+            entries = list(entity_registry.entities.values())
+
+            # Look for the entity
+            target_entity = None
+            for e in entries:
+                if "content-filtering" in str(e.unique_id):
+                    target_entity = e
+                    break
+
+>           assert target_entity is not None
+E           assert None is not None
+
+tests/meraki_select/test_meraki_content_filtering.py:103: AssertionError
+----------------------------- Captured stderr call -----------------------------
+INFO:homeassistant.loader:Loaded meraki_ha from custom_components.meraki_ha
+WARNING:homeassistant.loader:We found a custom integration meraki_ha which has not been tested by Home Assistant. This component might cause stability problems, be sure to disable it if you experience issues with Home Assistant
+INFO:homeassistant.loader:Loaded http from homeassistant.components.http
+INFO:homeassistant.setup:Setting up http
+WARNING:aiohttp_fast_zlib:zlib_ng and isal are not available, falling back to zlib, performance will be degraded.
+INFO:homeassistant.loader:Loaded panel_custom from homeassistant.components.panel_custom
+INFO:homeassistant.loader:Loaded frontend from homeassistant.components.frontend
+INFO:homeassistant.loader:Loaded api from homeassistant.components.api
+INFO:homeassistant.loader:Loaded auth from homeassistant.components.auth
+INFO:homeassistant.loader:Loaded config from homeassistant.components.config
+INFO:homeassistant.loader:Loaded device_automation from homeassistant.components.device_automation
+INFO:homeassistant.loader:Loaded diagnostics from homeassistant.components.diagnostics
+INFO:homeassistant.loader:Loaded file_upload from homeassistant.components.file_upload
+INFO:homeassistant.loader:Loaded lovelace from homeassistant.components.lovelace
+INFO:homeassistant.loader:Loaded onboarding from homeassistant.components.onboarding
+INFO:homeassistant.loader:Loaded repairs from homeassistant.components.repairs
+INFO:homeassistant.loader:Loaded search from homeassistant.components.search
+INFO:homeassistant.loader:Loaded system_log from homeassistant.components.system_log
+INFO:homeassistant.loader:Loaded websocket_api from homeassistant.components.websocket_api
+INFO:homeassistant.loader:Loaded person from homeassistant.components.person
+INFO:homeassistant.loader:Loaded image_upload from homeassistant.components.image_upload
+INFO:homeassistant.setup:Setting up meraki_ha
+INFO:custom_components.meraki_ha.discovery.handlers.network:Discovered 2 network-level entities
+INFO:custom_components.meraki_ha.discovery.service:Entity discovery complete. Found 4 entities.
+INFO:homeassistant.loader:Loaded sensor from homeassistant.components.sensor
+INFO:homeassistant.loader:Loaded binary_sensor from homeassistant.components.binary_sensor
+INFO:homeassistant.loader:Loaded button from homeassistant.components.button
+INFO:homeassistant.loader:Loaded switch from homeassistant.components.switch
+INFO:homeassistant.loader:Loaded text from homeassistant.components.text
+INFO:homeassistant.loader:Loaded camera from homeassistant.components.camera
+INFO:homeassistant.loader:Loaded number from homeassistant.components.number
+INFO:homeassistant.setup:Setting up sensor
+INFO:homeassistant.components.sensor:Setting up meraki_ha.sensor
+INFO:homeassistant.helpers.entity_registry:Registered new sensor.meraki_ha entity: sensor.main_office_clients
+INFO:homeassistant.helpers.entity_registry:Registered new sensor.meraki_ha entity: sensor.filtering_appliance_status
+INFO:homeassistant.setup:Setting up binary_sensor
+INFO:homeassistant.components.binary_sensor:Setting up meraki_ha.binary_sensor
+INFO:homeassistant.helpers.entity_registry:Registered new binary_sensor.meraki_ha entity: binary_sensor.main_office_status
+INFO:homeassistant.setup:Setting up button
+INFO:homeassistant.components.button:Setting up meraki_ha.button
+INFO:homeassistant.helpers.entity_registry:Registered new button.meraki_ha entity: button.filtering_appliance_reboot
+INFO:homeassistant.setup:Setting up switch
+INFO:homeassistant.components.switch:Setting up meraki_ha.switch
+INFO:homeassistant.setup:Setting up text
+INFO:homeassistant.components.text:Setting up meraki_ha.text
+INFO:homeassistant.setup:Setting up camera
+INFO:homeassistant.components.camera:Setting up meraki_ha.camera
+INFO:homeassistant.setup:Setting up number
+INFO:homeassistant.components.number:Setting up meraki_ha.number
+------------------------------ Captured log call -------------------------------
+INFO     homeassistant.loader:loader.py:773 Loaded meraki_ha from custom_components.meraki_ha
+WARNING  homeassistant.loader:loader.py:687 We found a custom integration meraki_ha which has not been tested by Home Assistant. This component might cause stability problems, be sure to disable it if you experience issues with Home Assistant
+INFO     homeassistant.loader:loader.py:773 Loaded http from homeassistant.components.http
+INFO     homeassistant.setup:setup.py:384 Setting up http
+WARNING  aiohttp_fast_zlib:__init__.py:49 zlib_ng and isal are not available, falling back to zlib, performance will be degraded.
+INFO     homeassistant.loader:loader.py:773 Loaded panel_custom from homeassistant.components.panel_custom
+INFO     homeassistant.loader:loader.py:773 Loaded frontend from homeassistant.components.frontend
+INFO     homeassistant.loader:loader.py:773 Loaded api from homeassistant.components.api
+INFO     homeassistant.loader:loader.py:773 Loaded auth from homeassistant.components.auth
+INFO     homeassistant.loader:loader.py:773 Loaded config from homeassistant.components.config
+INFO     homeassistant.loader:loader.py:773 Loaded device_automation from homeassistant.components.device_automation
+INFO     homeassistant.loader:loader.py:773 Loaded diagnostics from homeassistant.components.diagnostics
+INFO     homeassistant.loader:loader.py:773 Loaded file_upload from homeassistant.components.file_upload
+INFO     homeassistant.loader:loader.py:773 Loaded lovelace from homeassistant.components.lovelace
+INFO     homeassistant.loader:loader.py:773 Loaded onboarding from homeassistant.components.onboarding
+INFO     homeassistant.loader:loader.py:773 Loaded repairs from homeassistant.components.repairs
+INFO     homeassistant.loader:loader.py:773 Loaded search from homeassistant.components.search
+INFO     homeassistant.loader:loader.py:773 Loaded system_log from homeassistant.components.system_log
+INFO     homeassistant.loader:loader.py:773 Loaded websocket_api from homeassistant.components.websocket_api
+INFO     homeassistant.loader:loader.py:773 Loaded person from homeassistant.components.person
+INFO     homeassistant.loader:loader.py:773 Loaded image_upload from homeassistant.components.image_upload
+INFO     homeassistant.setup:setup.py:384 Setting up meraki_ha
+INFO     custom_components.meraki_ha.discovery.handlers.network:network.py:192 Discovered 2 network-level entities
+INFO     custom_components.meraki_ha.discovery.service:service.py:244 Entity discovery complete. Found 4 entities.
+INFO     homeassistant.loader:loader.py:773 Loaded sensor from homeassistant.components.sensor
+INFO     homeassistant.loader:loader.py:773 Loaded binary_sensor from homeassistant.components.binary_sensor
+INFO     homeassistant.loader:loader.py:773 Loaded button from homeassistant.components.button
+INFO     homeassistant.loader:loader.py:773 Loaded switch from homeassistant.components.switch
+INFO     homeassistant.loader:loader.py:773 Loaded text from homeassistant.components.text
+INFO     homeassistant.loader:loader.py:773 Loaded camera from homeassistant.components.camera
+INFO     homeassistant.loader:loader.py:773 Loaded number from homeassistant.components.number
+INFO     homeassistant.setup:setup.py:384 Setting up sensor
+INFO     homeassistant.components.sensor:entity_platform.py:351 Setting up meraki_ha.sensor
+INFO     homeassistant.helpers.entity_registry:entity_registry.py:918 Registered new sensor.meraki_ha entity: sensor.main_office_clients
+INFO     homeassistant.helpers.entity_registry:entity_registry.py:918 Registered new sensor.meraki_ha entity: sensor.filtering_appliance_status
+INFO     homeassistant.setup:setup.py:384 Setting up binary_sensor
+INFO     homeassistant.components.binary_sensor:entity_platform.py:351 Setting up meraki_ha.binary_sensor
+INFO     homeassistant.helpers.entity_registry:entity_registry.py:918 Registered new binary_sensor.meraki_ha entity: binary_sensor.main_office_status
+INFO     homeassistant.setup:setup.py:384 Setting up button
+INFO     homeassistant.components.button:entity_platform.py:351 Setting up meraki_ha.button
+INFO     homeassistant.helpers.entity_registry:entity_registry.py:918 Registered new button.meraki_ha entity: button.filtering_appliance_reboot
+INFO     homeassistant.setup:setup.py:384 Setting up switch
+INFO     homeassistant.components.switch:entity_platform.py:351 Setting up meraki_ha.switch
+INFO     homeassistant.setup:setup.py:384 Setting up text
+INFO     homeassistant.components.text:entity_platform.py:351 Setting up meraki_ha.text
+INFO     homeassistant.setup:setup.py:384 Setting up camera
+INFO     homeassistant.components.camera:entity_platform.py:351 Setting up meraki_ha.camera
+INFO     homeassistant.setup:setup.py:384 Setting up number
+INFO     homeassistant.components.number:entity_platform.py:351 Setting up meraki_ha.number
+____________________________ test_vpn_select_entity ____________________________
+
+hass = <HomeAssistant RUNNING>
+mock_config_entry = <ConfigEntry entry_id=test_entry version=1 domain=meraki_ha title=Mock Title state=ConfigEntryState.LOADED unique_id=None>
+mock_meraki_client = <AsyncMock id='140637702664224'>
+
+    async def test_vpn_select_entity(
+        hass: HomeAssistant,
+        mock_config_entry: MockConfigEntry,
+        mock_meraki_client: AsyncMock,
+    ) -> None:
+        """Test the VPN select entity is created and functional."""
+        assert await async_setup_component(hass, "http", {})
+        mock_config_entry.add_to_hass(hass)
+
+        with (
+            patch(
+                "custom_components.meraki_ha.coordinator.ApiClient",
+                return_value=mock_meraki_client,
+            ),
+            patch("custom_components.meraki_ha.async_register_webhook", return_value=None),
+        ):
+            assert await hass.config_entries.async_setup(mock_config_entry.entry_id)
+            await hass.async_block_till_done()
+
+            # Find the entity by searching the registry
+            entity_registry = er.async_get(hass)
+            entries = list(entity_registry.entities.values())
+
+            # Look for the entity
+            target_entity = None
+            for e in entries:
+                if e.domain == "select" and "vpn" in str(e.unique_id):
+                    target_entity = e
+                    break
+
+>           assert target_entity is not None
+E           assert None is not None
+
+tests/meraki_select/test_vpn_select.py:93: AssertionError
+----------------------------- Captured stderr call -----------------------------
+INFO:homeassistant.loader:Loaded meraki_ha from custom_components.meraki_ha
+WARNING:homeassistant.loader:We found a custom integration meraki_ha which has not been tested by Home Assistant. This component might cause stability problems, be sure to disable it if you experience issues with Home Assistant
+INFO:homeassistant.loader:Loaded http from homeassistant.components.http
+INFO:homeassistant.setup:Setting up http
+WARNING:aiohttp_fast_zlib:zlib_ng and isal are not available, falling back to zlib, performance will be degraded.
+INFO:homeassistant.loader:Loaded panel_custom from homeassistant.components.panel_custom
+INFO:homeassistant.loader:Loaded frontend from homeassistant.components.frontend
+INFO:homeassistant.loader:Loaded api from homeassistant.components.api
+INFO:homeassistant.loader:Loaded auth from homeassistant.components.auth
+INFO:homeassistant.loader:Loaded config from homeassistant.components.config
+INFO:homeassistant.loader:Loaded device_automation from homeassistant.components.device_automation
+INFO:homeassistant.loader:Loaded diagnostics from homeassistant.components.diagnostics
+INFO:homeassistant.loader:Loaded file_upload from homeassistant.components.file_upload
+INFO:homeassistant.loader:Loaded lovelace from homeassistant.components.lovelace
+INFO:homeassistant.loader:Loaded onboarding from homeassistant.components.onboarding
+INFO:homeassistant.loader:Loaded repairs from homeassistant.components.repairs
+INFO:homeassistant.loader:Loaded search from homeassistant.components.search
+INFO:homeassistant.loader:Loaded system_log from homeassistant.components.system_log
+INFO:homeassistant.loader:Loaded websocket_api from homeassistant.components.websocket_api
+INFO:homeassistant.loader:Loaded person from homeassistant.components.person
+INFO:homeassistant.loader:Loaded image_upload from homeassistant.components.image_upload
+INFO:homeassistant.setup:Setting up meraki_ha
+INFO:custom_components.meraki_ha.discovery.handlers.network:Discovered 1 network-level entities
+INFO:custom_components.meraki_ha.discovery.service:Entity discovery complete. Found 3 entities.
+INFO:homeassistant.loader:Loaded sensor from homeassistant.components.sensor
+INFO:homeassistant.loader:Loaded binary_sensor from homeassistant.components.binary_sensor
+INFO:homeassistant.loader:Loaded button from homeassistant.components.button
+INFO:homeassistant.loader:Loaded switch from homeassistant.components.switch
+INFO:homeassistant.loader:Loaded text from homeassistant.components.text
+INFO:homeassistant.loader:Loaded camera from homeassistant.components.camera
+INFO:homeassistant.loader:Loaded number from homeassistant.components.number
+INFO:homeassistant.setup:Setting up sensor
+INFO:homeassistant.components.sensor:Setting up meraki_ha.sensor
+INFO:homeassistant.helpers.entity_registry:Registered new sensor.meraki_ha entity: sensor.main_office_clients
+INFO:homeassistant.helpers.entity_registry:Registered new sensor.meraki_ha entity: sensor.vpn_appliance_status
+INFO:homeassistant.setup:Setting up binary_sensor
+INFO:homeassistant.components.binary_sensor:Setting up meraki_ha.binary_sensor
+INFO:homeassistant.helpers.entity_registry:Registered new binary_sensor.meraki_ha entity: binary_sensor.main_office_status
+INFO:homeassistant.setup:Setting up button
+INFO:homeassistant.components.button:Setting up meraki_ha.button
+INFO:homeassistant.helpers.entity_registry:Registered new button.meraki_ha entity: button.vpn_appliance_reboot
+INFO:homeassistant.setup:Setting up switch
+INFO:homeassistant.components.switch:Setting up meraki_ha.switch
+INFO:homeassistant.helpers.entity_registry:Registered new switch.meraki_ha entity: switch.main_office_site_to_site_vpn
+INFO:homeassistant.setup:Setting up text
+INFO:homeassistant.components.text:Setting up meraki_ha.text
+INFO:homeassistant.setup:Setting up camera
+INFO:homeassistant.components.camera:Setting up meraki_ha.camera
+INFO:homeassistant.setup:Setting up number
+INFO:homeassistant.components.number:Setting up meraki_ha.number
+------------------------------ Captured log call -------------------------------
+INFO     homeassistant.loader:loader.py:773 Loaded meraki_ha from custom_components.meraki_ha
+WARNING  homeassistant.loader:loader.py:687 We found a custom integration meraki_ha which has not been tested by Home Assistant. This component might cause stability problems, be sure to disable it if you experience issues with Home Assistant
+INFO     homeassistant.loader:loader.py:773 Loaded http from homeassistant.components.http
+INFO     homeassistant.setup:setup.py:384 Setting up http
+WARNING  aiohttp_fast_zlib:__init__.py:49 zlib_ng and isal are not available, falling back to zlib, performance will be degraded.
+INFO     homeassistant.loader:loader.py:773 Loaded panel_custom from homeassistant.components.panel_custom
+INFO     homeassistant.loader:loader.py:773 Loaded frontend from homeassistant.components.frontend
+INFO     homeassistant.loader:loader.py:773 Loaded api from homeassistant.components.api
+INFO     homeassistant.loader:loader.py:773 Loaded auth from homeassistant.components.auth
+INFO     homeassistant.loader:loader.py:773 Loaded config from homeassistant.components.config
+INFO     homeassistant.loader:loader.py:773 Loaded device_automation from homeassistant.components.device_automation
+INFO     homeassistant.loader:loader.py:773 Loaded diagnostics from homeassistant.components.diagnostics
+INFO     homeassistant.loader:loader.py:773 Loaded file_upload from homeassistant.components.file_upload
+INFO     homeassistant.loader:loader.py:773 Loaded lovelace from homeassistant.components.lovelace
+INFO     homeassistant.loader:loader.py:773 Loaded onboarding from homeassistant.components.onboarding
+INFO     homeassistant.loader:loader.py:773 Loaded repairs from homeassistant.components.repairs
+INFO     homeassistant.loader:loader.py:773 Loaded search from homeassistant.components.search
+INFO     homeassistant.loader:loader.py:773 Loaded system_log from homeassistant.components.system_log
+INFO     homeassistant.loader:loader.py:773 Loaded websocket_api from homeassistant.components.websocket_api
+INFO     homeassistant.loader:loader.py:773 Loaded person from homeassistant.components.person
+INFO     homeassistant.loader:loader.py:773 Loaded image_upload from homeassistant.components.image_upload
+INFO     homeassistant.setup:setup.py:384 Setting up meraki_ha
+INFO     custom_components.meraki_ha.discovery.handlers.network:network.py:192 Discovered 1 network-level entities
+INFO     custom_components.meraki_ha.discovery.service:service.py:244 Entity discovery complete. Found 3 entities.
+INFO     homeassistant.loader:loader.py:773 Loaded sensor from homeassistant.components.sensor
+INFO     homeassistant.loader:loader.py:773 Loaded binary_sensor from homeassistant.components.binary_sensor
+INFO     homeassistant.loader:loader.py:773 Loaded button from homeassistant.components.button
+INFO     homeassistant.loader:loader.py:773 Loaded switch from homeassistant.components.switch
+INFO     homeassistant.loader:loader.py:773 Loaded text from homeassistant.components.text
+INFO     homeassistant.loader:loader.py:773 Loaded camera from homeassistant.components.camera
+INFO     homeassistant.loader:loader.py:773 Loaded number from homeassistant.components.number
+INFO     homeassistant.setup:setup.py:384 Setting up sensor
+INFO     homeassistant.components.sensor:entity_platform.py:351 Setting up meraki_ha.sensor
+INFO     homeassistant.helpers.entity_registry:entity_registry.py:918 Registered new sensor.meraki_ha entity: sensor.main_office_clients
+INFO     homeassistant.helpers.entity_registry:entity_registry.py:918 Registered new sensor.meraki_ha entity: sensor.vpn_appliance_status
+INFO     homeassistant.setup:setup.py:384 Setting up binary_sensor
+INFO     homeassistant.components.binary_sensor:entity_platform.py:351 Setting up meraki_ha.binary_sensor
+INFO     homeassistant.helpers.entity_registry:entity_registry.py:918 Registered new binary_sensor.meraki_ha entity: binary_sensor.main_office_status
+INFO     homeassistant.setup:setup.py:384 Setting up button
+INFO     homeassistant.components.button:entity_platform.py:351 Setting up meraki_ha.button
+INFO     homeassistant.helpers.entity_registry:entity_registry.py:918 Registered new button.meraki_ha entity: button.vpn_appliance_reboot
+INFO     homeassistant.setup:setup.py:384 Setting up switch
+INFO     homeassistant.components.switch:entity_platform.py:351 Setting up meraki_ha.switch
+INFO     homeassistant.helpers.entity_registry:entity_registry.py:918 Registered new switch.meraki_ha entity: switch.main_office_site_to_site_vpn
+INFO     homeassistant.setup:setup.py:384 Setting up text
+INFO     homeassistant.components.text:entity_platform.py:351 Setting up meraki_ha.text
+INFO     homeassistant.setup:setup.py:384 Setting up camera
+INFO     homeassistant.components.camera:entity_platform.py:351 Setting up meraki_ha.camera
+INFO     homeassistant.setup:setup.py:384 Setting up number
+INFO     homeassistant.components.number:entity_platform.py:351 Setting up meraki_ha.number
+________________ test_update_device_registry_info_picks_camera _________________
+
+hass = <HomeAssistant RUNNING>
+
+    async def test_update_device_registry_info_picks_camera(hass):
+        """Test that update_device_registry_info picks the camera entity over sensor."""
+        # Mock data
+        from custom_components.meraki_ha.types import MerakiDevice
+
+        devices = [
+            MerakiDevice(
+                serial="Q234-ABCD-5678",
+                model="MV12",
+                name="Test Camera",
+            )
+        ]
+
+        # Mock Device Registry
+        mock_dr = MagicMock()
+        mock_device = MagicMock()
+        mock_device.id = "device_id_123"
+        mock_dr.async_get_device.return_value = mock_device
+
+        # Mock Entity Registry
+        mock_er = MagicMock()
+
+        # Create mock entities
+        # Entity 1: Sensor (e.g. timestamp) - should NOT be picked
+        entity_sensor = MagicMock(spec=er.RegistryEntry)
+        entity_sensor.entity_id = "sensor.test_camera_last_reported"
+        entity_sensor.name = "Test Camera Last Reported"
+        entity_sensor.original_name = "Test Camera Last Reported"
+        entity_sensor.platform = "meraki_ha"  # Integration platform
+        entity_sensor.domain = "sensor"  # Entity domain
+        entity_sensor.unique_id = "Q234-ABCD-5678_last_reported"
+
+        # Entity 2: Camera - SHOULD be picked
+        entity_camera = MagicMock(spec=er.RegistryEntry)
+        entity_camera.entity_id = "camera.test_camera"
+        entity_camera.name = "Test Camera"
+        entity_camera.original_name = "Test Camera"
+        entity_camera.platform = "meraki_ha"  # Integration platform
+        entity_camera.domain = "camera"  # Entity domain
+        entity_camera.unique_id = "Q234-ABCD-5678-camera"
+
+        # Return them in an order where sensor comes first (to test priority)
+        mock_entries = [entity_sensor, entity_camera]
+
+        # Set states in HA state machine
+        hass.states.async_set("sensor.test_camera_last_reported", "2023-01-01")
+        hass.states.async_set("camera.test_camera", "idle")
+
+        with (
+            patch(
+                "custom_components.meraki_ha.core.helpers.er.async_get",
+                return_value=mock_er,
+            ),
+            patch(
+                "custom_components.meraki_ha.core.helpers.er.async_entries_for_device",
+                return_value=mock_entries,
+            ),
+        ):
+            update_device_registry_info(hass, devices)
+
+            device = devices[0]
+
+            # We expect camera.test_camera as it is prioritized in coordinator.py
+>           assert device.entity_id == "camera.test_camera"
+E           AssertionError: assert None == 'camera.test_camera'
+E            +  where None = MerakiDevice(serial='Q234-ABCD-5678', name='Test Camera', model='MV12', mac=None, lan_ip=None, wan1_ip=None, wan2_ip=N... real_power=None, power_factor=None, current=None, voltage=None, door_open=None, water_present=None, button_press=None).entity_id
+
+tests/test_coordinator_entity_priority.py:73: AssertionError
+=========================== short test summary info ============================
+FAILED tests/camera/test_camera.py::test_entity_disabled_if_rtsp_enabled_but_no_url
+FAILED tests/meraki_select/test_content_filtering_select.py::test_content_filtering_select_entity
+FAILED tests/meraki_select/test_meraki_content_filtering.py::test_content_filtering_select_entity
+FAILED tests/meraki_select/test_vpn_select.py::test_vpn_select_entity - asser...
+FAILED tests/test_coordinator_entity_priority.py::test_update_device_registry_info_picks_camera
+ERROR tests/core/test_timed_access_manager.py::test_load_keys - Failed: Linge...
+ERROR tests/core/test_timed_access_manager.py::test_create_key - Failed: Ling...
+ERROR tests/test_e2e_ipsk.py::test_e2e_ipsk_flow_real_endpoints - Failed: Lin...
+============= 5 failed, 219 passed, 1 skipped, 3 errors in 23.51s ==============
