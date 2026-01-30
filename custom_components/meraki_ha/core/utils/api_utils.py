@@ -59,6 +59,22 @@ def handle_meraki_errors(
                 return cast(T, [])
             return cast(T, {})
         except APIError as err:
+            error_message = str(err)
+            if getattr(err, "status", None) == 400 and (
+                "Traffic Analysis with Hostname Visibility must be enabled"
+                in error_message
+                or "VLANs are not enabled" in error_message
+            ):
+                _LOGGER.info("Meraki feature disabled: %s", error_message)
+                sig = inspect.signature(func)
+                return_type = sig.return_annotation
+                if return_type is list or getattr(return_type, "__origin__", None) in (
+                    list,
+                    list,
+                ):
+                    return cast(T, [])
+                return cast(T, {})
+
             if _is_informational_error(err):
                 raise MerakiInformationalError(f"Informational error: {err}") from err
 
