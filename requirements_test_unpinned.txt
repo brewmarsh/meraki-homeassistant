@@ -41,3 +41,6 @@ psutil-home-assistant
 pillow
 fnv-hash-fast
 urllib3
+aiodns==3.6.1
+pycares==4.11.0
+meraki==1.54.0
