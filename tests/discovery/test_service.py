@@ -79,9 +79,7 @@ async def test_discover_entities_delegates_to_handler(
         patch(
             "custom_components.meraki_ha.discovery.handlers.mv.MVHandler"
         ) as MockMVHandler,
-        patch(
-            "custom_components.meraki_ha.discovery.handlers.network.NetworkHandler"
-        ) as MockNetworkHandler,
+        patch("custom_components.meraki_ha.discovery.handlers.network.NetworkHandler"),
         patch(
             "custom_components.meraki_ha.discovery.handlers.ssid.SSIDHandler"
         ) as MockSSIDHandler,

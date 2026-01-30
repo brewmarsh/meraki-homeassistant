@@ -17,53 +17,61 @@ from custom_components.meraki_ha.types import MerakiDevice
 def mock_coordinator_with_mt_devices(mock_coordinator: MagicMock) -> MagicMock:
     """Fixture for a mocked MerakiDataUpdateCoordinator with MT sensor data."""
     devices = [
-        MerakiDevice.from_dict({
-            "serial": "mt10-1",
-            "name": "MT10 Sensor",
-            "model": "MT10",
-            "productType": "sensor",
-            "readings": [
-                {"metric": "temperature", "temperature": {"celsius": 25.5}},
-                {"metric": "humidity", "humidity": {"relativePercentage": 60.0}},
-                {"metric": "battery", "battery": {"percentage": 100}},
-            ],
-        }),
-        MerakiDevice.from_dict({
-            "serial": "mt15-1",
-            "name": "MT15 Sensor",
-            "model": "MT15",
-            "productType": "sensor",
-            "readings": [
-                {"metric": "temperature", "temperature": {"celsius": 22.1}},
-                {"metric": "humidity", "humidity": {"relativePercentage": 45.2}},
-                {"metric": "co2", "co2": {"concentration": 450}},
-                {"metric": "tvoc", "tvoc": {"concentration": 150}},
-                {"metric": "pm25", "pm25": {"concentration": 10.5}},
-                {"metric": "noise", "noise": {"ambient": {"level": 35.2}}},
-                {"metric": "battery", "battery": {"percentage": 100}},
-            ],
-        }),
-        MerakiDevice.from_dict({
-            "serial": "mt12-1",
-            "name": "MT12 Sensor",
-            "model": "MT12",
-            "productType": "sensor",
-            "readings": [
-                {"metric": "water", "water": {"present": False}},
-                {"metric": "battery", "battery": {"percentage": 100}},
-            ],
-        }),
-        MerakiDevice.from_dict({
-            "serial": "mt40-1",
-            "name": "MT40 Power Controller",
-            "model": "MT40",
-            "productType": "sensor",
-            "readings": [
-                {"metric": "power", "power": {"draw": 120.5}},
-                {"metric": "voltage", "voltage": {"level": 120.1}},
-                {"metric": "current", "current": {"draw": 1.0}},
-            ],
-        }),
+        MerakiDevice.from_dict(
+            {
+                "serial": "mt10-1",
+                "name": "MT10 Sensor",
+                "model": "MT10",
+                "productType": "sensor",
+                "readings": [
+                    {"metric": "temperature", "temperature": {"celsius": 25.5}},
+                    {"metric": "humidity", "humidity": {"relativePercentage": 60.0}},
+                    {"metric": "battery", "battery": {"percentage": 100}},
+                ],
+            }
+        ),
+        MerakiDevice.from_dict(
+            {
+                "serial": "mt15-1",
+                "name": "MT15 Sensor",
+                "model": "MT15",
+                "productType": "sensor",
+                "readings": [
+                    {"metric": "temperature", "temperature": {"celsius": 22.1}},
+                    {"metric": "humidity", "humidity": {"relativePercentage": 45.2}},
+                    {"metric": "co2", "co2": {"concentration": 450}},
+                    {"metric": "tvoc", "tvoc": {"concentration": 150}},
+                    {"metric": "pm25", "pm25": {"concentration": 10.5}},
+                    {"metric": "noise", "noise": {"ambient": {"level": 35.2}}},
+                    {"metric": "battery", "battery": {"percentage": 100}},
+                ],
+            }
+        ),
+        MerakiDevice.from_dict(
+            {
+                "serial": "mt12-1",
+                "name": "MT12 Sensor",
+                "model": "MT12",
+                "productType": "sensor",
+                "readings": [
+                    {"metric": "water", "water": {"present": False}},
+                    {"metric": "battery", "battery": {"percentage": 100}},
+                ],
+            }
+        ),
+        MerakiDevice.from_dict(
+            {
+                "serial": "mt40-1",
+                "name": "MT40 Power Controller",
+                "model": "MT40",
+                "productType": "sensor",
+                "readings": [
+                    {"metric": "power", "power": {"draw": 120.5}},
+                    {"metric": "voltage", "voltage": {"level": 120.1}},
+                    {"metric": "current", "current": {"draw": 1.0}},
+                ],
+            }
+        ),
     ]
 
     # Manually populate complex attributes
