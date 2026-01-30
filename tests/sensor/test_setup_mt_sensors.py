@@ -5,6 +5,7 @@ from typing import cast
 from unittest.mock import MagicMock
 
 import pytest
+from homeassistant.components.binary_sensor import BinarySensorEntity
 from homeassistant.components.sensor import SensorEntity
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
@@ -272,11 +273,15 @@ async def test_async_setup_mt12_sensors(
         entity.async_write_ha_state = MagicMock()
         cast(CoordinatorEntity, entity)._handle_coordinator_update()
 
-    assert len(entities) == 2
-    water_sensor = entities[0]
-    assert isinstance(water_sensor, SensorEntity)
+    assert len(entities) == 3
+
+    sensors_by_key = {entity.entity_description.key: entity for entity in entities}
+
+    water_sensor = sensors_by_key.get("water")
+    assert water_sensor is not None
+    assert isinstance(water_sensor, BinarySensorEntity)
     assert water_sensor.unique_id == "mt12-1_water"
-    assert water_sensor.name == "Water Detection"
+    assert water_sensor.name == "Water Leak"
     assert water_sensor.native_value is False
     assert water_sensor.available is True
 
@@ -311,10 +316,10 @@ async def test_async_setup_mt40_sensors(
     sensors_by_key = {entity.entity_description.key: entity for entity in entities}
 
     # Verify Power Sensor
-    power_sensor = sensors_by_key.get("power")
+    power_sensor = sensors_by_key.get("realPower")
     assert power_sensor is not None
     assert isinstance(power_sensor, SensorEntity)
-    assert power_sensor.unique_id == "mt40-1_power"
+    assert power_sensor.unique_id == "mt40-1_realPower"
     # The translation key is not set in MT_POWER_DESCRIPTION, so it defaults to
     # None (or name is used)
     # assert power_sensor.translation_key == "power"

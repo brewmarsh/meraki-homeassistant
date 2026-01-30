@@ -31,15 +31,24 @@ def mock_hass_config(hass, mock_meraki_client):
     return hass
 
 
+@pytest.fixture
+def manager(hass):
+    """Fixture for TimedAccessManager with cleanup."""
+    mgr = TimedAccessManager(hass)
+    yield mgr
+    mgr.shutdown()
+
+
 @pytest.mark.asyncio
-async def test_e2e_create_and_expire_ipsk(hass, mock_hass_config, mock_meraki_client):
+async def test_e2e_create_and_expire_ipsk(
+    hass, mock_hass_config, mock_meraki_client, manager
+):
     """
     Test the full lifecycle of an IPSK creation and expiration logic.
 
     This simulates the higher-level flow from the TimedAccessManager down to the API
     client, verifying that the correct parameters (including groupPolicyId) are passed.
     """
-    manager = TimedAccessManager(hass)
     await manager.async_setup()
 
     # 1. Create a Key
@@ -93,14 +102,15 @@ def real_client_with_mock_dashboard(hass):
 
 
 @pytest.mark.asyncio
-async def test_e2e_ipsk_flow_real_endpoints(hass, real_client_with_mock_dashboard):
+async def test_e2e_ipsk_flow_real_endpoints(
+    hass, real_client_with_mock_dashboard, manager
+):
     """True integration test using real WirelessEndpoints logic."""
     # Setup Hass data
     hass.data[DOMAIN] = {
         "test_entry_id": {DATA_CLIENT: real_client_with_mock_dashboard}
     }
 
-    manager = TimedAccessManager(hass)
     await manager.async_setup()
 
     # 1. Create Key with NO Group Policy
