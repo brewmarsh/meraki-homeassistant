@@ -100,11 +100,11 @@ async def test_populate_device_entities_picks_camera(coordinator, hass):
             return_value=mock_entries,
         ),
     ):
-            from custom_components.meraki_ha.core.helpers import (
-                update_device_registry_info,
-            )
+        from custom_components.meraki_ha.core.helpers import (
+            update_device_registry_info,
+        )
 
-            update_device_registry_info(hass, data["devices"])
+        update_device_registry_info(hass, data["devices"])
 
         device = data["devices"][0]
 
