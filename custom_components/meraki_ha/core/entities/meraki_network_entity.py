@@ -13,6 +13,8 @@ from ...types import MerakiNetwork
 class MerakiNetworkEntity(CoordinatorEntity):
     """Representation of a Meraki Network."""
 
+    coordinator: MerakiDataUpdateCoordinator
+
     def __init__(
         self,
         coordinator: MerakiDataUpdateCoordinator,

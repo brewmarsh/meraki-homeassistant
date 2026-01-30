@@ -129,7 +129,8 @@ class MerakiCamera(CoordinatorEntity, Camera):
     def _rtsp_url(self) -> str | None:
         """Return the RTSP URL, either from API or constructed."""
         if url := self.device_data.rtsp_url:
-            return url
+            if url.startswith("rtsp://"):
+                return url
 
         # Fallback for MV cameras with LAN IP
         # The rtspServerEnabled flag is unreliable, so we fallback to

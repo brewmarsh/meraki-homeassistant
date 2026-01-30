@@ -19,6 +19,8 @@ _LOGGER = logging.getLogger(__name__)
 class MerakiTrafficShapingSwitch(MerakiNetworkEntity, SwitchEntity):
     """Representation of a Meraki Traffic Shaping switch."""
 
+    coordinator: MerakiDataUpdateCoordinator
+
     def __init__(
         self,
         coordinator: MerakiDataUpdateCoordinator,

@@ -23,6 +23,8 @@ _LOGGER = logging.getLogger(__name__)
 class SwitchPortSensor(CoordinatorEntity, BinarySensorEntity):
     """Representation of a Meraki switch port sensor."""
 
+    coordinator: MerakiDataUpdateCoordinator
+
     _attr_entity_registry_enabled_default = False
     _attr_state_color = True
     _attr_device_class = BinarySensorDeviceClass.CONNECTIVITY

@@ -22,6 +22,8 @@ from ...types import MerakiDevice
 class MerakiSwitchPortSensor(CoordinatorEntity, SensorEntity):
     """Representation of a Meraki switch port sensor."""
 
+    coordinator: MerakiDataUpdateCoordinator
+
     _attr_entity_registry_enabled_default = False
     _attr_entity_category = EntityCategory.DIAGNOSTIC
 
@@ -84,6 +86,8 @@ class MerakiSwitchPortSensor(CoordinatorEntity, SensorEntity):
 
 class MerakiSwitchPortPowerSensor(CoordinatorEntity, SensorEntity):
     """Representation of a Meraki switch port power sensor."""
+
+    coordinator: MerakiDataUpdateCoordinator
 
     _attr_device_class = SensorDeviceClass.POWER
     _attr_native_unit_of_measurement = UnitOfPower.WATT
@@ -149,6 +153,8 @@ class MerakiSwitchPortPowerSensor(CoordinatorEntity, SensorEntity):
 
 class MerakiSwitchPortEnergySensor(CoordinatorEntity, SensorEntity):
     """Representation of a Meraki switch port energy sensor."""
+
+    coordinator: MerakiDataUpdateCoordinator
 
     _attr_device_class = SensorDeviceClass.ENERGY
     _attr_native_unit_of_measurement = UnitOfEnergy.WATT_HOUR

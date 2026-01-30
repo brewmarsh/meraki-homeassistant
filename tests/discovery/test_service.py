@@ -96,8 +96,12 @@ async def test_discover_entities_delegates_to_handler(
         # Assign the side effect/return value logic for the mock classes if needed,
         # but here we just return the mocked instance directly via patch kwargs.
         # Actually, the code instantiates the handler.
+        # Actually, the code instantiates the handler.
         MockMRHandlerClass.return_value = mock_mr_handler_instance
         MockMVHandlerClass.return_value = mock_mv_handler_instance
+        # Set __name__ for logging
+        MockMRHandlerClass.configure_mock(__name__="MRHandler")
+        MockMVHandlerClass.configure_mock(__name__="MVHandler")
         mock_network_handler_instance = MagicMock()
         mock_network_handler_instance.discover_entities = AsyncMock(return_value=[])
         MockNetworkHandler.create.return_value = mock_network_handler_instance
