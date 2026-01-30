@@ -26,13 +26,16 @@ def mock_api_client():
 def coordinator(hass, mock_api_client):
     """Fixture for a MerakiDataCoordinator instance."""
     entry = MagicMock()
-    entry.options = {}
+    entry.options = MagicMock()
+    entry.options.get.return_value = []
     entry.data = {CONF_MERAKI_API_KEY: "test-key", CONF_MERAKI_ORG_ID: "test-org"}
     with patch(
         "custom_components.meraki_ha.coordinator.ApiClient",
         return_value=mock_api_client,
-    ):
-        yield MerakiDataCoordinator(hass=hass, entry=entry)
+    ) as mock_api:
+        coordinator_instance = MerakiDataCoordinator(hass=hass, entry=entry)
+        coordinator_instance.config_entry = entry
+        yield coordinator_instance
 
 
 @pytest.mark.asyncio
