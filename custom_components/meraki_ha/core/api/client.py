@@ -23,6 +23,8 @@ from ...core.errors import (
     MerakiVlanError,
     MerakiVlansDisabledError,
 )
+from ...core.parsers.appliance import parse_appliance_data
+from ...core.parsers.sensors import parse_sensor_data
 from ...types import MerakiDevice, MerakiNetwork
 from ..coordinator_helpers.client_fetcher import ClientFetcher
 from ..coordinator_helpers.device_fetcher import DeviceFetcher
@@ -597,10 +599,35 @@ class MerakiAPIClient:
         else:
             networks_list = [MerakiNetwork.from_dict(n) for n in networks_res]
 
-        devices_list = device_fetcher_result.get("devices", [])
-        device_fetcher_result.get("battery_readings")
-        initial_results.get("appliance_uplink_statuses")
-        initial_results.get("sensor_readings")
+        if isinstance(device_fetcher_result, Exception):
+            _LOGGER.warning(
+                "Could not fetch devices: %s",
+                device_fetcher_result,
+            )
+            devices_list = []
+            battery_readings = []
+        else:
+            devices_list = device_fetcher_result.get("devices", [])
+            battery_readings = device_fetcher_result.get("battery_readings")
+
+        appliance_uplink_statuses = initial_results.get("appliance_uplink_statuses")
+        parse_appliance_data(devices_list, appliance_uplink_statuses)
+
+        sensor_readings = initial_results.get("sensor_readings")
+
+        if isinstance(sensor_readings, Exception):
+            _LOGGER.warning("Could not fetch sensor readings: %s", sensor_readings)
+            sensor_readings = []
+
+        parse_sensor_data(
+            devices_list,
+            cast(list[dict[str, Any]], sensor_readings)
+            if isinstance(sensor_readings, list)
+            else [],
+            cast(list[dict[str, Any]], battery_readings)
+            if isinstance(battery_readings, list)
+            else [],
+        )
 
         detail_tasks = self._build_detail_tasks(networks_list, devices_list)
         detail_data_results = await asyncio.gather(
