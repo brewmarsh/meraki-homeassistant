@@ -1,6 +1,6 @@
 """Test the API utility functions."""
 
-from unittest.mock import AsyncMock
+from unittest.mock import AsyncMock, patch
 
 import pytest
 
