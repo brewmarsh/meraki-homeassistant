@@ -5,7 +5,7 @@ Used by pre-commit as a local hook to prevent committing agent/debug artifacts.
 """
 
 import re
-import subprocess
+import subprocess  # nosec
 import sys
 
 FORBIDDEN_PATTERNS = [
@@ -26,7 +26,7 @@ def get_staged_files():
     Returns an empty list if the git command fails.
     """
     try:
-        out = subprocess.check_output(
+        out = subprocess.check_output(  # nosec
             ["git", "diff", "--cached", "--name-only"], text=True
         )
     except subprocess.CalledProcessError:

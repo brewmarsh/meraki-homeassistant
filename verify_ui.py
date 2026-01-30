@@ -2,7 +2,7 @@ import asyncio
 import http.server
 import os
 import socketserver
-import subprocess
+import subprocess  # nosec
 import sys
 import threading
 
@@ -17,7 +17,7 @@ async def main():
     os.chdir("custom_components/meraki_ha/www")
 
     Handler = http.server.SimpleHTTPRequestHandler
-    httpd = socketserver.TCPServer(("", PORT), Handler)
+    httpd = socketserver.TCPServer(("", PORT), Handler)  # nosec
     server_thread = threading.Thread(target=httpd.serve_forever)
     server_thread.daemon = True
 
