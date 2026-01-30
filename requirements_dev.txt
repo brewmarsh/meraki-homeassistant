@@ -52,7 +52,3 @@ h11
 habluetooth
 home-assistant-bluetooth
 homeassistant==2026.1.0b4
-mypy
-playwright==1.57.0
-PyTurboJPEG==1.7.2
-ruff==0.5.5
