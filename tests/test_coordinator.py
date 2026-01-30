@@ -28,7 +28,6 @@ def coordinator(hass, mock_api_client):
     entry = MagicMock()
     entry.options = {}
     entry.data = {CONF_MERAKI_API_KEY: "test-key", CONF_MERAKI_ORG_ID: "test-org"}
-    entry.entry_id = "test_entry_id"
     with patch(
         "custom_components.meraki_ha.coordinator.ApiClient",
         return_value=mock_api_client,

@@ -605,7 +605,7 @@ class MerakiAPIClient:
                 device_fetcher_result,
             )
             devices_list = []
-            battery_readings: list[dict[str, Any]] | None = []
+            battery_readings = []
         else:
             devices_list = device_fetcher_result.get("devices", [])
             battery_readings = device_fetcher_result.get("battery_readings")
@@ -624,7 +624,9 @@ class MerakiAPIClient:
             cast(list[dict[str, Any]], sensor_readings)
             if isinstance(sensor_readings, list)
             else [],
-            battery_readings if battery_readings is not None else [],
+            cast(list[dict[str, Any]], battery_readings)
+            if isinstance(battery_readings, list)
+            else [],
         )
 
         detail_tasks = self._build_detail_tasks(networks_list, devices_list)

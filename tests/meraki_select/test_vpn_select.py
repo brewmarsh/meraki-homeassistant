@@ -31,13 +31,9 @@ def mock_meraki_client() -> AsyncMock:
     # Ensure network data is consistent
     network_id = MOCK_NETWORK.id
 
-    from custom_components.meraki_ha.types import MerakiDevice
-
     client.get_all_data = AsyncMock(
         return_value={
-            "devices": [
-                MerakiDevice(serial="Q234-ABCD-VPN", model="MX64", name="VPN Appliance")
-            ],
+            "devices": [],
             "networks": [MOCK_NETWORK],
             "vpn_status": {network_id: MerakiVpn(mode="spoke", hubs=[], subnets=[])},
             "ssids": [],
