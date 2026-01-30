@@ -1,4 +1,5 @@
 aiofiles==24.1.0
+aiodns==3.6.1
 aiohappyeyeballs
 aiohasupervisor
 aiohttp
@@ -51,7 +52,7 @@ go2rtc-client==0.2.1
 h11
 habluetooth
 home-assistant-bluetooth
-homeassistant==2024.12.0
+homeassistant==2026.1.0b4
 html5lib==1.1
 httpcore
 httpx
@@ -89,6 +90,7 @@ pluggy==1.6.0
 propcache
 psutil
 psutil-home-assistant
+pycares==4.11.0
 py-serializable==1.1.2
 pycognito==2024.5.1
 pycparser
