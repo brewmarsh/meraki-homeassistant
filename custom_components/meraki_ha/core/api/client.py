@@ -14,6 +14,7 @@ from functools import partial
 from typing import TYPE_CHECKING, Any, cast
 
 import meraki
+
 from homeassistant.core import HomeAssistant
 
 from ...core.errors import (
@@ -599,14 +600,13 @@ class MerakiAPIClient:
         else:
             networks_list = [MerakiNetwork.from_dict(n) for n in networks_res]
 
-        battery_readings: list[dict[str, Any]] | None
         if isinstance(device_fetcher_result, Exception):
             _LOGGER.warning(
                 "Could not fetch devices: %s",
                 device_fetcher_result,
             )
             devices_list = []
-            battery_readings = []
+            battery_readings: list[dict[str, Any]] | None = []
         else:
             devices_list = device_fetcher_result.get("devices", [])
             battery_readings = device_fetcher_result.get("battery_readings")

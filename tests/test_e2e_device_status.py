@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import dataclasses
 import http.server
 import json
 import os
@@ -87,7 +86,6 @@ async def setup_integration_fixture(
 
 
 @pytest.mark.asyncio
-@pytest.mark.skip(reason="Frontend E2E test is flaky/broken")
 async def test_repro_unavailable_status(
     hass: HomeAssistant,
     setup_integration: MockConfigEntry,
@@ -134,14 +132,7 @@ async def test_repro_unavailable_status(
 
             mock_data = MOCK_REPRO_DATA.copy()
             mock_data["options"] = MOCK_SETTINGS
-
-            class DataclassEncoder(json.JSONEncoder):
-                def default(self, o):
-                    if dataclasses.is_dataclass(o):
-                        return dataclasses.asdict(o)
-                    return super().default(o)
-
-            mock_data_json = json.dumps(mock_data, cls=DataclassEncoder)
+            mock_data_json = json.dumps(mock_data)
 
             await page.add_init_script(
                 f"""
@@ -182,9 +173,6 @@ async def test_repro_unavailable_status(
                     panel.panel = {{ config: {{ config_entry_id: 'test-e2e_entry' }} }};
                     panel.hass = {{
                         callWS: async (msg) => {{
-                            if (msg.type === 'meraki_ha/subscribe_meraki_data') {{
-                                return {mock_data_json};
-                            }}
                             if (msg.type === 'meraki_ha/get_config') {{
                                 return {mock_data_json};
                             }}

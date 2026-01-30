@@ -272,21 +272,13 @@ async def test_async_setup_mt12_sensors(
         entity.async_write_ha_state = MagicMock()
         cast(CoordinatorEntity, entity)._handle_coordinator_update()
 
-    assert len(entities) == 3
-    sensors_by_key = {entity.entity_description.key: entity for entity in entities}
-
-    # Verify Battery Sensor
-    assert "battery" in sensors_by_key
-    battery_sensor = sensors_by_key["battery"]
-    assert isinstance(battery_sensor, SensorEntity)
-    assert battery_sensor.unique_id == "mt12-1_battery"
-    assert battery_sensor.name == "Battery"
-    assert battery_sensor.native_value == 100
-    assert battery_sensor.available is True
-
-    # Water leak is a BinarySensor, not a SensorEntity
-    if "water" in sensors_by_key:
-        assert not isinstance(sensors_by_key["water"], SensorEntity)
+    assert len(entities) == 2
+    water_sensor = entities[0]
+    assert isinstance(water_sensor, SensorEntity)
+    assert water_sensor.unique_id == "mt12-1_water"
+    assert water_sensor.name == "Water Detection"
+    assert water_sensor.native_value is False
+    assert water_sensor.available is True
 
 
 async def test_async_setup_mt40_sensors(
@@ -319,10 +311,10 @@ async def test_async_setup_mt40_sensors(
     sensors_by_key = {entity.entity_description.key: entity for entity in entities}
 
     # Verify Power Sensor
-    power_sensor = sensors_by_key.get("realPower")
+    power_sensor = sensors_by_key.get("power")
     assert power_sensor is not None
     assert isinstance(power_sensor, SensorEntity)
-    assert power_sensor.unique_id == "mt40-1_realPower"
+    assert power_sensor.unique_id == "mt40-1_power"
     # The translation key is not set in MT_POWER_DESCRIPTION, so it defaults to
     # None (or name is used)
     # assert power_sensor.translation_key == "power"

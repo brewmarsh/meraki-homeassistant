@@ -51,7 +51,7 @@ go2rtc-client==0.2.1
 h11
 habluetooth
 home-assistant-bluetooth
-homeassistant==2026.1.0b4
+homeassistant==2024.12.0
 html5lib==1.1
 httpcore
 httpx
@@ -159,5 +159,3 @@ yarl
 zeroconf==0.148.0
 aiodhcpwatcher
 aiodiscover
-aiodns==3.6.1
-pycares==4.11.0
