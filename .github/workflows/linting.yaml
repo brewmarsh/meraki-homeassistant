@@ -1,0 +1,37 @@
+name: Linting
+
+on:
+  push:
+    branches:
+      - beta
+  pull_request:
+
+jobs:
+  ruff:
+    name: Ruff
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - uses: astral-sh/setup-uv@v1
+      - name: Install Ruff
+        run: uv pip install ruff
+      - name: Run Ruff Linter
+        run: ruff check --select UP,E,F,I .
+
+  refurb:
+    name: Refurb
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - uses: astral-sh/setup-uv@v1
+      - name: Install refurb
+        run: uv pip install refurb
+      - name: Run refurb
+        run: refurb custom_components/meraki_ha
