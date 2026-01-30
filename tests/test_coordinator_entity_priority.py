@@ -92,11 +92,11 @@ async def test_populate_device_entities_picks_camera(coordinator, hass):
             return_value=mock_dr,
         ),
         patch(
-                "custom_components.meraki_ha.core.helpers.er.async_get",
+            "custom_components.meraki_ha.core.helpers.er.async_get",
             return_value=mock_er,
         ),
         patch(
-                "custom_components.meraki_ha.core.helpers.er.async_entries_for_device",
+            "custom_components.meraki_ha.core.helpers.er.async_entries_for_device",
             return_value=mock_entries,
         ),
     ):
