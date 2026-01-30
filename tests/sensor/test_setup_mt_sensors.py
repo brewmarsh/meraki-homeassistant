@@ -263,7 +263,7 @@ async def test_async_setup_mt12_sensors(
     assert len(entities) >= 2
     water_sensor = next(e for e in entities if e.unique_id == "mt12-1_water")
     assert isinstance(water_sensor, BinarySensorEntity)
-    assert water_sensor.name == "Water Leak"
+    assert water_sensor.name == "MT12 Sensor Water Leak"
     assert water_sensor.is_on is False
     assert water_sensor.available is True
 

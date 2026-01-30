@@ -51,6 +51,10 @@ def mock_meraki_client() -> AsyncMock:
     # Mock the update method
     client.appliance = AsyncMock()
     client.appliance.update_network_appliance_content_filtering = AsyncMock()
+    # Ensure this method returns an iterable dict, not a coroutine
+    client.appliance.get_network_appliance_content_filtering_categories.return_value = {
+        "categories": [{"id": "topSites", "name": "Top Sites"}]
+    }
 
     return client
 

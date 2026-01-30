@@ -49,6 +49,11 @@ def mock_meraki_client() -> AsyncMock:
     # Mock the update method
     client.appliance = AsyncMock()
     client.appliance.update_vpn_status = AsyncMock()
+    # Ensure this method returns an iterable dict, not a coroutine, to avoid
+    # 'coroutine object is not iterable' when iterated in NetworkHandler
+    client.appliance.get_network_appliance_content_filtering_categories.return_value = (
+        {}
+    )
 
     return client
 

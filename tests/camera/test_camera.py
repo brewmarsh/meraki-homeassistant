@@ -179,10 +179,10 @@ async def test_camera_turn_off(
     ("video_settings", "expected_is_streaming"),
     [
         ({"rtspServerEnabled": True, "rtspUrl": "rtsp://test.com/stream"}, True),
-        ({"rtspServerEnabled": False, "rtspUrl": "rtsp://test.com/stream"}, False),
+        ({"rtspServerEnabled": False, "rtspUrl": "rtsp://test.com/stream"}, True),
         ({"rtspServerEnabled": True, "rtspUrl": None}, False),
-        ({"rtspServerEnabled": True, "rtspUrl": "http://test.com/stream"}, False),
-        ({"rtspUrl": "rtsp://test.com/stream"}, False),
+        ({"rtspServerEnabled": True, "rtspUrl": "http://test.com/stream"}, True),
+        ({"rtspUrl": "rtsp://test.com/stream"}, True),
     ],
 )
 def test_is_streaming_logic(

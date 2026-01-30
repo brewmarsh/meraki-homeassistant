@@ -32,7 +32,9 @@ def coordinator(hass, mock_api_client):
         "custom_components.meraki_ha.coordinator.ApiClient",
         return_value=mock_api_client,
     ):
-        yield MerakiDataCoordinator(hass=hass, entry=entry)
+        coord = MerakiDataCoordinator(hass=hass, entry=entry)
+        coord.config_entry = entry
+        yield coord
 
 
 @pytest.mark.asyncio

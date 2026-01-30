@@ -88,8 +88,12 @@ async def test_discover_entities_delegates_to_handler(
 
     with (
         patch(
-            "custom_components.meraki_ha.discovery.service.DeviceDiscoveryService._get_handler_for_model",
-            side_effect=get_handler,
+            "custom_components.meraki_ha.discovery.handlers.mr.MRHandler",
+            new=MockMRHandler,
+        ),
+        patch(
+            "custom_components.meraki_ha.discovery.handlers.mv.MVHandler",
+            new=MockMVHandler,
         ),
         patch(
             "custom_components.meraki_ha.discovery.handlers.network.NetworkHandler"

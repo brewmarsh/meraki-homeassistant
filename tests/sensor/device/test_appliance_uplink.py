@@ -22,7 +22,7 @@ def mock_coordinator():
             "networkId": "net1",
             "mac": "00:11:22:33:44:55",
             "lanIp": "1.2.3.4",
-            "appliance_uplink_statuses": [
+            "applianceUplinkStatuses": [
                 {
                     "interface": "wan1",
                     "status": "active",
