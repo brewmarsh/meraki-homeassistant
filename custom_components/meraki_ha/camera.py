@@ -70,7 +70,7 @@ class MerakiCamera(CoordinatorEntity, Camera):
         Camera.__init__(self)
         self._config_entry = config_entry
         # device is passed as MerakiDevice
-        self._device_serial = device.serial if device.serial else ""
+        self._device_serial = device.serial or ""
         self._camera_service = camera_service
         self._attr_unique_id = f"{self._device_serial}-camera"
         self._attr_has_entity_name = True

@@ -78,11 +78,15 @@ async def test_discover_entities_delegates_to_handler(
         patch("custom_components.meraki_ha.discovery.handlers.ssid.SSIDHandler"),
     ):
         mock_mr_handler_instance = MagicMock()
-        mock_mr_handler_instance.discover_entities = AsyncMock(return_value=["mr_entity"])
+        mock_mr_handler_instance.discover_entities = AsyncMock(
+            return_value=["mr_entity"]
+        )
         MockMRHandler.return_value = mock_mr_handler_instance
 
         mock_mv_handler_instance = MagicMock()
-        mock_mv_handler_instance.discover_entities = AsyncMock(return_value=["mv_entity"])
+        mock_mv_handler_instance.discover_entities = AsyncMock(
+            return_value=["mv_entity"]
+        )
         MockMVHandler.return_value = mock_mv_handler_instance
 
         mock_network_handler_instance = MagicMock()
@@ -119,7 +123,8 @@ async def test_discover_entities_delegates_to_handler(
             mock_camera_service,
             mock_control_service,
         )
-        # We don't check for log warning because "unsupported" model just falls through if no handler matches
+        # We don't check for log warning because "unsupported" model
+        # just falls through if no handler matches
         # The logic in service.py:
         # handler_class = HANDLER_MAPPING.get(model_prefix)
         # if not handler_class: ... continue
