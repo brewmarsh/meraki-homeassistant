@@ -89,6 +89,7 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             name=DOMAIN,
             update_interval=timedelta(seconds=scan_interval),
         )
+        self.DOMAIN = DOMAIN
 
     def register_pending_update(
         self,

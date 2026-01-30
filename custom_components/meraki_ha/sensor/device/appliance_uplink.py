@@ -55,11 +55,20 @@ class MerakiApplianceUplinkSensor(CoordinatorEntity, SensorEntity):
 
     def _get_current_uplink_data(self) -> dict[str, Any] | None:
         """Retrieve the latest data for this sensor's uplink from the coordinator."""
+        # First check if the device object has the data (legacy way)
         device = self.coordinator.get_device(self._device_serial)
-        if device:
+        if device and hasattr(device, "appliance_uplink_statuses"):
             for uplink in device.appliance_uplink_statuses:
                 if uplink.get("interface") == self._uplink_interface:
                     return uplink
+
+        # Fallback to checking the coordinator data directly (new way for optimization)
+        uplink_statuses = self.coordinator.data.get("appliance_uplink_statuses", [])
+        for status in uplink_statuses:
+            if status.get("serial") == self._device_serial:
+                for uplink in status.get("uplinks", []):
+                    if uplink.get("interface") == self._uplink_interface:
+                        return uplink
         return None
 
     @callback
