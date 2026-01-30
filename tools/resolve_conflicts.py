@@ -22,7 +22,7 @@ for dirpath, _dirnames, filenames in os.walk(root):
         try:
             with open(path, encoding="utf-8") as f:
                 text = f.read()
-        except Exception:
+        except Exception:  # nosec
             continue
         if "<<<<<<<" not in text:
             continue

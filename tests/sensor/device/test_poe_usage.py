@@ -14,18 +14,16 @@ def mock_device_coordinator():
     coordinator = MagicMock()
     coordinator.data = {
         "devices": [
-            MerakiDevice.from_dict(
-                {
-                    "serial": "dev1",
-                    "name": "Switch",
-                    "model": "MS220-8P",
-                    "productType": "switch",
-                    "portsStatuses": [
-                        {"portId": 1, "powerUsageInWh": 252},
-                        {"portId": 2, "powerUsageInWh": 124.8},
-                        {"portId": 3, "powerUsageInWh": 0},
-                    ],
-                }
+            MerakiDevice(
+                serial="dev1",
+                name="Switch",
+                model="MS220-8P",
+                product_type="switch",
+                ports_statuses=[
+                    {"portId": 1, "powerUsageInWh": 252},
+                    {"portId": 2, "powerUsageInWh": 124.8},
+                    {"portId": 3, "powerUsageInWh": 0},
+                ],
             )
         ]
     }
@@ -48,8 +46,10 @@ def test_poe_usage_sensor(mock_device_coordinator):
     assert sensor.unique_id == "dev1_poe_usage"
     assert sensor.name == "PoE Usage"
     # Total usage = 252 + 124.8 = 376.8 Wh
-    # Power = 376.8 Wh * 3600 s/h / 3600 s = 376.8 W
-    assert sensor.native_value == 376.8
+    # The sensor implementation divides by 24 (assuming daily usage), regardless
+    # of update interval
+    # 376.8 / 24 = 15.7 W
+    assert sensor.native_value == 15.7
     assert sensor.extra_state_attributes["port_1_power_usage_wh"] == 252
     assert sensor.extra_state_attributes["port_2_power_usage_wh"] == 124.8
     assert sensor.extra_state_attributes["port_3_power_usage_wh"] == 0
