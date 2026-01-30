@@ -1,5 +1,9 @@
 -r requirements_dev.txt
 
+# Hard lock specific dependencies for Python 3.13 compatibility
+aiodns==3.6.1
+pycares==4.11.0
+
 # Test-specific dependencies
 pytest-homeassistant-custom-component
 pytest
