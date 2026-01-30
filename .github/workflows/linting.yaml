@@ -17,7 +17,7 @@ jobs:
           python-version: "3.12"
       - uses: astral-sh/setup-uv@v1
       - name: Install Ruff
-        run: uv pip install ruff
+        run: uv pip install --system ruff
       - name: Run Ruff Linter
         run: ruff check --select UP,E,F,I .
 
@@ -32,6 +32,6 @@ jobs:
           python-version: "3.12"
       - uses: astral-sh/setup-uv@v1
       - name: Install refurb
-        run: uv pip install refurb
+        run: uv pip install --system refurb
       - name: Run refurb
         run: refurb custom_components/meraki_ha

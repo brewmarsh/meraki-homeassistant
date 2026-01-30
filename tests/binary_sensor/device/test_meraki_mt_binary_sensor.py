@@ -7,11 +7,11 @@ import pytest
 from custom_components.meraki_ha.binary_sensor.device.meraki_mt_binary_base import (
     MerakiMtBinarySensor,
 )
+from custom_components.meraki_ha.types import MerakiDevice
 from custom_components.meraki_ha.descriptions import (
     MT_DOOR_DESCRIPTION,
     MT_WATER_DESCRIPTION,
 )
-from custom_components.meraki_ha.types import MerakiDevice
 
 
 @pytest.fixture
@@ -68,7 +68,9 @@ def test_mt20_open_sensor(
     mock_coordinator_mt_binary: MagicMock,
 ):
     """Test the MT20 open/close sensor when the door is open."""
-    device_info = MerakiDevice.from_dict(mock_coordinator_mt_binary.data["devices"][0])
+    device_info = MerakiDevice.from_dict(
+        mock_coordinator_mt_binary.data["devices"][0]
+    )
     sensor = MerakiMtBinarySensor(
         mock_coordinator_mt_binary, device_info, MT_DOOR_DESCRIPTION
     )
@@ -83,7 +85,9 @@ def test_mt12_water_sensor(
     mock_coordinator_mt_binary: MagicMock,
 ):
     """Test the MT12 water sensor when water is present."""
-    device_info = MerakiDevice.from_dict(mock_coordinator_mt_binary.data["devices"][1])
+    device_info = MerakiDevice.from_dict(
+        mock_coordinator_mt_binary.data["devices"][1]
+    )
     sensor = MerakiMtBinarySensor(
         mock_coordinator_mt_binary, device_info, MT_WATER_DESCRIPTION
     )
@@ -98,7 +102,9 @@ def test_mt12_dry_sensor(
     mock_coordinator_mt_binary: MagicMock,
 ):
     """Test the MT12 water sensor when it is dry."""
-    device_info = MerakiDevice.from_dict(mock_coordinator_mt_binary.data["devices"][2])
+    device_info = MerakiDevice.from_dict(
+        mock_coordinator_mt_binary.data["devices"][2]
+    )
     sensor = MerakiMtBinarySensor(
         mock_coordinator_mt_binary, device_info, MT_WATER_DESCRIPTION
     )

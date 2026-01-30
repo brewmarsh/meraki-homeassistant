@@ -1,5 +1,4 @@
 acme==5.1.0
-aiodns==3.6.1
 aiofiles==24.1.0
 aiohappyeyeballs
 aiohasupervisor
