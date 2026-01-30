@@ -18,12 +18,12 @@ from ..const import (
     CONF_ENABLE_NETWORK_SENSORS,
     CONF_ENABLE_SSID_SENSORS,
 )
-from ..types import MerakiDevice
 
 if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
     from homeassistant.helpers.entity import Entity
 
+    from ...types import MerakiDevice
     from ..coordinator import MerakiDataUpdateCoordinator
     from ..core.api.client import MerakiAPIClient
     from ..services.camera_service import CameraService
@@ -53,8 +53,7 @@ class DeviceDiscoveryService:
         self._camera_service = camera_service
         self._control_service = control_service
         self._network_control_service = network_control_service
-        devices_data = self._coordinator.data.get("devices", [])
-        self._devices: list[MerakiDevice] = devices_data
+        self._devices: list[MerakiDevice] = self._coordinator.data.get("devices", [])
         self.all_entities: list[Entity] = []
 
     async def discover_entities(self) -> list[Entity]:

@@ -66,19 +66,28 @@ async def test_discover_entities_delegates_to_handler(
 ):
     """Test that discover_entities delegates to the correct handlers."""
     # We must mock the handlers directly to assert their instantiation arguments
+    MockMRHandler = MagicMock()
+    MockMRHandler.__name__ = "MRHandler"
+    MockMVHandler = MagicMock()
+    MockMVHandler.__name__ = "MVHandler"
+
     mock_mr_handler_instance = MagicMock()
     mock_mr_handler_instance.discover_entities = AsyncMock(return_value=["mr_entity"])
+    MockMRHandler.return_value = mock_mr_handler_instance
 
     mock_mv_handler_instance = MagicMock()
     mock_mv_handler_instance.discover_entities = AsyncMock(return_value=["mv_entity"])
+    MockMVHandler.return_value = mock_mv_handler_instance
 
     with (
         patch(
-            "custom_components.meraki_ha.discovery.handlers.mr.MRHandler"
-        ) as MockMRHandler,
+            "custom_components.meraki_ha.discovery.handlers.mr.MRHandler",
+            return_value=mock_mr_handler_instance,
+        ) as MockMRHandlerClass,
         patch(
-            "custom_components.meraki_ha.discovery.handlers.mv.MVHandler"
-        ) as MockMVHandler,
+            "custom_components.meraki_ha.discovery.handlers.mv.MVHandler",
+            return_value=mock_mv_handler_instance,
+        ) as MockMVHandlerClass,
         patch(
             "custom_components.meraki_ha.discovery.handlers.network.NetworkHandler"
         ) as MockNetworkHandler,
@@ -86,18 +95,19 @@ async def test_discover_entities_delegates_to_handler(
             "custom_components.meraki_ha.discovery.handlers.ssid.SSIDHandler"
         ) as MockSSIDHandler,
     ):
-        MockMRHandler.return_value = mock_mr_handler_instance
-        MockMVHandler.return_value = mock_mv_handler_instance
+        # Assign the side effect/return value logic for the mock classes if needed,
+        # but here we just return the mocked instance directly via patch kwargs.
+        # Actually, the code instantiates the handler.
+        # Actually, the code instantiates the handler.
+        MockMRHandlerClass.return_value = mock_mr_handler_instance
+        MockMVHandlerClass.return_value = mock_mv_handler_instance
         # Set __name__ for logging
-        MockMRHandler.configure_mock(__name__="MRHandler")
-        MockMVHandler.configure_mock(__name__="MVHandler")
-
-        # Setup NetworkHandler mock
+        MockMRHandlerClass.configure_mock(__name__="MRHandler")
+        MockMVHandlerClass.configure_mock(__name__="MVHandler")
         mock_network_handler_instance = MagicMock()
         mock_network_handler_instance.discover_entities = AsyncMock(return_value=[])
         MockNetworkHandler.create.return_value = mock_network_handler_instance
 
-        # Setup SSIDHandler mock
         mock_ssid_handler_instance = MagicMock()
         mock_ssid_handler_instance.discover_entities = AsyncMock(return_value=[])
         MockSSIDHandler.create.return_value = mock_ssid_handler_instance
@@ -119,23 +129,17 @@ async def test_discover_entities_delegates_to_handler(
         assert "mv_entity" in entities
 
         # Assert correct services are passed to each handler
-        MockMRHandler.assert_called_once_with(
+        MockMRHandlerClass.assert_called_once_with(
             mock_coordinator_with_devices,
             mock_coordinator_with_devices.data["devices"][0],
             mock_config_entry,
             mock_control_service,
         )
-        MockMVHandler.assert_called_once_with(
+        MockMVHandlerClass.assert_called_once_with(
             mock_coordinator_with_devices,
             mock_coordinator_with_devices.data["devices"][1],
             mock_config_entry,
             mock_camera_service,
             mock_control_service,
         )
-        # We don't check for log warning because "unsupported" model
-        # just falls through if no handler matches
-        # The logic in service.py:
-        # handler_class = HANDLER_MAPPING.get(model_prefix)
-        # if not handler_class: ... continue
-        # "unsupported"[:2] is "un". Not in mapping.
-        # It logs "No handler found for model 'unsupported', skipping device ..."
+        assert "No handler found for model 'unsupported'" in caplog.text
