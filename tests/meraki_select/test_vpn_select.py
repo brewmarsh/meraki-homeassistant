@@ -3,13 +3,13 @@
 from unittest.mock import AsyncMock, patch
 
 import pytest
-from homeassistant.core import HomeAssistant
-from homeassistant.helpers import entity_registry as er
-from homeassistant.setup import async_setup_component
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.meraki_ha.const import CONF_ENABLE_VPN_MANAGEMENT, DOMAIN
 from custom_components.meraki_ha.types import MerakiVpn
+from homeassistant.core import HomeAssistant
+from homeassistant.helpers import entity_registry as er
+from homeassistant.setup import async_setup_component
 from tests.const import MOCK_NETWORK
 
 
@@ -31,9 +31,13 @@ def mock_meraki_client() -> AsyncMock:
     # Ensure network data is consistent
     network_id = MOCK_NETWORK.id
 
+    from custom_components.meraki_ha.types import MerakiDevice
+
     client.get_all_data = AsyncMock(
         return_value={
-            "devices": [],
+            "devices": [
+                MerakiDevice(serial="Q234-ABCD-VPN", model="MX64", name="VPN Appliance")
+            ],
             "networks": [MOCK_NETWORK],
             "vpn_status": {network_id: MerakiVpn(mode="spoke", hubs=[], subnets=[])},
             "ssids": [],
