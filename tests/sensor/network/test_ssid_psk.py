@@ -31,7 +31,7 @@ async def test_ssid_psk_sensor() -> None:
     updated_ssid["psk"] = "newsecret"
     coordinator.data["ssids"] = [updated_ssid]
 
-    sensor.async_write_ha_state = MagicMock()
+    object.__setattr__(sensor, "async_write_ha_state", MagicMock())
     sensor._handle_coordinator_update()
     assert sensor.native_value == "newsecret"
 

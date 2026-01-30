@@ -9,6 +9,7 @@ from custom_components.meraki_ha.const import (
 )
 from custom_components.meraki_ha.switch.setup_helpers import async_setup_switches
 from custom_components.meraki_ha.switch.vlan_dhcp import MerakiVLANDHCPSwitch
+from custom_components.meraki_ha.types import MerakiNetwork
 
 
 @pytest.fixture
@@ -21,6 +22,7 @@ def mock_coordinator_with_vlan_data(mock_coordinator: MagicMock) -> MagicMock:
     }
     mock_coordinator.data = {
         "vlans": {"net1": [vlan1]},
+        "networks": [MerakiNetwork(id="net1", name="Network 1")],
     }
     mock_coordinator.is_pending.return_value = False
     return mock_coordinator

@@ -18,6 +18,8 @@ _LOGGER = logging.getLogger(__name__)
 class MerakiUplinkBandwidthNumber(MerakiNetworkEntity, NumberEntity):
     """Representation of a Meraki uplink bandwidth number."""
 
+    coordinator: MerakiDataUpdateCoordinator
+
     def __init__(
         self,
         coordinator: MerakiDataUpdateCoordinator,

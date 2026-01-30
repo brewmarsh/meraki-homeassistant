@@ -48,6 +48,8 @@ class MerakiClientBlockerSwitch(
         self._attr_unique_id = f"meraki-client-{self._client_mac}-blocker"
         self._update_internal_state()
 
+    coordinator: SsidFirewallCoordinator
+
     @property
     def device_info(self) -> DeviceInfo | None:
         """Return device information to link this entity to the client device."""

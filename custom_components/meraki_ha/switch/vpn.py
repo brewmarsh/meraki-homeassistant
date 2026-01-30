@@ -19,6 +19,8 @@ _LOGGER = logging.getLogger(__name__)
 class MerakiVPNSwitch(MerakiNetworkEntity, SwitchEntity):
     """Representation of a Meraki Site-to-Site VPN switch."""
 
+    coordinator: MerakiDataUpdateCoordinator
+
     def __init__(
         self,
         coordinator: MerakiDataUpdateCoordinator,

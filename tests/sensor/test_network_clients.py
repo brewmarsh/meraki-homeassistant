@@ -23,6 +23,6 @@ async def test_network_clients_sensor(
         coordinator, config_entry, MOCK_NETWORK, service
     )
     sensor.hass = MagicMock()
-    sensor.async_write_ha_state = MagicMock()
+    object.__setattr__(sensor, "async_write_ha_state", MagicMock())
     sensor._handle_coordinator_update()
     assert sensor.native_value == 0

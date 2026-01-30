@@ -132,7 +132,7 @@ async def test_traffic_shaping_turn_on_off(
     )
     switch.hass = hass
     switch.entity_id = "switch.net1_traffic_shaping"
-    switch.async_write_ha_state = MagicMock()
+    object.__setattr__(switch, "async_write_ha_state", MagicMock())
 
     await switch.async_turn_on()
     assert switch.is_on is True

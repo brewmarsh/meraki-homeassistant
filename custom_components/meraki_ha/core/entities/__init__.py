@@ -25,6 +25,8 @@ class BaseMerakiEntity(CoordinatorEntity, Entity, ABC):
     - Common properties and attributes
     """
 
+    coordinator: MerakiDataUpdateCoordinator
+
     def __init__(
         self,
         coordinator: MerakiDataUpdateCoordinator,

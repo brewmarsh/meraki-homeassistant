@@ -6,7 +6,6 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.entity import DeviceInfo
 
 from ...coordinator import MerakiDataUpdateCoordinator
-from ...types import MerakiNetwork
 from . import BaseMerakiEntity
 
 
@@ -35,16 +34,9 @@ class MerakiVLANEntity(BaseMerakiEntity):
 
         if not vlan_id:
             raise ValueError("VLAN ID not found in VLAN data")
-
-        network: MerakiNetwork | None = next(
-            (net for net in coordinator.data["networks"] if net.id == network_id),
-            None,
-        )
-        network_name = network.name if network else "Unknown Network"
-
         self._attr_device_info = DeviceInfo(
             identifiers={(self._config_entry.domain, f"vlan_{network_id}_{vlan_id}")},
-            name=f"{network_name} VLAN {vlan_id} {vlan['name']}",
+            name=vlan["name"],
             manufacturer="Cisco Meraki",
             model="VLAN",
             via_device=(self._config_entry.domain, f"network_{network_id}"),

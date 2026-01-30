@@ -72,7 +72,7 @@ async def test_ssid_client_count_sensor() -> None:
         }
     )
     # Mock async_write_ha_state since hass is not set
-    sensor.async_write_ha_state = MagicMock()
+    object.__setattr__(sensor, "async_write_ha_state", MagicMock())
 
     sensor._handle_coordinator_update()
     assert sensor.native_value == 3

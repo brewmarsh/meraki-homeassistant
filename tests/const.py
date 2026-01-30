@@ -44,6 +44,11 @@ MOCK_MX_DEVICE_INIT = {
     "lanIp": "1.2.3.5",
     "status": "online",
     "mac": "00:11:22:33:44:56",
+    "applianceUplinkStatuses": [
+        {"interface": "wan1", "status": "active", "ip": "1.1.1.1"},
+        {"interface": "wan2", "status": "ready", "ip": "2.2.2.2"},
+        {"interface": "cellular", "status": "not connected", "ip": None},
+    ],
 }
 MOCK_MX_DEVICE = MerakiDevice.from_dict(MOCK_MX_DEVICE_INIT)
 

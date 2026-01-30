@@ -46,7 +46,7 @@ class MerakiNetworkStatus(BinarySensorEntity):
         self._network = network
 
         # Ensure network ID is available
-        network_id = network.id if network.id else "unknown_network"
+        network_id = network.id or "unknown_network"
         self._attr_unique_id = f"{network_id}-status"
         self._attr_name = "Status"
 
@@ -54,7 +54,7 @@ class MerakiNetworkStatus(BinarySensorEntity):
     def device_info(self) -> DeviceInfo:
         """Return device information."""
         # Ensure network ID is available
-        network_id = self._network.id if self._network.id else "unknown_network"
+        network_id = self._network.id or "unknown_network"
         return DeviceInfo(
             identifiers={(DOMAIN, network_id)},
         )

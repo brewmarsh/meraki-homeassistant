@@ -1,5 +1,7 @@
 """Utility functions for mapping and validating Meraki device types."""
 
+from itertools import chain
+
 from ._const import VALID_DEVICE_TYPES, DeviceType
 from ._data import DEVICE_PREFIX_MAPPINGS, DEVICE_TYPE_DESCRIPTIONS, MODEL_PATTERN
 
@@ -44,7 +46,7 @@ def get_device_type_description(device_type: str) -> str:
 
 def get_supported_model_prefixes() -> set[str]:
     """Get all supported Meraki model prefixes."""
-    return {prefix for prefixes in DEVICE_PREFIX_MAPPINGS.keys() for prefix in prefixes}
+    return set(chain.from_iterable(DEVICE_PREFIX_MAPPINGS.keys()))
 
 
 def get_prefixes_for_device_type(device_type: str) -> set[str]:

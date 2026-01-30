@@ -4,7 +4,7 @@ import asyncio
 import functools
 import inspect
 import logging
-from collections.abc import Awaitable, Callable
+from collections.abc import Awaitable, Callable, Coroutine
 from json import JSONDecodeError
 from typing import Any, TypeVar, cast
 
@@ -27,7 +27,7 @@ _LOGGER = logging.getLogger(__name__)
 
 def handle_meraki_errors(
     func: Callable[..., Awaitable[T]],
-) -> Callable[..., Awaitable[T]]:
+) -> Callable[..., Coroutine[Any, Any, T]]:
     """
     Decorate to handle Meraki API errors consistently.
 
@@ -59,22 +59,6 @@ def handle_meraki_errors(
                 return cast(T, [])
             return cast(T, {})
         except APIError as err:
-            error_message = str(err)
-            if getattr(err, "status", None) == 400 and (
-                "Traffic Analysis with Hostname Visibility must be enabled"
-                in error_message
-                or "VLANs are not enabled" in error_message
-            ):
-                _LOGGER.info("Meraki feature disabled: %s", error_message)
-                sig = inspect.signature(func)
-                return_type = sig.return_annotation
-                if return_type is list or getattr(return_type, "__origin__", None) in (
-                    list,
-                    list,
-                ):
-                    return cast(T, [])
-                return cast(T, {})
-
             if _is_informational_error(err):
                 raise MerakiInformationalError(f"Informational error: {err}") from err
 
@@ -101,7 +85,7 @@ def handle_meraki_errors(
             _LOGGER.error("Unexpected error: %s", err)
             raise MerakiConnectionError(f"Unexpected error: {err}") from err
 
-    return cast(Callable[..., Awaitable[T]], wrapper)
+    return cast(Callable[..., Coroutine[Any, Any, T]], wrapper)
 
 
 def _is_rate_limit_error(err: APIError) -> bool:
@@ -113,12 +97,12 @@ def _is_auth_error(err: APIError) -> bool:
     """Check if error is an authentication error."""
     return getattr(err, "status", None) in (401, 403) or any(
         msg in str(err).lower()
-        for msg in [
+        for msg in (
             "unauthorized",
             "forbidden",
             "invalid api key",
             "authentication failed",
-        ]
+        )
     )
 
 
@@ -126,12 +110,12 @@ def _is_device_error(err: APIError) -> bool:
     """Check if error is device-related."""
     return any(
         msg in str(err).lower()
-        for msg in [
+        for msg in (
             "device not found",
             "invalid serial",
             "device error",
             "device offline",
-        ]
+        )
     )
 
 
@@ -139,12 +123,12 @@ def _is_network_error(err: APIError) -> bool:
     """Check if error is network-related."""
     return any(
         msg in str(err).lower()
-        for msg in [
+        for msg in (
             "network not found",
             "invalid network",
             "network error",
             "network offline",
-        ]
+        )
     )
 
 
