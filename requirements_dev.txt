@@ -37,7 +37,7 @@ certifi
 cffi==2.0.0
 charset-normalizer
 ciso8601
-codecov
+codecov==2.1.13
 coverage
 cryptography
 cyclonedx-python-lib==7.6.2
@@ -110,7 +110,7 @@ pytest-aiohttp
 pytest-asyncio
 pytest-cov
 pytest-github-actions-annotate-failures
-pytest-homeassistant-custom-component
+pytest-homeassistant-custom-component>=0.13.195
 pytest-picked
 pytest-socket
 pytest-sugar
