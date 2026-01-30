@@ -53,7 +53,7 @@ go2rtc-client==0.2.1
 h11
 habluetooth
 home-assistant-bluetooth
-homeassistant==2026.1.0b4
+homeassistant==2024.5.0
 html5lib==1.1
 httpcore
 httpx
