@@ -9,7 +9,6 @@ from typing import TYPE_CHECKING, Any
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import device_registry as dr
-from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
 from .const import (
@@ -24,6 +23,8 @@ from .const import (
     DOMAIN,
 )
 from .core.api.client import MerakiAPIClient as ApiClient
+from .core.helpers import filter_ignored_networks, update_device_registry_info
+from .core.managers import AvailabilityTracker
 from .types import MerakiDevice, MerakiNetwork
 
 if TYPE_CHECKING:
@@ -68,8 +69,7 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self.last_successful_update: datetime | None = None
         self.last_successful_data: dict[str, Any] = {}
         self._pending_updates: dict[str, datetime] = {}
-        self._vlan_check_timestamps: dict[str, datetime] = {}
-        self._traffic_check_timestamps: dict[str, datetime] = {}
+        self.availability_tracker = AvailabilityTracker()
         self.device_control_service: DeviceControlService | None = None
         self.switch_port_service: SwitchPortService | None = None
         self.camera_service: CameraService | None = None
@@ -144,73 +144,6 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         _LOGGER.debug("Update for %s is still pending (on cooldown)", unique_id)
         return True
 
-    def _filter_ignored_networks(self, data: dict[str, Any]) -> None:
-        """
-        Filter out networks that the user has chosen to ignore.
-
-        Args:
-        ----
-            data: The data dictionary to filter.
-
-        """
-        if not self.config_entry or not hasattr(self.config_entry, "options"):
-            _LOGGER.debug(
-                "Config entry or options not available, "
-                "cannot filter ignored networks.",
-            )
-            return
-        ignored_network_ids = self.config_entry.options.get(
-            CONF_IGNORED_NETWORKS,
-            DEFAULT_IGNORED_NETWORKS,
-        )
-        if ignored_network_ids and "networks" in data:
-            data["networks"] = [
-                n for n in data["networks"] if n.id not in ignored_network_ids
-            ]
-
-    def _populate_device_entities(self, devices: list[MerakiDevice]) -> None:
-        """
-        Populate device data with associated Home Assistant entities.
-
-        Args:
-        ----
-            devices: The list of devices to populate.
-
-        """
-        if not devices:
-            return
-
-        ent_reg = er.async_get(self.hass)
-        dev_reg = dr.async_get(self.hass)
-
-        for device in devices:
-            device.status_messages = []
-            if not device.serial:
-                continue
-            ha_device = dev_reg.async_get_device(
-                identifiers={(DOMAIN, device.serial)},
-            )
-            if ha_device:
-                entities_for_device = er.async_entries_for_device(
-                    ent_reg,
-                    ha_device.id,
-                )
-                if entities_for_device:
-                    # Prioritize camera entities, then switch, then fallback to first
-                    # This ensures the "navigate to entity" button on device page
-                    # goes to the most useful control entity.
-                    primary_entity = entities_for_device[0]
-                    for entity in entities_for_device:
-                        if entity.domain == "camera":
-                            primary_entity = entity
-                            break
-                        if (
-                            entity.domain == "switch"
-                            and primary_entity.domain != "camera"
-                        ):
-                            primary_entity = entity
-                    device.entity_id = primary_entity.entity_id
-
     async def _async_update_data(self) -> dict[str, Any]:
         """Fetch data from API endpoint, apply filters, and handle exceptions."""
         try:
@@ -229,7 +162,12 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 # Return cached data to prevent entities from becoming unavailable
                 return self.last_successful_data
 
-            self._filter_ignored_networks(data)
+            if self.config_entry:
+                ignored_network_ids = self.config_entry.options.get(
+                    CONF_IGNORED_NETWORKS,
+                    DEFAULT_IGNORED_NETWORKS,
+                )
+                filter_ignored_networks(data, ignored_network_ids)
 
             # Create lookup tables for efficient access in entities
             self.devices_by_serial = {
@@ -259,7 +197,7 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 if s.get("networkId") and s.get("number") is not None
             }
 
-            self._populate_device_entities(data.get("devices", []))
+            update_device_registry_info(self.hass, data.get("devices", []))
 
             self.last_successful_update = datetime.now()
             self.last_successful_data = data
@@ -361,31 +299,6 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             if message not in network.status_messages:
                 network.status_messages.append(message)
 
-    def _is_check_due(
-        self,
-        check_timestamps: dict[str, datetime],
-        network_id: str,
-        interval_hours: int = 24,
-    ) -> bool:
-        """
-        Determine if an availability check is due for a network feature.
-
-        Args:
-        ----
-            check_timestamps: The dictionary of timestamps.
-            network_id: The ID of the network.
-            interval_hours: The interval in hours.
-
-        Returns
-        -------
-            True if the check is due, False otherwise.
-
-        """
-        last_check = check_timestamps.get(network_id)
-        if not last_check:
-            return True
-        return (datetime.now() - last_check) > timedelta(hours=interval_hours)
-
     def is_vlan_check_due(self, network_id: str) -> bool:
         """
         Determine if a VLAN availability check is due.
@@ -399,7 +312,7 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             True if the check is due, False otherwise.
 
         """
-        return self._is_check_due(self._vlan_check_timestamps, network_id)
+        return self.availability_tracker.is_check_due(network_id, "vlan")
 
     def is_traffic_check_due(self, network_id: str) -> bool:
         """
@@ -414,7 +327,7 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             True if the check is due, False otherwise.
 
         """
-        return self._is_check_due(self._traffic_check_timestamps, network_id)
+        return self.availability_tracker.is_check_due(network_id, "traffic")
 
     def mark_vlan_check_done(self, network_id: str) -> None:
         """
@@ -425,7 +338,7 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             network_id: The ID of the network.
 
         """
-        self._vlan_check_timestamps[network_id] = datetime.now()
+        self.availability_tracker.mark_check_done(network_id, "vlan")
 
     def mark_traffic_check_done(self, network_id: str) -> None:
         """
@@ -436,4 +349,4 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             network_id: The ID of the network.
 
         """
-        self._traffic_check_timestamps[network_id] = datetime.now()
+        self.availability_tracker.mark_check_done(network_id, "traffic")
