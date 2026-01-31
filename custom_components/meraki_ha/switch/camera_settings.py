@@ -4,9 +4,10 @@ import dataclasses
 import logging
 from typing import Any, cast
 
-from custom_components.meraki_ha.coordinator import MerakiDataUpdateCoordinator
 from homeassistant.components.switch import SwitchEntity
 from homeassistant.helpers.device_registry import DeviceInfo
+
+from custom_components.meraki_ha.coordinator import MerakiDataUpdateCoordinator
 
 from ..core.api.client import MerakiAPIClient
 from ..entity import MerakiEntity

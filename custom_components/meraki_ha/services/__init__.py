@@ -6,7 +6,6 @@ import logging
 from typing import TYPE_CHECKING
 
 import voluptuous as vol
-
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import config_validation as cv
 

@@ -1,22 +1,22 @@
 """Tests for the Meraki MT sensor setup."""
 
 import copy
-from typing import cast
+from typing import Any, cast
 from unittest.mock import MagicMock
 
 import pytest
-
-from custom_components.meraki_ha.discovery.service import DeviceDiscoveryService
-from custom_components.meraki_ha.types import MerakiDevice
 from homeassistant.components.binary_sensor import BinarySensorEntity
 from homeassistant.components.sensor import SensorEntity
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
+
+from custom_components.meraki_ha.discovery.service import DeviceDiscoveryService
+from custom_components.meraki_ha.types import MerakiDevice
 
 
 @pytest.fixture
 def mock_coordinator_with_mt_devices(mock_coordinator: MagicMock) -> MagicMock:
     """Fixture for a mocked MerakiDataUpdateCoordinator with MT sensor data."""
-    devices_data = [
+    devices_data: list[dict[str, Any]] = [
         {
             "serial": "mt10-1",
             "name": "MT10 Sensor",
@@ -92,14 +92,12 @@ def mock_coordinator_with_mt_devices(mock_coordinator: MagicMock) -> MagicMock:
                 device.water_present = reading.get("water", {}).get("present")
         devices_objects.append(device)
 
-    mock_coordinator.data = {"devices": devices_objects}
+    mock_coordinator.data = {"devices": devices_data}
+    mock_coordinator.devices_by_serial = {d.serial: d for d in devices_objects}
 
     # Mock get_device to return the correct device
     def get_device(serial):
-        for d in mock_coordinator.data["devices"]:
-            if d.serial == serial:
-                return d
-        return None
+        return mock_coordinator.devices_by_serial.get(serial)
 
     mock_coordinator.get_device.side_effect = get_device
 
@@ -111,7 +109,7 @@ async def test_async_setup_mt10_sensors(
 ) -> None:
     """Test the setup of sensors for an MT10 device."""
     # Assuming the first device in the list is MT10
-    mt10_device = mock_coordinator_with_mt_devices.data["devices"][0]
+    mt10_device = mock_coordinator_with_mt_devices.get_device("mt10-1")
 
     discovery_service = DeviceDiscoveryService(
         mock_coordinator_with_mt_devices,
@@ -121,7 +119,7 @@ async def test_async_setup_mt10_sensors(
         MagicMock(),
         MagicMock(),
     )
-    discovery_service._devices = [mt10_device]
+    discovery_service._devices = [mt10_device] if mt10_device else []
     await discovery_service.discover_entities()
     entities = discovery_service.all_entities
 
@@ -159,7 +157,7 @@ async def test_async_setup_mt15_sensors(
 ) -> None:
     """Test the setup of sensors for an MT15 device."""
     # Assuming the second device in the list is MT15
-    mt15_device = mock_coordinator_with_mt_devices.data["devices"][1]
+    mt15_device = mock_coordinator_with_mt_devices.get_device("mt15-1")
 
     discovery_service = DeviceDiscoveryService(
         mock_coordinator_with_mt_devices,
@@ -169,7 +167,7 @@ async def test_async_setup_mt15_sensors(
         MagicMock(),
         MagicMock(),
     )
-    discovery_service._devices = [mt15_device]
+    discovery_service._devices = [mt15_device] if mt15_device else []
     await discovery_service.discover_entities()
     entities = discovery_service.all_entities
 
@@ -243,7 +241,7 @@ async def test_async_setup_mt12_sensors(
 ) -> None:
     """Test the setup of sensors for an MT12 device."""
     # Assuming the third device in the list is MT12
-    mt12_device = mock_coordinator_with_mt_devices.data["devices"][2]
+    mt12_device = mock_coordinator_with_mt_devices.get_device("mt12-1")
 
     discovery_service = DeviceDiscoveryService(
         mock_coordinator_with_mt_devices,
@@ -253,7 +251,7 @@ async def test_async_setup_mt12_sensors(
         MagicMock(),
         MagicMock(),
     )
-    discovery_service._devices = [mt12_device]
+    discovery_service._devices = [mt12_device] if mt12_device else []
     await discovery_service.discover_entities()
     entities = discovery_service.all_entities
 
@@ -281,7 +279,7 @@ async def test_async_setup_mt40_sensors(
 ) -> None:
     """Test the setup of sensors for an MT40 device."""
     # Assuming the fourth device in the list is MT40
-    mt40_device = mock_coordinator_with_mt_devices.data["devices"][3]
+    mt40_device = mock_coordinator_with_mt_devices.get_device("mt40-1")
 
     discovery_service = DeviceDiscoveryService(
         mock_coordinator_with_mt_devices,
@@ -291,7 +289,7 @@ async def test_async_setup_mt40_sensors(
         MagicMock(),
         MagicMock(),
     )
-    discovery_service._devices = [mt40_device]
+    discovery_service._devices = [mt40_device] if mt40_device else []
     await discovery_service.discover_entities()
     entities = discovery_service.all_entities
 
@@ -338,7 +336,7 @@ async def test_async_setup_mt40_sensors(
 async def test_availability(mock_coordinator_with_mt_devices: MagicMock) -> None:
     """Test sensor availability."""
     # Get an MT10 device
-    mt10_device = mock_coordinator_with_mt_devices.data["devices"][0]
+    mt10_device = mock_coordinator_with_mt_devices.get_device("mt10-1")
 
     discovery_service = DeviceDiscoveryService(
         mock_coordinator_with_mt_devices,
@@ -348,7 +346,7 @@ async def test_availability(mock_coordinator_with_mt_devices: MagicMock) -> None
         MagicMock(),
         MagicMock(),
     )
-    discovery_service._devices = [mt10_device]
+    discovery_service._devices = [mt10_device] if mt10_device else []
     await discovery_service.discover_entities()
     entities = discovery_service.all_entities
 
@@ -363,6 +361,7 @@ async def test_availability(mock_coordinator_with_mt_devices: MagicMock) -> None
     assert temp_sensor.available is True
 
     # Remove readings and check availability
+    assert mt10_device is not None
     device_without_readings = copy.deepcopy(mt10_device)  # Use MerakiDevice object
     device_without_readings.readings = []
     # Clear side_effect so we can set return_value
