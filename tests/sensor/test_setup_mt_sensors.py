@@ -5,12 +5,12 @@ from typing import cast
 from unittest.mock import MagicMock
 
 import pytest
-
-from custom_components.meraki_ha.discovery.service import DeviceDiscoveryService
-from custom_components.meraki_ha.types import MerakiDevice
 from homeassistant.components.binary_sensor import BinarySensorEntity
 from homeassistant.components.sensor import SensorEntity
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
+
+from custom_components.meraki_ha.discovery.service import DeviceDiscoveryService
+from custom_components.meraki_ha.types import MerakiDevice
 
 
 @pytest.fixture
