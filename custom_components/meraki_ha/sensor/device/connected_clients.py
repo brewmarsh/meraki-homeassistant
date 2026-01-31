@@ -48,7 +48,9 @@ class MerakiDeviceConnectedClientsSensor(MerakiEntity, SensorEntity):
 
     def _get_current_device_data(self) -> MerakiDevice | None:
         """Retrieve the latest data for this sensor's device from the coordinator."""
-        return self.coordinator.get_device(self._device_serial)
+        if self._device_serial:
+            return self.coordinator.get_device(self._device_serial)
+        return None
 
     @callback
     def _update_state(self) -> None:

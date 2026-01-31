@@ -53,7 +53,9 @@ class MerakiAdultContentFilteringSwitch(MerakiEntity, SwitchEntity):
         ssid_data = self.coordinator.get_ssid(
             self._ssid["networkId"], self._ssid["number"]
         )
-        return ssid_data.get("adultContentFilteringEnabled", False)
+        if ssid_data:
+            return ssid_data.get("adultContentFilteringEnabled", False)
+        return False
 
     async def async_turn_on(self, **kwargs: Any) -> None:
         """Turn the entity on."""

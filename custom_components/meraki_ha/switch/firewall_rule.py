@@ -52,7 +52,7 @@ class MerakiFirewallRuleSwitch(MerakiFirewallRuleEntity, SwitchEntity):
 
     def _update_internal_state(self) -> None:
         """Update the internal state of the switch."""
-        if self.coordinator.is_pending(self.unique_id):
+        if self.unique_id and self.coordinator.is_pending(self.unique_id):
             _LOGGER.debug(
                 "Not updating state for %s because a pending update is registered",
                 self.unique_id,
@@ -82,7 +82,8 @@ class MerakiFirewallRuleSwitch(MerakiFirewallRuleEntity, SwitchEntity):
         """
         self._attr_is_on = True
         self.async_write_ha_state()
-        self.coordinator.register_pending_update(self.unique_id)
+        if self.unique_id:
+            self.coordinator.register_pending_update(self.unique_id)
         if self._network_id in self.coordinator.data.get("l3_firewall_rules", {}):
             rules_objects = self.coordinator.data["l3_firewall_rules"][self._network_id]
             if (
@@ -114,7 +115,8 @@ class MerakiFirewallRuleSwitch(MerakiFirewallRuleEntity, SwitchEntity):
         """
         self._attr_is_on = False
         self.async_write_ha_state()
-        self.coordinator.register_pending_update(self.unique_id)
+        if self.unique_id:
+            self.coordinator.register_pending_update(self.unique_id)
         if self._network_id in self.coordinator.data.get("l3_firewall_rules", {}):
             rules_objects = self.coordinator.data["l3_firewall_rules"][self._network_id]
             if (

@@ -146,6 +146,19 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         _LOGGER.debug("Update for %s is still pending (on cooldown)", unique_id)
         return True
 
+    def cancel_pending_update(self, unique_id: str) -> None:
+        """
+        Cancel a pending update for an entity.
+
+        Args:
+        ----
+            unique_id: The unique ID of the entity.
+
+        """
+        if unique_id in self._pending_updates:
+            del self._pending_updates[unique_id]
+            _LOGGER.debug("Cancelled pending update for %s", unique_id)
+
     async def _async_update_data(self) -> dict[str, Any]:
         """Fetch data from API endpoint, apply filters, and handle exceptions."""
         try:
@@ -193,6 +206,11 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             if self.config_entry is None:
                 raise UpdateFailed("Config entry is missing during update")
 
+            if self.data:
+                for key, value in self.data.items():
+                    if isinstance(value, str):
+                        self.data[key] = value.strip()
+
             for network in networks:
                 device_registry.async_get_or_create(
                     config_entry_id=self.config_entry.entry_id,
@@ -203,7 +221,7 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 )
 
             self.ssids_by_network_and_number = {
-                (s.get("networkId"), s.get("number")): s
+                (s.get("networkId"), str(s.get("number"))): s
                 for s in data.get("ssids", [])
                 if s.get("networkId") and s.get("number") is not None
             }
