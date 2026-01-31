@@ -1,6 +1,6 @@
 """Test the Meraki content filtering select entity."""
 
-from unittest.mock import AsyncMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 from homeassistant.core import HomeAssistant
@@ -31,6 +31,10 @@ def mock_meraki_client() -> AsyncMock:
 
     from custom_components.meraki_ha.types import MerakiDevice
 
+    # Mock the appliance object (must be MagicMock for attribute access)
+    client.appliance = MagicMock()
+    client.appliance.update_network_appliance_content_filtering = AsyncMock()
+
     client.get_all_data = AsyncMock(
         return_value={
             "devices": [
@@ -54,9 +58,6 @@ def mock_meraki_client() -> AsyncMock:
         }
     )
     client.unregister_webhook = AsyncMock(return_value=None)
-    # Mock the update method
-    client.appliance = AsyncMock()
-    client.appliance.update_network_appliance_content_filtering = AsyncMock()
     client.appliance.get_network_appliance_content_filtering_categories = AsyncMock(
         return_value={
             "categories": [
