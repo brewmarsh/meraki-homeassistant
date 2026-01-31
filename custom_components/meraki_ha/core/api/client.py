@@ -14,7 +14,6 @@ from functools import partial
 from typing import TYPE_CHECKING, Any, cast
 
 import meraki
-
 from homeassistant.core import HomeAssistant
 
 from ...core.errors import (

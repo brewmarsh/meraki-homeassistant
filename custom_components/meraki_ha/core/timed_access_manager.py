@@ -44,7 +44,9 @@ class TimedAccessManager:
     def __init__(self, hass: HomeAssistant) -> None:
         """Initialize the manager."""
         self._hass = hass
-        self._store = storage.Store(hass, STORAGE_VERSION, STORAGE_KEY)
+        self._store: storage.Store[list[dict[str, Any]]] = storage.Store(
+            hass, STORAGE_VERSION, STORAGE_KEY
+        )
         self._keys: list[TimedAccessKey] = []
         self._scheduled_removals: dict[str, asyncio.TimerHandle] = {}
 
