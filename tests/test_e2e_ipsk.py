@@ -99,7 +99,10 @@ def real_client_with_mock_dashboard(hass):
     async def mock_run_sync(func, *args, **kwargs):
         # We call the func directly, but since dashboard methods are usually sync in the
         # library, we can just return a mock response.
-        return {"id": str(uuid.uuid4()), "name": "Guest User"}
+        # Generate unique ID based on call count or args to avoid overwriting
+        # scheduled removal.
+
+        return {"id": f"mock_ipsk_id_{uuid.uuid4()}", "name": "Guest User"}
 
     client.run_sync = AsyncMock(side_effect=mock_run_sync)
 

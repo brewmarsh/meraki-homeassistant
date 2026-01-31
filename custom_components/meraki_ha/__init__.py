@@ -166,6 +166,8 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     unload_ok = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
     if unload_ok:
         entry_data = hass.data[DOMAIN].pop(entry.entry_id)
+        if "timed_access_manager" in entry_data:
+            entry_data["timed_access_manager"].shutdown()
         if "webhook_id" in entry_data:
             await async_unregister_webhook(
                 hass, entry_data["webhook_id"], entry_data["meraki_client"]
