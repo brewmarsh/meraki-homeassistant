@@ -13,7 +13,7 @@ from homeassistant.data_entry_flow import AbortFlow
 try:
     from homeassistant.helpers.service_info.dhcp import DhcpServiceInfo
 except ImportError:
-    from homeassistant.components.dhcp import (
+    from homeassistant.components.dhcp import (  # type: ignore[attr-defined]
         DhcpServiceInfo,  # type: ignore[no-redef, attr-defined]
     )
 
