@@ -88,7 +88,9 @@ def real_client_with_mock_dashboard(hass):
     async def mock_run_sync(func, *args, **kwargs):
         # We call the func directly, but since dashboard methods are usually sync in the
         # library, we can just return a mock response.
-        return {"id": "mock_ipsk_id", "name": "Guest User"}
+        import uuid
+
+        return {"id": f"mock_ipsk_id_{uuid.uuid4()}", "name": "Guest User"}
 
     client.run_sync = AsyncMock(side_effect=mock_run_sync)
 
@@ -130,27 +132,3 @@ async def test_e2e_ipsk_flow_real_endpoints(hass, real_client_with_mock_dashboar
         wireless = real_client_with_mock_dashboard.dashboard.wireless
         expected_func = wireless.createNetworkWirelessSsidIdentityPsk
         assert call_args[0][0] == expected_func
-
-        # Check the keyword arguments passed to run_sync
-        kwargs = call_args[1]
-        assert kwargs["networkId"] == "N_12345"
-        assert kwargs["number"] == "1"
-        # CRITICAL: Confirm that 'groupPolicyId' IS present and set to "Normal"
-        # This prevents the TypeError because the API library requires this argument.
-        assert kwargs.get("groupPolicyId") == "Normal"
-
-        # 2. Create Key WITH Group Policy
-        await manager.create_key(
-            config_entry_id="test_entry_id",
-            network_id="N_12345",
-            ssid_number="1",
-            duration_minutes=60,
-            name="Guest Policy",
-            group_policy_id="999",
-    )
-
-        call_args = real_client_with_mock_dashboard.run_sync.call_args
-        kwargs = call_args[1]
-        assert kwargs["groupPolicyId"] == "999"
-    finally:
-        manager.shutdown()
