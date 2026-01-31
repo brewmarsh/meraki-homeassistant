@@ -5,12 +5,12 @@ from typing import cast
 from unittest.mock import MagicMock
 
 import pytest
-from homeassistant.components.binary_sensor import BinarySensorEntity
-from homeassistant.components.sensor import SensorEntity
-from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from custom_components.meraki_ha.discovery.service import DeviceDiscoveryService
 from custom_components.meraki_ha.types import MerakiDevice
+from homeassistant.components.binary_sensor import BinarySensorEntity
+from homeassistant.components.sensor import SensorEntity
+from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 
 @pytest.fixture
@@ -267,17 +267,15 @@ async def test_async_setup_mt12_sensors(
         cast(CoordinatorEntity, entity)._handle_coordinator_update()
 
     assert len(entities) == 3
-    water_sensor = next(
-        (
-            e
-            for e in entities
-            if isinstance(e, BinarySensorEntity) and e.unique_id == "mt12-1_water"
-        ),
-        None,
-    )
+
+    sensors_by_key = {entity.entity_description.key: entity for entity in entities}
+
+    water_sensor = sensors_by_key.get("water")
     assert water_sensor is not None
+    assert isinstance(water_sensor, BinarySensorEntity)
+    assert water_sensor.unique_id == "mt12-1_water"
     assert water_sensor.name == "Water Leak"
-    assert water_sensor.is_on is False
+    assert water_sensor.native_value is False
     assert water_sensor.available is True
 
 

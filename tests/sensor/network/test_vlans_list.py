@@ -3,11 +3,11 @@
 from unittest.mock import MagicMock
 
 import pytest
-from homeassistant.const import EntityCategory
 
 from custom_components.meraki_ha.const import CONF_ENABLE_VLAN_MANAGEMENT
 from custom_components.meraki_ha.discovery.service import DeviceDiscoveryService
 from custom_components.meraki_ha.types import MerakiNetwork
+from homeassistant.const import EntityCategory
 
 
 @pytest.fixture

@@ -3,12 +3,12 @@
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
-from homeassistant.core import HomeAssistant
 
 from custom_components.meraki_ha.switch.meraki_ssid_device_switch import (
     MerakiSSIDBroadcastSwitch,
     MerakiSSIDEnabledSwitch,
 )
+from homeassistant.core import HomeAssistant
 
 
 @pytest.fixture
