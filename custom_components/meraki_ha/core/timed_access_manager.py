@@ -92,6 +92,10 @@ class TimedAccessManager:
             self._hass.async_create_task(self._remove_key_task(key))
             return
 
+        # Cancel existing timer if any
+        if key.identity_psk_id in self._scheduled_removals:
+            self._scheduled_removals[key.identity_psk_id].cancel()
+
         self._scheduled_removals[key.identity_psk_id] = self._hass.loop.call_later(
             delay,
             lambda: self._hass.async_create_task(self._remove_key_task(key)),

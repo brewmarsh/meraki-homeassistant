@@ -5,12 +5,12 @@ from typing import Any, cast
 from unittest.mock import MagicMock
 
 import pytest
-from homeassistant.components.binary_sensor import BinarySensorEntity
-from homeassistant.components.sensor import SensorEntity
-from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from custom_components.meraki_ha.discovery.service import DeviceDiscoveryService
 from custom_components.meraki_ha.types import MerakiDevice
+from homeassistant.components.binary_sensor import BinarySensorEntity
+from homeassistant.components.sensor import SensorEntity
+from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 
 @pytest.fixture
@@ -134,7 +134,8 @@ async def test_async_setup_mt10_sensors(
     assert len(entities) == 3
 
     sensors_by_key: dict[str, Any] = {
-        entity.entity_description.key: entity for entity in entities  # type: ignore
+        entity.entity_description.key: entity
+        for entity in entities  # type: ignore
     }
 
     # Test Temperature Sensor
@@ -184,7 +185,8 @@ async def test_async_setup_mt15_sensors(
     assert len(entities) == 7
 
     sensors_by_key: dict[str, Any] = {
-        entity.entity_description.key: entity for entity in entities  # type: ignore
+        entity.entity_description.key: entity
+        for entity in entities  # type: ignore
     }
 
     # Verify Temperature Sensor
@@ -270,7 +272,8 @@ async def test_async_setup_mt12_sensors(
     assert len(entities) == 3
 
     sensors_by_key: dict[str, Any] = {
-        entity.entity_description.key: entity for entity in entities  # type: ignore
+        entity.entity_description.key: entity
+        for entity in entities  # type: ignore
     }
 
     water_sensor = sensors_by_key.get("water")
@@ -310,7 +313,8 @@ async def test_async_setup_mt40_sensors(
     assert len(entities) == 3
 
     sensors_by_key: dict[str, Any] = {
-        entity.entity_description.key: entity for entity in entities  # type: ignore
+        entity.entity_description.key: entity
+        for entity in entities  # type: ignore
     }
 
     # Verify Power Sensor

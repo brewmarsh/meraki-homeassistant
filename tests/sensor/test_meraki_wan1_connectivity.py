@@ -2,12 +2,11 @@
 
 from unittest.mock import MagicMock
 
-from homeassistant.core import HomeAssistant
-
 from custom_components.meraki_ha.sensor.device.meraki_wan1_connectivity import (
     MerakiWAN1ConnectivitySensor,
 )
 from custom_components.meraki_ha.types import MerakiDevice
+from homeassistant.core import HomeAssistant
 from tests.const import MOCK_DEVICE
 
 

@@ -101,7 +101,6 @@ def real_client_with_mock_dashboard(hass):
         # library, we can just return a mock response.
         # Generate unique ID based on call count or args to avoid overwriting
         # scheduled removal.
-
         return {"id": f"mock_ipsk_id_{uuid.uuid4()}", "name": "Guest User"}
 
     client.run_sync = AsyncMock(side_effect=mock_run_sync)
