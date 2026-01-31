@@ -50,9 +50,7 @@ class BaseMerakiEntity(CoordinatorEntity, Entity, ABC):
         self._serial = serial
         self._network_id = network_id
         self._attr_has_entity_name = True
-        self._network = (
-            self.coordinator.get_network(network_id) if network_id else None
-        )
+        self._network = self.coordinator.get_network(network_id) if network_id else None
 
     @property
     def device_info(self) -> DeviceInfo | None:
