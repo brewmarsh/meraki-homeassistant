@@ -33,7 +33,7 @@ class MerakiMtBinarySensor(CoordinatorEntity, BinarySensorEntity):
         self.entity_description = entity_description
         self._attr_unique_id = f"{self._device.serial}_{self.entity_description.key}"
         self._attr_has_entity_name = True
-        self._attr_name = self.entity_description.name
+        self._attr_name = self.entity_description.name  # type: ignore[assignment]
 
     @property
     def device_info(self) -> DeviceInfo:
