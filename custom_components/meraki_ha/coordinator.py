@@ -111,7 +111,6 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         """
         if not unique_id:
             return
-
         expiry_time = datetime.now() + timedelta(seconds=expiry_seconds)
         self._pending_updates[unique_id] = expiry_time
         _LOGGER.debug(
