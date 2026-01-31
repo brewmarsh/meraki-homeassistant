@@ -94,7 +94,7 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
     def register_pending_update(
         self,
-        unique_id: str,
+        unique_id: str | None,
         expiry_seconds: int = 150,
     ) -> None:
         """
@@ -109,6 +109,9 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             expiry_seconds: The duration of the cooldown period.
 
         """
+        if not unique_id:
+            return
+
         expiry_time = datetime.now() + timedelta(seconds=expiry_seconds)
         self._pending_updates[unique_id] = expiry_time
         _LOGGER.debug(
@@ -117,7 +120,7 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             expiry_time,
         )
 
-    def is_pending(self, unique_id: str) -> bool:
+    def is_pending(self, unique_id: str | None) -> bool:
         """
         Check if an entity is in a pending (cooldown) state.
 
@@ -130,6 +133,9 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             True if the entity is in a pending state, False otherwise.
 
         """
+        if not unique_id:
+            return False
+
         if unique_id not in self._pending_updates:
             return False
 
@@ -145,6 +151,19 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         # Cooldown is still active
         _LOGGER.debug("Update for %s is still pending (on cooldown)", unique_id)
         return True
+
+    def cancel_pending_update(self, unique_id: str | None) -> None:
+        """
+        Cancel a pending update for a device.
+
+        Args:
+        ----
+            unique_id: The unique ID of the entity.
+
+        """
+        if unique_id and unique_id in self._pending_updates:
+            del self._pending_updates[unique_id]
+            _LOGGER.debug("Cancelled pending update for %s", unique_id)
 
     async def _async_update_data(self) -> dict[str, Any]:
         """Fetch data from API endpoint, apply filters, and handle exceptions."""
@@ -250,7 +269,7 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             )
             raise UpdateFailed(f"Error communicating with API: {err}") from err
 
-    def get_device(self, serial: str) -> MerakiDevice | None:
+    def get_device(self, serial: str | None) -> MerakiDevice | None:
         """
         Get device data by serial number.
 
@@ -263,6 +282,8 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             The device data or None if not found.
 
         """
+        if not serial:
+            return None
         return self.devices_by_serial.get(serial)
 
     def get_network(self, network_id: str) -> MerakiNetwork | None:
