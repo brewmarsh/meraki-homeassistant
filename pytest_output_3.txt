@@ -1,0 +1,156 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.12, pytest-8.3.3, pluggy-1.6.0
+rootdir: /app
+configfile: pytest.ini
+plugins: respx-0.21.1, socket-0.7.0, homeassistant-custom-component-0.13.195, requests-mock-1.12.1, github-actions-annotate-failures-0.2.0, sugar-1.0.0, asyncio-0.24.0, unordered-0.6.1, xdist-3.6.1, picked-0.5.0, aiohttp-1.0.5, syrupy-4.7.2, pytest_freezer-0.4.8, timeout-2.3.1, anyio-4.12.1, cov-6.0.0
+asyncio: mode=Mode.AUTO, default_loop_scope=function
+collected 225 items
+
+tests/api/test_websocket.py ....                                         [  1%]
+tests/binary_sensor/device/test_camera_motion.py ..                      [  2%]
+tests/binary_sensor/device/test_meraki_mt_binary_sensor.py ....          [  4%]
+tests/binary_sensor/test_switch_port.py ...                              [  5%]
+tests/button/device/test_mt15_refresh_data.py ..                         [  6%]
+tests/button/device/test_switch_port_cycle.py ..                         [  7%]
+tests/camera/test_camera.py ............                                 [ 12%]
+tests/core/api/endpoints/test_appliance.py ........                      [ 16%]
+tests/core/api/endpoints/test_network.py .                               [ 16%]
+tests/core/api/endpoints/test_wireless.py ...                            [ 18%]
+tests/core/api/test_client.py ...........                                [ 23%]
+tests/core/api/test_client_vpn_gate.py ..                                [ 24%]
+tests/core/test_api_utils.py .                                           [ 24%]
+tests/core/test_entities.py ...                                          [ 25%]
+tests/core/test_timed_access_manager.py ....                             [ 27%]
+tests/core/utils/test_api_utils.py ...                                   [ 28%]
+tests/core/utils/test_naming_utils.py .....                              [ 31%]
+tests/core/utils/test_validation_utils.py ....                           [ 32%]
+tests/discovery/handlers/test_base.py ..                                 [ 33%]
+tests/discovery/handlers/test_gx.py .                                    [ 34%]
+tests/discovery/handlers/test_mr.py .                                    [ 34%]
+tests/discovery/handlers/test_ms.py .                                    [ 35%]
+tests/discovery/handlers/test_mv.py ...                                  [ 36%]
+tests/discovery/handlers/test_mx.py .                                    [ 36%]
+tests/discovery/handlers/test_network.py .                               [ 37%]
+tests/discovery/test_mt_handler.py ...                                   [ 38%]
+tests/discovery/test_service.py ..                                       [ 39%]
+tests/event/device/test_camera_motion_event.py ...                       [ 40%]
+tests/event/device/test_mt_button_event.py ...                           [ 42%]
+tests/helpers/test_device_info_helpers.py ....                           [ 44%]
+tests/helpers/test_entity_helpers.py .                                   [ 44%]
+tests/helpers/test_schema.py ..                                          [ 45%]
+tests/helpers/test_ssid_status_calculator.py .                           [ 45%]
+tests/helpers/test_ssid_status_calculator_extended.py ....               [ 47%]
+tests/hubs/test_network.py .....                                         [ 49%]
+tests/hubs/test_organization.py ....                                     [ 51%]
+tests/meraki_select/test_content_filtering_select.py .                   [ 52%]
+tests/meraki_select/test_meraki_content_filtering.py .                   [ 52%]
+tests/meraki_select/test_vpn_select.py .                                 [ 52%]
+tests/sensor/device/test_appliance_port.py .                             [ 53%]
+tests/sensor/device/test_appliance_uplink.py .                           [ 53%]
+tests/sensor/device/test_camera_analytics.py ..                          [ 54%]
+tests/sensor/device/test_camera_audio_detection.py .                     [ 55%]
+tests/sensor/device/test_connected_clients.py ....                       [ 56%]
+tests/sensor/device/test_data_usage.py ..                                [ 57%]
+tests/sensor/device/test_device_status.py .                              [ 58%]
+tests/sensor/device/test_meraki_firmware_status.py .                     [ 58%]
+tests/sensor/device/test_meraki_mt_base.py ..                            [ 59%]
+tests/sensor/device/test_meraki_mt_sensor.py ...                         [ 60%]
+tests/sensor/device/test_poe_usage.py .                                  [ 61%]
+tests/sensor/device/test_switch_port.py ....                             [ 63%]
+tests/sensor/network/test_ssid_client_count.py .                         [ 63%]
+tests/sensor/network/test_ssid_psk.py .                                  [ 64%]
+tests/sensor/network/test_traffic_shaping_sensor.py ..                   [ 64%]
+tests/sensor/network/test_vlan.py .                                      [ 65%]
+tests/sensor/network/test_vlans_list.py .                                [ 65%]
+tests/sensor/network/test_vlans_list_unit.py .                           [ 66%]
+tests/sensor/test_meraki_wan1_connectivity.py .                          [ 66%]
+tests/sensor/test_meraki_wan2_connectivity.py .                          [ 67%]
+tests/sensor/test_network_clients.py .                                   [ 67%]
+tests/sensor/test_org_clients.py ...                                     [ 68%]
+tests/sensor/test_org_device_type_clients.py .                           [ 69%]
+tests/sensor/test_setup_mt_sensors.py .....                              [ 71%]
+tests/services/test_device_control_service.py .                          [ 72%]
+tests/services/test_network_control_service.py ..                        [ 72%]
+tests/services/test_switch_port_service.py ....                          [ 74%]
+tests/switch/test_adult_content_filtering.py ....                        [ 76%]
+tests/switch/test_camera_profiles.py ..                                  [ 77%]
+tests/switch/test_content_filtering_switch.py ....                       [ 79%]
+tests/switch/test_firewall_rule.py ..                                    [ 80%]
+tests/switch/test_meraki_ssid_device_switch.py ..                        [ 80%]
+tests/switch/test_mt40_power_outlet.py ....                              [ 82%]
+tests/switch/test_traffic_shaping_switch.py ...                          [ 84%]
+tests/switch/test_vlan_dhcp.py ...                                       [ 85%]
+tests/switch/test_vpn_switch.py ...                                      [ 86%]
+tests/test_authentication.py ....                                        [ 88%]
+tests/test_camera_control.py ..                                          [ 89%]
+tests/test_config_flow.py ....                                           [ 91%]
+tests/test_coordinator.py .                                              [ 91%]
+tests/test_coordinator_entity_priority.py .                              [ 92%]
+tests/test_e2e_device_status.py .                                        [ 92%]
+tests/test_e2e_ipsk.py ..E                                               [ 93%]
+tests/test_e2e_live.py s                                                 [ 93%]
+tests/test_e2e_web_ui.py .                                               [ 94%]
+tests/test_integration_setup.py ..                                       [ 95%]
+tests/test_naming_conventions.py .                                       [ 95%]
+tests/test_options.py .                                                  [ 96%]
+tests/test_simple.py .                                                   [ 96%]
+tests/test_ssid_device_representation.py .                               [ 96%]
+tests/test_topology.py .                                                 [ 97%]
+tests/test_webhook.py ....                                               [ 99%]
+tests/test_webhook_registration.py .                                     [ 99%]
+tests/text/test_meraki_ssid_name.py .                                    [100%]
+
+==================================== ERRORS ====================================
+____________ ERROR at teardown of test_e2e_ipsk_flow_real_endpoints ____________
+
+event_loop = <_UnixSelectorEventLoop running=False closed=True debug=True>
+expected_lingering_tasks = False, expected_lingering_timers = False
+
+    @pytest.fixture(autouse=True)
+    def verify_cleanup(
+        event_loop: asyncio.AbstractEventLoop,
+        expected_lingering_tasks: bool,
+        expected_lingering_timers: bool,
+    ) -> Generator[None]:
+        """Verify that the test has cleaned up resources correctly."""
+        threads_before = frozenset(threading.enumerate())
+        tasks_before = asyncio.all_tasks(event_loop)
+        yield
+
+        event_loop.run_until_complete(event_loop.shutdown_default_executor())
+
+        if len(INSTANCES) >= 2:
+            count = len(INSTANCES)
+            for inst in INSTANCES:
+                inst.stop()
+            pytest.exit(f"Detected non stopped instances ({count}), aborting test run")
+
+        # Warn and clean-up lingering tasks and timers
+        # before moving on to the next test.
+        tasks = asyncio.all_tasks(event_loop) - tasks_before
+        for task in tasks:
+            if expected_lingering_tasks:
+                _LOGGER.warning("Lingering task after test %r", task)
+            else:
+                pytest.fail(f"Lingering task after test {task!r}")
+            task.cancel()
+        if tasks:
+            event_loop.run_until_complete(asyncio.wait(tasks))
+
+        for handle in get_scheduled_timer_handles(event_loop):
+            if not handle.cancelled():
+                with long_repr_strings():
+                    if expected_lingering_timers:
+                        _LOGGER.warning("Lingering timer after test %r", handle)
+                    elif handle._args and isinstance(job := handle._args[-1], HassJob):
+                        if job.cancel_on_shutdown:
+                            continue
+                        pytest.fail(f"Lingering timer after job {job!r}")
+                    else:
+>                       pytest.fail(f"Lingering timer after test {handle!r}")
+E                       Failed: Lingering timer after test <TimerHandle when=4380.317367854 TimedAccessManager._schedule_removal.<locals>.<lambda>() at /app/custom_components/meraki_ha/core/timed_access_manager.py:95 created at /app/custom_components/meraki_ha/core/timed_access_manager.py:93>
+
+/home/jules/.pyenv/versions/3.12.12/lib/python3.12/site-packages/pytest_homeassistant_custom_component/plugins.py:399: Failed
+=========================== short test summary info ============================
+ERROR tests/test_e2e_ipsk.py::test_e2e_ipsk_flow_real_endpoints - Failed: Lin...
+=================== 224 passed, 1 skipped, 1 error in 24.27s ===================
