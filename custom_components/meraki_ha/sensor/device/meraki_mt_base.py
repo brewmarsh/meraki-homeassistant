@@ -114,6 +114,8 @@ class MerakiMtSensor(CoordinatorEntity, RestoreSensor):
     @callback
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
+        if not self._device.serial:
+            return
         device = self.coordinator.get_device(self._device.serial)
         if device:
             self._device = device

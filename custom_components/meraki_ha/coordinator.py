@@ -146,6 +146,19 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         _LOGGER.debug("Update for %s is still pending (on cooldown)", unique_id)
         return True
 
+    def cancel_pending_update(self, unique_id: str) -> None:
+        """
+        Cancel a pending update for an entity.
+
+        Args:
+        ----
+            unique_id: The unique ID of the entity.
+
+        """
+        if unique_id in self._pending_updates:
+            del self._pending_updates[unique_id]
+            _LOGGER.debug("Cancelled pending update for %s", unique_id)
+
     async def _async_update_data(self) -> dict[str, Any]:
         """Fetch data from API endpoint, apply filters, and handle exceptions."""
         try:
