@@ -57,6 +57,10 @@ async def test_update_device_registry_info_picks_camera(hass):
 
     with (
         patch(
+            "custom_components.meraki_ha.core.helpers.dr.async_get",
+            return_value=mock_dr,
+        ),
+        patch(
             "custom_components.meraki_ha.core.helpers.er.async_get",
             return_value=mock_er,
         ),
