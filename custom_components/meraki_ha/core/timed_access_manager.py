@@ -234,7 +234,7 @@ class TimedAccessManager:
         return [k.__dict__ for k in self._keys]
 
     def shutdown(self) -> None:
-        """Cancel all pending timers."""
+        """Shutdown the manager and cancel all timers."""
         for handle in self._scheduled_removals.values():
             handle.cancel()
         self._scheduled_removals.clear()
