@@ -93,9 +93,7 @@ async def test_vlan_sensor_creation(mock_coordinator):
 
     # Filter for sensors of the first VLAN
     vlan1_sensors = [
-        s
-        for s in vlan_sensors
-        if s.device_info["name"] == "Test Network VLAN 1 VLAN 1"
+        s for s in vlan_sensors if s.device_info["name"] == "Test Network VLAN 1 VLAN 1"
     ]
     assert len(vlan1_sensors) == 7
 

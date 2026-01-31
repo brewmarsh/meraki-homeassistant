@@ -90,6 +90,10 @@ class TimedAccessManager:
             self._hass.async_create_task(self._remove_key_task(key))
             return
 
+        # Cancel existing timer if any
+        if key.identity_psk_id in self._scheduled_removals:
+            self._scheduled_removals[key.identity_psk_id].cancel()
+
         self._scheduled_removals[key.identity_psk_id] = self._hass.loop.call_later(
             delay,
             lambda: self._hass.async_create_task(self._remove_key_task(key)),
@@ -234,7 +238,7 @@ class TimedAccessManager:
         return [k.__dict__ for k in self._keys]
 
     def shutdown(self) -> None:
-        """Cancel all scheduled timers."""
-        for timer in self._scheduled_removals.values():
-            timer.cancel()
+        """Cancel all scheduled removals."""
+        for handle in self._scheduled_removals.values():
+            handle.cancel()
         self._scheduled_removals.clear()
