@@ -232,3 +232,9 @@ class TimedAccessManager:
         if network_id:
             return [k.__dict__ for k in self._keys if k.network_id == network_id]
         return [k.__dict__ for k in self._keys]
+
+    def shutdown(self) -> None:
+        """Shutdown and cancel all timers."""
+        for handle in self._scheduled_removals.values():
+            handle.cancel()
+        self._scheduled_removals.clear()

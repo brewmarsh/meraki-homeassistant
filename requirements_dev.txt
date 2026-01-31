@@ -1,8 +1,6 @@
-# requirements_dev.txt
 aiodhcpwatcher
 aiodiscover
 aiofiles==24.1.0
-aiodns==3.6.1
 aiohappyeyeballs
 aiohasupervisor
 aiohttp

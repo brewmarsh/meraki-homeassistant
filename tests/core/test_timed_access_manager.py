@@ -25,7 +25,9 @@ def mock_client():
 @pytest.fixture
 def manager(hass):
     """Fixture for the TimedAccessManager."""
-    return TimedAccessManager(hass)
+    mgr = TimedAccessManager(hass)
+    yield mgr
+    mgr.shutdown()
 
 
 @pytest.fixture
