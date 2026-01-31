@@ -7,6 +7,7 @@ import logging
 from typing import TYPE_CHECKING, Any
 
 import aiohttp
+
 from homeassistant.components.camera import Camera, CameraEntityFeature
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.device_registry import DeviceInfo
@@ -76,8 +77,9 @@ class MerakiCamera(CoordinatorEntity, Camera):
         self._device_serial = device.serial or ""
         self._camera_service = camera_service
         self._attr_unique_id = f"{self._device_serial}-camera"
-        self._attr_has_entity_name = True
-        self._attr_name = None
+        self._attr_name = format_device_name(
+            device, self.coordinator.config_entry.options
+        )
         self._attr_model = self.device_data.model
 
     @property

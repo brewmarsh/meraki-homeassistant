@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import logging
 from datetime import datetime, timedelta
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, cast
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
@@ -94,7 +94,7 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
     def register_pending_update(
         self,
-        unique_id: str,
+        unique_id: str | None,
         expiry_seconds: int = 150,
     ) -> None:
         """
@@ -109,6 +109,8 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             expiry_seconds: The duration of the cooldown period.
 
         """
+        if not unique_id:
+            return
         expiry_time = datetime.now() + timedelta(seconds=expiry_seconds)
         self._pending_updates[unique_id] = expiry_time
         _LOGGER.debug(
@@ -117,7 +119,7 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             expiry_time,
         )
 
-    def is_pending(self, unique_id: str) -> bool:
+    def is_pending(self, unique_id: str | None) -> bool:
         """
         Check if an entity is in a pending (cooldown) state.
 
@@ -130,7 +132,7 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             True if the entity is in a pending state, False otherwise.
 
         """
-        if unique_id not in self._pending_updates:
+        if not unique_id or unique_id not in self._pending_updates:
             return False
 
         now = datetime.now()
@@ -145,6 +147,19 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         # Cooldown is still active
         _LOGGER.debug("Update for %s is still pending (on cooldown)", unique_id)
         return True
+
+    def cancel_pending_update(self, unique_id: str | None) -> None:
+        """
+        Cancel a pending update for an entity.
+
+        Args:
+        ----
+            unique_id: The unique ID of the entity.
+
+        """
+        if unique_id and unique_id in self._pending_updates:
+            del self._pending_updates[unique_id]
+            _LOGGER.debug("Cancelled pending update for %s", unique_id)
 
     async def _async_update_data(self) -> dict[str, Any]:
         """Fetch data from API endpoint, apply filters, and handle exceptions."""
@@ -198,7 +213,7 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                     continue
                 device_registry.async_get_or_create(
                     config_entry_id=self.config_entry.entry_id,
-                    identifiers={(DOMAIN, network.id)},
+                    identifiers={(DOMAIN, cast(str, network.id))},
                     name=network.name,
                     manufacturer="Cisco Meraki",
                     model="Network",
@@ -209,24 +224,6 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 for s in data.get("ssids", [])
                 if s.get("networkId") and s.get("number") is not None
             }
-
-            # Check for specific network feature errors/warnings
-            appliance_traffic = data.get("appliance_traffic", {})
-            for net_id, traffic in appliance_traffic.items():
-                if isinstance(traffic, dict) and traffic.get("error") == "disabled":
-                    if self.is_traffic_check_due(net_id):
-                        self.add_network_status_message(
-                            net_id, "Traffic Analysis is not enabled for this network."
-                        )
-                        self.mark_traffic_check_done(net_id)
-
-            vlans = data.get("vlans", {})
-            for net_id, vlan_list in vlans.items():
-                if not vlan_list and self.is_vlan_check_due(net_id):
-                    self.add_network_status_message(
-                        net_id, "VLANs are not enabled for this network."
-                    )
-                    self.mark_vlan_check_done(net_id)
 
             update_device_registry_info(self.hass, devices)
 
@@ -252,7 +249,7 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             )
             raise UpdateFailed(f"Error communicating with API: {err}") from err
 
-    def get_device(self, serial: str) -> MerakiDevice | None:
+    def get_device(self, serial: str | None) -> MerakiDevice | None:
         """
         Get device data by serial number.
 
@@ -265,6 +262,8 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             The device data or None if not found.
 
         """
+        if not serial:
+            return None
         return self.devices_by_serial.get(serial)
 
     def get_network(self, network_id: str) -> MerakiNetwork | None:
