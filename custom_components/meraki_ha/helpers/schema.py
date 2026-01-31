@@ -2,12 +2,13 @@
 
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, cast
 
 import voluptuous as vol
+from homeassistant.helpers import selector
+from homeassistant.helpers.selector import SelectOptionDict
 
 from custom_components.meraki_ha.const import CONF_IGNORED_NETWORKS
-from homeassistant.helpers import selector
 
 
 def populate_schema_defaults(
@@ -47,7 +48,7 @@ def populate_schema_defaults(
             and network_options is not None
         ):
             new_config = value.config.copy()
-            new_config["options"] = network_options
+            new_config["options"] = cast(list[SelectOptionDict], network_options)
             value = selector.SelectSelector(new_config)
 
         new_schema_keys[key] = value

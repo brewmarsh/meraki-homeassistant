@@ -45,7 +45,7 @@ class MerakiVPNSwitch(MerakiNetworkEntity, SwitchEntity):
 
     def _update_internal_state(self) -> None:
         """Update the internal state of the switch."""
-        if self.coordinator.is_pending(self.unique_id):
+        if self.unique_id and self.coordinator.is_pending(self.unique_id):
             _LOGGER.debug(
                 "Not updating state for %s because a pending update is registered",
                 self.unique_id,
@@ -75,7 +75,8 @@ class MerakiVPNSwitch(MerakiNetworkEntity, SwitchEntity):
         """
         self._attr_is_on = True
         self.async_write_ha_state()
-        self.coordinator.register_pending_update(self.unique_id)
+        if self.unique_id:
+            self.coordinator.register_pending_update(self.unique_id)
         if self._network_id:
             await self.coordinator.api.appliance.update_vpn_status(
                 network_id=self._network_id,
@@ -93,7 +94,8 @@ class MerakiVPNSwitch(MerakiNetworkEntity, SwitchEntity):
         """
         self._attr_is_on = False
         self.async_write_ha_state()
-        self.coordinator.register_pending_update(self.unique_id)
+        if self.unique_id:
+            self.coordinator.register_pending_update(self.unique_id)
         if self._network_id:
             await self.coordinator.api.appliance.update_vpn_status(
                 network_id=self._network_id,

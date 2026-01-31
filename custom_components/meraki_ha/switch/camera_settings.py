@@ -4,9 +4,10 @@ import dataclasses
 import logging
 from typing import Any, cast
 
-from custom_components.meraki_ha.coordinator import MerakiDataUpdateCoordinator
 from homeassistant.components.switch import SwitchEntity
 from homeassistant.helpers.device_registry import DeviceInfo
+
+from custom_components.meraki_ha.coordinator import MerakiDataUpdateCoordinator
 
 from ..core.api.client import MerakiAPIClient
 from ..entity import MerakiEntity
@@ -78,9 +79,10 @@ class MerakiCameraSettingSwitchBase(
 
     def _update_state(self) -> None:
         """Update the internal state of the switch."""
-        device = self.coordinator.get_device(self._device_data.serial)
-        if device is not None:
-            self._device_data = device
+        if self._device_data.serial:
+            device = self.coordinator.get_device(self._device_data.serial)
+            if device is not None:
+                self._device_data = device
             self._attr_is_on = self._get_value_from_device(device)
         else:
             self._attr_is_on = False

@@ -74,10 +74,11 @@ class MerakiPoeUsageSensor(
     @callback
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
-        device = self.coordinator.get_device(self._device.serial)
-        if device:
-            self._device = device
-            self.async_write_ha_state()
+        if self._device.serial:
+            device = self.coordinator.get_device(self._device.serial)
+            if device:
+                self._device = device
+                self.async_write_ha_state()
 
     @property
     def native_value(self) -> float | None:

@@ -1,7 +1,6 @@
 """Base class for Meraki MT binary sensor entities."""
 
 import logging
-from typing import cast
 
 from homeassistant.components.binary_sensor import (
     BinarySensorEntity,
@@ -9,7 +8,6 @@ from homeassistant.components.binary_sensor import (
 )
 from homeassistant.core import callback
 from homeassistant.helpers.device_registry import DeviceInfo
-from homeassistant.helpers.typing import UNDEFINED
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from ...const import DOMAIN
@@ -35,8 +33,7 @@ class MerakiMtBinarySensor(CoordinatorEntity, BinarySensorEntity):
         self.entity_description = entity_description
         self._attr_unique_id = f"{self._device.serial}_{self.entity_description.key}"
         self._attr_has_entity_name = True
-        if self.entity_description.name is not UNDEFINED:
-            self._attr_name = cast(str | None, self.entity_description.name)
+        self._attr_name = self.entity_description.name
 
     @property
     def device_info(self) -> DeviceInfo:
@@ -45,11 +42,14 @@ class MerakiMtBinarySensor(CoordinatorEntity, BinarySensorEntity):
         if self._device.serial:
             device_identifiers = {(DOMAIN, str(self._device.serial))}
 
+        name = self._device.name
+        if self.coordinator.config_entry:
+            name = format_device_name(
+                self._device, self.coordinator.config_entry.options
+            )
         return DeviceInfo(
             identifiers=device_identifiers,
-            name=format_device_name(
-                self._device, self.coordinator.config_entry.options
-            ),
+            name=name,
             model=str(self._device.model),
             manufacturer="Cisco Meraki",
         )
@@ -84,6 +84,12 @@ class MerakiMtBinarySensor(CoordinatorEntity, BinarySensorEntity):
                     if value_key:
                         val = metric_data.get(value_key)
                         if isinstance(val, bool):
+                            last_reported = metric_data.get("last_reported")
+                            self._attr_extra_state_attributes = {
+                                "last_reported": str(last_reported)
+                                if last_reported is not None
+                                else None,
+                            }
                             return val
         return None
 

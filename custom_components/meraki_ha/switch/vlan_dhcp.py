@@ -41,7 +41,7 @@ class MerakiVLANDHCPSwitch(MerakiVLANEntity, SwitchEntity):
 
     def _update_internal_state(self) -> None:
         """Update the internal state of the switch."""
-        if self.coordinator.is_pending(self.unique_id):
+        if self.unique_id and self.coordinator.is_pending(self.unique_id):
             _LOGGER.debug(
                 "Not updating state for %s because a pending update is registered",
                 self.unique_id,
@@ -69,7 +69,8 @@ class MerakiVLANDHCPSwitch(MerakiVLANEntity, SwitchEntity):
             return
         self._attr_is_on = True
         self.async_write_ha_state()
-        self.coordinator.register_pending_update(self.unique_id)
+        if self.unique_id:
+            self.coordinator.register_pending_update(self.unique_id)
         await self.coordinator.api.appliance.update_network_vlan(
             network_id=self._network_id,
             vlan_id=vlan_id,
@@ -84,7 +85,8 @@ class MerakiVLANDHCPSwitch(MerakiVLANEntity, SwitchEntity):
             return
         self._attr_is_on = False
         self.async_write_ha_state()
-        self.coordinator.register_pending_update(self.unique_id)
+        if self.unique_id:
+            self.coordinator.register_pending_update(self.unique_id)
         await self.coordinator.api.appliance.update_network_vlan(
             network_id=self._network_id,
             vlan_id=vlan_id,

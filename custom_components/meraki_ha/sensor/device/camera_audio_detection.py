@@ -22,9 +22,12 @@ if TYPE_CHECKING:
 _LOGGER = logging.getLogger(__name__)
 
 
-class MerakiCameraAudioDetectionSensor(CoordinatorEntity, SensorEntity):
+class MerakiCameraAudioDetectionSensor(
+    CoordinatorEntity[MerakiDataUpdateCoordinator], SensorEntity
+):
     """Representation of a Meraki Camera Audio Detection Status sensor."""
 
+    coordinator: MerakiDataUpdateCoordinator
     _attr_has_entity_name = True
     _attr_entity_category = EntityCategory.DIAGNOSTIC
 

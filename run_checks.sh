@@ -5,7 +5,9 @@ echo "Installing uv..."
 pip install uv
 
 echo "Installing dependencies..."
-uv pip install --system --prerelease=allow -r requirements_dev.txt
+grep -vE "aiodns|pycares" requirements_dev.txt > requirements_dev_no_aiodns.txt
+uv pip install --system --prerelease=allow -r requirements_dev_no_aiodns.txt
+rm requirements_dev_no_aiodns.txt
 
 # Force reinstall aiodns and pycares to match Python 3.13 compatibility requirements
 # even if Home Assistant pins older versions.

@@ -19,9 +19,12 @@ from ...types import MerakiAppliancePort, MerakiDevice
 _LOGGER = logging.getLogger(__name__)
 
 
-class MerakiAppliancePortSensor(CoordinatorEntity, SensorEntity):
+class MerakiAppliancePortSensor(
+    CoordinatorEntity[MerakiDataUpdateCoordinator], SensorEntity
+):
     """Representation of a Meraki appliance port sensor."""
 
+    coordinator: MerakiDataUpdateCoordinator
     _attr_entity_category = EntityCategory.DIAGNOSTIC
 
     def __init__(
@@ -42,11 +45,14 @@ class MerakiAppliancePortSensor(CoordinatorEntity, SensorEntity):
     @property
     def device_info(self) -> DeviceInfo:
         """Return device information."""
+        name = self._device.name
+        if self.coordinator.config_entry:
+            name = format_device_name(
+                self._device, self.coordinator.config_entry.options
+            )
         return DeviceInfo(
             identifiers={(DOMAIN, cast(str, self._device.serial))},
-            name=format_device_name(
-                self._device, self.coordinator.config_entry.options
-            ),
+            name=name,
             model=self._device.model,
             manufacturer="Cisco Meraki",
         )
