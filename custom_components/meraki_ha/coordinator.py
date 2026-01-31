@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import logging
 from datetime import datetime, timedelta
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, cast
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
@@ -212,16 +212,18 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                         self.data[key] = value.strip()
 
             for network in networks:
+                if not network.id:
+                    continue
                 device_registry.async_get_or_create(
                     config_entry_id=self.config_entry.entry_id,
-                    identifiers={(DOMAIN, network.id)},
+                    identifiers={(DOMAIN, cast(str, network.id))},
                     name=network.name,
                     manufacturer="Cisco Meraki",
                     model="Network",
                 )
 
             self.ssids_by_network_and_number = {
-                (s.get("networkId"), str(s.get("number"))): s
+                (cast(str, s.get("networkId")), int(s.get("number"))): s
                 for s in data.get("ssids", [])
                 if s.get("networkId") and s.get("number") is not None
             }
