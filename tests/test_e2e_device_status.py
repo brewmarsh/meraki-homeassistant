@@ -7,6 +7,7 @@ import json
 import os
 import socketserver
 import threading
+from dataclasses import replace
 from typing import Any
 from unittest.mock import patch
 
@@ -21,6 +22,7 @@ from custom_components.meraki_ha.const import (
     CONF_MERAKI_ORG_ID,
     DOMAIN,
 )
+from custom_components.meraki_ha.types import MerakiDevice
 
 from .const import MOCK_ALL_DATA
 
@@ -40,10 +42,11 @@ MOCK_UNAVAILABLE_DEVICE = {
 }
 
 MOCK_REPRO_DATA: dict[str, Any] = MOCK_ALL_DATA.copy()
-MOCK_REPRO_DATA["devices"] = [MOCK_UNAVAILABLE_DEVICE]
+MOCK_REPRO_DATA["devices"] = [MerakiDevice.from_dict(MOCK_UNAVAILABLE_DEVICE)]
 if MOCK_REPRO_DATA["networks"]:
-    MOCK_REPRO_DATA["networks"][0]["is_enabled"] = True
-    MOCK_REPRO_DATA["networks"][0]["ssids"] = []  # Clear SSIDs to simplify
+    MOCK_REPRO_DATA["networks"] = [
+        replace(MOCK_REPRO_DATA["networks"][0], is_enabled=True, ssids=[])
+    ]
 
 
 class ReuseAddrTCPServer(socketserver.TCPServer):

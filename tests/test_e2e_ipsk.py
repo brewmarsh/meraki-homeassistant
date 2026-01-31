@@ -72,6 +72,8 @@ async def test_e2e_create_and_expire_ipsk(hass, mock_hass_config, mock_meraki_cl
         "N_12345", "1", "mock_ipsk_id"
     )
 
+    manager.shutdown()
+
 
 @pytest.fixture
 def real_client_with_mock_dashboard(hass):
@@ -148,3 +150,5 @@ async def test_e2e_ipsk_flow_real_endpoints(hass, real_client_with_mock_dashboar
     call_args = real_client_with_mock_dashboard.run_sync.call_args
     kwargs = call_args[1]
     assert kwargs["groupPolicyId"] == "999"
+
+    manager.shutdown()
