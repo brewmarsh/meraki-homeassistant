@@ -20,6 +20,7 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class MerakiAppliancePortSensor(CoordinatorEntity, SensorEntity):
+    coordinator: MerakiDataUpdateCoordinator
     """Representation of a Meraki appliance port sensor."""
 
     _attr_entity_category = EntityCategory.DIAGNOSTIC
@@ -45,7 +46,10 @@ class MerakiAppliancePortSensor(CoordinatorEntity, SensorEntity):
         return DeviceInfo(
             identifiers={(DOMAIN, cast(str, self._device.serial))},
             name=format_device_name(
-                self._device, self.coordinator.config_entry.options
+                self._device,
+                self.coordinator.config_entry.options
+                if self.coordinator.config_entry
+                else {},
             ),
             model=self._device.model,
             manufacturer="Cisco Meraki",

@@ -4,8 +4,9 @@ from __future__ import annotations
 
 import logging
 
-from custom_components.meraki_ha.coordinator import MerakiDataUpdateCoordinator
 from homeassistant.components.switch import SwitchEntityDescription
+
+from custom_components.meraki_ha.coordinator import MerakiDataUpdateCoordinator
 
 from ..core.api.client import MerakiAPIClient
 from ..types import MerakiDevice

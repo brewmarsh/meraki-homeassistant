@@ -3,11 +3,11 @@
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
+from homeassistant.components.event import EventDeviceClass
 
 from custom_components.meraki_ha.event.device.camera_motion import (
     MerakiCameraMotionEvent,
 )
-from homeassistant.components.event import EventDeviceClass
 
 
 @pytest.fixture
