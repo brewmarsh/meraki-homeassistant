@@ -92,6 +92,7 @@ propcache
 psutil
 psutil-home-assistant
 py-serializable==1.1.2
+pycares==4.11.0
 pycognito==2024.5.1
 pycparser
 pydantic

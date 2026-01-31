@@ -1,7 +1,7 @@
 """Tests for the Meraki MT sensor setup."""
 
 import copy
-from typing import cast
+from typing import Any, cast
 from unittest.mock import MagicMock
 
 import pytest
@@ -16,67 +16,61 @@ from custom_components.meraki_ha.types import MerakiDevice
 @pytest.fixture
 def mock_coordinator_with_mt_devices(mock_coordinator: MagicMock) -> MagicMock:
     """Fixture for a mocked MerakiDataUpdateCoordinator with MT sensor data."""
-    devices = [
-        MerakiDevice.from_dict(
-            {
-                "serial": "mt10-1",
-                "name": "MT10 Sensor",
-                "model": "MT10",
-                "productType": "sensor",
-                "readings": [
-                    {"metric": "temperature", "temperature": {"celsius": 25.5}},
-                    {"metric": "humidity", "humidity": {"relativePercentage": 60.0}},
-                    {"metric": "battery", "battery": {"percentage": 100}},
-                ],
-            }
-        ),
-        MerakiDevice.from_dict(
-            {
-                "serial": "mt15-1",
-                "name": "MT15 Sensor",
-                "model": "MT15",
-                "productType": "sensor",
-                "readings": [
-                    {"metric": "temperature", "temperature": {"celsius": 22.1}},
-                    {"metric": "humidity", "humidity": {"relativePercentage": 45.2}},
-                    {"metric": "co2", "co2": {"concentration": 450}},
-                    {"metric": "tvoc", "tvoc": {"concentration": 150}},
-                    {"metric": "pm25", "pm25": {"concentration": 10.5}},
-                    {"metric": "noise", "noise": {"ambient": {"level": 35.2}}},
-                    {"metric": "battery", "battery": {"percentage": 100}},
-                ],
-            }
-        ),
-        MerakiDevice.from_dict(
-            {
-                "serial": "mt12-1",
-                "name": "MT12 Sensor",
-                "model": "MT12",
-                "productType": "sensor",
-                "readings": [
-                    {"metric": "water", "water": {"present": False}},
-                    {"metric": "battery", "battery": {"percentage": 100}},
-                ],
-            }
-        ),
-        MerakiDevice.from_dict(
-            {
-                "serial": "mt40-1",
-                "name": "MT40 Power Controller",
-                "model": "MT40",
-                "productType": "sensor",
-                "readings": [
-                    {"metric": "power", "power": {"draw": 120.5}},
-                    {"metric": "voltage", "voltage": {"level": 120.1}},
-                    {"metric": "current", "current": {"draw": 1.0}},
-                ],
-            }
-        ),
+    devices_data: list[dict[str, Any]] = [
+        {
+            "serial": "mt10-1",
+            "name": "MT10 Sensor",
+            "model": "MT10",
+            "productType": "sensor",
+            "readings": [
+                {"metric": "temperature", "temperature": {"celsius": 25.5}},
+                {"metric": "humidity", "humidity": {"relativePercentage": 60.0}},
+                {"metric": "battery", "battery": {"percentage": 100}},
+            ],
+        },
+        {
+            "serial": "mt15-1",
+            "name": "MT15 Sensor",
+            "model": "MT15",
+            "productType": "sensor",
+            "readings": [
+                {"metric": "temperature", "temperature": {"celsius": 22.1}},
+                {"metric": "humidity", "humidity": {"relativePercentage": 45.2}},
+                {"metric": "co2", "co2": {"concentration": 450}},
+                {"metric": "tvoc", "tvoc": {"concentration": 150}},
+                {"metric": "pm25", "pm25": {"concentration": 10.5}},
+                {"metric": "noise", "noise": {"ambient": {"level": 35.2}}},
+                {"metric": "battery", "battery": {"percentage": 100}},
+            ],
+        },
+        {
+            "serial": "mt12-1",
+            "name": "MT12 Sensor",
+            "model": "MT12",
+            "productType": "sensor",
+            "readings": [
+                {"metric": "water", "water": {"present": False}},
+                {"metric": "battery", "battery": {"percentage": 100}},
+            ],
+        },
+        {
+            "serial": "mt40-1",
+            "name": "MT40 Power Controller",
+            "model": "MT40",
+            "productType": "sensor",
+            "readings": [
+                {"metric": "power", "power": {"draw": 120.5}},
+                {"metric": "voltage", "voltage": {"level": 120.1}},
+                {"metric": "current", "current": {"draw": 1.0}},
+            ],
+        },
     ]
 
-    # Manually populate complex attributes
-    for device in devices:
-        for reading in device.readings:
+    devices_objects = []
+    for d in devices_data:
+        device = MerakiDevice.from_dict(d)
+        # Manually populate attributes that parse_sensor_data would handle
+        for reading in d.get("readings", []):
             metric = reading.get("metric")
             if metric == "noise":
                 device.ambient_noise = (
@@ -94,15 +88,16 @@ def mock_coordinator_with_mt_devices(mock_coordinator: MagicMock) -> MagicMock:
                 device.voltage = reading.get("voltage", {}).get("level")
             elif metric == "door":
                 device.door_open = reading.get("door", {}).get("open")
+            elif metric == "water":
+                device.water_present = reading.get("water", {}).get("present")
+        devices_objects.append(device)
 
-    mock_coordinator.data = {"devices": devices}
+    mock_coordinator.data = {"devices": devices_objects}
+    mock_coordinator.devices_by_serial = {d.serial: d for d in devices_objects}
 
     # Mock get_device to return the correct device
     def get_device(serial):
-        for d in mock_coordinator.data["devices"]:
-            if d.serial == serial:
-                return d
-        return None
+        return mock_coordinator.devices_by_serial.get(serial)
 
     mock_coordinator.get_device.side_effect = get_device
 
@@ -114,7 +109,7 @@ async def test_async_setup_mt10_sensors(
 ) -> None:
     """Test the setup of sensors for an MT10 device."""
     # Assuming the first device in the list is MT10
-    mt10_device = mock_coordinator_with_mt_devices.data["devices"][0]
+    mt10_device = mock_coordinator_with_mt_devices.get_device("mt10-1")
 
     discovery_service = DeviceDiscoveryService(
         mock_coordinator_with_mt_devices,
@@ -124,7 +119,7 @@ async def test_async_setup_mt10_sensors(
         MagicMock(),
         MagicMock(),
     )
-    discovery_service._devices = [mt10_device]
+    discovery_service._devices = [mt10_device] if mt10_device else []
     await discovery_service.discover_entities()
     entities = discovery_service.all_entities
 
@@ -136,7 +131,10 @@ async def test_async_setup_mt10_sensors(
 
     assert len(entities) == 3
 
-    sensors_by_key = {entity.entity_description.key: entity for entity in entities}
+    sensors_by_key: dict[str, Any] = {
+        entity.entity_description.key: entity
+        for entity in entities  # type: ignore
+    }
 
     # Test Temperature Sensor
     assert "temperature" in sensors_by_key
@@ -162,7 +160,7 @@ async def test_async_setup_mt15_sensors(
 ) -> None:
     """Test the setup of sensors for an MT15 device."""
     # Assuming the second device in the list is MT15
-    mt15_device = mock_coordinator_with_mt_devices.data["devices"][1]
+    mt15_device = mock_coordinator_with_mt_devices.get_device("mt15-1")
 
     discovery_service = DeviceDiscoveryService(
         mock_coordinator_with_mt_devices,
@@ -172,7 +170,7 @@ async def test_async_setup_mt15_sensors(
         MagicMock(),
         MagicMock(),
     )
-    discovery_service._devices = [mt15_device]
+    discovery_service._devices = [mt15_device] if mt15_device else []
     await discovery_service.discover_entities()
     entities = discovery_service.all_entities
 
@@ -184,7 +182,10 @@ async def test_async_setup_mt15_sensors(
 
     assert len(entities) == 7
 
-    sensors_by_key = {entity.entity_description.key: entity for entity in entities}
+    sensors_by_key: dict[str, Any] = {
+        entity.entity_description.key: entity
+        for entity in entities  # type: ignore
+    }
 
     # Verify Temperature Sensor
     temp_sensor = sensors_by_key.get("temperature")
@@ -246,7 +247,7 @@ async def test_async_setup_mt12_sensors(
 ) -> None:
     """Test the setup of sensors for an MT12 device."""
     # Assuming the third device in the list is MT12
-    mt12_device = mock_coordinator_with_mt_devices.data["devices"][2]
+    mt12_device = mock_coordinator_with_mt_devices.get_device("mt12-1")
 
     discovery_service = DeviceDiscoveryService(
         mock_coordinator_with_mt_devices,
@@ -256,7 +257,7 @@ async def test_async_setup_mt12_sensors(
         MagicMock(),
         MagicMock(),
     )
-    discovery_service._devices = [mt12_device]
+    discovery_service._devices = [mt12_device] if mt12_device else []
     await discovery_service.discover_entities()
     entities = discovery_service.all_entities
 
@@ -267,15 +268,16 @@ async def test_async_setup_mt12_sensors(
         cast(CoordinatorEntity, entity)._handle_coordinator_update()
 
     assert len(entities) == 3
-    water_sensor = next(
-        (
-            e
-            for e in entities
-            if isinstance(e, BinarySensorEntity) and e.unique_id == "mt12-1_water"
-        ),
-        None,
-    )
+
+    sensors_by_key: dict[str, Any] = {
+        entity.entity_description.key: entity
+        for entity in entities  # type: ignore
+    }
+
+    water_sensor = sensors_by_key.get("water")
     assert water_sensor is not None
+    assert isinstance(water_sensor, BinarySensorEntity)
+    assert water_sensor.unique_id == "mt12-1_water"
     assert water_sensor.name == "Water Leak"
     assert water_sensor.is_on is False
     assert water_sensor.available is True
@@ -286,7 +288,7 @@ async def test_async_setup_mt40_sensors(
 ) -> None:
     """Test the setup of sensors for an MT40 device."""
     # Assuming the fourth device in the list is MT40
-    mt40_device = mock_coordinator_with_mt_devices.data["devices"][3]
+    mt40_device = mock_coordinator_with_mt_devices.get_device("mt40-1")
 
     discovery_service = DeviceDiscoveryService(
         mock_coordinator_with_mt_devices,
@@ -296,7 +298,7 @@ async def test_async_setup_mt40_sensors(
         MagicMock(),
         MagicMock(),
     )
-    discovery_service._devices = [mt40_device]
+    discovery_service._devices = [mt40_device] if mt40_device else []
     await discovery_service.discover_entities()
     entities = discovery_service.all_entities
 
@@ -308,7 +310,10 @@ async def test_async_setup_mt40_sensors(
 
     assert len(entities) == 3
 
-    sensors_by_key = {entity.entity_description.key: entity for entity in entities}
+    sensors_by_key: dict[str, Any] = {
+        entity.entity_description.key: entity
+        for entity in entities  # type: ignore
+    }
 
     # Verify Power Sensor
     power_sensor = sensors_by_key.get("realPower")
@@ -343,7 +348,7 @@ async def test_async_setup_mt40_sensors(
 async def test_availability(mock_coordinator_with_mt_devices: MagicMock) -> None:
     """Test sensor availability."""
     # Get an MT10 device
-    mt10_device = mock_coordinator_with_mt_devices.data["devices"][0]
+    mt10_device = mock_coordinator_with_mt_devices.get_device("mt10-1")
 
     discovery_service = DeviceDiscoveryService(
         mock_coordinator_with_mt_devices,
@@ -353,7 +358,7 @@ async def test_availability(mock_coordinator_with_mt_devices: MagicMock) -> None
         MagicMock(),
         MagicMock(),
     )
-    discovery_service._devices = [mt10_device]
+    discovery_service._devices = [mt10_device] if mt10_device else []
     await discovery_service.discover_entities()
     entities = discovery_service.all_entities
 
@@ -368,6 +373,7 @@ async def test_availability(mock_coordinator_with_mt_devices: MagicMock) -> None
     assert temp_sensor.available is True
 
     # Remove readings and check availability
+    assert mt10_device is not None
     device_without_readings = copy.deepcopy(mt10_device)  # Use MerakiDevice object
     device_without_readings.readings = []
     # Clear side_effect so we can set return_value

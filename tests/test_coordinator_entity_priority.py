@@ -68,6 +68,10 @@ async def test_update_device_registry_info_picks_camera(hass):
             "custom_components.meraki_ha.core.helpers.er.async_entries_for_device",
             return_value=mock_entries,
         ),
+        patch(
+            "custom_components.meraki_ha.core.helpers.dr.async_get",
+            return_value=mock_dr,
+        ),
     ):
         update_device_registry_info(hass, devices)
 

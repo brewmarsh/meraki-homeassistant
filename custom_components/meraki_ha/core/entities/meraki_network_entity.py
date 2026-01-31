@@ -27,6 +27,9 @@ class MerakiNetworkEntity(CoordinatorEntity):
         self._network = network
         self._network_id = network.id
 
+        if hasattr(self, "entity_description") and self.entity_description:
+            self._attr_name = f"{network.name} {self.entity_description.name}"
+
         self._attr_device_info = DeviceInfo(
             identifiers={(self._config_entry.domain, f"network_{network.id}")},
             name=network.name,

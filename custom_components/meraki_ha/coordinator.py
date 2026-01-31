@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import logging
 from datetime import datetime, timedelta
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, cast
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
@@ -213,9 +213,11 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 raise UpdateFailed("Config entry is missing during update")
 
             for network in networks:
+                if not network.id:
+                    continue
                 device_registry.async_get_or_create(
                     config_entry_id=self.config_entry.entry_id,
-                    identifiers={(DOMAIN, network.id)},
+                    identifiers={(DOMAIN, cast(str, network.id))},
                     name=network.name,
                     manufacturer="Cisco Meraki",
                     model="Network",
