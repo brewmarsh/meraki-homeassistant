@@ -4,7 +4,6 @@ import asyncio
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-from homeassistant.core import HomeAssistant
 from pytest_homeassistant_custom_component.common import MockConfigEntry, mock_component
 
 from custom_components.meraki_ha.api.websocket import async_setup_websocket_api
@@ -13,6 +12,7 @@ from custom_components.meraki_ha.const import (
     CONF_MERAKI_ORG_ID,
     DOMAIN,
 )
+from homeassistant.core import HomeAssistant
 
 MOCK_DATA = {
     "org_name": "Test Org",

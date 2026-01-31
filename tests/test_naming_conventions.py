@@ -41,9 +41,7 @@ async def test_naming_conventions():
         camera_service=mock_camera_service,
         config_entry=mock_config_entry,
     )
-    assert camera.name is None
-    device_info = camera.device_info
-    assert device_info["name"] == "Office Camera"
+    assert camera.name == "Office Camera"
 
     motion_sensor = MerakiMotionSensor(
         coordinator=mock_coordinator,

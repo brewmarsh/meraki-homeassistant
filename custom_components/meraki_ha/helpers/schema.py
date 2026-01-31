@@ -5,9 +5,9 @@ from __future__ import annotations
 from typing import Any
 
 import voluptuous as vol
-from homeassistant.helpers import selector
 
 from custom_components.meraki_ha.const import CONF_IGNORED_NETWORKS
+from homeassistant.helpers import selector
 
 
 def populate_schema_defaults(
@@ -47,7 +47,7 @@ def populate_schema_defaults(
             and network_options is not None
         ):
             new_config = value.config.copy()
-            new_config["options"] = network_options
+            new_config["options"] = network_options  # type: ignore[typeddict-item]
             value = selector.SelectSelector(new_config)
 
         new_schema_keys[key] = value
