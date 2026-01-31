@@ -35,16 +35,10 @@ jobs:
         run: uv pip install --system ruff
 
       - name: Run Ruff Linter
-        run: ruff check --fix .
+        run: ruff check .
 
       - name: Run Ruff Formatter
-        run: ruff format .
-
-      - name: Commit fixes
-        uses: stefanzweifel/git-auto-commit-action@v7
-        with:
-          commit_message: 'chore(lint): auto-fix with ruff'
-          branch: ${{ github.head_ref }}
+        run: ruff format --check .
 
   # Job 2: Type Checking
   type-check:
@@ -68,6 +62,10 @@ jobs:
       - name: Install HA Custom Component
         # Note: This may temporarily downgrade aiodns, but the next step enforces strict versions.
         run: uv pip install --system --prerelease=allow "pytest-homeassistant-custom-component>=0.13.205" "pytest>=8.3.4"
+
+      - name: Install HA Custom Component
+        # Note: This may temporarily downgrade aiodns, but the next step enforces strict versions.
+        run: uv pip install --system "pytest-homeassistant-custom-component>=0.13.205"
 
       - name: Force Clean DNS Stack
         run: |
@@ -154,6 +152,10 @@ jobs:
       - name: Install HA Custom Component
         # Note: This may temporarily downgrade aiodns, but the next step enforces strict versions.
         run: uv pip install --system --prerelease=allow "pytest-homeassistant-custom-component>=0.13.205" "pytest>=8.3.4"
+
+      - name: Install HA Custom Component
+        # Note: This may temporarily downgrade aiodns, but the next step enforces strict versions.
+        run: uv pip install --system "pytest-homeassistant-custom-component>=0.13.205"
 
       - name: Force Clean DNS Stack
         run: |

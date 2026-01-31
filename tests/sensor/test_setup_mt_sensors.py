@@ -131,7 +131,9 @@ async def test_async_setup_mt10_sensors(
 
     assert len(entities) == 3
 
-    sensors_by_key = {entity.entity_description.key: entity for entity in entities}
+    sensors_by_key: dict[str, Any] = {
+        entity.entity_description.key: entity for entity in entities  # type: ignore
+    }
 
     # Test Temperature Sensor
     assert "temperature" in sensors_by_key
@@ -174,12 +176,14 @@ async def test_async_setup_mt15_sensors(
     for entity in entities:
         entity.hass = MagicMock()
         entity.entity_id = "sensor.test"
-        entity.async_write_ha_state = MagicMock()
+        object.__setattr__(entity, "async_write_ha_state", MagicMock())
         cast(CoordinatorEntity, entity)._handle_coordinator_update()
 
     assert len(entities) == 7
 
-    sensors_by_key = {entity.entity_description.key: entity for entity in entities}
+    sensors_by_key: dict[str, Any] = {
+        entity.entity_description.key: entity for entity in entities  # type: ignore
+    }
 
     # Verify Temperature Sensor
     temp_sensor = sensors_by_key.get("temperature")
@@ -258,12 +262,14 @@ async def test_async_setup_mt12_sensors(
     for entity in entities:
         entity.hass = MagicMock()
         entity.entity_id = "sensor.test"
-        entity.async_write_ha_state = MagicMock()
+        object.__setattr__(entity, "async_write_ha_state", MagicMock())
         cast(CoordinatorEntity, entity)._handle_coordinator_update()
 
     assert len(entities) == 3
 
-    sensors_by_key = {entity.entity_description.key: entity for entity in entities}
+    sensors_by_key: dict[str, Any] = {
+        entity.entity_description.key: entity for entity in entities  # type: ignore
+    }
 
     water_sensor = sensors_by_key.get("water")
     assert water_sensor is not None
@@ -296,12 +302,14 @@ async def test_async_setup_mt40_sensors(
     for entity in entities:
         entity.hass = MagicMock()
         entity.entity_id = "sensor.test"
-        entity.async_write_ha_state = MagicMock()
+        object.__setattr__(entity, "async_write_ha_state", MagicMock())
         cast(CoordinatorEntity, entity)._handle_coordinator_update()
 
     assert len(entities) == 3
 
-    sensors_by_key = {entity.entity_description.key: entity for entity in entities}
+    sensors_by_key: dict[str, Any] = {
+        entity.entity_description.key: entity for entity in entities  # type: ignore
+    }
 
     # Verify Power Sensor
     power_sensor = sensors_by_key.get("realPower")
