@@ -85,16 +85,16 @@ class TimedAccessManager:
 
     def _schedule_removal(self, key: TimedAccessKey, expires_at: datetime) -> None:
         """Schedule removal of a key."""
+        # Cancel any existing timer for this key to prevent collisions
+        if key.identity_psk_id in self._scheduled_removals:
+            self._scheduled_removals[key.identity_psk_id].cancel()
+
         delay = (expires_at - dt_util.utcnow()).total_seconds()
 
         # Avoid scheduling if already passed or very close
         if delay <= 0:
             self._hass.async_create_task(self._remove_key_task(key))
             return
-
-        # Cancel existing timer if any
-        if key.identity_psk_id in self._scheduled_removals:
-            self._scheduled_removals[key.identity_psk_id].cancel()
 
         self._scheduled_removals[key.identity_psk_id] = self._hass.loop.call_later(
             delay,

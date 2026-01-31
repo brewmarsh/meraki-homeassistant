@@ -50,7 +50,6 @@ async def test_e2e_create_and_expire_ipsk(
     client, verifying that the correct parameters (including groupPolicyId) are passed.
     """
     await manager.async_setup()
-
     try:
         # 1. Create a Key
         # Verify that calling create_key propagates to the client correctly
