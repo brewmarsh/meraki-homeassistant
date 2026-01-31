@@ -161,4 +161,3 @@ webrtc-models==0.3.0
 wheel==0.45.1
 yarl
 zeroconf==0.148.0
-pycares==4.11.0

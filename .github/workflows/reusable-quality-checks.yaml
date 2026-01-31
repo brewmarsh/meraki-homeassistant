@@ -63,10 +63,7 @@ jobs:
           enable-cache: true
 
       - name: Install dependencies
-        run: |
-          grep -vE "aiodns|pycares" requirements_dev.txt > requirements_dev_no_aiodns.txt
-          uv pip install --system --prerelease=allow -r requirements_dev_no_aiodns.txt
-          rm requirements_dev_no_aiodns.txt
+        run: uv pip install --system --prerelease=allow -r requirements_dev.txt
 
       - name: Install HA Custom Component
         # Note: This may temporarily downgrade aiodns, but the next step enforces strict versions.
@@ -100,10 +97,7 @@ jobs:
         run: uv pip install --system --upgrade pip setuptools "wheel>=0.46.2"
 
       - name: Install dependencies
-        run: |
-          grep -vE "aiodns|pycares" requirements_dev.txt > requirements_dev_no_aiodns.txt
-          uv pip install --system --prerelease=allow -r requirements_dev_no_aiodns.txt
-          rm requirements_dev_no_aiodns.txt
+        run: uv pip install --system --prerelease=allow -r requirements_dev.txt
 
       - name: Install HA Custom Component
         # Note: This may temporarily downgrade aiodns, but the next step enforces strict versions.
@@ -155,10 +149,7 @@ jobs:
 
       # FIX: Allow pre-releases for Home Assistant deps
       - name: Install dependencies
-        run: |
-          grep -vE "aiodns|pycares" requirements_dev.txt > requirements_dev_no_aiodns.txt
-          uv pip install --system --prerelease=allow -r requirements_dev_no_aiodns.txt
-          rm requirements_dev_no_aiodns.txt
+        run: uv pip install --system --prerelease=allow -r requirements_dev.txt
 
       - name: Install HA Custom Component
         # Note: This may temporarily downgrade aiodns, but the next step enforces strict versions.
@@ -169,9 +160,6 @@ jobs:
           # FIX: removed -y flag which uv does not support
           uv pip uninstall --system pycares aiodns
           uv pip install --system --no-cache-dir pycares==4.11.0 aiodns==3.6.1
-
-      - name: Install Playwright Browsers
-        run: playwright install --with-deps
 
       - name: Run Tests
         run: pytest --cov=custom_components/meraki_ha --cov-report=xml tests/

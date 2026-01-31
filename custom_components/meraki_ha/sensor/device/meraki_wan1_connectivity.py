@@ -31,8 +31,6 @@ class MerakiWAN1ConnectivitySensor(
 ):
     """Representation of a Meraki WAN1 Connectivity Sensor."""
 
-    coordinator: MerakiDataUpdateCoordinator
-
     _attr_icon = "mdi:wan"
     _attr_has_entity_name = True
     _attr_entity_category = EntityCategory.DIAGNOSTIC
