@@ -23,6 +23,7 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class MerakiDataUsageSensor(CoordinatorEntity, SensorEntity):
+    coordinator: MerakiDataUpdateCoordinator
     """Representation of a Meraki appliance data usage sensor."""
 
     _attr_state_class: SensorStateClass | None = SensorStateClass.MEASUREMENT

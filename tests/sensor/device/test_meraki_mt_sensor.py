@@ -3,7 +3,6 @@
 from unittest.mock import MagicMock
 
 import pytest
-from homeassistant.components.sensor import SensorDeviceClass
 
 from custom_components.meraki_ha.descriptions import (
     MT_BATTERY_DESCRIPTION,
@@ -12,6 +11,7 @@ from custom_components.meraki_ha.descriptions import (
 )
 from custom_components.meraki_ha.sensor.device.meraki_mt_base import MerakiMtSensor
 from custom_components.meraki_ha.types import MerakiDevice
+from homeassistant.components.sensor import SensorDeviceClass
 
 
 @pytest.fixture
@@ -61,6 +61,15 @@ def mock_coordinator_mt_sensor(mock_coordinator: MagicMock) -> MagicMock:
             ),
         ]
     }
+
+    # Mock get_device to return the correct device
+    def get_device(serial):
+        for d in mock_coordinator.data["devices"]:
+            if d.serial == serial:
+                return d
+        return None
+
+    mock_coordinator.get_device.side_effect = get_device
     return mock_coordinator
 
 
@@ -72,6 +81,7 @@ def test_mt10_temperature_sensor(
     sensor = MerakiMtSensor(
         mock_coordinator_mt_sensor, device_info, MT_TEMPERATURE_DESCRIPTION
     )
+    sensor._update_native_value()
 
     assert sensor.unique_id == "mt10-1_temperature"
     assert sensor.name == "Temperature"
@@ -88,6 +98,7 @@ def test_mt10_battery_sensor(
     sensor = MerakiMtSensor(
         mock_coordinator_mt_sensor, device_info, MT_BATTERY_DESCRIPTION
     )
+    sensor._update_native_value()
 
     assert sensor.unique_id == "mt10-1_battery"
     assert sensor.name == "Battery"
@@ -104,6 +115,7 @@ def test_mt30_button_sensor(
     sensor = MerakiMtSensor(
         mock_coordinator_mt_sensor, device_info, MT_BUTTON_DESCRIPTION
     )
+    sensor._update_native_value()
 
     assert sensor.unique_id == "mt30-1_button"
     assert sensor.name == "Last Button Press"

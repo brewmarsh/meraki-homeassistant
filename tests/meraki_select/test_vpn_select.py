@@ -3,13 +3,13 @@
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-from homeassistant.core import HomeAssistant
-from homeassistant.helpers import entity_registry as er
-from homeassistant.setup import async_setup_component
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.meraki_ha.const import CONF_ENABLE_VPN_MANAGEMENT, DOMAIN
 from custom_components.meraki_ha.types import MerakiVpn
+from homeassistant.core import HomeAssistant
+from homeassistant.helpers import entity_registry as er
+from homeassistant.setup import async_setup_component
 from tests.const import MOCK_NETWORK
 
 
@@ -25,9 +25,9 @@ def mock_config_entry() -> MockConfigEntry:
 
 
 @pytest.fixture
-def mock_meraki_client() -> AsyncMock:
+def mock_meraki_client() -> MagicMock:
     """Fixture for a mocked MerakiAPIClient."""
-    client = AsyncMock()
+    client = MagicMock()
     # Ensure network data is consistent
     network_id = MOCK_NETWORK.id
 
@@ -54,7 +54,7 @@ def mock_meraki_client() -> AsyncMock:
     client.appliance = MagicMock()
     client.appliance.update_vpn_status = AsyncMock()
     client.appliance.get_network_appliance_content_filtering_categories = AsyncMock(
-        return_value={}
+        return_value={"categories": []}
     )
 
     return client

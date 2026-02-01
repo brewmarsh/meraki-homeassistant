@@ -23,6 +23,7 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class MerakiCameraSenseStatusSensor(CoordinatorEntity, SensorEntity):
+    coordinator: MerakiDataUpdateCoordinator
     """Representation of a Meraki Camera Sense Status sensor."""
 
     _attr_has_entity_name = True
