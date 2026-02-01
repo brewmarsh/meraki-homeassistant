@@ -47,7 +47,10 @@ class MerakiAppliancePortSensor(CoordinatorEntity, SensorEntity):
         return DeviceInfo(
             identifiers={(DOMAIN, cast(str, self._device.serial))},
             name=format_device_name(
-                self._device, self.coordinator.config_entry.options
+                self._device,
+                self.coordinator.config_entry.options
+                if self.coordinator.config_entry
+                else {},
             ),
             model=self._device.model,
             manufacturer="Cisco Meraki",

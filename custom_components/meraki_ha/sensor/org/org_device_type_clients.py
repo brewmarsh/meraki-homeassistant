@@ -18,6 +18,7 @@ class MerakiOrganizationDeviceTypeClientsSensor(CoordinatorEntity, SensorEntity)
     """Representation of a Meraki organization-level client counter by device type."""
 
     coordinator: MerakiDataUpdateCoordinator
+
     _attr_state_class = SensorStateClass.MEASUREMENT
     _attr_has_entity_name = True
 

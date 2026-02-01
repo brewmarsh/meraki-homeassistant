@@ -40,6 +40,8 @@ class MerakiAnalyticsSensor(CoordinatorEntity, SensorEntity):
     @property
     def device_info(self) -> DeviceInfo | None:
         """Return device information."""
+        if not self.coordinator.config_entry:
+            return None
         return resolve_device_info(self._device, self.coordinator.config_entry)
 
     @property

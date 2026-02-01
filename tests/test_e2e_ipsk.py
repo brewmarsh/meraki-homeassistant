@@ -31,17 +31,25 @@ def mock_hass_config(hass, mock_meraki_client):
     return hass
 
 
+@pytest.fixture
+def manager(hass):
+    """Fixture for TimedAccessManager with cleanup."""
+    mgr = TimedAccessManager(hass)
+    yield mgr
+    mgr.shutdown()
+
+
 @pytest.mark.asyncio
-async def test_e2e_create_and_expire_ipsk(hass, mock_hass_config, mock_meraki_client):
+async def test_e2e_create_and_expire_ipsk(
+    hass, mock_hass_config, mock_meraki_client, manager
+):
     """
     Test the full lifecycle of an IPSK creation and expiration logic.
 
     This simulates the higher-level flow from the TimedAccessManager down to the API
     client, verifying that the correct parameters (including groupPolicyId) are passed.
     """
-    manager = TimedAccessManager(hass)
     await manager.async_setup()
-
     try:
         # 1. Create a Key
         # Verify that calling create_key propagates to the client correctly
@@ -85,10 +93,14 @@ def real_client_with_mock_dashboard(hass):
 
     # Mock the run_sync method to bypass the thread executor and just return the result
     # of the callable because we want to inspect the call to the dashboard method.
+    import uuid
+
     async def mock_run_sync(func, *args, **kwargs):
         # We call the func directly, but since dashboard methods are usually sync in the
         # library, we can just return a mock response.
-        return {"id": "mock_ipsk_id", "name": "Guest User"}
+        # Generate unique ID based on call count or args to avoid overwriting
+        # scheduled removal.
+        return {"id": f"mock_ipsk_id_{uuid.uuid4()}", "name": "Guest User"}
 
     client.run_sync = AsyncMock(side_effect=mock_run_sync)
 
@@ -96,14 +108,15 @@ def real_client_with_mock_dashboard(hass):
 
 
 @pytest.mark.asyncio
-async def test_e2e_ipsk_flow_real_endpoints(hass, real_client_with_mock_dashboard):
+async def test_e2e_ipsk_flow_real_endpoints(
+    hass, real_client_with_mock_dashboard, manager
+):
     """True integration test using real WirelessEndpoints logic."""
     # Setup Hass data
     hass.data[DOMAIN] = {
         "test_entry_id": {DATA_CLIENT: real_client_with_mock_dashboard}
     }
 
-    manager = TimedAccessManager(hass)
     await manager.async_setup()
 
     try:

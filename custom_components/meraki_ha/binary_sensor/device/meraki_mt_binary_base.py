@@ -50,7 +50,10 @@ class MerakiMtBinarySensor(CoordinatorEntity, BinarySensorEntity):
         return DeviceInfo(
             identifiers=device_identifiers,
             name=format_device_name(
-                self._device, self.coordinator.config_entry.options
+                self._device,
+                self.coordinator.config_entry.options
+                if self.coordinator.config_entry
+                else {},
             ),
             model=str(self._device.model),
             manufacturer="Cisco Meraki",
