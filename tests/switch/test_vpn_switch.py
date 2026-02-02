@@ -138,7 +138,7 @@ async def test_vpn_turn_on_off(
     assert switch.is_on is True
     mock_api.appliance.update_vpn_status.assert_called_with(
         network_id="net1",
-        mode="hub",
+        mode="spoke",
     )
 
     await switch.async_turn_off()
