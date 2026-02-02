@@ -90,7 +90,7 @@ def process_coordinator_data(
         config_entry: The config entry.
         data: The raw data from the API (modified in place).
 
-    Returns:
+    Returns
     -------
         A tuple containing:
         - devices_by_serial
