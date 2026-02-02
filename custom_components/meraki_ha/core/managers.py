@@ -2,7 +2,10 @@
 
 from __future__ import annotations
 
+import logging
 from datetime import datetime, timedelta
+
+_LOGGER = logging.getLogger(__name__)
 
 
 class AvailabilityTracker:
@@ -50,3 +53,80 @@ class AvailabilityTracker:
         if network_id not in self._check_timestamps:
             self._check_timestamps[network_id] = {}
         self._check_timestamps[network_id][feature] = datetime.now()
+
+
+class PendingUpdateManager:
+    """Manages pending updates (cooldowns) for entities."""
+
+    def __init__(self) -> None:
+        """Initialize the PendingUpdateManager."""
+        self._pending_updates: dict[str, datetime] = {}
+
+    def register(self, unique_id: str | None, expiry_seconds: int = 150) -> None:
+        """
+        Register a pending update to ignore coordinator data.
+
+        This prevents overwriting an optimistic state with stale data from the
+        Meraki API, which can have a significant provisioning delay.
+
+        Args:
+        ----
+            unique_id: The unique ID of the entity.
+            expiry_seconds: The duration of the cooldown period.
+
+        """
+        if not unique_id:
+            return
+
+        expiry_time = datetime.now() + timedelta(seconds=expiry_seconds)
+        self._pending_updates[unique_id] = expiry_time
+        _LOGGER.debug(
+            "Registered pending update for %s, ignoring coordinator updates until %s",
+            unique_id,
+            expiry_time,
+        )
+
+    def is_pending(self, unique_id: str | None) -> bool:
+        """
+        Check if an entity is in a pending (cooldown) state.
+
+        Args:
+        ----
+            unique_id: The unique ID of the entity.
+
+        Returns
+        -------
+            True if the entity is in a pending state, False otherwise.
+
+        """
+        if not unique_id:
+            return False
+
+        if unique_id not in self._pending_updates:
+            return False
+
+        now = datetime.now()
+        expiry_time = self._pending_updates[unique_id]
+
+        if now > expiry_time:
+            # Cooldown has expired, remove it from the dictionary
+            del self._pending_updates[unique_id]
+            _LOGGER.debug("Pending update expired for %s", unique_id)
+            return False
+
+        # Cooldown is still active
+        _LOGGER.debug("Update for %s is still pending (on cooldown)", unique_id)
+        return True
+
+    def cancel(self, unique_id: str | None) -> None:
+        """
+        Cancel a pending update for a device.
+
+        Args:
+        ----
+            unique_id: The unique ID of the entity.
+
+        """
+        if unique_id and unique_id in self._pending_updates:
+            del self._pending_updates[unique_id]
+            _LOGGER.debug("Cancelled pending update for %s", unique_id)
