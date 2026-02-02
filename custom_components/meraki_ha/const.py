@@ -9,23 +9,15 @@ from __future__ import annotations
 
 from typing import Final
 
+# Re-export constants from sub-modules
+from .const_conf import *  # noqa: F403
+from .const_platform import *  # noqa: F403
+
 DOMAIN: Final = "meraki_ha"
 """Domain for the component."""
 
 MANUFACTURER: Final = "Cisco Meraki"
 """Manufacturer for all Meraki devices."""
-
-CONF_INTEGRATION_TITLE: Final = "Meraki"
-"""Title for the integration."""
-
-CONF_MERAKI_API_KEY: Final = "meraki_api_key"
-"""Configuration key for the Meraki API key."""
-
-CONF_MERAKI_ORG_ID: Final = "meraki_org_id"
-"""Configuration key for the Meraki organization ID."""
-
-CONF_SCAN_INTERVAL: Final = "scan_interval"
-"""Configuration key for the scan interval in seconds."""
 
 DATA_CLIENT: Final = "client"
 """Key for storing the Meraki API client in Home Assistant's data."""
@@ -36,116 +28,11 @@ DATA_COORDINATOR: Final = "coordinator"
 DATA_COORDINATORS: Final = "coordinators"
 """Key for storing the dictionary of all coordinators."""
 
-CONF_IGNORED_NETWORKS: Final = "ignored_networks"
-"""Configuration key for a list of network names to ignore."""
-
-CONF_ENABLED_NETWORKS: Final = "enabled_networks"
-"""Configuration key for a list of network names to enable."""
-
-CONF_HIDE_UNCONFIGURED_SSIDS: Final = "hide_unconfigured_ssids"
-"""Configuration key for hiding unconfigured SSIDs."""
-
-CONF_RTSP_STREAM_ENABLED: Final = "rtsp_stream_enabled"
-"""Configuration key for enabling RTSP stream on a camera."""
-
-CONF_ENABLE_DEVICE_TRACKER: Final = "enable_device_tracker"
-"""Configuration key for enabling device tracker."""
-
-CONF_ENABLE_VLAN_MANAGEMENT: Final = "enable_vlan_management"
-"""Configuration key for enabling vlan management."""
-
-CONF_ENABLE_VPN_MANAGEMENT: Final = "enable_vpn_management"
-"""Configuration key for enabling vlan management."""
-
-CONF_ENABLE_FIREWALL_RULES: Final = "enable_firewall_rules"
-"""Configuration key for enabling firewall rules."""
-
-CONF_ENABLE_TRAFFIC_SHAPING: Final = "enable_traffic_shaping"
-"""Configuration key for enabling traffic shaping."""
-
-# New Configuration Options
-CONF_ENABLE_DEVICE_STATUS: Final = "enable_device_status"
-CONF_ENABLE_ORG_SENSORS: Final = "enable_org_sensors"
-CONF_ENABLE_CAMERA_ENTITIES: Final = "enable_camera_entities"
-CONF_ENABLE_DEVICE_SENSORS: Final = "enable_device_sensors"
-CONF_ENABLE_NETWORK_SENSORS: Final = "enable_network_sensors"
-CONF_ENABLE_VLAN_SENSORS: Final = "enable_vlan_sensors"
-CONF_ENABLE_PORT_SENSORS: Final = "enable_port_sensors"
-CONF_ENABLE_SSID_SENSORS: Final = "enable_ssid_sensors"
-
-DEFAULT_ENABLED_NETWORKS: Final[list[str]] = []
-"""Default value for the ignored networks list."""
-
-DEFAULT_IGNORED_NETWORKS: Final[list[str]] = []
-"""Default value for the ignored networks list."""
-
-DEFAULT_ENABLE_VLAN_MANAGEMENT: Final = False
-"""Default value for enabling vlan management."""
-
-DEFAULT_ENABLE_VPN_MANAGEMENT: Final = False
-"""Default value for enabling vlan management."""
-
-DEFAULT_ENABLE_FIREWALL_RULES: Final = False
-"""Default value for enabling firewall rules."""
-
-DEFAULT_ENABLE_TRAFFIC_SHAPING: Final = False
-"""Default value for enabling traffic shaping."""
-
-DEFAULT_HIDE_UNCONFIGURED_SSIDS: Final = False
-"""Default value for hiding unconfigured SSIDs."""
-
 DATA_SSID_DEVICES_COORDINATOR: Final = "ssid_devices"
 """Key for the SSID devices coordinator."""
 
 MERAKI_API_CLIENT: Final = "meraki_api_client"
 """Key for storing the MerakiAPIClient instance in hass.data."""
-
-DEFAULT_SCAN_INTERVAL: Final = 300
-"""Default scan interval in seconds for the Meraki API data."""
-
-# Defaults for new options
-DEFAULT_ENABLE_DEVICE_STATUS: Final = True
-DEFAULT_ENABLE_ORG_SENSORS: Final = True
-DEFAULT_ENABLE_CAMERA_ENTITIES: Final = True
-DEFAULT_ENABLE_DEVICE_SENSORS: Final = True
-DEFAULT_ENABLE_NETWORK_SENSORS: Final = True
-DEFAULT_ENABLE_VLAN_SENSORS: Final = True
-DEFAULT_ENABLE_PORT_SENSORS: Final = True
-DEFAULT_ENABLE_SSID_SENSORS: Final = True
-
-# Platform types
-PLATFORM_BINARY_SENSOR: Final = "binary_sensor"
-"""Represents the binary_sensor platform."""
-PLATFORM_BUTTON: Final = "button"
-"""Represents the button platform."""
-PLATFORM_SENSOR: Final = "sensor"
-"""Represents the sensor platform."""
-PLATFORM_DEVICE_TRACKER: Final = "device_tracker"
-"""Represents the device_tracker platform."""
-PLATFORM_DEVICE: Final = "device"
-"""Represents a generic device platform."""
-PLATFORM_SWITCH: Final = "switch"
-"""Represents the switch platform."""
-PLATFORM_TEXT: Final = "text"
-"""Represents the text platform."""
-PLATFORM_CAMERA: Final = "camera"
-"""Represents the camera platform."""
-PLATFORM_NUMBER: Final = "number"
-"""Represents the number platform."""
-PLATFORM_SELECT: Final = "select"
-"""Represents the select platform."""
-
-PLATFORMS: Final = [
-    PLATFORM_SENSOR,
-    PLATFORM_BINARY_SENSOR,
-    PLATFORM_BUTTON,
-    PLATFORM_SWITCH,
-    PLATFORM_TEXT,
-    PLATFORM_CAMERA,
-    PLATFORM_NUMBER,
-    PLATFORM_SELECT,
-]
-"""List of platforms supported by the integration."""
 
 # Sensor types (examples, expand as needed)
 SENSOR_CLIENT_COUNT: Final = "client_count"
