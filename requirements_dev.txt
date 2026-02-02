@@ -92,6 +92,7 @@ propcache
 psutil
 psutil-home-assistant
 py-serializable==1.1.2
+pycares==4.11.0
 pycognito==2024.5.1
 pycparser
 pydantic
@@ -109,7 +110,7 @@ pytest-aiohttp
 pytest-asyncio
 pytest-cov
 pytest-github-actions-annotate-failures
-pytest-homeassistant-custom-component>=0.13.195
+pytest-homeassistant-custom-component==0.13.195
 pytest-picked
 pytest-socket
 pytest-sugar

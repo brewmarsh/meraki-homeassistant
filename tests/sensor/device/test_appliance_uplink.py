@@ -50,9 +50,21 @@ def mock_coordinator():
             {
                 "serial": "dev1",
                 "uplinks": [
-                    {"interface": "wan1", "status": "active", "ip": "1.2.3.4"},
-                    {"interface": "wan2", "status": "failed", "ip": "5.6.7.8"},
-                    {"interface": "cellular", "status": "ready", "ip": "9.10.11.12"},
+                    {
+                        "interface": "wan1",
+                        "status": "active",
+                        "ip": "1.2.3.4",
+                    },
+                    {
+                        "interface": "wan2",
+                        "status": "failed",
+                        "ip": "5.6.7.8",
+                    },
+                    {
+                        "interface": "cellular",
+                        "status": "ready",
+                        "ip": "9.10.11.12",
+                    },
                 ],
             }
         ],

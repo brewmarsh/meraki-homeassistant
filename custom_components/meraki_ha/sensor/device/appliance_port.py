@@ -25,6 +25,7 @@ class MerakiAppliancePortSensor(
     """Representation of a Meraki appliance port sensor."""
 
     coordinator: MerakiDataUpdateCoordinator
+
     _attr_entity_category = EntityCategory.DIAGNOSTIC
 
     def __init__(
@@ -45,14 +46,16 @@ class MerakiAppliancePortSensor(
     @property
     def device_info(self) -> DeviceInfo:
         """Return device information."""
-        name = self._device.name
         if self.coordinator.config_entry:
-            name = format_device_name(
-                self._device, self.coordinator.config_entry.options
-            )
+            format_device_name(self._device, self.coordinator.config_entry.options)
         return DeviceInfo(
             identifiers={(DOMAIN, cast(str, self._device.serial))},
-            name=name,
+            name=format_device_name(
+                self._device,
+                self.coordinator.config_entry.options
+                if self.coordinator.config_entry
+                else {},
+            ),
             model=self._device.model,
             manufacturer="Cisco Meraki",
         )
