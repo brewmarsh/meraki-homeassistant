@@ -5,7 +5,7 @@ from __future__ import annotations
 import logging
 
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.helpers.entity import DeviceInfo # Ensure this is imported
+from homeassistant.helpers.entity import DeviceInfo  # Ensure this is imported
 
 from ...coordinator import MerakiDataUpdateCoordinator
 from ...types import MerakiNetwork
