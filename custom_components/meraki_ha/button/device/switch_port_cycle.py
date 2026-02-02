@@ -32,7 +32,7 @@ class MerakiSwitchPortCycleButton(ButtonEntity):
         """Initialize the switch port cycle button."""
         self._service = service
         self._device = device
-        self._port_id = port_info.get("portId") or port_info.get("number")
+        self._port_id = str(port_info.get("portId") or port_info.get("number"))
         self._port_number = self._port_id  # Meraki uses portId as number usually
         self._config_entry = config_entry
 

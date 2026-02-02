@@ -38,6 +38,8 @@ class VlansListSensor(MerakiNetworkEntity, SensorEntity):
     @callback
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
+        if not self._network:
+            return
         vlans = self.coordinator.data.get("vlans", {}).get(self._network.id, [])
         self._vlan_list = [
             vlan.get("name") or f"VLAN {vlan.get('id')}" for vlan in vlans

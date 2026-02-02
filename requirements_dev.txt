@@ -53,7 +53,7 @@ go2rtc-client==0.2.1
 h11
 habluetooth
 home-assistant-bluetooth
-homeassistant==2025.10.0
+homeassistant==2024.12.5
 meraki==1.54.0
 mypy
 mypy_extensions==1.1.0
