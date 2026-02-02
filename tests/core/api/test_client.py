@@ -303,6 +303,7 @@ async def test_build_detail_tasks_for_appliance_device(api_client):
     api_client.appliance.get_network_appliance_settings = MagicMock(
         return_value="task_settings"
     )
+    api_client.appliance.get_appliance_ports = MagicMock(return_value="task_ports")
 
     # Act
     with patch("asyncio.create_task", side_effect=lambda x: x):
@@ -315,6 +316,7 @@ async def test_build_detail_tasks_for_appliance_device(api_client):
     assert tasks[f"l3_firewall_rules_{network_with_appliance.id}"] == "task_firewall"
     assert tasks[f"traffic_shaping_{network_with_appliance.id}"] == "task_shaping"
     assert tasks[f"vpn_status_{network_with_appliance.id}"] == "task_vpn"
+    assert tasks[f"appliance_ports_{network_with_appliance.id}"] == "task_ports"
     assert tasks[f"content_filtering_{network_with_appliance.id}"] == "task_filtering"
 
     # Check device tasks
