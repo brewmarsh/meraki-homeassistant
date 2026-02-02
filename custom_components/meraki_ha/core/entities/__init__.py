@@ -119,7 +119,3 @@ class BaseMerakiEntity(CoordinatorEntity, Entity, ABC):
 
         return True
 
-    @property
-    def entity_category(self) -> EntityCategory | None:
-        """Return the entity category."""
-        return None  # Override in child classes if needed
