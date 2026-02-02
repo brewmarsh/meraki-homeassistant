@@ -5,14 +5,14 @@ from __future__ import annotations
 from unittest.mock import AsyncMock, patch
 
 import pytest
-from homeassistant.core import HomeAssistant
-from homeassistant.helpers.device_registry import async_get as async_get_device_registry
-from homeassistant.helpers.entity_registry import async_get as async_get_entity_registry
-from homeassistant.setup import async_setup_component
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.meraki_ha.const import DOMAIN
 from custom_components.meraki_ha.types import MerakiNetwork  # Combined import
+from homeassistant.core import HomeAssistant
+from homeassistant.helpers.device_registry import async_get as async_get_device_registry
+from homeassistant.helpers.entity_registry import async_get as async_get_entity_registry
+from homeassistant.setup import async_setup_component
 from tests.const import (  # Combined import
     MOCK_DEVICE,
     MOCK_GX_DEVICE,

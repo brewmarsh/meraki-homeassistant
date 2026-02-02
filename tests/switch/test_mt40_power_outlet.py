@@ -3,10 +3,10 @@
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
-from homeassistant.core import HomeAssistant
 
 from custom_components.meraki_ha.switch.mt40_power_outlet import MerakiMt40PowerOutlet
 from custom_components.meraki_ha.types import MerakiDevice
+from homeassistant.core import HomeAssistant
 
 
 @pytest.fixture

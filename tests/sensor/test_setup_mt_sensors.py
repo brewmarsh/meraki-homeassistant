@@ -5,12 +5,12 @@ from typing import Any, cast
 from unittest.mock import MagicMock
 
 import pytest
-from homeassistant.components.binary_sensor import BinarySensorEntity
-from homeassistant.components.sensor import SensorEntity
-from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from custom_components.meraki_ha.discovery.service import DeviceDiscoveryService
 from custom_components.meraki_ha.types import MerakiDevice
+from homeassistant.components.binary_sensor import BinarySensorEntity
+from homeassistant.components.sensor import SensorEntity
+from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 
 @pytest.fixture
@@ -92,7 +92,7 @@ def mock_coordinator_with_mt_devices(mock_coordinator: MagicMock) -> MagicMock:
                 device.water_present = reading.get("water", {}).get("present")
         devices_objects.append(device)
 
-    mock_coordinator.data = {"devices": devices_objects}
+    mock_coordinator.data = {"devices": devices_data}
     mock_coordinator.devices_by_serial = {d.serial: d for d in devices_objects}
 
     # Mock get_device to return the correct device

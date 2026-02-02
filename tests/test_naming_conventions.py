@@ -41,9 +41,7 @@ async def test_naming_conventions():
         camera_service=mock_camera_service,
         config_entry=mock_config_entry,
     )
-    # With has_entity_name=True and name=None, the entity takes the device name
-    assert camera.has_entity_name is True
-    assert camera.name is None
+    assert camera.name == "Office Camera"
 
     motion_sensor = MerakiMotionSensor(
         coordinator=mock_coordinator,

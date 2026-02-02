@@ -78,6 +78,7 @@ class MerakiDevice:
             "dynamicDns": self.dynamic_dns,
             "statusMessages": self.status_messages,
             "applianceUplinkStatuses": self.appliance_uplink_statuses,
+            "entity_id": self.entity_id,
         }
 
     @classmethod
@@ -113,6 +114,7 @@ class MerakiDevice:
             dynamic_dns=data.get("dynamicDns"),
             status_messages=data.get("statusMessages", []),
             appliance_uplink_statuses=data.get("applianceUplinkStatuses", []),
+            entity_id=data.get("entity_id"),
         )
 
 
@@ -128,6 +130,8 @@ class MerakiNetwork:
     tags: list[str] = field(default_factory=list)
     notes: str | None = None
     status_messages: list[str] = field(default_factory=list)
+    is_enabled: bool = True
+    ssids: list[dict[str, Any]] = field(default_factory=list)
 
     def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary."""
@@ -139,6 +143,8 @@ class MerakiNetwork:
             "timeZone": self.time_zone,
             "tags": self.tags,
             "notes": self.notes,
+            "is_enabled": self.is_enabled,
+            "ssids": self.ssids,
         }
 
     @classmethod
@@ -152,6 +158,8 @@ class MerakiNetwork:
             time_zone=data.get("timeZone"),
             tags=data.get("tags", []),
             notes=data.get("notes"),
+            is_enabled=data.get("is_enabled", True),
+            ssids=data.get("ssids", []),
         )
 
 

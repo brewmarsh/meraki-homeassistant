@@ -2,11 +2,10 @@
 
 from unittest.mock import MagicMock
 
-from homeassistant.components.sensor import SensorStateClass
-
 from custom_components.meraki_ha.sensor.network.ssid_client_count import (
     MerakiSSIDClientCountSensor,
 )
+from homeassistant.components.sensor import SensorStateClass
 
 
 async def test_ssid_client_count_sensor() -> None:

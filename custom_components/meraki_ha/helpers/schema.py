@@ -5,9 +5,9 @@ from __future__ import annotations
 from typing import Any
 
 import voluptuous as vol
-from homeassistant.helpers import selector
 
 from custom_components.meraki_ha.const import CONF_IGNORED_NETWORKS
+from homeassistant.helpers import selector
 
 
 def populate_schema_defaults(

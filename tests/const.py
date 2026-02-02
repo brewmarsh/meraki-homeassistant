@@ -105,8 +105,8 @@ MOCK_L7_FIREWALL_RULES = {
 }
 
 MOCK_ALL_DATA = {
-    "networks": [MOCK_NETWORK_INIT],
-    "devices": [MOCK_DEVICE_INIT, MOCK_MX_DEVICE_INIT, MOCK_GX_DEVICE_INIT],
+    "networks": [MOCK_NETWORK],
+    "devices": [MOCK_DEVICE, MOCK_MX_DEVICE, MOCK_GX_DEVICE],
     "ssids": [MOCK_SSID],
     "clients": [],
     "l7_firewall_rules": MOCK_L7_FIREWALL_RULES,

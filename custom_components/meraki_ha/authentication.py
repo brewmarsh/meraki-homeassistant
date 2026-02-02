@@ -10,9 +10,10 @@ from __future__ import annotations
 import logging
 from typing import Any
 
+from meraki.exceptions import APIError as MerakiSDKAPIError
+
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryAuthFailed
-from meraki.exceptions import APIError as MerakiSDKAPIError
 
 from .core.api.client import MerakiAPIClient
 from .core.errors import (
