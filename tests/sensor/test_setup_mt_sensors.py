@@ -62,6 +62,9 @@ def mock_coordinator_with_mt_devices(mock_coordinator: MagicMock) -> MagicMock:
                 {"metric": "power", "power": {"draw": 120.5}},
                 {"metric": "voltage", "voltage": {"level": 120.1}},
                 {"metric": "current", "current": {"draw": 1.0}},
+                {"metric": "powerFactor", "powerFactor": {"percentage": 98.0}},
+                {"metric": "frequency", "frequency": {"level": 60.0}},
+                {"metric": "energy", "energy": {"draw": 500.0}},
             ],
         },
     ]
@@ -80,8 +83,8 @@ def mock_coordinator_with_mt_devices(mock_coordinator: MagicMock) -> MagicMock:
                 device.pm25 = reading.get("pm25", {}).get("concentration")
             elif metric == "power":
                 device.real_power = reading.get("power", {}).get("draw")
-            elif metric == "power_factor":
-                device.power_factor = reading.get("power_factor", {}).get("factor")
+            elif metric == "powerFactor":
+                device.power_factor = reading.get("powerFactor", {}).get("percentage")
             elif metric == "current":
                 device.current = reading.get("current", {}).get("draw")
             elif metric == "voltage":
@@ -308,7 +311,7 @@ async def test_async_setup_mt40_sensors(
         object.__setattr__(entity, "async_write_ha_state", MagicMock())
         cast(CoordinatorEntity, entity)._handle_coordinator_update()
 
-    assert len(entities) == 3
+    assert len(entities) == 6
 
     sensors_by_key: dict[str, Any] = {
         entity.entity_description.key: entity
@@ -343,6 +346,33 @@ async def test_async_setup_mt40_sensors(
     assert current_sensor.translation_key == "current"
     assert current_sensor.native_value == 1.0
     assert current_sensor.available is True
+
+    # Verify Power Factor Sensor
+    pf_sensor = sensors_by_key.get("powerFactor")
+    assert pf_sensor is not None
+    assert isinstance(pf_sensor, SensorEntity)
+    assert pf_sensor.unique_id == "mt40-1_powerFactor"
+    assert pf_sensor.name == "Power Factor"
+    assert pf_sensor.native_value == 98.0
+    assert pf_sensor.available is True
+
+    # Verify Frequency Sensor
+    freq_sensor = sensors_by_key.get("frequency")
+    assert freq_sensor is not None
+    assert isinstance(freq_sensor, SensorEntity)
+    assert freq_sensor.unique_id == "mt40-1_frequency"
+    assert freq_sensor.name == "Frequency"
+    assert freq_sensor.native_value == 60.0
+    assert freq_sensor.available is True
+
+    # Verify Energy Sensor
+    energy_sensor = sensors_by_key.get("energy")
+    assert energy_sensor is not None
+    assert isinstance(energy_sensor, SensorEntity)
+    assert energy_sensor.unique_id == "mt40-1_energy"
+    assert energy_sensor.name == "Energy"
+    assert energy_sensor.native_value == 500.0
+    assert energy_sensor.available is True
 
 
 async def test_availability(mock_coordinator_with_mt_devices: MagicMock) -> None:

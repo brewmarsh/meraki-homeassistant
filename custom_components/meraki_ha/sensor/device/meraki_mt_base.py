@@ -86,8 +86,10 @@ class MerakiMtSensor(CoordinatorEntity, RestoreSensor):
             return
 
         for reading in readings:
-            if reading.get("metric") == key:
-                metric_data = reading.get(key)
+            metric = reading.get("metric")
+            # Handle mismatch between API metric name and entity key
+            if metric == key or (key == "realPower" and metric == "power"):
+                metric_data = reading.get(metric)
                 if isinstance(metric_data, dict):
                     # Map metric keys to the nested dictionary key that holds the value
                     key_map = {
@@ -96,6 +98,7 @@ class MerakiMtSensor(CoordinatorEntity, RestoreSensor):
                         "humidity": "relativePercentage",
                         "tvoc": "concentration",
                         "co2": "concentration",
+                        "pm25": "concentration",
                         "water": "present",
                         "button": "pressType",
                         # MT40 Power Monitoring
@@ -116,6 +119,13 @@ class MerakiMtSensor(CoordinatorEntity, RestoreSensor):
                             self._attr_native_value = self._maybe_get_value(
                                 metric_data.get("draw")
                             )
+                        return
+
+                    # Special case for noise (nested structure)
+                    if key == "noise":
+                        self._attr_native_value = self._maybe_get_value(
+                            metric_data.get("ambient", {}).get("level")
+                        )
                         return
 
     @callback
