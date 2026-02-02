@@ -52,13 +52,21 @@ def handle_meraki_errors(
             # Inspect return type to provide a safe empty value
             sig = inspect.signature(func)
             return_type = sig.return_annotation
-            if return_type is list or getattr(return_type, "__origin__", None) in (
-                list,
-                list,
-            ):
+            if return_type is list or getattr(return_type, "__origin__", None) is list:
                 return cast(T, [])
             return cast(T, {})
         except APIError as err:
+            error_msg = str(err)
+            if getattr(err, "status", None) == 400 and (
+                "Traffic Analysis with Hostname Visibility must be enabled" in error_msg
+                or "VLANs are not enabled" in error_msg
+            ):
+                _LOGGER.info("Meraki feature disabled (skipping): %s", error_msg)
+                sig = inspect.signature(func)
+                return_type = sig.return_annotation
+                if return_type is list or getattr(return_type, "__origin__", None) is list:
+                    return cast(T, [])
+                return cast(T, {})
             if _is_informational_error(err):
                 raise MerakiInformationalError(f"Informational error: {err}") from err
 
