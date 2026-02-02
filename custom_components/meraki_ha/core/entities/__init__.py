@@ -1,5 +1,6 @@
 """Base entity classes for the Meraki integration."""
 
+import logging
 from abc import ABC
 
 from homeassistant.config_entries import ConfigEntry
@@ -13,6 +14,8 @@ from ...const import (
     MANUFACTURER,
 )
 from ...coordinator import MerakiDataUpdateCoordinator
+
+_LOGGER = logging.getLogger(__name__)
 
 
 class BaseMerakiEntity(CoordinatorEntity, Entity, ABC):
@@ -51,6 +54,14 @@ class BaseMerakiEntity(CoordinatorEntity, Entity, ABC):
         self._network_id = network_id
         self._attr_has_entity_name = True
         self._network = self.coordinator.get_network(network_id) if network_id else None
+        _LOGGER.debug(
+            "Naming Debug - Entity: %s | Class: %s | has_entity_name: %s | _attr_name: %s | Device Identifiers: %s",
+            self.entity_id if hasattr(self, "entity_id") else "New Entity",
+            self.__class__.__name__,
+            getattr(self, "_attr_has_entity_name", "Not Set"),
+            getattr(self, "_attr_name", "None"),
+            self.device_info.get("identifiers") if self.device_info else "NO DEVICE INFO",
+        )
 
     @property
     def device_info(self) -> DeviceInfo | None:
