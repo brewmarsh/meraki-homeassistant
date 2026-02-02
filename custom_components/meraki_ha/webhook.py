@@ -7,7 +7,6 @@ from typing import TYPE_CHECKING
 from urllib.parse import urlparse
 
 from aiohttp import web
-
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.network import NoURLAvailableError, get_url
 
@@ -73,9 +72,11 @@ def get_webhook_url(
 
     # Ensure the URL uses HTTPS
     if not base_url.startswith("https://"):
-        raise MerakiConnectionError(
-            "Meraki webhooks require HTTPS. Please configure an HTTPS URL.",
+        _LOGGER.warning(
+            "Meraki webhooks require HTTPS. Webhook registration skipped. "
+            "The integration will run in polling-only mode."
         )
+        return None
 
     # Parse the URL to check if it's a local address
     parsed = urlparse(base_url)
@@ -125,8 +126,6 @@ async def async_register_webhook(
             config_entry_id = entry.entry_id
         if webhook_url and config_entry_id:
             await api_client.register_webhook(webhook_url, secret, config_entry_id)
-        elif not webhook_url:
-            _LOGGER.error("Could not register webhook, no URL available")
     except Exception:
         _LOGGER.error("Failed to register webhook", exc_info=True)
 

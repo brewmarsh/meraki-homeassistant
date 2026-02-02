@@ -3,10 +3,10 @@
 from unittest.mock import AsyncMock, patch
 
 import pytest
+from homeassistant.core import HomeAssistant
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.meraki_ha.webhook import async_register_webhook
-from homeassistant.core import HomeAssistant
 
 
 @pytest.fixture

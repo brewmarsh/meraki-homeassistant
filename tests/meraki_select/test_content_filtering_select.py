@@ -3,11 +3,11 @@
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
+from homeassistant.core import HomeAssistant
+from homeassistant.setup import async_setup_component
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.meraki_ha.const import DOMAIN
-from homeassistant.core import HomeAssistant
-from homeassistant.setup import async_setup_component
 from tests.const import MOCK_NETWORK
 
 
@@ -23,13 +23,17 @@ def mock_config_entry() -> MockConfigEntry:
 
 
 @pytest.fixture
-def mock_meraki_client() -> MagicMock:
+def mock_meraki_client() -> AsyncMock:
     """Fixture for a mocked MerakiAPIClient."""
-    client = MagicMock()
+    client = AsyncMock()
     # Ensure network data is consistent
     network_id = MOCK_NETWORK.id
 
     from custom_components.meraki_ha.types import MerakiDevice
+
+    # Mock the appliance object (must be MagicMock for attribute access)
+    client.appliance = MagicMock()
+    client.appliance.update_network_appliance_content_filtering = AsyncMock()
 
     client.get_all_data = AsyncMock(
         return_value={
@@ -54,9 +58,6 @@ def mock_meraki_client() -> MagicMock:
         }
     )
     client.unregister_webhook = AsyncMock(return_value=None)
-    # Mock the update method
-    client.appliance = MagicMock()
-    client.appliance.update_network_appliance_content_filtering = AsyncMock()
     client.appliance.get_network_appliance_content_filtering_categories = AsyncMock(
         return_value={
             "categories": [

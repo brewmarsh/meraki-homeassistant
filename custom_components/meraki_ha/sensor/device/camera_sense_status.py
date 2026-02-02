@@ -22,10 +22,12 @@ if TYPE_CHECKING:
 _LOGGER = logging.getLogger(__name__)
 
 
-class MerakiCameraSenseStatusSensor(CoordinatorEntity, SensorEntity):
-    coordinator: MerakiDataUpdateCoordinator
+class MerakiCameraSenseStatusSensor(
+    CoordinatorEntity[MerakiDataUpdateCoordinator], SensorEntity
+):
     """Representation of a Meraki Camera Sense Status sensor."""
 
+    coordinator: MerakiDataUpdateCoordinator
     _attr_has_entity_name = True
     _attr_entity_category = EntityCategory.DIAGNOSTIC
 

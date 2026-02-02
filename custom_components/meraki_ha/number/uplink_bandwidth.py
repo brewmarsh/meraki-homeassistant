@@ -47,7 +47,7 @@ class MerakiUplinkBandwidthNumber(MerakiNetworkEntity, NumberEntity):
 
     def _update_internal_state(self) -> None:
         """Update the internal state of the number."""
-        if self.coordinator.is_pending(self.unique_id):
+        if self.unique_id and self.coordinator.is_pending(self.unique_id):
             _LOGGER.debug(
                 "Not updating state for %s because a pending update is registered",
                 self.unique_id,
@@ -72,7 +72,8 @@ class MerakiUplinkBandwidthNumber(MerakiNetworkEntity, NumberEntity):
         """Update the current value."""
         self._attr_native_value = value
         self.async_write_ha_state()
-        self.coordinator.register_pending_update(self.unique_id)
+        if self.unique_id:
+            self.coordinator.register_pending_update(self.unique_id)
         traffic_shaping = self.coordinator.data.get("traffic_shaping", {}).get(
             self._network_id, {}
         )

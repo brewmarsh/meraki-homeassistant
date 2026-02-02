@@ -8,7 +8,6 @@ from pytest_homeassistant_custom_component.common import MockConfigEntry
 from custom_components.meraki_ha.const import (
     CONF_MERAKI_API_KEY,
     CONF_MERAKI_ORG_ID,
-    DOMAIN,
 )
 from custom_components.meraki_ha.coordinator import (
     MerakiDataUpdateCoordinator as MerakiDataCoordinator,
@@ -28,11 +27,13 @@ def mock_api_client():
 def coordinator(hass, mock_api_client):
     """Fixture for a MerakiDataCoordinator instance."""
     entry = MockConfigEntry(
-        domain=DOMAIN,
+        domain="meraki_ha",
         data={CONF_MERAKI_API_KEY: "test-key", CONF_MERAKI_ORG_ID: "test-org"},
         options={},
+        entry_id="test_entry_id",
     )
     entry.add_to_hass(hass)
+
     with patch(
         "custom_components.meraki_ha.coordinator.ApiClient",
         return_value=mock_api_client,
@@ -60,11 +61,14 @@ async def test_update_data_handles_errors(coordinator, mock_api_client):
     coordinator.mark_vlan_check_done = MagicMock()
 
     # Act
-    data = await coordinator._async_update_data()
+    await coordinator._async_update_data()
 
     # Assert
-    assert data["appliance_traffic"][MOCK_NETWORK.id]["error"] == "disabled"
-    assert (
-        data["appliance_traffic"][MOCK_NETWORK.id]["reason"]
-        == "Traffic analysis is not enabled"
+    coordinator.add_network_status_message.assert_any_call(
+        MOCK_NETWORK.id, "Traffic Analysis is not enabled for this network."
     )
+    coordinator.mark_traffic_check_done.assert_called_once_with(MOCK_NETWORK.id)
+    coordinator.add_network_status_message.assert_any_call(
+        MOCK_NETWORK.id, "VLANs are not enabled for this network."
+    )
+    coordinator.mark_vlan_check_done.assert_called_once_with(MOCK_NETWORK.id)
