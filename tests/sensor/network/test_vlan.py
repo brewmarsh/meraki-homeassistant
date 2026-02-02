@@ -61,6 +61,13 @@ def mock_coordinator():
         "clients": [],
         "ssids": [],
     }
+
+    def get_network_by_id(network_id):
+        if network_id == mock_network.id:
+            return mock_network
+        return None
+
+    coordinator.get_network = get_network_by_id
     return coordinator
 
 
@@ -85,7 +92,9 @@ async def test_vlan_sensor_creation(mock_coordinator):
     assert len(vlan_sensors) == 14
 
     # Filter for sensors of the first VLAN
-    vlan1_sensors = [s for s in vlan_sensors if s.device_info["name"] == "VLAN 1"]
+    vlan1_sensors = [
+        s for s in vlan_sensors if s.device_info["name"] == "Test Network VLAN 1 VLAN 1"
+    ]
     assert len(vlan1_sensors) == 7
 
     # Find the specific sensors for VLAN 1 by translation_key
@@ -113,7 +122,7 @@ async def test_vlan_sensor_creation(mock_coordinator):
     assert id_sensor.unique_id == "meraki_vlan_net1_1_vlan_id"
     # assert id_sensor.name == "VLAN ID" # Cannot access name without platform
     assert id_sensor.native_value == 1
-    assert id_sensor.device_info["name"] == "VLAN 1"
+    assert id_sensor.device_info["name"] == "Test Network VLAN 1 VLAN 1"
 
     # Assertions for IPv4 Enabled Sensor
     assert ipv4_enabled_sensor.unique_id == "meraki_vlan_net1_1_ipv4_enabled"

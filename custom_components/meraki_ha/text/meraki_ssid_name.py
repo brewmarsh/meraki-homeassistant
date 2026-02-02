@@ -21,6 +21,8 @@ _LOGGER = logging.getLogger(__name__)
 class MerakiSSIDNameText(CoordinatorEntity, TextEntity):
     """Representation of a Meraki SSID Name text entity."""
 
+    coordinator: MerakiDataUpdateCoordinator
+
     _attr_mode = TextMode.TEXT  # Or TextMode.PASSWORD if it were a password
     entity_category = EntityCategory.CONFIG
     _attr_has_entity_name = True

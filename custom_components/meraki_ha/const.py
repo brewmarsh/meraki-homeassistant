@@ -132,6 +132,8 @@ PLATFORM_CAMERA: Final = "camera"
 """Represents the camera platform."""
 PLATFORM_NUMBER: Final = "number"
 """Represents the number platform."""
+PLATFORM_SELECT: Final = "select"
+"""Represents the select platform."""
 
 PLATFORMS: Final = [
     PLATFORM_SENSOR,
@@ -141,6 +143,7 @@ PLATFORMS: Final = [
     PLATFORM_TEXT,
     PLATFORM_CAMERA,
     PLATFORM_NUMBER,
+    PLATFORM_SELECT,
 ]
 """List of platforms supported by the integration."""
 

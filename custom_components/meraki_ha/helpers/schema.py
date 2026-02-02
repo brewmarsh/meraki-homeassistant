@@ -47,7 +47,7 @@ def populate_schema_defaults(
             and network_options is not None
         ):
             new_config = value.config.copy()
-            new_config["options"] = network_options
+            new_config["options"] = network_options  # type: ignore[typeddict-item]
             value = selector.SelectSelector(new_config)
 
         new_schema_keys[key] = value

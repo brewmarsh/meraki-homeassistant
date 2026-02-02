@@ -1,6 +1,7 @@
 """Base class for Meraki MT binary sensor entities."""
 
 import logging
+from typing import cast
 
 from homeassistant.components.binary_sensor import (
     BinarySensorEntity,
@@ -8,6 +9,7 @@ from homeassistant.components.binary_sensor import (
 )
 from homeassistant.core import callback
 from homeassistant.helpers.device_registry import DeviceInfo
+from homeassistant.helpers.typing import UNDEFINED
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from ...const import DOMAIN
@@ -21,6 +23,8 @@ _LOGGER = logging.getLogger(__name__)
 class MerakiMtBinarySensor(CoordinatorEntity, BinarySensorEntity):
     """Representation of a Meraki MT binary sensor."""
 
+    coordinator: MerakiDataCoordinator
+
     def __init__(
         self,
         coordinator: MerakiDataCoordinator,
@@ -33,7 +37,8 @@ class MerakiMtBinarySensor(CoordinatorEntity, BinarySensorEntity):
         self.entity_description = entity_description
         self._attr_unique_id = f"{self._device.serial}_{self.entity_description.key}"
         self._attr_has_entity_name = True
-        self._attr_name = self.entity_description.name
+        if self.entity_description.name is not UNDEFINED:
+            self._attr_name = cast(str | None, self.entity_description.name)
 
     @property
     def device_info(self) -> DeviceInfo:
@@ -45,7 +50,10 @@ class MerakiMtBinarySensor(CoordinatorEntity, BinarySensorEntity):
         return DeviceInfo(
             identifiers=device_identifiers,
             name=format_device_name(
-                self._device, self.coordinator.config_entry.options
+                self._device,
+                self.coordinator.config_entry.options
+                if self.coordinator.config_entry
+                else {},
             ),
             model=str(self._device.model),
             manufacturer="Cisco Meraki",
