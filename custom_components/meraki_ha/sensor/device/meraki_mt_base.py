@@ -72,45 +72,51 @@ class MerakiMtSensor(CoordinatorEntity, RestoreSensor):
         self._attr_native_value = None
         key = self.entity_description.key
 
-        if key == "noise":
-            self._attr_native_value = self._maybe_get_value(self._device.ambient_noise)
-        elif key == "pm25":
-            self._attr_native_value = self._maybe_get_value(self._device.pm25)
-        elif key in ("power", "realPower"):
-            self._attr_native_value = self._maybe_get_value(self._device.real_power)
-        elif key == "power_factor":
-            self._attr_native_value = self._maybe_get_value(self._device.power_factor)
-        elif key == "current":
-            self._attr_native_value = self._maybe_get_value(self._device.current)
-        elif key == "voltage":
-            self._attr_native_value = self._maybe_get_value(self._device.voltage)
-        elif key == "door":
-            self._attr_native_value = self._maybe_get_value(self._device.door_open)
-        else:
-            readings = self._device.readings
-            if not readings or not isinstance(readings, list):
-                return
+        readings = self._device.readings
+        if not readings or not isinstance(readings, list):
+            # Fallback for older MT devices that don't use the readings structure
+            if key == "noise":
+                self._attr_native_value = self._maybe_get_value(
+                    self._device.ambient_noise
+                )
+            elif key == "pm25":
+                self._attr_native_value = self._maybe_get_value(self._device.pm25)
+            elif key == "door":
+                self._attr_native_value = self._maybe_get_value(self._device.door_open)
+            return
 
-            for reading in readings:
-                if reading.get("metric") == key:
-                    metric_data = reading.get(key)
-                    if isinstance(metric_data, dict):
-                        key_map = {
-                            "battery": "percentage",
-                            "temperature": "celsius",
-                            "humidity": "relativePercentage",
-                            "tvoc": "concentration",
-                            "co2": "concentration",
-                            "water": "present",
-                            "voltage": "level",
-                            "button": "pressType",
-                        }
-                        value_key = key_map.get(key)
-                        if value_key:
+        for reading in readings:
+            if reading.get("metric") == key:
+                metric_data = reading.get(key)
+                if isinstance(metric_data, dict):
+                    # Map metric keys to the nested dictionary key that holds the value
+                    key_map = {
+                        "battery": "percentage",
+                        "temperature": "celsius",
+                        "humidity": "relativePercentage",
+                        "tvoc": "concentration",
+                        "co2": "concentration",
+                        "water": "present",
+                        "button": "pressType",
+                        # MT40 Power Monitoring
+                        "realPower": "draw",
+                        "current": "draw",
+                        "voltage": "level",  # fallback to draw if level is missing
+                        "powerFactor": "percentage",
+                        "frequency": "level",
+                        "energy": "draw",
+                    }
+                    value_key = key_map.get(key)
+                    if value_key:
+                        self._attr_native_value = self._maybe_get_value(
+                            metric_data.get(value_key)
+                        )
+                        # Special case for voltage fallback
+                        if key == "voltage" and self._attr_native_value is None:
                             self._attr_native_value = self._maybe_get_value(
-                                metric_data.get(value_key)
+                                metric_data.get("draw")
                             )
-                            return
+                        return
 
     @callback
     def _handle_coordinator_update(self) -> None:
