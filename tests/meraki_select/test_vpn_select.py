@@ -33,6 +33,10 @@ def mock_meraki_client() -> MagicMock:
 
     from custom_components.meraki_ha.types import MerakiDevice
 
+    # Mock the appliance object (must be MagicMock for attribute access)
+    client.appliance = MagicMock()
+    client.appliance.update_vpn_status = AsyncMock()
+
     client.get_all_data = AsyncMock(
         return_value={
             "devices": [

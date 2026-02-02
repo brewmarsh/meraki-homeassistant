@@ -44,6 +44,8 @@ class MerakiAppliancePortSensor(CoordinatorEntity, SensorEntity):
     @property
     def device_info(self) -> DeviceInfo:
         """Return device information."""
+        if self.coordinator.config_entry:
+            format_device_name(self._device, self.coordinator.config_entry.options)
         return DeviceInfo(
             identifiers={(DOMAIN, cast(str, self._device.serial))},
             name=format_device_name(
@@ -59,6 +61,8 @@ class MerakiAppliancePortSensor(CoordinatorEntity, SensorEntity):
     @callback
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
+        if not self._device.serial:
+            return
         device = self.coordinator.get_device(self._device.serial)
         if device:
             self._device = device

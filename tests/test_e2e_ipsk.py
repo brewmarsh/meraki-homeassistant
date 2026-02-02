@@ -1,6 +1,7 @@
 """End-to-end integration tests for IPSK functionality."""
 
 import logging
+import uuid
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
@@ -93,7 +94,6 @@ def real_client_with_mock_dashboard(hass):
 
     # Mock the run_sync method to bypass the thread executor and just return the result
     # of the callable because we want to inspect the call to the dashboard method.
-    import uuid
 
     async def mock_run_sync(func, *args, **kwargs):
         # We call the func directly, but since dashboard methods are usually sync in the

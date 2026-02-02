@@ -58,9 +58,10 @@ class MerakiRtspUrlSensor(CoordinatorEntity, SensorEntity):
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
         # Find the updated device data from the coordinator's payload
-        device = self.coordinator.get_device(self._device_data.serial)
-        if device:
-            self._device_data = device
+        if self._device_data.serial:
+            device = self.coordinator.get_device(self._device_data.serial)
+            if device:
+                self._device_data = device
         self._update_state()
         self.async_write_ha_state()
 

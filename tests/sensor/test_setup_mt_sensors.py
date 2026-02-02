@@ -101,9 +101,6 @@ def mock_coordinator_with_mt_devices(mock_coordinator: MagicMock) -> MagicMock:
 
     mock_coordinator.get_device.side_effect = get_device
 
-    # Ensure data are objects
-    assert all(isinstance(d, MerakiDevice) for d in devices_objects)
-
     return mock_coordinator
 
 

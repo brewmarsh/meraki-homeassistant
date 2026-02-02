@@ -61,12 +61,14 @@ class MerakiMt40PowerOutlet(
     @callback
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
+        if not self._device_info.serial:
+            return
         device: MerakiDevice | None = self.coordinator.get_device(
             serial=self._device_info.serial
         )
         if device:
             self._device_info = device
-            if not self.coordinator.is_pending(self.unique_id):
+            if self.unique_id and not self.coordinator.is_pending(self.unique_id):
                 self._attr_is_on = self._get_power_state()
             self.async_write_ha_state()
         else:
@@ -102,7 +104,8 @@ class MerakiMt40PowerOutlet(
         """
         self._attr_is_on = True
         self.async_write_ha_state()
-        self.coordinator.register_pending_update(self.unique_id)
+        if self.unique_id:
+            self.coordinator.register_pending_update(self.unique_id)
 
         try:
             if self._device_info.serial is None:
@@ -113,7 +116,8 @@ class MerakiMt40PowerOutlet(
             )
         except Exception as e:
             _LOGGER.error("Error turning on MT40 outlet %s: %s", self.unique_id, e)
-            self.coordinator.cancel_pending_update(self.unique_id)
+            if self.unique_id:
+                self.coordinator.cancel_pending_update(self.unique_id)
 
     async def async_turn_off(self, **kwargs: Any) -> None:
         """
@@ -126,7 +130,8 @@ class MerakiMt40PowerOutlet(
         """
         self._attr_is_on = False
         self.async_write_ha_state()
-        self.coordinator.register_pending_update(self.unique_id)
+        if self.unique_id:
+            self.coordinator.register_pending_update(self.unique_id)
 
         try:
             if self._device_info.serial is None:
@@ -137,7 +142,8 @@ class MerakiMt40PowerOutlet(
             )
         except Exception as e:
             _LOGGER.error("Error turning off MT40 outlet %s: %s", self.unique_id, e)
-            self.coordinator.cancel_pending_update(self.unique_id)
+            if self.unique_id:
+                self.coordinator.cancel_pending_update(self.unique_id)
 
     @property
     def available(self) -> bool:

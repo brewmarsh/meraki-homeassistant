@@ -47,19 +47,21 @@ class MerakiAnalyticsSensor(CoordinatorEntity, SensorEntity):
     @property
     def native_value(self) -> int | None:
         """Return the state of the sensor."""
-        device = self.coordinator.get_device(self._device.serial)
-        if device and device.analytics:
-            for reading in device.analytics:
-                if reading.get("zoneId") == 0:  # Assuming zone 0 is the entire frame
-                    return reading.get(f"{self._object_type}_count", 0)
+        if self._device.serial:
+            device = self.coordinator.get_device(self._device.serial)
+            if device and device.analytics:
+                for reading in device.analytics:
+                    if reading.get("zoneId") == 0:  # Zone 0 is the entire frame
+                        return reading.get(f"{self._object_type}_count", 0)
         return 0
 
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
         """Return the state attributes."""
-        device = self.coordinator.get_device(self._device.serial)
-        if device and device.analytics:
-            return {"raw_data": device.analytics}
+        if self._device.serial:
+            device = self.coordinator.get_device(self._device.serial)
+            if device and device.analytics:
+                return {"raw_data": device.analytics}
         return {}
 
 

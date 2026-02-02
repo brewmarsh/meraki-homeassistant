@@ -111,6 +111,7 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         """
         if not unique_id:
             return
+
         expiry_time = datetime.now() + timedelta(seconds=expiry_seconds)
         self._pending_updates[unique_id] = expiry_time
         _LOGGER.debug(
@@ -132,7 +133,10 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             True if the entity is in a pending state, False otherwise.
 
         """
-        if not unique_id or unique_id not in self._pending_updates:
+        if not unique_id:
+            return False
+
+        if unique_id not in self._pending_updates:
             return False
 
         now = datetime.now()
@@ -150,7 +154,7 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
     def cancel_pending_update(self, unique_id: str | None) -> None:
         """
-        Cancel a pending update for an entity.
+        Cancel a pending update for a device.
 
         Args:
         ----
@@ -193,6 +197,7 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 for d in devices_raw
             ]
             self.devices_by_serial = {d.serial: d for d in devices if d.serial}
+            data["devices"] = devices
 
             networks_raw = data.get("networks", [])
             networks = [
@@ -200,6 +205,7 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 for n in networks_raw
             ]
             self.networks_by_id = {n.id: n for n in networks if n.id}
+            data["networks"] = networks
 
             # Pre-register network devices to avoid "referencing a non existing
             # via_device" warnings when downstream entities (like VLANs) initialize.
@@ -207,6 +213,11 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
             if self.config_entry is None:
                 raise UpdateFailed("Config entry is missing during update")
+
+            if self.data:
+                for key, value in self.data.items():
+                    if isinstance(value, str):
+                        self.data[key] = value.strip()
 
             for network in networks:
                 if not network.id:
@@ -220,7 +231,7 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 )
 
             self.ssids_by_network_and_number = {
-                (s.get("networkId"), s.get("number")): s
+                (cast(str, s.get("networkId")), int(s.get("number"))): s
                 for s in data.get("ssids", [])
                 if s.get("networkId") and s.get("number") is not None
             }

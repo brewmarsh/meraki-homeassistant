@@ -47,6 +47,8 @@ class MerakiMtBinarySensor(CoordinatorEntity, BinarySensorEntity):
         if self._device.serial:
             device_identifiers = {(DOMAIN, str(self._device.serial))}
 
+        if self.coordinator.config_entry:
+            format_device_name(self._device, self.coordinator.config_entry.options)
         return DeviceInfo(
             identifiers=device_identifiers,
             name=format_device_name(
@@ -89,6 +91,12 @@ class MerakiMtBinarySensor(CoordinatorEntity, BinarySensorEntity):
                     if value_key:
                         val = metric_data.get(value_key)
                         if isinstance(val, bool):
+                            last_reported = metric_data.get("last_reported")
+                            self._attr_extra_state_attributes = {
+                                "last_reported": str(last_reported)
+                                if last_reported is not None
+                                else None,
+                            }
                             return val
         return None
 
