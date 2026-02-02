@@ -4,7 +4,9 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from custom_components.meraki_ha.core.entities.meraki_vlan_entity import MerakiVLANEntity
+from custom_components.meraki_ha.core.entities.meraki_vlan_entity import (
+    MerakiVLANEntity,
+)
 from custom_components.meraki_ha.types import MerakiNetwork
 
 
@@ -51,6 +53,7 @@ def test_camera_naming(mock_coordinator):
 
     config_entry = MagicMock()
     config_entry.options = {}
+    mock_coordinator.config_entry = config_entry
 
     device = MerakiDevice(
         serial="Q2XX-YYYY-YYYY",
