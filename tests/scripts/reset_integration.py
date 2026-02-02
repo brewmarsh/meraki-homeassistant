@@ -83,7 +83,7 @@ async def delete_existing_entries(session):
 
         for entry in meraki_entries:
             entry_id = entry["entry_id"]
-            logger.info(f"Deleting entry {entry_id}...")
+            logger.info(f"Removed existing Meraki HA configuration ({entry_id}).")
             async with session.delete(f"{url}/{entry_id}") as del_resp:
                 if del_resp.status != 200:
                     logger.error(f"Failed to delete entry: {del_resp.status}")
@@ -244,8 +244,8 @@ async def main():
     """  # noqa: D205
     async with aiohttp.ClientSession(headers=HEADERS) as session:
         # --- Stop Delete Existing Entries ---
-        #        if not await delete_existing_entries(session):
-        #            sys.exit(1)
+        if not await delete_existing_entries(session):
+            sys.exit(1)
         if not await restart_and_wait(session):
             sys.exit(1)
         # Added Diagnostic Step:
