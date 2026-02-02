@@ -89,14 +89,13 @@ async def test_discover_entities_delegates_to_handler(
         MockMRHandler.return_value = mock_mr_handler_instance
         MockMVHandler.return_value = mock_mv_handler_instance
 
-        # Setup Network and SSID handlers to return async mocks
-        mock_network_handler = MagicMock()
-        mock_network_handler.discover_entities = AsyncMock(return_value=[])
-        MockNetworkHandler.create.return_value = mock_network_handler
+        mock_network_handler_instance = MagicMock()
+        mock_network_handler_instance.discover_entities = AsyncMock(return_value=[])
+        MockNetworkHandler.create.return_value = mock_network_handler_instance
 
-        mock_ssid_handler = MagicMock()
-        mock_ssid_handler.discover_entities = AsyncMock(return_value=[])
-        MockSSIDHandler.create.return_value = mock_ssid_handler
+        mock_ssid_handler_instance = MagicMock()
+        mock_ssid_handler_instance.discover_entities = AsyncMock(return_value=[])
+        MockSSIDHandler.create.return_value = mock_ssid_handler_instance
 
         # Set __name__ for logging
         MockMRHandler.configure_mock(__name__="MRHandler")
