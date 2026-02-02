@@ -319,6 +319,11 @@ class MerakiAPIClient:
                             self.appliance.get_vpn_status(network_id),
                         )
                     )
+                detail_tasks[f"appliance_ports_{network_id}"] = asyncio.create_task(
+                    self._run_with_semaphore(
+                        self.appliance.get_appliance_ports(network_id),
+                    )
+                )
                 detail_tasks[f"content_filtering_{network_id}"] = asyncio.create_task(
                     self._run_with_semaphore(
                         self.appliance.get_network_appliance_content_filtering(
@@ -540,6 +545,12 @@ class MerakiAPIClient:
                     device.ports_statuses = prev_device["ports_statuses"]
 
             elif product_type == "appliance":
+                if ports := detail_data.get(f"appliance_ports_{device.network_id}"):
+                    if isinstance(ports, list):
+                        device.appliance_ports = ports
+                elif prev_device and "appliance_ports" in prev_device:
+                    device.appliance_ports = prev_device["appliance_ports"]
+
                 if settings := detail_data.get(
                     f"appliance_settings_{device.serial}",
                 ):
