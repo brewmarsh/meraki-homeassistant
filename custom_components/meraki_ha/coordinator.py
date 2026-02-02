@@ -193,6 +193,7 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 for d in devices_raw
             ]
             self.devices_by_serial = {d.serial: d for d in devices if d.serial}
+            data["devices"] = devices
 
             networks_raw = data.get("networks", [])
             networks = [
@@ -200,6 +201,7 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 for n in networks_raw
             ]
             self.networks_by_id = {n.id: n for n in networks if n.id}
+            data["networks"] = networks
 
             # Pre-register network devices to avoid "referencing a non existing
             # via_device" warnings when downstream entities (like VLANs) initialize.
