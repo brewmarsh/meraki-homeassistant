@@ -59,6 +59,7 @@ class MerakiCamera(CoordinatorEntity, Camera):
     """
 
     _attr_brand = "Cisco Meraki"
+    _attr_has_entity_name = True
 
     coordinator: MerakiDataUpdateCoordinator
 
@@ -77,9 +78,7 @@ class MerakiCamera(CoordinatorEntity, Camera):
         self._device_serial = device.serial or ""
         self._camera_service = camera_service
         self._attr_unique_id = f"{self._device_serial}-camera"
-        self._attr_name = format_device_name(
-            device, self.coordinator.config_entry.options
-        )
+        self._attr_name = None
         self._attr_model = self.device_data.model
 
     @property

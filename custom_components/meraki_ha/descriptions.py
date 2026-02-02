@@ -15,10 +15,37 @@ from homeassistant.const import (
     PERCENTAGE,
     UnitOfElectricCurrent,
     UnitOfElectricPotential,
+    UnitOfEnergy,
+    UnitOfFrequency,
     UnitOfPower,
     UnitOfSoundPressure,
     UnitOfTemperature,
 )
+
+MT_POWER_FACTOR_DESCRIPTION = SensorEntityDescription(
+    key="powerFactor",
+    name="Power Factor",
+    device_class=SensorDeviceClass.POWER_FACTOR,
+    state_class=SensorStateClass.MEASUREMENT,
+    native_unit_of_measurement=PERCENTAGE,
+)
+
+MT_FREQUENCY_DESCRIPTION = SensorEntityDescription(
+    key="frequency",
+    name="Frequency",
+    device_class=SensorDeviceClass.FREQUENCY,
+    state_class=SensorStateClass.MEASUREMENT,
+    native_unit_of_measurement=UnitOfFrequency.HERTZ,
+)
+
+MT_ENERGY_DESCRIPTION = SensorEntityDescription(
+    key="energy",
+    name="Energy",
+    device_class=SensorDeviceClass.ENERGY,
+    state_class=SensorStateClass.TOTAL_INCREASING,
+    native_unit_of_measurement=UnitOfEnergy.KILO_WATT_HOUR,
+)
+
 
 # Descriptions for individual sensor metrics
 MT_TEMPERATURE_DESCRIPTION = SensorEntityDescription(
@@ -157,6 +184,9 @@ MT_SENSOR_MODELS = {
         MT_POWER_DESCRIPTION,
         MT_VOLTAGE_DESCRIPTION,
         MT_CURRENT_DESCRIPTION,
+        MT_POWER_FACTOR_DESCRIPTION,
+        MT_FREQUENCY_DESCRIPTION,
+        MT_ENERGY_DESCRIPTION,
     ],
 }
 
