@@ -72,6 +72,12 @@ async def test_discover_entities_delegates_to_handler(
     mock_mv_handler_instance = MagicMock()
     mock_mv_handler_instance.discover_entities = AsyncMock(return_value=["mv_entity"])
 
+    mock_network_handler_instance = MagicMock()
+    mock_network_handler_instance.discover_entities = AsyncMock(return_value=[])
+
+    mock_ssid_handler_instance = MagicMock()
+    mock_ssid_handler_instance.discover_entities = AsyncMock(return_value=[])
+
     with (
         patch(
             "custom_components.meraki_ha.discovery.handlers.mr.MRHandler"
@@ -88,15 +94,8 @@ async def test_discover_entities_delegates_to_handler(
     ):
         MockMRHandler.return_value = mock_mr_handler_instance
         MockMVHandler.return_value = mock_mv_handler_instance
-
-        mock_network_handler_instance = MagicMock()
-        mock_network_handler_instance.discover_entities = AsyncMock(return_value=[])
         MockNetworkHandler.create.return_value = mock_network_handler_instance
-
-        mock_ssid_handler_instance = MagicMock()
-        mock_ssid_handler_instance.discover_entities = AsyncMock(return_value=[])
         MockSSIDHandler.create.return_value = mock_ssid_handler_instance
-
         # Set __name__ for logging
         MockMRHandler.configure_mock(__name__="MRHandler")
         MockMVHandler.configure_mock(__name__="MVHandler")

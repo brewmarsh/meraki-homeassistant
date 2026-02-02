@@ -23,6 +23,7 @@ class MerakiAppliancePortSensor(CoordinatorEntity, SensorEntity):
     """Representation of a Meraki appliance port sensor."""
 
     coordinator: MerakiDataUpdateCoordinator
+
     _attr_entity_category = EntityCategory.DIAGNOSTIC
 
     def __init__(

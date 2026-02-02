@@ -85,7 +85,7 @@ class TimedAccessManager:
 
     def _schedule_removal(self, key: TimedAccessKey, expires_at: datetime) -> None:
         """Schedule removal of a key."""
-        # Cancel any existing timer for this key
+        # Cancel any existing timer for this key to prevent collisions
         if key.identity_psk_id in self._scheduled_removals:
             self._scheduled_removals[key.identity_psk_id].cancel()
 
@@ -240,7 +240,7 @@ class TimedAccessManager:
         return [k.__dict__ for k in self._keys]
 
     def shutdown(self) -> None:
-        """Cancel all scheduled timers."""
+        """Shutdown the manager and cancel all timers."""
         for handle in self._scheduled_removals.values():
             handle.cancel()
         self._scheduled_removals.clear()

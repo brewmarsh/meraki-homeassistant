@@ -161,3 +161,15 @@ def test_get_webhook_url_fallback(hass: HomeAssistant) -> None:
     ):
         url = get_webhook_url(hass, "test_webhook_id")
         assert url is None
+
+
+def test_get_webhook_url_non_https_logs_warning(hass: HomeAssistant, caplog) -> None:
+    """Test that a non-HTTPS URL logs a warning and returns None."""
+    with patch(
+        "custom_components.meraki_ha.webhook.get_url",
+        return_value="http://example.com",
+    ):
+        url = get_webhook_url(hass, "test_webhook_id")
+
+    assert url is None
+    assert "Meraki webhooks require HTTPS" in caplog.text

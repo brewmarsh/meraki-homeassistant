@@ -26,6 +26,7 @@ class MerakiCameraAudioDetectionSensor(CoordinatorEntity, SensorEntity):
     """Representation of a Meraki Camera Audio Detection Status sensor."""
 
     coordinator: MerakiDataUpdateCoordinator
+
     _attr_has_entity_name = True
     _attr_entity_category = EntityCategory.DIAGNOSTIC
 

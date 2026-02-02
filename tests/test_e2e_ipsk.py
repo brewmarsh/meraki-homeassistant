@@ -84,8 +84,6 @@ async def test_e2e_create_and_expire_ipsk(
     finally:
         manager.shutdown()
 
-    manager.shutdown()
-
 
 @pytest.fixture
 def real_client_with_mock_dashboard(hass):
