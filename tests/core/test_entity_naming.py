@@ -66,7 +66,9 @@ def test_camera_naming(mock_coordinator):
 
     entity = MerakiCamera(mock_coordinator, config_entry, device, camera_service)
 
-    assert entity.name.startswith("Front Door")
+    assert entity.has_entity_name is True
+    assert entity.name is None
+    assert entity.device_info["name"] == "Front Door"
 
 
 def test_network_status_naming(mock_coordinator):
