@@ -5,8 +5,9 @@ from __future__ import annotations
 import logging
 
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.helpers.entity import DeviceInfo  # Ensure this is imported
+from homeassistant.helpers.entity import DeviceInfo
 
+from ...const import DOMAIN
 from ...coordinator import MerakiDataUpdateCoordinator
 from ...types import MerakiNetwork
 from . import BaseMerakiEntity
@@ -46,6 +47,15 @@ class MerakiNetworkEntity(BaseMerakiEntity):
         )
 
     @property
-    def device_info(self) -> DeviceInfo | None:
-        """Return the device info."""
-        return self._attr_device_info
+    def device_info(self) -> DeviceInfo:
+        """Return device info for the network."""
+        # The network is required for this entity, and so is its ID.
+        # These assertions help mypy understand that these are not None.
+        assert self._network is not None
+        assert self._network.id is not None
+        return DeviceInfo(
+            identifiers={(DOMAIN, self._network.id)},
+            name=self._network.name or f"Network {self._network.id}",
+            manufacturer="Meraki",
+            model="Meraki Network",
+        )
