@@ -18,6 +18,19 @@ from ..services.camera_service import CameraService
 @callback
 def async_setup_websocket_api(hass: HomeAssistant) -> None:
     """Set up the WebSocket API."""
+    # Register the command to get Meraki config
+    websocket_api.async_register_command(
+        hass,
+        "meraki_ha/get_config",
+        ws_get_config,
+        vol.Schema(
+            {
+                vol.Required("type"): "meraki_ha/get_config",
+                vol.Required("config_entry_id"): str,
+            },
+            extra=vol.ALLOW_EXTRA,
+        ),
+    )
     # Register the command to subscribe to Meraki data
     websocket_api.async_register_command(
         hass,
@@ -71,6 +84,26 @@ def async_setup_websocket_api(hass: HomeAssistant) -> None:
             extra=vol.ALLOW_EXTRA,
         ),
     )
+
+
+@websocket_api.async_response
+async def ws_get_config(
+    hass: HomeAssistant,
+    connection: websocket_api.ActiveConnection,
+    msg: dict[str, Any],
+) -> None:
+    """Handle get_config command."""
+    config_entry_id = msg["config_entry_id"]
+
+    if config_entry_id not in hass.data[DOMAIN]:
+        connection.send_error(msg["id"], "not_found", "Config entry not found")
+        return
+
+    coordinator: MerakiDataUpdateCoordinator = hass.data[DOMAIN][config_entry_id][
+        "coordinator"
+    ]
+    data = to_serializable(coordinator.data)
+    connection.send_result(msg["id"], data)
 
 
 @callback
