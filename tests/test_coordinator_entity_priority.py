@@ -2,8 +2,9 @@
 
 from unittest.mock import MagicMock, patch
 
-from custom_components.meraki_ha.core.helpers import update_device_registry_info
 from homeassistant.helpers import entity_registry as er
+
+from custom_components.meraki_ha.core.helpers import update_device_registry_info
 
 
 async def test_update_device_registry_info_picks_camera(hass):

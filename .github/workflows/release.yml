@@ -1,0 +1,57 @@
+name: Release
+
+on:
+  push:
+    branches:
+      - beta
+      - main
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Required for git describe to work
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install bump-my-version jq
+
+      - name: Determine release part
+        id: part
+        run: |
+          if [[ "${{ github.ref }}" == "refs/heads/beta" ]]; then
+            echo "part=beta" >> $GITHUB_ENV
+          elif [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
+            echo "part=patch" >> $GITHUB_ENV
+          else
+            echo "Unsupported branch for release"
+            exit 1
+          fi
+
+      - name: Run release script
+        run: ./scripts/release.sh ${{ env.part }}
+
+      - name: Commit and push changes
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "chore(release): version bump"
+          branch: ${{ github.ref_name }}
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: v$(jq -r .version custom_components/meraki_ha/manifest.json)
+          prerelease: ${{ github.ref_name == 'beta' }}
+          generate_release_notes: true
