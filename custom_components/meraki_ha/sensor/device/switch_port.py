@@ -42,8 +42,9 @@ class MerakiSwitchPortSensor(CoordinatorEntity, SensorEntity):
         self._config_entry = config_entry
 
         self._attr_has_entity_name = True
-        self._attr_unique_id = f"{self._device.serial}_port_{self._port['portId']}"
-        self._attr_name = f"Port {self._port['portId']}"
+        port_id = self._port.get("portId") or self._port.get("number")
+        self._attr_unique_id = f"{self._device.serial}_port_{port_id}"
+        self._attr_name = f"Port {port_id}"
         self._attr_native_value = self._port.get("status")
 
     @property
@@ -65,7 +66,8 @@ class MerakiSwitchPortSensor(CoordinatorEntity, SensorEntity):
             if device.serial == self._device.serial:
                 self._device = device
                 for port in self._device.ports_statuses:
-                    if port["portId"] == self._port["portId"]:
+                    port_id = self._port.get("portId") or self._port.get("number")
+                    if port.get("portId") == port_id or port.get("number") == port_id:
                         self._port = port
                         break
                 break
@@ -75,12 +77,13 @@ class MerakiSwitchPortSensor(CoordinatorEntity, SensorEntity):
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
         """Return the state attributes."""
+        port_id = self._port.get("portId") or self._port.get("number")
         return {
             "enabled": self._port.get("enabled"),
             "speed": self._port.get("speed"),
             "duplex": self._port.get("duplex"),
             "vlan": self._port.get("vlan"),
-            "port_id": self._port.get("portId"),
+            "port_id": port_id,
             "mac": self._device.mac,
         }
 
@@ -109,10 +112,11 @@ class MerakiSwitchPortPowerSensor(CoordinatorEntity, SensorEntity):
         self._config_entry = config_entry
 
         self._attr_has_entity_name = True
+        port_id = self._port.get("portId") or self._port.get("number")
         self._attr_unique_id = (
-            f"{self._device.serial}_port_{self._port['portId']}_power"
+            f"{self._device.serial}_port_{port_id}_power"
         )
-        self._attr_name = f"Port {self._port['portId']} Power"
+        self._attr_name = f"Port {port_id} Power"
 
     @property
     def device_info(self) -> DeviceInfo | None:
@@ -133,7 +137,8 @@ class MerakiSwitchPortPowerSensor(CoordinatorEntity, SensorEntity):
             if device.serial == self._device.serial:
                 self._device = device
                 for port in self._device.ports_statuses:
-                    if port["portId"] == self._port["portId"]:
+                    port_id = self._port.get("portId") or self._port.get("number")
+                    if port.get("portId") == port_id or port.get("number") == port_id:
                         self._port = port
                         break
                 break
@@ -176,10 +181,11 @@ class MerakiSwitchPortEnergySensor(CoordinatorEntity, SensorEntity):
         self._config_entry = config_entry
 
         self._attr_has_entity_name = True
+        port_id = self._port.get("portId") or self._port.get("number")
         self._attr_unique_id = (
-            f"{self._device.serial}_port_{self._port['portId']}_energy"
+            f"{self._device.serial}_port_{port_id}_energy"
         )
-        self._attr_name = f"Port {self._port['portId']} Energy"
+        self._attr_name = f"Port {port_id} Energy"
 
     @property
     def device_info(self) -> DeviceInfo | None:
@@ -200,7 +206,8 @@ class MerakiSwitchPortEnergySensor(CoordinatorEntity, SensorEntity):
             if device.serial == self._device.serial:
                 self._device = device
                 for port in self._device.ports_statuses:
-                    if port["portId"] == self._port["portId"]:
+                    port_id = self._port.get("portId") or self._port.get("number")
+                    if port.get("portId") == port_id or port.get("number") == port_id:
                         self._port = port
                         break
                 break
