@@ -12,6 +12,7 @@ from typing import Any
 from unittest.mock import patch
 
 import pytest
+from homeassistant.core import HomeAssistant
 from playwright.async_api import Error, async_playwright, expect
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
@@ -20,7 +21,6 @@ from custom_components.meraki_ha.const import (
     CONF_MERAKI_ORG_ID,
     DOMAIN,
 )
-from homeassistant.core import HomeAssistant
 
 from .const import MOCK_ALL_DATA
 

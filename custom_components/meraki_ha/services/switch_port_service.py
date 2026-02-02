@@ -58,7 +58,7 @@ class SwitchPortService:
         statuses = await self.async_get_ports_statuses(serial)
         if statuses:
             for port in statuses:
-                if port.get("portId") == port_id:
+                if port.get("portId") == port_id or port.get("number") == port_id:
                     return port.get("status")
         return None
 
@@ -79,7 +79,7 @@ class SwitchPortService:
         statuses = await self.async_get_ports_statuses(serial)
         if statuses:
             for port in statuses:
-                if port.get("portId") == port_id:
+                if port.get("portId") == port_id or port.get("number") == port_id:
                     return port.get("speed")
         return None
 

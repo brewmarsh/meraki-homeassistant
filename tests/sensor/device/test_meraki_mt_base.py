@@ -3,11 +3,11 @@
 from unittest.mock import MagicMock
 
 import pytest
+from homeassistant.components.sensor import SensorEntityDescription
 
 from custom_components.meraki_ha.descriptions import MT_VOLTAGE_DESCRIPTION
 from custom_components.meraki_ha.sensor.device.meraki_mt_base import MerakiMtSensor
 from custom_components.meraki_ha.types import MerakiDevice
-from homeassistant.components.sensor import SensorEntityDescription
 
 
 @pytest.fixture

@@ -2,10 +2,11 @@
 
 from unittest.mock import MagicMock
 
+from homeassistant.core import HomeAssistant
+
 from custom_components.meraki_ha.sensor.network.network_clients import (
     MerakiNetworkClientsSensor,
 )
-from homeassistant.core import HomeAssistant
 from tests.const import MOCK_NETWORK
 
 

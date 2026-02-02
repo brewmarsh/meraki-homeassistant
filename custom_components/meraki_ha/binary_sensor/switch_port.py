@@ -39,8 +39,10 @@ class SwitchPortSensor(CoordinatorEntity, BinarySensorEntity):
         super().__init__(coordinator)
         self._device = device
         self._port = port
-        self._attr_unique_id = f"{device.serial}_{self._port['portId']}"
-        self._attr_name = f"Port {self._port['portId']}"
+        # MX appliances use 'number', MS switches use 'portId'
+        port_id = self._port.get("portId") or self._port.get("number")
+        self._attr_unique_id = f"{device.serial}_{port_id}"
+        self._attr_name = f"Port {port_id}"
 
     @property
     def device_info(self) -> DeviceInfo | None:
@@ -57,7 +59,8 @@ class SwitchPortSensor(CoordinatorEntity, BinarySensorEntity):
             self._device = device
             ports = device.ports_statuses or device.appliance_ports or []
             for port in ports:
-                if port.get("portId") == self._port.get("portId"):
+                port_id = self._port.get("portId") or self._port.get("number")
+                if port.get("portId") == port_id or port.get("number") == port_id:
                     self._port = port
                     self.async_write_ha_state()
                     return
@@ -70,8 +73,9 @@ class SwitchPortSensor(CoordinatorEntity, BinarySensorEntity):
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
         """Return the state attributes."""
+        port_id = self._port.get("portId") or self._port.get("number")
         return {
-            "port_id": self._port.get("portId"),
+            "port_id": port_id,
             "speed": self._port.get("speed"),
             "duplex": self._port.get("duplex"),
             "vlan": self._port.get("vlan"),
