@@ -4,11 +4,10 @@ from __future__ import annotations
 
 import logging
 from datetime import datetime, timedelta
-from typing import TYPE_CHECKING, Any, cast
+from typing import TYPE_CHECKING, Any
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
 from .const import (
@@ -23,8 +22,8 @@ from .const import (
     DOMAIN,
 )
 from .core.api.client import MerakiAPIClient as ApiClient
-from .core.helpers import filter_ignored_networks, update_device_registry_info
-from .core.managers import AvailabilityTracker
+from .core.helpers import filter_ignored_networks, process_coordinator_data
+from .core.managers import AvailabilityTracker, PendingUpdateManager
 from .types import MerakiDevice, MerakiNetwork
 
 if TYPE_CHECKING:
@@ -69,8 +68,10 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self.ssids_by_network_and_number: dict[tuple[str, int], dict[str, Any]] = {}
         self.last_successful_update: datetime | None = None
         self.last_successful_data: dict[str, Any] = {}
-        self._pending_updates: dict[str, datetime] = {}
+
+        self.pending_update_manager = PendingUpdateManager()
         self.availability_tracker = AvailabilityTracker()
+
         self.device_control_service: DeviceControlService | None = None
         self.switch_port_service: SwitchPortService | None = None
         self.camera_service: CameraService | None = None
@@ -109,16 +110,7 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             expiry_seconds: The duration of the cooldown period.
 
         """
-        if not unique_id:
-            return
-
-        expiry_time = datetime.now() + timedelta(seconds=expiry_seconds)
-        self._pending_updates[unique_id] = expiry_time
-        _LOGGER.debug(
-            "Registered pending update for %s, ignoring coordinator updates until %s",
-            unique_id,
-            expiry_time,
-        )
+        self.pending_update_manager.register(unique_id, expiry_seconds)
 
     def is_pending(self, unique_id: str | None) -> bool:
         """
@@ -133,24 +125,7 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             True if the entity is in a pending state, False otherwise.
 
         """
-        if not unique_id:
-            return False
-
-        if unique_id not in self._pending_updates:
-            return False
-
-        now = datetime.now()
-        expiry_time = self._pending_updates[unique_id]
-
-        if now > expiry_time:
-            # Cooldown has expired, remove it from the dictionary
-            del self._pending_updates[unique_id]
-            _LOGGER.debug("Pending update expired for %s", unique_id)
-            return False
-
-        # Cooldown is still active
-        _LOGGER.debug("Update for %s is still pending (on cooldown)", unique_id)
-        return True
+        return self.pending_update_manager.is_pending(unique_id)
 
     def cancel_pending_update(self, unique_id: str | None) -> None:
         """
@@ -161,9 +136,7 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             unique_id: The unique ID of the entity.
 
         """
-        if unique_id and unique_id in self._pending_updates:
-            del self._pending_updates[unique_id]
-            _LOGGER.debug("Cancelled pending update for %s", unique_id)
+        self.pending_update_manager.cancel(unique_id)
 
     async def _async_update_data(self) -> dict[str, Any]:
         """Fetch data from API endpoint, apply filters, and handle exceptions."""
@@ -190,53 +163,16 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 )
                 filter_ignored_networks(data, ignored_network_ids)
 
-            # Create lookup tables for efficient access in entities
-            devices_raw = data.get("devices", [])
-            devices = [
-                MerakiDevice.from_dict(d) if isinstance(d, dict) else d
-                for d in devices_raw
-            ]
-            self.devices_by_serial = {d.serial: d for d in devices if d.serial}
-            data["devices"] = devices
-
-            networks_raw = data.get("networks", [])
-            networks = [
-                MerakiNetwork.from_dict(n) if isinstance(n, dict) else n
-                for n in networks_raw
-            ]
-            self.networks_by_id = {n.id: n for n in networks if n.id}
-            data["networks"] = networks
-
-            # Pre-register network devices to avoid "referencing a non existing
-            # via_device" warnings when downstream entities (like VLANs) initialize.
-            device_registry = dr.async_get(self.hass)
-
-            if self.config_entry is None:
-                raise UpdateFailed("Config entry is missing during update")
-
             if self.data:
                 for key, value in self.data.items():
                     if isinstance(value, str):
                         self.data[key] = value.strip()
 
-            for network in networks:
-                if not network.id:
-                    continue
-                device_registry.async_get_or_create(
-                    config_entry_id=self.config_entry.entry_id,
-                    identifiers={(DOMAIN, cast(str, network.id))},
-                    name=network.name,
-                    manufacturer="Cisco Meraki",
-                    model="Network",
-                )
-
-            self.ssids_by_network_and_number = {
-                (cast(str, s.get("networkId")), int(s.get("number"))): s
-                for s in data.get("ssids", [])
-                if s.get("networkId") and s.get("number") is not None
-            }
-
-            update_device_registry_info(self.hass, devices)
+            (
+                self.devices_by_serial,
+                self.networks_by_id,
+                self.ssids_by_network_and_number,
+            ) = process_coordinator_data(self.hass, self.config_entry, data)
 
             self.last_successful_update = datetime.now()
             self.last_successful_data = data
