@@ -111,6 +111,7 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         """
         if not unique_id:
             return
+
         expiry_time = datetime.now() + timedelta(seconds=expiry_seconds)
         self._pending_updates[unique_id] = expiry_time
         _LOGGER.debug(
@@ -132,7 +133,10 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             True if the entity is in a pending state, False otherwise.
 
         """
-        if not unique_id or unique_id not in self._pending_updates:
+        if not unique_id:
+            return False
+
+        if unique_id not in self._pending_updates:
             return False
 
         now = datetime.now()
@@ -150,7 +154,7 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
     def cancel_pending_update(self, unique_id: str | None) -> None:
         """
-        Cancel a pending update for an entity.
+        Cancel a pending update for a device.
 
         Args:
         ----

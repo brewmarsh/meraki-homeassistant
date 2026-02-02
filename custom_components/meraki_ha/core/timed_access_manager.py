@@ -44,9 +44,7 @@ class TimedAccessManager:
     def __init__(self, hass: HomeAssistant) -> None:
         """Initialize the manager."""
         self._hass = hass
-        self._store: storage.Store[list[dict[str, Any]]] = storage.Store(
-            hass, STORAGE_VERSION, STORAGE_KEY
-        )
+        self._store: storage.Store = storage.Store(hass, STORAGE_VERSION, STORAGE_KEY)
         self._keys: list[TimedAccessKey] = []
         self._scheduled_removals: dict[str, asyncio.TimerHandle] = {}
 
@@ -85,9 +83,10 @@ class TimedAccessManager:
 
     def _schedule_removal(self, key: TimedAccessKey, expires_at: datetime) -> None:
         """Schedule removal of a key."""
-        # Cancel any existing timer for this key to prevent collisions
+        # Cancel existing timer if any
         if key.identity_psk_id in self._scheduled_removals:
             self._scheduled_removals[key.identity_psk_id].cancel()
+            del self._scheduled_removals[key.identity_psk_id]
 
         delay = (expires_at - dt_util.utcnow()).total_seconds()
 
@@ -100,6 +99,12 @@ class TimedAccessManager:
             delay,
             lambda: self._hass.async_create_task(self._remove_key_task(key)),
         )
+
+    def shutdown(self) -> None:
+        """Shutdown the manager and cancel all timers."""
+        for timer in self._scheduled_removals.values():
+            timer.cancel()
+        self._scheduled_removals.clear()
 
     async def _remove_key_task(self, key: TimedAccessKey) -> None:
         """Task wrapper to remove a key."""
@@ -238,9 +243,3 @@ class TimedAccessManager:
         if network_id:
             return [k.__dict__ for k in self._keys if k.network_id == network_id]
         return [k.__dict__ for k in self._keys]
-
-    def shutdown(self) -> None:
-        """Shutdown the manager and cancel all timers."""
-        for handle in self._scheduled_removals.values():
-            handle.cancel()
-        self._scheduled_removals.clear()

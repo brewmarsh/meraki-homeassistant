@@ -92,7 +92,7 @@ def mock_coordinator_with_mt_devices(mock_coordinator: MagicMock) -> MagicMock:
                 device.water_present = reading.get("water", {}).get("present")
         devices_objects.append(device)
 
-    mock_coordinator.data = {"devices": devices_data}
+    mock_coordinator.data = {"devices": devices_objects}
     mock_coordinator.devices_by_serial = {d.serial: d for d in devices_objects}
 
     # Mock get_device to return the correct device
