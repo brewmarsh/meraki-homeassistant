@@ -5,16 +5,15 @@ from __future__ import annotations
 import logging
 
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.helpers.entity import DeviceInfo
-from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from ...coordinator import MerakiDataUpdateCoordinator
 from ...types import MerakiNetwork
+from . import BaseMerakiEntity
 
 _LOGGER = logging.getLogger(__name__)
 
 
-class MerakiNetworkEntity(CoordinatorEntity):
+class MerakiNetworkEntity(BaseMerakiEntity):
     """Representation of a Meraki Network."""
 
     coordinator: MerakiDataUpdateCoordinator
@@ -26,30 +25,7 @@ class MerakiNetworkEntity(CoordinatorEntity):
         network: MerakiNetwork,
     ) -> None:
         """Initialize the network entity."""
-        super().__init__(coordinator=coordinator)
-        self._config_entry = config_entry
+        super().__init__(
+            coordinator=coordinator, config_entry=config_entry, network_id=network.id
+        )
         self._network = network
-        self._network_id = network.id
-
-        if hasattr(self, "entity_description") and self.entity_description:
-            self._attr_name = f"{network.name} {self.entity_description.name}"
-
-        self._attr_device_info = DeviceInfo(
-            identifiers={(self._config_entry.domain, f"network_{network.id}")},
-            name=network.name,
-            manufacturer="Cisco Meraki",
-            model="Network",
-        )
-        _LOGGER.debug(
-            "Naming Debug - Entity: %s | Class: %s | has_entity_name: %s | _attr_name: %s | Device Identifiers: %s",
-            self.entity_id if hasattr(self, "entity_id") else "New Entity",
-            self.__class__.__name__,
-            getattr(self, "_attr_has_entity_name", "Not Set"),
-            getattr(self, "_attr_name", "None"),
-            self.device_info.get("identifiers") if self.device_info else "NO DEVICE INFO",
-        )
-
-    @property
-    def device_info(self) -> DeviceInfo | None:
-        """Return the device info."""
-        return self._attr_device_info
