@@ -8,6 +8,7 @@ from typing import TYPE_CHECKING, Any
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers import entity_registry as er
 
+from ...binary_sensor.switch_port import SwitchPortSensor
 from ...button.reboot import MerakiRebootButton
 from ...const import CONF_ENABLE_DEVICE_STATUS, CONF_ENABLE_PORT_SENSORS, DOMAIN
 from ...sensor.device.appliance_uplink import MerakiApplianceUplinkSensor
@@ -130,6 +131,12 @@ class MXHandler(BaseDeviceHandler):
                         uplink_data=uplink_data,
                     )
                 )
+
+            if self.device and self.device.appliance_ports:
+                for port in self.device.appliance_ports:
+                    entities.append(
+                        SwitchPortSensor(self._coordinator, self.device, port)
+                    )
         else:
             _LOGGER.debug("Uplink sensors disabled for device %s", self.device.serial)
 

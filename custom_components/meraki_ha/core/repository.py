@@ -89,3 +89,54 @@ class MerakiRepository:
         except Exception as e:
             _LOGGER.error("Failed to cycle switch ports for %s: %s", serial, e)
             return None
+
+    async def async_get_appliance_ports(
+        self, network_id: str
+    ) -> list[dict[str, Any]] | None:
+        """
+        Get all ports of an appliance.
+
+        Args:
+        ----
+            network_id: The ID of the network.
+
+        Returns
+        -------
+            A list of ports, or None if an error occurred.
+
+        """
+        try:
+            response = await self._api_client.appliance.get_appliance_ports(network_id)
+            return response
+        except ApiClientCommunicationError as e:
+            _LOGGER.error(
+                "Failed to get appliance ports for network %s: %s", network_id, e
+            )
+            return None
+
+    async def async_update_vpn_status(
+        self, network_id: str, mode: str
+    ) -> dict[str, Any] | None:
+        """
+        Update the site-to-site VPN status for a network.
+
+        Args:
+        ----
+            network_id: The ID of the network.
+            mode: The new VPN mode.
+
+        Returns
+        -------
+            A dictionary containing the API response, or None if an error occurred.
+
+        """
+        try:
+            response = await self._api_client.appliance.update_vpn_status(
+                network_id, mode
+            )
+            return response
+        except ApiClientCommunicationError as e:
+            _LOGGER.error(
+                "Failed to update VPN status for network %s: %s", network_id, e
+            )
+            return None

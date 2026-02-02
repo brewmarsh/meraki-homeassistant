@@ -80,7 +80,7 @@ class MerakiVPNSwitch(MerakiNetworkEntity, SwitchEntity):
         if self._network_id:
             await self.coordinator.api.appliance.update_vpn_status(
                 network_id=self._network_id,
-                mode="hub",
+                mode="spoke",
             )
 
     async def async_turn_off(self, **kwargs: Any) -> None:
