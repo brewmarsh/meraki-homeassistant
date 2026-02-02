@@ -20,11 +20,19 @@ def mock_coordinator_with_vlan_data(mock_coordinator: MagicMock) -> MagicMock:
         "name": "VLAN 1",
         "dhcpHandling": "Run a DHCP server",
     }
+    network = MerakiNetwork(id="net1", name="Network 1")
     mock_coordinator.data = {
         "vlans": {"net1": [vlan1]},
-        "networks": [MerakiNetwork(id="net1", name="Network 1")],
+        "networks": [network],
     }
     mock_coordinator.is_pending.return_value = False
+
+    def get_network(network_id):
+        if network_id == "net1":
+            return network
+        return None
+
+    mock_coordinator.get_network = MagicMock(side_effect=get_network)
     return mock_coordinator
 
 

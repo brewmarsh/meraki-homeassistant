@@ -41,8 +41,8 @@ async def test_naming_conventions():
         camera_service=mock_camera_service,
         config_entry=mock_config_entry,
     )
-    assert camera.has_entity_name is True
-    assert camera.name is None
+    assert camera.has_entity_name is False
+    assert camera.name == "Office Camera"
     assert camera.device_info["name"] == "Office Camera"
 
     motion_sensor = MerakiMotionSensor(

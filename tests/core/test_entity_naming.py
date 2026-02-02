@@ -43,7 +43,8 @@ def test_vlan_naming(mock_coordinator):
 
     entity = MerakiVLANEntity(mock_coordinator, config_entry, "N_12345", vlan)
 
-    assert entity.device_info["name"] == "Site A VLAN 10 VoIP"
+    assert entity.device_info["name"] == "Site A"
+    assert entity.name == "Site A VLAN 10 VoIP"
 
 
 def test_camera_naming(mock_coordinator):
@@ -69,8 +70,8 @@ def test_camera_naming(mock_coordinator):
 
     entity = MerakiCamera(mock_coordinator, config_entry, device, camera_service)
 
-    assert entity.has_entity_name is True
-    assert entity.name is None
+    assert entity.has_entity_name is False
+    assert entity.name == "Front Door"
     assert entity.device_info["name"] == "Front Door"
 
 
