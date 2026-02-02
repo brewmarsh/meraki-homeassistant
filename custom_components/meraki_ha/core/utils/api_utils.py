@@ -64,7 +64,10 @@ def handle_meraki_errors(
                 _LOGGER.info("Meraki feature disabled (skipping): %s", error_msg)
                 sig = inspect.signature(func)
                 return_type = sig.return_annotation
-                if return_type is list or getattr(return_type, "__origin__", None) is list:
+                if (
+                    return_type is list
+                    or getattr(return_type, "__origin__", None) is list
+                ):
                     return cast(T, [])
                 return cast(T, {})
             if _is_informational_error(err):

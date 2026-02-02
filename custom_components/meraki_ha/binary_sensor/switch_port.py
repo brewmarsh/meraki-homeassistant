@@ -58,7 +58,12 @@ class SwitchPortSensor(CoordinatorEntity, BinarySensorEntity):
         if device:
             self._device = device
             ports = device.ports_statuses or device.appliance_ports or []
-            for port in ports:
+            for port_data in ports:
+                if hasattr(port_data, "to_dict"):
+                    port = port_data.to_dict()
+                else:
+                    port = port_data  # type: ignore[assignment]
+
                 port_id = self._port.get("portId") or self._port.get("number")
                 if port.get("portId") == port_id or port.get("number") == port_id:
                     self._port = port

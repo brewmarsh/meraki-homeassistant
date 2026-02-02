@@ -80,12 +80,15 @@ class MerakiCamera(CoordinatorEntity, Camera):
         self._attr_name = None
         self._attr_model = self.device_data.model
         _LOGGER.debug(
-            "Naming Debug - Entity: %s | Class: %s | has_entity_name: %s | _attr_name: %s | Device Identifiers: %s",
+            "Naming Debug - Entity: %s | Class: %s | has_entity_name: %s "
+            "| _attr_name: %s | Device Identifiers: %s",
             self.entity_id if hasattr(self, "entity_id") else "New Entity",
             self.__class__.__name__,
             getattr(self, "_attr_has_entity_name", "Not Set"),
             getattr(self, "_attr_name", "None"),
-            self.device_info.get("identifiers") if self.device_info else "NO DEVICE INFO",
+            self.device_info.get("identifiers")
+            if self.device_info
+            else "NO DEVICE INFO",
         )
 
     @property

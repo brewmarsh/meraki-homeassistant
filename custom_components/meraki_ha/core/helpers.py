@@ -101,16 +101,14 @@ def process_coordinator_data(
     # Create lookup tables for efficient access in entities
     devices_raw = data.get("devices", [])
     devices = [
-        MerakiDevice.from_dict(d) if isinstance(d, dict) else d
-        for d in devices_raw
+        MerakiDevice.from_dict(d) if isinstance(d, dict) else d for d in devices_raw
     ]
     devices_by_serial = {d.serial: d for d in devices if d.serial}
     data["devices"] = devices
 
     networks_raw = data.get("networks", [])
     networks = [
-        MerakiNetwork.from_dict(n) if isinstance(n, dict) else n
-        for n in networks_raw
+        MerakiNetwork.from_dict(n) if isinstance(n, dict) else n for n in networks_raw
     ]
     networks_by_id = {n.id: n for n in networks if n.id}
     data["networks"] = networks
