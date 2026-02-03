@@ -92,8 +92,8 @@ async def test_discover_entities_delegates_to_handler(
             "custom_components.meraki_ha.discovery.service.SSIDHandler"
         ) as MockSSIDHandler,
     ):
-        MockMRHandler.return_value = mock_mr_handler_instance
-        MockMVHandler.return_value = mock_mv_handler_instance
+        MockMRHandler.create.return_value = mock_mr_handler_instance
+        MockMVHandler.create.return_value = mock_mv_handler_instance
 
         mock_network_handler_instance = MagicMock()
         mock_network_handler_instance.discover_entities = AsyncMock(return_value=[])
@@ -107,13 +107,14 @@ async def test_discover_entities_delegates_to_handler(
         MockMRHandler.configure_mock(__name__="MRHandler")
         MockMVHandler.configure_mock(__name__="MVHandler")
 
+        mock_network_control_service = MagicMock()
         service = DeviceDiscoveryService(
             coordinator=mock_coordinator_with_devices,
             config_entry=mock_config_entry,
             meraki_client=MagicMock(),
             camera_service=mock_camera_service,
             control_service=mock_control_service,
-            network_control_service=MagicMock(),
+            network_control_service=mock_network_control_service,
         )
 
         # Act
@@ -124,18 +125,21 @@ async def test_discover_entities_delegates_to_handler(
         assert "mv_entity" in entities
 
         # Assert correct services are passed to each handler
-        MockMRHandler.assert_called_once_with(
+        MockMRHandler.create.assert_called_once_with(
             mock_coordinator_with_devices,
             mock_coordinator_with_devices.data["devices"][0],
             mock_config_entry,
+            mock_camera_service,
             mock_control_service,
+            mock_network_control_service,
         )
-        MockMVHandler.assert_called_once_with(
+        MockMVHandler.create.assert_called_once_with(
             mock_coordinator_with_devices,
             mock_coordinator_with_devices.data["devices"][1],
             mock_config_entry,
             mock_camera_service,
             mock_control_service,
+            mock_network_control_service,
         )
         # We don't check for log warning because "unsupported" model
         # just falls through if no handler matches
