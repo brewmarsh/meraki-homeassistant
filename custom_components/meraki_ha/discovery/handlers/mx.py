@@ -66,12 +66,29 @@ class MXHandler(BaseDeviceHandler):
 
     async def discover_entities(self) -> list[Entity]:
         """Discover entities for the device."""
+        _LOGGER.debug("MXHandler checking device %s", self.device.serial)
+
+        # Check Uplinks
+        uplink_data = getattr(self.device, "appliance_uplinks", None)
+        _LOGGER.debug("Device %s Uplink Data: %s", self.device.serial, uplink_data)
+
+        # Check Performance
+        perf_data = getattr(self.device, "performance_score", None)
+        _LOGGER.debug("Device %s Perf Data: %s", self.device.serial, perf_data)
+
         entities: list[Entity] = []
+
+        _LOGGER.debug("Adding Reboot Button for device %s", self.device.serial)
         entities.append(
             MerakiRebootButton(self._control_service, self.device, self._config_entry)
         )
 
         # Check if device status sensor is enabled
+        _LOGGER.debug(
+            "Device %s Status Sensor Enabled: %s",
+            self.device.serial,
+            self._config_entry.options.get(CONF_ENABLE_DEVICE_STATUS, True),
+        )
         if self._config_entry.options.get(CONF_ENABLE_DEVICE_STATUS, True):
             entities.append(
                 MerakiDeviceStatusSensor(
@@ -80,6 +97,11 @@ class MXHandler(BaseDeviceHandler):
             )
 
         # Check if port/uplink sensors are enabled
+        _LOGGER.debug(
+            "Device %s Port Sensors Enabled: %s",
+            self.device.serial,
+            self._config_entry.options.get(CONF_ENABLE_PORT_SENSORS, True),
+        )
         if self._config_entry.options.get(CONF_ENABLE_PORT_SENSORS, True):
             # Collect data from API
             uplink_data_by_interface: dict[str, dict[str, Any]] = {}
@@ -116,6 +138,11 @@ class MXHandler(BaseDeviceHandler):
 
             # Combine interfaces from API and registry
             all_interfaces = set(uplink_data_by_interface.keys()) | registry_interfaces
+            _LOGGER.debug(
+                "Device %s Uplink interfaces found: %s",
+                self.device.serial,
+                all_interfaces,
+            )
 
             for interface in all_interfaces:
                 uplink_data = uplink_data_by_interface.get(interface)
@@ -132,6 +159,11 @@ class MXHandler(BaseDeviceHandler):
                     )
                 )
 
+            _LOGGER.debug(
+                "Device %s Appliance ports found: %s",
+                self.device.serial,
+                len(self.device.appliance_ports) if self.device.appliance_ports else 0,
+            )
             if self.device and self.device.appliance_ports:
                 for port in self.device.appliance_ports:
                     entities.append(
