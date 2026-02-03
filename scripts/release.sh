@@ -35,9 +35,23 @@ LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null) || error_exit "Failed t
 VERSION="${LATEST_TAG#v}"
 echo "Found latest tag: ${LATEST_TAG} (version: ${VERSION})"
 
-# Normalize version for tool compatibility (e.g., 112-beta -> 112.0.0-beta)
+# Normalize bare version numbers (e.g., 112 -> 112.0.0)
+if [[ "$VERSION" =~ ^[0-9]+$ ]]; then
+  CLEAN_VERSION="${VERSION}.0.0"
+  echo "Normalized version $VERSION to $CLEAN_VERSION for SemVer compatibility."
+  VERSION=$CLEAN_VERSION
+fi
+
+# Normalize version numbers with missing components (e.g., 112.1 -> 112.1.0)
+if [[ "$VERSION" =~ ^[0-9]+\.[0-9]+$ ]]; then
+  CLEAN_VERSION="${VERSION}.0"
+  echo "Normalized version $VERSION to $CLEAN_VERSION for SemVer compatibility."
+  VERSION=$CLEAN_VERSION
+fi
+
+# Normalize version strings missing dots and build number (e.g., 112-beta -> 112.0.0-beta.1)
 if [[ "$VERSION" =~ ^[0-9]+-[a-z]+$ ]]; then
-  CLEAN_VERSION=$(echo "$VERSION" | sed -E 's/([0-9]+)-([a-z]+)/\1.0.0-\2/')
+  CLEAN_VERSION=$(echo "$VERSION" | sed -E 's/([0-9]+)-([a-z]+)/\1.0.0-\2.1/')
   echo "Normalized version $VERSION to $CLEAN_VERSION for tool compatibility."
   VERSION=$CLEAN_VERSION
 fi
