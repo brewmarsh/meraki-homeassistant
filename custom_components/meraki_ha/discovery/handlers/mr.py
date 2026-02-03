@@ -58,7 +58,6 @@ class MRHandler(BaseDeviceHandler):
         camera_service: CameraService,
         control_service: DeviceControlService,
         network_control_service: NetworkControlService,
-        switch_port_coordinator: Any,
     ) -> MRHandler:
         """
         Create an instance of the handler.
@@ -70,7 +69,6 @@ class MRHandler(BaseDeviceHandler):
             camera_service: The camera service.
             control_service: The device control service.
             network_control_service: The network control service.
-            switch_port_coordinator: The switch port coordinator.
 
         """
         return cls(

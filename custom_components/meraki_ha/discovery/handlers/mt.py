@@ -17,9 +17,6 @@ if TYPE_CHECKING:
     from ....coordinator import (
         MerakiDataUpdateCoordinator,
     )
-    from ....core.coordinators.switch_port_status_coordinator import (
-        SwitchPortStatusCoordinator,
-    )
     from ....services.camera_service import CameraService
     from ....services.network_control_service import NetworkControlService
     from ....types import MerakiDevice
@@ -52,7 +49,6 @@ class MTHandler(BaseDeviceHandler):
         camera_service: CameraService,
         control_service: DeviceControlService,
         network_control_service: NetworkControlService,
-        switch_port_coordinator: SwitchPortStatusCoordinator,
     ) -> MTHandler:
         """Create an instance of the handler."""
         return cls(
