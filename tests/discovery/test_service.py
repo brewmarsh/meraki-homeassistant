@@ -80,16 +80,16 @@ async def test_discover_entities_delegates_to_handler(
 
     with (
         patch(
-            "custom_components.meraki_ha.discovery.handlers.mr.MRHandler"
+            "custom_components.meraki_ha.discovery.service.MRHandler"
         ) as MockMRHandler,
         patch(
-            "custom_components.meraki_ha.discovery.handlers.mv.MVHandler"
+            "custom_components.meraki_ha.discovery.service.MVHandler"
         ) as MockMVHandler,
         patch(
-            "custom_components.meraki_ha.discovery.handlers.network.NetworkHandler"
+            "custom_components.meraki_ha.discovery.service.NetworkHandler"
         ) as MockNetworkHandler,
         patch(
-            "custom_components.meraki_ha.discovery.handlers.ssid.SSIDHandler"
+            "custom_components.meraki_ha.discovery.service.SSIDHandler"
         ) as MockSSIDHandler,
     ):
         MockMRHandler.return_value = mock_mr_handler_instance

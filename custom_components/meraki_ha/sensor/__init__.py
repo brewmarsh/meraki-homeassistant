@@ -8,7 +8,6 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from ..const import CONF_ENABLE_ORG_SENSORS, DOMAIN
-from ..discovery.service import DeviceDiscoveryService
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -19,6 +18,8 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ) -> bool:
     """Set up Meraki sensor entities from a config entry."""
+    from ..discovery.service import DeviceDiscoveryService
+
     if config_entry.entry_id not in hass.data[DOMAIN]:
         return False
 
