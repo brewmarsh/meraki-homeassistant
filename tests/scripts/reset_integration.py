@@ -204,36 +204,63 @@ async def add_integration(session):
             logger.error(f"Failed to start config flow: {resp.status}")
             logger.error(await resp.text())
             return False
+        current_step = await resp.json()
 
-        start_data = await resp.json()
-        flow_id = start_data.get("flow_id")
-        if not flow_id:
-            logger.error(f"Could not find flow_id in response: {start_data}")
+    flow_id = current_step.get("flow_id")
+    if not flow_id:
+        logger.error(f"Could not find flow_id in response: {current_step}")
+        return False
+    logger.info(f"Config flow started. flow_id: {flow_id}")
+
+    # 2. Iterate through flow steps
+    while True:
+        step_type = current_step.get("type")
+
+        if step_type == "create_entry":
+            logger.info("SUCCESS: Integration re-added via REST API.")
+            return True
+
+        if step_type == "abort":
+            reason = current_step.get("reason")
+            if reason == "already_configured":
+                logger.info("Integration is already configured.")
+                return True
+            logger.error(f"Flow aborted: {current_step}")
             return False
-        logger.info(f"Config flow started. flow_id: {flow_id}")
 
-    # 2. Submit Credentials
-    submit_url = f"{HA_URL}/api/config/config_entries/flow/{flow_id}"
-    submit_payload = {
-        "meraki_api_key": MERAKI_API_KEY,
-        "meraki_org_id": MERAKI_ORG_ID,
-    }
-    logger.info(f"POST {submit_url}")
+        if step_type == "form":
+            step_id = current_step.get("step_id")
+            logger.info(f"ℹ️ Received form step: {step_id}")
 
-    async with session.post(submit_url, json=submit_payload) as resp:
-        if resp.status != 200:
-            logger.error(f"Failed to submit credentials: {resp.status}")
-            logger.error(await resp.text())
-            return False
+            payload = {}
+            # Step-specific logic
+            if step_id == "user":
+                payload = {
+                    "meraki_api_key": MERAKI_API_KEY,
+                    "meraki_org_id": MERAKI_ORG_ID,
+                }
+            else:
+                # Build payload from defaults in schema
+                for field in current_step.get("data_schema", []):
+                    if "default" in field:
+                        payload[field["name"]] = field["default"]
+                    elif field.get("required"):
+                        logger.warning(
+                            f"Required field '{field['name']}' has no default value."
+                        )
 
-        submit_data = await resp.json()
+            submit_url = f"{HA_URL}/api/config/config_entries/flow/{flow_id}"
+            logger.info(f"POST {submit_url} for step {step_id} with payload: {payload}")
+            async with session.post(submit_url, json=payload) as resp:
+                if resp.status != 200:
+                    logger.error(f"Failed to submit step {step_id}: {resp.status}")
+                    logger.error(await resp.text())
+                    return False
+                current_step = await resp.json()
+            continue
 
-    # 3. Final Verification
-    if submit_data.get("type") == "create_entry":
-        logger.info("SUCCESS: Integration re-added via REST API.")
-        return True
-    else:
-        logger.error(f"FAILED: Unexpected final response: {submit_data}")
+        logger.error(f"FAILED: Unexpected response type: {step_type}")
+        logger.debug(f"Response: {current_step}")
         return False
 
 
