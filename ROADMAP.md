@@ -12,16 +12,16 @@ To maintain a modular, service-oriented architecture, we will adhere to the foll
 
 ## Refactoring Backlog
 
-| File                                               | Status      | God Class Violation(s)                                                                                                                                                     | Refactoring Plan                                                                     |
-| -------------------------------------------------- | ----------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
-| `custom_components/meraki_ha/coordinator.py`       | In Progress | Size (439 lines), Responsibility (API data fetching, entity population, state management), Coupling (imports `CameraService`, `DeviceControlService`, `SwitchPortService`) | Split into `helpers.py` (pure logic) and `managers.py` (state tracking)              |
-| `custom_components/meraki_ha/const.py`             | Pending     | Responsibility (mixes configuration keys, API constants, platform types, UI labels)                                                                                        | Split into `const_conf.py`, `const_api.py`, etc.                                     |
-| `custom_components/meraki_ha/discovery/service.py` | Pending     | N/A (previously suspected)                                                                                                                                                 | Implement Factory/Handler pattern for entity creation                                |
-| `custom_components/meraki_ha/api.py`               | Refactored  | N/A (previously suspected)                                                                                                                                                 | Split into domain services (e.g., `SwitchService`, `CameraService`, `SensorService`) |
+| File                                               | Status     | God Class Violation(s)                                                                                                                                                     | Refactoring Plan                                                                     |
+| -------------------------------------------------- | ---------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
+| `custom_components/meraki_ha/coordinator.py`       | Refactored | Size (439 lines), Responsibility (API data fetching, entity population, state management), Coupling (imports `CameraService`, `DeviceControlService`, `SwitchPortService`) | Split into `helpers.py` (pure logic) and `managers.py` (state tracking)              |
+| `custom_components/meraki_ha/const.py`             | Refactored | Responsibility (mixes configuration keys, API constants, platform types, UI labels)                                                                                        | Split into `const_conf.py`, `const_api.py`, etc.                                     |
+| `custom_components/meraki_ha/discovery/service.py` | Refactored | N/A (previously suspected)                                                                                                                                                 | Implement Factory/Handler pattern for entity creation                                |
+| `custom_components/meraki_ha/api.py`               | Refactored | N/A (previously suspected)                                                                                                                                                 | Split into domain services (e.g., `SwitchService`, `CameraService`, `SensorService`) |
 
 ## Future Goals
 
-- [ ] Refactor MerakiDataUpdateCoordinator
-- [ ] Refactor const.py
-- [ ] Refactor DeviceDiscoveryService
+- [x] Refactor MerakiDataUpdateCoordinator
+- [x] Refactor const.py
+- [x] Refactor DeviceDiscoveryService
 - [ ] Continue refactoring MerakiAPIClient into domain services
