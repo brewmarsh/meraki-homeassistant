@@ -88,6 +88,11 @@ class MerakiAPIClient:
         # Semaphore to limit concurrent API calls
         self._semaphore = asyncio.Semaphore(2)
 
+        # Set of disabled features to prevent repetitive API calls
+        # Note: DetailFetcher uses client._disabled_features directly.
+        self._disabled_features: set[str] = set()
+        self._enable_vpn_management: bool = False
+
     @property
     def has_dashboard(self) -> bool:
         """Check if the dashboard is initialized."""
@@ -207,6 +212,10 @@ class MerakiAPIClient:
         """
         async with self._semaphore:
             return await coro
+
+    # Legacy method needed for DetailFetcher compatibility until refactored
+    async def _run_with_semaphore(self, coro: Awaitable[Any]) -> Any:
+        return await self.run_with_semaphore(coro)
 
     @property
     def organization_id(self) -> str:

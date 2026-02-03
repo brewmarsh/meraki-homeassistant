@@ -1,5 +1,6 @@
 """Meraki API endpoints for wireless devices.."""
 
+import asyncio
 import logging
 from typing import TYPE_CHECKING, Any
 
@@ -197,6 +198,82 @@ class WirelessEndpoints:
             )
             return {}
         return validated
+
+    def get_network_detail_tasks(
+        self,
+        network_id: str,
+        product_types: list[str],
+    ) -> dict[str, asyncio.Task[Any]]:
+        """
+        Get tasks to fetch detailed data for a network.
+
+        Args:
+        ----
+            network_id: The ID of the network.
+            product_types: The product types of the network.
+
+        Returns
+        -------
+            A dictionary of tasks.
+
+        """
+        tasks: dict[str, asyncio.Task[Any]] = {}
+        if "wireless" in product_types:
+            tasks[f"ssids_{network_id}"] = asyncio.create_task(
+                self._api_client._run_with_semaphore(
+                    self.get_network_ssids(network_id),
+                ),
+            )
+            tasks[f"rf_profiles_{network_id}"] = asyncio.create_task(
+                self._api_client._run_with_semaphore(
+                    self.get_network_wireless_rf_profiles(network_id),
+                ),
+            )
+        return tasks
+
+    def process_network_detail_data(
+        self,
+        detail_data: dict[str, Any],
+        network_id: str,
+        previous_data: dict[str, Any] | None,
+    ) -> dict[str, Any]:
+        """
+        Process the detailed data for a network.
+
+        Args:
+        ----
+            detail_data: The raw detailed data from the API.
+            network_id: The ID of the network.
+            previous_data: The previous data from the coordinator.
+
+        Returns
+        -------
+            The processed detailed data.
+
+        """
+        result: dict[str, Any] = {
+            "ssids": [],
+            "rf_profiles": {},
+        }
+
+        network_ssids_key = f"ssids_{network_id}"
+        network_ssids = detail_data.get(network_ssids_key)
+        if isinstance(network_ssids, list):
+            for ssid in network_ssids:
+                if "unconfigured ssid" not in ssid.get("name", "").lower():
+                    ssid["networkId"] = network_id
+                    result["ssids"].append(ssid)
+        elif previous_data and network_ssids_key in previous_data:
+            result["ssids"].extend(previous_data[network_ssids_key])
+
+        network_rf_profiles_key = f"rf_profiles_{network_id}"
+        network_rf_profiles = detail_data.get(network_rf_profiles_key)
+        if isinstance(network_rf_profiles, list):
+            result["rf_profiles"][network_id] = network_rf_profiles
+        elif previous_data and network_rf_profiles_key in previous_data:
+            result["rf_profiles"][network_id] = previous_data[network_rf_profiles_key]
+
+        return result
 
     @handle_meraki_errors
     async def create_identity_psk(

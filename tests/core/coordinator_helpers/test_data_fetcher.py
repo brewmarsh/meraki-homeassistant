@@ -57,6 +57,9 @@ def mock_client():
         return await coro
 
     client.run_with_semaphore = AsyncMock(side_effect=run_with_semaphore_side_effect)
+    client._run_with_semaphore = AsyncMock(side_effect=run_with_semaphore_side_effect)
+    client._disabled_features = set()
+    client._enable_vpn_management = False
 
     return client
 
@@ -152,7 +155,9 @@ async def test_get_all_data_handles_informational_errors(data_fetch_manager):
 
         return MerakiTrafficAnalysisError("Traffic analysis is not enabled")
 
-    data_fetch_manager._build_detail_tasks = MagicMock(
+    # DetailFetcher creates tasks using client endpoints.
+    # We need to mock build_detail_tasks to return a task that wraps the error
+    data_fetch_manager.detail_fetcher.build_detail_tasks = MagicMock(
         return_value={f"traffic_{MOCK_NETWORK_INIT['id']}": coro()}
     )
 
@@ -178,16 +183,23 @@ async def test_build_detail_tasks_for_wireless_device(data_fetch_manager, mock_c
     devices = [MOCK_DEVICE]
     networks = [MOCK_NETWORK]
 
+    # Mock _run_with_semaphore to return the task synchronously
+    # This is required because we are patching asyncio.create_task to be sync
+    mock_client._run_with_semaphore = MagicMock(side_effect=lambda x: x)
+
+    # Mock endpoint calls to return string "tasks"
+    mock_client.wireless.get_network_ssids.return_value = "task_ssids"
+    mock_client.wireless.get_network_wireless_rf_profiles.return_value = (
+        "task_rf_profiles"
+    )
+
     # Act
-    tasks = data_fetch_manager._build_detail_tasks(networks, devices)
+    with patch("asyncio.create_task", side_effect=lambda x: x):
+        tasks = data_fetch_manager._build_detail_tasks(networks, devices)
 
     # Assert
     assert f"ssids_{MOCK_NETWORK.id}" in tasks
     assert f"rf_profiles_{MOCK_NETWORK.id}" in tasks
-
-    # Clean up coroutines to avoid warnings
-    for task in tasks.values():
-        await task
 
 
 @pytest.mark.asyncio
@@ -216,7 +228,7 @@ async def test_get_all_data_includes_switch_ports(data_fetch_manager, mock_clien
     async def coro():
         return [{"portId": "1", "status": "Connected"}]
 
-    data_fetch_manager._build_detail_tasks = MagicMock(
+    data_fetch_manager.detail_fetcher.build_detail_tasks = MagicMock(
         return_value={"ports_statuses_Q123": coro()}
     )
 
@@ -243,16 +255,14 @@ async def test_build_detail_tasks_for_switch_device(data_fetch_manager, mock_cli
     mock_client.switch.get_device_switch_ports_statuses.return_value = (
         "mock_switch_coro"
     )
-    mock_client.run_with_semaphore = MagicMock(side_effect=lambda x: x)
+    mock_client._run_with_semaphore = MagicMock(side_effect=lambda x: x)
 
     # Act
-    tasks = data_fetch_manager._build_detail_tasks(networks, devices)
+    with patch("asyncio.create_task", side_effect=lambda x: x):
+        tasks = data_fetch_manager._build_detail_tasks(networks, devices)
 
     # Assert
     assert f"ports_statuses_{switch_device.serial}" in tasks
-    # Clean up coroutines to avoid warnings
-    for task in tasks.values():
-        await task
     mock_client.switch.get_device_switch_ports_statuses.assert_called_once_with("s123")
 
 
@@ -265,18 +275,15 @@ async def test_build_detail_tasks_for_camera_device(data_fetch_manager, mock_cli
     networks = []
 
     # Mock dependencies to avoid unawaited coroutine warnings
-    mock_client.run_with_semaphore = MagicMock(side_effect=lambda x: x)
+    mock_client._run_with_semaphore = MagicMock(side_effect=lambda x: x)
 
     # Act
-    tasks = data_fetch_manager._build_detail_tasks(networks, devices)
+    with patch("asyncio.create_task", side_effect=lambda x: x):
+        tasks = data_fetch_manager._build_detail_tasks(networks, devices)
 
     # Assert
     assert f"video_settings_{camera_device.serial}" in tasks
     assert f"sense_settings_{camera_device.serial}" in tasks
-
-    # Clean up coroutines to avoid warnings
-    for task in tasks.values():
-        await task
 
     mock_client.camera.get_camera_video_settings.assert_called_once_with("c123")
     mock_client.camera.get_camera_sense_settings.assert_called_once_with("c123")
@@ -300,10 +307,11 @@ async def test_build_detail_tasks_for_appliance_device(data_fetch_manager, mock_
     networks = [network_with_appliance]
 
     # Enable VPN management to trigger vpn_status task
-    data_fetch_manager.enable_vpn_management = True
+    # DetailFetcher checks client._enable_vpn_management
+    mock_client._enable_vpn_management = True
 
     # Mock run_with_semaphore to return the input immediately (pass-through)
-    mock_client.run_with_semaphore = MagicMock(side_effect=lambda x: x)
+    mock_client._run_with_semaphore = MagicMock(side_effect=lambda x: x)
 
     # Mock endpoint methods to return dummy task objects
     mock_client.network.get_network_traffic = MagicMock(return_value="task_traffic")
@@ -359,6 +367,8 @@ def test_process_detailed_data_merges_device_info(data_fetch_manager):
 async def test_vpn_status_not_fetched_when_disabled(mock_client):
     """Test that VPN status is not fetched when enable_vpn_management is False."""
     manager = DataFetchManager(client=mock_client, enable_vpn_management=False)
+    # DetailFetcher uses client._enable_vpn_management
+    mock_client._enable_vpn_management = False
 
     # Mock helpers
     manager._async_fetch_initial_data = AsyncMock(
@@ -373,7 +383,7 @@ async def test_vpn_status_not_fetched_when_disabled(mock_client):
     manager.client_fetcher.async_fetch_device_clients = AsyncMock(return_value={})
 
     mock_client.appliance.get_vpn_status = AsyncMock()
-    mock_client.run_with_semaphore = MagicMock(side_effect=lambda x: x)
+    # _run_with_semaphore already mocked
 
     with (
         patch("custom_components.meraki_ha.core.coordinator_helpers.data_fetcher.parse_appliance_data"),
@@ -389,6 +399,8 @@ async def test_vpn_status_not_fetched_when_disabled(mock_client):
 async def test_vpn_status_fetched_when_enabled(mock_client):
     """Test that VPN status is fetched when enable_vpn_management is True."""
     manager = DataFetchManager(client=mock_client, enable_vpn_management=True)
+    # DetailFetcher uses client._enable_vpn_management
+    mock_client._enable_vpn_management = True
 
     # Mock helpers
     manager._async_fetch_initial_data = AsyncMock(
@@ -403,7 +415,7 @@ async def test_vpn_status_fetched_when_enabled(mock_client):
     manager.client_fetcher.async_fetch_device_clients = AsyncMock(return_value={})
 
     mock_client.appliance.get_vpn_status = MagicMock(return_value="task_vpn")
-    mock_client.run_with_semaphore = AsyncMock(side_effect=lambda x: x)
+    mock_client._run_with_semaphore = AsyncMock(side_effect=lambda x: x)
     mock_client.appliance.get_network_vlans = MagicMock(return_value="task_vlans")
     mock_client.network.get_network_traffic = MagicMock(return_value="task_traffic")
     mock_client.appliance.get_l3_firewall_rules = MagicMock(return_value="task_fw")
