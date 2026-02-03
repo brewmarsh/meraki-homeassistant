@@ -30,6 +30,9 @@ async def main():
     with (
         patch("custom_components.meraki_ha.coordinator.ApiClient") as mock_api_client,
         patch(
+            "custom_components.meraki_ha.coordinator.DataFetchManager"
+        ) as mock_data_fetch_manager,
+        patch(
             "custom_components.meraki_ha.MerakiDataUpdateCoordinator.async_refresh",
             new_callable=AsyncMock,
         ),
@@ -44,7 +47,10 @@ async def main():
         ),
     ):
         api_mock = AsyncMock()
-        api_mock.get_all_data.return_value = {
+        mock_api_client.return_value = api_mock
+
+        data_manager_mock = AsyncMock()
+        data_manager_mock.get_all_data.return_value = {
             "devices": [
                 {
                     "serial": "Q2KX-ACU9-ZAVN",
@@ -56,7 +62,8 @@ async def main():
             "ssids": [],
             "clients": [],
         }
-        mock_api_client.return_value = api_mock
+        mock_data_fetch_manager.return_value = data_manager_mock
+
         from custom_components.meraki_ha import async_setup_entry
         from custom_components.meraki_ha.sensor import (
             async_setup_entry as sensor_async_setup_entry,

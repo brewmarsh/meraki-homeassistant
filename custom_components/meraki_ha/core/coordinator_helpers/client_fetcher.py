@@ -41,7 +41,7 @@ class ClientFetcher:
             A list of clients.
         """
         client_tasks = [
-            self._client._run_with_semaphore(
+            self._client.run_with_semaphore(
                 self._client.network.get_network_clients(
                     network.id,
                     perPage=1000,
@@ -78,7 +78,7 @@ class ClientFetcher:
             A dictionary of clients by device serial.
         """
         client_tasks = {
-            device.serial: self._client._run_with_semaphore(
+            device.serial: self._client.run_with_semaphore(
                 self._client.devices.get_device_clients(device.serial),
             )
             for device in devices

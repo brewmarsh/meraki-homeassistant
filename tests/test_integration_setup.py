@@ -36,7 +36,19 @@ def mock_config_entry() -> MockConfigEntry:
 def mock_meraki_client() -> AsyncMock:
     """Fixture for a mocked MerakiAPIClient."""
     client = AsyncMock()
-    client.get_all_data = AsyncMock(
+    client.unregister_webhook = AsyncMock(return_value=None)
+    client.appliance = AsyncMock()
+    client.appliance.get_network_appliance_content_filtering_categories = AsyncMock(
+        return_value={"categories": []}
+    )
+    return client
+
+
+@pytest.fixture
+def mock_data_fetch_manager() -> AsyncMock:
+    """Fixture for a mocked DataFetchManager."""
+    manager = AsyncMock()
+    manager.get_all_data = AsyncMock(
         return_value={
             "devices": [MOCK_DEVICE, MOCK_MX_DEVICE, MOCK_GX_DEVICE],
             "networks": [  # Using MerakiNetwork directly
@@ -62,12 +74,7 @@ def mock_meraki_client() -> AsyncMock:
             "appliance_traffic": {},
         },
     )
-    client.unregister_webhook = AsyncMock(return_value=None)
-    client.appliance = AsyncMock()
-    client.appliance.get_network_appliance_content_filtering_categories = AsyncMock(
-        return_value={"categories": []}
-    )
-    return client
+    return manager
 
 
 @pytest.mark.enable_socket
@@ -75,6 +82,7 @@ async def test_ssid_device_creation_and_unification(
     hass: HomeAssistant,
     mock_config_entry: MockConfigEntry,
     mock_meraki_client: AsyncMock,
+    mock_data_fetch_manager: AsyncMock,
 ) -> None:
     """
     Test that a single device is created for an SSID with all its entities.
@@ -84,6 +92,7 @@ async def test_ssid_device_creation_and_unification(
         hass: The Home Assistant instance.
         mock_config_entry: The config entry.
         mock_meraki_client: The mocked Meraki API client.
+        mock_data_fetch_manager: The mocked DataFetchManager.
 
     """
     assert await async_setup_component(hass, "http", {})
@@ -93,6 +102,10 @@ async def test_ssid_device_creation_and_unification(
         patch(
             "custom_components.meraki_ha.coordinator.ApiClient",
             return_value=mock_meraki_client,
+        ),
+        patch(
+            "custom_components.meraki_ha.coordinator.DataFetchManager",
+            return_value=mock_data_fetch_manager,
         ),
         patch("custom_components.meraki_ha.async_register_webhook", return_value=None),
     ):
@@ -130,6 +143,7 @@ async def test_integration_reload(
     hass: HomeAssistant,
     mock_config_entry: MockConfigEntry,
     mock_meraki_client: AsyncMock,
+    mock_data_fetch_manager: AsyncMock,
 ) -> None:
     """
     Test that the integration reloads successfully.
@@ -139,6 +153,7 @@ async def test_integration_reload(
         hass: The Home Assistant instance.
         mock_config_entry: The config entry.
         mock_meraki_client: The mocked Meraki API client.
+        mock_data_fetch_manager: The mocked DataFetchManager.
 
     """
     assert await async_setup_component(hass, "http", {})
@@ -148,6 +163,10 @@ async def test_integration_reload(
         patch(
             "custom_components.meraki_ha.coordinator.ApiClient",
             return_value=mock_meraki_client,
+        ),
+        patch(
+            "custom_components.meraki_ha.coordinator.DataFetchManager",
+            return_value=mock_data_fetch_manager,
         ),
         patch("custom_components.meraki_ha.async_register_webhook", return_value=None),
     ):
