@@ -12,7 +12,9 @@ from homeassistant.helpers import config_validation as cv
 from ..const import DOMAIN
 
 if TYPE_CHECKING:
-    from ..coordinator import MerakiDataUpdateCoordinator
+    from .camera_service import CameraService
+    from .device_control_service import DeviceControlService
+    from .switch_port_service import SwitchPortService
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -38,12 +40,11 @@ SERVICE_GENERATE_SNAPSHOT_SCHEMA = vol.Schema(
 
 async def async_setup_services(
     hass: HomeAssistant,
-    coordinator: MerakiDataUpdateCoordinator,
+    device_control_service: DeviceControlService,
+    switch_port_service: SwitchPortService,
+    camera_service: CameraService,
 ) -> None:
     """Set up the services for the Meraki integration."""
-    device_control_service = coordinator.device_control_service
-    switch_port_service = coordinator.switch_port_service
-    camera_service = coordinator.camera_service
 
     async def _async_reboot_device(call) -> None:
         """Reboot a device."""
@@ -59,11 +60,8 @@ async def async_setup_services(
 
     async def _async_generate_snapshot(call) -> None:
         """Generate a camera snapshot."""
-        if camera_service and call.data["serial"]:
-            await camera_service.generate_snapshot(call.data["serial"])
-        """Generate a camera snapshot."""
-        if camera_service:
-            await camera_service.generate_snapshot(call.data["serial"])
+        if camera_service and (serial := call.data.get("serial")):
+            await camera_service.generate_snapshot(serial)
 
     hass.services.async_register(
         DOMAIN,
