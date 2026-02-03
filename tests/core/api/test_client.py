@@ -50,6 +50,8 @@ def api_client(hass, mock_dashboard, coordinator):
     client.wireless.get_network_ssids = AsyncMock(return_value=[])
     client.wireless.get_network_wireless_settings = AsyncMock(return_value={})
     client.wireless.get_network_wireless_rf_profiles = AsyncMock(return_value=[])
+    client.wireless.get_network_detail_tasks = MagicMock(return_value={})
+    client.wireless.process_network_detail_data = MagicMock(return_value={})
 
     client.switch.get_device_switch_ports_statuses = AsyncMock(return_value=[])
 
@@ -166,22 +168,22 @@ async def test_build_detail_tasks_for_wireless_device(api_client):
     devices = [MOCK_DEVICE]
     networks = [MOCK_NETWORK]
 
-    # Mock _run_with_semaphore to return the task directly so we can close it
-    async def side_effect(coro):
-        return await coro
-
-    api_client._run_with_semaphore = MagicMock(side_effect=side_effect)
+    # Mock get_network_detail_tasks to return dummy tasks
+    api_client.wireless.get_network_detail_tasks.return_value = {
+        f"ssids_{MOCK_NETWORK.id}": "task_ssids",
+        f"rf_profiles_{MOCK_NETWORK.id}": "task_rf_profiles",
+    }
 
     # Act
     tasks = api_client._build_detail_tasks(networks, devices)
 
     # Assert
-    assert f"ssids_{MOCK_NETWORK.id}" in tasks
-    assert f"rf_profiles_{MOCK_NETWORK.id}" in tasks
+    assert tasks[f"ssids_{MOCK_NETWORK.id}"] == "task_ssids"
+    assert tasks[f"rf_profiles_{MOCK_NETWORK.id}"] == "task_rf_profiles"
 
-    # Clean up coroutines to avoid warnings
-    for task in tasks.values():
-        await task
+    api_client.wireless.get_network_detail_tasks.assert_called_once_with(
+        MOCK_NETWORK.id, MOCK_NETWORK.product_types
+    )
 
 
 @pytest.mark.asyncio

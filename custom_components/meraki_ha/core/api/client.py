@@ -281,12 +281,11 @@ class MerakiAPIClient:
                 continue
             network_id = cast(str, network.id)
             product_types = network.product_types
-            if "wireless" in product_types:
-                detail_tasks[f"ssids_{network_id}"] = asyncio.create_task(
-                    self._run_with_semaphore(
-                        self.wireless.get_network_ssids(network_id),
-                    )
-                )
+
+            detail_tasks.update(
+                self.wireless.get_network_detail_tasks(network_id, product_types)
+            )
+
             if "appliance" in product_types:
                 if f"traffic_{network_id}" not in self._disabled_features:
                     detail_tasks[f"traffic_{network_id}"] = asyncio.create_task(
@@ -328,12 +327,6 @@ class MerakiAPIClient:
                         self.appliance.get_network_appliance_content_filtering(
                             network_id,
                         ),
-                    )
-                )
-            if "wireless" in product_types:
-                detail_tasks[f"rf_profiles_{network_id}"] = asyncio.create_task(
-                    self._run_with_semaphore(
-                        self.wireless.get_network_wireless_rf_profiles(network_id),
                     )
                 )
         for device in devices:
@@ -409,15 +402,12 @@ class MerakiAPIClient:
                 continue
             network_id = cast(str, network.id)
 
-            network_ssids_key = f"ssids_{network_id}"
-            network_ssids = detail_data.get(network_ssids_key)
-            if isinstance(network_ssids, list):
-                for ssid in network_ssids:
-                    if "unconfigured ssid" not in ssid.get("name", "").lower():
-                        ssid["networkId"] = network_id
-                        ssids.append(ssid)
-            elif previous_data and network_ssids_key in previous_data:
-                ssids.extend(previous_data[network_ssids_key])
+            wireless_data = self.wireless.process_network_detail_data(
+                detail_data,
+                network_id,
+                previous_data,
+            )
+            ssids.extend(wireless_data.get("ssids", []))
 
             network_traffic_key = f"traffic_{network_id}"
             network_traffic = detail_data.get(network_traffic_key)
@@ -480,14 +470,8 @@ class MerakiAPIClient:
             elif previous_data and vpn_status_key in previous_data:
                 vpn_status_by_network[network_id] = previous_data[vpn_status_key]
 
-            network_rf_profiles_key = f"rf_profiles_{network_id}"
-            network_rf_profiles = detail_data.get(network_rf_profiles_key)
-            if isinstance(network_rf_profiles, list):
-                rf_profiles_by_network[network_id] = network_rf_profiles
-            elif previous_data and network_rf_profiles_key in previous_data:
-                rf_profiles_by_network[network_id] = previous_data[
-                    network_rf_profiles_key
-                ]
+            if "rf_profiles" in wireless_data:
+                rf_profiles_by_network.update(wireless_data["rf_profiles"])
 
             content_filtering_key = f"content_filtering_{network_id}"
             content_filtering = detail_data.get(content_filtering_key)
