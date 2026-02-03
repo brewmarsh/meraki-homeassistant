@@ -22,6 +22,7 @@ from .const import (
     DOMAIN,
 )
 from .core.api.client import MerakiAPIClient as ApiClient
+from .core.coordinator_helpers.data_fetcher import DataFetchManager
 from .core.helpers import filter_ignored_networks, process_coordinator_data
 from .core.managers import AvailabilityTracker, PendingUpdateManager
 from .types import MerakiDevice, MerakiNetwork
@@ -61,7 +62,9 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             hass=hass,
             api_key=entry.data[CONF_MERAKI_API_KEY],
             org_id=entry.data[CONF_MERAKI_ORG_ID],
-            coordinator=self,
+        )
+        self.data_fetch_manager = DataFetchManager(
+            client=self.api,
             enable_vpn_management=entry.options.get(
                 CONF_ENABLE_VPN_MANAGEMENT, DEFAULT_ENABLE_VPN_MANAGEMENT
             ),
@@ -146,7 +149,7 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 if self.update_interval
                 else 300
             )
-            data = await self.api.get_all_data(
+            data = await self.data_fetch_manager.get_all_data(
                 self.last_successful_data, timespan=timespan
             )
 

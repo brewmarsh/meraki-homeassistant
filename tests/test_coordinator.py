@@ -20,12 +20,20 @@ from tests.const import MOCK_NETWORK
 def mock_api_client():
     """Fixture for a mocked MerakiAPIClient."""
     client = MagicMock()
-    client.get_all_data = AsyncMock()
+    # client.get_all_data is no longer used directly
     return client
 
 
 @pytest.fixture
-def coordinator(hass, mock_api_client):
+def mock_data_fetch_manager():
+    """Fixture for a mocked DataFetchManager."""
+    manager = MagicMock()
+    manager.get_all_data = AsyncMock()
+    return manager
+
+
+@pytest.fixture
+def coordinator(hass, mock_api_client, mock_data_fetch_manager):
     """Fixture for a MerakiDataCoordinator instance."""
     entry = MockConfigEntry(
         domain=DOMAIN,
@@ -36,15 +44,18 @@ def coordinator(hass, mock_api_client):
     with patch(
         "custom_components.meraki_ha.coordinator.ApiClient",
         return_value=mock_api_client,
+    ), patch(
+        "custom_components.meraki_ha.coordinator.DataFetchManager",
+        return_value=mock_data_fetch_manager,
     ):
         yield MerakiDataCoordinator(hass=hass, entry=entry)
 
 
 @pytest.mark.asyncio
-async def test_update_data_handles_errors(coordinator, mock_api_client):
+async def test_update_data_handles_errors(coordinator, mock_data_fetch_manager):
     """Test that _async_update_data handles disabled features."""
     # Arrange
-    mock_api_client.get_all_data.return_value = {
+    mock_data_fetch_manager.get_all_data.return_value = {
         "networks": [MOCK_NETWORK],
         "devices": [],
         "appliance_traffic": {
