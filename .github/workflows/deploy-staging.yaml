@@ -77,14 +77,26 @@ jobs:
 
       - name: Audit Logs for Errors
         shell: bash
+        env:
+          HASS_SERVER: ${{ secrets.HA_STAGING_URL }}
+          HASS_TOKEN: ${{ secrets.HA_STAGING_TOKEN }}
         run: |
-          echo "Scanning logs for Meraki errors..."
-          # Give HA a moment to settle after the reset script
+          echo "Scanning logs for Meraki errors via API..."
+          # Allow time for startup noise to settle
           sleep 10
-          # FIX 2: Use internal runner path /ha_config instead of host path /mnt/...
-          if grep -i "ERROR" /ha_config/home-assistant.log | grep "custom_components.meraki_ha"; then
+          # 1. Fetch the log using the API (Requires the Bearer Token used in previous steps)
+          # Ensure HASS_SERVER and HASS_TOKEN are available in this step's 'env'
+          LOG_CONTENT=$(curl -s -f -H "Authorization: Bearer $HASS_TOKEN" "$HASS_SERVER/api/error_log")
+          # 2. Check if curl failed (e.g. 401 Unauthorized or Connection Refused)
+          if [ $? -ne 0 ]; then
+            echo "::error::Failed to retrieve logs from Home Assistant API."
+            exit 1
+          fi
+          # 3. Grep the content
+          if echo "$LOG_CONTENT" | grep -i "custom_components.meraki_ha"; then
             echo "::error::CRITICAL: Found Meraki errors in the log!"
-            grep -i "ERROR" /ha_config/home-assistant.log | grep "custom_components.meraki_ha"
+            # Print the specific error lines for debugging
+            echo "$LOG_CONTENT" | grep -i "custom_components.meraki_ha"
             exit 1
           else
             echo "Logs are clean. Smoke test passed."
