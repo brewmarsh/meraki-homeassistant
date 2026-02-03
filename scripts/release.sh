@@ -7,7 +7,7 @@
 # Usage:
 #   ./scripts/release.sh <part>
 #
-#   <part>: 'beta' to increment the build number for a beta release.
+#   <part>: 'beta' to increment the patch version for a beta release.
 #           'patch' to finalize a release (removes beta suffix).
 #
 set -euo pipefail
@@ -55,7 +55,7 @@ echo "Successfully synced ${BUMP_CONFIG_FILE}"
 BUMP_PART=""
 case "${PART}" in
   beta)
-    BUMP_PART="build"
+    BUMP_PART="patch"
     ;;
   patch)
     BUMP_PART="patch"
