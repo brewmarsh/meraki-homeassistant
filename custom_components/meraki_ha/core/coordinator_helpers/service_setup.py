@@ -13,8 +13,12 @@ from custom_components.meraki_ha.const import DOMAIN
 
 if TYPE_CHECKING:
     from custom_components.meraki_ha.services.camera_service import CameraService
-    from custom_components.meraki_ha.services.device_control_service import DeviceControlService
-    from custom_components.meraki_ha.services.switch_port_service import SwitchPortService
+    from custom_components.meraki_ha.services.device_control_service import (
+        DeviceControlService,
+    )
+    from custom_components.meraki_ha.services.switch_port_service import (
+        SwitchPortService,
+    )
 
 _LOGGER = logging.getLogger(__name__)
 
