@@ -1,4 +1,4 @@
-name: Agent Readiness Scorecard
+name: Agent readiness scorecard
 
 on:
   pull_request:
@@ -25,16 +25,18 @@ jobs:
         run: pip install git+https://github.com/brewmarsh/agent-readiness-scorecard.git
 
       - name: Run scorecard
-        run: agent-readiness-scorecard check --path custom_components/meraki_ha --format markdown > readiness_report.md
+        continue-on-error: true
+        run: agent-score score custom_components/meraki_ha --report readiness_report.md
 
       - name: Upload readiness report
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: readiness-report
           path: readiness_report.md
 
       - name: Post comment to PR
-        if: github.event_name == 'pull_request'
+        if: always() && github.event_name == 'pull_request'
         uses: marocchino/sticky-pull-request-comment@v2
         with:
           path: readiness_report.md
