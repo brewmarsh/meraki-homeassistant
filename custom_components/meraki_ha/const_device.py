@@ -1,13 +1,24 @@
-"""Device constants for the Meraki Home Assistant integration."""
+"""Device and sensor constants for the Meraki Home Assistant integration."""
 
 from __future__ import annotations
 
 from typing import Final
 
-# Device Attributes
+# Sensor types (examples, expand as needed)
+SENSOR_CLIENT_COUNT: Final = "client_count"
+"""Sensor type for client count."""
+SENSOR_SIGNAL_STRENGTH: Final = "signal_strength"
+"""Sensor type for signal strength."""
+SENSOR_DATA_USAGE: Final = "data_usage"
+"""Sensor type for data usage."""
+SENSOR_SSID_AVAILABILITY: Final = "ssid_availability"
+"""Sensor type for SSID availability."""
+SENSOR_SSID_CHANNEL: Final = "ssid_channel"
+"""Sensor type for SSID channel."""
+
+# Device Attributes (examples, expand as needed)
 ATTR_CONNECTED_CLIENTS: Final = "connected_clients"
 """Device attribute for connected clients."""
-
 ATTR_SSIDS: Final = "ssids"
 """Device attribute for SSIDs."""
 
