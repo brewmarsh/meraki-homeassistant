@@ -72,16 +72,39 @@ def data_fetch_manager(mock_client):
 
 
 @pytest.mark.asyncio
+async def test_async_fetch_initial_data(data_fetch_manager, mock_client):
+    """Test that _async_fetch_initial_data calls the correct API endpoints."""
+    # Arrange
+    mock_client.has_dashboard = True
+    mock_client.organization.get_organization.return_value = {"name": "Test Org"}
+    mock_client.organization.get_organization_networks.return_value = []
+    mock_client.organization.get_organization_devices.return_value = []
+    mock_client.appliance.get_organization_appliance_uplink_statuses.return_value = []
+    mock_client.sensor.get_organization_sensor_readings_latest.return_value = []
+
+    # Act
+    data = await data_fetch_manager._async_fetch_initial_data()
+
+    # Assert
+    assert data["organization"] == {"name": "Test Org"}
+    assert "networks" in data
+    assert "devices" in data
+    assert "appliance_uplink_statuses" in data
+    assert "sensor_readings" in data
+    mock_client.organization.get_organization.assert_called_once()
+    mock_client.organization.get_organization_networks.assert_called_once()
+    mock_client.organization.get_organization_devices.assert_called_once()
+
+
+@pytest.mark.asyncio
 async def test_get_all_data_orchestration(data_fetch_manager):
     """Test that get_all_data correctly orchestrates helper methods."""
     # Arrange
     data_fetch_manager._async_fetch_initial_data = AsyncMock(
         return_value={
             "networks": [MOCK_NETWORK_INIT],
+            "devices": [MOCK_DEVICE],
         }
-    )
-    data_fetch_manager._async_fetch_devices = AsyncMock(
-        return_value={"devices": [MOCK_DEVICE], "battery_readings": None}
     )
     data_fetch_manager.client_fetcher.async_fetch_network_clients = AsyncMock(
         return_value=[]
@@ -92,15 +115,18 @@ async def test_get_all_data_orchestration(data_fetch_manager):
     data_fetch_manager._build_detail_tasks = MagicMock(return_value={})
 
     with (
-        patch("custom_components.meraki_ha.core.coordinator_helpers.data_fetcher.parse_appliance_data"),
-        patch("custom_components.meraki_ha.core.coordinator_helpers.data_fetcher.parse_sensor_data"),
+        patch(
+            "custom_components.meraki_ha.core.coordinator_helpers.data_fetcher.parse_appliance_data"
+        ),
+        patch(
+            "custom_components.meraki_ha.core.coordinator_helpers.data_fetcher.parse_sensor_data"
+        ),
     ):
         # Act
         await data_fetch_manager.get_all_data()
 
     # Assert
     data_fetch_manager._async_fetch_initial_data.assert_awaited_once()
-    data_fetch_manager._async_fetch_devices.assert_awaited_once()
     data_fetch_manager.client_fetcher.async_fetch_network_clients.assert_awaited_once()
     data_fetch_manager.client_fetcher.async_fetch_device_clients.assert_awaited_once()
 
@@ -112,10 +138,8 @@ async def test_get_all_data_handles_api_errors(data_fetch_manager, caplog):
     data_fetch_manager._async_fetch_initial_data = AsyncMock(
         return_value={
             "networks": Exception("Network error"),
+            "devices": [],
         }
-    )
-    data_fetch_manager._async_fetch_devices = AsyncMock(
-        return_value={"devices": [], "battery_readings": None}
     )
     data_fetch_manager.client_fetcher.async_fetch_network_clients = AsyncMock(
         side_effect=Exception("Client fetch error")
@@ -161,8 +185,12 @@ async def test_get_all_data_handles_informational_errors(data_fetch_manager):
     )
 
     with (
-        patch("custom_components.meraki_ha.core.coordinator_helpers.data_fetcher.parse_appliance_data"),
-        patch("custom_components.meraki_ha.core.coordinator_helpers.data_fetcher.parse_sensor_data"),
+        patch(
+            "custom_components.meraki_ha.core.coordinator_helpers.data_fetcher.parse_appliance_data"
+        ),
+        patch(
+            "custom_components.meraki_ha.core.coordinator_helpers.data_fetcher.parse_sensor_data"
+        ),
     ):
         # Act
         data = await data_fetch_manager.get_all_data()
@@ -204,12 +232,8 @@ async def test_get_all_data_includes_switch_ports(data_fetch_manager, mock_clien
     data_fetch_manager._async_fetch_initial_data = AsyncMock(
         return_value={
             "networks": [],
-            "devices": [],
+            "devices": [switch_device],
         }
-    )
-    # Ensure device_fetcher returns our switch device
-    data_fetch_manager._async_fetch_devices = AsyncMock(
-        return_value={"devices": [switch_device], "battery_readings": None}
     )
     data_fetch_manager.client_fetcher.async_fetch_network_clients = AsyncMock(
         return_value=[]
@@ -227,8 +251,12 @@ async def test_get_all_data_includes_switch_ports(data_fetch_manager, mock_clien
     )
 
     with (
-        patch("custom_components.meraki_ha.core.coordinator_helpers.data_fetcher.parse_appliance_data"),
-        patch("custom_components.meraki_ha.core.coordinator_helpers.data_fetcher.parse_sensor_data"),
+        patch(
+            "custom_components.meraki_ha.core.coordinator_helpers.data_fetcher.parse_appliance_data"
+        ),
+        patch(
+            "custom_components.meraki_ha.core.coordinator_helpers.data_fetcher.parse_sensor_data"
+        ),
     ):
         # Act
         await data_fetch_manager.get_all_data()
@@ -361,6 +389,7 @@ def test_process_detailed_data_merges_device_info(data_fetch_manager):
     assert device.video_settings == video_settings
     assert device.rtsp_url == "rtsp://test"
 
+
 @pytest.mark.asyncio
 async def test_vpn_status_not_fetched_when_disabled(mock_client):
     """Test that VPN status is not fetched when enable_vpn_management is False."""
@@ -370,10 +399,8 @@ async def test_vpn_status_not_fetched_when_disabled(mock_client):
     manager._async_fetch_initial_data = AsyncMock(
         return_value={
             "networks": [{"id": "N_123", "productTypes": ["appliance"]}],
+            "devices": [],
         }
-    )
-    manager._async_fetch_devices = AsyncMock(
-        return_value={"devices": [], "battery_readings": None}
     )
     manager.client_fetcher.async_fetch_network_clients = AsyncMock(return_value=[])
     manager.client_fetcher.async_fetch_device_clients = AsyncMock(return_value={})
@@ -382,14 +409,19 @@ async def test_vpn_status_not_fetched_when_disabled(mock_client):
     mock_client.run_with_semaphore = MagicMock(side_effect=lambda x: x)
 
     with (
-        patch("custom_components.meraki_ha.core.coordinator_helpers.data_fetcher.parse_appliance_data"),
-        patch("custom_components.meraki_ha.core.coordinator_helpers.data_fetcher.parse_sensor_data"),
+        patch(
+            "custom_components.meraki_ha.core.coordinator_helpers.data_fetcher.parse_appliance_data"
+        ),
+        patch(
+            "custom_components.meraki_ha.core.coordinator_helpers.data_fetcher.parse_sensor_data"
+        ),
     ):
         # Run get_all_data
         await manager.get_all_data()
 
     # Verify get_vpn_status was NOT called
     mock_client.appliance.get_vpn_status.assert_not_called()
+
 
 @pytest.mark.asyncio
 async def test_vpn_status_fetched_when_enabled(mock_client):
@@ -400,10 +432,8 @@ async def test_vpn_status_fetched_when_enabled(mock_client):
     manager._async_fetch_initial_data = AsyncMock(
         return_value={
             "networks": [{"id": "N_123", "productTypes": ["appliance"]}],
+            "devices": [],
         }
-    )
-    manager._async_fetch_devices = AsyncMock(
-        return_value={"devices": [], "battery_readings": None}
     )
     manager.client_fetcher.async_fetch_network_clients = AsyncMock(return_value=[])
     manager.client_fetcher.async_fetch_device_clients = AsyncMock(return_value={})
@@ -419,13 +449,16 @@ async def test_vpn_status_fetched_when_enabled(mock_client):
         return_value="task_content"
     )
 
-
     with (
         patch("asyncio.create_task", side_effect=lambda x: x),
-        patch("custom_components.meraki_ha.core.coordinator_helpers.data_fetcher.parse_appliance_data"),
-        patch("custom_components.meraki_ha.core.coordinator_helpers.data_fetcher.parse_sensor_data"),
+        patch(
+            "custom_components.meraki_ha.core.coordinator_helpers.data_fetcher.parse_appliance_data"
+        ),
+        patch(
+            "custom_components.meraki_ha.core.coordinator_helpers.data_fetcher.parse_sensor_data"
+        ),
     ):
-         await manager.get_all_data()
+        await manager.get_all_data()
 
     # Verify get_vpn_status WAS called
     mock_client.appliance.get_vpn_status.assert_called_once_with("N_123")

@@ -71,6 +71,9 @@ class DataFetchManager:
             "networks": self.client.run_with_semaphore(
                 self.client.organization.get_organization_networks(),
             ),
+            "devices": self.client.run_with_semaphore(
+                self.client.organization.get_organization_devices(),
+            ),
             "appliance_uplink_statuses": self.client.run_with_semaphore(
                 self.client.appliance.get_organization_appliance_uplink_statuses(),
             ),
@@ -526,14 +529,30 @@ class DataFetchManager:
         if not self.client.has_dashboard:
             await self.client.async_setup()
 
-        initial_results, device_fetcher_result = await asyncio.gather(
-            self._async_fetch_initial_data(),
-            self._async_fetch_devices(),
-        )
+        initial_results = await self._async_fetch_initial_data()
 
-        networks_list, devices_list, battery_readings = (
-            self._handle_initial_fetch_results(initial_results, device_fetcher_result)
-        )
+        networks_res = initial_results.get("networks", [])
+        if isinstance(networks_res, Exception):
+            _LOGGER.warning(
+                "Could not fetch networks, network data will be unavailable: %s",
+                networks_res,
+            )
+            networks_list = []
+        else:
+            networks_list = [MerakiNetwork.from_dict(n) for n in networks_res]
+
+        devices_res = initial_results.get("devices", [])
+        if isinstance(devices_res, Exception):
+            _LOGGER.warning(
+                "Could not fetch devices: %s",
+                devices_res,
+            )
+            devices_list = []
+        else:
+            devices_list = [
+                MerakiDevice.from_dict(d) if isinstance(d, dict) else d
+                for d in (devices_res if isinstance(devices_res, list) else [])
+            ]
 
         appliance_uplink_statuses = initial_results.get("appliance_uplink_statuses")
         parse_appliance_data(devices_list, appliance_uplink_statuses)
@@ -548,7 +567,7 @@ class DataFetchManager:
             cast(list[dict[str, Any]], sensor_readings)
             if isinstance(sensor_readings, list)
             else [],
-            battery_readings if battery_readings is not None else [],
+            [],  # Battery readings are already in sensor_readings
         )
 
         detail_tasks = self._build_detail_tasks(networks_list, devices_list)
