@@ -8,7 +8,7 @@ against the Meraki Dashboard API using the Meraki SDK.
 from __future__ import annotations
 
 import logging
-from typing import Any, NoReturn
+from typing import Any
 
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryAuthFailed
@@ -47,56 +47,6 @@ class MerakiAuthentication:
         self.api_key: str = api_key
         self.organization_id: str = organization_id
 
-    async def _async_get_authenticated_client(self) -> MerakiAPIClient:
-        """Initialize and setup the Meraki API client."""
-        client = MerakiAPIClient(
-            hass=self.hass,
-            api_key=self.api_key,
-            org_id=self.organization_id,
-        )
-        await client.async_setup()
-
-        if client.dashboard is None:
-            raise MerakiConnectionError(
-                "Meraki Dashboard API client is not initialized."
-            )
-        return client
-
-    def _find_organization(self, organizations: list[dict[str, Any]]) -> str | None:
-        """Find the organization by ID and return its name."""
-        if not organizations:
-            return None
-
-        for org in organizations:
-            if org.get("id") == self.organization_id:
-                return org.get("name")
-        return None
-
-    def _handle_sdk_error(self, error: MerakiSDKAPIError) -> NoReturn:
-        """Handle Meraki SDK API errors by mapping them to HA exceptions."""
-        if error.status == 401:
-            _LOGGER.error("Auth failed (HTTP 401) for org %s.", self.organization_id)
-            raise ConfigEntryAuthFailed("Invalid API Key (HTTP 401)") from error
-        if error.status == 403:
-            _LOGGER.error("Auth failed (HTTP 403) for org %s.", self.organization_id)
-            raise ConfigEntryAuthFailed(
-                f"API key lacks permissions for org {self.organization_id}.",
-            ) from error
-        if error.status == 404:
-            _LOGGER.error("Query failed (HTTP 404) for org %s.", self.organization_id)
-            raise InvalidOrgID(
-                f"Organization ID {self.organization_id} not found.",
-            ) from error
-
-        _LOGGER.error(
-            "Meraki API error for org %s (HTTP %s).",
-            self.organization_id,
-            error.status,
-        )
-        raise ConfigEntryAuthFailed(
-            f"Meraki API error for org {self.organization_id}: {error.message}",
-        ) from error
-
     async def validate_credentials(self) -> dict[str, Any]:
         """
         Validate Meraki API credentials using the Meraki SDK.
@@ -115,16 +65,34 @@ class MerakiAuthentication:
             MerakiConnectionError: If there is a connection error.
 
         """
-        client = await self._async_get_authenticated_client()
+        client = MerakiAPIClient(
+            hass=self.hass,
+            api_key=self.api_key,
+            org_id=self.organization_id,
+        )
+        await client.async_setup()
+
+        if client.dashboard is None:
+            raise MerakiConnectionError(
+                "Meraki Dashboard API client is not initialized."
+            )
 
         try:
             all_organizations: list[
                 dict[str, Any]
             ] = await client.organization.get_organizations()
 
-            fetched_org_name = self._find_organization(all_organizations)
+            org_found = False
+            fetched_org_name: str | None = None
 
-            if fetched_org_name is None:
+            if all_organizations:
+                for org in all_organizations:
+                    if org.get("id") == self.organization_id:
+                        org_found = True
+                        fetched_org_name = org.get("name")
+                        break
+
+            if not org_found:
                 _LOGGER.warning(
                     "Organization ID %s not found in accessible organizations.",
                     self.organization_id,
@@ -147,7 +115,37 @@ class MerakiAuthentication:
             _LOGGER.error("Connection error: %s", e)
             raise MerakiConnectionError(f"Connection error: {e}") from e
         except MerakiSDKAPIError as e:
-            self._handle_sdk_error(e)
+            if e.status == 401:
+                _LOGGER.error(
+                    "Auth failed (HTTP 401) for org %s.",
+                    self.organization_id,
+                )
+                raise ConfigEntryAuthFailed("Invalid API Key (HTTP 401)") from e
+            if e.status == 403:
+                _LOGGER.error(
+                    "Auth failed (HTTP 403) for org %s.",
+                    self.organization_id,
+                )
+                raise ConfigEntryAuthFailed(
+                    f"API key lacks permissions for org {self.organization_id}.",
+                ) from e
+            if e.status == 404:
+                _LOGGER.error(
+                    "Query failed (HTTP 404) for org %s.",
+                    self.organization_id,
+                )
+                raise InvalidOrgID(
+                    f"Organization ID {self.organization_id} not found.",
+                ) from e
+
+            _LOGGER.error(
+                "Meraki API error for org %s (HTTP %s).",
+                self.organization_id,
+                e.status,
+            )
+            raise ConfigEntryAuthFailed(
+                f"Meraki API error for org {self.organization_id}: {e.message}",
+            ) from e
         except ValueError as e:
             _LOGGER.warning(
                 "Validation error for Meraki credentials (org %s): %s",
@@ -155,7 +153,7 @@ class MerakiAuthentication:
                 e,
             )
             raise
-        except (InvalidOrgID, ConfigEntryAuthFailed):
+        except InvalidOrgID:
             raise
         except Exception as e:
             _LOGGER.error(

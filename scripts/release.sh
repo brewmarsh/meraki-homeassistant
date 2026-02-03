@@ -46,7 +46,6 @@ echo "Successfully synced ${MANIFEST_FILE}"
 # 4. Force-synchronize version in .bumpversion.toml
 echo "Syncing version in ${BUMP_CONFIG_FILE} to ${TAG_VERSION}..."
 # Using a temp file for sed to be safe, as in-place editing can be tricky.
-# We ensure the version string is double-quoted to maintain valid TOML syntax.
 sed "s/^current_version = .*/current_version = \"${TAG_VERSION}\"/" "${BUMP_CONFIG_FILE}" > "${BUMP_CONFIG_FILE}.tmp"
 mv "${BUMP_CONFIG_FILE}.tmp" "${BUMP_CONFIG_FILE}"
 echo "Successfully synced ${BUMP_CONFIG_FILE}"
