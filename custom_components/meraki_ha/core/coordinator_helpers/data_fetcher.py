@@ -20,7 +20,6 @@ from ...core.parsers.appliance import parse_appliance_data
 from ...core.parsers.sensors import parse_sensor_data
 from ...types import MerakiDevice, MerakiNetwork
 from .client_fetcher import ClientFetcher
-from .device_fetcher import DeviceFetcher
 
 if TYPE_CHECKING:
     from ..api.client import MerakiAPIClient
@@ -49,7 +48,6 @@ class DataFetchManager:
 
         # Initialize helper classes
         self.client_fetcher = ClientFetcher(self.client)
-        self.device_fetcher = DeviceFetcher(self.client)
 
         # Set of disabled features to prevent repetitive API calls
         self._disabled_features: set[str] = set()
@@ -84,6 +82,27 @@ class DataFetchManager:
         data = dict(zip(tasks.keys(), results, strict=True))
 
         return data
+
+    async def _async_fetch_devices(self) -> dict[str, Any]:
+        """
+        Fetch devices from the Meraki API.
+
+        Returns
+        -------
+            A dictionary containing devices and battery readings.
+
+        """
+        devices = await self.client.run_with_semaphore(
+            self.client.organization.get_organization_devices(),
+        )
+        if not isinstance(devices, list):
+            _LOGGER.warning("get_organization_devices did not return a list")
+            devices = []
+
+        return {
+            "devices": [MerakiDevice.from_dict(d) for d in devices],
+            "battery_readings": None,
+        }
 
     def _build_network_detail_tasks(
         self,
@@ -509,7 +528,7 @@ class DataFetchManager:
 
         initial_results, device_fetcher_result = await asyncio.gather(
             self._async_fetch_initial_data(),
-            self.device_fetcher.async_fetch_devices(),
+            self._async_fetch_devices(),
         )
 
         networks_list, devices_list, battery_readings = (

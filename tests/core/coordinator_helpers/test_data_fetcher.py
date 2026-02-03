@@ -80,7 +80,7 @@ async def test_get_all_data_orchestration(data_fetch_manager):
             "networks": [MOCK_NETWORK_INIT],
         }
     )
-    data_fetch_manager.device_fetcher.async_fetch_devices = AsyncMock(
+    data_fetch_manager._async_fetch_devices = AsyncMock(
         return_value={"devices": [MOCK_DEVICE], "battery_readings": None}
     )
     data_fetch_manager.client_fetcher.async_fetch_network_clients = AsyncMock(
@@ -100,7 +100,7 @@ async def test_get_all_data_orchestration(data_fetch_manager):
 
     # Assert
     data_fetch_manager._async_fetch_initial_data.assert_awaited_once()
-    data_fetch_manager.device_fetcher.async_fetch_devices.assert_awaited_once()
+    data_fetch_manager._async_fetch_devices.assert_awaited_once()
     data_fetch_manager.client_fetcher.async_fetch_network_clients.assert_awaited_once()
     data_fetch_manager.client_fetcher.async_fetch_device_clients.assert_awaited_once()
 
@@ -114,7 +114,7 @@ async def test_get_all_data_handles_api_errors(data_fetch_manager, caplog):
             "networks": Exception("Network error"),
         }
     )
-    data_fetch_manager.device_fetcher.async_fetch_devices = AsyncMock(
+    data_fetch_manager._async_fetch_devices = AsyncMock(
         return_value={"devices": [], "battery_readings": None}
     )
     data_fetch_manager.client_fetcher.async_fetch_network_clients = AsyncMock(
@@ -208,7 +208,7 @@ async def test_get_all_data_includes_switch_ports(data_fetch_manager, mock_clien
         }
     )
     # Ensure device_fetcher returns our switch device
-    data_fetch_manager.device_fetcher.async_fetch_devices = AsyncMock(
+    data_fetch_manager._async_fetch_devices = AsyncMock(
         return_value={"devices": [switch_device], "battery_readings": None}
     )
     data_fetch_manager.client_fetcher.async_fetch_network_clients = AsyncMock(
@@ -372,7 +372,7 @@ async def test_vpn_status_not_fetched_when_disabled(mock_client):
             "networks": [{"id": "N_123", "productTypes": ["appliance"]}],
         }
     )
-    manager.device_fetcher.async_fetch_devices = AsyncMock(
+    manager._async_fetch_devices = AsyncMock(
         return_value={"devices": [], "battery_readings": None}
     )
     manager.client_fetcher.async_fetch_network_clients = AsyncMock(return_value=[])
@@ -402,7 +402,7 @@ async def test_vpn_status_fetched_when_enabled(mock_client):
             "networks": [{"id": "N_123", "productTypes": ["appliance"]}],
         }
     )
-    manager.device_fetcher.async_fetch_devices = AsyncMock(
+    manager._async_fetch_devices = AsyncMock(
         return_value={"devices": [], "battery_readings": None}
     )
     manager.client_fetcher.async_fetch_network_clients = AsyncMock(return_value=[])
