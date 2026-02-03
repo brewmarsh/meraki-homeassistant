@@ -25,7 +25,6 @@ from .core.repositories.camera_repository import CameraRepository
 from .core.repository import MerakiRepository
 from .core.timed_access_manager import TimedAccessManager
 from .frontend import async_register_frontend, async_remove_frontend
-from .services import async_setup_services
 from .services.camera_service import CameraService
 from .services.device_control_service import DeviceControlService
 from .services.network_control_service import NetworkControlService
@@ -123,8 +122,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     }
 
     await discovery_service.discover_entities()
-    await async_setup_services(
-        hass,
+    await coordinator.async_setup_services(
         device_control_service=device_control_service,
         switch_port_service=switch_port_service,
         camera_service=camera_service,

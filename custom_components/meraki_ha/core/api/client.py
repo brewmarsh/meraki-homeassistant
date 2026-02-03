@@ -26,7 +26,6 @@ from ...types import MerakiDevice, MerakiNetwork
 from ..coordinator_helpers.client_fetcher import ClientFetcher
 from ..coordinator_helpers.detail_fetcher import DetailFetcher
 from ..coordinator_helpers.detail_processor import DetailProcessor
-from ..coordinator_helpers.device_fetcher import DeviceFetcher
 from ..parsers.appliance import parse_appliance_data
 from ..parsers.devices import parse_device_data
 from ..parsers.sensors import parse_sensor_data
@@ -105,7 +104,6 @@ class MerakiAPIClient:
 
         # Initialize helper classes
         self.client_fetcher = ClientFetcher(self)
-        self.device_fetcher = DeviceFetcher(self)
         self.detail_fetcher = DetailFetcher(self)
         self.detail_processor = DetailProcessor(self)
 
@@ -254,6 +252,9 @@ class MerakiAPIClient:
             ),
             "sensor_readings": self._run_with_semaphore(
                 self.sensor.get_organization_sensor_readings_latest(),
+            ),
+            "devices": self._run_with_semaphore(
+                self.organization.get_organization_devices(),
             ),
         }
         results = await asyncio.gather(*tasks.values(), return_exceptions=True)
@@ -583,10 +584,7 @@ class MerakiAPIClient:
         if not self._dashboard:
             await self.async_setup()
 
-        initial_results, device_fetcher_result = await asyncio.gather(
-            self._async_fetch_initial_data(),
-            self.device_fetcher.async_fetch_devices(),
-        )
+        initial_results = await self._async_fetch_initial_data()
 
         networks_res = initial_results.get("networks", [])
         if isinstance(networks_res, Exception):
@@ -598,16 +596,17 @@ class MerakiAPIClient:
         else:
             networks_list = [MerakiNetwork.from_dict(n) for n in networks_res]
 
-        if isinstance(device_fetcher_result, Exception):
+        devices_res = initial_results.get("devices", [])
+        if isinstance(devices_res, Exception):
             _LOGGER.warning(
                 "Could not fetch devices: %s",
-                device_fetcher_result,
+                devices_res,
             )
             devices_list = []
-            battery_readings: list[dict[str, Any]] | None = []
         else:
-            devices_list = device_fetcher_result.get("devices", [])
-            battery_readings = device_fetcher_result.get("battery_readings")
+            devices_list = [MerakiDevice.from_dict(d) for d in devices_res]
+
+        battery_readings: list[dict[str, Any]] = []
 
         appliance_uplink_statuses = initial_results.get("appliance_uplink_statuses")
         parse_appliance_data(devices_list, appliance_uplink_statuses)
