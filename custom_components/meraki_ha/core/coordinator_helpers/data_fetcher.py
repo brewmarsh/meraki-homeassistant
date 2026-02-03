@@ -86,27 +86,6 @@ class DataFetchManager:
 
         return data
 
-    async def _async_fetch_devices(self) -> dict[str, Any]:
-        """
-        Fetch devices from the Meraki API.
-
-        Returns
-        -------
-            A dictionary containing devices and battery readings.
-
-        """
-        devices = await self.client.run_with_semaphore(
-            self.client.organization.get_organization_devices(),
-        )
-        if not isinstance(devices, list):
-            _LOGGER.warning("get_organization_devices did not return a list")
-            devices = []
-
-        return {
-            "devices": [MerakiDevice.from_dict(d) for d in devices],
-            "battery_readings": None,
-        }
-
     def _build_network_detail_tasks(
         self,
         network: MerakiNetwork,
@@ -474,35 +453,6 @@ class DataFetchManager:
             )
 
         return processed_data
-
-    def _handle_initial_fetch_results(
-        self,
-        initial_results: dict[str, Any],
-        device_fetcher_result: Any,
-    ) -> tuple[list[MerakiNetwork], list[MerakiDevice], list[dict[str, Any]] | None]:
-        """Handle results from initial fetch."""
-        networks_res = initial_results.get("networks", [])
-        if isinstance(networks_res, Exception):
-            _LOGGER.warning(
-                "Could not fetch networks, network data will be unavailable: %s",
-                networks_res,
-            )
-            networks_list = []
-        else:
-            networks_list = [MerakiNetwork.from_dict(n) for n in networks_res]
-
-        if isinstance(device_fetcher_result, Exception):
-            _LOGGER.warning(
-                "Could not fetch devices: %s",
-                device_fetcher_result,
-            )
-            devices_list = []
-            battery_readings: list[dict[str, Any]] | None = []
-        else:
-            devices_list = device_fetcher_result.get("devices", [])
-            battery_readings = device_fetcher_result.get("battery_readings")
-
-        return networks_list, devices_list, battery_readings
 
     async def get_all_data(
         self,
