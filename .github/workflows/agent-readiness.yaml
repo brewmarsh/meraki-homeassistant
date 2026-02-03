@@ -1,0 +1,40 @@
+name: Agent Readiness Scorecard
+
+on:
+  pull_request:
+    branches:
+      - beta
+      - main
+  workflow_dispatch:
+  schedule:
+    - cron: '0 2 * * *'
+
+jobs:
+  readiness-score:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install tool
+        run: pip install git+https://github.com/brewmarsh/agent-readiness-scorecard.git
+
+      - name: Run scorecard
+        run: agent-readiness-scorecard check --path custom_components/meraki_ha --format markdown > readiness_report.md
+
+      - name: Upload readiness report
+        uses: actions/upload-artifact@v4
+        with:
+          name: readiness-report
+          path: readiness_report.md
+
+      - name: Post comment to PR
+        if: github.event_name == 'pull_request'
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          path: readiness_report.md
