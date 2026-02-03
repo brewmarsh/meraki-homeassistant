@@ -16,6 +16,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
+          token: ${{ secrets.PAT_TOKEN }}
           fetch-depth: 0 # Required for git describe to work
 
       - name: Set up Python
