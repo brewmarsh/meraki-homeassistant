@@ -27,36 +27,11 @@ def mock_meraki_client() -> MagicMock:
     """Fixture for a mocked MerakiAPIClient."""
     client = MagicMock()
     # Ensure network data is consistent
-    network_id = MOCK_NETWORK.id
-
-    from custom_components.meraki_ha.types import MerakiDevice
 
     # Mock the appliance object (must be MagicMock for attribute access)
     client.appliance = MagicMock()
     client.appliance.update_network_appliance_content_filtering = AsyncMock()
 
-    client.get_all_data = AsyncMock(
-        return_value={
-            "devices": [
-                MerakiDevice(
-                    serial="Q234-ABCD-CF", model="MX64", name="Filtering Appliance"
-                )
-            ],
-            "networks": [MOCK_NETWORK],
-            "content_filtering": {
-                network_id: {
-                    "networkId": network_id,
-                    "urlCategoryListSize": "topSites",
-                }
-            },
-            "ssids": [],
-            "clients": [],
-            "vlans": {},
-            "appliance_uplink_statuses": [],
-            "rf_profiles": {},
-            "appliance_traffic": {},
-        }
-    )
     client.unregister_webhook = AsyncMock(return_value=None)
     # Mock the update method
     client.appliance = MagicMock()
@@ -73,10 +48,41 @@ def mock_meraki_client() -> MagicMock:
     return client
 
 
+@pytest.fixture
+def mock_data_fetch_manager() -> AsyncMock:
+    """Fixture for a mocked DataFetchManager."""
+    manager = AsyncMock()
+    from custom_components.meraki_ha.types import MerakiDevice
+    manager.get_all_data = AsyncMock(
+        return_value={
+            "devices": [
+                MerakiDevice(
+                    serial="Q234-ABCD-CF", model="MX64", name="Filtering Appliance"
+                )
+            ],
+            "networks": [MOCK_NETWORK],
+            "content_filtering": {
+                MOCK_NETWORK.id: {
+                    "networkId": MOCK_NETWORK.id,
+                    "urlCategoryListSize": "topSites",
+                }
+            },
+            "ssids": [],
+            "clients": [],
+            "vlans": {},
+            "appliance_uplink_statuses": [],
+            "rf_profiles": {},
+            "appliance_traffic": {},
+        }
+    )
+    return manager
+
+
 async def test_content_filtering_select_entity(
     hass: HomeAssistant,
     mock_config_entry: MockConfigEntry,
     mock_meraki_client: AsyncMock,
+    mock_data_fetch_manager: AsyncMock,
 ) -> None:
     """Test the content filtering select entity is created and functional."""
     assert await async_setup_component(hass, "http", {})
@@ -86,6 +92,10 @@ async def test_content_filtering_select_entity(
         patch(
             "custom_components.meraki_ha.coordinator.ApiClient",
             return_value=mock_meraki_client,
+        ),
+        patch(
+            "custom_components.meraki_ha.coordinator.DataFetchManager",
+            return_value=mock_data_fetch_manager,
         ),
         patch("custom_components.meraki_ha.async_register_webhook", return_value=None),
     ):

@@ -37,13 +37,13 @@ class DeviceFetcher:
             A dictionary containing the list of Meraki devices and battery readings.
         """
         tasks = {
-            "devices": self._client._run_with_semaphore(
+            "devices": self._client.run_with_semaphore(
                 self._client.organization.get_organization_devices(),
             ),
-            "device_statuses": self._client._run_with_semaphore(
+            "device_statuses": self._client.run_with_semaphore(
                 self._client.organization.get_organization_devices_statuses(),
             ),
-            "devices_availabilities": self._client._run_with_semaphore(
+            "devices_availabilities": self._client.run_with_semaphore(
                 self._client.organization.get_organization_devices_availabilities(),
             ),
         }
@@ -84,7 +84,7 @@ class DeviceFetcher:
             if device.get("model", "").startswith("MT")
         ]
         if mt_serials:
-            battery_data_res = await self._client._run_with_semaphore(
+            battery_data_res = await self._client.run_with_semaphore(
                 self._client.sensor.get_organization_sensor_readings_latest_for_serials(
                     serials=mt_serials,
                     metrics=["battery"],

@@ -28,22 +28,32 @@ def mock_config_entry() -> MockConfigEntry:
 def mock_meraki_client() -> MagicMock:
     """Fixture for a mocked MerakiAPIClient."""
     client = MagicMock()
-    # Ensure network data is consistent
-    network_id = MOCK_NETWORK.id
-
-    from custom_components.meraki_ha.types import MerakiDevice
-
     # Mock the appliance object (must be MagicMock for attribute access)
     client.appliance = MagicMock()
     client.appliance.update_vpn_status = AsyncMock()
+    client.unregister_webhook = AsyncMock(return_value=None)
+    client.appliance.get_network_appliance_content_filtering_categories = AsyncMock(
+        return_value={"categories": []}
+    )
 
-    client.get_all_data = AsyncMock(
+    return client
+
+
+@pytest.fixture
+def mock_data_fetch_manager() -> AsyncMock:
+    """Fixture for a mocked DataFetchManager."""
+    from custom_components.meraki_ha.types import MerakiDevice
+
+    manager = AsyncMock()
+    manager.get_all_data = AsyncMock(
         return_value={
             "devices": [
                 MerakiDevice(serial="Q234-ABCD-VPN", model="MX64", name="VPN Appliance")
             ],
             "networks": [MOCK_NETWORK],
-            "vpn_status": {network_id: MerakiVpn(mode="spoke", hubs=[], subnets=[])},
+            "vpn_status": {
+                MOCK_NETWORK.id: MerakiVpn(mode="spoke", hubs=[], subnets=[])
+            },
             "ssids": [],
             "clients": [],
             "vlans": {},
@@ -53,21 +63,14 @@ def mock_meraki_client() -> MagicMock:
             "content_filtering": {},
         }
     )
-    client.unregister_webhook = AsyncMock(return_value=None)
-    # Mock the update method
-    client.appliance = MagicMock()
-    client.appliance.update_vpn_status = AsyncMock()
-    client.appliance.get_network_appliance_content_filtering_categories = AsyncMock(
-        return_value={"categories": []}
-    )
-
-    return client
+    return manager
 
 
 async def test_vpn_select_entity(
     hass: HomeAssistant,
     mock_config_entry: MockConfigEntry,
     mock_meraki_client: AsyncMock,
+    mock_data_fetch_manager: AsyncMock,
 ) -> None:
     """Test the VPN select entity is created and functional."""
     assert await async_setup_component(hass, "http", {})
@@ -77,6 +80,10 @@ async def test_vpn_select_entity(
         patch(
             "custom_components.meraki_ha.coordinator.ApiClient",
             return_value=mock_meraki_client,
+        ),
+        patch(
+            "custom_components.meraki_ha.coordinator.DataFetchManager",
+            return_value=mock_data_fetch_manager,
         ),
         patch("custom_components.meraki_ha.async_register_webhook", return_value=None),
     ):
