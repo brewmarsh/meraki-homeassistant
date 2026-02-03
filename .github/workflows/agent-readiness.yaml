@@ -18,6 +18,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Set up Python 3.11
         uses: actions/setup-python@v5
@@ -27,9 +29,18 @@ jobs:
       - name: Install tool
         run: pip install git+https://github.com/brewmarsh/agent-readiness-scorecard.git
 
-      - name: Run scorecard
+      - name: Run agent scorecard (diff mode)
         continue-on-error: true
-        run: agent-score score custom_components/meraki_ha --report readiness_report.md
+        run: |
+          # Ensure we have the base branch reference locally
+          git fetch origin ${{ github.base_ref || 'main' }}
+          # Run diff against the PR target (e.g. main or beta)
+          # Fallback to 'main' if not in a PR
+          TARGET_BRANCH="origin/${{ github.base_ref || 'main' }}"
+          echo "Running agent scorecard against $TARGET_BRANCH..."
+          # Create an initial report in case the tool fails
+          echo "Agent scorecard run failed or produced no output." > readiness_report.md
+          agent-score score custom_components/meraki_ha --diff $TARGET_BRANCH --report readiness_report.md
 
       - name: Upload readiness report
         if: always()
@@ -40,6 +51,7 @@ jobs:
 
       - name: Post comment to PR
         if: always() && github.event_name == 'pull_request'
+        continue-on-error: true
         uses: marocchino/sticky-pull-request-comment@v2
         with:
           path: readiness_report.md
