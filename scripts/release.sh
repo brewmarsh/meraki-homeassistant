@@ -32,22 +32,29 @@ PART="${1}"
 # 2. Fetch and sanitize the latest git tag
 echo "Fetching latest git tag..."
 LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null) || error_exit "Failed to get latest git tag. Make sure you have at least one tag."
-TAG_VERSION="${LATEST_TAG#v}"
-echo "Found latest tag: ${LATEST_TAG} (version: ${TAG_VERSION})"
+VERSION="${LATEST_TAG#v}"
+echo "Found latest tag: ${LATEST_TAG} (version: ${VERSION})"
+
+# Normalize version for tool compatibility (e.g., 112-beta -> 112.0.0-beta)
+if [[ "$VERSION" =~ ^[0-9]+-[a-z]+$ ]]; then
+  CLEAN_VERSION=$(echo "$VERSION" | sed -E 's/([0-9]+)-([a-z]+)/\1.0.0-\2/')
+  echo "Normalized version $VERSION to $CLEAN_VERSION for tool compatibility."
+  VERSION=$CLEAN_VERSION
+fi
 
 # 3. Force-synchronize version in manifest.json
-echo "Syncing version in ${MANIFEST_FILE} to ${TAG_VERSION}..."
-if ! jq --arg version "${TAG_VERSION}" '.version = $version' "${MANIFEST_FILE}" > "${MANIFEST_FILE}.tmp"; then
+echo "Syncing version in ${MANIFEST_FILE} to ${VERSION}..."
+if ! jq --arg version "${VERSION}" '.version = $version' "${MANIFEST_FILE}" > "${MANIFEST_FILE}.tmp"; then
   error_exit "jq command failed to update ${MANIFEST_FILE}"
 fi
 mv "${MANIFEST_FILE}.tmp" "${MANIFEST_FILE}"
 echo "Successfully synced ${MANIFEST_FILE}"
 
 # 4. Force-synchronize version in .bumpversion.toml
-echo "Syncing version in ${BUMP_CONFIG_FILE} to ${TAG_VERSION}..."
+echo "Syncing version in ${BUMP_CONFIG_FILE} to ${VERSION}..."
 # Using a temp file for sed to be safe, as in-place editing can be tricky.
 # We ensure the version string is double-quoted to maintain valid TOML syntax.
-sed "s/^current_version = .*/current_version = \"${TAG_VERSION}\"/" "${BUMP_CONFIG_FILE}" > "${BUMP_CONFIG_FILE}.tmp"
+sed "s/^current_version = .*/current_version = \"${VERSION}\"/" "${BUMP_CONFIG_FILE}" > "${BUMP_CONFIG_FILE}.tmp"
 mv "${BUMP_CONFIG_FILE}.tmp" "${BUMP_CONFIG_FILE}"
 echo "Successfully synced ${BUMP_CONFIG_FILE}"
 
@@ -68,5 +75,5 @@ esac
 # 6. Run bump-my-version
 echo "Running bump-my-version to bump the '${BUMP_PART}' part..."
 # Using --allow-dirty because we have modified the files. The CI will commit them.
-bump-my-version bump "${BUMP_PART}" --current-version "${TAG_VERSION}" --allow-dirty
+bump-my-version bump "${BUMP_PART}" --current-version "${VERSION}" --allow-dirty
 echo "Version bump successful. New version has been written to files."
