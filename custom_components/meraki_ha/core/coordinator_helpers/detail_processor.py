@@ -80,7 +80,7 @@ class DetailProcessor:
             network_traffic_key = f"traffic_{network_id}"
             network_traffic = detail_data.get(network_traffic_key)
             if isinstance(network_traffic, MerakiTrafficAnalysisError):
-                self._client._disabled_features.add(network_traffic_key)
+                self._client._disabled_features.add(network_traffic_key)  # type: ignore[attr-defined]
                 _LOGGER.info(
                     "Traffic analysis is not enabled for network %s. To enable it, "
                     "see https://documentation.meraki.com/MX/Design_and_Configure/Configuration_Guides/Firewall_and_Traffic_Shaping/Traffic_Analysis_and_Classification",
@@ -98,13 +98,13 @@ class DetailProcessor:
             network_vlans_key = f"vlans_{network_id}"
             network_vlans = detail_data.get(network_vlans_key)
             if isinstance(network_vlans, MerakiVlanError):
-                self._client._disabled_features.add(network_vlans_key)
+                self._client._disabled_features.add(network_vlans_key)  # type: ignore[attr-defined]
                 _LOGGER.info(str(network_vlans))
                 vlan_by_network[network_id] = []
             elif isinstance(network_vlans, MerakiInformationalError):
                 if "vlans are not enabled" in str(network_vlans).lower():
                     # Fallback for generic handling if needed
-                    self._client._disabled_features.add(network_vlans_key)
+                    self._client._disabled_features.add(network_vlans_key)  # type: ignore[attr-defined]
                     vlan_by_network[network_id] = []
             elif isinstance(network_vlans, MerakiVlansDisabledError):
                 vlan_by_network[network_id] = []

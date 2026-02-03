@@ -220,12 +220,12 @@ class WirelessEndpoints:
         tasks: dict[str, asyncio.Task[Any]] = {}
         if "wireless" in product_types:
             tasks[f"ssids_{network_id}"] = asyncio.create_task(
-                self._api_client._run_with_semaphore(
+                self._api_client.run_with_semaphore(
                     self.get_network_ssids(network_id),
                 ),
             )
             tasks[f"rf_profiles_{network_id}"] = asyncio.create_task(
-                self._api_client._run_with_semaphore(
+                self._api_client.run_with_semaphore(
                     self.get_network_wireless_rf_profiles(network_id),
                 ),
             )
