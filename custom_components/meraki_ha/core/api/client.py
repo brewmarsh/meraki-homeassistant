@@ -20,13 +20,15 @@ from ...core.errors import (
     ApiClientCommunicationError,
     MerakiInformationalError,
     MerakiTrafficAnalysisError,
-    MerakiVlanError,
     MerakiVlansDisabledError,
 )
 from ...types import MerakiDevice, MerakiNetwork
 from ..coordinator_helpers.client_fetcher import ClientFetcher
+from ..coordinator_helpers.detail_fetcher import DetailFetcher
+from ..coordinator_helpers.detail_processor import DetailProcessor
 from ..coordinator_helpers.device_fetcher import DeviceFetcher
 from ..parsers.appliance import parse_appliance_data
+from ..parsers.devices import parse_device_data
 from ..parsers.sensors import parse_sensor_data
 from .endpoints.appliance import ApplianceEndpoints
 from .endpoints.camera import CameraEndpoints
@@ -104,6 +106,8 @@ class MerakiAPIClient:
         # Initialize helper classes
         self.client_fetcher = ClientFetcher(self)
         self.device_fetcher = DeviceFetcher(self)
+        self.detail_fetcher = DetailFetcher(self)
+        self.detail_processor = DetailProcessor(self)
 
         # Semaphore to limit concurrent API calls
         self._semaphore = asyncio.Semaphore(2)

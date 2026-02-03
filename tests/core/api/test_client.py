@@ -77,24 +77,25 @@ def api_client(hass, mock_dashboard, coordinator):
 async def test_get_all_data_orchestration(api_client):
     """Test that get_all_data correctly orchestrates helper methods."""
     # Arrange
-    api_client._async_fetch_initial_data = AsyncMock(
-        return_value={
-            "networks": [MOCK_NETWORK_INIT],
-        }
-    )
-    api_client.device_fetcher.async_fetch_devices = AsyncMock(
-        return_value={"devices": [MOCK_DEVICE], "battery_readings": None}
-    )
+    api_client.organization.get_organization.return_value = {"name": "Test Org"}
+    api_client.organization.get_organization_networks.return_value = [MOCK_NETWORK_INIT]
+    api_client.organization.get_organization_devices.return_value = [MOCK_DEVICE_INIT]
+    api_client.organization.get_organization_devices_statuses.return_value = []
+    api_client.organization.get_organization_devices_availabilities.return_value = []
+    api_client.appliance.get_organization_appliance_uplink_statuses.return_value = []
+    api_client.sensor.get_organization_sensor_readings_latest.return_value = []
+
     api_client.client_fetcher.async_fetch_network_clients = AsyncMock(return_value=[])
     api_client.client_fetcher.async_fetch_device_clients = AsyncMock(return_value={})
-    api_client._build_detail_tasks = MagicMock(return_value={})
+    api_client.detail_fetcher.build_detail_tasks = MagicMock(return_value={})
 
     # Act
     await api_client.get_all_data()
 
     # Assert
-    api_client._async_fetch_initial_data.assert_awaited_once()
-    api_client.device_fetcher.async_fetch_devices.assert_awaited_once()
+    api_client.organization.get_organization.assert_called_once()
+    api_client.organization.get_organization_networks.assert_called_once()
+    api_client.organization.get_organization_devices.assert_called_once()
     api_client.client_fetcher.async_fetch_network_clients.assert_awaited_once()
     api_client.client_fetcher.async_fetch_device_clients.assert_awaited_once()
 
@@ -103,14 +104,15 @@ async def test_get_all_data_orchestration(api_client):
 async def test_get_all_data_handles_api_errors(api_client, caplog):
     """Test that get_all_data handles API errors gracefully."""
     # Arrange
-    api_client._async_fetch_initial_data = AsyncMock(
-        return_value={
-            "networks": Exception("Network error"),
-        }
+    api_client.organization.get_organization_networks.side_effect = Exception(
+        "Network error"
     )
-    api_client.device_fetcher.async_fetch_devices = AsyncMock(
-        return_value={"devices": [], "battery_readings": None}
-    )
+    api_client.organization.get_organization_devices.return_value = []
+    api_client.organization.get_organization_devices_statuses.return_value = []
+    api_client.organization.get_organization_devices_availabilities.return_value = []
+    api_client.appliance.get_organization_appliance_uplink_statuses.return_value = []
+    api_client.sensor.get_organization_sensor_readings_latest.return_value = []
+
     api_client.client_fetcher.async_fetch_network_clients = AsyncMock(
         side_effect=Exception("Client fetch error")
     )
@@ -124,29 +126,29 @@ async def test_get_all_data_handles_api_errors(api_client, caplog):
     # Assert
     assert data["networks"] == []
     assert data["devices"] == []
-    assert "Could not fetch networks" in caplog.text
+    assert "Failed to fetch networks" in caplog.text
 
 
 @pytest.mark.asyncio
 async def test_get_all_data_handles_informational_errors(api_client):
     """Test that get_all_data handles informational API errors."""
     # Arrange
-    api_client._async_fetch_initial_data = AsyncMock(
-        return_value={
-            "networks": [MOCK_NETWORK_INIT],
-            "devices": [MOCK_DEVICE_INIT],
-            "device_statuses": [],
-        }
-    )
-    api_client._async_fetch_network_clients = AsyncMock(return_value=[])
-    api_client._async_fetch_device_clients = AsyncMock(return_value={})
+    api_client.organization.get_organization_networks.return_value = [MOCK_NETWORK_INIT]
+    api_client.organization.get_organization_devices.return_value = [MOCK_DEVICE_INIT]
+    api_client.organization.get_organization_devices_statuses.return_value = []
+    api_client.organization.get_organization_devices_availabilities.return_value = []
+    api_client.appliance.get_organization_appliance_uplink_statuses.return_value = []
+    api_client.sensor.get_organization_sensor_readings_latest.return_value = []
+
+    api_client.client_fetcher.async_fetch_network_clients = AsyncMock(return_value=[])
+    api_client.client_fetcher.async_fetch_device_clients = AsyncMock(return_value={})
 
     async def coro():
         from custom_components.meraki_ha.core.errors import MerakiTrafficAnalysisError
 
         return MerakiTrafficAnalysisError("Traffic analysis is not enabled")
 
-    api_client._build_detail_tasks = MagicMock(
+    api_client.detail_fetcher.build_detail_tasks = MagicMock(
         return_value={f"traffic_{MOCK_NETWORK_INIT['id']}": coro()}
     )
 
@@ -163,7 +165,7 @@ async def test_get_all_data_handles_informational_errors(api_client):
 
 @pytest.mark.asyncio
 async def test_build_detail_tasks_for_wireless_device(api_client):
-    """Test that _build_detail_tasks creates the correct tasks for a wireless device."""
+    """Test that build_detail_tasks creates the correct tasks for a wireless device."""
     # Arrange
     devices = [MOCK_DEVICE]
     networks = [MOCK_NETWORK]
@@ -175,7 +177,7 @@ async def test_build_detail_tasks_for_wireless_device(api_client):
     }
 
     # Act
-    tasks = api_client._build_detail_tasks(networks, devices)
+    tasks = api_client.detail_fetcher.build_detail_tasks(networks, devices)
 
     # Assert
     assert tasks[f"ssids_{MOCK_NETWORK.id}"] == "task_ssids"
@@ -190,17 +192,14 @@ async def test_build_detail_tasks_for_wireless_device(api_client):
 async def test_get_all_data_includes_switch_ports(api_client):
     """Test that get_all_data returns switch ports statuses."""
     # Arrange
-    switch_device = MerakiDevice.from_dict({"serial": "Q123", "productType": "switch"})
-    api_client._async_fetch_initial_data = AsyncMock(
-        return_value={
-            "networks": [],
-            "devices": [],
-        }
-    )
-    # Ensure device_fetcher returns our switch device
-    api_client.device_fetcher.async_fetch_devices = AsyncMock(
-        return_value={"devices": [switch_device], "battery_readings": None}
-    )
+    switch_device_dict = {"serial": "Q123", "productType": "switch"}
+    api_client.organization.get_organization_networks.return_value = []
+    api_client.organization.get_organization_devices.return_value = [switch_device_dict]
+    api_client.organization.get_organization_devices_statuses.return_value = []
+    api_client.organization.get_organization_devices_availabilities.return_value = []
+    api_client.appliance.get_organization_appliance_uplink_statuses.return_value = []
+    api_client.sensor.get_organization_sensor_readings_latest.return_value = []
+
     api_client.client_fetcher.async_fetch_network_clients = AsyncMock(return_value=[])
     api_client.client_fetcher.async_fetch_device_clients = AsyncMock(return_value={})
 
@@ -208,12 +207,13 @@ async def test_get_all_data_includes_switch_ports(api_client):
     async def coro():
         return [{"portId": "1", "status": "Connected"}]
 
-    api_client._build_detail_tasks = MagicMock(
+    api_client.detail_fetcher.build_detail_tasks = MagicMock(
         return_value={"ports_statuses_Q123": coro()}
     )
 
     # Act
-    await api_client.get_all_data()
+    data = await api_client.get_all_data()
+    switch_device = next(d for d in data["devices"] if d.serial == "Q123")
 
     # Assert
     assert switch_device.ports_statuses == [{"portId": "1", "status": "Connected"}]
@@ -221,7 +221,7 @@ async def test_get_all_data_includes_switch_ports(api_client):
 
 @pytest.mark.asyncio
 async def test_build_detail_tasks_for_switch_device(api_client):
-    """Test that _build_detail_tasks creates the correct tasks for a switch device."""
+    """Test that build_detail_tasks creates the correct tasks for a switch device."""
     # Arrange
     switch_device = MerakiDevice.from_dict({"serial": "s123", "productType": "switch"})
     devices = [switch_device]
@@ -233,7 +233,7 @@ async def test_build_detail_tasks_for_switch_device(api_client):
     api_client._run_with_semaphore = MagicMock(side_effect=lambda x: x)
 
     # Act
-    tasks = api_client._build_detail_tasks(networks, devices)
+    tasks = api_client.detail_fetcher.build_detail_tasks(networks, devices)
 
     # Assert
     assert f"ports_statuses_{switch_device.serial}" in tasks
@@ -245,7 +245,7 @@ async def test_build_detail_tasks_for_switch_device(api_client):
 
 @pytest.mark.asyncio
 async def test_build_detail_tasks_for_camera_device(api_client):
-    """Test that _build_detail_tasks creates the correct tasks for a camera device."""
+    """Test that build_detail_tasks creates the correct tasks for a camera device."""
     # Arrange
     camera_device = MerakiDevice.from_dict({"serial": "c123", "productType": "camera"})
     devices = [camera_device]
@@ -256,7 +256,7 @@ async def test_build_detail_tasks_for_camera_device(api_client):
     api_client._run_with_semaphore = MagicMock(side_effect=lambda x: x)
 
     # Act
-    tasks = api_client._build_detail_tasks(networks, devices)
+    tasks = api_client.detail_fetcher.build_detail_tasks(networks, devices)
 
     # Assert
     assert f"video_settings_{camera_device.serial}" in tasks
@@ -272,7 +272,7 @@ async def test_build_detail_tasks_for_camera_device(api_client):
 
 @pytest.mark.asyncio
 async def test_build_detail_tasks_for_appliance_device(api_client):
-    """Test that _build_detail_tasks creates tasks for an appliance device."""
+    """Test that build_detail_tasks creates tasks for an appliance device."""
     # Arrange
     appliance_device = MerakiDevice.from_dict(
         {
@@ -309,7 +309,7 @@ async def test_build_detail_tasks_for_appliance_device(api_client):
 
     # Act
     with patch("asyncio.create_task", side_effect=lambda x: x):
-        tasks = api_client._build_detail_tasks(networks, devices)
+        tasks = api_client.detail_fetcher.build_detail_tasks(networks, devices)
 
     # Assert
     # Check network tasks
@@ -326,14 +326,16 @@ async def test_build_detail_tasks_for_appliance_device(api_client):
 
 
 def test_process_detailed_data_merges_device_info(api_client):
-    """Test that _process_detailed_data merges details into device objects."""
+    """Test that process_detailed_data merges details into device objects."""
     # Arrange
     device = MerakiDevice(serial="c123", product_type="camera")
     video_settings = {"rtsp_url": "rtsp://test", "rtspServerEnabled": True}
     detail_data = {f"video_settings_{device.serial}": video_settings}
 
     # Act
-    api_client._process_detailed_data(detail_data, [], [device], previous_data={})
+    api_client.detail_processor.process_detailed_data(
+        detail_data, [], [device], previous_data={}
+    )
 
     # Assert
     assert device.video_settings == video_settings
