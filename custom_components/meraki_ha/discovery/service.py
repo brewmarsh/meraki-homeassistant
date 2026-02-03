@@ -19,6 +19,7 @@ from ..const import (
     CONF_ENABLE_SSID_SENSORS,
 )
 from ..types import MerakiDevice
+from .handlers.base import BaseDeviceHandler
 from .handlers.gx import GXHandler
 from .handlers.mr import MRHandler
 from .handlers.ms import MSHandler
@@ -77,7 +78,7 @@ class DeviceDiscoveryService:
         handler based on the device's model type. It also discovers
         network-level and virtual SSID entities.
         """
-        HANDLER_MAPPING = {
+        HANDLER_MAPPING: dict[str, type[BaseDeviceHandler]] = {
             "MR": MRHandler,
             "MV": MVHandler,
             "MX": MXHandler,

@@ -50,9 +50,10 @@ class MerakiNetworkEntity(BaseMerakiEntity):
     def device_info(self) -> DeviceInfo:
         """Return device info for the network."""
         # The network is required for this entity, and so is its ID.
-        # These assertions help mypy understand that these are not None.
-        assert self._network is not None
-        assert self._network.id is not None
+        if self._network is None:
+            raise ValueError("Network cannot be None")
+        if self._network.id is None:
+            raise ValueError("Network ID cannot be None")
         return DeviceInfo(
             identifiers={(DOMAIN, self._network.id)},
             name=self._network.name or f"Network {self._network.id}",
