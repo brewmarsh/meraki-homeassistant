@@ -99,10 +99,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     camera_service = CameraService(camera_repo)
     network_control_service = NetworkControlService(coordinator.api, coordinator)
 
-    coordinator.device_control_service = device_control_service
-    coordinator.switch_port_service = switch_port_service
-    coordinator.camera_service = camera_service
-
     discovery_service: DeviceDiscoveryService = DeviceDiscoveryService(
         coordinator=coordinator,
         config_entry=entry,
@@ -127,7 +123,12 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     }
 
     await discovery_service.discover_entities()
-    await async_setup_services(hass, coordinator)
+    await async_setup_services(
+        hass,
+        device_control_service=device_control_service,
+        switch_port_service=switch_port_service,
+        camera_service=camera_service,
+    )
 
     # Set up webhook
     webhook_id = WEBHOOK_ID_FORMAT.format(entry_id=entry.entry_id)

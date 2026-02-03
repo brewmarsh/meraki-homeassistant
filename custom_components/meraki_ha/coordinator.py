@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import logging
 from datetime import datetime, timedelta
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
@@ -25,12 +25,6 @@ from .core.api.client import MerakiAPIClient as ApiClient
 from .core.helpers import filter_ignored_networks, process_coordinator_data
 from .core.managers import AvailabilityTracker, PendingUpdateManager
 from .types import MerakiDevice, MerakiNetwork
-
-if TYPE_CHECKING:
-    from .services.camera_service import CameraService
-    from .services.device_control_service import DeviceControlService
-    from .services.switch_port_service import SwitchPortService
-
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -71,10 +65,6 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
         self.pending_update_manager = PendingUpdateManager()
         self.availability_tracker = AvailabilityTracker()
-
-        self.device_control_service: DeviceControlService | None = None
-        self.switch_port_service: SwitchPortService | None = None
-        self.camera_service: CameraService | None = None
 
         try:
             scan_interval = int(
