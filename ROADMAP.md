@@ -18,7 +18,7 @@ To maintain a modular, service-oriented architecture, we will adhere to the foll
 | `custom_components/meraki_ha/const.py`             | Refactored | Responsibility (mixes configuration keys, API constants, platform types, UI labels)                                                                                        | Split into `const_conf.py`, `const_api.py`, etc.                                     |
 | `custom_components/meraki_ha/discovery/service.py` | Refactored | N/A (previously suspected)                                                                                                                                                 | Implement Factory/Handler pattern for entity creation                                |
 | `custom_components/meraki_ha/api.py`               | Refactored | N/A (previously suspected)                                                                                                                                                 | Split into domain services (e.g., `SwitchService`, `CameraService`, `SensorService`) |
-| `custom_components/meraki_ha/core/api/client.py`   | In Progress| Size (839 lines)                                                                                                                                                           | Extract detailed data fetching and processing logic                                  |
+| `custom_components/meraki_ha/core/api/client.py`   | Refactored | Size (361 lines)                                                                                                                                                           | Extract detailed data fetching and processing logic                                  |
 
 ## Future Goals
 
@@ -26,4 +26,4 @@ To maintain a modular, service-oriented architecture, we will adhere to the foll
 - [x] Refactor const.py
 - [x] Refactor DeviceDiscoveryService
 - [x] Refactor MerakiAPIClient detailed data fetching
-- [ ] Continue refactoring MerakiAPIClient into domain services
+- [x] Continue refactoring MerakiAPIClient into domain services

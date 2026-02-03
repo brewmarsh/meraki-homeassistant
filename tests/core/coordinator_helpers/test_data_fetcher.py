@@ -28,6 +28,10 @@ def mock_client():
     client.wireless.get_network_ssids = AsyncMock(return_value=[])
     client.wireless.get_network_wireless_settings = AsyncMock(return_value={})
     client.wireless.get_network_wireless_rf_profiles = AsyncMock(return_value=[])
+    client.wireless.get_network_detail_tasks = MagicMock(return_value={})
+    client.wireless.process_network_detail_data = MagicMock(
+        return_value={"ssids": [], "rf_profiles": {}}
+    )
 
     client.switch.get_device_switch_ports_statuses = AsyncMock(return_value=[])
 
@@ -178,16 +182,18 @@ async def test_build_detail_tasks_for_wireless_device(data_fetch_manager, mock_c
     devices = [MOCK_DEVICE]
     networks = [MOCK_NETWORK]
 
+    # Mock the return value of get_network_detail_tasks
+    mock_client.wireless.get_network_detail_tasks.return_value = {
+        f"ssids_{MOCK_NETWORK.id}": "task_ssids",
+        f"rf_profiles_{MOCK_NETWORK.id}": "task_rf_profiles",
+    }
+
     # Act
     tasks = data_fetch_manager._build_detail_tasks(networks, devices)
 
     # Assert
     assert f"ssids_{MOCK_NETWORK.id}" in tasks
     assert f"rf_profiles_{MOCK_NETWORK.id}" in tasks
-
-    # Clean up coroutines to avoid warnings
-    for task in tasks.values():
-        await task
 
 
 @pytest.mark.asyncio
