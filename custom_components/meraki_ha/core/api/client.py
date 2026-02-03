@@ -20,14 +20,12 @@ from ...core.errors import (
     ApiClientCommunicationError,
     MerakiInformationalError,
     MerakiTrafficAnalysisError,
+    MerakiVlanError,
     MerakiVlansDisabledError,
 )
 from ...types import MerakiDevice, MerakiNetwork
 from ..coordinator_helpers.client_fetcher import ClientFetcher
-from ..coordinator_helpers.detail_fetcher import DetailFetcher
-from ..coordinator_helpers.detail_processor import DetailProcessor
 from ..parsers.appliance import parse_appliance_data
-from ..parsers.devices import parse_device_data
 from ..parsers.sensors import parse_sensor_data
 from .endpoints.appliance import ApplianceEndpoints
 from .endpoints.camera import CameraEndpoints
@@ -80,6 +78,9 @@ class MerakiAPIClient:
         self._hass = hass
         self._base_url = base_url
 
+        self._disabled_features: set[str] = set()
+        self._enable_vpn_management = False
+
         self._dashboard: meraki.DashboardAPI | None = None
 
         # Initialize endpoint handlers
@@ -94,8 +95,6 @@ class MerakiAPIClient:
 
         # Initialize helper classes
         self.client_fetcher = ClientFetcher(self)
-        self.detail_fetcher = DetailFetcher(self)
-        self.detail_processor = DetailProcessor(self)
 
         # Semaphore to limit concurrent API calls
         self._semaphore = asyncio.Semaphore(2)
@@ -205,7 +204,7 @@ class MerakiAPIClient:
                     f"An unexpected error occurred: {e}"
                 ) from e
 
-    async def _run_with_semaphore(self, coro: Awaitable[Any]) -> Any:
+    async def run_with_semaphore(self, coro: Awaitable[Any]) -> Any:
         """
         Run an awaitable with the semaphore.
 
@@ -233,19 +232,19 @@ class MerakiAPIClient:
             await self.async_setup()
 
         tasks = {
-            "organization": self._run_with_semaphore(
+            "organization": self.run_with_semaphore(
                 self.organization.get_organization(),
             ),
-            "networks": self._run_with_semaphore(
+            "networks": self.run_with_semaphore(
                 self.organization.get_organization_networks(),
             ),
-            "appliance_uplink_statuses": self._run_with_semaphore(
+            "appliance_uplink_statuses": self.run_with_semaphore(
                 self.appliance.get_organization_appliance_uplink_statuses(),
             ),
-            "sensor_readings": self._run_with_semaphore(
+            "sensor_readings": self.run_with_semaphore(
                 self.sensor.get_organization_sensor_readings_latest(),
             ),
-            "devices": self._run_with_semaphore(
+            "devices": self.run_with_semaphore(
                 self.organization.get_organization_devices(),
             ),
         }
@@ -286,41 +285,41 @@ class MerakiAPIClient:
             if "appliance" in product_types:
                 if f"traffic_{network_id}" not in self._disabled_features:
                     detail_tasks[f"traffic_{network_id}"] = asyncio.create_task(
-                        self._run_with_semaphore(
+                        self.run_with_semaphore(
                             self.network.get_network_traffic(network_id, "appliance"),
                         )
                     )
 
                 if f"vlans_{network_id}" not in self._disabled_features:
                     detail_tasks[f"vlans_{network_id}"] = asyncio.create_task(
-                        self._run_with_semaphore(
+                        self.run_with_semaphore(
                             self.appliance.get_network_vlans(network_id),
                         )
                     )
 
                 detail_tasks[f"l3_firewall_rules_{network_id}"] = asyncio.create_task(
-                    self._run_with_semaphore(
+                    self.run_with_semaphore(
                         self.appliance.get_l3_firewall_rules(network_id),
                     )
                 )
                 detail_tasks[f"traffic_shaping_{network_id}"] = asyncio.create_task(
-                    self._run_with_semaphore(
+                    self.run_with_semaphore(
                         self.appliance.get_traffic_shaping(network_id),
                     )
                 )
                 if self._enable_vpn_management:
                     detail_tasks[f"vpn_status_{network_id}"] = asyncio.create_task(
-                        self._run_with_semaphore(
+                        self.run_with_semaphore(
                             self.appliance.get_vpn_status(network_id),
                         )
                     )
                 detail_tasks[f"appliance_ports_{network_id}"] = asyncio.create_task(
-                    self._run_with_semaphore(
+                    self.run_with_semaphore(
                         self.appliance.get_appliance_ports(network_id),
                     )
                 )
                 detail_tasks[f"content_filtering_{network_id}"] = asyncio.create_task(
-                    self._run_with_semaphore(
+                    self.run_with_semaphore(
                         self.appliance.get_network_appliance_content_filtering(
                             network_id,
                         ),
@@ -329,17 +328,17 @@ class MerakiAPIClient:
         for device in devices:
             if device.product_type == "camera":
                 detail_tasks[f"video_settings_{device.serial}"] = asyncio.create_task(
-                    self._run_with_semaphore(
+                    self.run_with_semaphore(
                         self.camera.get_camera_video_settings(device.serial),
                     )
                 )
                 detail_tasks[f"sense_settings_{device.serial}"] = asyncio.create_task(
-                    self._run_with_semaphore(
+                    self.run_with_semaphore(
                         self.camera.get_camera_sense_settings(device.serial),
                     )
                 )
                 detail_tasks[f"camera_analytics_{device.serial}"] = asyncio.create_task(
-                    self._run_with_semaphore(
+                    self.run_with_semaphore(
                         self.camera.get_device_camera_analytics_recent(
                             device.serial,
                         ),
@@ -347,14 +346,14 @@ class MerakiAPIClient:
                 )
             elif device.product_type == "switch":
                 detail_tasks[f"ports_statuses_{device.serial}"] = asyncio.create_task(
-                    self._run_with_semaphore(
+                    self.run_with_semaphore(
                         self.switch.get_device_switch_ports_statuses(device.serial),
                     )
                 )
             elif device.product_type == "appliance" and device.network_id:
                 detail_tasks[f"appliance_settings_{device.serial}"] = (
                     asyncio.create_task(
-                        self._run_with_semaphore(
+                        self.run_with_semaphore(
                             self.appliance.get_network_appliance_settings(
                                 device.network_id,
                             ),
@@ -809,7 +808,7 @@ class MerakiAPIClient:
         }
         filtered_kwargs = {k: v for k, v in kwargs.items() if v is not None}
 
-        return await self._run_with_semaphore(
+        return await self.run_with_semaphore(
             self.run_sync(
                 self.dashboard.networks.getNetworkEvents,
                 network_id,

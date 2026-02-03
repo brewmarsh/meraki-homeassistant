@@ -55,51 +55,6 @@ class MerakiSSIDWalledGardenSensor(MerakiSSIDDetailSensor):
     ) -> None:
         """Initialize the sensor."""
         super().__init__(coordinator, config_entry, ssid_data, rf_profile)
-    def __init__(
-        self,
-        coordinator: MerakiDataUpdateCoordinator,
-        config_entry: ConfigEntry,
-        ssid_data: dict[str, Any],
-        rf_profile: dict[str, Any] | None,
-    ) -> None:
-        """Initialize the sensor."""
-        super().__init__(coordinator, config_entry, ssid_data, rf_profile)
-    def __init__(
-        self,
-        coordinator: MerakiDataUpdateCoordinator,
-        config_entry: ConfigEntry,
-        ssid_data: dict[str, Any],
-        rf_profile: dict[str, Any] | None,
-    ) -> None:
-        """Initialize the sensor."""
-        super().__init__(coordinator, config_entry, ssid_data, rf_profile)
-    def __init__(
-        self,
-        coordinator: MerakiDataUpdateCoordinator,
-        config_entry: ConfigEntry,
-        ssid_data: dict[str, Any],
-        rf_profile: dict[str, Any] | None,
-    ) -> None:
-        """Initialize the sensor."""
-        super().__init__(coordinator, config_entry, ssid_data, rf_profile)
-    def __init__(
-        self,
-        coordinator: MerakiDataUpdateCoordinator,
-        config_entry: ConfigEntry,
-        ssid_data: dict[str, Any],
-        rf_profile: dict[str, Any] | None,
-    ) -> None:
-        """Initialize the sensor."""
-        super().__init__(coordinator, config_entry, ssid_data, rf_profile)
-    def __init__(
-        self,
-        coordinator: MerakiDataUpdateCoordinator,
-        config_entry: ConfigEntry,
-        ssid_data: dict[str, Any],
-        rf_profile: dict[str, Any] | None,
-    ) -> None:
-        """Initialize the sensor."""
-        super().__init__(coordinator, config_entry, ssid_data, rf_profile)
         self._attr_unique_id = (
             f"{self._ssid_data['networkId']}_{self._ssid_data['number']}_walled_garden"
         )
