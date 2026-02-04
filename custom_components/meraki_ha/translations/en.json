@@ -156,6 +156,30 @@
       },
       "radio_settings": {
         "name": "Radio Settings"
+      },
+      "network_clients": {
+        "name": "Clients"
+      },
+      "vlan_id": {
+        "name": "VLAN ID"
+      },
+      "ipv4_enabled": {
+        "name": "IPv4 enabled"
+      },
+      "ipv4_interface_ip": {
+        "name": "IPv4 interface IP"
+      },
+      "ipv4_uplink": {
+        "name": "IPv4 uplink"
+      },
+      "ipv6_enabled": {
+        "name": "IPv6 enabled"
+      },
+      "ipv6_interface_ip": {
+        "name": "IPv6 interface IP"
+      },
+      "ipv6_uplink": {
+        "name": "IPv6 uplink"
       }
     },
     "switch": {

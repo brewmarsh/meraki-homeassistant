@@ -92,7 +92,8 @@ async def test_vlan_sensor_creation(mock_coordinator):
     assert len(vlan_sensors) == 14
 
     # Filter for sensors of the first VLAN
-    vlan1_sensors = [s for s in vlan_sensors if s.name == "Test Network VLAN 1 VLAN 1"]
+    # Note: With has_entity_name=True, the name property returns the entity name
+    vlan1_sensors = [s for s in vlan_sensors if "VLAN 1 VLAN 1" in s.name]
     assert len(vlan1_sensors) == 7
 
     # Find the specific sensors for VLAN 1 by translation_key
