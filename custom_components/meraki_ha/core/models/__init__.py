@@ -1,9 +1,7 @@
-"""Type definitions for Meraki API data structures (re-exports)."""
+"""Models package for Meraki API data structures."""
 
-from __future__ import annotations
-
-from .core.models.device import MerakiAppliancePort, MerakiDevice
-from .core.models.network import (
+from .device import MerakiAppliancePort, MerakiDevice
+from .network import (
     MerakiFirewallRule,
     MerakiNetwork,
     MerakiTrafficShaping,

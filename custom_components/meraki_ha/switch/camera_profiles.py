@@ -9,7 +9,7 @@ from homeassistant.components.switch import SwitchEntityDescription
 from custom_components.meraki_ha.coordinator import MerakiDataUpdateCoordinator
 
 from ..core.api.client import MerakiAPIClient
-from ..types import MerakiDevice
+from ..core.models.device import MerakiDevice
 from .camera_settings import MerakiCameraSettingSwitchBase
 
 _LOGGER = logging.getLogger(__name__)

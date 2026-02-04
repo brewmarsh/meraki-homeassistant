@@ -17,8 +17,8 @@ from homeassistant.helpers.entity import DeviceInfo
 from ..helpers.device_info_helpers import resolve_device_info
 
 if TYPE_CHECKING:
+    from ..core.models.device import MerakiDevice
     from ..services.device_control_service import DeviceControlService
-    from ..types import MerakiDevice
 
 _LOGGER = logging.getLogger(__name__)
 

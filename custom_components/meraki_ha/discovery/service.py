@@ -18,7 +18,7 @@ from ..const import (
     CONF_ENABLE_NETWORK_SENSORS,
     CONF_ENABLE_SSID_SENSORS,
 )
-from ..types import MerakiDevice
+from ..core.models.device import MerakiDevice
 from .handlers.base import BaseDeviceHandler
 from .handlers.gx import GXHandler
 from .handlers.mr import MRHandler

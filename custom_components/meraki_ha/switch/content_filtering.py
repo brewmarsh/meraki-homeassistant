@@ -10,8 +10,8 @@ from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from ..coordinator import MerakiDataUpdateCoordinator
+from ..core.models.network import MerakiNetwork
 from ..helpers.device_info_helpers import resolve_device_info
-from ..types import MerakiNetwork
 
 _LOGGER = logging.getLogger(__name__)
 

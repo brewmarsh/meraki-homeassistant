@@ -14,8 +14,8 @@ from ..const import (
 )
 from ..coordinator import MerakiDataUpdateCoordinator
 from ..core.api.client import MerakiAPIClient
+from ..core.models.network import MerakiTrafficShaping, MerakiVpn
 from ..core.utils.entity_id_utils import get_firewall_rule_entity_id
-from ..types import MerakiTrafficShaping, MerakiVpn
 from .camera_controls import AnalyticsSwitch
 from .firewall_rule import MerakiFirewallRuleSwitch
 from .meraki_ssid_device_switch import (

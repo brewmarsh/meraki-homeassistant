@@ -10,8 +10,8 @@ from homeassistant.helpers.device_registry import DeviceInfo
 from custom_components.meraki_ha.coordinator import MerakiDataUpdateCoordinator
 
 from ..core.api.client import MerakiAPIClient
+from ..core.models.device import MerakiDevice
 from ..entity import MerakiEntity
-from ..types import MerakiDevice
 
 _LOGGER = logging.getLogger(__name__)
 

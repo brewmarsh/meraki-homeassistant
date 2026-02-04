@@ -12,8 +12,8 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from ..coordinator import MerakiDataUpdateCoordinator
 from ..core.api.client import MerakiAPIClient
+from ..core.models.network import MerakiNetwork
 from ..helpers.device_info_helpers import resolve_device_info
-from ..types import MerakiNetwork
 
 _LOGGER = logging.getLogger(__name__)
 

@@ -22,8 +22,8 @@ if TYPE_CHECKING:
     from ....coordinator import (
         MerakiDataUpdateCoordinator,
     )
+    from ....core.models.device import MerakiDevice
     from ....services.camera_service import CameraService
-    from ....types import MerakiDevice
     from ...services.device_control_service import DeviceControlService
     from ...services.network_control_service import NetworkControlService
 

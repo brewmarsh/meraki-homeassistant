@@ -8,7 +8,8 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.device_registry import DeviceInfo
 
 from ..const import DOMAIN
-from ..types import MerakiDevice, MerakiNetwork
+from ..core.models.device import MerakiDevice
+from ..core.models.network import MerakiNetwork
 
 _LOGGER = logging.getLogger(__name__)
 

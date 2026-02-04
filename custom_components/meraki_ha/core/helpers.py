@@ -10,7 +10,8 @@ from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers import entity_registry as er
 
 from ..const import DOMAIN
-from ..types import MerakiDevice, MerakiNetwork
+from ..core.models.device import MerakiDevice
+from ..core.models.network import MerakiNetwork
 
 if TYPE_CHECKING:
     from homeassistant.helpers.device_registry import DeviceRegistry
