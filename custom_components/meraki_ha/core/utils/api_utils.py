@@ -98,8 +98,12 @@ def handle_meraki_errors(
                 ):
                     return cast(T, {})
 
+<<<<<<< refactor/discovery-capability-mapping-8854061244982908632
                 # Return the error object as a last resort if return type
                 # is not list/dict
+=======
+                # Return error object as last resort if return type is not list/dict
+>>>>>>> beta
                 return cast(T, MerakiInformationalError(error_msg))
 
             if isinstance(err, APIError) and _is_informational_error(err):
