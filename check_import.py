@@ -1,11 +1,14 @@
-import sys
 import os
+import sys
 
 # Add the parent directory of custom_components to sys.path
 sys.path.append(os.getcwd())
 
 try:
-    from custom_components.meraki_ha.core.api.client import MerakiAPIClient
+    from custom_components.meraki_ha.core.api.client import (
+        MerakiAPIClient,  # noqa: F401
+    )
+
     print("Successfully imported MerakiAPIClient")
 except ImportError as e:
     print(f"ImportError: {e}")
