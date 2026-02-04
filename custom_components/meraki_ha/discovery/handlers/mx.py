@@ -8,9 +8,9 @@ from typing import TYPE_CHECKING, Any
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers import entity_registry as er
 
-from ...binary_sensor.switch_port import SwitchPortSensor
 from ...button.reboot import MerakiRebootButton
 from ...const import CONF_ENABLE_DEVICE_STATUS, CONF_ENABLE_PORT_SENSORS, DOMAIN
+from ...sensor.device.appliance_port import MerakiAppliancePortSensor
 from ...sensor.device.appliance_uplink import MerakiApplianceUplinkSensor
 from ...sensor.device.device_status import MerakiDeviceStatusSensor
 from .base import BaseDeviceHandler
@@ -67,6 +67,14 @@ class MXHandler(BaseDeviceHandler):
     async def discover_entities(self) -> list[Entity]:
         """Discover entities for the device."""
         _LOGGER.debug("MXHandler checking device %s", self.device.serial)
+
+        if self.device.model and self.device.model.startswith("MX"):
+            _LOGGER.debug(
+                "MX Debug - Serial: %s | Status: %s | Port Count: %s",
+                self.device.serial,
+                getattr(self.device, "status", "MISSING"),
+                len(getattr(self.device, "appliance_ports", [])),
+            )
 
         # Check Uplinks
         uplink_data = getattr(self.device, "appliance_uplink_statuses", None)
@@ -163,7 +171,7 @@ class MXHandler(BaseDeviceHandler):
             if self.device and self.device.appliance_ports:
                 for port in self.device.appliance_ports:
                     entities.append(
-                        SwitchPortSensor(self._coordinator, self.device, port)
+                        MerakiAppliancePortSensor(self._coordinator, self.device, port)
                     )
         else:
             _LOGGER.debug("Uplink sensors disabled for device %s", self.device.serial)
