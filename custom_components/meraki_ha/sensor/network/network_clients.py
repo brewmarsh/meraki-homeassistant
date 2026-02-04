@@ -22,7 +22,9 @@ class MerakiNetworkClientsSensor(MerakiNetworkEntity, SensorEntity):
     """Representation of a Meraki network-level client counter."""
 
     _attr_state_class = SensorStateClass.MEASUREMENT
-    _attr_has_entity_name = False
+    _attr_has_entity_name = True
+    _attr_name = "Clients"
+    _attr_translation_key = "network_clients"
 
     def __init__(
         self,
@@ -35,7 +37,6 @@ class MerakiNetworkClientsSensor(MerakiNetworkEntity, SensorEntity):
         super().__init__(coordinator, config_entry, network_data)
         self._network_control_service = network_control_service
         self._attr_unique_id = f"meraki_network_clients_{self._network_id}"
-        self._attr_name = f"{network_data.name} Active Clients"
 
     @callback
     def _handle_coordinator_update(self) -> None:
