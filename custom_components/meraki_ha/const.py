@@ -8,6 +8,8 @@ from typing import Final
 
 DOMAIN: Final = "meraki_ha"
 MANUFACTURER: Final = "Cisco Meraki"
+DATA_CLIENT: Final = "meraki_client"
+WEBHOOK_ID_FORMAT: Final = "meraki_ha_{}"
 
 # ... (Previous constants)
 

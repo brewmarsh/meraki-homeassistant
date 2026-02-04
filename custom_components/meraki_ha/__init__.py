@@ -119,7 +119,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     )
 
     # Set up webhook
-    webhook_id = WEBHOOK_ID_FORMAT.format(entry_id=entry.entry_id)
+    webhook_id = WEBHOOK_ID_FORMAT.format(entry.entry_id)
     hass.data[DOMAIN][entry.entry_id]["webhook_id"] = webhook_id
     if not entry.data.get("webhook_secret"):
         secret = "".join(secrets.choice(string.ascii_letters) for _ in range(32))
