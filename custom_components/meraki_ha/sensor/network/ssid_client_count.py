@@ -15,7 +15,7 @@ class MerakiSSIDClientCountSensor(MerakiSSIDBaseSensor):
 
     entity_description = SensorEntityDescription(
         key="client_count",
-        name="Client Count",
+        name="Client count",
         icon="mdi:account-multiple",
         state_class=SensorStateClass.MEASUREMENT,
         native_unit_of_measurement="clients",
@@ -29,42 +29,33 @@ class MerakiSSIDClientCountSensor(MerakiSSIDBaseSensor):
     ) -> None:
         """Initialize the sensor."""
         super().__init__(coordinator, config_entry, ssid_data, "clientCount")
-        # Initialize to 0, will be updated via _handle_coordinator_update
-        self._attr_native_value = 0
         self._update_client_count()
 
     @callback
     def _update_client_count(self) -> None:
-        """Calculate and update the client count."""
-        if not self.coordinator.data:
-            self._attr_native_value = 0
-            return
+        """Update the client count from coordinator data."""
+        ssid_data = self._get_current_ssid_data()
+        if ssid_data and "clientCount" in ssid_data:
+            self._attr_native_value = ssid_data["clientCount"]
+        elif self.coordinator.data and "clients" in self.coordinator.data:
+            # Fallback to manual calculation if clientCount not in ssid_data
+            all_clients = self.coordinator.data.get("clients", [])
+            ssid_name = (
+                ssid_data.get("name") if ssid_data else self._ssid_data_at_init.get("name")
+            )
+            if not ssid_name:
+                self._attr_native_value = 0
+                return
 
-        all_clients = self.coordinator.data.get("clients", [])
-        if not all_clients:
-            self._attr_native_value = 0
-            return
-
-        # Find the SSID name (since clients refer to SSID by name)
-        current_ssid_data = self._get_current_ssid_data()
-        if not current_ssid_data:
-            # Fallback to initial data if current not found (unlikely)
-            ssid_name = self._ssid_data_at_init.get("name")
+            self._attr_native_value = sum(
+                1
+                for client in all_clients
+                if client.get("networkId") == self._network_id
+                and client.get("ssid") == ssid_name
+                and str(client.get("status", "")).lower() == "online"
+            )
         else:
-            ssid_name = current_ssid_data.get("name")
-
-        if not ssid_name:
             self._attr_native_value = 0
-            return
-
-        count = sum(
-            1
-            for client in all_clients
-            if client.get("networkId") == self._network_id
-            and client.get("ssid") == ssid_name
-            and str(client.get("status", "")).lower() == "online"
-        )
-        self._attr_native_value = count
 
     @callback
     def _handle_coordinator_update(self) -> None:

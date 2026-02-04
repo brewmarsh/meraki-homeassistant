@@ -11,7 +11,7 @@ from .meraki_network_entity import MerakiNetworkEntity
 class MerakiVLANEntity(MerakiNetworkEntity):
     """Representation of a Meraki VLAN."""
 
-    _attr_has_entity_name = False
+    _attr_has_entity_name = True
 
     def __init__(
         self,
@@ -33,4 +33,12 @@ class MerakiVLANEntity(MerakiNetworkEntity):
 
         vlan_id = vlan["id"]
         vlan_label = vlan.get("name") or ""
-        self._attr_name = f"{network.name} VLAN {vlan_id} {vlan_label}"
+        prefix = f"VLAN {vlan_id}"
+        if vlan_label:
+            prefix = f"{prefix} {vlan_label}"
+
+        current_name = getattr(self, "_attr_name", None)
+        if current_name:
+            self._attr_name = f"{prefix} {current_name}"
+        else:
+            self._attr_name = prefix

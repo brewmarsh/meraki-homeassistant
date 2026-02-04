@@ -132,6 +132,7 @@ def _parse_traffic(
                     "Traffic Analysis is not enabled for this network.",
                 )
                 coordinator.mark_traffic_check_done(network_id)
+        disabled_features.add(key)
         appliance_traffic[network_id] = {
             "error": "disabled",
             "reason": str(data),
@@ -166,6 +167,7 @@ def _parse_vlans(
                     "VLANs are not enabled for this network.",
                 )
                 coordinator.mark_vlan_check_done(network_id)
+            disabled_features.add(key)
             vlan_by_network[network_id] = []
     elif isinstance(data, list):
         vlan_by_network[network_id] = [MerakiVlan.from_dict(v) for v in data]

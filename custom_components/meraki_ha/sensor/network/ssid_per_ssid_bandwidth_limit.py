@@ -29,7 +29,7 @@ class MerakiSSIDPerSsidBandwidthLimitSensor(MerakiSSIDBaseSensor):
         """Initialize the sensor."""
         attribute = f"perSsidBandwidthLimit{direction.capitalize()}"
         super().__init__(coordinator, config_entry, ssid_data, attribute)
-        self._attr_name = f"Per-SSID Bandwidth Limit {direction.capitalize()}"
+        self._attr_name = f"Per-SSID bandwidth limit {direction}"
         self._attr_native_value = self._ssid_data_at_init.get(attribute)
         self._attr_unique_id = (
             f"ssid-{self._network_id}-{self._ssid_number}-"
