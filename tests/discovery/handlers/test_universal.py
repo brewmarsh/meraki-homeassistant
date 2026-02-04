@@ -5,6 +5,7 @@ from unittest.mock import AsyncMock, MagicMock
 import pytest
 
 from custom_components.meraki_ha.button.reboot import MerakiRebootButton
+from custom_components.meraki_ha.const import DEFAULT_CAPS, DEVICE_CAPABILITIES
 from custom_components.meraki_ha.core.models.device import MerakiDevice
 from custom_components.meraki_ha.discovery.handlers.universal import UniversalHandler
 from custom_components.meraki_ha.sensor.device.device_status import (
@@ -52,16 +53,20 @@ async def test_universal_handler_mt15_no_battery(
 ):
     """Test that MT15 does not have a battery sensor."""
     device = MerakiDevice(serial="mt15-serial", model="MT15")
-    handler = UniversalHandler.create(
+    capabilities = DEVICE_CAPABILITIES.get(device.model, DEFAULT_CAPS)
+    handler = UniversalHandler(
         mock_coordinator,
         device,
         mock_config_entry,
+        capabilities,
         mock_camera_service,
         mock_control_service,
         mock_network_control_service,
     )
 
-    entities = await handler.discover_entities()
+    entities = []
+    async for entity in handler.discover_entities():
+        entities.append(entity)
 
     # Check that it has CO2 but NOT battery
     keys = [getattr(e, "entity_description", MagicMock()).key for e in entities]
@@ -78,16 +83,20 @@ async def test_universal_handler_mt10_has_battery(
 ):
     """Test that MT10 has a battery sensor."""
     device = MerakiDevice(serial="mt10-serial", model="MT10")
-    handler = UniversalHandler.create(
+    capabilities = DEVICE_CAPABILITIES.get(device.model, DEFAULT_CAPS)
+    handler = UniversalHandler(
         mock_coordinator,
         device,
         mock_config_entry,
+        capabilities,
         mock_camera_service,
         mock_control_service,
         mock_network_control_service,
     )
 
-    entities = await handler.discover_entities()
+    entities = []
+    async for entity in handler.discover_entities():
+        entities.append(entity)
 
     keys = [getattr(e, "entity_description", MagicMock()).key for e in entities]
     assert "battery" in keys
@@ -103,16 +112,20 @@ async def test_universal_handler_unknown_model_default_caps(
 ):
     """Test that an unknown model gets default capabilities (reboot, status)."""
     device = MerakiDevice(serial="unknown-serial", model="UNKNOWN_MODEL")
-    handler = UniversalHandler.create(
+    capabilities = DEVICE_CAPABILITIES.get(device.model, DEFAULT_CAPS)
+    handler = UniversalHandler(
         mock_coordinator,
         device,
         mock_config_entry,
+        capabilities,
         mock_camera_service,
         mock_control_service,
         mock_network_control_service,
     )
 
-    entities = await handler.discover_entities()
+    entities = []
+    async for entity in handler.discover_entities():
+        entities.append(entity)
 
     assert any(isinstance(e, MerakiRebootButton) for e in entities)
     assert any(isinstance(e, MerakiDeviceStatusSensor) for e in entities)
@@ -127,16 +140,20 @@ async def test_universal_handler_mx_capabilities(
 ):
     """Test that MX67 has expected capabilities."""
     device = MerakiDevice(serial="mx67-serial", model="MX67")
-    handler = UniversalHandler.create(
+    capabilities = DEVICE_CAPABILITIES.get(device.model, DEFAULT_CAPS)
+    handler = UniversalHandler(
         mock_coordinator,
         device,
         mock_config_entry,
+        capabilities,
         mock_camera_service,
         mock_control_service,
         mock_network_control_service,
     )
 
-    entities = await handler.discover_entities()
+    entities = []
+    async for entity in handler.discover_entities():
+        entities.append(entity)
 
     assert any(isinstance(e, MerakiRebootButton) for e in entities)
     assert any(isinstance(e, MerakiDeviceStatusSensor) for e in entities)

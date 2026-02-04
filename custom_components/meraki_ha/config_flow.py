@@ -17,7 +17,7 @@ except ImportError:
         DhcpServiceInfo,  # type: ignore[no-redef, attr-defined]
     )
 
-from .const import DOMAIN, WEBHOOK_ID_FORMAT
+from .const import DOMAIN
 from .const_conf import CONF_INTEGRATION_TITLE, CONF_MERAKI_API_KEY, CONF_MERAKI_ORG_ID
 from .core.errors import MerakiAuthenticationError, MerakiConnectionError
 from .helpers.schema import populate_schema_defaults

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+from collections.abc import AsyncIterator
 from typing import TYPE_CHECKING
 
 from ...const_conf import (
@@ -44,46 +45,26 @@ class NetworkHandler(BaseHandler):
         super().__init__(coordinator, config_entry)
         self._network_control_service = network_control_service
 
-    @classmethod
-    def create(
-        cls,
-        coordinator: MerakiDataUpdateCoordinator,
-        device: MerakiDevice,
-        config_entry: ConfigEntry,
-        camera_service: CameraService,
-        control_service: DeviceControlService,
-        network_control_service: NetworkControlService,
-    ) -> NetworkHandler:
-        """Create an instance of the handler."""
-        return cls(
-            coordinator,
-            config_entry,
-            network_control_service,
-        )
 
-    async def discover_entities(self) -> list[Entity]:
+    async def discover_entities(self) -> AsyncIterator[Entity]:
         """Discover network-level entities."""
-        entities: list[Entity] = []
-
         # Check if network sensors are enabled
         if not self._config_entry.options.get(CONF_ENABLE_NETWORK_SENSORS, True):
             _LOGGER.debug("Network sensors are disabled.")
-            return entities
+            return
 
         networks = self._coordinator.data.get("networks", [])
         if not networks:
             _LOGGER.debug("No networks found to create network-level entities.")
-            return entities
+            return
 
         for network in networks:
             # Network Clients Sensor
-            entities.append(
-                MerakiNetworkClientsSensor(
-                    coordinator=self._coordinator,
-                    config_entry=self._config_entry,
-                    network_data=network,
-                    network_control_service=self._network_control_service,
-                )
+            yield MerakiNetworkClientsSensor(
+                coordinator=self._coordinator,
+                config_entry=self._config_entry,
+                network_data=network,
+                network_control_service=self._network_control_service,
             )
             # Content Filtering Switch
             if "appliance" in network.product_types:
@@ -92,13 +73,11 @@ class NetworkHandler(BaseHandler):
                         network.id
                     )
                     for category in categories.get("categories", []):
-                        entities.append(
-                            MerakiContentFilteringSwitch(
-                                self._coordinator,
-                                self._config_entry,
-                                network,
-                                category,
-                            )
+                        yield MerakiContentFilteringSwitch(
+                            self._coordinator,
+                            self._config_entry,
+                            network,
+                            category,
                         )
                 except Exception as e:
                     _LOGGER.warning(
@@ -109,12 +88,10 @@ class NetworkHandler(BaseHandler):
 
             # Traffic Shaping Sensor
             if self._config_entry.options.get(CONF_ENABLE_TRAFFIC_SHAPING, False):
-                entities.append(
-                    TrafficShapingSensor(
-                        self._coordinator,
-                        self._config_entry,
-                        network.id,
-                    )
+                yield TrafficShapingSensor(
+                    self._coordinator,
+                    self._config_entry,
+                    network.id,
                 )
 
             # VLAN Sensors
@@ -133,61 +110,54 @@ class NetworkHandler(BaseHandler):
                     )
                     from ...sensor.network.vlans_list import VlansListSensor
 
-                    entities.append(
-                        VlansListSensor(self._coordinator, self._config_entry, network)
+                    yield VlansListSensor(
+                        self._coordinator, self._config_entry, network
                     )
 
                     for vlan in vlans:
-                        entities.extend(
-                            [
-                                MerakiVLANIDSensor(
-                                    self._coordinator,
-                                    self._config_entry,
-                                    network.id,
-                                    vlan,
-                                ),
-                                MerakiVLANIPv4EnabledSensor(
-                                    self._coordinator,
-                                    self._config_entry,
-                                    network.id,
-                                    vlan,
-                                ),
-                                MerakiVLANIPv4InterfaceSensor(
-                                    self._coordinator,
-                                    self._config_entry,
-                                    network.id,
-                                    vlan,
-                                ),
-                                MerakiVLANIPv4UplinkSensor(
-                                    self._coordinator,
-                                    self._config_entry,
-                                    network.id,
-                                    vlan,
-                                ),
-                                MerakiVLANIPv6EnabledSensor(
-                                    self._coordinator,
-                                    self._config_entry,
-                                    network.id,
-                                    vlan,
-                                ),
-                                MerakiVLANIPv6InterfaceSensor(
-                                    self._coordinator,
-                                    self._config_entry,
-                                    network.id,
-                                    vlan,
-                                ),
-                                MerakiVLANIPv6UplinkSensor(
-                                    self._coordinator,
-                                    self._config_entry,
-                                    network.id,
-                                    vlan,
-                                ),
-                            ]
+                        yield MerakiVLANIDSensor(
+                            self._coordinator,
+                            self._config_entry,
+                            network.id,
+                            vlan,
+                        )
+                        yield MerakiVLANIPv4EnabledSensor(
+                            self._coordinator,
+                            self._config_entry,
+                            network.id,
+                            vlan,
+                        )
+                        yield MerakiVLANIPv4InterfaceSensor(
+                            self._coordinator,
+                            self._config_entry,
+                            network.id,
+                            vlan,
+                        )
+                        yield MerakiVLANIPv4UplinkSensor(
+                            self._coordinator,
+                            self._config_entry,
+                            network.id,
+                            vlan,
+                        )
+                        yield MerakiVLANIPv6EnabledSensor(
+                            self._coordinator,
+                            self._config_entry,
+                            network.id,
+                            vlan,
+                        )
+                        yield MerakiVLANIPv6InterfaceSensor(
+                            self._coordinator,
+                            self._config_entry,
+                            network.id,
+                            vlan,
+                        )
+                        yield MerakiVLANIPv6UplinkSensor(
+                            self._coordinator,
+                            self._config_entry,
+                            network.id,
+                            vlan,
                         )
                 else:
                     _LOGGER.debug("No VLANs found for network %s", network.id)
             else:
                 _LOGGER.debug("VLAN sensors are disabled.")
-
-        _LOGGER.info("Discovered %d network-level entities", len(entities))
-        return entities

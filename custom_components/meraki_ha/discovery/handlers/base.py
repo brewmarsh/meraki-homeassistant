@@ -9,7 +9,8 @@ from __future__ import annotations
 
 import logging
 from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING, Any
+from collections.abc import AsyncIterator
+from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
@@ -37,7 +38,7 @@ class BaseHandler(ABC):
         self._config_entry = config_entry
 
     @abstractmethod
-    async def discover_entities(self) -> list[Entity]:
+    def discover_entities(self) -> AsyncIterator[Entity]:
         """Discover entities."""
         raise NotImplementedError("Subclasses must implement discover_entities")
 
@@ -55,8 +56,3 @@ class BaseDeviceHandler(BaseHandler, ABC):
         super().__init__(coordinator, config_entry)
         self.device = device
 
-    @classmethod
-    @abstractmethod
-    def create(cls, *args: Any, **kwargs: Any) -> BaseDeviceHandler:
-        """Create an instance of the handler."""
-        raise NotImplementedError
