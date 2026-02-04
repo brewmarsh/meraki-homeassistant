@@ -15,6 +15,7 @@ from ..const_conf import (
     CONF_ENABLE_NETWORK_SENSORS,
     CONF_ENABLE_SSID_SENSORS,
 )
+from ..core.const import DEFAULT_CAPS, DEVICE_CAPABILITIES
 from ..core.models.device import MerakiDevice
 from .handlers.network import NetworkHandler
 from .handlers.ssid import SSIDHandler
@@ -72,16 +73,13 @@ class DeviceDiscoveryService:
 
         # Discover network-level entities
         if self._config_entry.options.get(CONF_ENABLE_NETWORK_SENSORS, True):
-            network_handler = NetworkHandler.create(
+            network_handler = NetworkHandler(
                 self._coordinator,
-                None,
                 self._config_entry,
-                self._camera_service,
-                self._control_service,
                 self._network_control_service,
             )
-            network_entities = await network_handler.discover_entities()
-            all_entities.extend(network_entities)
+            async for entity in network_handler.discover_entities():
+                all_entities.append(entity)
         else:
             _LOGGER.debug("Network sensors are disabled.")
 
@@ -93,32 +91,37 @@ class DeviceDiscoveryService:
                 _LOGGER.warning("Device %s has no model, skipping", device.serial)
                 continue
 
+            # Perform model-to-capability lookup
+            capabilities = DEVICE_CAPABILITIES.get(model, DEFAULT_CAPS)
+
             # Use the UniversalHandler to create entities based on capabilities
-            handler = UniversalHandler.create(
+            handler = UniversalHandler(
                 self._coordinator,
                 device,
                 self._config_entry,
+                capabilities,
                 self._camera_service,
                 self._control_service,
                 self._network_control_service,
             )
 
             _LOGGER.debug(
-                "Using UniversalHandler for device %s (model: %s)",
+                "Using UniversalHandler for %s (model: %s) with capabilities: %s",
                 device.serial,
                 model,
+                capabilities,
             )
 
-            entities = await handler.discover_entities()
-            all_entities.extend(entities)
+            async for entity in handler.discover_entities():
+                all_entities.append(entity)
 
         # Create SSID handler for virtual SSID devices
         if self._config_entry.options.get(CONF_ENABLE_SSID_SENSORS, True):
-            ssid_handler = SSIDHandler.create(
+            ssid_handler = SSIDHandler(
                 self._coordinator, self._config_entry, self._meraki_client
             )
-            ssid_entities = await ssid_handler.discover_entities()
-            all_entities.extend(ssid_entities)
+            async for entity in ssid_handler.discover_entities():
+                all_entities.append(entity)
         else:
             _LOGGER.debug("SSID sensors are disabled.")
 

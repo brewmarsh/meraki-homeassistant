@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+from collections.abc import AsyncIterator
 from typing import TYPE_CHECKING, Any
 
 from homeassistant.helpers import device_registry as dr
@@ -376,31 +377,7 @@ class UniversalHandler(BaseDeviceHandler):
         self._control_service = control_service
         self._network_control_service = network_control_service
 
-    @classmethod
-    def create(
-        cls,
-        coordinator: MerakiDataUpdateCoordinator,
-        device: MerakiDevice,
-        config_entry: ConfigEntry,
-        camera_service: CameraService,
-        control_service: DeviceControlService,
-        network_control_service: NetworkControlService,
-    ) -> UniversalHandler:
-        """Create an instance of the handler."""
-        from ...const import DEFAULT_CAPS, DEVICE_CAPABILITIES
-
-        capabilities = DEVICE_CAPABILITIES.get(device.model, DEFAULT_CAPS)
-        return cls(
-            coordinator,
-            device,
-            config_entry,
-            capabilities,
-            camera_service,
-            control_service,
-            network_control_service,
-        )
-
-    async def discover_entities(self) -> list[Entity]:
+    async def discover_entities(self) -> AsyncIterator[Entity]:
         """Discover entities based on capabilities."""
         # If configured, ensure the RTSP stream is enabled by default for cameras
         if "camera_stream" in self.capabilities:
@@ -439,50 +416,41 @@ class UniversalHandler(BaseDeviceHandler):
             "appliance_ports": AppliancePortProvider,
             "switch_ports": SwitchPortProvider,
             "poe_usage": MerakiPoeUsageSensor,
-            "camera_stream": MerakiCamera,
             "analytics": CameraAnalyticsProvider,
             "reboot": MerakiRebootButton,
             "status": MerakiDeviceStatusSensor,
         }
 
-        entities: list[Entity] = []
-
         # Special logic for MV camera stream/base entities
         if "camera_stream" in self.capabilities:
             if self._config_entry.options.get(CONF_ENABLE_CAMERA_ENTITIES, True):
                 # Always create the base camera entity
-                entities.append(
-                    MerakiCamera(
-                        self._coordinator,
-                        self._config_entry,
-                        self.device,
-                        self._camera_service,
-                    )
+                yield MerakiCamera(
+                    self._coordinator,
+                    self._config_entry,
+                    self.device,
+                    self._camera_service,
                 )
                 # Add extra camera entities
-                entities.extend(
-                    [
-                        MerakiMotionSensor(
-                            self._coordinator,
-                            self.device,
-                            self._camera_service,
-                            self._config_entry,
-                        ),
-                        MerakiSnapshotButton(
-                            self._coordinator,
-                            self.device,
-                            self._camera_service,
-                            self._config_entry,
-                        ),
-                        MerakiRtspUrlSensor(
-                            self._coordinator,
-                            self.device,
-                            self._config_entry,
-                        ),
-                        AnalyticsSwitch(
-                            self._coordinator, self._coordinator.api, self.device
-                        ),
-                    ]
+                yield MerakiMotionSensor(
+                    self._coordinator,
+                    self.device,
+                    self._camera_service,
+                    self._config_entry,
+                )
+                yield MerakiSnapshotButton(
+                    self._coordinator,
+                    self.device,
+                    self._camera_service,
+                    self._config_entry,
+                )
+                yield MerakiRtspUrlSensor(
+                    self._coordinator,
+                    self.device,
+                    self._config_entry,
+                )
+                yield AnalyticsSwitch(
+                    self._coordinator, self._coordinator.api, self.device
                 )
 
         for cap in self.capabilities:
@@ -523,44 +491,36 @@ class UniversalHandler(BaseDeviceHandler):
                     network_control_service=self._network_control_service,
                 )
                 if hasattr(res, "__await__"):
-                    entities.extend(await res)
+                    for entity in await res:
+                        yield entity
                 else:
-                    entities.extend(res)
+                    for entity in res:
+                        yield entity
             # Check if it's RebootButton which takes specific args
             elif provider == MerakiRebootButton:
-                entities.append(
-                    provider(self._control_service, self.device, self._config_entry)
-                )
+                yield provider(self._control_service, self.device, self._config_entry)
             # Check if it's StatusSensor which takes specific args
             elif provider == MerakiDeviceStatusSensor:
                 if self._config_entry.options.get(CONF_ENABLE_DEVICE_STATUS, True):
-                    entities.append(
-                        provider(self._coordinator, self.device, self._config_entry)
-                    )
+                    yield provider(self._coordinator, self.device, self._config_entry)
             # Check if it's MT40 remote switch
             elif provider == MerakiMt40PowerOutlet:
-                entities.append(
-                    provider(
-                        self._coordinator,
-                        self.device,
-                        self._config_entry,
-                        self._coordinator.api,
-                    )
+                yield provider(
+                    self._coordinator,
+                    self.device,
+                    self._config_entry,
+                    self._coordinator.api,
                 )
             # Standard entity instantiation
             else:
                 try:
                     # Some take config_entry, some don't. Try with 3 first.
-                    entities.append(
-                        provider(self._coordinator, self.device, self._config_entry)
-                    )
+                    yield provider(self._coordinator, self.device, self._config_entry)
                 except TypeError:
                     # Fallback for entities that take only 2
                     try:
-                        entities.append(provider(self._coordinator, self.device))
+                        yield provider(self._coordinator, self.device)
                     except Exception as e:
                         _LOGGER.error(
                             "Failed to instantiate entity for capability %s: %s", cap, e
                         )
-
-        return entities

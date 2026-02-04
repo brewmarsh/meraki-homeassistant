@@ -76,19 +76,26 @@ async def test_discover_entities_delegates_to_handler(
             "custom_components.meraki_ha.discovery.service.SSIDHandler"
         ) as MockSSIDHandler,
     ):
+        async def mock_aiter_universal():
+            yield "universal_entity"
+
         mock_universal_handler_instance = MagicMock()
-        mock_universal_handler_instance.discover_entities = AsyncMock(
-            return_value=["universal_entity"]
+        mock_universal_handler_instance.discover_entities.side_effect = (
+            mock_aiter_universal
         )
-        MockUniversalHandler.create.return_value = mock_universal_handler_instance
+        MockUniversalHandler.return_value = mock_universal_handler_instance
+
+        async def mock_aiter_empty():
+            if False:
+                yield
 
         mock_network_handler_instance = MagicMock()
-        mock_network_handler_instance.discover_entities = AsyncMock(return_value=[])
-        MockNetworkHandler.create.return_value = mock_network_handler_instance
+        mock_network_handler_instance.discover_entities.side_effect = mock_aiter_empty
+        MockNetworkHandler.return_value = mock_network_handler_instance
 
         mock_ssid_handler_instance = MagicMock()
-        mock_ssid_handler_instance.discover_entities = AsyncMock(return_value=[])
-        MockSSIDHandler.create.return_value = mock_ssid_handler_instance
+        mock_ssid_handler_instance.discover_entities.side_effect = mock_aiter_empty
+        MockSSIDHandler.return_value = mock_ssid_handler_instance
 
         mock_network_control_service = MagicMock()
         service = DeviceDiscoveryService(
@@ -106,12 +113,14 @@ async def test_discover_entities_delegates_to_handler(
         # Assert
         assert "universal_entity" in entities
 
-        # Assert UniversalHandler.create called for each device
-        assert MockUniversalHandler.create.call_count == 3
-        MockUniversalHandler.create.assert_any_call(
+        # Assert UniversalHandler called for each device
+        assert MockUniversalHandler.call_count == 3
+        MockUniversalHandler.assert_any_call(
             mock_coordinator_with_devices,
             mock_coordinator_with_devices.data["devices"][0],
             mock_config_entry,
+            # MR36 capabilities
+            ["ssids", "client_count", "radio_utilization", "reboot", "status"],
             mock_camera_service,
             mock_control_service,
             mock_network_control_service,
