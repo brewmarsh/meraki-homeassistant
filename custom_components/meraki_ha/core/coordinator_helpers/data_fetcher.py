@@ -84,7 +84,15 @@ class DataFetchManager:
                 self.client.sensor.get_organization_sensor_readings_latest(),
             ),
         }
-        results = await asyncio.gather(*tasks.values(), return_exceptions=True)
+        try:
+            results = await asyncio.wait_for(
+                asyncio.gather(*tasks.values(), return_exceptions=True),
+                timeout=25,
+            )
+        except asyncio.TimeoutError:
+            _LOGGER.error("Timeout fetching initial Meraki data")
+            raise
+
         data = dict(zip(tasks.keys(), results, strict=True))
 
         return data
@@ -153,6 +161,7 @@ class DataFetchManager:
             if not network.id:
                 continue
             network_id = cast(str, network.id)
+            _LOGGER.debug("Processing detailed data for network: %s", network_id)
 
             self.wireless_strategy.process_network_data(
                 network_id, detail_data, previous_data, processed_data
@@ -253,18 +262,31 @@ class DataFetchManager:
         )
 
         detail_tasks = self._build_detail_tasks(networks_list, devices_list)
-        detail_data_results = await asyncio.gather(
-            *detail_tasks.values(), return_exceptions=True
-        )
+        try:
+            detail_data_results = await asyncio.wait_for(
+                asyncio.gather(*detail_tasks.values(), return_exceptions=True),
+                timeout=25,
+            )
+        except asyncio.TimeoutError:
+            _LOGGER.error("Timeout fetching detailed Meraki data")
+            raise
+
         detail_data_dict = dict(
             zip(detail_tasks.keys(), detail_data_results, strict=True)
         )
 
-        network_clients, device_clients = await asyncio.gather(
-            self.client_fetcher.async_fetch_network_clients(networks_list),
-            self.client_fetcher.async_fetch_device_clients(devices_list),
-            return_exceptions=True,
-        )
+        try:
+            network_clients, device_clients = await asyncio.wait_for(
+                asyncio.gather(
+                    self.client_fetcher.async_fetch_network_clients(networks_list),
+                    self.client_fetcher.async_fetch_device_clients(devices_list),
+                    return_exceptions=True,
+                ),
+                timeout=25,
+            )
+        except asyncio.TimeoutError:
+            _LOGGER.error("Timeout fetching Meraki client data")
+            raise
 
         # Inject clients into detail_data so strategies can use them
         detail_data_dict["clients"] = (
