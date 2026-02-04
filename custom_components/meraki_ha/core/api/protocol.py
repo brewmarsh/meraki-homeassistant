@@ -41,7 +41,3 @@ class MerakiApiClientProtocol(Protocol):
     async def run_with_semaphore(self, coro: Awaitable[Any]) -> Any:
         """Run an awaitable with the semaphore."""
         ...
-
-    async def get_vlan_data(self, network_id: str) -> list[dict[str, Any]]:
-        """Get VLAN data with fallback logic."""
-        ...

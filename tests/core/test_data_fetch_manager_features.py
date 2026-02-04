@@ -32,7 +32,7 @@ async def test_appliance_features_fetching_behavior() -> None:
     # Mock appliance endpoint methods
     mock_client.appliance.get_l3_firewall_rules = AsyncMock(return_value={})
     mock_client.appliance.get_traffic_shaping = AsyncMock(return_value={})
-    mock_client.get_vlan_data = AsyncMock(return_value=[])
+    mock_client.network.get_vlan_data = AsyncMock(return_value=[])
     mock_client.appliance.get_network_vlans = AsyncMock(return_value=[])
     mock_client.appliance.get_vpn_status = AsyncMock(return_value={})
     mock_client.appliance.get_appliance_ports = AsyncMock(return_value=[])

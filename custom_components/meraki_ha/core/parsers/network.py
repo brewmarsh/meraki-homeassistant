@@ -5,18 +5,18 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-from ...core.errors import (
-    MerakiInformationalError,
-    MerakiTrafficAnalysisError,
-    MerakiVlanError,
-    MerakiVlansDisabledError,
-)
 from ...core.models.network import (
     MerakiFirewallRule,
     MerakiNetwork,
     MerakiTrafficShaping,
     MerakiVlan,
     MerakiVpn,
+)
+from ..errors import (
+    MerakiInformationalError,
+    MerakiTrafficAnalysisError,
+    MerakiVlanError,
+    MerakiVlansDisabledError,
 )
 
 _LOGGER = logging.getLogger(__name__)
