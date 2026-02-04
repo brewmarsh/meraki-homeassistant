@@ -39,6 +39,8 @@ def parse_appliance_data(
     if not appliance_uplink_statuses:
         return
 
+    _LOGGER.debug("Parsing appliance data for %s items", len(appliance_uplink_statuses))
+
     for status in appliance_uplink_statuses:
         serial = status.get("serial")
         if not serial:
@@ -46,6 +48,7 @@ def parse_appliance_data(
 
         for device in devices:
             if device.serial == serial:
+                _LOGGER.debug("Matched uplink data for %s", serial)
                 device.appliance_uplink_statuses = status.get("uplinks", [])
                 break
 
