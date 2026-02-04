@@ -15,7 +15,6 @@ from ..const_conf import (
     CONF_ENABLE_NETWORK_SENSORS,
     CONF_ENABLE_SSID_SENSORS,
 )
-from ..core.const import DEFAULT_CAPS, DEVICE_CAPABILITIES
 from ..core.models.device import MerakiDevice
 from .handlers.network import NetworkHandler
 from .handlers.ssid import SSIDHandler
@@ -86,20 +85,15 @@ class DeviceDiscoveryService:
         _LOGGER.debug("Starting entity discovery for %d devices", len(self._devices))
 
         for device in self._devices:
-            model = device.model
-            if not model:
+            if not device.model:
                 _LOGGER.warning("Device %s has no model, skipping", device.serial)
                 continue
-
-            # Perform model-to-capability lookup
-            capabilities = DEVICE_CAPABILITIES.get(model, DEFAULT_CAPS)
 
             # Use the UniversalHandler to create entities based on capabilities
             handler = UniversalHandler(
                 self._coordinator,
                 device,
                 self._config_entry,
-                capabilities,
                 self._camera_service,
                 self._control_service,
                 self._network_control_service,
@@ -108,8 +102,8 @@ class DeviceDiscoveryService:
             _LOGGER.debug(
                 "Using UniversalHandler for %s (model: %s) with capabilities: %s",
                 device.serial,
-                model,
-                capabilities,
+                device.model,
+                handler.capabilities,
             )
 
             async for entity in handler.discover_entities():
