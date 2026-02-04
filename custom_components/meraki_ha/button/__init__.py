@@ -7,7 +7,8 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity import Entity
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from ..const import DOMAIN, PLATFORM_BUTTON
+from ..const import DOMAIN
+from ..const_platform import PLATFORM_BUTTON
 from .device.camera_snapshot import MerakiSnapshotButton
 from .device.mt15_refresh_data import MerakiMt15RefreshDataButton
 from .device.switch_port_cycle import MerakiSwitchPortCycleButton

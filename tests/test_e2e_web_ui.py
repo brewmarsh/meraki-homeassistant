@@ -16,10 +16,10 @@ from homeassistant.core import HomeAssistant
 from playwright.async_api import Error, async_playwright, expect
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from custom_components.meraki_ha.const import (
+from custom_components.meraki_ha.const import DOMAIN
+from custom_components.meraki_ha.const_conf import (
     CONF_MERAKI_API_KEY,
     CONF_MERAKI_ORG_ID,
-    DOMAIN,
 )
 
 from .const import MOCK_ALL_DATA

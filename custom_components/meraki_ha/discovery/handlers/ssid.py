@@ -10,7 +10,7 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING
 
-from ...const import CONF_ENABLE_SSID_SENSORS
+from ...const_conf import CONF_ENABLE_SSID_SENSORS
 from ...sensor.network.ssid_auth_mode import MerakiSSIDAuthModeSensor
 
 # Import the specific sensor classes

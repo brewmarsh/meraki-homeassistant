@@ -6,7 +6,8 @@ from typing import Any
 
 from homeassistant import config_entries
 
-from .const import CONF_INTEGRATION_TITLE, DOMAIN
+from .const import DOMAIN
+from .const_conf import CONF_INTEGRATION_TITLE
 from .coordinator import MerakiDataUpdateCoordinator
 from .helpers.schema import populate_schema_defaults
 from .schemas import OPTIONS_SCHEMA
