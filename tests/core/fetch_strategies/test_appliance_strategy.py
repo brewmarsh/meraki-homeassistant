@@ -16,19 +16,21 @@ from custom_components.meraki_ha.core.fetch_strategies.appliance import (
 
 @pytest.fixture
 def mock_client():
-    """Mock the Meraki API client."""
+    """Fixture for a mock Meraki API client."""
     client = MagicMock()
     client.run_with_semaphore.side_effect = lambda x: x
     return client
 
+
 @pytest.fixture
 def disabled_features():
-    """Fixture for disabled features set."""
+    """Fixture for the disabled features set."""
     return set()
+
 
 @pytest.fixture
 def strategy(mock_client, disabled_features):
-    """Fixture for ApplianceFetchStrategy."""
+    """Fixture for the ApplianceFetchStrategy."""
     return ApplianceFetchStrategy(
         client=mock_client,
         _disabled_features=disabled_features,
@@ -88,7 +90,7 @@ def test_process_network_vlans_disables_on_vlan_error(strategy, disabled_feature
 def test_process_network_vlans_disables_on_vlans_disabled_error(
     strategy, disabled_features
 ):
-    """Test process_network_vlans disables on MerakiVlansDisabledError."""
+    """Test that process_network_vlans disables feature on MerakiVlansDisabledError."""
     network_id = "net1"
     key = f"vlans_{network_id}"
     detail_data = {key: MerakiVlansDisabledError("Disabled")}
