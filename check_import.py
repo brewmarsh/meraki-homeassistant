@@ -1,5 +1,5 @@
-import sys
 import os
+import sys
 
 # Add the parent directory of custom_components to sys.path
 sys.path.append(os.getcwd())
