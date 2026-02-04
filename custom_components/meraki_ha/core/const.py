@@ -1,17 +1,10 @@
-"""Constants for the Meraki Home Assistant integration."""
+"""Constants for the Meraki integration core."""
 
 from __future__ import annotations
 
 from typing import Final
 
-DOMAIN: Final = "meraki_ha"
-MANUFACTURER: Final = "Cisco Meraki"
-
-# Merged Constants - Adopting beta's explicit naming style with fix's descriptive value
-WEBHOOK_ID_FORMAT: Final = "meraki_ha_webhook_{entry_id}"
-DATA_CLIENT: Final = "meraki_client"
-
-# Shared Capability Definitions (The "DRY" Approach)
+# Shared Capability Definitions
 _MX_CAPS = [
     "uplinks",
     "performance",
@@ -27,7 +20,7 @@ _MS_CAPS = ["switch_ports", "poe_usage", "power_supply", "reboot", "status"]
 _MV_CAPS = ["camera_stream", "storage_status", "analytics", "reboot", "status"]
 _GX_CAPS = ["uplinks", "performance", "vlans", "cellular", "reboot", "status"]
 
-DEVICE_CAPABILITIES: Final = {
+DEVICE_CAPABILITIES: Final[dict[str, list[str]]] = {
     "MT10": ["temperature", "humidity", "battery", "signal_strength"],
     "MT11": ["temperature", "humidity", "battery", "signal_strength"],
     "MT12": ["temperature", "humidity", "battery", "signal_strength", "water"],
@@ -48,7 +41,7 @@ DEVICE_CAPABILITIES: Final = {
         "humidity",
         "noise",
         "signal_strength",
-    ],  # No Battery explicitly defined here
+    ],  # No Battery
     "MT20": ["temperature", "humidity", "battery", "signal_strength", "door"],
     "MT30": ["button_press", "battery", "signal_strength"],
     "MT40": ["power_monitor", "remote_switch", "signal_strength"],
