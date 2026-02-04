@@ -47,7 +47,7 @@ async def test_appliance_features_fetching_behavior() -> None:
     manager_disabled = DataFetchManager(
         client=mock_client,
         enable_firewall_rules=False,
-        enable_traffic_shaping=False
+        enable_traffic_shaping=False,
     )
     with patch("asyncio.create_task", side_effect=lambda x: x):
         tasks_disabled = manager_disabled._build_detail_tasks([mock_network], [])
@@ -55,14 +55,22 @@ async def test_appliance_features_fetching_behavior() -> None:
     assert "l3_firewall_rules_net1" not in tasks_disabled
     assert "traffic_shaping_net1" not in tasks_disabled
 
+    # Cleanup coroutines to avoid RuntimeWarning
+    for task in tasks_disabled.values():
+        await task
+
     # Case 2: Enabled
     manager_enabled = DataFetchManager(
         client=mock_client,
         enable_firewall_rules=True,
-        enable_traffic_shaping=True
+        enable_traffic_shaping=True,
     )
     with patch("asyncio.create_task", side_effect=lambda x: x):
         tasks_enabled = manager_enabled._build_detail_tasks([mock_network], [])
 
     assert "l3_firewall_rules_net1" in tasks_enabled
     assert "traffic_shaping_net1" in tasks_enabled
+
+    # Cleanup coroutines to avoid RuntimeWarning
+    for task in tasks_enabled.values():
+        await task

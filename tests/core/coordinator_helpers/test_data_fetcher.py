@@ -1,5 +1,23 @@
+"""Tests for the Data Fetch Manager."""
+
 import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
+
+from custom_components.meraki_ha.core.coordinator_helpers.data_fetcher import (
+    DataFetchManager,
+)
+
+@pytest.fixture
+def mock_client():
+    """Mock the Meraki API client."""
+    client = MagicMock()
+    client._disabled_features = set()
+    return client
+
+@pytest.fixture
+def data_fetch_manager(mock_client):
+    """Fixture for DataFetchManager."""
+    return DataFetchManager(mock_client)
 
 @pytest.mark.asyncio
 async def test_get_all_data_includes_switch_ports(data_fetch_manager, mock_client):
