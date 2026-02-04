@@ -98,7 +98,7 @@ def handle_meraki_errors(
                 ):
                     return cast(T, {})
 
-                # Return the error object as a last resort if return type is not list/dict
+                # Return error object as a last resort if return type is not list/dict
                 return cast(T, MerakiInformationalError(error_msg))
 
             if isinstance(err, APIError) and _is_informational_error(err):
