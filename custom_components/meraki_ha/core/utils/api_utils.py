@@ -24,6 +24,9 @@ T = TypeVar("T")
 
 _LOGGER = logging.getLogger(__name__)
 
+# Set of error messages that have already been logged as INFO to avoid flooding
+_LOGGED_ERRORS: set[str] = set()
+
 
 def handle_meraki_errors(
     func: Callable[..., Awaitable[T]],
@@ -55,13 +58,37 @@ def handle_meraki_errors(
             if return_type is list or getattr(return_type, "__origin__", None) is list:
                 return cast(T, [])
             return cast(T, {})
-        except APIError as err:
+        except (APIError, MerakiInformationalError) as err:
             error_msg = str(err)
-            if getattr(err, "status", None) == 400 and (
-                "Traffic Analysis with Hostname Visibility must be enabled" in error_msg
-                or "VLANs are not enabled" in error_msg
-            ):
-                _LOGGER.info("Meraki feature disabled (skipping): %s", error_msg)
+            is_traffic_analysis = (
+                "Traffic Analysis with Hostname Visibility" in error_msg
+            )
+            is_vlan_disabled = "VLANs are not enabled" in error_msg
+
+            if (
+                isinstance(err, APIError) and getattr(err, "status", None) == 400
+            ) and (is_traffic_analysis or is_vlan_disabled):
+                if error_msg not in _LOGGED_ERRORS:
+                    _LOGGER.info("Meraki feature disabled (skipping): %s", error_msg)
+                    _LOGGED_ERRORS.add(error_msg)
+
+                # Attempt to mark the feature as disabled in the client session
+                # This prevents subsequent API calls for this feature
+                instance = args[0] if args else None
+                client = getattr(instance, "_api_client", None)
+                if client:
+                    # Extract network_id from arguments or keyword arguments
+                    network_id = kwargs.get("networkId") or kwargs.get("network_id")
+                    if not network_id and len(args) > 1:
+                        # network_id is typically the first argument after 'self'
+                        network_id = args[1]
+
+                    if network_id and isinstance(network_id, str):
+                        feature = "traffic" if is_traffic_analysis else "vlans"
+                        if hasattr(client, "mark_feature_disabled"):
+                            client.mark_feature_disabled(feature, network_id)
+
+                # Return a type-safe empty value instead of raising an error
                 sig = inspect.signature(func)
                 return_type = sig.return_annotation
                 if (
@@ -70,8 +97,14 @@ def handle_meraki_errors(
                 ):
                     return cast(T, [])
                 return cast(T, {})
-            if _is_informational_error(err):
+
+            if isinstance(err, APIError) and _is_informational_error(err):
                 raise MerakiInformationalError(f"Informational error: {err}") from err
+
+            # Re-raise MerakiInformationalError if it was already raised
+            # (e.g. by run_sync)
+            if isinstance(err, MerakiInformationalError):
+                raise err
 
             _LOGGER.error("Meraki API error: %s", err)
             if _is_auth_error(err):
