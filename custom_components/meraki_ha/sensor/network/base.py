@@ -44,13 +44,27 @@ class MerakiSSIDBaseSensor(CoordinatorEntity, SensorEntity):
 
     def _get_current_ssid_data(self) -> dict[str, Any] | None:
         """Retrieve the latest data for this SSID from the coordinator."""
-        if not self.coordinator.data or "ssids" not in self.coordinator.data:
+        if not self.coordinator.data:
             return None
-        for ssid in self.coordinator.data["ssids"]:
-            if ssid.get("networkId") == self._network_id and str(
-                ssid.get("number")
-            ) == str(self._ssid_number):
-                return ssid
+
+        # Prefer wireless_settings for more efficient lookup
+        if "wireless_settings" in self.coordinator.data:
+            network_ssids = self.coordinator.data["wireless_settings"].get(
+                self._network_id
+            )
+            if network_ssids:
+                for ssid in network_ssids:
+                    if str(ssid.get("number")) == str(self._ssid_number):
+                        return ssid
+            return None
+
+        # Fallback to flat ssids list if wireless_settings is missing
+        if "ssids" in self.coordinator.data:
+            for ssid in self.coordinator.data["ssids"]:
+                if ssid.get("networkId") == self._network_id and str(
+                    ssid.get("number")
+                ) == str(self._ssid_number):
+                    return ssid
         return None
 
     @property
