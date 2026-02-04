@@ -253,6 +253,7 @@ class DataFetchManager:
         )
 
         detail_tasks = self._build_detail_tasks(networks_list, devices_list)
+        _LOGGER.debug("Starting gather for %s detail tasks", len(detail_tasks))
         detail_data_results = await asyncio.gather(
             *detail_tasks.values(), return_exceptions=True
         )
