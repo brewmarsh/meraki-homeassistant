@@ -333,7 +333,7 @@ async def test_build_detail_tasks_for_appliance_device(data_fetch_manager, mock_
     devices = [appliance_device]
     networks = [network_with_appliance]
 
-    # Enable VPN management to trigger vpn_status task
+    # Enable features to trigger tasks
     data_fetch_manager.enable_vpn_management = True
     data_fetch_manager.enable_firewall_rules = True
     data_fetch_manager.enable_traffic_shaping = True

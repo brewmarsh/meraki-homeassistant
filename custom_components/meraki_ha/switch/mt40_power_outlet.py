@@ -75,23 +75,8 @@ class MerakiMt40PowerOutlet(
             super()._handle_coordinator_update()
 
     def _get_power_state(self) -> bool | None:
-        """Get the power state from the device's readings."""
-        if not isinstance(self._device_info.readings, list):
-            return None
-        # Support both legacy and newer Meraki MT40 reading formats
-        for reading in self._device_info.readings:
-            metric = reading.get("metric")
-            if metric in ("downstreamPower", "downstream_power"):
-                # Newer format uses nested downstreamPower dict
-                if "downstreamPower" in reading:
-                    data = reading.get("downstreamPower")
-                    if isinstance(data, dict):
-                        return data.get("enabled")
-                # Legacy format may expose a simple `value` field
-                if "value" in reading:
-                    return reading.get("value")
-
-        return None
+        """Get the power state from the device information."""
+        return self._device_info.outlet_status
 
     async def async_turn_on(self, **kwargs: Any) -> None:
         """
@@ -148,4 +133,4 @@ class MerakiMt40PowerOutlet(
     @property
     def available(self) -> bool:
         """Return if the entity is available."""
-        return super().available and self._get_power_state() is not None
+        return super().available and self._device_info.outlet_status is not None

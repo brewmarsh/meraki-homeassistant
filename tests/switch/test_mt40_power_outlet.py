@@ -23,6 +23,7 @@ def mock_coordinator_with_mt40_data(mock_coordinator: MagicMock) -> MagicMock:
                 "downstreamPower": {"enabled": True},
             },  # Outlet is on
         ],
+        "outletStatus": True,
     }
     mock_coordinator.data = {"devices": [MerakiDevice.from_dict(device_data)]}
 
@@ -149,10 +150,6 @@ def test_mt40_availability(
     # Switch should be available
     assert switch.available is True
 
-    # Test availability when readings are empty
-    device_info.readings = []
-    assert switch.available is False
-
-    # Test availability when readings is None
-    device_info.readings = None
+    # Test availability when outlet_status is None
+    device_info.outlet_status = None
     assert switch.available is False

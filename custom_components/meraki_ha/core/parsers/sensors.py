@@ -98,3 +98,10 @@ def parse_sensor_data(
                     device.water_present = reading.get("water", {}).get("present")
                 elif metric == "button":
                     device.button_press = reading.get("button")
+                elif metric in ("downstreamPower", "downstream_power"):
+                    if "downstreamPower" in reading:
+                        data = reading.get("downstreamPower")
+                        if isinstance(data, dict):
+                            device.outlet_status = data.get("enabled")
+                    elif "value" in reading:
+                        device.outlet_status = reading.get("value")
