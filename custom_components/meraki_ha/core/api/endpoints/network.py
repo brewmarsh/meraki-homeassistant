@@ -3,13 +3,18 @@
 from __future__ import annotations
 
 import logging
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, cast
+
+import meraki
 
 from custom_components.meraki_ha.core.utils.api_utils import (
     handle_meraki_errors,
     validate_response,
 )
 
+from ...errors import (
+    MerakiVlansDisabledError,
+)
 from ..cache import async_timed_cache
 
 if TYPE_CHECKING:
@@ -335,3 +340,143 @@ class NetworkEndpoints:
             )
             return []
         return validated
+
+    async def get_vlan_data(self, network_id: str) -> list[dict[str, Any]]:
+        """
+        Get VLAN data for a network with fallback logic.
+
+        Args:
+        ----
+            network_id: The ID of the network.
+
+        Returns
+        -------
+            A list of VLANs.
+
+        """
+        try:
+            # First try the appliance-level call
+            res = await self._api_client.run_with_semaphore(
+                self._api_client.run_sync(
+                    self._api_client.dashboard.appliance.getNetworkApplianceVlans,
+                    networkId=network_id,
+                )
+            )
+            validated = validate_response(res)
+            if isinstance(validated, list):
+                return cast(list[dict[str, Any]], validated)
+            return []
+        except (meraki.APIError, MerakiVlansDisabledError) as e:
+            # Check for the specific 400 error indicating VLANs are not enabled
+            error_msg = str(e)
+            is_vlan_disabled = "VLANs are not enabled" in error_msg
+            status = getattr(e, "status", None)
+
+            if is_vlan_disabled and (
+                status == 400 or isinstance(e, MerakiVlansDisabledError)
+            ):
+                _LOGGER.info(
+                    "VLANs not enabled on appliance level for network %s, "
+                    "falling back to generic network VLANs",
+                    network_id,
+                )
+                try:
+                    res = await self._api_client.run_with_semaphore(
+                        self._api_client.run_sync(
+                            self._api_client.dashboard.networks.getNetworkVlans,
+                            networkId=network_id,
+                        )
+                    )
+                    validated = validate_response(res)
+                    if isinstance(validated, list):
+                        return cast(list[dict[str, Any]], validated)
+                    if isinstance(validated, dict):
+                        # Handle cases where generic response might be a dict
+                        # The parser will handle this, but here we want to
+                        # return a list if possible
+                        for value in validated.values():
+                            if isinstance(value, list):
+                                return cast(list[dict[str, Any]], value)
+                        return [validated]
+                    return []
+                except Exception as fallback_err:
+                    _LOGGER.error(
+                        "Fallback VLAN call failed for network %s: %s",
+                        network_id,
+                        fallback_err,
+                    )
+                    return []
+            raise
+
+    async def get_network_events(
+        self,
+        network_id: str,
+        product_type: str | None = None,
+        included_event_types: list[str] | None = None,
+        excluded_event_types: list[str] | None = None,
+        device_serial: str | None = None,
+        device_mac: str | None = None,
+        client_ip: str | None = None,
+        client_mac: str | None = None,
+        client_name: str | None = None,
+        sm_device_mac: str | None = None,
+        sm_device_name: str | None = None,
+        per_page: int | None = None,
+        starting_after: str | None = None,
+        ending_before: str | None = None,
+    ) -> dict[str, Any]:
+        """
+        Fetch events for a network.
+
+        Args:
+        ----
+            network_id: The ID of the network.
+            product_type: Filter events by product type.
+            included_event_types: Filter events by included event types.
+            excluded_event_types: Filter events by excluded event types.
+            device_serial: Filter events by device serial.
+            device_mac: Filter events by device MAC.
+            client_ip: Filter events by client IP.
+            client_mac: Filter events by client MAC.
+            client_name: Filter events by client name.
+            sm_device_mac: Filter events by SM device MAC.
+            sm_device_name: Filter events by SM device name.
+            per_page: Number of events per page.
+            starting_after: Token for next page.
+            ending_before: Token for previous page.
+
+        Returns
+        -------
+            A dictionary containing the events and next page token.
+
+        """
+        if not self._api_client.dashboard:
+            # This might happen if dashboard is not initialized
+            # But normally client ensures it
+            pass
+
+        # Create dictionary of arguments and filter out None values
+        kwargs = {
+            "productType": product_type,
+            "includedEventTypes": included_event_types,
+            "excludedEventTypes": excluded_event_types,
+            "deviceSerial": device_serial,
+            "deviceMac": device_mac,
+            "clientIp": client_ip,
+            "clientMac": client_mac,
+            "clientName": client_name,
+            "smDeviceMac": sm_device_mac,
+            "smDeviceName": sm_device_name,
+            "perPage": per_page,
+            "startingAfter": starting_after,
+            "endingBefore": ending_before,
+        }
+        filtered_kwargs = {k: v for k, v in kwargs.items() if v is not None}
+
+        return await self._api_client.run_with_semaphore(
+            self._api_client.run_sync(
+                self._api_client.dashboard.networks.getNetworkEvents,
+                network_id,
+                **filtered_kwargs,
+            )
+        )
