@@ -87,7 +87,6 @@ def test_process_network_vlans_disables_on_vlan_error(strategy, disabled_feature
     assert key in disabled_features
     assert vlan_by_network[network_id] == []
 
-
 def test_process_network_vlans_disables_on_vlans_disabled_error(
     strategy, disabled_features
 ):
