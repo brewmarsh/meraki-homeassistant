@@ -11,7 +11,7 @@ from custom_components.meraki_ha.core.utils.api_utils import (
 )
 
 if TYPE_CHECKING:
-    from ..client import MerakiAPIClient
+    from ..protocol import MerakiApiClientProtocol
 
 
 _LOGGER = logging.getLogger(__name__)
@@ -20,7 +20,7 @@ _LOGGER = logging.getLogger(__name__)
 class DevicesEndpoints:
     """Device-related endpoints."""
 
-    def __init__(self, api_client: MerakiAPIClient) -> None:
+    def __init__(self, api_client: MerakiApiClientProtocol) -> None:
         """
         Initialize the endpoint.
 
