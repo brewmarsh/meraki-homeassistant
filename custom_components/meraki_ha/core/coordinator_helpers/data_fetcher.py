@@ -60,9 +60,9 @@ class DataFetchManager:
         self.camera_strategy = CameraFetchStrategy(client, self._disabled_features)
 
     async def _async_gather_with_timeout(
-        self, 
-        tasks: dict[str, Any], 
-        timeout: int = 25, 
+        self,
+        tasks: dict[str, Any],
+        timeout: int = 25,
         label: str = "Tasks"
     ) -> dict[str, Any]:
         """Gather tasks with a hard timeout to prevent deadlocks."""
@@ -70,7 +70,7 @@ class DataFetchManager:
             return {}
 
         _LOGGER.debug("Starting %s: %s items", label, len(tasks))
-        
+
         try:
             results = await asyncio.wait_for(
                 asyncio.gather(*tasks.values(), return_exceptions=True),
@@ -114,7 +114,7 @@ class DataFetchManager:
     ) -> dict[str, Any]:
         """Orchestrate task building across all strategies."""
         detail_tasks: dict[str, Any] = {}
-        
+
         for network in networks:
             if not network.id:
                 continue
@@ -122,7 +122,9 @@ class DataFetchManager:
             p_types = network.product_types
 
             if "wireless" in p_types:
-                self.wireless_strategy.build_network_tasks(net_id, p_types, detail_tasks)
+                self.wireless_strategy.build_network_tasks(
+                    net_id, p_types, detail_tasks
+                )
             if "appliance" in p_types:
                 self.appliance_strategy.build_network_tasks(net_id, detail_tasks)
 
@@ -154,12 +156,15 @@ class DataFetchManager:
             if not network.id:
                 continue
             network_id = cast(str, network.id)
-            
+
             self.wireless_strategy.process_network_data(
                 network_id, detail_data, previous_data, processed_data
             )
             self.appliance_strategy.process_network_traffic(
-                network_id, detail_data, previous_data, processed_data["appliance_traffic"]
+                network_id,
+                detail_data,
+                previous_data,
+                processed_data["appliance_traffic"],
             )
             self.appliance_strategy.process_network_vlans(
                 network_id, detail_data, previous_data, processed_data["vlans"]
@@ -170,14 +175,18 @@ class DataFetchManager:
         }
 
         for device in devices:
-            prev = previous_devices_by_serial.get(device.serial) if device.serial else None
-            
+            prev = (
+                previous_devices_by_serial.get(device.serial) if device.serial else None
+            )
+
             if device.product_type == "camera":
                 self.camera_strategy.process_device_details(device, detail_data, prev)
             elif device.product_type == "switch":
                 self.switch_strategy.process_device_details(device, detail_data, prev)
             elif device.product_type == "appliance":
-                self.appliance_strategy.process_device_details(device, detail_data, prev)
+                self.appliance_strategy.process_device_details(
+                    device, detail_data, prev
+                )
 
         return processed_data
 
@@ -186,7 +195,7 @@ class DataFetchManager:
         previous_data: dict[str, Any] | None = None,
         timespan: int | None = None,
     ) -> dict[str, Any]:
-        """Main entry point for the coordinator update cycle."""
+        """Fetch all data for the coordinator update cycle."""
         previous_data = previous_data or {}
         _LOGGER.debug("Fetching fresh Meraki data from API")
 
@@ -204,7 +213,9 @@ class DataFetchManager:
         ]
 
         # 3. Apply baseline parsers (Uplinks & Sensors)
-        parse_appliance_data(devices_list, initial_results.get("appliance_uplink_statuses"))
+        parse_appliance_data(
+            devices_list, initial_results.get("appliance_uplink_statuses")
+        )
         parse_sensor_data(devices_list, initial_results.get("sensor_readings", []), [])
 
         # 4. Fetch Details (Strategy + Timeout Protection)
@@ -215,16 +226,24 @@ class DataFetchManager:
 
         # 5. Fetch Clients (Network & Device level)
         client_tasks = {
-            "network_clients": self.client_fetcher.async_fetch_network_clients(networks_list),
-            "device_clients": self.client_fetcher.async_fetch_device_clients(devices_list),
+            "network_clients": self.client_fetcher.async_fetch_network_clients(
+                networks_list
+            ),
+            "device_clients": self.client_fetcher.async_fetch_device_clients(
+                devices_list
+            ),
         }
-        client_results = await self._async_gather_with_timeout(client_tasks, label="Client Data")
-        
+        client_results = await self._async_gather_with_timeout(
+            client_tasks, label="Client Data"
+        )
+
         network_clients = client_results.get("network_clients", [])
         device_clients = client_results.get("device_clients", {})
 
         # Inject clients for strategies that require them (e.g. Wireless)
-        detail_data_dict["clients"] = network_clients if isinstance(network_clients, list) else []
+        detail_data_dict["clients"] = (
+            network_clients if isinstance(network_clients, list) else []
+        )
 
         # 6. Final Processing
         processed_detailed_data = self._process_detailed_data(
@@ -232,13 +251,19 @@ class DataFetchManager:
         )
 
         org_data = initial_results.get("organization", {})
-        org_name = org_data.get("name", "Unknown Org") if isinstance(org_data, dict) else "Unknown Org"
+        org_name = (
+            org_data.get("name", "Unknown Org")
+            if isinstance(org_data, dict)
+            else "Unknown Org"
+        )
 
         return {
             "org_name": org_name,
             "networks": networks_list,
             "devices": devices_list,
             "clients": network_clients if isinstance(network_clients, list) else [],
-            "clients_by_serial": device_clients if isinstance(device_clients, dict) else {},
+            "clients_by_serial": (
+                device_clients if isinstance(device_clients, dict) else {}
+            ),
             **processed_detailed_data,
         }
