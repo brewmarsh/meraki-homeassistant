@@ -11,13 +11,13 @@ if TYPE_CHECKING:
 class BaseFetchStrategy:
     """Base class for fetch strategies."""
 
-    def __init__(self, client: MerakiAPIClient, disabled_features: set[str]) -> None:
+    def __init__(self, client: MerakiAPIClient, _disabled_features: set[str]) -> None:
         """
         Initialize the strategy.
 
         Args:
             client: The Meraki API client.
-            disabled_features: A set of disabled features.
+            _disabled_features: A set of disabled features.
         """
         self.client = client
-        self.disabled_features = disabled_features
+        self._disabled_features = _disabled_features
