@@ -4,9 +4,7 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from custom_components.meraki_ha.const import (
-    CONF_ENABLE_VPN_MANAGEMENT,
-)
+from custom_components.meraki_ha.const_conf import CONF_ENABLE_VPN_MANAGEMENT
 from custom_components.meraki_ha.switch.setup_helpers import async_setup_switches
 from custom_components.meraki_ha.switch.vpn import MerakiVPNSwitch
 from custom_components.meraki_ha.types import MerakiNetwork, MerakiVpn

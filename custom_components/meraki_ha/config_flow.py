@@ -18,12 +18,8 @@ except ImportError:
     )
 
 from .authentication import validate_meraki_credentials
-from .const import (
-    CONF_INTEGRATION_TITLE,
-    CONF_MERAKI_API_KEY,
-    CONF_MERAKI_ORG_ID,
-    DOMAIN,
-)
+from .const import DOMAIN
+from .const_conf import CONF_INTEGRATION_TITLE, CONF_MERAKI_API_KEY, CONF_MERAKI_ORG_ID
 from .coordinator import MerakiDataUpdateCoordinator
 from .core.errors import MerakiAuthenticationError, MerakiConnectionError
 from .helpers.schema import populate_schema_defaults

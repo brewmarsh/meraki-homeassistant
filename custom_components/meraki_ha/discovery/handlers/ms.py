@@ -11,7 +11,7 @@ import logging
 from typing import TYPE_CHECKING
 
 from ...binary_sensor.switch_port import SwitchPortSensor
-from ...const import CONF_ENABLE_PORT_SENSORS
+from ...const_conf import CONF_ENABLE_PORT_SENSORS
 from .base import BaseDeviceHandler
 
 if TYPE_CHECKING:

@@ -87,25 +87,36 @@ jobs:
           CLEAN_SERVER=$(echo "${HASS_SERVER}" | sed 's:/*$::')
 
           # 2. Retry loop (Wait up to 60s for API to be ready)
+          set +e
+          SUCCESS=false
           for i in {1..6}; do
             echo "Fetching logs (Attempt $i/6)..."
-            LOG_CONTENT=$(curl -s -f -H "Authorization: Bearer ${HASS_TOKEN}" "$CLEAN_SERVER/api/error_log")
-            if [ $? -eq 0 ]; then
+            # Capture status code and content separately
+            RESPONSE=$(curl -s -w "\n%{http_code}" -H "Authorization: Bearer ${HASS_TOKEN}" "$CLEAN_SERVER/api/error_log")
+            HTTP_STATUS=$(echo "$RESPONSE" | tail -n1)
+            LOG_CONTENT=$(echo "$RESPONSE" | sed '$d')
+
+            if [ "$HTTP_STATUS" -eq 200 ]; then
+              SUCCESS=true
               break
             fi
 
-            if [ $i -eq 6 ]; then
-              echo "::error::API timeout or persistent failure after 60s."
-              # Diagnostic check for 401/404
-              HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" -H "Authorization: Bearer ${HASS_TOKEN}" "$CLEAN_SERVER/api/error_log")
-              echo "Home Assistant API returned status: $HTTP_STATUS"
-              if [ "$HTTP_STATUS" -ne 200 ]; then
-                 echo "::error::Received $HTTP_STATUS from API. Check token permissions and URL."
-              fi
+            echo "API returned $HTTP_STATUS. Waiting..."
+
+            # Diagnostic check: Fail fast on authentication errors
+            if [ "$HTTP_STATUS" -eq 401 ] || [ "$HTTP_STATUS" -eq 403 ]; then
+              echo "::error::Authentication failed with $HTTP_STATUS. Check token permissions."
               exit 1
             fi
+
             sleep 10
           done
+          set -e
+
+          if [ "$SUCCESS" != "true" ]; then
+            echo "::error::API failed with $HTTP_STATUS after 60s."
+            exit 1
+          fi
 
           # 3. Grep the content
           if echo "$LOG_CONTENT" | grep -i "custom_components.meraki_ha"; then
