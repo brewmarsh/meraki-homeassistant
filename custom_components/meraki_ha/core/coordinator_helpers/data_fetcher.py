@@ -10,15 +10,10 @@ import asyncio
 import logging
 from typing import TYPE_CHECKING, Any, cast
 
-from ...core.errors import (
-    MerakiInformationalError,
-    MerakiTrafficAnalysisError,
-    MerakiVlanError,
-    MerakiVlansDisabledError,
-)
 from ...core.models.device import MerakiAppliancePort, MerakiDevice
 from ...core.models.network import MerakiNetwork
 from ...core.parsers.appliance import parse_appliance_data
+from ...core.parsers.network import parse_network_data
 from ...core.parsers.sensors import parse_sensor_data
 from .client_fetcher import ClientFetcher
 
@@ -246,55 +241,6 @@ class DataFetchManager:
         if isinstance(rf_profiles, dict):
             processed_data["rf_profiles"].update(rf_profiles)
 
-    def _process_network_traffic(
-        self,
-        network_id: str,
-        detail_data: dict[str, Any],
-        previous_data: dict[str, Any],
-        appliance_traffic: dict[str, Any],
-    ) -> None:
-        """Process traffic data for a network."""
-        key = f"traffic_{network_id}"
-        data = detail_data.get(key)
-        if isinstance(data, MerakiTrafficAnalysisError):
-            self._disabled_features.add(key)
-            _LOGGER.info(
-                "Traffic analysis is not enabled for network %s.",
-                network_id,
-            )
-            appliance_traffic[network_id] = {
-                "error": "disabled",
-                "reason": str(data),
-            }
-        elif isinstance(data, dict):
-            appliance_traffic[network_id] = data
-        elif previous_data and key in previous_data:
-            appliance_traffic[network_id] = previous_data[key]
-
-    def _process_network_vlans(
-        self,
-        network_id: str,
-        detail_data: dict[str, Any],
-        previous_data: dict[str, Any],
-        vlan_by_network: dict[str, Any],
-    ) -> None:
-        """Process VLAN data for a network."""
-        key = f"vlans_{network_id}"
-        data = detail_data.get(key)
-        if isinstance(data, (MerakiVlanError, MerakiVlansDisabledError)):
-            if isinstance(data, MerakiVlanError):
-                self._disabled_features.add(key)
-                _LOGGER.info(str(data))
-            vlan_by_network[network_id] = []
-        elif isinstance(data, MerakiInformationalError):
-            if "vlans are not enabled" in str(data).lower():
-                self._disabled_features.add(key)
-                vlan_by_network[network_id] = []
-        elif isinstance(data, list):
-            vlan_by_network[network_id] = data
-        elif previous_data and key in previous_data:
-            vlan_by_network[network_id] = previous_data[key]
-
     def _process_simple_network_data(
         self,
         network_id: str,
@@ -410,17 +356,14 @@ class DataFetchManager:
             The processed detailed data.
 
         """
-        processed_data: dict[str, Any] = {
-            "ssids": [],
-            "appliance_traffic": {},
-            "vlans": {},
-            "l3_firewall_rules": {},
-            "traffic_shaping": {},
-            "vpn_status": {},
-            "rf_profiles": {},
-            "content_filtering": {},
-            "wireless_settings": {},
-        }
+        processed_data = parse_network_data(
+            detail_data,
+            networks,
+            previous_data,
+            self._disabled_features,
+        )
+        processed_data["ssids"] = []
+        processed_data["wireless_settings"] = {}
 
         for network in networks:
             if not network.id:
@@ -430,29 +373,14 @@ class DataFetchManager:
             self._process_network_wireless_data(
                 network_id, detail_data, previous_data, processed_data
             )
-            self._process_network_traffic(
+
+            self._process_simple_network_data(
                 network_id,
                 detail_data,
                 previous_data,
-                processed_data["appliance_traffic"],
-            )
-            self._process_network_vlans(
-                network_id, detail_data, previous_data, processed_data["vlans"]
-            )
-            for key in [
-                "l3_firewall_rules",
-                "traffic_shaping",
-                "vpn_status",
-                "content_filtering",
                 "wireless_settings",
-            ]:
-                self._process_simple_network_data(
-                    network_id,
-                    detail_data,
-                    previous_data,
-                    key,
-                    processed_data[key],
-                )
+                processed_data["wireless_settings"],
+            )
 
         previous_devices_by_serial = {}
         if previous_data and "devices" in previous_data:
