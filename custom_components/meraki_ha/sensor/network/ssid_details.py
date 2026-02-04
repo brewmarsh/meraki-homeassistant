@@ -73,9 +73,15 @@ class MerakiSSIDTotalUploadLimitSensor(MerakiSSIDDetailSensor):
     _attr_icon = "mdi:upload-network"
     _attr_native_unit_of_measurement = UnitOfDataRate.KILOBITS_PER_SECOND
 
-    def __init__(self, *args: Any, **kwargs: Any) -> None:
+    def __init__(
+        self,
+        coordinator: MerakiDataUpdateCoordinator,
+        config_entry: ConfigEntry,
+        ssid_data: dict[str, Any],
+        rf_profile: dict[str, Any] | None,
+    ) -> None:
         """Initialize the sensor."""
-        super().__init__(*args, **kwargs)
+        super().__init__(coordinator, config_entry, ssid_data, rf_profile)
         self._attr_unique_id = (
             f"{self._ssid_data['networkId']}_{self._ssid_data['number']}_upload_limit"
         )
@@ -89,9 +95,15 @@ class MerakiSSIDTotalDownloadLimitSensor(MerakiSSIDDetailSensor):
     _attr_icon = "mdi:download-network"
     _attr_native_unit_of_measurement = UnitOfDataRate.KILOBITS_PER_SECOND
 
-    def __init__(self, *args: Any, **kwargs: Any) -> None:
+    def __init__(
+        self,
+        coordinator: MerakiDataUpdateCoordinator,
+        config_entry: ConfigEntry,
+        ssid_data: dict[str, Any],
+        rf_profile: dict[str, Any] | None,
+    ) -> None:
         """Initialize the sensor."""
-        super().__init__(*args, **kwargs)
+        super().__init__(coordinator, config_entry, ssid_data, rf_profile)
         self._attr_unique_id = (
             f"{self._ssid_data['networkId']}_{self._ssid_data['number']}_download_limit"
         )
@@ -104,9 +116,15 @@ class MerakiSSIDMandatoryDhcpSensor(MerakiSSIDDetailSensor):
 
     _attr_icon = "mdi:ip-network"
 
-    def __init__(self, *args: Any, **kwargs: Any) -> None:
+    def __init__(
+        self,
+        coordinator: MerakiDataUpdateCoordinator,
+        config_entry: ConfigEntry,
+        ssid_data: dict[str, Any],
+        rf_profile: dict[str, Any] | None,
+    ) -> None:
         """Initialize the sensor."""
-        super().__init__(*args, **kwargs)
+        super().__init__(coordinator, config_entry, ssid_data, rf_profile)
         self._attr_unique_id = (
             f"{self._ssid_data['networkId']}_{self._ssid_data['number']}_mandatory_dhcp"
         )
@@ -122,9 +140,15 @@ class MerakiSSIDMinBitrate24GhzSensor(MerakiSSIDDetailSensor):
     _attr_icon = "mdi:speedometer-slow"
     _attr_native_unit_of_measurement = UnitOfDataRate.MEGABITS_PER_SECOND
 
-    def __init__(self, *args: Any, **kwargs: Any) -> None:
+    def __init__(
+        self,
+        coordinator: MerakiDataUpdateCoordinator,
+        config_entry: ConfigEntry,
+        ssid_data: dict[str, Any],
+        rf_profile: dict[str, Any] | None,
+    ) -> None:
         """Initialize the sensor."""
-        super().__init__(*args, **kwargs)
+        super().__init__(coordinator, config_entry, ssid_data, rf_profile)
         self._attr_unique_id = (
             f"{self._ssid_data['networkId']}_{self._ssid_data['number']}_min_bitrate_24"
         )
@@ -143,9 +167,15 @@ class MerakiSSIDMinBitrate5GhzSensor(MerakiSSIDDetailSensor):
     _attr_icon = "mdi:speedometer"
     _attr_native_unit_of_measurement = UnitOfDataRate.MEGABITS_PER_SECOND
 
-    def __init__(self, *args: Any, **kwargs: Any) -> None:
+    def __init__(
+        self,
+        coordinator: MerakiDataUpdateCoordinator,
+        config_entry: ConfigEntry,
+        ssid_data: dict[str, Any],
+        rf_profile: dict[str, Any] | None,
+    ) -> None:
         """Initialize the sensor."""
-        super().__init__(*args, **kwargs)
+        super().__init__(coordinator, config_entry, ssid_data, rf_profile)
         self._attr_unique_id = (
             f"{self._ssid_data['networkId']}_{self._ssid_data['number']}_min_bitrate_5"
         )
