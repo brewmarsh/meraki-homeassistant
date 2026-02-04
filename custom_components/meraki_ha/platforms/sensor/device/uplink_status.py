@@ -6,10 +6,15 @@ sensor entity that displays the status of the primary uplink for a Meraki
 MX security appliance.
 """
 
+from __future__ import annotations
+
 import logging
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from ....core.entities.device import MerakiDeviceEntity
+
+if TYPE_CHECKING:
+    from ....coordinator import MerakiDataUpdateCoordinator
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -25,7 +30,7 @@ class MerakiUplinkStatusSensor(MerakiDeviceEntity):
 
     def __init__(
         self,
-        coordinator,
+        coordinator: MerakiDataUpdateCoordinator,
         device_serial: str,
     ) -> None:
         """Initialize the Meraki MX Appliance Uplink Status sensor."""

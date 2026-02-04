@@ -75,7 +75,7 @@ class CameraEndpoints:
 
     @handle_meraki_errors
     async def update_camera_video_settings(
-        self, serial: str, **kwargs
+        self, serial: str, **kwargs: Any
     ) -> dict[str, Any]:
         """Update video settings for a specific camera."""
         result = await self._api_client.run_sync(
@@ -91,7 +91,7 @@ class CameraEndpoints:
 
     @handle_meraki_errors
     async def update_camera_sense_settings(
-        self, serial: str, **kwargs
+        self, serial: str, **kwargs: Any
     ) -> dict[str, Any]:
         """Update sense settings for a specific camera."""
         result = await self._api_client.run_sync(
@@ -140,7 +140,7 @@ class CameraEndpoints:
 
     @handle_meraki_errors
     async def generate_device_camera_snapshot(
-        self, serial: str, **kwargs
+        self, serial: str, **kwargs: Any
     ) -> dict[str, Any]:
         """Generate a snapshot of what the camera sees."""
         snapshot = await self._api_client.run_sync(

@@ -1,11 +1,14 @@
 """Switch entity for controlling Meraki Adult Content Filtering on an SSID."""
 
+from __future__ import annotations
+
 import logging
 from typing import Any
 
 from homeassistant.components.switch import SwitchEntity, SwitchEntityDescription
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import callback
+from homeassistant.helpers.device_registry import DeviceInfo
 
 from ..coordinator import MerakiDataUpdateCoordinator
 from ..entity import MerakiEntity
@@ -43,7 +46,7 @@ class MerakiAdultContentFilteringSwitch(MerakiEntity, SwitchEntity):
         )
 
     @property
-    def device_info(self):
+    def device_info(self) -> DeviceInfo | None:
         """Return the device info."""
         return resolve_device_info(self._ssid, self._config_entry)
 
