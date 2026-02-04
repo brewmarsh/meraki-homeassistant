@@ -16,7 +16,7 @@ from ...const import DOMAIN
 from ...coordinator import MerakiDataUpdateCoordinator
 
 if TYPE_CHECKING:
-    from ...types import MerakiDevice
+    from ...core.models.device import MerakiDevice
 
 _LOGGER = logging.getLogger(__name__)
 

@@ -5,7 +5,7 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-from ...types import (
+from ...core.models.network import (
     MerakiFirewallRule,
     MerakiNetwork,
     MerakiTrafficShaping,

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from ...types import MerakiNetwork
+from ...core.models.network import MerakiNetwork
 
 
 def parse_wireless_data(

@@ -6,7 +6,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.entity import DeviceInfo
 
 from ...coordinator import MerakiDataUpdateCoordinator
-from ...types import MerakiFirewallRule
+from ...core.models.network import MerakiFirewallRule
 from . import BaseMerakiEntity
 
 

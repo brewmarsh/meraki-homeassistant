@@ -16,9 +16,10 @@ from ...core.errors import (
     MerakiVlanError,
     MerakiVlansDisabledError,
 )
+from ...core.models.device import MerakiAppliancePort, MerakiDevice
+from ...core.models.network import MerakiNetwork
 from ...core.parsers.appliance import parse_appliance_data
 from ...core.parsers.sensors import parse_sensor_data
-from ...types import MerakiAppliancePort, MerakiDevice, MerakiNetwork
 from .client_fetcher import ClientFetcher
 
 if TYPE_CHECKING:

@@ -15,7 +15,7 @@ from ...entity import MerakiEntity
 from ...helpers.device_info_helpers import resolve_device_info
 
 if TYPE_CHECKING:
-    from ...types import MerakiDevice
+    from ...core.models.device import MerakiDevice
 
 _LOGGER = logging.getLogger(__name__)
 

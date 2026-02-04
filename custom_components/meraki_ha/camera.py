@@ -22,8 +22,8 @@ if TYPE_CHECKING:
     from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
     from .coordinator import MerakiDataUpdateCoordinator
+    from .core.models.device import MerakiDevice
     from .services.camera_service import CameraService
-    from .types import MerakiDevice
 
 
 _LOGGER = logging.getLogger(__name__)
@@ -94,7 +94,7 @@ class MerakiCamera(CoordinatorEntity, Camera):
     @property
     def device_data(self) -> MerakiDevice:
         """Return the device data from the coordinator."""
-        from .types import MerakiDevice
+        from .core.models.device import MerakiDevice
 
         return self.coordinator.get_device(self._device_serial) or MerakiDevice()
 

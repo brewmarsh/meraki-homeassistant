@@ -1,6 +1,6 @@
+import logging
 import os
 import sys
-import logging
 
 # Configure logging to output to stdout
 logging.basicConfig(

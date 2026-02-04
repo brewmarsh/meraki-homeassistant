@@ -6,7 +6,7 @@ import logging
 
 from ..coordinator import MerakiDataUpdateCoordinator
 from ..core.api.client import MerakiAPIClient
-from ..types import MerakiDevice
+from ..core.models.device import MerakiDevice
 from .camera_settings import MerakiCameraSettingSwitchBase
 
 _LOGGER = logging.getLogger(__name__)

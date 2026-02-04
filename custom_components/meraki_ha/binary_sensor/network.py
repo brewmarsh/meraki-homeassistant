@@ -13,7 +13,7 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from ..const import DOMAIN
 from ..coordinator import MerakiDataUpdateCoordinator
-from ..types import MerakiNetwork
+from ..core.models.network import MerakiNetwork
 
 
 async def async_setup_entry(

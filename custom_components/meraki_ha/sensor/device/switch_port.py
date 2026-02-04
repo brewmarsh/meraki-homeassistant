@@ -17,7 +17,7 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from ...const import DOMAIN
 from ...coordinator import MerakiDataUpdateCoordinator
-from ...types import MerakiDevice
+from ...core.models.device import MerakiDevice
 
 
 class MerakiSwitchPortSensor(CoordinatorEntity, SensorEntity):

@@ -10,7 +10,7 @@ from homeassistant.core import callback
 
 from ..coordinator import MerakiDataUpdateCoordinator
 from ..core.entities.meraki_network_entity import MerakiNetworkEntity
-from ..types import MerakiNetwork
+from ..core.models.network import MerakiNetwork
 
 _LOGGER = logging.getLogger(__name__)
 

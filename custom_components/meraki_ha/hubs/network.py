@@ -11,7 +11,8 @@ import logging
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
-    from ...types import MerakiDevice, MerakiNetwork
+    from ...core.models.device import MerakiDevice
+    from ...core.models.network import MerakiNetwork
     from ..coordinator import MerakiDataUpdateCoordinator
 
 _LOGGER = logging.getLogger(__name__)

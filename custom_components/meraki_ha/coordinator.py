@@ -29,7 +29,8 @@ from .core.api.client import MerakiAPIClient as ApiClient
 from .core.coordinator_helpers.data_fetcher import DataFetchManager
 from .core.helpers import filter_ignored_networks, process_coordinator_data
 from .core.managers import AvailabilityTracker, PendingUpdateManager
-from .types import MerakiDevice, MerakiNetwork
+from .core.models.device import MerakiDevice
+from .core.models.network import MerakiNetwork
 
 if TYPE_CHECKING:
     from custom_components.meraki_ha.services.camera_service import CameraService
