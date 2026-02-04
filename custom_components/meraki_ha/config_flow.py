@@ -17,7 +17,7 @@ except ImportError:
         DhcpServiceInfo,  # type: ignore[no-redef, attr-defined]
     )
 
-from .const import DOMAIN, WEBHOOK_ID_FORMAT
+from .const import DOMAIN
 from .const_conf import CONF_INTEGRATION_TITLE, CONF_MERAKI_API_KEY, CONF_MERAKI_ORG_ID
 from .core.errors import MerakiAuthenticationError, MerakiConnectionError
 from .helpers.schema import populate_schema_defaults
@@ -191,7 +191,6 @@ class MerakiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignor
             await self.hass.config_entries.async_reload(entry.entry_id)
             return self.async_abort(reason="reconfigure_successful")
 
-        from .coordinator import MerakiDataUpdateCoordinator
 
         coordinator: MerakiDataUpdateCoordinator = self.hass.data[DOMAIN][
             entry.entry_id
