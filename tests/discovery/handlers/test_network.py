@@ -44,7 +44,9 @@ async def test_discover_entities_creates_network_sensors(
         mock_coordinator, MOCK_CONFIG_ENTRY, mock_network_control_service
     )
 
-    entities = await handler.discover_entities()
+    entities = []
+    async for entity in handler.discover_entities():
+        entities.append(entity)
 
     # With recent changes, additional network entities (like TrafficShapingSensor
     # and ContentFilteringSensor) may also be discovered if enabled. For this test,
