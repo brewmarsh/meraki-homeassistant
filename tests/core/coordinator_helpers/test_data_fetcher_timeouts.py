@@ -8,8 +8,7 @@ import pytest
 from custom_components.meraki_ha.core.coordinator_helpers.data_fetcher import (
     DataFetchManager,
 )
-from custom_components.meraki_ha.core.models.network import MerakiNetwork
-from custom_components.meraki_ha.core.models.device import MerakiDevice
+
 
 @pytest.fixture
 def mock_client():
@@ -20,43 +19,74 @@ def mock_client():
     client.run_with_semaphore = AsyncMock()
     return client
 
+
 @pytest.fixture
 def data_fetch_manager(mock_client):
     """Fixture for DataFetchManager."""
     return DataFetchManager(mock_client)
 
+
 @pytest.mark.asyncio
 async def test_fetch_initial_data_timeout(data_fetch_manager, mock_client):
-    """Test that _async_fetch_initial_data logs error and raises TimeoutError on timeout."""
-    with patch("custom_components.meraki_ha.core.coordinator_helpers.data_fetcher.asyncio.wait_for", side_effect=asyncio.TimeoutError):
-        with patch("custom_components.meraki_ha.core.coordinator_helpers.data_fetcher._LOGGER.error") as mock_log_error:
+    """Test that _async_fetch_initial_data logs error and raises TimeoutError."""
+    with patch(
+        "custom_components.meraki_ha.core.coordinator_helpers.data_fetcher.asyncio.wait_for",
+        side_effect=asyncio.TimeoutError,
+    ):
+        with patch(
+            "custom_components.meraki_ha.core.coordinator_helpers.data_fetcher._LOGGER.error"
+        ) as mock_log_error:
             with pytest.raises(asyncio.TimeoutError):
                 await data_fetch_manager._async_fetch_initial_data()
-            mock_log_error.assert_called_with("Timeout fetching initial Meraki data")
+            mock_log_error.assert_called_with(
+                "Timeout during %s. Potential semaphore deadlock.", "Initial Batch"
+            )
+
 
 @pytest.mark.asyncio
 async def test_get_all_data_detailed_timeout(data_fetch_manager, mock_client):
-    """Test that get_all_data logs error and raises TimeoutError on detailed data timeout."""
-    data_fetch_manager._async_fetch_initial_data = AsyncMock(return_value={})
+    """Test that get_all_data logs error and raises TimeoutError on detailed timeout."""
+    # Provide data to ensure detail tasks are built
+    data_fetch_manager._async_fetch_initial_data = AsyncMock(
+        return_value={
+            "networks": [{"id": "n1", "productTypes": ["appliance"]}],
+            "devices": [],
+        }
+    )
 
-    with patch("custom_components.meraki_ha.core.coordinator_helpers.data_fetcher.asyncio.wait_for", side_effect=asyncio.TimeoutError):
-        with patch("custom_components.meraki_ha.core.coordinator_helpers.data_fetcher._LOGGER.error") as mock_log_error:
+    with patch(
+        "custom_components.meraki_ha.core.coordinator_helpers.data_fetcher.asyncio.wait_for",
+        side_effect=asyncio.TimeoutError,
+    ):
+        with patch(
+            "custom_components.meraki_ha.core.coordinator_helpers.data_fetcher._LOGGER.error"
+        ) as mock_log_error:
             with pytest.raises(asyncio.TimeoutError):
                 await data_fetch_manager.get_all_data()
             # It might be called for detailed data first
-            mock_log_error.assert_any_call("Timeout fetching detailed Meraki data")
+            mock_log_error.assert_any_call(
+                "Timeout during %s. Potential semaphore deadlock.",
+                "Detailed Device Data",
+            )
+
 
 @pytest.mark.asyncio
 async def test_get_all_data_client_timeout(data_fetch_manager, mock_client):
-    """Test that get_all_data logs error and raises TimeoutError on client data timeout."""
+    """Test that get_all_data logs error and raises TimeoutError on client timeout."""
     data_fetch_manager._async_fetch_initial_data = AsyncMock(return_value={})
 
     # We need to bypass the first wait_for (detailed data)
-    with patch("custom_components.meraki_ha.core.coordinator_helpers.data_fetcher.asyncio.wait_for") as mock_wait_for:
+    with patch(
+        "custom_components.meraki_ha.core.coordinator_helpers.data_fetcher.asyncio.wait_for"
+    ) as mock_wait_for:
         # First call returns empty dict (detail data results)
-        mock_wait_for.side_effect = [{}, asyncio.TimeoutError()]
+        mock_wait_for.side_effect = asyncio.TimeoutError
 
-        with patch("custom_components.meraki_ha.core.coordinator_helpers.data_fetcher._LOGGER.error") as mock_log_error:
+        with patch(
+            "custom_components.meraki_ha.core.coordinator_helpers.data_fetcher._LOGGER.error"
+        ) as mock_log_error:
             with pytest.raises(asyncio.TimeoutError):
                 await data_fetch_manager.get_all_data()
-            mock_log_error.assert_called_with("Timeout fetching Meraki client data")
+            mock_log_error.assert_called_with(
+                "Timeout during %s. Potential semaphore deadlock.", "Client Data"
+            )
