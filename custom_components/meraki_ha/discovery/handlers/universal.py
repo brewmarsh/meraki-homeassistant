@@ -270,7 +270,9 @@ class UplinkProvider:
                     if ent.unique_id and ent.unique_id.startswith(
                         f"{device.serial}_uplink_"
                     ):
-                        interface = ent.unique_id.replace(f"{device.serial}_uplink_", "")
+                        interface = ent.unique_id.replace(
+                            f"{device.serial}_uplink_", ""
+                        )
                         registry_interfaces.add(interface)
 
         all_interfaces = set(uplink_data_by_interface.keys()) | registry_interfaces

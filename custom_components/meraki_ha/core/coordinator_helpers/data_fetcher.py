@@ -158,7 +158,10 @@ class DataFetchManager:
                 network_id, detail_data, previous_data, processed_data
             )
             self.appliance_strategy.process_network_traffic(
-                network_id, detail_data, previous_data, processed_data["appliance_traffic"]
+                network_id,
+                detail_data,
+                previous_data,
+                processed_data["appliance_traffic"],
             )
             self.appliance_strategy.process_network_vlans(
                 network_id, detail_data, previous_data, processed_data["vlans"]
@@ -189,11 +192,17 @@ class DataFetchManager:
             prev_device = previous_devices_by_serial.get(device.serial)
 
         if device.product_type == "camera":
-            self.camera_strategy.process_device_details(device, detail_data, prev_device)
+            self.camera_strategy.process_device_details(
+                device, detail_data, prev_device
+            )
         elif device.product_type == "switch":
-            self.switch_strategy.process_device_details(device, detail_data, prev_device)
+            self.switch_strategy.process_device_details(
+                device, detail_data, prev_device
+            )
         elif device.product_type == "appliance":
-            self.appliance_strategy.process_device_details(device, detail_data, prev_device)
+            self.appliance_strategy.process_device_details(
+                device, detail_data, prev_device
+            )
 
     async def get_all_data(
         self,
@@ -244,8 +253,12 @@ class DataFetchManager:
         )
 
         detail_tasks = self._build_detail_tasks(networks_list, devices_list)
-        detail_data_results = await asyncio.gather(*detail_tasks.values(), return_exceptions=True)
-        detail_data_dict = dict(zip(detail_tasks.keys(), detail_data_results, strict=True))
+        detail_data_results = await asyncio.gather(
+            *detail_tasks.values(), return_exceptions=True
+        )
+        detail_data_dict = dict(
+            zip(detail_tasks.keys(), detail_data_results, strict=True)
+        )
 
         network_clients, device_clients = await asyncio.gather(
             self.client_fetcher.async_fetch_network_clients(networks_list),
