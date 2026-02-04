@@ -5,7 +5,7 @@ from __future__ import annotations
 import voluptuous as vol
 from homeassistant.helpers import selector
 
-from .const import (
+from .const_conf import (
     CONF_ENABLE_CAMERA_ENTITIES,
     CONF_ENABLE_DEVICE_SENSORS,
     CONF_ENABLE_DEVICE_STATUS,

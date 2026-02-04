@@ -13,7 +13,7 @@ from typing import TYPE_CHECKING
 from ...binary_sensor.device.camera_motion import MerakiMotionSensor
 from ...button.device.camera_snapshot import MerakiSnapshotButton
 from ...camera import MerakiCamera
-from ...const import CONF_ENABLE_CAMERA_ENTITIES
+from ...const_conf import CONF_ENABLE_CAMERA_ENTITIES
 from ...core.errors import MerakiInformationalError
 from ...sensor.device.camera_analytics import (
     MerakiPersonCountSensor,
