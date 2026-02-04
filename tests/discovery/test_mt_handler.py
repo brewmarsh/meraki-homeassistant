@@ -131,3 +131,44 @@ async def test_mt_handler_discover_entities_mt20(
     assert any(e.entity_description.key == "temperature" for e in sensors)
     assert any(e.entity_description.key == "humidity" for e in sensors)
     assert binary_sensors[0].entity_description.key == "door"
+
+
+async def test_mt_handler_discover_entities_mt15(
+    mock_coordinator_mt_handler: MagicMock,
+    mock_config_entry: MagicMock,
+    mock_control_service: MagicMock,
+):
+    """Test MTHandler discovers entities correctly for MT15."""
+    from custom_components.meraki_ha.core.models.device import MerakiDevice
+
+    device = MerakiDevice.from_dict(
+        {
+            "serial": "mt15-1",
+            "model": "MT15",
+            "name": "MT15 Sensor",
+        }
+    )
+
+    handler = MTHandler(
+        mock_coordinator_mt_handler,
+        device,
+        mock_config_entry,
+        mock_control_service,
+    )
+
+    entities = await handler.discover_entities()
+
+    # MT15 has CO2, TVOC, PM2.5, Temperature, Humidity, Noise.
+    # Battery should be EXCLUDED.
+    assert len(entities) == 6
+    sensors = [e for e in entities if isinstance(e, MerakiMtSensor)]
+
+    assert len(sensors) == 6
+    assert any(e.entity_description.key == "co2" for e in sensors)
+    assert any(e.entity_description.key == "tvoc" for e in sensors)
+    assert any(e.entity_description.key == "pm25" for e in sensors)
+    assert any(e.entity_description.key == "temperature" for e in sensors)
+    assert any(e.entity_description.key == "humidity" for e in sensors)
+    assert any(e.entity_description.key == "noise" for e in sensors)
+    # Ensure battery is NOT present
+    assert not any(e.entity_description.key == "battery" for e in sensors)

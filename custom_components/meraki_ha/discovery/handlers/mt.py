@@ -69,6 +69,9 @@ class MTHandler(BaseDeviceHandler):
         sensor_descriptions = MT_SENSOR_MODELS.get(model)
         if sensor_descriptions:
             for description in sensor_descriptions:
+                # MT15 is mains-powered and does not have a battery
+                if model == "MT15" and description.key == "battery":
+                    continue
                 entities.append(
                     MerakiMtSensor(self._coordinator, self.device, description)
                 )
