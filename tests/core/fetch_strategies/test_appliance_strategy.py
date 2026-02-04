@@ -1,15 +1,18 @@
 """Test ApplianceFetchStrategy."""
 
-import asyncio
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import MagicMock, patch
+
 import pytest
 
-from custom_components.meraki_ha.core.fetch_strategies.appliance import ApplianceFetchStrategy
 from custom_components.meraki_ha.core.errors import (
     MerakiTrafficAnalysisError,
     MerakiVlanError,
     MerakiVlansDisabledError,
 )
+from custom_components.meraki_ha.core.fetch_strategies.appliance import (
+    ApplianceFetchStrategy,
+)
+
 
 @pytest.fixture
 def mock_client():

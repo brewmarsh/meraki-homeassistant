@@ -40,7 +40,7 @@ async def test_form(hass: HomeAssistant) -> None:
 
     with (
         patch(
-            "custom_components.meraki_ha.config_flow.validate_meraki_credentials",
+            "custom_components.meraki_ha.authentication.validate_meraki_credentials",
             return_value={"valid": True, "org_name": "Test Org"},
         ),
         patch(
@@ -81,7 +81,7 @@ async def test_form_invalid_auth(hass: HomeAssistant) -> None:
     )
 
     with patch(
-        "custom_components.meraki_ha.config_flow.validate_meraki_credentials",
+        "custom_components.meraki_ha.authentication.validate_meraki_credentials",
         side_effect=MerakiAuthenticationError,
     ):
         result2 = await hass.config_entries.flow.async_configure(
@@ -103,7 +103,7 @@ async def test_form_cannot_connect(hass: HomeAssistant) -> None:
     )
 
     with patch(
-        "custom_components.meraki_ha.config_flow.validate_meraki_credentials",
+        "custom_components.meraki_ha.authentication.validate_meraki_credentials",
         side_effect=MerakiConnectionError,
     ):
         result2 = await hass.config_entries.flow.async_configure(

@@ -1,11 +1,13 @@
 """Tests for the Data Fetch Manager."""
 
-import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
+
+import pytest
 
 from custom_components.meraki_ha.core.coordinator_helpers.data_fetcher import (
     DataFetchManager,
 )
+
 
 @pytest.fixture
 def mock_client():
