@@ -342,7 +342,8 @@ async def test_build_detail_tasks_for_appliance_device(data_fetch_manager, mock_
     data_fetch_manager.enable_firewall_rules = True
     data_fetch_manager.enable_traffic_shaping = True
 
-    # Update strategy settings as well since they are initialized with the manager defaults
+    # Update strategy settings as well since they are initialized with the
+    # manager defaults
     data_fetch_manager.appliance_strategy.enable_vpn_management = True
     data_fetch_manager.appliance_strategy.enable_firewall_rules = True
     data_fetch_manager.appliance_strategy.enable_traffic_shaping = True

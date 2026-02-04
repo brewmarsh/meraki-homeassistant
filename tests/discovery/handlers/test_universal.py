@@ -1,11 +1,16 @@
 """Tests for the UniversalHandler."""
 
 from unittest.mock import AsyncMock, MagicMock
+
 import pytest
-from custom_components.meraki_ha.discovery.handlers.universal import UniversalHandler
-from custom_components.meraki_ha.core.models.device import MerakiDevice
+
 from custom_components.meraki_ha.button.reboot import MerakiRebootButton
-from custom_components.meraki_ha.sensor.device.device_status import MerakiDeviceStatusSensor
+from custom_components.meraki_ha.core.models.device import MerakiDevice
+from custom_components.meraki_ha.discovery.handlers.universal import UniversalHandler
+from custom_components.meraki_ha.sensor.device.device_status import (
+    MerakiDeviceStatusSensor,
+)
+
 
 @pytest.fixture
 def mock_coordinator():
@@ -135,6 +140,7 @@ async def test_universal_handler_mx_capabilities(
 
     assert any(isinstance(e, MerakiRebootButton) for e in entities)
     assert any(isinstance(e, MerakiDeviceStatusSensor) for e in entities)
-    # Uplinks are created via UplinkProvider, we can check for their existence if we mock uplink data
+    # Uplinks are created via UplinkProvider, we can check for their existence
+    # if we mock uplink data
     # For now just verify handler creation succeeded
     assert len(entities) >= 2
