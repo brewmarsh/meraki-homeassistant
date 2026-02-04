@@ -11,11 +11,15 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
 from .const import (
+    CONF_ENABLE_FIREWALL_RULES,
+    CONF_ENABLE_TRAFFIC_SHAPING,
     CONF_ENABLE_VPN_MANAGEMENT,
     CONF_IGNORED_NETWORKS,
     CONF_MERAKI_API_KEY,
     CONF_MERAKI_ORG_ID,
     CONF_SCAN_INTERVAL,
+    DEFAULT_ENABLE_FIREWALL_RULES,
+    DEFAULT_ENABLE_TRAFFIC_SHAPING,
     DEFAULT_ENABLE_VPN_MANAGEMENT,
     DEFAULT_IGNORED_NETWORKS,
     DEFAULT_SCAN_INTERVAL,
@@ -67,6 +71,12 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             client=self.api,
             enable_vpn_management=entry.options.get(
                 CONF_ENABLE_VPN_MANAGEMENT, DEFAULT_ENABLE_VPN_MANAGEMENT
+            ),
+            enable_firewall_rules=entry.options.get(
+                CONF_ENABLE_FIREWALL_RULES, DEFAULT_ENABLE_FIREWALL_RULES
+            ),
+            enable_traffic_shaping=entry.options.get(
+                CONF_ENABLE_TRAFFIC_SHAPING, DEFAULT_ENABLE_TRAFFIC_SHAPING
             ),
         )
         self.devices_by_serial: dict[str, MerakiDevice] = {}

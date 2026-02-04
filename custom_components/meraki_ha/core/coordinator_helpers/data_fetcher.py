@@ -34,6 +34,8 @@ class DataFetchManager:
         self,
         client: MerakiAPIClient,
         enable_vpn_management: bool = False,
+        enable_firewall_rules: bool = False,
+        enable_traffic_shaping: bool = False,
     ) -> None:
         """
         Initialize the Data Fetch Manager.
@@ -41,10 +43,14 @@ class DataFetchManager:
         Args:
             client: The Meraki API client.
             enable_vpn_management: Whether to enable VPN management.
+            enable_firewall_rules: Whether to enable firewall rule management.
+            enable_traffic_shaping: Whether to enable traffic shaping management.
 
         """
         self.client = client
         self.enable_vpn_management = enable_vpn_management
+        self.enable_firewall_rules = enable_firewall_rules
+        self.enable_traffic_shaping = enable_traffic_shaping
 
         # Initialize helper classes
         self.client_fetcher = ClientFetcher(self.client)
@@ -125,16 +131,18 @@ class DataFetchManager:
                 )
             )
 
-        tasks[f"l3_firewall_rules_{network_id}"] = asyncio.create_task(
-            self.client.run_with_semaphore(
-                self.client.appliance.get_l3_firewall_rules(network_id),
+        if self.enable_firewall_rules:
+            tasks[f"l3_firewall_rules_{network_id}"] = asyncio.create_task(
+                self.client.run_with_semaphore(
+                    self.client.appliance.get_l3_firewall_rules(network_id),
+                )
             )
-        )
-        tasks[f"traffic_shaping_{network_id}"] = asyncio.create_task(
-            self.client.run_with_semaphore(
-                self.client.appliance.get_traffic_shaping(network_id),
+        if self.enable_traffic_shaping:
+            tasks[f"traffic_shaping_{network_id}"] = asyncio.create_task(
+                self.client.run_with_semaphore(
+                    self.client.appliance.get_traffic_shaping(network_id),
+                )
             )
-        )
         if self.enable_vpn_management:
             tasks[f"vpn_status_{network_id}"] = asyncio.create_task(
                 self.client.run_with_semaphore(
