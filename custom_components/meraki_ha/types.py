@@ -47,6 +47,8 @@ class MerakiDevice:
     door_open: bool | None = None
     water_present: bool | None = None
     button_press: dict[str, Any] | None = None
+    frequency: float | None = None
+    energy: float | None = None
 
     def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary."""

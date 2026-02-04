@@ -66,8 +66,28 @@ def parse_sensor_data(
                     device.real_power = power_data.get("realPower") or power_data.get(
                         "draw"
                     )
-                elif metric == "power_factor":
-                    device.power_factor = reading.get("power_factor", {}).get("factor")
+                elif metric in ("power_factor", "powerFactor"):
+                    pf_data = reading.get("power_factor") or reading.get("powerFactor")
+                    if isinstance(pf_data, dict):
+                        device.power_factor = pf_data.get("factor") or pf_data.get(
+                            "percentage"
+                        )
+                elif metric == "frequency":
+                    freq_data = reading.get("frequency")
+                    if isinstance(freq_data, dict):
+                        device.frequency = freq_data.get("level")
+                    elif isinstance(freq_data, (int, float)):
+                        device.frequency = freq_data
+                elif metric in ("energy", "energyUsage"):
+                    energy_data = reading.get("energy") or reading.get("energyUsage")
+                    if isinstance(energy_data, dict):
+                        device.energy = (
+                            energy_data.get("energyUsage")
+                            or energy_data.get("draw")
+                            or energy_data.get("apparentPower")
+                        )
+                    elif isinstance(energy_data, (int, float)):
+                        device.energy = energy_data
                 elif metric == "current":
                     device.current = reading.get("current", {}).get("draw")
                 elif metric == "voltage":
