@@ -1,3 +1,6 @@
+import pytest
+from unittest.mock import AsyncMock, MagicMock, patch
+
 @pytest.mark.asyncio
 async def test_get_all_data_includes_switch_ports(data_fetch_manager, mock_client):
     """Test that get_all_data returns switch ports statuses."""
