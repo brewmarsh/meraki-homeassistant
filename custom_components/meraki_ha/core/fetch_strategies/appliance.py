@@ -124,7 +124,10 @@ class ApplianceFetchStrategy(BaseFetchStrategy):
                 "error": "disabled",
                 "reason": str(data),
             }
-        elif isinstance(data, MerakiInformationalError) and "traffic analysis" in str(data).lower():
+        elif (
+            isinstance(data, MerakiInformationalError)
+            and "traffic analysis" in str(data).lower()
+        ):
             self._disabled_features.add(key)
             appliance_traffic[network_id] = {
                 "error": "disabled",

@@ -1,11 +1,13 @@
 """Tests for the Data Fetch Manager."""
 
-import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
+
+import pytest
 
 from custom_components.meraki_ha.core.coordinator_helpers.data_fetcher import (
     DataFetchManager,
 )
+
 
 @pytest.fixture
 def mock_client():
@@ -56,7 +58,8 @@ async def test_get_all_data_includes_switch_ports(data_fetch_manager, mock_clien
         # Act
         result = await data_fetch_manager.get_all_data()
 
-    # Assert - Verifying that the strategy correctly injected data into the device object
+    # Assert - Verifying that the strategy correctly injected data
+    # into the device object
     assert result["devices"][0].ports_statuses == [
         {"portId": "1", "status": "Connected"}
     ]
