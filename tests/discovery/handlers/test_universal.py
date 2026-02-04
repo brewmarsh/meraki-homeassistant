@@ -136,7 +136,7 @@ async def test_universal_handler_mx_capabilities(
         mock_network_control_service,
     )
 
-entities = await handler.discover_entities()
+    entities = await handler.discover_entities()
 
     assert any(isinstance(e, MerakiRebootButton) for e in entities)
     assert any(isinstance(e, MerakiDeviceStatusSensor) for e in entities)
