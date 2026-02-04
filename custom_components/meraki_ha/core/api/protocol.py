@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Awaitable, Callable, Protocol
+from collections.abc import Awaitable, Callable
+from typing import TYPE_CHECKING, Any, Protocol
 
 import meraki
 

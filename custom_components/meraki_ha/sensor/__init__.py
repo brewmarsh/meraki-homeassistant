@@ -7,7 +7,8 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from ..const import CONF_ENABLE_ORG_SENSORS, DOMAIN
+from ..const import DOMAIN
+from ..const_conf import CONF_ENABLE_ORG_SENSORS
 
 _LOGGER = logging.getLogger(__name__)
 

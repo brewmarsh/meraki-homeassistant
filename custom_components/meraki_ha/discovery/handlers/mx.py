@@ -9,7 +9,8 @@ from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers import entity_registry as er
 
 from ...button.reboot import MerakiRebootButton
-from ...const import CONF_ENABLE_DEVICE_STATUS, CONF_ENABLE_PORT_SENSORS, DOMAIN
+from ...const import DOMAIN
+from ...const_conf import CONF_ENABLE_DEVICE_STATUS, CONF_ENABLE_PORT_SENSORS
 from ...sensor.device.appliance_port import MerakiAppliancePortSensor
 from ...sensor.device.appliance_uplink import MerakiApplianceUplinkSensor
 from ...sensor.device.device_status import MerakiDeviceStatusSensor

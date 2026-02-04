@@ -10,7 +10,8 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
-from .const import (
+from .const import DOMAIN
+from .const_conf import (
     CONF_ENABLE_FIREWALL_RULES,
     CONF_ENABLE_TRAFFIC_SHAPING,
     CONF_ENABLE_VPN_MANAGEMENT,
@@ -23,7 +24,6 @@ from .const import (
     DEFAULT_ENABLE_VPN_MANAGEMENT,
     DEFAULT_IGNORED_NETWORKS,
     DEFAULT_SCAN_INTERVAL,
-    DOMAIN,
 )
 from .core.api.client import MerakiAPIClient as ApiClient
 from .core.coordinator_helpers.data_fetcher import DataFetchManager

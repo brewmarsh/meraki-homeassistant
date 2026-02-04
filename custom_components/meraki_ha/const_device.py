@@ -4,17 +4,14 @@ from __future__ import annotations
 
 from typing import Final
 
-# Sensor types (examples, expand as needed)
-SENSOR_CLIENT_COUNT: Final = "client_count"
-"""Sensor type for client count."""
-SENSOR_SIGNAL_STRENGTH: Final = "signal_strength"
-"""Sensor type for signal strength."""
-SENSOR_DATA_USAGE: Final = "data_usage"
-"""Sensor type for data usage."""
-SENSOR_SSID_AVAILABILITY: Final = "ssid_availability"
-"""Sensor type for SSID availability."""
-SENSOR_SSID_CHANNEL: Final = "ssid_channel"
-"""Sensor type for SSID channel."""
+# Re-export for backward compatibility
+from .const_sensor import (  # noqa: F401
+    SENSOR_CLIENT_COUNT,
+    SENSOR_DATA_USAGE,
+    SENSOR_SIGNAL_STRENGTH,
+    SENSOR_SSID_AVAILABILITY,
+    SENSOR_SSID_CHANNEL,
+)
 
 # Device Attributes (examples, expand as needed)
 ATTR_CONNECTED_CLIENTS: Final = "connected_clients"

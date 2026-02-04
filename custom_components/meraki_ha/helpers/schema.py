@@ -7,7 +7,7 @@ from typing import Any
 import voluptuous as vol
 from homeassistant.helpers import selector
 
-from custom_components.meraki_ha.const import CONF_IGNORED_NETWORKS
+from custom_components.meraki_ha.const_conf import CONF_IGNORED_NETWORKS
 
 
 def populate_schema_defaults(
