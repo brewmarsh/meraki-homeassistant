@@ -21,7 +21,9 @@ from ...const_conf import (
     CONF_ENABLE_DEVICE_SENSORS,
     CONF_ENABLE_DEVICE_STATUS,
     CONF_ENABLE_PORT_SENSORS,
+    CONF_RTSP_STREAM_ENABLED,
 )
+from ...core.const import DEFAULT_CAPS, DEVICE_CAPABILITIES
 from ...core.errors import MerakiInformationalError
 from ...descriptions import (
     MT_BATTERY_DESCRIPTION,
@@ -357,170 +359,204 @@ class CameraAnalyticsProvider:
         return entities
 
 
+class CameraStreamProvider:
+    """Provider for camera stream entities."""
+
+    @staticmethod
+    async def get_entities(
+        coordinator: MerakiDataUpdateCoordinator,
+        device: MerakiDevice,
+        config_entry: ConfigEntry,
+        **kwargs: Any,
+    ) -> list[Entity]:
+        """Get entities."""
+        camera_service: CameraService | None = kwargs.get("camera_service")
+        if not camera_service:
+            return []
+
+        # If configured, ensure the RTSP stream is enabled by default for cameras
+        if config_entry.options.get(CONF_RTSP_STREAM_ENABLED, False):
+            try:
+                _LOGGER.debug(
+                    "RTSP stream is defaulted to on, enabling for camera %s",
+                    device.serial,
+                )
+                await camera_service.async_set_rtsp_stream_enabled(device.serial, True)
+            except MerakiInformationalError as e:
+                _LOGGER.warning(
+                    "Could not enable RTSP stream for %s: %s", device.serial, e
+                )
+                coordinator.add_status_message(
+                    device.serial, f"Could not enable RTSP stream: {e}"
+                )
+
+        if not config_entry.options.get(CONF_ENABLE_CAMERA_ENTITIES, True):
+            return []
+
+        return [
+            MerakiCamera(
+                coordinator,
+                config_entry,
+                device,
+                camera_service,
+            ),
+            MerakiMotionSensor(
+                coordinator,
+                device,
+                camera_service,
+                config_entry,
+            ),
+            MerakiSnapshotButton(
+                coordinator,
+                device,
+                camera_service,
+                config_entry,
+            ),
+            MerakiRtspUrlSensor(
+                coordinator,
+                device,
+                config_entry,
+            ),
+            AnalyticsSwitch(coordinator, coordinator.api, device),
+        ]
+
+
 class UniversalHandler(BaseDeviceHandler):
     """Universal handler for all Meraki devices."""
+
+    # Mapping of capability strings to entity classes or provider classes
+    CAP_TO_ENTITY: dict[str, type | Any] = {
+        "temperature": MerakiTemperatureSensor,
+        "humidity": MerakiHumiditySensor,
+        "battery": MerakiBatterySensor,
+        "signal_strength": MerakiSignalStrengthSensor,
+        "co2": MerakiCO2Sensor,
+        "tvoc": MerakiTVOCSensor,
+        "pm25": MerakiPM25Sensor,
+        "noise": MerakiNoiseSensor,
+        "button_press": MerakiButtonPressSensor,
+        "water": MerakiWaterSensor,
+        "door": MerakiDoorSensor,
+        "power_monitor": MT40PowerMonitorProvider,
+        "remote_switch": MerakiMt40PowerOutlet,
+        "uplinks": UplinkProvider,
+        "appliance_ports": AppliancePortProvider,
+        "switch_ports": SwitchPortProvider,
+        "poe_usage": MerakiPoeUsageSensor,
+        "analytics": CameraAnalyticsProvider,
+        "reboot": MerakiRebootButton,
+        "status": MerakiDeviceStatusSensor,
+        "camera_stream": CameraStreamProvider,
+    }
+
+    # Mapping of capabilities to their configuration option toggle
+    CAP_TO_OPTION: dict[str, str] = {
+        "temperature": CONF_ENABLE_DEVICE_SENSORS,
+        "humidity": CONF_ENABLE_DEVICE_SENSORS,
+        "battery": CONF_ENABLE_DEVICE_SENSORS,
+        "signal_strength": CONF_ENABLE_DEVICE_SENSORS,
+        "co2": CONF_ENABLE_DEVICE_SENSORS,
+        "tvoc": CONF_ENABLE_DEVICE_SENSORS,
+        "pm25": CONF_ENABLE_DEVICE_SENSORS,
+        "noise": CONF_ENABLE_DEVICE_SENSORS,
+        "button_press": CONF_ENABLE_DEVICE_SENSORS,
+        "water": CONF_ENABLE_DEVICE_SENSORS,
+        "door": CONF_ENABLE_DEVICE_SENSORS,
+        "power_monitor": CONF_ENABLE_DEVICE_SENSORS,
+        "remote_switch": CONF_ENABLE_DEVICE_SENSORS,
+        "poe_usage": CONF_ENABLE_DEVICE_SENSORS,
+        "uplinks": CONF_ENABLE_PORT_SENSORS,
+        "appliance_ports": CONF_ENABLE_PORT_SENSORS,
+        "switch_ports": CONF_ENABLE_PORT_SENSORS,
+        "analytics": CONF_ENABLE_CAMERA_ENTITIES,
+        "camera_stream": CONF_ENABLE_CAMERA_ENTITIES,
+        "status": CONF_ENABLE_DEVICE_STATUS,
+    }
 
     def __init__(
         self,
         coordinator: MerakiDataUpdateCoordinator,
         device: MerakiDevice,
         config_entry: ConfigEntry,
-        capabilities: list[str],
         camera_service: CameraService,
         control_service: DeviceControlService,
         network_control_service: NetworkControlService,
+        capabilities: list[str] | None = None,
     ) -> None:
         """Initialize the UniversalHandler."""
         super().__init__(coordinator, device, config_entry)
-        self.capabilities = capabilities
+        self.capabilities = (
+            capabilities
+            if capabilities is not None
+            else DEVICE_CAPABILITIES.get(device.model, DEFAULT_CAPS)
+        )
         self._camera_service = camera_service
         self._control_service = control_service
         self._network_control_service = network_control_service
 
     async def discover_entities(self) -> AsyncIterator[Entity]:
         """Discover entities based on capabilities."""
-        # If configured, ensure the RTSP stream is enabled by default for cameras
-        if "camera_stream" in self.capabilities:
-            if self._config_entry.options.get("rtsp_stream_enabled", False):
-                try:
-                    _LOGGER.debug(
-                        "RTSP stream is defaulted to on, enabling for camera %s",
-                        self.device.serial,
-                    )
-                    await self._camera_service.async_set_rtsp_stream_enabled(
-                        self.device.serial, True
-                    )
-                except MerakiInformationalError as e:
-                    _LOGGER.warning(
-                        "Could not enable RTSP stream for %s: %s", self.device.serial, e
-                    )
-                    self._coordinator.add_status_message(
-                        self.device.serial, f"Could not enable RTSP stream: {e}"
-                    )
-
-        CAP_TO_ENTITY: dict[str, type | Any] = {
-            "temperature": MerakiTemperatureSensor,
-            "humidity": MerakiHumiditySensor,
-            "battery": MerakiBatterySensor,
-            "signal_strength": MerakiSignalStrengthSensor,
-            "co2": MerakiCO2Sensor,
-            "tvoc": MerakiTVOCSensor,
-            "pm25": MerakiPM25Sensor,
-            "noise": MerakiNoiseSensor,
-            "button_press": MerakiButtonPressSensor,
-            "water": MerakiWaterSensor,
-            "door": MerakiDoorSensor,
-            "power_monitor": MT40PowerMonitorProvider,
-            "remote_switch": MerakiMt40PowerOutlet,
-            "uplinks": UplinkProvider,
-            "appliance_ports": AppliancePortProvider,
-            "switch_ports": SwitchPortProvider,
-            "poe_usage": MerakiPoeUsageSensor,
-            "analytics": CameraAnalyticsProvider,
-            "reboot": MerakiRebootButton,
-            "status": MerakiDeviceStatusSensor,
-        }
-
-        # Special logic for MV camera stream/base entities
-        if "camera_stream" in self.capabilities:
-            if self._config_entry.options.get(CONF_ENABLE_CAMERA_ENTITIES, True):
-                # Always create the base camera entity
-                yield MerakiCamera(
-                    self._coordinator,
-                    self._config_entry,
-                    self.device,
-                    self._camera_service,
-                )
-                # Add extra camera entities
-                yield MerakiMotionSensor(
-                    self._coordinator,
-                    self.device,
-                    self._camera_service,
-                    self._config_entry,
-                )
-                yield MerakiSnapshotButton(
-                    self._coordinator,
-                    self.device,
-                    self._camera_service,
-                    self._config_entry,
-                )
-                yield MerakiRtspUrlSensor(
-                    self._coordinator,
-                    self.device,
-                    self._config_entry,
-                )
-                yield AnalyticsSwitch(
-                    self._coordinator, self._coordinator.api, self.device
-                )
-
         for cap in self.capabilities:
-            if cap == "camera_stream":
-                continue  # Handled above
+            # Check if this capability is disabled via options
+            option_key = self.CAP_TO_OPTION.get(cap)
+            if option_key and not self._config_entry.options.get(option_key, True):
+                continue
 
-            # Check for device sensors toggle (MT)
-            if cap in (
-                "temperature",
-                "humidity",
-                "battery",
-                "signal_strength",
-                "co2",
-                "tvoc",
-                "pm25",
-                "noise",
-                "button_press",
-                "water",
-                "door",
-                "power_monitor",
-                "remote_switch",
-            ):
-                if not self._config_entry.options.get(CONF_ENABLE_DEVICE_SENSORS, True):
-                    continue
-
-            provider = CAP_TO_ENTITY.get(cap)
+            provider = self.CAP_TO_ENTITY.get(cap)
             if not provider:
                 continue
 
-            # Check if it's a provider with get_entities
-            if hasattr(provider, "get_entities"):
-                res = provider.get_entities(
-                    self._coordinator,
-                    self.device,
-                    self._config_entry,
-                    camera_service=self._camera_service,
-                    control_service=self._control_service,
-                    network_control_service=self._network_control_service,
-                )
-                if hasattr(res, "__await__"):
-                    for entity in await res:
-                        yield entity
+            # Standardized instantiation logic
+            try:
+                if hasattr(provider, "get_entities"):
+                    # Provider class with get_entities (can be sync or async)
+                    res = provider.get_entities(
+                        self._coordinator,
+                        self.device,
+                        self._config_entry,
+                        camera_service=self._camera_service,
+                        control_service=self._control_service,
+                        network_control_service=self._network_control_service,
+                    )
+                    if hasattr(res, "__await__"):
+                        for entity in await res:
+                            yield entity
+                    else:
+                        for entity in res:
+                            yield entity
+
+                elif provider == MerakiRebootButton:
+                    yield provider(
+                        self._control_service, self.device, self._config_entry
+                    )
+                elif provider == MerakiMt40PowerOutlet:
+                    yield provider(
+                        self._coordinator,
+                        self.device,
+                        self._config_entry,
+                        self._coordinator.api,
+                    )
                 else:
-                    for entity in res:
-                        yield entity
-            # Check if it's RebootButton which takes specific args
-            elif provider == MerakiRebootButton:
-                yield provider(self._control_service, self.device, self._config_entry)
-            # Check if it's StatusSensor which takes specific args
-            elif provider == MerakiDeviceStatusSensor:
-                if self._config_entry.options.get(CONF_ENABLE_DEVICE_STATUS, True):
-                    yield provider(self._coordinator, self.device, self._config_entry)
-            # Check if it's MT40 remote switch
-            elif provider == MerakiMt40PowerOutlet:
-                yield provider(
-                    self._coordinator,
-                    self.device,
-                    self._config_entry,
-                    self._coordinator.api,
-                )
-            # Standard entity instantiation
-            else:
-                try:
-                    # Some take config_entry, some don't. Try with 3 first.
-                    yield provider(self._coordinator, self.device, self._config_entry)
-                except TypeError:
-                    # Fallback for entities that take only 2
+                    # Attempt instantiation with (coordinator, device, config_entry)
+                    # and fallback to (coordinator, device) if needed.
                     try:
-                        yield provider(self._coordinator, self.device)
-                    except Exception as e:
-                        _LOGGER.error(
-                            "Failed to instantiate entity for capability %s: %s", cap, e
-                        )
+                        yield provider(self._coordinator, self.device, self._config_entry)
+                    except TypeError:
+                        try:
+                            yield provider(self._coordinator, self.device)
+                        except Exception as e:
+                            _LOGGER.error(
+                                "Failed to instantiate entity class %s for capability %s: %s",
+                                provider.__name__,
+                                cap,
+                                e,
+                            )
+                            raise
+
+            except Exception as e:
+                _LOGGER.error(
+                    "Failed to instantiate entity for capability %s on %s: %s",
+                    cap,
+                    self.device.serial,
+                    e,
+                )

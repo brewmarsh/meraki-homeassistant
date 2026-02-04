@@ -119,8 +119,6 @@ async def test_discover_entities_delegates_to_handler(
             mock_coordinator_with_devices,
             mock_coordinator_with_devices.data["devices"][0],
             mock_config_entry,
-            # MR36 capabilities
-            ["ssids", "client_count", "radio_utilization", "reboot", "status"],
             mock_camera_service,
             mock_control_service,
             mock_network_control_service,
