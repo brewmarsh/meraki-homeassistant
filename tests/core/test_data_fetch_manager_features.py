@@ -9,7 +9,6 @@ import pytest
 from custom_components.meraki_ha.core.coordinator_helpers.data_fetcher import (
     DataFetchManager,
 )
-from custom_components.meraki_ha.types import MerakiNetwork
 
 
 @pytest.mark.asyncio
