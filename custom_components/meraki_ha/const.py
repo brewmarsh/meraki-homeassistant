@@ -1,6 +1,4 @@
-"""
-Constants for the Meraki Home Assistant integration.
-"""
+"""Constants for the Meraki Home Assistant integration."""
 
 from __future__ import annotations
 
@@ -8,6 +6,8 @@ from typing import Final
 
 DOMAIN: Final = "meraki_ha"
 MANUFACTURER: Final = "Cisco Meraki"
+WEBHOOK_ID_FORMAT: Final = "meraki_ha_{entry_id}"
+DATA_CLIENT: Final = "meraki_client"
 
 # Merged Constants - Adopting beta's explicit naming style
 WEBHOOK_ID_FORMAT: Final = "meraki_ha_{entry_id}"
@@ -33,8 +33,24 @@ DEVICE_CAPABILITIES: Final = {
     "MT10": ["temperature", "humidity", "battery", "signal_strength"],
     "MT11": ["temperature", "humidity", "battery", "signal_strength"],
     "MT12": ["temperature", "humidity", "battery", "signal_strength", "water"],
-    "MT14": ["pm25", "tvoc", "temperature", "humidity", "noise", "battery", "signal_strength"],
-    "MT15": ["co2", "tvoc", "pm25", "temperature", "humidity", "noise", "signal_strength"], # No Battery
+    "MT14": [
+        "pm25",
+        "tvoc",
+        "temperature",
+        "humidity",
+        "noise",
+        "battery",
+        "signal_strength",
+    ],
+    "MT15": [
+        "co2",
+        "tvoc",
+        "pm25",
+        "temperature",
+        "humidity",
+        "noise",
+        "signal_strength",
+    ],  # No Battery
     "MT20": ["temperature", "humidity", "battery", "signal_strength", "door"],
     "MT30": ["button_press", "battery", "signal_strength"],
     "MT40": ["power_monitor", "remote_switch", "signal_strength"],
