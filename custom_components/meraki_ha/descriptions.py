@@ -128,6 +128,14 @@ MT_BATTERY_DESCRIPTION = SensorEntityDescription(
     native_unit_of_measurement=PERCENTAGE,
 )
 
+MT_SIGNAL_STRENGTH_DESCRIPTION = SensorEntityDescription(
+    key="rssi",
+    name="Signal Strength",
+    device_class=SensorDeviceClass.SIGNAL_STRENGTH,
+    state_class=SensorStateClass.MEASUREMENT,
+    native_unit_of_measurement="dBm",
+)
+
 MT_BUTTON_DESCRIPTION = SensorEntityDescription(
     key="button",
     name="Last Button Press",

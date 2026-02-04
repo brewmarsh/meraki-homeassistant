@@ -19,6 +19,8 @@ _LOGGER = logging.getLogger(__name__)
 class MerakiVLANDHCPSwitch(MerakiVLANEntity, SwitchEntity):
     """Representation of a Meraki VLAN's DHCP handling switch."""
 
+    _attr_name = "DHCP"
+
     def __init__(
         self,
         coordinator: MerakiDataUpdateCoordinator,
@@ -36,7 +38,6 @@ class MerakiVLANDHCPSwitch(MerakiVLANEntity, SwitchEntity):
         self._attr_unique_id = get_vlan_entity_id(
             self._network_id, vlan_id, "dhcp_handling"
         )
-        self._attr_name = "DHCP"
         self._update_internal_state()
 
     def _update_internal_state(self) -> None:

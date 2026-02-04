@@ -8,7 +8,9 @@ from typing import Any
 from homeassistant.components.sensor import SensorEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import UnitOfDataRate
+from homeassistant.core import callback
 from homeassistant.helpers.entity import EntityCategory
+from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from ...coordinator import MerakiDataUpdateCoordinator
 from ...helpers.device_info_helpers import resolve_device_info
@@ -16,7 +18,7 @@ from ...helpers.device_info_helpers import resolve_device_info
 _LOGGER = logging.getLogger(__name__)
 
 
-class MerakiSSIDDetailSensor(SensorEntity):
+class MerakiSSIDDetailSensor(CoordinatorEntity, SensorEntity):
     """Base class for a Meraki SSID detail sensor."""
 
     _attr_has_entity_name = True
@@ -30,7 +32,7 @@ class MerakiSSIDDetailSensor(SensorEntity):
         rf_profile: dict[str, Any] | None,
     ) -> None:
         """Initialize the sensor."""
-        self.coordinator = coordinator
+        super().__init__(coordinator)
         self._config_entry = config_entry
         self._ssid_data = ssid_data
         self._rf_profile = rf_profile
@@ -39,6 +41,38 @@ class MerakiSSIDDetailSensor(SensorEntity):
             config_entry=self._config_entry,
             ssid_data=self._ssid_data,
         )
+        self._update_state()
+
+    @callback
+    def _handle_coordinator_update(self) -> None:
+        """Handle updated data from the coordinator."""
+        if not self.coordinator.data:
+            return
+
+        network_id = self._ssid_data.get("networkId")
+        ssid_number = self._ssid_data.get("number")
+
+        # Update SSID data
+        if "wireless_settings" in self.coordinator.data:
+            network_ssids = self.coordinator.data["wireless_settings"].get(network_id)
+            if network_ssids:
+                for ssid in network_ssids:
+                    if str(ssid.get("number")) == str(ssid_number):
+                        self._ssid_data = ssid
+                        break
+
+        # Update RF profile data
+        if "rf_profiles" in self.coordinator.data:
+            network_rf_profiles = self.coordinator.data["rf_profiles"].get(network_id)
+            if network_rf_profiles:
+                # Match same logic as discovery: take the first available profile
+                self._rf_profile = next(iter(network_rf_profiles), None)
+
+        self._update_state()
+        self.async_write_ha_state()
+
+    def _update_state(self) -> None:
+        """Update the sensor state from current data."""
 
 
 class MerakiSSIDWalledGardenSensor(MerakiSSIDDetailSensor):
@@ -54,11 +88,14 @@ class MerakiSSIDWalledGardenSensor(MerakiSSIDDetailSensor):
         rf_profile: dict[str, Any] | None,
     ) -> None:
         """Initialize the sensor."""
-        super().__init__(coordinator, config_entry, ssid_data, rf_profile)
         self._attr_unique_id = (
-            f"{self._ssid_data['networkId']}_{self._ssid_data['number']}_walled_garden"
+            f"{ssid_data['networkId']}_{ssid_data['number']}_walled_garden"
         )
-        self._attr_name = "Walled Garden"
+        self._attr_name = "Walled garden"
+        super().__init__(coordinator, config_entry, ssid_data, rf_profile)
+
+    def _update_state(self) -> None:
+        """Update the sensor state from current data."""
         self._attr_native_value = (
             "enabled" if self._ssid_data.get("walledGardenEnabled") else "disabled"
         )
@@ -81,11 +118,14 @@ class MerakiSSIDTotalUploadLimitSensor(MerakiSSIDDetailSensor):
         rf_profile: dict[str, Any] | None,
     ) -> None:
         """Initialize the sensor."""
-        super().__init__(coordinator, config_entry, ssid_data, rf_profile)
         self._attr_unique_id = (
-            f"{self._ssid_data['networkId']}_{self._ssid_data['number']}_upload_limit"
+            f"{ssid_data['networkId']}_{ssid_data['number']}_upload_limit"
         )
-        self._attr_name = "Total Upload Limit"
+        self._attr_name = "Total upload limit"
+        super().__init__(coordinator, config_entry, ssid_data, rf_profile)
+
+    def _update_state(self) -> None:
+        """Update the sensor state from current data."""
         self._attr_native_value = self._ssid_data.get("perSsidBandwidthLimitUp")
 
 
@@ -103,11 +143,14 @@ class MerakiSSIDTotalDownloadLimitSensor(MerakiSSIDDetailSensor):
         rf_profile: dict[str, Any] | None,
     ) -> None:
         """Initialize the sensor."""
-        super().__init__(coordinator, config_entry, ssid_data, rf_profile)
         self._attr_unique_id = (
-            f"{self._ssid_data['networkId']}_{self._ssid_data['number']}_download_limit"
+            f"{ssid_data['networkId']}_{ssid_data['number']}_download_limit"
         )
-        self._attr_name = "Total Download Limit"
+        self._attr_name = "Total download limit"
+        super().__init__(coordinator, config_entry, ssid_data, rf_profile)
+
+    def _update_state(self) -> None:
+        """Update the sensor state from current data."""
         self._attr_native_value = self._ssid_data.get("perSsidBandwidthLimitDown")
 
 
@@ -124,11 +167,14 @@ class MerakiSSIDMandatoryDhcpSensor(MerakiSSIDDetailSensor):
         rf_profile: dict[str, Any] | None,
     ) -> None:
         """Initialize the sensor."""
-        super().__init__(coordinator, config_entry, ssid_data, rf_profile)
         self._attr_unique_id = (
-            f"{self._ssid_data['networkId']}_{self._ssid_data['number']}_mandatory_dhcp"
+            f"{ssid_data['networkId']}_{ssid_data['number']}_mandatory_dhcp"
         )
         self._attr_name = "Mandatory DHCP"
+        super().__init__(coordinator, config_entry, ssid_data, rf_profile)
+
+    def _update_state(self) -> None:
+        """Update the sensor state from current data."""
         self._attr_native_value = (
             "enabled" if self._ssid_data.get("mandatoryDhcpEnabled") else "disabled"
         )
@@ -148,11 +194,14 @@ class MerakiSSIDMinBitrate24GhzSensor(MerakiSSIDDetailSensor):
         rf_profile: dict[str, Any] | None,
     ) -> None:
         """Initialize the sensor."""
-        super().__init__(coordinator, config_entry, ssid_data, rf_profile)
         self._attr_unique_id = (
-            f"{self._ssid_data['networkId']}_{self._ssid_data['number']}_min_bitrate_24"
+            f"{ssid_data['networkId']}_{ssid_data['number']}_min_bitrate_24"
         )
-        self._attr_name = "Minimum Bitrate 2.4GHz"
+        self._attr_name = "Minimum bitrate 2.4GHz"
+        super().__init__(coordinator, config_entry, ssid_data, rf_profile)
+
+    def _update_state(self) -> None:
+        """Update the sensor state from current data."""
         if self._rf_profile and self._rf_profile.get("twoFourGhzSettings"):
             self._attr_native_value = self._rf_profile["twoFourGhzSettings"].get(
                 "minBitrate"
@@ -175,11 +224,14 @@ class MerakiSSIDMinBitrate5GhzSensor(MerakiSSIDDetailSensor):
         rf_profile: dict[str, Any] | None,
     ) -> None:
         """Initialize the sensor."""
-        super().__init__(coordinator, config_entry, ssid_data, rf_profile)
         self._attr_unique_id = (
-            f"{self._ssid_data['networkId']}_{self._ssid_data['number']}_min_bitrate_5"
+            f"{ssid_data['networkId']}_{ssid_data['number']}_min_bitrate_5"
         )
-        self._attr_name = "Minimum Bitrate 5GHz"
+        self._attr_name = "Minimum bitrate 5GHz"
+        super().__init__(coordinator, config_entry, ssid_data, rf_profile)
+
+    def _update_state(self) -> None:
+        """Update the sensor state from current data."""
         if self._rf_profile and self._rf_profile.get("fiveGhzSettings"):
             self._attr_native_value = self._rf_profile["fiveGhzSettings"].get(
                 "minBitrate"

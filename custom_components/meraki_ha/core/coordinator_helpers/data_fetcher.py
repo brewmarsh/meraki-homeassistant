@@ -104,7 +104,6 @@ class DataFetchManager:
             self.wireless_strategy.build_network_tasks(network_id, product_types, tasks)
 
         if "appliance" in product_types:
-            # We use the strategy from Beta to keep DataFetchManager thin
             self.appliance_strategy.build_network_tasks(network_id, tasks)
 
     def _build_device_detail_tasks(
@@ -212,11 +211,27 @@ class DataFetchManager:
 
         initial_results = await self._async_fetch_initial_data()
 
+        # Handle Networks with Error Logging and Type Safety
         networks_res = initial_results.get("networks", [])
-        networks_list = [MerakiNetwork.from_dict(n) for n in networks_res] if not isinstance(networks_res, Exception) else []
+        if isinstance(networks_res, Exception):
+            _LOGGER.error("Could not fetch networks: %s", networks_res)
+            networks_list = []
+        else:
+            networks_list = [
+                MerakiNetwork.from_dict(n) if isinstance(n, dict) else n
+                for n in networks_res
+            ]
 
+        # Handle Devices with Error Logging and Type Safety
         devices_res = initial_results.get("devices", [])
-        devices_list = [MerakiDevice.from_dict(d) for d in (devices_res if isinstance(devices_res, list) else [])]
+        if isinstance(devices_res, Exception):
+            _LOGGER.error("Could not fetch devices: %s", devices_res)
+            devices_list = []
+        else:
+            devices_list = [
+                MerakiDevice.from_dict(d) if isinstance(d, dict) else d
+                for d in devices_res
+            ]
 
         appliance_uplink_statuses = initial_results.get("appliance_uplink_statuses")
         parse_appliance_data(devices_list, appliance_uplink_statuses)
@@ -232,24 +247,35 @@ class DataFetchManager:
         detail_data_results = await asyncio.gather(*detail_tasks.values(), return_exceptions=True)
         detail_data_dict = dict(zip(detail_tasks.keys(), detail_data_results, strict=True))
 
-        processed_detailed_data = self._process_detailed_data(
-            detail_data_dict, networks_list, devices_list, previous_data
-        )
-
         network_clients, device_clients = await asyncio.gather(
             self.client_fetcher.async_fetch_network_clients(networks_list),
             self.client_fetcher.async_fetch_device_clients(devices_list),
             return_exceptions=True,
         )
 
+        # Inject clients into detail_data so strategies can use them
+        detail_data_dict["clients"] = (
+            network_clients if isinstance(network_clients, list) else []
+        )
+
+        processed_detailed_data = self._process_detailed_data(
+            detail_data_dict, networks_list, devices_list, previous_data
+        )
+
         organization_res = initial_results.get("organization", {})
-        org_name = organization_res.get("name", "Unknown Organization") if isinstance(organization_res, dict) else "Unknown Organization"
+        org_name = (
+            organization_res.get("name", "Unknown Organization")
+            if isinstance(organization_res, dict)
+            else "Unknown Organization"
+        )
 
         return {
             "org_name": org_name,
             "networks": networks_list,
             "devices": devices_list,
             "clients": network_clients if isinstance(network_clients, list) else [],
-            "clients_by_serial": device_clients if isinstance(device_clients, dict) else {},
+            "clients_by_serial": (
+                device_clients if isinstance(device_clients, dict) else {}
+            ),
             **processed_detailed_data,
         }
