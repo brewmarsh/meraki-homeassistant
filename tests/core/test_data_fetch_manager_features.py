@@ -40,17 +40,6 @@ async def test_appliance_features_fetching_behavior() -> None:
     )
     mock_client.network.get_network_traffic = AsyncMock(return_value=[])
 
-    # Mock Network
-    MerakiNetwork(
-        id="net1",
-        organization_id="org1",
-        product_types=["appliance"],
-        name="Test Network",
-        time_zone="UTC",
-        tags=[],
-        notes=None,
-    )
-
     # Case 1: Disabled (Default)
     manager_disabled = DataFetchManager(
         client=mock_client,
