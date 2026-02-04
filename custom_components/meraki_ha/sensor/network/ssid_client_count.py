@@ -41,7 +41,9 @@ class MerakiSSIDClientCountSensor(MerakiSSIDBaseSensor):
             # Fallback to manual calculation if clientCount not in ssid_data
             all_clients = self.coordinator.data.get("clients", [])
             ssid_name = (
-                ssid_data.get("name") if ssid_data else self._ssid_data_at_init.get("name")
+                ssid_data.get("name")
+                if ssid_data
+                else self._ssid_data_at_init.get("name")
             )
             if not ssid_name:
                 self._attr_native_value = 0

@@ -184,7 +184,8 @@ async def test_async_setup_mt15_sensors(
         object.__setattr__(entity, "async_write_ha_state", MagicMock())
         cast(CoordinatorEntity, entity)._handle_coordinator_update()
 
-    # MT15 has CO2, TVOC, PM2.5, Temperature, Humidity, Noise, Signal Strength. (7 sensors)
+    # MT15 has CO2, TVOC, PM2.5, Temperature, Humidity, Noise, Signal Strength.
+    # (7 sensors)
     assert len(entities) == 7
 
     sensors_by_key: dict[str, Any] = {
@@ -272,7 +273,8 @@ async def test_async_setup_mt12_sensors(
         object.__setattr__(entity, "async_write_ha_state", MagicMock())
         cast(CoordinatorEntity, entity)._handle_coordinator_update()
 
-    # MT12 has Temperature, Humidity, Battery, Signal Strength (Sensors) + Water (Binary Sensor) = 5 total
+    # MT12 has Temperature, Humidity, Battery, Signal Strength (Sensors) + Water
+    # (Binary Sensor) = 5 total
     assert len(entities) == 5
 
     sensors_by_key: dict[str, Any] = {
