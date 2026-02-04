@@ -2,9 +2,10 @@
 
 import asyncio
 from typing import Any
-from unittest.mock import MagicMock, AsyncMock
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
+
 from custom_components.meraki_ha.core.coordinator_helpers.data_fetcher import (
     DataFetchManager,
 )
@@ -34,11 +35,13 @@ async def test_appliance_features_fetching_behavior() -> None:
     mock_client.appliance.get_network_vlans = AsyncMock(return_value=[])
     mock_client.appliance.get_vpn_status = AsyncMock(return_value={})
     mock_client.appliance.get_appliance_ports = AsyncMock(return_value=[])
-    mock_client.appliance.get_network_appliance_content_filtering = AsyncMock(return_value={})
+    mock_client.appliance.get_network_appliance_content_filtering = AsyncMock(
+        return_value={}
+    )
     mock_client.network.get_network_traffic = AsyncMock(return_value=[])
 
     # Mock Network
-    network = MerakiNetwork(
+    MerakiNetwork(
         id="net1",
         organization_id="org1",
         product_types=["appliance"],
