@@ -18,7 +18,7 @@ from ...core.errors import (
 )
 from ...core.parsers.appliance import parse_appliance_data
 from ...core.parsers.sensors import parse_sensor_data
-from ...types import MerakiDevice, MerakiNetwork
+from ...types import MerakiAppliancePort, MerakiDevice, MerakiNetwork
 from .client_fetcher import ClientFetcher
 
 if TYPE_CHECKING:
@@ -366,7 +366,11 @@ class DataFetchManager:
         """Process appliance details."""
         if ports := detail_data.get(f"appliance_ports_{device.network_id}"):
             if isinstance(ports, list):
-                device.appliance_ports = ports
+                device.appliance_ports = [
+                    MerakiAppliancePort.from_dict(p)
+                    for p in ports
+                    if isinstance(p, dict)
+                ]
         elif prev_device and "appliance_ports" in prev_device:
             device.appliance_ports = prev_device["appliance_ports"]
 

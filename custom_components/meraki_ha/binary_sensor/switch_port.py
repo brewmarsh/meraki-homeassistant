@@ -1,5 +1,7 @@
 """Binary sensor for Meraki switch port status."""
 
+from __future__ import annotations
+
 import logging
 from typing import TYPE_CHECKING, Any
 
@@ -15,7 +17,7 @@ from ..coordinator import MerakiDataUpdateCoordinator
 from ..helpers.device_info_helpers import resolve_device_info
 
 if TYPE_CHECKING:
-    from ..types import MerakiDevice
+    from ..types import MerakiAppliancePort, MerakiDevice
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -32,13 +34,17 @@ class SwitchPortSensor(CoordinatorEntity, BinarySensorEntity):
     def __init__(
         self,
         coordinator: MerakiDataUpdateCoordinator,
-        device: "MerakiDevice",
-        port: dict[str, Any],
+        device: MerakiDevice,
+        port: dict[str, Any] | MerakiAppliancePort,
     ) -> None:
         """Initialize the sensor."""
         super().__init__(coordinator)
         self._device = device
-        self._port = port
+        if hasattr(port, "to_dict"):
+            self._port = port.to_dict()
+        else:
+            self._port = port
+
         # MX appliances use 'number', MS switches use 'portId'
         port_id = self._port.get("portId") or self._port.get("number")
         self._attr_unique_id = f"{device.serial}_{port_id}"
