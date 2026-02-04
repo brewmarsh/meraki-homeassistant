@@ -102,7 +102,6 @@ class SensorEndpoints:
             "current",
             "door",
             "downstreamPower",
-            "energyUsage",
             "frequency",
             "humidity",
             "noise",
