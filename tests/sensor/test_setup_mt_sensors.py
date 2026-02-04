@@ -132,7 +132,8 @@ async def test_async_setup_mt10_sensors(
         object.__setattr__(entity, "async_write_ha_state", MagicMock())
         cast(CoordinatorEntity, entity)._handle_coordinator_update()
 
-    assert len(entities) == 3
+    # MT10 has Temperature, Humidity, Battery, Signal Strength (4 sensors)
+    assert len(entities) == 4
 
     sensors_by_key: dict[str, Any] = {
         entity.entity_description.key: entity
@@ -183,7 +184,8 @@ async def test_async_setup_mt15_sensors(
         object.__setattr__(entity, "async_write_ha_state", MagicMock())
         cast(CoordinatorEntity, entity)._handle_coordinator_update()
 
-    assert len(entities) == 6
+    # MT15 has CO2, TVOC, PM2.5, Temperature, Humidity, Noise, Signal Strength. (7 sensors)
+    assert len(entities) == 7
 
     sensors_by_key: dict[str, Any] = {
         entity.entity_description.key: entity
@@ -270,7 +272,8 @@ async def test_async_setup_mt12_sensors(
         object.__setattr__(entity, "async_write_ha_state", MagicMock())
         cast(CoordinatorEntity, entity)._handle_coordinator_update()
 
-    assert len(entities) == 3
+    # MT12 has Temperature, Humidity, Battery, Signal Strength (Sensors) + Water (Binary Sensor) = 5 total
+    assert len(entities) == 5
 
     sensors_by_key: dict[str, Any] = {
         entity.entity_description.key: entity
@@ -311,12 +314,16 @@ async def test_async_setup_mt40_sensors(
         object.__setattr__(entity, "async_write_ha_state", MagicMock())
         cast(CoordinatorEntity, entity)._handle_coordinator_update()
 
-    assert len(entities) == 6
+    # MT40 has 6 Power sensors + 1 Outlet switch + 1 Signal Strength = 8 entities
+    assert len(entities) == 8
 
-    sensors_by_key: dict[str, Any] = {
-        entity.entity_description.key: entity
-        for entity in entities  # type: ignore
-    }
+    sensors_by_key: dict[str, Any] = {}
+    for entity in entities:
+        if hasattr(entity, "entity_description"):
+            sensors_by_key[entity.entity_description.key] = entity
+        else:
+            # For the outlet switch
+            sensors_by_key["outlet"] = entity
 
     # Verify Power Sensor
     power_sensor = sensors_by_key.get("realPower")

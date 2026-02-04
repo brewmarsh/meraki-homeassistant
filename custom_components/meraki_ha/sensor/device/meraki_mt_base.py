@@ -99,6 +99,7 @@ class MerakiMtSensor(CoordinatorEntity, RestoreSensor):
                         "tvoc": "concentration",
                         "co2": "concentration",
                         "pm25": "concentration",
+                        "rssi": "level",
                         "water": "present",
                         "button": "pressType",
                         # MT40 Power Monitoring
