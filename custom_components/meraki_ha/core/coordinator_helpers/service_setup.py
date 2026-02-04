@@ -6,7 +6,7 @@ import logging
 from typing import TYPE_CHECKING
 
 import voluptuous as vol
-from homeassistant.core import HomeAssistant
+from homeassistant.core import HomeAssistant, ServiceCall
 from homeassistant.helpers import config_validation as cv
 
 from custom_components.meraki_ha.const import DOMAIN
@@ -50,19 +50,19 @@ async def async_setup_services(
 ) -> None:
     """Set up the services for the Meraki integration."""
 
-    async def _async_reboot_device(call) -> None:
+    async def _async_reboot_device(call: ServiceCall) -> None:
         """Reboot a device."""
         if device_control_service:
             await device_control_service.async_reboot(call.data["serial"])
 
-    async def _async_cycle_port(call) -> None:
+    async def _async_cycle_port(call: ServiceCall) -> None:
         """Cycle a switch port."""
         if switch_port_service:
             await switch_port_service.async_cycle_ports(
                 call.data["serial"], [call.data["port_id"]]
             )
 
-    async def _async_generate_snapshot(call) -> None:
+    async def _async_generate_snapshot(call: ServiceCall) -> None:
         """Generate a camera snapshot."""
         if camera_service and (serial := call.data.get("serial")):
             await camera_service.generate_snapshot(serial)
