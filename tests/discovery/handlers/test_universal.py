@@ -1,11 +1,16 @@
 """Tests for the UniversalHandler."""
 
 from unittest.mock import AsyncMock, MagicMock
+
 import pytest
-from custom_components.meraki_ha.discovery.handlers.universal import UniversalHandler
-from custom_components.meraki_ha.core.models.device import MerakiDevice
+
 from custom_components.meraki_ha.button.reboot import MerakiRebootButton
-from custom_components.meraki_ha.sensor.device.device_status import MerakiDeviceStatusSensor
+from custom_components.meraki_ha.core.models.device import MerakiDevice
+from custom_components.meraki_ha.discovery.handlers.universal import UniversalHandler
+from custom_components.meraki_ha.sensor.device.device_status import (
+    MerakiDeviceStatusSensor,
+)
+
 
 @pytest.fixture
 def mock_coordinator():
