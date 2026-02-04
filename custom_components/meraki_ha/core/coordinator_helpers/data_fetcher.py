@@ -1,7 +1,8 @@
 """
 Data Fetch Manager for Meraki Data Update Coordinator.
 
-This module contains the logic for fetching and processing data from the Meraki API.
+This module manages high-concurrency data retrieval using the Strategy pattern
+and batching to prevent semaphore deadlocks.
 """
 
 from __future__ import annotations
@@ -10,7 +11,6 @@ import asyncio
 import logging
 from typing import TYPE_CHECKING, Any, cast
 
-# Merged Imports
 from ...core.fetch_strategies.appliance import ApplianceFetchStrategy
 from ...core.fetch_strategies.camera import CameraFetchStrategy
 from ...core.fetch_strategies.switch import SwitchFetchStrategy
@@ -44,13 +44,10 @@ class DataFetchManager:
         self.enable_firewall_rules = enable_firewall_rules
         self.enable_traffic_shaping = enable_traffic_shaping
 
-        # Initialize helper classes
         self.client_fetcher = ClientFetcher(self.client)
-
-        # Set of disabled features to prevent repetitive API calls
         self._disabled_features = client._disabled_features
 
-        # Initialize strategies (Adopted from beta)
+        # Initialize strategies
         self.appliance_strategy = ApplianceFetchStrategy(
             client,
             self._disabled_features,
@@ -62,8 +59,32 @@ class DataFetchManager:
         self.switch_strategy = SwitchFetchStrategy(client, self._disabled_features)
         self.camera_strategy = CameraFetchStrategy(client, self._disabled_features)
 
+    async def _async_gather_with_timeout(
+        self, 
+        tasks: dict[str, Any], 
+        timeout: int = 25, 
+        label: str = "Tasks"
+    ) -> dict[str, Any]:
+        """Gather tasks with a hard timeout to prevent deadlocks."""
+        if not tasks:
+            return {}
+
+        _LOGGER.debug("Starting %s: %s items", label, len(tasks))
+        
+        try:
+            results = await asyncio.wait_for(
+                asyncio.gather(*tasks.values(), return_exceptions=True),
+                timeout=timeout,
+            )
+            return dict(zip(tasks.keys(), results, strict=True))
+        except asyncio.TimeoutError:
+            _LOGGER.error("Timeout during %s. Potential semaphore deadlock.", label)
+            # Log specific keys to identify which strategy is hanging
+            _LOGGER.debug("Pending keys for %s: %s", label, list(tasks.keys()))
+            raise
+
     async def _async_fetch_initial_data(self) -> dict[str, Any]:
-        """Fetch the initial batch of data from the Meraki API."""
+        """Fetch the organization-wide data batch."""
         if not self.client.has_dashboard:
             await self.client.async_setup()
 
@@ -84,52 +105,35 @@ class DataFetchManager:
                 self.client.sensor.get_organization_sensor_readings_latest(),
             ),
         }
-        results = await asyncio.gather(*tasks.values(), return_exceptions=True)
-        data = dict(zip(tasks.keys(), results, strict=True))
-
-        return data
-
-    def _build_network_detail_tasks(
-        self,
-        network: MerakiNetwork,
-        tasks: dict[str, asyncio.Task[Any]],
-    ) -> None:
-        """Add detail tasks for a single network."""
-        if not network.id:
-            return
-        network_id = cast(str, network.id)
-        product_types = network.product_types
-
-        if "wireless" in product_types:
-            self.wireless_strategy.build_network_tasks(network_id, product_types, tasks)
-
-        if "appliance" in product_types:
-            self.appliance_strategy.build_network_tasks(network_id, tasks)
-
-    def _build_device_detail_tasks(
-        self,
-        device: MerakiDevice,
-        tasks: dict[str, asyncio.Task[Any]],
-    ) -> None:
-        """Add detail tasks for a single device."""
-        if device.product_type == "camera":
-            self.camera_strategy.build_device_tasks(device, tasks)
-        elif device.product_type == "switch":
-            self.switch_strategy.build_device_tasks(device, tasks)
-        elif device.product_type == "appliance":
-            self.appliance_strategy.build_device_tasks(device, tasks)
+        return await self._async_gather_with_timeout(tasks, label="Initial Batch")
 
     def _build_detail_tasks(
         self,
         networks: list[MerakiNetwork],
         devices: list[MerakiDevice],
-    ) -> dict[str, asyncio.Task[Any]]:
-        """Build a dictionary of tasks to fetch detailed data."""
-        detail_tasks: dict[str, asyncio.Task[Any]] = {}
+    ) -> dict[str, Any]:
+        """Orchestrate task building across all strategies."""
+        detail_tasks: dict[str, Any] = {}
+        
         for network in networks:
-            self._build_network_detail_tasks(network, detail_tasks)
+            if not network.id:
+                continue
+            net_id = cast(str, network.id)
+            p_types = network.product_types
+
+            if "wireless" in p_types:
+                self.wireless_strategy.build_network_tasks(net_id, p_types, detail_tasks)
+            if "appliance" in p_types:
+                self.appliance_strategy.build_network_tasks(net_id, detail_tasks)
+
         for device in devices:
-            self._build_device_detail_tasks(device, detail_tasks)
+            if device.product_type == "camera":
+                self.camera_strategy.build_device_tasks(device, detail_tasks)
+            elif device.product_type == "switch":
+                self.switch_strategy.build_device_tasks(device, detail_tasks)
+            elif device.product_type == "appliance":
+                self.appliance_strategy.build_device_tasks(device, detail_tasks)
+
         return detail_tasks
 
     def _process_detailed_data(
@@ -139,12 +143,9 @@ class DataFetchManager:
         devices: list[MerakiDevice],
         previous_data: dict[str, Any],
     ) -> dict[str, Any]:
-        """Process the detailed data using configured strategies."""
+        """Parse results back into the coordinator data structure."""
         processed_data = parse_network_data(
-            detail_data,
-            networks,
-            previous_data,
-            self._disabled_features,
+            detail_data, networks, previous_data, self._disabled_features
         )
         processed_data["ssids"] = []
         processed_data["wireless_settings"] = {}
@@ -153,143 +154,91 @@ class DataFetchManager:
             if not network.id:
                 continue
             network_id = cast(str, network.id)
-
+            
             self.wireless_strategy.process_network_data(
                 network_id, detail_data, previous_data, processed_data
             )
             self.appliance_strategy.process_network_traffic(
-                network_id,
-                detail_data,
-                previous_data,
-                processed_data["appliance_traffic"],
+                network_id, detail_data, previous_data, processed_data["appliance_traffic"]
             )
             self.appliance_strategy.process_network_vlans(
                 network_id, detail_data, previous_data, processed_data["vlans"]
             )
 
-        previous_devices_by_serial = {}
-        if previous_data and "devices" in previous_data:
-            for d in previous_data["devices"]:
-                if "serial" in d:
-                    previous_devices_by_serial[d["serial"]] = d
+        previous_devices_by_serial = {
+            d["serial"]: d for d in previous_data.get("devices", []) if "serial" in d
+        }
 
         for device in devices:
-            self._process_device_details(
-                device, detail_data, previous_devices_by_serial
-            )
+            prev = previous_devices_by_serial.get(device.serial) if device.serial else None
+            
+            if device.product_type == "camera":
+                self.camera_strategy.process_device_details(device, detail_data, prev)
+            elif device.product_type == "switch":
+                self.switch_strategy.process_device_details(device, detail_data, prev)
+            elif device.product_type == "appliance":
+                self.appliance_strategy.process_device_details(device, detail_data, prev)
 
         return processed_data
-
-    def _process_device_details(
-        self,
-        device: MerakiDevice,
-        detail_data: dict[str, Any],
-        previous_devices_by_serial: dict[str, Any],
-    ) -> None:
-        """Process details for a single device using strategies."""
-        prev_device = None
-        if device.serial:
-            prev_device = previous_devices_by_serial.get(device.serial)
-
-        if device.product_type == "camera":
-            self.camera_strategy.process_device_details(
-                device, detail_data, prev_device
-            )
-        elif device.product_type == "switch":
-            self.switch_strategy.process_device_details(
-                device, detail_data, prev_device
-            )
-        elif device.product_type == "appliance":
-            self.appliance_strategy.process_device_details(
-                device, detail_data, prev_device
-            )
 
     async def get_all_data(
         self,
         previous_data: dict[str, Any] | None = None,
         timespan: int | None = None,
     ) -> dict[str, Any]:
-        """Fetch all data from the Meraki API concurrently."""
-        if previous_data is None:
-            previous_data = {}
-
+        """Main entry point for the coordinator update cycle."""
+        previous_data = previous_data or {}
         _LOGGER.debug("Fetching fresh Meraki data from API")
 
-        if not self.client.has_dashboard:
-            await self.client.async_setup()
-
+        # 1. Organization-level baseline
         initial_results = await self._async_fetch_initial_data()
 
-        # Handle Networks with Error Logging and Type Safety
-        networks_res = initial_results.get("networks", [])
-        if isinstance(networks_res, Exception):
-            _LOGGER.error("Could not fetch networks: %s", networks_res)
-            networks_list = []
-        else:
-            networks_list = [
-                MerakiNetwork.from_dict(n) if isinstance(n, dict) else n
-                for n in networks_res
-            ]
+        # 2. Convert to Models
+        networks_list = [
+            MerakiNetwork.from_dict(n) for n in initial_results.get("networks", [])
+            if not isinstance(n, Exception)
+        ]
+        devices_list = [
+            MerakiDevice.from_dict(d) for d in initial_results.get("devices", [])
+            if isinstance(d, dict)
+        ]
 
-        # Handle Devices with Error Logging and Type Safety
-        devices_res = initial_results.get("devices", [])
-        if isinstance(devices_res, Exception):
-            _LOGGER.error("Could not fetch devices: %s", devices_res)
-            devices_list = []
-        else:
-            devices_list = [
-                MerakiDevice.from_dict(d) if isinstance(d, dict) else d
-                for d in devices_res
-            ]
+        # 3. Apply baseline parsers (Uplinks & Sensors)
+        parse_appliance_data(devices_list, initial_results.get("appliance_uplink_statuses"))
+        parse_sensor_data(devices_list, initial_results.get("sensor_readings", []), [])
 
-        appliance_uplink_statuses = initial_results.get("appliance_uplink_statuses")
-        parse_appliance_data(devices_list, appliance_uplink_statuses)
-
-        sensor_readings = initial_results.get("sensor_readings", [])
-        parse_sensor_data(
-            devices_list,
-            sensor_readings if isinstance(sensor_readings, list) else [],
-            [],
-        )
-
+        # 4. Fetch Details (Strategy + Timeout Protection)
         detail_tasks = self._build_detail_tasks(networks_list, devices_list)
-        _LOGGER.debug("Starting gather for %s detail tasks", len(detail_tasks))
-        detail_data_results = await asyncio.gather(
-            *detail_tasks.values(), return_exceptions=True
-        )
-        detail_data_dict = dict(
-            zip(detail_tasks.keys(), detail_data_results, strict=True)
+        detail_data_dict = await self._async_gather_with_timeout(
+            detail_tasks, label="Detailed Device Data"
         )
 
-        network_clients, device_clients = await asyncio.gather(
-            self.client_fetcher.async_fetch_network_clients(networks_list),
-            self.client_fetcher.async_fetch_device_clients(devices_list),
-            return_exceptions=True,
-        )
+        # 5. Fetch Clients (Network & Device level)
+        client_tasks = {
+            "network_clients": self.client_fetcher.async_fetch_network_clients(networks_list),
+            "device_clients": self.client_fetcher.async_fetch_device_clients(devices_list),
+        }
+        client_results = await self._async_gather_with_timeout(client_tasks, label="Client Data")
+        
+        network_clients = client_results.get("network_clients", [])
+        device_clients = client_results.get("device_clients", {})
 
-        # Inject clients into detail_data so strategies can use them
-        detail_data_dict["clients"] = (
-            network_clients if isinstance(network_clients, list) else []
-        )
+        # Inject clients for strategies that require them (e.g. Wireless)
+        detail_data_dict["clients"] = network_clients if isinstance(network_clients, list) else []
 
+        # 6. Final Processing
         processed_detailed_data = self._process_detailed_data(
             detail_data_dict, networks_list, devices_list, previous_data
         )
 
-        organization_res = initial_results.get("organization", {})
-        org_name = (
-            organization_res.get("name", "Unknown Organization")
-            if isinstance(organization_res, dict)
-            else "Unknown Organization"
-        )
+        org_data = initial_results.get("organization", {})
+        org_name = org_data.get("name", "Unknown Org") if isinstance(org_data, dict) else "Unknown Org"
 
         return {
             "org_name": org_name,
             "networks": networks_list,
             "devices": devices_list,
             "clients": network_clients if isinstance(network_clients, list) else [],
-            "clients_by_serial": (
-                device_clients if isinstance(device_clients, dict) else {}
-            ),
+            "clients_by_serial": device_clients if isinstance(device_clients, dict) else {},
             **processed_detailed_data,
         }
