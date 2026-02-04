@@ -82,16 +82,31 @@ jobs:
           HASS_TOKEN: ${{ secrets.HA_STAGING_TOKEN }}
         run: |
           echo "Scanning logs for Meraki errors via API..."
-          # Allow time for startup noise to settle
-          sleep 10
-          # 1. Fetch the log using the API (Requires the Bearer Token used in previous steps)
-          # Ensure HASS_SERVER and HASS_TOKEN are available in this step's 'env'
-          LOG_CONTENT=$(curl -s -f -H "Authorization: Bearer $HASS_TOKEN" "$HASS_SERVER/api/error_log")
-          # 2. Check if curl failed (e.g. 401 Unauthorized or Connection Refused)
-          if [ $? -ne 0 ]; then
-            echo "::error::Failed to retrieve logs from Home Assistant API."
-            exit 1
-          fi
+
+          # 1. Normalize HASS_SERVER (remove trailing slash)
+          CLEAN_SERVER=$(echo "${HASS_SERVER}" | sed 's:/*$::')
+
+          # 2. Retry loop (Wait up to 60s for API to be ready)
+          for i in {1..6}; do
+            echo "Fetching logs (Attempt $i/6)..."
+            LOG_CONTENT=$(curl -s -f -H "Authorization: Bearer ${HASS_TOKEN}" "$CLEAN_SERVER/api/error_log")
+            if [ $? -eq 0 ]; then
+              break
+            fi
+
+            if [ $i -eq 6 ]; then
+              echo "::error::API timeout or persistent failure after 60s."
+              # Diagnostic check for 401/404
+              HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" -H "Authorization: Bearer ${HASS_TOKEN}" "$CLEAN_SERVER/api/error_log")
+              echo "Home Assistant API returned status: $HTTP_STATUS"
+              if [ "$HTTP_STATUS" -ne 200 ]; then
+                 echo "::error::Received $HTTP_STATUS from API. Check token permissions and URL."
+              fi
+              exit 1
+            fi
+            sleep 10
+          done
+
           # 3. Grep the content
           if echo "$LOG_CONTENT" | grep -i "custom_components.meraki_ha"; then
             echo "::error::CRITICAL: Found Meraki errors in the log!"
