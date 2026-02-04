@@ -121,7 +121,10 @@ def _parse_traffic(
     key = f"traffic_{network_id}"
     data = detail_data.get(key)
     
-    if isinstance(data, MerakiInformationalError):
+    if isinstance(data, MerakiTrafficAnalysisError):
+        disabled_features.add(key)
+        appliance_traffic[network_id] = {"error": "disabled", "reason": str(data)}
+    elif isinstance(data, MerakiInformationalError):
         if "traffic analysis" in str(data).lower():
             if coordinator:
                 coordinator.add_network_status_message(
@@ -133,9 +136,6 @@ def _parse_traffic(
             "error": "disabled",
             "reason": str(data),
         }
-    elif isinstance(data, MerakiTrafficAnalysisError):
-        disabled_features.add(key)
-        appliance_traffic[network_id] = {"error": "disabled", "reason": str(data)}
     elif isinstance(data, dict):
         appliance_traffic[network_id] = data
     elif previous_data and key in previous_data:
@@ -154,8 +154,12 @@ def _parse_vlans(
     key = f"vlans_{network_id}"
     data = detail_data.get(key)
 
-    if isinstance(data, MerakiInformationalError):
+    if isinstance(data, (MerakiVlanError, MerakiVlansDisabledError)):
+        disabled_features.add(key)
+        vlan_by_network[network_id] = []
+    elif isinstance(data, MerakiInformationalError):
         if "vlans are not enabled" in str(data).lower():
+            disabled_features.add(key)
             if coordinator:
                 coordinator.add_network_status_message(
                     network_id,
@@ -163,9 +167,6 @@ def _parse_vlans(
                 )
                 coordinator.mark_vlan_check_done(network_id)
             vlan_by_network[network_id] = []
-    elif isinstance(data, (MerakiVlanError, MerakiVlansDisabledError)):
-        disabled_features.add(key)
-        vlan_by_network[network_id] = []
     elif isinstance(data, list):
         vlan_by_network[network_id] = [MerakiVlan.from_dict(v) for v in data]
     elif isinstance(data, dict):

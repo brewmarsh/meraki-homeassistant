@@ -105,7 +105,7 @@ async def test_get_all_data_orchestration(data_fetch_manager):
     data_fetch_manager._async_fetch_initial_data = AsyncMock(
         return_value={
             "networks": [MOCK_NETWORK_INIT],
-            "devices": [MOCK_DEVICE],
+            "devices": [MOCK_DEVICE_INIT],
         }
     )
     data_fetch_manager.client_fetcher.async_fetch_network_clients = AsyncMock(
@@ -230,11 +230,11 @@ async def test_build_detail_tasks_for_wireless_device(data_fetch_manager, mock_c
 async def test_get_all_data_includes_switch_ports(data_fetch_manager, mock_client):
     """Test that get_all_data returns switch ports statuses."""
     # Arrange
-    switch_device = MerakiDevice.from_dict({"serial": "Q123", "productType": "switch"})
+    switch_device_dict = {"serial": "Q123", "productType": "switch"}
     data_fetch_manager._async_fetch_initial_data = AsyncMock(
         return_value={
             "networks": [],
-            "devices": [switch_device],
+            "devices": [switch_device_dict],
         }
     )
     data_fetch_manager.client_fetcher.async_fetch_network_clients = AsyncMock(
@@ -261,10 +261,12 @@ async def test_get_all_data_includes_switch_ports(data_fetch_manager, mock_clien
         ),
     ):
         # Act
-        await data_fetch_manager.get_all_data()
+        result = await data_fetch_manager.get_all_data()
 
     # Assert
-    assert switch_device.ports_statuses == [{"portId": "1", "status": "Connected"}]
+    assert result["devices"][0].ports_statuses == [
+        {"portId": "1", "status": "Connected"}
+    ]
 
 
 @pytest.mark.asyncio

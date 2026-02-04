@@ -54,7 +54,7 @@ class ApplianceFetchStrategy(BaseFetchStrategy):
         if f"vlans_{network_id}" not in self.disabled_features:
             tasks[f"vlans_{network_id}"] = asyncio.create_task(
                 self.client.run_with_semaphore(
-                    self.client.appliance.get_network_vlans(network_id),
+                    self.client.get_vlan_data(network_id),
                 )
             )
 

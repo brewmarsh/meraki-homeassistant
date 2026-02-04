@@ -213,9 +213,13 @@ class DataFetchManager:
         initial_results = await self._async_fetch_initial_data()
 
         networks_res = initial_results.get("networks", [])
+        if isinstance(networks_res, Exception):
+            _LOGGER.error("Could not fetch networks: %s", networks_res)
         networks_list = [MerakiNetwork.from_dict(n) for n in networks_res] if not isinstance(networks_res, Exception) else []
 
         devices_res = initial_results.get("devices", [])
+        if isinstance(devices_res, Exception):
+            _LOGGER.error("Could not fetch devices: %s", devices_res)
         devices_list = [MerakiDevice.from_dict(d) for d in (devices_res if isinstance(devices_res, list) else [])]
 
         appliance_uplink_statuses = initial_results.get("appliance_uplink_statuses")
