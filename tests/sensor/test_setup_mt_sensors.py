@@ -183,7 +183,7 @@ async def test_async_setup_mt15_sensors(
         object.__setattr__(entity, "async_write_ha_state", MagicMock())
         cast(CoordinatorEntity, entity)._handle_coordinator_update()
 
-    assert len(entities) == 7
+    assert len(entities) == 6
 
     sensors_by_key: dict[str, Any] = {
         entity.entity_description.key: entity
