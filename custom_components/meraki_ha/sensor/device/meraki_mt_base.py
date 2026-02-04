@@ -119,6 +119,19 @@ class MerakiMtSensor(CoordinatorEntity, RestoreSensor):
                             self._attr_native_value = self._maybe_get_value(
                                 metric_data.get("draw")
                             )
+                        # Special case for energy fallback
+                        if key == "energy" and self._attr_native_value is None:
+                            self._attr_native_value = (
+                                self._maybe_get_value(metric_data.get("energyUsage"))
+                                or self._maybe_get_value(
+                                    metric_data.get("apparentPower")
+                                )
+                            )
+                        # Special case for power factor fallback
+                        if key == "powerFactor" and self._attr_native_value is None:
+                            self._attr_native_value = self._maybe_get_value(
+                                metric_data.get("factor")
+                            )
                         return
 
                     # Special case for noise (nested structure)
@@ -127,6 +140,23 @@ class MerakiMtSensor(CoordinatorEntity, RestoreSensor):
                             metric_data.get("ambient", {}).get("level")
                         )
                         return
+
+        # Fallback to device attributes if not found in readings
+        if self._attr_native_value is None:
+            if key == "frequency":
+                self._attr_native_value = self._maybe_get_value(self._device.frequency)
+            elif key == "powerFactor":
+                self._attr_native_value = self._maybe_get_value(
+                    self._device.power_factor
+                )
+            elif key == "energy":
+                self._attr_native_value = self._maybe_get_value(self._device.energy)
+            elif key == "realPower":
+                self._attr_native_value = self._maybe_get_value(self._device.real_power)
+            elif key == "voltage":
+                self._attr_native_value = self._maybe_get_value(self._device.voltage)
+            elif key == "current":
+                self._attr_native_value = self._maybe_get_value(self._device.current)
 
     @callback
     def _handle_coordinator_update(self) -> None:
