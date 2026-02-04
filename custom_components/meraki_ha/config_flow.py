@@ -19,9 +19,6 @@ except ImportError:
 
 from .const import DOMAIN
 from .const_conf import CONF_INTEGRATION_TITLE, CONF_MERAKI_API_KEY, CONF_MERAKI_ORG_ID
-from .core.errors import MerakiAuthenticationError, MerakiConnectionError
-from .helpers.schema import populate_schema_defaults
-from .schemas import CONFIG_SCHEMA, OPTIONS_SCHEMA
 
 if TYPE_CHECKING:
     from .coordinator import MerakiDataUpdateCoordinator
@@ -76,6 +73,9 @@ class MerakiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignor
             The flow result.
 
         """
+        from .core.errors import MerakiAuthenticationError, MerakiConnectionError
+        from .schemas import CONFIG_SCHEMA
+
         errors: dict[str, str] = {}
         if user_input is not None:
             from .authentication import validate_meraki_credentials
@@ -131,6 +131,8 @@ class MerakiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignor
             The flow result.
 
         """
+        from .schemas import OPTIONS_SCHEMA
+
         if user_input is not None:
             self.options.update(user_input)
             return self.async_create_entry(
@@ -181,6 +183,10 @@ class MerakiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignor
             The flow result.
 
         """
+        from .coordinator import MerakiDataUpdateCoordinator  # noqa: F401
+        from .helpers.schema import populate_schema_defaults
+        from .schemas import OPTIONS_SCHEMA
+
         entry = self.hass.config_entries.async_get_entry(self.context["entry_id"])
         if not entry:
             return self.async_abort(reason="unknown_entry")
@@ -190,7 +196,6 @@ class MerakiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignor
             self.hass.config_entries.async_update_entry(entry, options=new_options)
             await self.hass.config_entries.async_reload(entry.entry_id)
             return self.async_abort(reason="reconfigure_successful")
-
 
         coordinator: MerakiDataUpdateCoordinator = self.hass.data[DOMAIN][
             entry.entry_id
