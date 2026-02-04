@@ -27,13 +27,13 @@ class ApplianceFetchStrategy(BaseFetchStrategy):
     def __init__(
         self,
         client: MerakiAPIClient,
-        disabled_features: set[str],
+        _disabled_features: set[str],
         enable_vpn_management: bool,
         enable_firewall_rules: bool,
         enable_traffic_shaping: bool,
     ) -> None:
         """Initialize the appliance fetch strategy."""
-        super().__init__(client, disabled_features)
+        super().__init__(client, _disabled_features)
         self.enable_vpn_management = enable_vpn_management
         self.enable_firewall_rules = enable_firewall_rules
         self.enable_traffic_shaping = enable_traffic_shaping
@@ -44,14 +44,14 @@ class ApplianceFetchStrategy(BaseFetchStrategy):
         tasks: dict[str, asyncio.Task[Any]],
     ) -> None:
         """Add appliance specific network tasks."""
-        if f"traffic_{network_id}" not in self.disabled_features:
+        if f"traffic_{network_id}" not in self._disabled_features:
             tasks[f"traffic_{network_id}"] = asyncio.create_task(
                 self.client.run_with_semaphore(
                     self.client.network.get_network_traffic(network_id, "appliance"),
                 )
             )
 
-        if f"vlans_{network_id}" not in self.disabled_features:
+        if f"vlans_{network_id}" not in self._disabled_features:
             tasks[f"vlans_{network_id}"] = asyncio.create_task(
                 self.client.run_with_semaphore(
                     self.client.network.get_vlan_data(network_id),
@@ -115,11 +115,17 @@ class ApplianceFetchStrategy(BaseFetchStrategy):
         key = f"traffic_{network_id}"
         data = detail_data.get(key)
         if isinstance(data, MerakiTrafficAnalysisError):
-            self.disabled_features.add(key)
+            self._disabled_features.add(key)
             _LOGGER.info(
                 "Traffic analysis is not enabled for network %s.",
                 network_id,
             )
+            appliance_traffic[network_id] = {
+                "error": "disabled",
+                "reason": str(data),
+            }
+        elif isinstance(data, MerakiInformationalError) and "traffic analysis" in str(data).lower():
+            self._disabled_features.add(key)
             appliance_traffic[network_id] = {
                 "error": "disabled",
                 "reason": str(data),
@@ -140,13 +146,13 @@ class ApplianceFetchStrategy(BaseFetchStrategy):
         key = f"vlans_{network_id}"
         data = detail_data.get(key)
         if isinstance(data, (MerakiVlanError, MerakiVlansDisabledError)):
+            self._disabled_features.add(key)
             if isinstance(data, MerakiVlanError):
-                self.disabled_features.add(key)
                 _LOGGER.info(str(data))
             vlan_by_network[network_id] = []
         elif isinstance(data, MerakiInformationalError):
             if "vlans are not enabled" in str(data).lower():
-                self.disabled_features.add(key)
+                self._disabled_features.add(key)
                 vlan_by_network[network_id] = []
         elif isinstance(data, list):
             vlan_by_network[network_id] = data
