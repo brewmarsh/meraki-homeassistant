@@ -136,10 +136,11 @@ async def test_universal_handler_mx_capabilities(
         mock_network_control_service,
     )
 
-entities = await handler.discover_entities()
+    entities = await handler.discover_entities()
 
     assert any(isinstance(e, MerakiRebootButton) for e in entities)
     assert any(isinstance(e, MerakiDeviceStatusSensor) for e in entities)
-    # Uplinks are created via UplinkProvider, we can check for their existence if we mock uplink data
+    # Uplinks are created via UplinkProvider, we can check for their existence
+    # if we mock uplink data
     # For now just verify handler creation succeeded
     assert len(entities) >= 2
