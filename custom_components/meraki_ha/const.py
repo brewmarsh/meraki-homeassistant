@@ -8,10 +8,10 @@ from typing import Final
 
 DOMAIN: Final = "meraki_ha"
 MANUFACTURER: Final = "Cisco Meraki"
+
+# Merged Constants - Adopting beta's explicit naming style
 WEBHOOK_ID_FORMAT: Final = "meraki_ha_{entry_id}"
 DATA_CLIENT: Final = "meraki_client"
-
-# ... (Previous constants)
 
 # Shared Capability Definitions (The "DRY" Approach)
 _MX_CAPS = [
