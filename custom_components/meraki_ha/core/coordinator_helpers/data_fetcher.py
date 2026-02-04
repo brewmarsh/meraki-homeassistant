@@ -104,16 +104,7 @@ class DataFetchManager:
             self.wireless_strategy.build_network_tasks(network_id, product_types, tasks)
 
         if "appliance" in product_types:
-            # We use the strategy from Beta to keep DataFetchManager thin
-            self._build_appliance_network_tasks(network_id, tasks)
-
-    def _build_appliance_network_tasks(
-        self,
-        network_id: str,
-        tasks: dict[str, asyncio.Task[Any]],
-    ) -> None:
-        """Add appliance-specific tasks for a network."""
-        self.appliance_strategy.build_network_tasks(network_id, tasks)
+            self.appliance_strategy.build_network_tasks(network_id, tasks)
 
     def _build_device_detail_tasks(
         self,
@@ -220,6 +211,7 @@ class DataFetchManager:
 
         initial_results = await self._async_fetch_initial_data()
 
+        # Handle Networks with Error Logging and Type Safety
         networks_res = initial_results.get("networks", [])
         if isinstance(networks_res, Exception):
             _LOGGER.error("Could not fetch networks: %s", networks_res)
@@ -230,6 +222,7 @@ class DataFetchManager:
                 for n in networks_res
             ]
 
+        # Handle Devices with Error Logging and Type Safety
         devices_res = initial_results.get("devices", [])
         if isinstance(devices_res, Exception):
             _LOGGER.error("Could not fetch devices: %s", devices_res)

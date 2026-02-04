@@ -2,13 +2,14 @@
 
 import asyncio
 from typing import Any
-from unittest.mock import AsyncMock, MagicMock
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
 from custom_components.meraki_ha.core.coordinator_helpers.data_fetcher import (
     DataFetchManager,
 )
+from custom_components.meraki_ha.core.models.network import MerakiNetwork
 
 
 @pytest.mark.asyncio
@@ -27,6 +28,7 @@ async def test_appliance_features_fetching_behavior() -> None:
         return await coro
 
     mock_client.run_with_semaphore.side_effect = lambda x: x
+    mock_client._disabled_features = set()
 
     # Mock appliance endpoint methods
     mock_client.appliance.get_l3_firewall_rules = AsyncMock(return_value={})
@@ -40,21 +42,19 @@ async def test_appliance_features_fetching_behavior() -> None:
     )
     mock_client.network.get_network_traffic = AsyncMock(return_value=[])
 
+    mock_network = MerakiNetwork(id="net1", product_types=["appliance"])
+
     # Case 1: Disabled (Default)
     manager_disabled = DataFetchManager(
         client=mock_client,
         enable_firewall_rules=False,
         enable_traffic_shaping=False
     )
-    tasks_disabled: dict[str, asyncio.Task[Any]] = {}
-    manager_disabled._build_appliance_network_tasks("net1", tasks_disabled)
+    with patch("asyncio.create_task", side_effect=lambda x: x):
+        tasks_disabled = manager_disabled._build_detail_tasks([mock_network], [])
 
     assert "l3_firewall_rules_net1" not in tasks_disabled
     assert "traffic_shaping_net1" not in tasks_disabled
-
-    # Cleanup tasks
-    for task in tasks_disabled.values():
-        task.cancel()
 
     # Case 2: Enabled
     manager_enabled = DataFetchManager(
@@ -62,12 +62,8 @@ async def test_appliance_features_fetching_behavior() -> None:
         enable_firewall_rules=True,
         enable_traffic_shaping=True
     )
-    tasks_enabled: dict[str, asyncio.Task[Any]] = {}
-    manager_enabled._build_appliance_network_tasks("net1", tasks_enabled)
+    with patch("asyncio.create_task", side_effect=lambda x: x):
+        tasks_enabled = manager_enabled._build_detail_tasks([mock_network], [])
 
     assert "l3_firewall_rules_net1" in tasks_enabled
     assert "traffic_shaping_net1" in tasks_enabled
-
-    # Cleanup tasks
-    for task in tasks_enabled.values():
-        task.cancel()
