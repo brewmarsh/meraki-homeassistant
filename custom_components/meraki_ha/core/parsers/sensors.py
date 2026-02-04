@@ -54,6 +54,8 @@ def parse_sensor_data(
             device.readings = device_readings
 
             for reading in device_readings:
+                if reading.get("metric") == "power":
+                    _LOGGER.debug("MT40 Power Reading Payload: %s", reading)
                 metric = reading.get("metric")
                 if metric == "noise":
                     device.ambient_noise = (
