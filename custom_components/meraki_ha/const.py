@@ -1,6 +1,4 @@
-"""
-Constants for the Meraki Home Assistant integration.
-"""
+"""Constants for the Meraki Home Assistant integration."""
 
 from __future__ import annotations
 
