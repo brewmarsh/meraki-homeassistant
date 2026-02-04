@@ -65,12 +65,8 @@ def handle_meraki_errors(
             )
             is_vlan_disabled = "VLANs are not enabled" in error_msg
 
-            if (
-                isinstance(err, APIError) and getattr(err, "status", None) == 400
-            ) and (is_traffic_analysis or is_vlan_disabled):
-                if error_msg not in _LOGGED_ERRORS:
-                    _LOGGER.info("Meraki feature disabled (skipping): %s", error_msg)
-                    _LOGGED_ERRORS.add(error_msg)
+            if is_traffic_analysis or is_vlan_disabled:
+                _LOGGER.debug("Meraki feature disabled (skipping): %s", error_msg)
 
                 # Attempt to mark the feature as disabled in the client session
                 # This prevents subsequent API calls for this feature
@@ -96,7 +92,14 @@ def handle_meraki_errors(
                     or getattr(return_type, "__origin__", None) is list
                 ):
                     return cast(T, [])
-                return cast(T, {})
+                if (
+                    return_type is dict
+                    or getattr(return_type, "__origin__", None) is dict
+                ):
+                    return cast(T, {})
+
+                # Return the error object as a last resort if return type is not list/dict
+                return cast(T, MerakiInformationalError(error_msg))
 
             if isinstance(err, APIError) and _is_informational_error(err):
                 raise MerakiInformationalError(f"Informational error: {err}") from err
