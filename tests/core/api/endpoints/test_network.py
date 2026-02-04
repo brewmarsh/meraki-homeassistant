@@ -13,7 +13,11 @@ def mock_client():
     client = MagicMock()
     client.dashboard = MagicMock()
     client.run_sync = AsyncMock()
-    client.run_with_semaphore = AsyncMock(side_effect=lambda x: x)
+
+    async def mock_run_with_semaphore(coro):
+        return await coro
+
+    client.run_with_semaphore = AsyncMock(side_effect=mock_run_with_semaphore)
     return client
 
 

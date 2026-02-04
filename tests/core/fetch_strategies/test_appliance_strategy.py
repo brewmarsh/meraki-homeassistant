@@ -1,28 +1,34 @@
 """Test ApplianceFetchStrategy."""
 
-import asyncio
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import MagicMock, patch
+
 import pytest
 
-from custom_components.meraki_ha.core.fetch_strategies.appliance import ApplianceFetchStrategy
 from custom_components.meraki_ha.core.errors import (
     MerakiTrafficAnalysisError,
     MerakiVlanError,
     MerakiVlansDisabledError,
 )
+from custom_components.meraki_ha.core.fetch_strategies.appliance import (
+    ApplianceFetchStrategy,
+)
+
 
 @pytest.fixture
 def mock_client():
+    """Mock the Meraki API client."""
     client = MagicMock()
     client.run_with_semaphore.side_effect = lambda x: x
     return client
 
 @pytest.fixture
 def disabled_features():
+    """Fixture for disabled features set."""
     return set()
 
 @pytest.fixture
 def strategy(mock_client, disabled_features):
+    """Fixture for ApplianceFetchStrategy."""
     return ApplianceFetchStrategy(
         client=mock_client,
         _disabled_features=disabled_features,
@@ -79,8 +85,10 @@ def test_process_network_vlans_disables_on_vlan_error(strategy, disabled_feature
     assert key in disabled_features
     assert vlan_by_network[network_id] == []
 
-def test_process_network_vlans_disables_on_vlans_disabled_error(strategy, disabled_features):
-    """Test that process_network_vlans disables the feature on MerakiVlansDisabledError."""
+def test_process_network_vlans_disables_on_vlans_disabled_error(
+    strategy, disabled_features
+):
+    """Test process_network_vlans disables on MerakiVlansDisabledError."""
     network_id = "net1"
     key = f"vlans_{network_id}"
     detail_data = {key: MerakiVlansDisabledError("Disabled")}
