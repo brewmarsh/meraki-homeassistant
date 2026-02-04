@@ -22,6 +22,7 @@ from ...core.errors import (
     MerakiTrafficAnalysisError,
     MerakiVlansDisabledError,
 )
+from ...core.utils.api_utils import validate_response
 from .endpoints.appliance import ApplianceEndpoints
 from .endpoints.camera import CameraEndpoints
 from .endpoints.devices import DevicesEndpoints
@@ -328,6 +329,68 @@ class MerakiAPIClient:
         return cast(
             dict[str, Any], await self.switch.cycle_device_switch_ports(serial, ports)
         )
+
+    async def get_vlan_data(self, network_id: str) -> list[dict[str, Any]]:
+        """
+        Get VLAN data for a network with fallback logic.
+
+        Args:
+            network_id: The ID of the network.
+
+        Returns
+        -------
+            A list of VLANs.
+
+        """
+        try:
+            # First try the appliance-level call
+            res = await self.run_sync(
+                self.dashboard.appliance.getNetworkApplianceVlans,
+                networkId=network_id,
+            )
+            validated = validate_response(res)
+            if isinstance(validated, list):
+                return cast(list[dict[str, Any]], validated)
+            return []
+        except (meraki.APIError, MerakiVlansDisabledError) as e:
+            # Check for the specific 400 error indicating VLANs are not enabled
+            error_msg = str(e)
+            is_vlan_disabled = "VLANs are not enabled" in error_msg
+            status = getattr(e, "status", None)
+
+            if is_vlan_disabled and (
+                status == 400 or isinstance(e, MerakiVlansDisabledError)
+            ):
+                _LOGGER.info(
+                    "VLANs not enabled on appliance level for network %s, "
+                    "falling back to generic network VLANs",
+                    network_id,
+                )
+                try:
+                    res = await self.run_sync(
+                        self.dashboard.networks.getNetworkVlans,
+                        networkId=network_id,
+                    )
+                    validated = validate_response(res)
+                    if isinstance(validated, list):
+                        return cast(list[dict[str, Any]], validated)
+                    if isinstance(validated, dict):
+                        # Handle cases where generic response might be a dict
+                        # The parser will handle this, but here we want to
+                        # return a list if possible
+                        for value in validated.values():
+                            if isinstance(value, list):
+                                return cast(list[dict[str, Any]], value)
+                        return [validated]
+                    return []
+                except Exception as fallback_err:
+                    _LOGGER.error(
+                        "Fallback VLAN call failed for network %s: %s",
+                        network_id,
+                        fallback_err,
+                    )
+                    return []
+            raise
 
     async def get_network_events(
         self,

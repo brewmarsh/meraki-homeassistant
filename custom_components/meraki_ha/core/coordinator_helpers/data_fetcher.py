@@ -104,6 +104,7 @@ class DataFetchManager:
             self.wireless_strategy.build_network_tasks(network_id, product_types, tasks)
 
         if "appliance" in product_types:
+            # We use the strategy from Beta to keep DataFetchManager thin
             self.appliance_strategy.build_network_tasks(network_id, tasks)
 
     def _build_device_detail_tasks(
@@ -154,7 +155,6 @@ class DataFetchManager:
                 continue
             network_id = cast(str, network.id)
 
-            # Use Strategies (From Beta)
             self.wireless_strategy.process_network_data(
                 network_id, detail_data, previous_data, processed_data
             )

@@ -38,6 +38,7 @@ def mock_client():
     client.camera.get_camera_video_settings = AsyncMock(return_value={})
     client.camera.get_camera_sense_settings = AsyncMock(return_value={})
 
+    client.get_vlan_data = AsyncMock(return_value=[])
     client.appliance.get_network_vlans = AsyncMock(return_value=[])
     client.appliance.get_l3_firewall_rules = AsyncMock(return_value=[])
     client.appliance.get_traffic_shaping = AsyncMock(return_value={})
@@ -349,7 +350,7 @@ async def test_build_detail_tasks_for_appliance_device(data_fetch_manager, mock_
 
     # Mock endpoint methods to return dummy task objects
     mock_client.network.get_network_traffic = MagicMock(return_value="task_traffic")
-    mock_client.appliance.get_network_vlans = MagicMock(return_value="task_vlans")
+    mock_client.get_vlan_data = MagicMock(return_value="task_vlans")
     mock_client.appliance.get_l3_firewall_rules = MagicMock(
         return_value="task_firewall"
     )
@@ -448,7 +449,7 @@ async def test_vpn_status_fetched_when_enabled(mock_client):
 
     mock_client.appliance.get_vpn_status = MagicMock(return_value="task_vpn")
     mock_client.run_with_semaphore = AsyncMock(side_effect=lambda x: x)
-    mock_client.appliance.get_network_vlans = MagicMock(return_value="task_vlans")
+    mock_client.get_vlan_data = MagicMock(return_value="task_vlans")
     mock_client.network.get_network_traffic = MagicMock(return_value="task_traffic")
     mock_client.appliance.get_l3_firewall_rules = MagicMock(return_value="task_fw")
     mock_client.appliance.get_traffic_shaping = MagicMock(return_value="task_shaping")

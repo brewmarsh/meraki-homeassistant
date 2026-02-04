@@ -66,7 +66,7 @@ class MerakiVlan:
     def from_dict(cls, data: dict[str, Any]) -> MerakiVlan:
         """Create a MerakiVlan instance from a dictionary."""
         return cls(
-            id=data.get("id"),
+            id=data.get("id") or data.get("vlanId"),
             name=data.get("name"),
             subnet=data.get("subnet"),
             appliance_ip=data.get("applianceIp"),
