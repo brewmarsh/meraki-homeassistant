@@ -1,6 +1,4 @@
-"""
-Constants for the Meraki Home Assistant integration.
-"""
+"""Constants for the Meraki Home Assistant integration."""
 
 from __future__ import annotations
 
@@ -8,6 +6,8 @@ from typing import Final
 
 DOMAIN: Final = "meraki_ha"
 MANUFACTURER: Final = "Cisco Meraki"
+WEBHOOK_ID_FORMAT: Final = "{entry_id}"
+DATA_CLIENT: Final = "meraki_client"
 
 # Merged Constants - Adopting beta's explicit naming style
 WEBHOOK_ID_FORMAT: Final = "meraki_ha_{entry_id}"

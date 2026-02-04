@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import logging
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from homeassistant import config_entries
 from homeassistant.config_entries import ConfigFlowResult
@@ -17,14 +17,14 @@ except ImportError:
         DhcpServiceInfo,  # type: ignore[no-redef, attr-defined]
     )
 
-from .authentication import validate_meraki_credentials
-from .const import DOMAIN
+from .const import DOMAIN, WEBHOOK_ID_FORMAT
 from .const_conf import CONF_INTEGRATION_TITLE, CONF_MERAKI_API_KEY, CONF_MERAKI_ORG_ID
-from .coordinator import MerakiDataUpdateCoordinator
 from .core.errors import MerakiAuthenticationError, MerakiConnectionError
 from .helpers.schema import populate_schema_defaults
-from .options_flow import MerakiOptionsFlowHandler
 from .schemas import CONFIG_SCHEMA, OPTIONS_SCHEMA
+
+if TYPE_CHECKING:
+    from .coordinator import MerakiDataUpdateCoordinator
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -78,6 +78,8 @@ class MerakiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignor
         """
         errors: dict[str, str] = {}
         if user_input is not None:
+            from .authentication import validate_meraki_credentials
+
             try:
                 validation_result = await validate_meraki_credentials(
                     self.hass,
@@ -159,6 +161,8 @@ class MerakiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignor
             The options flow handler.
 
         """
+        from .options_flow import MerakiOptionsFlowHandler
+
         return MerakiOptionsFlowHandler(config_entry)
 
     async def async_step_reconfigure(
@@ -186,6 +190,8 @@ class MerakiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignor
             self.hass.config_entries.async_update_entry(entry, options=new_options)
             await self.hass.config_entries.async_reload(entry.entry_id)
             return self.async_abort(reason="reconfigure_successful")
+
+        from .coordinator import MerakiDataUpdateCoordinator
 
         coordinator: MerakiDataUpdateCoordinator = self.hass.data[DOMAIN][
             entry.entry_id
