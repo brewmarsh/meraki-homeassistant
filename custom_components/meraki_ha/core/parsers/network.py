@@ -88,6 +88,14 @@ def parse_network_data(
             vlan_by_network[network_id] = [
                 MerakiVlan.from_dict(v) for v in network_vlans
             ]
+        elif isinstance(network_vlans, dict):
+            # Generic fallback: search for a list within the dictionary values
+            for value in network_vlans.values():
+                if isinstance(value, list):
+                    vlan_by_network[network_id] = [
+                        MerakiVlan.from_dict(v) for v in value if isinstance(v, dict)
+                    ]
+                    break
         elif previous_data and "vlans" in previous_data:
             # Try to get from previous data if available
             prev_vlans = previous_data["vlans"].get(network_id)
