@@ -6,7 +6,7 @@ import logging
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
-    from ..client import MerakiAPIClient
+    from ..protocol import MerakiApiClientProtocol
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -14,7 +14,7 @@ _LOGGER = logging.getLogger(__name__)
 class SensorEndpoints:
     """Sensor endpoints for the Meraki API."""
 
-    def __init__(self, client: MerakiAPIClient) -> None:
+    def __init__(self, client: MerakiApiClientProtocol) -> None:
         """
         Initialize the sensor endpoints.
 
