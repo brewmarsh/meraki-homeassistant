@@ -56,7 +56,7 @@ class DataFetchManager:
         self.client_fetcher = ClientFetcher(self.client)
 
         # Set of disabled features to prevent repetitive API calls
-        self._disabled_features: set[str] = set()
+        self._disabled_features = client._disabled_features
 
     async def _async_fetch_initial_data(self) -> dict[str, Any]:
         """

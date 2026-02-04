@@ -17,6 +17,7 @@ _LOGGER = logging.getLogger(__name__)
 def mock_meraki_client(hass):
     """Create a mock Meraki API client."""
     client = MagicMock(spec=MerakiAPIClient)
+    client._disabled_features = set()
     client.wireless = MagicMock()
     client.wireless.create_identity_psk = AsyncMock(
         return_value={"id": "mock_ipsk_id", "name": "Guest User"}

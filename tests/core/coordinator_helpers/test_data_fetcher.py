@@ -55,6 +55,7 @@ def mock_client():
     client.sensor.get_organization_sensor_readings_latest = AsyncMock(return_value=[])
 
     client.dashboard = MagicMock()
+    client._disabled_features = set()
 
     # Mock run_with_semaphore to execute the coroutine
     async def run_with_semaphore_side_effect(coro):

@@ -42,6 +42,8 @@ class MerakiAPIClient:
     the underlying API session and asynchronous execution.
     """
 
+    _disabled_features: set[str] = set()
+    _enable_vpn_management: bool = False
     appliance: ApplianceEndpoints
     camera: CameraEndpoints
     devices: DevicesEndpoints
@@ -210,6 +212,41 @@ class MerakiAPIClient:
         """
         async with self._semaphore:
             return await coro
+
+    def mark_feature_disabled(
+        self, feature: str, network_id: str | None = None
+    ) -> None:
+        """
+        Mark a feature as disabled for the current session.
+
+        Args:
+            feature: The feature to disable (e.g., "traffic", "vlans").
+            network_id: The ID of the network.
+
+        """
+        key = feature
+        if network_id:
+            key = f"{feature}_{network_id}"
+        self._disabled_features.add(key)
+        _LOGGER.debug("Feature %s marked as disabled for the session", key)
+
+    def is_feature_disabled(self, feature: str, network_id: str | None = None) -> bool:
+        """
+        Check if a feature is disabled for the current session.
+
+        Args:
+            feature: The feature to check.
+            network_id: The ID of the network.
+
+        Returns
+        -------
+            True if disabled, False otherwise.
+
+        """
+        key = feature
+        if network_id:
+            key = f"{feature}_{network_id}"
+        return key in self._disabled_features
 
     @property
     def organization_id(self) -> str:
