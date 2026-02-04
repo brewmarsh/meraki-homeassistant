@@ -91,7 +91,7 @@ class MerakiAPIClient:
         self.sensor = SensorEndpoints(self)
 
         # Semaphore to limit concurrent API calls
-        self._semaphore = asyncio.Semaphore(2)
+        self._semaphore = asyncio.Semaphore(10)
 
     @property
     def has_dashboard(self) -> bool:
