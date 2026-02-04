@@ -8,6 +8,12 @@ from typing import TYPE_CHECKING, Any
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers import entity_registry as er
 
+from ...binary_sensor.device.camera_motion import MerakiMotionSensor
+from ...binary_sensor.device.meraki_mt_binary_base import MerakiMtBinarySensor
+from ...binary_sensor.switch_port import SwitchPortSensor
+from ...button.device.camera_snapshot import MerakiSnapshotButton
+from ...button.reboot import MerakiRebootButton
+from ...camera import MerakiCamera
 from ...const import DOMAIN
 from ...const_conf import (
     CONF_ENABLE_CAMERA_ENTITIES,
@@ -18,9 +24,10 @@ from ...const_conf import (
 from ...core.errors import MerakiInformationalError
 from ...descriptions import (
     MT_BATTERY_DESCRIPTION,
-    MT_CO2_DESCRIPTION,
     MT_BUTTON_DESCRIPTION,
+    MT_CO2_DESCRIPTION,
     MT_CURRENT_DESCRIPTION,
+    MT_DOOR_DESCRIPTION,
     MT_ENERGY_DESCRIPTION,
     MT_FREQUENCY_DESCRIPTION,
     MT_HUMIDITY_DESCRIPTION,
@@ -33,26 +40,19 @@ from ...descriptions import (
     MT_TVOC_DESCRIPTION,
     MT_VOLTAGE_DESCRIPTION,
     MT_WATER_DESCRIPTION,
-    MT_DOOR_DESCRIPTION,
 )
-from ...sensor.device.meraki_mt_base import MerakiMtSensor
-from ...binary_sensor.device.meraki_mt_binary_base import MerakiMtBinarySensor
-from ...switch.mt40_power_outlet import MerakiMt40PowerOutlet
-from ...sensor.device.appliance_uplink import MerakiApplianceUplinkSensor
 from ...sensor.device.appliance_port import MerakiAppliancePortSensor
-from ...binary_sensor.switch_port import SwitchPortSensor
-from ...sensor.device.poe_usage import MerakiPoeUsageSensor
-from ...button.reboot import MerakiRebootButton
-from ...sensor.device.device_status import MerakiDeviceStatusSensor
-from ...camera import MerakiCamera
+from ...sensor.device.appliance_uplink import MerakiApplianceUplinkSensor
 from ...sensor.device.camera_analytics import (
     MerakiPersonCountSensor,
     MerakiVehicleCountSensor,
 )
-from ...binary_sensor.device.camera_motion import MerakiMotionSensor
-from ...button.device.camera_snapshot import MerakiSnapshotButton
+from ...sensor.device.device_status import MerakiDeviceStatusSensor
+from ...sensor.device.meraki_mt_base import MerakiMtSensor
+from ...sensor.device.poe_usage import MerakiPoeUsageSensor
 from ...sensor.device.rtsp_url import MerakiRtspUrlSensor
 from ...switch.camera_controls import AnalyticsSwitch
+from ...switch.mt40_power_outlet import MerakiMt40PowerOutlet
 from .base import BaseDeviceHandler
 
 if TYPE_CHECKING:

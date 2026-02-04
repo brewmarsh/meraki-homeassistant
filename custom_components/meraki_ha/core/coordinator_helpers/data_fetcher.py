@@ -15,7 +15,7 @@ from ...core.fetch_strategies.appliance import ApplianceFetchStrategy
 from ...core.fetch_strategies.camera import CameraFetchStrategy
 from ...core.fetch_strategies.switch import SwitchFetchStrategy
 from ...core.fetch_strategies.wireless import WirelessFetchStrategy
-from ...core.models.device import MerakiAppliancePort, MerakiDevice
+from ...core.models.device import MerakiDevice
 from ...core.models.network import MerakiNetwork
 from ...core.parsers.appliance import parse_appliance_data
 from ...core.parsers.network import parse_network_data

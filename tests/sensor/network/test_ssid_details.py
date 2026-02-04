@@ -1,11 +1,14 @@
 """Test the Meraki SSID detail sensors."""
 
 from unittest.mock import MagicMock
+
 from homeassistant.const import UnitOfDataRate
+
 from custom_components.meraki_ha.sensor.network.ssid_details import (
-    MerakiSSIDTotalUploadLimitSensor,
     MerakiSSIDMinBitrate24GhzSensor,
+    MerakiSSIDTotalUploadLimitSensor,
 )
+
 
 async def test_ssid_total_upload_limit_sensor() -> None:
     """Test the SSID total upload limit sensor."""
