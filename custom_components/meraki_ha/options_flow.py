@@ -8,6 +8,9 @@ from homeassistant import config_entries
 
 from .const import DOMAIN
 from .const_conf import CONF_INTEGRATION_TITLE
+from .coordinator import MerakiDataUpdateCoordinator
+from .helpers.schema import populate_schema_defaults
+from .schemas import OPTIONS_SCHEMA
 
 
 class MerakiOptionsFlowHandler(config_entries.OptionsFlow):
@@ -40,10 +43,6 @@ class MerakiOptionsFlowHandler(config_entries.OptionsFlow):
             The flow result.
 
         """
-        from .coordinator import MerakiDataUpdateCoordinator
-        from .helpers.schema import populate_schema_defaults
-        from .schemas import OPTIONS_SCHEMA
-
         if user_input is not None:
             self.options.update(user_input)
             return self.async_create_entry(

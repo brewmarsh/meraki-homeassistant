@@ -10,6 +10,7 @@ import voluptuous as vol
 from homeassistant import config_entries
 from homeassistant.exceptions import ConfigEntryAuthFailed
 
+from .authentication import validate_meraki_credentials
 from .const_conf import CONF_MERAKI_API_KEY, CONF_MERAKI_ORG_ID
 
 if TYPE_CHECKING:
@@ -36,8 +37,6 @@ async def async_step_reauth(
         The flow result.
 
     """
-    from .authentication import validate_meraki_credentials
-
     errors: dict[str, str] = {}
     existing_entry = self.hass.config_entries.async_get_entry(
         self.context["entry_id"],
