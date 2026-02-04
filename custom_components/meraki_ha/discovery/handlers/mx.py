@@ -69,7 +69,7 @@ class MXHandler(BaseDeviceHandler):
         _LOGGER.debug("MXHandler checking device %s", self.device.serial)
 
         # Check Uplinks
-        uplink_data = getattr(self.device, "appliance_uplinks", None)
+        uplink_data = getattr(self.device, "appliance_uplink_statuses", None)
         _LOGGER.debug("Device %s Uplink Data: %s", self.device.serial, uplink_data)
 
         # Check Performance
@@ -105,14 +105,10 @@ class MXHandler(BaseDeviceHandler):
         if self._config_entry.options.get(CONF_ENABLE_PORT_SENSORS, True):
             # Collect data from API
             uplink_data_by_interface: dict[str, dict[str, Any]] = {}
-            if self._coordinator.data and self._coordinator.data.get(
-                "appliance_uplink_statuses"
-            ):
-                for status in self._coordinator.data["appliance_uplink_statuses"]:
-                    if status.get("serial") == self.device.serial:
-                        for uplink in status.get("uplinks", []):
-                            if interface := uplink.get("interface"):
-                                uplink_data_by_interface[interface] = uplink
+            if self.device.appliance_uplink_statuses:
+                for uplink in self.device.appliance_uplink_statuses:
+                    if interface := uplink.get("interface"):
+                        uplink_data_by_interface[interface] = uplink
 
             # Identify interfaces from existing entities in the registry
             # to handle cases where API data is temporarily missing.
