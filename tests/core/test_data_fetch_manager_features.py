@@ -2,7 +2,7 @@
 
 import asyncio
 from typing import Any
-from unittest.mock import AsyncMock, MagicMock
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
@@ -31,7 +31,7 @@ async def test_appliance_features_fetching_behavior() -> None:
     # Mock appliance endpoint methods
     mock_client.appliance.get_l3_firewall_rules = AsyncMock(return_value={})
     mock_client.appliance.get_traffic_shaping = AsyncMock(return_value={})
-    mock_client.get_vlan_data = AsyncMock(return_value=[])
+    mock_client.network.get_vlan_data = AsyncMock(return_value=[])
     mock_client.appliance.get_network_vlans = AsyncMock(return_value=[])
     mock_client.appliance.get_vpn_status = AsyncMock(return_value={})
     mock_client.appliance.get_appliance_ports = AsyncMock(return_value=[])
@@ -47,14 +47,12 @@ async def test_appliance_features_fetching_behavior() -> None:
         enable_traffic_shaping=False
     )
     tasks_disabled: dict[str, asyncio.Task[Any]] = {}
-    manager_disabled._build_appliance_network_tasks("net1", tasks_disabled)
+
+    with patch("asyncio.create_task", side_effect=lambda x: x):
+        manager_disabled.appliance_strategy.build_network_tasks("net1", tasks_disabled)
 
     assert "l3_firewall_rules_net1" not in tasks_disabled
     assert "traffic_shaping_net1" not in tasks_disabled
-
-    # Cleanup tasks
-    for task in tasks_disabled.values():
-        task.cancel()
 
     # Case 2: Enabled
     manager_enabled = DataFetchManager(
@@ -63,11 +61,9 @@ async def test_appliance_features_fetching_behavior() -> None:
         enable_traffic_shaping=True
     )
     tasks_enabled: dict[str, asyncio.Task[Any]] = {}
-    manager_enabled._build_appliance_network_tasks("net1", tasks_enabled)
+
+    with patch("asyncio.create_task", side_effect=lambda x: x):
+        manager_enabled.appliance_strategy.build_network_tasks("net1", tasks_enabled)
 
     assert "l3_firewall_rules_net1" in tasks_enabled
     assert "traffic_shaping_net1" in tasks_enabled
-
-    # Cleanup tasks
-    for task in tasks_enabled.values():
-        task.cancel()
