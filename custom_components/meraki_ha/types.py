@@ -49,6 +49,7 @@ class MerakiDevice:
     button_press: dict[str, Any] | None = None
     frequency: float | None = None
     energy: float | None = None
+    outlet_status: bool | None = None
 
     def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary."""
@@ -81,6 +82,7 @@ class MerakiDevice:
             "statusMessages": self.status_messages,
             "applianceUplinkStatuses": self.appliance_uplink_statuses,
             "entity_id": self.entity_id,
+            "outletStatus": self.outlet_status,
         }
 
     @classmethod
@@ -117,6 +119,7 @@ class MerakiDevice:
             status_messages=data.get("statusMessages", []),
             appliance_uplink_statuses=data.get("applianceUplinkStatuses", []),
             entity_id=data.get("entity_id"),
+            outlet_status=data.get("outletStatus"),
         )
 
 
