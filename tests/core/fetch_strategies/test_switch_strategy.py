@@ -81,7 +81,7 @@ def test_process_device_details_fallback_to_prev(strategy):
     mock_device = MagicMock()
     mock_device.serial = "SERIAL1"
     detail_data = {}
-    
+
     # Using a concrete object ensures hasattr logic in the strategy is verified
     prev_device = MerakiDevice(
         serial="SERIAL1",

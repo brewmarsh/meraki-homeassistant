@@ -3,15 +3,12 @@
 from __future__ import annotations
 
 import logging
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 from homeassistant.components.sensor import (
-    SensorDeviceClass,
     SensorEntity,
     SensorEntityDescription,
-    SensorStateClass,
 )
-from homeassistant.const import PERCENTAGE, UnitOfTime
 from homeassistant.core import callback
 from homeassistant.helpers.device_registry import DeviceInfo
 
@@ -19,9 +16,10 @@ from ..const import DOMAIN
 from ..entity import MerakiEntity
 
 if TYPE_CHECKING:
+    from homeassistant.config_entries import ConfigEntry
+
     from ..coordinator import MerakiDataUpdateCoordinator
     from ..core.models.device import MerakiDevice
-    from homeassistant.config_entries import ConfigEntry
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -55,9 +53,10 @@ class MerakiUplinkPerformanceSensor(MerakiSensor):
         # the final name will be "Device Name WAN1 Latency"
 
         self._attr_unique_id = f"{self._device_serial}_{interface}_{metric}"
-        self._attr_device_info = DeviceInfo(
-            identifiers={(DOMAIN, self._device_serial)},
-        )
+        if self._device_serial:
+            self._attr_device_info = DeviceInfo(
+                identifiers={(DOMAIN, self._device_serial)},
+            )
         self._update_state()
 
     @callback
