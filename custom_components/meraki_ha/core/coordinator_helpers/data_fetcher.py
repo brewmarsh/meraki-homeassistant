@@ -130,6 +130,10 @@ class DataFetchManager:
         except asyncio.TimeoutError:
             _LOGGER.error("Timeout during %s. Potential semaphore deadlock.", label)
             _LOGGER.debug("Pending keys for %s: %s", label, list(tasks.keys()))
+            # Clean up unawaited coroutines to prevent RuntimeWarnings in tests
+            for task in tasks.values():
+                if asyncio.iscoroutine(task):
+                    task.close()
             raise
 
     def _handle_fetch_exception(
