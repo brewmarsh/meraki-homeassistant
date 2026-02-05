@@ -10,7 +10,6 @@ from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers import entity_registry as er
 
 from ...const import DOMAIN
-from ..const import get_ssid_identifier
 from ..models.device import MerakiDevice
 from ..models.network import MerakiNetwork
 
@@ -114,38 +113,6 @@ def process_coordinator_data(
     ]
     networks_by_id = {n.id: n for n in networks if n.id}
     data["networks"] = networks
-
-    # Pre-register network devices to avoid "referencing a non existing
-    # via_device" warnings when downstream entities (like VLANs) initialize.
-    device_registry = dr.async_get(hass)
-
-    if config_entry:
-        for network in networks:
-            if not network.id:
-                continue
-            device_registry.async_get_or_create(
-                config_entry_id=config_entry.entry_id,
-                identifiers={(DOMAIN, cast(str, network.id))},
-                name=network.name,
-                manufacturer="Cisco Meraki",
-                model="Network",
-            )
-
-        # Pre-register SSID devices
-        for ssid in data.get("ssids", []):
-            network_id = ssid.get("networkId")
-            ssid_number = ssid.get("number")
-            ssid_name = ssid.get("name")
-            if network_id and ssid_number is not None:
-                identifier = (DOMAIN, get_ssid_identifier(network_id, ssid_number))
-                device_registry.async_get_or_create(
-                    config_entry_id=config_entry.entry_id,
-                    identifiers={identifier},
-                    name=f"SSID {ssid_number}: {ssid_name}",
-                    model="Wireless SSID",
-                    manufacturer="Cisco Meraki",
-                    via_device=(DOMAIN, f"network_{network_id}"),
-                )
 
     ssids_by_network_and_number = {
         (cast(str, s.get("networkId")), int(s.get("number"))): s

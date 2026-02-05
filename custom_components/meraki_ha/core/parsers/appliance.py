@@ -51,8 +51,7 @@ def parse_appliance_data(
                 _LOGGER.debug("Matched uplink data for %s", serial)
                 uplinks = status.get("uplinks", [])
                 device.appliance_uplink_statuses = uplinks
-                # Initialize uplinks with status data;
-                # will be enriched with performance metrics later
+                # Initialize uplinks with status data; will be enriched with performance metrics later
                 device.uplinks = uplinks
                 break
 

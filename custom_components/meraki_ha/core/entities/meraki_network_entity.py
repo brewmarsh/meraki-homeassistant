@@ -54,9 +54,15 @@ class MerakiNetworkEntity(BaseMerakiEntity):
             raise ValueError("Network cannot be None")
         if self._network.id is None:
             raise ValueError("Network ID cannot be None")
+
+        network_name = self._network.name or f"Network {self._network.id}"
+        # Canonical Name Policy: [Network] Prefix
+        if network_name and not str(network_name).startswith("[Network] "):
+            network_name = f"[Network] {network_name}"
+
         return DeviceInfo(
-            identifiers={(DOMAIN, self._network.id)},
-            name=self._network.name or f"Network {self._network.id}",
-            manufacturer="Meraki",
+            identifiers={(DOMAIN, f"network_{self._network.id}")},
+            name=str(network_name),
+            manufacturer="Cisco Meraki",
             model="Meraki Network",
         )

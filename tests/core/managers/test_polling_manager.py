@@ -84,8 +84,7 @@ def test_success_rate_calculation(polling_manager):
     polling_manager.record_success()  # [True, True]
     polling_manager.record_failure(Exception("Error"))  # [True, True, False]
     polling_manager.record_success()  # [True, True, False, True]
-    # [True, True, False, True, False]
-    polling_manager.record_failure(Exception("Error"))
+    polling_manager.record_failure(Exception("Error"))  # [True, True, False, True, False]
 
     # 3 successes out of 5 = 60%
     assert polling_manager.get_success_rate() == 60.0

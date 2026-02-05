@@ -43,7 +43,7 @@ def test_vlan_naming(mock_coordinator):
 
     entity = MerakiVLANEntity(mock_coordinator, config_entry, "N_12345", vlan)
 
-    assert entity.device_info["name"] == "Site A"
+    assert entity.device_info["name"] == "[Network] Site A"
     assert entity.name == "VLAN 10 VoIP"
 
 
@@ -94,4 +94,4 @@ def test_network_status_naming(mock_coordinator):
     entity.coordinator = mock_coordinator
 
     assert entity.name == "Uplink status"
-    assert entity.device_info["name"] == "Warehouse"
+    assert entity.device_info["name"] == "[Network] Warehouse"

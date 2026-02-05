@@ -47,7 +47,7 @@ class MerakiNetworkStatus(BinarySensorEntity):
 
         # Ensure network ID is available
         network_id = network.id or "unknown_network"
-        self._attr_unique_id = f"{network_id}-status"
+        self._attr_unique_id = f"network_{network_id}-status"
         self._attr_name = "Uplink status"
 
     @property
@@ -55,9 +55,17 @@ class MerakiNetworkStatus(BinarySensorEntity):
         """Return device information."""
         # Ensure network ID is available
         network_id = self._network.id or "unknown_network"
+        network_name = self._network.name or f"Network {network_id}"
+
+        # Canonical Name Policy: [Network] Prefix
+        if network_name and not str(network_name).startswith("[Network] "):
+            network_name = f"[Network] {network_name}"
+
         return DeviceInfo(
-            identifiers={(DOMAIN, network_id)},
-            name=self._network.name,
+            identifiers={(DOMAIN, f"network_{network_id}")},
+            name=str(network_name),
+            manufacturer="Cisco Meraki",
+            model="Meraki Network",
         )
 
     @property

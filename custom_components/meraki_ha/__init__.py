@@ -17,12 +17,12 @@ from .const import DOMAIN, WEBHOOK_ID_FORMAT
 from .const_conf import CONF_MERAKI_ORG_ID
 from .const_platform import PLATFORMS
 from .coordinator import MerakiDataUpdateCoordinator
+from .helpers.migrations import async_cleanup_ghost_devices, async_migrate_entities
 from .core.repositories.camera_repository import CameraRepository
 from .core.repository import MerakiRepository
 from .core.timed_access_manager import TimedAccessManager
 from .discovery.service import DeviceDiscoveryService
 from .frontend import async_register_frontend, async_remove_frontend
-from .helpers.migrations import async_cleanup_ghost_devices, async_migrate_entities
 from .services.camera_service import CameraService
 from .services.device_control_service import DeviceControlService
 from .services.network_control_service import NetworkControlService

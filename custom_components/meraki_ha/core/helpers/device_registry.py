@@ -50,7 +50,7 @@ def async_ensure_network_devices_exist(
             continue
 
         # Canonical Name Policy: [Network] Prefix
-        if network_name and not network_name.startswith("[Network] "):
+        if network_name and not str(network_name).startswith("[Network] "):
             network_name = f"[Network] {network_name}"
 
         device_registry.async_get_or_create(
@@ -108,7 +108,7 @@ def async_ensure_ssid_devices_exist(
                 break
 
         # Canonical Name Policy: [SSID] Prefix
-        if ssid_name and not ssid_name.startswith("[SSID] "):
+        if ssid_name and not str(ssid_name).startswith("[SSID] "):
             ssid_name = f"[SSID] {ssid_name}"
 
         device_registry.async_get_or_create(
