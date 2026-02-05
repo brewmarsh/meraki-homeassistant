@@ -32,6 +32,7 @@ from .const_conf import (
 from .core.api.client import MerakiAPIClient as ApiClient
 from .core.coordinator_helpers.data_fetcher import DataFetchManager
 from .core.helpers import filter_ignored_networks, process_coordinator_data
+from .core.helpers.device_registry import async_ensure_network_devices_exist
 from .core.managers import AvailabilityTracker, PendingUpdateManager
 from .core.models.device import MerakiDevice
 from .core.models.network import MerakiNetwork
@@ -196,6 +197,12 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 _LOGGER.warning("API call to get_all_data returned no data.")
                 # Return cached data to prevent entities from becoming unavailable
                 return self.last_successful_data
+
+            # Ensure network devices exist in the registry before processing
+            # to avoid "referencing non-existing via_device" warnings.
+            async_ensure_network_devices_exist(
+                self.hass, self.config_entry, data.get("networks", [])
+            )
 
             # Update success history and consecutive successes
             self._consecutive_successes += 1
