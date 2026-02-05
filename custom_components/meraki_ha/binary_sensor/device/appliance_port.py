@@ -1,12 +1,13 @@
-"""Sensor for Meraki appliance port status."""
+"""Binary sensor for Meraki appliance port status."""
 
 from __future__ import annotations
 
-import logging
 from typing import Any, cast
 
-from homeassistant.components.sensor import SensorEntity
-from homeassistant.const import EntityCategory
+from homeassistant.components.binary_sensor import (
+    BinarySensorDeviceClass,
+    BinarySensorEntity,
+)
 from homeassistant.core import callback
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
@@ -16,15 +17,14 @@ from ...coordinator import MerakiDataUpdateCoordinator
 from ...core.models.device import MerakiAppliancePort, MerakiDevice
 from ...core.utils.naming_utils import format_device_name
 
-_LOGGER = logging.getLogger(__name__)
 
-
-class MerakiAppliancePortSensor(CoordinatorEntity, SensorEntity):
-    """Representation of a Meraki appliance port sensor."""
+class AppliancePortBinarySensor(CoordinatorEntity, BinarySensorEntity):
+    """Representation of a Meraki appliance port binary sensor."""
 
     coordinator: MerakiDataUpdateCoordinator
 
-    _attr_entity_category = EntityCategory.DIAGNOSTIC
+    _attr_device_class = BinarySensorDeviceClass.CONNECTIVITY
+    _attr_has_entity_name = True
 
     def __init__(
         self,
@@ -36,14 +36,8 @@ class MerakiAppliancePortSensor(CoordinatorEntity, SensorEntity):
         super().__init__(coordinator)
         self._device = device
         self._port = port
-        self._attr_has_entity_name = True
-        self._attr_unique_id = f"{device.serial}_port_{self._port.number}"
+        self._attr_unique_id = f"{device.serial}_port_{self._port.number}_connectivity"
         self._attr_name = f"Port {self._port.number}"
-
-    @property
-    def icon(self) -> str:
-        """Return the icon of the sensor."""
-        return "mdi:ethernet" if self.native_value == "connected" else "mdi:ethernet-cable-off"
 
     @property
     def device_info(self) -> DeviceInfo:
@@ -77,13 +71,11 @@ class MerakiAppliancePortSensor(CoordinatorEntity, SensorEntity):
                     return
 
     @property
-    def native_value(self) -> str:
-        """Return the state of the sensor."""
+    def is_on(self) -> bool:
+        """Return true if the binary sensor is on."""
         if not self._port.enabled:
-            return "disabled"
-        if self._port.status and self._port.status.lower() == "connected":
-            return "connected"
-        return "disconnected"
+            return False
+        return self._port.status is not None and self._port.status.lower() == "connected"
 
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
@@ -93,5 +85,4 @@ class MerakiAppliancePortSensor(CoordinatorEntity, SensorEntity):
             "link_speed": self._port.speed,
             "vlan": self._port.vlan,
             "type": self._port.type,
-            "access_policy": self._port.access_policy,
         }
