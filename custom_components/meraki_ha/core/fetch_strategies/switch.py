@@ -16,11 +16,15 @@ class SwitchFetchStrategy(BaseFetchStrategy):
         self,
         device: MerakiDevice,
         tasks: dict[str, Any],
+        detail_data: dict[str, Any] | None = None,
     ) -> None:
         """Add switch specific device tasks."""
-        tasks[f"ports_statuses_{device.serial}"] = self.client.run_with_semaphore(
-            self.client.switch.get_device_switch_ports_statuses(device.serial),
-        )
+        # Only add ports statuses task if not already provided in batch data
+        statuses_key = f"ports_statuses_{device.serial}"
+        if not detail_data or statuses_key not in detail_data:
+            tasks[statuses_key] = self.client.run_with_semaphore(
+                self.client.switch.get_device_switch_ports_statuses(device.serial),
+            )
 
     def process_device_details(
         self,
