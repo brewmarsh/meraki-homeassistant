@@ -356,11 +356,9 @@ class NetworkEndpoints:
         """
         try:
             # First try the appliance-level call
-            res = await self._api_client.run_with_semaphore(
-                self._api_client.run_sync(
-                    self._api_client.dashboard.appliance.getNetworkApplianceVlans,
-                    networkId=network_id,
-                )
+            res = await self._api_client.run_sync(
+                self._api_client.dashboard.appliance.getNetworkApplianceVlans,
+                networkId=network_id,
             )
             validated = validate_response(res)
             if isinstance(validated, list):
@@ -381,11 +379,9 @@ class NetworkEndpoints:
                     network_id,
                 )
                 try:
-                    res = await self._api_client.run_with_semaphore(
-                        self._api_client.run_sync(
-                            self._api_client.dashboard.networks.getNetworkVlans,
-                            networkId=network_id,
-                        )
+                    res = await self._api_client.run_sync(
+                        self._api_client.dashboard.networks.getNetworkVlans,
+                        networkId=network_id,
                     )
                     validated = validate_response(res)
                     if isinstance(validated, list):
@@ -473,10 +469,8 @@ class NetworkEndpoints:
         }
         filtered_kwargs = {k: v for k, v in kwargs.items() if v is not None}
 
-        return await self._api_client.run_with_semaphore(
-            self._api_client.run_sync(
-                self._api_client.dashboard.networks.getNetworkEvents,
-                network_id,
-                **filtered_kwargs,
-            )
+        return await self._api_client.run_sync(
+            self._api_client.dashboard.networks.getNetworkEvents,
+            network_id,
+            **filtered_kwargs,
         )

@@ -41,67 +41,51 @@ class ApplianceFetchStrategy(BaseFetchStrategy):
     def build_network_tasks(
         self,
         network_id: str,
-        tasks: dict[str, asyncio.Task[Any]],
+        tasks: dict[str, Any],
     ) -> None:
         """Add appliance specific network tasks."""
         if f"traffic_{network_id}" not in self._disabled_features:
-            tasks[f"traffic_{network_id}"] = asyncio.create_task(
-                self.client.run_with_semaphore(
-                    self.client.network.get_network_traffic(network_id, "appliance"),
-                )
+            tasks[f"traffic_{network_id}"] = self.client.run_with_semaphore(
+                self.client.network.get_network_traffic(network_id, "appliance"),
             )
 
         if f"vlans_{network_id}" not in self._disabled_features:
-            tasks[f"vlans_{network_id}"] = asyncio.create_task(
-                self.client.run_with_semaphore(
-                    self.client.network.get_vlan_data(network_id),
-                )
+            tasks[f"vlans_{network_id}"] = self.client.run_with_semaphore(
+                self.client.network.get_vlan_data(network_id),
             )
 
         if self.enable_firewall_rules:
-            tasks[f"l3_firewall_rules_{network_id}"] = asyncio.create_task(
-                self.client.run_with_semaphore(
-                    self.client.appliance.get_l3_firewall_rules(network_id),
-                )
+            tasks[f"l3_firewall_rules_{network_id}"] = self.client.run_with_semaphore(
+                self.client.appliance.get_l3_firewall_rules(network_id),
             )
         if self.enable_traffic_shaping:
-            tasks[f"traffic_shaping_{network_id}"] = asyncio.create_task(
-                self.client.run_with_semaphore(
-                    self.client.appliance.get_traffic_shaping(network_id),
-                )
+            tasks[f"traffic_shaping_{network_id}"] = self.client.run_with_semaphore(
+                self.client.appliance.get_traffic_shaping(network_id),
             )
         if self.enable_vpn_management:
-            tasks[f"vpn_status_{network_id}"] = asyncio.create_task(
-                self.client.run_with_semaphore(
-                    self.client.appliance.get_vpn_status(network_id),
-                )
+            tasks[f"vpn_status_{network_id}"] = self.client.run_with_semaphore(
+                self.client.appliance.get_vpn_status(network_id),
             )
-        tasks[f"appliance_ports_{network_id}"] = asyncio.create_task(
-            self.client.run_with_semaphore(
-                self.client.appliance.get_appliance_ports(network_id),
-            )
+        tasks[f"appliance_ports_{network_id}"] = self.client.run_with_semaphore(
+            self.client.appliance.get_appliance_ports(network_id),
         )
-        tasks[f"content_filtering_{network_id}"] = asyncio.create_task(
-            self.client.run_with_semaphore(
-                self.client.appliance.get_network_appliance_content_filtering(
-                    network_id,
-                ),
-            )
+        tasks[f"content_filtering_{network_id}"] = self.client.run_with_semaphore(
+            self.client.appliance.get_network_appliance_content_filtering(
+                network_id,
+            ),
         )
 
     def build_device_tasks(
         self,
         device: MerakiDevice,
-        tasks: dict[str, asyncio.Task[Any]],
+        tasks: dict[str, Any],
     ) -> None:
         """Add appliance specific device tasks."""
         if device.network_id:
-            tasks[f"appliance_settings_{device.serial}"] = asyncio.create_task(
-                self.client.run_with_semaphore(
-                    self.client.appliance.get_network_appliance_settings(
-                        device.network_id,
-                    ),
-                )
+            tasks[f"appliance_settings_{device.serial}"] = self.client.run_with_semaphore(
+                self.client.appliance.get_network_appliance_settings(
+                    device.network_id,
+                ),
             )
 
     def process_network_traffic(

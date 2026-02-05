@@ -15,13 +15,11 @@ class SwitchFetchStrategy(BaseFetchStrategy):
     def build_device_tasks(
         self,
         device: MerakiDevice,
-        tasks: dict[str, asyncio.Task[Any]],
+        tasks: dict[str, Any],
     ) -> None:
         """Add switch specific device tasks."""
-        tasks[f"ports_statuses_{device.serial}"] = asyncio.create_task(
-            self.client.run_with_semaphore(
-                self.client.switch.get_device_switch_ports_statuses(device.serial),
-            )
+        tasks[f"ports_statuses_{device.serial}"] = self.client.run_with_semaphore(
+            self.client.switch.get_device_switch_ports_statuses(device.serial),
         )
 
     def process_device_details(
