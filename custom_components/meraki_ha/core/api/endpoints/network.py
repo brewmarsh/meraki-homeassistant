@@ -354,15 +354,31 @@ class NetworkEndpoints:
             A list of VLANs.
 
         """
+        # Secondary safety check to verify if the network supports appliance
+        networks = await self._api_client.organization.get_organization_networks()
+        network = next((n for n in networks if n["id"] == network_id), None)
+        if network and "appliance" not in network.get("productTypes", []):
+            _LOGGER.debug(
+                "Network %s does not support appliance features, skipping VLAN fetch",
+                network_id,
+            )
+            return []
+
+        appliance = getattr(self._api_client.dashboard, "appliance", None)
+        if not appliance:
+            return []
+
         try:
             # First try the appliance-level call
             res = await self._api_client.run_sync(
-                self._api_client.dashboard.appliance.getNetworkApplianceVlans,
+                appliance.getNetworkApplianceVlans,
                 networkId=network_id,
             )
             validated = validate_response(res)
             if isinstance(validated, list):
                 return cast(list[dict[str, Any]], validated)
+            return []
+        except AttributeError:
             return []
         except (meraki.APIError, MerakiVlansDisabledError) as e:
             # Check for the specific 400 error indicating VLANs are not enabled
@@ -380,7 +396,7 @@ class NetworkEndpoints:
                 )
                 try:
                     res = await self._api_client.run_sync(
-                        self._api_client.dashboard.networks.getNetworkVlans,
+                        appliance.getNetworkApplianceVlans,
                         networkId=network_id,
                     )
                     validated = validate_response(res)
