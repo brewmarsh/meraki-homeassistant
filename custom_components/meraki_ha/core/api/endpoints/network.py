@@ -54,7 +54,7 @@ class NetworkEndpoints:
             **kwargs,
         )
         validated = validate_response(clients)
-        return validated if isinstance(validated, list) else []
+        return cast(list[dict[str, Any]], validated) if isinstance(validated, list) else []
 
     @handle_meraki_errors
     @async_timed_cache(timeout=60)
@@ -69,7 +69,7 @@ class NetworkEndpoints:
             timespan=86400,  # 24 hours
         )
         validated = validate_response(traffic)
-        return validated if isinstance(validated, list) else []
+        return cast(list[dict[str, Any]], validated) if isinstance(validated, list) else []
 
     @handle_meraki_errors
     @async_timed_cache(timeout=10)
@@ -80,7 +80,7 @@ class NetworkEndpoints:
             networkId=network_id,
         )
         validated = validate_response(webhooks)
-        return validated if isinstance(validated, list) else []
+        return cast(list[dict[str, Any]], validated) if isinstance(validated, list) else []
 
     @handle_meraki_errors
     async def delete_webhook(self, network_id: str, webhook_id: str) -> None:
@@ -142,7 +142,6 @@ class NetworkEndpoints:
             return []
 
         # 2. SDK Safety Guard: Check if the appliance module and method exist
-        # This replaces the failing 'networks.getNetworkVlans' call
         appliance = getattr(self._api_client.dashboard, "appliance", None)
         vlan_method = getattr(appliance, "getNetworkApplianceVlans", None)
         
@@ -156,11 +155,24 @@ class NetworkEndpoints:
                 networkId=network_id,
             )
             validated = validate_response(res)
-            return cast(list[dict[str, Any]], validated) if isinstance(validated, list) else []
+
+            # Robust extraction logic (Unified deep-search)
+            if isinstance(validated, list):
+                return cast(list[dict[str, Any]], validated)
+            
+            if isinstance(validated, dict):
+                # Fallback: Deep-search dictionary values for a list
+                for value in validated.values():
+                    if isinstance(value, list):
+                        return cast(list[dict[str, Any]], value)
+                return [validated]
+
+            return []
             
         except (meraki.APIError, MerakiVlansDisabledError, AttributeError) as e:
             # Handle specific 400 error indicating VLANs are disabled
-            if "vlans are not enabled" in str(e).lower():
+            error_str = str(e).lower()
+            if "vlans are not enabled" in error_str or "vlan is not enabled" in error_str:
                 _LOGGER.info("VLANs disabled for network %s (Status 400)", network_id)
             else:
                 _LOGGER.debug("VLAN fetch error for %s: %s", network_id, e)
@@ -175,7 +187,7 @@ class NetworkEndpoints:
             networkId=network_id,
         )
         validated = validate_response(policies)
-        return validated if isinstance(validated, list) else []
+        return cast(list[dict[str, Any]], validated) if isinstance(validated, list) else []
 
     @handle_meraki_errors
     async def get_network_events(self, network_id: str, **kwargs) -> dict[str, Any]:
