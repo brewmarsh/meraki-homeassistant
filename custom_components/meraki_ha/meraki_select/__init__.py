@@ -5,14 +5,12 @@ from __future__ import annotations
 import logging
 from typing import Any
 
+from homeassistant.components.select import SelectEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from ..const import DOMAIN
-from ..const_conf import CONF_ENABLE_VPN_MANAGEMENT
-from .meraki_content_filtering import MerakiContentFilteringSelect
-from .vpn import MerakiVpnSelect
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -23,29 +21,19 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up the Meraki select entities."""
+    if config_entry.entry_id not in hass.data[DOMAIN]:
+        return
+
     entry_data = hass.data[DOMAIN][config_entry.entry_id]
-    coordinator = entry_data["coordinator"]
-    meraki_client = coordinator.api
+    discovery_service = entry_data["discovery_service"]
 
-    if coordinator.data:
-        select_entities: list[Any] = []
-        for network in coordinator.data.get("networks", []):
-            select_entities.append(
-                MerakiContentFilteringSelect(
-                    coordinator,
-                    meraki_client,
-                    config_entry,
-                    network,
-                )
-            )
-            if config_entry.options.get(CONF_ENABLE_VPN_MANAGEMENT):
-                select_entities.append(
-                    MerakiVpnSelect(
-                        coordinator,
-                        meraki_client,
-                        config_entry,
-                        network,
-                    )
-                )
+    # Entities have already been discovered in __init__.py
+    select_entities = [
+        entity
+        for entity in discovery_service.all_entities
+        if isinstance(entity, SelectEntity)
+    ]
 
+    if select_entities:
+        _LOGGER.debug("Adding %d select entities", len(select_entities))
         async_add_entities(select_entities)
