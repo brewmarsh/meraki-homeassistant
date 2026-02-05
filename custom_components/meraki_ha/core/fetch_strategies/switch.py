@@ -16,22 +16,24 @@ class SwitchFetchStrategy(BaseFetchStrategy):
         self,
         device: MerakiDevice,
         tasks: dict[str, Any],
+        capabilities: list[str],
     ) -> None:
         """Add switch specific device tasks."""
-        tasks[f"ports_statuses_{device.serial}"] = self.client.run_with_semaphore(
-            self.client.switch.get_device_switch_ports_statuses(device.serial),
-        )
+        if "switch_ports" in capabilities:
+            tasks[f"ports_statuses_{device.serial}"] = self.client.run_with_semaphore(
+                self.client.switch.get_device_switch_ports_statuses(device.serial),
+            )
 
     def process_device_details(
         self,
         device: MerakiDevice,
         detail_data: dict[str, Any],
-        prev_device: dict[str, Any] | None,
+        prev_device: MerakiDevice | None,
     ) -> None:
         """Process switch details."""
         statuses_key = f"ports_statuses_{device.serial}"
         statuses = detail_data.get(statuses_key)
         if isinstance(statuses, list):
             device.ports_statuses = statuses
-        elif prev_device and "ports_statuses" in prev_device:
-            device.ports_statuses = prev_device["ports_statuses"]
+        elif prev_device and hasattr(prev_device, "ports_statuses"):
+            device.ports_statuses = prev_device.ports_statuses

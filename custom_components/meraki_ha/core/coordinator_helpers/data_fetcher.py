@@ -11,8 +11,10 @@ import asyncio
 import logging
 from typing import TYPE_CHECKING, Any, cast
 
+from ...core.const import DEFAULT_CAPS, DEVICE_CAPABILITIES
 from ...core.fetch_strategies.appliance import ApplianceFetchStrategy
 from ...core.fetch_strategies.camera import CameraFetchStrategy
+from ...core.fetch_strategies.sensor import SensorFetchStrategy
 from ...core.fetch_strategies.switch import SwitchFetchStrategy
 from ...core.fetch_strategies.wireless import WirelessFetchStrategy
 from ...core.models.device import MerakiDevice
@@ -58,6 +60,7 @@ class DataFetchManager:
         self.wireless_strategy = WirelessFetchStrategy(client, self._disabled_features)
         self.switch_strategy = SwitchFetchStrategy(client, self._disabled_features)
         self.camera_strategy = CameraFetchStrategy(client, self._disabled_features)
+        self.sensor_strategy = SensorFetchStrategy(client, self._disabled_features)
 
     async def _async_gather_with_timeout(
         self,
@@ -128,15 +131,31 @@ class DataFetchManager:
             if "appliance" in p_types:
                 self.appliance_strategy.build_network_tasks(net_id, detail_tasks)
 
-        for device in devices:
-            if device.product_type == "camera":
-                self.camera_strategy.build_device_tasks(device, detail_tasks)
-            elif device.product_type == "switch":
-                self.switch_strategy.build_device_tasks(device, detail_tasks)
-            elif device.product_type == "appliance":
-                self.appliance_strategy.build_device_tasks(device, detail_tasks)
+        self._build_device_detail_tasks(devices, detail_tasks)
 
         return detail_tasks
+
+    def _build_device_detail_tasks(
+        self,
+        devices: list[MerakiDevice],
+        tasks: dict[str, Any],
+    ) -> None:
+        """Add per-device detail tasks based on capabilities."""
+        for device in devices:
+            # ### Lookup Logic
+            # Get capabilities for the device model to determine which tasks to add.
+            capabilities = DEVICE_CAPABILITIES.get(device.model or "", DEFAULT_CAPS)
+
+            # ### Task Creation Logic
+            # Use specific strategies to add tasks only for supported capabilities.
+            if device.product_type == "camera":
+                self.camera_strategy.build_device_tasks(device, tasks, capabilities)
+            elif device.product_type == "switch":
+                self.switch_strategy.build_device_tasks(device, tasks, capabilities)
+            elif device.product_type == "appliance":
+                self.appliance_strategy.build_device_tasks(device, tasks, capabilities)
+            elif device.product_type == "sensor":
+                self.sensor_strategy.build_device_tasks(device, tasks, capabilities)
 
     def _process_detailed_data(
         self,
@@ -171,7 +190,7 @@ class DataFetchManager:
             )
 
         previous_devices_by_serial = {
-            d["serial"]: d for d in previous_data.get("devices", []) if "serial" in d
+            d.serial: d for d in previous_data.get("devices", []) if hasattr(d, "serial")
         }
 
         for device in devices:
@@ -187,6 +206,8 @@ class DataFetchManager:
                 self.appliance_strategy.process_device_details(
                     device, detail_data, prev
                 )
+            elif device.product_type == "sensor":
+                self.sensor_strategy.process_device_details(device, detail_data, prev)
 
         return processed_data
 
