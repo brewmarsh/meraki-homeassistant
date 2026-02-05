@@ -31,7 +31,10 @@ from .const_conf import (
 from .core.api.client import MerakiAPIClient as ApiClient
 from .core.coordinator_helpers.data_fetcher import DataFetchManager
 from .core.helpers import filter_ignored_networks, process_coordinator_data
-from .core.helpers.device_registry import async_ensure_network_devices_exist
+from .core.helpers.device_registry import (
+    async_ensure_network_devices_exist,
+    async_ensure_ssid_devices_exist,
+)
 from .core.managers import PendingUpdateManager, PollingManager
 from .core.models.device import MerakiDevice
 from .core.models.network import MerakiNetwork
@@ -201,6 +204,12 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             async_ensure_network_devices_exist(
                 self.hass, self.config_entry, data.get("networks", [])
             )
+
+            # Ensure SSID devices exist
+            if "ssids" in data:
+                async_ensure_ssid_devices_exist(
+                    self.hass, self.config_entry, data["ssids"]
+                )
 
             # --- LOGIC FROM REFACTOR BRANCH ---
             # Update success history and consecutive successes via PollingManager

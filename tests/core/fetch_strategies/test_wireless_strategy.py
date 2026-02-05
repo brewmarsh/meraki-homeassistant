@@ -57,7 +57,7 @@ def test_process_network_data(mock_parse, strategy):
     processed_data = {}
 
     mock_parse.return_value = {
-        "ssids": [{"name": "SSID1"}],
+        "ssids": [{"name": "SSID1", "number": 0}],
         "wireless_settings": {"setting1": "val1"},
         "rf_profiles": {"profile1": "data1"},
     }
@@ -66,6 +66,6 @@ def test_process_network_data(mock_parse, strategy):
         network_id, detail_data, previous_data, processed_data
     )
 
-    assert processed_data["ssids"] == [{"name": "SSID1"}]
+    assert processed_data["ssids"] == [{"name": "SSID1", "number": 0}]
     assert processed_data["wireless_settings"] == {"setting1": "val1"}
     assert processed_data["rf_profiles"] == {"profile1": "data1"}

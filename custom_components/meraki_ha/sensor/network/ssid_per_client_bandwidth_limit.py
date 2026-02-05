@@ -32,6 +32,6 @@ class MerakiSSIDPerClientBandwidthLimitSensor(MerakiSSIDBaseSensor):
         self._attr_name = f"Per-client bandwidth limit {direction}"
         self._attr_native_value = self._ssid_data_at_init.get(attribute)
         self._attr_unique_id = (
-            f"ssid-{self._network_id}-{self._ssid_number}-"
-            f"per-client-bandwidth-limit-{direction}"
+            f"{self._network_id}ssid{self._ssid_number}_"
+            f"per_client_bandwidth_limit_{direction}"
         )

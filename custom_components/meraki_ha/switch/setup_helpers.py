@@ -169,7 +169,7 @@ def _setup_ssid_switches(
             continue
 
         # Enabled Switch
-        unique_id = f"ssid-{ssid['networkId']}-{ssid_number}-enabled-switch"
+        unique_id = f"{ssid['networkId']}ssid{ssid_number}_enabled_switch"
         if unique_id not in added_entities:
             entities.append(
                 MerakiSSIDEnabledSwitch(
@@ -182,7 +182,7 @@ def _setup_ssid_switches(
             added_entities.add(unique_id)
 
         # Broadcast Switch
-        unique_id = f"ssid-{ssid['networkId']}-{ssid_number}-broadcast-switch"
+        unique_id = f"{ssid['networkId']}ssid{ssid_number}_broadcast_switch"
         if unique_id not in added_entities:
             entities.append(
                 MerakiSSIDBroadcastSwitch(
