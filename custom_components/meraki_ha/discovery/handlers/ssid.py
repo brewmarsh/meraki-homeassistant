@@ -69,6 +69,7 @@ class SSIDHandler(BaseHandler):
 
     async def discover_entities(self) -> AsyncIterator[Entity]:
         """Discover entities for all SSIDs."""
+        from ...meraki_select.rf_profile import MerakiRFProfileSelect
         from ...switch.meraki_ssid_device_switch import (
             MerakiSSIDBroadcastSwitch,
             MerakiSSIDEnabledSwitch,
@@ -173,3 +174,11 @@ class SSIDHandler(BaseHandler):
                     self._config_entry,
                     ssid,
                 )
+
+            # RF Profile Select
+            yield MerakiRFProfileSelect(
+                self._coordinator,
+                self._meraki_client,
+                self._config_entry,
+                ssid,
+            )
