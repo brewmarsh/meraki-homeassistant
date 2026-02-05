@@ -48,14 +48,14 @@ class MerakiSSIDNameText(CoordinatorEntity[MerakiDataUpdateCoordinator], TextEnt
 
         # EntityDescription can be used for name, icon etc.
         self.entity_description = TextEntityDescription(
-            key=f"ssid-{self._network_id}-{self._ssid_number}_ssid_name",
+            key=f"{self._network_id}ssid{self._ssid_number}_ssid_name",
             name="SSID Name",
             icon="mdi:form-textbox",
             native_min=1,
             native_max=32,
         )
 
-        self._attr_unique_id = f"ssid-{self._network_id}-{self._ssid_number}_name_text"
+        self._attr_unique_id = f"{self._network_id}ssid{self._ssid_number}_name_text"
 
         # Set initial state
         self._update_internal_state()

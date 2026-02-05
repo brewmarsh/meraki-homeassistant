@@ -34,7 +34,7 @@ class MerakiSSIDBaseSensor(CoordinatorEntity, SensorEntity):
         self._network_id = ssid_data.get("networkId")
         self._ssid_number = ssid_data.get("number")
         self._attr_unique_id = (
-            f"ssid-{self._network_id}-{self._ssid_number}-{self._attribute}"
+            f"{self._network_id}ssid{self._ssid_number}_{self._attribute}"
         )
         # Set device_info directly in init
         self._attr_device_info = resolve_device_info(

@@ -42,14 +42,12 @@ class MerakiRFProfileSelect(CoordinatorEntity, SelectEntity):
         self._ssid_name = ssid_data.get("name", f"SSID {self._ssid_number}")
 
         self.entity_description = SelectEntityDescription(
-            key=f"rf_profile_{self._network_id}_{self._ssid_number}",
+            key=f"{self._network_id}ssid{self._ssid_number}_rf_profile",
             name="RF Profile",
             icon="mdi:wifi-cog",
         )
 
-        self._attr_unique_id = (
-            f"meraki-ssid-{self._network_id}-{self._ssid_number}-rf-profile"
-        )
+        self._attr_unique_id = f"{self._network_id}ssid{self._ssid_number}_rf_profile"
         self._attr_options = []
         self._update_internal_state()
 

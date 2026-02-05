@@ -33,7 +33,7 @@ class MerakiAdultContentFilteringSwitch(MerakiEntity, SwitchEntity):
         self._client = coordinator.api
 
         self.entity_description = SwitchEntityDescription(
-            key=f"adult_content_filtering_{ssid['networkId']}_{ssid['number']}",
+            key=f"{ssid['networkId']}ssid{ssid['number']}_adult_content_filtering",
             name=f"Adult Content Filtering on {ssid['name']}",
         )
 
@@ -41,8 +41,7 @@ class MerakiAdultContentFilteringSwitch(MerakiEntity, SwitchEntity):
     def unique_id(self) -> str:
         """Return a unique ID."""
         return (
-            f"meraki-adult-content-filtering-{self._ssid['networkId']}-"
-            f"{self._ssid['number']}"
+            f"{self._ssid['networkId']}ssid{self._ssid['number']}_adult_content_filtering"
         )
 
     @property

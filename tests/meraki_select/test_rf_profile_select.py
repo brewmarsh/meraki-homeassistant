@@ -99,7 +99,7 @@ async def test_rf_profile_select_entity(
         # Find the entity by searching the registry
         entity_registry = er.async_get(hass)
         entity_id = entity_registry.async_get_entity_id(
-            "select", DOMAIN, f"meraki-ssid-{MOCK_NETWORK.id}-1-rf-profile"
+            "select", DOMAIN, f"{MOCK_NETWORK.id}ssid1_rf_profile"
         )
 
         assert entity_id is not None
