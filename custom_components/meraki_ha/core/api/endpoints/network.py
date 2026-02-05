@@ -354,6 +354,15 @@ class NetworkEndpoints:
             A list of VLANs.
 
         """
+        # Safe Attribute Invocation: Check if the appliance module and method exist
+        if not hasattr(self._api_client.dashboard, "appliance") or not hasattr(
+            self._api_client.dashboard.appliance, "getNetworkApplianceVlans"
+        ):
+            _LOGGER.debug(
+                "Appliance VLAN method not available in SDK for network %s", network_id
+            )
+            return []
+
         try:
             # First try the appliance-level call
             res = await self._api_client.run_sync(
@@ -375,12 +384,22 @@ class NetworkEndpoints:
             ):
                 _LOGGER.info(
                     "VLANs not enabled on appliance level for network %s, "
-                    "falling back to generic network VLANs",
+                    "falling back to appliance VLANs with safety check",
                     network_id,
                 )
                 try:
+                    # Replacing invalid networks.getNetworkVlans with appliance.getNetworkApplianceVlans
+                    # using getattr for a second layer of safety
+                    vlan_method = getattr(
+                        self._api_client.dashboard.appliance,
+                        "getNetworkApplianceVlans",
+                        None,
+                    )
+                    if not vlan_method:
+                        return []
+
                     res = await self._api_client.run_sync(
-                        self._api_client.dashboard.networks.getNetworkVlans,
+                        vlan_method,
                         networkId=network_id,
                     )
                     validated = validate_response(res)
@@ -388,21 +407,21 @@ class NetworkEndpoints:
                         return cast(list[dict[str, Any]], validated)
                     if isinstance(validated, dict):
                         # Handle cases where generic response might be a dict
-                        # The parser will handle this, but here we want to
-                        # return a list if possible
                         for value in validated.values():
                             if isinstance(value, list):
                                 return cast(list[dict[str, Any]], value)
                         return [validated]
                     return []
-                except Exception as fallback_err:
-                    _LOGGER.error(
+                except (meraki.APIError, Exception) as fallback_err:
+                    _LOGGER.debug(
                         "Fallback VLAN call failed for network %s: %s",
                         network_id,
                         fallback_err,
                     )
                     return []
-            raise
+            # Return empty list on failure instead of raising
+            _LOGGER.debug("Failed to get VLAN data for network %s: %s", network_id, e)
+            return []
 
     async def get_network_events(
         self,
