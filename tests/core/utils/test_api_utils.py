@@ -1,7 +1,10 @@
 """Tests for the API utils."""
 
+from unittest.mock import AsyncMock, call, patch
+
 import pytest
 from aiohttp import ClientError
+from homeassistant.helpers.update_coordinator import UpdateFailed
 from meraki.exceptions import APIError
 
 from custom_components.meraki_ha.core.errors import (
@@ -25,11 +28,12 @@ async def dummy_api_call():
 class MockResponse:
     """Mock response for APIError."""
 
-    def __init__(self, status_code, reason, json_data):
+    def __init__(self, status_code, reason, json_data, headers=None):
         """Initialize the mock response."""
         self.status_code = status_code
         self.reason = reason
         self._json_data = json_data
+        self.headers = headers or {}
 
     def json(self):
         """Return the json data."""
@@ -132,3 +136,78 @@ def test_validate_response():
     assert validate_response(123) == {"value": 123}
     assert validate_response(1.23) == {"value": 1.23}
     assert validate_response(True) == {"value": True}
+
+
+@pytest.mark.asyncio
+async def test_handle_meraki_errors_rate_limit_backoff():
+    """Test the handle_meraki_errors decorator with rate limit backoff."""
+    call_count = 0
+
+    @handle_meraki_errors
+    async def dummy_api_call_varying_responses():
+        nonlocal call_count
+        call_count += 1
+        if call_count == 1:
+            raise APIError(
+                {"tags": ["test"], "operation": "test"},
+                MockResponse(
+                    429, "Too Many Requests", {"errors": ["rate limit exceeded"]}
+                ),
+            )
+        return {"status": "ok"}
+
+    with patch("asyncio.sleep", new_callable=AsyncMock) as mock_sleep:
+        result = await dummy_api_call_varying_responses()
+        assert result == {"status": "ok"}
+        assert call_count == 2
+        mock_sleep.assert_awaited_once_with(2)
+
+
+@pytest.mark.asyncio
+async def test_handle_meraki_errors_rate_limit_retry_after():
+    """Test the handle_meraki_errors decorator with Retry-After header."""
+    call_count = 0
+
+    @handle_meraki_errors
+    async def dummy_api_call_retry_after():
+        nonlocal call_count
+        call_count += 1
+        if call_count == 1:
+            raise APIError(
+                {"tags": ["test"], "operation": "test"},
+                MockResponse(
+                    429,
+                    "Too Many Requests",
+                    {"errors": ["rate limit exceeded"]},
+                    headers={"Retry-After": "10"},
+                ),
+            )
+        return {"status": "ok"}
+
+    with patch("asyncio.sleep", new_callable=AsyncMock) as mock_sleep:
+        result = await dummy_api_call_retry_after()
+        assert result == {"status": "ok"}
+        assert call_count == 2
+        mock_sleep.assert_awaited_once_with(10.0)
+
+
+@pytest.mark.asyncio
+async def test_handle_meraki_errors_rate_limit_max_retries():
+    """Test the handle_meraki_errors decorator with max retries reached."""
+
+    @handle_meraki_errors
+    async def dummy_api_call_always_429():
+        raise APIError(
+            {"tags": ["test"], "operation": "test"},
+            MockResponse(429, "Too Many Requests", {"errors": ["rate limit exceeded"]}),
+        )
+
+    with patch("asyncio.sleep", new_callable=AsyncMock) as mock_sleep:
+        with pytest.raises(UpdateFailed) as excinfo:
+            await dummy_api_call_always_429()
+
+        assert "429 Too Many Requests after 3 retries" in str(excinfo.value)
+        assert mock_sleep.call_count == 3
+        # Exponential delays: 2, 4, 8
+        expected_calls = [call(2), call(4), call(8)]
+        mock_sleep.assert_has_awaits(expected_calls)
