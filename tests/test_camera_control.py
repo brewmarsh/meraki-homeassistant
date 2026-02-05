@@ -8,7 +8,7 @@ from unittest.mock import AsyncMock, MagicMock
 import pytest
 from homeassistant.core import HomeAssistant
 
-from custom_components.meraki_ha.camera import MerakiCamera
+from custom_components.meraki_ha.camera import MerakiRTSPStreamCamera
 from tests.const import MOCK_DEVICE
 
 
@@ -69,11 +69,11 @@ async def test_camera_turn_on_optimistic_update(
     """
     # Arrange
     device_data = mock_coordinator.data["devices"][0]
-    camera = MerakiCamera(
+    camera = MerakiRTSPStreamCamera(
         mock_coordinator,
-        mock_config_entry,
         device_data,
         mock_camera_service,
+        mock_config_entry,
     )
     camera.hass = hass
     camera.entity_id = "camera.test_camera"
@@ -118,11 +118,11 @@ async def test_camera_turn_off_optimistic_update(
     device_data.video_settings["rtspServerEnabled"] = True
     device_data.video_settings["rtspUrl"] = "rtsp://192.168.1.100:9000/live"
 
-    camera = MerakiCamera(
+    camera = MerakiRTSPStreamCamera(
         mock_coordinator,
-        mock_config_entry,
         device_data,
         mock_camera_service,
+        mock_config_entry,
     )
     camera.hass = hass
     camera.entity_id = "camera.test_camera"
