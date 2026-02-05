@@ -1,4 +1,3 @@
-
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
@@ -95,6 +94,7 @@ async def test_dfm_batch_analytics_modulo():
     # Poll 1
     dfm.camera_strategy.increment_poll_count()
     # We need to mock _async_gather_with_timeout because it tries to await tasks
+    # Using the 'chore' branch approach here as it correctly closes coroutines
     dfm._async_gather_with_timeout = AsyncMock(side_effect=mock_gather_timeout)
     await dfm._fetch_batch_camera_analytics(devices)
     assert dfm._async_gather_with_timeout.called
