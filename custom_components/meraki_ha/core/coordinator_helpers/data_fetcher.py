@@ -247,11 +247,11 @@ class DataFetchManager:
             # Combined Logic: Pass BOTH detail_data (for bulk data) AND capabilities (for guarding)
             if device.product_type == "camera":
                 self.camera_strategy.build_device_tasks(
-                    device, tasks, capabilities
+                    device, tasks, capabilities, detail_data
                 )
             elif device.product_type == "switch":
                 self.switch_strategy.build_device_tasks(
-                    device, tasks, capabilities
+                    device, tasks, capabilities, detail_data
                 )
             elif device.product_type == "appliance":
                 self.appliance_strategy.build_device_tasks(device, tasks, capabilities)

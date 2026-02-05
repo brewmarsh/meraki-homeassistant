@@ -109,7 +109,7 @@ def test_build_device_tasks(strategy):
     mock_device.network_id = "NET1"
     tasks = {}
 
-    strategy.build_device_tasks(mock_device, tasks)
+    strategy.build_device_tasks(mock_device, tasks, capabilities=[])
 
     assert f"appliance_settings_{mock_device.serial}" in tasks
 

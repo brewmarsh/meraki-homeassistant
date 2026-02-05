@@ -20,14 +20,14 @@ async def test_camera_modulo_fetch():
     strategy.increment_poll_count()
     assert strategy.should_fetch_sense is True
     tasks = {}
-    strategy.build_device_tasks(device, tasks)
+    strategy.build_device_tasks(device, tasks, capabilities=["camera_stream", "analytics"])
     assert f"sense_settings_{device.serial}" in tasks
 
     # Poll 2
     strategy.increment_poll_count()
     assert strategy.should_fetch_sense is False
     tasks = {}
-    strategy.build_device_tasks(device, tasks)
+    strategy.build_device_tasks(device, tasks, capabilities=["camera_stream", "analytics"])
     assert f"sense_settings_{device.serial}" not in tasks
 
     # Poll 3, 4, 5
@@ -40,7 +40,7 @@ async def test_camera_modulo_fetch():
     strategy.increment_poll_count()
     assert strategy.should_fetch_sense is True
     tasks = {}
-    strategy.build_device_tasks(device, tasks)
+    strategy.build_device_tasks(device, tasks, capabilities=["camera_stream", "analytics"])
     assert f"sense_settings_{device.serial}" in tasks
 
 @pytest.mark.asyncio
@@ -55,7 +55,7 @@ async def test_camera_sense_disabled():
     strategy.increment_poll_count()
     assert strategy.should_fetch_sense is False
     tasks = {}
-    strategy.build_device_tasks(device, tasks)
+    strategy.build_device_tasks(device, tasks, capabilities=["camera_stream", "analytics"])
     assert f"sense_settings_{device.serial}" not in tasks
 
 @pytest.mark.asyncio
