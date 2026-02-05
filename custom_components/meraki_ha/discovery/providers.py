@@ -35,13 +35,13 @@ from ..descriptions import (
 )
 from ..sensor.device.appliance_port import MerakiAppliancePortSensor
 from ..sensor.device.appliance_uplink import MerakiApplianceUplinkSensor
-from ..sensor.uplink_performance import MerakiUplinkPerformanceSensor
 from ..sensor.device.camera_analytics import (
     MerakiPersonCountSensor,
     MerakiVehicleCountSensor,
 )
 from ..sensor.device.meraki_mt_base import MerakiMtSensor
 from ..sensor.device.rtsp_url import MerakiRtspUrlSensor
+from ..sensor.uplink_performance import MerakiUplinkPerformanceSensor
 from ..switch.camera_controls import AnalyticsSwitch
 
 if TYPE_CHECKING:

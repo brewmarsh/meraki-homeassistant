@@ -44,7 +44,7 @@ class SensorFetchStrategy(BaseFetchStrategy):
     ) -> None:
         """Process sensor details."""
         rel_key = f"sensor_relationships_{device.serial}"
-        
+
         # Defensive: Use assignment expression and type check
         if relationships := detail_data.get(rel_key):
             if isinstance(relationships, list):
