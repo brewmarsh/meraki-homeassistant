@@ -72,7 +72,7 @@ async def test_consolidation_switch_ports(data_fetch_manager, mock_client):
     # Ensure build_device_tasks was called with the batch data
     strategy_spy.assert_called()
     call_args = strategy_spy.call_args
-    assert f"ports_statuses_{switch_serial}" in call_args[0][2]  # detail_data parameter
+    assert f"ports_statuses_{switch_serial}" in call_args[0][3]  # detail_data parameter
 
     # Ensure the device has the ports statuses
     assert result["devices"][0].ports_statuses == switch_ports
@@ -120,7 +120,7 @@ async def test_consolidation_camera_analytics(data_fetch_manager, mock_client):
     # 3. Assertions
     strategy_spy.assert_called()
     call_args = strategy_spy.call_args
-    assert f"camera_analytics_{camera_serial}" in call_args[0][2]
+    assert f"camera_analytics_{camera_serial}" in call_args[0][3]
     assert result["devices"][0].analytics == camera_analytics
 
 

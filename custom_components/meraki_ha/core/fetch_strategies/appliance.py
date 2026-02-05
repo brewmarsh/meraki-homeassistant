@@ -79,6 +79,7 @@ class ApplianceFetchStrategy(BaseFetchStrategy):
         device: MerakiDevice,
         tasks: dict[str, Any],
         capabilities: list[str],
+        detail_data: dict[str, Any] | None = None,
     ) -> None:
         """Add appliance specific device tasks."""
         if device.network_id:
