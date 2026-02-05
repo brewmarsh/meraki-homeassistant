@@ -69,17 +69,26 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             api_key=entry.data[CONF_MERAKI_API_KEY],
             org_id=entry.data[CONF_MERAKI_ORG_ID],
         )
+        # Feature flags can be in either options (user-controlled)
+        # or data (initial setup)
+        enable_vpn = entry.options.get(
+            CONF_ENABLE_VPN_MANAGEMENT,
+            entry.data.get(CONF_ENABLE_VPN_MANAGEMENT, DEFAULT_ENABLE_VPN_MANAGEMENT),
+        )
+        enable_firewall = entry.options.get(
+            CONF_ENABLE_FIREWALL_RULES,
+            entry.data.get(CONF_ENABLE_FIREWALL_RULES, DEFAULT_ENABLE_FIREWALL_RULES),
+        )
+        enable_traffic = entry.options.get(
+            CONF_ENABLE_TRAFFIC_SHAPING,
+            entry.data.get(CONF_ENABLE_TRAFFIC_SHAPING, DEFAULT_ENABLE_TRAFFIC_SHAPING),
+        )
+
         self.data_fetch_manager = DataFetchManager(
             client=self.api,
-            enable_vpn_management=entry.options.get(
-                CONF_ENABLE_VPN_MANAGEMENT, DEFAULT_ENABLE_VPN_MANAGEMENT
-            ),
-            enable_firewall_rules=entry.options.get(
-                CONF_ENABLE_FIREWALL_RULES, DEFAULT_ENABLE_FIREWALL_RULES
-            ),
-            enable_traffic_shaping=entry.options.get(
-                CONF_ENABLE_TRAFFIC_SHAPING, DEFAULT_ENABLE_TRAFFIC_SHAPING
-            ),
+            enable_vpn_management=enable_vpn,
+            enable_firewall_rules=enable_firewall,
+            enable_traffic_shaping=enable_traffic,
         )
         self.devices_by_serial: dict[str, MerakiDevice] = {}
         self.networks_by_id: dict[str, MerakiNetwork] = {}

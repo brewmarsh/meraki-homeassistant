@@ -62,16 +62,6 @@ class MerakiAuthentication:
             )
         return client
 
-    def _find_organization(self, organizations: list[dict[str, Any]]) -> str | None:
-        """Find the organization by ID and return its name."""
-        if not organizations:
-            return None
-
-        for org in organizations:
-            if org.get("id") == self.organization_id:
-                return org.get("name")
-        return None
-
     def _handle_sdk_error(self, error: MerakiSDKAPIError) -> NoReturn:
         """Handle Meraki SDK API errors by mapping them to HA exceptions."""
         if error.status == 401:
@@ -101,8 +91,8 @@ class MerakiAuthentication:
         """
         Validate Meraki API credentials using the Meraki SDK.
 
-        Makes a request to the Meraki API to fetch organizations and checks
-        if the provided organization ID is present in the response.
+        Makes a request to the Meraki API to fetch organization details and
+        checks if the provided API key has access to it.
 
         Returns
         -------
@@ -118,15 +108,13 @@ class MerakiAuthentication:
         client = await self._async_get_authenticated_client()
 
         try:
-            all_organizations: list[
-                dict[str, Any]
-            ] = await client.organization.get_organizations()
+            organization: dict[str, Any] = await client.organization.get_organization()
 
-            fetched_org_name = self._find_organization(all_organizations)
+            fetched_org_name = organization.get("name")
 
-            if fetched_org_name is None:
+            if not fetched_org_name:
                 _LOGGER.warning(
-                    "Organization ID %s not found in accessible organizations.",
+                    "Organization ID %s details could not be retrieved.",
                     self.organization_id,
                 )
                 raise InvalidOrgID(
@@ -145,6 +133,11 @@ class MerakiAuthentication:
             raise ConfigEntryAuthFailed(f"Authentication failed: {e}") from e
         except MerakiConnectionError as e:
             _LOGGER.error("Connection error: %s", e)
+            # If it's a 404 error, map it to InvalidOrgID
+            if "404" in str(e) or "not found" in str(e).lower():
+                raise InvalidOrgID(
+                    f"Organization ID {self.organization_id} not found.",
+                ) from e
             raise MerakiConnectionError(f"Connection error: {e}") from e
         except MerakiSDKAPIError as e:
             self._handle_sdk_error(e)
