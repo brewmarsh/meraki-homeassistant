@@ -11,7 +11,7 @@ from custom_components.meraki_ha.core.models.device import MerakiDevice
 
 @pytest.mark.asyncio
 async def test_camera_modulo_fetch():
-    """Test camera modulo fetch logic."""
+    """Test that camera sense data is fetched only on every 5th poll."""
     client = MagicMock()
     # Mock run_with_semaphore to just return the coro
     client.run_with_semaphore.side_effect = lambda x: x
@@ -40,9 +40,9 @@ async def test_camera_modulo_fetch():
     assert f"sense_settings_{device.serial}" not in tasks
 
     # Poll 3, 4, 5
-    strategy.increment_poll_count() # 3
-    strategy.increment_poll_count() # 4
-    strategy.increment_poll_count() # 5
+    strategy.increment_poll_count()  # 3
+    strategy.increment_poll_count()  # 4
+    strategy.increment_poll_count()  # 5
     assert strategy.should_fetch_sense is False
 
     # Poll 6
@@ -54,9 +54,10 @@ async def test_camera_modulo_fetch():
     )
     assert f"sense_settings_{device.serial}" in tasks
 
+
 @pytest.mark.asyncio
 async def test_camera_sense_disabled():
-    """Test camera sense disabled logic."""
+    """Test that camera sense data is never fetched when disabled."""
     client = MagicMock()
     # Strategy with sense disabled
     strategy = CameraFetchStrategy(client, set(), enable_camera_sense=False)
@@ -72,17 +73,18 @@ async def test_camera_sense_disabled():
     )
     assert f"sense_settings_{device.serial}" not in tasks
 
+
 @pytest.mark.asyncio
 async def test_dfm_batch_analytics_modulo():
-    """Test DataFetchManager batch analytics modulo logic."""
+    """Test that batch analytics fetching respects the modulo logic."""
     client = MagicMock()
     client._disabled_features = set()
     dfm = DataFetchManager(client, enable_camera_sense=True)
 
     devices = [MerakiDevice(serial="Q123", product_type="camera")]
 
-    # Mock the API call - returns a coroutine
-    client.camera.get_device_camera_analytics_recent = AsyncMock()
+    # Mock the API call
+    client.camera.get_device_camera_analytics_recent = AsyncMock(return_value={})
     client.run_with_semaphore.side_effect = lambda x: x
 
     async def mock_gather_timeout(tasks, **kwargs):
@@ -94,7 +96,7 @@ async def test_dfm_batch_analytics_modulo():
     # Poll 1
     dfm.camera_strategy.increment_poll_count()
     # We need to mock _async_gather_with_timeout because it tries to await tasks
-    # Using the 'chore' branch approach here as it correctly closes coroutines
+    # Using the 'beta' branch approach here as it correctly closes coroutines
     dfm._async_gather_with_timeout = AsyncMock(side_effect=mock_gather_timeout)
     await dfm._fetch_batch_camera_analytics(devices)
     assert dfm._async_gather_with_timeout.called

@@ -4,11 +4,11 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
-if TYPE_CHECKING:
-    from ...core.api.client import MerakiAPIClient
-
 from ...core.models.device import MerakiDevice
 from .base import BaseFetchStrategy
+
+if TYPE_CHECKING:
+    from ...core.api.client import MerakiAPIClient
 
 
 class CameraFetchStrategy(BaseFetchStrategy):
