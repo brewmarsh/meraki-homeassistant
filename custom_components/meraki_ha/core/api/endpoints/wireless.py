@@ -205,7 +205,7 @@ class WirelessEndpoints:
         self,
         network_id: str,
         product_types: list[str],
-    ) -> dict[str, asyncio.Task[Any]]:
+    ) -> dict[str, Any]:
         """
         Get tasks to fetch detailed data for a network.
 
@@ -219,17 +219,13 @@ class WirelessEndpoints:
             A dictionary of tasks.
 
         """
-        tasks: dict[str, asyncio.Task[Any]] = {}
+        tasks: dict[str, Any] = {}
         if "wireless" in product_types:
-            tasks[f"ssids_{network_id}"] = asyncio.create_task(
-                self._api_client.run_with_semaphore(
-                    self.get_network_ssids(network_id),
-                ),
+            tasks[f"ssids_{network_id}"] = self._api_client.run_with_semaphore(
+                self.get_network_ssids(network_id),
             )
-            tasks[f"rf_profiles_{network_id}"] = asyncio.create_task(
-                self._api_client.run_with_semaphore(
-                    self.get_network_wireless_rf_profiles(network_id),
-                ),
+            tasks[f"rf_profiles_{network_id}"] = self._api_client.run_with_semaphore(
+                self.get_network_wireless_rf_profiles(network_id),
             )
         return tasks
 

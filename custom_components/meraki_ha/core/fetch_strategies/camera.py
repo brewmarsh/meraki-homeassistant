@@ -15,25 +15,19 @@ class CameraFetchStrategy(BaseFetchStrategy):
     def build_device_tasks(
         self,
         device: MerakiDevice,
-        tasks: dict[str, asyncio.Task[Any]],
+        tasks: dict[str, Any],
     ) -> None:
         """Add camera specific device tasks."""
-        tasks[f"video_settings_{device.serial}"] = asyncio.create_task(
-            self.client.run_with_semaphore(
-                self.client.camera.get_camera_video_settings(device.serial),
-            )
+        tasks[f"video_settings_{device.serial}"] = self.client.run_with_semaphore(
+            self.client.camera.get_camera_video_settings(device.serial),
         )
-        tasks[f"sense_settings_{device.serial}"] = asyncio.create_task(
-            self.client.run_with_semaphore(
-                self.client.camera.get_camera_sense_settings(device.serial),
-            )
+        tasks[f"sense_settings_{device.serial}"] = self.client.run_with_semaphore(
+            self.client.camera.get_camera_sense_settings(device.serial),
         )
-        tasks[f"camera_analytics_{device.serial}"] = asyncio.create_task(
-            self.client.run_with_semaphore(
-                self.client.camera.get_device_camera_analytics_recent(
-                    device.serial,
-                ),
-            )
+        tasks[f"camera_analytics_{device.serial}"] = self.client.run_with_semaphore(
+            self.client.camera.get_device_camera_analytics_recent(
+                device.serial,
+            ),
         )
 
     def process_device_details(
