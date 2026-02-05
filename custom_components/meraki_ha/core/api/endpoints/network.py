@@ -388,8 +388,8 @@ class NetworkEndpoints:
                     network_id,
                 )
                 try:
-                    # Replacing invalid networks.getNetworkVlans with appliance.getNetworkApplianceVlans
-                    # using getattr for a second layer of safety
+                    # Replacing invalid networks.getNetworkVlans with
+                    # appliance.getNetworkApplianceVlans using getattr for safety
                     vlan_method = getattr(
                         self._api_client.dashboard.appliance,
                         "getNetworkApplianceVlans",

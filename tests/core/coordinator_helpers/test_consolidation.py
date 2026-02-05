@@ -1,9 +1,13 @@
 """Tests for the Data Consolidation logic."""
 
 from unittest.mock import AsyncMock, MagicMock, patch
+
 import pytest
-from custom_components.meraki_ha.core.coordinator_helpers.data_fetcher import DataFetchManager
-from custom_components.meraki_ha.core.models.device import MerakiDevice
+
+from custom_components.meraki_ha.core.coordinator_helpers.data_fetcher import (
+    DataFetchManager,
+)
+
 
 @pytest.fixture
 def mock_client():
@@ -12,8 +16,8 @@ def mock_client():
     client._disabled_features = set()
     client.has_dashboard = True
 
-    # Mock run_with_semaphore to return an awaitable that returns its input if it was a coro
-    # or just returns a mock result.
+    # Mock run_with_semaphore to return an awaitable that returns its input
+    # if it was a coro or just returns a mock result.
     async def mock_run(coro_or_val):
         if hasattr(coro_or_val, "__await__"):
             return await coro_or_val
@@ -47,14 +51,21 @@ async def test_consolidation_switch_ports(data_fetch_manager, mock_client):
     }
     data_fetch_manager._async_fetch_initial_data = AsyncMock(return_value=mock_initial)
     data_fetch_manager._fetch_batch_camera_analytics = AsyncMock(return_value={})
-    data_fetch_manager.client_fetcher.async_fetch_network_clients = AsyncMock(return_value=[])
+    data_fetch_manager.client_fetcher.async_fetch_network_clients = AsyncMock(
+        return_value=[]
+    )
 
     # Spy on strategy.build_device_tasks
-    strategy_spy = MagicMock(wraps=data_fetch_manager.switch_strategy.build_device_tasks)
+    strategy_spy = MagicMock(
+        wraps=data_fetch_manager.switch_strategy.build_device_tasks
+    )
     data_fetch_manager.switch_strategy.build_device_tasks = strategy_spy
 
     # 2. Execute get_all_data
-    with patch("custom_components.meraki_ha.core.coordinator_helpers.data_fetcher.parse_network_data", return_value={"appliance_traffic": {}, "vlans": {}}):
+    with patch(
+        "custom_components.meraki_ha.core.coordinator_helpers.data_fetcher.parse_network_data",
+        return_value={"appliance_traffic": {}, "vlans": {}},
+    ):
         result = await data_fetch_manager.get_all_data()
 
     # 3. Assertions
@@ -85,15 +96,24 @@ async def test_consolidation_camera_analytics(data_fetch_manager, mock_client):
 
     # Mock batch analytics fetch
     mock_analytics = {f"camera_analytics_{camera_serial}": camera_analytics}
-    data_fetch_manager._fetch_batch_camera_analytics = AsyncMock(return_value=mock_analytics)
-    data_fetch_manager.client_fetcher.async_fetch_network_clients = AsyncMock(return_value=[])
+    data_fetch_manager._fetch_batch_camera_analytics = AsyncMock(
+        return_value=mock_analytics
+    )
+    data_fetch_manager.client_fetcher.async_fetch_network_clients = AsyncMock(
+        return_value=[]
+    )
 
     # Spy on strategy.build_device_tasks
-    strategy_spy = MagicMock(wraps=data_fetch_manager.camera_strategy.build_device_tasks)
+    strategy_spy = MagicMock(
+        wraps=data_fetch_manager.camera_strategy.build_device_tasks
+    )
     data_fetch_manager.camera_strategy.build_device_tasks = strategy_spy
 
     # 2. Execute
-    with patch("custom_components.meraki_ha.core.coordinator_helpers.data_fetcher.parse_network_data", return_value={"appliance_traffic": {}, "vlans": {}}):
+    with patch(
+        "custom_components.meraki_ha.core.coordinator_helpers.data_fetcher.parse_network_data",
+        return_value={"appliance_traffic": {}, "vlans": {}},
+    ):
         result = await data_fetch_manager.get_all_data()
 
     # 3. Assertions
@@ -124,14 +144,21 @@ async def test_consolidation_clients(data_fetch_manager, mock_client):
     data_fetch_manager._fetch_batch_camera_analytics = AsyncMock(return_value={})
 
     # Mock network client fetch
-    data_fetch_manager.client_fetcher.async_fetch_network_clients = AsyncMock(return_value=mock_clients)
+    data_fetch_manager.client_fetcher.async_fetch_network_clients = AsyncMock(
+        return_value=mock_clients
+    )
 
     # Spy on derive_device_clients
-    derive_spy = MagicMock(wraps=data_fetch_manager.client_fetcher.derive_device_clients)
+    derive_spy = MagicMock(
+        wraps=data_fetch_manager.client_fetcher.derive_device_clients
+    )
     data_fetch_manager.client_fetcher.derive_device_clients = derive_spy
 
     # 2. Execute
-    with patch("custom_components.meraki_ha.core.coordinator_helpers.data_fetcher.parse_network_data", return_value={"appliance_traffic": {}, "vlans": {}}):
+    with patch(
+        "custom_components.meraki_ha.core.coordinator_helpers.data_fetcher.parse_network_data",
+        return_value={"appliance_traffic": {}, "vlans": {}},
+    ):
         result = await data_fetch_manager.get_all_data()
 
     # 3. Assertions
