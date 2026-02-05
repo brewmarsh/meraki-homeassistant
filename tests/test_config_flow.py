@@ -55,21 +55,15 @@ async def test_form(hass: HomeAssistant) -> None:
                 "meraki_org_id": "test-org-id",
             },
         )
-        assert result2["type"] == FlowResultType.FORM
-        assert result2["step_id"] == "init"
-
-        result3 = await hass.config_entries.flow.async_configure(
-            result2["flow_id"],
-            {},
-        )
         await hass.async_block_till_done()
 
-    assert result3["type"] == FlowResultType.CREATE_ENTRY
-    assert result3["title"] == "Test Org"
-    assert result3["data"] == {
+    assert result2["type"] == FlowResultType.CREATE_ENTRY
+    assert result2["title"] == "Test Org"
+    assert result2["data"] == {
         "meraki_api_key": "test-api-key",
         "meraki_org_id": "test-org-id",
-        "org_name": "Test Org",
+        "enable_vpn_management": False,
+        "enable_firewall_rules": False,
     }
     assert len(mock_setup_entry.mock_calls) == 1
 
