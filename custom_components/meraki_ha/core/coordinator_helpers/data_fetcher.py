@@ -29,6 +29,8 @@ if TYPE_CHECKING:
 
 _LOGGER = logging.getLogger(__name__)
 
+BATCH_SIZE = 5
+
 
 class DataFetchManager:
     """Class to manage data fetching for the coordinator."""
@@ -63,24 +65,44 @@ class DataFetchManager:
         self.sensor_strategy = SensorFetchStrategy(client, self._disabled_features)
 
     async def _async_gather_with_timeout(
-        self,
-        tasks: dict[str, Any],
-        timeout: int = 25,
-        label: str = "Tasks"
+        self, tasks: dict[str, Any], timeout: int = 25, label: str = "Tasks"
     ) -> dict[str, Any]:
-        """Gather tasks with a hard timeout to prevent deadlocks."""
+        """Gather tasks with a hard timeout and batching to prevent API overloading."""
         if not tasks:
             return {}
 
-        _LOGGER.debug("Starting %s: %s items", label, len(tasks))
+        _LOGGER.debug(
+            "Starting %s: %s items in batches of %s", label, len(tasks), BATCH_SIZE
+        )
+
+        async def _execute_batches() -> list[Any]:
+            """Inner coroutine to handle chunked execution."""
+            task_items = list(tasks.items())
+            all_results = []
+            for i in range(0, len(task_items), BATCH_SIZE):
+                if i > 0:
+                    _LOGGER.debug("Cooling down for 1s between %s batches...", label)
+                    await asyncio.sleep(1)
+
+                chunk = dict(task_items[i : i + BATCH_SIZE])
+                _LOGGER.debug(
+                    "Executing %s batch: items %d to %d",
+                    label,
+                    i + 1,
+                    min(i + BATCH_SIZE, len(task_items)),
+                )
+                chunk_results = await asyncio.gather(
+                    *chunk.values(), return_exceptions=True
+                )
+                all_results.extend(chunk_results)
+            return all_results
 
         try:
-            results = await asyncio.wait_for(
-                asyncio.gather(*tasks.values(), return_exceptions=True),
-                timeout=timeout,
-            )
+            # Use the batched execution logic (from Beta branch)
+            results = await asyncio.wait_for(_execute_batches(), timeout=timeout)
             
-            # Sanitization Logic: Filter out exceptions to prevent downstream crashes
+            # Sanitization Logic (from Feat branch)
+            # Filter out exceptions to prevent downstream crashes
             sanitized_results = {}
             for key, result in zip(tasks.keys(), results, strict=True):
                 if isinstance(result, Exception):
