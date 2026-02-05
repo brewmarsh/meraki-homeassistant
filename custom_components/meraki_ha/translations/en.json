@@ -203,6 +203,17 @@
       "meraki_ssid_name": {
         "name": "SSID Name"
       }
+    },
+    "select": {
+      "rf_profile": {
+        "name": "RF Profile"
+      },
+      "content_filtering": {
+        "name": "Content Filtering Policy"
+      },
+      "vpn_mode": {
+        "name": "VPN Mode"
+      }
     }
   }
 }

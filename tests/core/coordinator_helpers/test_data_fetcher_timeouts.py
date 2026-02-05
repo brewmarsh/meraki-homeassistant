@@ -39,7 +39,7 @@ async def test_fetch_initial_data_timeout(data_fetch_manager, mock_client):
             with pytest.raises(asyncio.TimeoutError):
                 await data_fetch_manager._async_fetch_initial_data()
             mock_log_error.assert_called_with(
-                "Timeout during %s. Potential semaphore deadlock.", "Initial Batch"
+                    "Timeout during %s. Potential semaphore deadlock.", "Initial batch"
             )
 
 
@@ -66,7 +66,7 @@ async def test_get_all_data_detailed_timeout(data_fetch_manager, mock_client):
             # It might be called for detailed data first
             mock_log_error.assert_any_call(
                 "Timeout during %s. Potential semaphore deadlock.",
-                "Detailed Device Data",
+                    "Detailed device data",
             )
 
 
@@ -88,5 +88,5 @@ async def test_get_all_data_client_timeout(data_fetch_manager, mock_client):
             with pytest.raises(asyncio.TimeoutError):
                 await data_fetch_manager.get_all_data()
             mock_log_error.assert_called_with(
-                "Timeout during %s. Potential semaphore deadlock.", "Client Data"
+                    "Timeout during %s. Potential semaphore deadlock.", "Client data"
             )

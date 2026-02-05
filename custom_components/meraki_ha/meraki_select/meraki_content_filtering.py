@@ -45,7 +45,10 @@ class MerakiContentFilteringSelect(CoordinatorEntity, SelectEntity):
         )
 
         self._attr_unique_id = f"meraki-network-{self._network_id}-content-filtering"
+        self._attr_options = []
         self._update_internal_state()
+
+    # ### Entity Logic
 
     @property
     def device_info(self) -> DeviceInfo | None:
@@ -68,21 +71,25 @@ class MerakiContentFilteringSelect(CoordinatorEntity, SelectEntity):
 
     def _update_internal_state(self) -> None:
         """Update the internal state of the select entity."""
+        # ### Data Mapping
+        options = []
+        current_option = None
+
         if self.coordinator.data and self.coordinator.data.get("content_filtering"):
             content_filtering = self.coordinator.data["content_filtering"].get(
                 self._network_id
             )
             if content_filtering:
-                self._attr_current_option = content_filtering.get(
+                current_option = content_filtering.get(
                     "urlCategoryListSize", "topSites"
                 )
-                self._attr_options = [
+                options = [
                     "topSites",
                     "fullList",
                 ]  # This should be dynamic
-        else:
-            self._attr_current_option = None
-            self._attr_options = []
+
+        self._attr_current_option = current_option
+        self._attr_options = options
 
     async def async_select_option(self, option: str) -> None:
         """Change the selected option."""

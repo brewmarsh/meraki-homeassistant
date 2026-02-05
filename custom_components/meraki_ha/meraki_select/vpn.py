@@ -45,7 +45,10 @@ class MerakiVpnSelect(CoordinatorEntity, SelectEntity):
         )
 
         self._attr_unique_id = f"meraki-network-{self._network_id}-vpn"
+        self._attr_options = []
         self._update_internal_state()
+
+    # ### Entity Logic
 
     @property
     def device_info(self) -> DeviceInfo | None:
@@ -68,14 +71,18 @@ class MerakiVpnSelect(CoordinatorEntity, SelectEntity):
 
     def _update_internal_state(self) -> None:
         """Update the internal state of the select entity."""
+        # ### Data Mapping
+        options = []
+        current_option = None
+
         if self.coordinator.data and self.coordinator.data.get("vpn_status"):
             vpn_status = self.coordinator.data["vpn_status"].get(self._network_id)
             if vpn_status and isinstance(vpn_status, MerakiVpn):
-                self._attr_current_option = vpn_status.mode
-                self._attr_options = ["none", "spoke", "hub"]
-        else:
-            self._attr_current_option = None
-            self._attr_options = []
+                current_option = vpn_status.mode
+                options = ["none", "spoke", "hub"]
+
+        self._attr_current_option = current_option
+        self._attr_options = options
 
     async def async_select_option(self, option: str) -> None:
         """Change the selected option."""
