@@ -180,7 +180,26 @@ class NetworkEndpoints:
     @handle_meraki_errors
     async def get_network_events(self, network_id: str, **kwargs) -> dict[str, Any]:
         """Fetch events for a network."""
-        filtered_kwargs = {k: v for k, v in kwargs.items() if v is not None}
+        # Map snake_case to camelCase for common arguments
+        key_map = {
+            "product_type": "productType",
+            "included_event_types": "includedEventTypes",
+            "excluded_event_types": "excludedEventTypes",
+            "device_serial": "deviceSerial",
+            "sm_owner_id": "smOwnerId",
+            "sm_device_mac": "smDeviceMac",
+            "sm_user_tags": "smUserTags",
+            "starting_after": "startingAfter",
+            "ending_before": "endingBefore",
+            "per_page": "perPage",
+        }
+
+        filtered_kwargs = {}
+        for k, v in kwargs.items():
+            if v is not None:
+                new_key = key_map.get(k, k)
+                filtered_kwargs[new_key] = v
+
         return await self._api_client.run_sync(
             self._api_client.dashboard.networks.getNetworkEvents,
             network_id,

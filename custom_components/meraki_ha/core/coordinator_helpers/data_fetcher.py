@@ -76,7 +76,27 @@ class DataFetchManager:
                 asyncio.gather(*tasks.values(), return_exceptions=True),
                 timeout=timeout,
             )
-            return dict(zip(tasks.keys(), results, strict=True))
+            # <SanitizationLogic>
+            # After asyncio.gather returns, iterate through the results.
+            # If an item is an instance of Exception, log it and replace it with None.
+            # Implements a "Type Filter" that only permits dict, list, or None.
+            sanitized_results = {}
+            for key, result in zip(tasks.keys(), results, strict=True):
+                if isinstance(result, Exception):
+                    _LOGGER.error("Error fetching %s during %s: %s", key, label, result)
+                    sanitized_results[key] = None
+                elif isinstance(result, (dict, list)) or result is None:
+                    sanitized_results[key] = result
+                else:
+                    _LOGGER.debug(
+                        "Filtering out unexpected type %s for %s during %s",
+                        type(result),
+                        key,
+                        label,
+                    )
+                    sanitized_results[key] = None
+            return sanitized_results
+            # </SanitizationLogic>
         except asyncio.TimeoutError:
             _LOGGER.error("Timeout during %s. Potential semaphore deadlock.", label)
             # Log specific keys to identify which strategy is hanging
@@ -108,7 +128,7 @@ class DataFetchManager:
                 self.client.organization.get_organization_switch_ports_statuses(),
             ),
         }
-        return await self._async_gather_with_timeout(tasks, label="Initial Batch")
+        return await self._async_gather_with_timeout(tasks, label="Initial batch")
 
     async def _fetch_batch_camera_analytics(
         self, devices: list[MerakiDevice]
@@ -127,7 +147,7 @@ class DataFetchManager:
             if serial
         }
 
-        return await self._async_gather_with_timeout(tasks, label="Camera Analytics")
+        return await self._async_gather_with_timeout(tasks, label="Camera analytics")
 
     def _distribute_batch_data(
         self,
@@ -249,12 +269,15 @@ class DataFetchManager:
         initial_results = await self._async_fetch_initial_data()
 
         # 2. Convert to Models
+        # Ensure results are iterable by using 'or []' in case they were sanitized to None
         networks_list = [
-            MerakiNetwork.from_dict(n) for n in initial_results.get("networks", [])
-            if not isinstance(n, Exception)
+            MerakiNetwork.from_dict(n)
+            for n in (initial_results.get("networks") or [])
+            if isinstance(n, dict)
         ]
         devices_list = [
-            MerakiDevice.from_dict(d) for d in initial_results.get("devices", [])
+            MerakiDevice.from_dict(d)
+            for d in (initial_results.get("devices") or [])
             if isinstance(d, dict)
         ]
 
@@ -276,7 +299,7 @@ class DataFetchManager:
             networks_list, devices_list, detail_data_dict
         )
         fetched_detail_data = await self._async_gather_with_timeout(
-            detail_tasks, label="Detailed Device Data"
+            detail_tasks, label="Detailed device data"
         )
         detail_data_dict.update(fetched_detail_data)
 
@@ -287,7 +310,7 @@ class DataFetchManager:
             )
         }
         client_results = await self._async_gather_with_timeout(
-            client_tasks, label="Client Data"
+            client_tasks, label="Client data"
         )
         network_clients = client_results.get("network_clients", [])
         if not isinstance(network_clients, list):
