@@ -11,7 +11,6 @@ from custom_components.meraki_ha.core.utils.api_utils import (
     handle_meraki_errors,
     validate_response,
 )
-
 from ...errors import MerakiVlansDisabledError
 from ..cache import async_timed_cache
 
@@ -56,9 +55,7 @@ class NetworkEndpoints:
         )
         validated = validate_response(clients)
         return (
-            cast(list[dict[str, Any]], validated)
-            if isinstance(validated, list)
-            else []
+            cast(list[dict[str, Any]], validated) if isinstance(validated, list) else []
         )
 
     @handle_meraki_errors
@@ -75,9 +72,7 @@ class NetworkEndpoints:
         )
         validated = validate_response(traffic)
         return (
-            cast(list[dict[str, Any]], validated)
-            if isinstance(validated, list)
-            else []
+            cast(list[dict[str, Any]], validated) if isinstance(validated, list) else []
         )
 
     @handle_meraki_errors
@@ -90,9 +85,7 @@ class NetworkEndpoints:
         )
         validated = validate_response(webhooks)
         return (
-            cast(list[dict[str, Any]], validated)
-            if isinstance(validated, list)
-            else []
+            cast(list[dict[str, Any]], validated) if isinstance(validated, list) else []
         )
 
     @handle_meraki_errors
@@ -180,7 +173,7 @@ class NetworkEndpoints:
                 for value in validated.values():
                     if isinstance(value, list):
                         return cast(list[dict[str, Any]], value)
-                return [validated] # Treat single dict as a list of one
+                return [validated]  # Treat single dict as a list of one
 
             return []
 
@@ -206,9 +199,7 @@ class NetworkEndpoints:
         )
         validated = validate_response(policies)
         return (
-            cast(list[dict[str, Any]], validated)
-            if isinstance(validated, list)
-            else []
+            cast(list[dict[str, Any]], validated) if isinstance(validated, list) else []
         )
 
     @handle_meraki_errors
