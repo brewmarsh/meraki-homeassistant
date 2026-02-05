@@ -3,6 +3,7 @@
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
+from homeassistant.helpers.update_coordinator import UpdateFailed
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.meraki_ha.const import DOMAIN
@@ -79,3 +80,21 @@ async def test_update_data_handles_errors(coordinator, mock_data_fetch_manager):
         data["appliance_traffic"][MOCK_NETWORK.id]["reason"]
         == "Traffic analysis is not enabled"
     )
+
+@pytest.mark.asyncio
+async def test_update_data_handles_timeout(coordinator, mock_data_fetch_manager):
+    """Test that _async_update_data handles timeout."""
+    # Arrange
+    mock_data_fetch_manager.get_all_data.side_effect = TimeoutError()
+
+    # Act & Assert
+
+    # 1. Test with stale data (should return stale data after logging error)
+    coordinator.last_successful_data = {"test": "data"}
+    data = await coordinator._async_update_data()
+    assert data == {"test": "data"}
+
+    # 2. Test without stale data (should raise UpdateFailed)
+    coordinator.last_successful_data = {}
+    with pytest.raises(UpdateFailed, match="API Timeout"):
+        await coordinator._async_update_data()
