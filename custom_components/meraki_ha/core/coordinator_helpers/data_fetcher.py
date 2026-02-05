@@ -1,6 +1,4 @@
-"""
-Data Fetch Manager with Smart Error Handling.
-"""
+"""Data Fetch Manager with Smart Error Handling."""
 
 from __future__ import annotations
 
@@ -10,12 +8,13 @@ from typing import TYPE_CHECKING, Any, cast
 
 import meraki
 
+from ...core.const import DEFAULT_CAPS, DEVICE_CAPABILITIES
+
 # Import the custom errors so we can pass them to strategies
 from ...core.errors import (
     MerakiTrafficAnalysisError,
     MerakiVlansDisabledError,
 )
-from ...core.const import DEFAULT_CAPS, DEVICE_CAPABILITIES
 from ...core.fetch_strategies.appliance import ApplianceFetchStrategy
 from ...core.fetch_strategies.camera import CameraFetchStrategy
 from ...core.fetch_strategies.sensor import SensorFetchStrategy
@@ -325,7 +324,9 @@ class DataFetchManager:
             elif device.product_type == "switch":
                 self.switch_strategy.process_device_details(device, detail_data, prev)
             elif device.product_type == "appliance":
-                self.appliance_strategy.process_device_details(device, detail_data, prev)
+                self.appliance_strategy.process_device_details(
+                    device, detail_data, prev
+                )
             elif device.product_type == "sensor":
                 self.sensor_strategy.process_device_details(device, detail_data, prev)
         return processed_data

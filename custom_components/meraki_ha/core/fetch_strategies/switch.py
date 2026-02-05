@@ -22,7 +22,7 @@ class SwitchFetchStrategy(BaseFetchStrategy):
         # 1. Capability Guard: Does this device physically support switch ports?
         if "switch_ports" in capabilities:
             statuses_key = f"ports_statuses_{device.serial}"
-            
+
             # 2. Batch Awareness: Do we already have this data from the bulk fetch?
             # If detail_data has the key, we skip the task to save an API call.
             if not detail_data or statuses_key not in detail_data:
@@ -39,7 +39,7 @@ class SwitchFetchStrategy(BaseFetchStrategy):
         """Process switch details."""
         statuses_key = f"ports_statuses_{device.serial}"
         statuses = detail_data.get(statuses_key)
-        
+
         # Defensive coding: Only assign if we got a valid list
         if isinstance(statuses, list):
             device.ports_statuses = statuses

@@ -42,7 +42,9 @@ def test_build_device_tasks(strategy):
 
     # Must increment poll count so should_fetch_sense is True
     strategy.increment_poll_count()
-    strategy.build_device_tasks(mock_device, tasks, capabilities=["camera_stream", "analytics"])
+    strategy.build_device_tasks(
+        mock_device, tasks, capabilities=["camera_stream", "analytics"]
+    )
 
     assert f"video_settings_{mock_device.serial}" in tasks
     assert f"sense_settings_{mock_device.serial}" in tasks
@@ -58,7 +60,12 @@ def test_build_device_tasks_skips_analytics_if_in_detail_data(strategy):
 
     # Must increment poll count so should_fetch_sense is True
     strategy.increment_poll_count()
-    strategy.build_device_tasks(mock_device, tasks, capabilities=["camera_stream", "analytics"], detail_data=detail_data)
+    strategy.build_device_tasks(
+        mock_device,
+        tasks,
+        capabilities=["camera_stream", "analytics"],
+        detail_data=detail_data,
+    )
 
     assert f"video_settings_{mock_device.serial}" in tasks
     assert f"sense_settings_{mock_device.serial}" in tasks

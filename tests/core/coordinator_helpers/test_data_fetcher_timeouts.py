@@ -10,6 +10,12 @@ from custom_components.meraki_ha.core.coordinator_helpers.data_fetcher import (
 )
 
 
+async def clean_exit_wait_for(coro, timeout=None):
+    """Raise TimeoutError but ensure coro is closed."""
+    coro.close()
+    raise asyncio.TimeoutError()
+
+
 @pytest.fixture
 def mock_client():
     """Mock the Meraki API client."""
@@ -31,7 +37,7 @@ async def test_fetch_initial_data_timeout(data_fetch_manager, mock_client):
     """Test that _async_fetch_initial_data logs error and raises TimeoutError."""
     with patch(
         "custom_components.meraki_ha.core.coordinator_helpers.data_fetcher.asyncio.wait_for",
-        side_effect=asyncio.TimeoutError,
+        side_effect=clean_exit_wait_for,
     ):
         with patch(
             "custom_components.meraki_ha.core.coordinator_helpers.data_fetcher._LOGGER.error"
@@ -39,7 +45,7 @@ async def test_fetch_initial_data_timeout(data_fetch_manager, mock_client):
             with pytest.raises(asyncio.TimeoutError):
                 await data_fetch_manager._async_fetch_initial_data()
             mock_log_error.assert_called_with(
-                    "Timeout during %s. Potential semaphore deadlock.", "Initial batch"
+                "Timeout during %s. Potential semaphore deadlock.", "Initial batch"
             )
 
 
@@ -56,7 +62,7 @@ async def test_get_all_data_detailed_timeout(data_fetch_manager, mock_client):
 
     with patch(
         "custom_components.meraki_ha.core.coordinator_helpers.data_fetcher.asyncio.wait_for",
-        side_effect=asyncio.TimeoutError,
+        side_effect=clean_exit_wait_for,
     ):
         with patch(
             "custom_components.meraki_ha.core.coordinator_helpers.data_fetcher._LOGGER.error"
@@ -66,7 +72,7 @@ async def test_get_all_data_detailed_timeout(data_fetch_manager, mock_client):
             # It might be called for detailed data first
             mock_log_error.assert_any_call(
                 "Timeout during %s. Potential semaphore deadlock.",
-                    "Detailed device data",
+                "Detailed device data",
             )
 
 
@@ -75,12 +81,13 @@ async def test_get_all_data_client_timeout(data_fetch_manager, mock_client):
     """Test that get_all_data logs error and raises TimeoutError on client timeout."""
     data_fetch_manager._async_fetch_initial_data = AsyncMock(return_value={})
 
-    # We need to bypass the first wait_for (detailed data)
+    # We need to bypass the first wait_for (detailed data) - wait, if initial
+    # data is empty, detail tasks are empty, so wait_for is NOT called for
+    # detailed data. So the first call to wait_for IS for client data.
     with patch(
-        "custom_components.meraki_ha.core.coordinator_helpers.data_fetcher.asyncio.wait_for"
+        "custom_components.meraki_ha.core.coordinator_helpers.data_fetcher.asyncio.wait_for",
+        side_effect=clean_exit_wait_for,
     ) as mock_wait_for:
-        # First call returns empty dict (detail data results)
-        mock_wait_for.side_effect = asyncio.TimeoutError
 
         with patch(
             "custom_components.meraki_ha.core.coordinator_helpers.data_fetcher._LOGGER.error"
@@ -88,5 +95,7 @@ async def test_get_all_data_client_timeout(data_fetch_manager, mock_client):
             with pytest.raises(asyncio.TimeoutError):
                 await data_fetch_manager.get_all_data()
             mock_log_error.assert_called_with(
-                    "Timeout during %s. Potential semaphore deadlock.", "Client data"
+                "Timeout during %s. Potential semaphore deadlock.", "Client data"
             )
+            # Verify called once
+            assert mock_wait_for.call_count == 1

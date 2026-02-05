@@ -27,8 +27,10 @@ class SensorFetchStrategy(BaseFetchStrategy):
         # Only add relationships task if it's a sensor and we have relevant capabilities
         # This is the "guarded" fetch logic.
         if "battery" in capabilities or "temperature" in capabilities:
-            tasks[f"sensor_relationships_{device.serial}"] = self.client.run_with_semaphore(
-                self.client.sensor.get_device_sensor_relationships(device.serial),
+            tasks[f"sensor_relationships_{device.serial}"] = (
+                self.client.run_with_semaphore(
+                    self.client.sensor.get_device_sensor_relationships(device.serial),
+                )
             )
 
     def process_device_details(
