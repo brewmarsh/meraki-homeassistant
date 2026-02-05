@@ -111,41 +111,9 @@ class DataFetchManager:
             for key, result in zip(tasks.keys(), results, strict=True):
                 # --- Smart Error Handling Logic ---
                 if isinstance(result, Exception):
-                    # Check for "Benign" 400 Errors (Features not enabled)
-                    if isinstance(result, meraki.APIError) and result.status == 400:
-                        error_msg = (
-                            str(result.message).lower() if result.message else ""
-                        )
-
-                        # 1. Traffic Analysis Disabled
-                        if "traffic analysis" in error_msg:
-                            _LOGGER.debug(
-                                "Traffic Analysis disabled for %s (Status 400). "
-                                "Marking as disabled.",
-                                key,
-                            )
-                            # Pass specific error so strategy can disable the feature
-                            sanitized_results[key] = MerakiTrafficAnalysisError(
-                                str(result)
-                            )
-                            continue
-
-                        # 2. VLANs Disabled
-                        if "vlans are not enabled" in error_msg:
-                            _LOGGER.debug(
-                                "VLANs disabled for %s (Status 400). "
-                                "Marking as disabled.",
-                                key,
-                            )
-                            sanitized_results[key] = MerakiVlansDisabledError(
-                                str(result)
-                            )
-                            continue
-
-                    # For all other exceptions, log as ERROR and sanitize to None
-                    _LOGGER.error("Error fetching %s during %s: %s", key, label, result)
-                    sanitized_results[key] = None
-
+                    sanitized_results[key] = self._handle_fetch_exception(
+                        result, key, label
+                    )
                 elif isinstance(result, (dict, list)) or result is None:
                     sanitized_results[key] = result
                 else:
@@ -162,6 +130,40 @@ class DataFetchManager:
             _LOGGER.error("Timeout during %s. Potential semaphore deadlock.", label)
             _LOGGER.debug("Pending keys for %s: %s", label, list(tasks.keys()))
             raise
+
+    def _handle_fetch_exception(
+        self, exception: Exception, key: str, label: str
+    ) -> Exception | None:
+        """Handle and transform fetch exceptions for smart updates."""
+        # 1. Handle already transformed informational errors
+        if isinstance(exception, (MerakiTrafficAnalysisError, MerakiVlansDisabledError)):
+            _LOGGER.debug(
+                "Feature disabled for %s during %s: %s", key, label, exception
+            )
+            return exception
+
+        # 2. Handle raw 400 Bad Request errors (Backstop)
+        if isinstance(exception, meraki.APIError) and exception.status == 400:
+            error_msg = str(exception).lower()
+            # Traffic Analysis Disabled
+            if "traffic analysis" in error_msg:
+                _LOGGER.debug(
+                    "Traffic analysis disabled for %s (Status 400). Marking as disabled.",
+                    key,
+                )
+                return MerakiTrafficAnalysisError(str(exception))
+
+            # VLANs Disabled
+            if "vlans are not enabled" in error_msg:
+                _LOGGER.debug(
+                    "VLANs disabled for %s (Status 400). Marking as disabled.",
+                    key,
+                )
+                return MerakiVlansDisabledError(str(exception))
+
+        # 3. Fallback: Log as ERROR and sanitize to None
+        _LOGGER.error("Error fetching %s during %s: %s", key, label, exception)
+        return None
 
     async def _async_fetch_initial_data(self) -> dict[str, Any]:
         """Fetch the organization-wide data batch."""
