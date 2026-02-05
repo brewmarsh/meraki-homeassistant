@@ -29,12 +29,12 @@ class SwitchFetchStrategy(BaseFetchStrategy):
         self,
         device: MerakiDevice,
         detail_data: dict[str, Any],
-        prev_device: dict[str, Any] | None,
+        prev_device: MerakiDevice | None,
     ) -> None:
         """Process switch details."""
         statuses_key = f"ports_statuses_{device.serial}"
         statuses = detail_data.get(statuses_key)
         if isinstance(statuses, list):
             device.ports_statuses = statuses
-        elif prev_device and "ports_statuses" in prev_device:
-            device.ports_statuses = prev_device["ports_statuses"]
+        elif prev_device and prev_device.ports_statuses:
+            device.ports_statuses = prev_device.ports_statuses

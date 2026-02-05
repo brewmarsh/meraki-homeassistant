@@ -14,6 +14,7 @@ from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, Upda
 
 from .const import DOMAIN
 from .const_conf import (
+    CONF_ENABLE_CAMERA_SENSE,
     CONF_ENABLE_FIREWALL_RULES,
     CONF_ENABLE_TRAFFIC_SHAPING,
     CONF_ENABLE_VPN_MANAGEMENT,
@@ -21,6 +22,7 @@ from .const_conf import (
     CONF_MERAKI_API_KEY,
     CONF_MERAKI_ORG_ID,
     CONF_SCAN_INTERVAL,
+    DEFAULT_ENABLE_CAMERA_SENSE,
     DEFAULT_ENABLE_FIREWALL_RULES,
     DEFAULT_ENABLE_TRAFFIC_SHAPING,
     DEFAULT_ENABLE_VPN_MANAGEMENT,
@@ -84,12 +86,17 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             CONF_ENABLE_TRAFFIC_SHAPING,
             entry.data.get(CONF_ENABLE_TRAFFIC_SHAPING, DEFAULT_ENABLE_TRAFFIC_SHAPING),
         )
+        enable_camera_sense = entry.options.get(
+            CONF_ENABLE_CAMERA_SENSE,
+            entry.data.get(CONF_ENABLE_CAMERA_SENSE, DEFAULT_ENABLE_CAMERA_SENSE),
+        )
 
         self.data_fetch_manager = DataFetchManager(
             client=self.api,
             enable_vpn_management=enable_vpn,
             enable_firewall_rules=enable_firewall,
             enable_traffic_shaping=enable_traffic,
+            enable_camera_sense=enable_camera_sense,
         )
         self.devices_by_serial: dict[str, MerakiDevice] = {}
         self.networks_by_id: dict[str, MerakiNetwork] = {}

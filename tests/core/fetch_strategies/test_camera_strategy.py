@@ -7,6 +7,7 @@ import pytest
 from custom_components.meraki_ha.core.fetch_strategies.camera import (
     CameraFetchStrategy,
 )
+from custom_components.meraki_ha.core.models.device import MerakiDevice
 
 
 @pytest.fixture
@@ -39,6 +40,8 @@ def test_build_device_tasks(strategy):
     mock_device.serial = "SERIAL1"
     tasks = {}
 
+    # Must increment poll count so should_fetch_sense is True
+    strategy.increment_poll_count()
     strategy.build_device_tasks(mock_device, tasks)
 
     assert f"video_settings_{mock_device.serial}" in tasks
@@ -53,6 +56,8 @@ def test_build_device_tasks_skips_analytics_if_in_detail_data(strategy):
     tasks = {}
     detail_data = {f"camera_analytics_{mock_device.serial}": [{"some": "data"}]}
 
+    # Must increment poll count so should_fetch_sense is True
+    strategy.increment_poll_count()
     strategy.build_device_tasks(mock_device, tasks, detail_data=detail_data)
 
     assert f"video_settings_{mock_device.serial}" in tasks
@@ -113,16 +118,17 @@ def test_process_device_details_fallback_to_prev(strategy):
     mock_device = MagicMock()
     mock_device.serial = "SERIAL1"
     detail_data = {}
-    prev_device = {
-        "video_settings": {"rtsp_url": "rtsp://prev.com"},
-        "rtsp_url": "rtsp://prev.com",
-        "sense_settings": {"sense": "prev"},
-        "analytics": [{"prev": "data"}],
-    }
+    prev_device = MerakiDevice(
+        serial="SERIAL1",
+        video_settings={"rtsp_url": "rtsp://prev.com"},
+        rtsp_url="rtsp://prev.com",
+        sense_settings={"sense": "prev"},
+        analytics=[{"prev": "data"}],
+    )
 
     strategy.process_device_details(mock_device, detail_data, prev_device)
 
-    assert mock_device.video_settings == prev_device["video_settings"]
-    assert mock_device.rtsp_url == prev_device["rtsp_url"]
-    assert mock_device.sense_settings == prev_device["sense_settings"]
-    assert mock_device.analytics == prev_device["analytics"]
+    assert mock_device.video_settings == prev_device.video_settings
+    assert mock_device.rtsp_url == prev_device.rtsp_url
+    assert mock_device.sense_settings == prev_device.sense_settings
+    assert mock_device.analytics == prev_device.analytics

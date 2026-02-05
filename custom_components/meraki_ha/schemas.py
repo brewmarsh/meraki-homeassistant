@@ -14,6 +14,7 @@ from .const_conf import (
     CONF_ENABLE_NETWORK_SENSORS,
     CONF_ENABLE_ORG_SENSORS,
     CONF_ENABLE_PORT_SENSORS,
+    CONF_ENABLE_CAMERA_SENSE,
     CONF_ENABLE_SSID_SENSORS,
     CONF_ENABLE_TRAFFIC_SHAPING,
     CONF_ENABLE_VLAN_MANAGEMENT,
@@ -30,6 +31,7 @@ from .const_conf import (
     DEFAULT_ENABLE_NETWORK_SENSORS,
     DEFAULT_ENABLE_ORG_SENSORS,
     DEFAULT_ENABLE_PORT_SENSORS,
+    DEFAULT_ENABLE_CAMERA_SENSE,
     DEFAULT_ENABLE_SSID_SENSORS,
     DEFAULT_ENABLE_TRAFFIC_SHAPING,
     DEFAULT_ENABLE_VLAN_MANAGEMENT,
@@ -95,6 +97,9 @@ OPTIONS_SCHEMA = vol.Schema(
         ): selector.BooleanSelector(),
         vol.Required(
             CONF_ENABLE_SSID_SENSORS, default=DEFAULT_ENABLE_SSID_SENSORS
+        ): selector.BooleanSelector(),
+        vol.Required(
+            CONF_ENABLE_CAMERA_SENSE, default=DEFAULT_ENABLE_CAMERA_SENSE
         ): selector.BooleanSelector(),
         vol.Optional(
             CONF_ENABLED_NETWORKS, default=DEFAULT_ENABLED_NETWORKS

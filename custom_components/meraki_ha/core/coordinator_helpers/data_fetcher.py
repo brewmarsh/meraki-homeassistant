@@ -37,12 +37,14 @@ class DataFetchManager:
         enable_vpn_management: bool = False,
         enable_firewall_rules: bool = False,
         enable_traffic_shaping: bool = False,
+        enable_camera_sense: bool = True,
     ) -> None:
         """Initialize the Data Fetch Manager."""
         self.client = client
         self.enable_vpn_management = enable_vpn_management
         self.enable_firewall_rules = enable_firewall_rules
         self.enable_traffic_shaping = enable_traffic_shaping
+        self.enable_camera_sense = enable_camera_sense
 
         self.client_fetcher = ClientFetcher(self.client)
         self._disabled_features = client._disabled_features
@@ -57,7 +59,9 @@ class DataFetchManager:
         )
         self.wireless_strategy = WirelessFetchStrategy(client, self._disabled_features)
         self.switch_strategy = SwitchFetchStrategy(client, self._disabled_features)
-        self.camera_strategy = CameraFetchStrategy(client, self._disabled_features)
+        self.camera_strategy = CameraFetchStrategy(
+            client, self._disabled_features, enable_camera_sense
+        )
 
     async def _async_gather_with_timeout(
         self,
@@ -134,6 +138,9 @@ class DataFetchManager:
         self, devices: list[MerakiDevice]
     ) -> dict[str, Any]:
         """Fetch camera analytics for all cameras in a single batch of tasks."""
+        if not self.camera_strategy.should_fetch_sense:
+            return {}
+
         camera_serials = [d.serial for d in devices if d.product_type == "camera"]
         if not camera_serials:
             return {}
@@ -237,7 +244,9 @@ class DataFetchManager:
             )
 
         previous_devices_by_serial = {
-            d["serial"]: d for d in previous_data.get("devices", []) if "serial" in d
+            d.serial: d
+            for d in previous_data.get("devices", [])
+            if hasattr(d, "serial") and d.serial
         }
 
         for device in devices:
@@ -264,6 +273,9 @@ class DataFetchManager:
         """Fetch all data for the coordinator update cycle."""
         previous_data = previous_data or {}
         _LOGGER.debug("Fetching fresh Meraki data from API")
+
+        # 0. Increment strategy poll counts
+        self.camera_strategy.increment_poll_count()
 
         # 1. Organization-level baseline
         initial_results = await self._async_fetch_initial_data()
