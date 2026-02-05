@@ -21,6 +21,7 @@ class SensorFetchStrategy(BaseFetchStrategy):
         device: MerakiDevice,
         tasks: dict[str, Any],
         capabilities: list[str],
+        detail_data: dict[str, Any] | None = None,
     ) -> None:
         """Add sensor specific device tasks."""
         # Only add relationships task if it's a sensor and we have relevant capabilities

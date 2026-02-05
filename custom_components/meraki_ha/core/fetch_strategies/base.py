@@ -28,6 +28,7 @@ class BaseFetchStrategy:
         device: MerakiDevice,
         tasks: dict[str, Any],
         capabilities: list[str],
+        detail_data: dict[str, Any] | None = None,
     ) -> None:
         """
         Add per-device detail tasks based on capabilities.
@@ -36,6 +37,7 @@ class BaseFetchStrategy:
             device: The Meraki device.
             tasks: The task dictionary to add to.
             capabilities: The list of device capabilities.
+            detail_data: Optional dictionary of already fetched data.
         """
 
     def process_device_details(
