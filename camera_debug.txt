@@ -1,0 +1,22 @@
+    ) -> None:
+        """Process camera details."""
+        if settings := detail_data.get(f"video_settings_{device.serial}"):
+            device.video_settings = settings
+            if isinstance(settings, dict):
+                device.rtsp_url = settings.get("rtsp_url")
+            else:
+                device.rtsp_url = None
+        elif prev_device and "video_settings" in prev_device:
+            device.video_settings = prev_device["video_settings"]
+            device.rtsp_url = prev_device.get("rtsp_url")
+
+        if settings := detail_data.get(f"sense_settings_{device.serial}"):
+            device.sense_settings = settings
+        elif prev_device and "sense_settings" in prev_device:
+            device.sense_settings = prev_device["sense_settings"]
+
+        if analytics := detail_data.get(f"camera_analytics_{device.serial}"):
+            if isinstance(analytics, list):
+                device.analytics = analytics
+        elif prev_device and "analytics" in prev_device:
+            device.analytics = prev_device["analytics"]

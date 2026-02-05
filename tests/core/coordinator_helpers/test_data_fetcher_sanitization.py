@@ -67,7 +67,6 @@ async def test_async_gather_with_timeout_sanitization(data_fetch_manager):
 @pytest.mark.asyncio
 async def test_get_all_data_resilience_to_none(data_fetch_manager, mock_client):
     """Test that get_all_data handles None values for networks and devices."""
-
     # Simulate sanitization returning None for networks and devices
     data_fetch_manager._async_fetch_initial_data = AsyncMock(
         return_value={
@@ -97,7 +96,9 @@ async def test_get_all_data_resilience_to_none(data_fetch_manager, mock_client):
         patch(
             "custom_components.meraki_ha.core.coordinator_helpers.data_fetcher.parse_sensor_data"
         ),
-        patch.object(data_fetch_manager, "_async_gather_with_timeout", new_callable=AsyncMock) as mock_gather,
+        patch.object(
+            data_fetch_manager, "_async_gather_with_timeout", new_callable=AsyncMock
+        ) as mock_gather,
     ):
         # We need mock_gather to return a dict for the client_results call
         mock_gather.return_value = {}

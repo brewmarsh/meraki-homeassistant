@@ -31,32 +31,35 @@ class CameraFetchStrategy(BaseFetchStrategy):
         """Determine if sense data should be fetched this poll."""
         if not self.enable_camera_sense:
             return False
-        # Fetch every 5th poll (poll_count 1, 6, 11... or 0, 5, 10...)
-        # If we want the first poll to always fetch, we should start at 0 and use % 5 == 0
-        # and increment before checking, or start at 1.
-        # DataFetchManager calls increment_poll_count() before anything else.
-        # So first poll will be 1.
-        # (self._poll_count - 1) % 5 == 0 will be True for 1, 6, 11...
+        # Fetch every 5th poll to save API quota
         return (self._poll_count - 1) % 5 == 0
 
     def build_device_tasks(
         self,
         device: MerakiDevice,
         tasks: dict[str, Any],
+        capabilities: list[str],
         detail_data: dict[str, Any] | None = None,
     ) -> None:
         """Add camera specific device tasks."""
-        tasks[f"video_settings_{device.serial}"] = self.client.run_with_semaphore(
-            self.client.camera.get_camera_video_settings(device.serial),
-        )
-        if self.should_fetch_sense:
-            tasks[f"sense_settings_{device.serial}"] = self.client.run_with_semaphore(
-                self.client.camera.get_camera_sense_settings(device.serial),
+        # 1. Capability Guard: Check if camera supports video streaming
+        if "camera_stream" in capabilities:
+            tasks[f"video_settings_{device.serial}"] = self.client.run_with_semaphore(
+                self.client.camera.get_camera_video_settings(device.serial),
             )
 
-            # Only add analytics task if not already provided in batch data
+        # 2. Capability Guard: Check if camera supports analytics (Sense)
+        if "analytics" in capabilities:
+            # Optimization: Only fetch expensive sense settings on specific intervals
+            if self.should_fetch_sense:
+                tasks[f"sense_settings_{device.serial}"] = self.client.run_with_semaphore(
+                    self.client.camera.get_camera_sense_settings(device.serial),
+                )
+
+            # 3. Batch Awareness: Only add analytics task if NOT provided in batch data
+            # AND if we are in a polling cycle that allows fetching it
             analytics_key = f"camera_analytics_{device.serial}"
-            if not detail_data or analytics_key not in detail_data:
+            if self.should_fetch_sense and (not detail_data or analytics_key not in detail_data):
                 tasks[analytics_key] = self.client.run_with_semaphore(
                     self.client.camera.get_device_camera_analytics_recent(
                         device.serial,
@@ -69,24 +72,34 @@ class CameraFetchStrategy(BaseFetchStrategy):
         detail_data: dict[str, Any],
         prev_device: MerakiDevice | None,
     ) -> None:
-        """Process camera details."""
+        """Process camera details with type safety."""
+        
+        # --- Video Settings ---
         if settings := detail_data.get(f"video_settings_{device.serial}"):
-            device.video_settings = settings
+            # Type Safety: Ensure we actually got a dictionary
             if isinstance(settings, dict):
+                device.video_settings = settings
                 device.rtsp_url = settings.get("rtsp_url")
             else:
+                # Handle error objects or None
+                device.video_settings = {}
                 device.rtsp_url = None
-        elif prev_device and prev_device.video_settings:
-            device.video_settings = prev_device.video_settings
-            device.rtsp_url = prev_device.rtsp_url
+        elif prev_device:
+            # Fallback to previous data (using attribute access)
+            device.video_settings = getattr(prev_device, "video_settings", None)
+            device.rtsp_url = getattr(prev_device, "rtsp_url", None)
 
+        # --- Sense Settings ---
         if settings := detail_data.get(f"sense_settings_{device.serial}"):
-            device.sense_settings = settings
-        elif prev_device and prev_device.sense_settings:
-            device.sense_settings = prev_device.sense_settings
+            if isinstance(settings, dict):
+                device.sense_settings = settings
+        elif prev_device:
+            device.sense_settings = getattr(prev_device, "sense_settings", None)
 
+        # --- Analytics ---
+        # Prioritize fresh batch data
         if analytics := detail_data.get(f"camera_analytics_{device.serial}"):
             if isinstance(analytics, list):
                 device.analytics = analytics
-        elif prev_device and prev_device.analytics:
-            device.analytics = prev_device.analytics
+        elif prev_device:
+            device.analytics = getattr(prev_device, "analytics", None)
