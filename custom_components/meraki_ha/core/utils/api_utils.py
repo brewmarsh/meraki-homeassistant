@@ -61,7 +61,10 @@ def handle_meraki_errors(
                 # Inspect return type to provide a safe empty value
                 sig = inspect.signature(func)
                 return_type = sig.return_annotation
-                if return_type is list or getattr(return_type, "__origin__", None) is list:
+                if (
+                    return_type is list
+                    or getattr(return_type, "__origin__", None) is list
+                ):
                     return cast(T, [])
                 return cast(T, {})
             except (APIError, MerakiInformationalError) as err:
@@ -109,7 +112,9 @@ def handle_meraki_errors(
                     return cast(T, MerakiInformationalError(error_msg))
 
                 if isinstance(err, APIError) and _is_informational_error(err):
-                    raise MerakiInformationalError(f"Informational error: {err}") from err
+                    raise MerakiInformationalError(
+                        f"Informational error: {err}"
+                    ) from err
 
                 # Re-raise MerakiInformationalError if it was already raised
                 # (e.g. by run_sync)

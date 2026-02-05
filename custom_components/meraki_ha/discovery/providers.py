@@ -84,6 +84,9 @@ class UplinkProvider:
         if not config_entry.options.get(CONF_ENABLE_PORT_SENSORS, True):
             return []
 
+        if not device.serial:
+            return []
+
         entities: list[Entity] = []
         uplink_data_by_interface: dict[str, dict[str, Any]] = {}
         if device.appliance_uplink_statuses:
@@ -176,7 +179,7 @@ class CameraAnalyticsProvider:
     ) -> list[Entity]:
         """Get entities."""
         camera_service: CameraService | None = kwargs.get("camera_service")
-        if not camera_service:
+        if not camera_service or not device.serial:
             return []
 
         entities: list[Entity] = []
@@ -204,7 +207,7 @@ class CameraStreamProvider:
     ) -> list[Entity]:
         """Get entities."""
         camera_service: CameraService | None = kwargs.get("camera_service")
-        if not camera_service:
+        if not camera_service or not device.serial:
             return []
 
         # If configured, ensure the RTSP stream is enabled by default for cameras
