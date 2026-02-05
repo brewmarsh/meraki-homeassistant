@@ -80,20 +80,25 @@ async def async_cleanup_ghost_devices(hass: HomeAssistant, entry_id: str) -> Non
         # Check for [SSID] prefix in name
         if device.name and device.name.startswith("[SSID]"):
             should_remove = True
-            _LOGGER.info("Marking ghost device for removal (prefix match): %s", device.name)
+            _LOGGER.info(
+                "Marking ghost device for removal (prefix match): %s", device.name
+            )
 
         # Check for old identifier format (DOMAIN, f"{network_id}:ssid:{ssid_number}")
         for identifier in device.identifiers:
             if identifier[0] == DOMAIN and ":ssid:" in identifier[1]:
                 should_remove = True
-                _LOGGER.info("Marking ghost device for removal (identifier match): %s", identifier[1])
+                _LOGGER.info(
+                    "Marking ghost device for removal (identifier match): %s",
+                    identifier[1],
+                )
                 break
 
         if should_remove:
             # Only remove if it has no entities (or we just moved them)
             # Actually, if we migrated the entities' unique_ids, their device_info
-            # will point to a NEW identifier, so they will be associated with a new device
-            # when they next check in.
+            # will point to a NEW identifier, so they will be associated with a
+            # new device when they next check in.
             # However, Home Assistant might still keep them linked to the old device
             # until the next refresh or if we explicitly move them.
 
