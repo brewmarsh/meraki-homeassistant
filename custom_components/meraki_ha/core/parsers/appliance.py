@@ -49,7 +49,10 @@ def parse_appliance_data(
         for device in devices:
             if device.serial == serial:
                 _LOGGER.debug("Matched uplink data for %s", serial)
-                device.appliance_uplink_statuses = status.get("uplinks", [])
+                uplinks = status.get("uplinks", [])
+                device.appliance_uplink_statuses = uplinks
+                # Initialize uplinks with status data; will be enriched with performance metrics later
+                device.uplinks = uplinks
                 break
 
 

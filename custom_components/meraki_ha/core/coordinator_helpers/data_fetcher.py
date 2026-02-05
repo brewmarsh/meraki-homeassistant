@@ -23,6 +23,7 @@ from ...core.fetch_strategies.wireless import WirelessFetchStrategy
 from ...core.models.device import MerakiDevice
 from ...core.models.network import MerakiNetwork
 from ...core.parsers.appliance import parse_appliance_data
+from ...core.parsers.devices import parse_device_data
 from ...core.parsers.network import parse_network_data
 from ...core.parsers.sensors import parse_sensor_data
 from .client_fetcher import ClientFetcher
@@ -182,6 +183,9 @@ class DataFetchManager:
             ),
             "appliance_uplink_statuses": self.client.run_with_semaphore(
                 self.client.appliance.get_organization_appliance_uplink_statuses(),
+            ),
+            "device_statuses": self.client.run_with_semaphore(
+                self.client.organization.get_organization_devices_statuses(),
             ),
             "sensor_readings": self.client.run_with_semaphore(
                 self.client.sensor.get_organization_sensor_readings_latest(),
@@ -359,6 +363,7 @@ class DataFetchManager:
         parse_appliance_data(
             devices_list, initial_results.get("appliance_uplink_statuses")
         )
+        parse_device_data(devices_list, initial_results.get("device_statuses") or [])
         parse_sensor_data(devices_list, initial_results.get("sensor_readings", []), [])
 
         camera_analytics = await self._fetch_batch_camera_analytics(devices_list)

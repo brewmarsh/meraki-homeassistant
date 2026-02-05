@@ -128,10 +128,23 @@ class MerakiDeviceStatusSensor(MerakiEntity, SensorEntity):
 
         # Status is the primary value of this sensor
         device_status: str | None = current_device_data.status
-        if isinstance(device_status, str):
-            self._attr_native_value = device_status.lower()
-        else:
-            self._attr_native_value = "unknown"  # Default if status is not a string
+
+        # Determine base status
+        native_value = "unknown"
+        if isinstance(device_status, str) and device_status.lower() not in [
+            "",
+            "unknown",
+        ]:
+            native_value = device_status.lower()
+
+        # Fallback to composite state from uplinks if base status is missing/unknown
+        if native_value == "unknown" and current_device_data.uplinks:
+            if any(u.get("status") == "active" for u in current_device_data.uplinks):
+                native_value = "online"
+            elif all(u.get("status") == "failed" for u in current_device_data.uplinks):
+                native_value = "offline"
+
+        self._attr_native_value = native_value
 
         # Populate attributes from the latest device data
         self._attr_extra_state_attributes = {
