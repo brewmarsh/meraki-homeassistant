@@ -18,7 +18,6 @@ from ..binary_sensor.device.appliance_port import AppliancePortBinarySensor
 from ..binary_sensor.device.camera_motion import MerakiMotionSensor
 from ..binary_sensor.switch_port import SwitchPortSensor
 from ..button.device.camera_snapshot import MerakiSnapshotButton
-from ..camera import MerakiCamera
 from ..const import DOMAIN
 from ..const_conf import (
     CONF_ENABLE_CAMERA_ENTITIES,
@@ -325,12 +324,6 @@ class CameraStreamProvider:
             return []
 
         return [
-            MerakiCamera(
-                coordinator,
-                config_entry,
-                device,
-                camera_service,
-            ),
             MerakiMotionSensor(
                 coordinator,
                 device,

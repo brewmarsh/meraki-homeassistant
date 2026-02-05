@@ -49,7 +49,7 @@ def test_vlan_naming(mock_coordinator):
 
 def test_camera_naming(mock_coordinator):
     """Test the naming of a Camera entity."""
-    from custom_components.meraki_ha.camera import MerakiCamera
+    from custom_components.meraki_ha.camera import MerakiRTSPStreamCamera
     from custom_components.meraki_ha.types import MerakiDevice
 
     config_entry = MagicMock()
@@ -68,11 +68,11 @@ def test_camera_naming(mock_coordinator):
 
     camera_service = MagicMock()
 
-    entity = MerakiCamera(mock_coordinator, config_entry, device, camera_service)
+    entity = MerakiRTSPStreamCamera(mock_coordinator, device, camera_service, config_entry)
 
-    assert entity.has_entity_name is False
-    assert entity.name == "Front Door"
-    assert entity.device_info["name"] == "Front Door"
+    assert entity.has_entity_name is True
+    assert entity.name == "Stream"
+    assert entity.device_info["name"] == "[Camera] Front Door"
 
 
 def test_network_status_naming(mock_coordinator):
