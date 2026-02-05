@@ -27,7 +27,6 @@ def parse_network_data(
     networks: list[MerakiNetwork],
     previous_data: dict[str, Any],
     disabled_features: set[str],
-    coordinator: Any = None,  # Added to support status messages
 ) -> dict[str, Any]:
     """Parse and process network-level data."""
     appliance_traffic: dict[str, Any] = {}
@@ -49,7 +48,6 @@ def parse_network_data(
             previous_data,
             disabled_features,
             appliance_traffic,
-            coordinator,
         )
 
         _parse_vlans(
@@ -58,7 +56,6 @@ def parse_network_data(
             previous_data,
             disabled_features,
             vlan_by_network,
-            coordinator,
         )
 
         _parse_firewall_rules(
@@ -113,7 +110,6 @@ def _parse_traffic(
     previous_data: dict[str, Any],
     disabled_features: set[str],
     appliance_traffic: dict[str, Any],
-    coordinator: Any = None,
 ) -> None:
     """Parse appliance traffic data."""
     key = f"traffic_{network_id}"
@@ -123,13 +119,6 @@ def _parse_traffic(
         disabled_features.add(key)
         appliance_traffic[network_id] = {"error": "disabled", "reason": str(data)}
     elif isinstance(data, MerakiInformationalError):
-        if "traffic analysis" in str(data).lower():
-            if coordinator:
-                coordinator.add_network_status_message(
-                    network_id,
-                    "Traffic Analysis is not enabled for this network.",
-                )
-                coordinator.mark_traffic_check_done(network_id)
         disabled_features.add(key)
         appliance_traffic[network_id] = {
             "error": "disabled",
@@ -147,7 +136,6 @@ def _parse_vlans(
     previous_data: dict[str, Any],
     disabled_features: set[str],
     vlan_by_network: dict[str, list[MerakiVlan]],
-    coordinator: Any = None,
 ) -> None:
     """Parse VLAN data with fallback support."""
     key = f"vlans_{network_id}"
@@ -158,13 +146,6 @@ def _parse_vlans(
         vlan_by_network[network_id] = []
     elif isinstance(data, MerakiInformationalError):
         if "vlans are not enabled" in str(data).lower():
-            disabled_features.add(key)
-            if coordinator:
-                coordinator.add_network_status_message(
-                    network_id,
-                    "VLANs are not enabled for this network.",
-                )
-                coordinator.mark_vlan_check_done(network_id)
             disabled_features.add(key)
             vlan_by_network[network_id] = []
     elif isinstance(data, list):

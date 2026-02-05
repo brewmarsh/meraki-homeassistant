@@ -9,9 +9,9 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers import entity_registry as er
 
-from ..const import DOMAIN
-from ..core.models.device import MerakiDevice
-from ..core.models.network import MerakiNetwork
+from ...const import DOMAIN
+from ..models.device import MerakiDevice
+from ..models.network import MerakiNetwork
 
 if TYPE_CHECKING:
     from homeassistant.helpers.device_registry import DeviceRegistry
@@ -113,22 +113,6 @@ def process_coordinator_data(
     ]
     networks_by_id = {n.id: n for n in networks if n.id}
     data["networks"] = networks
-
-    # Pre-register network devices to avoid "referencing a non existing
-    # via_device" warnings when downstream entities (like VLANs) initialize.
-    device_registry = dr.async_get(hass)
-
-    if config_entry:
-        for network in networks:
-            if not network.id:
-                continue
-            device_registry.async_get_or_create(
-                config_entry_id=config_entry.entry_id,
-                identifiers={(DOMAIN, cast(str, network.id))},
-                name=network.name,
-                manufacturer="Cisco Meraki",
-                model="Network",
-            )
 
     ssids_by_network_and_number = {
         (cast(str, s.get("networkId")), int(s.get("number"))): s

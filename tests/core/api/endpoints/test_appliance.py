@@ -29,8 +29,6 @@ def hass():
 def coordinator():
     """Fixture for a mocked coordinator."""
     mock = MagicMock(spec=MerakiDataUpdateCoordinator)
-    mock.is_vlan_check_due.return_value = True
-    mock.is_traffic_check_due.return_value = True
     return mock
 
 

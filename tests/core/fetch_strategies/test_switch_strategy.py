@@ -53,7 +53,10 @@ def test_build_device_tasks_skips_if_in_detail_data(strategy):
     detail_data = {f"ports_statuses_{mock_device.serial}": [{"portId": "1"}]}
 
     strategy.build_device_tasks(
-        mock_device, tasks, capabilities=["switch_ports"], detail_data=detail_data
+        mock_device,
+        tasks,
+        capabilities=["switch_ports"],
+        detail_data=detail_data,
     )
 
     assert f"ports_statuses_{mock_device.serial}" not in tasks
@@ -78,8 +81,11 @@ def test_process_device_details_fallback_to_prev(strategy):
     mock_device = MagicMock()
     mock_device.serial = "SERIAL1"
     detail_data = {}
+    
+    # Using a concrete object ensures hasattr logic in the strategy is verified
     prev_device = MerakiDevice(
         serial="SERIAL1",
+        name="Test Switch",  # Added generic name to satisfy potential required args
         ports_statuses=[{"portId": "1", "status": "Disconnected"}]
     )
 

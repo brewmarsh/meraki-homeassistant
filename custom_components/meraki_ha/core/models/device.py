@@ -64,6 +64,7 @@ class MerakiDevice:
     public_ip: str | None = None
     network_id: str | None = None
     appliance_uplink_statuses: list[dict[str, Any]] = field(default_factory=list)
+    uplinks: list[dict[str, Any]] = field(default_factory=list)
     status: str | None = None
     firmware: str | None = None
     product_type: str | None = None
@@ -127,6 +128,7 @@ class MerakiDevice:
             "dynamicDns": self.dynamic_dns,
             "statusMessages": self.status_messages,
             "applianceUplinkStatuses": self.appliance_uplink_statuses,
+            "uplinks": self.uplinks,
             "entity_id": self.entity_id,
             "outletStatus": self.outlet_status,
         }
@@ -165,6 +167,7 @@ class MerakiDevice:
             dynamic_dns=data.get("dynamicDns"),
             status_messages=data.get("statusMessages", []),
             appliance_uplink_statuses=data.get("applianceUplinkStatuses", []),
+            uplinks=data.get("uplinks", []),
             entity_id=data.get("entity_id"),
             outlet_status=data.get("outletStatus"),
         )

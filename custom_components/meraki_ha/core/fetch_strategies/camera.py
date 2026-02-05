@@ -108,4 +108,4 @@ class CameraFetchStrategy(BaseFetchStrategy):
             if isinstance(analytics, list):
                 device.analytics = analytics
         elif prev_device:
-            device.analytics = getattr(prev_device, "analytics", None)
+            device.analytics = getattr(prev_device, "analytics", [])
