@@ -126,7 +126,7 @@ def process_coordinator_data(
             device_registry.async_get_or_create(
                 config_entry_id=config_entry.entry_id,
                 identifiers={(DOMAIN, cast(str, network.id))},
-                name=network.name,
+                name=f"[Network] {network.name}",
                 manufacturer="Cisco Meraki",
                 model="Network",
             )
@@ -141,7 +141,7 @@ def process_coordinator_data(
                 device_registry.async_get_or_create(
                     config_entry_id=config_entry.entry_id,
                     identifiers={identifier},
-                    name=f"SSID {ssid_number}: {ssid_name}",
+                    name=f"[SSID {ssid_number}] {ssid_name}",
                     model="Wireless SSID",
                     manufacturer="Cisco Meraki",
                     via_device=(DOMAIN, f"network_{network_id}"),

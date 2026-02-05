@@ -16,7 +16,7 @@ def format_device_name(device: dict[str, Any] | Any, config: Mapping[str, Any]) 
     name = device.get("name")
     if not name:
         if device.get("productType") == "ssid":
-            name = f"SSID {device.get('number')}"
+            name = f"[SSID {device.get('number')}]"
         else:
             name = f"Meraki {device.get('model', 'Device')} {device.get('serial')}"
     return name

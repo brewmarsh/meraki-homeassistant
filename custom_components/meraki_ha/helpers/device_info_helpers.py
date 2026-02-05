@@ -66,7 +66,7 @@ def resolve_device_info(
             ssid_name = effective_data.get("name")
             return DeviceInfo(
                 identifiers={identifier},
-                name=f"SSID {ssid_number}: {ssid_name}",
+                name=f"[SSID {ssid_number}] {ssid_name}",
                 model="Wireless SSID",
                 manufacturer="Cisco Meraki",
                 via_device=(DOMAIN, f"network_{network_id}"),
@@ -89,7 +89,7 @@ def resolve_device_info(
     if is_network and network_id:
         return DeviceInfo(
             identifiers={(DOMAIN, f"network_{network_id}")},
-            name=entity_data.get("name"),
+            name=f"[Network] {entity_data.get('name')}",
             manufacturer="Cisco Meraki",
             model="Network",
         )
