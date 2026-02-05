@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import asyncio
 import logging
 from typing import TYPE_CHECKING, Any
 
@@ -82,10 +81,12 @@ class ApplianceFetchStrategy(BaseFetchStrategy):
     ) -> None:
         """Add appliance specific device tasks."""
         if device.network_id:
-            tasks[f"appliance_settings_{device.serial}"] = self.client.run_with_semaphore(
-                self.client.appliance.get_network_appliance_settings(
-                    device.network_id,
-                ),
+            tasks[f"appliance_settings_{device.serial}"] = (
+                self.client.run_with_semaphore(
+                    self.client.appliance.get_network_appliance_settings(
+                        device.network_id,
+                    ),
+                )
             )
 
     def process_network_traffic(
