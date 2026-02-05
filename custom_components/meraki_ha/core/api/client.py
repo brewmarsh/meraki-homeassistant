@@ -91,7 +91,7 @@ class MerakiAPIClient:
         self.sensor = SensorEndpoints(self)
 
         # Semaphore to limit concurrent API calls
-        self._semaphore = asyncio.Semaphore(10)
+        self._rate_limiter = asyncio.Semaphore(5)
 
     @property
     def has_dashboard(self) -> bool:
@@ -149,7 +149,7 @@ class MerakiAPIClient:
         **kwargs: Any,
     ) -> Any:
         """
-        Run a synchronous function in a thread pool.
+        Run a synchronous function in a thread pool with rate limiting.
 
         Args:
             func: The synchronous function to run.
@@ -161,46 +161,54 @@ class MerakiAPIClient:
             The result of the function.
 
         """
-        try:
-            loop = asyncio.get_event_loop()
-            return await loop.run_in_executor(None, partial(func, *args, **kwargs))
-        except meraki.APIError as e:
-            error_str = str(e).lower()
-            if "traffic analysis" in error_str or "vlans are not enabled" in error_str:
-                _LOGGER.info("Meraki API Informational Error: %s", e)
-                if "traffic analysis" in error_str:
-                    raise MerakiTrafficAnalysisError(str(e)) from e
-                if "vlans are not enabled" in error_str:
-                    raise MerakiVlansDisabledError(str(e)) from e
-                raise MerakiInformationalError(str(e)) from e
-            _LOGGER.error(
-                "Meraki API Error encountered: %s",
-                e,
-                exc_info=True,
-            )
-            raise ApiClientCommunicationError(
-                f"Error communicating with Meraki API: {e}"
-            ) from e
-        except Exception as e:
-            _LOGGER.error(
-                "An unexpected error occurred during API call: %s. Type: %s",
-                e,
-                type(e).__name__,
-                exc_info=True,
-            )
-            if "JSON" in str(e):
+        async with self._rate_limiter:
+            try:
+                loop = asyncio.get_event_loop()
+                result = await loop.run_in_executor(None, partial(func, *args, **kwargs))
+            except meraki.APIError as e:
+                error_str = str(e).lower()
+                if (
+                    "traffic analysis" in error_str
+                    or "vlans are not enabled" in error_str
+                ):
+                    _LOGGER.info("Meraki API Informational Error: %s", e)
+                    if "traffic analysis" in error_str:
+                        raise MerakiTrafficAnalysisError(str(e)) from e
+                    if "vlans are not enabled" in error_str:
+                        raise MerakiVlansDisabledError(str(e)) from e
+                    raise MerakiInformationalError(str(e)) from e
+                _LOGGER.error(
+                    "Meraki API Error encountered: %s",
+                    e,
+                    exc_info=True,
+                )
                 raise ApiClientCommunicationError(
-                    f"Invalid JSON response from Meraki API. "
-                    f"Please check Meraki logs or network connectivity. Details: {e}"
+                    f"Error communicating with Meraki API: {e}"
                 ) from e
-            else:
-                raise ApiClientCommunicationError(
-                    f"An unexpected error occurred: {e}"
-                ) from e
+            except Exception as e:
+                _LOGGER.error(
+                    "An unexpected error occurred during API call: %s. Type: %s",
+                    e,
+                    type(e).__name__,
+                    exc_info=True,
+                )
+                if "JSON" in str(e):
+                    raise ApiClientCommunicationError(
+                        f"Invalid JSON response from Meraki API. "
+                        f"Please check Meraki logs or network connectivity. "
+                        f"Details: {e}"
+                    ) from e
+                else:
+                    raise ApiClientCommunicationError(
+                        f"An unexpected error occurred: {e}"
+                    ) from e
+
+        await asyncio.sleep(0.1)
+        return result
 
     async def run_with_semaphore(self, coro: Awaitable[Any]) -> Any:
         """
-        Run an awaitable with the semaphore.
+        Run an awaitable with the rate limiter.
 
         Args:
             coro: The awaitable to run.
@@ -210,8 +218,9 @@ class MerakiAPIClient:
             The result of the awaitable.
 
         """
-        async with self._semaphore:
-            return await coro
+        # Governance is now handled at the API level via run_sync.
+        # This wrapper is maintained for compatibility with the fetch strategies.
+        return await coro
 
     def mark_feature_disabled(
         self, feature: str, network_id: str | None = None
