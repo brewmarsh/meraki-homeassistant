@@ -7,7 +7,7 @@ from unittest.mock import MagicMock
 from custom_components.meraki_ha.binary_sensor.device.camera_motion import (
     MerakiMotionSensor,
 )
-from custom_components.meraki_ha.camera import MerakiCamera
+from custom_components.meraki_ha.camera import MerakiRTSPStreamCamera
 from custom_components.meraki_ha.sensor.device.connected_clients import (
     MerakiDeviceConnectedClientsSensor,
 )
@@ -35,15 +35,15 @@ async def test_naming_conventions():
     )
     mock_coordinator.get_device.return_value = device
 
-    camera = MerakiCamera(
+    camera = MerakiRTSPStreamCamera(
         coordinator=mock_coordinator,
         device=device,
         camera_service=mock_camera_service,
         config_entry=mock_config_entry,
     )
-    assert camera.has_entity_name is False
-    assert camera.name == "Office Camera"
-    assert camera.device_info["name"] == "Office Camera"
+    assert camera.has_entity_name is True
+    assert camera.name == "Stream"
+    assert camera.device_info["name"] == "[Camera] Office Camera"
 
     motion_sensor = MerakiMotionSensor(
         coordinator=mock_coordinator,

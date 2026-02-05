@@ -48,7 +48,18 @@ class WirelessFetchStrategy(BaseFetchStrategy):
         if ssids:
             if "ssids" not in processed_data:
                 processed_data["ssids"] = []
-            cast(list[dict[str, Any]], processed_data["ssids"]).extend(ssids)
+
+            # SSID Duplicates Fix & Canonical Data Population
+            existing_ids = {
+                (s.get("networkId"), s.get("number"))
+                for s in cast(list[dict[str, Any]], processed_data["ssids"])
+            }
+
+            for ssid in ssids:
+                ssid_id = (ssid.get("networkId"), ssid.get("number"))
+                if ssid_id not in existing_ids:
+                    cast(list[dict[str, Any]], processed_data["ssids"]).append(ssid)
+                    existing_ids.add(ssid_id)
 
         wireless_settings = wireless_data.get("wireless_settings", {})
         if wireless_settings:

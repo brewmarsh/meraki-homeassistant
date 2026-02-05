@@ -14,10 +14,10 @@ from homeassistant.const import PERCENTAGE, UnitOfTime
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers import entity_registry as er
 
+from ..binary_sensor.device.appliance_port import AppliancePortBinarySensor
 from ..binary_sensor.device.camera_motion import MerakiMotionSensor
 from ..binary_sensor.switch_port import SwitchPortSensor
 from ..button.device.camera_snapshot import MerakiSnapshotButton
-from ..camera import MerakiCamera
 from ..const import DOMAIN
 from ..const_conf import (
     CONF_ENABLE_CAMERA_ENTITIES,
@@ -237,6 +237,7 @@ class AppliancePortProvider:
         if device.appliance_ports:
             for port in device.appliance_ports:
                 entities.append(MerakiAppliancePortSensor(coordinator, device, port))
+                entities.append(AppliancePortBinarySensor(coordinator, device, port))
         return entities
 
 
@@ -323,12 +324,6 @@ class CameraStreamProvider:
             return []
 
         return [
-            MerakiCamera(
-                coordinator,
-                config_entry,
-                device,
-                camera_service,
-            ),
             MerakiMotionSensor(
                 coordinator,
                 device,

@@ -58,9 +58,10 @@ class MerakiUplinkPerformanceSensor(MerakiSensor):
         # the final name will be "Device Name WAN1 Latency"
 
         self._attr_unique_id = f"{self._device_serial}_{interface}_{metric}"
-        self._attr_device_info = DeviceInfo(
-            identifiers={(DOMAIN, self._device_serial)},
-        )
+        if self._device_serial:
+            self._attr_device_info = DeviceInfo(
+                identifiers={(DOMAIN, self._device_serial)},
+            )
         self._update_state()
 
     @callback
