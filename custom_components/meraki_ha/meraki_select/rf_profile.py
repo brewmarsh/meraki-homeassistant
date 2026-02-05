@@ -46,7 +46,9 @@ class MerakiRFProfileSelect(CoordinatorEntity, SelectEntity):
             icon="mdi:wifi-cog",
         )
 
-        self._attr_unique_id = f"meraki-ssid-{self._network_id}-{self._ssid_number}-rf-profile"
+        self._attr_unique_id = (
+            f"meraki-ssid-{self._network_id}-{self._ssid_number}-rf-profile"
+        )
         self._attr_options = []
         self._update_internal_state()
 
@@ -56,7 +58,9 @@ class MerakiRFProfileSelect(CoordinatorEntity, SelectEntity):
     def device_info(self) -> DeviceInfo | None:
         """Return device information to link this entity to the SSID 'device'."""
         return DeviceInfo(
-            identifiers={(DOMAIN, f"meraki_ssid_{self._network_id}_{self._ssid_number}")},
+            identifiers={
+                (DOMAIN, f"meraki_ssid_{self._network_id}_{self._ssid_number}")
+            },
             name=f"SSID {self._ssid_name}",
             manufacturer="Cisco Meraki",
             via_device=(DOMAIN, self._network_id),
@@ -84,12 +88,16 @@ class MerakiRFProfileSelect(CoordinatorEntity, SelectEntity):
             rf_profiles = self.coordinator.data.get("rf_profiles", {}).get(
                 self._network_id, []
             )
-            profile_map = {p["name"]: p["id"] for p in rf_profiles if "name" in p and "id" in p}
+            profile_map = {
+                p["name"]: p["id"] for p in rf_profiles if "name" in p and "id" in p
+            }
             options.extend(sorted(profile_map.keys()))
 
             # Get current RF profile for this SSID
             # We need to find the SSID in the latest coordinator data
-            current_ssid = self.coordinator.get_ssid(self._network_id, int(self._ssid_number))
+            current_ssid = self.coordinator.get_ssid(
+                self._network_id, int(self._ssid_number)
+            )
             if current_ssid:
                 current_profile_id = current_ssid.get("rfProfileId")
                 if current_profile_id:

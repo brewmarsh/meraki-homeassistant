@@ -11,7 +11,6 @@ from custom_components.meraki_ha.core.utils.api_utils import (
     handle_meraki_errors,
     validate_response,
 )
-
 from ...errors import MerakiVlansDisabledError
 from ..cache import async_timed_cache
 
