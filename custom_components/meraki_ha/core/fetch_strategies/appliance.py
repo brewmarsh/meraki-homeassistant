@@ -78,6 +78,7 @@ class ApplianceFetchStrategy(BaseFetchStrategy):
         self,
         device: MerakiDevice,
         tasks: dict[str, Any],
+        capabilities: list[str],
     ) -> None:
         """Add appliance specific device tasks."""
         if device.network_id:
@@ -151,7 +152,7 @@ class ApplianceFetchStrategy(BaseFetchStrategy):
         self,
         device: MerakiDevice,
         detail_data: dict[str, Any],
-        prev_device: dict[str, Any] | None,
+        prev_device: MerakiDevice | None,
     ) -> None:
         """Process appliance details."""
         if ports := detail_data.get(f"appliance_ports_{device.network_id}"):
@@ -161,11 +162,11 @@ class ApplianceFetchStrategy(BaseFetchStrategy):
                     for p in ports
                     if isinstance(p, dict)
                 ]
-        elif prev_device and "appliance_ports" in prev_device:
-            device.appliance_ports = prev_device["appliance_ports"]
+        elif prev_device and hasattr(prev_device, "appliance_ports"):
+            device.appliance_ports = prev_device.appliance_ports
 
         if settings := detail_data.get(f"appliance_settings_{device.serial}"):
             if isinstance(settings.get("dynamicDns"), dict):
                 device.dynamic_dns = settings["dynamicDns"]
-        elif prev_device and "dynamicDns" in prev_device:
-            device.dynamic_dns = prev_device["dynamicDns"]
+        elif prev_device and hasattr(prev_device, "dynamic_dns"):
+            device.dynamic_dns = prev_device.dynamic_dns
