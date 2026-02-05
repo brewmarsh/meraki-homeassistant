@@ -69,7 +69,8 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             api_key=entry.data[CONF_MERAKI_API_KEY],
             org_id=entry.data[CONF_MERAKI_ORG_ID],
         )
-        # Feature flags can be in either options (user-controlled) or data (initial setup)
+        # Feature flags can be in either options (user-controlled)
+        # or data (initial setup)
         enable_vpn = entry.options.get(
             CONF_ENABLE_VPN_MANAGEMENT,
             entry.data.get(CONF_ENABLE_VPN_MANAGEMENT, DEFAULT_ENABLE_VPN_MANAGEMENT),

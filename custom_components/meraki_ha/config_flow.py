@@ -21,7 +21,6 @@ from .const import DOMAIN
 from .const_conf import (
     CONF_ENABLE_FIREWALL_RULES,
     CONF_ENABLE_VPN_MANAGEMENT,
-    CONF_INTEGRATION_TITLE,
     CONF_MERAKI_API_KEY,
     CONF_MERAKI_ORG_ID,
 )
