@@ -141,7 +141,9 @@ class DataFetchManager:
     ) -> Exception | None:
         """Handle and transform fetch exceptions for smart updates."""
         # 1. Handle already transformed informational errors
-        if isinstance(exception, (MerakiTrafficAnalysisError, MerakiVlansDisabledError)):
+        if isinstance(
+            exception, (MerakiTrafficAnalysisError, MerakiVlansDisabledError)
+        ):
             _LOGGER.debug(
                 "Feature disabled for %s during %s: %s", key, label, exception
             )
@@ -153,7 +155,8 @@ class DataFetchManager:
             # Traffic Analysis Disabled
             if "traffic analysis" in error_msg:
                 _LOGGER.debug(
-                    "Traffic analysis disabled for %s (Status 400). Marking as disabled.",
+                    "Traffic analysis disabled for %s (Status 400). "
+                    "Marking as disabled.",
                     key,
                 )
                 return MerakiTrafficAnalysisError(str(exception))

@@ -14,6 +14,7 @@ from homeassistant.const import PERCENTAGE, UnitOfTime
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers import entity_registry as er
 
+from ..binary_sensor.device.appliance_port import AppliancePortBinarySensor
 from ..binary_sensor.device.camera_motion import MerakiMotionSensor
 from ..binary_sensor.switch_port import SwitchPortSensor
 from ..button.device.camera_snapshot import MerakiSnapshotButton
@@ -35,13 +36,13 @@ from ..descriptions import (
 )
 from ..sensor.device.appliance_port import MerakiAppliancePortSensor
 from ..sensor.device.appliance_uplink import MerakiApplianceUplinkSensor
-from ..sensor.uplink_performance import MerakiUplinkPerformanceSensor
 from ..sensor.device.camera_analytics import (
     MerakiPersonCountSensor,
     MerakiVehicleCountSensor,
 )
 from ..sensor.device.meraki_mt_base import MerakiMtSensor
 from ..sensor.device.rtsp_url import MerakiRtspUrlSensor
+from ..sensor.uplink_performance import MerakiUplinkPerformanceSensor
 from ..switch.camera_controls import AnalyticsSwitch
 
 if TYPE_CHECKING:
@@ -237,6 +238,7 @@ class AppliancePortProvider:
         if device.appliance_ports:
             for port in device.appliance_ports:
                 entities.append(MerakiAppliancePortSensor(coordinator, device, port))
+                entities.append(AppliancePortBinarySensor(coordinator, device, port))
         return entities
 
 

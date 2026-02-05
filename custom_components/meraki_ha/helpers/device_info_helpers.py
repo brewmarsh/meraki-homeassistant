@@ -63,10 +63,14 @@ def resolve_device_info(
         ssid_number = effective_data.get("number")
         if network_id and ssid_number is not None:
             identifier = (DOMAIN, get_ssid_identifier(network_id, ssid_number))
-            ssid_name = effective_data.get("name")
+            
+            # Format: [SSID 0] MyWifiName
+            # We use effective_data.get("name") directly to avoid double-prefixing
+            raw_name = effective_data.get("name") or f"SSID {ssid_number}"
+            
             return DeviceInfo(
                 identifiers={identifier},
-                name=f"[SSID {ssid_number}] {ssid_name}",
+                name=f"[SSID {ssid_number}] {raw_name}",
                 model="Wireless SSID",
                 manufacturer="Cisco Meraki",
                 via_device=(DOMAIN, f"network_{network_id}"),
@@ -87,11 +91,13 @@ def resolve_device_info(
     network_id = entity_data.get("id")
     is_network = "productTypes" in entity_data and not entity_data.get("serial")
     if is_network and network_id:
+        # Format: [Network] BranchName
+        raw_net_name = entity_data.get("name") or "Unknown Network"
         return DeviceInfo(
             identifiers={(DOMAIN, f"network_{network_id}")},
-            name=f"[Network] {entity_data.get('name')}",
+            name=f"[Network] {raw_net_name}",
             manufacturer="Cisco Meraki",
-            model="Network",
+            model="Meraki Network",
         )
 
     # Fallback to creating device info for a physical device

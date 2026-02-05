@@ -26,6 +26,7 @@ _LOGGER = logging.getLogger(__name__)
 RE_OLD_SSID_SWITCH = re.compile(r"^ssid-(.+)-(\d+)-(.+)-switch$")
 RE_OLD_RF_PROFILE = re.compile(r"^meraki-ssid-(.+)-(\d+)-rf-profile$")
 RE_OLD_SSID_SENSOR = re.compile(r"^ssid-(.+)-(\d+)-(.+)$")
+RE_UNDERSCORE_SSID_SENSOR = re.compile(r"^([NL]_[0-9]+)_([0-9]+)_(.+)$")
 RE_OLD_NAME_TEXT = re.compile(r"^ssid-(.+)-(\d+)_name_text$")
 RE_OLD_ADULT_FILTER = re.compile(r"^meraki-adult-content-filtering-(.+)-(\d+)$")
 
@@ -57,6 +58,10 @@ async def async_migrate_entities(hass: HomeAssistant, entry_id: str) -> None:
             # Avoid matching new format by accident
             if "ssid" not in net_id:
                 new_unique_id = f"{net_id}ssid{ssid_num}_{attr}"
+        elif match := RE_UNDERSCORE_SSID_SENSOR.match(old_unique_id):
+            net_id, ssid_num, attr = match.groups()
+            # This handles the legacy N_123_0_walled_garden format
+            new_unique_id = f"{net_id}ssid{ssid_num}_{attr}"
 
         if new_unique_id and new_unique_id != old_unique_id:
             _LOGGER.info("Migrating entity %s unique_id from %s to %s",
@@ -70,30 +75,32 @@ async def async_migrate_entities(hass: HomeAssistant, entry_id: str) -> None:
 
 
 async def async_cleanup_ghost_devices(hass: HomeAssistant, entry_id: str) -> None:
-    """Remove old SSID devices and any devices with the [SSID] prefix."""
+    """Remove old SSID devices.
+
+    Note: [SSID] prefix is now canonical, so we no longer remove devices
+    based on that prefix.
+    """
     device_registry = dr.async_get(hass)
     devices = dr.async_entries_for_config_entry(device_registry, entry_id)
 
     for device in devices:
         should_remove = False
 
-        # Check for [SSID] prefix in name
-        if device.name and device.name.startswith("[SSID]"):
-            should_remove = True
-            _LOGGER.info("Marking ghost device for removal (prefix match): %s", device.name)
-
         # Check for old identifier format (DOMAIN, f"{network_id}:ssid:{ssid_number}")
         for identifier in device.identifiers:
             if identifier[0] == DOMAIN and ":ssid:" in identifier[1]:
                 should_remove = True
-                _LOGGER.info("Marking ghost device for removal (identifier match): %s", identifier[1])
+                _LOGGER.info(
+                    "Marking ghost device for removal (identifier match): %s",
+                    identifier[1],
+                )
                 break
 
         if should_remove:
             # Only remove if it has no entities (or we just moved them)
             # Actually, if we migrated the entities' unique_ids, their device_info
-            # will point to a NEW identifier, so they will be associated with a new device
-            # when they next check in.
+            # will point to a NEW identifier, so they will be associated with a
+            # new device when they next check in.
             # However, Home Assistant might still keep them linked to the old device
             # until the next refresh or if we explicitly move them.
 

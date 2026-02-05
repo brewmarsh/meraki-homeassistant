@@ -97,6 +97,7 @@ def test_ssid_device_unification(
     sensor_device_info = sensor.device_info
     assert sensor_device_info is not None
     sensor_identifiers = sensor_device_info["identifiers"]
+    # Verify the new [SSID 0] Name format
     assert sensor_device_info["name"] == "[SSID 0] Test SSID"
 
     detail_sensor_device_info = detail_sensor.device_info

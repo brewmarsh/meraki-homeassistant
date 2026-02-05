@@ -89,7 +89,7 @@ class MerakiSSIDWalledGardenSensor(MerakiSSIDDetailSensor):
     ) -> None:
         """Initialize the sensor."""
         self._attr_unique_id = (
-            f"{ssid_data['networkId']}_{ssid_data['number']}_walled_garden"
+            f"{ssid_data['networkId']}ssid{ssid_data['number']}_walled_garden"
         )
         self._attr_name = "Walled garden"
         super().__init__(coordinator, config_entry, ssid_data, rf_profile)
@@ -119,7 +119,7 @@ class MerakiSSIDTotalUploadLimitSensor(MerakiSSIDDetailSensor):
     ) -> None:
         """Initialize the sensor."""
         self._attr_unique_id = (
-            f"{ssid_data['networkId']}_{ssid_data['number']}_upload_limit"
+            f"{ssid_data['networkId']}ssid{ssid_data['number']}_upload_limit"
         )
         self._attr_name = "Total upload limit"
         super().__init__(coordinator, config_entry, ssid_data, rf_profile)
@@ -144,7 +144,7 @@ class MerakiSSIDTotalDownloadLimitSensor(MerakiSSIDDetailSensor):
     ) -> None:
         """Initialize the sensor."""
         self._attr_unique_id = (
-            f"{ssid_data['networkId']}_{ssid_data['number']}_download_limit"
+            f"{ssid_data['networkId']}ssid{ssid_data['number']}_download_limit"
         )
         self._attr_name = "Total download limit"
         super().__init__(coordinator, config_entry, ssid_data, rf_profile)
@@ -168,7 +168,7 @@ class MerakiSSIDMandatoryDhcpSensor(MerakiSSIDDetailSensor):
     ) -> None:
         """Initialize the sensor."""
         self._attr_unique_id = (
-            f"{ssid_data['networkId']}_{ssid_data['number']}_mandatory_dhcp"
+            f"{ssid_data['networkId']}ssid{ssid_data['number']}_mandatory_dhcp"
         )
         self._attr_name = "Mandatory DHCP"
         super().__init__(coordinator, config_entry, ssid_data, rf_profile)
@@ -195,7 +195,7 @@ class MerakiSSIDMinBitrate24GhzSensor(MerakiSSIDDetailSensor):
     ) -> None:
         """Initialize the sensor."""
         self._attr_unique_id = (
-            f"{ssid_data['networkId']}_{ssid_data['number']}_min_bitrate_24"
+            f"{ssid_data['networkId']}ssid{ssid_data['number']}_min_bitrate_24"
         )
         self._attr_name = "Minimum bitrate 2.4GHz"
         super().__init__(coordinator, config_entry, ssid_data, rf_profile)
@@ -225,7 +225,7 @@ class MerakiSSIDMinBitrate5GhzSensor(MerakiSSIDDetailSensor):
     ) -> None:
         """Initialize the sensor."""
         self._attr_unique_id = (
-            f"{ssid_data['networkId']}_{ssid_data['number']}_min_bitrate_5"
+            f"{ssid_data['networkId']}ssid{ssid_data['number']}_min_bitrate_5"
         )
         self._attr_name = "Minimum bitrate 5GHz"
         super().__init__(coordinator, config_entry, ssid_data, rf_profile)
