@@ -2,10 +2,13 @@
 
 from __future__ import annotations
 
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from ...core.models.device import MerakiDevice
 from .base import BaseFetchStrategy
+
+if TYPE_CHECKING:
+    from ...core.api.client import MerakiAPIClient
 
 
 class CameraFetchStrategy(BaseFetchStrategy):
@@ -52,14 +55,18 @@ class CameraFetchStrategy(BaseFetchStrategy):
         if "analytics" in capabilities:
             # Optimization: Only fetch expensive sense settings on specific intervals
             if self.should_fetch_sense:
-                tasks[f"sense_settings_{device.serial}"] = self.client.run_with_semaphore(
-                    self.client.camera.get_camera_sense_settings(device.serial),
+                tasks[f"sense_settings_{device.serial}"] = (
+                    self.client.run_with_semaphore(
+                        self.client.camera.get_camera_sense_settings(device.serial),
+                    )
                 )
 
             # 3. Batch Awareness: Only add analytics task if NOT provided in batch data
             # AND if we are in a polling cycle that allows fetching it
             analytics_key = f"camera_analytics_{device.serial}"
-            if self.should_fetch_sense and (not detail_data or analytics_key not in detail_data):
+            if self.should_fetch_sense and (
+                not detail_data or analytics_key not in detail_data
+            ):
                 tasks[analytics_key] = self.client.run_with_semaphore(
                     self.client.camera.get_device_camera_analytics_recent(
                         device.serial,

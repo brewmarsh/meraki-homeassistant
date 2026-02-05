@@ -52,7 +52,9 @@ def test_build_device_tasks_skips_if_in_detail_data(strategy):
     tasks = {}
     detail_data = {f"ports_statuses_{mock_device.serial}": [{"portId": "1"}]}
 
-    strategy.build_device_tasks(mock_device, tasks, capabilities=["switch_ports"], detail_data=detail_data)
+    strategy.build_device_tasks(
+        mock_device, tasks, capabilities=["switch_ports"], detail_data=detail_data
+    )
 
     assert f"ports_statuses_{mock_device.serial}" not in tasks
 

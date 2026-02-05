@@ -324,7 +324,9 @@ class DataFetchManager:
             elif device.product_type == "switch":
                 self.switch_strategy.process_device_details(device, detail_data, prev)
             elif device.product_type == "appliance":
-                self.appliance_strategy.process_device_details(device, detail_data, prev)
+                self.appliance_strategy.process_device_details(
+                    device, detail_data, prev
+                )
             elif device.product_type == "sensor":
                 self.sensor_strategy.process_device_details(device, detail_data, prev)
         return processed_data

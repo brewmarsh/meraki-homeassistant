@@ -12,6 +12,7 @@ from custom_components.meraki_ha.core.models.device import MerakiDevice
 
 @pytest.mark.asyncio
 async def test_camera_modulo_fetch():
+    """Test that camera sense data is fetched only on every 5th poll."""
     client = MagicMock()
     # Mock run_with_semaphore to just return the coro
     client.run_with_semaphore.side_effect = lambda x: x
@@ -25,14 +26,18 @@ async def test_camera_modulo_fetch():
     strategy.increment_poll_count()
     assert strategy.should_fetch_sense is True
     tasks = {}
-    strategy.build_device_tasks(device, tasks, capabilities=["camera_stream", "analytics"])
+    strategy.build_device_tasks(
+        device, tasks, capabilities=["camera_stream", "analytics"]
+    )
     assert f"sense_settings_{device.serial}" in tasks
 
     # Poll 2
     strategy.increment_poll_count()
     assert strategy.should_fetch_sense is False
     tasks = {}
-    strategy.build_device_tasks(device, tasks, capabilities=["camera_stream", "analytics"])
+    strategy.build_device_tasks(
+        device, tasks, capabilities=["camera_stream", "analytics"]
+    )
     assert f"sense_settings_{device.serial}" not in tasks
 
     # Poll 3, 4, 5
@@ -45,11 +50,14 @@ async def test_camera_modulo_fetch():
     strategy.increment_poll_count()
     assert strategy.should_fetch_sense is True
     tasks = {}
-    strategy.build_device_tasks(device, tasks, capabilities=["camera_stream", "analytics"])
+    strategy.build_device_tasks(
+        device, tasks, capabilities=["camera_stream", "analytics"]
+    )
     assert f"sense_settings_{device.serial}" in tasks
 
 @pytest.mark.asyncio
 async def test_camera_sense_disabled():
+    """Test that camera sense data is never fetched when disabled."""
     client = MagicMock()
     # Strategy with sense disabled
     strategy = CameraFetchStrategy(client, set(), enable_camera_sense=False)
@@ -60,11 +68,14 @@ async def test_camera_sense_disabled():
     strategy.increment_poll_count()
     assert strategy.should_fetch_sense is False
     tasks = {}
-    strategy.build_device_tasks(device, tasks, capabilities=["camera_stream", "analytics"])
+    strategy.build_device_tasks(
+        device, tasks, capabilities=["camera_stream", "analytics"]
+    )
     assert f"sense_settings_{device.serial}" not in tasks
 
 @pytest.mark.asyncio
 async def test_dfm_batch_analytics_modulo():
+    """Test that batch analytics fetching respects the modulo logic."""
     client = MagicMock()
     client._disabled_features = set()
     dfm = DataFetchManager(client, enable_camera_sense=True)
@@ -72,14 +83,20 @@ async def test_dfm_batch_analytics_modulo():
     devices = [MerakiDevice(serial="Q123", product_type="camera")]
 
     # Mock the API call
-    client.camera.get_device_camera_analytics_recent = MagicMock(return_value=AsyncMock()())
+    client.camera.get_device_camera_analytics_recent = AsyncMock(return_value={})
     client.run_with_semaphore.side_effect = lambda x: x
 
     # Poll 1
     dfm.camera_strategy.increment_poll_count()
+
+    async def mock_gather(tasks, **kwargs):
+        for t in tasks.values():
+            t.close()
+        return {}
+
     with MagicMock():
         # We need to mock _async_gather_with_timeout because it tries to await tasks
-        dfm._async_gather_with_timeout = AsyncMock(return_value={})
+        dfm._async_gather_with_timeout = AsyncMock(side_effect=mock_gather)
         await dfm._fetch_batch_camera_analytics(devices)
         assert dfm._async_gather_with_timeout.called
 

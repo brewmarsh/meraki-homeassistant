@@ -168,7 +168,9 @@ class ApplianceFetchStrategy(BaseFetchStrategy):
 
         if settings := detail_data.get(f"appliance_settings_{device.serial}"):
             # Defensive check: Ensure settings is a dict before calling .get()
-            if isinstance(settings, dict) and isinstance(settings.get("dynamicDns"), dict):
+            if isinstance(settings, dict) and isinstance(
+                settings.get("dynamicDns"), dict
+            ):
                 device.dynamic_dns = settings["dynamicDns"]
         elif prev_device and hasattr(prev_device, "dynamic_dns"):
             device.dynamic_dns = prev_device.dynamic_dns
