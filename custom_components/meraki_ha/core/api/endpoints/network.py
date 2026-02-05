@@ -156,16 +156,16 @@ class NetworkEndpoints:
             )
             validated = validate_response(res)
 
-            # Robust extraction logic (Unified deep-search)
+            # Robust extraction logic (Merged from fix/beta)
             if isinstance(validated, list):
                 return cast(list[dict[str, Any]], validated)
             
             if isinstance(validated, dict):
-                # Fallback: Deep-search dictionary values for a list
+                # Fallback: Deep-search dictionary values for a list (Fix branch logic)
                 for value in validated.values():
                     if isinstance(value, list):
                         return cast(list[dict[str, Any]], value)
-                return [validated]
+                return [validated] # Treat single dict as a list of one
 
             return []
             
