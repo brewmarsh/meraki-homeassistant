@@ -18,7 +18,13 @@ except ImportError:
     )
 
 from .const import DOMAIN
-from .const_conf import CONF_INTEGRATION_TITLE, CONF_MERAKI_API_KEY, CONF_MERAKI_ORG_ID
+from .const_conf import (
+    CONF_ENABLE_FIREWALL_RULES,
+    CONF_ENABLE_VPN_MANAGEMENT,
+    CONF_INTEGRATION_TITLE,
+    CONF_MERAKI_API_KEY,
+    CONF_MERAKI_ORG_ID,
+)
 from .core.errors import MerakiAuthenticationError, MerakiConnectionError
 from .helpers.schema import populate_schema_defaults
 from .schemas import CONFIG_SCHEMA, OPTIONS_SCHEMA
@@ -81,23 +87,27 @@ class MerakiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignor
             from .authentication import validate_meraki_credentials
 
             try:
+                api_key = user_input[CONF_MERAKI_API_KEY]
+                org_id = user_input[CONF_MERAKI_ORG_ID]
                 validation_result = await validate_meraki_credentials(
                     self.hass,
-                    user_input[CONF_MERAKI_API_KEY],
-                    user_input[CONF_MERAKI_ORG_ID],
+                    api_key,
+                    org_id,
                 )
-                self.data[CONF_MERAKI_API_KEY] = user_input[CONF_MERAKI_API_KEY]
-                self.data[CONF_MERAKI_ORG_ID] = user_input[CONF_MERAKI_ORG_ID]
-                self.data["org_name"] = validation_result.get(
-                    "org_name",
-                    user_input[CONF_MERAKI_ORG_ID],
-                )
+                org_name = validation_result.get("org_name", org_id)
 
-                await self.async_set_unique_id(user_input[CONF_MERAKI_ORG_ID])
+                await self.async_set_unique_id(org_id)
                 self._abort_if_unique_id_configured()
 
-                # Show the general form by default
-                return await self.async_step_init()
+                return self.async_create_entry(
+                    title=org_name,
+                    data={
+                        CONF_MERAKI_API_KEY: api_key,
+                        CONF_MERAKI_ORG_ID: org_id,
+                        CONF_ENABLE_VPN_MANAGEMENT: False,
+                        CONF_ENABLE_FIREWALL_RULES: False,
+                    },
+                )
 
             except MerakiAuthenticationError:
                 errors["base"] = "invalid_auth"
@@ -113,35 +123,6 @@ class MerakiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignor
             step_id="user",
             data_schema=CONFIG_SCHEMA,
             errors=errors,
-        )
-
-    async def async_step_init(
-        self,
-        user_input: dict[str, Any] | None = None,
-    ) -> ConfigFlowResult:
-        """
-        Handle the general settings step.
-
-        Args:
-        ----
-            user_input: The user input.
-
-        Returns
-        -------
-            The flow result.
-
-        """
-        if user_input is not None:
-            self.options.update(user_input)
-            return self.async_create_entry(
-                title=self.data.get("org_name", CONF_INTEGRATION_TITLE),
-                data=self.data,
-                options=self.options,
-            )
-
-        return self.async_show_form(
-            step_id="init",
-            data_schema=OPTIONS_SCHEMA,
         )
 
     @staticmethod
