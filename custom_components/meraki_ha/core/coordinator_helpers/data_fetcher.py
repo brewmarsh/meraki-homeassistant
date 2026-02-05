@@ -269,7 +269,8 @@ class DataFetchManager:
         initial_results = await self._async_fetch_initial_data()
 
         # 2. Convert to Models
-        # Ensure results are iterable by using 'or []' in case they were sanitized to None
+        # Ensure results are iterable by using 'or []' in case they were
+        # sanitized to None
         networks_list = [
             MerakiNetwork.from_dict(n)
             for n in (initial_results.get("networks") or [])
