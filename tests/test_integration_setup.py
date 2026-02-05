@@ -118,14 +118,14 @@ async def test_ssid_device_creation_and_unification(
         entity_registry = async_get_entity_registry(hass)
 
         # Find devices related to the SSID
-        ssid_device_identifier = (DOMAIN, f"{MOCK_NETWORK.id}_0")
+        ssid_device_identifier = (DOMAIN, f"{MOCK_NETWORK.id}:ssid:0")
         ssid_device = device_registry.async_get_device({ssid_device_identifier})
 
         # Assert that a device was created
         assert ssid_device is not None
 
         # Assert that the device has the correct name (default prefix format)
-        assert ssid_device.name == "[SSID] Test SSID"
+        assert ssid_device.name == "Test SSID"
 
         # Find all entities associated with this device by querying the entity registry
         entities = [

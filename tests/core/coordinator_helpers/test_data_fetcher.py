@@ -1,6 +1,5 @@
 """Tests for the Data Fetch Manager."""
 
-import asyncio
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
@@ -68,7 +67,6 @@ async def test_get_all_data_includes_switch_ports(data_fetch_manager, mock_clien
 @pytest.mark.asyncio
 async def test_async_gather_with_timeout_batching(data_fetch_manager):
     """Test that tasks are executed in batches."""
-
     # Create 12 tasks
     tasks = {f"task_{i}": AsyncMock(return_value={"id": i})() for i in range(12)}
 

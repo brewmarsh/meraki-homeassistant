@@ -1,9 +1,14 @@
 """Tests for Switch Port normalization."""
 
 from unittest.mock import AsyncMock, MagicMock
+
 import pytest
-from custom_components.meraki_ha.core.api.endpoints.organization import OrganizationEndpoints
+
+from custom_components.meraki_ha.core.api.endpoints.organization import (
+    OrganizationEndpoints,
+)
 from custom_components.meraki_ha.core.api.endpoints.switch import SwitchEndpoints
+
 
 @pytest.fixture
 def mock_client():

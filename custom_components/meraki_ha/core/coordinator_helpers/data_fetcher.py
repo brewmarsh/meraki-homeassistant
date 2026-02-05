@@ -1,6 +1,4 @@
-"""
-Data Fetch Manager with Smart Error Handling.
-"""
+"""Data Fetch Manager with Smart Error Handling."""
 
 from __future__ import annotations
 
@@ -10,12 +8,13 @@ from typing import TYPE_CHECKING, Any, cast
 
 import meraki
 
+from ...core.const import DEFAULT_CAPS, DEVICE_CAPABILITIES
+
 # Import the custom errors so we can pass them to strategies
 from ...core.errors import (
     MerakiTrafficAnalysisError,
     MerakiVlansDisabledError,
 )
-from ...core.const import DEFAULT_CAPS, DEVICE_CAPABILITIES
 from ...core.fetch_strategies.appliance import ApplianceFetchStrategy
 from ...core.fetch_strategies.camera import CameraFetchStrategy
 from ...core.fetch_strategies.sensor import SensorFetchStrategy

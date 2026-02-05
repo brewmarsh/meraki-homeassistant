@@ -7,6 +7,9 @@ from unittest.mock import MagicMock
 
 import pytest
 
+from custom_components.meraki_ha.meraki_select.rf_profile import (
+    MerakiRFProfileSelect,
+)
 from custom_components.meraki_ha.sensor.network.ssid_availability import (
     MerakiSSIDAvailabilitySensor,
 )
@@ -54,7 +57,7 @@ def test_ssid_device_unification(
 
     # The unique ID for the SSID "device" itself
     # This is based on the logic in device_info_helpers.py
-    expected_device_identifier = ("meraki_ha", "net1_0")
+    expected_device_identifier = ("meraki_ha", "net1:ssid:0")
 
     # --- Instantiate one of each type of SSID entity ---
 
@@ -80,34 +83,48 @@ def test_ssid_device_unification(
     # 4. The text entity
     text = MerakiSSIDNameText(coordinator, meraki_client, config_entry, ssid_data)
 
+    # 5. The RF profile select entity
+    rf_select = MerakiRFProfileSelect(
+        coordinator,
+        meraki_client,
+        config_entry,
+        ssid_data,
+    )
+
     # --- Assertions ---
 
     # Get the identifiers from each entity's DeviceInfo
     sensor_device_info = sensor.device_info
     assert sensor_device_info is not None
     sensor_identifiers = sensor_device_info["identifiers"]
-    assert sensor_device_info["name"] == "[SSID] Test SSID"
+    assert sensor_device_info["name"] == "Test SSID"
 
     detail_sensor_device_info = detail_sensor.device_info
     assert detail_sensor_device_info is not None
     detail_sensor_identifiers = detail_sensor_device_info["identifiers"]
-    assert detail_sensor_device_info["name"] == "[SSID] Test SSID"
+    assert detail_sensor_device_info["name"] == "Test SSID"
 
     switch_device_info = switch.device_info
     assert switch_device_info is not None
     switch_identifiers = switch_device_info["identifiers"]
-    assert switch_device_info["name"] == "[SSID] Test SSID"
+    assert switch_device_info["name"] == "Test SSID"
 
     text_device_info = text.device_info
     assert text_device_info is not None
     text_identifiers = text_device_info["identifiers"]
-    assert text_device_info["name"] == "[SSID] Test SSID"
+    assert text_device_info["name"] == "Test SSID"
+
+    rf_select_device_info = rf_select.device_info
+    assert rf_select_device_info is not None
+    rf_select_identifiers = rf_select_device_info["identifiers"]
+    assert rf_select_device_info["name"] == "Test SSID"
 
     # Assert that all entities share the exact same device identifier
     assert sensor_identifiers == {expected_device_identifier}
     assert detail_sensor_identifiers == {expected_device_identifier}
     assert switch_identifiers == {expected_device_identifier}
     assert text_identifiers == {expected_device_identifier}
+    assert rf_select_identifiers == {expected_device_identifier}
 
     # As a final check, assert they are all equal to each other
     assert (
@@ -115,4 +132,13 @@ def test_ssid_device_unification(
         == detail_sensor_identifiers
         == switch_identifiers
         == text_identifiers
+        == rf_select_identifiers
     )
+
+    # Verify via_device points to the network
+    expected_via_device = ("meraki_ha", "network_net1")
+    assert sensor_device_info["via_device"] == expected_via_device
+    assert detail_sensor_device_info["via_device"] == expected_via_device
+    assert switch_device_info["via_device"] == expected_via_device
+    assert text_device_info["via_device"] == expected_via_device
+    assert rf_select_device_info["via_device"] == expected_via_device
