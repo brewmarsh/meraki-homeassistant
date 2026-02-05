@@ -8,6 +8,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.device_registry import DeviceInfo
 
 from ..const import DOMAIN
+from ..core.const import get_ssid_identifier
 from ..core.models.device import MerakiDevice
 from ..core.models.network import MerakiNetwork
 
@@ -61,13 +62,14 @@ def resolve_device_info(
         network_id = effective_data.get("networkId")
         ssid_number = effective_data.get("number")
         if network_id:
-            identifier = (DOMAIN, f"{network_id}_{ssid_number}")
+            identifier = (DOMAIN, get_ssid_identifier(network_id, ssid_number))
             name = effective_data.get("name")
             return DeviceInfo(
                 identifiers={identifier},
-                name=f"[SSID] {name}",
+                name=name,
                 model="Wireless SSID",
                 manufacturer="Cisco Meraki",
+                via_device=(DOMAIN, f"network_{network_id}"),
             )
 
     # Handle client devices, which are linked to a physical device

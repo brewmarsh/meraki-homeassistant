@@ -1,9 +1,14 @@
 
+from unittest.mock import AsyncMock, MagicMock
+
 import pytest
-from unittest.mock import MagicMock, AsyncMock
-from custom_components.meraki_ha.core.models.device import MerakiDevice
+
+from custom_components.meraki_ha.core.coordinator_helpers.data_fetcher import (
+    DataFetchManager,
+)
 from custom_components.meraki_ha.core.fetch_strategies.camera import CameraFetchStrategy
-from custom_components.meraki_ha.core.coordinator_helpers.data_fetcher import DataFetchManager
+from custom_components.meraki_ha.core.models.device import MerakiDevice
+
 
 @pytest.mark.asyncio
 async def test_camera_modulo_fetch():
@@ -72,7 +77,7 @@ async def test_dfm_batch_analytics_modulo():
 
     # Poll 1
     dfm.camera_strategy.increment_poll_count()
-    with MagicMock() as mock_gather:
+    with MagicMock():
         # We need to mock _async_gather_with_timeout because it tries to await tasks
         dfm._async_gather_with_timeout = AsyncMock(return_value={})
         await dfm._fetch_batch_camera_analytics(devices)

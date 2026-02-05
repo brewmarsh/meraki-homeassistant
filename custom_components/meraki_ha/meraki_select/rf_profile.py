@@ -11,9 +11,9 @@ from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from ..const import DOMAIN
 from ..coordinator import MerakiDataUpdateCoordinator
 from ..core.api.client import MerakiAPIClient
+from ..helpers.device_info_helpers import resolve_device_info
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -58,13 +58,9 @@ class MerakiRFProfileSelect(CoordinatorEntity, SelectEntity):
     @property
     def device_info(self) -> DeviceInfo | None:
         """Return device information to link this entity to the SSID 'device'."""
-        return DeviceInfo(
-            identifiers={
-                (DOMAIN, f"meraki_ssid_{self._network_id}_{self._ssid_number}")
-            },
-            name=f"SSID {self._ssid_name}",
-            manufacturer="Cisco Meraki",
-            via_device=(DOMAIN, self._network_id),
+        return resolve_device_info(
+            entity_data=self._ssid_data,
+            config_entry=self._config_entry,
         )
 
     @property

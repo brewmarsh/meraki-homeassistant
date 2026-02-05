@@ -12,7 +12,10 @@ from custom_components.meraki_ha.core.errors import (
 from custom_components.meraki_ha.core.fetch_strategies.appliance import (
     ApplianceFetchStrategy,
 )
-from custom_components.meraki_ha.core.models.device import MerakiAppliancePort, MerakiDevice
+from custom_components.meraki_ha.core.models.device import (
+    MerakiAppliancePort,
+    MerakiDevice,
+)
 
 
 @pytest.fixture

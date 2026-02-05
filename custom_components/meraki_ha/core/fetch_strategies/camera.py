@@ -73,7 +73,6 @@ class CameraFetchStrategy(BaseFetchStrategy):
         prev_device: MerakiDevice | None,
     ) -> None:
         """Process camera details with type safety."""
-        
         # --- Video Settings ---
         if settings := detail_data.get(f"video_settings_{device.serial}"):
             # Type Safety: Ensure we actually got a dictionary
