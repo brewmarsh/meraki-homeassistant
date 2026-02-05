@@ -7,6 +7,7 @@ import pytest
 from custom_components.meraki_ha.core.fetch_strategies.switch import (
     SwitchFetchStrategy,
 )
+from custom_components.meraki_ha.core.models.device import MerakiDevice
 
 
 @pytest.fixture
@@ -75,10 +76,11 @@ def test_process_device_details_fallback_to_prev(strategy):
     mock_device = MagicMock()
     mock_device.serial = "SERIAL1"
     detail_data = {}
-    prev_device = {
-        "ports_statuses": [{"portId": "1", "status": "Disconnected"}]
-    }
+    prev_device = MerakiDevice(
+        serial="SERIAL1",
+        ports_statuses=[{"portId": "1", "status": "Disconnected"}]
+    )
 
     strategy.process_device_details(mock_device, detail_data, prev_device)
 
-    assert mock_device.ports_statuses == prev_device["ports_statuses"]
+    assert mock_device.ports_statuses == prev_device.ports_statuses

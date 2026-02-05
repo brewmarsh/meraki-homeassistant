@@ -41,12 +41,14 @@ class DataFetchManager:
         enable_vpn_management: bool = False,
         enable_firewall_rules: bool = False,
         enable_traffic_shaping: bool = False,
+        enable_camera_sense: bool = True,  # Added from Feat branch
     ) -> None:
         """Initialize the Data Fetch Manager."""
         self.client = client
         self.enable_vpn_management = enable_vpn_management
         self.enable_firewall_rules = enable_firewall_rules
         self.enable_traffic_shaping = enable_traffic_shaping
+        self.enable_camera_sense = enable_camera_sense
 
         self.client_fetcher = ClientFetcher(self.client)
         self._disabled_features = client._disabled_features
@@ -61,7 +63,13 @@ class DataFetchManager:
         )
         self.wireless_strategy = WirelessFetchStrategy(client, self._disabled_features)
         self.switch_strategy = SwitchFetchStrategy(client, self._disabled_features)
-        self.camera_strategy = CameraFetchStrategy(client, self._disabled_features)
+        
+        # Merge: Pass enable_camera_sense to Camera Strategy
+        self.camera_strategy = CameraFetchStrategy(
+            client, self._disabled_features, enable_camera_sense
+        )
+        
+        # Merge: Include Sensor Strategy from Beta branch
         self.sensor_strategy = SensorFetchStrategy(client, self._disabled_features)
 
     async def _async_gather_with_timeout(
@@ -98,11 +106,10 @@ class DataFetchManager:
             return all_results
 
         try:
-            # Use the batched execution logic (from Beta branch) for stability
+            # Use the batched execution logic (from Beta branch)
             results = await asyncio.wait_for(_execute_batches(), timeout=timeout)
-
-            # Sanitization Logic (Merged from both branches)
-            # Filter out exceptions to prevent downstream crashes
+            
+            # Sanitization Logic (from Feat/Chore branches)
             sanitized_results: dict[str, Any] = {}
             for key, result in zip(tasks.keys(), results, strict=True):
                 if isinstance(result, Exception):
@@ -119,10 +126,9 @@ class DataFetchManager:
                     )
                     sanitized_results[key] = None
             return sanitized_results
-
+            
         except asyncio.TimeoutError:
             _LOGGER.error("Timeout during %s. Potential semaphore deadlock.", label)
-            # Log specific keys to identify which strategy is hanging
             _LOGGER.debug("Pending keys for %s: %s", label, list(tasks.keys()))
             raise
 
@@ -158,6 +164,10 @@ class DataFetchManager:
         self, devices: list[MerakiDevice]
     ) -> dict[str, Any]:
         """Fetch camera analytics for all cameras in a single batch of tasks."""
+        # Optimization: Skip if camera sense is globally disabled or not due for polling
+        if not self.camera_strategy.should_fetch_sense:
+            return {}
+
         camera_serials = [d.serial for d in devices if d.product_type == "camera"]
         if not camera_serials:
             return {}
@@ -236,9 +246,13 @@ class DataFetchManager:
             # ### Task Creation Logic
             # Combined Logic: Pass BOTH detail_data (for bulk data) AND capabilities (for guarding)
             if device.product_type == "camera":
-                self.camera_strategy.build_device_tasks(device, tasks, capabilities)
+                self.camera_strategy.build_device_tasks(
+                    device, tasks, capabilities
+                )
             elif device.product_type == "switch":
-                self.switch_strategy.build_device_tasks(device, tasks, capabilities)
+                self.switch_strategy.build_device_tasks(
+                    device, tasks, capabilities
+                )
             elif device.product_type == "appliance":
                 self.appliance_strategy.build_device_tasks(device, tasks, capabilities)
             elif device.product_type == "sensor":
@@ -308,6 +322,9 @@ class DataFetchManager:
         """Fetch all data for the coordinator update cycle."""
         previous_data = previous_data or {}
         _LOGGER.debug("Fetching fresh Meraki data from API")
+
+        # 0. Increment strategy poll counts (Optimization logic)
+        self.camera_strategy.increment_poll_count()
 
         # 1. Organization-level baseline
         initial_results = await self._async_fetch_initial_data()

@@ -12,6 +12,7 @@ from custom_components.meraki_ha.core.errors import (
 from custom_components.meraki_ha.core.fetch_strategies.appliance import (
     ApplianceFetchStrategy,
 )
+from custom_components.meraki_ha.core.models.device import MerakiAppliancePort, MerakiDevice
 
 
 @pytest.fixture
@@ -185,3 +186,22 @@ def test_process_device_details_settings(strategy):
     strategy.process_device_details(mock_device, detail_data, None)
 
     assert mock_device.dynamic_dns == {"enabled": True, "prefix": "test"}
+
+
+def test_process_device_details_fallback_to_prev(strategy):
+    """Test processing device details falls back to previous data."""
+    mock_device = MagicMock()
+    mock_device.serial = "SERIAL1"
+    mock_device.network_id = "net1"
+    detail_data = {}
+    prev_device = MerakiDevice(
+        serial="SERIAL1",
+        network_id="net1",
+        appliance_ports=[MerakiAppliancePort(number=1, enabled=True)],
+        dynamic_dns={"enabled": True, "prefix": "prev"},
+    )
+
+    strategy.process_device_details(mock_device, detail_data, prev_device)
+
+    assert mock_device.appliance_ports == prev_device.appliance_ports
+    assert mock_device.dynamic_dns == prev_device.dynamic_dns

@@ -52,6 +52,7 @@ CONF_ENABLE_NETWORK_SENSORS: Final = "enable_network_sensors"
 CONF_ENABLE_VLAN_SENSORS: Final = "enable_vlan_sensors"
 CONF_ENABLE_PORT_SENSORS: Final = "enable_port_sensors"
 CONF_ENABLE_SSID_SENSORS: Final = "enable_ssid_sensors"
+CONF_ENABLE_CAMERA_SENSE: Final = "enable_camera_sense"
 
 DEFAULT_ENABLED_NETWORKS: Final[list[str]] = []
 """Default value for the enabled networks list."""
@@ -86,3 +87,4 @@ DEFAULT_ENABLE_NETWORK_SENSORS: Final = True
 DEFAULT_ENABLE_VLAN_SENSORS: Final = True
 DEFAULT_ENABLE_PORT_SENSORS: Final = True
 DEFAULT_ENABLE_SSID_SENSORS: Final = True
+DEFAULT_ENABLE_CAMERA_SENSE: Final = True
