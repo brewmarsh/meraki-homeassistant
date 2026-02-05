@@ -31,6 +31,7 @@ from .const_conf import (
 from .core.api.client import MerakiAPIClient as ApiClient
 from .core.coordinator_helpers.data_fetcher import DataFetchManager
 from .core.helpers import filter_ignored_networks, process_coordinator_data
+from .core.helpers.device_registry import async_ensure_network_devices_exist
 from .core.managers import PendingUpdateManager, PollingManager
 from .core.models.device import MerakiDevice
 from .core.models.network import MerakiNetwork
@@ -194,10 +195,23 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 # Return cached data to prevent entities from becoming unavailable
                 return self.last_successful_data
 
+            # --- CRITICAL FIX FROM BETA BRANCH ---
+            # Ensure network devices exist in the registry before processing
+            # to avoid "referencing non-existing via_device" warnings.
+            async_ensure_network_devices_exist(
+                self.hass, self.config_entry, data.get("networks", [])
+            )
+
+            # --- LOGIC FROM REFACTOR BRANCH ---
             # Update success history and consecutive successes via PollingManager
             if self.polling_manager.record_success():
-                # If True, the interval was reset
-                self.update_interval = self.polling_manager.update_interval
+                # If True, the interval was reset after recovery
+                if self.update_interval != self.polling_manager.update_interval:
+                    _LOGGER.info(
+                        "Meraki API recovered. Resetting update interval to %s",
+                        self.polling_manager.update_interval,
+                    )
+                    self.update_interval = self.polling_manager.update_interval
 
             # Log success rate for monitoring
             _LOGGER.debug(
@@ -231,7 +245,12 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             # Update success history and reset consecutive successes
             if self.polling_manager.record_failure(err):
                 # If True, the interval was increased
-                self.update_interval = self.polling_manager.update_interval
+                if self.update_interval != self.polling_manager.update_interval:
+                    _LOGGER.warning(
+                        "Increasing poll interval to %s due to failures.",
+                        self.polling_manager.update_interval,
+                    )
+                    self.update_interval = self.polling_manager.update_interval
 
             # Log success rate for monitoring
             _LOGGER.debug(

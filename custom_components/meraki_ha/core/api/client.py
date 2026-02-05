@@ -164,7 +164,9 @@ class MerakiAPIClient:
         async with self._rate_limiter:
             try:
                 loop = asyncio.get_event_loop()
-                result = await loop.run_in_executor(None, partial(func, *args, **kwargs))
+                result = await loop.run_in_executor(
+                    None, partial(func, *args, **kwargs)
+                )
             except meraki.APIError as e:
                 error_str = str(e).lower()
                 if (

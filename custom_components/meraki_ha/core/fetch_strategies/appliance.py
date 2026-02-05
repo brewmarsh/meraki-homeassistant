@@ -73,6 +73,11 @@ class ApplianceFetchStrategy(BaseFetchStrategy):
                 network_id,
             ),
         )
+        tasks[f"uplink_performance_{network_id}"] = self.client.run_with_semaphore(
+            self.client.appliance.get_network_appliance_uplinks_performance(
+                network_id,
+            ),
+        )
 
     def build_device_tasks(
         self,
@@ -168,7 +173,35 @@ class ApplianceFetchStrategy(BaseFetchStrategy):
 
         if settings := detail_data.get(f"appliance_settings_{device.serial}"):
             # Defensive check: Ensure settings is a dict before calling .get()
-            if isinstance(settings, dict) and isinstance(settings.get("dynamicDns"), dict):
+            if isinstance(settings, dict) and isinstance(
+                settings.get("dynamicDns"), dict
+            ):
                 device.dynamic_dns = settings["dynamicDns"]
         elif prev_device and hasattr(prev_device, "dynamic_dns"):
             device.dynamic_dns = prev_device.dynamic_dns
+
+        if performance := detail_data.get(f"uplink_performance_{device.network_id}"):
+            if isinstance(performance, list):
+                # Filter performance data for this device
+                device_perf = [
+                    p for p in performance if p.get("serial") == device.serial
+                ]
+                # Merge with existing status data in device.uplinks
+                perf_by_interface = {p.get("interface"): p for p in device_perf}
+                merged_uplinks = []
+                # Use appliance_uplink_statuses as the base for merging
+                for status_uplink in device.appliance_uplink_statuses:
+                    interface = status_uplink.get("interface")
+                    perf = perf_by_interface.get(interface, {})
+                    merged_uplinks.append({**status_uplink, **perf})
+
+                # Add any interfaces found in performance but not in status
+                status_interfaces = {
+                    u.get("interface") for u in device.appliance_uplink_statuses
+                }
+                for interface, perf in perf_by_interface.items():
+                    if interface not in status_interfaces:
+                        merged_uplinks.append(perf)
+                device.uplinks = merged_uplinks
+        elif prev_device and hasattr(prev_device, "uplinks"):
+            device.uplinks = prev_device.uplinks

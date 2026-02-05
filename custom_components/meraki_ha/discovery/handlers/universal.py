@@ -36,6 +36,7 @@ from ..providers import (
     CameraStreamProvider,
     MT40PowerMonitorProvider,
     SwitchPortProvider,
+    UplinkPerformanceProvider,
     UplinkProvider,
 )
 from .base import BaseDeviceHandler
@@ -73,6 +74,7 @@ class UniversalHandler(BaseDeviceHandler):
         "power_monitor": MT40PowerMonitorProvider,
         "remote_switch": MerakiMt40PowerOutlet,
         "uplinks": UplinkProvider,
+        "performance": UplinkPerformanceProvider,
         "appliance_ports": AppliancePortProvider,
         "switch_ports": SwitchPortProvider,
         "poe_usage": MerakiPoeUsageSensor,
@@ -99,6 +101,7 @@ class UniversalHandler(BaseDeviceHandler):
         "remote_switch": CONF_ENABLE_DEVICE_SENSORS,
         "poe_usage": CONF_ENABLE_DEVICE_SENSORS,
         "uplinks": CONF_ENABLE_PORT_SENSORS,
+        "performance": CONF_ENABLE_PORT_SENSORS,
         "appliance_ports": CONF_ENABLE_PORT_SENSORS,
         "switch_ports": CONF_ENABLE_PORT_SENSORS,
         "analytics": CONF_ENABLE_CAMERA_ENTITIES,

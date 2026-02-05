@@ -61,7 +61,7 @@ def resolve_device_info(
     if is_ssid:
         network_id = effective_data.get("networkId")
         ssid_number = effective_data.get("number")
-        if network_id:
+        if network_id and ssid_number is not None:
             identifier = (DOMAIN, get_ssid_identifier(network_id, ssid_number))
             name = effective_data.get("name")
             return DeviceInfo(

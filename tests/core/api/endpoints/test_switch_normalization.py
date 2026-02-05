@@ -30,7 +30,9 @@ def switch_endpoints(mock_client):
     return SwitchEndpoints(mock_client)
 
 @pytest.mark.asyncio
-async def test_get_organization_switch_ports_statuses_normalization(organization_endpoints, mock_client):
+async def test_get_organization_switch_ports_statuses_normalization(
+    organization_endpoints, mock_client
+):
     """Test that {} is normalized to [] for organization switch ports statuses."""
     # Mock API returning empty dict
     mock_client.run_sync.return_value = {}
@@ -41,7 +43,9 @@ async def test_get_organization_switch_ports_statuses_normalization(organization
     mock_client.run_sync.assert_called_once()
 
 @pytest.mark.asyncio
-async def test_get_device_switch_ports_statuses_normalization(switch_endpoints, mock_client):
+async def test_get_device_switch_ports_statuses_normalization(
+    switch_endpoints, mock_client
+):
     """Test that {} is normalized to [] for device switch ports statuses."""
     # Mock API returning empty dict
     mock_client.run_sync.return_value = {}
