@@ -9,6 +9,7 @@ from typing import TYPE_CHECKING
 from ...const_conf import (
     CONF_ENABLE_NETWORK_SENSORS,
     CONF_ENABLE_TRAFFIC_SHAPING,
+    CONF_ENABLE_VPN_MANAGEMENT,
     CONF_ENABLE_VLAN_SENSORS,
 )
 from ...sensor.network.network_clients import MerakiNetworkClientsSensor
@@ -45,6 +46,11 @@ class NetworkHandler(BaseHandler):
 
     async def discover_entities(self) -> AsyncIterator[Entity]:
         """Discover network-level entities."""
+        from ...meraki_select.meraki_content_filtering import (
+            MerakiContentFilteringSelect,
+        )
+        from ...meraki_select.vpn import MerakiVpnSelect
+
         # Check if network sensors are enabled
         if not self._config_entry.options.get(CONF_ENABLE_NETWORK_SENSORS, True):
             _LOGGER.debug("Network sensors are disabled.")
@@ -56,6 +62,21 @@ class NetworkHandler(BaseHandler):
             return
 
         for network in networks:
+            # Select Entities
+            yield MerakiContentFilteringSelect(
+                self._coordinator,
+                self._coordinator.api,
+                self._config_entry,
+                network,
+            )
+            if self._config_entry.options.get(CONF_ENABLE_VPN_MANAGEMENT):
+                yield MerakiVpnSelect(
+                    self._coordinator,
+                    self._coordinator.api,
+                    self._config_entry,
+                    network,
+                )
+
             # Network Clients Sensor
             yield MerakiNetworkClientsSensor(
                 coordinator=self._coordinator,
