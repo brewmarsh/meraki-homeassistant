@@ -67,9 +67,6 @@ async def test_update_data_handles_errors(coordinator, mock_data_fetch_manager):
         },
         "vlans": {MOCK_NETWORK.id: []},
     }
-    coordinator.add_network_status_message = MagicMock()
-    coordinator.mark_traffic_check_done = MagicMock()
-    coordinator.mark_vlan_check_done = MagicMock()
 
     # Act
     data = await coordinator._async_update_data()
