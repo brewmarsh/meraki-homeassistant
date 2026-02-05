@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import asyncio
 import logging
-from collections import deque
 from datetime import datetime, timedelta
 from typing import TYPE_CHECKING, Any
 
@@ -33,7 +32,7 @@ from .core.api.client import MerakiAPIClient as ApiClient
 from .core.coordinator_helpers.data_fetcher import DataFetchManager
 from .core.helpers import filter_ignored_networks, process_coordinator_data
 from .core.helpers.device_registry import async_ensure_network_devices_exist
-from .core.managers import AvailabilityTracker, PendingUpdateManager
+from .core.managers import PendingUpdateManager, PollingManager
 from .core.models.device import MerakiDevice
 from .core.models.network import MerakiNetwork
 
@@ -106,7 +105,6 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self.last_successful_data: dict[str, Any] = {}
 
         self.pending_update_manager = PendingUpdateManager()
-        self.availability_tracker = AvailabilityTracker()
 
         try:
             scan_interval = int(
@@ -117,18 +115,17 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         except (ValueError, TypeError):
             scan_interval = DEFAULT_SCAN_INTERVAL
 
+        default_interval = timedelta(seconds=scan_interval)
+
         super().__init__(
             hass,
             _LOGGER,
             name=DOMAIN,
-            update_interval=timedelta(seconds=scan_interval),
+            update_interval=default_interval,
         )
         self.config_entry = entry
 
-        # Adaptive polling logic state
-        self._default_interval = self.update_interval
-        self._success_history: deque[bool] = deque(maxlen=5)
-        self._consecutive_successes = 0
+        self.polling_manager = PollingManager(default_interval)
 
     def register_pending_update(
         self,
@@ -198,34 +195,28 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 # Return cached data to prevent entities from becoming unavailable
                 return self.last_successful_data
 
+            # --- CRITICAL FIX FROM BETA BRANCH ---
             # Ensure network devices exist in the registry before processing
             # to avoid "referencing non-existing via_device" warnings.
             async_ensure_network_devices_exist(
                 self.hass, self.config_entry, data.get("networks", [])
             )
 
-            # Update success history and consecutive successes
-            self._consecutive_successes += 1
-            self._success_history.append(True)
-
-            # Reset interval if recovered after 3 consecutive successes
-            if (
-                self._consecutive_successes >= 3
-                and self.update_interval != self._default_interval
-            ):
-                _LOGGER.info(
-                    "Meraki API recovered (3 consecutive successes). "
-                    "Resetting update interval to %s",
-                    self._default_interval,
-                )
-                self.update_interval = self._default_interval
+            # --- LOGIC FROM REFACTOR BRANCH ---
+            # Update success history and consecutive successes via PollingManager
+            if self.polling_manager.record_success():
+                # If True, the interval was reset after recovery
+                if self.update_interval != self.polling_manager.update_interval:
+                    _LOGGER.info(
+                        "Meraki API recovered. Resetting update interval to %s",
+                        self.polling_manager.update_interval,
+                    )
+                    self.update_interval = self.polling_manager.update_interval
 
             # Log success rate for monitoring
-            success_rate = (
-                sum(self._success_history) / len(self._success_history)
-            ) * 100
             _LOGGER.debug(
-                "Coordinator update success rate (last 5): %.1f%%", success_rate
+                "Coordinator update success rate (last 5): %.1f%%",
+                self.polling_manager.get_success_rate(),
             )
 
             if self.config_entry:
@@ -252,35 +243,20 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
         except Exception as err:
             # Update success history and reset consecutive successes
-            self._consecutive_successes = 0
-            self._success_history.append(False)
-
-            # Detect rate limiting and adjust interval
-            error_str = str(err)
-            if "429" in error_str:
-                old_interval = self.update_interval
-                if self.update_interval:
-                    self.update_interval = max(
-                        self.update_interval * 2, timedelta(seconds=60)
+            if self.polling_manager.record_failure(err):
+                # If True, the interval was increased
+                if self.update_interval != self.polling_manager.update_interval:
+                    _LOGGER.warning(
+                        "Increasing poll interval to %s due to failures.",
+                        self.polling_manager.update_interval,
                     )
-                else:
-                    self.update_interval = timedelta(seconds=60)
-
-                _LOGGER.warning(
-                    "Meraki API rate limit detected (429). Entering cooldown state. "
-                    "Update interval increased from %s to %s",
-                    old_interval,
-                    self.update_interval,
-                )
+                    self.update_interval = self.polling_manager.update_interval
 
             # Log success rate for monitoring
-            if self._success_history:
-                success_rate = (
-                    sum(self._success_history) / len(self._success_history)
-                ) * 100
-                _LOGGER.debug(
-                    "Coordinator update success rate (last 5): %.1f%%", success_rate
-                )
+            _LOGGER.debug(
+                "Coordinator update success rate (last 5): %.1f%%",
+                self.polling_manager.get_success_rate(),
+            )
 
             _LOGGER.warning(
                 "Failed to fetch new data, using stale data. Error: %s",
@@ -378,58 +354,6 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             # Avoid duplicate messages
             if message not in network.status_messages:
                 network.status_messages.append(message)
-
-    def is_vlan_check_due(self, network_id: str) -> bool:
-        """
-        Determine if a VLAN availability check is due.
-
-        Args:
-        ----
-            network_id: The ID of the network.
-
-        Returns
-        -------
-            True if the check is due, False otherwise.
-
-        """
-        return self.availability_tracker.is_check_due(network_id, "vlan")
-
-    def is_traffic_check_due(self, network_id: str) -> bool:
-        """
-        Determine if a Traffic Analysis availability check is due.
-
-        Args:
-        ----
-            network_id: The ID of the network.
-
-        Returns
-        -------
-            True if the check is due, False otherwise.
-
-        """
-        return self.availability_tracker.is_check_due(network_id, "traffic")
-
-    def mark_vlan_check_done(self, network_id: str) -> None:
-        """
-        Mark a VLAN availability check as done for the day.
-
-        Args:
-        ----
-            network_id: The ID of the network.
-
-        """
-        self.availability_tracker.mark_check_done(network_id, "vlan")
-
-    def mark_traffic_check_done(self, network_id: str) -> None:
-        """
-        Mark a Traffic Analysis availability check as done for the day.
-
-        Args:
-        ----
-            network_id: The ID of the network.
-
-        """
-        self.availability_tracker.mark_check_done(network_id, "traffic")
 
     async def async_setup_services(
         self,

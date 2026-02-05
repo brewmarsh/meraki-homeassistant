@@ -3,56 +3,94 @@
 from __future__ import annotations
 
 import logging
+from collections import deque
 from datetime import datetime, timedelta
 
 _LOGGER = logging.getLogger(__name__)
 
 
-class AvailabilityTracker:
-    """Tracks the availability check timestamps for network features."""
+class PollingManager:
+    """Manages adaptive polling intervals based on API success rates."""
 
-    def __init__(self) -> None:
-        """Initialize the AvailabilityTracker."""
-        self._check_timestamps: dict[str, dict[str, datetime]] = {}
+    def __init__(self, default_interval: timedelta) -> None:
+        """Initialize the PollingManager."""
+        self.default_interval = default_interval
+        self._current_interval = default_interval
+        self._success_history: deque[bool] = deque(maxlen=5)
+        self._consecutive_successes = 0
 
-    def is_check_due(
-        self,
-        network_id: str,
-        feature: str,
-        interval_hours: int = 24,
-    ) -> bool:
+    @property
+    def update_interval(self) -> timedelta:
+        """Get the current update interval."""
+        return self._current_interval
+
+    @property
+    def consecutive_successes(self) -> int:
+        """Get the number of consecutive successful updates."""
+        return self._consecutive_successes
+
+    @property
+    def success_history(self) -> list[bool]:
+        """Get the success history."""
+        return list(self._success_history)
+
+    def record_success(self) -> bool:
         """
-        Determine if an availability check is due for a network feature.
-
-        Args:
-        ----
-            network_id: The ID of the network.
-            feature: The feature to check (e.g., "vlan", "traffic").
-            interval_hours: The interval in hours.
+        Record a successful update.
 
         Returns
         -------
-            True if the check is due, False otherwise.
+            True if the interval was reset to default, False otherwise.
 
         """
-        last_check = self._check_timestamps.get(network_id, {}).get(feature)
-        if not last_check:
+        self._consecutive_successes += 1
+        self._success_history.append(True)
+
+        if (
+            self._consecutive_successes >= 3
+            and self._current_interval != self.default_interval
+        ):
+            _LOGGER.info(
+                "Meraki API recovered (3 consecutive successes). "
+                "Resetting update interval to %s",
+                self.default_interval,
+            )
+            self._current_interval = self.default_interval
             return True
-        return (datetime.now() - last_check) > timedelta(hours=interval_hours)
+        return False
 
-    def mark_check_done(self, network_id: str, feature: str) -> None:
+    def record_failure(self, error: Exception) -> bool:
         """
-        Mark an availability check as done for the day.
+        Record a failure.
 
-        Args:
-        ----
-            network_id: The ID of the network.
-            feature: The feature to mark (e.g., "vlan", "traffic").
+        Returns
+        -------
+            True if the interval was increased, False otherwise.
 
         """
-        if network_id not in self._check_timestamps:
-            self._check_timestamps[network_id] = {}
-        self._check_timestamps[network_id][feature] = datetime.now()
+        self._consecutive_successes = 0
+        self._success_history.append(False)
+
+        error_str = str(error)
+        if "429" in error_str:
+            old_interval = self._current_interval
+            self._current_interval = max(
+                self._current_interval * 2, timedelta(seconds=60)
+            )
+            _LOGGER.warning(
+                "Meraki API rate limit detected (429). Entering cooldown state. "
+                "Update interval increased from %s to %s",
+                old_interval,
+                self._current_interval,
+            )
+            return True
+        return False
+
+    def get_success_rate(self) -> float:
+        """Get the success rate percentage of the last 5 updates."""
+        if not self._success_history:
+            return 100.0
+        return (sum(self._success_history) / len(self._success_history)) * 100
 
 
 class PendingUpdateManager:

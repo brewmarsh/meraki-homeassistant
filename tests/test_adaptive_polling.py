@@ -38,7 +38,8 @@ def coordinator(hass):
 async def test_adaptive_polling_429(coordinator):
     """Test that update_interval increases on 429 error."""
     # Set default interval
-    coordinator._default_interval = timedelta(seconds=30)
+    coordinator.polling_manager.default_interval = timedelta(seconds=30)
+    coordinator.polling_manager._current_interval = timedelta(seconds=30)
     coordinator.update_interval = timedelta(seconds=30)
     coordinator.last_successful_data = {"some": "data"}  # Avoid raising UpdateFailed
 
@@ -52,8 +53,8 @@ async def test_adaptive_polling_429(coordinator):
 
     # Interval should have doubled (30 * 2 = 60)
     assert coordinator.update_interval == timedelta(seconds=60)
-    assert coordinator._consecutive_successes == 0
-    assert False in coordinator._success_history
+    assert coordinator.polling_manager.consecutive_successes == 0
+    assert False in coordinator.polling_manager.success_history
 
     # Another 429
     await coordinator._async_update_data()
@@ -64,27 +65,28 @@ async def test_adaptive_polling_429(coordinator):
 async def test_adaptive_polling_recovery(coordinator):
     """Test that update_interval resets after 3 consecutive successes."""
     # Start in cooldown
-    coordinator._default_interval = timedelta(seconds=30)
+    coordinator.polling_manager.default_interval = timedelta(seconds=30)
+    coordinator.polling_manager._current_interval = timedelta(seconds=120)
     coordinator.update_interval = timedelta(seconds=120)
-    coordinator._consecutive_successes = 0
+    coordinator.polling_manager._consecutive_successes = 0
 
     # Success 1
     coordinator.data_fetch_manager.get_all_data.side_effect = None
     coordinator.data_fetch_manager.get_all_data.return_value = {"success": True}
     await coordinator._async_update_data()
     assert coordinator.update_interval == timedelta(seconds=120)
-    assert coordinator._consecutive_successes == 1
+    assert coordinator.polling_manager.consecutive_successes == 1
 
     # Success 2
     await coordinator._async_update_data()
     assert coordinator.update_interval == timedelta(seconds=120)
-    assert coordinator._consecutive_successes == 2
+    assert coordinator.polling_manager.consecutive_successes == 2
 
     # Success 3
     await coordinator._async_update_data()
     # Should reset to default
     assert coordinator.update_interval == timedelta(seconds=30)
-    assert coordinator._consecutive_successes == 3
+    assert coordinator.polling_manager.consecutive_successes == 3
 
 
 @pytest.mark.asyncio
@@ -96,5 +98,5 @@ async def test_success_history_limit(coordinator):
     for _ in range(6):
         await coordinator._async_update_data()
 
-    assert len(coordinator._success_history) == 5
-    assert all(coordinator._success_history)
+    assert len(coordinator.polling_manager.success_history) == 5
+    assert all(coordinator.polling_manager.success_history)
