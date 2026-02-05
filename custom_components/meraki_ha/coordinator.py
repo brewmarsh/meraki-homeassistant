@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+from collections import deque
 from datetime import datetime, timedelta
 from typing import TYPE_CHECKING, Any
 
@@ -116,6 +117,11 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         )
         self.config_entry = entry
 
+        # Adaptive polling logic state
+        self._default_interval = self.update_interval
+        self._success_history: deque[bool] = deque(maxlen=5)
+        self._consecutive_successes = 0
+
     def register_pending_update(
         self,
         unique_id: str | None,
@@ -184,6 +190,30 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 # Return cached data to prevent entities from becoming unavailable
                 return self.last_successful_data
 
+            # Update success history and consecutive successes
+            self._consecutive_successes += 1
+            self._success_history.append(True)
+
+            # Reset interval if recovered after 3 consecutive successes
+            if (
+                self._consecutive_successes >= 3
+                and self.update_interval != self._default_interval
+            ):
+                _LOGGER.info(
+                    "Meraki API recovered (3 consecutive successes). "
+                    "Resetting update interval to %s",
+                    self._default_interval,
+                )
+                self.update_interval = self._default_interval
+
+            # Log success rate for monitoring
+            success_rate = (
+                sum(self._success_history) / len(self._success_history)
+            ) * 100
+            _LOGGER.debug(
+                "Coordinator update success rate (last 5): %.1f%%", success_rate
+            )
+
             if self.config_entry:
                 ignored_network_ids = self.config_entry.options.get(
                     CONF_IGNORED_NETWORKS,
@@ -207,6 +237,37 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             return data
 
         except Exception as err:
+            # Update success history and reset consecutive successes
+            self._consecutive_successes = 0
+            self._success_history.append(False)
+
+            # Detect rate limiting and adjust interval
+            error_str = str(err)
+            if "429" in error_str:
+                old_interval = self.update_interval
+                if self.update_interval:
+                    self.update_interval = max(
+                        self.update_interval * 2, timedelta(seconds=60)
+                    )
+                else:
+                    self.update_interval = timedelta(seconds=60)
+
+                _LOGGER.warning(
+                    "Meraki API rate limit detected (429). Entering cooldown state. "
+                    "Update interval increased from %s to %s",
+                    old_interval,
+                    self.update_interval,
+                )
+
+            # Log success rate for monitoring
+            if self._success_history:
+                success_rate = (
+                    sum(self._success_history) / len(self._success_history)
+                ) * 100
+                _LOGGER.debug(
+                    "Coordinator update success rate (last 5): %.1f%%", success_rate
+                )
+
             _LOGGER.warning(
                 "Failed to fetch new data, using stale data. Error: %s",
                 err,
