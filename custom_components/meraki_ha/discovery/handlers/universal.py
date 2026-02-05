@@ -540,13 +540,16 @@ class UniversalHandler(BaseDeviceHandler):
                     # Attempt instantiation with (coordinator, device, config_entry)
                     # and fallback to (coordinator, device) if needed.
                     try:
-                        yield provider(self._coordinator, self.device, self._config_entry)
+                        yield provider(
+                            self._coordinator, self.device, self._config_entry
+                        )
                     except TypeError:
                         try:
                             yield provider(self._coordinator, self.device)
                         except Exception as e:
                             _LOGGER.error(
-                                "Failed to instantiate entity class %s for capability %s: %s",
+                                "Failed to instantiate entity class %s for capability "
+                                "%s: %s",
                                 provider.__name__,
                                 cap,
                                 e,

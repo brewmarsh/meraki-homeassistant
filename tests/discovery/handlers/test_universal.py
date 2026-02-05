@@ -186,7 +186,9 @@ async def test_universal_handler_capability_compliance(
     async for entity in handler_mt15.discover_entities():
         entities_mt15.append(entity)
 
-    keys_mt15 = [getattr(e, "entity_description", MagicMock()).key for e in entities_mt15]
+    keys_mt15 = [
+        getattr(e, "entity_description", MagicMock()).key for e in entities_mt15
+    ]
     assert "co2" in keys_mt15
     assert "temperature" in keys_mt15
     assert "humidity" in keys_mt15
@@ -207,7 +209,9 @@ async def test_universal_handler_capability_compliance(
     async for entity in handler_mt10.discover_entities():
         entities_mt10.append(entity)
 
-    keys_mt10 = [getattr(e, "entity_description", MagicMock()).key for e in entities_mt10]
+    keys_mt10 = [
+        getattr(e, "entity_description", MagicMock()).key for e in entities_mt10
+    ]
     assert "temperature" in keys_mt10
     assert "humidity" in keys_mt10
     assert "battery" in keys_mt10
