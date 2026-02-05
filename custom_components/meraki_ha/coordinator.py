@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import logging
 from datetime import datetime, timedelta
 from typing import TYPE_CHECKING, Any
@@ -160,9 +161,14 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 if self.update_interval
                 else 300
             )
-            data = await self.data_fetch_manager.get_all_data(
-                self.last_successful_data, timespan=timespan
-            )
+            try:
+                async with asyncio.timeout(30):  # HA default setup limit
+                    data = await self.data_fetch_manager.get_all_data(
+                        self.last_successful_data, timespan=timespan
+                    )
+            except TimeoutError:
+                _LOGGER.error("Meraki API took too long; check for semaphore deadlock")
+                raise UpdateFailed("API Timeout") from None
 
             if not data:
                 _LOGGER.warning("API call to get_all_data returned no data.")
