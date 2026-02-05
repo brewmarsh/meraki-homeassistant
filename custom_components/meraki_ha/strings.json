@@ -185,6 +185,15 @@
       },
       "ipv6_uplink": {
         "name": "IPv6 uplink"
+      },
+      "uplink_latency": {
+        "name": "Latency"
+      },
+      "uplink_packet_loss": {
+        "name": "Packet loss"
+      },
+      "uplink_jitter": {
+        "name": "Jitter"
       }
     },
     "switch": {
