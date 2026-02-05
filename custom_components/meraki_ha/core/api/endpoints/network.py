@@ -11,6 +11,7 @@ from custom_components.meraki_ha.core.utils.api_utils import (
     handle_meraki_errors,
     validate_response,
 )
+
 from ...errors import MerakiVlansDisabledError
 from ..cache import async_timed_cache
 
@@ -54,7 +55,9 @@ class NetworkEndpoints:
             **kwargs,
         )
         validated = validate_response(clients)
-        return cast(list[dict[str, Any]], validated) if isinstance(validated, list) else []
+        return (
+            cast(list[dict[str, Any]], validated) if isinstance(validated, list) else []
+        )
 
     @handle_meraki_errors
     @async_timed_cache(timeout=60)
@@ -69,7 +72,9 @@ class NetworkEndpoints:
             timespan=86400,  # 24 hours
         )
         validated = validate_response(traffic)
-        return cast(list[dict[str, Any]], validated) if isinstance(validated, list) else []
+        return (
+            cast(list[dict[str, Any]], validated) if isinstance(validated, list) else []
+        )
 
     @handle_meraki_errors
     @async_timed_cache(timeout=10)
@@ -80,7 +85,9 @@ class NetworkEndpoints:
             networkId=network_id,
         )
         validated = validate_response(webhooks)
-        return cast(list[dict[str, Any]], validated) if isinstance(validated, list) else []
+        return (
+            cast(list[dict[str, Any]], validated) if isinstance(validated, list) else []
+        )
 
     @handle_meraki_errors
     async def delete_webhook(self, network_id: str, webhook_id: str) -> None:
@@ -111,7 +118,7 @@ class NetworkEndpoints:
         for network in networks:
             network_id = network["id"]
             webhook_name = f"Home Assistant Webhook - {config_entry_id}"
-            
+
             existing = await self.find_webhook_by_name_and_url(
                 network_id, webhook_name, webhook_url
             )
@@ -126,25 +133,38 @@ class NetworkEndpoints:
                 name=webhook_name,
             )
 
+    async def unregister_webhook(self, config_entry_id: str) -> None:
+        """Unregister a webhook from all networks."""
+        webhook_name = f"Home Assistant Webhook - {config_entry_id}"
+        networks = await self._api_client.organization.get_organization_networks()
+        for network in networks:
+            network_id = network["id"]
+            webhooks = await self.get_webhooks(network_id)
+            for webhook in webhooks:
+                if webhook.get("name") == webhook_name:
+                    await self.delete_webhook(network_id, webhook["id"])
+
     async def get_vlan_data(self, network_id: str) -> list[dict[str, Any]]:
         """
         Get VLAN data for a network with fallback and safety logic.
-        
-        This method uses product type verification and safe attribute lookup 
+
+        This method uses product type verification and safe attribute lookup
         to prevent AttributeError crashes and reduce 429 rate-limiting.
         """
         # 1. Product Type Guard: Only appliances (MX) support this endpoint
         networks = await self._api_client.organization.get_organization_networks()
         network = next((n for n in networks if n["id"] == network_id), None)
-        
+
         if network and "appliance" not in network.get("productTypes", []):
-            _LOGGER.debug("Skipping VLAN fetch for non-appliance network %s", network_id)
+            _LOGGER.debug(
+                "Skipping VLAN fetch for non-appliance network %s", network_id
+            )
             return []
 
         # 2. SDK Safety Guard: Check if the appliance module and method exist
         appliance = getattr(self._api_client.dashboard, "appliance", None)
         vlan_method = getattr(appliance, "getNetworkApplianceVlans", None)
-        
+
         if not vlan_method:
             _LOGGER.debug("VLAN method not found in SDK for network %s", network_id)
             return []
@@ -159,7 +179,7 @@ class NetworkEndpoints:
             # Robust extraction logic (Merged from fix/beta)
             if isinstance(validated, list):
                 return cast(list[dict[str, Any]], validated)
-            
+
             if isinstance(validated, dict):
                 # Fallback: Deep-search dictionary values for a list (Fix branch logic)
                 for value in validated.values():
@@ -168,11 +188,14 @@ class NetworkEndpoints:
                 return [validated] # Treat single dict as a list of one
 
             return []
-            
+
         except (meraki.APIError, MerakiVlansDisabledError, AttributeError) as e:
             # Handle specific 400 error indicating VLANs are disabled
             error_str = str(e).lower()
-            if "vlans are not enabled" in error_str or "vlan is not enabled" in error_str:
+            if (
+                "vlans are not enabled" in error_str
+                or "vlan is not enabled" in error_str
+            ):
                 _LOGGER.info("VLANs disabled for network %s (Status 400)", network_id)
             else:
                 _LOGGER.debug("VLAN fetch error for %s: %s", network_id, e)
@@ -187,7 +210,9 @@ class NetworkEndpoints:
             networkId=network_id,
         )
         validated = validate_response(policies)
-        return cast(list[dict[str, Any]], validated) if isinstance(validated, list) else []
+        return (
+            cast(list[dict[str, Any]], validated) if isinstance(validated, list) else []
+        )
 
     @handle_meraki_errors
     async def get_network_events(self, network_id: str, **kwargs) -> dict[str, Any]:

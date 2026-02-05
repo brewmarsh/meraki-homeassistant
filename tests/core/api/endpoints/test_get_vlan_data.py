@@ -1,10 +1,12 @@
 """Tests for get_vlan_data in Network Endpoints."""
 
 from unittest.mock import AsyncMock, MagicMock
+
 import pytest
-import meraki
+
 from custom_components.meraki_ha.core.api.endpoints.network import NetworkEndpoints
 from custom_components.meraki_ha.core.errors import MerakiVlansDisabledError
+
 
 @pytest.fixture
 def mock_client():
@@ -67,7 +69,9 @@ async def test_get_vlan_data_no_appliance_attr(network_endpoints, mock_client):
     assert result == []
 
 @pytest.mark.asyncio
-async def test_get_vlan_data_vlan_disabled_graceful_fail(network_endpoints, mock_client):
+async def test_get_vlan_data_vlan_disabled_graceful_fail(
+    network_endpoints, mock_client
+):
     """Test get_vlan_data returns empty list when VLANs are disabled."""
     network_id = "net123"
     mock_client.organization.get_organization_networks.return_value = [

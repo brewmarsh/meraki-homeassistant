@@ -80,7 +80,7 @@ class DataFetchManager:
             # After asyncio.gather returns, iterate through the results.
             # If an item is an instance of Exception, log it and replace it with None.
             # Implements a "Type Filter" that only permits dict, list, or None.
-            sanitized_results = {}
+            sanitized_results: dict[str, Any] = {}
             for key, result in zip(tasks.keys(), results, strict=True):
                 if isinstance(result, Exception):
                     _LOGGER.error("Error fetching %s during %s: %s", key, label, result)
@@ -269,7 +269,8 @@ class DataFetchManager:
         initial_results = await self._async_fetch_initial_data()
 
         # 2. Convert to Models
-        # Ensure results are iterable by using 'or []' in case they were sanitized to None
+        # Ensure results are iterable by using 'or []' in case they were sanitized
+        # to None to prevent TypeError exceptions.
         networks_list = [
             MerakiNetwork.from_dict(n)
             for n in (initial_results.get("networks") or [])
