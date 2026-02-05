@@ -98,12 +98,12 @@ class DataFetchManager:
             return all_results
 
         try:
-            # Use the batched execution logic (from Beta branch)
+            # Use the batched execution logic (from Beta branch) for stability
             results = await asyncio.wait_for(_execute_batches(), timeout=timeout)
-            
-            # Sanitization Logic (from Feat branch)
+
+            # Sanitization Logic (Merged from both branches)
             # Filter out exceptions to prevent downstream crashes
-            sanitized_results = {}
+            sanitized_results: dict[str, Any] = {}
             for key, result in zip(tasks.keys(), results, strict=True):
                 if isinstance(result, Exception):
                     _LOGGER.error("Error fetching %s during %s: %s", key, label, result)
@@ -119,7 +119,7 @@ class DataFetchManager:
                     )
                     sanitized_results[key] = None
             return sanitized_results
-            
+
         except asyncio.TimeoutError:
             _LOGGER.error("Timeout during %s. Potential semaphore deadlock.", label)
             # Log specific keys to identify which strategy is hanging
@@ -227,7 +227,7 @@ class DataFetchManager:
         """Add per-device detail tasks based on capabilities."""
         if detail_data is None:
             detail_data = {}
-            
+
         for device in devices:
             # ### Lookup Logic
             # Get capabilities for the device model to determine which tasks to add.
@@ -236,13 +236,9 @@ class DataFetchManager:
             # ### Task Creation Logic
             # Combined Logic: Pass BOTH detail_data (for bulk data) AND capabilities (for guarding)
             if device.product_type == "camera":
-                self.camera_strategy.build_device_tasks(
-                    device, tasks, capabilities
-                )
+                self.camera_strategy.build_device_tasks(device, tasks, capabilities)
             elif device.product_type == "switch":
-                self.switch_strategy.build_device_tasks(
-                    device, tasks, capabilities
-                )
+                self.switch_strategy.build_device_tasks(device, tasks, capabilities)
             elif device.product_type == "appliance":
                 self.appliance_strategy.build_device_tasks(device, tasks, capabilities)
             elif device.product_type == "sensor":
@@ -281,7 +277,9 @@ class DataFetchManager:
             )
 
         previous_devices_by_serial = {
-            d.serial: d for d in previous_data.get("devices", []) if hasattr(d, "serial")
+            d.serial: d
+            for d in previous_data.get("devices", [])
+            if hasattr(d, "serial")
         }
 
         for device in devices:
@@ -315,8 +313,8 @@ class DataFetchManager:
         initial_results = await self._async_fetch_initial_data()
 
         # 2. Convert to Models
-        # Ensure results are iterable by using 'or []' in case they were
-        # sanitized to None
+        # Ensure results are iterable by using 'or []' in case they were sanitized
+        # to None to prevent TypeError exceptions.
         networks_list = [
             MerakiNetwork.from_dict(n)
             for n in (initial_results.get("networks") or [])

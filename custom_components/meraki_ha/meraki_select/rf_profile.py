@@ -21,6 +21,7 @@ _LOGGER = logging.getLogger(__name__)
 class MerakiRFProfileSelect(CoordinatorEntity, SelectEntity):
     """Representation of a Meraki RF Profile select entity."""
 
+    coordinator: MerakiDataUpdateCoordinator
     entity_category = EntityCategory.CONFIG
     _attr_has_entity_name = True
 

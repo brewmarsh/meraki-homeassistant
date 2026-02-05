@@ -11,6 +11,7 @@ from custom_components.meraki_ha.core.utils.api_utils import (
     handle_meraki_errors,
     validate_response,
 )
+
 from ...errors import MerakiVlansDisabledError
 from ..cache import async_timed_cache
 
@@ -131,6 +132,17 @@ class NetworkEndpoints:
                 sharedSecret=secret,
                 name=webhook_name,
             )
+
+    async def unregister_webhook(self, config_entry_id: str) -> None:
+        """Unregister a webhook from all networks."""
+        webhook_name = f"Home Assistant Webhook - {config_entry_id}"
+        networks = await self._api_client.organization.get_organization_networks()
+        for network in networks:
+            network_id = network["id"]
+            webhooks = await self.get_webhooks(network_id)
+            for webhook in webhooks:
+                if webhook.get("name") == webhook_name:
+                    await self.delete_webhook(network_id, webhook["id"])
 
     async def get_vlan_data(self, network_id: str) -> list[dict[str, Any]]:
         """
