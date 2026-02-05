@@ -54,11 +54,9 @@ class SwitchEndpoints:
             self._api_client.dashboard.switch.getDeviceSwitchPortsStatuses,
             serial=serial,
         )
-        validated = validate_response(statuses)
-        if not isinstance(validated, list):
-            _LOGGER.warning("get_device_switch_ports_statuses did not return a list.")
-            return []
-        return validated
+        res = validate_response(statuses)
+        # Type Normalization: Meraki sometimes returns {} instead of [] for no data
+        return [] if not res else res
 
     @handle_meraki_errors
     @async_timed_cache()
@@ -78,11 +76,9 @@ class SwitchEndpoints:
         ports = await self._api_client.run_sync(
             self._api_client.dashboard.switch.getDeviceSwitchPorts, serial=serial
         )
-        validated = validate_response(ports)
-        if not isinstance(validated, list):
-            _LOGGER.warning("get_switch_ports did not return a list.")
-            return []
-        return validated
+        res = validate_response(ports)
+        # Type Normalization: Meraki sometimes returns {} instead of [] for no data
+        return [] if not res else res
 
     @handle_meraki_errors
     async def cycle_device_switch_ports(

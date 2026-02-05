@@ -123,3 +123,25 @@ class SensorEndpoints:
             metrics=metrics,
             total_pages="all",
         )
+
+    async def get_device_sensor_relationships(
+        self,
+        serial: str,
+    ) -> list[dict[str, Any]]:
+        """
+        Return the sensor relationships for a device.
+
+        Args:
+        ----
+            serial: The serial number of the device.
+
+        Returns
+        -------
+            The response from the API.
+
+        """
+        _LOGGER.debug("Getting sensor relationships for device %s", serial)
+        return await self._client.run_sync(
+            self._client.dashboard.sensor.getDeviceSensorRelationships,
+            serial=serial,
+        )

@@ -2,10 +2,11 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from ..api.client import MerakiAPIClient
+    from ..models.device import MerakiDevice
 
 
 class BaseFetchStrategy:
@@ -21,3 +22,33 @@ class BaseFetchStrategy:
         """
         self.client = client
         self._disabled_features = _disabled_features
+
+    def build_device_tasks(
+        self,
+        device: MerakiDevice,
+        tasks: dict[str, Any],
+        capabilities: list[str],
+    ) -> None:
+        """
+        Add per-device detail tasks based on capabilities.
+
+        Args:
+            device: The Meraki device.
+            tasks: The task dictionary to add to.
+            capabilities: The list of device capabilities.
+        """
+
+    def process_device_details(
+        self,
+        device: MerakiDevice,
+        detail_data: dict[str, Any],
+        prev_device: MerakiDevice | None,
+    ) -> None:
+        """
+        Process per-device detail results.
+
+        Args:
+            device: The Meraki device.
+            detail_data: The fetched detail data.
+            prev_device: The previous device data for state retention.
+        """

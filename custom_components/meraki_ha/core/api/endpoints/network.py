@@ -185,7 +185,7 @@ class NetworkEndpoints:
                 for value in validated.values():
                     if isinstance(value, list):
                         return cast(list[dict[str, Any]], value)
-                return [validated] # Treat single dict as a list of one
+                return [validated]  # Treat single dict as a list of one
 
             return []
 

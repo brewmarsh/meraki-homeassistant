@@ -223,8 +223,6 @@ class OrganizationEndpoints:
             organizationId=self._api_client.organization_id,
             total_pages="all",
         )
-        validated = validate_response(statuses)
-        if not isinstance(validated, list):
-            _LOGGER.warning("Organization switch ports statuses did not return a list.")
-            return []
-        return validated
+        res = validate_response(statuses)
+        # Type Normalization: Meraki sometimes returns {} instead of [] for no data
+        return [] if not res else res
