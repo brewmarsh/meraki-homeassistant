@@ -104,13 +104,55 @@ class DataFetchManager:
             "sensor_readings": self.client.run_with_semaphore(
                 self.client.sensor.get_organization_sensor_readings_latest(),
             ),
+            "switch_ports_statuses": self.client.run_with_semaphore(
+                self.client.organization.get_organization_switch_ports_statuses(),
+            ),
         }
         return await self._async_gather_with_timeout(tasks, label="Initial Batch")
+
+    async def _fetch_batch_camera_analytics(
+        self, devices: list[MerakiDevice]
+    ) -> dict[str, Any]:
+        """Fetch camera analytics for all cameras in a single batch of tasks."""
+        camera_serials = [d.serial for d in devices if d.product_type == "camera"]
+        if not camera_serials:
+            return {}
+
+        _LOGGER.debug("Bulk loading analytics for %d cameras", len(camera_serials))
+        tasks = {
+            f"camera_analytics_{serial}": self.client.run_with_semaphore(
+                self.client.camera.get_device_camera_analytics_recent(serial)
+            )
+            for serial in camera_serials
+            if serial
+        }
+
+        return await self._async_gather_with_timeout(tasks, label="Camera Analytics")
+
+    def _distribute_batch_data(
+        self,
+        initial_results: dict[str, Any],
+        camera_analytics: dict[str, Any],
+        detail_data: dict[str, Any],
+    ) -> None:
+        """Distribute batch-loaded data into detail_data dictionary."""
+        # 1. Distribute Switch Ports Statuses
+        switch_statuses = initial_results.get("switch_ports_statuses", [])
+        if isinstance(switch_statuses, list):
+            for switch in switch_statuses:
+                serial = switch.get("serial")
+                ports = switch.get("ports")
+                if serial and ports:
+                    detail_data[f"ports_statuses_{serial}"] = ports
+
+        # 2. Distribute Camera Analytics
+        detail_data.update(camera_analytics)
 
     def _build_detail_tasks(
         self,
         networks: list[MerakiNetwork],
         devices: list[MerakiDevice],
+        detail_data: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         """Orchestrate task building across all strategies."""
         detail_tasks: dict[str, Any] = {}
@@ -130,9 +172,13 @@ class DataFetchManager:
 
         for device in devices:
             if device.product_type == "camera":
-                self.camera_strategy.build_device_tasks(device, detail_tasks)
+                self.camera_strategy.build_device_tasks(
+                    device, detail_tasks, detail_data
+                )
             elif device.product_type == "switch":
-                self.switch_strategy.build_device_tasks(device, detail_tasks)
+                self.switch_strategy.build_device_tasks(
+                    device, detail_tasks, detail_data
+                )
             elif device.product_type == "appliance":
                 self.appliance_strategy.build_device_tasks(device, detail_tasks)
 
@@ -218,34 +264,45 @@ class DataFetchManager:
         )
         parse_sensor_data(devices_list, initial_results.get("sensor_readings", []), [])
 
-        # 4. Fetch Details (Strategy + Timeout Protection)
-        detail_tasks = self._build_detail_tasks(networks_list, devices_list)
-        detail_data_dict = await self._async_gather_with_timeout(
+        # 4. Fetch Batch Details (Camera Analytics)
+        camera_analytics = await self._fetch_batch_camera_analytics(devices_list)
+
+        # 5. Initialize detail_data and distribute batch results
+        detail_data_dict: dict[str, Any] = {}
+        self._distribute_batch_data(initial_results, camera_analytics, detail_data_dict)
+
+        # 6. Fetch Remaining Details (Strategy + Timeout Protection)
+        detail_tasks = self._build_detail_tasks(
+            networks_list, devices_list, detail_data_dict
+        )
+        fetched_detail_data = await self._async_gather_with_timeout(
             detail_tasks, label="Detailed Device Data"
         )
+        detail_data_dict.update(fetched_detail_data)
 
-        # 5. Fetch Clients (Network & Device level)
+        # 7. Fetch Clients (Consolidated: Network-level then derive Device-level)
         client_tasks = {
             "network_clients": self.client_fetcher.async_fetch_network_clients(
                 networks_list
-            ),
-            "device_clients": self.client_fetcher.async_fetch_device_clients(
-                devices_list
-            ),
+            )
         }
         client_results = await self._async_gather_with_timeout(
             client_tasks, label="Client Data"
         )
-
         network_clients = client_results.get("network_clients", [])
-        device_clients = client_results.get("device_clients", {})
+        if not isinstance(network_clients, list):
+            network_clients = []
+
+        device_clients = self.client_fetcher.derive_device_clients(
+            network_clients, devices_list
+        )
 
         # Inject clients for strategies that require them (e.g. Wireless)
         detail_data_dict["clients"] = (
             network_clients if isinstance(network_clients, list) else []
         )
 
-        # 6. Final Processing
+        # 8. Final Processing
         processed_detailed_data = self._process_detailed_data(
             detail_data_dict, networks_list, devices_list, previous_data
         )

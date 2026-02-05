@@ -94,3 +94,41 @@ class ClientFetcher:
             if isinstance(result, list):
                 clients_by_serial[serial] = result
         return clients_by_serial
+
+    def derive_device_clients(
+        self,
+        network_clients: list[dict[str, Any]],
+        devices: list[MerakiDevice],
+    ) -> dict[str, list[dict[str, Any]]]:
+        """
+        Derive device-level clients from network-level client data.
+
+        This eliminates the need for multiple per-device API calls.
+
+        Args:
+            network_clients: A list of all clients in the organization's networks.
+            devices: A list of devices to group clients for.
+
+        Returns
+        -------
+            A dictionary of clients by device serial.
+        """
+        clients_by_serial: dict[str, list[dict[str, Any]]] = {}
+
+        # Pre-initialize for requested devices to ensure keys exist
+        for device in devices:
+            if device.serial:
+                clients_by_serial[device.serial] = []
+
+        # Map clients to devices using recentDeviceSerial
+        for client in network_clients:
+            serial = client.get("recentDeviceSerial")
+            if serial and serial in clients_by_serial:
+                clients_by_serial[serial].append(client)
+
+        _LOGGER.debug(
+            "Derived device-level clients for %d devices from %d network clients",
+            len(clients_by_serial),
+            len(network_clients),
+        )
+        return clients_by_serial

@@ -206,3 +206,25 @@ class OrganizationEndpoints:
             _LOGGER.warning("Wireless SSIDs statuses by device did not return a list.")
             return []
         return validated
+
+    @handle_meraki_errors
+    @async_timed_cache(timeout=60)
+    async def get_organization_switch_ports_statuses(self) -> list[dict[str, Any]]:
+        """
+        Get organization-wide switch ports statuses.
+
+        Returns
+        -------
+            A list of switch ports statuses.
+
+        """
+        statuses = await self._api_client.run_sync(
+            self._api_client.dashboard.switch.getOrganizationSwitchPortsStatusesBySwitch,
+            organizationId=self._api_client.organization_id,
+            total_pages="all",
+        )
+        validated = validate_response(statuses)
+        if not isinstance(validated, list):
+            _LOGGER.warning("Organization switch ports statuses did not return a list.")
+            return []
+        return validated
