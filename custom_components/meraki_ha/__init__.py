@@ -17,6 +17,7 @@ from .const import DOMAIN, WEBHOOK_ID_FORMAT
 from .const_conf import CONF_MERAKI_ORG_ID
 from .const_platform import PLATFORMS
 from .coordinator import MerakiDataUpdateCoordinator
+from .helpers.migrations import async_cleanup_ghost_devices, async_migrate_entities
 from .core.repositories.camera_repository import CameraRepository
 from .core.repository import MerakiRepository
 from .core.timed_access_manager import TimedAccessManager
@@ -78,6 +79,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """
     await async_register_frontend(hass, entry)
     async_setup_websocket_api(hass)
+    # Perform migrations before coordinator refresh
+    await async_migrate_entities(hass, entry.entry_id)
+    await async_cleanup_ghost_devices(hass, entry.entry_id)
+
     coordinator = MerakiDataUpdateCoordinator(hass, entry)
     await coordinator.async_config_entry_first_refresh()
 

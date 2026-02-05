@@ -26,7 +26,7 @@ def test_switch_creation(
     switch = MerakiAdultContentFilteringSwitch(
         mock_coordinator_with_ssid_filtering, mock_config_entry, ssid
     )
-    assert switch.unique_id == "meraki-adult-content-filtering-net_1-0"
+    assert switch.unique_id == "net_1ssid0_adult_content_filtering"
     assert switch.name == "Adult Content Filtering on Test SSID"
 
 

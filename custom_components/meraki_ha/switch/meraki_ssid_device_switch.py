@@ -47,7 +47,7 @@ class MerakiSSIDBaseSwitch(CoordinatorEntity, SwitchEntity):
         self._attribute_to_check = attribute_to_check
 
         self._attr_unique_id = (
-            f"ssid-{self._network_id}-{self._ssid_number}-{switch_type}-switch"
+            f"{self._network_id}ssid{self._ssid_number}_{switch_type}_switch"
         )
         self._attr_optimistic = True
         self._attr_is_on = False

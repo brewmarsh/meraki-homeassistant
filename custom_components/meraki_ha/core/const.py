@@ -74,4 +74,4 @@ DEFAULT_CAPS: Final = ["reboot", "status"]
 
 def get_ssid_identifier(network_id: str, ssid_number: int | str) -> str:
     """Return a unified SSID identifier."""
-    return f"{network_id}:ssid:{ssid_number}"
+    return f"{network_id}ssid{ssid_number}"
