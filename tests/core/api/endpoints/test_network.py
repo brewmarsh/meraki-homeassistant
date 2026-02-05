@@ -74,7 +74,7 @@ async def test_get_network_events_passes_values(network, mock_client):
     product_type = "appliance"
 
     # Act
-    await network.get_network_events(network_id, product_type=product_type)
+    await network.get_network_events(network_id, productType=product_type)
 
     # Assert
     mock_client.run_sync.assert_called_once()

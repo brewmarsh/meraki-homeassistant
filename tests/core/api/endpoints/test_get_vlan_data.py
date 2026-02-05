@@ -67,19 +67,20 @@ async def test_get_vlan_data_no_appliance_attr(network_endpoints, mock_client):
     assert result == []
 
 @pytest.mark.asyncio
-async def test_get_vlan_data_vlan_disabled_returns_empty(network_endpoints, mock_client):
+async def test_get_vlan_data_vlan_disabled_graceful_fail(network_endpoints, mock_client):
     """Test get_vlan_data returns empty list when VLANs are disabled."""
     network_id = "net123"
     mock_client.organization.get_organization_networks.return_value = [
         {"id": network_id, "productTypes": ["appliance"]}
     ]
 
-    # API raises MerakiVlansDisabledError
+    # Raise MerakiVlansDisabledError
     mock_client.run_sync.side_effect = MerakiVlansDisabledError("VLANs are not enabled")
 
     result = await network_endpoints.get_vlan_data(network_id)
 
     assert result == []
+    # Verify called once
     assert mock_client.run_sync.call_count == 1
     mock_client.run_sync.assert_called_with(
         mock_client.dashboard.appliance.getNetworkApplianceVlans,
