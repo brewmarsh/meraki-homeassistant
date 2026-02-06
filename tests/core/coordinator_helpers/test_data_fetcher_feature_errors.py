@@ -1,7 +1,6 @@
 """Tests for the Data Fetch Manager feature-specific error handling."""
 
-import asyncio
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import MagicMock, patch
 
 import meraki
 import pytest
