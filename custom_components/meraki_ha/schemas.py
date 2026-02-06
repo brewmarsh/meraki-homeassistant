@@ -54,34 +54,34 @@ OPTIONS_SCHEMA = vol.Schema(
     {
         vol.Required(
             CONF_SCAN_INTERVAL, default=DEFAULT_SCAN_INTERVAL
-        ): selector.NumberSelector(
-            selector.NumberSelectorConfig(
-                min=30, max=86400, step=1, mode=selector.NumberSelectorMode.SLIDER
+        ): selector.SelectSelector(
+            selector.SelectSelectorConfig(
+                options=[
+                    {"label": "Fast (60s)", "value": "60"},
+                    {"label": "Normal (300s)", "value": "300"},
+                    {"label": "Slow (900s)", "value": "900"},
+                ],
+                mode=selector.SelectSelectorMode.DROPDOWN,
+            )
+        ),
+        vol.Optional(
+            CONF_ENABLED_NETWORKS, default=DEFAULT_ENABLED_NETWORKS
+        ): selector.SelectSelector(
+            selector.SelectSelectorConfig(
+                options=[],
+                multiple=True,
+                custom_value=True,
+                mode=selector.SelectSelectorMode.DROPDOWN,
             )
         ),
         vol.Required(
             CONF_ENABLE_DEVICE_TRACKER, default=True
         ): selector.BooleanSelector(),
         vol.Required(
-            CONF_ENABLE_VLAN_MANAGEMENT, default=DEFAULT_ENABLE_VLAN_MANAGEMENT
-        ): selector.BooleanSelector(),
-        vol.Required(
-            CONF_ENABLE_FIREWALL_RULES, default=DEFAULT_ENABLE_FIREWALL_RULES
-        ): selector.BooleanSelector(),
-        vol.Required(
-            CONF_ENABLE_TRAFFIC_SHAPING, default=DEFAULT_ENABLE_TRAFFIC_SHAPING
-        ): selector.BooleanSelector(),
-        vol.Required(
-            CONF_ENABLE_VPN_MANAGEMENT, default=DEFAULT_ENABLE_VPN_MANAGEMENT
-        ): selector.BooleanSelector(),
-        vol.Required(
             CONF_ENABLE_DEVICE_STATUS, default=DEFAULT_ENABLE_DEVICE_STATUS
         ): selector.BooleanSelector(),
         vol.Required(
             CONF_ENABLE_ORG_SENSORS, default=DEFAULT_ENABLE_ORG_SENSORS
-        ): selector.BooleanSelector(),
-        vol.Required(
-            CONF_ENABLE_CAMERA_ENTITIES, default=DEFAULT_ENABLE_CAMERA_ENTITIES
         ): selector.BooleanSelector(),
         vol.Required(
             CONF_ENABLE_DEVICE_SENSORS, default=DEFAULT_ENABLE_DEVICE_SENSORS
@@ -99,17 +99,22 @@ OPTIONS_SCHEMA = vol.Schema(
             CONF_ENABLE_SSID_SENSORS, default=DEFAULT_ENABLE_SSID_SENSORS
         ): selector.BooleanSelector(),
         vol.Required(
+            CONF_ENABLE_CAMERA_ENTITIES, default=DEFAULT_ENABLE_CAMERA_ENTITIES
+        ): selector.BooleanSelector(),
+        vol.Required(
             CONF_ENABLE_CAMERA_SENSE, default=DEFAULT_ENABLE_CAMERA_SENSE
         ): selector.BooleanSelector(),
-        vol.Optional(
-            CONF_ENABLED_NETWORKS, default=DEFAULT_ENABLED_NETWORKS
-        ): selector.SelectSelector(
-            selector.SelectSelectorConfig(
-                options=[],
-                multiple=True,
-                custom_value=True,
-                mode=selector.SelectSelectorMode.DROPDOWN,
-            )
-        ),
+        vol.Required(
+            CONF_ENABLE_VLAN_MANAGEMENT, default=DEFAULT_ENABLE_VLAN_MANAGEMENT
+        ): selector.BooleanSelector(),
+        vol.Required(
+            CONF_ENABLE_FIREWALL_RULES, default=DEFAULT_ENABLE_FIREWALL_RULES
+        ): selector.BooleanSelector(),
+        vol.Required(
+            CONF_ENABLE_TRAFFIC_SHAPING, default=DEFAULT_ENABLE_TRAFFIC_SHAPING
+        ): selector.BooleanSelector(),
+        vol.Required(
+            CONF_ENABLE_VPN_MANAGEMENT, default=DEFAULT_ENABLE_VPN_MANAGEMENT
+        ): selector.BooleanSelector(),
     }
 )

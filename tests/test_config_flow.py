@@ -20,8 +20,11 @@ from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.meraki_ha.const import DOMAIN
 from custom_components.meraki_ha.const_conf import (
+    CONF_ENABLE_CAMERA_ENTITIES,
+    CONF_ENABLE_VLAN_MANAGEMENT,
     CONF_MERAKI_API_KEY,
     CONF_MERAKI_ORG_ID,
+    CONF_SCAN_INTERVAL,
 )
 from custom_components.meraki_ha.core.errors import (
     MerakiAuthenticationError,
@@ -145,3 +148,121 @@ async def test_reconfigure(hass: HomeAssistant) -> None:
 
     assert result["type"] == FlowResultType.FORM
     assert result["step_id"] == "reconfigure"
+
+
+async def test_options_flow_with_devices(hass: HomeAssistant) -> None:
+    """Test options flow when cameras and switches are present."""
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        data={CONF_MERAKI_API_KEY: "test-api-key", CONF_MERAKI_ORG_ID: "test-org-id"},
+        options={CONF_SCAN_INTERVAL: "300"},
+    )
+    entry.add_to_hass(hass)
+
+    # Mock the coordinator and data
+    coordinator = MagicMock()
+
+    # Mock devices
+    camera = MagicMock()
+    camera.product_type = "camera"
+    camera.model = "MV12"
+
+    switch = MagicMock()
+    switch.product_type = "switch"
+    switch.model = "MS120"
+
+    coordinator.data = {
+        "devices": [camera, switch],
+        "networks": []
+    }
+
+    # Setup hass.data
+    hass.data[DOMAIN] = {entry.entry_id: {"coordinator": coordinator}}
+
+    result = await hass.config_entries.options.async_init(entry.entry_id)
+
+    assert result["type"] == FlowResultType.FORM
+    assert result["step_id"] == "init"
+
+    schema = result["data_schema"].schema
+    schema_keys = [k.schema for k in schema.keys()]
+
+    assert CONF_ENABLE_CAMERA_ENTITIES in schema_keys
+    assert CONF_ENABLE_VLAN_MANAGEMENT in schema_keys
+    assert CONF_SCAN_INTERVAL in schema_keys
+
+
+async def test_options_flow_without_devices(hass: HomeAssistant) -> None:
+    """Test options flow when cameras and switches are NOT present."""
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        data={CONF_MERAKI_API_KEY: "test-api-key", CONF_MERAKI_ORG_ID: "test-org-id"},
+        options={CONF_SCAN_INTERVAL: "300"},
+    )
+    entry.add_to_hass(hass)
+
+    # Mock the coordinator and data (no devices)
+    coordinator = MagicMock()
+    coordinator.data = {
+        "devices": [],
+        "networks": []
+    }
+
+    # Setup hass.data
+    hass.data[DOMAIN] = {entry.entry_id: {"coordinator": coordinator}}
+
+    result = await hass.config_entries.options.async_init(entry.entry_id)
+
+    assert result["type"] == FlowResultType.FORM
+    assert result["step_id"] == "init"
+
+    schema = result["data_schema"].schema
+    schema_keys = [k.schema for k in schema.keys()]
+
+    # These should be hidden
+    assert CONF_ENABLE_CAMERA_ENTITIES not in schema_keys
+    assert CONF_ENABLE_VLAN_MANAGEMENT not in schema_keys
+
+    # Scan interval should still be there
+    assert CONF_SCAN_INTERVAL in schema_keys
+
+
+async def test_reconfigure_flow_without_devices(hass: HomeAssistant) -> None:
+    """Test reconfigure flow when cameras and switches are NOT present."""
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        data={CONF_MERAKI_API_KEY: "test-api-key", CONF_MERAKI_ORG_ID: "test-org-id"},
+        options={CONF_SCAN_INTERVAL: "300"},
+    )
+    entry.add_to_hass(hass)
+
+    # Mock the coordinator and data
+    coordinator = MagicMock()
+    coordinator.data = {
+        "devices": [],
+        "networks": []
+    }
+
+    # Setup hass.data
+    hass.data[DOMAIN] = {entry.entry_id: {"coordinator": coordinator}}
+
+    result = await hass.config_entries.flow.async_init(
+        DOMAIN,
+        context={
+            "source": config_entries.SOURCE_RECONFIGURE,
+            "entry_id": entry.entry_id,
+        },
+    )
+
+    assert result["type"] == FlowResultType.FORM
+    assert result["step_id"] == "reconfigure"
+
+    schema = result["data_schema"].schema
+    schema_keys = [k.schema for k in schema.keys()]
+
+    # These should be hidden
+    assert CONF_ENABLE_CAMERA_ENTITIES not in schema_keys
+    assert CONF_ENABLE_VLAN_MANAGEMENT not in schema_keys
+
+    # Scan interval should still be there
+    assert CONF_SCAN_INTERVAL in schema_keys

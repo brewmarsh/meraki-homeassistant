@@ -5,6 +5,8 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING, Any
 
+import voluptuous as vol
+
 from homeassistant import config_entries
 from homeassistant.config_entries import ConfigFlowResult
 from homeassistant.core import callback
@@ -25,7 +27,7 @@ from .const_conf import (
     CONF_MERAKI_ORG_ID,
 )
 from .core.errors import MerakiAuthenticationError, MerakiConnectionError
-from .helpers.schema import populate_schema_defaults
+from .helpers.schema import get_filtered_schema, populate_schema_defaults
 from .schemas import CONFIG_SCHEMA, OPTIONS_SCHEMA
 
 if TYPE_CHECKING:
@@ -175,6 +177,7 @@ class MerakiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignor
         coordinator: MerakiDataUpdateCoordinator = self.hass.data[DOMAIN][
             entry.entry_id
         ]["coordinator"]
+
         network_options = []
         if coordinator.data and coordinator.data.get("networks"):
             for network in coordinator.data["networks"]:
@@ -189,8 +192,14 @@ class MerakiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignor
                 if name and net_id:
                     network_options.append({"label": name, "value": net_id})
 
-        schema_with_defaults = populate_schema_defaults(
+        # Filter schema based on discovered hardware
+        filtered_schema = get_filtered_schema(
+            coordinator.data.get("devices", []),
             OPTIONS_SCHEMA,
+        )
+
+        schema_with_defaults = populate_schema_defaults(
+            filtered_schema,
             dict(entry.options),
             network_options,
         )

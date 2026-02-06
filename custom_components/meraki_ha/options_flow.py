@@ -6,10 +6,12 @@ from typing import Any
 
 from homeassistant import config_entries
 
+import voluptuous as vol
+
 from .const import DOMAIN
 from .const_conf import CONF_INTEGRATION_TITLE
 from .coordinator import MerakiDataUpdateCoordinator
-from .helpers.schema import populate_schema_defaults
+from .helpers.schema import get_filtered_schema, populate_schema_defaults
 from .schemas import OPTIONS_SCHEMA
 
 
@@ -53,6 +55,7 @@ class MerakiOptionsFlowHandler(config_entries.OptionsFlow):
         coordinator: MerakiDataUpdateCoordinator = self.hass.data[DOMAIN][
             self.config_entry.entry_id
         ]["coordinator"]
+
         network_options = []
         if coordinator.data and coordinator.data.get("networks"):
             for network in coordinator.data["networks"]:
@@ -67,9 +70,15 @@ class MerakiOptionsFlowHandler(config_entries.OptionsFlow):
                 if name and net_id:
                     network_options.append({"label": name, "value": net_id})
 
+        # Filter schema based on discovered hardware
+        filtered_schema = get_filtered_schema(
+            coordinator.data.get("devices", []),
+            OPTIONS_SCHEMA,
+        )
+
         # Populate the form with existing values from the config entry.
         schema_with_defaults = populate_schema_defaults(
-            OPTIONS_SCHEMA,
+            filtered_schema,
             self.options,
             network_options,
         )
