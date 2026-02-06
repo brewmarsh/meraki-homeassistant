@@ -14,6 +14,7 @@ class MerakiVLANEntity(MerakiNetworkEntity):
     """Representation of a Meraki VLAN."""
 
     _attr_has_entity_name = True
+    _attr_name = None
 
     def __init__(
         self,
@@ -44,7 +45,7 @@ class MerakiVLANEntity(MerakiNetworkEntity):
         """Return device info for the VLAN."""
         return DeviceInfo(
             identifiers={(DOMAIN, f"{self._network_id}vlan{self._vlan_id}")},
-            name=f"[VLAN {self._vlan_id}] {self._vlan_data.get('name', '')}",
+            name=f"[VLAN {self._vlan_id}] {self._vlan_data.get('name')}",
             via_device=(DOMAIN, f"network_{self._network_id}"),
             model="Virtual Local Area Network",
             manufacturer="Cisco Meraki",

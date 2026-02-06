@@ -116,17 +116,19 @@ def resolve_device_info(
     device_serial = entity_data.get("serial")
     if device_serial:
         product_type = str(
-            entity_data.get("productType") or entity_data.get("product_type")
+            entity_data.get("productType") or entity_data.get("product_type") or ""
         )
         model = str(entity_data.get("model") or "Unknown")
 
-        # Identify Camera Logic: strictly enforce [Camera] prefix for all MV devices
-        if "camera" in product_type.lower() or model.startswith("MV"):
+        # Identify Camera Logic: strictly enforce [Camera] prefix for all camera models
+        is_camera = product_type.lower() == "camera" or model.startswith(("MV", "CS-"))
+
+        if is_camera:
             prefix = "Camera"
         else:
             prefix = DEVICE_TYPE_MAPPING.get(product_type, "Device")
 
-        raw_name = entity_data.get("name")
+        raw_name = entity_data.get("name") or device_serial
         full_prefix = f"[{prefix}] "
 
         if raw_name and str(raw_name).startswith(full_prefix):

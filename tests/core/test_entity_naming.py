@@ -43,8 +43,8 @@ def test_vlan_naming(mock_coordinator):
 
     entity = MerakiVLANEntity(mock_coordinator, config_entry, "N_12345", vlan)
 
-    assert entity.device_info["name"] == "[Network] Site A"
-    assert entity.name == "VLAN 10 VoIP"
+    assert entity.device_info["name"] == "[VLAN 10] VoIP"
+    assert entity.name is None
 
 
 def test_camera_naming(mock_coordinator):
