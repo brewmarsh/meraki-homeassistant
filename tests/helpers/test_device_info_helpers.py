@@ -78,3 +78,23 @@ def test_resolve_device_info_device_prefix():
     }
     device_info_2 = resolve_device_info(device_data_2, config_entry)
     assert device_info_2["name"] == "[Camera] Front Door"
+
+    # Case 3: CS-WE Camera
+    device_data_3 = {
+        "serial": "Q234-5678-90AD",
+        "name": "Backyard",
+        "productType": "camera",
+        "model": "CS-WE",
+    }
+    device_info_3 = resolve_device_info(device_data_3, config_entry)
+    assert device_info_3["name"] == "[Camera] Backyard"
+
+    # Case 4: No name (fallback to serial)
+    device_data_4 = {
+        "serial": "Q234-5678-90AE",
+        "name": None,
+        "productType": "switch",
+        "model": "MS220-8P",
+    }
+    device_info_4 = resolve_device_info(device_data_4, config_entry)
+    assert device_info_4["name"] == "[Switch] Q234-5678-90AE"
