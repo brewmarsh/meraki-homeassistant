@@ -56,7 +56,7 @@ def async_ensure_network_devices_exist(
         device_registry.async_get_or_create(
             config_entry_id=config_entry.entry_id,
             identifiers={(DOMAIN, f"network_{network_id}")},
-            name=network_name,
+            name=f"[Network] {network_name}",
             manufacturer="Cisco Meraki",
             model="Meraki Network",
         )

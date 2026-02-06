@@ -63,13 +63,14 @@ def resolve_device_info(
         ssid_number = effective_data.get("number")
         if network_id and ssid_number is not None:
             identifier = (DOMAIN, get_ssid_identifier(network_id, ssid_number))
-            ssid_name = effective_data.get("name")
-            # Canonical Name Policy: [SSID] Prefix
-            if ssid_name and not str(ssid_name).startswith("[SSID] "):
-                ssid_name = f"[SSID] {ssid_name}"
+            
+            # Format: [SSID 0] MyWifiName
+            # We use effective_data.get("name") directly to avoid double-prefixing
+            raw_name = effective_data.get("name") or f"SSID {ssid_number}"
+            
             return DeviceInfo(
                 identifiers={identifier},
-                name=str(ssid_name),
+                name=f"[SSID {ssid_number}] {raw_name}",
                 model="Wireless SSID",
                 manufacturer="Cisco Meraki",
                 via_device=(DOMAIN, f"network_{network_id}"),
@@ -90,13 +91,11 @@ def resolve_device_info(
     network_id = entity_data.get("id")
     is_network = "productTypes" in entity_data and not entity_data.get("serial")
     if is_network and network_id:
-        network_name = entity_data.get("name")
-        # Canonical Name Policy: [Network] Prefix
-        if network_name and not str(network_name).startswith("[Network] "):
-            network_name = f"[Network] {network_name}"
+        # Format: [Network] BranchName
+        raw_net_name = entity_data.get("name") or "Unknown Network"
         return DeviceInfo(
             identifiers={(DOMAIN, f"network_{network_id}")},
-            name=str(network_name),
+            name=f"[Network] {raw_net_name}",
             manufacturer="Cisco Meraki",
             model="Meraki Network",
         )

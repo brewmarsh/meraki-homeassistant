@@ -25,6 +25,7 @@ class MerakiMt40PowerOutlet(
 ):
     """Representation of a Meraki MT40 power outlet."""
 
+    _attr_has_entity_name = True
     coordinator: MerakiDataUpdateCoordinator
 
     def __init__(
@@ -50,7 +51,7 @@ class MerakiMt40PowerOutlet(
         self._config_entry = config_entry
         self._meraki_client = meraki_client
         self._attr_unique_id = f"{self._device_info.serial}-outlet"
-        self._attr_name = f"{self._device_info.name} Outlet"
+        self._attr_name = "Outlet"
         self._attr_is_on: bool | None = None
 
     @property

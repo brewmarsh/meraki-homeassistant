@@ -71,8 +71,10 @@ def test_camera_naming(mock_coordinator):
     entity = MerakiRTSPStreamCamera(mock_coordinator, device, camera_service, config_entry)
 
     assert entity.has_entity_name is True
-    assert entity.name == "Stream"
-    assert entity.device_info["name"] == "[Camera] Front Door"
+    # In the refactor branch, we use has_entity_name=True and name=None 
+    # so the entity is named after the device itself.
+    assert entity.name is None
+    assert entity.device_info["name"] == "Front Door"
 
 
 def test_network_status_naming(mock_coordinator):

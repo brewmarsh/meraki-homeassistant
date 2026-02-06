@@ -22,6 +22,8 @@ if TYPE_CHECKING:
 class MerakiSwitchPortCycleButton(ButtonEntity):
     """A button to cycle a Meraki switch port."""
 
+    _attr_has_entity_name = True
+
     def __init__(
         self,
         service: SwitchPortService,
@@ -36,7 +38,7 @@ class MerakiSwitchPortCycleButton(ButtonEntity):
         self._port_number = self._port_id  # Meraki uses portId as number usually
         self._config_entry = config_entry
 
-        self._attr_name = f"{device.name} Port {self._port_id} Cycle"
+        self._attr_name = f"Port {self._port_id} cycle"
         self._attr_unique_id = f"{device.serial}_port_{self._port_id}_cycle"
         self._attr_icon = "mdi:restart"
 

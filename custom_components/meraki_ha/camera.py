@@ -86,6 +86,9 @@ class MerakiRTSPStreamCamera(MerakiEntity, Camera):
 
     _attr_brand = "Cisco Meraki"
     _attr_has_entity_name = True
+    _attr_supported_features = CameraEntityFeature.STREAM
+
+    coordinator: MerakiDataUpdateCoordinator
 
     def __init__(
         self,
@@ -100,15 +103,27 @@ class MerakiRTSPStreamCamera(MerakiEntity, Camera):
         self._device_serial = device.serial or ""
         self._camera_service = camera_service
         self._config_entry = config_entry
+        
+        # Unique ID uses underscore for consistency with other platforms
         self._attr_unique_id = f"{self._device_serial}_camera"
-        self._attr_name = "Stream"
-        self._attr_supported_features = CameraEntityFeature.STREAM
+        
+        # Setting name to None with has_entity_name=True makes this the "Main" entity
+        self._attr_name = None
+        self._attr_model = self.device_data.model
+
+        _LOGGER.debug(
+            "Naming Debug - Entity: %s | Class: %s | has_entity_name: %s "
+            "| _attr_name: %s | Device Identifiers: %s",
+            self.entity_id if hasattr(self, "entity_id") else "New Entity",
+            self.__class__.__name__,
+            getattr(self, "_attr_has_entity_name", "Not Set"),
+            getattr(self, "_attr_name", "None"),
+            self.device_info.get("identifiers") if self.device_info else "NO DEVICE INFO",
+        )
 
     @property
     def device_data(self) -> MerakiDevice:
         """Return the device data from the coordinator."""
-        from .core.models.device import MerakiDevice
-
         return self.coordinator.get_device(self._device_serial) or MerakiDevice()
 
     @property

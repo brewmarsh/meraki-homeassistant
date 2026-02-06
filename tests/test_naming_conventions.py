@@ -35,6 +35,7 @@ async def test_naming_conventions():
     )
     mock_coordinator.get_device.return_value = device
 
+    # 1. Test Camera Entity
     camera = MerakiRTSPStreamCamera(
         coordinator=mock_coordinator,
         device=device,
@@ -42,30 +43,38 @@ async def test_naming_conventions():
         config_entry=mock_config_entry,
     )
     assert camera.has_entity_name is True
-    assert camera.name == "Stream"
-    assert camera.device_info["name"] == "[Camera] Office Camera"
+    # Modern naming: The primary entity has no name of its own, 
+    # so it presents as the Device Name in the UI.
+    assert camera.name is None
+    assert camera.device_info["name"] == "Office Camera"
 
+    # 2. Test Motion Sensor
     motion_sensor = MerakiMotionSensor(
         coordinator=mock_coordinator,
         device=device,
         camera_service=mock_camera_service,
         config_entry=mock_config_entry,
     )
+    # Becomes "Office Camera Motion" in the UI
     assert motion_sensor.name == "Motion"
     assert motion_sensor.has_entity_name is True
 
+    # 3. Test Status Sensor
     status_sensor = MerakiDeviceStatusSensor(
         coordinator=mock_coordinator,
         device_data=device,
         config_entry=mock_config_entry,
     )
+    # Becomes "Office Camera Status" in the UI
     assert status_sensor.name == "Status"
     assert status_sensor.has_entity_name is True
 
+    # 4. Test Connected Clients Sensor
     connected_clients_sensor = MerakiDeviceConnectedClientsSensor(
         coordinator=mock_coordinator,
         device_data=device,
         config_entry=mock_config_entry,
     )
+    # Becomes "Office Camera Connected Clients" in the UI
     assert connected_clients_sensor.name == "Connected Clients"
     assert connected_clients_sensor.has_entity_name is True
