@@ -12,12 +12,6 @@ from collections.abc import AsyncIterator
 from typing import TYPE_CHECKING
 
 from ...const_conf import CONF_ENABLE_DEVICE_SENSORS
-from ...sensor.device.device_status import MerakiDeviceStatusSensor
-from ...sensor.device.network_settings import (
-    MerakiDeviceDNSSensor,
-    MerakiDeviceGatewaySensor,
-    MerakiDeviceIPSensor,
-)
 from ...sensor.device.switch_client_count import MerakiSwitchClientCountSensor
 from .base import BaseHandler
 
@@ -46,47 +40,3 @@ class SwitchHandler(BaseHandler):
                         self._coordinator, device, self._config_entry
                     )
 
-                    # Status
-                    yield MerakiDeviceStatusSensor(
-                        self._coordinator, device, self._config_entry
-                    )
-
-                    # Standard IPs
-                    yield MerakiDeviceIPSensor(
-                        self._coordinator,
-                        device,
-                        self._config_entry,
-                        "lanIp",
-                        "LAN IP",
-                    )
-                    yield MerakiDeviceIPSensor(
-                        self._coordinator,
-                        device,
-                        self._config_entry,
-                        "publicIp",
-                        "Public IP",
-                    )
-
-                    # Diagnostics (IP/Gateway/DNS) from uplinks
-                    if device.uplinks:
-                        for uplink in device.uplinks:
-                            interface = uplink.get("interface")
-                            if interface:
-                                yield MerakiDeviceIPSensor(
-                                    self._coordinator,
-                                    device,
-                                    self._config_entry,
-                                    interface,
-                                )
-                                yield MerakiDeviceGatewaySensor(
-                                    self._coordinator,
-                                    device,
-                                    self._config_entry,
-                                    interface,
-                                )
-                                yield MerakiDeviceDNSSensor(
-                                    self._coordinator,
-                                    device,
-                                    self._config_entry,
-                                    interface,
-                                )

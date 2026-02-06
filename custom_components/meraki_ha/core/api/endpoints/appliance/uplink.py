@@ -69,8 +69,25 @@ class ApplianceUplinkMixin:
             A list of uplink loss and latency metrics.
 
         """
+        # SDK method names vary across versions; try each known variant
+        sdk_methods = [
+            "getNetworkApplianceUplinksUplinksLossAndLatency",
+            "getNetworkApplianceUplinksLossAndLatency",
+            "getNetworkApplianceUplinksUsageHistory",
+        ]
+
+        method = None
+        for method_name in sdk_methods:
+            if hasattr(self._api_client.dashboard.appliance, method_name):
+                method = getattr(self._api_client.dashboard.appliance, method_name)
+                break
+
+        if not method:
+            _LOGGER.warning("Uplink performance method not found in Meraki SDK")
+            return []
+
         performance = await self._api_client.run_sync(
-            self._api_client.dashboard.appliance.getNetworkApplianceUplinksLossAndLatency,
+            method,
             networkId=network_id,
         )
         validated = validate_response(performance)

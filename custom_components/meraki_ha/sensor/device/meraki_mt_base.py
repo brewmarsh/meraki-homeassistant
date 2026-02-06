@@ -12,20 +12,17 @@ from homeassistant.components.sensor import (
 from homeassistant.core import callback
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.typing import UNDEFINED
-from homeassistant.helpers.update_coordinator import CoordinatorEntity
-
 from ...const import DOMAIN
 from ...coordinator import MerakiDataUpdateCoordinator
+from ...entity import MerakiEntity
 from ...core.models.device import MerakiDevice
 from ...core.utils.naming_utils import format_device_name
 
 _LOGGER = logging.getLogger(__name__)
 
 
-class MerakiMtSensor(CoordinatorEntity, RestoreSensor):
+class MerakiMtSensor(MerakiEntity, RestoreSensor):
     """Representation of a Meraki MT sensor."""
-
-    coordinator: MerakiDataUpdateCoordinator
 
     def __init__(
         self,
@@ -37,10 +34,13 @@ class MerakiMtSensor(CoordinatorEntity, RestoreSensor):
         super().__init__(coordinator)
         self._device = device
         self.entity_description = entity_description
-        self._attr_unique_id = f"{device.serial}_{self.entity_description.key}"
+        
+        # We no longer set _attr_unique_id here as the @property below handles it.
         self._attr_has_entity_name = True
+        
         if self.entity_description.name is not UNDEFINED:
             self._attr_name = cast(str | None, self.entity_description.name)
+            
         self._attr_native_value: Any = None
         self._update_native_value()
 
@@ -74,11 +74,9 @@ class MerakiMtSensor(CoordinatorEntity, RestoreSensor):
 
         readings = self._device.readings
         if not readings or not isinstance(readings, list):
-            # Fallback for older MT devices that don't use the readings structure
+            # Fallback for older MT devices
             if key == "noise":
-                self._attr_native_value = self._maybe_get_value(
-                    self._device.ambient_noise
-                )
+                self._attr_native_value = self._maybe_get_value(self._device.ambient_noise)
             elif key == "pm25":
                 self._attr_native_value = self._maybe_get_value(self._device.pm25)
             elif key == "door":
@@ -87,11 +85,9 @@ class MerakiMtSensor(CoordinatorEntity, RestoreSensor):
 
         for reading in readings:
             metric = reading.get("metric")
-            # Handle mismatch between API metric name and entity key
             if metric == key or (key == "realPower" and metric == "power"):
                 metric_data = reading.get(metric)
                 if isinstance(metric_data, dict):
-                    # Map metric keys to the nested dictionary key that holds the value
                     key_map = {
                         "battery": "percentage",
                         "temperature": "celsius",
@@ -102,62 +98,47 @@ class MerakiMtSensor(CoordinatorEntity, RestoreSensor):
                         "rssi": "level",
                         "water": "present",
                         "button": "pressType",
-                        # MT40 Power Monitoring
                         "realPower": "draw",
                         "current": "draw",
-                        "voltage": "level",  # fallback to draw if level is missing
+                        "voltage": "level",
                         "powerFactor": "percentage",
                         "frequency": "level",
                         "energy": "draw",
                     }
                     value_key = key_map.get(key)
                     if value_key:
-                        self._attr_native_value = self._maybe_get_value(
-                            metric_data.get(value_key)
-                        )
-                        # Special case for voltage fallback
+                        self._attr_native_value = self._maybe_get_value(metric_data.get(value_key))
+                        
+                        # Fallbacks for power monitoring
                         if key == "voltage" and self._attr_native_value is None:
-                            self._attr_native_value = self._maybe_get_value(
-                                metric_data.get("draw")
-                            )
-                        # Special case for energy fallback
+                            self._attr_native_value = self._maybe_get_value(metric_data.get("draw"))
                         if key == "energy" and self._attr_native_value is None:
                             self._attr_native_value = (
                                 self._maybe_get_value(metric_data.get("energyUsage"))
-                                or self._maybe_get_value(
-                                    metric_data.get("apparentPower")
-                                )
+                                or self._maybe_get_value(metric_data.get("apparentPower"))
                             )
-                        # Special case for power factor fallback
                         if key == "powerFactor" and self._attr_native_value is None:
-                            self._attr_native_value = self._maybe_get_value(
-                                metric_data.get("factor")
-                            )
+                            self._attr_native_value = self._maybe_get_value(metric_data.get("factor"))
                         return
 
-                    # Special case for noise (nested structure)
                     if key == "noise":
                         self._attr_native_value = self._maybe_get_value(
                             metric_data.get("ambient", {}).get("level")
                         )
                         return
 
-        # Fallback to device attributes if not found in readings
+        # Fallback to device attributes
         if self._attr_native_value is None:
-            if key == "frequency":
-                self._attr_native_value = self._maybe_get_value(self._device.frequency)
-            elif key == "powerFactor":
-                self._attr_native_value = self._maybe_get_value(
-                    self._device.power_factor
-                )
-            elif key == "energy":
-                self._attr_native_value = self._maybe_get_value(self._device.energy)
-            elif key == "realPower":
-                self._attr_native_value = self._maybe_get_value(self._device.real_power)
-            elif key == "voltage":
-                self._attr_native_value = self._maybe_get_value(self._device.voltage)
-            elif key == "current":
-                self._attr_native_value = self._maybe_get_value(self._device.current)
+            attr_map = {
+                "frequency": "frequency",
+                "powerFactor": "power_factor",
+                "energy": "energy",
+                "realPower": "real_power",
+                "voltage": "voltage",
+                "current": "current",
+            }
+            if key in attr_map:
+                self._attr_native_value = self._maybe_get_value(getattr(self._device, attr_map[key]))
 
     @callback
     def _handle_coordinator_update(self) -> None:
@@ -171,6 +152,15 @@ class MerakiMtSensor(CoordinatorEntity, RestoreSensor):
             self.async_write_ha_state()
 
     @property
+    def unique_id(self) -> str | None:
+        """Return a unique ID that prevents platform collisions."""
+        if hasattr(self, "_device") and self._device and self._device.serial:
+            # Format: serial_classname_metrickey
+            # This ensures multiple sensors on the same device stay separate.
+            return f"{self._device.serial}_{self.__class__.__name__.lower()}_{self.entity_description.key}"
+        return getattr(self, "_attr_unique_id", None)
+
+    @property
     def native_value(self) -> str | float | bool | None:
         """Return the state of the sensor."""
         return self._attr_native_value
@@ -178,12 +168,9 @@ class MerakiMtSensor(CoordinatorEntity, RestoreSensor):
     @property
     def available(self) -> bool:
         """Return if the sensor is available."""
-        # Available if it has a value from the coordinator or a restored state
         if self.native_value is not None:
             return True
 
-        # The sensor is available if there is a reading for its metric.
-        # This prevents creating sensors for metrics that a device doesn't support.
         readings = self._device.readings
         if not readings or not isinstance(readings, list):
             return False

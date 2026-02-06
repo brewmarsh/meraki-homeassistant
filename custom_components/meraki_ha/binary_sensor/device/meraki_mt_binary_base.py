@@ -14,16 +14,15 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from ...const import DOMAIN
 from ...coordinator import MerakiDataUpdateCoordinator as MerakiDataCoordinator
+from ...entity import MerakiEntity
 from ...core.models.device import MerakiDevice
 from ...core.utils.naming_utils import format_device_name
 
 _LOGGER = logging.getLogger(__name__)
 
 
-class MerakiMtBinarySensor(CoordinatorEntity, BinarySensorEntity):
+class MerakiMtBinarySensor(MerakiEntity, BinarySensorEntity):
     """Representation of a Meraki MT binary sensor."""
-
-    coordinator: MerakiDataCoordinator
 
     def __init__(
         self,
