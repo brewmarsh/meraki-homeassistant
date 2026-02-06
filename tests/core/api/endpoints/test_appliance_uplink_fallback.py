@@ -69,6 +69,7 @@ async def test_get_uplink_performance_uses_first_available(
     # Our side_effect calls method(networkId=network_id)
     mock_method.assert_called_once_with(networkId=MOCK_NETWORK.id)
 
+
 @pytest.mark.asyncio
 async def test_get_uplink_performance_prefers_double_uplinks(
     appliance_endpoints, mock_api_client

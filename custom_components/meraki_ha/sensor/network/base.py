@@ -74,7 +74,7 @@ class MerakiSSIDBaseSensor(MerakiEntity, SensorEntity):
         to exist for the same SSID without ID conflicts.
         """
         return (
-            f"{self._network_id}ssid{self._ssid_number}_"
+            f"{self._network_id}ssid{self._ssid_number}"
             f"{self.__class__.__name__.lower()}"
         )
 
