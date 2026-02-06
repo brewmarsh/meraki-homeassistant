@@ -171,6 +171,13 @@ class MerakiMtSensor(CoordinatorEntity, RestoreSensor):
             self.async_write_ha_state()
 
     @property
+    def unique_id(self) -> str | None:
+        """Return a unique ID."""
+        if hasattr(self, "_device") and self._device and self._device.serial:
+            return f"{self._device.serial}{self.__class__.__name__.lower()}"
+        return getattr(self, "_attr_unique_id", None)
+
+    @property
     def native_value(self) -> str | float | bool | None:
         """Return the state of the sensor."""
         return self._attr_native_value

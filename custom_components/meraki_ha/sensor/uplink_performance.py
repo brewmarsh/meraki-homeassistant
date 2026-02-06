@@ -28,6 +28,13 @@ _LOGGER = logging.getLogger(__name__)
 class MerakiSensor(MerakiEntity, SensorEntity):
     """Base class for Meraki sensors."""
 
+    @property
+    def unique_id(self) -> str | None:
+        """Return a unique ID."""
+        if hasattr(self, "_device_serial") and self._device_serial:
+            return f"{self._device_serial}{self.__class__.__name__.lower()}"
+        return getattr(self, "_attr_unique_id", None)
+
 
 class MerakiUplinkPerformanceSensor(MerakiSensor):
     """Representation of a Meraki uplink performance sensor."""
