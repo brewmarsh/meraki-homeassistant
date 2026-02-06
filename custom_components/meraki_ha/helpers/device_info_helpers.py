@@ -118,7 +118,14 @@ def resolve_device_info(
         product_type = str(
             entity_data.get("productType") or entity_data.get("product_type")
         )
-        prefix = DEVICE_TYPE_MAPPING.get(product_type, "Device")
+        model = str(entity_data.get("model") or "Unknown")
+
+        # Identify Camera Logic: strictly enforce [Camera] prefix for all MV devices
+        if "camera" in product_type.lower() or model.startswith("MV"):
+            prefix = "Camera"
+        else:
+            prefix = DEVICE_TYPE_MAPPING.get(product_type, "Device")
+
         raw_name = entity_data.get("name")
         full_prefix = f"[{prefix}] "
 
@@ -131,7 +138,7 @@ def resolve_device_info(
             identifiers={(DOMAIN, device_serial)},
             name=name,
             manufacturer="Cisco Meraki",
-            model=str(entity_data.get("model") or "Unknown"),
+            model=model,
             sw_version=str(entity_data.get("firmware") or ""),
         )
 
