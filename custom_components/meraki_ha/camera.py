@@ -10,7 +10,7 @@ from homeassistant.components.camera import Camera, CameraEntityFeature
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
 from .const import DOMAIN
-from .const_conf import CONF_RTSP_STREAM_ENABLED
+from .const_conf import CONF_ENABLE_CAMERA_ENTITIES, CONF_RTSP_STREAM_ENABLED
 from .entity import MerakiEntity
 from .helpers.device_info_helpers import resolve_device_info
 
@@ -42,32 +42,8 @@ async def async_setup_entry(
     camera_entities: list[MerakiRTSPStreamCamera] = []
 
     for device in devices:
-        if device.product_type != "camera":
-            continue
-
-        # If configured, ensure the RTSP stream is enabled for cameras
-        if (
-            config_entry.options.get(CONF_RTSP_STREAM_ENABLED, False)
-            and not device.rtsp_url
-        ):
-            try:
-                _LOGGER.debug(
-                    "RTSP stream is defaulted to on, enabling for camera %s",
-                    device.serial,
-                )
-                await camera_service.async_set_rtsp_stream_enabled(
-                    str(device.serial), True
-                )
-            except Exception as e:
-                _LOGGER.warning(
-                    "Could not enable RTSP stream for %s: %s", device.serial, e
-                )
-                coordinator.add_status_message(
-                    str(device.serial), f"Could not enable RTSP stream: {e}"
-                )
-
-        if device.rtsp_url:
-            _LOGGER.debug("Found camera with RTSP URL: %s", device.serial)
+        if device.product_type == "camera":
+            _LOGGER.debug("Found camera device: %s", device.serial)
             camera_entities.append(
                 MerakiRTSPStreamCamera(
                     coordinator,
@@ -135,6 +111,27 @@ class MerakiRTSPStreamCamera(MerakiEntity, Camera):
         """Return device information."""
         return resolve_device_info(self.device_data, self._config_entry)
 
+    async def async_added_to_hass(self) -> None:
+        """Handle when entity is added to hass."""
+        await super().async_added_to_hass()
+
+        if (
+            self._config_entry.options.get(CONF_ENABLE_CAMERA_ENTITIES, True)
+            and not self.device_data.rtsp_url
+        ):
+            try:
+                _LOGGER.debug(
+                    "RTSP stream is missing, enabling for camera %s",
+                    self._device_serial,
+                )
+                await self._camera_service.async_set_rtsp_stream_enabled(
+                    self._device_serial, True
+                )
+            except Exception as e:
+                _LOGGER.warning(
+                    "Could not enable RTSP stream for %s: %s", self._device_serial, e
+                )
+
     async def async_camera_image(
         self, width: int | None = None, height: int | None = None
     ) -> bytes | None:
@@ -160,10 +157,14 @@ class MerakiRTSPStreamCamera(MerakiEntity, Camera):
     @property
     def is_streaming(self) -> bool:
         """Return True if the camera is streaming."""
-        return self.device_data.rtsp_url is not None
+        if self.device_data.rtsp_url is None:
+            return False
+        return True
 
     async def stream_source(self) -> str | None:
         """Return the source of the stream."""
+        if self.device_data.rtsp_url is None:
+            return None
         return self.device_data.rtsp_url
 
     @property
