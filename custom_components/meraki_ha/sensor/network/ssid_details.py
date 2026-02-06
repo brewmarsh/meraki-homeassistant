@@ -5,24 +5,24 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-from homeassistant.components.sensor import SensorEntity
+from homeassistant.components.sensor import SensorEntity, SensorEntityDescription
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import UnitOfDataRate
 from homeassistant.core import callback
 from homeassistant.helpers.entity import EntityCategory
-from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from ...coordinator import MerakiDataUpdateCoordinator
+from ...entity import MerakiEntity
 from ...helpers.device_info_helpers import resolve_device_info
 
 _LOGGER = logging.getLogger(__name__)
 
 
-class MerakiSSIDDetailSensor(CoordinatorEntity, SensorEntity):
+class MerakiSSIDDetailSensor(MerakiEntity, SensorEntity):
     """Base class for a Meraki SSID detail sensor."""
 
     _attr_has_entity_name = True
-    entity_category = EntityCategory.DIAGNOSTIC
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
 
     def __init__(
         self,
@@ -35,9 +35,11 @@ class MerakiSSIDDetailSensor(CoordinatorEntity, SensorEntity):
         super().__init__(coordinator)
         self._config_entry = config_entry
         self._ssid_data = ssid_data
+        self._network_id = ssid_data.get("networkId")
+        self._ssid_number = ssid_data.get("number")
         self._rf_profile = rf_profile
         self._attr_device_info = resolve_device_info(
-            entity_data={"networkId": self._ssid_data["networkId"]},
+            entity_data={"networkId": self._network_id},
             config_entry=self._config_entry,
             ssid_data=self._ssid_data,
         )
@@ -49,8 +51,8 @@ class MerakiSSIDDetailSensor(CoordinatorEntity, SensorEntity):
         if not self.coordinator.data:
             return
 
-        network_id = self._ssid_data.get("networkId")
-        ssid_number = self._ssid_data.get("number")
+        network_id = self._network_id
+        ssid_number = self._ssid_number
 
         # Update SSID data
         if "wireless_settings" in self.coordinator.data:
@@ -78,7 +80,11 @@ class MerakiSSIDDetailSensor(CoordinatorEntity, SensorEntity):
 class MerakiSSIDWalledGardenSensor(MerakiSSIDDetailSensor):
     """Representation of an SSID Walled Garden sensor."""
 
-    _attr_icon = "mdi:wall"
+    entity_description = SensorEntityDescription(
+        key="walled_garden",
+        name="Walled garden",
+        icon="mdi:wall",
+    )
 
     def __init__(
         self,
@@ -88,10 +94,6 @@ class MerakiSSIDWalledGardenSensor(MerakiSSIDDetailSensor):
         rf_profile: dict[str, Any] | None,
     ) -> None:
         """Initialize the sensor."""
-        self._attr_unique_id = (
-            f"{ssid_data['networkId']}ssid{ssid_data['number']}_walled_garden"
-        )
-        self._attr_name = "Walled garden"
         super().__init__(coordinator, config_entry, ssid_data, rf_profile)
 
     def _update_state(self) -> None:
@@ -107,8 +109,12 @@ class MerakiSSIDWalledGardenSensor(MerakiSSIDDetailSensor):
 class MerakiSSIDTotalUploadLimitSensor(MerakiSSIDDetailSensor):
     """Representation of an SSID Total Upload Limit sensor."""
 
-    _attr_icon = "mdi:upload-network"
-    _attr_native_unit_of_measurement = UnitOfDataRate.KILOBITS_PER_SECOND
+    entity_description = SensorEntityDescription(
+        key="total_upload_limit",
+        name="Total upload limit",
+        icon="mdi:upload-network",
+        native_unit_of_measurement=UnitOfDataRate.KILOBITS_PER_SECOND,
+    )
 
     def __init__(
         self,
@@ -118,10 +124,6 @@ class MerakiSSIDTotalUploadLimitSensor(MerakiSSIDDetailSensor):
         rf_profile: dict[str, Any] | None,
     ) -> None:
         """Initialize the sensor."""
-        self._attr_unique_id = (
-            f"{ssid_data['networkId']}ssid{ssid_data['number']}_upload_limit"
-        )
-        self._attr_name = "Total upload limit"
         super().__init__(coordinator, config_entry, ssid_data, rf_profile)
 
     def _update_state(self) -> None:
@@ -132,8 +134,12 @@ class MerakiSSIDTotalUploadLimitSensor(MerakiSSIDDetailSensor):
 class MerakiSSIDTotalDownloadLimitSensor(MerakiSSIDDetailSensor):
     """Representation of an SSID Total Download Limit sensor."""
 
-    _attr_icon = "mdi:download-network"
-    _attr_native_unit_of_measurement = UnitOfDataRate.KILOBITS_PER_SECOND
+    entity_description = SensorEntityDescription(
+        key="total_download_limit",
+        name="Total download limit",
+        icon="mdi:download-network",
+        native_unit_of_measurement=UnitOfDataRate.KILOBITS_PER_SECOND,
+    )
 
     def __init__(
         self,
@@ -143,10 +149,6 @@ class MerakiSSIDTotalDownloadLimitSensor(MerakiSSIDDetailSensor):
         rf_profile: dict[str, Any] | None,
     ) -> None:
         """Initialize the sensor."""
-        self._attr_unique_id = (
-            f"{ssid_data['networkId']}ssid{ssid_data['number']}_download_limit"
-        )
-        self._attr_name = "Total download limit"
         super().__init__(coordinator, config_entry, ssid_data, rf_profile)
 
     def _update_state(self) -> None:
@@ -157,7 +159,11 @@ class MerakiSSIDTotalDownloadLimitSensor(MerakiSSIDDetailSensor):
 class MerakiSSIDMandatoryDhcpSensor(MerakiSSIDDetailSensor):
     """Representation of an SSID Mandatory DHCP sensor."""
 
-    _attr_icon = "mdi:ip-network"
+    entity_description = SensorEntityDescription(
+        key="mandatory_dhcp",
+        name="Mandatory DHCP",
+        icon="mdi:ip-network",
+    )
 
     def __init__(
         self,
@@ -167,10 +173,6 @@ class MerakiSSIDMandatoryDhcpSensor(MerakiSSIDDetailSensor):
         rf_profile: dict[str, Any] | None,
     ) -> None:
         """Initialize the sensor."""
-        self._attr_unique_id = (
-            f"{ssid_data['networkId']}ssid{ssid_data['number']}_mandatory_dhcp"
-        )
-        self._attr_name = "Mandatory DHCP"
         super().__init__(coordinator, config_entry, ssid_data, rf_profile)
 
     def _update_state(self) -> None:
@@ -183,8 +185,12 @@ class MerakiSSIDMandatoryDhcpSensor(MerakiSSIDDetailSensor):
 class MerakiSSIDMinBitrate24GhzSensor(MerakiSSIDDetailSensor):
     """Representation of an SSID 2.4GHz Minimum Bitrate sensor."""
 
-    _attr_icon = "mdi:speedometer-slow"
-    _attr_native_unit_of_measurement = UnitOfDataRate.MEGABITS_PER_SECOND
+    entity_description = SensorEntityDescription(
+        key="min_bitrate_24",
+        name="Minimum bitrate 2.4GHz",
+        icon="mdi:speedometer-slow",
+        native_unit_of_measurement=UnitOfDataRate.MEGABITS_PER_SECOND,
+    )
 
     def __init__(
         self,
@@ -194,10 +200,6 @@ class MerakiSSIDMinBitrate24GhzSensor(MerakiSSIDDetailSensor):
         rf_profile: dict[str, Any] | None,
     ) -> None:
         """Initialize the sensor."""
-        self._attr_unique_id = (
-            f"{ssid_data['networkId']}ssid{ssid_data['number']}_min_bitrate_24"
-        )
-        self._attr_name = "Minimum bitrate 2.4GHz"
         super().__init__(coordinator, config_entry, ssid_data, rf_profile)
 
     def _update_state(self) -> None:
@@ -213,8 +215,12 @@ class MerakiSSIDMinBitrate24GhzSensor(MerakiSSIDDetailSensor):
 class MerakiSSIDMinBitrate5GhzSensor(MerakiSSIDDetailSensor):
     """Representation of an SSID 5GHz Minimum Bitrate sensor."""
 
-    _attr_icon = "mdi:speedometer"
-    _attr_native_unit_of_measurement = UnitOfDataRate.MEGABITS_PER_SECOND
+    entity_description = SensorEntityDescription(
+        key="min_bitrate_5",
+        name="Minimum bitrate 5GHz",
+        icon="mdi:speedometer",
+        native_unit_of_measurement=UnitOfDataRate.MEGABITS_PER_SECOND,
+    )
 
     def __init__(
         self,
@@ -224,10 +230,6 @@ class MerakiSSIDMinBitrate5GhzSensor(MerakiSSIDDetailSensor):
         rf_profile: dict[str, Any] | None,
     ) -> None:
         """Initialize the sensor."""
-        self._attr_unique_id = (
-            f"{ssid_data['networkId']}ssid{ssid_data['number']}_min_bitrate_5"
-        )
-        self._attr_name = "Minimum bitrate 5GHz"
         super().__init__(coordinator, config_entry, ssid_data, rf_profile)
 
     def _update_state(self) -> None:

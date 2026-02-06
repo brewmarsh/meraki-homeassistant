@@ -23,7 +23,7 @@ async def test_ssid_psk_sensor() -> None:
 
     sensor = MerakiSSIDPSKSensor(coordinator, config_entry, ssid_data_psk)
     assert sensor.name == "PSK"
-    assert sensor.unique_id == "N_123ssid0merakissidpsksensor"
+    assert sensor.unique_id == "N_123ssid0_psk"
     assert sensor.native_value == "secret123"
 
     # Test update with new PSK
