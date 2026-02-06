@@ -105,42 +105,75 @@
     "step": {
       "init": {
         "title": "Meraki Options",
-        "description": "Configure the Meraki integration settings.",
+        "menu_options": {
+          "general": "General Settings",
+          "sensors": "Sensor Configuration",
+          "cameras": "Camera Settings",
+          "advanced": "Advanced Configuration"
+        }
+      },
+      "general": {
+        "title": "General Settings",
+        "description": "Configure general settings for the Meraki integration.",
         "data": {
           "scan_interval": "Update frequency",
-          "enable_device_tracker": "Enable client tracker",
-          "enable_vlan_management": "Enable VLAN management",
+          "enabled_networks": "Enabled networks",
+          "enable_device_tracker": "Enable client tracker"
+        },
+        "data_description": {
+          "scan_interval": "Frequency of data updates from the Meraki API.",
+          "enabled_networks": "Select which Meraki networks to include in Home Assistant.",
+          "enable_device_tracker": "Track devices connected to your Meraki networks."
+        }
+      },
+      "sensors": {
+        "title": "Sensor Configuration",
+        "description": "Select which sensor types to enable.",
+        "data": {
           "enable_device_status": "Enable device status entities",
           "enable_org_sensors": "Enable organization sensors",
-          "enable_camera_entities": "Enable camera entities",
           "enable_device_sensors": "Enable device sensors",
           "enable_network_sensors": "Enable network sensors",
           "enable_vlan_sensors": "Enable VLAN sensors",
           "enable_port_sensors": "Enable port sensors",
-          "enable_ssid_sensors": "Enable SSID sensors",
-          "enabled_networks": "Enabled networks",
-          "enable_firewall_rules": "Enable firewall rules",
-          "enable_traffic_shaping": "Enable traffic shaping controls",
-          "enable_vpn_management": "VPN management",
-          "enable_camera_sense": "Enable camera sense"
+          "enable_ssid_sensors": "Enable SSID sensors"
         },
         "data_description": {
-          "scan_interval": "Frequency of data updates from the Meraki API.",
-          "enable_device_tracker": "Track devices connected to your Meraki networks.",
-          "enable_vlan_management": "Allow management of VLANs through switches.",
           "enable_device_status": "Create binary sensors for device online/offline status.",
           "enable_org_sensors": "Create sensors for organization-wide metrics.",
-          "enable_camera_entities": "Create entities for Meraki cameras.",
           "enable_device_sensors": "Create sensors for device-specific metrics.",
           "enable_network_sensors": "Create sensors for network-specific metrics.",
           "enable_vlan_sensors": "Create sensors for VLAN metrics.",
           "enable_port_sensors": "Create sensors for switch port metrics.",
-          "enable_ssid_sensors": "Create sensors for SSID metrics.",
-          "enabled_networks": "Select which Meraki networks to include in Home Assistant.",
+          "enable_ssid_sensors": "Create sensors for SSID metrics."
+        }
+      },
+      "cameras": {
+        "title": "Camera Settings",
+        "description": "Configure Meraki camera integration.",
+        "data": {
+          "enable_camera_entities": "Enable camera entities",
+          "enable_camera_sense": "Enable camera sense"
+        },
+        "data_description": {
+          "enable_camera_entities": "Create entities for Meraki cameras.",
+          "enable_camera_sense": "Enable Meraki MV Sense analytics entities."
+        }
+      },
+      "advanced": {
+        "title": "Advanced Configuration",
+        "description": "Configure advanced integration features.",
+        "data": {
+          "enable_vlan_management": "Enable VLAN management",
+          "enable_firewall_rules": "Enable firewall rules",
+          "enable_traffic_shaping": "Enable traffic shaping controls",
+          "enable_vpn_management": "VPN management"
+        },
+        "data_description": {
+          "enable_vlan_management": "Allow management of VLANs through switches.",
           "enable_firewall_rules": "Enables management of Layer 3 firewall rules.",
           "enable_traffic_shaping": "Allows you to view and set bandwidth limits per SSID.",
-          "enable_vpn_management": "Exposes switches to toggle site-to-site VPN settings.",
-          "enable_camera_sense": "Enable Meraki MV Sense analytics entities."
+          "enable_vpn_management": "Exposes switches to toggle site-to-site VPN settings."
         }
       }
     }
