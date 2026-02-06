@@ -71,13 +71,6 @@ class MerakiMtBinarySensor(CoordinatorEntity, BinarySensorEntity):
                 return
 
     @property
-    def unique_id(self) -> str | None:
-        """Return a unique ID."""
-        if hasattr(self, "_device") and self._device and self._device.serial:
-            return f"{self._device.serial}{self.__class__.__name__.lower()}"
-        return getattr(self, "_attr_unique_id", None)
-
-    @property
     def is_on(self) -> bool | None:
         """Return true if the binary sensor is on."""
         readings = self._device.readings
