@@ -183,6 +183,7 @@ async def test_options_flow_with_devices(hass: HomeAssistant) -> None:
 
     assert result["type"] == FlowResultType.FORM
     assert result["step_id"] == "init"
+    assert result["data_schema"] is not None
 
     schema = result["data_schema"].schema
     schema_keys = [k.schema for k in schema.keys()]
@@ -215,6 +216,7 @@ async def test_options_flow_without_devices(hass: HomeAssistant) -> None:
 
     assert result["type"] == FlowResultType.FORM
     assert result["step_id"] == "init"
+    assert result["data_schema"] is not None
 
     schema = result["data_schema"].schema
     schema_keys = [k.schema for k in schema.keys()]
@@ -256,6 +258,7 @@ async def test_reconfigure_flow_without_devices(hass: HomeAssistant) -> None:
 
     assert result["type"] == FlowResultType.FORM
     assert result["step_id"] == "reconfigure"
+    assert result["data_schema"] is not None
 
     schema = result["data_schema"].schema
     schema_keys = [k.schema for k in schema.keys()]

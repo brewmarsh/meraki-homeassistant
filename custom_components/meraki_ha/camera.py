@@ -109,9 +109,6 @@ class MerakiRTSPStreamCamera(MerakiEntity, Camera):
         self._camera_service = camera_service
         self._config_entry = config_entry
 
-        # Unique ID
-        self._attr_unique_id = f"{self._device_serial}{self.__class__.__name__.lower()}"
-
         # Setting name to None with has_entity_name=True makes this the "Main" entity
         self._attr_name = None
         self._attr_model = self.device_data.model
@@ -127,11 +124,6 @@ class MerakiRTSPStreamCamera(MerakiEntity, Camera):
             if self.device_info
             else "NO DEVICE INFO",
         )
-
-    @property
-    def unique_id(self) -> str | None:
-        """Return a unique ID."""
-        return self._attr_unique_id
 
     @property
     def device_data(self) -> MerakiDevice:

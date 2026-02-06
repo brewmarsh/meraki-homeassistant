@@ -1,93 +1,116 @@
-"""Fetch strategy for Meraki Appliance (MX) devices."""
+"""Tests for the appliance uplink fallback logic."""
 
-from __future__ import annotations
+from unittest.mock import MagicMock, patch
 
-import logging
-from typing import Any
+import pytest
 
-import meraki
+from custom_components.meraki_ha.core.api.client import MerakiAPIClient
+from custom_components.meraki_ha.core.api.endpoints.appliance import (
+    ApplianceEndpoints,
+)
 
-from .base import MerakiFetchStrategy
 
-_LOGGER = logging.getLogger(__name__)
+@pytest.fixture
+def mock_dashboard():
+    """Fixture for a mocked meraki.DashboardAPI instance."""
+    with patch("meraki.DashboardAPI") as mock_dashboard_class:
+        dashboard = mock_dashboard_class.return_value
+        # Ensure the appliance attribute is a MagicMock so we can attach methods to it
+        dashboard.appliance = MagicMock()
+        yield dashboard
 
-class ApplianceFetchStrategy(MerakiFetchStrategy):
-    """Strategy for fetching MX-specific data."""
 
-    async def fetch_device_data(self, device_serial: str, network_id: str) -> dict[str, Any]:
-        """Fetch all relevant data for an MX appliance."""
-        data = {}
+@pytest.fixture
+def hass():
+    """Fixture for a mocked Home Assistant instance."""
+    return MagicMock()
 
-        # 1. Fetch Uplink Performance (Handled with dynamic fallbacks)
-        data["uplink_performance"] = await self._get_uplink_performance(network_id)
 
-        # 2. Fetch Appliance Ports (Handled with 400-error sanitization)
-        data["ports"] = await self._get_appliance_ports(network_id)
+@pytest.fixture
+def api_client(hass, mock_dashboard):
+    """Fixture for a MerakiAPIClient instance."""
+    client = MerakiAPIClient(hass=hass, api_key="test-key", org_id="test-org")
+    client.dashboard = mock_dashboard
 
-        return data
+    # Mock run_sync to execute the function directly
+    async def mock_run_sync(func, *args, **kwargs):
+        return func(*args, **kwargs)
 
-    async def _get_uplink_performance(self, network_id: str) -> list[dict[str, Any]]:
-        """
-        Fetch performance data using version-resilient SDK methods.
-        Tries UsageHistory first for 60s granularity.
-        """
-        methods_to_try = [
-            ("getNetworkApplianceUplinksUsageHistory", {"timespan": 60}),
-            ("getNetworkApplianceUplinksLossAndLatency", {}),
-            ("getNetworkApplianceUplinksUplinksLossAndLatency", {}), # SDK Bug fallback
-        ]
+    client.run_sync = MagicMock(side_effect=mock_run_sync)
+    return client
 
-        appliance_api = self.client.dashboard.appliance
 
-        for method_name, extra_args in methods_to_try:
-            method = getattr(appliance_api, method_name, None)
-            if method:
-                try:
-                    _LOGGER.debug("Fetching uplink performance via %s", method_name)
-                    return await self.client.run_sync(
-                        method, 
-                        networkId=network_id, 
-                        **extra_args
-                    )
-                except meraki.APIError as e:
-                    _LOGGER.debug("Method %s failed or not supported: %s", method_name, e)
-                    continue
-        
-        _LOGGER.warning("All uplink performance fetch methods failed for network %s", network_id)
-        return []
+@pytest.fixture
+def appliance_endpoints(api_client, hass):
+    """Fixture for an ApplianceEndpoints instance."""
+    return ApplianceEndpoints(api_client, hass)
 
-    async def _get_appliance_ports(self, network_id: str) -> list[dict[str, Any]]:
-        """
-        Fetch MX port status. 
-        Gracefully handles the 400 error if VLANs are disabled.
-        """
-        try:
-            return await self.client.run_sync(
-                self.client.dashboard.appliance.getNetworkAppliancePorts,
-                networkId=network_id
-            )
-        except meraki.APIError as e:
-            if e.status == 400 and "VLANs" in str(e.message):
-                # This is a configuration requirement, not a code error.
-                _LOGGER.warning(
-                    "Cannot fetch Port status for network %s: VLANs must be enabled in the Meraki Dashboard",
-                    network_id
-                )
-                return []
-            
-            # Re-raise if it's a different kind of error
-            raise e
 
-    async def fetch_traffic_data(self, network_id: str) -> list[dict[str, Any]]:
-        """Fetch traffic analysis, silencing 400 errors if disabled."""
-        try:
-            return await self.client.run_sync(
-                self.client.dashboard.networks.getNetworkTraffic,
-                networkId=network_id,
-                timespan=3600
-            )
-        except meraki.APIError as e:
-            if e.status == 400 and "Traffic Analysis" in str(e.message):
-                _LOGGER.debug("Traffic analysis is disabled for network %s", network_id)
-                return []
-            raise e
+@pytest.mark.asyncio
+async def test_uplink_fallback_usage_history(appliance_endpoints, mock_dashboard):
+    """Test fallback to getNetworkApplianceUplinksUsageHistory."""
+    # Setup the method existence
+    mock_method = MagicMock(return_value=[{"serial": "Q234", "uplinks": []}])
+
+    # 1. UsageHistory
+    mock_dashboard.appliance = MagicMock(
+        spec=["getNetworkApplianceUplinksUsageHistory"]
+    )
+    mock_dashboard.appliance.getNetworkApplianceUplinksUsageHistory = mock_method
+
+    result = await appliance_endpoints.get_network_appliance_uplinks_performance("N123")
+
+    assert result == [{"serial": "Q234", "uplinks": []}]
+    mock_dashboard.appliance.getNetworkApplianceUplinksUsageHistory.assert_called_with(
+        networkId="N123", timespan=60
+    )
+
+
+@pytest.mark.asyncio
+async def test_uplink_fallback_loss_latency(appliance_endpoints, mock_dashboard):
+    """Test fallback to getNetworkApplianceUplinksLossAndLatency."""
+    mock_method = MagicMock(return_value=[])
+
+    # Only have the second method
+    mock_dashboard.appliance = MagicMock(
+        spec=["getNetworkApplianceUplinksLossAndLatency"]
+    )
+    mock_dashboard.appliance.getNetworkApplianceUplinksLossAndLatency = mock_method
+
+    await appliance_endpoints.get_network_appliance_uplinks_performance("N123")
+
+    mock_dashboard.appliance.getNetworkApplianceUplinksLossAndLatency.assert_called_with(
+        networkId="N123"
+    )
+
+
+@pytest.mark.asyncio
+async def test_uplink_fallback_uplinks_loss_latency(
+    appliance_endpoints, mock_dashboard
+):
+    """Test fallback to getNetworkApplianceUplinksUplinksLossAndLatency."""
+    mock_method = MagicMock(return_value=[])
+
+    # Only have the third method
+    mock_dashboard.appliance = MagicMock(
+        spec=["getNetworkApplianceUplinksUplinksLossAndLatency"]
+    )
+    mock_dashboard.appliance.getNetworkApplianceUplinksUplinksLossAndLatency = (
+        mock_method
+    )
+
+    await appliance_endpoints.get_network_appliance_uplinks_performance("N123")
+
+    mock_dashboard.appliance.getNetworkApplianceUplinksUplinksLossAndLatency.assert_called_with(
+        networkId="N123"
+    )
+
+
+@pytest.mark.asyncio
+async def test_uplink_fallback_none(appliance_endpoints, mock_dashboard):
+    """Test when no method is found."""
+    mock_dashboard.appliance = MagicMock(spec=[])
+
+    result = await appliance_endpoints.get_network_appliance_uplinks_performance("N123")
+
+    assert result == []

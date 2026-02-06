@@ -6,8 +6,6 @@ from typing import Any
 
 from homeassistant import config_entries
 
-import voluptuous as vol
-
 from .const import DOMAIN
 from .const_conf import CONF_INTEGRATION_TITLE
 from .coordinator import MerakiDataUpdateCoordinator
