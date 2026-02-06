@@ -109,8 +109,8 @@ class MerakiRTSPStreamCamera(MerakiEntity, Camera):
         self._camera_service = camera_service
         self._config_entry = config_entry
 
-        # Unique ID uses underscore for consistency with other platforms
-        self._attr_unique_id = f"{self._device_serial}_camera"
+        # Unique ID
+        self._attr_unique_id = f"{self._device_serial}{self.__class__.__name__.lower()}"
 
         # Setting name to None with has_entity_name=True makes this the "Main" entity
         self._attr_name = None

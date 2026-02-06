@@ -29,7 +29,7 @@ def appliance_endpoints(mock_api_client):
 async def test_get_uplink_performance_tries_all_names(
     appliance_endpoints, mock_api_client
 ):
-    """Test it tries all SDK method names and returns empty list if none found."""
+    """Test that it tries all three SDK method names and returns empty list."""
     # Setup mock dashboard with none of the methods
     mock_appliance = MagicMock(spec=[])  # Ensure no attributes exist
 

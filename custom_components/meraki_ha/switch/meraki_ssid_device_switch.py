@@ -70,7 +70,7 @@ class MerakiSSIDBaseSwitch(MerakiEntity, SwitchEntity):
         we ensure that the registry stays unique for different switch types.
         """
         return (
-            f"{self._network_id}ssid{self._ssid_number}_"
+            f"{self._network_id}ssid{self._ssid_number}"
             f"{self.__class__.__name__.lower()}"
         )
 
