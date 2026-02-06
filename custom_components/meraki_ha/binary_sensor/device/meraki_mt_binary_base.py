@@ -14,16 +14,15 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from ...const import DOMAIN
 from ...coordinator import MerakiDataUpdateCoordinator as MerakiDataCoordinator
+from ...entity import MerakiEntity
 from ...core.models.device import MerakiDevice
 from ...core.utils.naming_utils import format_device_name
 
 _LOGGER = logging.getLogger(__name__)
 
 
-class MerakiMtBinarySensor(CoordinatorEntity, BinarySensorEntity):
+class MerakiMtBinarySensor(MerakiEntity, BinarySensorEntity):
     """Representation of a Meraki MT binary sensor."""
-
-    coordinator: MerakiDataCoordinator
 
     def __init__(
         self,
@@ -70,12 +69,6 @@ class MerakiMtBinarySensor(CoordinatorEntity, BinarySensorEntity):
                 self.async_write_ha_state()
                 return
 
-    @property
-    def unique_id(self) -> str | None:
-        """Return a unique ID."""
-        if hasattr(self, "_device") and self._device and self._device.serial:
-            return f"{self._device.serial}{self.__class__.__name__.lower()}"
-        return getattr(self, "_attr_unique_id", None)
 
     @property
     def is_on(self) -> bool | None:

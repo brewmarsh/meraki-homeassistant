@@ -15,7 +15,8 @@ class MerakiEntity(CoordinatorEntity):
     @property
     def unique_id(self) -> str | None:
         """Return a unique ID."""
-        # Standard format: f"{serial}{class_name_lower}"
+        # New format: f"{serial}{entity_description.key}"
+        # Fallback format: f"{serial}{class_name_lower}"
         serial = None
         if hasattr(self, "_device") and hasattr(self._device, "serial"):
             serial = self._device.serial
@@ -25,8 +26,16 @@ class MerakiEntity(CoordinatorEntity):
             serial = self._device_serial
         elif hasattr(self, "_serial"):
             serial = self._serial
+        elif hasattr(self, "_network_id") and hasattr(self, "_ssid_number"):
+            serial = f"{self._network_id}ssid{self._ssid_number}"
 
         if serial:
-            return f"{serial}{self.__class__.__name__.lower()}"
+            if (
+                hasattr(self, "entity_description")
+                and self.entity_description
+                and self.entity_description.key
+            ):
+                return f"{serial}_{self.entity_description.key}"
+            return f"{serial}_{self.__class__.__name__.lower()}"
 
         return getattr(self, "_attr_unique_id", None)

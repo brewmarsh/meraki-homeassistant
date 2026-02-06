@@ -47,23 +47,13 @@ class MerakiCameraSettingSwitchBase(
         self._device_data = device_data
         self._key = key
         self._api_field = api_field
+        # Fallback ID - the @property unique_id below will override this in HA
         self._attr_unique_id = f"{device_data.serial}_{self._key}"
         self._attr_is_on = False
         self._update_state()  # Set initial state
 
     def _get_value_from_device(self, device: MerakiDevice | None) -> bool:
-        """
-        Drill down into the device dictionary to get the state value.
-
-        Args:
-        ----
-            device: The device data.
-
-        Returns
-        -------
-            The state value.
-
-        """
+        """Drill down into the device data to get the state value."""
         if device is None:
             return False
         keys = self._api_field.split(".")
@@ -94,13 +84,13 @@ class MerakiCameraSettingSwitchBase(
 
     @property
     def unique_id(self) -> str | None:
-        """Return a unique ID."""
-        if (
-            hasattr(self, "_device_data")
-            and self._device_data
-            and self._device_data.serial
-        ):
-            return f"{self._device_data.serial}{self.__class__.__name__.lower()}"
+        """Return a unique ID that prevents platform collisions.
+        
+        This combines the device serial, the class name, and the specific 
+        setting key to guarantee a unique registry entry.
+        """
+        if hasattr(self, "_device_data") and self._device_data and self._device_data.serial:
+            return f"{self._device_data.serial}_{self.__class__.__name__.lower()}_{self._key}"
         return getattr(self, "_attr_unique_id", None)
 
     @property
@@ -109,36 +99,15 @@ class MerakiCameraSettingSwitchBase(
         return self._attr_is_on
 
     async def async_turn_on(self, **kwargs: Any) -> None:
-        """
-        Turn the setting on.
-
-        Args:
-        ----
-            **kwargs: Additional arguments.
-
-        """
+        """Turn the setting on."""
         await self._async_update_setting(True)
 
     async def async_turn_off(self, **kwargs: Any) -> None:
-        """
-        Turn the setting off.
-
-        Args:
-        ----
-            **kwargs: Additional arguments.
-
-        """
+        """Turn the setting off."""
         await self._async_update_setting(False)
 
     async def _async_update_setting(self, is_on: bool) -> None:
-        """
-        Update the setting via the Meraki API.
-
-        Args:
-        ----
-            is_on: Whether the setting is on or off.
-
-        """
+        """Update the setting via the Meraki API."""
         raise NotImplementedError
 
     @property
