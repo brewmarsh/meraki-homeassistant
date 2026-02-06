@@ -168,17 +168,17 @@ class MerakiAPIClient:
                     None, partial(func, *args, **kwargs)
                 )
             except meraki.APIError as e:
-                error_str = str(e).lower()
+                error_msg = str(e)
                 if (
-                    "traffic analysis" in error_str
-                    or "vlans are not enabled" in error_str
+                    "Traffic Analysis with Hostname Visibility" in error_msg
+                    or "VLANs are not enabled" in error_msg
                 ):
-                    _LOGGER.info("Meraki API Informational Error: %s", e)
-                    if "traffic analysis" in error_str:
-                        raise MerakiTrafficAnalysisError(str(e)) from e
-                    if "vlans are not enabled" in error_str:
-                        raise MerakiVlansDisabledError(str(e)) from e
-                    raise MerakiInformationalError(str(e)) from e
+                    _LOGGER.debug("Meraki API Informational Error: %s", e)
+                    if "Traffic Analysis" in error_msg:
+                        raise MerakiTrafficAnalysisError(error_msg) from e
+                    if "VLANs" in error_msg:
+                        raise MerakiVlansDisabledError(error_msg) from e
+                    raise MerakiInformationalError(error_msg) from e
                 _LOGGER.error(
                     "Meraki API Error encountered: %s",
                     e,

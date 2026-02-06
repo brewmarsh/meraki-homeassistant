@@ -35,6 +35,11 @@ _LOGGER = logging.getLogger(__name__)
 
 BATCH_SIZE = 5
 
+SILENT_ERRORS = [
+    "Traffic Analysis with Hostname Visibility must be enabled",
+    "VLANs are not enabled for this network",
+]
+
 
 class DataFetchManager:
     """Class to manage data fetching for the coordinator."""
@@ -111,33 +116,29 @@ class DataFetchManager:
             sanitized_results: dict[str, Any] = {}
             for key, result in zip(tasks.keys(), results, strict=True):
                 # --- Smart Error Handling Logic ---
-                # Intercept 400 Bad Request for disabled features to avoid ERROR logs
-                if isinstance(result, meraki.APIError):
-                    if result.status == 400:
-                        error_msg = str(result).lower()
-                        # Traffic Analysis Disabled
-                        if "traffic analysis" in error_msg:
+                # Intercept "Silent Errors" (Feature-Dependent API errors)
+                if isinstance(result, Exception):
+                    error_msg = str(result)
+                    is_silent = False
+                    for silent_msg in SILENT_ERRORS:
+                        if silent_msg in error_msg:
                             _LOGGER.debug(
-                                "Traffic analysis disabled for %s (Status 400). "
-                                "Marking as disabled.",
+                                "Skipping %s: Configuration requirement not met in Meraki Dashboard.",
                                 key,
                             )
-                            sanitized_results[key] = MerakiTrafficAnalysisError(
-                                str(result)
-                            )
-                            continue
+                            is_silent = True
+                            break
 
-                        # VLANs Disabled
-                        if "vlans" in error_msg:
-                            _LOGGER.debug(
-                                "VLANs disabled for %s (Status 400). "
-                                "Marking as disabled.",
-                                key,
+                    if is_silent:
+                        if "Traffic Analysis" in error_msg:
+                            sanitized_results[key] = MerakiTrafficAnalysisError(
+                                error_msg
                             )
-                            sanitized_results[key] = MerakiVlansDisabledError(
-                                str(result)
-                            )
-                            continue
+                        elif "VLANs" in error_msg:
+                            sanitized_results[key] = MerakiVlansDisabledError(error_msg)
+                        else:
+                            sanitized_results[key] = []
+                        continue
 
                 if isinstance(result, Exception):
                     sanitized_results[key] = self._handle_fetch_exception(
