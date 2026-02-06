@@ -86,15 +86,18 @@ class MerakiCameraSettingSwitchBase(
     def unique_id(self) -> str | None:
         """Return a unique ID that prevents platform collisions.
 
-        This combines the device serial and the class name to guarantee
-        a unique registry entry.
+        This combines the device serial, the class name, and the specific
+        setting key to guarantee a unique registry entry.
         """
         if (
             hasattr(self, "_device_data")
             and self._device_data
             and self._device_data.serial
         ):
-            return f"{self._device_data.serial}{self.__class__.__name__.lower()}"
+            return (
+                f"{self._device_data.serial}_{self.__class__.__name__.lower()}_"
+                f"{self._key}"
+            )
         return getattr(self, "_attr_unique_id", None)
 
     @property

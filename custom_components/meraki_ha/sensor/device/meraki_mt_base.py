@@ -168,16 +168,12 @@ class MerakiMtSensor(MerakiEntity, RestoreSensor):
     def unique_id(self) -> str | None:
         """Return a unique ID that prevents platform collisions."""
         if hasattr(self, "_device") and self._device and self._device.serial:
-            # Format: serialclassname
-            # For direct use of MerakiMtSensor (generic), we need to append key
-            base = f"{self._device.serial}{self.__class__.__name__.lower()}"
-
-            # If we are using the base class directly, we must append key to
-            # avoid collision
-            if self.__class__.__name__ == "MerakiMtSensor":
-                return f"{base}_{self.entity_description.key}"
-
-            return base
+            # Format: serial_classname_metrickey
+            # This ensures multiple sensors on the same device stay separate.
+            return (
+                f"{self._device.serial}_{self.__class__.__name__.lower()}_"
+                f"{self.entity_description.key}"
+            )
         return getattr(self, "_attr_unique_id", None)
 
     @property
