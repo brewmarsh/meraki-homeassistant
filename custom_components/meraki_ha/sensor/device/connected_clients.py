@@ -7,7 +7,6 @@ from dataclasses import asdict
 from typing import TYPE_CHECKING
 
 from homeassistant.components.sensor import (
-    SensorEntity,
     SensorEntityDescription,
     SensorStateClass,
 )

@@ -58,46 +58,6 @@ class MerakiEntity(CoordinatorEntity):
 class MerakiSensor(MerakiEntity, SensorEntity):
     """Base Meraki sensor entity."""
 
-    @property
-    def unique_id(self) -> str | None:
-        """Return a unique ID."""
-        serial = None
-        if hasattr(self, "_device") and self._device and hasattr(self._device, "serial"):
-            serial = self._device.serial
-        elif hasattr(self, "_device_serial"):
-            serial = self._device_serial
-        elif hasattr(self, "_serial"):
-            serial = self._serial
-
-        if (
-            serial
-            and hasattr(self, "entity_description")
-            and self.entity_description
-            and self.entity_description.key
-        ):
-            return f"{serial}{self.entity_description.key}"
-        return super().unique_id
-
 
 class MerakiBinarySensor(MerakiEntity, BinarySensorEntity):
     """Base Meraki binary sensor entity."""
-
-    @property
-    def unique_id(self) -> str | None:
-        """Return a unique ID."""
-        serial = None
-        if hasattr(self, "_device") and self._device and hasattr(self._device, "serial"):
-            serial = self._device.serial
-        elif hasattr(self, "_device_serial"):
-            serial = self._device_serial
-        elif hasattr(self, "_serial"):
-            serial = self._serial
-
-        if (
-            serial
-            and hasattr(self, "entity_description")
-            and self.entity_description
-            and self.entity_description.key
-        ):
-            return f"{serial}{self.entity_description.key}"
-        return super().unique_id

@@ -83,7 +83,7 @@ def test_mt10_temperature_sensor(
     )
     sensor._update_native_value()
 
-    assert sensor.unique_id == "mt10-1_merakimtsensor_temperature"
+    assert sensor.unique_id == "mt10-1_temperature"
     assert sensor.name == "Temperature"
     assert sensor.native_value == 25.5
     assert sensor.device_class == SensorDeviceClass.TEMPERATURE
@@ -100,7 +100,7 @@ def test_mt10_battery_sensor(
     )
     sensor._update_native_value()
 
-    assert sensor.unique_id == "mt10-1_merakimtsensor_battery"
+    assert sensor.unique_id == "mt10-1_battery"
     assert sensor.name == "Battery"
     assert sensor.native_value == 95
     assert sensor.device_class == SensorDeviceClass.BATTERY
@@ -117,7 +117,7 @@ def test_mt30_button_sensor(
     )
     sensor._update_native_value()
 
-    assert sensor.unique_id == "mt30-1_merakimtsensor_button"
+    assert sensor.unique_id == "mt30-1_button"
     assert sensor.name == "Last Button Press"
     assert sensor.native_value == "short"
     assert sensor.available is True

@@ -17,7 +17,7 @@ from ...const import DOMAIN
 from ...coordinator import MerakiDataUpdateCoordinator
 from ...core.models.device import MerakiDevice
 from ...core.utils.naming_utils import format_device_name
-from ...entity import MerakiEntity, MerakiSensor
+from ...entity import MerakiSensor
 
 _LOGGER = logging.getLogger(__name__)
 
