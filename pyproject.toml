@@ -1,3 +1,7 @@
+[project]
+name = "meraki_ha"
+version = "2.3.0-beta.120"
+
 [tool.pytest.ini_options]
 pythonpath = [
   ".",
