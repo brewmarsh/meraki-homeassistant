@@ -16,7 +16,7 @@ from homeassistant.helpers import entity_registry as er
 
 from ..binary_sensor.device.appliance_port import AppliancePortBinarySensor
 from ..binary_sensor.device.camera_motion import MerakiMotionSensor
-from ..binary_sensor.switch_port import SwitchPortSensor
+from ..binary_sensor.device.switch_port import SwitchPortSensor
 from ..button.device.camera_snapshot import MerakiSnapshotButton
 from ..const import DOMAIN
 from ..const_conf import (
