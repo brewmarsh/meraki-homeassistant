@@ -73,7 +73,7 @@ def test_device_status_sensor(mock_device_coordinator):
     config_entry.options = {}
 
     sensor1 = MerakiDeviceStatusSensor(mock_device_coordinator, device1, config_entry)
-    assert sensor1.unique_id == "Q2XX-XXXX-XXXX_device_status"
+    assert sensor1.unique_id == "Q2XX-XXXX-XXXXmerakidevicestatussensor"
     assert sensor1.native_value == "online"
     assert sensor1.icon == "mdi:access-point-network"
     assert sensor1.extra_state_attributes["model"] == "MR56"
@@ -85,7 +85,7 @@ def test_device_status_sensor(mock_device_coordinator):
     assert sensor1.device_info["suggested_area"] == "123 Street"
 
     sensor2 = MerakiDeviceStatusSensor(mock_device_coordinator, device2, config_entry)
-    assert sensor2.unique_id == "Q2YY-YYYY-YYYY_device_status"
+    assert sensor2.unique_id == "Q2YY-YYYY-YYYYmerakidevicestatussensor"
     assert sensor2.native_value == "alerting"
     assert sensor2.icon == "mdi:access-point-network-off"
     assert sensor2.extra_state_attributes["product_type"] == "appliance"

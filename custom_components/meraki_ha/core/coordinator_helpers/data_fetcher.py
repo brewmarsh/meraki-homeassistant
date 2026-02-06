@@ -111,6 +111,34 @@ class DataFetchManager:
             sanitized_results: dict[str, Any] = {}
             for key, result in zip(tasks.keys(), results, strict=True):
                 # --- Smart Error Handling Logic ---
+                # Intercept 400 Bad Request for disabled features to avoid ERROR logs
+                if isinstance(result, meraki.APIError):
+                    if result.status == 400:
+                        error_msg = str(result).lower()
+                        # Traffic Analysis Disabled
+                        if "traffic analysis" in error_msg:
+                            _LOGGER.debug(
+                                "Traffic analysis disabled for %s (Status 400). "
+                                "Marking as disabled.",
+                                key,
+                            )
+                            sanitized_results[key] = MerakiTrafficAnalysisError(
+                                str(result)
+                            )
+                            continue
+
+                        # VLANs Disabled
+                        if "vlans" in error_msg:
+                            _LOGGER.debug(
+                                "VLANs disabled for %s (Status 400). "
+                                "Marking as disabled.",
+                                key,
+                            )
+                            sanitized_results[key] = MerakiVlansDisabledError(
+                                str(result)
+                            )
+                            continue
+
                 if isinstance(result, Exception):
                     sanitized_results[key] = self._handle_fetch_exception(
                         result, key, label
@@ -149,27 +177,7 @@ class DataFetchManager:
             )
             return exception
 
-        # 2. Handle raw 400 Bad Request errors (Backstop)
-        if isinstance(exception, meraki.APIError) and exception.status == 400:
-            error_msg = str(exception).lower()
-            # Traffic Analysis Disabled
-            if "traffic analysis" in error_msg:
-                _LOGGER.debug(
-                    "Traffic analysis disabled for %s (Status 400). "
-                    "Marking as disabled.",
-                    key,
-                )
-                return MerakiTrafficAnalysisError(str(exception))
-
-            # VLANs Disabled
-            if "vlans are not enabled" in error_msg:
-                _LOGGER.debug(
-                    "VLANs disabled for %s (Status 400). Marking as disabled.",
-                    key,
-                )
-                return MerakiVlansDisabledError(str(exception))
-
-        # 3. Fallback: Log as ERROR and sanitize to None
+        # 2. Fallback: Log as ERROR and sanitize to None
         _LOGGER.error("Error fetching %s during %s: %s", key, label, exception)
         return None
 

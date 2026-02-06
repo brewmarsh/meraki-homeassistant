@@ -14,9 +14,14 @@ class MerakiEntity(CoordinatorEntity):
 
     @property
     def unique_id(self) -> str | None:
-        """Return a unique ID."""
-        # Standard format: f"{serial}{class_name_lower}"
+        """Return a dynamic unique ID to prevent platform collisions.
+        
+        This logic attempts to find a serial number or network/SSID identifier
+        across various internal naming schemes used in the integration.
+        """
         serial = None
+        
+        # 1. Attempt to find a physical device serial
         if hasattr(self, "_device") and hasattr(self._device, "serial"):
             serial = self._device.serial
         elif hasattr(self, "_device_data") and hasattr(self._device_data, "serial"):
@@ -25,8 +30,22 @@ class MerakiEntity(CoordinatorEntity):
             serial = self._device_serial
         elif hasattr(self, "_serial"):
             serial = self._serial
+            
+        # 2. Fallback to Virtual SSID identifier if physical serial is missing
+        elif hasattr(self, "_network_id") and hasattr(self, "_ssid_number"):
+            serial = f"{self._network_id}ssid{self._ssid_number}"
 
         if serial:
-            return f"{serial}{self.__class__.__name__.lower()}"
+            # Prefer using the entity description key for unique granularity (e.g., 'serial_voltage')
+            if (
+                hasattr(self, "entity_description")
+                and self.entity_description
+                and self.entity_description.key
+            ):
+                return f"{serial}_{self.entity_description.key}"
+            
+            # Fallback to class name for non-described entities (e.g., 'serial_merakirtspstreamcamera')
+            return f"{serial}_{self.__class__.__name__.lower()}"
 
+        # Final fallback to manually assigned _attr_unique_id
         return getattr(self, "_attr_unique_id", None)

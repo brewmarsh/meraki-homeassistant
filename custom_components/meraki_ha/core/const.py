@@ -13,6 +13,7 @@ _MX_CAPS = [
     "appliance_ports",
     "reboot",
     "status",
+    "physical_sensors",
     "led_control",
 ]
 
@@ -20,11 +21,35 @@ _MR_CAPS = [
     "ssids",
     "radio_utilization",
     "reboot",
+    "status",
+    "physical_sensors",
     "led_control",
 ]
-_MS_CAPS = ["switch_ports", "poe_usage", "power_supply", "reboot"]
-_MV_CAPS = ["camera_stream", "storage_status", "analytics", "reboot", "status"]
-_GX_CAPS = ["uplinks", "performance", "vlans", "cellular", "reboot", "status"]
+_MS_CAPS = [
+    "switch_ports",
+    "poe_usage",
+    "power_supply",
+    "reboot",
+    "status",
+    "physical_sensors",
+]
+_MV_CAPS = [
+    "camera_stream",
+    "storage_status",
+    "analytics",
+    "reboot",
+    "status",
+    "physical_sensors",
+]
+_GX_CAPS = [
+    "uplinks",
+    "performance",
+    "vlans",
+    "cellular",
+    "reboot",
+    "status",
+    "physical_sensors",
+]
 
 DEVICE_CAPABILITIES: Final[dict[str, list[str]]] = {
     "MT10": ["temperature", "humidity", "battery", "signal_strength"],
@@ -75,7 +100,7 @@ DEVICE_CAPABILITIES: Final[dict[str, list[str]]] = {
     "GX50": _GX_CAPS,
 }
 
-DEFAULT_CAPS: Final = ["reboot", "status"]
+DEFAULT_CAPS: Final = ["reboot", "status", "physical_sensors"]
 
 
 def get_ssid_identifier(network_id: str, ssid_number: int | str) -> str:
