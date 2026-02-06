@@ -43,7 +43,7 @@ def test_vlan_naming(mock_coordinator):
 
     entity = MerakiVLANEntity(mock_coordinator, config_entry, "N_12345", vlan)
 
-    assert entity.device_info["name"] == "Site A"
+    assert entity.device_info["name"] == "[Network] Site A"
     assert entity.name == "VLAN 10 VoIP"
 
 
@@ -74,7 +74,7 @@ def test_camera_naming(mock_coordinator):
     # In the refactor branch, we use has_entity_name=True and name=None 
     # so the entity is named after the device itself.
     assert entity.name is None
-    assert entity.device_info["name"] == "Front Door"
+    assert entity.device_info["name"] == "[Camera] Front Door"
 
 
 def test_network_status_naming(mock_coordinator):
@@ -91,9 +91,9 @@ def test_network_status_naming(mock_coordinator):
     )
     mock_coordinator.get_network.return_value = network
 
-    entity = MerakiNetworkStatus(network)
+    entity = MerakiNetworkStatus(mock_coordinator, network)
     entity.hass = MagicMock()
     entity.coordinator = mock_coordinator
 
     assert entity.name == "Uplink status"
-    assert entity.device_info["name"] == "Warehouse"
+    assert entity.device_info["name"] == "[Network] Warehouse"
