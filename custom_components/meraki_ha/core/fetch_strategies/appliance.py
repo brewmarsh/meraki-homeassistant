@@ -5,6 +5,9 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING, Any
 
+import meraki
+from meraki.exceptions import APIError
+
 from ...core.errors import (
     MerakiInformationalError,
     MerakiTrafficAnalysisError,
@@ -18,6 +21,8 @@ if TYPE_CHECKING:
     from ...core.api.client import MerakiAPIClient
 
 _LOGGER = logging.getLogger(__name__)
+
+_VLAN_WARNING_LOGGED = False
 
 
 class ApplianceFetchStrategy(BaseFetchStrategy):
@@ -66,7 +71,7 @@ class ApplianceFetchStrategy(BaseFetchStrategy):
                 self.client.appliance.get_vpn_status(network_id),
             )
         tasks[f"appliance_ports_{network_id}"] = self.client.run_with_semaphore(
-            self.client.appliance.get_appliance_ports(network_id),
+            self._async_get_appliance_ports(network_id),
         )
         tasks[f"content_filtering_{network_id}"] = self.client.run_with_semaphore(
             self.client.appliance.get_network_appliance_content_filtering(
@@ -78,6 +83,21 @@ class ApplianceFetchStrategy(BaseFetchStrategy):
                 network_id,
             ),
         )
+
+    async def _async_get_appliance_ports(self, network_id: str) -> list[dict[str, Any]]:
+        """Fetch appliance ports with graceful error handling for disabled VLANs."""
+        try:
+            return await self.client.appliance.get_appliance_ports(network_id)
+        except APIError as e:
+            if e.status == 400 and "VLANs" in str(e):
+                global _VLAN_WARNING_LOGGED
+                if not _VLAN_WARNING_LOGGED:
+                    _LOGGER.warning(
+                        "Port status/control requires VLANs to be enabled in Meraki Dashboard."
+                    )
+                    _VLAN_WARNING_LOGGED = True
+                return []
+            raise
 
     def build_device_tasks(
         self,
