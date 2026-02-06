@@ -14,6 +14,7 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from ..const import DOMAIN
 from ..coordinator import MerakiDataUpdateCoordinator
 from ..core.models.network import MerakiNetwork
+from ..helpers.device_info_helpers import resolve_device_info
 
 
 async def async_setup_entry(
@@ -28,7 +29,10 @@ async def async_setup_entry(
 
     if coordinator.data.get("networks"):
         async_add_entities(
-            [MerakiNetworkStatus(network) for network in coordinator.data["networks"]]
+            [
+                MerakiNetworkStatus(coordinator, network)
+                for network in coordinator.data["networks"]
+            ]
         )
 
 
@@ -40,9 +44,11 @@ class MerakiNetworkStatus(BinarySensorEntity):
 
     def __init__(
         self,
+        coordinator: MerakiDataUpdateCoordinator,
         network: MerakiNetwork,
     ) -> None:
         """Initialize the sensor."""
+        self._coordinator = coordinator
         self._network = network
 
         # Ensure network ID is available
@@ -55,6 +61,12 @@ class MerakiNetworkStatus(BinarySensorEntity):
         """Return device information."""
         # Ensure network ID is available
         network_id = self._network.id or "unknown_network"
+
+        if info := resolve_device_info(
+            self._network.to_dict(), self._coordinator.config_entry
+        ):
+            return info
+
         return DeviceInfo(
             identifiers={(DOMAIN, network_id)},
             name=self._network.name,

@@ -10,6 +10,7 @@ from homeassistant.helpers.entity import DeviceInfo
 from ...const import DOMAIN
 from ...coordinator import MerakiDataUpdateCoordinator
 from ...core.models.network import MerakiNetwork
+from ...helpers.device_info_helpers import resolve_device_info
 from . import BaseMerakiEntity
 
 _LOGGER = logging.getLogger(__name__)
@@ -54,6 +55,10 @@ class MerakiNetworkEntity(BaseMerakiEntity):
             raise ValueError("Network cannot be None")
         if self._network.id is None:
             raise ValueError("Network ID cannot be None")
+
+        if info := resolve_device_info(self._network.to_dict(), self._config_entry):
+            return info
+
         return DeviceInfo(
             identifiers={(DOMAIN, self._network.id)},
             name=self._network.name or f"Network {self._network.id}",
