@@ -6,12 +6,16 @@ import logging
 from dataclasses import asdict
 from typing import TYPE_CHECKING
 
-from homeassistant.components.sensor import SensorEntity, SensorStateClass
+from homeassistant.components.sensor import (
+    SensorEntity,
+    SensorEntityDescription,
+    SensorStateClass,
+)
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import callback
 
 from ...coordinator import MerakiDataUpdateCoordinator
-from ...entity import MerakiEntity
+from ...entity import MerakiSensor
 from ...helpers.device_info_helpers import resolve_device_info
 
 if TYPE_CHECKING:
@@ -20,7 +24,7 @@ if TYPE_CHECKING:
 _LOGGER = logging.getLogger(__name__)
 
 
-class MerakiAPClientCountSensor(MerakiEntity, SensorEntity):
+class MerakiAPClientCountSensor(MerakiSensor):
     """Representation of a Meraki AP Client Count sensor."""
 
     _attr_icon = "mdi:account-network"
@@ -38,8 +42,10 @@ class MerakiAPClientCountSensor(MerakiEntity, SensorEntity):
         super().__init__(coordinator)
         self._device_serial: str | None = device_data.serial
         self._config_entry = config_entry
-        self._attr_unique_id = f"{self._device_serial}_ap_client_count"
-        self._attr_name = "Client Count"
+        self.entity_description = SensorEntityDescription(
+            key="ap_client_count",
+            name="Client Count",
+        )
 
         self._attr_device_info = resolve_device_info(
             entity_data=asdict(device_data),

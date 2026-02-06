@@ -17,12 +17,12 @@ from ...const import DOMAIN
 from ...coordinator import MerakiDataUpdateCoordinator
 from ...core.models.device import MerakiDevice
 from ...core.utils.naming_utils import format_device_name
-from ...entity import MerakiEntity
+from ...entity import MerakiEntity, MerakiSensor
 
 _LOGGER = logging.getLogger(__name__)
 
 
-class MerakiMtSensor(MerakiEntity, RestoreSensor):
+class MerakiMtSensor(MerakiSensor, RestoreSensor):
     """Representation of a Meraki MT sensor."""
 
     def __init__(
@@ -164,17 +164,6 @@ class MerakiMtSensor(MerakiEntity, RestoreSensor):
             self._update_native_value()
             self.async_write_ha_state()
 
-    @property
-    def unique_id(self) -> str | None:
-        """Return a unique ID that prevents platform collisions."""
-        if hasattr(self, "_device") and self._device and self._device.serial:
-            # Format: serial_classname_metrickey
-            # This ensures multiple sensors on the same device stay separate.
-            return (
-                f"{self._device.serial}_{self.__class__.__name__.lower()}_"
-                f"{self.entity_description.key}"
-            )
-        return getattr(self, "_attr_unique_id", None)
 
     @property
     def native_value(self) -> str | float | bool | None:

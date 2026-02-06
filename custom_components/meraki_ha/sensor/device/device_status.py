@@ -23,12 +23,12 @@ from ...const import DOMAIN
 from ...coordinator import MerakiDataUpdateCoordinator
 from ...core.models.device import MerakiDevice
 from ...core.utils.naming_utils import format_device_name
-from ...entity import MerakiEntity
+from ...entity import MerakiEntity, MerakiSensor
 
 _LOGGER = logging.getLogger(__name__)
 
 
-class MerakiDeviceStatusSensor(MerakiEntity, SensorEntity):
+class MerakiDeviceStatusSensor(MerakiSensor):
     """
     Representation of a Meraki Device Status sensor.
 
@@ -94,6 +94,7 @@ class MerakiDeviceStatusSensor(MerakiEntity, SensorEntity):
 
         # Initial update of state and attributes
         self._update_sensor_data()
+
 
     @property
     def icon(self) -> str:
