@@ -6,7 +6,6 @@ import logging
 from typing import TYPE_CHECKING
 
 from homeassistant.components.sensor import (
-    SensorEntity,
     SensorEntityDescription,
 )
 from homeassistant.const import PERCENTAGE, UnitOfTime
@@ -14,7 +13,7 @@ from homeassistant.core import callback
 from homeassistant.helpers.device_registry import DeviceInfo
 
 from ..const import DOMAIN
-from ..entity import MerakiEntity, MerakiSensor
+from ..entity import MerakiSensor
 
 if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
