@@ -42,7 +42,12 @@ class MerakiUplinkPerformanceSensor(MerakiSensor):
     ) -> None:
         """Initialize the sensor."""
         super().__init__(coordinator)
-        self._device_serial = device.serial
+        if not device.serial:
+            raise ValueError(
+                "Device serial is required for uplink performance sensor "
+                f"(Device: {device.name})"
+            )
+        self._device_serial: str = device.serial
         self._interface = interface
         self._metric = metric
         self.entity_description = description

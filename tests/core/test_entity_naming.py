@@ -49,7 +49,7 @@ def test_vlan_naming(mock_coordinator):
 
 def test_camera_naming(mock_coordinator):
     """Test the naming of a Camera entity."""
-    from custom_components.meraki_ha.camera import MerakiCamera
+    from custom_components.meraki_ha.camera import MerakiRTSPStreamCamera
     from custom_components.meraki_ha.types import MerakiDevice
 
     config_entry = MagicMock()
@@ -68,9 +68,11 @@ def test_camera_naming(mock_coordinator):
 
     camera_service = MagicMock()
 
-    entity = MerakiCamera(mock_coordinator, config_entry, device, camera_service)
+    entity = MerakiRTSPStreamCamera(mock_coordinator, device, camera_service, config_entry)
 
     assert entity.has_entity_name is True
+    # In the refactor branch, we use has_entity_name=True and name=None 
+    # so the entity is named after the device itself.
     assert entity.name is None
     assert entity.device_info["name"] == "Front Door"
 
