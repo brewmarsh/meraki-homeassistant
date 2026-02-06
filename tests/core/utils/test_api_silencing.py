@@ -50,7 +50,7 @@ class DummyEndpoint:
             MockResponse(
                 400,
                 "Bad Request",
-                {"errors": ["VLANs are not enabled"]},
+                {"errors": ["VLANs are not enabled for this network"]},
             ),
         )
 

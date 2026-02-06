@@ -29,6 +29,7 @@ class MockAPIError(meraki.APIError):
         self.test_message = message
 
     def __str__(self):
+        """Return the test message."""
         return str(self.test_message)
 
 
@@ -148,7 +149,8 @@ async def test_async_gather_with_timeout_true_failures_still_log_error(
     with patch(
         "custom_components.meraki_ha.core.coordinator_helpers.data_fetcher._LOGGER"
     ) as mock_logger:
-        # result will be None because _handle_fetch_exception returns None and logs error
+        # result will be None because _handle_fetch_exception returns None
+        # and logs error
         results = await data_fetch_manager._async_gather_with_timeout(
             tasks, label="Test Failure"
         )
