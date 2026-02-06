@@ -63,10 +63,10 @@ def resolve_device_info(
         ssid_number = effective_data.get("number")
         if network_id and ssid_number is not None:
             identifier = (DOMAIN, get_ssid_identifier(network_id, ssid_number))
-            
+
             # Format: [SSID 0] MyWifiName
             raw_name = effective_data.get("name") or f"SSID {ssid_number}"
-            
+
             # Check for double-prefixing
             prefix = f"[SSID {ssid_number}] "
             if str(raw_name).startswith(prefix):

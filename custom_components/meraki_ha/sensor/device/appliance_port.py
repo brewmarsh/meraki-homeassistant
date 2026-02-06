@@ -82,7 +82,11 @@ class MerakiAppliancePortSensor(CoordinatorEntity, SensorEntity):
     @property
     def icon(self) -> str:
         """Return the icon of the sensor."""
-        return "mdi:ethernet" if self.native_value == "connected" else "mdi:ethernet-cable-off"
+        return (
+            "mdi:ethernet"
+            if self.native_value == "connected"
+            else "mdi:ethernet-cable-off"
+        )
 
     @property
     def extra_state_attributes(self) -> dict[str, Any]:

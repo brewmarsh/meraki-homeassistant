@@ -46,13 +46,18 @@ async def async_setup_entry(
             continue
 
         # If configured, ensure the RTSP stream is enabled for cameras
-        if config_entry.options.get(CONF_RTSP_STREAM_ENABLED, False) and not device.rtsp_url:
+        if (
+            config_entry.options.get(CONF_RTSP_STREAM_ENABLED, False)
+            and not device.rtsp_url
+        ):
             try:
                 _LOGGER.debug(
                     "RTSP stream is defaulted to on, enabling for camera %s",
                     device.serial,
                 )
-                await camera_service.async_set_rtsp_stream_enabled(str(device.serial), True)
+                await camera_service.async_set_rtsp_stream_enabled(
+                    str(device.serial), True
+                )
             except Exception as e:
                 _LOGGER.warning(
                     "Could not enable RTSP stream for %s: %s", device.serial, e
@@ -103,10 +108,10 @@ class MerakiRTSPStreamCamera(MerakiEntity, Camera):
         self._device_serial = device.serial or ""
         self._camera_service = camera_service
         self._config_entry = config_entry
-        
+
         # Unique ID uses underscore for consistency with other platforms
         self._attr_unique_id = f"{self._device_serial}_camera"
-        
+
         # Setting name to None with has_entity_name=True makes this the "Main" entity
         self._attr_name = None
         self._attr_model = self.device_data.model
@@ -118,7 +123,9 @@ class MerakiRTSPStreamCamera(MerakiEntity, Camera):
             self.__class__.__name__,
             getattr(self, "_attr_has_entity_name", "Not Set"),
             getattr(self, "_attr_name", "None"),
-            self.device_info.get("identifiers") if self.device_info else "NO DEVICE INFO",
+            self.device_info.get("identifiers")
+            if self.device_info
+            else "NO DEVICE INFO",
         )
 
     @property

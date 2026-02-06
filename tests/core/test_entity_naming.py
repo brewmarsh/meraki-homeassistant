@@ -68,10 +68,12 @@ def test_camera_naming(mock_coordinator):
 
     camera_service = MagicMock()
 
-    entity = MerakiRTSPStreamCamera(mock_coordinator, device, camera_service, config_entry)
+    entity = MerakiRTSPStreamCamera(
+        mock_coordinator, device, camera_service, config_entry
+    )
 
     assert entity.has_entity_name is True
-    # In the refactor branch, we use has_entity_name=True and name=None 
+    # In the refactor branch, we use has_entity_name=True and name=None
     # so the entity is named after the device itself.
     assert entity.name is None
     assert entity.device_info["name"] == "[Camera] Front Door"

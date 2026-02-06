@@ -98,10 +98,12 @@ class MerakiDeviceLEDSwitch(CoordinatorEntity, SwitchEntity):
                 ledLights=enabled,
             )
         except Exception as e:
-            _LOGGER.error("Failed to update LED state for %s: %s", self._device_serial, e)
+            _LOGGER.error(
+                "Failed to update LED state for %s: %s", self._device_serial, e
+            )
             # Revert optimistic update
             if self.unique_id:
-                self.coordinator.clear_pending_update(self.unique_id)
+                self.coordinator.cancel_pending_update(self.unique_id)
             self._update_state()
             self.async_write_ha_state()
 

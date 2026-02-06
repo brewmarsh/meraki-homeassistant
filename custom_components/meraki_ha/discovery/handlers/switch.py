@@ -22,10 +22,8 @@ from ...sensor.device.switch_client_count import MerakiSwitchClientCountSensor
 from .base import BaseHandler
 
 if TYPE_CHECKING:
-    from homeassistant.config_entries import ConfigEntry
     from homeassistant.helpers.entity import Entity
 
-    from ...coordinator import MerakiDataUpdateCoordinator
 
 
 _LOGGER = logging.getLogger(__name__)
