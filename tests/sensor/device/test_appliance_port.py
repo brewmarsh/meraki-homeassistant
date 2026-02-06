@@ -78,6 +78,8 @@ def test_appliance_port_sensor(mock_device_coordinator):
     assert sensor1.extra_state_attributes["link_speed"] == "1000 Mbps"
     assert sensor1.extra_state_attributes["vlan"] == 1
     assert sensor1.extra_state_attributes["type"] == "access"
+    assert sensor1.extra_state_attributes["icon_color"] == "green"
+    assert sensor1.icon == "mdi:ethernet"
 
     # Test disconnected port
     sensor2 = MerakiAppliancePortSensor(mock_device_coordinator, device, port2)
@@ -85,9 +87,14 @@ def test_appliance_port_sensor(mock_device_coordinator):
     assert sensor2.name == "Port 2"
     assert sensor2.native_value == "disconnected"
     assert sensor2.extra_state_attributes["link_speed"] is None
+    assert sensor2.extra_state_attributes["icon_color"] == "grey"
+    assert sensor2.icon == "mdi:ethernet-cable-off"
 
     # Test disabled port
     sensor3 = MerakiAppliancePortSensor(mock_device_coordinator, device, port3)
     assert sensor3.unique_id == "dev1_port_3"
     assert sensor3.name == "Port 3"
-    assert sensor3.native_value == "disabled"
+    assert sensor3.native_value == "disconnected"
+    assert sensor3.extra_state_attributes["enabled"] is False
+    assert sensor3.extra_state_attributes["icon_color"] == "grey"
+    assert sensor3.icon == "mdi:ethernet-cable-off"

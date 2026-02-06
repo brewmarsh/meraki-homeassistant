@@ -171,7 +171,7 @@ class UplinkPerformanceProvider:
                     "latencyMs",
                     SensorEntityDescription(
                         key=f"{interface}_latency",
-                        name=f"{interface.upper()} Latency",
+                        name=f"{interface.capitalize()} latency",
                         native_unit_of_measurement=UnitOfTime.MILLISECONDS,
                         device_class=SensorDeviceClass.DURATION,
                         state_class=SensorStateClass.MEASUREMENT,
@@ -190,7 +190,7 @@ class UplinkPerformanceProvider:
                     "packetLoss",
                     SensorEntityDescription(
                         key=f"{interface}_packet_loss",
-                        name=f"{interface.upper()} Packet Loss",
+                        name=f"{interface.capitalize()} packet loss",
                         native_unit_of_measurement=PERCENTAGE,
                         state_class=SensorStateClass.MEASUREMENT,
                         icon="mdi:packet-loss",
@@ -208,7 +208,7 @@ class UplinkPerformanceProvider:
                     "jitter",
                     SensorEntityDescription(
                         key=f"{interface}_jitter",
-                        name=f"{interface.upper()} Jitter",
+                        name=f"{interface.capitalize()} jitter",
                         native_unit_of_measurement=UnitOfTime.MILLISECONDS,
                         device_class=SensorDeviceClass.DURATION,
                         state_class=SensorStateClass.MEASUREMENT,
