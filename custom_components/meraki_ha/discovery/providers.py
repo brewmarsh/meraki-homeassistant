@@ -48,6 +48,7 @@ from ..sensor.device.network_settings import (
 from ..sensor.device.rtsp_url import MerakiRtspUrlSensor
 from ..sensor.uplink_performance import MerakiUplinkPerformanceSensor
 from ..switch.camera_controls import AnalyticsSwitch
+from ..switch.switch_port import MerakiSwitchPortSwitch
 
 if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
@@ -263,6 +264,7 @@ class SwitchPortProvider:
         if device.ports_statuses:
             for port in device.ports_statuses:
                 entities.append(SwitchPortSensor(coordinator, device, port))
+                entities.append(MerakiSwitchPortSwitch(coordinator, device, port))
         return entities
 
 

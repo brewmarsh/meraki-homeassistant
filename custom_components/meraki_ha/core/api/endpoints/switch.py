@@ -105,3 +105,32 @@ class SwitchEndpoints:
             ports=ports,
         )
         return validate_response(response)
+
+    @handle_meraki_errors
+    async def update_device_switch_port(
+        self,
+        serial: str,
+        port_id: str,
+        **kwargs: Any,
+    ) -> dict[str, Any]:
+        """
+        Update a switch port.
+
+        Args:
+        ----
+            serial: The serial number of the switch.
+            port_id: The port ID to update.
+            **kwargs: The parameters to update (e.g., enabled, vlan, etc.).
+
+        Returns
+        -------
+            The updated port configuration.
+
+        """
+        response = await self._api_client.run_sync(
+            self._api_client.dashboard.switch.updateDeviceSwitchPort,
+            serial=serial,
+            portId=port_id,
+            **kwargs,
+        )
+        return validate_response(response)
