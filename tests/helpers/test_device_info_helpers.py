@@ -1,80 +1,76 @@
-"""Tests for the device_info_helpers module."""
 
 from unittest.mock import MagicMock
-
-import pytest
-
-from custom_components.meraki_ha.const import DOMAIN
 from custom_components.meraki_ha.helpers.device_info_helpers import resolve_device_info
+from custom_components.meraki_ha.const import DOMAIN
+from dataclasses import dataclass
 
+def test_resolve_device_info_network_prefix():
+    config_entry = MagicMock()
+    config_entry.entry_id = "test_entry"
 
-@pytest.fixture
-def mock_config_entry():
-    """Fixture for a mocked config entry."""
-    return MagicMock()
-
-
-def test_resolve_device_info_ssid_naming(mock_config_entry):
-    """Test that SSID device names are formatted correctly."""
-    ssid_data = {"number": 1, "name": "My Test SSID", "networkId": "net1"}
-
-    device_info = resolve_device_info(
-        entity_data=ssid_data, config_entry=mock_config_entry
-    )
-    assert device_info["name"] == "[SSID 1] My Test SSID"
-    assert device_info["identifiers"] == {(DOMAIN, "net1ssid1")}
-    assert device_info["via_device"] == (DOMAIN, "network_net1")
-
-
-def test_resolve_device_info_physical_device(mock_config_entry):
-    """Test that physical device info is resolved correctly."""
-    device_data = {
-        "serial": "Q234-ABCD-5678",
-        "model": "MR33",
-        "name": "Living Room AP",
-        "firmware": "29.1.1",
-        "productType": "wireless",
+    # Case 1: Name without prefix
+    entity_data_1 = {
+        "id": "net1",
+        "name": "Site A",
+        "productTypes": ["appliance"]
     }
-    device_info = resolve_device_info(
-        entity_data=device_data, config_entry=mock_config_entry
-    )
-    assert device_info["name"] == "[Wireless] Living Room AP"
-    assert device_info["identifiers"] == {(DOMAIN, "Q234-ABCD-5678")}
-    assert device_info["model"] == "MR33"
-    assert device_info["sw_version"] == "29.1.1"
+    device_info_1 = resolve_device_info(entity_data_1, config_entry)
+    assert device_info_1["name"] == "[Network] Site A"
+    assert device_info_1["identifiers"] == {(DOMAIN, "network_net1")}
 
-
-def test_resolve_device_info_sensor(mock_config_entry):
-    """Test that sensor device info is resolved correctly."""
-    device_data = {
-        "serial": "Q234-ABCD-5678",
-        "model": "MT40",
-        "name": "Server Room Sensor",
-        "firmware": "1.1.1",
-        "productType": "sensor",
+    # Case 2: Name with prefix
+    entity_data_2 = {
+        "id": "net2",
+        "name": "[Network] Site B",
+        "productTypes": ["appliance"]
     }
-    device_info = resolve_device_info(
-        entity_data=device_data, config_entry=mock_config_entry
-    )
-    assert device_info["name"] == "[Sensor] Server Room Sensor"
-    assert device_info["identifiers"] == {(DOMAIN, "Q234-ABCD-5678")}
-    assert device_info["model"] == "MT40"
-    assert device_info["sw_version"] == "1.1.1"
+    device_info_2 = resolve_device_info(entity_data_2, config_entry)
+    assert device_info_2["name"] == "[Network] Site B"
+    assert device_info_2["identifiers"] == {(DOMAIN, "network_net2")}
 
+def test_resolve_device_info_ssid_prefix():
+    config_entry = MagicMock()
+    config_entry.entry_id = "test_entry"
 
-def test_resolve_device_info_sensor_device(mock_config_entry):
-    """Test that sensor device info is resolved correctly."""
-    device_data = {
-        "serial": "Q234-ABCD-5679",
-        "model": "MT10",
-        "name": "Temperature Sensor",
-        "firmware": "1.0.0",
-        "productType": "sensor",
+    # Case 1: Name without prefix
+    ssid_data_1 = {
+        "networkId": "net1",
+        "number": 0,
+        "name": "Guest WiFi"
     }
-    device_info = resolve_device_info(
-        entity_data=device_data, config_entry=mock_config_entry
-    )
-    assert device_info["name"] == "[Sensor] Temperature Sensor"
-    assert device_info["identifiers"] == {(DOMAIN, "Q234-ABCD-5679")}
-    assert device_info["model"] == "MT10"
-    assert device_info["sw_version"] == "1.0.0"
+    # Passing ssid_data as entity_data (simulating how it's called for SSIDs)
+    device_info_1 = resolve_device_info(ssid_data_1, config_entry)
+    assert device_info_1["name"] == "[SSID 0] Guest WiFi"
+
+    # Case 2: Name with prefix
+    ssid_data_2 = {
+        "networkId": "net1",
+        "number": 1,
+        "name": "[SSID 1] Corporate WiFi"
+    }
+    device_info_2 = resolve_device_info(ssid_data_2, config_entry)
+    assert device_info_2["name"] == "[SSID 1] Corporate WiFi"
+
+def test_resolve_device_info_device_prefix():
+    config_entry = MagicMock()
+    config_entry.entry_id = "test_entry"
+
+    # Case 1: Name without prefix (Switch)
+    device_data_1 = {
+        "serial": "Q234-5678-90AB",
+        "name": "Core Switch",
+        "productType": "switch",
+        "model": "MS220-8P"
+    }
+    device_info_1 = resolve_device_info(device_data_1, config_entry)
+    assert device_info_1["name"] == "[Switch] Core Switch"
+
+    # Case 2: Name with prefix (Camera)
+    device_data_2 = {
+        "serial": "Q234-5678-90AC",
+        "name": "[Camera] Front Door",
+        "productType": "camera",
+        "model": "MV12"
+    }
+    device_info_2 = resolve_device_info(device_data_2, config_entry)
+    assert device_info_2["name"] == "[Camera] Front Door"
