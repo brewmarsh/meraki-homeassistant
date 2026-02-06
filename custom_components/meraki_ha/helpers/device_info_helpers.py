@@ -65,12 +65,18 @@ def resolve_device_info(
             identifier = (DOMAIN, get_ssid_identifier(network_id, ssid_number))
             
             # Format: [SSID 0] MyWifiName
-            # We use effective_data.get("name") directly to avoid double-prefixing
             raw_name = effective_data.get("name") or f"SSID {ssid_number}"
             
+            # Check for double-prefixing
+            prefix = f"[SSID {ssid_number}] "
+            if str(raw_name).startswith(prefix):
+                name = raw_name
+            else:
+                name = f"{prefix}{raw_name}"
+
             return DeviceInfo(
                 identifiers={identifier},
-                name=f"[SSID {ssid_number}] {raw_name}",
+                name=name,
                 model="Wireless SSID",
                 manufacturer="Cisco Meraki",
                 via_device=(DOMAIN, f"network_{network_id}"),
@@ -93,9 +99,15 @@ def resolve_device_info(
     if is_network and network_id:
         # Format: [Network] BranchName
         raw_net_name = entity_data.get("name") or "Unknown Network"
+
+        if str(raw_net_name).startswith("[Network] "):
+            name = raw_net_name
+        else:
+            name = f"[Network] {raw_net_name}"
+
         return DeviceInfo(
             identifiers={(DOMAIN, f"network_{network_id}")},
-            name=f"[Network] {raw_net_name}",
+            name=name,
             manufacturer="Cisco Meraki",
             model="Meraki Network",
         )
@@ -107,10 +119,17 @@ def resolve_device_info(
             entity_data.get("productType") or entity_data.get("product_type")
         )
         prefix = DEVICE_TYPE_MAPPING.get(product_type, "Device")
-        name = entity_data.get("name")
+        raw_name = entity_data.get("name")
+        full_prefix = f"[{prefix}] "
+
+        if raw_name and str(raw_name).startswith(full_prefix):
+            name = raw_name
+        else:
+            name = f"{full_prefix}{raw_name}"
+
         return DeviceInfo(
             identifiers={(DOMAIN, device_serial)},
-            name=f"[{prefix}] {name}",
+            name=name,
             manufacturer="Cisco Meraki",
             model=str(entity_data.get("model") or "Unknown"),
             sw_version=str(entity_data.get("firmware") or ""),
