@@ -54,46 +54,53 @@ class ApplianceUplinkMixin:
 
     @handle_meraki_errors
     @async_timed_cache(timeout=60)
-    async def get_network_appliance_uplinks_loss_and_latency(
+    async def get_network_appliance_uplinks_performance(
         self,
         network_id: str,
     ) -> list[dict[str, Any]]:
         """
-        Get uplink loss and latency for all devices in a network.
+        Get uplink performance for all devices in a network.
 
         Args:
             network_id: The network ID.
 
         Returns
         -------
-            A list of uplink loss and latency metrics.
+            A list of uplink performance metrics.
 
         """
         # SDK method names vary across versions; try each known variant
+        # UsageHistory with timespan=60 is preferred for real-time status
         sdk_methods = [
-            "getNetworkApplianceUplinksUplinksLossAndLatency",
-            "getNetworkApplianceUplinksLossAndLatency",
             "getNetworkApplianceUplinksUsageHistory",
+            "getNetworkApplianceUplinksLossAndLatency",
+            "getNetworkApplianceUplinksUplinksLossAndLatency",
         ]
 
         method = None
-        for method_name in sdk_methods:
-            if hasattr(self._api_client.dashboard.appliance, method_name):
-                method = getattr(self._api_client.dashboard.appliance, method_name)
+        method_name = None
+        for name in sdk_methods:
+            if hasattr(self._api_client.dashboard.appliance, name):
+                method = getattr(self._api_client.dashboard.appliance, name)
+                method_name = name
                 break
 
         if not method:
             _LOGGER.warning("Uplink performance method not found in Meraki SDK")
             return []
 
+        kwargs = {"networkId": network_id}
+        if method_name == "getNetworkApplianceUplinksUsageHistory":
+            kwargs["timespan"] = 60
+
         performance = await self._api_client.run_sync(
             method,
-            networkId=network_id,
+            **kwargs,
         )
         validated = validate_response(performance)
         if not isinstance(validated, list):
             _LOGGER.warning(
-                "get_network_appliance_uplinks_loss_and_latency did not return a list",
+                "get_network_appliance_uplinks_performance did not return a list",
             )
             return []
         return validated

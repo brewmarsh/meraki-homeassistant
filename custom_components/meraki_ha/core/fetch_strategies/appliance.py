@@ -79,7 +79,7 @@ class ApplianceFetchStrategy(BaseFetchStrategy):
             ),
         )
         tasks[f"uplink_performance_{network_id}"] = self.client.run_with_semaphore(
-            self.client.appliance.get_network_appliance_uplinks_loss_and_latency(
+            self.client.appliance.get_network_appliance_uplinks_performance(
                 network_id,
             ),
         )

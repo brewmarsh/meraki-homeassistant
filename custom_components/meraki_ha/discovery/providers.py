@@ -192,7 +192,7 @@ class UplinkPerformanceProvider:
                     device,
                     config_entry,
                     interface,
-                    "packetLoss",
+                    "lossPercent",
                     SensorEntityDescription(
                         key=f"{interface}_packet_loss",
                         name=f"{interface.capitalize()} packet loss",

@@ -41,7 +41,7 @@ async def test_appliance_features_fetching_behavior() -> None:
     )
 
     # Use the pluralized/modern method name to align with the library update
-    mock_client.appliance.get_network_appliance_uplinks_loss_and_latency = (
+    mock_client.appliance.get_network_appliance_uplinks_performance = (
         AsyncMock(return_value=[])
     )
 
