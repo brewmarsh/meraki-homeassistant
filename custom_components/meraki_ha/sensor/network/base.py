@@ -31,10 +31,11 @@ class MerakiSSIDBaseSensor(MerakiEntity, SensorEntity):
         self._attribute = attribute
         self._network_id = ssid_data.get("networkId")
         self._ssid_number = ssid_data.get("number")
-        self._attr_unique_id = (
-            f"{self._network_id}ssid{self._ssid_number}_{self._attribute}"
-        )
-        # Set device_info directly in init
+        
+        # Unique ID is now handled by the @property method below to avoid collisions
+        self._attr_has_entity_name = True
+        
+        # SSID entities are logical children of the "Virtual SSID Device"
         self._attr_device_info = resolve_device_info(
             entity_data=self._ssid_data_at_init,
             config_entry=self._config_entry,
@@ -45,18 +46,15 @@ class MerakiSSIDBaseSensor(MerakiEntity, SensorEntity):
         if not self.coordinator.data:
             return None
 
-        # Prefer wireless_settings for more efficient lookup
+        # Look in wireless_settings (preferred) or flat ssids list
         if "wireless_settings" in self.coordinator.data:
-            network_ssids = self.coordinator.data["wireless_settings"].get(
-                self._network_id
-            )
+            network_ssids = self.coordinator.data["wireless_settings"].get(self._network_id)
             if network_ssids:
                 for ssid in network_ssids:
                     if str(ssid.get("number")) == str(self._ssid_number):
                         return ssid
             return None
 
-        # Fallback to flat ssids list if wireless_settings is missing
         if "ssids" in self.coordinator.data:
             for ssid in self.coordinator.data["ssids"]:
                 if ssid.get("networkId") == self._network_id and str(
@@ -65,6 +63,18 @@ class MerakiSSIDBaseSensor(MerakiEntity, SensorEntity):
                     return ssid
         return None
 
+    @property
+    def unique_id(self) -> str | None:
+        """Return a unique ID that prevents platform collisions.
+        
+        For SSID-based entities, we combine the network ID, SSID number, and
+        the lowercased class name. This allows multiple entities (Switch, Sensor, Text)
+        to exist for the same SSID without ID conflicts.
+        """
+        return (
+            f"{self._network_id}ssid{self._ssid_number}"
+            f"{self.__class__.__name__.lower()}"
+        )
 
     @property
     def available(self) -> bool:

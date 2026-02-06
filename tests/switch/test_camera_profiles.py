@@ -48,7 +48,7 @@ async def test_camera_sense_switch(hass, mock_device_coordinator, mock_api_clien
     switch.entity_id = "switch.mv_sense"
     switch.async_write_ha_state = MagicMock()
 
-    assert switch.unique_id == "cam1_sense_enabled"
+    assert switch.unique_id == "cam1merakicamerasenseswitch"
     assert switch.name == "MV Sense"
     assert switch.is_on is True
 
@@ -86,7 +86,7 @@ async def test_camera_audio_detection_switch(
     switch.entity_id = "switch.audio_detection"
     switch.async_write_ha_state = MagicMock()
 
-    assert switch.unique_id == "cam1_audio_detection"
+    assert switch.unique_id == "cam1merakicameraaudiodetectionswitch"
     assert switch.name == "Audio Detection"
     assert switch.is_on is True
 
