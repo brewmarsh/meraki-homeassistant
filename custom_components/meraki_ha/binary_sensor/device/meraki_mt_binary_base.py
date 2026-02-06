@@ -4,7 +4,6 @@ import logging
 from typing import cast
 
 from homeassistant.components.binary_sensor import (
-    BinarySensorEntity,
     BinarySensorEntityDescription,
 )
 from homeassistant.core import callback
@@ -15,7 +14,7 @@ from ...const import DOMAIN
 from ...coordinator import MerakiDataUpdateCoordinator as MerakiDataCoordinator
 from ...core.models.device import MerakiDevice
 from ...core.utils.naming_utils import format_device_name
-from ...entity import MerakiBinarySensor, MerakiEntity
+from ...entity import MerakiBinarySensor
 
 _LOGGER = logging.getLogger(__name__)
 

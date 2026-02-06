@@ -62,7 +62,11 @@ class MerakiSensor(MerakiEntity, SensorEntity):
     def unique_id(self) -> str | None:
         """Return a unique ID."""
         serial = None
-        if hasattr(self, "_device") and self._device and hasattr(self._device, "serial"):
+        if (
+            hasattr(self, "_device")
+            and self._device
+            and hasattr(self._device, "serial")
+        ):
             serial = self._device.serial
         elif hasattr(self, "_device_serial"):
             serial = self._device_serial
@@ -75,7 +79,7 @@ class MerakiSensor(MerakiEntity, SensorEntity):
             and self.entity_description
             and self.entity_description.key
         ):
-            return f"{serial}{self.entity_description.key}"
+            return f"{serial}_{self.entity_description.key}"
         return super().unique_id
 
 
@@ -86,7 +90,11 @@ class MerakiBinarySensor(MerakiEntity, BinarySensorEntity):
     def unique_id(self) -> str | None:
         """Return a unique ID."""
         serial = None
-        if hasattr(self, "_device") and self._device and hasattr(self._device, "serial"):
+        if (
+            hasattr(self, "_device")
+            and self._device
+            and hasattr(self._device, "serial")
+        ):
             serial = self._device.serial
         elif hasattr(self, "_device_serial"):
             serial = self._device_serial
@@ -99,5 +107,5 @@ class MerakiBinarySensor(MerakiEntity, BinarySensorEntity):
             and self.entity_description
             and self.entity_description.key
         ):
-            return f"{serial}{self.entity_description.key}"
+            return f"{serial}_{self.entity_description.key}"
         return super().unique_id

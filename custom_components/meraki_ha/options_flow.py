@@ -125,7 +125,8 @@ class MerakiOptionsFlowHandler(config_entries.OptionsFlow):
                 title=CONF_INTEGRATION_TITLE, data=self.options
             )
 
-        # Filter schema in case we somehow got here without cameras (though menu handles it)
+        # Filter schema in case we somehow got here without cameras
+        # (though menu handles it)
         # But also get_filtered_schema handles filtering specific options if needed.
         filtered_schema = get_filtered_schema(
             self.coordinator.data.get("devices", []),
