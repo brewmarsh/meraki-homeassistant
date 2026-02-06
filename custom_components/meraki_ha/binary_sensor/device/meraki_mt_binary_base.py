@@ -69,6 +69,7 @@ class MerakiMtBinarySensor(MerakiEntity, BinarySensorEntity):
                 self.async_write_ha_state()
                 return
 
+
     @property
     def is_on(self) -> bool | None:
         """Return true if the binary sensor is on."""

@@ -48,6 +48,11 @@ class MerakiCameraMotionEvent(MerakiEntity, EventEntity):
         self._is_first_update = True
 
     @property
+    def unique_id(self) -> str | None:
+        """Return a unique ID."""
+        return self._attr_unique_id
+
+    @property
     def device_info(self) -> DeviceInfo | None:
         """Return device information."""
         return resolve_device_info(self._device, self._config_entry)
