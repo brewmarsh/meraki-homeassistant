@@ -42,15 +42,9 @@ class MerakiCameraMotionEvent(MerakiEntity, EventEntity):
         self._device = device
         self._camera_service = camera_service
         self._config_entry = config_entry
-        self._attr_unique_id = f"{device.serial}{self.__class__.__name__.lower()}"
         self._attr_name = "Motion Event"
         self._last_timestamp: float = 0
         self._is_first_update = True
-
-    @property
-    def unique_id(self) -> str | None:
-        """Return a unique ID."""
-        return self._attr_unique_id
 
     @property
     def device_info(self) -> DeviceInfo | None:

@@ -57,9 +57,9 @@ OPTIONS_SCHEMA_GENERAL = vol.Schema(
         ): selector.SelectSelector(
             selector.SelectSelectorConfig(
                 options=[
-                    {"label": "Fast (60s)", "value": "60"},
-                    {"label": "Normal (300s)", "value": "300"},
-                    {"label": "Slow (900s)", "value": "900"},
+                    selector.SelectOptionDict(label="Fast (60s)", value="60"),
+                    selector.SelectOptionDict(label="Normal (300s)", value="300"),
+                    selector.SelectOptionDict(label="Slow (900s)", value="900"),
                 ],
                 mode=selector.SelectSelectorMode.DROPDOWN,
             )

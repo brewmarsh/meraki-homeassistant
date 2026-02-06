@@ -38,13 +38,6 @@ class MerakiMtBinarySensor(MerakiEntity, BinarySensorEntity):
             self._attr_name = cast(str | None, self.entity_description.name)
 
     @property
-    def unique_id(self) -> str | None:
-        """Return a unique ID that prevents platform collisions."""
-        if hasattr(self, "_device") and self._device and self._device.serial:
-            return f"{self._device.serial}{self.__class__.__name__.lower()}"
-        return getattr(self, "_attr_unique_id", None)
-
-    @property
     def device_info(self) -> DeviceInfo:
         """Return device information."""
         device_identifiers = set()

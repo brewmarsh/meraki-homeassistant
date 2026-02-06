@@ -89,7 +89,7 @@ class ApplianceUplinkMixin:
             _LOGGER.warning("Uplink performance method not found in Meraki SDK")
             return []
 
-        kwargs = {"networkId": network_id}
+        kwargs: dict[str, Any] = {"networkId": network_id}
         if method_name == "getNetworkApplianceUplinksUsageHistory":
             kwargs["timespan"] = 60
 

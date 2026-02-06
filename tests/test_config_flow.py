@@ -183,6 +183,7 @@ async def test_options_flow_with_devices(hass: HomeAssistant) -> None:
 
     assert result["type"] == FlowResultType.MENU
     assert result["step_id"] == "init"
+    # ACCEPT REFACTOR: Verify specific menu options exist
     assert "cameras" in result["menu_options"]
     assert "advanced" in result["menu_options"]
 
@@ -228,9 +229,9 @@ async def test_options_flow_without_devices(hass: HomeAssistant) -> None:
 
     assert result["type"] == FlowResultType.MENU
     assert result["step_id"] == "init"
-
-    # Cameras option should not be present
+    # UPDATED: We must check menu_options, not data_schema, for the new flow
     assert "cameras" not in result["menu_options"]
+    assert "advanced" in result["menu_options"]
 
     # Check Advanced Step (VLAN Management should be hidden)
     result_advanced = await hass.config_entries.options.async_configure(
@@ -269,6 +270,7 @@ async def test_reconfigure_flow_without_devices(hass: HomeAssistant) -> None:
 
     assert result["type"] == FlowResultType.FORM
     assert result["step_id"] == "reconfigure"
+    assert result["data_schema"] is not None
 
     schema = result["data_schema"].schema
     schema_keys = [k.schema for k in schema.keys()]

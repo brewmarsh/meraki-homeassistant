@@ -5,7 +5,6 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING, Any
 
-import meraki
 from meraki.exceptions import APIError
 
 from ...core.errors import (
@@ -93,7 +92,8 @@ class ApplianceFetchStrategy(BaseFetchStrategy):
                 global _VLAN_WARNING_LOGGED
                 if not _VLAN_WARNING_LOGGED:
                     _LOGGER.warning(
-                        "Port status/control requires VLANs to be enabled in Meraki Dashboard."
+                        "Port status/control requires VLANs to be "
+                        "enabled in Meraki Dashboard."
                     )
                     _VLAN_WARNING_LOGGED = True
                 return []
