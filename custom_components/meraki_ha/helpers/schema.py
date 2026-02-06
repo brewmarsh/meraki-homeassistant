@@ -7,7 +7,60 @@ from typing import Any
 import voluptuous as vol
 from homeassistant.helpers import selector
 
-from custom_components.meraki_ha.const_conf import CONF_IGNORED_NETWORKS
+from custom_components.meraki_ha.const_conf import (
+    CONF_ENABLE_CAMERA_ENTITIES,
+    CONF_ENABLE_CAMERA_SENSE,
+    CONF_ENABLE_VLAN_MANAGEMENT,
+    CONF_IGNORED_NETWORKS,
+)
+
+
+def get_filtered_schema(
+    devices: list[Any],
+    base_schema: vol.Schema,
+) -> vol.Schema:
+    """
+    Filter schema based on discovered hardware.
+
+    Args:
+    ----
+        devices: List of discovered devices.
+        base_schema: The base schema to filter.
+
+    Returns
+    -------
+        The filtered schema.
+
+    """
+    has_cameras = False
+    has_switches = False
+
+    for device in devices:
+        p_type = ""
+        model = ""
+        if isinstance(device, dict):
+            p_type = device.get("productType") or device.get("product_type", "")
+            model = device.get("model", "")
+        else:
+            p_type = getattr(device, "product_type", "") or ""
+            model = getattr(device, "model", "") or ""
+
+        if "camera" in p_type.lower() or (model and model.startswith("MV")):
+            has_cameras = True
+        if "switch" in p_type.lower() or (model and model.startswith("MS")):
+            has_switches = True
+
+    filtered_schema_dict = {}
+    for key, value in base_schema.schema.items():
+        if key.schema == CONF_ENABLE_CAMERA_ENTITIES and not has_cameras:
+            continue
+        if key.schema == CONF_ENABLE_CAMERA_SENSE and not has_cameras:
+            continue
+        if key.schema == CONF_ENABLE_VLAN_MANAGEMENT and not has_switches:
+            continue
+        filtered_schema_dict[key] = value
+
+    return vol.Schema(filtered_schema_dict)
 
 
 def populate_schema_defaults(
