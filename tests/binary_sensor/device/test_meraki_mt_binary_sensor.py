@@ -73,7 +73,7 @@ def test_mt20_open_sensor(
         mock_coordinator_mt_binary, device_info, MT_DOOR_DESCRIPTION
     )
 
-    assert sensor.unique_id == "mt20-1_door"
+    assert sensor.unique_id == "mt20-1merakimtbinarysensor"
     assert sensor.name == "Door"
     assert sensor.is_on is True
     assert sensor.available is True
@@ -88,7 +88,7 @@ def test_mt12_water_sensor(
         mock_coordinator_mt_binary, device_info, MT_WATER_DESCRIPTION
     )
 
-    assert sensor.unique_id == "mt12-1_water"
+    assert sensor.unique_id == "mt12-1merakimtbinarysensor"
     assert sensor.name == "Water Leak"
     assert sensor.is_on is True
     assert sensor.available is True
@@ -103,7 +103,7 @@ def test_mt12_dry_sensor(
         mock_coordinator_mt_binary, device_info, MT_WATER_DESCRIPTION
     )
 
-    assert sensor.unique_id == "mt12-2_water"
+    assert sensor.unique_id == "mt12-2merakimtbinarysensor"
     assert sensor.name == "Water Leak"
     assert sensor.is_on is False
     assert sensor.available is True

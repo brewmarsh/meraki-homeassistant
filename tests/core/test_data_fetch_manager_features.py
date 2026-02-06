@@ -39,7 +39,7 @@ async def test_appliance_features_fetching_behavior() -> None:
     mock_client.appliance.get_network_appliance_content_filtering = AsyncMock(
         return_value={}
     )
-    mock_client.appliance.get_network_appliance_uplinks_performance = AsyncMock(
+    mock_client.appliance.get_network_appliance_uplinks_loss_and_latency = AsyncMock(
         return_value=[]
     )
     mock_client.network.get_network_traffic = AsyncMock(return_value=[])

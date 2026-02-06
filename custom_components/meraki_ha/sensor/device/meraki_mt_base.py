@@ -174,7 +174,10 @@ class MerakiMtSensor(CoordinatorEntity, RestoreSensor):
     def unique_id(self) -> str | None:
         """Return a unique ID."""
         if hasattr(self, "_device") and self._device and self._device.serial:
-            return f"{self._device.serial}{self.__class__.__name__.lower()}"
+            uid = f"{self._device.serial}{self.__class__.__name__.lower()}"
+            if self.__class__.__name__ == "MerakiMtSensor":
+                uid += f"_{self.entity_description.key}"
+            return uid
         return getattr(self, "_attr_unique_id", None)
 
     @property
