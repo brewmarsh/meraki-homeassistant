@@ -31,7 +31,7 @@ async def test_get_uplink_performance_tries_all_names(appliance_endpoints, mock_
     mock_api_client.dashboard.appliance = mock_appliance
 
     # Call the method
-    result = await appliance_endpoints.get_network_appliance_uplinks_loss_and_latency(MOCK_NETWORK.id)
+    result = await appliance_endpoints.get_network_appliance_uplinks_performance(MOCK_NETWORK.id)
 
     assert result == []
 
@@ -47,7 +47,7 @@ async def test_get_uplink_performance_uses_first_available(appliance_endpoints, 
     mock_api_client.dashboard.appliance = mock_appliance
 
     # Call the method
-    result = await appliance_endpoints.get_network_appliance_uplinks_loss_and_latency(MOCK_NETWORK.id)
+    result = await appliance_endpoints.get_network_appliance_uplinks_performance(MOCK_NETWORK.id)
 
     assert result == [{"test": "data"}]
     # Note: run_sync is called with (method, networkId=network_id)
@@ -55,38 +55,38 @@ async def test_get_uplink_performance_uses_first_available(appliance_endpoints, 
     mock_method.assert_called_once_with(networkId=MOCK_NETWORK.id)
 
 @pytest.mark.asyncio
-async def test_get_uplink_performance_prefers_double_uplinks(appliance_endpoints, mock_api_client):
-    """Test that it prefers the 'UplinksUplinks' variant if both exist."""
+async def test_get_uplink_performance_prefers_usage_history(appliance_endpoints, mock_api_client):
+    """Test that it prefers UsageHistory and passes timespan=60."""
     mock_appliance = MagicMock(spec=[
-        "getNetworkApplianceUplinksUplinksLossAndLatency",
+        "getNetworkApplianceUplinksUsageHistory",
         "getNetworkApplianceUplinksLossAndLatency"
     ])
 
-    mock_method1 = MagicMock(return_value=[{"variant": "double"}])
-    mock_method2 = MagicMock(return_value=[{"variant": "single"}])
+    mock_method1 = MagicMock(return_value=[{"variant": "history"}])
+    mock_method2 = MagicMock(return_value=[{"variant": "loss_latency"}])
 
-    mock_appliance.getNetworkApplianceUplinksUplinksLossAndLatency = mock_method1
+    mock_appliance.getNetworkApplianceUplinksUsageHistory = mock_method1
     mock_appliance.getNetworkApplianceUplinksLossAndLatency = mock_method2
 
     mock_api_client.dashboard.appliance = mock_appliance
 
-    result = await appliance_endpoints.get_network_appliance_uplinks_loss_and_latency(MOCK_NETWORK.id)
+    result = await appliance_endpoints.get_network_appliance_uplinks_performance(MOCK_NETWORK.id)
 
-    assert result == [{"variant": "double"}]
-    mock_method1.assert_called_once()
+    assert result == [{"variant": "history"}]
+    mock_method1.assert_called_once_with(networkId=MOCK_NETWORK.id, timespan=60)
     mock_method2.assert_not_called()
 
 @pytest.mark.asyncio
-async def test_get_uplink_performance_falls_back_to_usage_history(appliance_endpoints, mock_api_client):
-    """Test that it falls back to UsageHistory if others are missing."""
-    mock_appliance = MagicMock(spec=["getNetworkApplianceUplinksUsageHistory"])
+async def test_get_uplink_performance_falls_back_from_usage_history(appliance_endpoints, mock_api_client):
+    """Test that it falls back from UsageHistory if it's missing."""
+    mock_appliance = MagicMock(spec=["getNetworkApplianceUplinksLossAndLatency"])
 
-    mock_method = MagicMock(return_value=[{"variant": "history"}])
-    mock_appliance.getNetworkApplianceUplinksUsageHistory = mock_method
+    mock_method = MagicMock(return_value=[{"variant": "loss_latency"}])
+    mock_appliance.getNetworkApplianceUplinksLossAndLatency = mock_method
 
     mock_api_client.dashboard.appliance = mock_appliance
 
-    result = await appliance_endpoints.get_network_appliance_uplinks_loss_and_latency(MOCK_NETWORK.id)
+    result = await appliance_endpoints.get_network_appliance_uplinks_performance(MOCK_NETWORK.id)
 
-    assert result == [{"variant": "history"}]
+    assert result == [{"variant": "loss_latency"}]
     mock_method.assert_called_once()

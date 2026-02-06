@@ -22,11 +22,11 @@ def test_uplink_performance_sensor_mapping(mock_coordinator):
     """Test the uplink performance sensor mapping and units."""
     device = MerakiDevice(serial="dev1", name="Appliance")
     device.uplinks = [
-        {"interface": "wan1", "latencyMs": 10, "packetLoss": 0.5, "jitter": 2}
+        {"interface": "wan1", "latencyMs": 10, "lossPercent": 0.5, "jitter": 2}
     ]
     mock_coordinator.get_device.return_value = device
 
-    # Test latency with API 2.0 key
+    # Test latency with API key
     desc = SensorEntityDescription(key="wan1_latency", name="Wan1 latency")
     sensor = MerakiUplinkPerformanceSensor(
         mock_coordinator, device, MagicMock(), "wan1", "latencyMs", desc
@@ -41,10 +41,10 @@ def test_uplink_performance_sensor_mapping(mock_coordinator):
     )
     assert sensor_jitter.native_unit_of_measurement == UnitOfTime.MILLISECONDS
 
-    # Test packet loss unit
+    # Test loss percent unit
     desc_loss = SensorEntityDescription(key="wan1_loss", name="WAN1 Loss")
     sensor_loss = MerakiUplinkPerformanceSensor(
-        mock_coordinator, device, MagicMock(), "wan1", "packetLoss", desc_loss
+        mock_coordinator, device, MagicMock(), "wan1", "lossPercent", desc_loss
     )
     assert sensor_loss.native_value == 0.5
     assert sensor_loss.native_unit_of_measurement == PERCENTAGE
