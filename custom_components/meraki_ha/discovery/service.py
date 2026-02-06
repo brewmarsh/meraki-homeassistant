@@ -17,8 +17,8 @@ from ..const_conf import (
 )
 from ..core.models.device import MerakiDevice
 from .handlers.network import NetworkHandler
-from .handlers.ssid import SSIDHandler
 from .handlers.universal import UniversalHandler
+from .handlers.wireless import WirelessHandler
 
 if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
@@ -109,15 +109,12 @@ class DeviceDiscoveryService:
             async for entity in handler.discover_entities():
                 all_entities.append(entity)
 
-        # Create SSID handler for virtual SSID devices
-        if self._config_entry.options.get(CONF_ENABLE_SSID_SENSORS, True):
-            ssid_handler = SSIDHandler(
-                self._coordinator, self._config_entry, self._meraki_client
-            )
-            async for entity in ssid_handler.discover_entities():
-                all_entities.append(entity)
-        else:
-            _LOGGER.debug("SSID sensors are disabled.")
+        # Create Wireless handler for devices and virtual SSID devices
+        wireless_handler = WirelessHandler(
+            self._coordinator, self._config_entry, self._meraki_client
+        )
+        async for entity in wireless_handler.discover_entities():
+            all_entities.append(entity)
 
         _LOGGER.info("Entity discovery complete. Found %d entities.", len(all_entities))
         self.all_entities = all_entities

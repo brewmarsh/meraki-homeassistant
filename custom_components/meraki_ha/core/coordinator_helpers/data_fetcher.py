@@ -290,6 +290,10 @@ class DataFetchManager:
                 self.sensor_strategy.build_device_tasks(
                     device, tasks, capabilities, detail_data
                 )
+            elif device.product_type == "wireless":
+                self.wireless_strategy.build_device_tasks(
+                    device, tasks, capabilities, detail_data
+                )
 
     def _process_detailed_data(
         self,
@@ -342,6 +346,8 @@ class DataFetchManager:
                 )
             elif device.product_type == "sensor":
                 self.sensor_strategy.process_device_details(device, detail_data, prev)
+            elif device.product_type == "wireless":
+                self.wireless_strategy.process_device_details(device, detail_data, prev)
         return processed_data
 
     async def get_all_data(

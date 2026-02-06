@@ -2,9 +2,12 @@
 
 from __future__ import annotations
 
-from typing import Any, cast
+from typing import TYPE_CHECKING, Any, cast
 
 from ...core.models.network import MerakiNetwork
+
+if TYPE_CHECKING:
+    from ...core.models.device import MerakiDevice
 from ..parsers.wireless import parse_wireless_data
 from .base import BaseFetchStrategy
 
@@ -22,6 +25,35 @@ class WirelessFetchStrategy(BaseFetchStrategy):
         tasks.update(
             self.client.wireless.get_network_detail_tasks(network_id, product_types)
         )
+
+    def build_device_tasks(
+        self,
+        device: MerakiDevice,
+        tasks: dict[str, Any],
+        capabilities: list[str],
+        detail_data: dict[str, Any] | None = None,
+    ) -> None:
+        """Add wireless specific device tasks."""
+        if "led_control" in capabilities and device.serial:
+            tasks[f"management_interface_{device.serial}"] = (
+                self.client.run_with_semaphore(
+                    self.client.devices.get_device_management_interface(device.serial),
+                )
+            )
+
+    def process_device_details(
+        self,
+        device: MerakiDevice,
+        detail_data: dict[str, Any],
+        prev_device: MerakiDevice | None,
+    ) -> None:
+        """Process wireless device details."""
+        interface_key = f"management_interface_{device.serial}"
+        if management_interface := detail_data.get(interface_key):
+            if isinstance(management_interface, dict):
+                device.management_interface = management_interface
+        elif prev_device and hasattr(prev_device, "management_interface"):
+            device.management_interface = prev_device.management_interface
 
     def process_network_data(
         self,

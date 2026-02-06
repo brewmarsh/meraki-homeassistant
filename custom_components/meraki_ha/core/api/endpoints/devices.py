@@ -104,3 +104,55 @@ class DevicesEndpoints:
             _LOGGER.warning("update_device did not return a dict.")
             return {}
         return validated
+
+    @handle_meraki_errors
+    async def get_device_management_interface(self, serial: str) -> dict[str, Any]:
+        """
+        Get the management interface for a device.
+
+        Args:
+        ----
+            serial: The serial number of the device.
+
+        Returns
+        -------
+            The management interface settings.
+
+        """
+        interface = await self._api_client.run_sync(
+            self._api_client.dashboard.devices.getDeviceManagementInterface,
+            serial=serial,
+        )
+        validated = validate_response(interface)
+        if not isinstance(validated, dict):
+            _LOGGER.warning("get_device_management_interface did not return a dict.")
+            return {}
+        return validated
+
+    @handle_meraki_errors
+    async def update_device_management_interface(
+        self, serial: str, **kwargs: Any
+    ) -> dict[str, Any]:
+        """
+        Update the management interface for a device.
+
+        Args:
+        ----
+            serial: The serial number of the device.
+            **kwargs: The management interface settings to update.
+
+        Returns
+        -------
+            The updated management interface settings.
+
+        """
+        interface = await self._api_client.run_sync(
+            self._api_client.dashboard.devices.updateDeviceManagementInterface,
+            serial=serial,
+            **kwargs,
+        )
+        validated = validate_response(interface)
+        if not isinstance(validated, dict):
+            _LOGGER.warning("update_device_management_interface did not return a dict.")
+            return {}
+        return validated

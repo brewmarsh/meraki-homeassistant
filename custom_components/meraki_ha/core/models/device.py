@@ -82,6 +82,7 @@ class MerakiDevice:
     appliance_ports: list[MerakiAppliancePort] = field(default_factory=list)
     sensor_relationships: list[dict[str, Any]] = field(default_factory=list)
     dynamic_dns: dict[str, Any] | None = None
+    management_interface: dict[str, Any] | None = None
     status_messages: list[str] = field(default_factory=list)
     entity_id: str | None = None
     ambient_noise: float | None = None
@@ -126,6 +127,7 @@ class MerakiDevice:
             "appliancePorts": [p.to_dict() for p in self.appliance_ports],
             "sensorRelationships": self.sensor_relationships,
             "dynamicDns": self.dynamic_dns,
+            "managementInterface": self.management_interface,
             "statusMessages": self.status_messages,
             "applianceUplinkStatuses": self.appliance_uplink_statuses,
             "uplinks": self.uplinks,
@@ -165,6 +167,7 @@ class MerakiDevice:
             ],
             sensor_relationships=data.get("sensorRelationships", []),
             dynamic_dns=data.get("dynamicDns"),
+            management_interface=data.get("managementInterface"),
             status_messages=data.get("statusMessages", []),
             appliance_uplink_statuses=data.get("applianceUplinkStatuses", []),
             uplinks=data.get("uplinks", []),
