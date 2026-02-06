@@ -1,9 +1,12 @@
 """Tests for the appliance uplink fallback logic."""
 
 from unittest.mock import MagicMock
+
 import pytest
+
 from custom_components.meraki_ha.core.api.endpoints.appliance import ApplianceEndpoints
 from tests.const import MOCK_NETWORK
+
 
 @pytest.fixture
 def mock_api_client():
@@ -23,20 +26,27 @@ def appliance_endpoints(mock_api_client):
     return ApplianceEndpoints(mock_api_client, MagicMock())
 
 @pytest.mark.asyncio
-async def test_get_uplink_performance_tries_all_names(appliance_endpoints, mock_api_client):
-    """Test that it tries all three SDK method names and returns empty list if none found."""
+async def test_get_uplink_performance_tries_all_names(
+    appliance_endpoints, mock_api_client
+):
+    """Test it tries all SDK method names and returns empty list if none found."""
     # Setup mock dashboard with none of the methods
-    mock_appliance = MagicMock(spec=[]) # Ensure no attributes exist
+    mock_appliance = MagicMock(spec=[])  # Ensure no attributes exist
 
     mock_api_client.dashboard.appliance = mock_appliance
 
     # Call the method
-    result = await appliance_endpoints.get_network_appliance_uplinks_loss_and_latency(MOCK_NETWORK.id)
+    result = await appliance_endpoints.get_network_appliance_uplinks_loss_and_latency(
+        MOCK_NETWORK.id
+    )
 
     assert result == []
 
+
 @pytest.mark.asyncio
-async def test_get_uplink_performance_uses_first_available(appliance_endpoints, mock_api_client):
+async def test_get_uplink_performance_uses_first_available(
+    appliance_endpoints, mock_api_client
+):
     """Test that it uses the first available SDK method."""
     mock_appliance = MagicMock(spec=["getNetworkApplianceUplinksLossAndLatency"])
 
@@ -47,20 +57,27 @@ async def test_get_uplink_performance_uses_first_available(appliance_endpoints, 
     mock_api_client.dashboard.appliance = mock_appliance
 
     # Call the method
-    result = await appliance_endpoints.get_network_appliance_uplinks_loss_and_latency(MOCK_NETWORK.id)
+    result = await appliance_endpoints.get_network_appliance_uplinks_loss_and_latency(
+        MOCK_NETWORK.id
+    )
 
     assert result == [{"test": "data"}]
     # Note: run_sync is called with (method, networkId=network_id)
     # Our side_effect calls method(networkId=network_id)
     mock_method.assert_called_once_with(networkId=MOCK_NETWORK.id)
 
+
 @pytest.mark.asyncio
-async def test_get_uplink_performance_prefers_double_uplinks(appliance_endpoints, mock_api_client):
+async def test_get_uplink_performance_prefers_double_uplinks(
+    appliance_endpoints, mock_api_client
+):
     """Test that it prefers the 'UplinksUplinks' variant if both exist."""
-    mock_appliance = MagicMock(spec=[
-        "getNetworkApplianceUplinksUplinksLossAndLatency",
-        "getNetworkApplianceUplinksLossAndLatency"
-    ])
+    mock_appliance = MagicMock(
+        spec=[
+            "getNetworkApplianceUplinksUplinksLossAndLatency",
+            "getNetworkApplianceUplinksLossAndLatency",
+        ]
+    )
 
     mock_method1 = MagicMock(return_value=[{"variant": "double"}])
     mock_method2 = MagicMock(return_value=[{"variant": "single"}])
@@ -70,14 +87,19 @@ async def test_get_uplink_performance_prefers_double_uplinks(appliance_endpoints
 
     mock_api_client.dashboard.appliance = mock_appliance
 
-    result = await appliance_endpoints.get_network_appliance_uplinks_loss_and_latency(MOCK_NETWORK.id)
+    result = await appliance_endpoints.get_network_appliance_uplinks_loss_and_latency(
+        MOCK_NETWORK.id
+    )
 
     assert result == [{"variant": "double"}]
     mock_method1.assert_called_once()
     mock_method2.assert_not_called()
 
+
 @pytest.mark.asyncio
-async def test_get_uplink_performance_falls_back_to_usage_history(appliance_endpoints, mock_api_client):
+async def test_get_uplink_performance_falls_back_to_usage_history(
+    appliance_endpoints, mock_api_client
+):
     """Test that it falls back to UsageHistory if others are missing."""
     mock_appliance = MagicMock(spec=["getNetworkApplianceUplinksUsageHistory"])
 
@@ -86,7 +108,9 @@ async def test_get_uplink_performance_falls_back_to_usage_history(appliance_endp
 
     mock_api_client.dashboard.appliance = mock_appliance
 
-    result = await appliance_endpoints.get_network_appliance_uplinks_loss_and_latency(MOCK_NETWORK.id)
+    result = await appliance_endpoints.get_network_appliance_uplinks_loss_and_latency(
+        MOCK_NETWORK.id
+    )
 
     assert result == [{"variant": "history"}]
     mock_method.assert_called_once()
