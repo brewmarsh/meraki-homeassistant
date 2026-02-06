@@ -12,20 +12,17 @@ from homeassistant.components.sensor import (
 from homeassistant.core import callback
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.typing import UNDEFINED
-from homeassistant.helpers.update_coordinator import CoordinatorEntity
-
 from ...const import DOMAIN
 from ...coordinator import MerakiDataUpdateCoordinator
+from ...entity import MerakiEntity
 from ...core.models.device import MerakiDevice
 from ...core.utils.naming_utils import format_device_name
 
 _LOGGER = logging.getLogger(__name__)
 
 
-class MerakiMtSensor(CoordinatorEntity, RestoreSensor):
+class MerakiMtSensor(MerakiEntity, RestoreSensor):
     """Representation of a Meraki MT sensor."""
-
-    coordinator: MerakiDataUpdateCoordinator
 
     def __init__(
         self,
@@ -170,12 +167,6 @@ class MerakiMtSensor(CoordinatorEntity, RestoreSensor):
             self._update_native_value()
             self.async_write_ha_state()
 
-    @property
-    def unique_id(self) -> str | None:
-        """Return a unique ID."""
-        if hasattr(self, "_device") and self._device and self._device.serial:
-            return f"{self._device.serial}{self.__class__.__name__.lower()}"
-        return getattr(self, "_attr_unique_id", None)
 
     @property
     def native_value(self) -> str | float | bool | None:

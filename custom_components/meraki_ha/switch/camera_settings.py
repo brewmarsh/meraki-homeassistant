@@ -92,12 +92,6 @@ class MerakiCameraSettingSwitchBase(
         self._update_state()
         self.async_write_ha_state()
 
-    @property
-    def unique_id(self) -> str | None:
-        """Return a unique ID."""
-        if hasattr(self, "_device_data") and self._device_data and self._device_data.serial:
-            return f"{self._device_data.serial}{self.__class__.__name__.lower()}"
-        return getattr(self, "_attr_unique_id", None)
 
     @property
     def is_on(self) -> bool | None:

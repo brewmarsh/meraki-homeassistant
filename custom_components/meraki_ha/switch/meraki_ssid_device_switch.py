@@ -9,9 +9,8 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import callback
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity import EntityCategory
-from homeassistant.helpers.update_coordinator import CoordinatorEntity
-
 from ..coordinator import MerakiDataUpdateCoordinator
+from ..entity import MerakiEntity
 from ..core.api.client import MerakiAPIClient
 from ..core.utils.icon_utils import get_device_type_icon
 from ..helpers.device_info_helpers import resolve_device_info
@@ -19,13 +18,10 @@ from ..helpers.device_info_helpers import resolve_device_info
 _LOGGER = logging.getLogger(__name__)
 
 
-class MerakiSSIDBaseSwitch(CoordinatorEntity, SwitchEntity):
+class MerakiSSIDBaseSwitch(MerakiEntity, SwitchEntity):
     """Base class for Meraki SSID Switches."""
 
     entity_category = EntityCategory.CONFIG
-    _attr_has_entity_name = True
-
-    coordinator: MerakiDataUpdateCoordinator
 
     def __init__(
         self,
@@ -65,12 +61,6 @@ class MerakiSSIDBaseSwitch(CoordinatorEntity, SwitchEntity):
                 return ssid
         return None
 
-    @property
-    def unique_id(self) -> str | None:
-        """Return a unique ID."""
-        # For SSID-based entities, the combination of network ID and SSID number
-        # acts as the unique identifier for the virtual "device".
-        return f"{self._network_id}ssid{self._ssid_number}{self.__class__.__name__.lower()}"
 
     @property
     def device_info(self) -> DeviceInfo | None:

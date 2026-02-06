@@ -40,6 +40,11 @@ from ..sensor.device.camera_analytics import (
     MerakiVehicleCountSensor,
 )
 from ..sensor.device.meraki_mt_base import MerakiMtSensor
+from ..sensor.device.network_settings import (
+    MerakiDeviceDNSSensor,
+    MerakiDeviceGatewaySensor,
+    MerakiDeviceIPSensor,
+)
 from ..sensor.device.rtsp_url import MerakiRtspUrlSensor
 from ..sensor.uplink_performance import MerakiUplinkPerformanceSensor
 from ..switch.camera_controls import AnalyticsSwitch
@@ -285,6 +290,51 @@ class CameraAnalyticsProvider:
                 entities.append(MerakiVehicleCountSensor(coordinator, device))
         except Exception:
             _LOGGER.debug("Could not fetch analytics features for %s", device.serial)
+
+        return entities
+
+
+class PhysicalSensorProvider:
+    """Provider for physical device sensors (IP, Status, Diagnostics)."""
+
+    @staticmethod
+    def get_entities(
+        coordinator: MerakiDataUpdateCoordinator,
+        device: MerakiDevice,
+        config_entry: ConfigEntry,
+        **kwargs: Any,
+    ) -> list[Entity]:
+        """Get entities."""
+        entities: list[Entity] = []
+
+        # Standard IPs
+        entities.append(
+            MerakiDeviceIPSensor(coordinator, device, config_entry, "lanIp", "LAN IP")
+        )
+        entities.append(
+            MerakiDeviceIPSensor(
+                coordinator, device, config_entry, "publicIp", "Public IP"
+            )
+        )
+
+        # Diagnostics (IP/Gateway/DNS) from uplinks
+        if device.uplinks:
+            for uplink in device.uplinks:
+                interface = uplink.get("interface")
+                if interface:
+                    entities.append(
+                        MerakiDeviceIPSensor(coordinator, device, config_entry, interface)
+                    )
+                    entities.append(
+                        MerakiDeviceGatewaySensor(
+                            coordinator, device, config_entry, interface
+                        )
+                    )
+                    entities.append(
+                        MerakiDeviceDNSSensor(
+                            coordinator, device, config_entry, interface
+                        )
+                    )
 
         return entities
 

@@ -6,18 +6,16 @@ from typing import Any
 from homeassistant.components.sensor import SensorEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import callback
-from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from ...coordinator import MerakiDataUpdateCoordinator
+from ...entity import MerakiEntity
 from ...helpers.device_info_helpers import resolve_device_info
 
 _LOGGER = logging.getLogger(__name__)
 
 
-class MerakiSSIDBaseSensor(CoordinatorEntity, SensorEntity):
+class MerakiSSIDBaseSensor(MerakiEntity, SensorEntity):
     """Base class for Meraki SSID sensors."""
-
-    _attr_has_entity_name = True
 
     def __init__(
         self,
@@ -67,12 +65,6 @@ class MerakiSSIDBaseSensor(CoordinatorEntity, SensorEntity):
                     return ssid
         return None
 
-    @property
-    def unique_id(self) -> str | None:
-        """Return a unique ID."""
-        # For SSID-based entities, the combination of network ID and SSID number
-        # acts as the unique identifier for the virtual "device".
-        return f"{self._network_id}ssid{self._ssid_number}{self.__class__.__name__.lower()}"
 
     @property
     def available(self) -> bool:

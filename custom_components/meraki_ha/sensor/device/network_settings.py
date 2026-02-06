@@ -6,7 +6,7 @@ import logging
 from dataclasses import asdict
 from typing import TYPE_CHECKING, Any
 
-from homeassistant.components.sensor import SensorEntity
+from homeassistant.components.sensor import SensorEntity, SensorEntityDescription
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import EntityCategory
 from homeassistant.core import callback
@@ -68,8 +68,6 @@ class MerakiDeviceUplinkBaseSensor(MerakiEntity, SensorEntity):
 class MerakiDeviceIPSensor(MerakiDeviceUplinkBaseSensor):
     """Sensor for Meraki device IP address."""
 
-    _attr_icon = "mdi:ip-network"
-
     def __init__(
         self,
         coordinator: MerakiDataUpdateCoordinator,
@@ -80,8 +78,11 @@ class MerakiDeviceIPSensor(MerakiDeviceUplinkBaseSensor):
     ) -> None:
         """Initialize the sensor."""
         super().__init__(coordinator, device_data, config_entry, interface)
-        self._attr_unique_id = f"{self._device_serial}_{interface}_ip"
-        self._attr_name = name or f"{interface.upper()} IP"
+        self.entity_description = SensorEntityDescription(
+            key=f"{interface}_ip",
+            name=name or f"{interface.upper()} IP",
+            icon="mdi:ip-network",
+        )
         self._update_state()
 
     @callback
@@ -111,8 +112,6 @@ class MerakiDeviceIPSensor(MerakiDeviceUplinkBaseSensor):
 class MerakiDeviceGatewaySensor(MerakiDeviceUplinkBaseSensor):
     """Sensor for Meraki device Gateway address."""
 
-    _attr_icon = "mdi:gateway"
-
     def __init__(
         self,
         coordinator: MerakiDataUpdateCoordinator,
@@ -123,8 +122,11 @@ class MerakiDeviceGatewaySensor(MerakiDeviceUplinkBaseSensor):
     ) -> None:
         """Initialize the sensor."""
         super().__init__(coordinator, device_data, config_entry, interface)
-        self._attr_unique_id = f"{self._device_serial}_{interface}_gateway"
-        self._attr_name = name or f"{interface.upper()} Gateway"
+        self.entity_description = SensorEntityDescription(
+            key=f"{interface}_gateway",
+            name=name or f"{interface.upper()} Gateway",
+            icon="mdi:gateway",
+        )
         self._update_state()
 
     @callback
@@ -146,8 +148,6 @@ class MerakiDeviceGatewaySensor(MerakiDeviceUplinkBaseSensor):
 class MerakiDeviceDNSSensor(MerakiDeviceUplinkBaseSensor):
     """Sensor for Meraki device DNS servers."""
 
-    _attr_icon = "mdi:dns"
-
     def __init__(
         self,
         coordinator: MerakiDataUpdateCoordinator,
@@ -158,8 +158,11 @@ class MerakiDeviceDNSSensor(MerakiDeviceUplinkBaseSensor):
     ) -> None:
         """Initialize the sensor."""
         super().__init__(coordinator, device_data, config_entry, interface)
-        self._attr_unique_id = f"{self._device_serial}_{interface}_dns"
-        self._attr_name = name or f"{interface.upper()} DNS"
+        self.entity_description = SensorEntityDescription(
+            key=f"{interface}_dns",
+            name=name or f"{interface.upper()} DNS",
+            icon="mdi:dns",
+        )
         self._update_state()
 
     @callback

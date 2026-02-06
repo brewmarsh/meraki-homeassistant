@@ -35,6 +35,7 @@ from ..providers import (
     CameraAnalyticsProvider,
     CameraStreamProvider,
     MT40PowerMonitorProvider,
+    PhysicalSensorProvider,
     SwitchPortProvider,
     UplinkPerformanceProvider,
     UplinkProvider,
@@ -81,11 +82,13 @@ class UniversalHandler(BaseDeviceHandler):
         "analytics": CameraAnalyticsProvider,
         "reboot": MerakiRebootButton,
         "status": MerakiDeviceStatusSensor,
+        "physical_sensors": PhysicalSensorProvider,
         "camera_stream": CameraStreamProvider,
     }
 
     # Mapping of capabilities to their configuration option toggle
     CAP_TO_OPTION: dict[str, str] = {
+        "physical_sensors": CONF_ENABLE_DEVICE_SENSORS,
         "temperature": CONF_ENABLE_DEVICE_SENSORS,
         "humidity": CONF_ENABLE_DEVICE_SENSORS,
         "battery": CONF_ENABLE_DEVICE_SENSORS,
