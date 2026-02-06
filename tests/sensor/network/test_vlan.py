@@ -92,8 +92,7 @@ async def test_vlan_sensor_creation(mock_coordinator):
     assert len(vlan_sensors) == 14
 
     # Filter for sensors of the first VLAN
-    # Note: With has_entity_name=True, the name property returns the entity name
-    vlan1_sensors = [s for s in vlan_sensors if "VLAN 1 VLAN 1" in s.name]
+    vlan1_sensors = [s for s in vlan_sensors if getattr(s, "_vlan_id", None) == 1]
     assert len(vlan1_sensors) == 7
 
     # Find the specific sensors for VLAN 1 by translation_key
@@ -121,40 +120,30 @@ async def test_vlan_sensor_creation(mock_coordinator):
     assert id_sensor.unique_id == "meraki_vlan_net1_1_vlan_id"
     # assert id_sensor.name == "VLAN ID" # Cannot access name without platform
     assert id_sensor.native_value == 1
-    assert id_sensor.device_info["name"] == "[Network] Test Network"
+    assert id_sensor.device_info["name"] == "[VLAN 1] VLAN 1"
+    assert id_sensor.device_info["identifiers"] == {("meraki_ha", "net1vlan1")}
+    assert id_sensor.device_info["via_device"] == ("meraki_ha", "network_net1")
 
     # Assertions for IPv4 Enabled Sensor
     assert ipv4_enabled_sensor.unique_id == "meraki_vlan_net1_1_ipv4_enabled"
-    # assert ipv4_enabled_sensor.name == "IPv4 Enabled"
-    # Cannot access name without platform
     assert ipv4_enabled_sensor.native_value is True
 
     # Assertions for IPv4 Interface IP Sensor
     assert ipv4_ip_sensor.unique_id == "meraki_vlan_net1_1_ipv4_interface_ip"
-    # assert ipv4_ip_sensor.name == "IPv4 Interface IP"
-    # Cannot access name without platform
     assert ipv4_ip_sensor.native_value == "192.168.1.1"
 
     # Assertions for IPv4 Uplink Sensor
     assert ipv4_uplink_sensor.unique_id == "meraki_vlan_net1_1_ipv4_uplink"
-    # assert ipv4_uplink_sensor.name == "IPv4 Uplink"
-    # Cannot access name without platform
     assert ipv4_uplink_sensor.native_value == "Any"
 
     # Assertions for IPv6 Enabled Sensor
     assert ipv6_enabled_sensor.unique_id == "meraki_vlan_net1_1_ipv6_enabled"
-    # assert ipv6_enabled_sensor.name == "IPv6 Enabled"
-    # Cannot access name without platform
     assert ipv6_enabled_sensor.native_value is True
 
     # Assertions for IPv6 Interface IP Sensor
     assert ipv6_ip_sensor.unique_id == "meraki_vlan_net1_1_ipv6_interface_ip"
-    # assert ipv6_ip_sensor.name == "IPv6 Interface IP"
-    # Cannot access name without platform
     assert ipv6_ip_sensor.native_value == "2001:db8:1::/64"
 
     # Assertions for IPv6 Uplink Sensor
     assert ipv6_uplink_sensor.unique_id == "meraki_vlan_net1_1_ipv6_uplink"
-    # assert ipv6_uplink_sensor.name == "IPv6 Uplink"
-    # Cannot access name without platform
     assert ipv6_uplink_sensor.native_value == "WAN 1, WAN 2"
