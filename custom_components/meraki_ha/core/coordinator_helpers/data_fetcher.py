@@ -6,8 +6,6 @@ import asyncio
 import logging
 from typing import TYPE_CHECKING, Any, cast
 
-import meraki
-
 from ...core.const import DEFAULT_CAPS, DEVICE_CAPABILITIES
 
 # Import the custom errors so we can pass them to strategies
@@ -123,7 +121,8 @@ class DataFetchManager:
                     for silent_msg in SILENT_ERRORS:
                         if silent_msg in error_msg:
                             _LOGGER.debug(
-                                "Skipping %s: Configuration requirement not met in Meraki Dashboard.",
+                                "Skipping %s: Configuration requirement not met in "
+                                "Meraki Dashboard.",
                                 key,
                             )
                             is_silent = True
