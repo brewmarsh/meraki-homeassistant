@@ -93,7 +93,6 @@ def async_ensure_ssid_devices_exist(
         # Legacy ID Check (Cleanup Warning)
         # Check if any device has the old ":ssid:" format for this SSID
         legacy_identifier = f"{network_id}:ssid:{ssid_number}"
-        legacy_found = False
         for device in dr.async_entries_for_config_entry(
             device_registry, config_entry.entry_id
         ):
@@ -104,7 +103,6 @@ def async_ensure_ssid_devices_exist(
                     ssid_name,
                     legacy_identifier,
                 )
-                legacy_found = True
                 break
 
         # Canonical Name Policy: [SSID] Prefix

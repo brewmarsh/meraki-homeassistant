@@ -75,7 +75,9 @@ class AppliancePortBinarySensor(CoordinatorEntity, BinarySensorEntity):
         """Return true if the binary sensor is on."""
         if not self._port.enabled:
             return False
-        return self._port.status is not None and self._port.status.lower() == "connected"
+        return (
+            self._port.status is not None and self._port.status.lower() == "connected"
+        )
 
     @property
     def extra_state_attributes(self) -> dict[str, Any]:

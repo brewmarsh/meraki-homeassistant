@@ -43,7 +43,7 @@ async def test_naming_conventions():
         config_entry=mock_config_entry,
     )
     assert camera.has_entity_name is True
-    # Modern naming: The primary entity has no name of its own, 
+    # Modern naming: The primary entity has no name of its own,
     # so it presents as the Device Name in the UI.
     assert camera.name is None
     assert camera.device_info["name"] == "[Camera] Office Camera"

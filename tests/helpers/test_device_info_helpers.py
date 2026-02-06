@@ -1,10 +1,12 @@
 
 from unittest.mock import MagicMock
-from custom_components.meraki_ha.helpers.device_info_helpers import resolve_device_info
+
 from custom_components.meraki_ha.const import DOMAIN
-from dataclasses import dataclass
+from custom_components.meraki_ha.helpers.device_info_helpers import resolve_device_info
+
 
 def test_resolve_device_info_network_prefix():
+    """Test resolving device info with network prefix."""
     config_entry = MagicMock()
     config_entry.entry_id = "test_entry"
 
@@ -29,6 +31,7 @@ def test_resolve_device_info_network_prefix():
     assert device_info_2["identifiers"] == {(DOMAIN, "network_net2")}
 
 def test_resolve_device_info_ssid_prefix():
+    """Test resolving device info with SSID prefix."""
     config_entry = MagicMock()
     config_entry.entry_id = "test_entry"
 
@@ -52,6 +55,7 @@ def test_resolve_device_info_ssid_prefix():
     assert device_info_2["name"] == "[SSID 1] Corporate WiFi"
 
 def test_resolve_device_info_device_prefix():
+    """Test resolving device info with device prefix."""
     config_entry = MagicMock()
     config_entry.entry_id = "test_entry"
 
