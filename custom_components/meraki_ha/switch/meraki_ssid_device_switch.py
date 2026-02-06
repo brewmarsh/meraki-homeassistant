@@ -65,12 +65,6 @@ class MerakiSSIDBaseSwitch(CoordinatorEntity, SwitchEntity):
                 return ssid
         return None
 
-    @property
-    def unique_id(self) -> str | None:
-        """Return a unique ID."""
-        # For SSID-based entities, the combination of network ID and SSID number
-        # acts as the unique identifier for the virtual "device".
-        return f"{self._network_id}ssid{self._ssid_number}{self.__class__.__name__.lower()}"
 
     @property
     def device_info(self) -> DeviceInfo | None:

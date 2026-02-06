@@ -99,6 +99,11 @@ class MerakiDeviceStatusSensor(MerakiEntity, SensorEntity):
         self._update_sensor_data()
 
     @property
+    def unique_id(self) -> str | None:
+        """Return a unique ID."""
+        return self._attr_unique_id
+
+    @property
     def icon(self) -> str:
         """Return the icon of the sensor."""
         status_icon_map = {

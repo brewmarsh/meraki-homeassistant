@@ -129,6 +129,11 @@ class MerakiRTSPStreamCamera(MerakiEntity, Camera):
         )
 
     @property
+    def unique_id(self) -> str | None:
+        """Return a unique ID."""
+        return self._attr_unique_id
+
+    @property
     def device_data(self) -> MerakiDevice:
         """Return the device data from the coordinator."""
         return self.coordinator.get_device(self._device_serial) or MerakiDevice()
