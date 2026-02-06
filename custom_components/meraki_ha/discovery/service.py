@@ -13,10 +13,10 @@ from typing import TYPE_CHECKING
 
 from ..const_conf import (
     CONF_ENABLE_NETWORK_SENSORS,
-    CONF_ENABLE_SSID_SENSORS,
 )
 from ..core.models.device import MerakiDevice
 from .handlers.network import NetworkHandler
+from .handlers.switch import SwitchHandler
 from .handlers.universal import UniversalHandler
 from .handlers.wireless import WirelessHandler
 
@@ -114,6 +114,11 @@ class DeviceDiscoveryService:
             self._coordinator, self._config_entry, self._meraki_client
         )
         async for entity in wireless_handler.discover_entities():
+            all_entities.append(entity)
+
+        # Create Switch handler for switch devices
+        switch_handler = SwitchHandler(self._coordinator, self._config_entry)
+        async for entity in switch_handler.discover_entities():
             all_entities.append(entity)
 
         _LOGGER.info("Entity discovery complete. Found %d entities.", len(all_entities))

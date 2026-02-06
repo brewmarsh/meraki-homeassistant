@@ -18,14 +18,11 @@ _MX_CAPS = [
 
 _MR_CAPS = [
     "ssids",
-    "client_count",
     "radio_utilization",
     "reboot",
-    "status",
     "led_control",
-    "ap_client_count",
 ]
-_MS_CAPS = ["switch_ports", "poe_usage", "power_supply", "reboot", "status"]
+_MS_CAPS = ["switch_ports", "poe_usage", "power_supply", "reboot"]
 _MV_CAPS = ["camera_stream", "storage_status", "analytics", "reboot", "status"]
 _GX_CAPS = ["uplinks", "performance", "vlans", "cellular", "reboot", "status"]
 

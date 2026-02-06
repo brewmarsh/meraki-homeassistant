@@ -16,7 +16,9 @@ from ...const_conf import (
     CONF_ENABLE_SSID_SENSORS,
 )
 from ...sensor.device.ap_client_count import MerakiAPClientCountSensor
+from ...sensor.device.device_status import MerakiDeviceStatusSensor
 from ...sensor.device.network_settings import (
+    MerakiDeviceDNSSensor,
     MerakiDeviceGatewaySensor,
     MerakiDeviceIPSensor,
 )
@@ -75,7 +77,6 @@ class WirelessHandler(BaseHandler):
         super().__init__(coordinator, config_entry)
         self._meraki_client = meraki_client
 
-
     async def discover_entities(self) -> AsyncIterator[Entity]:
         """Discover entities for wireless devices and SSIDs."""
         from ...meraki_select.rf_profile import MerakiRFProfileSelect
@@ -100,7 +101,28 @@ class WirelessHandler(BaseHandler):
                         yield MerakiDeviceLEDSwitch(
                             self._coordinator, device, self._config_entry
                         )
-                    # Diagnostics (IP/Gateway)
+                    # Status
+                    yield MerakiDeviceStatusSensor(
+                        self._coordinator, device, self._config_entry
+                    )
+
+                    # Standard IPs
+                    yield MerakiDeviceIPSensor(
+                        self._coordinator,
+                        device,
+                        self._config_entry,
+                        "lanIp",
+                        "LAN IP",
+                    )
+                    yield MerakiDeviceIPSensor(
+                        self._coordinator,
+                        device,
+                        self._config_entry,
+                        "publicIp",
+                        "Public IP",
+                    )
+
+                    # Diagnostics (IP/Gateway/DNS) from uplinks
                     if device.uplinks:
                         for uplink in device.uplinks:
                             interface = uplink.get("interface")
@@ -112,6 +134,12 @@ class WirelessHandler(BaseHandler):
                                     interface,
                                 )
                                 yield MerakiDeviceGatewaySensor(
+                                    self._coordinator,
+                                    device,
+                                    self._config_entry,
+                                    interface,
+                                )
+                                yield MerakiDeviceDNSSensor(
                                     self._coordinator,
                                     device,
                                     self._config_entry,

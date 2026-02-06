@@ -29,7 +29,7 @@ async def test_network_device_creation(
     await hass.async_block_till_done()
 
     device = device_registry.async_get_device(
-        identifiers={("meraki_ha", MERAKI_TEST_NETWORK_ID)}
+        identifiers={("meraki_ha", f"network_{MERAKI_TEST_NETWORK_ID}")}
     )
     assert device is not None
-    assert device.name == "Site A"
+    assert device.name == "[Network] Site A"
