@@ -39,7 +39,7 @@ class MerakiMtButtonEvent(MerakiEntity, EventEntity):
         super().__init__(coordinator)
         self._device = device
         self._config_entry = config_entry
-        self._attr_unique_id = f"{device.serial}_button_event"
+        self._attr_unique_id = f"{device.serial}{self.__class__.__name__.lower()}"
         self._attr_name = "Button Press"
         self._last_ts: str | None = None
         self._is_first_update = True

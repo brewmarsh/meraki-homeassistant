@@ -192,7 +192,7 @@ class UplinkPerformanceProvider:
                     device,
                     config_entry,
                     interface,
-                    "packetLoss",
+                    "lossPercent",
                     SensorEntityDescription(
                         key=f"{interface}_packet_loss",
                         name=f"{interface.capitalize()} packet loss",
@@ -323,7 +323,9 @@ class PhysicalSensorProvider:
                 interface = uplink.get("interface")
                 if interface:
                     entities.append(
-                        MerakiDeviceIPSensor(coordinator, device, config_entry, interface)
+                        MerakiDeviceIPSensor(
+                            coordinator, device, config_entry, interface
+                        )
                     )
                     entities.append(
                         MerakiDeviceGatewaySensor(

@@ -35,7 +35,7 @@ async def test_camera_motion_event_initialization(
             mock_coordinator, device, mock_camera_service, mock_config_entry
         )
 
-        assert entity.unique_id == "Q2XX-XXXX-XXXXmerakicameramotionevent"
+        assert entity.unique_id == "Q2XX-XXXX-XXXX-motion-event"
         assert entity.name == "Motion Event"
         assert entity.device_class == EventDeviceClass.MOTION
         assert entity.event_types == ["motion", "person", "vehicle"]

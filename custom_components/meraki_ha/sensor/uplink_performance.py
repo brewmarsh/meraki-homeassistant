@@ -50,18 +50,16 @@ class MerakiUplinkPerformanceSensor(MerakiSensor):
             )
         self._device_serial: str = device.serial
         self._interface = interface
-        # Map keys to match Meraki API 2.0
+        # Map keys to match Meraki API
         if metric == "latency":
             metric = "latencyMs"
-        elif metric == "lossPercent":
-            metric = "packetLoss"
         self._metric = metric
         self.entity_description = description
 
         # Set units explicitly to ensure compliance
         if self._metric in ("latencyMs", "jitter"):
             self._attr_native_unit_of_measurement = UnitOfTime.MILLISECONDS
-        elif self._metric == "packetLoss":
+        elif self._metric == "lossPercent":
             self._attr_native_unit_of_measurement = PERCENTAGE
 
         # Use Home Assistant Sentence Case for names
@@ -86,7 +84,7 @@ class MerakiUplinkPerformanceSensor(MerakiSensor):
 
         for uplink in device.uplinks:
             if uplink.get("interface") == self._interface:
-                # Look up the metric using API 2.0 keys (latencyMs, packetLoss, jitter)
+                # Look up the metric using API keys (latencyMs, lossPercent, jitter)
                 value = uplink.get(self._metric)
                 if value is not None:
                     try:

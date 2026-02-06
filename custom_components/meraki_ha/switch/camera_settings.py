@@ -48,7 +48,7 @@ class MerakiCameraSettingSwitchBase(
         self._key = key
         self._api_field = api_field
         # Fallback ID - the @property unique_id below will override this in HA
-        self._attr_unique_id = f"{device_data.serial}_{self._key}"
+        self._attr_unique_id = f"{device_data.serial}{self.__class__.__name__.lower()}"
         self._attr_is_on = False
         self._update_state()  # Set initial state
 
@@ -85,12 +85,19 @@ class MerakiCameraSettingSwitchBase(
     @property
     def unique_id(self) -> str | None:
         """Return a unique ID that prevents platform collisions.
-        
-        This combines the device serial, the class name, and the specific 
+
+        This combines the device serial, the class name, and the specific
         setting key to guarantee a unique registry entry.
         """
-        if hasattr(self, "_device_data") and self._device_data and self._device_data.serial:
-            return f"{self._device_data.serial}_{self.__class__.__name__.lower()}_{self._key}"
+        if (
+            hasattr(self, "_device_data")
+            and self._device_data
+            and self._device_data.serial
+        ):
+            return (
+                f"{self._device_data.serial}_{self.__class__.__name__.lower()}_"
+                f"{self._key}"
+            )
         return getattr(self, "_attr_unique_id", None)
 
     @property

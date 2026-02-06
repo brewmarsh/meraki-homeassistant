@@ -31,10 +31,10 @@ class MerakiSSIDBaseSensor(MerakiEntity, SensorEntity):
         self._attribute = attribute
         self._network_id = ssid_data.get("networkId")
         self._ssid_number = ssid_data.get("number")
-        
+
         # Unique ID is now handled by the dynamic @property method below
         self._attr_has_entity_name = True
-        
+
         # SSID entities are logical children of the "Virtual SSID Device"
         self._attr_device_info = resolve_device_info(
             entity_data=self._ssid_data_at_init,
@@ -48,7 +48,9 @@ class MerakiSSIDBaseSensor(MerakiEntity, SensorEntity):
 
         # Look in wireless_settings (preferred) or flat ssids list
         if "wireless_settings" in self.coordinator.data:
-            network_ssids = self.coordinator.data["wireless_settings"].get(self._network_id)
+            network_ssids = self.coordinator.data["wireless_settings"].get(
+                self._network_id
+            )
             if network_ssids:
                 for ssid in network_ssids:
                     if str(ssid.get("number")) == str(self._ssid_number):
@@ -75,8 +77,9 @@ class MerakiSSIDBaseSensor(MerakiEntity, SensorEntity):
     def unique_id(self) -> str | None:
         """Return a unique ID that prevents platform collisions.
 
-        By combining the network ID, SSID number, and the entity description key,
-        we ensure that the registry stays unique for different sensor types.
+        For SSID-based entities, we combine the network ID, SSID number, and
+        the lowercased class name. This allows multiple entities (Switch, Sensor, Text)
+        to exist for the same SSID without ID conflicts.
         """
         if (
             hasattr(self, "entity_description")
@@ -89,7 +92,7 @@ class MerakiSSIDBaseSensor(MerakiEntity, SensorEntity):
             )
 
         return (
-            f"{self._network_id}ssid{self._ssid_number}_"
+            f"{self._network_id}ssid{self._ssid_number}"
             f"{self.__class__.__name__.lower()}"
         )
 
