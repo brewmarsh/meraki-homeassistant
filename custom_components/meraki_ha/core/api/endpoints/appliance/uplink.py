@@ -54,29 +54,29 @@ class ApplianceUplinkMixin:
 
     @handle_meraki_errors
     @async_timed_cache(timeout=60)
-    async def get_network_appliance_uplinks_performance(
+    async def get_network_appliance_uplinks_loss_and_latency(
         self,
         network_id: str,
     ) -> list[dict[str, Any]]:
         """
-        Get uplink performance for all devices in a network.
+        Get uplink loss and latency for all devices in a network.
 
         Args:
             network_id: The network ID.
 
         Returns
         -------
-            A list of uplink performance metrics.
+            A list of uplink loss and latency metrics.
 
         """
         performance = await self._api_client.run_sync(
-            self._api_client.dashboard.appliance.getNetworkApplianceUplinksPerformance,
+            self._api_client.dashboard.appliance.getNetworkApplianceUplinksLossAndLatency,
             networkId=network_id,
         )
         validated = validate_response(performance)
         if not isinstance(validated, list):
             _LOGGER.warning(
-                "get_network_appliance_uplinks_performance did not return a list",
+                "get_network_appliance_uplinks_loss_and_latency did not return a list",
             )
             return []
         return validated
