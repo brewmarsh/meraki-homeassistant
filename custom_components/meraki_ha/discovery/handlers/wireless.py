@@ -1,8 +1,8 @@
 """
-Meraki SSID Handler.
+Meraki Wireless Handler.
 
-This module defines the SSIDHandler class, which is responsible for discovering
-virtual devices and entities for each Meraki SSID.
+This module defines the WirelessHandler class, which is responsible for discovering
+entities for Meraki wireless networks and devices.
 """
 
 from __future__ import annotations
@@ -11,7 +11,15 @@ import logging
 from collections.abc import AsyncIterator
 from typing import TYPE_CHECKING
 
-from ...const_conf import CONF_ENABLE_SSID_SENSORS
+from ...const_conf import (
+    CONF_ENABLE_DEVICE_SENSORS,
+    CONF_ENABLE_SSID_SENSORS,
+)
+from ...sensor.device.ap_client_count import MerakiAPClientCountSensor
+from ...sensor.device.network_settings import (
+    MerakiDeviceGatewaySensor,
+    MerakiDeviceIPSensor,
+)
 from ...sensor.network.ssid_auth_mode import MerakiSSIDAuthModeSensor
 
 # Import the specific sensor classes
@@ -39,6 +47,7 @@ from ...sensor.network.ssid_splash_page import MerakiSSIDSplashPageSensor
 from ...sensor.network.ssid_visible import MerakiSSIDVisibleSensor
 from ...sensor.network.ssid_wpa_encryption_mode import MerakiSSIDWPAEncryptionModeSensor
 from ...switch.adult_content_filtering import MerakiAdultContentFilteringSwitch
+from ...switch.meraki_device_led_switch import MerakiDeviceLEDSwitch
 from ...text.meraki_ssid_name import MerakiSSIDNameText
 from .base import BaseHandler
 
@@ -53,8 +62,8 @@ if TYPE_CHECKING:
 _LOGGER = logging.getLogger(__name__)
 
 
-class SSIDHandler(BaseHandler):
-    """Handler for Meraki SSIDs."""
+class WirelessHandler(BaseHandler):
+    """Handler for Meraki wireless devices and SSIDs."""
 
     def __init__(
         self,
@@ -62,13 +71,13 @@ class SSIDHandler(BaseHandler):
         config_entry: ConfigEntry,
         meraki_client: MerakiAPIClient,
     ) -> None:
-        """Initialize the SSIDHandler."""
+        """Initialize the WirelessHandler."""
         super().__init__(coordinator, config_entry)
         self._meraki_client = meraki_client
 
 
     async def discover_entities(self) -> AsyncIterator[Entity]:
-        """Discover entities for all SSIDs."""
+        """Discover entities for wireless devices and SSIDs."""
         from ...meraki_select.rf_profile import MerakiRFProfileSelect
         from ...switch.meraki_ssid_device_switch import (
             MerakiSSIDBroadcastSwitch,
@@ -78,11 +87,42 @@ class SSIDHandler(BaseHandler):
         if not self._coordinator.data or "ssids" not in self._coordinator.data:
             return
 
+        # Discover AP Device entities
+        if self._config_entry.options.get(CONF_ENABLE_DEVICE_SENSORS, True):
+            for device in self._coordinator.data.get("devices", []):
+                if device.product_type == "wireless":
+                    # Client Count per AP
+                    yield MerakiAPClientCountSensor(
+                        self._coordinator, device, self._config_entry
+                    )
+                    # LED Control
+                    if device.management_interface:
+                        yield MerakiDeviceLEDSwitch(
+                            self._coordinator, device, self._config_entry
+                        )
+                    # Diagnostics (IP/Gateway)
+                    if device.uplinks:
+                        for uplink in device.uplinks:
+                            interface = uplink.get("interface")
+                            if interface:
+                                yield MerakiDeviceIPSensor(
+                                    self._coordinator,
+                                    device,
+                                    self._config_entry,
+                                    interface,
+                                )
+                                yield MerakiDeviceGatewaySensor(
+                                    self._coordinator,
+                                    device,
+                                    self._config_entry,
+                                    interface,
+                                )
+
         # Check if SSID sensors/entities are enabled
         if not self._config_entry.options.get(CONF_ENABLE_SSID_SENSORS, True):
             return
 
-        for ssid in self._coordinator.data["ssids"]:
+        for ssid in self._coordinator.data.get("ssids", []):
             if "networkId" not in ssid or "number" not in ssid:
                 continue
 

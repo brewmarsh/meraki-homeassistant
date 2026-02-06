@@ -73,8 +73,8 @@ async def test_discover_entities_delegates_to_handler(
             "custom_components.meraki_ha.discovery.service.NetworkHandler"
         ) as MockNetworkHandler,
         patch(
-            "custom_components.meraki_ha.discovery.service.SSIDHandler"
-        ) as MockSSIDHandler,
+            "custom_components.meraki_ha.discovery.service.WirelessHandler"
+        ) as MockWirelessHandler,
     ):
         async def mock_aiter_universal():
             yield "universal_entity"
@@ -93,9 +93,9 @@ async def test_discover_entities_delegates_to_handler(
         mock_network_handler_instance.discover_entities.side_effect = mock_aiter_empty
         MockNetworkHandler.return_value = mock_network_handler_instance
 
-        mock_ssid_handler_instance = MagicMock()
-        mock_ssid_handler_instance.discover_entities.side_effect = mock_aiter_empty
-        MockSSIDHandler.return_value = mock_ssid_handler_instance
+        mock_wireless_handler_instance = MagicMock()
+        mock_wireless_handler_instance.discover_entities.side_effect = mock_aiter_empty
+        MockWirelessHandler.return_value = mock_wireless_handler_instance
 
         mock_network_control_service = MagicMock()
         service = DeviceDiscoveryService(

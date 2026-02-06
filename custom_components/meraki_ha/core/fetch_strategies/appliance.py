@@ -95,6 +95,12 @@ class ApplianceFetchStrategy(BaseFetchStrategy):
                     ),
                 )
             )
+        if "led_control" in capabilities and device.serial:
+            tasks[f"management_interface_{device.serial}"] = (
+                self.client.run_with_semaphore(
+                    self.client.devices.get_device_management_interface(device.serial),
+                )
+            )
 
     def process_network_traffic(
         self,
@@ -179,6 +185,13 @@ class ApplianceFetchStrategy(BaseFetchStrategy):
                 device.dynamic_dns = settings["dynamicDns"]
         elif prev_device and hasattr(prev_device, "dynamic_dns"):
             device.dynamic_dns = prev_device.dynamic_dns
+
+        interface_key = f"management_interface_{device.serial}"
+        if management_interface := detail_data.get(interface_key):
+            if isinstance(management_interface, dict):
+                device.management_interface = management_interface
+        elif prev_device and hasattr(prev_device, "management_interface"):
+            device.management_interface = prev_device.management_interface
 
         if performance := detail_data.get(f"uplink_performance_{device.network_id}"):
             if isinstance(performance, list):
