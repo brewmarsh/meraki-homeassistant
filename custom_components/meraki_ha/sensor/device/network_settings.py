@@ -57,6 +57,11 @@ class MerakiDeviceUplinkBaseSensor(MerakiEntity, SensorEntity):
     @property
     def available(self) -> bool:
         """Return if entity is available."""
+        if self._interface in ["lanIp", "publicIp"]:
+            return (
+                super().available
+                and self.coordinator.get_device(self._device_serial) is not None
+            )
         return super().available and self._get_uplink_data() is not None
 
 
@@ -71,16 +76,25 @@ class MerakiDeviceIPSensor(MerakiDeviceUplinkBaseSensor):
         device_data: MerakiDevice,
         config_entry: ConfigEntry,
         interface: str,
+        name: str | None = None,
     ) -> None:
         """Initialize the sensor."""
         super().__init__(coordinator, device_data, config_entry, interface)
         self._attr_unique_id = f"{self._device_serial}_{interface}_ip"
-        self._attr_name = f"{interface.upper()} IP"
+        self._attr_name = name or f"{interface.upper()} IP"
         self._update_state()
 
     @callback
     def _update_state(self) -> None:
         """Update the sensor state."""
+        device = self.coordinator.get_device(self._device_serial)
+        if self._interface == "lanIp" and device:
+            self._attr_native_value = device.lan_ip
+            return
+        if self._interface == "publicIp" and device:
+            self._attr_native_value = device.public_ip
+            return
+
         uplink_data = self._get_uplink_data()
         if uplink_data:
             self._attr_native_value = uplink_data.get("ip")
@@ -105,11 +119,12 @@ class MerakiDeviceGatewaySensor(MerakiDeviceUplinkBaseSensor):
         device_data: MerakiDevice,
         config_entry: ConfigEntry,
         interface: str,
+        name: str | None = None,
     ) -> None:
         """Initialize the sensor."""
         super().__init__(coordinator, device_data, config_entry, interface)
         self._attr_unique_id = f"{self._device_serial}_{interface}_gateway"
-        self._attr_name = f"{interface.upper()} Gateway"
+        self._attr_name = name or f"{interface.upper()} Gateway"
         self._update_state()
 
     @callback
@@ -118,6 +133,45 @@ class MerakiDeviceGatewaySensor(MerakiDeviceUplinkBaseSensor):
         uplink_data = self._get_uplink_data()
         if uplink_data:
             self._attr_native_value = uplink_data.get("gateway")
+        else:
+            self._attr_native_value = None
+
+    @callback
+    def _handle_coordinator_update(self) -> None:
+        """Handle updated data from the coordinator."""
+        self._update_state()
+        self.async_write_ha_state()
+
+
+class MerakiDeviceDNSSensor(MerakiDeviceUplinkBaseSensor):
+    """Sensor for Meraki device DNS servers."""
+
+    _attr_icon = "mdi:dns"
+
+    def __init__(
+        self,
+        coordinator: MerakiDataUpdateCoordinator,
+        device_data: MerakiDevice,
+        config_entry: ConfigEntry,
+        interface: str,
+        name: str | None = None,
+    ) -> None:
+        """Initialize the sensor."""
+        super().__init__(coordinator, device_data, config_entry, interface)
+        self._attr_unique_id = f"{self._device_serial}_{interface}_dns"
+        self._attr_name = name or f"{interface.upper()} DNS"
+        self._update_state()
+
+    @callback
+    def _update_state(self) -> None:
+        """Update the sensor state."""
+        uplink_data = self._get_uplink_data()
+        if uplink_data:
+            dns_servers = uplink_data.get("dns")
+            if isinstance(dns_servers, list):
+                self._attr_native_value = ", ".join(dns_servers)
+            else:
+                self._attr_native_value = dns_servers
         else:
             self._attr_native_value = None
 
