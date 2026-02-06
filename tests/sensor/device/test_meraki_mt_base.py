@@ -48,7 +48,7 @@ def test_meraki_mt_sensor_entity_id(mock_coordinator: MagicMock) -> None:
     # However, we can't easily test the full HA entity ID generation here.
     # Instead, we will check that the components we provide are correct.
 
-    assert sensor.unique_id == "Q3CA-2CG4-6LBKmerakimtsensor_temperature"
+    assert sensor.unique_id == "Q3CA-2CG4-6LBK_merakimtsensor_temperature"
     assert sensor.name == "Temperature"
     assert sensor.has_entity_name is True
     assert sensor.entity_id is None
