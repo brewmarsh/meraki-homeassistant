@@ -23,12 +23,12 @@ from ...const import DOMAIN
 from ...coordinator import MerakiDataUpdateCoordinator
 from ...core.models.device import MerakiDevice
 from ...core.utils.naming_utils import format_device_name
-from ...entity import MerakiEntity
+from ...entity import MerakiEntity, MerakiSensor
 
 _LOGGER = logging.getLogger(__name__)
 
 
-class MerakiDeviceStatusSensor(MerakiEntity, SensorEntity):
+class MerakiDeviceStatusSensor(MerakiSensor):
     """
     Representation of a Meraki Device Status sensor.
 
@@ -68,9 +68,6 @@ class MerakiDeviceStatusSensor(MerakiEntity, SensorEntity):
         super().__init__(coordinator)
         self._device_serial: str = cast(str, device_data.serial)  # Serial is mandatory
 
-        # Set up unique ID
-        self._attr_unique_id = f"{self._device_serial}{self.__class__.__name__.lower()}"
-
         # Set device info for linking to HA device registry
         # This uses the initial device_data for static info.
         self._attr_device_info = DeviceInfo(
@@ -98,10 +95,6 @@ class MerakiDeviceStatusSensor(MerakiEntity, SensorEntity):
         # Initial update of state and attributes
         self._update_sensor_data()
 
-    @property
-    def unique_id(self) -> str | None:
-        """Return a unique ID."""
-        return self._attr_unique_id
 
     @property
     def icon(self) -> str:

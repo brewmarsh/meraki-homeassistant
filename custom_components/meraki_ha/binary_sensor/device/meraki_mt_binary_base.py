@@ -15,12 +15,12 @@ from ...const import DOMAIN
 from ...coordinator import MerakiDataUpdateCoordinator as MerakiDataCoordinator
 from ...core.models.device import MerakiDevice
 from ...core.utils.naming_utils import format_device_name
-from ...entity import MerakiEntity
+from ...entity import MerakiBinarySensor, MerakiEntity
 
 _LOGGER = logging.getLogger(__name__)
 
 
-class MerakiMtBinarySensor(MerakiEntity, BinarySensorEntity):
+class MerakiMtBinarySensor(MerakiBinarySensor):
     """Representation of a Meraki MT binary sensor."""
 
     def __init__(
@@ -37,12 +37,6 @@ class MerakiMtBinarySensor(MerakiEntity, BinarySensorEntity):
         if self.entity_description.name is not UNDEFINED:
             self._attr_name = cast(str | None, self.entity_description.name)
 
-    @property
-    def unique_id(self) -> str | None:
-        """Return a unique ID that prevents platform collisions."""
-        if hasattr(self, "_device") and self._device and self._device.serial:
-            return f"{self._device.serial}{self.__class__.__name__.lower()}"
-        return getattr(self, "_attr_unique_id", None)
 
     @property
     def device_info(self) -> DeviceInfo:

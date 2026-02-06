@@ -14,7 +14,7 @@ from homeassistant.core import callback
 from homeassistant.helpers.device_registry import DeviceInfo
 
 from ..const import DOMAIN
-from ..entity import MerakiEntity
+from ..entity import MerakiEntity, MerakiSensor
 
 if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
@@ -25,8 +25,6 @@ if TYPE_CHECKING:
 _LOGGER = logging.getLogger(__name__)
 
 
-class MerakiSensor(MerakiEntity, SensorEntity):
-    """Base class for Meraki sensors."""
 
 
 class MerakiUplinkPerformanceSensor(MerakiSensor):
