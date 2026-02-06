@@ -32,7 +32,7 @@ class MerakiSSIDBaseSensor(MerakiEntity, SensorEntity):
         self._network_id = ssid_data.get("networkId")
         self._ssid_number = ssid_data.get("number")
         
-        # Unique ID is now handled by the @property method below to avoid collisions
+        # Unique ID is now handled by the dynamic @property method below
         self._attr_has_entity_name = True
         
         # SSID entities are logical children of the "Virtual SSID Device"

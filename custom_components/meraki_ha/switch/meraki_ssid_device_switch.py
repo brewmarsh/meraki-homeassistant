@@ -119,6 +119,7 @@ class MerakiSSIDBaseSwitch(MerakiEntity, SwitchEntity):
             _LOGGER.error("Cannot update SSID: Missing networkId or SSID number.")
             return
 
+        # Optimistically update the UI
         self._attr_is_on = value
         self.async_write_ha_state()
 

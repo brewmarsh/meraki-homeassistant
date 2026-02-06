@@ -34,8 +34,8 @@ class MerakiMtSensor(MerakiEntity, RestoreSensor):
         super().__init__(coordinator)
         self._device = device
         self.entity_description = entity_description
-        # Fallback unique_id if the property method isn't used
-        self._attr_unique_id = f"{device.serial}_{self.entity_description.key}"
+        
+        # We no longer set _attr_unique_id here as the @property below handles it.
         self._attr_has_entity_name = True
         
         if self.entity_description.name is not UNDEFINED:
@@ -155,7 +155,8 @@ class MerakiMtSensor(MerakiEntity, RestoreSensor):
     def unique_id(self) -> str | None:
         """Return a unique ID that prevents platform collisions."""
         if hasattr(self, "_device") and self._device and self._device.serial:
-            # We combine serial + class name + metric key to ensure 100% uniqueness
+            # Format: serial_classname_metrickey
+            # This ensures multiple sensors on the same device stay separate.
             return f"{self._device.serial}_{self.__class__.__name__.lower()}_{self.entity_description.key}"
         return getattr(self, "_attr_unique_id", None)
 
