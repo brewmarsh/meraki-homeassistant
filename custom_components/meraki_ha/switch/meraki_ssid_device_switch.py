@@ -9,10 +9,11 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import callback
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity import EntityCategory
+
 from ..coordinator import MerakiDataUpdateCoordinator
-from ..entity import MerakiEntity
 from ..core.api.client import MerakiAPIClient
 from ..core.utils.icon_utils import get_device_type_icon
+from ..entity import MerakiEntity
 from ..helpers.device_info_helpers import resolve_device_info
 
 _LOGGER = logging.getLogger(__name__)
@@ -64,7 +65,7 @@ class MerakiSSIDBaseSwitch(MerakiEntity, SwitchEntity):
     @property
     def unique_id(self) -> str | None:
         """Return a unique ID that prevents platform collisions.
-        
+
         By combining the network ID, SSID number, and the lowercased class name,
         we ensure that the registry stays unique for different switch types.
         """
