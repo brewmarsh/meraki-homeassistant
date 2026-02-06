@@ -1,9 +1,7 @@
 """Test the Meraki SSID PSK sensor."""
 
 from unittest.mock import MagicMock
-
 from custom_components.meraki_ha.sensor.network.ssid_psk import MerakiSSIDPSKSensor
-
 
 async def test_ssid_psk_sensor() -> None:
     """Test the SSID PSK sensor."""
@@ -23,6 +21,8 @@ async def test_ssid_psk_sensor() -> None:
 
     sensor = MerakiSSIDPSKSensor(coordinator, config_entry, ssid_data_psk)
     assert sensor.name == "PSK"
+    
+    # RESOLVED: We use the standardized Beta branch format to prevent collisions
     assert sensor.unique_id == "N_123ssid0_merakissidpsksensor"
     assert sensor.native_value == "secret123"
 

@@ -4,20 +4,30 @@ from typing import Any
 
 from homeassistant.components.sensor import SensorEntityDescription, SensorStateClass
 from homeassistant.config_entries import ConfigEntry
+from homeassistant.const import UnitOfDataRate
 
 from ...coordinator import MerakiDataUpdateCoordinator
 from .base import MerakiSSIDBaseSensor
 
+BANDWIDTH_LIMIT_UP = SensorEntityDescription(
+    key="bandwidth_limit_up",
+    name="Per-SSID bandwidth limit up",
+    icon="mdi:upload-network-outline",
+    state_class=SensorStateClass.MEASUREMENT,
+    native_unit_of_measurement=UnitOfDataRate.KILOBITS_PER_SECOND,
+)
+
+BANDWIDTH_LIMIT_DOWN = SensorEntityDescription(
+    key="bandwidth_limit_down",
+    name="Per-SSID bandwidth limit down",
+    icon="mdi:download-network-outline",
+    state_class=SensorStateClass.MEASUREMENT,
+    native_unit_of_measurement=UnitOfDataRate.KILOBITS_PER_SECOND,
+)
+
 
 class MerakiSSIDPerSsidBandwidthLimitSensor(MerakiSSIDBaseSensor):
     """Representation of a Meraki SSID Per-SSID Bandwidth Limit sensor."""
-
-    entity_description = SensorEntityDescription(
-        key="per_ssid_bandwidth_limit",
-        icon="mdi:upload-network-outline",
-        state_class=SensorStateClass.MEASUREMENT,
-        native_unit_of_measurement="Kbps",
-    )
 
     def __init__(
         self,
@@ -27,11 +37,9 @@ class MerakiSSIDPerSsidBandwidthLimitSensor(MerakiSSIDBaseSensor):
         direction: str,
     ) -> None:
         """Initialize the sensor."""
+        self.entity_description = (
+            BANDWIDTH_LIMIT_UP if direction.lower() == "up" else BANDWIDTH_LIMIT_DOWN
+        )
         attribute = f"perSsidBandwidthLimit{direction.capitalize()}"
         super().__init__(coordinator, config_entry, ssid_data, attribute)
-        self._attr_name = f"Per-SSID bandwidth limit {direction}"
         self._attr_native_value = self._ssid_data_at_init.get(attribute)
-        self._attr_unique_id = (
-            f"{self._network_id}ssid{self._ssid_number}_"
-            f"per_ssid_bandwidth_limit_{direction}"
-        )

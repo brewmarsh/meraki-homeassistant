@@ -66,6 +66,14 @@ class MerakiSSIDBaseSensor(MerakiEntity, SensorEntity):
         return None
 
     @property
+    def available(self) -> bool:
+        """Return True if entity is available."""
+        if not super().available or not self.coordinator.data:
+            return False
+        ssid_data = self._get_current_ssid_data()
+        return ssid_data is not None and ssid_data.get("enabled", False)
+
+    @property
     def unique_id(self) -> str | None:
         """Return a unique ID that prevents platform collisions.
 
@@ -73,18 +81,20 @@ class MerakiSSIDBaseSensor(MerakiEntity, SensorEntity):
         the lowercased class name. This allows multiple entities (Switch, Sensor, Text)
         to exist for the same SSID without ID conflicts.
         """
+        if (
+            hasattr(self, "entity_description")
+            and self.entity_description
+            and self.entity_description.key
+        ):
+            return (
+                f"{self._network_id}ssid{self._ssid_number}_"
+                f"{self.entity_description.key}"
+            )
+
         return (
             f"{self._network_id}ssid{self._ssid_number}"
             f"{self.__class__.__name__.lower()}"
         )
-
-    @property
-    def available(self) -> bool:
-        """Return True if entity is available."""
-        if not super().available or not self.coordinator.data:
-            return False
-        ssid_data = self._get_current_ssid_data()
-        return ssid_data is not None and ssid_data.get("enabled", False)
 
     @callback
     def _handle_coordinator_update(self) -> None:
