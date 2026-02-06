@@ -41,11 +41,6 @@ class MerakiAppliancePortSensor(CoordinatorEntity, SensorEntity):
         self._attr_name = f"Port {self._port.number}"
 
     @property
-    def icon(self) -> str:
-        """Return the icon of the sensor."""
-        return "mdi:ethernet" if self.native_value == "connected" else "mdi:ethernet-cable-off"
-
-    @property
     def device_info(self) -> DeviceInfo:
         """Return device information."""
         if self.coordinator.config_entry:
@@ -79,11 +74,15 @@ class MerakiAppliancePortSensor(CoordinatorEntity, SensorEntity):
     @property
     def native_value(self) -> str:
         """Return the state of the sensor."""
-        if not self._port.enabled:
-            return "disabled"
+        # Strictly return "connected" or "disconnected"
         if self._port.status and self._port.status.lower() == "connected":
             return "connected"
         return "disconnected"
+
+    @property
+    def icon(self) -> str:
+        """Return the icon of the sensor."""
+        return "mdi:ethernet" if self.native_value == "connected" else "mdi:ethernet-cable-off"
 
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
@@ -94,4 +93,6 @@ class MerakiAppliancePortSensor(CoordinatorEntity, SensorEntity):
             "vlan": self._port.vlan,
             "type": self._port.type,
             "access_policy": self._port.access_policy,
+            "enabled": self._port.enabled,
+            "icon_color": "green" if self.native_value == "connected" else "grey",
         }

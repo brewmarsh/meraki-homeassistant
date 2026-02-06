@@ -9,6 +9,7 @@ from homeassistant.components.sensor import (
     SensorEntity,
     SensorEntityDescription,
 )
+from homeassistant.const import PERCENTAGE, UnitOfTime
 from homeassistant.core import callback
 from homeassistant.helpers.device_registry import DeviceInfo
 
@@ -49,8 +50,19 @@ class MerakiUplinkPerformanceSensor(MerakiSensor):
             )
         self._device_serial: str = device.serial
         self._interface = interface
+        # Map keys to match Meraki API 2.0
+        if metric == "latency":
+            metric = "latencyMs"
+        elif metric == "lossPercent":
+            metric = "packetLoss"
         self._metric = metric
         self.entity_description = description
+
+        # Set units explicitly to ensure compliance
+        if self._metric in ("latencyMs", "jitter"):
+            self._attr_native_unit_of_measurement = UnitOfTime.MILLISECONDS
+        elif self._metric == "packetLoss":
+            self._attr_native_unit_of_measurement = PERCENTAGE
 
         # Use Home Assistant Sentence Case for names
         # Entity name will be e.g. "WAN1 Latency"
@@ -74,12 +86,16 @@ class MerakiUplinkPerformanceSensor(MerakiSensor):
 
         for uplink in device.uplinks:
             if uplink.get("interface") == self._interface:
+                # Look up the metric using API 2.0 keys (latencyMs, packetLoss, jitter)
                 value = uplink.get(self._metric)
                 if value is not None:
                     try:
                         self._attr_native_value = float(value)
                     except (ValueError, TypeError):
-                        self._attr_native_value = value
+                        _LOGGER.debug(
+                            "Could not convert %s to float for %s", value, self.name
+                        )
+                        self._attr_native_value = None
                 else:
                     self._attr_native_value = None
                 return
