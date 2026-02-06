@@ -12,11 +12,12 @@ from homeassistant.components.sensor import (
 from homeassistant.core import callback
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.typing import UNDEFINED
+
 from ...const import DOMAIN
 from ...coordinator import MerakiDataUpdateCoordinator
-from ...entity import MerakiEntity
 from ...core.models.device import MerakiDevice
 from ...core.utils.naming_utils import format_device_name
+from ...entity import MerakiEntity
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -34,13 +35,13 @@ class MerakiMtSensor(MerakiEntity, RestoreSensor):
         super().__init__(coordinator)
         self._device = device
         self.entity_description = entity_description
-        
+
         # We no longer set _attr_unique_id here as the @property below handles it.
         self._attr_has_entity_name = True
-        
+
         if self.entity_description.name is not UNDEFINED:
             self._attr_name = cast(str | None, self.entity_description.name)
-            
+
         self._attr_native_value: Any = None
         self._update_native_value()
 
@@ -76,7 +77,9 @@ class MerakiMtSensor(MerakiEntity, RestoreSensor):
         if not readings or not isinstance(readings, list):
             # Fallback for older MT devices
             if key == "noise":
-                self._attr_native_value = self._maybe_get_value(self._device.ambient_noise)
+                self._attr_native_value = self._maybe_get_value(
+                    self._device.ambient_noise
+                )
             elif key == "pm25":
                 self._attr_native_value = self._maybe_get_value(self._device.pm25)
             elif key == "door":
@@ -107,18 +110,26 @@ class MerakiMtSensor(MerakiEntity, RestoreSensor):
                     }
                     value_key = key_map.get(key)
                     if value_key:
-                        self._attr_native_value = self._maybe_get_value(metric_data.get(value_key))
-                        
+                        self._attr_native_value = self._maybe_get_value(
+                            metric_data.get(value_key)
+                        )
+
                         # Fallbacks for power monitoring
                         if key == "voltage" and self._attr_native_value is None:
-                            self._attr_native_value = self._maybe_get_value(metric_data.get("draw"))
+                            self._attr_native_value = self._maybe_get_value(
+                                metric_data.get("draw")
+                            )
                         if key == "energy" and self._attr_native_value is None:
                             self._attr_native_value = (
                                 self._maybe_get_value(metric_data.get("energyUsage"))
-                                or self._maybe_get_value(metric_data.get("apparentPower"))
+                                or self._maybe_get_value(
+                                    metric_data.get("apparentPower")
+                                )
                             )
                         if key == "powerFactor" and self._attr_native_value is None:
-                            self._attr_native_value = self._maybe_get_value(metric_data.get("factor"))
+                            self._attr_native_value = self._maybe_get_value(
+                                metric_data.get("factor")
+                            )
                         return
 
                     if key == "noise":
@@ -138,7 +149,9 @@ class MerakiMtSensor(MerakiEntity, RestoreSensor):
                 "current": "current",
             }
             if key in attr_map:
-                self._attr_native_value = self._maybe_get_value(getattr(self._device, attr_map[key]))
+                self._attr_native_value = self._maybe_get_value(
+                    getattr(self._device, attr_map[key])
+                )
 
     @callback
     def _handle_coordinator_update(self) -> None:
@@ -155,9 +168,16 @@ class MerakiMtSensor(MerakiEntity, RestoreSensor):
     def unique_id(self) -> str | None:
         """Return a unique ID that prevents platform collisions."""
         if hasattr(self, "_device") and self._device and self._device.serial:
-            # Format: serial_classname_metrickey
-            # This ensures multiple sensors on the same device stay separate.
-            return f"{self._device.serial}_{self.__class__.__name__.lower()}_{self.entity_description.key}"
+            # Format: serialclassname
+            # For direct use of MerakiMtSensor (generic), we need to append key
+            base = f"{self._device.serial}{self.__class__.__name__.lower()}"
+
+            # If we are using the base class directly, we must append key to
+            # avoid collision
+            if self.__class__.__name__ == "MerakiMtSensor":
+                return f"{base}_{self.entity_description.key}"
+
+            return base
         return getattr(self, "_attr_unique_id", None)
 
     @property
