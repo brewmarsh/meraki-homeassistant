@@ -50,16 +50,16 @@ CONFIG_SCHEMA = vol.Schema(
     }
 )
 
-OPTIONS_SCHEMA = vol.Schema(
+OPTIONS_SCHEMA_GENERAL = vol.Schema(
     {
         vol.Required(
             CONF_SCAN_INTERVAL, default=DEFAULT_SCAN_INTERVAL
         ): selector.SelectSelector(
             selector.SelectSelectorConfig(
                 options=[
-                    {"label": "Fast (60s)", "value": "60"},
-                    {"label": "Normal (300s)", "value": "300"},
-                    {"label": "Slow (900s)", "value": "900"},
+                    selector.SelectOptionDict(label="Fast (60s)", value="60"),
+                    selector.SelectOptionDict(label="Normal (300s)", value="300"),
+                    selector.SelectOptionDict(label="Slow (900s)", value="900"),
                 ],
                 mode=selector.SelectSelectorMode.DROPDOWN,
             )
@@ -77,6 +77,11 @@ OPTIONS_SCHEMA = vol.Schema(
         vol.Required(
             CONF_ENABLE_DEVICE_TRACKER, default=True
         ): selector.BooleanSelector(),
+    }
+)
+
+OPTIONS_SCHEMA_SENSORS = vol.Schema(
+    {
         vol.Required(
             CONF_ENABLE_DEVICE_STATUS, default=DEFAULT_ENABLE_DEVICE_STATUS
         ): selector.BooleanSelector(),
@@ -98,12 +103,22 @@ OPTIONS_SCHEMA = vol.Schema(
         vol.Required(
             CONF_ENABLE_SSID_SENSORS, default=DEFAULT_ENABLE_SSID_SENSORS
         ): selector.BooleanSelector(),
+    }
+)
+
+OPTIONS_SCHEMA_CAMERAS = vol.Schema(
+    {
         vol.Required(
             CONF_ENABLE_CAMERA_ENTITIES, default=DEFAULT_ENABLE_CAMERA_ENTITIES
         ): selector.BooleanSelector(),
         vol.Required(
             CONF_ENABLE_CAMERA_SENSE, default=DEFAULT_ENABLE_CAMERA_SENSE
         ): selector.BooleanSelector(),
+    }
+)
+
+OPTIONS_SCHEMA_ADVANCED = vol.Schema(
+    {
         vol.Required(
             CONF_ENABLE_VLAN_MANAGEMENT, default=DEFAULT_ENABLE_VLAN_MANAGEMENT
         ): selector.BooleanSelector(),
@@ -116,5 +131,14 @@ OPTIONS_SCHEMA = vol.Schema(
         vol.Required(
             CONF_ENABLE_VPN_MANAGEMENT, default=DEFAULT_ENABLE_VPN_MANAGEMENT
         ): selector.BooleanSelector(),
+    }
+)
+
+OPTIONS_SCHEMA = vol.Schema(
+    {
+        **OPTIONS_SCHEMA_GENERAL.schema,
+        **OPTIONS_SCHEMA_SENSORS.schema,
+        **OPTIONS_SCHEMA_CAMERAS.schema,
+        **OPTIONS_SCHEMA_ADVANCED.schema,
     }
 )

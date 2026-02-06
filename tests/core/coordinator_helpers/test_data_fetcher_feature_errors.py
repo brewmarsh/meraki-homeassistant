@@ -24,7 +24,13 @@ class MockAPIError(meraki.APIError):
         response.status_code = status
         response.reason = "Mock Reason"
         response.json.return_value = {"errors": [message]}
+        response.text = str({"errors": [message]})
+        self.message = message
         super().__init__(metadata, response)
+
+    def __str__(self):
+        """Return the error message as a string."""
+        return str(self.message)
 
 
 @pytest.fixture
@@ -49,7 +55,9 @@ async def test_async_gather_with_timeout_intercepts_traffic_analysis_error(
     """Test that Traffic Analysis 400 errors are intercepted and logged at DEBUG."""
 
     async def traffic_error_coro():
-        raise MockAPIError(400, "Traffic Analysis is not enabled for this network")
+        raise MockAPIError(
+            400, "Traffic Analysis with Hostname Visibility must be enabled"
+        )
 
     tasks = {"test_key": traffic_error_coro()}
 
@@ -63,7 +71,7 @@ async def test_async_gather_with_timeout_intercepts_traffic_analysis_error(
     # Assert
     assert isinstance(results["test_key"], MerakiTrafficAnalysisError)
     mock_logger.debug.assert_any_call(
-        "Traffic analysis disabled for %s (Status 400). Marking as disabled.",
+        "Skipping %s: Configuration requirement not met in Meraki Dashboard.",
         "test_key",
     )
     # Ensure NO error was logged
@@ -89,7 +97,7 @@ async def test_async_gather_with_timeout_intercepts_vlans_error(data_fetch_manag
     # Assert
     assert isinstance(results["test_key"], MerakiVlansDisabledError)
     mock_logger.debug.assert_any_call(
-        "VLANs disabled for %s (Status 400). Marking as disabled.",
+        "Skipping %s: Configuration requirement not met in Meraki Dashboard.",
         "test_key",
     )
     # Ensure NO error was logged

@@ -29,11 +29,21 @@ async def test_options_flow(hass: HomeAssistant) -> None:
     mock_network.name = "Network 1"
     mock_network.__getitem__ = MagicMock(side_effect=TypeError("Not subscriptable"))
 
-    coordinator.data = {"networks": [mock_network]}
+    coordinator.data = {"networks": [mock_network], "devices": []}
 
     hass.data[DOMAIN] = {entry.entry_id: {"coordinator": coordinator}}
 
     result = await hass.config_entries.options.async_init(entry.entry_id)
 
-    assert result["type"] == FlowResultType.FORM
+    # Verify Menu Step
+    assert result["type"] == FlowResultType.MENU
     assert result["step_id"] == "init"
+
+    # Select 'General' step
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"], user_input={"next_step_id": "general"}
+    )
+
+    # Verify General Form Step
+    assert result["type"] == FlowResultType.FORM
+    assert result["step_id"] == "general"

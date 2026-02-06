@@ -72,7 +72,7 @@ def handle_meraki_errors(
                 is_traffic_analysis = (
                     "Traffic Analysis with Hostname Visibility" in error_msg
                 )
-                is_vlan_disabled = "VLANs are not enabled" in error_msg
+                is_vlan_disabled = "VLANs are not enabled for this network" in error_msg
 
                 if is_traffic_analysis or is_vlan_disabled:
                     _LOGGER.debug("Meraki feature disabled (skipping): %s", error_msg)
@@ -228,11 +228,11 @@ def _is_network_error(err: APIError) -> bool:
 
 def _is_informational_error(err: APIError) -> bool:
     """Check if error is informational (e.g., feature not enabled)."""
-    error_str = str(err).lower()
+    error_msg = str(err)
     return (
-        "vlans are not enabled" in error_str
-        or "traffic analysis" in error_str
-        or "historical viewing is not supported" in error_str
+        "VLANs are not enabled for this network" in error_msg
+        or "Traffic Analysis with Hostname Visibility" in error_msg
+        or "historical viewing is not supported" in error_msg
     )
 
 

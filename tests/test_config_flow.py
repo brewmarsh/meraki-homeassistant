@@ -181,15 +181,29 @@ async def test_options_flow_with_devices(hass: HomeAssistant) -> None:
 
     result = await hass.config_entries.options.async_init(entry.entry_id)
 
-    assert result["type"] == FlowResultType.FORM
+    assert result["type"] == FlowResultType.MENU
     assert result["step_id"] == "init"
+    # ACCEPT REFACTOR: Verify specific menu options exist
+    assert "cameras" in result["menu_options"]
+    assert "advanced" in result["menu_options"]
 
-    schema = result["data_schema"].schema
-    schema_keys = [k.schema for k in schema.keys()]
+    # Check General Step
+    result_general = await hass.config_entries.options.async_configure(
+        result["flow_id"], user_input={"next_step_id": "general"}
+    )
+    assert result_general["type"] == FlowResultType.FORM
+    assert CONF_SCAN_INTERVAL in [
+        k.schema for k in result_general["data_schema"].schema.keys()
+    ]
 
-    assert CONF_ENABLE_CAMERA_ENTITIES in schema_keys
-    assert CONF_ENABLE_VLAN_MANAGEMENT in schema_keys
-    assert CONF_SCAN_INTERVAL in schema_keys
+    # Re-init to check Cameras Step
+    result = await hass.config_entries.options.async_init(entry.entry_id)
+    result_cameras = await hass.config_entries.options.async_configure(
+        result["flow_id"], user_input={"next_step_id": "cameras"}
+    )
+    assert CONF_ENABLE_CAMERA_ENTITIES in [
+        k.schema for k in result_cameras["data_schema"].schema.keys()
+    ]
 
 
 async def test_options_flow_without_devices(hass: HomeAssistant) -> None:
@@ -213,18 +227,18 @@ async def test_options_flow_without_devices(hass: HomeAssistant) -> None:
 
     result = await hass.config_entries.options.async_init(entry.entry_id)
 
-    assert result["type"] == FlowResultType.FORM
+    assert result["type"] == FlowResultType.MENU
     assert result["step_id"] == "init"
+    # UPDATED: We must check menu_options, not data_schema, for the new flow
+    assert "cameras" not in result["menu_options"]
+    assert "advanced" in result["menu_options"]
 
-    schema = result["data_schema"].schema
-    schema_keys = [k.schema for k in schema.keys()]
-
-    # These should be hidden
-    assert CONF_ENABLE_CAMERA_ENTITIES not in schema_keys
+    # Check Advanced Step (VLAN Management should be hidden)
+    result_advanced = await hass.config_entries.options.async_configure(
+        result["flow_id"], user_input={"next_step_id": "advanced"}
+    )
+    schema_keys = [k.schema for k in result_advanced["data_schema"].schema.keys()]
     assert CONF_ENABLE_VLAN_MANAGEMENT not in schema_keys
-
-    # Scan interval should still be there
-    assert CONF_SCAN_INTERVAL in schema_keys
 
 
 async def test_reconfigure_flow_without_devices(hass: HomeAssistant) -> None:
@@ -256,6 +270,7 @@ async def test_reconfigure_flow_without_devices(hass: HomeAssistant) -> None:
 
     assert result["type"] == FlowResultType.FORM
     assert result["step_id"] == "reconfigure"
+    assert result["data_schema"] is not None
 
     schema = result["data_schema"].schema
     schema_keys = [k.schema for k in schema.keys()]
