@@ -2,8 +2,7 @@
 
 from __future__ import annotations
 
-import logging
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
 from homeassistant.components.binary_sensor import (
     BinarySensorDeviceClass,
@@ -13,13 +12,9 @@ from homeassistant.core import callback
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from ..coordinator import MerakiDataUpdateCoordinator
-from ..helpers.device_info_helpers import resolve_device_info
-
-if TYPE_CHECKING:
-    from ..core.models.device import MerakiAppliancePort, MerakiDevice
-
-_LOGGER = logging.getLogger(__name__)
+from ...coordinator import MerakiDataUpdateCoordinator
+from ...core.models.device import MerakiDevice
+from ...helpers.device_info_helpers import resolve_device_info
 
 
 class SwitchPortSensor(CoordinatorEntity, BinarySensorEntity):
@@ -27,15 +22,14 @@ class SwitchPortSensor(CoordinatorEntity, BinarySensorEntity):
 
     coordinator: MerakiDataUpdateCoordinator
 
-    _attr_entity_registry_enabled_default = False
-    _attr_state_color = True
     _attr_device_class = BinarySensorDeviceClass.CONNECTIVITY
+    _attr_has_entity_name = True
 
     def __init__(
         self,
         coordinator: MerakiDataUpdateCoordinator,
         device: MerakiDevice,
-        port: dict[str, Any] | MerakiAppliancePort,
+        port: dict[str, Any] | Any,
     ) -> None:
         """Initialize the sensor."""
         super().__init__(coordinator)
@@ -47,6 +41,8 @@ class SwitchPortSensor(CoordinatorEntity, BinarySensorEntity):
 
         # MX appliances use 'number', MS switches use 'portId'
         port_id = self._port.get("portId") or self._port.get("number")
+
+        # Legacy Unique ID format to prevent breaking changes
         self._attr_unique_id = f"{device.serial}_{port_id}"
         self._attr_name = f"Port {port_id}"
 
@@ -79,7 +75,11 @@ class SwitchPortSensor(CoordinatorEntity, BinarySensorEntity):
     @property
     def is_on(self) -> bool:
         """Return true if the binary sensor is on."""
-        return self._port.get("status") == "Connected"
+        if not self._port.get("enabled", True):
+            return False
+
+        status = self._port.get("status", "")
+        return status is not None and status.lower() == "connected"
 
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
