@@ -39,7 +39,7 @@ def test_vlan_naming(mock_coordinator):
 
     # Device name remains the standardized Meraki format
     assert entity.device_info["name"] == "[VLAN 10] VoIP"
-    # Setting name to None ensures the entity inherits the Device Name exactly
+    # RESOLVED: Setting name to None ensures the entity inherits the Device Name exactly
     assert entity.name is None
 
 

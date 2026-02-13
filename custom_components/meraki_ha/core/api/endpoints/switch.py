@@ -119,8 +119,8 @@ class SwitchEndpoints:
         Args:
         ----
             serial: The serial number of the switch.
-            port_id: The port ID or number.
-            **kwargs: The parameters to update (e.g., enabled=True).
+            port_id: The port ID to update.
+            **kwargs: The parameters to update (e.g., enabled, vlan, etc.).
 
         Returns
         -------
