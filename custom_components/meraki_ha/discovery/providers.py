@@ -264,8 +264,9 @@ class SwitchPortProvider:
         if device.ports_statuses:
             for port in device.ports_statuses:
                 entities.append(SwitchPortSensor(coordinator, device, port))
+                # RESOLVED: Using beta branch version passing config_entry
                 entities.append(
-                    MerakiSwitchPortSwitch(coordinator, device, port)
+                    MerakiSwitchPortSwitch(coordinator, device, port, config_entry)
                 )
         return entities
 
