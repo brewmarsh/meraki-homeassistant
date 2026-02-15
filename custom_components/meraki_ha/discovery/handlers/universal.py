@@ -39,6 +39,7 @@ from ..providers import (
     SwitchPortProvider,
     UplinkPerformanceProvider,
     UplinkProvider,
+    WirelessRadioProvider,
 )
 from .base import BaseDeviceHandler
 
@@ -84,6 +85,7 @@ class UniversalHandler(BaseDeviceHandler):
         "status": MerakiDeviceStatusSensor,
         "physical_sensors": PhysicalSensorProvider,
         "camera_stream": CameraStreamProvider,
+        "wireless": WirelessRadioProvider,
     }
 
     # Mapping of capabilities to their configuration option toggle
@@ -110,6 +112,7 @@ class UniversalHandler(BaseDeviceHandler):
         "analytics": CONF_ENABLE_CAMERA_ENTITIES,
         "camera_stream": CONF_ENABLE_CAMERA_ENTITIES,
         "status": CONF_ENABLE_DEVICE_STATUS,
+        "wireless": CONF_ENABLE_DEVICE_SENSORS,
     }
 
     def __init__(

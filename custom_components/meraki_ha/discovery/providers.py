@@ -10,7 +10,7 @@ from homeassistant.components.sensor import (
     SensorEntityDescription,
     SensorStateClass,
 )
-from homeassistant.const import PERCENTAGE, UnitOfTime
+from homeassistant.const import PERCENTAGE, EntityCategory, UnitOfTime
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers import entity_registry as er
 
@@ -46,6 +46,7 @@ from ..sensor.device.network_settings import (
     MerakiDeviceIPSensor,
 )
 from ..sensor.device.rtsp_url import MerakiRtspUrlSensor
+from ..sensor.device.wireless_radio import MerakiWirelessRadioSensor
 from ..sensor.uplink_performance import MerakiUplinkPerformanceSensor
 from ..switch.camera_controls import AnalyticsSwitch
 from ..switch.switch_port import MerakiSwitchPortSwitch
@@ -268,6 +269,100 @@ class SwitchPortProvider:
                 entities.append(
                     MerakiSwitchPortSwitch(coordinator, device, port, config_entry)
                 )
+        return entities
+
+
+class WirelessRadioProvider:
+    """Provider for wireless radio entities."""
+
+    @staticmethod
+    def get_entities(
+        coordinator: MerakiDataUpdateCoordinator,
+        device: MerakiDevice,
+        config_entry: ConfigEntry,
+        **kwargs: Any,
+    ) -> list[Entity]:
+        """Get entities."""
+        if not device.serial or not device.wireless_radio_settings:
+            return []
+
+        entities: list[Entity] = []
+        settings = device.wireless_radio_settings
+
+        # 2.4GHz Channel
+        if "twoFourGhzSettings" in settings:
+            entities.append(
+                MerakiWirelessRadioSensor(
+                    coordinator,
+                    device,
+                    config_entry,
+                    SensorEntityDescription(
+                        key="2.4ghz_channel",
+                        name="2.4GHz channel",
+                        icon="mdi:wifi",
+                        entity_category=EntityCategory.DIAGNOSTIC,
+                    ),
+                    "twoFourGhzSettings",
+                    "channel",
+                )
+            )
+
+        # 5GHz Channel
+        if "fiveGhzSettings" in settings:
+            entities.append(
+                MerakiWirelessRadioSensor(
+                    coordinator,
+                    device,
+                    config_entry,
+                    SensorEntityDescription(
+                        key="5ghz_channel",
+                        name="5GHz channel",
+                        icon="mdi:wifi",
+                        entity_category=EntityCategory.DIAGNOSTIC,
+                    ),
+                    "fiveGhzSettings",
+                    "channel",
+                )
+            )
+
+        # 2.4GHz Target Power
+        if "twoFourGhzSettings" in settings:
+            entities.append(
+                MerakiWirelessRadioSensor(
+                    coordinator,
+                    device,
+                    config_entry,
+                    SensorEntityDescription(
+                        key="2.4ghz_target_power",
+                        name="2.4GHz target power",
+                        native_unit_of_measurement="dBm",
+                        icon="mdi:transmission-tower",
+                        entity_category=EntityCategory.DIAGNOSTIC,
+                    ),
+                    "twoFourGhzSettings",
+                    "targetPower",
+                )
+            )
+
+        # 5GHz Target Power (Generic "Target power" sensor for backward compatibility/requested name)
+        if "fiveGhzSettings" in settings:
+            entities.append(
+                MerakiWirelessRadioSensor(
+                    coordinator,
+                    device,
+                    config_entry,
+                    SensorEntityDescription(
+                        key="target_power",
+                        name="Target power",
+                        native_unit_of_measurement="dBm",
+                        icon="mdi:transmission-tower",
+                        entity_category=EntityCategory.DIAGNOSTIC,
+                    ),
+                    "fiveGhzSettings",
+                    "targetPower",
+                )
+            )
+
         return entities
 
 

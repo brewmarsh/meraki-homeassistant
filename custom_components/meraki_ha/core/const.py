@@ -15,6 +15,7 @@ _MX_CAPS = [
     "status",
     "physical_sensors",
     "led_control",
+    "wireless",
 ]
 
 _MR_CAPS = [
@@ -24,6 +25,7 @@ _MR_CAPS = [
     "status",
     "physical_sensors",
     "led_control",
+    "wireless",
 ]
 _MS_CAPS = [
     "switch_ports",
