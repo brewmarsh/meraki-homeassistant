@@ -46,6 +46,11 @@ from ..sensor.device.network_settings import (
     MerakiDeviceIPSensor,
 )
 from ..sensor.device.rtsp_url import MerakiRtspUrlSensor
+from ..sensor.device.switch_port import (
+    MerakiSwitchPortEnergySensor,
+    MerakiSwitchPortPowerSensor,
+    MerakiSwitchPortSensor,
+)
 from ..sensor.device.wireless_radio import MerakiWirelessRadioSensor
 from ..sensor.uplink_performance import MerakiUplinkPerformanceSensor
 from ..switch.camera_controls import AnalyticsSwitch
@@ -265,6 +270,15 @@ class SwitchPortProvider:
         if device.ports_statuses:
             for port in device.ports_statuses:
                 entities.append(SwitchPortSensor(coordinator, device, port))
+                entities.append(
+                    MerakiSwitchPortSensor(coordinator, device, port, config_entry)
+                )
+                entities.append(
+                    MerakiSwitchPortPowerSensor(coordinator, device, port, config_entry)
+                )
+                entities.append(
+                    MerakiSwitchPortEnergySensor(coordinator, device, port, config_entry)
+                )
                 # RESOLVED: Updated constructor to include config_entry per beta branch
                 entities.append(
                     MerakiSwitchPortSwitch(coordinator, device, port, config_entry)

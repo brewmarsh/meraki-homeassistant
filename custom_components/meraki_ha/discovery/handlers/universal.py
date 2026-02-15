@@ -78,7 +78,6 @@ class UniversalHandler(BaseDeviceHandler):
         "uplinks": UplinkProvider,
         "performance": UplinkPerformanceProvider,
         "appliance_ports": AppliancePortProvider,
-        "switch_ports": SwitchPortProvider,
         "poe_usage": MerakiPoeUsageSensor,
         "analytics": CameraAnalyticsProvider,
         "reboot": MerakiRebootButton,
@@ -108,7 +107,6 @@ class UniversalHandler(BaseDeviceHandler):
         "uplinks": CONF_ENABLE_PORT_SENSORS,
         "performance": CONF_ENABLE_PORT_SENSORS,
         "appliance_ports": CONF_ENABLE_PORT_SENSORS,
-        "switch_ports": CONF_ENABLE_PORT_SENSORS,
         "analytics": CONF_ENABLE_CAMERA_ENTITIES,
         "camera_stream": CONF_ENABLE_CAMERA_ENTITIES,
         "status": CONF_ENABLE_DEVICE_STATUS,
@@ -132,13 +130,6 @@ class UniversalHandler(BaseDeviceHandler):
             if capabilities is not None
             else DEVICE_CAPABILITIES.get(device.model, DEFAULT_CAPS)[:]
         )
-
-        # Fallback: if model is unknown but product_type indicates switch, add switch_ports
-        if "switch_ports" not in self.capabilities:
-            if (device.product_type == "switch") or (
-                device.model and device.model.startswith("MS")
-            ):
-                self.capabilities.append("switch_ports")
 
         # Fallback: if model is unknown but product_type indicates wireless, add ssids
         if "ssids" not in self.capabilities:

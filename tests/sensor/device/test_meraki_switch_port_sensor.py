@@ -9,6 +9,7 @@ from homeassistant.const import UnitOfEnergy, UnitOfPower
 from custom_components.meraki_ha.sensor.device.switch_port import (
     MerakiSwitchPortEnergySensor,
     MerakiSwitchPortPowerSensor,
+    MerakiSwitchPortSensor,
 )
 from custom_components.meraki_ha.types import MerakiDevice
 
@@ -89,3 +90,34 @@ def test_switch_port_energy_sensor_missing_data(mock_coordinator_and_device):
     sensor.async_write_ha_state = MagicMock()
     sensor._handle_coordinator_update()
     assert sensor.native_value == 0.0
+
+
+def test_meraki_switch_port_sensor_init(mock_coordinator_and_device):
+    """Test the Meraki switch port sensor initialization."""
+    coordinator, device = mock_coordinator_and_device
+    port = {"portId": "1", "status": "Connected"}
+    config_entry = MagicMock()
+
+    sensor = MerakiSwitchPortSensor(coordinator, device, port, config_entry)
+
+    assert sensor.unique_id == "Q234-ABCD-5678_port_1"
+    assert sensor.name == "Port 1 status"
+    assert sensor.native_value == "Connected"
+
+
+def test_meraki_switch_port_sensor_update(mock_coordinator_and_device):
+    """Test the Meraki switch port sensor update."""
+    coordinator, device = mock_coordinator_and_device
+    port = {"portId": "1", "status": "Connected"}
+    config_entry = MagicMock()
+
+    sensor = MerakiSwitchPortSensor(coordinator, device, port, config_entry)
+    sensor.async_write_ha_state = MagicMock()
+
+    # Update data
+    device.ports_statuses[0]["status"] = "Disconnected"
+    coordinator.data = {"devices": [device]}
+
+    sensor._handle_coordinator_update()
+
+    assert sensor.native_value == "Disconnected"

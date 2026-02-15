@@ -72,7 +72,7 @@ async def test_switch_port_init(
     switch.hass = hass
 
     assert switch.unique_id == "Q2AA-BB33-CC44_port_switch_1"
-    assert switch.name == "Port 1 Enabled"
+    assert switch.name == "Port 1 enabled"
     assert switch.is_on is True
 
 

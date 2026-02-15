@@ -15,6 +15,7 @@ from ..const import DOMAIN
 from ..coordinator import MerakiDataUpdateCoordinator
 from ..core.models.device import MerakiDevice
 from ..entity import MerakiEntity
+from ..helpers.device_info_helpers import resolve_device_info
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -43,16 +44,14 @@ class MerakiSwitchPortSwitch(MerakiEntity, SwitchEntity):
         # Standardized unique ID logic: uses the key to differentiate from sensors
         self.entity_description = SwitchEntityDescription(
             key=f"port_switch_{port_id}",
-            name=f"Port {port_id} Enabled",
+            name=f"Port {port_id} enabled",
         )
         self._update_internal_state()
 
     @property
     def device_info(self) -> DeviceInfo | None:
         """Return the device info."""
-        return DeviceInfo(
-            identifiers={(DOMAIN, cast(str, self._device.serial))},
-        )
+        return resolve_device_info(self._device, self._config_entry)
 
     @property
     def available(self) -> bool:
