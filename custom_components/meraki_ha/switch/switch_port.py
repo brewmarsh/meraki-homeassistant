@@ -39,7 +39,7 @@ class MerakiSwitchPortSwitch(MerakiEntity, SwitchEntity):
         self._config_entry = config_entry
 
         port_id = self._port.get("portId") or self._port.get("number")
-        
+
         # Standardized unique ID logic: uses the key to differentiate from sensors
         self.entity_description = SwitchEntityDescription(
             key=f"port_switch_{port_id}",
@@ -73,7 +73,7 @@ class MerakiSwitchPortSwitch(MerakiEntity, SwitchEntity):
                         self._port = port
                         break
                 break
-        
+
         self._update_internal_state()
         self.async_write_ha_state()
 
