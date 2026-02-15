@@ -69,3 +69,37 @@ def test_process_network_data(mock_parse, strategy):
     assert processed_data["ssids"] == [{"name": "SSID1", "number": 0}]
     assert processed_data["wireless_settings"] == {"setting1": "val1"}
     assert processed_data["rf_profiles"] == {"profile1": "data1"}
+
+
+def test_build_device_tasks(strategy, mock_client):
+    """Test that build_device_tasks calls the correct client methods."""
+    device = MagicMock()
+    device.serial = "serial1"
+    tasks = {}
+    capabilities = ["wireless", "led_control"]
+
+    strategy.build_device_tasks(device, tasks, capabilities)
+
+    assert f"management_interface_{device.serial}" in tasks
+    assert f"wireless_radio_settings_{device.serial}" in tasks
+    mock_client.devices.get_device_management_interface.assert_called_once_with(
+        device.serial
+    )
+    mock_client.wireless.get_wireless_settings.assert_called_once_with(device.serial)
+
+
+def test_process_device_details(strategy):
+    """Test that process_device_details extracts and stores data."""
+    device = MagicMock()
+    device.serial = "serial1"
+    detail_data = {
+        f"management_interface_{device.serial}": {"led": "on"},
+        f"wireless_radio_settings_{device.serial}": {
+            "twoFourGhzSettings": {"channel": 1}
+        },
+    }
+
+    strategy.process_device_details(device, detail_data, None)
+
+    assert device.management_interface == {"led": "on"}
+    assert device.wireless_radio_settings == {"twoFourGhzSettings": {"channel": 1}}

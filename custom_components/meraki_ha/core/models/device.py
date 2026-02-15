@@ -83,6 +83,7 @@ class MerakiDevice:
     sensor_relationships: list[dict[str, Any]] = field(default_factory=list)
     dynamic_dns: dict[str, Any] | None = None
     management_interface: dict[str, Any] | None = None
+    wireless_radio_settings: dict[str, Any] | None = None
     status_messages: list[str] = field(default_factory=list)
     entity_id: str | None = None
     ambient_noise: float | None = None
@@ -128,6 +129,7 @@ class MerakiDevice:
             "sensorRelationships": self.sensor_relationships,
             "dynamicDns": self.dynamic_dns,
             "managementInterface": self.management_interface,
+            "wirelessRadioSettings": self.wireless_radio_settings,
             "statusMessages": self.status_messages,
             "applianceUplinkStatuses": self.appliance_uplink_statuses,
             "uplinks": self.uplinks,
@@ -168,6 +170,7 @@ class MerakiDevice:
             sensor_relationships=data.get("sensorRelationships", []),
             dynamic_dns=data.get("dynamicDns"),
             management_interface=data.get("managementInterface"),
+            wireless_radio_settings=data.get("wirelessRadioSettings"),
             status_messages=data.get("statusMessages", []),
             appliance_uplink_statuses=data.get("applianceUplinkStatuses", []),
             uplinks=data.get("uplinks", []),

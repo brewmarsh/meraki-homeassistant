@@ -40,6 +40,12 @@ class WirelessFetchStrategy(BaseFetchStrategy):
                     self.client.devices.get_device_management_interface(device.serial),
                 )
             )
+        if "wireless" in capabilities and device.serial:
+            tasks[f"wireless_radio_settings_{device.serial}"] = (
+                self.client.run_with_semaphore(
+                    self.client.wireless.get_wireless_settings(device.serial),
+                )
+            )
 
     def process_device_details(
         self,
@@ -54,6 +60,13 @@ class WirelessFetchStrategy(BaseFetchStrategy):
                 device.management_interface = management_interface
         elif prev_device and hasattr(prev_device, "management_interface"):
             device.management_interface = prev_device.management_interface
+
+        radio_settings_key = f"wireless_radio_settings_{device.serial}"
+        if radio_settings := detail_data.get(radio_settings_key):
+            if isinstance(radio_settings, dict):
+                device.wireless_radio_settings = radio_settings
+        elif prev_device and hasattr(prev_device, "wireless_radio_settings"):
+            device.wireless_radio_settings = prev_device.wireless_radio_settings
 
     def process_network_data(
         self,
