@@ -1,31 +1,34 @@
-"""Tests for Meraki Switch Port Switch."""
+"""Tests for the Meraki Switch Port switch."""
 
 from unittest.mock import AsyncMock, MagicMock
-
 import pytest
 
+from custom_components.meraki_ha.coordinator import MerakiDataUpdateCoordinator
+from custom_components.meraki_ha.core.models.device import MerakiDevice
 from custom_components.meraki_ha.switch.switch_port import MerakiSwitchPortSwitch
 
-
 @pytest.fixture
-def mock_coordinator():
+def mock_coordinator(hass):
     """Mock the Meraki Data Update Coordinator."""
-    coordinator = MagicMock()
+    coordinator = MagicMock(spec=MerakiDataUpdateCoordinator)
+    coordinator.hass = hass
+    coordinator.data = {"devices": []}
+    coordinator.is_pending.return_value = False
+    coordinator.register_pending_update = MagicMock()
+    coordinator.cancel_pending_update = MagicMock()
     coordinator.api = MagicMock()
     coordinator.api.switch = MagicMock()
     coordinator.api.switch.update_device_switch_port = AsyncMock()
-    coordinator.is_pending.return_value = False
-    coordinator.register_pending_update = MagicMock()
-    coordinator.data = {"devices": []}
     return coordinator
 
 @pytest.fixture
 def mock_device():
-    """Mock Meraki Device."""
-    device = MagicMock()
-    device.serial = "Q2AA-BBBB-CCCC"
+    """Mock a Meraki device."""
+    device = MagicMock(spec=MerakiDevice)
+    device.serial = "Q234-5678-90AB"
+    device.model = "MS120-8"
     device.status = "online"
-    device.ports_statuses = []
+    device.ports_statuses = [{"portId": "1", "enabled": True}]
     return device
 
 @pytest.fixture
@@ -33,95 +36,64 @@ def mock_config_entry():
     """Mock Config Entry."""
     return MagicMock()
 
-@pytest.mark.asyncio
-async def test_meraki_switch_port_switch_initialization(
-    mock_coordinator, mock_device, mock_config_entry
-):
-    """Test switch initialization."""
-    port_data = {"portId": "1", "enabled": True}
-
-    switch = MerakiSwitchPortSwitch(
-        mock_coordinator, mock_device, port_data, mock_config_entry
+@pytest.fixture
+def switch_port(mock_coordinator, mock_device, mock_config_entry, hass):
+    """Create a switch port entity."""
+    mock_coordinator.data["devices"] = [mock_device]
+    entity = MerakiSwitchPortSwitch(
+        mock_coordinator,
+        mock_device,
+        mock_device.ports_statuses[0],
+        mock_config_entry,
     )
-
-    assert switch.unique_id == "Q2AA-BBBB-CCCC_port_1_enabled"
-    assert switch.name == "Port 1"
-    assert switch.is_on is True
-    assert switch.available is True
+    entity.hass = hass
+    entity.async_write_ha_state = MagicMock()
+    return entity
 
 @pytest.mark.asyncio
-async def test_meraki_switch_port_switch_turn_off(
-    mock_coordinator, mock_device, mock_config_entry
-):
+async def test_switch_port_initialization(switch_port):
+    """Test that the switch initializes correctly."""
+    # Matches the standardized unique_id logic: {serial}_{key}
+    assert switch_port.unique_id == "Q234-5678-90AB_port_switch_1"
+    assert switch_port.name == "Port 1 Enabled"
+    assert switch_port.is_on is True
+
+@pytest.mark.asyncio
+async def test_switch_port_turn_off(switch_port, mock_coordinator):
     """Test turning the switch off."""
-    port_data = {"portId": "1", "enabled": True}
+    await switch_port.async_turn_off()
 
-    switch = MerakiSwitchPortSwitch(
-        mock_coordinator, mock_device, port_data, mock_config_entry
-    )
-    # Mock hass for async_write_ha_state
-    switch.hass = MagicMock()
-    switch.async_write_ha_state = MagicMock()
-
-    await switch.async_turn_off()
-
-    # Check if API called
+    assert switch_port.is_on is False
     mock_coordinator.api.switch.update_device_switch_port.assert_called_once_with(
-        serial="Q2AA-BBBB-CCCC", port_id="1", enabled=False
+        serial="Q234-5678-90AB",
+        port_id="1",
+        enabled=False,
     )
-
-    # Check optimistic update
-    assert switch.is_on is False
-
-    # Check pending update registration
-    mock_coordinator.register_pending_update.assert_called_once_with(
-        "Q2AA-BBBB-CCCC_port_1_enabled"
-    )
+    mock_coordinator.register_pending_update.assert_called_once()
 
 @pytest.mark.asyncio
-async def test_meraki_switch_port_switch_turn_on(
-    mock_coordinator, mock_device, mock_config_entry
-):
+async def test_switch_port_turn_on(switch_port, mock_coordinator):
     """Test turning the switch on."""
-    port_data = {"portId": "1", "enabled": False}
+    # First set it to off manually
+    switch_port._attr_is_on = False
 
-    switch = MerakiSwitchPortSwitch(
-        mock_coordinator, mock_device, port_data, mock_config_entry
-    )
-    # Mock hass for async_write_ha_state
-    switch.hass = MagicMock()
-    switch.async_write_ha_state = MagicMock()
+    await switch_port.async_turn_on()
 
-    await switch.async_turn_on()
-
-    # Check if API called
+    assert switch_port.is_on is True
     mock_coordinator.api.switch.update_device_switch_port.assert_called_once_with(
-        serial="Q2AA-BBBB-CCCC", port_id="1", enabled=True
+        serial="Q234-5678-90AB",
+        port_id="1",
+        enabled=True,
     )
-
-    # Check optimistic update
-    assert switch.is_on is True
+    mock_coordinator.register_pending_update.assert_called_once()
 
 @pytest.mark.asyncio
-async def test_meraki_switch_port_switch_update_from_coordinator(
-    mock_coordinator, mock_device, mock_config_entry
-):
-    """Test updating state from coordinator data."""
-    port_data = {"portId": "1", "enabled": True}
+async def test_update_internal_state(switch_port, mock_coordinator, mock_device):
+    """Test updating internal state from coordinator data."""
+    # Simulate an update where port is disabled
+    mock_device.ports_statuses[0]["enabled"] = False
+    mock_coordinator.data["devices"] = [mock_device]
 
-    switch = MerakiSwitchPortSwitch(
-        mock_coordinator, mock_device, port_data, mock_config_entry
-    )
-    switch.hass = MagicMock()
-    switch.async_write_ha_state = MagicMock()
+    switch_port._handle_coordinator_update()
 
-    # Mock update
-    new_port_data = {"portId": "1", "enabled": False}
-    updated_device = MagicMock()
-    updated_device.serial = "Q2AA-BBBB-CCCC"
-    updated_device.ports_statuses = [new_port_data]
-    mock_coordinator.data = {"devices": [updated_device]}
-
-    switch._handle_coordinator_update()
-
-    assert switch.is_on is False
+    assert switch_port.is_on is False

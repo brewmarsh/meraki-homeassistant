@@ -5,6 +5,7 @@ interface HassObject {
   connection: {
     sendMessagePromise(message: any): Promise<any>;
   };
+  callWS(message: any): Promise<any>;
   [key: string]: any;
 }
 
@@ -46,6 +47,7 @@ export class MerakiPanel extends LitElement {
   @state() private _data: MerakiData | null = null;
   @state() private _loading = true;
   @state() private _error: string | null = null;
+  @state() private entryId: string | null = null;
 
   static styles = css`
     :host {
@@ -71,16 +73,29 @@ export class MerakiPanel extends LitElement {
   }
 
   private async _fetchData() {
-    if (!this.hass || !this.panel) {
+    if (!this.hass) {
       this._error = 'Home Assistant objects not available.';
       this._loading = false;
       return;
     }
 
     try {
+      const entries = await this.hass.callWS({
+        type: 'config_entries/get',
+        domain: 'meraki_ha',
+      });
+
+      if (entries && (entries as any[]).length > 0) {
+        this.entryId = (entries as any[])[0].entry_id;
+      } else {
+        this._error = 'No configuration found';
+        this._loading = false;
+        return;
+      }
+
       const data = await this.hass.connection.sendMessagePromise({
         type: 'meraki_ha/get_config',
-        config_entry_id: this.panel.config.config_entry_id,
+        config_entry_id: this.entryId,
       });
       this._data = data;
     } catch (err: any) {
@@ -91,7 +106,7 @@ export class MerakiPanel extends LitElement {
   }
 
   private async _handleToggle(networkId: string, enabled: boolean) {
-    if (!this._data) return;
+    if (!this._data || !this.entryId) return;
 
     const enabled_networks = enabled
       ? [...this._data.enabled_networks, networkId]
@@ -103,7 +118,7 @@ export class MerakiPanel extends LitElement {
     try {
       await this.hass.connection.sendMessagePromise({
         type: 'meraki_ha/update_enabled_networks',
-        config_entry_id: this.panel.config.config_entry_id,
+        config_entry_id: this.entryId,
         enabled_networks,
       });
     } catch (err) {

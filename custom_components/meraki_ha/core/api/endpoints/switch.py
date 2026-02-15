@@ -112,7 +112,7 @@ class SwitchEndpoints:
         serial: str,
         port_id: str,
         **kwargs: Any,
-    ) -> dict[str, Any] | list[Any]:
+    ) -> dict[str, Any]:
         """
         Update a switch port.
 
@@ -124,7 +124,7 @@ class SwitchEndpoints:
 
         Returns
         -------
-            The API response.
+            The updated port configuration.
 
         """
         response = await self._api_client.run_sync(

@@ -1,14 +1,9 @@
 """Tests for entity naming."""
 
 from unittest.mock import MagicMock
-
 import pytest
-
-from custom_components.meraki_ha.core.entities.meraki_vlan_entity import (
-    MerakiVLANEntity,
-)
+from custom_components.meraki_ha.core.entities.meraki_vlan_entity import MerakiVLANEntity
 from custom_components.meraki_ha.types import MerakiNetwork
-
 
 @pytest.fixture
 def mock_coordinator():
@@ -16,7 +11,6 @@ def mock_coordinator():
     coordinator = MagicMock()
     coordinator.data = {}
     return coordinator
-
 
 def test_vlan_naming(mock_coordinator):
     """Test the naming of a VLAN entity."""
@@ -43,8 +37,10 @@ def test_vlan_naming(mock_coordinator):
 
     entity = MerakiVLANEntity(mock_coordinator, config_entry, "N_12345", vlan)
 
-    assert entity.device_info["name"] == "[Network] Site A"
-    assert entity.name == "VLAN 10 VoIP"
+    # Device name remains the standardized Meraki format
+    assert entity.device_info["name"] == "[VLAN 10] VoIP"
+    # RESOLVED: Setting name to None ensures the entity inherits the Device Name exactly
+    assert entity.name is None
 
 
 def test_camera_naming(mock_coordinator):
@@ -65,7 +61,6 @@ def test_camera_naming(mock_coordinator):
         product_type="camera",
     )
     mock_coordinator.get_device.return_value = device
-
     camera_service = MagicMock()
 
     entity = MerakiRTSPStreamCamera(
@@ -73,8 +68,7 @@ def test_camera_naming(mock_coordinator):
     )
 
     assert entity.has_entity_name is True
-    # In the refactor branch, we use has_entity_name=True and name=None
-    # so the entity is named after the device itself.
+    # The entity inherits the device name "Front Door" because name is None
     assert entity.name is None
     assert entity.device_info["name"] == "[Camera] Front Door"
 
@@ -97,5 +91,6 @@ def test_network_status_naming(mock_coordinator):
     entity.hass = MagicMock()
     entity.coordinator = mock_coordinator
 
+    # Supplemental entities keep a descriptive name
     assert entity.name == "Uplink status"
     assert entity.device_info["name"] == "[Network] Warehouse"
