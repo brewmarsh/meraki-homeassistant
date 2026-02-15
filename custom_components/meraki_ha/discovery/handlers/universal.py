@@ -127,8 +127,22 @@ class UniversalHandler(BaseDeviceHandler):
         self.capabilities = (
             capabilities
             if capabilities is not None
-            else DEVICE_CAPABILITIES.get(device.model, DEFAULT_CAPS)
+            else DEVICE_CAPABILITIES.get(device.model, DEFAULT_CAPS)[:]
         )
+
+        # Fallback: if model is unknown but product_type indicates switch, add switch_ports
+        if "switch_ports" not in self.capabilities:
+            if (device.product_type == "switch") or (
+                device.model and device.model.startswith("MS")
+            ):
+                self.capabilities.append("switch_ports")
+
+        # Fallback: if model is unknown but product_type indicates wireless, add ssids
+        if "ssids" not in self.capabilities:
+            if (device.product_type == "wireless") or (
+                device.model and device.model.startswith("MR")
+            ):
+                self.capabilities.append("ssids")
         self._camera_service = camera_service
         self._control_service = control_service
         self._network_control_service = network_control_service
