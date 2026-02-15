@@ -8,7 +8,7 @@ import pytest
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.network import NoURLAvailableError
 
-from custom_components.meraki_ha.const import DOMAIN
+from custom_components.meraki_ha.const import DOMAIN, EVENT_MERAKI_WEBHOOK_ALERT
 from custom_components.meraki_ha.coordinator import MerakiDataUpdateCoordinator
 from custom_components.meraki_ha.types import MerakiDevice
 from custom_components.meraki_ha.webhook import async_handle_webhook, get_webhook_url
@@ -144,6 +144,39 @@ async def test_handle_webhook_unknown_alert(
 
     # Assert
     coordinator.async_update_listeners.assert_not_called()
+
+
+@pytest.mark.asyncio
+async def test_handle_webhook_fires_event(
+    mock_hass_with_webhook_data: HomeAssistant,
+) -> None:
+    """Test that a valid webhook fires an event."""
+    # Arrange
+    webhook_id = "test_webhook_id"
+    request = AsyncMock()
+    data = {
+        "sharedSecret": "test_secret",
+        "alertType": "Any alert",
+        "deviceSerial": "Q234-ABCD-5678",
+    }
+    request.json.return_value = data
+
+    events = []
+
+    def event_listener(event):
+        events.append(event)
+
+    mock_hass_with_webhook_data.bus.async_listen(
+        EVENT_MERAKI_WEBHOOK_ALERT, event_listener
+    )
+
+    # Act
+    await async_handle_webhook(mock_hass_with_webhook_data, webhook_id, request)
+    await mock_hass_with_webhook_data.async_block_till_done()
+
+    # Assert
+    assert len(events) == 1
+    assert events[0].data == data
 
 
 def test_get_webhook_url_fallback(hass: HomeAssistant) -> None:
