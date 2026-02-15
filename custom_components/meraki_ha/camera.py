@@ -10,7 +10,7 @@ from homeassistant.components.camera import Camera, CameraEntityFeature
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
 from .const import DOMAIN
-from .const_conf import CONF_ENABLE_CAMERA_ENTITIES, CONF_RTSP_STREAM_ENABLED
+from .const_conf import CONF_ENABLE_CAMERA_ENTITIES
 from .entity import MerakiEntity
 from .helpers.device_info_helpers import resolve_device_info
 

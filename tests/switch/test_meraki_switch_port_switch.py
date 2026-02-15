@@ -184,3 +184,30 @@ async def test_switch_port_update_pending(
 
     # Should still be True because pending
     assert switch.is_on is True
+
+
+@pytest.mark.asyncio
+async def test_switch_port_update_error(
+    hass: HomeAssistant,
+    mock_coordinator,
+    mock_device,
+    mock_config_entry,
+):
+    """Test error handling during update."""
+    port_data = {"portId": "1", "enabled": True}
+    switch = MerakiSwitchPortSwitch(
+        mock_coordinator, mock_device, port_data, mock_config_entry
+    )
+    switch.hass = hass
+    switch.async_write_ha_state = MagicMock()  # type: ignore[method-assign]
+
+    mock_coordinator.api.switch.update_device_switch_port.side_effect = RuntimeError(
+        "API Error"
+    )
+
+    with pytest.raises(RuntimeError):
+        await switch.async_turn_off()
+
+    # State in UI was changed optimistically to False, but should be reverted
+    # to True on failure
+    assert switch.is_on is True
