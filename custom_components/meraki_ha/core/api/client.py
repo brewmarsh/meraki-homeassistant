@@ -75,10 +75,16 @@ class MerakiAPIClient:
         self._hass = hass
         self._base_url = base_url
 
-        self._disabled_features: set[str] = set()
-        self._enable_vpn_management = False
-
-        self._dashboard: meraki.DashboardAPI | None = None
+        self.dashboard = meraki.DashboardAPI(
+            api_key=self._api_key,
+            base_url=self._base_url,
+            output_log=False,
+            print_console=False,
+            suppress_logging=True,
+            maximum_retries=3,
+            wait_on_rate_limit=True,
+            nginx_429_retry_wait_time=2,
+        )
 
         # Initialize endpoint handlers
         self.appliance = ApplianceEndpoints(self, self._hass)
@@ -91,56 +97,21 @@ class MerakiAPIClient:
         self.sensor = SensorEndpoints(self)
 
         # Semaphore to limit concurrent API calls
-        self._rate_limiter = asyncio.Semaphore(5)
+        self._semaphore = asyncio.Semaphore(2)
+
+        # Set of disabled features to prevent repetitive API calls
+        self._disabled_features: set[str] = set()
+        self._enable_vpn_management = False
 
     @property
     def has_dashboard(self) -> bool:
         """Check if the dashboard is initialized."""
-        return self._dashboard is not None
-
-    @property
-    def dashboard(self) -> meraki.DashboardAPI:
-        """
-        Get the Dashboard API instance.
-
-        Returns
-        -------
-            The Dashboard API instance.
-
-        Raises
-        ------
-            RuntimeError: If the Dashboard API has not been initialized.
-
-        """
-        if self._dashboard is None:
-            raise RuntimeError(
-                "Meraki Dashboard API not initialized. Call async_setup() first."
-            )
-        return self._dashboard
-
-    @dashboard.setter
-    def dashboard(self, value: meraki.DashboardAPI | None) -> None:
-        """Set the Dashboard API instance."""
-        self._dashboard = value
+        return self.dashboard is not None
 
     async def async_setup(self) -> None:
         """Perform asynchronous setup of the API client."""
-        self._dashboard = await self._hass.async_add_executor_job(
-            self._create_dashboard_api
-        )
-
-    def _create_dashboard_api(self) -> meraki.DashboardAPI:
-        """Create and return the MerakiDashboardAPI instance."""
-        return meraki.DashboardAPI(
-            api_key=self._api_key,
-            base_url=self._base_url,
-            output_log=False,
-            print_console=False,
-            suppress_logging=True,
-            maximum_retries=3,
-            wait_on_rate_limit=True,
-            nginx_429_retry_wait_time=2,
-        )
+        # Dashboard API is now initialized in __init__
+        pass
 
     async def run_sync(
         self,
@@ -161,7 +132,7 @@ class MerakiAPIClient:
             The result of the function.
 
         """
-        async with self._rate_limiter:
+        async with self._semaphore:
             try:
                 loop = asyncio.get_event_loop()
                 result = await loop.run_in_executor(
