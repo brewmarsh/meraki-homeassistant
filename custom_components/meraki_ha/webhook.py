@@ -7,10 +7,11 @@ from typing import TYPE_CHECKING
 from urllib.parse import urlparse
 
 from aiohttp import web
+from homeassistant.components import webhook
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.network import NoURLAvailableError, get_url
 
-from .const import DOMAIN
+from .const import DOMAIN, EVENT_MERAKI_WEBHOOK_ALERT
 from .core.errors import MerakiConnectionError
 
 if TYPE_CHECKING:
@@ -119,6 +120,10 @@ async def async_register_webhook(
         entry: The config entry.
 
     """
+    webhook.async_register(
+        hass, DOMAIN, "Meraki", webhook_id, async_handle_webhook
+    )
+
     try:
         webhook_url_from_entry = entry.data.get("webhook_url") if entry else None
         webhook_url = get_webhook_url(hass, webhook_id, webhook_url_from_entry)
@@ -132,7 +137,7 @@ async def async_register_webhook(
 
 async def async_unregister_webhook(
     hass: HomeAssistant,
-    config_entry_id: str,
+    webhook_id: str,
     api_client: MerakiAPIClient,
 ) -> None:
     """
@@ -145,7 +150,8 @@ async def async_unregister_webhook(
         api_client: The Meraki API client.
 
     """
-    await api_client.unregister_webhook(config_entry_id)
+    webhook.async_unregister(hass, webhook_id)
+    await api_client.unregister_webhook(webhook_id)
 
 
 async def async_handle_webhook(
@@ -179,6 +185,9 @@ async def async_handle_webhook(
     if not secret or data.get("sharedSecret") != secret:
         _LOGGER.warning("Received webhook with invalid secret: %s", webhook_id)
         return
+
+    # Fire event for automation triggers
+    hass.bus.async_fire(EVENT_MERAKI_WEBHOOK_ALERT, data)
 
     coordinator = entry_data.get("coordinator")
     if not coordinator:
