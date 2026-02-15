@@ -7,9 +7,9 @@ from typing import Any, cast
 
 from homeassistant.components.switch import SwitchEntity, SwitchEntityDescription
 from homeassistant.config_entries import ConfigEntry
+from homeassistant.const import EntityCategory
 from homeassistant.core import callback
 from homeassistant.helpers.device_registry import DeviceInfo
-from homeassistant.helpers.entity import EntityCategory
 
 from ..const import DOMAIN
 from ..coordinator import MerakiDataUpdateCoordinator
