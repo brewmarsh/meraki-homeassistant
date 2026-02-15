@@ -78,9 +78,7 @@ class ApplianceFetchStrategy(BaseFetchStrategy):
             ),
         )
         tasks[f"uplink_performance_{network_id}"] = self.client.run_with_semaphore(
-            self.client.appliance.get_network_appliance_uplinks_performance(
-                network_id,
-            ),
+            self._get_uplink_performance(network_id),
         )
 
     async def _async_get_appliance_ports(self, network_id: str) -> list[dict[str, Any]]:
@@ -98,6 +96,36 @@ class ApplianceFetchStrategy(BaseFetchStrategy):
                     _VLAN_WARNING_LOGGED = True
                 return []
             raise
+
+    async def _get_uplink_performance(self, network_id: str) -> list[dict[str, Any]]:
+        """Fetch uplink performance with robust fallback."""
+        methods = [
+            ("getNetworkApplianceUplinksUsageHistory", {"timespan": 60}),
+            ("getNetworkApplianceUplinksLossAndLatency", {}),
+            ("getNetworkApplianceUplinksPerformance", {}),
+        ]
+
+        for method_name, extra_kwargs in methods:
+            if hasattr(self.client.dashboard.appliance, method_name):
+                method = getattr(self.client.dashboard.appliance, method_name)
+                try:
+                    _LOGGER.debug(
+                        "Attempting to fetch uplink performance using %s", method_name
+                    )
+                    performance = await self.client.run_sync(
+                        method, networkId=network_id, **extra_kwargs
+                    )
+                    if isinstance(performance, list):
+                        return performance
+                except Exception as e:
+                    _LOGGER.debug(
+                        "Method %s failed for network %s: %s",
+                        method_name,
+                        network_id,
+                        e,
+                    )
+                    continue
+        return []
 
     def build_device_tasks(
         self,
@@ -215,9 +243,21 @@ class ApplianceFetchStrategy(BaseFetchStrategy):
 
         if performance := detail_data.get(f"uplink_performance_{device.network_id}"):
             if isinstance(performance, list):
+                # Normalize keys for robust mapping (loss -> lossPercent, latency -> latencyMs)
+                normalized_performance = []
+                for p in performance:
+                    if not isinstance(p, dict):
+                        continue
+                    item = p.copy()
+                    if "loss" in item and "lossPercent" not in item:
+                        item["lossPercent"] = item["loss"]
+                    if "latency" in item and "latencyMs" not in item:
+                        item["latencyMs"] = item["latency"]
+                    normalized_performance.append(item)
+
                 # Filter performance data for this device
                 device_perf = [
-                    p for p in performance if p.get("serial") == device.serial
+                    p for p in normalized_performance if p.get("serial") == device.serial
                 ]
                 # Merge with existing status data in device.uplinks
                 perf_by_interface = {p.get("interface"): p for p in device_perf}
