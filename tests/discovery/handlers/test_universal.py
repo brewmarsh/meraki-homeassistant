@@ -11,6 +11,7 @@ from custom_components.meraki_ha.discovery.handlers.universal import UniversalHa
 from custom_components.meraki_ha.sensor.device.device_status import (
     MerakiDeviceStatusSensor,
 )
+from custom_components.meraki_ha.switch.switch_port import MerakiSwitchPortSwitch
 
 
 @pytest.fixture
@@ -21,6 +22,7 @@ def mock_coordinator():
     coordinator.hass = MagicMock()
     return coordinator
 
+
 @pytest.fixture
 def mock_config_entry():
     """Fixture for a mock ConfigEntry."""
@@ -28,20 +30,24 @@ def mock_config_entry():
     config_entry.options = {}
     return config_entry
 
+
 @pytest.fixture
 def mock_camera_service():
     """Fixture for a mocked CameraService."""
     return AsyncMock()
+
 
 @pytest.fixture
 def mock_control_service():
     """Fixture for a mock DeviceControlService."""
     return MagicMock()
 
+
 @pytest.fixture
 def mock_network_control_service():
     """Fixture for a mock NetworkControlService."""
     return MagicMock()
+
 
 @pytest.mark.asyncio
 async def test_universal_handler_mt15_no_battery(
@@ -53,7 +59,6 @@ async def test_universal_handler_mt15_no_battery(
 ):
     """Test that MT15 does not have a battery sensor."""
     device = MerakiDevice(serial="mt15-serial", model="MT15")
-    capabilities = DEVICE_CAPABILITIES.get(device.model, DEFAULT_CAPS)
     handler = UniversalHandler(
         mock_coordinator,
         device,
@@ -61,7 +66,6 @@ async def test_universal_handler_mt15_no_battery(
         mock_camera_service,
         mock_control_service,
         mock_network_control_service,
-        capabilities,
     )
 
     entities = []
@@ -73,6 +77,7 @@ async def test_universal_handler_mt15_no_battery(
     assert "co2" in keys
     assert "battery" not in keys
 
+
 @pytest.mark.asyncio
 async def test_universal_handler_mt10_has_battery(
     mock_coordinator,
@@ -83,7 +88,6 @@ async def test_universal_handler_mt10_has_battery(
 ):
     """Test that MT10 has a battery sensor."""
     device = MerakiDevice(serial="mt10-serial", model="MT10")
-    capabilities = DEVICE_CAPABILITIES.get(device.model, DEFAULT_CAPS)
     handler = UniversalHandler(
         mock_coordinator,
         device,
@@ -91,7 +95,6 @@ async def test_universal_handler_mt10_has_battery(
         mock_camera_service,
         mock_control_service,
         mock_network_control_service,
-        capabilities,
     )
 
     entities = []
@@ -101,6 +104,7 @@ async def test_universal_handler_mt10_has_battery(
     keys = [getattr(e, "entity_description", MagicMock()).key for e in entities]
     assert "battery" in keys
     assert "temperature" in keys
+
 
 @pytest.mark.asyncio
 async def test_universal_handler_unknown_model_default_caps(
@@ -112,7 +116,6 @@ async def test_universal_handler_unknown_model_default_caps(
 ):
     """Test that an unknown model gets default capabilities (reboot, status)."""
     device = MerakiDevice(serial="unknown-serial", model="UNKNOWN_MODEL")
-    capabilities = DEVICE_CAPABILITIES.get(device.model, DEFAULT_CAPS)
     handler = UniversalHandler(
         mock_coordinator,
         device,
@@ -120,7 +123,6 @@ async def test_universal_handler_unknown_model_default_caps(
         mock_camera_service,
         mock_control_service,
         mock_network_control_service,
-        capabilities,
     )
 
     entities = []
@@ -129,6 +131,7 @@ async def test_universal_handler_unknown_model_default_caps(
 
     assert any(isinstance(e, MerakiRebootButton) for e in entities)
     assert any(isinstance(e, MerakiDeviceStatusSensor) for e in entities)
+
 
 @pytest.mark.asyncio
 async def test_universal_handler_mx_capabilities(
@@ -140,7 +143,6 @@ async def test_universal_handler_mx_capabilities(
 ):
     """Test that MX67 has expected capabilities."""
     device = MerakiDevice(serial="mx67-serial", model="MX67")
-    capabilities = DEVICE_CAPABILITIES.get(device.model, DEFAULT_CAPS)
     handler = UniversalHandler(
         mock_coordinator,
         device,
@@ -148,7 +150,6 @@ async def test_universal_handler_mx_capabilities(
         mock_camera_service,
         mock_control_service,
         mock_network_control_service,
-        capabilities,
     )
 
     entities = []
@@ -157,10 +158,8 @@ async def test_universal_handler_mx_capabilities(
 
     assert any(isinstance(e, MerakiRebootButton) for e in entities)
     assert any(isinstance(e, MerakiDeviceStatusSensor) for e in entities)
-    # Uplinks are created via UplinkProvider, we can check for their
-    # existence if we mock uplink data
-    # For now just verify handler creation succeeded
     assert len(entities) >= 2
+
 
 @pytest.mark.asyncio
 async def test_universal_handler_capability_compliance(
@@ -215,3 +214,67 @@ async def test_universal_handler_capability_compliance(
     assert "temperature" in keys_mt10
     assert "humidity" in keys_mt10
     assert "battery" in keys_mt10
+
+
+@pytest.mark.asyncio
+async def test_universal_handler_unknown_switch_fallback(
+    mock_coordinator,
+    mock_config_entry,
+    mock_camera_service,
+    mock_control_service,
+    mock_network_control_service,
+):
+    """Test that an unknown switch model (e.g. MS390) gets switch_ports capability."""
+    # MS390 is not in DEVICE_CAPABILITIES
+    device = MerakiDevice(
+        serial="ms390-serial",
+        model="MS390",
+        product_type="switch",
+        ports_statuses=[{"portId": "1", "enabled": True}],
+    )
+
+    handler = UniversalHandler(
+        mock_coordinator,
+        device,
+        mock_config_entry,
+        mock_camera_service,
+        mock_control_service,
+        mock_network_control_service,
+    )
+
+    entities = []
+    async for entity in handler.discover_entities():
+        entities.append(entity)
+
+    # Check if switch ports are discovered
+    has_switch_port = any(isinstance(e, MerakiSwitchPortSwitch) for e in entities)
+
+    # Assert capability was added
+    assert "switch_ports" in handler.capabilities
+    assert has_switch_port
+
+@pytest.mark.asyncio
+async def test_universal_handler_unknown_wireless_fallback(
+    mock_coordinator,
+    mock_config_entry,
+    mock_camera_service,
+    mock_control_service,
+    mock_network_control_service,
+):
+    """Test that an unknown wireless model gets ssids capability."""
+    device = MerakiDevice(
+        serial="mr99-serial",
+        model="MR99",
+        product_type="wireless",
+    )
+
+    handler = UniversalHandler(
+        mock_coordinator,
+        device,
+        mock_config_entry,
+        mock_camera_service,
+        mock_control_service,
+        mock_network_control_service,
+    )
+
+    assert "ssids" in handler.capabilities
