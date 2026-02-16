@@ -20,10 +20,9 @@ from ..helpers.device_info_helpers import resolve_device_info
 _LOGGER = logging.getLogger(__name__)
 
 
-class MerakiSwitchPortSwitch(MerakiEntity, SwitchEntity):
-    """Representation of a Meraki Switch Port switch entity."""
+class MerakiSwitchPortToggle(MerakiEntity, SwitchEntity):
+    """Representation of a Meraki Switch Port toggle entity."""
 
-    entity_category = EntityCategory.CONFIG
     _attr_has_entity_name = True
 
     def __init__(
@@ -33,7 +32,7 @@ class MerakiSwitchPortSwitch(MerakiEntity, SwitchEntity):
         port: dict[str, Any],
         config_entry: ConfigEntry,
     ) -> None:
-        """Initialize the Meraki Switch Port switch entity."""
+        """Initialize the Meraki Switch Port toggle entity."""
         super().__init__(coordinator)
         self._device = device
         self._port = port

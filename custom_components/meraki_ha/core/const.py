@@ -74,6 +74,10 @@ DEVICE_CAPABILITIES: Final[dict[str, list[str]]] = {
         "humidity",
         "noise",
         "signal_strength",
+        "mt15_refresh",
+        "reboot",
+        "status",
+        "physical_sensors",
     ],  # No Battery
     "MT20": ["temperature", "humidity", "battery", "signal_strength", "door"],
     "MT30": ["button_press", "battery", "signal_strength"],
