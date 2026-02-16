@@ -1,10 +1,15 @@
 """Tests for Meraki Wireless Radio sensors."""
 
 from unittest.mock import MagicMock, patch
+
 from homeassistant.components.sensor import SensorEntityDescription
-from custom_components.meraki_ha.sensor.device.wireless_radio import MerakiWirelessRadioSensor
-from custom_components.meraki_ha.discovery.providers import WirelessRadioProvider
+
 from custom_components.meraki_ha.core.models.device import MerakiDevice
+from custom_components.meraki_ha.discovery.providers import WirelessRadioProvider
+from custom_components.meraki_ha.sensor.device.wireless_radio import (
+    MerakiWirelessRadioSensor,
+)
+
 
 def test_wireless_radio_sensor_update():
     """Test the wireless radio sensor update."""
@@ -26,7 +31,10 @@ def test_wireless_radio_sensor_update():
     )
 
     # Mock resolve_device_info to avoid issues in test
-    with patch("custom_components.meraki_ha.sensor.device.wireless_radio.resolve_device_info", return_value={}):
+    with patch(
+        "custom_components.meraki_ha.sensor.device.wireless_radio.resolve_device_info",
+        return_value={},
+    ):
         sensor = MerakiWirelessRadioSensor(
             coordinator,
             device,
@@ -58,8 +66,13 @@ def test_wireless_radio_provider():
     )
     config_entry = MagicMock()
 
-    with patch("custom_components.meraki_ha.sensor.device.wireless_radio.resolve_device_info", return_value={}):
-        entities = WirelessRadioProvider.get_entities(coordinator, device, config_entry)
+    with patch(
+        "custom_components.meraki_ha.sensor.device.wireless_radio.resolve_device_info",
+        return_value={},
+    ):
+        entities = WirelessRadioProvider.get_entities(
+            coordinator, device, config_entry
+        )
 
         assert len(entities) == 4
         assert any(e.entity_description.key == "2.4ghz_channel" for e in entities)

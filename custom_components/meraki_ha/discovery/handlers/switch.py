@@ -41,7 +41,7 @@ class SwitchHandler(BaseHandler):
                     and (device.model.startswith("MX") or device.model.startswith("Z3"))
                 ):
                     _LOGGER.debug(
-                        "Skipping device %s in Switch Handler (Handled by Appliance Handler)",
+                        "Skipping device %s in Switch Handler (Appliance Handler)",
                         device.serial,
                     )
                     continue

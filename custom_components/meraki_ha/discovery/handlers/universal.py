@@ -37,7 +37,6 @@ from ..providers import (
     CameraStreamProvider,
     MT40PowerMonitorProvider,
     PhysicalSensorProvider,
-    SwitchPortProvider,
     UplinkPerformanceProvider,
     UplinkProvider,
     WirelessRadioProvider,

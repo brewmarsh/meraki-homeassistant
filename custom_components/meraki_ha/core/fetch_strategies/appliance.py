@@ -243,7 +243,8 @@ class ApplianceFetchStrategy(BaseFetchStrategy):
 
         if performance := detail_data.get(f"uplink_performance_{device.network_id}"):
             if isinstance(performance, list):
-                # Normalize keys for robust mapping (loss -> lossPercent, latency -> latencyMs)
+                # Normalize keys for robust mapping
+                # (loss -> lossPercent, latency -> latencyMs)
                 normalized_performance = []
                 for p in performance:
                     if not isinstance(p, dict):
@@ -257,7 +258,9 @@ class ApplianceFetchStrategy(BaseFetchStrategy):
 
                 # Filter performance data for this device
                 device_perf = [
-                    p for p in normalized_performance if p.get("serial") == device.serial
+                    p
+                    for p in normalized_performance
+                    if p.get("serial") == device.serial
                 ]
                 # Merge with existing status data in device.uplinks
                 perf_by_interface = {p.get("interface"): p for p in device_perf}
