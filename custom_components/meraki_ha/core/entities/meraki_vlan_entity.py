@@ -14,7 +14,7 @@ class MerakiVLANEntity(MerakiNetworkEntity):
     """Representation of a Meraki VLAN."""
 
     _attr_has_entity_name = True
-    _attr_name = None
+    _attr_name: str | None = None
 
     def __init__(
         self,

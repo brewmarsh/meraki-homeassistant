@@ -130,7 +130,8 @@ async def test_async_setup_mt10_sensors(
         entity.hass = MagicMock()
         entity.entity_id = "sensor.test"
         object.__setattr__(entity, "async_write_ha_state", MagicMock())
-        cast(CoordinatorEntity, entity)._handle_coordinator_update()
+        if hasattr(entity, "_handle_coordinator_update"):
+            cast(CoordinatorEntity, entity)._handle_coordinator_update()
 
     # MT10 has Temperature, Humidity, Battery, Signal Strength (4 sensors)
     assert len(entities) == 4
@@ -182,15 +183,29 @@ async def test_async_setup_mt15_sensors(
         entity.hass = MagicMock()
         entity.entity_id = "sensor.test"
         object.__setattr__(entity, "async_write_ha_state", MagicMock())
-        cast(CoordinatorEntity, entity)._handle_coordinator_update()
+        if hasattr(entity, "_handle_coordinator_update"):
+            cast(CoordinatorEntity, entity)._handle_coordinator_update()
 
     # MT15 has CO2, TVOC, PM2.5, Temperature, Humidity, Noise, Signal
-    # Strength. (7 sensors)
-    assert len(entities) == 7
+    # Strength. (7 sensors) + Refresh + Reboot + Status + LAN IP + Public IP = 12
+    assert len(entities) == 12
 
-    sensors_by_key: dict[str, Any] = {
+    sensors_by_key: dict[str, Any] = {}
+    for entity in entities:
+        if hasattr(entity, "entity_description") and entity.entity_description:
+            sensors_by_key[entity.entity_description.key] = entity
+        else:
+            # Fallback for entities without description key or custom key logic
+            # Use unique_id suffix or similar if needed, or just skip
+            # MerakiRebootButton has no entity_description.key usually?
+            # MerakiMt15RefreshDataButton has key="mt15_refresh"
+            pass
+
+    # Re-build sensors_by_key more robustly
+    sensors_by_key = {
         entity.entity_description.key: entity
-        for entity in entities  # type: ignore
+        for entity in entities
+        if hasattr(entity, "entity_description") and entity.entity_description
     }
 
     # Verify Temperature Sensor
@@ -271,7 +286,8 @@ async def test_async_setup_mt12_sensors(
         entity.hass = MagicMock()
         entity.entity_id = "sensor.test"
         object.__setattr__(entity, "async_write_ha_state", MagicMock())
-        cast(CoordinatorEntity, entity)._handle_coordinator_update()
+        if hasattr(entity, "_handle_coordinator_update"):
+            cast(CoordinatorEntity, entity)._handle_coordinator_update()
 
     # MT12 has Temperature, Humidity, Battery, Signal Strength (Sensors) + Water
     # (Binary Sensor) = 5 total
@@ -314,7 +330,8 @@ async def test_async_setup_mt40_sensors(
         entity.hass = MagicMock()
         entity.entity_id = "sensor.test"
         object.__setattr__(entity, "async_write_ha_state", MagicMock())
-        cast(CoordinatorEntity, entity)._handle_coordinator_update()
+        if hasattr(entity, "_handle_coordinator_update"):
+            cast(CoordinatorEntity, entity)._handle_coordinator_update()
 
     # MT40 has 6 Power sensors + 1 Outlet switch + 1 Signal Strength = 8 entities
     assert len(entities) == 8

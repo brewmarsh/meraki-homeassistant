@@ -55,6 +55,7 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
     """A centralized coordinator for Meraki API data."""
 
     config_entry: ConfigEntry
+    update_interval: timedelta | None
 
     def __init__(
         self,

@@ -50,7 +50,7 @@ class MerakiRFProfileSelect(CoordinatorEntity, SelectEntity):
         )
 
         self._attr_unique_id = f"{self._network_id}ssid{self._ssid_number}_rf_profile"
-        self._attr_options = []
+        self._attr_options: list[str] = []
         self._update_internal_state()
 
     # ### Entity Logic

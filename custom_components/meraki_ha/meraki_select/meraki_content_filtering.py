@@ -45,7 +45,7 @@ class MerakiContentFilteringSelect(CoordinatorEntity, SelectEntity):
         )
 
         self._attr_unique_id = f"meraki-network-{self._network_id}-content-filtering"
-        self._attr_options = []
+        self._attr_options: list[str] = []
         self._update_internal_state()
 
     # ### Entity Logic
