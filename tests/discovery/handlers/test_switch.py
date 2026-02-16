@@ -23,7 +23,7 @@ def mock_coordinator():
 def mock_config_entry():
     """Fixture for a mock ConfigEntry."""
     config_entry = MagicMock()
-    config_entry.options = {}
+    config_entry.options = {"enable_port_sensors": False}
     return config_entry
 
 

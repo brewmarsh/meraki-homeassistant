@@ -18,6 +18,7 @@ from ..binary_sensor.device.appliance_port import AppliancePortBinarySensor
 from ..binary_sensor.device.camera_motion import MerakiMotionSensor
 from ..binary_sensor.device.switch_port import SwitchPortSensor
 from ..button.device.camera_snapshot import MerakiSnapshotButton
+from ..button.device.poe_cycle import MerakiPoECycleButton
 from ..const import DOMAIN
 from ..const_conf import (
     CONF_ENABLE_CAMERA_ENTITIES,
@@ -54,7 +55,7 @@ from ..sensor.device.switch_port import (
 from ..sensor.device.wireless_radio import MerakiWirelessRadioSensor
 from ..sensor.uplink_performance import MerakiUplinkPerformanceSensor
 from ..switch.camera_controls import AnalyticsSwitch
-from ..switch.switch_port import MerakiSwitchPortSwitch
+from ..switch.switch_port import MerakiSwitchPortToggle
 
 if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
@@ -281,7 +282,10 @@ class SwitchPortProvider:
                 )
                 # RESOLVED: Updated constructor to include config_entry per beta branch
                 entities.append(
-                    MerakiSwitchPortSwitch(coordinator, device, port, config_entry)
+                    MerakiSwitchPortToggle(coordinator, device, port, config_entry)
+                )
+                entities.append(
+                    MerakiPoECycleButton(coordinator, device, port, config_entry)
                 )
         return entities
 

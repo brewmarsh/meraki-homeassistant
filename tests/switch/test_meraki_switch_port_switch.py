@@ -5,7 +5,7 @@ from unittest.mock import AsyncMock, MagicMock
 import pytest
 from homeassistant.core import HomeAssistant
 
-from custom_components.meraki_ha.switch.switch_port import MerakiSwitchPortSwitch
+from custom_components.meraki_ha.switch.switch_port import MerakiSwitchPortToggle
 
 
 @pytest.fixture
@@ -66,7 +66,7 @@ async def test_switch_port_init(
 ):
     """Test initialization of the switch."""
     port_data = {"portId": "1", "enabled": True}
-    switch = MerakiSwitchPortSwitch(
+    switch = MerakiSwitchPortToggle(
         mock_coordinator, mock_device, port_data, mock_config_entry
     )
     switch.hass = hass
@@ -85,7 +85,7 @@ async def test_switch_port_turn_off(
 ):
     """Test turning the switch off."""
     port_data = {"portId": "1", "enabled": True}
-    switch = MerakiSwitchPortSwitch(
+    switch = MerakiSwitchPortToggle(
         mock_coordinator, mock_device, port_data, mock_config_entry
     )
     switch.hass = hass
@@ -114,7 +114,7 @@ async def test_switch_port_turn_on(
 ):
     """Test turning the switch on."""
     port_data = {"portId": "2", "enabled": False}
-    switch = MerakiSwitchPortSwitch(
+    switch = MerakiSwitchPortToggle(
         mock_coordinator, mock_device, port_data, mock_config_entry
     )
     switch.hass = hass
@@ -143,7 +143,7 @@ async def test_switch_port_update(
 ):
     """Test updating the switch from coordinator data."""
     port_data = {"portId": "1", "enabled": True}
-    switch = MerakiSwitchPortSwitch(
+    switch = MerakiSwitchPortToggle(
         mock_coordinator, mock_device, port_data, mock_config_entry
     )
     switch.hass = hass
@@ -167,7 +167,7 @@ async def test_switch_port_update_pending(
 ):
     """Test updating the switch when pending update is active."""
     port_data = {"portId": "1", "enabled": True}
-    switch = MerakiSwitchPortSwitch(
+    switch = MerakiSwitchPortToggle(
         mock_coordinator, mock_device, port_data, mock_config_entry
     )
     switch.hass = hass
@@ -195,7 +195,7 @@ async def test_switch_port_update_error(
 ):
     """Test error handling during update."""
     port_data = {"portId": "1", "enabled": True}
-    switch = MerakiSwitchPortSwitch(
+    switch = MerakiSwitchPortToggle(
         mock_coordinator, mock_device, port_data, mock_config_entry
     )
     switch.hass = hass

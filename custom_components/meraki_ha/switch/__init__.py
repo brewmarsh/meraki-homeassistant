@@ -2,6 +2,7 @@
 
 import logging
 
+from homeassistant.components.switch import SwitchEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
@@ -29,8 +30,20 @@ async def async_setup_entry(
         _LOGGER.warning("Meraki client not available; skipping switch setup.")
         return False
 
-    switch_entities = async_setup_switches(
-        hass, config_entry, coordinator, meraki_client
+    from ..discovery.service import DeviceDiscoveryService
+
+    discovery_service: DeviceDiscoveryService = entry_data["discovery_service"]
+
+    # Add entities from discovery service
+    switch_entities = [
+        entity
+        for entity in discovery_service.all_entities
+        if isinstance(entity, SwitchEntity)
+    ]
+
+    # Add other switches from setup helpers
+    switch_entities.extend(
+        async_setup_switches(hass, config_entry, coordinator, meraki_client)
     )
 
     _LOGGER.debug("Found %d switch entities", len(switch_entities))

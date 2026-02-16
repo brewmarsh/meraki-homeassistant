@@ -6,6 +6,7 @@ import logging
 from collections.abc import AsyncIterator
 from typing import TYPE_CHECKING, Any
 
+from ...button.device.mt15_refresh_data import MerakiMt15RefreshDataButton
 from ...button.reboot import MerakiRebootButton
 from ...const_conf import (
     CONF_ENABLE_CAMERA_ENTITIES,
@@ -80,6 +81,7 @@ class UniversalHandler(BaseDeviceHandler):
         "appliance_ports": AppliancePortProvider,
         "poe_usage": MerakiPoeUsageSensor,
         "analytics": CameraAnalyticsProvider,
+        "mt15_refresh": MerakiMt15RefreshDataButton,
         "reboot": MerakiRebootButton,
         "status": MerakiDeviceStatusSensor,
         "physical_sensors": PhysicalSensorProvider,
@@ -108,6 +110,7 @@ class UniversalHandler(BaseDeviceHandler):
         "performance": CONF_ENABLE_PORT_SENSORS,
         "appliance_ports": CONF_ENABLE_PORT_SENSORS,
         "analytics": CONF_ENABLE_CAMERA_ENTITIES,
+        "mt15_refresh": CONF_ENABLE_DEVICE_SENSORS,
         "camera_stream": CONF_ENABLE_CAMERA_ENTITIES,
         "status": CONF_ENABLE_DEVICE_STATUS,
         "wireless": CONF_ENABLE_DEVICE_SENSORS,
@@ -175,6 +178,13 @@ class UniversalHandler(BaseDeviceHandler):
                 elif provider == MerakiRebootButton:
                     yield provider(
                         self._control_service, self.device, self._config_entry
+                    )
+                elif provider == MerakiMt15RefreshDataButton:
+                    yield provider(
+                        self._coordinator,
+                        self.device,
+                        self._config_entry,
+                        self._coordinator.api,
                     )
                 elif provider == MerakiMt40PowerOutlet:
                     yield provider(
