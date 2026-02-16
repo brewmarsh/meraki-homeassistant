@@ -6,6 +6,8 @@ import pytest
 
 from custom_components.meraki_ha.discovery.service import DeviceDiscoveryService
 from custom_components.meraki_ha.types import MerakiNetwork
+from custom_components.meraki_ha.sensor.network.vlan import MerakiVLANStatusSensor
+from custom_components.meraki_ha.const import DOMAIN
 
 
 @pytest.fixture
@@ -14,6 +16,11 @@ def mock_coordinator():
     coordinator = MagicMock()
     coordinator.config_entry = MagicMock()
     coordinator.config_entry.options = {}
+
+    # Mock API for content filtering check (required by NetworkHandler)
+    coordinator.api.appliance.get_network_appliance_content_filtering_categories = MagicMock(
+        return_value={"categories": []}
+    )
 
     # Create a mock network using the Dataclass
     mock_network = MerakiNetwork(
@@ -28,53 +35,30 @@ def mock_coordinator():
         "id": 1,
         "name": "VLAN 1",
         "subnet": "192.168.1.0/24",
-        "applianceIp": "192.168.1.1",  # Changed from appliance_ip to applianceIp
+        "applianceIp": "192.168.1.1",
         "ipv6": {
             "enabled": True,
             "prefix": "2001:db8:1::/64",
-            "prefixAssignments": [
-                {
-                    "origin": {
-                        "type": "internet",
-                        "interfaces": ["WAN 1", "WAN 2"],
-                    }
-                }
-            ],
         },
-        # Changed from dhcp_handling to dhcpHandling
         "dhcpHandling": "Run a DHCP server",
-    }
-
-    vlan2 = {
-        "id": 2,
-        "name": "VLAN 2",
-        "subnet": "192.168.2.0/24",
-        "applianceIp": "192.168.2.1",
-        "ipv6": None,
-        "dhcpHandling": "Do not respond to DHCP requests",
     }
 
     coordinator.data = {
         "networks": [mock_network],
-        "vlans": {"net1": [vlan1, vlan2]},
+        "vlans": {"net1": [vlan1]},
         "devices": [],
         "clients": [],
         "ssids": [],
     }
 
-    def get_network_by_id(network_id):
-        if network_id == mock_network.id:
-            return mock_network
-        return None
+    # Mock get_network needed by BaseMerakiEntity
+    coordinator.get_network.return_value = mock_network
 
-    coordinator.get_network = get_network_by_id
     return coordinator
 
 
 async def test_vlan_sensor_creation(mock_coordinator):
     """Test that VLAN sensors are created correctly."""
-    MagicMock()
-
     # Run the setup
     discovery_service = DeviceDiscoveryService(
         mock_coordinator,
@@ -87,63 +71,36 @@ async def test_vlan_sensor_creation(mock_coordinator):
     await discovery_service.discover_entities()
     sensors = discovery_service.all_entities
 
-    # We expect 7 sensors for each of the two VLANs
-    vlan_sensors = [s for s in sensors if "VLAN" in s.__class__.__name__]
-    assert len(vlan_sensors) == 14
+    # Filter for VLAN sensors
+    vlan_sensors = [s for s in sensors if isinstance(s, MerakiVLANStatusSensor)]
 
-    # Filter for sensors of the first VLAN
-    vlan1_sensors = [s for s in vlan_sensors if getattr(s, "_vlan_id", None) == 1]
-    assert len(vlan1_sensors) == 7
+    # Expect 1 sensor for the 1 VLAN
+    assert len(vlan_sensors) == 1
 
-    # Find the specific sensors for VLAN 1 by translation_key
-    id_sensor = next(s for s in vlan1_sensors if s.translation_key == "vlan_id")
-    ipv4_enabled_sensor = next(
-        s for s in vlan1_sensors if s.translation_key == "ipv4_enabled"
-    )
-    ipv4_ip_sensor = next(
-        s for s in vlan1_sensors if s.translation_key == "ipv4_interface_ip"
-    )
-    ipv4_uplink_sensor = next(
-        s for s in vlan1_sensors if s.translation_key == "ipv4_uplink"
-    )
-    ipv6_enabled_sensor = next(
-        s for s in vlan1_sensors if s.translation_key == "ipv6_enabled"
-    )
-    ipv6_ip_sensor = next(
-        s for s in vlan1_sensors if s.translation_key == "ipv6_interface_ip"
-    )
-    ipv6_uplink_sensor = next(
-        s for s in vlan1_sensors if s.translation_key == "ipv6_uplink"
-    )
+    sensor = vlan_sensors[0]
 
-    # Assertions for VLAN ID Sensor
-    assert id_sensor.unique_id == "meraki_vlan_net1_1_vlan_id"
-    # assert id_sensor.name == "VLAN ID" # Cannot access name without platform
-    assert id_sensor.native_value == 1
-    assert id_sensor.device_info["name"] == "[VLAN 1] VLAN 1"
-    assert id_sensor.device_info["identifiers"] == {("meraki_ha", "net1vlan1")}
-    assert id_sensor.device_info["via_device"] == ("meraki_ha", "network_net1")
+    # Assertions for VLAN Status Sensor
+    # Unique ID format from get_vlan_entity_id
+    assert sensor.unique_id == "meraki_vlan_net1_1_status"
 
-    # Assertions for IPv4 Enabled Sensor
-    assert ipv4_enabled_sensor.unique_id == "meraki_vlan_net1_1_ipv4_enabled"
-    assert ipv4_enabled_sensor.native_value is True
+    # Name from MerakiVLANStatusSensor
+    assert sensor.name == "VLAN 1 (VLAN 1) Subnet"
 
-    # Assertions for IPv4 Interface IP Sensor
-    assert ipv4_ip_sensor.unique_id == "meraki_vlan_net1_1_ipv4_interface_ip"
-    assert ipv4_ip_sensor.native_value == "192.168.1.1"
+    # Native value is subnet
+    assert sensor.native_value == "192.168.1.0/24"
 
-    # Assertions for IPv4 Uplink Sensor
-    assert ipv4_uplink_sensor.unique_id == "meraki_vlan_net1_1_ipv4_uplink"
-    assert ipv4_uplink_sensor.native_value == "Any"
+    # Attributes
+    assert sensor.extra_state_attributes["vlan_id"] == 1
+    assert sensor.extra_state_attributes["appliance_ip"] == "192.168.1.1"
+    assert sensor.extra_state_attributes["ipv6_enabled"] is True
 
-    # Assertions for IPv6 Enabled Sensor
-    assert ipv6_enabled_sensor.unique_id == "meraki_vlan_net1_1_ipv6_enabled"
-    assert ipv6_enabled_sensor.native_value is True
+    # Device Info - Virtual Controller
+    # Device Name should be "Site: Test Network" because resolve_device_info does that
+    # and MerakiNetworkEntity (which MerakiVLANEntity inherits from) uses resolve_device_info
+    # AND MerakiNetworkEntity calls resolve_device_info which we modified.
 
-    # Assertions for IPv6 Interface IP Sensor
-    assert ipv6_ip_sensor.unique_id == "meraki_vlan_net1_1_ipv6_interface_ip"
-    assert ipv6_ip_sensor.native_value == "2001:db8:1::/64"
+    # Wait, MerakiVLANEntity uses MerakiNetworkEntity.device_info which uses resolve_device_info.
+    # So assertions on device_info should verify Virtual Controller pattern.
 
-    # Assertions for IPv6 Uplink Sensor
-    assert ipv6_uplink_sensor.unique_id == "meraki_vlan_net1_1_ipv6_uplink"
-    assert ipv6_uplink_sensor.native_value == "WAN 1, WAN 2"
+    assert sensor.device_info["identifiers"] == {(DOMAIN, "network_net1")}
+    assert sensor.device_info["name"] == "Site: Test Network"

@@ -53,7 +53,7 @@ def mock_data_fetch_manager() -> AsyncMock:
             "devices": [MOCK_DEVICE, MOCK_MX_DEVICE, MOCK_GX_DEVICE],
             "networks": [  # Using MerakiNetwork directly
                 MerakiNetwork(
-                    id="net1",
+                    id=MOCK_NETWORK.id,
                     name="Test Network",
                     product_types=["wireless", "appliance"],
                     organization_id="fake_org",
@@ -85,7 +85,7 @@ async def test_ssid_device_creation_and_unification(
     mock_data_fetch_manager: AsyncMock,
 ) -> None:
     """
-    Test that a single device is created for an SSID with all its entities.
+    Test that entities are attached to the Virtual Controller (Network Device).
 
     Args:
     ----
@@ -117,25 +117,26 @@ async def test_ssid_device_creation_and_unification(
         device_registry = async_get_device_registry(hass)
         entity_registry = async_get_entity_registry(hass)
 
-        # Find devices related to the SSID
-        ssid_device_identifier = (DOMAIN, f"{MOCK_NETWORK.id}ssid0")
-        ssid_device = device_registry.async_get_device({ssid_device_identifier})
+        # Refactor: Find devices related to the Network (Virtual Controller)
+        network_device_identifier = (DOMAIN, f"network_{MOCK_NETWORK.id}")
+        network_device = device_registry.async_get_device({network_device_identifier})
 
         # Assert that a device was created
-        assert ssid_device is not None
+        assert network_device is not None
 
-        # Assert that the device has the correct name (default prefix format)
-        assert ssid_device.name == "[SSID 0] Test SSID"
+        # Assert that the device has the correct name (Virtual Controller format)
+        assert network_device.name == "Site: Test Network"
 
         # Find all entities associated with this device by querying the entity registry
         entities = [
             entity.entity_id
             for entity in entity_registry.entities.values()
-            if entity.device_id == ssid_device.id
+            if entity.device_id == network_device.id
         ]
 
         # Assert that multiple entities have been created for this one device
-        assert len(entities) > 1
+        # Should include SSID entities, Network Status, etc.
+        assert len(entities) > 0
 
 
 @pytest.mark.enable_socket

@@ -5,10 +5,9 @@ from dataclasses import asdict, is_dataclass
 from typing import Any
 
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.helpers.device_registry import DeviceInfo
+from homeassistant.helpers.device_registry import DeviceEntryType, DeviceInfo
 
 from ..const import DOMAIN
-from ..core.const import get_ssid_identifier
 from ..core.models.device import MerakiDevice
 from ..core.models.network import MerakiNetwork
 
@@ -57,29 +56,14 @@ def resolve_device_info(
     if is_dataclass(effective_data):
         effective_data = asdict(effective_data)
 
-    # Create device info for an SSID
+    # Create device info for an SSID (Now Virtual Controller)
     if is_ssid:
         network_id = effective_data.get("networkId")
-        ssid_number = effective_data.get("number")
-        if network_id and ssid_number is not None:
-            identifier = (DOMAIN, get_ssid_identifier(network_id, ssid_number))
-
-            # Format: [SSID 0] MyWifiName
-            raw_name = effective_data.get("name") or f"SSID {ssid_number}"
-
-            # Check for double-prefixing
-            prefix = f"[SSID {ssid_number}] "
-            if str(raw_name).startswith(prefix):
-                name = raw_name
-            else:
-                name = f"{prefix}{raw_name}"
-
+        if network_id:
+            # Refactor: SSID entities are now attached to the Virtual Controller (Network Device)
+            # We return only the identifier, letting the MerakiNetworkEntity populate details.
             return DeviceInfo(
-                identifiers={identifier},
-                name=name,
-                model="Wireless SSID",
-                manufacturer="Cisco Meraki",
-                via_device=(DOMAIN, f"network_{network_id}"),
+                identifiers={(DOMAIN, f"network_{network_id}")},
             )
 
     # Handle client devices, which are linked to a physical device
@@ -93,23 +77,27 @@ def resolve_device_info(
             via_device=(DOMAIN, parent_serial),
         )
 
-    # Handle network devices
+    # Handle network devices (Virtual Controller)
     network_id = entity_data.get("id")
     is_network = "productTypes" in entity_data and not entity_data.get("serial")
     if is_network and network_id:
-        # Format: [Network] BranchName
+        # Refactor: Virtual Controller Pattern
         raw_net_name = entity_data.get("name") or "Unknown Network"
 
-        if str(raw_net_name).startswith("[Network] "):
+        # Design Doc: Name format "Site: {name}"
+        # Check if already prefixed to avoid double prefix
+        if str(raw_net_name).startswith("Site: "):
             name = raw_net_name
         else:
-            name = f"[Network] {raw_net_name}"
+            name = f"Site: {raw_net_name}"
 
         return DeviceInfo(
             identifiers={(DOMAIN, f"network_{network_id}")},
             name=name,
             manufacturer="Cisco Meraki",
-            model="Meraki Network",
+            model="Network Controller Service",
+            entry_type=DeviceEntryType.SERVICE,
+            configuration_url=f"https://dashboard.meraki.com/gen/n/{network_id}/manage/nodes",
         )
 
     # Fallback to creating device info for a physical device

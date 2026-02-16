@@ -45,7 +45,7 @@ def test_ssid_device_unification(
     mock_coordinator_and_data: tuple[MagicMock, MagicMock, dict[str, Any]],
 ) -> None:
     """
-    Test that all SSID entity types have the same device info.
+    Test that all SSID entity types have the same device info (Virtual Controller).
 
     Args:
     ----
@@ -55,9 +55,8 @@ def test_ssid_device_unification(
     coordinator, meraki_client, ssid_data = mock_coordinator_and_data
     config_entry = coordinator.config_entry
 
-    # The unique ID for the SSID "device" itself
-    # This is based on the logic in device_info_helpers.py
-    expected_device_identifier = ("meraki_ha", "net1ssid0")
+    # The unique ID for the SSID "device" itself (Now Virtual Controller)
+    expected_device_identifier = ("meraki_ha", "network_net1")
 
     # --- Instantiate one of each type of SSID entity ---
 
@@ -97,30 +96,27 @@ def test_ssid_device_unification(
     sensor_device_info = sensor.device_info
     assert sensor_device_info is not None
     sensor_identifiers = sensor_device_info["identifiers"]
-    # Verify the new [SSID 0] Name format
-    assert sensor_device_info["name"] == "[SSID 0] Test SSID"
+
+    # Refactor: Name is no longer present in SSID entity device_info
+    assert "name" not in sensor_device_info
 
     detail_sensor_device_info = detail_sensor.device_info
     assert detail_sensor_device_info is not None
     detail_sensor_identifiers = detail_sensor_device_info["identifiers"]
-    assert detail_sensor_device_info["name"] == "[SSID 0] Test SSID"
 
     switch_device_info = switch.device_info
     assert switch_device_info is not None
     switch_identifiers = switch_device_info["identifiers"]
-    assert switch_device_info["name"] == "[SSID 0] Test SSID"
 
     text_device_info = text.device_info
     assert text_device_info is not None
     text_identifiers = text_device_info["identifiers"]
-    assert text_device_info["name"] == "[SSID 0] Test SSID"
 
     rf_select_device_info = rf_select.device_info
     assert rf_select_device_info is not None
     rf_select_identifiers = rf_select_device_info["identifiers"]
-    assert rf_select_device_info["name"] == "[SSID 0] Test SSID"
 
-    # Assert that all entities share the exact same device identifier
+    # Assert that all entities share the exact same device identifier (Network Device)
     assert sensor_identifiers == {expected_device_identifier}
     assert detail_sensor_identifiers == {expected_device_identifier}
     assert switch_identifiers == {expected_device_identifier}
@@ -136,10 +132,5 @@ def test_ssid_device_unification(
         == rf_select_identifiers
     )
 
-    # Verify via_device points to the network
-    expected_via_device = ("meraki_ha", "network_net1")
-    assert sensor_device_info["via_device"] == expected_via_device
-    assert detail_sensor_device_info["via_device"] == expected_via_device
-    assert switch_device_info["via_device"] == expected_via_device
-    assert text_device_info["via_device"] == expected_via_device
-    assert rf_select_device_info["via_device"] == expected_via_device
+    # Verify via_device is NOT present (as it attaches directly to the device)
+    assert "via_device" not in sensor_device_info

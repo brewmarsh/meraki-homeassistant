@@ -3,9 +3,7 @@
 from __future__ import annotations
 
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.helpers.device_registry import DeviceInfo
 
-from ...const import DOMAIN
 from ...coordinator import MerakiDataUpdateCoordinator
 from .meraki_network_entity import MerakiNetworkEntity
 
@@ -28,8 +26,7 @@ class MerakiVLANEntity(MerakiNetworkEntity):
         if network is None:
             raise ValueError(f"Network {network_id} not found for VLAN entity")
 
-        # Set attributes needed for device_info BEFORE super().__init__
-        # because BaseMerakiEntity.__init__ logs device_info
+        # Set attributes needed for logic
         self._vlan = vlan
         self._vlan_id = vlan["id"]
         self._vlan_data = vlan
@@ -40,13 +37,5 @@ class MerakiVLANEntity(MerakiNetworkEntity):
             network=network,
         )
 
-    @property
-    def device_info(self) -> DeviceInfo:
-        """Return device info for the VLAN."""
-        return DeviceInfo(
-            identifiers={(DOMAIN, f"{self._network_id}vlan{self._vlan_id}")},
-            name=f"[VLAN {self._vlan_id}] {self._vlan_data.get('name')}",
-            via_device=(DOMAIN, f"network_{self._network_id}"),
-            model="Virtual Local Area Network",
-            manufacturer="Cisco Meraki",
-        )
+    # Refactor: Removed device_info property to inherit from MerakiNetworkEntity
+    # This automatically attaches VLAN entities to the Network Device (Virtual Controller)

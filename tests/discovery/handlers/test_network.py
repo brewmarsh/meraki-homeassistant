@@ -9,6 +9,7 @@ from custom_components.meraki_ha.sensor.network.network_clients import (
     MerakiNetworkClientsSensor,
 )
 from custom_components.meraki_ha.types import MerakiNetwork
+from custom_components.meraki_ha.sensor.network.vlan import MerakiVLANStatusSensor
 
 from ...const import MOCK_CONFIG_ENTRY
 
@@ -24,7 +25,19 @@ MOCK_NETWORK_2 = MerakiNetwork(
 def mock_coordinator():
     """Fixture for a mock MerakiDataUpdateCoordinator."""
     coordinator = MagicMock()
-    coordinator.data = {"networks": [MOCK_NETWORK_1, MOCK_NETWORK_2]}
+    coordinator.data = {
+        "networks": [MOCK_NETWORK_1, MOCK_NETWORK_2],
+        "vlans": {
+            "N_5678": [
+                {"id": 10, "name": "Staff", "subnet": "192.168.10.0/24"},
+                {"id": 20, "name": "Guest", "subnet": "192.168.20.0/24"},
+            ]
+        }
+    }
+    # Mock API for content filtering check
+    coordinator.api.appliance.get_network_appliance_content_filtering_categories = MagicMock(
+        return_value={"categories": []}
+    )
     return coordinator
 
 
@@ -58,3 +71,32 @@ async def test_discover_entities_creates_network_sensors(
 
     network_ids = sorted([s._network_id for s in client_sensors])
     assert network_ids == ["N_1234", "N_5678"]
+
+async def test_discover_entities_creates_vlan_status_sensors(
+    mock_coordinator, mock_network_control_service
+):
+    """Test that discover_entities creates only MerakiVLANStatusSensor for VLANs."""
+    handler = NetworkHandler(
+        mock_coordinator, MOCK_CONFIG_ENTRY, mock_network_control_service
+    )
+
+    entities = []
+    async for entity in handler.discover_entities():
+        entities.append(entity)
+
+    vlan_sensors = [e for e in entities if isinstance(e, MerakiVLANStatusSensor)]
+
+    # We expect 2 VLAN sensors (one for each VLAN in N_5678)
+    # Plus VlansListSensor which is also created
+
+    assert len(vlan_sensors) == 2
+
+    vlan_ids = sorted([s._vlan["id"] for s in vlan_sensors])
+    assert vlan_ids == [10, 20]
+
+    # Verify no old sensors are created
+    # We can check by class name or just rely on the fact that only MerakiVLANStatusSensor is imported/yielded
+    # But just to be sure:
+    for e in entities:
+        if "MerakiVLANIPv4EnabledSensor" in str(type(e)):
+            pytest.fail("Old VLAN sensor class found!")
