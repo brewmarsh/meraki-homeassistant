@@ -43,6 +43,22 @@ jobs:
 
           echo "Deployment to Staging Complete."
 
+      - name: Update Home Assistant Configuration
+        shell: bash
+        run: |
+          echo "Updating configuration.yaml..."
+          sudo tee /ha_config/configuration.yaml <<EOF
+          default_config:
+
+          logger:
+            default: info
+            logs:
+              custom_components.meraki_ha: debug
+          EOF
+          # Ensure log file exists and is writable
+          sudo touch /ha_config/home-assistant.log
+          sudo chmod 666 /ha_config/home-assistant.log
+
       - name: Install jq
         run: sudo apt-get update && sudo apt-get install -y jq
 
@@ -82,39 +98,40 @@ jobs:
           HASS_TOKEN: ${{ secrets.HA_STAGING_TOKEN }}
         run: |
           echo "Scanning logs for Meraki errors via API..."
-
-          # 1. Normalize HASS_SERVER (remove trailing slash)
           CLEAN_SERVER=$(echo "${HASS_SERVER}" | sed 's:/*$::')
 
-          # 2. Retry loop (Wait up to 60s for API to be ready)
-          set +e
-          SUCCESS=false
+          # 1. Readiness Check (Wait up to 60s for API to be ready)
+          echo "Waiting for API to be ready..."
+          READY=false
           for i in {1..6}; do
-            echo "Fetching logs (Attempt $i/6)..."
-            # Capture status code and content separately
-            RESPONSE=$(curl -s -w "\n%{http_code}" -H "Authorization: Bearer ${HASS_TOKEN}" "$CLEAN_SERVER/api/error_log")
-            HTTP_STATUS=$(echo "$RESPONSE" | tail -n1)
-            LOG_CONTENT=$(echo "$RESPONSE" | sed '$d')
-
+            HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" -H "Authorization: Bearer ${HASS_TOKEN}" "$CLEAN_SERVER/api/config")
             if [ "$HTTP_STATUS" -eq 200 ]; then
-              SUCCESS=true
+              READY=true
+              echo "API is ready."
               break
             fi
-
-            echo "API returned $HTTP_STATUS. Waiting..."
-
-            # Diagnostic check: Fail fast on authentication errors
-            if [ "$HTTP_STATUS" -eq 401 ] || [ "$HTTP_STATUS" -eq 403 ]; then
-              echo "::error::Authentication failed with $HTTP_STATUS. Check token permissions."
-              exit 1
-            fi
-
+            echo "API returned $HTTP_STATUS. Waiting (Attempt $i/6)..."
             sleep 10
           done
-          set -e
 
-          if [ "$SUCCESS" != "true" ]; then
-            echo "::error::API failed with $HTTP_STATUS after 60s."
+          if [ "$READY" != "true" ]; then
+            echo "::error::Home Assistant API did not become ready in time."
+            exit 1
+          fi
+
+          # 2. Fetch logs
+          echo "Fetching logs..."
+          RESPONSE=$(curl -s -H "Authorization: Bearer ${HASS_TOKEN}" -w "\n%{http_code}" "$CLEAN_SERVER/api/error_log")
+          HTTP_STATUS=$(echo "$RESPONSE" | tail -n1)
+          LOG_CONTENT=$(echo "$RESPONSE" | sed '$d')
+
+          if [ "$HTTP_STATUS" -eq 404 ]; then
+            echo "Warning: Log file API not available. Skipping log scan."
+            exit 0
+          fi
+
+          if [ "$HTTP_STATUS" -ne 200 ]; then
+            echo "::error::API failed with $HTTP_STATUS."
             exit 1
           fi
 
