@@ -18,6 +18,7 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from ...const import DOMAIN
 from ...coordinator import MerakiDataUpdateCoordinator
 from ...core.models.device import MerakiDevice
+from ...helpers.device_info_helpers import resolve_device_info
 
 
 class MerakiSwitchPortSensor(CoordinatorEntity, SensorEntity):
@@ -44,15 +45,13 @@ class MerakiSwitchPortSensor(CoordinatorEntity, SensorEntity):
         self._attr_has_entity_name = True
         port_id = self._port.get("portId") or self._port.get("number")
         self._attr_unique_id = f"{self._device.serial}_port_{port_id}"
-        self._attr_name = f"Port {port_id}"
+        self._attr_name = f"Port {port_id} status"
         self._attr_native_value = self._port.get("status")
 
     @property
     def device_info(self) -> DeviceInfo | None:
         """Return the device info."""
-        return DeviceInfo(
-            identifiers={(DOMAIN, cast(str, self._device.serial))},
-        )
+        return resolve_device_info(self._device, self._config_entry)
 
     @property
     def available(self) -> bool:
@@ -116,14 +115,12 @@ class MerakiSwitchPortPowerSensor(CoordinatorEntity, SensorEntity):
         self._attr_unique_id = (
             f"{self._device.serial}_port_{port_id}_power"
         )
-        self._attr_name = f"Port {port_id} Power"
+        self._attr_name = f"Port {port_id} power"
 
     @property
     def device_info(self) -> DeviceInfo | None:
         """Return the device info."""
-        return DeviceInfo(
-            identifiers={(DOMAIN, cast(str, self._device.serial))},
-        )
+        return resolve_device_info(self._device, self._config_entry)
 
     @property
     def available(self) -> bool:
@@ -185,14 +182,12 @@ class MerakiSwitchPortEnergySensor(CoordinatorEntity, SensorEntity):
         self._attr_unique_id = (
             f"{self._device.serial}_port_{port_id}_energy"
         )
-        self._attr_name = f"Port {port_id} Energy"
+        self._attr_name = f"Port {port_id} energy"
 
     @property
     def device_info(self) -> DeviceInfo | None:
         """Return the device info."""
-        return DeviceInfo(
-            identifiers={(DOMAIN, cast(str, self._device.serial))},
-        )
+        return resolve_device_info(self._device, self._config_entry)
 
     @property
     def available(self) -> bool:

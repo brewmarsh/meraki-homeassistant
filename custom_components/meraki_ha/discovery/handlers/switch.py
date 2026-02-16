@@ -11,8 +11,9 @@ import logging
 from collections.abc import AsyncIterator
 from typing import TYPE_CHECKING
 
-from ...const_conf import CONF_ENABLE_DEVICE_SENSORS
+from ...const_conf import CONF_ENABLE_DEVICE_SENSORS, CONF_ENABLE_PORT_SENSORS
 from ...sensor.device.switch_client_count import MerakiSwitchClientCountSensor
+from ..providers import SwitchPortProvider
 from .base import BaseHandler
 
 if TYPE_CHECKING:
@@ -51,3 +52,9 @@ class SwitchHandler(BaseHandler):
                         self._coordinator, device, self._config_entry
                     )
 
+                    # Switch Ports
+                    if self._config_entry.options.get(CONF_ENABLE_PORT_SENSORS, True):
+                        for entity in SwitchPortProvider.get_entities(
+                            self._coordinator, device, self._config_entry
+                        ):
+                            yield entity
