@@ -4,13 +4,14 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
+from custom_components.meraki_ha.button.device.poe_cycle import MerakiPoECycleButton
 from custom_components.meraki_ha.const_conf import CONF_ENABLE_PORT_SENSORS
 from custom_components.meraki_ha.core.models.device import MerakiDevice
 from custom_components.meraki_ha.discovery.handlers.switch import SwitchHandler
 from custom_components.meraki_ha.sensor.device.switch_client_count import (
     MerakiSwitchClientCountSensor,
 )
-from custom_components.meraki_ha.switch.switch_port import MerakiSwitchPortSwitch
+from custom_components.meraki_ha.switch.switch_port import MerakiSwitchPortToggle
 
 
 @pytest.fixture
@@ -135,13 +136,16 @@ async def test_switch_handler_unknown_model_fallback(mock_coordinator, mock_conf
     # 3. MerakiSwitchPortSensor
     # 4. MerakiSwitchPortPowerSensor
     # 5. MerakiSwitchPortEnergySensor
-    # 6. MerakiSwitchPortSwitch
+    # 6. MerakiSwitchPortToggle
+    # 7. MerakiPoECycleButton
 
-    assert len(entities) == 6
+    assert len(entities) == 7
     # Check if switch port switch entity is present
-    assert any(isinstance(e, MerakiSwitchPortSwitch) for e in entities)
+    assert any(isinstance(e, MerakiSwitchPortToggle) for e in entities)
     # Check if client count sensor is present
     assert any(isinstance(e, MerakiSwitchClientCountSensor) for e in entities)
+    # Check if PoE cycle button is present
+    assert any(isinstance(e, MerakiPoECycleButton) for e in entities)
 
 
 @pytest.mark.asyncio
