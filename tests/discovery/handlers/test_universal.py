@@ -11,7 +11,6 @@ from custom_components.meraki_ha.discovery.handlers.universal import UniversalHa
 from custom_components.meraki_ha.sensor.device.device_status import (
     MerakiDeviceStatusSensor,
 )
-from custom_components.meraki_ha.switch.switch_port import MerakiSwitchPortSwitch
 
 
 @pytest.fixture
