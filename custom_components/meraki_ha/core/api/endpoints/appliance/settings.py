@@ -103,6 +103,38 @@ class ApplianceSettingsMixin:
         return validated
 
     @handle_meraki_errors
+    async def update_network_appliance_port(
+        self,
+        network_id: str,
+        port_id: str,
+        **kwargs: Any,
+    ) -> dict[str, Any]:
+        """
+        Update an appliance port.
+
+        Args:
+            network_id: The ID of the network.
+            port_id: The ID of the port.
+            **kwargs: Additional arguments.
+
+        Returns
+        -------
+            The updated port.
+
+        """
+        port = await self._api_client.run_sync(
+            self._api_client.dashboard.appliance.updateNetworkAppliancePort,
+            networkId=network_id,
+            portId=port_id,
+            **kwargs,
+        )
+        validated = validate_response(port)
+        if not isinstance(validated, dict):
+            _LOGGER.warning("update_network_appliance_port did not return a dict")
+            return {}
+        return validated
+
+    @handle_meraki_errors
     @async_timed_cache()
     async def get_appliance_ports(self, network_id: str) -> list[dict[str, Any]]:
         """
