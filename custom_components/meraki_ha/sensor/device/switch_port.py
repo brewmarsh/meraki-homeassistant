@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Any, cast
+from typing import Any
 
 from homeassistant.components.sensor import (
     SensorDeviceClass,
@@ -15,7 +15,6 @@ from homeassistant.core import callback
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from ...const import DOMAIN
 from ...coordinator import MerakiDataUpdateCoordinator
 from ...core.models.device import MerakiDevice
 from ...helpers.device_info_helpers import resolve_device_info

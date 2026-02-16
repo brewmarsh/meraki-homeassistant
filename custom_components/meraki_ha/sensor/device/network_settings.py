@@ -4,12 +4,13 @@ from __future__ import annotations
 
 import logging
 from dataclasses import asdict
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, cast
 
 from homeassistant.components.sensor import SensorEntity, SensorEntityDescription
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import EntityCategory
 from homeassistant.core import callback
+from homeassistant.helpers.typing import StateType
 
 from ...coordinator import MerakiDataUpdateCoordinator
 from ...entity import MerakiEntity
@@ -172,9 +173,9 @@ class MerakiDeviceDNSSensor(MerakiDeviceUplinkBaseSensor):
         if uplink_data:
             dns_servers = uplink_data.get("dns")
             if isinstance(dns_servers, list):
-                self._attr_native_value = ", ".join(dns_servers)
+                self._attr_native_value = cast(StateType, ", ".join(dns_servers))
             else:
-                self._attr_native_value = dns_servers
+                self._attr_native_value = cast(StateType, dns_servers)
         else:
             self._attr_native_value = None
 

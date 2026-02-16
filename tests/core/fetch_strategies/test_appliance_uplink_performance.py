@@ -64,8 +64,8 @@ async def test_get_uplink_performance_fallback(strategy, mock_client):
     )
     # Second method succeeds
     mock_data = [{"serial": "SERIAL1", "interface": "wan1", "lossPercent": 0.2}]
-    mock_client.dashboard.appliance.getNetworkApplianceUplinksLossAndLatency = MagicMock(
-        return_value=mock_data
+    mock_client.dashboard.appliance.getNetworkApplianceUplinksLossAndLatency = (
+        MagicMock(return_value=mock_data)
     )
 
     result = await strategy._get_uplink_performance("net1")
@@ -83,8 +83,8 @@ async def test_get_uplink_performance_legacy_fallback(strategy, mock_client):
     mock_client.dashboard.appliance.getNetworkApplianceUplinksUsageHistory = MagicMock(
         side_effect=Exception("Failed")
     )
-    mock_client.dashboard.appliance.getNetworkApplianceUplinksLossAndLatency = MagicMock(
-        side_effect=Exception("Failed")
+    mock_client.dashboard.appliance.getNetworkApplianceUplinksLossAndLatency = (
+        MagicMock(side_effect=Exception("Failed"))
     )
     # Third method succeeds
     mock_data = [{"serial": "SERIAL1", "interface": "wan1", "loss": 0.3}]

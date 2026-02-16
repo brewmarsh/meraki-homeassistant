@@ -3,17 +3,15 @@
 from __future__ import annotations
 
 import logging
-from typing import Any, cast
+from typing import Any
 
 from homeassistant.components.switch import SwitchEntity, SwitchEntityDescription
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import EntityCategory
 from homeassistant.core import callback
 from homeassistant.helpers.device_registry import DeviceInfo
 
-from ..const import DOMAIN
 from ..coordinator import MerakiDataUpdateCoordinator
-from ..core.models.device import MerakiDevice
+from ..core.models.device import MerakiAppliancePort, MerakiDevice
 from ..entity import MerakiEntity
 from ..helpers.device_info_helpers import resolve_device_info
 
@@ -133,6 +131,102 @@ class MerakiSwitchPortToggle(MerakiEntity, SwitchEntity):
             )
         except Exception:
             # Revert state on failure
+            self._attr_is_on = True
+            if self.unique_id:
+                self.coordinator.cancel_pending_update(self.unique_id)
+            self.async_write_ha_state()
+            raise
+
+
+class MerakiAppliancePortSwitch(MerakiSwitchPortToggle):
+    """Representation of a Meraki Appliance Port toggle entity."""
+
+    def __init__(
+        self,
+        coordinator: MerakiDataUpdateCoordinator,
+        device: MerakiDevice,
+        port: MerakiAppliancePort,
+        config_entry: ConfigEntry,
+    ) -> None:
+        """Initialize the Meraki Appliance Port toggle entity."""
+        super().__init__(coordinator, device, port.to_dict(), config_entry)
+        self._appliance_port = port
+
+    @callback
+    def _handle_coordinator_update(self) -> None:
+        """Handle updated data from the coordinator."""
+        if not self._device.serial:
+            return
+        device = self.coordinator.get_device(self._device.serial)
+        if device:
+            self._device = device
+            for port in device.appliance_ports:
+                if port.number == self._appliance_port.number:
+                    self._appliance_port = port
+                    self._port = port.to_dict()
+                    break
+
+        self._update_internal_state()
+        self.async_write_ha_state()
+
+    async def async_turn_on(self, **kwargs: Any) -> None:
+        """Turn the switch on (enable the port)."""
+        if (
+            not self._device.serial
+            or not self._device.network_id
+            or self._appliance_port.number is None
+        ):
+            _LOGGER.error(
+                "Cannot enable port: Missing serial, network ID or port number."
+            )
+            return
+
+        # Optimistic update
+        self._attr_is_on = True
+        self.async_write_ha_state()
+
+        if self.unique_id:
+            self.coordinator.register_pending_update(self.unique_id)
+
+        try:
+            await self.coordinator.api.appliance.update_network_appliance_port(
+                network_id=self._device.network_id,
+                port_id=str(self._appliance_port.number),
+                enabled=True,
+            )
+        except Exception:
+            self._attr_is_on = False
+            if self.unique_id:
+                self.coordinator.cancel_pending_update(self.unique_id)
+            self.async_write_ha_state()
+            raise
+
+    async def async_turn_off(self, **kwargs: Any) -> None:
+        """Turn the switch off (disable the port)."""
+        if (
+            not self._device.serial
+            or not self._device.network_id
+            or self._appliance_port.number is None
+        ):
+            _LOGGER.error(
+                "Cannot disable port: Missing serial, network ID or port number."
+            )
+            return
+
+        # Optimistic update
+        self._attr_is_on = False
+        self.async_write_ha_state()
+
+        if self.unique_id:
+            self.coordinator.register_pending_update(self.unique_id)
+
+        try:
+            await self.coordinator.api.appliance.update_network_appliance_port(
+                network_id=self._device.network_id,
+                port_id=str(self._appliance_port.number),
+                enabled=False,
+            )
+        except Exception:
             self._attr_is_on = True
             if self.unique_id:
                 self.coordinator.cancel_pending_update(self.unique_id)

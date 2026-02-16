@@ -5,7 +5,6 @@ from unittest.mock import AsyncMock, MagicMock
 import pytest
 
 from custom_components.meraki_ha.button.reboot import MerakiRebootButton
-from custom_components.meraki_ha.core.const import DEFAULT_CAPS, DEVICE_CAPABILITIES
 from custom_components.meraki_ha.core.models.device import MerakiDevice
 from custom_components.meraki_ha.discovery.handlers.universal import UniversalHandler
 from custom_components.meraki_ha.sensor.device.device_status import (

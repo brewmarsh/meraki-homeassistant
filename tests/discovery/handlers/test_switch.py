@@ -4,6 +4,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
+from custom_components.meraki_ha.button.device.poe_cycle import MerakiPoECycleButton
 from custom_components.meraki_ha.const_conf import CONF_ENABLE_PORT_SENSORS
 from custom_components.meraki_ha.core.models.device import MerakiDevice
 from custom_components.meraki_ha.discovery.handlers.switch import SwitchHandler
@@ -79,15 +80,18 @@ async def test_switch_handler_exclusion_logic(mock_coordinator, mock_config_entr
 
     handler = SwitchHandler(mock_coordinator, mock_config_entry)
 
-    with patch("custom_components.meraki_ha.discovery.handlers.switch._LOGGER") as mock_logger:
+    with patch(
+        "custom_components.meraki_ha.discovery.handlers.switch._LOGGER"
+    ) as mock_logger:
         entities = []
         async for entity in handler.discover_entities():
             entities.append(entity)
 
         # Assertions
         # Should only have 1 entity (the normal switch's client count)
-        # Even though appliances have ports_statuses, SwitchHandler doesn't yield port sensors,
-        # and it should skip processing them entirely due to the new logic.
+        # Even though appliances have ports_statuses, SwitchHandler doesn't yield
+        # port sensors, and it should skip processing them entirely due to
+        # the new logic.
         assert len(entities) == 1
         assert isinstance(entities[0], MerakiSwitchClientCountSensor)
         assert entities[0]._device_serial == "MS_SERIAL"
@@ -106,7 +110,9 @@ async def test_switch_handler_exclusion_logic(mock_coordinator, mock_config_entr
 
 
 @pytest.mark.asyncio
-async def test_switch_handler_unknown_model_fallback(mock_coordinator, mock_config_entry):
+async def test_switch_handler_unknown_model_fallback(
+    mock_coordinator, mock_config_entry
+):
     """Test that an unknown switch model (e.g. MS390) gets switch_ports capability."""
     # Ensure port sensors are enabled
     mock_config_entry.options = {CONF_ENABLE_PORT_SENSORS: True}
@@ -143,6 +149,8 @@ async def test_switch_handler_unknown_model_fallback(mock_coordinator, mock_conf
     assert any(isinstance(e, MerakiSwitchPortToggle) for e in entities)
     # Check if client count sensor is present
     assert any(isinstance(e, MerakiSwitchClientCountSensor) for e in entities)
+    # Check if PoE cycle button is present
+    assert any(isinstance(e, MerakiPoECycleButton) for e in entities)
 
 
 @pytest.mark.asyncio

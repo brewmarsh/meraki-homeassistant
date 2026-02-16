@@ -111,7 +111,7 @@ async def test_content_filtering_select_entity(
         # Look for the entity
         target_entity = None
         for e in entries:
-            if "content-filtering" in str(e.unique_id):
+            if "content-filtering" in str(e.unique_id) and e.domain == "select":
                 target_entity = e
                 break
 
