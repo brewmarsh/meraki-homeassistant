@@ -42,14 +42,17 @@ def test_vlan_naming(mock_coordinator):
 
     entity = MerakiVLANEntity(mock_coordinator, config_entry, "N_12345", vlan)
 
-    # Device name remains the standardized Meraki format
-    assert entity.device_info["name"] == "[VLAN 10] VoIP"
-    # RESOLVED: Setting name to None ensures the entity inherits the Device Name exactly
+    # Refactor: Device name is now the Site Controller
+    assert entity.device_info["name"] == "Site: Site A"
+    # MerakiVLANEntity has no name by default, subclasses set it
     assert entity.name is None
 
 
 def test_camera_naming(mock_coordinator):
     """Test the naming of a Camera entity."""
+    # Physical device naming should remain unchanged
+    # But checking to be sure as resolve_device_info was modified
+    # for network/ssid logic.
     from custom_components.meraki_ha.camera import MerakiRTSPStreamCamera
     from custom_components.meraki_ha.types import MerakiDevice
 
@@ -98,4 +101,5 @@ def test_network_status_naming(mock_coordinator):
 
     # Supplemental entities keep a descriptive name
     assert entity.name == "Uplink status"
-    assert entity.device_info["name"] == "[Network] Warehouse"
+    # Refactor: Device name is now the Site Controller
+    assert entity.device_info["name"] == "Site: Warehouse"

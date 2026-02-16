@@ -1,12 +1,13 @@
 
 from unittest.mock import MagicMock
+from homeassistant.helpers.device_registry import DeviceEntryType
 
 from custom_components.meraki_ha.const import DOMAIN
 from custom_components.meraki_ha.helpers.device_info_helpers import resolve_device_info
 
 
-def test_resolve_device_info_network_prefix():
-    """Test resolving device info with network prefix."""
+def test_resolve_device_info_network_virtual_controller():
+    """Test resolving device info for network as Virtual Controller."""
     config_entry = MagicMock()
     config_entry.entry_id = "test_entry"
 
@@ -17,25 +18,28 @@ def test_resolve_device_info_network_prefix():
         "productTypes": ["appliance"]
     }
     device_info_1 = resolve_device_info(entity_data_1, config_entry)
-    assert device_info_1["name"] == "[Network] Site A"
+    # New Format: Site: {Name}
+    assert device_info_1["name"] == "Site: Site A"
     assert device_info_1["identifiers"] == {(DOMAIN, "network_net1")}
+    assert device_info_1["model"] == "Network Controller Service"
+    assert device_info_1["entry_type"] == DeviceEntryType.SERVICE
 
-    # Case 2: Name with prefix
+    # Case 2: Name with prefix (should not double prefix)
     entity_data_2 = {
         "id": "net2",
-        "name": "[Network] Site B",
+        "name": "Site: Site B",
         "productTypes": ["appliance"]
     }
     device_info_2 = resolve_device_info(entity_data_2, config_entry)
-    assert device_info_2["name"] == "[Network] Site B"
+    assert device_info_2["name"] == "Site: Site B"
     assert device_info_2["identifiers"] == {(DOMAIN, "network_net2")}
 
-def test_resolve_device_info_ssid_prefix():
-    """Test resolving device info with SSID prefix."""
+def test_resolve_device_info_ssid_virtual_controller_attachment():
+    """Test resolving device info for SSID attaches to Virtual Controller."""
     config_entry = MagicMock()
     config_entry.entry_id = "test_entry"
 
-    # Case 1: Name without prefix
+    # Case 1: SSID data
     ssid_data_1 = {
         "networkId": "net1",
         "number": 0,
@@ -43,19 +47,14 @@ def test_resolve_device_info_ssid_prefix():
     }
     # Passing ssid_data as entity_data (simulating how it's called for SSIDs)
     device_info_1 = resolve_device_info(ssid_data_1, config_entry)
-    assert device_info_1["name"] == "[SSID 0] Guest WiFi"
 
-    # Case 2: Name with prefix
-    ssid_data_2 = {
-        "networkId": "net1",
-        "number": 1,
-        "name": "[SSID 1] Corporate WiFi"
-    }
-    device_info_2 = resolve_device_info(ssid_data_2, config_entry)
-    assert device_info_2["name"] == "[SSID 1] Corporate WiFi"
+    # Should only return identifiers pointing to the network device
+    assert device_info_1["identifiers"] == {(DOMAIN, "network_net1")}
+    assert "name" not in device_info_1
+    assert "model" not in device_info_1
 
 def test_resolve_device_info_device_prefix():
-    """Test resolving device info with device prefix."""
+    """Test resolving device info with device prefix (Physical Devices)."""
     config_entry = MagicMock()
     config_entry.entry_id = "test_entry"
 
@@ -67,6 +66,7 @@ def test_resolve_device_info_device_prefix():
         "model": "MS220-8P"
     }
     device_info_1 = resolve_device_info(device_data_1, config_entry)
+    # Physical devices still use [Type] prefix logic as before (or maybe I should check if that changed? No, design doc says Physical Devices remain as is)
     assert device_info_1["name"] == "[Switch] Core Switch"
 
     # Case 2: Name with prefix (Camera)

@@ -14,7 +14,7 @@ async def test_network_device_creation(
     mock_meraki_client: MagicMock,
     device_registry: dr.DeviceRegistry,
 ) -> None:
-    """Test that a network device is created."""
+    """Test that a network device is created (Virtual Controller)."""
     mock_dashboard = mock_meraki_client.return_value
     mock_dashboard.organizations.getOrganizations.return_value = [
         {"id": MERAKI_TEST_ORG_ID, "name": "Test Organization"}
@@ -32,4 +32,5 @@ async def test_network_device_creation(
         identifiers={("meraki_ha", f"network_{MERAKI_TEST_NETWORK_ID}")}
     )
     assert device is not None
-    assert device.name == "[Network] Site A"
+    # Refactor: New name format for Virtual Controller
+    assert device.name == "Site: Site A"

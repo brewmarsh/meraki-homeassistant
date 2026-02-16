@@ -118,13 +118,7 @@ class NetworkHandler(BaseHandler):
                 if vlans:
                     # Dynamically import VLAN sensors only if enabled
                     from ...sensor.network.vlan import (
-                        MerakiVLANIDSensor,
-                        MerakiVLANIPv4EnabledSensor,
-                        MerakiVLANIPv4InterfaceSensor,
-                        MerakiVLANIPv4UplinkSensor,
-                        MerakiVLANIPv6EnabledSensor,
-                        MerakiVLANIPv6InterfaceSensor,
-                        MerakiVLANIPv6UplinkSensor,
+                        MerakiVLANStatusSensor,
                     )
                     from ...sensor.network.vlans_list import VlansListSensor
 
@@ -133,43 +127,7 @@ class NetworkHandler(BaseHandler):
                     )
 
                     for vlan in vlans:
-                        yield MerakiVLANIDSensor(
-                            self._coordinator,
-                            self._config_entry,
-                            network.id,
-                            vlan,
-                        )
-                        yield MerakiVLANIPv4EnabledSensor(
-                            self._coordinator,
-                            self._config_entry,
-                            network.id,
-                            vlan,
-                        )
-                        yield MerakiVLANIPv4InterfaceSensor(
-                            self._coordinator,
-                            self._config_entry,
-                            network.id,
-                            vlan,
-                        )
-                        yield MerakiVLANIPv4UplinkSensor(
-                            self._coordinator,
-                            self._config_entry,
-                            network.id,
-                            vlan,
-                        )
-                        yield MerakiVLANIPv6EnabledSensor(
-                            self._coordinator,
-                            self._config_entry,
-                            network.id,
-                            vlan,
-                        )
-                        yield MerakiVLANIPv6InterfaceSensor(
-                            self._coordinator,
-                            self._config_entry,
-                            network.id,
-                            vlan,
-                        )
-                        yield MerakiVLANIPv6UplinkSensor(
+                        yield MerakiVLANStatusSensor(
                             self._coordinator,
                             self._config_entry,
                             network.id,

@@ -5,6 +5,7 @@ from unittest.mock import AsyncMock, MagicMock
 import pytest
 from homeassistant.core import HomeAssistant
 
+from custom_components.meraki_ha.const import DOMAIN
 from custom_components.meraki_ha.switch.meraki_ssid_device_switch import (
     MerakiSSIDBroadcastSwitch,
     MerakiSSIDEnabledSwitch,
@@ -62,7 +63,10 @@ async def test_meraki_ssid_enabled_switch(
     assert switch.name == "Enabled Control"
     device_info = switch.device_info
     assert device_info is not None
-    assert device_info["name"] == "[SSID 0] Test SSID"
+    # Refactor: SSID entities attach to Virtual Controller (Network Device)
+    assert device_info["identifiers"] == {(DOMAIN, "network_net-123")}
+    # Name is no longer provided in device_info for SSIDs (it's provided by Network Entity)
+    assert "name" not in device_info
 
     switch.hass = hass
     switch.entity_id = "switch.test"
@@ -93,7 +97,10 @@ async def test_meraki_ssid_broadcast_switch(
     assert switch.name == "Broadcast Control"
     device_info = switch.device_info
     assert device_info is not None
-    assert device_info["name"] == "[SSID 0] Test SSID"
+    # Refactor: SSID entities attach to Virtual Controller (Network Device)
+    assert device_info["identifiers"] == {(DOMAIN, "network_net-123")}
+    # Name is no longer provided in device_info for SSIDs
+    assert "name" not in device_info
 
     switch.hass = hass
     switch.entity_id = "switch.test"
