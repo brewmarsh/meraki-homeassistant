@@ -4,11 +4,13 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
+from custom_components.meraki_ha.const_conf import CONF_ENABLE_PORT_SENSORS
 from custom_components.meraki_ha.core.models.device import MerakiDevice
 from custom_components.meraki_ha.discovery.handlers.switch import SwitchHandler
 from custom_components.meraki_ha.sensor.device.switch_client_count import (
     MerakiSwitchClientCountSensor,
 )
+from custom_components.meraki_ha.switch.switch_port import MerakiSwitchPortSwitch
 
 
 @pytest.fixture
@@ -30,6 +32,9 @@ def mock_config_entry():
 @pytest.mark.asyncio
 async def test_switch_handler_exclusion_logic(mock_coordinator, mock_config_entry):
     """Test that SwitchHandler excludes appliances and Z3 devices."""
+    # Disable port sensors to simplify entity count assertion
+    mock_config_entry.options = {CONF_ENABLE_PORT_SENSORS: False}
+
     # Define devices with ports to satisfy reviewer concern
     mx_appliance = MerakiDevice(
         serial="MX_SERIAL",
@@ -98,6 +103,46 @@ async def test_switch_handler_exclusion_logic(mock_coordinator, mock_config_entr
         assert "MX_SERIAL" in skip_calls
         assert "Z3_SERIAL" in skip_calls
         assert "MX_SWITCH_SERIAL" in skip_calls
+
+
+@pytest.mark.asyncio
+async def test_switch_handler_unknown_model_fallback(mock_coordinator, mock_config_entry):
+    """Test that an unknown switch model (e.g. MS390) gets switch_ports capability."""
+    # Ensure port sensors are enabled
+    mock_config_entry.options = {CONF_ENABLE_PORT_SENSORS: True}
+
+    # MS390 is not in DEVICE_CAPABILITIES usually, but product_type="switch"
+    device = MerakiDevice(
+        serial="ms390-serial",
+        model="MS390",
+        product_type="switch",
+        ports_statuses=[{"portId": "1", "enabled": True}],
+    )
+
+    mock_coordinator.data = {
+        "devices": [device]
+    }
+
+    handler = SwitchHandler(mock_coordinator, mock_config_entry)
+
+    entities = []
+    async for entity in handler.discover_entities():
+        entities.append(entity)
+
+    # Expected entities:
+    # 1. MerakiSwitchClientCountSensor
+    # 2. SwitchPortSensor
+    # 3. MerakiSwitchPortSensor
+    # 4. MerakiSwitchPortPowerSensor
+    # 5. MerakiSwitchPortEnergySensor
+    # 6. MerakiSwitchPortSwitch
+
+    assert len(entities) == 6
+    # Check if switch port switch entity is present
+    assert any(isinstance(e, MerakiSwitchPortSwitch) for e in entities)
+    # Check if client count sensor is present
+    assert any(isinstance(e, MerakiSwitchClientCountSensor) for e in entities)
+
 
 @pytest.mark.asyncio
 async def test_switch_handler_no_data(mock_coordinator, mock_config_entry):

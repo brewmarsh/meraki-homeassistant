@@ -217,43 +217,6 @@ async def test_universal_handler_capability_compliance(
 
 
 @pytest.mark.asyncio
-async def test_universal_handler_unknown_switch_fallback(
-    mock_coordinator,
-    mock_config_entry,
-    mock_camera_service,
-    mock_control_service,
-    mock_network_control_service,
-):
-    """Test that an unknown switch model (e.g. MS390) gets switch_ports capability."""
-    # MS390 is not in DEVICE_CAPABILITIES
-    device = MerakiDevice(
-        serial="ms390-serial",
-        model="MS390",
-        product_type="switch",
-        ports_statuses=[{"portId": "1", "enabled": True}],
-    )
-
-    handler = UniversalHandler(
-        mock_coordinator,
-        device,
-        mock_config_entry,
-        mock_camera_service,
-        mock_control_service,
-        mock_network_control_service,
-    )
-
-    entities = []
-    async for entity in handler.discover_entities():
-        entities.append(entity)
-
-    # Check if switch ports are discovered
-    has_switch_port = any(isinstance(e, MerakiSwitchPortSwitch) for e in entities)
-
-    # Assert capability was added
-    assert "switch_ports" in handler.capabilities
-    assert has_switch_port
-
-@pytest.mark.asyncio
 async def test_universal_handler_unknown_wireless_fallback(
     mock_coordinator,
     mock_config_entry,
