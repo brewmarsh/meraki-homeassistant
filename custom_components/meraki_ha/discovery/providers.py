@@ -55,7 +55,7 @@ from ..sensor.device.switch_port import (
 from ..sensor.device.wireless_radio import MerakiWirelessRadioSensor
 from ..sensor.uplink_performance import MerakiUplinkPerformanceSensor
 from ..switch.camera_controls import AnalyticsSwitch
-from ..switch.switch_port import MerakiSwitchPortToggle
+from ..switch.switch_port import MerakiAppliancePortSwitch, MerakiSwitchPortToggle
 
 if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
@@ -251,6 +251,9 @@ class AppliancePortProvider:
             for port in device.appliance_ports:
                 entities.append(MerakiAppliancePortSensor(coordinator, device, port))
                 entities.append(AppliancePortBinarySensor(coordinator, device, port))
+                entities.append(
+                    MerakiAppliancePortSwitch(coordinator, device, port, config_entry)
+                )
         return entities
 
 
