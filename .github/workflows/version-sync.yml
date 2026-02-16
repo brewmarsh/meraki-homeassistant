@@ -1,0 +1,54 @@
+name: Update Version
+
+on:
+  release:
+    types: [published]
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  update-manifest:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          # Always checkout a branch to avoid detached HEAD.
+          # For release events, target_commitish is the branch.
+          # For tag pushes, fallback to 'beta'.
+          ref: ${{ github.event.release.target_commitish || 'beta' }}
+
+      - name: Update manifest.json
+        run: |
+          # 1. Get version from tag (remove 'v' and 'refs/tags/')
+          TAG_NAME=${GITHUB_REF#refs/tags/}
+          VERSION=${TAG_NAME#v}
+          echo "Syncing manifest.json to version $VERSION"
+
+          # 2. Use jq to update the file
+          jq --arg v "$VERSION" '.version = $v' custom_components/meraki_ha/manifest.json > tmp.json && mv tmp.json custom_components/meraki_ha/manifest.json
+
+          # 3. Verify it worked
+          grep "\"version\": \"$VERSION\"" custom_components/meraki_ha/manifest.json
+
+          # Export for next step
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+
+      - name: Commit and Push
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add custom_components/meraki_ha/manifest.json
+
+          # Only commit if there are changes
+          if git diff --staged --quiet; then
+            echo "No changes to manifest.json, skipping commit."
+          else
+            git commit -m "chore: sync manifest.json version to $VERSION"
+            # Push specifically to the target branch
+            git push origin HEAD:${{ github.event.release.target_commitish || 'beta' }}
+          fi
