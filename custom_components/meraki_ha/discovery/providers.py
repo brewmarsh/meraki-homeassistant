@@ -47,6 +47,7 @@ from ..sensor.device.network_settings import (
     MerakiDeviceIPSensor,
 )
 from ..sensor.device.rtsp_url import MerakiRtspUrlSensor
+from ..sensor.device.switch_poe import MerakiSwitchPoESensor
 from ..sensor.device.switch_port import (
     MerakiSwitchPortEnergySensor,
     MerakiSwitchPortPowerSensor,
@@ -283,6 +284,13 @@ class SwitchPortProvider:
                 entities.append(
                     MerakiSwitchPortEnergySensor(coordinator, device, port, config_entry)
                 )
+                if (
+                    port.get("powerUsageInWh") is not None
+                    or port.get("powerUsage") is not None
+                ):
+                    entities.append(
+                        MerakiSwitchPoESensor(coordinator, device, port, config_entry)
+                    )
                 # RESOLVED: Updated constructor to include config_entry per beta branch
                 entities.append(
                     MerakiSwitchPortToggle(coordinator, device, port, config_entry)
