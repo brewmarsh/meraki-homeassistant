@@ -91,6 +91,8 @@ class NetworkHandler(BaseHandler):
                 from ...sensor.client.status import MerakiClientStatusSensor
 
                 clients = self._coordinator.data.get("clients", [])
+                
+                # RESOLVED: Using list comprehension from beta branch for cleaner filtering
                 network_clients = [
                     c for c in clients if c.get("networkId") == network.id
                 ]
@@ -102,6 +104,7 @@ class NetworkHandler(BaseHandler):
                             client,
                             self._config_entry,
                         )
+
             # Content Filtering Switch
             if "appliance" in network.product_types:
                 try:
@@ -118,6 +121,7 @@ class NetworkHandler(BaseHandler):
                 except Exception as e:
                     _LOGGER.warning(
                         "Could not get content filtering categories for network %s: %s",
+                        network.id,
                         network.id,
                         e,
                     )
