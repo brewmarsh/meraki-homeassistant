@@ -6,8 +6,8 @@ import pytest
 from homeassistant.components.sensor import SensorDeviceClass, SensorStateClass
 from homeassistant.const import UnitOfPower
 
-from custom_components.meraki_ha.sensor.device.switch_poe import MerakiSwitchPoESensor
 from custom_components.meraki_ha.core.models.device import MerakiDevice
+from custom_components.meraki_ha.sensor.device.switch_poe import MerakiSwitchPoESensor
 
 
 @pytest.fixture
