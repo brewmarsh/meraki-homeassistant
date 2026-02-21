@@ -75,6 +75,11 @@ async def test_meraki_ssid_enabled_switch(
         network_id="net-123", number=0, enabled=False
     )
 
+    # Test extra_state_attributes
+    attrs = switch.extra_state_attributes
+    assert attrs["authMode"] == ssid_data.get("authMode")
+    assert attrs["encryptionMode"] == ssid_data.get("encryptionMode")
+
 
 async def test_meraki_ssid_broadcast_switch(
     hass: HomeAssistant,
@@ -108,3 +113,8 @@ async def test_meraki_ssid_broadcast_switch(
     mock_meraki_client.wireless.update_network_wireless_ssid.assert_called_with(
         network_id="net-123", number=0, visible=False
     )
+
+    # Test extra_state_attributes
+    attrs = switch.extra_state_attributes
+    assert attrs["authMode"] == ssid_data.get("authMode")
+    assert attrs["visible"] is True

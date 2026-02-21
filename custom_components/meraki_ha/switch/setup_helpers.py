@@ -168,6 +168,15 @@ def _setup_ssid_switches(
         if ssid_number is None:
             continue
 
+        # Find the RF profile for this SSID's network
+        rf_profile = None
+        if coordinator.data and coordinator.data.get("rf_profiles"):
+            network_rf_profiles = coordinator.data["rf_profiles"].get(
+                ssid["networkId"]
+            )
+            if network_rf_profiles:
+                rf_profile = next(iter(network_rf_profiles), None)
+
         # Enabled Switch
         unique_id = f"{ssid['networkId']}ssid{ssid_number}_enabled_switch"
         if unique_id not in added_entities:
@@ -177,6 +186,7 @@ def _setup_ssid_switches(
                     coordinator.api,
                     config_entry,
                     ssid,
+                    rf_profile,
                 )
             )
             added_entities.add(unique_id)
@@ -190,6 +200,7 @@ def _setup_ssid_switches(
                     coordinator.api,
                     config_entry,
                     ssid,
+                    rf_profile,
                 )
             )
             added_entities.add(unique_id)

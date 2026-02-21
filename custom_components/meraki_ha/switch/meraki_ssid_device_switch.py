@@ -32,12 +32,14 @@ class MerakiSSIDBaseSwitch(MerakiEntity, SwitchEntity):
         ssid_data: dict[str, Any],
         switch_type: str,  # "enabled" or "broadcast"
         attribute_to_check: str,  # "enabled" or "visible"
+        rf_profile: dict[str, Any] | None = None,
     ) -> None:
         """Initialize the base SSID switch."""
         super().__init__(coordinator)
         self._meraki_client = meraki_client
         self._config_entry = config_entry
         self._ssid_data_at_init = ssid_data
+        self._rf_profile = rf_profile
 
         self._network_id = ssid_data.get("networkId")
         self._ssid_number = ssid_data.get("number")
@@ -50,6 +52,35 @@ class MerakiSSIDBaseSwitch(MerakiEntity, SwitchEntity):
         self._attr_is_on = False
 
         self._update_internal_state()
+
+    @property
+    def extra_state_attributes(self) -> dict[str, Any]:
+        """Return a dictionary containing consolidated static data."""
+        ssid_data = self._get_current_ssid_data() or self._ssid_data_at_init
+        attrs = {
+            "authMode": ssid_data.get("authMode"),
+            "encryptionMode": ssid_data.get("encryptionMode"),
+            "splashPage": ssid_data.get("splashPage"),
+            "bandSelection": ssid_data.get("bandSelection"),
+            "ipAssignmentMode": ssid_data.get("ipAssignmentMode"),
+            "psk": ssid_data.get("psk"),
+            "wpaEncryptionMode": ssid_data.get("wpaEncryptionMode"),
+            "perClientBandwidthLimitUp": ssid_data.get("perClientBandwidthLimitUp"),
+            "perClientBandwidthLimitDown": ssid_data.get("perClientBandwidthLimitDown"),
+            "perSsidBandwidthLimitUp": ssid_data.get("perSsidBandwidthLimitUp"),
+            "perSsidBandwidthLimitDown": ssid_data.get("perSsidBandwidthLimitDown"),
+            "walledGardenEnabled": ssid_data.get("walledGardenEnabled"),
+            "walledGardenRanges": ssid_data.get("walledGardenRanges"),
+            "mandatoryDhcpEnabled": ssid_data.get("mandatoryDhcpEnabled"),
+            "visible": ssid_data.get("visible"),
+        }
+        if self._rf_profile:
+            if two_four_ghz := self._rf_profile.get("twoFourGhzSettings"):
+                attrs["minBitrate24ghz"] = two_four_ghz.get("minBitrate")
+            if five_ghz := self._rf_profile.get("fiveGhzSettings"):
+                attrs["minBitrate5ghz"] = five_ghz.get("minBitrate")
+
+        return attrs
 
     def _get_current_ssid_data(self) -> dict[str, Any] | None:
         """Retrieve the latest data for this SSID from the coordinator."""
@@ -155,6 +186,7 @@ class MerakiSSIDEnabledSwitch(MerakiSSIDBaseSwitch):
         meraki_client: MerakiAPIClient,
         config_entry: ConfigEntry,
         ssid_data: dict[str, Any],
+        rf_profile: dict[str, Any] | None = None,
     ) -> None:
         """Initialize the SSID Enabled switch."""
         super().__init__(
@@ -164,6 +196,7 @@ class MerakiSSIDEnabledSwitch(MerakiSSIDBaseSwitch):
             ssid_data,
             "enabled",
             "enabled",
+            rf_profile,
         )
         self._attr_name = "Enabled Control"
 
@@ -184,6 +217,7 @@ class MerakiSSIDBroadcastSwitch(MerakiSSIDBaseSwitch):
         meraki_client: MerakiAPIClient,
         config_entry: ConfigEntry,
         ssid_data: dict[str, Any],
+        rf_profile: dict[str, Any] | None = None,
     ) -> None:
         """Initialize the SSID Broadcast switch."""
         super().__init__(
@@ -193,5 +227,6 @@ class MerakiSSIDBroadcastSwitch(MerakiSSIDBaseSwitch):
             ssid_data,
             "broadcast",
             "visible",
+            rf_profile,
         )
         self._attr_name = "Broadcast Control"
