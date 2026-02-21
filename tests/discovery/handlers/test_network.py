@@ -72,6 +72,7 @@ async def test_discover_entities_creates_network_sensors(
     network_ids = sorted([s._network_id for s in client_sensors])
     assert network_ids == ["N_1234", "N_5678"]
 
+
 async def test_discover_entities_creates_vlan_status_sensors(
     mock_coordinator, mock_network_control_service
 ):
@@ -100,3 +101,76 @@ async def test_discover_entities_creates_vlan_status_sensors(
     for e in entities:
         if "MerakiVLANIPv4EnabledSensor" in str(type(e)):
             pytest.fail("Old VLAN sensor class found!")
+
+
+async def test_discover_entities_creates_client_status_sensors_if_enabled(
+    mock_coordinator, mock_network_control_service
+):
+    """Test that discover_entities creates client status sensors if enabled."""
+    from custom_components.meraki_ha.const_conf import (
+        CONF_ENABLE_CLIENT_STATUS_SENSORS,
+        CONF_ENABLE_NETWORK_SENSORS,
+        CONF_ENABLE_TRAFFIC_SHAPING,
+        CONF_ENABLE_VLAN_SENSORS,
+        CONF_ENABLE_VPN_MANAGEMENT,
+    )
+    from custom_components.meraki_ha.sensor.client.status import (
+        MerakiClientStatusSensor,
+    )
+
+    # Mock config entry with client status sensors enabled
+    mock_config_entry = MagicMock()
+    mock_config_entry.options = {
+        CONF_ENABLE_CLIENT_STATUS_SENSORS: True,
+        CONF_ENABLE_NETWORK_SENSORS: True,
+        CONF_ENABLE_VPN_MANAGEMENT: False,
+        CONF_ENABLE_TRAFFIC_SHAPING: False,
+        CONF_ENABLE_VLAN_SENSORS: False,
+    }
+
+    # Add clients to coordinator data
+    mock_coordinator.data["clients"] = [
+        # Network 1 Client
+        {
+            "mac": "00:11:22:33:44:55",
+            "networkId": "N_1234",
+            "status": "Online",
+            "description": "Client 1",
+            "ip": "10.0.0.1",
+        },
+        # Network 2 Client
+        {
+            "mac": "AA:BB:CC:DD:EE:FF",
+            "networkId": "N_5678",
+            "status": "Offline",
+            "description": "Client 2",
+        },
+        # Client not in known network (should be skipped)
+        {
+            "mac": "11:22:33:44:55:66",
+            "networkId": "N_9999",
+            "status": "Online",
+        },
+    ]
+
+    handler = NetworkHandler(
+        mock_coordinator, mock_config_entry, mock_network_control_service
+    )
+
+    entities = []
+    async for entity in handler.discover_entities():
+        entities.append(entity)
+
+    # Filter for client status sensors
+    client_sensors = [e for e in entities if isinstance(e, MerakiClientStatusSensor)]
+
+    # Should find 2 clients (one for N_1234, one for N_5678)
+    assert len(client_sensors) == 2
+
+    # Verify attributes
+    sensor1 = next(s for s in client_sensors if s._client_mac == "00:11:22:33:44:55")
+    assert sensor1.native_value == "online"
+    assert sensor1.extra_state_attributes["ip_address"] == "10.0.0.1"
+
+    sensor2 = next(s for s in client_sensors if s._client_mac == "AA:BB:CC:DD:EE:FF")
+    assert sensor2.native_value == "offline"

@@ -136,7 +136,8 @@
           "enable_network_sensors": "Enable network sensors",
           "enable_vlan_sensors": "Enable VLAN sensors",
           "enable_port_sensors": "Enable port sensors",
-          "enable_ssid_sensors": "Enable SSID sensors"
+          "enable_ssid_sensors": "Enable SSID sensors",
+          "enable_client_status_sensors": "Enable client status sensors"
         },
         "data_description": {
           "enable_device_status": "Create binary sensors for device online/offline status.",
@@ -145,7 +146,8 @@
           "enable_network_sensors": "Create sensors for network-specific metrics.",
           "enable_vlan_sensors": "Create sensors for VLAN metrics.",
           "enable_port_sensors": "Create sensors for switch port metrics.",
-          "enable_ssid_sensors": "Create sensors for SSID metrics."
+          "enable_ssid_sensors": "Create sensors for SSID metrics.",
+          "enable_client_status_sensors": "Create sensors for tracking client online/offline status and details."
         }
       },
       "cameras": {
