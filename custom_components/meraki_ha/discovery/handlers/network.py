@@ -7,6 +7,7 @@ from collections.abc import AsyncIterator
 from typing import TYPE_CHECKING
 
 from ...const_conf import (
+    CONF_ENABLE_CLIENT_STATUS_SENSORS,
     CONF_ENABLE_NETWORK_SENSORS,
     CONF_ENABLE_TRAFFIC_SHAPING,
     CONF_ENABLE_VLAN_SENSORS,
@@ -84,6 +85,23 @@ class NetworkHandler(BaseHandler):
                 network_data=network,
                 network_control_service=self._network_control_service,
             )
+
+            # Client Status Sensors
+            if self._config_entry.options.get(CONF_ENABLE_CLIENT_STATUS_SENSORS, False):
+                clients = self._coordinator.data.get("clients", [])
+                network_clients = [
+                    c for c in clients if c.get("networkId") == network.id
+                ]
+
+                if network_clients:
+                    from ...sensor.client.status import MerakiClientStatusSensor
+
+                    for client in network_clients:
+                        yield MerakiClientStatusSensor(
+                            self._coordinator,
+                            client,
+                            self._config_entry,
+                        )
             # Content Filtering Switch
             if "appliance" in network.product_types:
                 try:

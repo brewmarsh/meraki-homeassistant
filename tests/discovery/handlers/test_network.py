@@ -4,7 +4,9 @@ from unittest.mock import MagicMock
 
 import pytest
 
+from custom_components.meraki_ha.const_conf import CONF_ENABLE_CLIENT_STATUS_SENSORS
 from custom_components.meraki_ha.discovery.handlers.network import NetworkHandler
+from custom_components.meraki_ha.sensor.client.status import MerakiClientStatusSensor
 from custom_components.meraki_ha.sensor.network.network_clients import (
     MerakiNetworkClientsSensor,
 )
@@ -32,7 +34,24 @@ def mock_coordinator():
                 {"id": 10, "name": "Staff", "subnet": "192.168.10.0/24"},
                 {"id": 20, "name": "Guest", "subnet": "192.168.20.0/24"},
             ]
-        }
+        },
+        "clients": [
+            {
+                "mac": "00:11:22:33:44:55",
+                "networkId": "N_1234",
+                "status": "Online",
+            },
+            {
+                "mac": "AA:BB:CC:DD:EE:FF",
+                "networkId": "N_1234",
+                "status": "Offline",
+            },
+            {
+                "mac": "11:22:33:44:55:66",
+                "networkId": "N_5678",
+                "status": "Online",
+            }
+        ]
     }
     # Mock API for content filtering check
     coordinator.api.appliance.get_network_appliance_content_filtering_categories = MagicMock(
@@ -100,3 +119,26 @@ async def test_discover_entities_creates_vlan_status_sensors(
     for e in entities:
         if "MerakiVLANIPv4EnabledSensor" in str(type(e)):
             pytest.fail("Old VLAN sensor class found!")
+
+async def test_discover_entities_creates_client_status_sensors(
+    mock_coordinator, mock_network_control_service
+):
+    """Test that discover_entities creates client status sensors when enabled."""
+    config_entry = MagicMock()
+    config_entry.options = {CONF_ENABLE_CLIENT_STATUS_SENSORS: True}
+
+    handler = NetworkHandler(
+        mock_coordinator, config_entry, mock_network_control_service
+    )
+
+    entities = []
+    async for entity in handler.discover_entities():
+        entities.append(entity)
+
+    client_status_sensors = [e for e in entities if isinstance(e, MerakiClientStatusSensor)]
+
+    # We expect 3 sensors (2 for N_1234, 1 for N_5678)
+    assert len(client_status_sensors) == 3
+
+    macs = sorted([s._client_mac for s in client_status_sensors])
+    assert macs == ["00:11:22:33:44:55", "11:22:33:44:55:66", "AA:BB:CC:DD:EE:FF"]
