@@ -16,7 +16,7 @@ class MerakiSSIDSplashPageSensor(MerakiSSIDBaseSensor):
     _attr_entity_category = EntityCategory.DIAGNOSTIC
     entity_description = SensorEntityDescription(
         key="splash_page",
-        name="Splash Page",
+        name="splash page",
         icon="mdi:page-next",
     )
 

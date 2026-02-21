@@ -16,7 +16,7 @@ class MerakiSSIDBandSelectionSensor(MerakiSSIDBaseSensor):
     _attr_entity_category = EntityCategory.DIAGNOSTIC
     entity_description = SensorEntityDescription(
         key="band_selection",
-        name="Band Selection",
+        name="band selection",
         icon="mdi:wifi-arrow-up-down",
     )
 

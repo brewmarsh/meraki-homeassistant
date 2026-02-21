@@ -22,7 +22,7 @@ async def test_ssid_psk_sensor() -> None:
     coordinator.data = {"ssids": [ssid_data_psk]}
 
     sensor = MerakiSSIDPSKSensor(coordinator, config_entry, ssid_data_psk)
-    assert sensor.name == "PSK"
+    assert sensor.name == "PSK SSID PSK"
 
     # RESOLVED: We use the standardized Beta branch format to prevent collisions
     assert sensor.unique_id == "N_123ssid0_psk"

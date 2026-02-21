@@ -43,6 +43,15 @@ class MerakiSSIDDetailSensor(MerakiEntity, SensorEntity):
             config_entry=self._config_entry,
             ssid_data=self._ssid_data,
         )
+
+        ssid_name = ssid_data.get("name", f"SSID {self._ssid_number}")
+        if (
+            hasattr(self, "entity_description")
+            and self.entity_description
+            and self.entity_description.name
+        ):
+            self._attr_name = f"{ssid_name} {self.entity_description.name}"
+
         self._update_state()
 
     @callback
@@ -82,7 +91,7 @@ class MerakiSSIDWalledGardenSensor(MerakiSSIDDetailSensor):
 
     entity_description = SensorEntityDescription(
         key="walled_garden",
-        name="Walled garden",
+        name="walled garden",
         icon="mdi:wall",
     )
 
@@ -111,7 +120,7 @@ class MerakiSSIDTotalUploadLimitSensor(MerakiSSIDDetailSensor):
 
     entity_description = SensorEntityDescription(
         key="total_upload_limit",
-        name="Total upload limit",
+        name="total upload limit",
         icon="mdi:upload-network",
         native_unit_of_measurement=UnitOfDataRate.KILOBITS_PER_SECOND,
     )
@@ -136,7 +145,7 @@ class MerakiSSIDTotalDownloadLimitSensor(MerakiSSIDDetailSensor):
 
     entity_description = SensorEntityDescription(
         key="total_download_limit",
-        name="Total download limit",
+        name="total download limit",
         icon="mdi:download-network",
         native_unit_of_measurement=UnitOfDataRate.KILOBITS_PER_SECOND,
     )
@@ -161,7 +170,7 @@ class MerakiSSIDMandatoryDhcpSensor(MerakiSSIDDetailSensor):
 
     entity_description = SensorEntityDescription(
         key="mandatory_dhcp",
-        name="Mandatory DHCP",
+        name="mandatory DHCP",
         icon="mdi:ip-network",
     )
 
@@ -187,7 +196,7 @@ class MerakiSSIDMinBitrate24GhzSensor(MerakiSSIDDetailSensor):
 
     entity_description = SensorEntityDescription(
         key="min_bitrate_24",
-        name="Minimum bitrate 2.4GHz",
+        name="minimum bitrate 2.4GHz",
         icon="mdi:speedometer-slow",
         native_unit_of_measurement=UnitOfDataRate.MEGABITS_PER_SECOND,
     )
@@ -217,7 +226,7 @@ class MerakiSSIDMinBitrate5GhzSensor(MerakiSSIDDetailSensor):
 
     entity_description = SensorEntityDescription(
         key="min_bitrate_5",
-        name="Minimum bitrate 5GHz",
+        name="minimum bitrate 5GHz",
         icon="mdi:speedometer",
         native_unit_of_measurement=UnitOfDataRate.MEGABITS_PER_SECOND,
     )

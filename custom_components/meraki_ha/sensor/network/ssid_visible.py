@@ -16,7 +16,7 @@ class MerakiSSIDVisibleSensor(MerakiSSIDBaseSensor):
     _attr_entity_category = EntityCategory.DIAGNOSTIC
     entity_description = SensorEntityDescription(
         key="visible",
-        name="Visible",
+        name="broadcast",
         icon="mdi:eye",
     )
 

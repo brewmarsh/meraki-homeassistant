@@ -15,7 +15,7 @@ class MerakiSSIDClientCountSensor(MerakiSSIDBaseSensor):
 
     entity_description = SensorEntityDescription(
         key="client_count",
-        name="Client count",
+        name="client count",
         icon="mdi:account-multiple",
         state_class=SensorStateClass.MEASUREMENT,
         native_unit_of_measurement="clients",

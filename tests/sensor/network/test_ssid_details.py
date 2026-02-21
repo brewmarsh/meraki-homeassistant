@@ -32,7 +32,7 @@ async def test_ssid_total_upload_limit_sensor() -> None:
         coordinator, config_entry, ssid_data, None
     )
 
-    assert sensor.name == "Total upload limit"
+    assert sensor.name == "Test SSID total upload limit"
     assert sensor.native_value == 1000
     assert sensor.native_unit_of_measurement == UnitOfDataRate.KILOBITS_PER_SECOND
 
@@ -70,7 +70,7 @@ async def test_ssid_min_bitrate_24ghz_sensor() -> None:
         coordinator, config_entry, ssid_data, rf_profile
     )
 
-    assert sensor.name == "Minimum bitrate 2.4GHz"
+    assert sensor.name == "Test SSID minimum bitrate 2.4GHz"
     assert sensor.native_value == 11
 
     # Test update

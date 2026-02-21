@@ -16,7 +16,7 @@ class MerakiSSIDIPAssignmentModeSensor(MerakiSSIDBaseSensor):
     _attr_entity_category = EntityCategory.DIAGNOSTIC
     entity_description = SensorEntityDescription(
         key="ip_assignment_mode",
-        name="IP Assignment Mode",
+        name="IP assignment mode",
         icon="mdi:ip-network",
     )
 

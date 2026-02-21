@@ -34,6 +34,13 @@ class MerakiSSIDBaseSensor(MerakiEntity, SensorEntity):
 
         # Unique ID is now handled by the dynamic @property method below
         self._attr_has_entity_name = True
+        ssid_name = ssid_data.get("name", f"SSID {self._ssid_number}")
+        if (
+            hasattr(self, "entity_description")
+            and self.entity_description
+            and self.entity_description.name
+        ):
+            self._attr_name = f"{ssid_name} {self.entity_description.name}"
 
         # SSID entities are logical children of the "Virtual SSID Device"
         self._attr_device_info = resolve_device_info(
