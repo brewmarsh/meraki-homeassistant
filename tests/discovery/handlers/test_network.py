@@ -8,8 +8,8 @@ from custom_components.meraki_ha.discovery.handlers.network import NetworkHandle
 from custom_components.meraki_ha.sensor.network.network_clients import (
     MerakiNetworkClientsSensor,
 )
-from custom_components.meraki_ha.types import MerakiNetwork
 from custom_components.meraki_ha.sensor.network.vlan import MerakiVLANStatusSensor
+from custom_components.meraki_ha.types import MerakiNetwork
 
 from ...const import MOCK_CONFIG_ENTRY
 

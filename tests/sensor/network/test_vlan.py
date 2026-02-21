@@ -4,10 +4,10 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from custom_components.meraki_ha.discovery.service import DeviceDiscoveryService
-from custom_components.meraki_ha.types import MerakiNetwork
-from custom_components.meraki_ha.sensor.network.vlan import MerakiVLANStatusSensor
 from custom_components.meraki_ha.const import DOMAIN
+from custom_components.meraki_ha.discovery.service import DeviceDiscoveryService
+from custom_components.meraki_ha.sensor.network.vlan import MerakiVLANStatusSensor
+from custom_components.meraki_ha.types import MerakiNetwork
 
 
 @pytest.fixture

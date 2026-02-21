@@ -1,5 +1,6 @@
 
 from unittest.mock import MagicMock
+
 from homeassistant.helpers.device_registry import DeviceEntryType
 
 from custom_components.meraki_ha.const import DOMAIN
