@@ -52,3 +52,7 @@ custom_components/meraki_ha/www/dist/
 config/
 blocked_message.md
 .venv/
+
+# AI Scorecard artifacts
+scorecard.txt
+typing_tasks.json

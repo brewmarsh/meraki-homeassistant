@@ -1,3 +1,0 @@
-Running Agent Scorecard Report...
-Agent Prompts for Remediation (CRAFT Format)
--------------------------------------------
