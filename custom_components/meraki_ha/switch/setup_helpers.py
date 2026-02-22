@@ -2,6 +2,7 @@
 
 import logging
 
+from homeassistant.components.switch import SwitchEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity import Entity
@@ -34,12 +35,12 @@ def _setup_firewall_rule_switches(
     config_entry: ConfigEntry,
     coordinator: MerakiDataUpdateCoordinator,
     added_entities: set[str],
-) -> list[Entity]:
+) -> list[SwitchEntity]:
     """Set up firewall rule switches."""
     if not config_entry.options.get(CONF_ENABLE_FIREWALL_RULES):
         return []
 
-    entities: list[Entity] = []
+    entities: list[SwitchEntity] = []
     # Structure is {network_id: [rule1, rule2, ...]}
     rules_by_network = coordinator.data.get("l3_firewall_rules", {})
     for network_id, rules in rules_by_network.items():
@@ -67,12 +68,12 @@ def _setup_traffic_shaping_switches(
     config_entry: ConfigEntry,
     coordinator: MerakiDataUpdateCoordinator,
     added_entities: set[str],
-) -> list[Entity]:
+) -> list[SwitchEntity]:
     """Set up traffic shaping switches."""
     if not config_entry.options.get(CONF_ENABLE_TRAFFIC_SHAPING):
         return []
 
-    entities: list[Entity] = []
+    entities: list[SwitchEntity] = []
     traffic_shaping_by_network = coordinator.data.get("traffic_shaping", {})
     for network_id, traffic_shaping in traffic_shaping_by_network.items():
         if not isinstance(traffic_shaping, MerakiTrafficShaping):
@@ -96,12 +97,12 @@ def _setup_vpn_switches(
     config_entry: ConfigEntry,
     coordinator: MerakiDataUpdateCoordinator,
     added_entities: set[str],
-) -> list[Entity]:
+) -> list[SwitchEntity]:
     """Set up VPN switches."""
     if not config_entry.options.get(CONF_ENABLE_VPN_MANAGEMENT):
         return []
 
-    entities: list[Entity] = []
+    entities: list[SwitchEntity] = []
     vpn_status_by_network = coordinator.data.get("vpn_status", {})
     for network_id, vpn_status in vpn_status_by_network.items():
         if not isinstance(vpn_status, MerakiVpn):
@@ -127,11 +128,11 @@ def _setup_vlan_switches(
     config_entry: ConfigEntry,
     coordinator: MerakiDataUpdateCoordinator,
     added_entities: set[str],
-) -> list[Entity]:
+) -> list[SwitchEntity]:
     """Set up VLAN switches."""
     if not config_entry.options.get(CONF_ENABLE_VLAN_MANAGEMENT):
         return []
-    entities: list[Entity] = []
+    entities: list[SwitchEntity] = []
     vlans_by_network = coordinator.data.get("vlans", {})
     for network_id, vlans in vlans_by_network.items():
         if not isinstance(vlans, list):
@@ -159,9 +160,9 @@ def _setup_ssid_switches(
     config_entry: ConfigEntry,
     coordinator: MerakiDataUpdateCoordinator,
     added_entities: set[str],
-) -> list[Entity]:
+) -> list[SwitchEntity]:
     """Set up SSID switches."""
-    entities: list[Entity] = []
+    entities: list[SwitchEntity] = []
     ssids = coordinator.data.get("ssids", [])
     for ssid in ssids:
         ssid_number = ssid.get("number")
@@ -200,9 +201,9 @@ def _setup_camera_switches(
     config_entry: ConfigEntry,
     coordinator: MerakiDataUpdateCoordinator,
     added_entities: set[str],
-) -> list[Entity]:
+) -> list[SwitchEntity]:
     """Set up camera-specific switches."""
-    entities: list[Entity] = []
+    entities: list[SwitchEntity] = []
     devices = coordinator.data.get("devices", [])
     for device_info in devices:
         if (device_info.product_type or "").startswith("camera"):
@@ -222,9 +223,9 @@ def _setup_mt40_switches(
     coordinator: MerakiDataUpdateCoordinator,
     added_entities: set[str],
     meraki_client: "MerakiAPIClient",
-) -> list[Entity]:
+) -> list[SwitchEntity]:
     """Set up MT40 power outlet switches."""
-    entities: list[Entity] = []
+    entities: list[SwitchEntity] = []
     devices = coordinator.data.get("devices", [])
     for device_info in devices:
         if (device_info.model or "").startswith("MT40"):
@@ -245,9 +246,9 @@ def async_setup_switches(
     config_entry: ConfigEntry,
     coordinator: MerakiDataUpdateCoordinator,
     meraki_client: "MerakiAPIClient",
-) -> list[Entity]:
+) -> list[SwitchEntity]:
     """Set up all switch entities from the central coordinator."""
-    entities: list[Entity] = []
+    entities: list[SwitchEntity] = []
     added_entities: set[str] = set()
 
     if not coordinator.data:
