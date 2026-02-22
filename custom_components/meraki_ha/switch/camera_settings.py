@@ -5,6 +5,7 @@ import logging
 from typing import Any, cast
 
 from homeassistant.components.switch import SwitchEntity
+from homeassistant.const import EntityCategory
 from homeassistant.helpers.device_registry import DeviceInfo
 
 from custom_components.meraki_ha.coordinator import MerakiDataUpdateCoordinator
@@ -21,6 +22,8 @@ class MerakiCameraSettingSwitchBase(
     SwitchEntity,
 ):
     """Base class for a Meraki Camera Setting Switch."""
+
+    _attr_entity_category = EntityCategory.CONFIG
 
     def __init__(
         self,

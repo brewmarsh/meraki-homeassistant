@@ -7,6 +7,7 @@ from typing import Any
 
 from homeassistant.components.switch import SwitchEntity
 from homeassistant.config_entries import ConfigEntry
+from homeassistant.const import EntityCategory
 from homeassistant.core import callback
 
 from ..coordinator import MerakiDataUpdateCoordinator
@@ -19,6 +20,7 @@ _LOGGER = logging.getLogger(__name__)
 class MerakiVPNSwitch(MerakiNetworkEntity, SwitchEntity):
     """Representation of a Meraki Site-to-Site VPN switch."""
 
+    _attr_entity_category = EntityCategory.CONFIG
     coordinator: MerakiDataUpdateCoordinator
 
     def __init__(

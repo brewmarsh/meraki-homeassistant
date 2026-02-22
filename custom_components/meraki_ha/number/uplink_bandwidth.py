@@ -6,6 +6,7 @@ import logging
 
 from homeassistant.components.number import NumberEntity
 from homeassistant.config_entries import ConfigEntry
+from homeassistant.const import EntityCategory
 from homeassistant.core import callback
 
 from ..coordinator import MerakiDataUpdateCoordinator
@@ -18,6 +19,7 @@ _LOGGER = logging.getLogger(__name__)
 class MerakiUplinkBandwidthNumber(MerakiNetworkEntity, NumberEntity):
     """Representation of a Meraki uplink bandwidth number."""
 
+    _attr_entity_category = EntityCategory.CONFIG
     coordinator: MerakiDataUpdateCoordinator
 
     def __init__(
