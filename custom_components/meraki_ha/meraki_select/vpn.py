@@ -40,7 +40,7 @@ class MerakiVpnSelect(CoordinatorEntity, SelectEntity):
 
         self.entity_description = SelectEntityDescription(
             key=f"vpn_status_{self._network_id}",
-            name="VPN Mode",
+            name="VPN mode",
             icon="mdi:vpn",
         )
 

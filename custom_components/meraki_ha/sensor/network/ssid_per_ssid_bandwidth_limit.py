@@ -11,7 +11,7 @@ from .base import MerakiSSIDBaseSensor
 
 BANDWIDTH_LIMIT_UP = SensorEntityDescription(
     key="bandwidth_limit_up",
-    name="Per-SSID bandwidth limit up",
+    name="per-SSID bandwidth limit up",
     icon="mdi:upload-network-outline",
     state_class=SensorStateClass.MEASUREMENT,
     native_unit_of_measurement=UnitOfDataRate.KILOBITS_PER_SECOND,
@@ -19,7 +19,7 @@ BANDWIDTH_LIMIT_UP = SensorEntityDescription(
 
 BANDWIDTH_LIMIT_DOWN = SensorEntityDescription(
     key="bandwidth_limit_down",
-    name="Per-SSID bandwidth limit down",
+    name="per-SSID bandwidth limit down",
     icon="mdi:download-network-outline",
     state_class=SensorStateClass.MEASUREMENT,
     native_unit_of_measurement=UnitOfDataRate.KILOBITS_PER_SECOND,

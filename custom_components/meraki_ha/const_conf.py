@@ -52,6 +52,7 @@ CONF_ENABLE_NETWORK_SENSORS: Final = "enable_network_sensors"
 CONF_ENABLE_VLAN_SENSORS: Final = "enable_vlan_sensors"
 CONF_ENABLE_PORT_SENSORS: Final = "enable_port_sensors"
 CONF_ENABLE_SSID_SENSORS: Final = "enable_ssid_sensors"
+CONF_ENABLE_CLIENT_STATUS_SENSORS: Final = "enable_client_status_sensors"
 CONF_ENABLE_CAMERA_SENSE: Final = "enable_camera_sense"
 CONF_ENABLE_CLIENT_STATUS_SENSORS: Final = "enable_client_status_sensors"
 
@@ -88,5 +89,6 @@ DEFAULT_ENABLE_NETWORK_SENSORS: Final = True
 DEFAULT_ENABLE_VLAN_SENSORS: Final = True
 DEFAULT_ENABLE_PORT_SENSORS: Final = True
 DEFAULT_ENABLE_SSID_SENSORS: Final = True
+DEFAULT_ENABLE_CLIENT_STATUS_SENSORS: Final = False
 DEFAULT_ENABLE_CAMERA_SENSE: Final = True
 DEFAULT_ENABLE_CLIENT_STATUS_SENSORS: Final = False

@@ -88,20 +88,23 @@ class NetworkHandler(BaseHandler):
 
             # Client Status Sensors
             if self._config_entry.options.get(CONF_ENABLE_CLIENT_STATUS_SENSORS, False):
+                # RESOLVED: Beta branch logic - import at top of block and use list comprehension
+                from ...sensor.client.status import MerakiClientStatusSensor
+
                 clients = self._coordinator.data.get("clients", [])
+                
                 network_clients = [
                     c for c in clients if c.get("networkId") == network.id
                 ]
 
                 if network_clients:
-                    from ...sensor.client.status import MerakiClientStatusSensor
-
                     for client in network_clients:
                         yield MerakiClientStatusSensor(
                             self._coordinator,
                             client,
                             self._config_entry,
                         )
+
             # Content Filtering Switch
             if "appliance" in network.product_types:
                 try:
