@@ -46,9 +46,12 @@ def parse_scorecard(filename):
     if section_marker in content:
         content = content.split(section_marker, 1)[1]
 
-    # Regex to split into task blocks. Each block starts with 'Type:'
-    # We use a lookahead to stop before the next 'Type:' or end of file.
-    # This regex handles the multi-line CRAFT prompt.
+    # Regex to split into task blocks from the scorecard.
+    # - Type: Matches either "High Cognitive Load" or "Low Type Safety"
+    # - File: Captures the target file path
+    # - Rule: (Optional) Captures the specific lint/complexity rule
+    # - Prompt: Captures everything after 'Prompt:' until the next 'Type:' or end of file
+    # We use re.DOTALL to allow the prompt to span multiple lines.
     pattern = re.compile(
         r"Type:\s*(?P<type>High Cognitive Load|Low Type Safety)\s*\n"
         r"File:\s*(?P<file>[^\n]+)\s*\n"
@@ -67,8 +70,10 @@ def parse_scorecard(filename):
         rule = (task_data["rule"] or "N/A").strip()
         prompt = task_data["prompt"].strip()
 
-        # Requirement: Ignore all errors not related to the meraki_ha integration
+        # Requirement: Ignore all errors not related to the meraki_ha integration.
+        # This ensures we only process files within the specific custom component.
         if "custom_components/meraki_ha/" not in file_path:
+            print(f"Skipping task for {file_path} (not in meraki_ha integration)")
             continue
 
         tasks.append(
@@ -90,8 +95,9 @@ def main():
 
     for task in tasks:
         if task["type"] == "High Cognitive Load":
-            # Title following Home Assistant Sentence Case standards
-            title = f"Refactor: High cognitive load in {task['file']} ({task['rule']})"
+            # Title following Home Assistant Sentence Case standards.
+            # Only the first word and proper nouns (if any) are capitalized.
+            title = f"Refactor: high cognitive load in {task['file']} ({task['rule']})"
 
             # Check if an issue already exists (searching both open and closed)
             query = f'"{title}" in:title'
