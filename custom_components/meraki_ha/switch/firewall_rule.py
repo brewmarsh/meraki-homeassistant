@@ -7,6 +7,7 @@ from typing import Any, cast
 
 from homeassistant.components.switch import SwitchEntity
 from homeassistant.config_entries import ConfigEntry
+from homeassistant.const import EntityCategory
 from homeassistant.core import callback
 
 from ..coordinator import MerakiDataUpdateCoordinator
@@ -19,6 +20,8 @@ _LOGGER = logging.getLogger(__name__)
 
 class MerakiFirewallRuleSwitch(MerakiFirewallRuleEntity, SwitchEntity):
     """Representation of a Meraki L3 Firewall Rule switch."""
+
+    _attr_entity_category = EntityCategory.CONFIG
 
     def __init__(
         self,
