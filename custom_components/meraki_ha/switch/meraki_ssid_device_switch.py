@@ -43,6 +43,7 @@ class MerakiSSIDBaseSwitch(MerakiEntity, SwitchEntity):
 
         self._network_id = ssid_data.get("networkId")
         self._ssid_number = ssid_data.get("number")
+        self._ssid_name = ssid_data.get("name")
         self._attribute_to_check = attribute_to_check
         self._switch_type = switch_type
 
@@ -198,7 +199,7 @@ class MerakiSSIDEnabledSwitch(MerakiSSIDBaseSwitch):
             "enabled",
             rf_profile,
         )
-        self._attr_name = "Enabled Control"
+        self._attr_name = f"{self._ssid_name} enabled control"
 
     @property
     def available(self) -> bool:
@@ -229,4 +230,4 @@ class MerakiSSIDBroadcastSwitch(MerakiSSIDBaseSwitch):
             "visible",
             rf_profile,
         )
-        self._attr_name = "Broadcast Control"
+        self._attr_name = f"{self._ssid_name} broadcast control"

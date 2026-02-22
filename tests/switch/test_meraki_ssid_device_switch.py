@@ -60,7 +60,7 @@ async def test_meraki_ssid_enabled_switch(
     )
 
     assert switch.is_on is True
-    assert switch.name == "Enabled Control"
+    assert switch.name == "Test SSID enabled control"
     device_info = switch.device_info
     assert device_info is not None
     # Refactor: SSID entities attach to Virtual Controller (Network Device)
@@ -99,7 +99,7 @@ async def test_meraki_ssid_broadcast_switch(
     )
 
     assert switch.is_on is True
-    assert switch.name == "Broadcast Control"
+    assert switch.name == "Test SSID broadcast control"
     device_info = switch.device_info
     assert device_info is not None
     # Refactor: SSID entities attach to Virtual Controller (Network Device)

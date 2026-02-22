@@ -83,7 +83,7 @@ class MerakiClientStatusSensor(MerakiSensor):
 
         self.entity_description = SensorEntityDescription(
             key="client_status",
-            name="Status",
+            name=f"{client_name} status",
             native_unit_of_measurement=None,
             state_class=None,
             device_class=SensorDeviceClass.ENUM,

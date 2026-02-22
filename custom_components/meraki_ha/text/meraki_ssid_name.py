@@ -45,11 +45,12 @@ class MerakiSSIDNameText(CoordinatorEntity[MerakiDataUpdateCoordinator], TextEnt
         self._ssid_number: Any | None = ssid_data.get(
             "number"
         )  # Can be int or str depending on source
+        ssid_name = ssid_data.get("name")
 
         # EntityDescription can be used for name, icon etc.
         self.entity_description = TextEntityDescription(
             key=f"{self._network_id}ssid{self._ssid_number}_ssid_name",
-            name="SSID Name",
+            name=f"{ssid_name} name",
             icon="mdi:form-textbox",
             native_min=1,
             native_max=32,

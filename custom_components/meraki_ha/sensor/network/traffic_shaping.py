@@ -16,6 +16,7 @@ class TrafficShapingSensor(MerakiNetworkEntity, SensorEntity):
     """Representation of a sensor that shows traffic shaping settings."""
 
     _attr_entity_category = EntityCategory.DIAGNOSTIC
+    _attr_entity_registry_enabled_default = False
 
     def __init__(
         self,

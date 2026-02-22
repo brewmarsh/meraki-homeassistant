@@ -5,6 +5,7 @@ from unittest.mock import MagicMock
 import pytest
 
 from custom_components.meraki_ha.discovery.handlers.network import NetworkHandler
+from custom_components.meraki_ha.sensor.client.status import MerakiClientStatusSensor
 from custom_components.meraki_ha.sensor.network.network_clients import (
     MerakiNetworkClientsSensor,
 )
@@ -32,7 +33,21 @@ def mock_coordinator():
                 {"id": 10, "name": "Staff", "subnet": "192.168.10.0/24"},
                 {"id": 20, "name": "Guest", "subnet": "192.168.20.0/24"},
             ]
-        }
+        },
+        "clients": [
+            {
+                "mac": "00:11:22:33:44:55",
+                "networkId": "N_1234",
+                "description": "Work Laptop",
+                "status": "online",
+            },
+            {
+                "mac": "66:77:88:99:aa:bb",
+                "networkId": "N_1234",
+                "description": "Guest Phone",
+                "status": "offline",
+            },
+        ],
     }
     # Mock API for content filtering check
     coordinator.api.appliance.get_network_appliance_content_filtering_categories = MagicMock(
@@ -100,3 +115,29 @@ async def test_discover_entities_creates_vlan_status_sensors(
     for e in entities:
         if "MerakiVLANIPv4EnabledSensor" in str(type(e)):
             pytest.fail("Old VLAN sensor class found!")
+
+
+async def test_discover_entities_creates_client_status_sensors(
+    mock_coordinator, mock_network_control_service
+):
+    """Test that discover_entities creates status sensors for clients."""
+    config_entry = MagicMock()
+    config_entry.options = {"enable_client_status_sensors": True}
+
+    handler = NetworkHandler(
+        mock_coordinator, config_entry, mock_network_control_service
+    )
+
+    entities = []
+    async for entity in handler.discover_entities():
+        entities.append(entity)
+
+    status_sensors = [e for e in entities if isinstance(e, MerakiClientStatusSensor)]
+
+    # 2 clients in MOCK_NETWORK_1
+    assert len(status_sensors) == 2
+
+    # Verify naming (includes client description)
+    names = sorted([s.name for s in status_sensors])
+    assert "Work Laptop status" in names
+    assert "Guest Phone status" in names
