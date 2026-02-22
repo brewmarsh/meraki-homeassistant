@@ -28,7 +28,7 @@ async def test_ssid_client_count_sensor_wireless_settings() -> None:
 
     sensor = MerakiSSIDClientCountSensor(coordinator, config_entry, ssid_data)
 
-    assert sensor.name == "Client count"
+    assert sensor.name == "Test SSID client count"
     assert sensor.native_value == 5
 
     # Test update

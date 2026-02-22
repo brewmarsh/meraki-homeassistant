@@ -165,7 +165,8 @@ class MerakiSSIDEnabledSwitch(MerakiSSIDBaseSwitch):
             "enabled",
             "enabled",
         )
-        self._attr_name = "Enabled Control"
+        ssid_name = ssid_data.get("name", f"SSID {self._ssid_number}")
+        self._attr_name = f"{ssid_name} enabled"
 
     @property
     def available(self) -> bool:
@@ -194,4 +195,5 @@ class MerakiSSIDBroadcastSwitch(MerakiSSIDBaseSwitch):
             "broadcast",
             "visible",
         )
-        self._attr_name = "Broadcast Control"
+        ssid_name = ssid_data.get("name", f"SSID {self._ssid_number}")
+        self._attr_name = f"{ssid_name} broadcast"

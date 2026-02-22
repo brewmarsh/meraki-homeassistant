@@ -40,7 +40,7 @@ class MerakiContentFilteringSelect(CoordinatorEntity, SelectEntity):
 
         self.entity_description = SelectEntityDescription(
             key=f"content_filtering_{self._network_id}",
-            name="Content Filtering Policy",
+            name="Content filtering policy",
             icon="mdi:web-filter",
         )
 
