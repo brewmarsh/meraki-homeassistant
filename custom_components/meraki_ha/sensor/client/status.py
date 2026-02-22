@@ -68,18 +68,19 @@ class MerakiClientStatusSensor(MerakiSensor):
             or self._client_mac
         )
 
-        via_device = None
-        if client_data.get("recentDeviceSerial"):
-            via_device = (DOMAIN, client_data.get("recentDeviceSerial"))
-
         self._attr_device_info = DeviceInfo(
             identifiers={(DOMAIN, self._client_mac)},
             name=client_name,
             manufacturer=client_data.get("manufacturer", "Cisco Meraki"),
             model="Client",
             serial_number=self._client_mac,
-            via_device=via_device,
         )
+
+        if client_data.get("recentDeviceSerial"):
+            self._attr_device_info["via_device"] = (
+                DOMAIN,
+                str(client_data["recentDeviceSerial"]),
+            )
 
         self.entity_description = SensorEntityDescription(
             key="client_status",
