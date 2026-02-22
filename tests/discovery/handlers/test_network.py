@@ -40,7 +40,7 @@ def mock_coordinator():
                 {"id": 20, "name": "Guest", "subnet": "192.168.20.0/24"},
             ]
         },
-        "clients": []
+        "clients": []  # Initialize empty; specific tests will populate this
     }
     # Mock API for content filtering check
     coordinator.api.appliance.get_network_appliance_content_filtering_categories = MagicMock(
@@ -95,6 +95,11 @@ async def test_discover_entities_creates_vlan_status_sensors(
     vlan_ids = sorted([s._vlan["id"] for s in vlan_sensors])
     assert vlan_ids == [10, 20]
 
+    # Safety check: Ensure old deprecated sensors are no longer present
+    for e in entities:
+        if "MerakiVLANIPv4EnabledSensor" in str(type(e)):
+            pytest.fail("Old VLAN sensor class found!")
+
 
 async def test_discover_entities_creates_client_status_sensors_when_enabled(
     mock_coordinator, mock_network_control_service
@@ -117,7 +122,7 @@ async def test_discover_entities_creates_client_status_sensors_when_enabled(
         },
         {
             "mac": "11:22:33:44:55:66",
-            "networkId": "N_OTHER", # Should be ignored as not in discovered networks
+            "networkId": "N_OTHER", # Should be ignored (network not in mock_coordinator.data["networks"])
             "status": "Online",
         },
     ]
@@ -144,9 +149,10 @@ async def test_discover_entities_creates_client_status_sensors_when_enabled(
     ]
 
     # 4. Assertions
+    # We expect 2 sensors (Client 1 and Client 2). Client 3 (N_OTHER) is skipped.
     assert len(client_status_sensors) == 2
     
-    # Verify specific sensor data (merged from feat branch)
+    # Verify specific sensor data (ensures deep attribute mapping works)
     sensor1 = next(s for s in client_status_sensors if s._client_mac == "00:11:22:33:44:55")
     assert sensor1.native_value == "online"
     assert sensor1.extra_state_attributes["ip_address"] == "10.0.0.1"

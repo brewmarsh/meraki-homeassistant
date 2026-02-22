@@ -147,7 +147,7 @@
           "enable_vlan_sensors": "Create sensors for VLAN metrics.",
           "enable_port_sensors": "Create sensors for switch port metrics.",
           "enable_ssid_sensors": "Create sensors for SSID metrics.",
-          "enable_client_status_sensors": "Create sensors for client online/offline status."
+          "enable_client_status_sensors": "Create sensors for client connectivity status."
         }
       },
       "cameras": {
