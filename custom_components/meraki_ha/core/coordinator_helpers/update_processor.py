@@ -8,11 +8,7 @@ from typing import Any
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 
-from ..helpers import filter_ignored_networks, process_coordinator_data
-from ..helpers.device_registry import (
-    async_ensure_network_devices_exist,
-    async_ensure_ssid_devices_exist,
-)
+from ..data_processor import MerakiDataProcessor
 from ..managers import PollingManager
 from ..models.device import MerakiDevice
 from ..models.network import MerakiNetwork
@@ -36,8 +32,9 @@ class UpdateProcessor:
         self.config_entry = config_entry
         self.polling_manager = polling_manager
         self.config = config
+        self.data_processor = MerakiDataProcessor(hass, config_entry)
 
-    def process_success(
+    async def process_success(
         self,
         data: dict[str, Any],
         current_data: dict[str, Any] | None = None,
@@ -48,17 +45,6 @@ class UpdateProcessor:
         bool,  # interval_changed
     ]:
         """Process successful data update."""
-        # Ensure network devices exist in the registry before processing
-        async_ensure_network_devices_exist(
-            self.hass, self.config_entry, data.get("networks", [])
-        )
-
-        # Ensure SSID devices exist
-        if "ssids" in data:
-            async_ensure_ssid_devices_exist(
-                self.hass, self.config_entry, data["ssids"]
-            )
-
         interval_changed = False
         # Update success history and consecutive successes via PollingManager
         if self.polling_manager.record_success():
@@ -75,23 +61,13 @@ class UpdateProcessor:
             self.polling_manager.get_success_rate(),
         )
 
-        # Use the injected config object to filter networks
-        filter_ignored_networks(data, self.config.ignored_networks)
+        # Delegate processing to MerakiDataProcessor (which handles filtering & registry)
+        processed_result = await self.data_processor.async_process(data, current_data)
 
-        if current_data:
-            for key, value in current_data.items():
-                if isinstance(value, str):
-                    current_data[key] = value.strip()
-
-        (
-            devices_by_serial,
-            networks_by_id,
-            ssids_by_network_and_number,
-        ) = process_coordinator_data(self.hass, self.config_entry, data)
-
+        # Unpack result dict to tuple expected by Coordinator
         return (
-            devices_by_serial,
-            networks_by_id,
-            ssids_by_network_and_number,
+            processed_result["devices_by_serial"],
+            processed_result["networks_by_id"],
+            processed_result["ssids_by_network_and_number"],
             interval_changed,
         )
