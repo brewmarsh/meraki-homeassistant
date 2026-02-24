@@ -179,111 +179,120 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
     async def _async_update_data(self) -> dict[str, Any]:
         """Fetch data from API endpoint, apply filters, and handle exceptions."""
         try:
-            # Pass the last known successful data to the API client
             timespan = (
                 int(self.update_interval.total_seconds())
                 if self.update_interval
                 else 300
             )
-            try:
-                async with asyncio.timeout(30):  # HA default setup limit
-                    data = await self.data_fetch_manager.get_all_data(
-                        self.last_successful_data, timespan=timespan
-                    )
-            except TimeoutError:
-                _LOGGER.error("Meraki API took too long; check for semaphore deadlock")
-                raise UpdateFailed("API Timeout") from None
+
+            data = await self._fetch_data_from_api(timespan)
 
             if not data:
                 _LOGGER.warning("API call to get_all_data returned no data.")
-                # Return cached data to prevent entities from becoming unavailable
                 return self.last_successful_data
 
-            # --- CRITICAL FIX FROM BETA BRANCH ---
-            # Ensure network devices exist in the registry before processing
-            # to avoid "referencing non-existing via_device" warnings.
-            async_ensure_network_devices_exist(
-                self.hass, self.config_entry, data.get("networks", [])
-            )
-
-            # Ensure SSID devices exist
-            if "ssids" in data:
-                async_ensure_ssid_devices_exist(
-                    self.hass, self.config_entry, data["ssids"]
-                )
-
-            # --- LOGIC FROM REFACTOR BRANCH ---
-            # Update success history and consecutive successes via PollingManager
-            if self.polling_manager.record_success():
-                # If True, the interval was reset after recovery
-                if self.update_interval != self.polling_manager.update_interval:
-                    _LOGGER.info(
-                        "Meraki API recovered. Resetting update interval to %s",
-                        self.polling_manager.update_interval,
-                    )
-                    self.update_interval = self.polling_manager.update_interval
-
-            # Log success rate for monitoring
-            _LOGGER.debug(
-                "Coordinator update success rate (last 5): %.1f%%",
-                self.polling_manager.get_success_rate(),
-            )
-
-            if self.config_entry:
-                ignored_network_ids = self.config_entry.options.get(
-                    CONF_IGNORED_NETWORKS,
-                    DEFAULT_IGNORED_NETWORKS,
-                )
-                filter_ignored_networks(data, ignored_network_ids)
-
-            if self.data:
-                for key, value in self.data.items():
-                    if isinstance(value, str):
-                        self.data[key] = value.strip()
-
-            (
-                self.devices_by_serial,
-                self.networks_by_id,
-                self.ssids_by_network_and_number,
-            ) = process_coordinator_data(self.hass, self.config_entry, data)
-
-            self.last_successful_update = datetime.now()
-            self.last_successful_data = data
+            self._process_successful_update(data)
             return data
 
         except Exception as err:
-            # Update success history and reset consecutive successes
-            if self.polling_manager.record_failure(err):
-                # If True, the interval was increased
-                if self.update_interval != self.polling_manager.update_interval:
-                    _LOGGER.warning(
-                        "Increasing poll interval to %s due to failures.",
-                        self.polling_manager.update_interval,
-                    )
-                    self.update_interval = self.polling_manager.update_interval
+            return self._handle_update_failure(err)
 
-            # Log success rate for monitoring
-            _LOGGER.debug(
-                "Coordinator update success rate (last 5): %.1f%%",
-                self.polling_manager.get_success_rate(),
+    async def _fetch_data_from_api(self, timespan: int) -> dict[str, Any]:
+        """Fetch data from the API with a timeout."""
+        try:
+            async with asyncio.timeout(30):  # HA default setup limit
+                return await self.data_fetch_manager.get_all_data(
+                    self.last_successful_data, timespan=timespan
+                )
+        except TimeoutError:
+            _LOGGER.error("Meraki API took too long; check for semaphore deadlock")
+            raise UpdateFailed("API Timeout") from None
+
+    def _process_successful_update(self, data: dict[str, Any]) -> None:
+        """Process successful data update."""
+        # --- CRITICAL FIX FROM BETA BRANCH ---
+        # Ensure network devices exist in the registry before processing
+        async_ensure_network_devices_exist(
+            self.hass, self.config_entry, data.get("networks", [])
+        )
+
+        # Ensure SSID devices exist
+        if "ssids" in data:
+            async_ensure_ssid_devices_exist(
+                self.hass, self.config_entry, data["ssids"]
             )
 
-            _LOGGER.warning(
-                "Failed to fetch new data, using stale data. Error: %s",
-                err,
-            )
-            # Return the last successful data to maintain entity state
-            if self.last_successful_data:
-                return self.last_successful_data
+        # --- LOGIC FROM REFACTOR BRANCH ---
+        # Update success history and consecutive successes via PollingManager
+        if self.polling_manager.record_success():
+            # If True, the interval was reset after recovery
+            if self.update_interval != self.polling_manager.update_interval:
+                _LOGGER.info(
+                    "Meraki API recovered. Resetting update interval to %s",
+                    self.polling_manager.update_interval,
+                )
+                self.update_interval = self.polling_manager.update_interval
 
-            # If there's no last successful data, re-raise the exception
-            # This will happen on the first run if it fails
-            _LOGGER.error(
-                "Unexpected error fetching Meraki data for the first time: %s",
-                err,
-                exc_info=True,
+        # Log success rate for monitoring
+        _LOGGER.debug(
+            "Coordinator update success rate (last 5): %.1f%%",
+            self.polling_manager.get_success_rate(),
+        )
+
+        if self.config_entry:
+            ignored_network_ids = self.config_entry.options.get(
+                CONF_IGNORED_NETWORKS,
+                DEFAULT_IGNORED_NETWORKS,
             )
-            raise UpdateFailed(f"Error communicating with API: {err}") from err
+            filter_ignored_networks(data, ignored_network_ids)
+
+        if self.data:
+            for key, value in self.data.items():
+                if isinstance(value, str):
+                    self.data[key] = value.strip()
+
+        (
+            self.devices_by_serial,
+            self.networks_by_id,
+            self.ssids_by_network_and_number,
+        ) = process_coordinator_data(self.hass, self.config_entry, data)
+
+        self.last_successful_update = datetime.now()
+        self.last_successful_data = data
+
+    def _handle_update_failure(self, err: Exception) -> dict[str, Any]:
+        """Handle update failure."""
+        # Update success history and reset consecutive successes
+        if self.polling_manager.record_failure(err):
+            # If True, the interval was increased
+            if self.update_interval != self.polling_manager.update_interval:
+                _LOGGER.warning(
+                    "Increasing poll interval to %s due to failures.",
+                    self.polling_manager.update_interval,
+                )
+                self.update_interval = self.polling_manager.update_interval
+
+        # Log success rate for monitoring
+        _LOGGER.debug(
+            "Coordinator update success rate (last 5): %.1f%%",
+            self.polling_manager.get_success_rate(),
+        )
+
+        _LOGGER.warning(
+            "Failed to fetch new data, using stale data. Error: %s",
+            err,
+        )
+        # Return the last successful data to maintain entity state
+        if self.last_successful_data:
+            return self.last_successful_data
+
+        # If there's no last successful data, re-raise the exception
+        _LOGGER.error(
+            "Unexpected error fetching Meraki data for the first time: %s",
+            err,
+            exc_info=True,
+        )
+        raise UpdateFailed(f"Error communicating with API: {err}") from err
 
     def get_device(self, serial: str | None) -> MerakiDevice | None:
         """
