@@ -76,7 +76,7 @@ class DataFetchManager:
         self.sensor_strategy = SensorFetchStrategy(client, self._disabled_features)
 
     async def _execute_batches(self, tasks: dict[str, Any], label: str) -> list[Any]:
-        """Execute tasks in batches."""
+        """Execute tasks in batches with cooldown."""
         task_items = list(tasks.items())
         all_results = []
         for i in range(0, len(task_items), BATCH_SIZE):
@@ -97,49 +97,49 @@ class DataFetchManager:
             all_results.extend(chunk_results)
         return all_results
 
-    def _check_silent_error(
-        self, result: Exception, key: str
-    ) -> Exception | list[Any] | None:
-        """Check if exception is a silent error and return transformed result."""
-        error_msg = str(result)
-        for silent_msg in SILENT_ERRORS:
-            if silent_msg in error_msg:
-                _LOGGER.debug(
-                    "Skipping %s: Configuration requirement not met in Meraki Dashboard.",
-                    key,
-                )
+    def _process_single_result(self, key: str, result: Any, label: str) -> Any:
+        """Process a single task result with smart error handling."""
+        if isinstance(result, Exception):
+            error_msg = str(result)
+            is_silent = False
+            for silent_msg in SILENT_ERRORS:
+                if silent_msg in error_msg:
+                    _LOGGER.debug(
+                        "Skipping %s: Configuration requirement not met in "
+                        "Meraki Dashboard.",
+                        key,
+                    )
+                    is_silent = True
+                    break
+
+            if is_silent:
                 if "Traffic Analysis" in error_msg:
                     return MerakiTrafficAnalysisError(error_msg)
                 elif "VLANs" in error_msg:
                     return MerakiVlansDisabledError(error_msg)
-                return []
+                else:
+                    return []
+
+            return self._handle_fetch_exception(result, key, label)
+
+        if isinstance(result, (dict, list)) or result is None:
+            return result
+
+        _LOGGER.debug(
+            "Filtering out unexpected type %s for %s during %s",
+            type(result),
+            key,
+            label,
+        )
         return None
 
-    def _process_task_results(
+    def _process_batch_results(
         self, tasks: dict[str, Any], results: list[Any], label: str
     ) -> dict[str, Any]:
-        """Process results and handle errors."""
+        """Process raw batch results into sanitized dictionary."""
         sanitized_results: dict[str, Any] = {}
         for key, result in zip(tasks.keys(), results, strict=True):
-            if isinstance(result, Exception):
-                silent_result = self._check_silent_error(result, key)
-                if silent_result is not None:
-                    sanitized_results[key] = silent_result
-                    continue
-
-                sanitized_results[key] = self._handle_fetch_exception(
-                    result, key, label
-                )
-            elif isinstance(result, (dict, list)) or result is None:
-                sanitized_results[key] = result
-            else:
-                _LOGGER.debug(
-                    "Filtering out unexpected type %s for %s during %s",
-                    type(result),
-                    key,
-                    label,
-                )
-                sanitized_results[key] = None
+            sanitized_results[key] = self._process_single_result(key, result, label)
         return sanitized_results
 
     async def _async_gather_with_timeout(
@@ -157,7 +157,7 @@ class DataFetchManager:
             results = await asyncio.wait_for(
                 self._execute_batches(tasks, label), timeout=timeout
             )
-            return self._process_task_results(tasks, results, label)
+            return self._process_batch_results(tasks, results, label)
 
         except asyncio.TimeoutError:
             _LOGGER.error("Timeout during %s. Potential semaphore deadlock.", label)

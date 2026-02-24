@@ -97,10 +97,10 @@ METRIC_HANDLERS: dict[str, Callable[[MerakiDevice, dict[str, Any]], None]] = {
 }
 
 
-def _organize_readings(
+def _build_readings_map(
     readings: list[dict[str, Any]],
 ) -> dict[str, list[dict[str, Any]]]:
-    """Organize readings by device serial."""
+    """Build a map of serial number to readings list."""
     return {
         reading["serial"]: reading.get("readings", [])
         for reading in readings
@@ -108,32 +108,36 @@ def _organize_readings(
     }
 
 
-def _merge_readings(
-    sensor_readings: list[dict[str, Any]],
+def _merge_battery_readings(
+    device_readings: list[dict[str, Any]],
     battery_readings: list[dict[str, Any]],
-) -> list[dict[str, Any]]:
-    """Merge sensor and battery readings."""
-    if not battery_readings:
-        return sensor_readings
-
-    # Use a set for faster lookup of existing metrics
-    existing_metrics = {r.get("metric") for r in sensor_readings}
-    merged = list(sensor_readings)
-
+) -> None:
+    """Merge battery readings into device readings if metric not present."""
+    existing_metrics = {r["metric"] for r in device_readings if "metric" in r}
     for reading in battery_readings:
         if reading.get("metric") not in existing_metrics:
-            merged.append(reading)
-
-    return merged
+            device_readings.append(reading)
 
 
-def _process_device_metrics(
+def _process_single_device(
     device: MerakiDevice,
-    readings: list[dict[str, Any]],
+    readings_map: dict[str, list[dict[str, Any]]],
+    battery_map: dict[str, list[dict[str, Any]]],
 ) -> None:
-    """Process metrics for a single device."""
-    device.readings = readings
-    for reading in readings:
+    """Process readings for a single device."""
+    if not device.serial:
+        return
+
+    device_readings = readings_map.get(device.serial, [])
+
+    if battery_readings := battery_map.get(device.serial):
+        _merge_battery_readings(device_readings, battery_readings)
+
+    if not device_readings:
+        return
+
+    device.readings = device_readings
+    for reading in device_readings:
         metric = reading.get("metric")
         if metric == "power":
             _LOGGER.debug("MT40 Power Reading Payload: %s", reading)
@@ -147,25 +151,14 @@ def parse_sensor_data(
     sensor_readings: list[dict[str, Any]] | None,
     battery_readings: list[dict[str, Any]] | None,
 ) -> None:
-    """
-    Parse and merge sensor and battery readings into the device list.
+    """Parse and merge sensor and battery readings into the device list."""
+    if not sensor_readings:
+        sensor_readings = []
+    if not battery_readings:
+        battery_readings = []
 
-    Args:
-        devices: A list of Meraki devices.
-        sensor_readings: A list of sensor readings from the API.
-        battery_readings: A list of battery readings from the API.
-    """
-    readings_map = _organize_readings(sensor_readings or [])
-    battery_map = _organize_readings(battery_readings or [])
+    readings_map = _build_readings_map(sensor_readings)
+    battery_map = _build_readings_map(battery_readings)
 
     for device in devices:
-        if not device.serial:
-            continue
-
-        readings = _merge_readings(
-            readings_map.get(device.serial, []),
-            battery_map.get(device.serial, []),
-        )
-
-        if readings:
-            _process_device_metrics(device, readings)
+        _process_single_device(device, readings_map, battery_map)
