@@ -48,6 +48,26 @@ class UpdateProcessor:
         bool,  # interval_changed
     ]:
         """Process successful data update."""
+        self._ensure_registries(data)
+        interval_changed = self._handle_interval_recovery()
+
+        self._sanitize_current_data(current_data)
+
+        (
+            devices_by_serial,
+            networks_by_id,
+            ssids_by_network_and_number,
+        ) = self._process_data_result(data)
+
+        return (
+            devices_by_serial,
+            networks_by_id,
+            ssids_by_network_and_number,
+            interval_changed,
+        )
+
+    def _ensure_registries(self, data: dict[str, Any]) -> None:
+        """Ensure network and SSID devices exist in the registry."""
         # Ensure network devices exist in the registry before processing
         async_ensure_network_devices_exist(
             self.hass, self.config_entry, data.get("networks", [])
@@ -59,6 +79,8 @@ class UpdateProcessor:
                 self.hass, self.config_entry, data["ssids"]
             )
 
+    def _handle_interval_recovery(self) -> bool:
+        """Handle polling interval recovery logic."""
         interval_changed = False
         # Update success history and consecutive successes via PollingManager
         if self.polling_manager.record_success():
@@ -74,24 +96,24 @@ class UpdateProcessor:
             "Coordinator update success rate (last 5): %.1f%%",
             self.polling_manager.get_success_rate(),
         )
+        return interval_changed
 
-        # Use the injected config object to filter networks
-        filter_ignored_networks(data, self.config.ignored_networks)
-
+    def _sanitize_current_data(self, current_data: dict[str, Any] | None) -> None:
+        """Sanitize current data by stripping strings."""
         if current_data:
             for key, value in current_data.items():
                 if isinstance(value, str):
                     current_data[key] = value.strip()
 
-        (
-            devices_by_serial,
-            networks_by_id,
-            ssids_by_network_and_number,
-        ) = process_coordinator_data(self.hass, self.config_entry, data)
+    def _process_data_result(
+        self, data: dict[str, Any]
+    ) -> tuple[
+        dict[str, MerakiDevice],
+        dict[str, MerakiNetwork],
+        dict[tuple[str, int], dict[str, Any]],
+    ]:
+        """Filter ignored networks and process data into models."""
+        # Use the injected config object to filter networks
+        filter_ignored_networks(data, self.config.ignored_networks)
 
-        return (
-            devices_by_serial,
-            networks_by_id,
-            ssids_by_network_and_number,
-            interval_changed,
-        )
+        return process_coordinator_data(self.hass, self.config_entry, data)
