@@ -81,30 +81,25 @@ async def test_dfm_batch_analytics_modulo():
     client._disabled_features = set()
     dfm = DataFetchManager(client, enable_camera_sense=True)
 
-    devices = [MerakiDevice(serial="Q123", product_type="camera")]
+    # Use MV12 model to ensure capabilities include analytics
+    devices = [MerakiDevice(serial="Q123", product_type="camera", model="MV12")]
 
     # Mock the API call
     client.camera.get_device_camera_analytics_recent = AsyncMock(return_value={})
     client.run_with_semaphore.side_effect = lambda x: x
 
-    async def mock_gather_timeout(tasks, **kwargs):
-        """Mock gather to close tasks."""
-        for task in tasks.values():
-            task.close()
-        return {}
-
     # Poll 1
     dfm.camera_strategy.increment_poll_count()
-    # We need to mock _async_gather_with_timeout because it tries to await tasks
-    # Using the 'beta' branch approach here as it correctly closes coroutines
-    dfm._async_gather_with_timeout = AsyncMock(side_effect=mock_gather_timeout)
-    await dfm._fetch_batch_camera_analytics(devices)
-    assert dfm._async_gather_with_timeout.called
+
+    # We test via _build_detail_tasks which calls strategy.build_device_tasks
+    tasks = dfm._build_detail_tasks({"devices": devices})
+
+    # Analytics should be present in poll 1 (1 % 5 == 1? No (1-1)%5 == 0)
+    assert f"camera_analytics_{devices[0].serial}" in tasks
 
     # Poll 2
     dfm.camera_strategy.increment_poll_count()
-    dfm._async_gather_with_timeout = AsyncMock(side_effect=mock_gather_timeout)
-    result = await dfm._fetch_batch_camera_analytics(devices)
-    assert result == {}
-    # Check that _async_gather_with_timeout was NOT called for analytics
-    assert not dfm._async_gather_with_timeout.called
+    tasks = dfm._build_detail_tasks({"devices": devices})
+
+    # Analytics should NOT be present in poll 2
+    assert f"camera_analytics_{devices[0].serial}" not in tasks
