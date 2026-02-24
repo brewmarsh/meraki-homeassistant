@@ -52,13 +52,14 @@ class UpdateProcessor:
         This method acts as an orchestrator, delegating specific tasks to
         sub-methods to maintain a low Agent Cognitive Load (ACL).
         """
-        # 1. Update polling metrics and check for recovery
+        # 1. Update polling metrics and check for recovery via PollingManager
         interval_changed = self._handle_interval_recovery()
 
         # 2. Delegate data processing to MerakiDataProcessor
+        # This handles registry existence checks, filtering, and model mapping
         processed_data = await self.data_processor.async_process(data, current_data)
 
-        # 3. Extract results
+        # 3. Extract results from the processed payload
         devices_by_serial = processed_data["devices_by_serial"]
         networks_by_id = processed_data["networks_by_id"]
         ssids_by_network_and_number = processed_data["ssids_by_network_and_number"]
