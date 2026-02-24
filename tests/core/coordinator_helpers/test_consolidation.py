@@ -50,7 +50,6 @@ async def test_consolidation_switch_ports(data_fetch_manager, mock_client):
         "switch_ports_statuses": [{"serial": switch_serial, "ports": switch_ports}],
     }
     data_fetch_manager._async_fetch_initial_data = AsyncMock(return_value=mock_initial)
-    data_fetch_manager._fetch_batch_camera_analytics = AsyncMock(return_value={})
     data_fetch_manager.client_fetcher.async_fetch_network_clients = AsyncMock(
         return_value=[]
     )
@@ -72,56 +71,11 @@ async def test_consolidation_switch_ports(data_fetch_manager, mock_client):
     # Ensure build_device_tasks was called with the batch data
     strategy_spy.assert_called()
     call_args = strategy_spy.call_args
-    assert f"ports_statuses_{switch_serial}" in call_args[0][3]  # detail_data parameter
+    # detail_data (4th arg) should contain unpacked statuses
+    assert f"ports_statuses_{switch_serial}" in call_args[0][3]
 
     # Ensure the device has the ports statuses
     assert result["devices"][0].ports_statuses == switch_ports
-
-
-@pytest.mark.asyncio
-async def test_consolidation_camera_analytics(data_fetch_manager, mock_client):
-    """Test that camera analytics are bulk loaded."""
-    # 1. Setup mock data
-    camera_serial = "Q456"
-    camera_analytics = [{"timestamp": "2024-01-01T00:00:00Z", "person": 1}]
-
-    mock_initial = {
-        "organization": {"name": "Test Org"},
-        "networks": [],
-        "devices": [{"serial": camera_serial, "productType": "camera"}],
-        "appliance_uplink_statuses": [],
-        "sensor_readings": [],
-        "switch_ports_statuses": [],
-    }
-    data_fetch_manager._async_fetch_initial_data = AsyncMock(return_value=mock_initial)
-
-    # Mock batch analytics fetch
-    mock_analytics = {f"camera_analytics_{camera_serial}": camera_analytics}
-    data_fetch_manager._fetch_batch_camera_analytics = AsyncMock(
-        return_value=mock_analytics
-    )
-    data_fetch_manager.client_fetcher.async_fetch_network_clients = AsyncMock(
-        return_value=[]
-    )
-
-    # Spy on strategy.build_device_tasks
-    strategy_spy = MagicMock(
-        wraps=data_fetch_manager.camera_strategy.build_device_tasks
-    )
-    data_fetch_manager.camera_strategy.build_device_tasks = strategy_spy
-
-    # 2. Execute
-    with patch(
-        "custom_components.meraki_ha.core.coordinator_helpers.data_fetcher.parse_network_data",
-        return_value={"appliance_traffic": {}, "vlans": {}},
-    ):
-        result = await data_fetch_manager.get_all_data()
-
-    # 3. Assertions
-    strategy_spy.assert_called()
-    call_args = strategy_spy.call_args
-    assert f"camera_analytics_{camera_serial}" in call_args[0][3]
-    assert result["devices"][0].analytics == camera_analytics
 
 
 @pytest.mark.asyncio
@@ -143,7 +97,6 @@ async def test_consolidation_clients(data_fetch_manager, mock_client):
         "switch_ports_statuses": [],
     }
     data_fetch_manager._async_fetch_initial_data = AsyncMock(return_value=mock_initial)
-    data_fetch_manager._fetch_batch_camera_analytics = AsyncMock(return_value={})
 
     # Mock network client fetch
     data_fetch_manager.client_fetcher.async_fetch_network_clients = AsyncMock(
