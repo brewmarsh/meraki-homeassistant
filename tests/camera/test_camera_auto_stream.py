@@ -3,10 +3,10 @@
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
+from homeassistant.core import HomeAssistant
 
 from custom_components.meraki_ha.camera import MerakiRTSPStreamCamera
 from custom_components.meraki_ha.const_conf import CONF_ENABLE_CAMERA_ENTITIES
-from homeassistant.core import HomeAssistant
 from tests.const import MOCK_CAMERA_DEVICE
 
 

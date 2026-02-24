@@ -2,12 +2,13 @@
 
 from unittest.mock import MagicMock, patch
 
+from homeassistant.components.sensor import SensorEntityDescription
+
 from custom_components.meraki_ha.core.models.device import MerakiDevice
 from custom_components.meraki_ha.discovery.providers import WirelessRadioProvider
 from custom_components.meraki_ha.sensor.device.wireless_radio import (
     MerakiWirelessRadioSensor,
 )
-from homeassistant.components.sensor import SensorEntityDescription
 
 
 def test_wireless_radio_sensor_update():

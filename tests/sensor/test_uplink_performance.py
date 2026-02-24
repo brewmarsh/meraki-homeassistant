@@ -3,13 +3,13 @@
 from unittest.mock import MagicMock
 
 import pytest
+from homeassistant.components.sensor import SensorEntityDescription
+from homeassistant.const import PERCENTAGE, UnitOfTime
 
 from custom_components.meraki_ha.core.models.device import MerakiDevice
 from custom_components.meraki_ha.sensor.uplink_performance import (
     MerakiUplinkPerformanceSensor,
 )
-from homeassistant.components.sensor import SensorEntityDescription
-from homeassistant.const import PERCENTAGE, UnitOfTime
 
 
 @pytest.fixture
