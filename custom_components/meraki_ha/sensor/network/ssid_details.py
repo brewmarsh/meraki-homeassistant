@@ -59,30 +59,57 @@ class MerakiSSIDDetailSensor(MerakiEntity, SensorEntity):
     @callback
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
-        if not self.coordinator.data:
+        if not (data := self.coordinator.data):
             return
 
-        network_id = self._network_id
-        ssid_number = self._ssid_number
+        # Extract new data using isolated helper methods
+        new_ssid_data = self._extract_ssid_data(data)
+        new_rf_profile = self._extract_rf_profile(data)
 
-        # Update SSID data
-        if "wireless_settings" in self.coordinator.data:
-            network_ssids = self.coordinator.data["wireless_settings"].get(network_id)
-            if network_ssids:
-                for ssid in network_ssids:
-                    if str(ssid.get("number")) == str(ssid_number):
-                        self._ssid_data = ssid
-                        break
+        # Early return if the state has not changed to reduce overhead
+        if new_ssid_data == self._ssid_data and new_rf_profile == self._rf_profile:
+            return
 
-        # Update RF profile data
-        if "rf_profiles" in self.coordinator.data:
-            network_rf_profiles = self.coordinator.data["rf_profiles"].get(network_id)
-            if network_rf_profiles:
-                # Match same logic as discovery: take the first available profile
-                self._rf_profile = next(iter(network_rf_profiles), None)
+        self._ssid_data = new_ssid_data
+        self._rf_profile = new_rf_profile
 
         self._update_state()
         self.async_write_ha_state()
+
+    def _extract_ssid_data(self, data: dict[str, Any]) -> dict[str, Any]:
+        """Extract SSID data from coordinator data."""
+        if not (wireless := data.get("wireless_settings")):
+            return self._ssid_data
+
+        if not (network_ssids := wireless.get(self._network_id)):
+            return self._ssid_data
+
+        for ssid in network_ssids:
+            if str(ssid.get("number")) == str(self._ssid_number):
+                return ssid
+
+        return self._ssid_data
+
+    def _extract_rf_profile(self, data: dict[str, Any]) -> dict[str, Any] | None:
+        """Extract RF profile data from coordinator data."""
+        if not (rf_profiles := data.get("rf_profiles")):
+            return self._rf_profile
+
+        if not (network_rf_profiles := rf_profiles.get(self._network_id)):
+            return self._rf_profile
+
+        # Match same logic as discovery: take the first available profile
+        return next(iter(network_rf_profiles), None)
+
+    def _extract_ssid_status(self, data: dict[str, Any]) -> str:
+        """Extract the SSID status (enabled/disabled) from coordinator data."""
+        ssid_data = self._extract_ssid_data(data)
+        return "enabled" if ssid_data and ssid_data.get("enabled") else "disabled"
+
+    def _extract_auth_mode(self, data: dict[str, Any]) -> str | None:
+        """Extract the auth mode for this SSID from coordinator data."""
+        ssid_data = self._extract_ssid_data(data)
+        return ssid_data.get("authMode") if ssid_data else None
 
     def _update_state(self) -> None:
         """Update the sensor state from current data."""
