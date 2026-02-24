@@ -4,9 +4,8 @@ from __future__ import annotations
 
 from typing import Any
 
-from homeassistant.data_entry_flow import FlowResult
-
 from homeassistant import config_entries
+from homeassistant.config_entries import ConfigFlowResult
 
 from .const import DOMAIN
 from .const_conf import CONF_INTEGRATION_TITLE
@@ -74,7 +73,7 @@ class MerakiOptionsFlowHandler(config_entries.OptionsFlow):
     async def async_step_init(
         self,
         user_input: dict[str, Any] | None = None,
-    ) -> FlowResult:
+    ) -> ConfigFlowResult:
         """Manage the options flow menu."""
         menu_options = ["general", "sensors"]
         if self._has_cameras():
@@ -85,7 +84,7 @@ class MerakiOptionsFlowHandler(config_entries.OptionsFlow):
 
     async def async_step_general(
         self, user_input: dict[str, Any] | None = None
-    ) -> FlowResult:
+    ) -> ConfigFlowResult:
         """Manage general settings."""
         if user_input is not None:
             self.options.update(user_input)
@@ -102,7 +101,7 @@ class MerakiOptionsFlowHandler(config_entries.OptionsFlow):
 
     async def async_step_sensors(
         self, user_input: dict[str, Any] | None = None
-    ) -> FlowResult:
+    ) -> ConfigFlowResult:
         """Manage sensor settings."""
         if user_input is not None:
             self.options.update(user_input)
@@ -118,7 +117,7 @@ class MerakiOptionsFlowHandler(config_entries.OptionsFlow):
 
     async def async_step_cameras(
         self, user_input: dict[str, Any] | None = None
-    ) -> FlowResult:
+    ) -> ConfigFlowResult:
         """Manage camera settings."""
         if user_input is not None:
             self.options.update(user_input)
@@ -142,7 +141,7 @@ class MerakiOptionsFlowHandler(config_entries.OptionsFlow):
 
     async def async_step_advanced(
         self, user_input: dict[str, Any] | None = None
-    ) -> FlowResult:
+    ) -> ConfigFlowResult:
         """Manage advanced settings."""
         if user_input is not None:
             self.options.update(user_input)

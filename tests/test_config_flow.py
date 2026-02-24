@@ -13,6 +13,7 @@
 
 from unittest.mock import MagicMock, patch
 
+from homeassistant import config_entries, setup
 from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResultType
 from pytest_homeassistant_custom_component.common import MockConfigEntry
@@ -29,7 +30,6 @@ from custom_components.meraki_ha.core.errors import (
     MerakiAuthenticationError,
     MerakiConnectionError,
 )
-from homeassistant import config_entries, setup
 
 
 async def test_form(hass: HomeAssistant) -> None:
@@ -189,6 +189,7 @@ async def test_options_flow_with_devices(hass: HomeAssistant) -> None:
         result["flow_id"], user_input={"next_step_id": "general"}
     )
     assert result_general["type"] == FlowResultType.FORM
+    assert result_general["data_schema"] is not None
     assert CONF_SCAN_INTERVAL in [
         k.schema for k in result_general["data_schema"].schema.keys()
     ]
@@ -198,6 +199,7 @@ async def test_options_flow_with_devices(hass: HomeAssistant) -> None:
     result_cameras = await hass.config_entries.options.async_configure(
         result["flow_id"], user_input={"next_step_id": "cameras"}
     )
+    assert result_cameras["data_schema"] is not None
     assert CONF_ENABLE_CAMERA_ENTITIES in [
         k.schema for k in result_cameras["data_schema"].schema.keys()
     ]
@@ -231,6 +233,7 @@ async def test_options_flow_without_devices(hass: HomeAssistant) -> None:
     result_advanced = await hass.config_entries.options.async_configure(
         result["flow_id"], user_input={"next_step_id": "advanced"}
     )
+    assert result_advanced["data_schema"] is not None
     schema_keys = [k.schema for k in result_advanced["data_schema"].schema.keys()]
     assert CONF_ENABLE_VLAN_MANAGEMENT not in schema_keys
 
