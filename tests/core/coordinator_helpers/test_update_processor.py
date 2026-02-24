@@ -35,7 +35,7 @@ def update_processor(mock_hass, mock_config_entry, mock_polling_manager, mock_co
     """Fixture for UpdateProcessor."""
     return UpdateProcessor(mock_hass, mock_config_entry, mock_polling_manager, mock_config)
 
-def test_process_success_orchestration(update_processor):
+async def test_process_success_orchestration(update_processor):
     """Test that process_success calls the expected private methods."""
     data = {"networks": [], "ssids": []}
     current_data = {"key": " value "}
@@ -46,7 +46,7 @@ def test_process_success_orchestration(update_processor):
         patch.object(update_processor, "_sanitize_current_data") as mock_sanitize,
         patch.object(update_processor, "_process_data_result", return_value=({}, {}, {})) as mock_process,
     ):
-        result = update_processor.process_success(data, current_data)
+        result = await update_processor.process_success(data, current_data)
 
         mock_ensure.assert_called_once_with(data)
         mock_handle.assert_called_once()
@@ -88,8 +88,8 @@ def test_process_data_result(update_processor):
     data = {"networks": []}
 
     with (
-        patch("custom_components.meraki_ha.core.coordinator_helpers.update_processor.filter_ignored_networks") as mock_filter,
-        patch("custom_components.meraki_ha.core.coordinator_helpers.update_processor.process_coordinator_data", return_value=({"d": 1}, {"n": 2}, {"s": 3})) as mock_process,
+        patch("custom_components.meraki_ha.core.helpers.filter_ignored_networks", create=True) as mock_filter,
+        patch("custom_components.meraki_ha.core.helpers.process_coordinator_data", create=True, return_value=({"d": 1}, {"n": 2}, {"s": 3})) as mock_process,
     ):
         result = update_processor._process_data_result(data)
         mock_filter.assert_called_once_with(data, update_processor.config.ignored_networks)

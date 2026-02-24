@@ -15,7 +15,6 @@ from ..helpers.device_registry import (
     async_ensure_network_devices_exist,
     async_ensure_ssid_devices_exist,
 )
-from ..helpers import filter_ignored_networks, process_coordinator_data
 
 if TYPE_CHECKING:
     from ..models.device import MerakiDevice
@@ -121,5 +120,7 @@ class UpdateProcessor:
         dict[tuple[str, int], dict[str, Any]],
     ]:
         """Filter ignored networks and process data into models."""
+        from ..helpers import filter_ignored_networks, process_coordinator_data
+
         filter_ignored_networks(data, self.config.ignored_networks)
         return process_coordinator_data(self.hass, self.config_entry, data)
