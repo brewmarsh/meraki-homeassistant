@@ -15,7 +15,7 @@ class MerakiSSIDAvailabilitySensor(MerakiSSIDBaseSensor):
     """Representation of a Meraki SSID Availability sensor."""
 
     _attr_has_entity_name = True
-    _attr_name = None
+    _attr_name: str | None = None
 
     entity_description = SensorEntityDescription(
         key="availability",
