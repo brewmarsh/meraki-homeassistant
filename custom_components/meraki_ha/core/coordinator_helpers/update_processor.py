@@ -8,7 +8,6 @@ from typing import Any
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 
-from ..helpers import filter_ignored_networks, process_coordinator_data
 from ..helpers.device_registry import (
     async_ensure_network_devices_exist,
     async_ensure_ssid_devices_exist,
@@ -48,6 +47,8 @@ class UpdateProcessor:
         bool,  # interval_changed
     ]:
         """Process successful data update."""
+        from ..helpers import filter_ignored_networks, process_coordinator_data
+
         # Ensure network devices exist in the registry before processing
         async_ensure_network_devices_exist(
             self.hass, self.config_entry, data.get("networks", [])
