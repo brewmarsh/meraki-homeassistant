@@ -10,6 +10,7 @@ process_scorecard.py script.
 import json
 import subprocess
 import os
+import sys
 
 TARGET_DIR = "custom_components/meraki_ha/"
 
@@ -26,7 +27,7 @@ def run_command(cmd):
 def generate_complexity_report():
     """Generate report for high complexity functions using ruff."""
     # ruff check . --select C901 --output-format json
-    cmd = ["ruff", "check", TARGET_DIR, "--select", "C901", "--output-format", "json"]
+    cmd = [sys.executable, "-m", "ruff", "check", TARGET_DIR, "--select", "C901", "--output-format", "json"]
     output = run_command(cmd)
     if not output:
         return []
@@ -62,7 +63,7 @@ def generate_typing_report():
     """Generate report for typing issues using mypy."""
     # mypy . --output json
     # Note: mypy output format json returns line-delimited JSON objects
-    cmd = ["mypy", TARGET_DIR, "--output", "json"]
+    cmd = [sys.executable, "-m", "mypy", TARGET_DIR, "--output", "json"]
     output = run_command(cmd)
     if not output:
         return []

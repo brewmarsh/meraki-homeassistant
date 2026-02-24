@@ -56,22 +56,13 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         hass: HomeAssistant,
         entry: ConfigEntry,
     ) -> None:
-        """
-        Initialize the coordinator.
-
-        Args:
-        ----
-            hass: The Home Assistant instance.
-            entry: The config entry.
-
-        """
+        """Initialize the coordinator."""
         self.api = ApiClient(
             hass=hass,
             api_key=entry.data[CONF_MERAKI_API_KEY],
             org_id=entry.data[CONF_MERAKI_ORG_ID],
         )
-        # Feature flags can be in either options (user-controlled)
-        # or data (initial setup)
+        
         enable_vpn = entry.options.get(
             CONF_ENABLE_VPN_MANAGEMENT,
             entry.data.get(CONF_ENABLE_VPN_MANAGEMENT, DEFAULT_ENABLE_VPN_MANAGEMENT),
@@ -96,6 +87,7 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             enable_traffic_shaping=enable_traffic,
             enable_camera_sense=enable_camera_sense,
         )
+        
         self.devices_by_serial: dict[str, MerakiDevice] = {}
         self.networks_by_id: dict[str, MerakiNetwork] = {}
         self.ssids_by_network_and_number: dict[tuple[str, int], dict[str, Any]] = {}
@@ -131,187 +123,126 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         unique_id: str | None,
         expiry_seconds: int = 150,
     ) -> None:
-        """
-        Register a pending update to ignore coordinator data.
-
-        This prevents overwriting an optimistic state with stale data from the
-        Meraki API, which can have a significant provisioning delay.
-
-        Args:
-        ----
-            unique_id: The unique ID of the entity.
-            expiry_seconds: The duration of the cooldown period.
-
-        """
+        """Register a pending update to ignore coordinator data."""
         self.pending_update_manager.register(unique_id, expiry_seconds)
 
     def is_pending(self, unique_id: str | None) -> bool:
-        """
-        Check if an entity is in a pending (cooldown) state.
-
-        Args:
-        ----
-            unique_id: The unique ID of the entity.
-
-        Returns
-        -------
-            True if the entity is in a pending state, False otherwise.
-
-        """
+        """Check if an entity is in a pending (cooldown) state."""
         return self.pending_update_manager.is_pending(unique_id)
 
     def cancel_pending_update(self, unique_id: str | None) -> None:
-        """
-        Cancel a pending update for a device.
-
-        Args:
-        ----
-            unique_id: The unique ID of the entity.
-
-        """
+        """Cancel a pending update for a device."""
         self.pending_update_manager.cancel(unique_id)
 
     async def _async_update_data(self) -> dict[str, Any]:
         """Fetch data from API endpoint, apply filters, and handle exceptions."""
         try:
-            # Pass the last known successful data to the API client
             timespan = (
                 int(self.update_interval.total_seconds())
                 if self.update_interval
                 else 300
             )
-            try:
-                async with asyncio.timeout(30):  # HA default setup limit
-                    data = await self.data_fetch_manager.get_all_data(
-                        self.last_successful_data, timespan=timespan
-                    )
-            except TimeoutError:
-                _LOGGER.error("Meraki API took too long; check for semaphore deadlock")
-                raise UpdateFailed("API Timeout") from None
+
+            data = await self._fetch_data_from_api(timespan)
 
             if not data:
                 _LOGGER.warning("API call to get_all_data returned no data.")
-                # Return cached data to prevent entities from becoming unavailable
                 return self.last_successful_data
 
-            # Update success history and consecutive successes via PollingManager
-            if self.polling_manager.record_success():
-                # If True, the interval was reset after recovery
-                if self.update_interval != self.polling_manager.update_interval:
-                    _LOGGER.info(
-                        "Meraki API recovered. Resetting update interval to %s",
-                        self.polling_manager.update_interval,
-                    )
-                    self.update_interval = self.polling_manager.update_interval
-
-            # Log success rate for monitoring
-            _LOGGER.debug(
-                "Coordinator update success rate (last 5): %.1f%%",
-                self.polling_manager.get_success_rate(),
-            )
-
-            # Process data using the centralized data processor
-            processed = await self.data_processor.async_process(data, self.data)
-            self.devices_by_serial = processed["devices_by_serial"]
-            self.networks_by_id = processed["networks_by_id"]
-            self.ssids_by_network_and_number = processed["ssids_by_network_and_number"]
-
-            self.last_successful_update = datetime.now()
-            self.last_successful_data = data
+            await self._process_successful_update(data)
             return data
 
         except Exception as err:
-            # Update success history and reset consecutive successes
-            if self.polling_manager.record_failure(err):
-                # If True, the interval was increased
-                if self.update_interval != self.polling_manager.update_interval:
-                    _LOGGER.warning(
-                        "Increasing poll interval to %s due to failures.",
-                        self.polling_manager.update_interval,
-                    )
-                    self.update_interval = self.polling_manager.update_interval
+            return self._handle_update_failure(err)
 
-            # Log success rate for monitoring
-            _LOGGER.debug(
-                "Coordinator update success rate (last 5): %.1f%%",
-                self.polling_manager.get_success_rate(),
-            )
+    async def _fetch_data_from_api(self, timespan: int) -> dict[str, Any]:
+        """Fetch data from the API with a timeout."""
+        try:
+            async with asyncio.timeout(30):  # HA default setup limit
+                return await self.data_fetch_manager.get_all_data(
+                    self.last_successful_data, timespan=timespan
+                )
+        except TimeoutError:
+            _LOGGER.error("Meraki API took too long; check for semaphore deadlock")
+            raise UpdateFailed("API Timeout") from None
 
-            _LOGGER.warning(
-                "Failed to fetch new data, using stale data. Error: %s",
-                err,
-            )
-            # Return the last successful data to maintain entity state
-            if self.last_successful_data:
-                return self.last_successful_data
+    async def _process_successful_update(self, data: dict[str, Any]) -> None:
+        """Process successful data update via the Data Processor."""
+        # Update success history and consecutive successes via PollingManager
+        if self.polling_manager.record_success():
+            # If True, the interval was reset after recovery
+            if self.update_interval != self.polling_manager.update_interval:
+                _LOGGER.info(
+                    "Meraki API recovered. Resetting update interval to %s",
+                    self.polling_manager.update_interval,
+                )
+                self.update_interval = self.polling_manager.update_interval
 
-            # If there's no last successful data, re-raise the exception
-            # This will happen on the first run if it fails
-            _LOGGER.error(
-                "Unexpected error fetching Meraki data for the first time: %s",
-                err,
-                exc_info=True,
-            )
-            raise UpdateFailed(f"Error communicating with API: {err}") from err
+        # Log success rate for monitoring
+        _LOGGER.debug(
+            "Coordinator update success rate (last 5): %.1f%%",
+            self.polling_manager.get_success_rate(),
+        )
+
+        # Process data using the centralized data processor (From Refactor branch)
+        processed = await self.data_processor.async_process(data, self.data)
+        self.devices_by_serial = processed["devices_by_serial"]
+        self.networks_by_id = processed["networks_by_id"]
+        self.ssids_by_network_and_number = processed["ssids_by_network_and_number"]
+
+        self.last_successful_update = datetime.now()
+        self.last_successful_data = data
+
+    def _handle_update_failure(self, err: Exception) -> dict[str, Any]:
+        """Handle update failure."""
+        # Update success history and reset consecutive successes
+        if self.polling_manager.record_failure(err):
+            # If True, the interval was increased
+            if self.update_interval != self.polling_manager.update_interval:
+                _LOGGER.warning(
+                    "Increasing poll interval to %s due to failures.",
+                    self.polling_manager.update_interval,
+                )
+                self.update_interval = self.polling_manager.update_interval
+
+        # Log success rate for monitoring
+        _LOGGER.debug(
+            "Coordinator update success rate (last 5): %.1f%%",
+            self.polling_manager.get_success_rate(),
+        )
+
+        _LOGGER.warning(
+            "Failed to fetch new data, using stale data. Error: %s",
+            err,
+        )
+        # Return the last successful data to maintain entity state
+        if self.last_successful_data:
+            return self.last_successful_data
+
+        # If there's no last successful data, re-raise the exception
+        _LOGGER.error(
+            "Unexpected error fetching Meraki data for the first time: %s",
+            err,
+            exc_info=True,
+        )
+        raise UpdateFailed(f"Error communicating with API: {err}") from err
 
     def get_device(self, serial: str | None) -> MerakiDevice | None:
-        """
-        Get device data by serial number.
-
-        Args:
-        ----
-            serial: The serial number of the device.
-
-        Returns
-        -------
-            The device data or None if not found.
-
-        """
+        """Get device data by serial number."""
         if not serial:
             return None
         return self.devices_by_serial.get(serial)
 
     def get_network(self, network_id: str) -> MerakiNetwork | None:
-        """
-        Get network data by ID.
-
-        Args:
-        ----
-            network_id: The ID of the network.
-
-        Returns
-        -------
-            The network data or None if not found.
-
-        """
+        """Get network data by ID."""
         return self.networks_by_id.get(network_id)
 
     def get_ssid(self, network_id: str, ssid_number: int) -> dict[str, Any] | None:
-        """
-        Get SSID data by network ID and SSID number.
-
-        Args:
-        ----
-            network_id: The ID of the network.
-            ssid_number: The number of the SSID.
-
-        Returns
-        -------
-            The SSID data or None if not found.
-
-        """
+        """Get SSID data by network ID and SSID number."""
         return self.ssids_by_network_and_number.get((network_id, ssid_number))
 
     def add_status_message(self, serial: str, message: str) -> None:
-        """
-        Add a status message for a device.
-
-        Args:
-        ----
-            serial: The serial number of the device.
-            message: The message to add.
-
-        """
+        """Add a status message for a device."""
         device = self.get_device(serial)
         if device:
             # Avoid duplicate messages
@@ -319,15 +250,7 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 device.status_messages.append(message)
 
     def add_network_status_message(self, network_id: str, message: str) -> None:
-        """
-        Add a status message for a network.
-
-        Args:
-        ----
-            network_id: The ID of the network.
-            message: The message to add.
-
-        """
+        """Add a status message for a network."""
         network = self.get_network(network_id)
         if network:
             # Avoid duplicate messages
@@ -340,16 +263,7 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         switch_port_service: SwitchPortService,
         camera_service: CameraService,
     ) -> None:
-        """
-        Set up the services for the Meraki integration.
-
-        Args:
-        ----
-            device_control_service: The device control service.
-            switch_port_service: The switch port service.
-            camera_service: The camera service.
-
-        """
+        """Set up the services for the Meraki integration."""
         from .core.coordinator_helpers.service_setup import async_setup_services
 
         await async_setup_services(
