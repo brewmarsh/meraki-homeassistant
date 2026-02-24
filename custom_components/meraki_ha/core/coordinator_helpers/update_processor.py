@@ -3,20 +3,23 @@
 from __future__ import annotations
 
 import logging
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 
-from ..helpers import filter_ignored_networks, process_coordinator_data
+from ..data_processor import MerakiDataProcessor
+from ..managers import PollingManager
+from .config_helper import CoordinatorConfig
 from ..helpers.device_registry import (
     async_ensure_network_devices_exist,
     async_ensure_ssid_devices_exist,
 )
-from ..managers import PollingManager
-from ..models.device import MerakiDevice
-from ..models.network import MerakiNetwork
-from .config_helper import CoordinatorConfig
+from ..helpers import filter_ignored_networks, process_coordinator_data
+
+if TYPE_CHECKING:
+    from ..models.device import MerakiDevice
+    from ..models.network import MerakiNetwork
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -36,8 +39,9 @@ class UpdateProcessor:
         self.config_entry = config_entry
         self.polling_manager = polling_manager
         self.config = config
+        self.data_processor = MerakiDataProcessor(hass, config_entry)
 
-    def process_success(
+    async def process_success(
         self,
         data: dict[str, Any],
         current_data: dict[str, Any] | None = None,
@@ -47,12 +51,22 @@ class UpdateProcessor:
         dict[tuple[str, int], dict[str, Any]],
         bool,  # interval_changed
     ]:
-        """Process successful data update."""
+        """
+        Process successful data update.
+        
+        This method acts as an orchestrator, delegating specific tasks to
+        sub-methods to maintain a low Agent Cognitive Load (ACL).
+        """
+        # 1. Ensure network and SSID devices are in the HA registry
         self._ensure_registries(data)
+
+        # 2. Update polling metrics and check for recovery
         interval_changed = self._handle_interval_recovery()
 
+        # 3. Clean up the current data state
         self._sanitize_current_data(current_data)
 
+        # 4. Transform raw API data into Meraki models
         (
             devices_by_serial,
             networks_by_id,
@@ -68,30 +82,24 @@ class UpdateProcessor:
 
     def _ensure_registries(self, data: dict[str, Any]) -> None:
         """Ensure network and SSID devices exist in the registry."""
-        # Ensure network devices exist in the registry before processing
         async_ensure_network_devices_exist(
             self.hass, self.config_entry, data.get("networks", [])
         )
-
-        # Ensure SSID devices exist
         if "ssids" in data:
             async_ensure_ssid_devices_exist(
                 self.hass, self.config_entry, data["ssids"]
             )
 
     def _handle_interval_recovery(self) -> bool:
-        """Handle polling interval recovery logic."""
+        """Handle polling interval recovery logic and return if interval changed."""
         interval_changed = False
-        # Update success history and consecutive successes via PollingManager
         if self.polling_manager.record_success():
-            # If True, the interval was reset after recovery
             interval_changed = True
             _LOGGER.info(
                 "Meraki API recovered. Resetting update interval to %s",
                 self.polling_manager.update_interval,
             )
 
-        # Log success rate for monitoring
         _LOGGER.debug(
             "Coordinator update success rate (last 5): %.1f%%",
             self.polling_manager.get_success_rate(),
@@ -113,7 +121,5 @@ class UpdateProcessor:
         dict[tuple[str, int], dict[str, Any]],
     ]:
         """Filter ignored networks and process data into models."""
-        # Use the injected config object to filter networks
         filter_ignored_networks(data, self.config.ignored_networks)
-
         return process_coordinator_data(self.hass, self.config_entry, data)
