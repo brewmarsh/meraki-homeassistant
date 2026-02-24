@@ -113,7 +113,7 @@ def _merge_battery_readings(
     battery_readings: list[dict[str, Any]],
 ) -> None:
     """Merge battery readings into device readings if metric not present."""
-    existing_metrics = {r["metric"] for r in device_readings}
+    existing_metrics = {r["metric"] for r in device_readings if "metric" in r}
     for reading in battery_readings:
         if reading.get("metric") not in existing_metrics:
             device_readings.append(reading)
@@ -151,15 +151,7 @@ def parse_sensor_data(
     sensor_readings: list[dict[str, Any]] | None,
     battery_readings: list[dict[str, Any]] | None,
 ) -> None:
-    """
-    Parse and merge sensor and battery readings into the device list.
-
-    Args:
-        devices: A list of Meraki devices.
-        sensor_readings: A list of sensor readings from the API.
-        battery_readings: A list of battery readings from the API.
-
-    """
+    """Parse and merge sensor and battery readings into the device list."""
     if not sensor_readings:
         sensor_readings = []
     if not battery_readings:
