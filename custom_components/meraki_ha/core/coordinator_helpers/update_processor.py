@@ -57,6 +57,7 @@ class UpdateProcessor:
 
         # 2. Delegate data processing to MerakiDataProcessor
         # This handles registry existence checks, filtering, and model mapping
+        # internally, which resolves circular dependencies.
         processed_data = await self.data_processor.async_process(data, current_data)
 
         # 3. Extract results from the processed payload
@@ -75,6 +76,7 @@ class UpdateProcessor:
         """Handle polling interval recovery logic and return if interval changed."""
         interval_changed = False
         if self.polling_manager.record_success():
+            # If True, the interval was reset after recovery
             interval_changed = True
             _LOGGER.info(
                 "Meraki API recovered. Resetting update interval to %s",
