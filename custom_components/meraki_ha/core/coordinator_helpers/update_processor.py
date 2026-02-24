@@ -11,6 +11,11 @@ from homeassistant.core import HomeAssistant
 from ..data_processor import MerakiDataProcessor
 from ..managers import PollingManager
 from .config_helper import CoordinatorConfig
+from ..helpers.device_registry import (
+    async_ensure_network_devices_exist,
+    async_ensure_ssid_devices_exist,
+)
+from ..helpers import filter_ignored_networks, process_coordinator_data
 
 if TYPE_CHECKING:
     from ..models.device import MerakiDevice
@@ -46,32 +51,75 @@ class UpdateProcessor:
         dict[tuple[str, int], dict[str, Any]],
         bool,  # interval_changed
     ]:
-        """Process successful data update."""
-        interval_changed = False
+        """
+        Process successful data update.
         
-        # 1. Update success history and check for recovery via PollingManager
+        This method acts as an orchestrator, delegating specific tasks to
+        sub-methods to maintain a low Agent Cognitive Load (ACL).
+        """
+        # 1. Ensure network and SSID devices are in the HA registry
+        self._ensure_registries(data)
+
+        # 2. Update polling metrics and check for recovery
+        interval_changed = self._handle_interval_recovery()
+
+        # 3. Clean up the current data state
+        self._sanitize_current_data(current_data)
+
+        # 4. Transform raw API data into Meraki models
+        (
+            devices_by_serial,
+            networks_by_id,
+            ssids_by_network_and_number,
+        ) = self._process_data_result(data)
+
+        return (
+            devices_by_serial,
+            networks_by_id,
+            ssids_by_network_and_number,
+            interval_changed,
+        )
+
+    def _ensure_registries(self, data: dict[str, Any]) -> None:
+        """Ensure network and SSID devices exist in the registry."""
+        async_ensure_network_devices_exist(
+            self.hass, self.config_entry, data.get("networks", [])
+        )
+        if "ssids" in data:
+            async_ensure_ssid_devices_exist(
+                self.hass, self.config_entry, data["ssids"]
+            )
+
+    def _handle_interval_recovery(self) -> bool:
+        """Handle polling interval recovery logic and return if interval changed."""
+        interval_changed = False
         if self.polling_manager.record_success():
-            # If True, the interval was reset after recovery
             interval_changed = True
             _LOGGER.info(
                 "Meraki API recovered. Resetting update interval to %s",
                 self.polling_manager.update_interval,
             )
 
-        # 2. Log success rate for monitoring
         _LOGGER.debug(
             "Coordinator update success rate (last 5): %.1f%%",
             self.polling_manager.get_success_rate(),
         )
+        return interval_changed
 
-        # 3. Delegate processing to MerakiDataProcessor 
-        # (This now handles device_registry checks and network filtering internally)
-        processed_result = await self.data_processor.async_process(data, current_data)
+    def _sanitize_current_data(self, current_data: dict[str, Any] | None) -> None:
+        """Sanitize current data by stripping strings."""
+        if current_data:
+            for key, value in current_data.items():
+                if isinstance(value, str):
+                    current_data[key] = value.strip()
 
-        # 4. Unpack result dict to the tuple format expected by the Coordinator
-        return (
-            processed_result["devices_by_serial"],
-            processed_result["networks_by_id"],
-            processed_result["ssids_by_network_and_number"],
-            interval_changed,
-        )
+    def _process_data_result(
+        self, data: dict[str, Any]
+    ) -> tuple[
+        dict[str, MerakiDevice],
+        dict[str, MerakiNetwork],
+        dict[tuple[str, int], dict[str, Any]],
+    ]:
+        """Filter ignored networks and process data into models."""
+        filter_ignored_networks(data, self.config.ignored_networks)
+        return process_coordinator_data(self.hass, self.config_entry, data)
