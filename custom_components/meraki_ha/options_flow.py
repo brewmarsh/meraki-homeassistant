@@ -36,47 +36,15 @@ class MerakiOptionsFlowHandler(config_entries.OptionsFlow):
             ]["coordinator"]
         return self._coordinator_instance
 
-    def _get_network_options(self) -> list[dict[str, str]]:
-        """Get network options."""
-        network_options = []
-        if self.coordinator.data and self.coordinator.data.get("networks"):
-            for network in self.coordinator.data["networks"]:
-                name = getattr(network, "name", None)
-                if name is None and isinstance(network, dict):
-                    name = network.get("name")
-
-                net_id = getattr(network, "id", None)
-                if net_id is None and isinstance(network, dict):
-                    net_id = network.get("id")
-
-                if name and net_id:
-                    network_options.append({"label": name, "value": net_id})
-        return network_options
-
-    def _has_cameras(self) -> bool:
-        """Check if cameras are present."""
-        devices = self.coordinator.data.get("devices", [])
-        for device in devices:
-            p_type = ""
-            model = ""
-            if isinstance(device, dict):
-                p_type = device.get("productType") or device.get("product_type", "")
-                model = device.get("model", "")
-            else:
-                p_type = getattr(device, "product_type", "") or ""
-                model = getattr(device, "model", "") or ""
-
-            if "camera" in p_type.lower() or (model and model.startswith("MV")):
-                return True
-        return False
-
     async def async_step_init(
         self,
         user_input: dict[str, Any] | None = None,
     ) -> ConfigFlowResult:
         """Manage the options flow menu."""
+        from .helpers.flow_utils import has_cameras
+
         menu_options = ["general", "sensors"]
-        if self._has_cameras():
+        if has_cameras(self.coordinator.data):
             menu_options.append("cameras")
         menu_options.append("advanced")
 
@@ -92,10 +60,12 @@ class MerakiOptionsFlowHandler(config_entries.OptionsFlow):
                 title=CONF_INTEGRATION_TITLE, data=self.options
             )
 
+        from .helpers.flow_utils import get_network_options
+
         schema = populate_schema_defaults(
             OPTIONS_SCHEMA_GENERAL,
             self.options,
-            self._get_network_options(),
+            get_network_options(self.coordinator.data),
         )
         return self.async_show_form(step_id="general", data_schema=schema)
 
