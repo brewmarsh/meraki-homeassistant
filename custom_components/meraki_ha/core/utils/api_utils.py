@@ -144,6 +144,38 @@ def _handle_unexpected_error(err: Exception) -> None:
     raise MerakiConnectionError(f"Unexpected error: {err}") from err
 
 
+async def _handle_meraki_exception(
+    err: APIError | MerakiInformationalError,
+    func: Callable[..., Any],
+    args: tuple[Any, ...],
+    kwargs: dict[str, Any],
+    attempt: int,
+    max_retries: int,
+    base_delay: int,
+) -> Any:
+    """Handle Meraki API exceptions and return result or raise."""
+    error_msg = str(err)
+    is_feature_disabled = (
+        "Traffic Analysis with Hostname Visibility" in error_msg
+        or "VLANs are not enabled for this network" in error_msg
+    )
+
+    if is_feature_disabled:
+        return _handle_feature_disabled(func, err, args, kwargs)
+
+    if isinstance(err, APIError) and _is_informational_error(err):
+        raise MerakiInformationalError(f"Informational error: {err}") from err
+
+    if isinstance(err, MerakiInformationalError):
+        raise err
+
+    if _is_rate_limit_error(err):
+        # This will raise _RetryRequest which should be caught by caller to retry
+        await _handle_rate_limit(err, attempt, max_retries, base_delay)
+
+    _handle_meraki_api_error(err)
+
+
 def handle_meraki_errors(
     func: Callable[..., Awaitable[T]],
 ) -> Callable[..., Coroutine[Any, Any, T]]:
@@ -169,31 +201,15 @@ def handle_meraki_errors(
             except (JSONDecodeError, MerakiConnectionError) as err:
                 return cast(T, _handle_invalid_response_error(func, err))
             except (APIError, MerakiInformationalError) as err:
-                error_msg = str(err)
-                is_feature_disabled = (
-                    "Traffic Analysis with Hostname Visibility" in error_msg
-                    or "VLANs are not enabled for this network" in error_msg
-                )
-
-                if is_feature_disabled:
-                    return cast(T, _handle_feature_disabled(func, err, args, kwargs))
-
-                if isinstance(err, APIError) and _is_informational_error(err):
-                    raise MerakiInformationalError(
-                        f"Informational error: {err}"
-                    ) from err
-
-                if isinstance(err, MerakiInformationalError):
-                    raise err
-
-                if _is_rate_limit_error(err):
-                    try:
-                        await _handle_rate_limit(err, attempt, max_retries, base_delay)
-                    except _RetryRequest:
-                        continue
-
-                _handle_meraki_api_error(err)
-
+                try:
+                    return cast(
+                        T,
+                        await _handle_meraki_exception(
+                            err, func, args, kwargs, attempt, max_retries, base_delay
+                        ),
+                    )
+                except _RetryRequest:
+                    continue
             except ClientError as err:
                 _LOGGER.error("Connection error: %s", err)
                 raise MerakiConnectionError(f"Connection error: {err}") from err

@@ -97,6 +97,51 @@ METRIC_HANDLERS: dict[str, Callable[[MerakiDevice, dict[str, Any]], None]] = {
 }
 
 
+def _organize_readings(
+    readings: list[dict[str, Any]],
+) -> dict[str, list[dict[str, Any]]]:
+    """Organize readings by device serial."""
+    return {
+        reading["serial"]: reading.get("readings", [])
+        for reading in readings
+        if isinstance(reading, dict) and "serial" in reading
+    }
+
+
+def _merge_readings(
+    sensor_readings: list[dict[str, Any]],
+    battery_readings: list[dict[str, Any]],
+) -> list[dict[str, Any]]:
+    """Merge sensor and battery readings."""
+    if not battery_readings:
+        return sensor_readings
+
+    # Use a set for faster lookup of existing metrics
+    existing_metrics = {r.get("metric") for r in sensor_readings}
+    merged = list(sensor_readings)
+
+    for reading in battery_readings:
+        if reading.get("metric") not in existing_metrics:
+            merged.append(reading)
+
+    return merged
+
+
+def _process_device_metrics(
+    device: MerakiDevice,
+    readings: list[dict[str, Any]],
+) -> None:
+    """Process metrics for a single device."""
+    device.readings = readings
+    for reading in readings:
+        metric = reading.get("metric")
+        if metric == "power":
+            _LOGGER.debug("MT40 Power Reading Payload: %s", reading)
+
+        if metric and metric in METRIC_HANDLERS:
+            METRIC_HANDLERS[metric](device, reading)
+
+
 def parse_sensor_data(
     devices: list[MerakiDevice],
     sensor_readings: list[dict[str, Any]] | None,
@@ -110,40 +155,17 @@ def parse_sensor_data(
         sensor_readings: A list of sensor readings from the API.
         battery_readings: A list of battery readings from the API.
     """
-    if not sensor_readings:
-        sensor_readings = []
-    if not battery_readings:
-        battery_readings = []
-
-    readings_by_serial = {
-        reading["serial"]: reading.get("readings", [])
-        for reading in sensor_readings
-        if isinstance(reading, dict) and "serial" in reading
-    }
-
-    battery_readings_by_serial = {
-        reading["serial"]: reading.get("readings", [])
-        for reading in battery_readings
-        if isinstance(reading, dict) and "serial" in reading
-    }
+    readings_map = _organize_readings(sensor_readings or [])
+    battery_map = _organize_readings(battery_readings or [])
 
     for device in devices:
-        device_serial = device.serial
-        device_readings = readings_by_serial.get(device_serial, [])
+        if not device.serial:
+            continue
 
-        if battery_readings_for_device := battery_readings_by_serial.get(device_serial):
-            existing_metrics = {r["metric"] for r in device_readings}
-            for reading in battery_readings_for_device:
-                if reading.get("metric") not in existing_metrics:
-                    device_readings.append(reading)
+        readings = _merge_readings(
+            readings_map.get(device.serial, []),
+            battery_map.get(device.serial, []),
+        )
 
-        if device_readings:
-            device.readings = device_readings
-
-            for reading in device_readings:
-                metric = reading.get("metric")
-                if metric == "power":
-                    _LOGGER.debug("MT40 Power Reading Payload: %s", reading)
-
-                if metric and metric in METRIC_HANDLERS:
-                    METRIC_HANDLERS[metric](device, reading)
+        if readings:
+            _process_device_metrics(device, readings)
