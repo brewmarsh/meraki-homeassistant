@@ -9,8 +9,9 @@ from json import JSONDecodeError
 from typing import Any, TypeVar, cast
 
 from aiohttp import ClientError
-from homeassistant.helpers.update_coordinator import UpdateFailed
 from meraki.exceptions import APIError  # type: ignore
+
+from homeassistant.helpers.update_coordinator import UpdateFailed
 
 from ..errors import (
     MerakiAuthenticationError,
@@ -33,7 +34,9 @@ class _RetryRequest(Exception):
     """Internal exception to trigger a retry."""
 
 
-def _get_safe_return_value(func: Callable[..., Any], error_msg: str | None = None) -> Any:
+def _get_safe_return_value(
+    func: Callable[..., Any], error_msg: str | None = None
+) -> Any:
     """Get a safe return value based on the function's return type annotation."""
     sig = inspect.signature(func)
     return_type = sig.return_annotation
@@ -62,7 +65,7 @@ def _handle_feature_disabled(
     args: tuple[Any, ...],
     kwargs: dict[str, Any],
 ) -> Any:
-    """Handle disabled features by marking them in the client and returning safe value."""
+    """Handle disabled features by marking them in the client & returning safe value."""
     error_msg = str(err)
     is_traffic_analysis = "Traffic Analysis with Hostname Visibility" in error_msg
 
@@ -212,42 +215,91 @@ def handle_meraki_errors(
     return cast(Callable[..., Coroutine[Any, Any, T]], wrapper)
 
 
-def validate_response(response: Any) -> Any:
-    """Validate API response."""
-    if response is None:
-        raise MerakiConnectionError("API returned None")
-
-    if isinstance(response, (dict, list)):
-        return response
-
-    # Wrap primitive types in a dict
-    return {"value": response}
-
-
 def _is_rate_limit_error(err: APIError) -> bool:
-    """Check if the error is a rate limit error."""
-    return getattr(err, "status", 0) == 429
+    """Check if error is due to rate limiting."""
+    return getattr(err, "status", None) == 429 or "rate limit" in str(err).lower()
 
 
 def _is_auth_error(err: APIError) -> bool:
-    """Check if the error is an authentication error."""
-    return getattr(err, "status", 0) in (401, 403)
+    """Check if error is an authentication error."""
+    return getattr(err, "status", None) in (401, 403) or any(
+        msg in str(err).lower()
+        for msg in (
+            "unauthorized",
+            "forbidden",
+            "invalid api key",
+            "authentication failed",
+        )
+    )
 
 
 def _is_device_error(err: APIError) -> bool:
-    """Check if the error is a device error."""
-    if getattr(err, "status", 0) == 404:
-        return True
-    return "device not found" in str(err).lower()
+    """Check if error is device-related."""
+    return any(
+        msg in str(err).lower()
+        for msg in (
+            "device not found",
+            "invalid serial",
+            "device error",
+            "device offline",
+        )
+    )
 
 
 def _is_network_error(err: APIError) -> bool:
-    """Check if the error is a network error."""
-    if getattr(err, "status", 0) == 404:
-        return True
-    return "network not found" in str(err).lower()
+    """Check if error is network-related."""
+    return any(
+        msg in str(err).lower()
+        for msg in (
+            "network not found",
+            "invalid network",
+            "network error",
+            "network offline",
+        )
+    )
 
 
 def _is_informational_error(err: APIError) -> bool:
-    """Check if the error is informational."""
-    return False
+    """Check if error is informational (e.g., feature not enabled)."""
+    error_msg = str(err)
+    return (
+        "VLANs are not enabled for this network" in error_msg
+        or "Traffic Analysis with Hostname Visibility" in error_msg
+        or "historical viewing is not supported" in error_msg
+    )
+
+
+def validate_response(response: Any) -> Any:
+    """
+    Validate and normalize an API response.
+
+    Args:
+    ----
+        response: The API response to validate
+
+    Returns
+    -------
+        Normalized response dictionary
+
+    Raises
+    ------
+        MerakiConnectionError: If response is invalid or empty
+
+    """
+    if response is None:
+        raise MerakiConnectionError("Empty response from API")
+
+    if isinstance(response, dict):
+        if not response:
+            _LOGGER.warning("Empty response dictionary from API")
+        return response
+
+    if isinstance(response, list):
+        return response
+
+    if isinstance(response, (str, int, float, bool)):
+        return {"value": response}
+
+    raise MerakiConnectionError(
+        f"Invalid response format: {type(response)}. Expected dict or list."
+    )
