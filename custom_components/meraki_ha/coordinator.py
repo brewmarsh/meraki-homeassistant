@@ -56,7 +56,7 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             entry: The config entry.
 
         """
-        # Accept Refactor: Encapsulated config logic
+        # Accept Beta/Refactor: Standardized Encapsulated config logic
         self.config = get_coordinator_config(entry)
         
         self.api = ApiClient(
@@ -90,7 +90,7 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         )
         self.config_entry = entry
 
-        # Accept Refactor: UpdateProcessor replaces MerakiDataProcessor
+        # Accept Beta/Refactor: UpdateProcessor replaces MerakiDataProcessor
         self.update_processor = UpdateProcessor(
             hass=hass,
             config_entry=entry,
@@ -148,7 +148,7 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
     async def _process_successful_update(self, data: dict[str, Any]) -> None:
         """Process successful data update via the specialized UpdateProcessor."""
-        # Accept Refactor: Delegated logic reduces coordinator complexity
+        # Accept Beta/Refactor: Delegated async logic reduces coordinator complexity
         (
             self.devices_by_serial,
             self.networks_by_id,

@@ -75,6 +75,7 @@ class UpdateProcessor:
             self.polling_manager.get_success_rate(),
         )
 
+        # Use the injected config object to filter networks
         filter_ignored_networks(data, self.config.ignored_networks)
 
         if current_data:
