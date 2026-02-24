@@ -282,7 +282,9 @@ class SwitchPortProvider:
                     MerakiSwitchPortPowerSensor(coordinator, device, port, config_entry)
                 )
                 entities.append(
-                    MerakiSwitchPortEnergySensor(coordinator, device, port, config_entry)
+                    MerakiSwitchPortEnergySensor(
+                        coordinator, device, port, config_entry
+                    )
                 )
                 if (
                     port.get("powerUsageInWh") is not None
@@ -373,7 +375,8 @@ class WirelessRadioProvider:
                 )
             )
 
-        # 5GHz Target Power (Generic "Target power" sensor for backward compatibility/requested name)
+        # 5GHz Target Power (Generic "Target power" sensor for backward
+        # compatibility/requested name)
         if "fiveGhzSettings" in settings:
             entities.append(
                 MerakiWirelessRadioSensor(

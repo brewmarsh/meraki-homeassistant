@@ -3,10 +3,10 @@
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-from homeassistant.core import HomeAssistant
 
 from custom_components.meraki_ha.camera import MerakiRTSPStreamCamera
 from custom_components.meraki_ha.const_conf import CONF_ENABLE_CAMERA_ENTITIES
+from homeassistant.core import HomeAssistant
 from tests.const import MOCK_CAMERA_DEVICE
 
 
@@ -40,9 +40,13 @@ async def test_camera_auto_enables_stream(
     # Set device data to have no RTSP URL
     # We need to make sure the property returns this
     from unittest.mock import PropertyMock
-    with patch.object(MerakiRTSPStreamCamera, "device_data", new_callable=PropertyMock) as mock_device_data:
+
+    with patch.object(
+        MerakiRTSPStreamCamera, "device_data", new_callable=PropertyMock
+    ) as mock_device_data:
         # Create a copy with None rtsp_url
         import dataclasses
+
         device_no_rtsp = dataclasses.replace(MOCK_CAMERA_DEVICE, rtsp_url=None)
         mock_device_data.return_value = device_no_rtsp
 
@@ -92,8 +96,12 @@ async def test_camera_does_not_auto_enable_if_option_disabled(
     mock_camera.hass = hass
     # Set device data to have no RTSP URL
     from unittest.mock import PropertyMock
-    with patch.object(MerakiRTSPStreamCamera, "device_data", new_callable=PropertyMock) as mock_device_data:
+
+    with patch.object(
+        MerakiRTSPStreamCamera, "device_data", new_callable=PropertyMock
+    ) as mock_device_data:
         import dataclasses
+
         device_no_rtsp = dataclasses.replace(MOCK_CAMERA_DEVICE, rtsp_url=None)
         mock_device_data.return_value = device_no_rtsp
 

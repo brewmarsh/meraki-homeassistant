@@ -27,6 +27,7 @@ def run_gh(args):
         print("GitHub CLI (gh) not found. Skipping GitHub interaction.")
         return None
 
+
 def parse_scorecard(filename):
     """
     Parse the scorecard output file for CRAFT prompts.
@@ -50,7 +51,8 @@ def parse_scorecard(filename):
     # - Type: Matches either "High Cognitive Load" or "Low Type Safety"
     # - File: Captures the target file path
     # - Rule: (Optional) Captures the specific lint/complexity rule
-    # - Prompt: Captures everything after 'Prompt:' until the next 'Type:' or end of file
+    # - Prompt: Captures everything after 'Prompt:' until the next 'Type:'
+    #   or end of file
     # We use re.DOTALL to allow the prompt to span multiple lines.
     pattern = re.compile(
         r"Type:\s*(?P<type>High Cognitive Load|Low Type Safety)\s*\n"
@@ -81,6 +83,7 @@ def parse_scorecard(filename):
         )
 
     return tasks
+
 
 def main():
     """Process the scorecard and automate remediation."""
@@ -145,6 +148,7 @@ def main():
         # Clean up old task file if it exists
         if os.path.exists("typing_tasks.json"):
             os.remove("typing_tasks.json")
+
 
 if __name__ == "__main__":
     main()

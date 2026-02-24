@@ -111,9 +111,7 @@ def test_process_device_details_analytics(strategy):
     mock_device = MagicMock()
     mock_device.serial = "SERIAL1"
     key = f"camera_analytics_{mock_device.serial}"
-    detail_data = {
-        key: [{"zoneId": "1", "entrances": 5}]
-    }
+    detail_data = {key: [{"zoneId": "1", "entrances": 5}]}
 
     strategy.process_device_details(mock_device, detail_data, None)
 

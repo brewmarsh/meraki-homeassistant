@@ -20,7 +20,6 @@ if TYPE_CHECKING:
     from homeassistant.helpers.entity import Entity
 
 
-
 _LOGGER = logging.getLogger(__name__)
 
 

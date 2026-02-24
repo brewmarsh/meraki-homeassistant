@@ -64,8 +64,12 @@ async def async_migrate_entities(hass: HomeAssistant, entry_id: str) -> None:
             new_unique_id = f"{net_id}ssid{ssid_num}_{attr}"
 
         if new_unique_id and new_unique_id != old_unique_id:
-            _LOGGER.info("Migrating entity %s unique_id from %s to %s",
-                         entity.entity_id, old_unique_id, new_unique_id)
+            _LOGGER.info(
+                "Migrating entity %s unique_id from %s to %s",
+                entity.entity_id,
+                old_unique_id,
+                new_unique_id,
+            )
             try:
                 entity_registry.async_update_entity(
                     entity.entity_id, new_unique_id=new_unique_id

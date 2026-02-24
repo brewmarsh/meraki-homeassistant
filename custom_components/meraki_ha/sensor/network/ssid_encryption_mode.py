@@ -13,10 +13,11 @@ from .base import MerakiSSIDBaseSensor
 class MerakiSSIDEncryptionModeSensor(MerakiSSIDBaseSensor):
     """Representation of a Meraki SSID Encryption Mode sensor."""
 
+    _attr_has_entity_name = True
     _attr_entity_category = EntityCategory.DIAGNOSTIC
     entity_description = SensorEntityDescription(
         key="encryption_mode",
-        name="encryption mode",
+        translation_key="encryption_mode",
         icon="mdi:shield-key",
     )
 

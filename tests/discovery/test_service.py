@@ -76,6 +76,7 @@ async def test_discover_entities_delegates_to_handler(
             "custom_components.meraki_ha.discovery.service.WirelessHandler"
         ) as MockWirelessHandler,
     ):
+
         async def mock_aiter_universal():
             yield "universal_entity"
 

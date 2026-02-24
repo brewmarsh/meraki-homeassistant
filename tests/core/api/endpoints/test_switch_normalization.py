@@ -19,15 +19,18 @@ def mock_client():
     client.organization_id = "org123"
     return client
 
+
 @pytest.fixture
 def organization_endpoints(mock_client):
     """Fixture for OrganizationEndpoints."""
     return OrganizationEndpoints(mock_client)
 
+
 @pytest.fixture
 def switch_endpoints(mock_client):
     """Fixture for SwitchEndpoints."""
     return SwitchEndpoints(mock_client)
+
 
 @pytest.mark.asyncio
 async def test_get_organization_switch_ports_statuses_normalization(
@@ -42,6 +45,7 @@ async def test_get_organization_switch_ports_statuses_normalization(
     assert result == []
     mock_client.run_sync.assert_called_once()
 
+
 @pytest.mark.asyncio
 async def test_get_device_switch_ports_statuses_normalization(
     switch_endpoints, mock_client
@@ -54,6 +58,7 @@ async def test_get_device_switch_ports_statuses_normalization(
 
     assert result == []
     mock_client.run_sync.assert_called_once()
+
 
 @pytest.mark.asyncio
 async def test_get_switch_ports_normalization(switch_endpoints, mock_client):

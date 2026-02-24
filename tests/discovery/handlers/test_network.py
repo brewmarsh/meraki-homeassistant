@@ -1,20 +1,19 @@
 """Tests for the NetworkHandler."""
 
 from unittest.mock import MagicMock
+
 import pytest
 
-from custom_components.meraki_ha.discovery.handlers.network import NetworkHandler
-from custom_components.meraki_ha.sensor.network.network_clients import (
-    MerakiNetworkClientsSensor,
-)
 from custom_components.meraki_ha.const_conf import (
     CONF_ENABLE_CLIENT_STATUS_SENSORS,
     CONF_ENABLE_NETWORK_SENSORS,
-    CONF_ENABLE_TRAFFIC_SHAPING,
     CONF_ENABLE_VLAN_SENSORS,
-    CONF_ENABLE_VPN_MANAGEMENT,
 )
+from custom_components.meraki_ha.discovery.handlers.network import NetworkHandler
 from custom_components.meraki_ha.sensor.client.status import MerakiClientStatusSensor
+from custom_components.meraki_ha.sensor.network.network_clients import (
+    MerakiNetworkClientsSensor,
+)
 from custom_components.meraki_ha.sensor.network.vlan import MerakiVLANStatusSensor
 from custom_components.meraki_ha.types import MerakiNetwork
 
@@ -40,11 +39,11 @@ def mock_coordinator():
                 {"id": 20, "name": "Guest", "subnet": "192.168.20.0/24"},
             ]
         },
-        "clients": []  # Initialize empty; specific tests will populate this
+        "clients": [],  # Initialize empty; specific tests will populate this
     }
     # Mock API for content filtering check
-    coordinator.api.appliance.get_network_appliance_content_filtering_categories = MagicMock(
-        return_value={"categories": []}
+    coordinator.api.appliance.get_network_appliance_content_filtering_categories = (
+        MagicMock(return_value={"categories": []})
     )
     return coordinator
 
@@ -104,7 +103,10 @@ async def test_discover_entities_creates_vlan_status_sensors(
 async def test_discover_entities_creates_client_status_sensors_when_enabled(
     mock_coordinator, mock_network_control_service
 ):
-    """Test that discover_entities creates client status sensors with full data verification."""
+    """Test that discover_entities creates client status sensors.
+
+    Uses full data verification.
+    """
     # 1. Setup Mock Data
     mock_coordinator.data["clients"] = [
         {
@@ -122,7 +124,8 @@ async def test_discover_entities_creates_client_status_sensors_when_enabled(
         },
         {
             "mac": "11:22:33:44:55:66",
-            "networkId": "N_OTHER", # Should be ignored (network not in mock_coordinator.data["networks"])
+            "networkId": "N_OTHER",  # Should be ignored (network not in
+            # mock_coordinator.data["networks"])
             "status": "Online",
         },
     ]
@@ -151,11 +154,15 @@ async def test_discover_entities_creates_client_status_sensors_when_enabled(
     # 4. Assertions
     # We expect 2 sensors (Client 1 and Client 2). Client 3 (N_OTHER) is skipped.
     assert len(client_status_sensors) == 2
-    
+
     # Verify specific sensor data (ensures deep attribute mapping works)
-    sensor1 = next(s for s in client_status_sensors if s._client_mac == "00:11:22:33:44:55")
+    sensor1 = next(
+        s for s in client_status_sensors if s._client_mac == "00:11:22:33:44:55"
+    )
     assert sensor1.native_value == "online"
     assert sensor1.extra_state_attributes["ip_address"] == "10.0.0.1"
 
-    sensor2 = next(s for s in client_status_sensors if s._client_mac == "AA:BB:CC:DD:EE:FF")
+    sensor2 = next(
+        s for s in client_status_sensors if s._client_mac == "AA:BB:CC:DD:EE:FF"
+    )
     assert sensor2.native_value == "offline"

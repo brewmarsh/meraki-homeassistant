@@ -11,7 +11,7 @@ from .base import MerakiSSIDBaseSensor
 
 BANDWIDTH_LIMIT_UP = SensorEntityDescription(
     key="bandwidth_limit_up",
-    name="per-SSID bandwidth limit up",
+    name=None,
     icon="mdi:upload-network-outline",
     state_class=SensorStateClass.MEASUREMENT,
     native_unit_of_measurement=UnitOfDataRate.KILOBITS_PER_SECOND,
@@ -19,7 +19,7 @@ BANDWIDTH_LIMIT_UP = SensorEntityDescription(
 
 BANDWIDTH_LIMIT_DOWN = SensorEntityDescription(
     key="bandwidth_limit_down",
-    name="per-SSID bandwidth limit down",
+    name=None,
     icon="mdi:download-network-outline",
     state_class=SensorStateClass.MEASUREMENT,
     native_unit_of_measurement=UnitOfDataRate.KILOBITS_PER_SECOND,
@@ -28,6 +28,8 @@ BANDWIDTH_LIMIT_DOWN = SensorEntityDescription(
 
 class MerakiSSIDPerSsidBandwidthLimitSensor(MerakiSSIDBaseSensor):
     """Representation of a Meraki SSID Per-SSID Bandwidth Limit sensor."""
+
+    _attr_has_entity_name = True
 
     def __init__(
         self,
@@ -43,3 +45,7 @@ class MerakiSSIDPerSsidBandwidthLimitSensor(MerakiSSIDBaseSensor):
         attribute = f"perSsidBandwidthLimit{direction.capitalize()}"
         super().__init__(coordinator, config_entry, ssid_data, attribute)
         self._attr_native_value = self._ssid_data_at_init.get(attribute)
+
+        # Robust unique_id format: serial_classname_key
+        serial = ssid_data.get("serial") or getattr(coordinator, "serial", "unknown")
+        self._attr_unique_id = f"{serial}_{self.__class__.__name__}_{attribute}"

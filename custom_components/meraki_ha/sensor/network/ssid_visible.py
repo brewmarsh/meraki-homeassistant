@@ -13,10 +13,11 @@ from .base import MerakiSSIDBaseSensor
 class MerakiSSIDVisibleSensor(MerakiSSIDBaseSensor):
     """Representation of a Meraki SSID Visibility sensor."""
 
+    _attr_has_entity_name = True
     _attr_entity_category = EntityCategory.DIAGNOSTIC
     entity_description = SensorEntityDescription(
         key="visible",
-        name="broadcast",
+        name=None,
         icon="mdi:eye",
     )
 

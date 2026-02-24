@@ -114,4 +114,3 @@ class BaseMerakiEntity(CoordinatorEntity, Entity, ABC):
             return bool(network)
 
         return True
-

@@ -2,12 +2,11 @@
 
 from unittest.mock import MagicMock
 
-from homeassistant.const import UnitOfDataRate
-
 from custom_components.meraki_ha.sensor.network.ssid_details import (
     MerakiSSIDMinBitrate24GhzSensor,
     MerakiSSIDTotalUploadLimitSensor,
 )
+from homeassistant.const import UnitOfDataRate
 
 
 async def test_ssid_total_upload_limit_sensor() -> None:
@@ -22,11 +21,7 @@ async def test_ssid_total_upload_limit_sensor() -> None:
         "perSsidBandwidthLimitUp": 1000,
     }
 
-    coordinator.data = {
-        "wireless_settings": {
-            "N_123": [ssid_data]
-        }
-    }
+    coordinator.data = {"wireless_settings": {"N_123": [ssid_data]}}
 
     sensor = MerakiSSIDTotalUploadLimitSensor(
         coordinator, config_entry, ssid_data, None
@@ -46,6 +41,7 @@ async def test_ssid_total_upload_limit_sensor() -> None:
     sensor._handle_coordinator_update()
     assert sensor.native_value == 2000
 
+
 async def test_ssid_min_bitrate_24ghz_sensor() -> None:
     """Test the SSID minimum bitrate 2.4GHz sensor."""
     coordinator = MagicMock()
@@ -56,14 +52,11 @@ async def test_ssid_min_bitrate_24ghz_sensor() -> None:
         "name": "Test SSID",
         "enabled": True,
     }
-    rf_profile = {
-        "id": "rf_1",
-        "twoFourGhzSettings": {"minBitrate": 11}
-    }
+    rf_profile = {"id": "rf_1", "twoFourGhzSettings": {"minBitrate": 11}}
 
     coordinator.data = {
         "wireless_settings": {"N_123": [ssid_data]},
-        "rf_profiles": {"N_123": [rf_profile]}
+        "rf_profiles": {"N_123": [rf_profile]},
     }
 
     sensor = MerakiSSIDMinBitrate24GhzSensor(
@@ -74,10 +67,7 @@ async def test_ssid_min_bitrate_24ghz_sensor() -> None:
     assert sensor.native_value == 11
 
     # Test update
-    new_rf_profile = {
-        "id": "rf_1",
-        "twoFourGhzSettings": {"minBitrate": 12}
-    }
+    new_rf_profile = {"id": "rf_1", "twoFourGhzSettings": {"minBitrate": 12}}
     coordinator.data["rf_profiles"]["N_123"] = [new_rf_profile]
 
     object.__setattr__(sensor, "async_write_ha_state", MagicMock())

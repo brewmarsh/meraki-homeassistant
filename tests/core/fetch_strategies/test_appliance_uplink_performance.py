@@ -22,6 +22,7 @@ def mock_client():
     # Mock run_sync to execute the function directly
     async def mock_run_sync(func, *args, **kwargs):
         return func(*args, **kwargs)
+
     client.run_sync.side_effect = mock_run_sync
 
     return client

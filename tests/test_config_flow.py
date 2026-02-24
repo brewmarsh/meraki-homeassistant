@@ -13,9 +13,6 @@
 
 from unittest.mock import MagicMock, patch
 
-from homeassistant import config_entries, setup
-from homeassistant.core import HomeAssistant
-from homeassistant.data_entry_flow import FlowResultType
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.meraki_ha.const import DOMAIN
@@ -30,6 +27,9 @@ from custom_components.meraki_ha.core.errors import (
     MerakiAuthenticationError,
     MerakiConnectionError,
 )
+from homeassistant import config_entries, setup
+from homeassistant.core import HomeAssistant
+from homeassistant.data_entry_flow import FlowResultType
 
 
 async def test_form(hass: HomeAssistant) -> None:
@@ -171,10 +171,7 @@ async def test_options_flow_with_devices(hass: HomeAssistant) -> None:
     switch.product_type = "switch"
     switch.model = "MS120"
 
-    coordinator.data = {
-        "devices": [camera, switch],
-        "networks": []
-    }
+    coordinator.data = {"devices": [camera, switch], "networks": []}
 
     # Setup hass.data
     hass.data[DOMAIN] = {entry.entry_id: {"coordinator": coordinator}}
@@ -217,10 +214,7 @@ async def test_options_flow_without_devices(hass: HomeAssistant) -> None:
 
     # Mock the coordinator and data (no devices)
     coordinator = MagicMock()
-    coordinator.data = {
-        "devices": [],
-        "networks": []
-    }
+    coordinator.data = {"devices": [], "networks": []}
 
     # Setup hass.data
     hass.data[DOMAIN] = {entry.entry_id: {"coordinator": coordinator}}
@@ -252,10 +246,7 @@ async def test_reconfigure_flow_without_devices(hass: HomeAssistant) -> None:
 
     # Mock the coordinator and data
     coordinator = MagicMock()
-    coordinator.data = {
-        "devices": [],
-        "networks": []
-    }
+    coordinator.data = {"devices": [], "networks": []}
 
     # Setup hass.data
     hass.data[DOMAIN] = {entry.entry_id: {"coordinator": coordinator}}

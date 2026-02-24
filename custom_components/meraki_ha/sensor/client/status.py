@@ -5,6 +5,7 @@ This module defines the `MerakiClientStatusSensor` class, which
 is a Home Assistant sensor entity that displays the status (Online/Offline)
 of a specific Meraki client device.
 """
+
 from __future__ import annotations
 
 import logging
@@ -63,9 +64,7 @@ class MerakiClientStatusSensor(MerakiSensor):
         # Note: Clients are typically not devices in HA registry unless
         # tracked specifically. Here we create a device for the client itself.
         client_name = (
-            client_data.get("description")
-            or client_data.get("ip")
-            or self._client_mac
+            client_data.get("description") or client_data.get("ip") or self._client_mac
         )
 
         self._attr_device_info = DeviceInfo(
@@ -84,7 +83,7 @@ class MerakiClientStatusSensor(MerakiSensor):
 
         self.entity_description = SensorEntityDescription(
             key="client_status",
-            name="Status",
+            name=f"{client_name} status",
             native_unit_of_measurement=None,
             state_class=None,
             device_class=SensorDeviceClass.ENUM,

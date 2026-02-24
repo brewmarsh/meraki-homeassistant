@@ -1,10 +1,8 @@
-
 from unittest.mock import MagicMock
-
-from homeassistant.helpers.device_registry import DeviceEntryType
 
 from custom_components.meraki_ha.const import DOMAIN
 from custom_components.meraki_ha.helpers.device_info_helpers import resolve_device_info
+from homeassistant.helpers.device_registry import DeviceEntryType
 
 
 def test_resolve_device_info_network_virtual_controller():
@@ -13,11 +11,7 @@ def test_resolve_device_info_network_virtual_controller():
     config_entry.entry_id = "test_entry"
 
     # Case 1: Name without prefix
-    entity_data_1 = {
-        "id": "net1",
-        "name": "Site A",
-        "productTypes": ["appliance"]
-    }
+    entity_data_1 = {"id": "net1", "name": "Site A", "productTypes": ["appliance"]}
     device_info_1 = resolve_device_info(entity_data_1, config_entry)
     # New Format: Site: {Name}
     assert device_info_1["name"] == "Site: Site A"
@@ -29,11 +23,12 @@ def test_resolve_device_info_network_virtual_controller():
     entity_data_2 = {
         "id": "net2",
         "name": "Site: Site B",
-        "productTypes": ["appliance"]
+        "productTypes": ["appliance"],
     }
     device_info_2 = resolve_device_info(entity_data_2, config_entry)
     assert device_info_2["name"] == "Site: Site B"
     assert device_info_2["identifiers"] == {(DOMAIN, "network_net2")}
+
 
 def test_resolve_device_info_ssid_virtual_controller_attachment():
     """Test resolving device info for SSID attaches to Virtual Controller."""
@@ -41,11 +36,7 @@ def test_resolve_device_info_ssid_virtual_controller_attachment():
     config_entry.entry_id = "test_entry"
 
     # Case 1: SSID data
-    ssid_data_1 = {
-        "networkId": "net1",
-        "number": 0,
-        "name": "Guest WiFi"
-    }
+    ssid_data_1 = {"networkId": "net1", "number": 0, "name": "Guest WiFi"}
     # Passing ssid_data as entity_data (simulating how it's called for SSIDs)
     device_info_1 = resolve_device_info(ssid_data_1, config_entry)
 
@@ -53,6 +44,7 @@ def test_resolve_device_info_ssid_virtual_controller_attachment():
     assert device_info_1["identifiers"] == {(DOMAIN, "network_net1")}
     assert "name" not in device_info_1
     assert "model" not in device_info_1
+
 
 def test_resolve_device_info_device_prefix():
     """Test resolving device info with device prefix (Physical Devices)."""
@@ -64,10 +56,11 @@ def test_resolve_device_info_device_prefix():
         "serial": "Q234-5678-90AB",
         "name": "Core Switch",
         "productType": "switch",
-        "model": "MS220-8P"
+        "model": "MS220-8P",
     }
     device_info_1 = resolve_device_info(device_data_1, config_entry)
-    # Physical devices still use [Type] prefix logic as before (or maybe I should check if that changed? No, design doc says Physical Devices remain as is)
+    # Physical devices still use [Type] prefix logic as before
+    # (Physical Devices remain as is per design doc)
     assert device_info_1["name"] == "[Switch] Core Switch"
 
     # Case 2: Name with prefix (Camera)
@@ -75,7 +68,7 @@ def test_resolve_device_info_device_prefix():
         "serial": "Q234-5678-90AC",
         "name": "[Camera] Front Door",
         "productType": "camera",
-        "model": "MV12"
+        "model": "MV12",
     }
     device_info_2 = resolve_device_info(device_data_2, config_entry)
     assert device_info_2["name"] == "[Camera] Front Door"

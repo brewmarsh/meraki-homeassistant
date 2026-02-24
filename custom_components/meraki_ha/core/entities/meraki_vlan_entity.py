@@ -38,4 +38,5 @@ class MerakiVLANEntity(MerakiNetworkEntity):
         )
 
     # Refactor: Removed device_info property to inherit from MerakiNetworkEntity
-    # This automatically attaches VLAN entities to the Network Device (Virtual Controller)
+    # This automatically attaches VLAN entities to the Network Device
+    # (Virtual Controller)

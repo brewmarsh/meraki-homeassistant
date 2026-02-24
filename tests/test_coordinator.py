@@ -3,7 +3,6 @@
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-from homeassistant.helpers.update_coordinator import UpdateFailed
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.meraki_ha.const import DOMAIN
@@ -14,6 +13,7 @@ from custom_components.meraki_ha.const_conf import (
 from custom_components.meraki_ha.coordinator import (
     MerakiDataUpdateCoordinator as MerakiDataCoordinator,
 )
+from homeassistant.helpers.update_coordinator import UpdateFailed
 from tests.const import MOCK_NETWORK
 
 
@@ -42,12 +42,15 @@ def coordinator(hass, mock_api_client, mock_data_fetch_manager):
         options={},
     )
     entry.add_to_hass(hass)
-    with patch(
-        "custom_components.meraki_ha.coordinator.ApiClient",
-        return_value=mock_api_client,
-    ), patch(
-        "custom_components.meraki_ha.coordinator.DataFetchManager",
-        return_value=mock_data_fetch_manager,
+    with (
+        patch(
+            "custom_components.meraki_ha.coordinator.ApiClient",
+            return_value=mock_api_client,
+        ),
+        patch(
+            "custom_components.meraki_ha.coordinator.DataFetchManager",
+            return_value=mock_data_fetch_manager,
+        ),
     ):
         yield MerakiDataCoordinator(hass=hass, entry=entry)
 
@@ -77,6 +80,7 @@ async def test_update_data_handles_errors(coordinator, mock_data_fetch_manager):
         data["appliance_traffic"][MOCK_NETWORK.id]["reason"]
         == "Traffic analysis is not enabled"
     )
+
 
 @pytest.mark.asyncio
 async def test_update_data_handles_timeout(coordinator, mock_data_fetch_manager):

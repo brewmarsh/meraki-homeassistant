@@ -39,9 +39,7 @@ class MerakiRFProfileSelect(CoordinatorEntity, SelectEntity):
         self._ssid_data = ssid_data
         self._network_id = ssid_data["networkId"]
         self._ssid_number = ssid_data["number"]
-        self._ssid_name = (
-            f"[SSID {self._ssid_number}] {ssid_data.get('name', '')}".strip()
-        )
+        self._ssid_name = ssid_data.get("name")
 
         self.entity_description = SelectEntityDescription(
             key=f"{self._network_id}ssid{self._ssid_number}_rf_profile",
@@ -49,9 +47,7 @@ class MerakiRFProfileSelect(CoordinatorEntity, SelectEntity):
             icon="mdi:wifi-cog",
         )
 
-        ssid_name = ssid_data.get("name", f"SSID {self._ssid_number}")
-        self._attr_name = f"{ssid_name} RF profile"
-
+        self._attr_name = None
         self._attr_unique_id = f"{self._network_id}ssid{self._ssid_number}_rf_profile"
         self._attr_options: list[str] = []
         self._update_internal_state()

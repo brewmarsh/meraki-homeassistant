@@ -120,12 +120,9 @@ class MerakiMtSensor(MerakiSensor, RestoreSensor):
                                 metric_data.get("draw")
                             )
                         if key == "energy" and self._attr_native_value is None:
-                            self._attr_native_value = (
-                                self._maybe_get_value(metric_data.get("energyUsage"))
-                                or self._maybe_get_value(
-                                    metric_data.get("apparentPower")
-                                )
-                            )
+                            self._attr_native_value = self._maybe_get_value(
+                                metric_data.get("energyUsage")
+                            ) or self._maybe_get_value(metric_data.get("apparentPower"))
                         if key == "powerFactor" and self._attr_native_value is None:
                             self._attr_native_value = self._maybe_get_value(
                                 metric_data.get("factor")
@@ -163,7 +160,6 @@ class MerakiMtSensor(MerakiSensor, RestoreSensor):
             self._device = device
             self._update_native_value()
             self.async_write_ha_state()
-
 
     @property
     def native_value(self) -> str | float | bool | None:

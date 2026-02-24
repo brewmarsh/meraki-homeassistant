@@ -16,10 +16,12 @@ def mock_client():
     client._disabled_features = set()
     return client
 
+
 @pytest.fixture
 def data_fetch_manager(mock_client):
     """Fixture for DataFetchManager."""
     return DataFetchManager(mock_client)
+
 
 @pytest.mark.asyncio
 async def test_get_all_data_includes_switch_ports(data_fetch_manager, mock_client):
@@ -63,6 +65,7 @@ async def test_get_all_data_includes_switch_ports(data_fetch_manager, mock_clien
     assert result["devices"][0].ports_statuses == [
         {"portId": "1", "status": "Connected"}
     ]
+
 
 @pytest.mark.asyncio
 async def test_async_gather_with_timeout_batching(data_fetch_manager):

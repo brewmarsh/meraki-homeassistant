@@ -20,11 +20,7 @@ async def test_ssid_client_count_sensor_wireless_settings() -> None:
     }
 
     # Setup initial coordinator data with new structure
-    coordinator.data = {
-        "wireless_settings": {
-            "N_123": [ssid_data]
-        }
-    }
+    coordinator.data = {"wireless_settings": {"N_123": [ssid_data]}}
 
     sensor = MerakiSSIDClientCountSensor(coordinator, config_entry, ssid_data)
 
@@ -41,6 +37,7 @@ async def test_ssid_client_count_sensor_wireless_settings() -> None:
 
     sensor._handle_coordinator_update()
     assert sensor.native_value == 10
+
 
 async def test_ssid_client_count_sensor_fallback() -> None:
     """Test the SSID client count sensor using fallback logic."""

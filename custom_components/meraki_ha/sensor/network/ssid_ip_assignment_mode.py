@@ -13,6 +13,7 @@ from .base import MerakiSSIDBaseSensor
 class MerakiSSIDIPAssignmentModeSensor(MerakiSSIDBaseSensor):
     """Representation of a Meraki SSID IP Assignment Mode sensor."""
 
+    _attr_has_entity_name = True
     _attr_entity_category = EntityCategory.DIAGNOSTIC
     entity_description = SensorEntityDescription(
         key="ip_assignment_mode",

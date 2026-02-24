@@ -40,9 +40,9 @@ class MerakiVLANStatusSensor(MerakiVLANEntity, SensorEntity):
 
         # Name: VLAN 10 (Staff) Subnet
         if vlan_name:
-             self._attr_name = f"VLAN {vlan_id} ({vlan_name}) Subnet"
+            self._attr_name = f"VLAN {vlan_id} ({vlan_name}) Subnet"
         else:
-             self._attr_name = f"VLAN {vlan_id} Subnet"
+            self._attr_name = f"VLAN {vlan_id} Subnet"
 
     @property
     def native_value(self) -> str | None:
@@ -61,5 +61,7 @@ class MerakiVLANStatusSensor(MerakiVLANEntity, SensorEntity):
             "dns_nameservers": self._vlan.get("dnsNameservers"),
             "dhcp_handling": self._vlan.get("dhcpHandling"),
             "dhcp_lease_time": self._vlan.get("dhcpLeaseTime"),
-            "dhcp_boot_options_enabled": self._vlan.get("dhcpBootOptionsEnabled", False),
+            "dhcp_boot_options_enabled": self._vlan.get(
+                "dhcpBootOptionsEnabled", False
+            ),
         }

@@ -1,4 +1,3 @@
-
 from unittest.mock import MagicMock
 
 from custom_components.meraki_ha.helpers.device_info_helpers import resolve_device_info
@@ -14,7 +13,7 @@ def test_camera_naming_enforcement():
         "serial": "SERIAL1",
         "name": "Front Door",
         "productType": "camera",
-        "model": "MV12"
+        "model": "MV12",
     }
     device_info_1 = resolve_device_info(device_data_1, config_entry)
     assert device_info_1["name"] == "[Camera] Front Door"
@@ -24,7 +23,7 @@ def test_camera_naming_enforcement():
         "serial": "SERIAL2",
         "name": "Back Yard",
         "productType": "unknown",
-        "model": "MV72"
+        "model": "MV72",
     }
     device_info_2 = resolve_device_info(device_data_2, config_entry)
     assert device_info_2["name"] == "[Camera] Back Yard"
@@ -34,7 +33,7 @@ def test_camera_naming_enforcement():
         "serial": "SERIAL3",
         "name": "[Camera] Side Gate",
         "productType": "camera",
-        "model": "MV22"
+        "model": "MV22",
     }
     device_info_3 = resolve_device_info(device_data_3, config_entry)
     assert device_info_3["name"] == "[Camera] Side Gate"
@@ -44,7 +43,7 @@ def test_camera_naming_enforcement():
         "serial": "SERIAL4",
         "name": "Main Switch",
         "productType": "switch",
-        "model": "MS120"
+        "model": "MS120",
     }
     device_info_4 = resolve_device_info(device_data_4, config_entry)
     assert device_info_4["name"] == "[Switch] Main Switch"

@@ -13,10 +13,11 @@ from .base import MerakiSSIDBaseSensor
 class MerakiSSIDWPAEncryptionModeSensor(MerakiSSIDBaseSensor):
     """Representation of a Meraki SSID WPA Encryption Mode sensor."""
 
+    _attr_has_entity_name = True
     _attr_entity_category = EntityCategory.DIAGNOSTIC
     entity_description = SensorEntityDescription(
         key="wpa_encryption_mode",
-        name="WPA encryption mode",
+        translation_key="wpa_encryption_mode",
         icon="mdi:shield-key-outline",
     )
 

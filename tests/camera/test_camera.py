@@ -4,9 +4,9 @@ import dataclasses
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-from homeassistant.core import HomeAssistant
 
 from custom_components.meraki_ha.camera import MerakiRTSPStreamCamera
+from homeassistant.core import HomeAssistant
 from tests.const import MOCK_CAMERA_DEVICE
 
 
@@ -30,8 +30,7 @@ async def test_camera_properties(mock_camera):
     """Test the properties of the camera entity."""
     assert mock_camera.name is None
     assert (
-        mock_camera.unique_id
-        == f"{MOCK_CAMERA_DEVICE.serial}_merakirtspstreamcamera"
+        mock_camera.unique_id == f"{MOCK_CAMERA_DEVICE.serial}_merakirtspstreamcamera"
     )
     assert mock_camera.is_streaming is True
     assert await mock_camera.stream_source() == MOCK_CAMERA_DEVICE.rtsp_url

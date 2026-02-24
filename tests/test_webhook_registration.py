@@ -3,7 +3,6 @@
 from unittest.mock import AsyncMock, patch
 
 import pytest
-from homeassistant.core import HomeAssistant
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.meraki_ha.const import DOMAIN
@@ -11,6 +10,7 @@ from custom_components.meraki_ha.webhook import (
     async_handle_webhook,
     async_register_webhook,
 )
+from homeassistant.core import HomeAssistant
 
 
 @pytest.fixture
@@ -31,10 +31,13 @@ async def test_register_webhook_call(hass: HomeAssistant, mock_api_client):
     )
     entry.add_to_hass(hass)
 
-    with patch(
-        "custom_components.meraki_ha.webhook.get_webhook_url",
-        return_value="https://example.com/api/webhook/test",
-    ), patch("homeassistant.components.webhook.async_register") as mock_ha_register:
+    with (
+        patch(
+            "custom_components.meraki_ha.webhook.get_webhook_url",
+            return_value="https://example.com/api/webhook/test",
+        ),
+        patch("homeassistant.components.webhook.async_register") as mock_ha_register,
+    ):
         await async_register_webhook(
             hass, "test_webhook_id", "test_secret", mock_api_client, entry=entry
         )

@@ -44,7 +44,6 @@ class NetworkHandler(BaseHandler):
         super().__init__(coordinator, config_entry)
         self._network_control_service = network_control_service
 
-
     async def discover_entities(self) -> AsyncIterator[Entity]:
         """Discover network-level entities."""
         from ...meraki_select.meraki_content_filtering import (
@@ -88,11 +87,12 @@ class NetworkHandler(BaseHandler):
 
             # Client Status Sensors
             if self._config_entry.options.get(CONF_ENABLE_CLIENT_STATUS_SENSORS, False):
-                # RESOLVED: Beta branch logic - import at top of block and use list comprehension
+                # RESOLVED: Beta branch logic - import at top of block
+                # and use list comprehension
                 from ...sensor.client.status import MerakiClientStatusSensor
 
                 clients = self._coordinator.data.get("clients", [])
-                
+
                 network_clients = [
                     c for c in clients if c.get("networkId") == network.id
                 ]

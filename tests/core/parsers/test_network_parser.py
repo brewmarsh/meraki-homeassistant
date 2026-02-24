@@ -1,6 +1,5 @@
 """Tests for the Meraki Network Parser."""
 
-
 import pytest
 
 from custom_components.meraki_ha.core.errors import (

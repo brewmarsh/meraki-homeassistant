@@ -3,11 +3,11 @@
 from unittest.mock import MagicMock
 
 import pytest
-from homeassistant.components.sensor import SensorDeviceClass, SensorStateClass
-from homeassistant.const import UnitOfPower
 
 from custom_components.meraki_ha.core.models.device import MerakiDevice
 from custom_components.meraki_ha.sensor.device.switch_poe import MerakiSwitchPoESensor
+from homeassistant.components.sensor import SensorDeviceClass, SensorStateClass
+from homeassistant.const import UnitOfPower
 
 
 @pytest.fixture
@@ -24,7 +24,7 @@ def mock_coordinator_and_device():
             {
                 "portId": "1",
                 "powerUsage": {"power": 15.5, "voltage": 54.0, "current": 0.28},
-                "powerUsageInWh": 372.0
+                "powerUsageInWh": 372.0,
             },
             {"portId": "2", "powerUsage": {}},
             {"portId": "3"},  # Missing powerUsage
@@ -56,15 +56,21 @@ def test_meraki_switch_poe_sensor_native_value(mock_coordinator_and_device):
     config_entry = MagicMock()
 
     # Port 1: has powerUsage.power
-    sensor1 = MerakiSwitchPoESensor(coordinator, device, device.ports_statuses[0], config_entry)
+    sensor1 = MerakiSwitchPoESensor(
+        coordinator, device, device.ports_statuses[0], config_entry
+    )
     assert sensor1.native_value == 15.5
 
     # Port 2: has powerUsage but no power key
-    sensor2 = MerakiSwitchPoESensor(coordinator, device, device.ports_statuses[1], config_entry)
+    sensor2 = MerakiSwitchPoESensor(
+        coordinator, device, device.ports_statuses[1], config_entry
+    )
     assert sensor2.native_value == 0.0
 
     # Port 3: missing powerUsage
-    sensor3 = MerakiSwitchPoESensor(coordinator, device, device.ports_statuses[2], config_entry)
+    sensor3 = MerakiSwitchPoESensor(
+        coordinator, device, device.ports_statuses[2], config_entry
+    )
     assert sensor3.native_value == 0.0
 
 
@@ -74,14 +80,18 @@ def test_meraki_switch_poe_sensor_extra_state_attributes(mock_coordinator_and_de
     config_entry = MagicMock()
 
     # Port 1
-    sensor1 = MerakiSwitchPoESensor(coordinator, device, device.ports_statuses[0], config_entry)
+    sensor1 = MerakiSwitchPoESensor(
+        coordinator, device, device.ports_statuses[0], config_entry
+    )
     attrs1 = sensor1.extra_state_attributes
     assert attrs1["power"] == 15.5
     assert attrs1["voltage"] == 54.0
     assert attrs1["current"] == 0.28
 
     # Port 2
-    sensor2 = MerakiSwitchPoESensor(coordinator, device, device.ports_statuses[1], config_entry)
+    sensor2 = MerakiSwitchPoESensor(
+        coordinator, device, device.ports_statuses[1], config_entry
+    )
     attrs2 = sensor2.extra_state_attributes
     assert attrs2["power"] is None
     assert attrs2["voltage"] is None

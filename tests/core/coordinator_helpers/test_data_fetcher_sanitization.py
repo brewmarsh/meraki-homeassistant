@@ -76,9 +76,7 @@ async def test_get_all_data_resilience_to_none(data_fetch_manager, mock_client):
         }
     )
 
-    data_fetch_manager._fetch_batch_camera_analytics = AsyncMock(
-        return_value={}
-    )
+    data_fetch_manager._fetch_batch_camera_analytics = AsyncMock(return_value={})
 
     # Use regular MagicMock to return a string/None instead of a coroutine
     # since we'll mock _async_gather_with_timeout anyway.

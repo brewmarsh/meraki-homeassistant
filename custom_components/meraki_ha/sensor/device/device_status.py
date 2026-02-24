@@ -94,7 +94,6 @@ class MerakiDeviceStatusSensor(MerakiSensor):
         # Initial update of state and attributes
         self._update_sensor_data()
 
-
     @property
     def icon(self) -> str:
         """Return the icon of the sensor."""

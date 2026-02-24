@@ -83,6 +83,7 @@ def test_parse_mt40_sensor_data_snake_case_fallback():
 
     assert device.power_factor == 0.98
 
+
 def test_parse_mt40_sensor_data_outlet_status():
     """Test parsing MT40 sensor data with downstreamPower metric."""
     device = MerakiDevice(serial="mt40-test", model="MT40")
@@ -100,6 +101,7 @@ def test_parse_mt40_sensor_data_outlet_status():
     parse_sensor_data(devices, sensor_readings, [])
 
     assert device.outlet_status is True
+
 
 def test_parse_mt40_sensor_data_outlet_status_legacy():
     """Test parsing MT40 sensor data with legacy downstream_power metric."""

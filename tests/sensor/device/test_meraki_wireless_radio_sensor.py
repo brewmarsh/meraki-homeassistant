@@ -2,13 +2,12 @@
 
 from unittest.mock import MagicMock, patch
 
-from homeassistant.components.sensor import SensorEntityDescription
-
 from custom_components.meraki_ha.core.models.device import MerakiDevice
 from custom_components.meraki_ha.discovery.providers import WirelessRadioProvider
 from custom_components.meraki_ha.sensor.device.wireless_radio import (
     MerakiWirelessRadioSensor,
 )
+from homeassistant.components.sensor import SensorEntityDescription
 
 
 def test_wireless_radio_sensor_update():
@@ -19,7 +18,7 @@ def test_wireless_radio_sensor_update():
         wireless_radio_settings={
             "twoFourGhzSettings": {"channel": 6, "targetPower": 15},
             "fiveGhzSettings": {"channel": 149, "targetPower": 18},
-        }
+        },
     )
     coordinator.get_device.return_value = device
 
@@ -41,7 +40,7 @@ def test_wireless_radio_sensor_update():
             config_entry,
             description,
             "twoFourGhzSettings",
-            "channel"
+            "channel",
         )
 
         # Mock async_write_ha_state
@@ -54,6 +53,7 @@ def test_wireless_radio_sensor_update():
         sensor._update_state()
         assert sensor.native_value == 11
 
+
 def test_wireless_radio_provider():
     """Test the wireless radio provider."""
     coordinator = MagicMock()
@@ -62,7 +62,7 @@ def test_wireless_radio_provider():
         wireless_radio_settings={
             "twoFourGhzSettings": {"channel": 6, "targetPower": 15},
             "fiveGhzSettings": {"channel": 149, "targetPower": 18},
-        }
+        },
     )
     config_entry = MagicMock()
 
@@ -70,9 +70,7 @@ def test_wireless_radio_provider():
         "custom_components.meraki_ha.sensor.device.wireless_radio.resolve_device_info",
         return_value={},
     ):
-        entities = WirelessRadioProvider.get_entities(
-            coordinator, device, config_entry
-        )
+        entities = WirelessRadioProvider.get_entities(coordinator, device, config_entry)
 
         assert len(entities) == 4
         assert any(e.entity_description.key == "2.4ghz_channel" for e in entities)

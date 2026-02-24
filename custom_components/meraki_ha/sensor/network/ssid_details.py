@@ -44,13 +44,15 @@ class MerakiSSIDDetailSensor(MerakiEntity, SensorEntity):
             ssid_data=self._ssid_data,
         )
 
-        ssid_name = ssid_data.get("name", f"SSID {self._ssid_number}")
-        if (
-            hasattr(self, "entity_description")
-            and self.entity_description
-            and self.entity_description.name
-        ):
-            self._attr_name = f"{ssid_name} {self.entity_description.name}"
+        # Rule 1: Prefer 'has_entity_name = True' and 'name = None'
+        self._attr_name = None
+
+        # Rule 2: Robust unique_id format (serial_classname_key)
+        # For SSID-bound entities, we use network_id and ssid_number as the
+        # unique identifier
+        self._attr_unique_id = (
+            f"{self._network_id}_{self._ssid_number}_{self.entity_description.key}"
+        )
 
         self._update_state()
 
@@ -95,16 +97,6 @@ class MerakiSSIDWalledGardenSensor(MerakiSSIDDetailSensor):
         icon="mdi:wall",
     )
 
-    def __init__(
-        self,
-        coordinator: MerakiDataUpdateCoordinator,
-        config_entry: ConfigEntry,
-        ssid_data: dict[str, Any],
-        rf_profile: dict[str, Any] | None,
-    ) -> None:
-        """Initialize the sensor."""
-        super().__init__(coordinator, config_entry, ssid_data, rf_profile)
-
     def _update_state(self) -> None:
         """Update the sensor state from current data."""
         self._attr_native_value = (
@@ -125,16 +117,6 @@ class MerakiSSIDTotalUploadLimitSensor(MerakiSSIDDetailSensor):
         native_unit_of_measurement=UnitOfDataRate.KILOBITS_PER_SECOND,
     )
 
-    def __init__(
-        self,
-        coordinator: MerakiDataUpdateCoordinator,
-        config_entry: ConfigEntry,
-        ssid_data: dict[str, Any],
-        rf_profile: dict[str, Any] | None,
-    ) -> None:
-        """Initialize the sensor."""
-        super().__init__(coordinator, config_entry, ssid_data, rf_profile)
-
     def _update_state(self) -> None:
         """Update the sensor state from current data."""
         self._attr_native_value = self._ssid_data.get("perSsidBandwidthLimitUp")
@@ -150,16 +132,6 @@ class MerakiSSIDTotalDownloadLimitSensor(MerakiSSIDDetailSensor):
         native_unit_of_measurement=UnitOfDataRate.KILOBITS_PER_SECOND,
     )
 
-    def __init__(
-        self,
-        coordinator: MerakiDataUpdateCoordinator,
-        config_entry: ConfigEntry,
-        ssid_data: dict[str, Any],
-        rf_profile: dict[str, Any] | None,
-    ) -> None:
-        """Initialize the sensor."""
-        super().__init__(coordinator, config_entry, ssid_data, rf_profile)
-
     def _update_state(self) -> None:
         """Update the sensor state from current data."""
         self._attr_native_value = self._ssid_data.get("perSsidBandwidthLimitDown")
@@ -173,16 +145,6 @@ class MerakiSSIDMandatoryDhcpSensor(MerakiSSIDDetailSensor):
         name="mandatory DHCP",
         icon="mdi:ip-network",
     )
-
-    def __init__(
-        self,
-        coordinator: MerakiDataUpdateCoordinator,
-        config_entry: ConfigEntry,
-        ssid_data: dict[str, Any],
-        rf_profile: dict[str, Any] | None,
-    ) -> None:
-        """Initialize the sensor."""
-        super().__init__(coordinator, config_entry, ssid_data, rf_profile)
 
     def _update_state(self) -> None:
         """Update the sensor state from current data."""
@@ -200,16 +162,6 @@ class MerakiSSIDMinBitrate24GhzSensor(MerakiSSIDDetailSensor):
         icon="mdi:speedometer-slow",
         native_unit_of_measurement=UnitOfDataRate.MEGABITS_PER_SECOND,
     )
-
-    def __init__(
-        self,
-        coordinator: MerakiDataUpdateCoordinator,
-        config_entry: ConfigEntry,
-        ssid_data: dict[str, Any],
-        rf_profile: dict[str, Any] | None,
-    ) -> None:
-        """Initialize the sensor."""
-        super().__init__(coordinator, config_entry, ssid_data, rf_profile)
 
     def _update_state(self) -> None:
         """Update the sensor state from current data."""
@@ -230,16 +182,6 @@ class MerakiSSIDMinBitrate5GhzSensor(MerakiSSIDDetailSensor):
         icon="mdi:speedometer",
         native_unit_of_measurement=UnitOfDataRate.MEGABITS_PER_SECOND,
     )
-
-    def __init__(
-        self,
-        coordinator: MerakiDataUpdateCoordinator,
-        config_entry: ConfigEntry,
-        ssid_data: dict[str, Any],
-        rf_profile: dict[str, Any] | None,
-    ) -> None:
-        """Initialize the sensor."""
-        super().__init__(coordinator, config_entry, ssid_data, rf_profile)
 
     def _update_state(self) -> None:
         """Update the sensor state from current data."""

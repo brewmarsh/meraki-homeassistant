@@ -3,13 +3,13 @@
 from unittest.mock import MagicMock
 
 import pytest
-from homeassistant.components.sensor import SensorEntityDescription
-from homeassistant.const import PERCENTAGE, UnitOfTime
 
 from custom_components.meraki_ha.core.models.device import MerakiDevice
 from custom_components.meraki_ha.sensor.uplink_performance import (
     MerakiUplinkPerformanceSensor,
 )
+from homeassistant.components.sensor import SensorEntityDescription
+from homeassistant.const import PERCENTAGE, UnitOfTime
 
 
 @pytest.fixture
@@ -17,6 +17,7 @@ def mock_coordinator():
     """Fixture for a mocked MerakiDataUpdateCoordinator."""
     coordinator = MagicMock()
     return coordinator
+
 
 def test_uplink_performance_sensor_mapping(mock_coordinator):
     """Test the uplink performance sensor mapping and units."""
@@ -48,6 +49,7 @@ def test_uplink_performance_sensor_mapping(mock_coordinator):
     )
     assert sensor_loss.native_value == 0.5
     assert sensor_loss.native_unit_of_measurement == PERCENTAGE
+
 
 def test_uplink_performance_sensor_none_handling(mock_coordinator):
     """Test handling of None and invalid values."""

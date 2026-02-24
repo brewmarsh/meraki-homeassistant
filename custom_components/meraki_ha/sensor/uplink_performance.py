@@ -24,8 +24,6 @@ if TYPE_CHECKING:
 _LOGGER = logging.getLogger(__name__)
 
 
-
-
 class MerakiUplinkPerformanceSensor(MerakiSensor):
     """Representation of a Meraki uplink performance sensor."""
 

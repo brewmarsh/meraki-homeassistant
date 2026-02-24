@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING
 from urllib.parse import urlparse
 
 from aiohttp import web
+
 from homeassistant.components import webhook
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.network import NoURLAvailableError, get_url
@@ -120,9 +121,7 @@ async def async_register_webhook(
         entry: The config entry.
 
     """
-    webhook.async_register(
-        hass, DOMAIN, "Meraki", webhook_id, async_handle_webhook
-    )
+    webhook.async_register(hass, DOMAIN, "Meraki", webhook_id, async_handle_webhook)
 
     try:
         webhook_url_from_entry = entry.data.get("webhook_url") if entry else None

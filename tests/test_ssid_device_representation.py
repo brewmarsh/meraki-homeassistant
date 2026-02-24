@@ -10,12 +10,6 @@ import pytest
 from custom_components.meraki_ha.meraki_select.rf_profile import (
     MerakiRFProfileSelect,
 )
-from custom_components.meraki_ha.sensor.network.ssid_availability import (
-    MerakiSSIDAvailabilitySensor,
-)
-from custom_components.meraki_ha.sensor.network.ssid_details import (
-    MerakiSSIDWalledGardenSensor,
-)
 from custom_components.meraki_ha.switch.meraki_ssid_device_switch import (
     MerakiSSIDEnabledSwitch,
 )
@@ -60,18 +54,7 @@ def test_ssid_device_unification(
 
     # --- Instantiate one of each type of SSID entity ---
 
-    # 1. A sensor based on MerakiSSIDBaseSensor
-    sensor = MerakiSSIDAvailabilitySensor(coordinator, config_entry, ssid_data)
-
-    # 2. A sensor based on MerakiSSIDDetailSensor
-    detail_sensor = MerakiSSIDWalledGardenSensor(
-        coordinator,
-        config_entry,
-        ssid_data,
-        None,
-    )
-
-    # 3. A switch based on MerakiSSIDBaseSwitch
+    # 1. A switch based on MerakiSSIDBaseSwitch
     switch = MerakiSSIDEnabledSwitch(
         coordinator,
         meraki_client,
@@ -79,10 +62,10 @@ def test_ssid_device_unification(
         ssid_data,
     )
 
-    # 4. The text entity
+    # 2. The text entity
     text = MerakiSSIDNameText(coordinator, meraki_client, config_entry, ssid_data)
 
-    # 5. The RF profile select entity
+    # 3. The RF profile select entity
     rf_select = MerakiRFProfileSelect(
         coordinator,
         meraki_client,
@@ -92,21 +75,12 @@ def test_ssid_device_unification(
 
     # --- Assertions ---
 
-    # Get the identifiers from each entity's DeviceInfo
-    sensor_device_info = sensor.device_info
-    assert sensor_device_info is not None
-    sensor_identifiers = sensor_device_info["identifiers"]
-
-    # Refactor: Name is no longer present in SSID entity device_info
-    assert "name" not in sensor_device_info
-
-    detail_sensor_device_info = detail_sensor.device_info
-    assert detail_sensor_device_info is not None
-    detail_sensor_identifiers = detail_sensor_device_info["identifiers"]
-
     switch_device_info = switch.device_info
     assert switch_device_info is not None
     switch_identifiers = switch_device_info["identifiers"]
+
+    # Refactor: Name is no longer present in SSID entity device_info
+    assert "name" not in switch_device_info
 
     text_device_info = text.device_info
     assert text_device_info is not None
@@ -117,20 +91,12 @@ def test_ssid_device_unification(
     rf_select_identifiers = rf_select_device_info["identifiers"]
 
     # Assert that all entities share the exact same device identifier (Network Device)
-    assert sensor_identifiers == {expected_device_identifier}
-    assert detail_sensor_identifiers == {expected_device_identifier}
     assert switch_identifiers == {expected_device_identifier}
     assert text_identifiers == {expected_device_identifier}
     assert rf_select_identifiers == {expected_device_identifier}
 
     # As a final check, assert they are all equal to each other
-    assert (
-        sensor_identifiers
-        == detail_sensor_identifiers
-        == switch_identifiers
-        == text_identifiers
-        == rf_select_identifiers
-    )
+    assert switch_identifiers == text_identifiers == rf_select_identifiers
 
     # Verify via_device is NOT present (as it attaches directly to the device)
-    assert "via_device" not in sensor_device_info
+    assert "via_device" not in switch_device_info

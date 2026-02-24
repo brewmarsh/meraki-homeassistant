@@ -22,10 +22,14 @@ async def test_ssid_psk_sensor() -> None:
     coordinator.data = {"ssids": [ssid_data_psk]}
 
     sensor = MerakiSSIDPSKSensor(coordinator, config_entry, ssid_data_psk)
-    assert sensor.name == "PSK SSID PSK"
 
-    # RESOLVED: We use the standardized Beta branch format to prevent collisions
-    assert sensor.unique_id == "N_123ssid0_psk"
+    # Rule 1: Prefer 'has_entity_name = True' and 'name = None'
+    assert sensor.has_entity_name is True
+    assert sensor.name is None
+
+    # Rule 2: Prefer the robust 'unique_id' format (serial_classname_key)
+    # Network ID acts as the serial for network-scoped entities.
+    assert sensor.unique_id == "N_123_merakissidpsksensor_0"
     assert sensor.native_value == "secret123"
 
     # Test update with new PSK

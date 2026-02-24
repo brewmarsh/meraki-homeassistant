@@ -55,4 +55,3 @@ class BaseDeviceHandler(BaseHandler, ABC):
         """Initialize the BaseDeviceHandler."""
         super().__init__(coordinator, config_entry)
         self.device = device
-

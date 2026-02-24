@@ -13,10 +13,11 @@ from .base import MerakiSSIDBaseSensor
 class MerakiSSIDAuthModeSensor(MerakiSSIDBaseSensor):
     """Representation of a Meraki SSID Auth Mode sensor."""
 
+    _attr_has_entity_name = True
     _attr_entity_category = EntityCategory.DIAGNOSTIC
     entity_description = SensorEntityDescription(
         key="auth_mode",
-        name="auth mode",
+        name=None,
         icon="mdi:lock",
     )
 

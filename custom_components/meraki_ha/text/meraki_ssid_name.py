@@ -55,8 +55,7 @@ class MerakiSSIDNameText(CoordinatorEntity[MerakiDataUpdateCoordinator], TextEnt
             native_max=32,
         )
 
-        ssid_name = ssid_data.get("name", f"SSID {self._ssid_number}")
-        self._attr_name = f"{ssid_name} SSID name"
+        self._attr_name = None
 
         self._attr_unique_id = f"{self._network_id}ssid{self._ssid_number}_name_text"
 

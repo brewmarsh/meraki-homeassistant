@@ -3,13 +3,13 @@
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
-from homeassistant.core import HomeAssistant
 
 from custom_components.meraki_ha.const import DOMAIN
 from custom_components.meraki_ha.switch.meraki_ssid_device_switch import (
     MerakiSSIDBroadcastSwitch,
     MerakiSSIDEnabledSwitch,
 )
+from homeassistant.core import HomeAssistant
 
 
 @pytest.fixture
@@ -65,7 +65,8 @@ async def test_meraki_ssid_enabled_switch(
     assert device_info is not None
     # Refactor: SSID entities attach to Virtual Controller (Network Device)
     assert device_info["identifiers"] == {(DOMAIN, "network_net-123")}
-    # Name is no longer provided in device_info for SSIDs (it's provided by Network Entity)
+    # Name is no longer provided in device_info for SSIDs
+    # (it's provided by Network Entity)
     assert "name" not in device_info
 
     switch.hass = hass
@@ -74,6 +75,11 @@ async def test_meraki_ssid_enabled_switch(
     mock_meraki_client.wireless.update_network_wireless_ssid.assert_called_with(
         network_id="net-123", number=0, enabled=False
     )
+
+    # Test extra_state_attributes
+    attrs = switch.extra_state_attributes
+    assert attrs["authMode"] == ssid_data.get("authMode")
+    assert attrs["encryptionMode"] == ssid_data.get("encryptionMode")
 
 
 async def test_meraki_ssid_broadcast_switch(
@@ -108,3 +114,8 @@ async def test_meraki_ssid_broadcast_switch(
     mock_meraki_client.wireless.update_network_wireless_ssid.assert_called_with(
         network_id="net-123", number=0, visible=False
     )
+
+    # Test extra_state_attributes
+    attrs = switch.extra_state_attributes
+    assert attrs["authMode"] == ssid_data.get("authMode")
+    assert attrs["visible"] is True

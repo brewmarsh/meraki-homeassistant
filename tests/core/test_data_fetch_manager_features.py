@@ -22,6 +22,7 @@ async def test_appliance_features_fetching_behavior() -> None:
     """
     # Mock Client
     mock_client = MagicMock()
+
     # Mock semaphores - just return the coroutine passed to it
     async def mock_run_with_semaphore(coro: Any) -> Any:
         return await coro
@@ -41,8 +42,8 @@ async def test_appliance_features_fetching_behavior() -> None:
     )
 
     # Use the pluralized/modern method name to align with the library update
-    mock_client.appliance.get_network_appliance_uplinks_performance = (
-        AsyncMock(return_value=[])
+    mock_client.appliance.get_network_appliance_uplinks_performance = AsyncMock(
+        return_value=[]
     )
 
     mock_client.network.get_network_traffic = AsyncMock(return_value=[])

@@ -112,7 +112,6 @@ async def test_get_all_data_client_timeout(data_fetch_manager, mock_client):
             "custom_components.meraki_ha.core.coordinator_helpers.data_fetcher.asyncio.wait_for",
             side_effect=clean_exit_wait_for,
         ) as mock_wait_for:
-
             with patch(
                 "custom_components.meraki_ha.core.coordinator_helpers.data_fetcher._LOGGER.error"
             ) as mock_log_error:

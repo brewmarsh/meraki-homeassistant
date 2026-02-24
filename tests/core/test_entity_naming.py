@@ -17,6 +17,7 @@ def mock_coordinator():
     coordinator.data = {}
     return coordinator
 
+
 def test_vlan_naming(mock_coordinator):
     """Test the naming of a VLAN entity."""
     config_entry = MagicMock()

@@ -18,8 +18,8 @@ def mock_coordinator():
     coordinator.config_entry.options = {}
 
     # Mock API for content filtering check (required by NetworkHandler)
-    coordinator.api.appliance.get_network_appliance_content_filtering_categories = MagicMock(
-        return_value={"categories": []}
+    coordinator.api.appliance.get_network_appliance_content_filtering_categories = (
+        MagicMock(return_value={"categories": []})
     )
 
     # Create a mock network using the Dataclass
@@ -95,11 +95,13 @@ async def test_vlan_sensor_creation(mock_coordinator):
     assert sensor.extra_state_attributes["ipv6_enabled"] is True
 
     # Device Info - Virtual Controller
-    # Device Name should be "Site: Test Network" because resolve_device_info does that
-    # and MerakiNetworkEntity (which MerakiVLANEntity inherits from) uses resolve_device_info
+    # Device Name should be "Site: Test Network" because resolve_device_info
+    # does that and MerakiNetworkEntity (which MerakiVLANEntity inherits from)
+    # uses resolve_device_info
     # AND MerakiNetworkEntity calls resolve_device_info which we modified.
 
-    # Wait, MerakiVLANEntity uses MerakiNetworkEntity.device_info which uses resolve_device_info.
+    # Wait, MerakiVLANEntity uses MerakiNetworkEntity.device_info which uses
+    # resolve_device_info.
     # So assertions on device_info should verify Virtual Controller pattern.
 
     assert sensor.device_info["identifiers"] == {(DOMAIN, "network_net1")}

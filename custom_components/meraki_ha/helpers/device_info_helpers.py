@@ -60,8 +60,9 @@ def resolve_device_info(
     if is_ssid:
         network_id = effective_data.get("networkId")
         if network_id:
-            # Refactor: SSID entities are now attached to the Virtual Controller (Network Device)
-            # We return only the identifier, letting the MerakiNetworkEntity populate details.
+            # Refactor: SSID entities are now attached to the Virtual Controller
+            # (Network Device). We return only the identifier, letting the
+            # MerakiNetworkEntity populate details.
             return DeviceInfo(
                 identifiers={(DOMAIN, f"network_{network_id}")},
             )

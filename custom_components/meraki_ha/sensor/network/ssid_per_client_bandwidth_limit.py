@@ -29,6 +29,9 @@ PER_CLIENT_BANDWIDTH_LIMIT_DOWN = SensorEntityDescription(
 class MerakiSSIDPerClientBandwidthLimitSensor(MerakiSSIDBaseSensor):
     """Representation of a Meraki SSID Per-Client Bandwidth Limit sensor."""
 
+    _attr_has_entity_name = True
+    _attr_name = None
+
     def __init__(
         self,
         coordinator: MerakiDataUpdateCoordinator,
@@ -45,3 +48,14 @@ class MerakiSSIDPerClientBandwidthLimitSensor(MerakiSSIDBaseSensor):
         attribute = f"perClientBandwidthLimit{direction.capitalize()}"
         super().__init__(coordinator, config_entry, ssid_data, attribute)
         self._attr_native_value = self._ssid_data_at_init.get(attribute)
+
+        # Apply robust unique_id format: serial_classname_key
+        # For SSID entities, we use a combination of networkId and SSID number
+        # as the unique prefix
+        serial = ssid_data.get(
+            "networkId", coordinator.data.get("networkId", "unknown")
+        )
+        number = ssid_data.get("number", "unknown")
+        self._attr_unique_id = (
+            f"{serial}_{number}_{self.__class__.__name__}_{self.entity_description.key}"
+        )

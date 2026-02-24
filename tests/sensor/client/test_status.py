@@ -50,6 +50,7 @@ def test_client_status_sensor(mock_coordinator):
     sensor1.async_write_ha_state = MagicMock()
 
     assert sensor1.unique_id == "00:11:22:33:44:55_client_status"
+    assert sensor1.name == "My Laptop status"
     assert sensor1.native_value == "online"
     assert sensor1.icon == "mdi:lan-connect"
     assert sensor1.extra_state_attributes["ip_address"] == "192.168.1.100"
@@ -68,6 +69,7 @@ def test_client_status_sensor(mock_coordinator):
     sensor2.async_write_ha_state = MagicMock()
 
     assert sensor2.unique_id == "AA:BB:CC:DD:EE:FF_client_status"
+    assert sensor2.name == "192.168.1.101 status"
     assert sensor2.native_value == "offline"
     assert sensor2.icon == "mdi:lan-disconnect"
     assert sensor2.extra_state_attributes["ip_address"] == "192.168.1.101"

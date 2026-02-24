@@ -14,6 +14,9 @@ from .base import MerakiSSIDBaseSensor
 class MerakiSSIDAvailabilitySensor(MerakiSSIDBaseSensor):
     """Representation of a Meraki SSID Availability sensor."""
 
+    _attr_has_entity_name = True
+    _attr_name = None
+
     entity_description = SensorEntityDescription(
         key="availability",
         name="availability",
@@ -37,4 +40,8 @@ class MerakiSSIDAvailabilitySensor(MerakiSSIDBaseSensor):
 
         """
         super().__init__(coordinator, config_entry, ssid_data, "enabled")
+        self._attr_unique_id = (
+            f"{ssid_data['serial']}_MerakiSSIDAvailabilitySensor_"
+            f"{self.entity_description.key}"
+        )
         self._attr_native_value = self._ssid_data_at_init.get("enabled")

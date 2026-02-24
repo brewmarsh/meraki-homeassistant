@@ -1,4 +1,4 @@
-{
+﻿{
   "config": {
     "step": {
       "user": {
@@ -24,6 +24,7 @@
           "enable_vlan_sensors": "Enable VLAN sensors",
           "enable_port_sensors": "Enable port sensors",
           "enable_ssid_sensors": "Enable SSID sensors",
+          "enable_client_status_sensors": "Enable client status sensors",
           "enabled_networks": "Enabled networks",
           "enable_firewall_rules": "Enable firewall rules",
           "enable_traffic_shaping": "Enable traffic shaping controls",
@@ -42,6 +43,7 @@
           "enable_vlan_sensors": "Create sensors for VLAN metrics.",
           "enable_port_sensors": "Create sensors for switch port metrics.",
           "enable_ssid_sensors": "Create sensors for SSID metrics.",
+          "enable_client_status_sensors": "Create sensors for client online/offline status.",
           "enabled_networks": "Select which Meraki networks to include in Home Assistant.",
           "enable_firewall_rules": "Enables management of Layer 3 firewall rules.",
           "enable_traffic_shaping": "Allows you to view and set bandwidth limits per SSID.",
@@ -64,6 +66,7 @@
           "enable_vlan_sensors": "Enable VLAN sensors",
           "enable_port_sensors": "Enable port sensors",
           "enable_ssid_sensors": "Enable SSID sensors",
+          "enable_client_status_sensors": "Enable client status sensors",
           "enabled_networks": "Enabled networks",
           "enable_firewall_rules": "Enable firewall rules",
           "enable_traffic_shaping": "Enable traffic shaping controls",
@@ -82,6 +85,7 @@
           "enable_vlan_sensors": "Create sensors for VLAN metrics.",
           "enable_port_sensors": "Create sensors for switch port metrics.",
           "enable_ssid_sensors": "Create sensors for SSID metrics.",
+          "enable_client_status_sensors": "Create sensors for client online/offline status.",
           "enabled_networks": "Select which Meraki networks to include in Home Assistant.",
           "enable_firewall_rules": "Enables management of Layer 3 firewall rules.",
           "enable_traffic_shaping": "Allows you to view and set bandwidth limits per SSID.",

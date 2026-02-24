@@ -13,10 +13,11 @@ from .base import MerakiSSIDBaseSensor
 class MerakiSSIDSplashPageSensor(MerakiSSIDBaseSensor):
     """Representation of a Meraki SSID Splash Page sensor."""
 
+    _attr_has_entity_name = True
     _attr_entity_category = EntityCategory.DIAGNOSTIC
     entity_description = SensorEntityDescription(
         key="splash_page",
-        name="splash page",
+        name=None,
         icon="mdi:page-next",
     )
 

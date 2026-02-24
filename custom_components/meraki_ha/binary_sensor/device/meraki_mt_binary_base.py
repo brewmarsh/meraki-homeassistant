@@ -36,7 +36,6 @@ class MerakiMtBinarySensor(MerakiBinarySensor):
         if self.entity_description.name is not UNDEFINED:
             self._attr_name = cast(str | None, self.entity_description.name)
 
-
     @property
     def device_info(self) -> DeviceInfo:
         """Return device information."""
@@ -66,7 +65,6 @@ class MerakiMtBinarySensor(MerakiBinarySensor):
                 self._device = device
                 self.async_write_ha_state()
                 return
-
 
     @property
     def is_on(self) -> bool | None:

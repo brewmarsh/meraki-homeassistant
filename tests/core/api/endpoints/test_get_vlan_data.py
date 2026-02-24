@@ -18,10 +18,12 @@ def mock_client():
     client.run_sync = AsyncMock()
     return client
 
+
 @pytest.fixture
 def network_endpoints(mock_client):
     """Fixture for the NetworkEndpoints."""
     return NetworkEndpoints(mock_client)
+
 
 @pytest.mark.asyncio
 async def test_get_vlan_data_supported_appliance(network_endpoints, mock_client):
@@ -37,9 +39,9 @@ async def test_get_vlan_data_supported_appliance(network_endpoints, mock_client)
 
     assert result == mock_vlan_data
     mock_client.run_sync.assert_called_with(
-        mock_client.dashboard.appliance.getNetworkApplianceVlans,
-        networkId=network_id
+        mock_client.dashboard.appliance.getNetworkApplianceVlans, networkId=network_id
     )
+
 
 @pytest.mark.asyncio
 async def test_get_vlan_data_unsupported_network(network_endpoints, mock_client):
@@ -54,6 +56,7 @@ async def test_get_vlan_data_unsupported_network(network_endpoints, mock_client)
     assert result == []
     mock_client.run_sync.assert_not_called()
 
+
 @pytest.mark.asyncio
 async def test_get_vlan_data_no_appliance_attr(network_endpoints, mock_client):
     """Test get_vlan_data when appliance attribute is missing on dashboard."""
@@ -67,6 +70,7 @@ async def test_get_vlan_data_no_appliance_attr(network_endpoints, mock_client):
     result = await network_endpoints.get_vlan_data(network_id)
 
     assert result == []
+
 
 @pytest.mark.asyncio
 async def test_get_vlan_data_vlan_disabled_graceful_fail(
@@ -87,6 +91,5 @@ async def test_get_vlan_data_vlan_disabled_graceful_fail(
     # Verify called once
     assert mock_client.run_sync.call_count == 1
     mock_client.run_sync.assert_called_with(
-        mock_client.dashboard.appliance.getNetworkApplianceVlans,
-        networkId=network_id
+        mock_client.dashboard.appliance.getNetworkApplianceVlans, networkId=network_id
     )
