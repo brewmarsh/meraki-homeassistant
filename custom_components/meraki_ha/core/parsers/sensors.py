@@ -3,11 +3,98 @@
 from __future__ import annotations
 
 import logging
-from typing import Any
+from typing import Any, Callable
 
 from ...core.models.device import MerakiDevice
 
 _LOGGER = logging.getLogger(__name__)
+
+
+def _handle_noise(device: MerakiDevice, reading: dict[str, Any]) -> None:
+    device.ambient_noise = reading.get("noise", {}).get("ambient", {}).get("level")
+
+
+def _handle_pm25(device: MerakiDevice, reading: dict[str, Any]) -> None:
+    device.pm25 = reading.get("pm25", {}).get("concentration")
+
+
+def _handle_power(device: MerakiDevice, reading: dict[str, Any]) -> None:
+    power_data = reading.get("power", {})
+    device.real_power = power_data.get("realPower") or power_data.get("draw")
+
+
+def _handle_power_factor(device: MerakiDevice, reading: dict[str, Any]) -> None:
+    pf_data = reading.get("power_factor") or reading.get("powerFactor")
+    if isinstance(pf_data, dict):
+        device.power_factor = pf_data.get("factor") or pf_data.get("percentage")
+
+
+def _handle_frequency(device: MerakiDevice, reading: dict[str, Any]) -> None:
+    freq_data = reading.get("frequency")
+    if isinstance(freq_data, dict):
+        device.frequency = freq_data.get("level")
+    elif isinstance(freq_data, (int, float)):
+        device.frequency = freq_data
+
+
+def _handle_energy(device: MerakiDevice, reading: dict[str, Any]) -> None:
+    energy_data = reading.get("energy") or reading.get("energyUsage")
+    if isinstance(energy_data, dict):
+        device.energy = (
+            energy_data.get("energyUsage")
+            or energy_data.get("draw")
+            or energy_data.get("apparentPower")
+        )
+    elif isinstance(energy_data, (int, float)):
+        device.energy = energy_data
+
+
+def _handle_current(device: MerakiDevice, reading: dict[str, Any]) -> None:
+    device.current = reading.get("current", {}).get("draw")
+
+
+def _handle_voltage(device: MerakiDevice, reading: dict[str, Any]) -> None:
+    device.voltage = reading.get("voltage", {}).get("level")
+
+
+def _handle_door(device: MerakiDevice, reading: dict[str, Any]) -> None:
+    device.door_open = reading.get("door", {}).get("open")
+
+
+def _handle_water(device: MerakiDevice, reading: dict[str, Any]) -> None:
+    device.water_present = reading.get("water", {}).get("present")
+
+
+def _handle_button(device: MerakiDevice, reading: dict[str, Any]) -> None:
+    device.button_press = reading.get("button")
+
+
+def _handle_downstream_power(device: MerakiDevice, reading: dict[str, Any]) -> None:
+    if "downstreamPower" in reading:
+        data = reading.get("downstreamPower")
+        if isinstance(data, dict):
+            device.outlet_status = data.get("enabled")
+    elif "value" in reading:
+        device.outlet_status = reading.get("value")
+
+
+METRIC_HANDLERS: dict[str, Callable[[MerakiDevice, dict[str, Any]], None]] = {
+    "noise": _handle_noise,
+    "pm25": _handle_pm25,
+    "power": _handle_power,
+    "power_factor": _handle_power_factor,
+    "powerFactor": _handle_power_factor,
+    "frequency": _handle_frequency,
+    "energy": _handle_energy,
+    "energyUsage": _handle_energy,
+    "current": _handle_current,
+    "voltage": _handle_voltage,
+    "door": _handle_door,
+    "water": _handle_water,
+    "button": _handle_button,
+    "downstreamPower": _handle_downstream_power,
+    "downstream_power": _handle_downstream_power,
+}
 
 
 def parse_sensor_data(
@@ -54,56 +141,9 @@ def parse_sensor_data(
             device.readings = device_readings
 
             for reading in device_readings:
-                if reading.get("metric") == "power":
-                    _LOGGER.debug("MT40 Power Reading Payload: %s", reading)
                 metric = reading.get("metric")
-                if metric == "noise":
-                    device.ambient_noise = (
-                        reading.get("noise", {}).get("ambient", {}).get("level")
-                    )
-                elif metric == "pm25":
-                    device.pm25 = reading.get("pm25", {}).get("concentration")
-                elif metric == "power":
-                    power_data = reading.get("power", {})
-                    device.real_power = power_data.get("realPower") or power_data.get(
-                        "draw"
-                    )
-                elif metric in ("power_factor", "powerFactor"):
-                    pf_data = reading.get("power_factor") or reading.get("powerFactor")
-                    if isinstance(pf_data, dict):
-                        device.power_factor = pf_data.get("factor") or pf_data.get(
-                            "percentage"
-                        )
-                elif metric == "frequency":
-                    freq_data = reading.get("frequency")
-                    if isinstance(freq_data, dict):
-                        device.frequency = freq_data.get("level")
-                    elif isinstance(freq_data, (int, float)):
-                        device.frequency = freq_data
-                elif metric in ("energy", "energyUsage"):
-                    energy_data = reading.get("energy") or reading.get("energyUsage")
-                    if isinstance(energy_data, dict):
-                        device.energy = (
-                            energy_data.get("energyUsage")
-                            or energy_data.get("draw")
-                            or energy_data.get("apparentPower")
-                        )
-                    elif isinstance(energy_data, (int, float)):
-                        device.energy = energy_data
-                elif metric == "current":
-                    device.current = reading.get("current", {}).get("draw")
-                elif metric == "voltage":
-                    device.voltage = reading.get("voltage", {}).get("level")
-                elif metric == "door":
-                    device.door_open = reading.get("door", {}).get("open")
-                elif metric == "water":
-                    device.water_present = reading.get("water", {}).get("present")
-                elif metric == "button":
-                    device.button_press = reading.get("button")
-                elif metric in ("downstreamPower", "downstream_power"):
-                    if "downstreamPower" in reading:
-                        data = reading.get("downstreamPower")
-                        if isinstance(data, dict):
-                            device.outlet_status = data.get("enabled")
-                    elif "value" in reading:
-                        device.outlet_status = reading.get("value")
+                if metric == "power":
+                    _LOGGER.debug("MT40 Power Reading Payload: %s", reading)
+
+                if metric and metric in METRIC_HANDLERS:
+                    METRIC_HANDLERS[metric](device, reading)
