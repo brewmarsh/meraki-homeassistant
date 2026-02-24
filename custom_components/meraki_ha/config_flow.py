@@ -5,11 +5,12 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING, Any
 
+import voluptuous as vol
+
+from homeassistant import config_entries
 from homeassistant.config_entries import ConfigFlowResult
 from homeassistant.core import callback
 from homeassistant.data_entry_flow import AbortFlow
-
-from homeassistant import config_entries
 
 try:
     from homeassistant.helpers.service_info.dhcp import DhcpServiceInfo
@@ -27,7 +28,13 @@ from .const_conf import (
 )
 from .core.errors import MerakiAuthenticationError, MerakiConnectionError
 from .helpers.schema import get_filtered_schema, populate_schema_defaults
-from .schemas import CONFIG_SCHEMA, OPTIONS_SCHEMA_GENERAL
+from .schemas import (
+    CONFIG_SCHEMA,
+    OPTIONS_SCHEMA_ADVANCED,
+    OPTIONS_SCHEMA_CAMERAS,
+    OPTIONS_SCHEMA_GENERAL,
+    OPTIONS_SCHEMA_SENSORS,
+)
 
 if TYPE_CHECKING:
     from .coordinator import MerakiDataUpdateCoordinator
@@ -51,17 +58,7 @@ class MerakiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignor
         self,
         discovery_info: DhcpServiceInfo,
     ) -> ConfigFlowResult:
-        """
-        Handle DHCP discovery.
-
-        Args:
-            discovery_info: The discovery info.
-
-        Returns
-        -------
-            The flow result.
-
-        """
+        """Handle DHCP discovery."""
         if self._async_current_entries():
             return self.async_abort(reason="already_configured")
         return await self.async_step_user()
@@ -70,18 +67,7 @@ class MerakiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignor
         self,
         user_input: dict[str, Any] | None = None,
     ) -> ConfigFlowResult:
-        """
-        Handle the initial step.
-
-        Args:
-        ----
-            user_input: The user input.
-
-        Returns
-        -------
-            The flow result.
-
-        """
+        """Handle the initial setup step."""
         errors: dict[str, str] = {}
         if user_input is not None:
             from .authentication import validate_meraki_credentials
@@ -130,18 +116,7 @@ class MerakiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignor
     def async_get_options_flow(
         config_entry: config_entries.ConfigEntry,
     ) -> config_entries.OptionsFlow:
-        """
-        Get the options flow for this handler.
-
-        Args:
-        ----
-            config_entry: The config entry.
-
-        Returns
-        -------
-            The options flow handler.
-
-        """
+        """Get the options flow handler."""
         from .options_flow import MerakiOptionsFlowHandler
 
         return MerakiOptionsFlowHandler(config_entry)
@@ -150,18 +125,7 @@ class MerakiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignor
         self,
         user_input: dict[str, Any] | None = None,
     ) -> ConfigFlowResult:
-        """
-        Handle a reconfiguration flow.
-
-        Args:
-        ----
-            user_input: The user input.
-
-        Returns
-        -------
-            The flow result.
-
-        """
+        """Handle a reconfiguration flow."""
         entry = self.hass.config_entries.async_get_entry(self.context["entry_id"])
         if not entry:
             return self.async_abort(reason="unknown_entry")
@@ -190,7 +154,7 @@ class MerakiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignor
                 if name and net_id:
                     network_options.append({"label": name, "value": net_id})
 
-        # Filter schema based on discovered hardware
+        # Reconfigure uses the GENERAL schema as a baseline
         filtered_schema = get_filtered_schema(
             coordinator.data.get("devices", []),
             OPTIONS_SCHEMA_GENERAL,

@@ -44,8 +44,8 @@ class MerakiSSIDDetailSensor(MerakiEntity, SensorEntity):
             ssid_data=self._ssid_data,
         )
 
-        # Rule 1: Prefer 'has_entity_name = True' and 'name = None'
-        self._attr_name = None
+        # Rule 1: Use explicit naming to include SSID name for unique identification
+        self._attr_name = f"{ssid_data['name']} {self.entity_description.name}"
 
         # Rule 2: Robust unique_id format (serial_classname_key)
         # For SSID-bound entities, we use network_id and ssid_number as the
