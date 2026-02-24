@@ -12,29 +12,13 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
 from .const import DOMAIN
-from .const_conf import (
-    CONF_ENABLE_CAMERA_SENSE,
-    CONF_ENABLE_FIREWALL_RULES,
-    CONF_ENABLE_TRAFFIC_SHAPING,
-    CONF_ENABLE_VPN_MANAGEMENT,
-    CONF_IGNORED_NETWORKS,
-    CONF_MERAKI_API_KEY,
-    CONF_MERAKI_ORG_ID,
-    CONF_SCAN_INTERVAL,
-    DEFAULT_ENABLE_CAMERA_SENSE,
-    DEFAULT_ENABLE_FIREWALL_RULES,
-    DEFAULT_ENABLE_TRAFFIC_SHAPING,
-    DEFAULT_ENABLE_VPN_MANAGEMENT,
-    DEFAULT_IGNORED_NETWORKS,
-    DEFAULT_SCAN_INTERVAL,
-)
 from .core.api.client import MerakiAPIClient as ApiClient
-from .core.coordinator_helpers.data_fetcher import DataFetchManager
-from .core.helpers import filter_ignored_networks, process_coordinator_data
-from .core.helpers.device_registry import (
-    async_ensure_network_devices_exist,
-    async_ensure_ssid_devices_exist,
+from .core.coordinator_helpers.config_helper import (
+    CoordinatorConfig,
+    get_coordinator_config,
 )
+from .core.coordinator_helpers.data_fetcher import DataFetchManager
+from .core.coordinator_helpers.update_processor import UpdateProcessor
 from .core.managers import PendingUpdateManager, PollingManager
 from .core.models.device import MerakiDevice
 from .core.models.network import MerakiNetwork
@@ -56,6 +40,7 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
     config_entry: ConfigEntry
     update_interval: timedelta | None
+    config: CoordinatorConfig
 
     def __init__(
         self,
@@ -71,36 +56,19 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             entry: The config entry.
 
         """
+        self.config = get_coordinator_config(entry)
         self.api = ApiClient(
             hass=hass,
-            api_key=entry.data[CONF_MERAKI_API_KEY],
-            org_id=entry.data[CONF_MERAKI_ORG_ID],
-        )
-        # Feature flags can be in either options (user-controlled)
-        # or data (initial setup)
-        enable_vpn = entry.options.get(
-            CONF_ENABLE_VPN_MANAGEMENT,
-            entry.data.get(CONF_ENABLE_VPN_MANAGEMENT, DEFAULT_ENABLE_VPN_MANAGEMENT),
-        )
-        enable_firewall = entry.options.get(
-            CONF_ENABLE_FIREWALL_RULES,
-            entry.data.get(CONF_ENABLE_FIREWALL_RULES, DEFAULT_ENABLE_FIREWALL_RULES),
-        )
-        enable_traffic = entry.options.get(
-            CONF_ENABLE_TRAFFIC_SHAPING,
-            entry.data.get(CONF_ENABLE_TRAFFIC_SHAPING, DEFAULT_ENABLE_TRAFFIC_SHAPING),
-        )
-        enable_camera_sense = entry.options.get(
-            CONF_ENABLE_CAMERA_SENSE,
-            entry.data.get(CONF_ENABLE_CAMERA_SENSE, DEFAULT_ENABLE_CAMERA_SENSE),
+            api_key=self.config.api_key,
+            org_id=self.config.org_id,
         )
 
         self.data_fetch_manager = DataFetchManager(
             client=self.api,
-            enable_vpn_management=enable_vpn,
-            enable_firewall_rules=enable_firewall,
-            enable_traffic_shaping=enable_traffic,
-            enable_camera_sense=enable_camera_sense,
+            enable_vpn_management=self.config.enable_vpn,
+            enable_firewall_rules=self.config.enable_firewall,
+            enable_traffic_shaping=self.config.enable_traffic,
+            enable_camera_sense=self.config.enable_camera_sense,
         )
         self.devices_by_serial: dict[str, MerakiDevice] = {}
         self.networks_by_id: dict[str, MerakiNetwork] = {}
@@ -109,27 +77,22 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self.last_successful_data: dict[str, Any] = {}
 
         self.pending_update_manager = PendingUpdateManager()
-
-        try:
-            scan_interval = int(
-                entry.options.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL),
-            )
-            if scan_interval <= 0:
-                scan_interval = DEFAULT_SCAN_INTERVAL
-        except (ValueError, TypeError):
-            scan_interval = DEFAULT_SCAN_INTERVAL
-
-        default_interval = timedelta(seconds=scan_interval)
+        self.polling_manager = PollingManager(self.config.update_interval)
 
         super().__init__(
             hass,
             _LOGGER,
             name=DOMAIN,
-            update_interval=default_interval,
+            update_interval=self.config.update_interval,
         )
         self.config_entry = entry
 
-        self.polling_manager = PollingManager(default_interval)
+        self.update_processor = UpdateProcessor(
+            hass=hass,
+            config_entry=entry,
+            polling_manager=self.polling_manager,
+            config=self.config,
+        )
 
     def register_pending_update(
         self,
@@ -210,52 +173,15 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
     def _process_successful_update(self, data: dict[str, Any]) -> None:
         """Process successful data update."""
-        # --- CRITICAL FIX FROM BETA BRANCH ---
-        # Ensure network devices exist in the registry before processing
-        async_ensure_network_devices_exist(
-            self.hass, self.config_entry, data.get("networks", [])
-        )
-
-        # Ensure SSID devices exist
-        if "ssids" in data:
-            async_ensure_ssid_devices_exist(
-                self.hass, self.config_entry, data["ssids"]
-            )
-
-        # --- LOGIC FROM REFACTOR BRANCH ---
-        # Update success history and consecutive successes via PollingManager
-        if self.polling_manager.record_success():
-            # If True, the interval was reset after recovery
-            if self.update_interval != self.polling_manager.update_interval:
-                _LOGGER.info(
-                    "Meraki API recovered. Resetting update interval to %s",
-                    self.polling_manager.update_interval,
-                )
-                self.update_interval = self.polling_manager.update_interval
-
-        # Log success rate for monitoring
-        _LOGGER.debug(
-            "Coordinator update success rate (last 5): %.1f%%",
-            self.polling_manager.get_success_rate(),
-        )
-
-        if self.config_entry:
-            ignored_network_ids = self.config_entry.options.get(
-                CONF_IGNORED_NETWORKS,
-                DEFAULT_IGNORED_NETWORKS,
-            )
-            filter_ignored_networks(data, ignored_network_ids)
-
-        if self.data:
-            for key, value in self.data.items():
-                if isinstance(value, str):
-                    self.data[key] = value.strip()
-
         (
             self.devices_by_serial,
             self.networks_by_id,
             self.ssids_by_network_and_number,
-        ) = process_coordinator_data(self.hass, self.config_entry, data)
+            interval_changed,
+        ) = self.update_processor.process_success(data, self.data)
+
+        if interval_changed:
+            self.update_interval = self.polling_manager.update_interval
 
         self.last_successful_update = datetime.now()
         self.last_successful_data = data
