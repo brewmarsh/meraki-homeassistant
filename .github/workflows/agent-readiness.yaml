@@ -40,7 +40,7 @@ jobs:
           echo "Running agent scorecard against $TARGET_BRANCH..."
           # Create an initial report in case the tool fails
           echo "Agent scorecard run failed or produced no output." > readiness_report.md
-          agent-score score custom_components/meraki_ha --diff $TARGET_BRANCH --report readiness_report.md
+          agent-score score custom_components/meraki_ha --diff --diff-base $TARGET_BRANCH --report readiness_report.md
 
       - name: Upload readiness report
         if: always()
