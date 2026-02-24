@@ -9,6 +9,10 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 
 from ..data_processor import MerakiDataProcessor
+from ..helpers.device_registry import (
+    async_ensure_network_devices_exist,
+    async_ensure_ssid_devices_exist,
+)
 from ..managers import PollingManager
 from .config_helper import CoordinatorConfig
 
@@ -47,6 +51,20 @@ class UpdateProcessor:
         bool,  # interval_changed
     ]:
         """Process successful data update."""
+        # RESOLVED: Local import breaks the circular dependency with core.helpers
+        from ..helpers import filter_ignored_networks
+
+        # Ensure network devices exist in the registry before processing
+        async_ensure_network_devices_exist(
+            self.hass, self.config_entry, data.get("networks", [])
+        )
+
+        # Ensure SSID devices exist
+        if "ssids" in data:
+            async_ensure_ssid_devices_exist(
+                self.hass, self.config_entry, data["ssids"]
+            )
+
         interval_changed = False
         # Update success history and consecutive successes via PollingManager
         if self.polling_manager.record_success():
@@ -63,6 +81,10 @@ class UpdateProcessor:
             self.polling_manager.get_success_rate(),
         )
 
+        # Apply network filters using the config helper
+        filter_ignored_networks(data, self.config.ignored_networks)
+
+        # Delegate heavy transformation logic to the specialized data processor
         processed_result = await self.data_processor.async_process(data, current_data)
 
         return (
