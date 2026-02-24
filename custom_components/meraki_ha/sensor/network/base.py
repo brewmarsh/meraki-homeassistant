@@ -17,6 +17,8 @@ _LOGGER = logging.getLogger(__name__)
 class MerakiSSIDBaseSensor(MerakiEntity, SensorEntity):
     """Base class for Meraki SSID sensors."""
 
+    _attr_name: str | None = None
+
     def __init__(
         self,
         coordinator: MerakiDataUpdateCoordinator,

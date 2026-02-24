@@ -139,3 +139,11 @@ OPTIONS_SCHEMA_ADVANCED = vol.Schema(
         ): selector.BooleanSelector(),
     }
 )
+
+OPTIONS_SCHEMA = OPTIONS_SCHEMA_GENERAL.extend(
+    OPTIONS_SCHEMA_SENSORS.schema
+).extend(
+    OPTIONS_SCHEMA_CAMERAS.schema
+).extend(
+    OPTIONS_SCHEMA_ADVANCED.schema
+)
