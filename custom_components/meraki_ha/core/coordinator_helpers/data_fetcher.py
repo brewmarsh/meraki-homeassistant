@@ -75,6 +75,73 @@ class DataFetchManager:
         )
         self.sensor_strategy = SensorFetchStrategy(client, self._disabled_features)
 
+    async def _execute_batches(self, tasks: dict[str, Any], label: str) -> list[Any]:
+        """Execute tasks in batches with cooldown."""
+        task_items = list(tasks.items())
+        all_results = []
+        for i in range(0, len(task_items), BATCH_SIZE):
+            if i > 0:
+                _LOGGER.debug("Cooling down for 1s between %s batches...", label)
+                await asyncio.sleep(1)
+
+            chunk = dict(task_items[i : i + BATCH_SIZE])
+            _LOGGER.debug(
+                "Executing %s batch: items %d to %d",
+                label,
+                i + 1,
+                min(i + BATCH_SIZE, len(task_items)),
+            )
+            chunk_results = await asyncio.gather(
+                *chunk.values(), return_exceptions=True
+            )
+            all_results.extend(chunk_results)
+        return all_results
+
+    def _process_single_result(self, key: str, result: Any, label: str) -> Any:
+        """Process a single task result with smart error handling."""
+        if isinstance(result, Exception):
+            error_msg = str(result)
+            is_silent = False
+            for silent_msg in SILENT_ERRORS:
+                if silent_msg in error_msg:
+                    _LOGGER.debug(
+                        "Skipping %s: Configuration requirement not met in "
+                        "Meraki Dashboard.",
+                        key,
+                    )
+                    is_silent = True
+                    break
+
+            if is_silent:
+                if "Traffic Analysis" in error_msg:
+                    return MerakiTrafficAnalysisError(error_msg)
+                elif "VLANs" in error_msg:
+                    return MerakiVlansDisabledError(error_msg)
+                else:
+                    return []
+
+            return self._handle_fetch_exception(result, key, label)
+
+        if isinstance(result, (dict, list)) or result is None:
+            return result
+
+        _LOGGER.debug(
+            "Filtering out unexpected type %s for %s during %s",
+            type(result),
+            key,
+            label,
+        )
+        return None
+
+    def _process_batch_results(
+        self, tasks: dict[str, Any], results: list[Any], label: str
+    ) -> dict[str, Any]:
+        """Process raw batch results into sanitized dictionary."""
+        sanitized_results: dict[str, Any] = {}
+        for key, result in zip(tasks.keys(), results, strict=True):
+            sanitized_results[key] = self._process_single_result(key, result, label)
+        return sanitized_results
+
     async def _async_gather_with_timeout(
         self, tasks: dict[str, Any], timeout: int = 25, label: str = "Tasks"
     ) -> dict[str, Any]:
@@ -86,74 +153,11 @@ class DataFetchManager:
             "Starting %s: %s items in batches of %s", label, len(tasks), BATCH_SIZE
         )
 
-        async def _execute_batches() -> list[Any]:
-            """Inner coroutine to handle chunked execution."""
-            task_items = list(tasks.items())
-            all_results = []
-            for i in range(0, len(task_items), BATCH_SIZE):
-                if i > 0:
-                    _LOGGER.debug("Cooling down for 1s between %s batches...", label)
-                    await asyncio.sleep(1)
-
-                chunk = dict(task_items[i : i + BATCH_SIZE])
-                _LOGGER.debug(
-                    "Executing %s batch: items %d to %d",
-                    label,
-                    i + 1,
-                    min(i + BATCH_SIZE, len(task_items)),
-                )
-                chunk_results = await asyncio.gather(
-                    *chunk.values(), return_exceptions=True
-                )
-                all_results.extend(chunk_results)
-            return all_results
-
         try:
-            results = await asyncio.wait_for(_execute_batches(), timeout=timeout)
-
-            sanitized_results: dict[str, Any] = {}
-            for key, result in zip(tasks.keys(), results, strict=True):
-                # --- Smart Error Handling Logic ---
-                # Intercept "Silent Errors" (Feature-Dependent API errors)
-                if isinstance(result, Exception):
-                    error_msg = str(result)
-                    is_silent = False
-                    for silent_msg in SILENT_ERRORS:
-                        if silent_msg in error_msg:
-                            _LOGGER.debug(
-                                "Skipping %s: Configuration requirement not met in "
-                                "Meraki Dashboard.",
-                                key,
-                            )
-                            is_silent = True
-                            break
-
-                    if is_silent:
-                        if "Traffic Analysis" in error_msg:
-                            sanitized_results[key] = MerakiTrafficAnalysisError(
-                                error_msg
-                            )
-                        elif "VLANs" in error_msg:
-                            sanitized_results[key] = MerakiVlansDisabledError(error_msg)
-                        else:
-                            sanitized_results[key] = []
-                        continue
-
-                if isinstance(result, Exception):
-                    sanitized_results[key] = self._handle_fetch_exception(
-                        result, key, label
-                    )
-                elif isinstance(result, (dict, list)) or result is None:
-                    sanitized_results[key] = result
-                else:
-                    _LOGGER.debug(
-                        "Filtering out unexpected type %s for %s during %s",
-                        type(result),
-                        key,
-                        label,
-                    )
-                    sanitized_results[key] = None
-            return sanitized_results
+            results = await asyncio.wait_for(
+                self._execute_batches(tasks, label), timeout=timeout
+            )
+            return self._process_batch_results(tasks, results, label)
 
         except asyncio.TimeoutError:
             _LOGGER.error("Timeout during %s. Potential semaphore deadlock.", label)

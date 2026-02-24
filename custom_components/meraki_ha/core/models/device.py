@@ -52,7 +52,7 @@ class MerakiDevice(
     def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary."""
         # Base fields
-        data = {
+        data: dict[str, Any] = {
             "serial": self.serial,
             "name": self.name,
             "model": self.model,
