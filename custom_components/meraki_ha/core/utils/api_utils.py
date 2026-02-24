@@ -211,4 +211,43 @@ def handle_meraki_errors(
 
     return cast(Callable[..., Coroutine[Any, Any, T]], wrapper)
 
-# ... Remaining helper functions (_is_rate_limit_error, etc.) stay the same ...
+
+def validate_response(response: Any) -> Any:
+    """Validate API response."""
+    if response is None:
+        raise MerakiConnectionError("API returned None")
+
+    if isinstance(response, (dict, list)):
+        return response
+
+    # Wrap primitive types in a dict
+    return {"value": response}
+
+
+def _is_rate_limit_error(err: APIError) -> bool:
+    """Check if the error is a rate limit error."""
+    return getattr(err, "status", 0) == 429
+
+
+def _is_auth_error(err: APIError) -> bool:
+    """Check if the error is an authentication error."""
+    return getattr(err, "status", 0) in (401, 403)
+
+
+def _is_device_error(err: APIError) -> bool:
+    """Check if the error is a device error."""
+    if getattr(err, "status", 0) == 404:
+        return True
+    return "device not found" in str(err).lower()
+
+
+def _is_network_error(err: APIError) -> bool:
+    """Check if the error is a network error."""
+    if getattr(err, "status", 0) == 404:
+        return True
+    return "network not found" in str(err).lower()
+
+
+def _is_informational_error(err: APIError) -> bool:
+    """Check if the error is informational."""
+    return False
