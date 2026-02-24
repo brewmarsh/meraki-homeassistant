@@ -4,7 +4,7 @@ from unittest.mock import MagicMock, patch
 
 from homeassistant.helpers import entity_registry as er
 
-from custom_components.meraki_ha.core.helpers import update_device_registry_info
+from custom_components.meraki_ha.core.data_processor import update_device_registry_info
 
 
 async def test_update_device_registry_info_picks_camera(hass):
@@ -57,24 +57,16 @@ async def test_update_device_registry_info_picks_camera(hass):
 
     with (
         patch(
-            "custom_components.meraki_ha.core.helpers.dr.async_get",
+            "custom_components.meraki_ha.core.data_processor.dr.async_get",
             return_value=mock_dr,
         ),
         patch(
-            "custom_components.meraki_ha.core.helpers.er.async_get",
+            "custom_components.meraki_ha.core.data_processor.er.async_get",
             return_value=mock_er,
         ),
         patch(
-            "custom_components.meraki_ha.core.helpers.dr.async_get",
-            return_value=mock_dr,
-        ),
-        patch(
-            "custom_components.meraki_ha.core.helpers.er.async_entries_for_device",
+            "custom_components.meraki_ha.core.data_processor.er.async_entries_for_device",
             return_value=mock_entries,
-        ),
-        patch(
-            "custom_components.meraki_ha.core.helpers.dr.async_get",
-            return_value=mock_dr,
         ),
     ):
         update_device_registry_info(hass, devices)
