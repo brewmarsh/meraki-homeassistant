@@ -237,3 +237,54 @@ Please describe the tests that you ran to verify your changes. Provide instructi
 - [ ] I have added tests that prove my fix is effective or that my feature works
 - [ ] New and existing unit tests pass locally with my changes
 - [ ] Any dependent changes have been merged and published in downstream modules
+
+## Code Quality & Agent Readiness
+
+To ensure the Meraki Home Assistant integration remains maintainable by both humans and AI agents, we enforce strict "Agent Readiness" standards. These standards optimize for Agent Cognitive Load (ACL), type safety, and modularity.
+
+### Core standards
+
+- **Agent Cognitive Load (ACL):** Complex code confuses AI agents and humans alike. All functions MUST maintain an ACL score of **<= 10**.
+- **Function Constraints:**
+  - **Length:** No single function should exceed **50 lines of code**.
+  - **Nesting:** Nesting depth must not exceed **2 levels** (e.g., one `if` inside a `for` loop is fine; an `if` inside an `if` inside a `for` is too complex).
+  - **Modularization:** Complex logic must be extracted into private helper methods or specialized service classes.
+- **File Bloat:** Files should be kept under **300 lines** where possible. Group logic by domain and utilize `utils.py` or separate service files for heavy processing.
+- **Type Safety:** We require a strict **>90%** type safety index across the repository. All new functions and methods must have explicit Python type hints for all arguments and return values.
+- **CI/CD Enforcement:** Every Pull Request is automatically scanned by the **Agent Readiness Scorecard** workflow. PRs will fail if ACL exceeds thresholds or type safety drops.
+
+### Good vs. bad code examples
+
+#### ❌ Bad: Bloated, untyped, and high nesting
+```python
+def process_data(data):
+    result = []
+    for item in data:
+        if item.get("enabled"):
+            if "metrics" in item:
+                for metric in item["metrics"]:
+                    if metric["value"] > 10:
+                        # ... complex logic ...
+                        # ... many lines of code ...
+                        result.append(metric)
+    return result
+```
+
+#### ✅ Good: Small, typed, and shallow nesting
+```python
+def process_metrics(metrics: list[dict]) -> list[dict]:
+    """Extract metrics that exceed the threshold."""
+    return [m for m in metrics if m.get("value", 0) > 10]
+
+def process_data(data: list[dict]) -> list[dict]:
+    """Process enabled items and their metrics."""
+    result = []
+    for item in data:
+        if not item.get("enabled") or "metrics" not in item:
+            continue
+
+        valid_metrics = process_metrics(item["metrics"])
+        result.extend(valid_metrics)
+
+    return result
+```

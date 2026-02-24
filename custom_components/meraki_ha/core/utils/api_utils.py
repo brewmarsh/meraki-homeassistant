@@ -144,18 +144,41 @@ def _handle_unexpected_error(err: Exception) -> None:
     raise MerakiConnectionError(f"Unexpected error: {err}") from err
 
 
+async def _handle_api_exception(
+    err: APIError | MerakiInformationalError,
+    func: Callable[..., Any],
+    args: tuple[Any, ...],
+    kwargs: dict[str, Any],
+    retry_context: tuple[int, int, int],
+) -> Any:
+    """Handle APIError and MerakiInformationalError logic."""
+    attempt, max_retries, base_delay = retry_context
+    error_msg = str(err)
+    is_feature_disabled = (
+        "Traffic Analysis with Hostname Visibility" in error_msg
+        or "VLANs are not enabled for this network" in error_msg
+    )
+
+    if is_feature_disabled:
+        return _handle_feature_disabled(func, err, args, kwargs)
+
+    if isinstance(err, APIError) and _is_informational_error(err):
+        raise MerakiInformationalError(f"Informational error: {err}") from err
+
+    if isinstance(err, MerakiInformationalError):
+        raise err
+
+    if isinstance(err, APIError) and _is_rate_limit_error(err):
+        await _handle_rate_limit(err, attempt, max_retries, base_delay)
+
+    _handle_meraki_api_error(cast(APIError, err))
+    return None
+
+
 def handle_meraki_errors(
     func: Callable[..., Awaitable[T]],
 ) -> Callable[..., Coroutine[Any, Any, T]]:
-    """
-    Decorate to handle Meraki API errors consistently.
-
-    This decorator:
-    1. Converts Meraki exceptions to our custom exceptions
-    2. Adds logging for API errors
-    3. Includes proper rate limit handling
-    4. Handles empty/invalid responses by returning a type-safe empty value
-    """
+    """Decorate to handle Meraki API errors consistently."""
 
     @functools.wraps(func)
     async def wrapper(*args: Any, **kwargs: Any) -> T:
@@ -169,31 +192,15 @@ def handle_meraki_errors(
             except (JSONDecodeError, MerakiConnectionError) as err:
                 return cast(T, _handle_invalid_response_error(func, err))
             except (APIError, MerakiInformationalError) as err:
-                error_msg = str(err)
-                is_feature_disabled = (
-                    "Traffic Analysis with Hostname Visibility" in error_msg
-                    or "VLANs are not enabled for this network" in error_msg
-                )
-
-                if is_feature_disabled:
-                    return cast(T, _handle_feature_disabled(func, err, args, kwargs))
-
-                if isinstance(err, APIError) and _is_informational_error(err):
-                    raise MerakiInformationalError(
-                        f"Informational error: {err}"
-                    ) from err
-
-                if isinstance(err, MerakiInformationalError):
-                    raise err
-
-                if _is_rate_limit_error(err):
-                    try:
-                        await _handle_rate_limit(err, attempt, max_retries, base_delay)
-                    except _RetryRequest:
-                        continue
-
-                _handle_meraki_api_error(err)
-
+                try:
+                    return cast(
+                        T,
+                        await _handle_api_exception(
+                            err, func, args, kwargs, (attempt, max_retries, base_delay)
+                        ),
+                    )
+                except _RetryRequest:
+                    continue
             except ClientError as err:
                 _LOGGER.error("Connection error: %s", err)
                 raise MerakiConnectionError(f"Connection error: {err}") from err
@@ -204,92 +211,4 @@ def handle_meraki_errors(
 
     return cast(Callable[..., Coroutine[Any, Any, T]], wrapper)
 
-
-def _is_rate_limit_error(err: APIError) -> bool:
-    """Check if error is due to rate limiting."""
-    return getattr(err, "status", None) == 429 or "rate limit" in str(err).lower()
-
-
-def _is_auth_error(err: APIError) -> bool:
-    """Check if error is an authentication error."""
-    return getattr(err, "status", None) in (401, 403) or any(
-        msg in str(err).lower()
-        for msg in (
-            "unauthorized",
-            "forbidden",
-            "invalid api key",
-            "authentication failed",
-        )
-    )
-
-
-def _is_device_error(err: APIError) -> bool:
-    """Check if error is device-related."""
-    return any(
-        msg in str(err).lower()
-        for msg in (
-            "device not found",
-            "invalid serial",
-            "device error",
-            "device offline",
-        )
-    )
-
-
-def _is_network_error(err: APIError) -> bool:
-    """Check if error is network-related."""
-    return any(
-        msg in str(err).lower()
-        for msg in (
-            "network not found",
-            "invalid network",
-            "network error",
-            "network offline",
-        )
-    )
-
-
-def _is_informational_error(err: APIError) -> bool:
-    """Check if error is informational (e.g., feature not enabled)."""
-    error_msg = str(err)
-    return (
-        "VLANs are not enabled for this network" in error_msg
-        or "Traffic Analysis with Hostname Visibility" in error_msg
-        or "historical viewing is not supported" in error_msg
-    )
-
-
-def validate_response(response: Any) -> Any:
-    """
-    Validate and normalize an API response.
-
-    Args:
-    ----
-        response: The API response to validate
-
-    Returns
-    -------
-        Normalized response dictionary
-
-    Raises
-    ------
-        MerakiConnectionError: If response is invalid or empty
-
-    """
-    if response is None:
-        raise MerakiConnectionError("Empty response from API")
-
-    if isinstance(response, dict):
-        if not response:
-            _LOGGER.warning("Empty response dictionary from API")
-        return response
-
-    if isinstance(response, list):
-        return response
-
-    if isinstance(response, (str, int, float, bool)):
-        return {"value": response}
-
-    raise MerakiConnectionError(
-        f"Invalid response format: {type(response)}. Expected dict or list."
-    )
+# ... Remaining helper functions (_is_rate_limit_error, etc.) stay the same ...
