@@ -9,10 +9,6 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 
 from ..data_processor import MerakiDataProcessor
-from ..helpers.device_registry import (
-    async_ensure_network_devices_exist,
-    async_ensure_ssid_devices_exist,
-)
 from ..managers import PollingManager
 from .config_helper import CoordinatorConfig
 
@@ -51,22 +47,9 @@ class UpdateProcessor:
         bool,  # interval_changed
     ]:
         """Process successful data update."""
-        # RESOLVED: Local import breaks the circular dependency with core.helpers
-        from ..helpers import filter_ignored_networks
-
-        # Ensure network devices exist in the registry before processing
-        async_ensure_network_devices_exist(
-            self.hass, self.config_entry, data.get("networks", [])
-        )
-
-        # Ensure SSID devices exist
-        if "ssids" in data:
-            async_ensure_ssid_devices_exist(
-                self.hass, self.config_entry, data["ssids"]
-            )
-
         interval_changed = False
-        # Update success history and consecutive successes via PollingManager
+        
+        # 1. Update success history and check for recovery via PollingManager
         if self.polling_manager.record_success():
             # If True, the interval was reset after recovery
             interval_changed = True
@@ -75,18 +58,17 @@ class UpdateProcessor:
                 self.polling_manager.update_interval,
             )
 
-        # Log success rate for monitoring
+        # 2. Log success rate for monitoring
         _LOGGER.debug(
             "Coordinator update success rate (last 5): %.1f%%",
             self.polling_manager.get_success_rate(),
         )
 
-        # Apply network filters using the config helper
-        filter_ignored_networks(data, self.config.ignored_networks)
-
-        # Delegate heavy transformation logic to the specialized data processor
+        # 3. Delegate processing to MerakiDataProcessor 
+        # (This now handles device_registry checks and network filtering internally)
         processed_result = await self.data_processor.async_process(data, current_data)
 
+        # 4. Unpack result dict to the tuple format expected by the Coordinator
         return (
             processed_result["devices_by_serial"],
             processed_result["networks_by_id"],
