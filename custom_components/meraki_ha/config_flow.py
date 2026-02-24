@@ -27,7 +27,7 @@ from .const_conf import (
 )
 from .core.errors import MerakiAuthenticationError, MerakiConnectionError
 from .helpers.schema import get_filtered_schema, populate_schema_defaults
-from .schemas import CONFIG_SCHEMA, OPTIONS_SCHEMA
+from .schemas import CONFIG_SCHEMA, OPTIONS_SCHEMA_GENERAL
 
 if TYPE_CHECKING:
     from .coordinator import MerakiDataUpdateCoordinator
@@ -193,7 +193,7 @@ class MerakiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignor
         # Filter schema based on discovered hardware
         filtered_schema = get_filtered_schema(
             coordinator.data.get("devices", []),
-            OPTIONS_SCHEMA,
+            OPTIONS_SCHEMA_GENERAL,
         )
 
         schema_with_defaults = populate_schema_defaults(
