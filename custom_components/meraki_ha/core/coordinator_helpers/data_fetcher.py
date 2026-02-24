@@ -215,4 +215,82 @@ class DataFetchManager:
         }
         return await self._async_gather_with_timeout(tasks, label="Initial batch")
 
-    # ... remaining methods distribute_batch_data, build_detail_tasks, get_all_data ...
+
+    def distribute_batch_data(self, data: dict[str, Any]) -> None:
+        """Organize initial data for efficient access."""
+        self._networks_by_id = {}
+        if networks := data.get("networks"):
+            for n in networks:
+                if isinstance(n, dict):
+                    self._networks_by_id[n["id"]] = n
+
+        self._devices_by_network: dict[str, list[dict[str, Any]]] = {}
+        if devices := data.get("devices"):
+            for d in devices:
+                if isinstance(d, dict):
+                    net_id = d.get("networkId")
+                    if net_id:
+                        if net_id not in self._devices_by_network:
+                            self._devices_by_network[net_id] = []
+                        self._devices_by_network[net_id].append(d)
+
+    def build_detail_tasks(self, data: dict[str, Any], tasks: dict[str, Any]) -> None:
+        """Build detailed tasks for networks and devices."""
+        # Networks
+        for network_id, network in getattr(self, "_networks_by_id", {}).items():
+            product_types = network.get("productTypes", [])
+
+            # Appliance
+            if "appliance" in product_types:
+                self.appliance_strategy.build_network_tasks(network_id, tasks)
+
+            # Wireless
+            if "wireless" in product_types:
+                self.wireless_strategy.build_network_tasks(network_id, product_types, tasks)
+
+        # Devices
+        if devices := data.get("devices"):
+             for d in devices:
+                if not isinstance(d, dict):
+                    continue
+
+                # Basic device object for strategy use
+                device = MerakiDevice.from_dict(d)
+
+                # Determine capabilities
+                model = device.model or ""
+                capabilities = []
+                for cap, prefixes in DEVICE_CAPABILITIES.items():
+                     if any(model.startswith(prefix) for prefix in prefixes):
+                         capabilities.append(cap)
+                # Add default caps
+                capabilities.extend(DEFAULT_CAPS)
+
+                # Call strategies
+                self.switch_strategy.build_device_tasks(device, tasks, capabilities)
+                self.wireless_strategy.build_device_tasks(device, tasks, capabilities)
+                self.appliance_strategy.build_device_tasks(device, tasks, capabilities)
+                self.camera_strategy.build_device_tasks(device, tasks, capabilities)
+                self.sensor_strategy.build_device_tasks(device, tasks, capabilities)
+
+    async def get_all_data(
+        self, current_data: dict[str, Any] | None, timespan: int = 300
+    ) -> dict[str, Any]:
+        """Fetch all data from the API."""
+        # 1. Fetch initial batch
+        data = await self._async_fetch_initial_data()
+
+        # 2. Organize data
+        self.distribute_batch_data(data)
+
+        # 3. Build detail tasks
+        tasks: dict[str, Any] = {}
+        self.build_detail_tasks(data, tasks)
+
+        # 4. Fetch details
+        details = await self._async_gather_with_timeout(tasks, label="Detail batch")
+
+        # 5. Merge details into data
+        data.update(details)
+
+        return data

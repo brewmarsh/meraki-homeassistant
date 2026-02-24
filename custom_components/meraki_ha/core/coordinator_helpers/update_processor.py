@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import logging
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, cast
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
@@ -15,7 +15,6 @@ from ..helpers.device_registry import (
     async_ensure_network_devices_exist,
     async_ensure_ssid_devices_exist,
 )
-from ..helpers import filter_ignored_networks, process_coordinator_data
 
 if TYPE_CHECKING:
     from ..models.device import MerakiDevice
@@ -71,7 +70,7 @@ class UpdateProcessor:
             devices_by_serial,
             networks_by_id,
             ssids_by_network_and_number,
-        ) = self._process_data_result(data)
+        ) = await self._process_data_result(data)
 
         return (
             devices_by_serial,
@@ -113,7 +112,7 @@ class UpdateProcessor:
                 if isinstance(value, str):
                     current_data[key] = value.strip()
 
-    def _process_data_result(
+    async def _process_data_result(
         self, data: dict[str, Any]
     ) -> tuple[
         dict[str, MerakiDevice],
@@ -121,5 +120,10 @@ class UpdateProcessor:
         dict[tuple[str, int], dict[str, Any]],
     ]:
         """Filter ignored networks and process data into models."""
-        filter_ignored_networks(data, self.config.ignored_networks)
-        return process_coordinator_data(self.hass, self.config_entry, data)
+        processed_data = await self.data_processor.async_process(data)
+
+        return (
+            cast(dict[str, "MerakiDevice"], processed_data["devices_by_serial"]),
+            cast(dict[str, "MerakiNetwork"], processed_data["networks_by_id"]),
+            cast(dict[tuple[str, int], dict[str, Any]], processed_data["ssids_by_network_and_number"]),
+        )
