@@ -13,14 +13,17 @@ from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, Upda
 
 from .const import DOMAIN
 from .core.api.client import MerakiAPIClient as ApiClient
-from .core.coordinator_helpers.config_helper import get_coordinator_config
+from .core.coordinator_helpers.config_helper import (
+    CoordinatorConfig,
+    get_coordinator_config,
+)
 from .core.coordinator_helpers.data_fetcher import DataFetchManager
 from .core.coordinator_helpers.update_processor import UpdateProcessor
 from .core.managers import PendingUpdateManager, PollingManager
-from .core.models.device import MerakiDevice
-from .core.models.network import MerakiNetwork
 
 if TYPE_CHECKING:
+    from .core.models.device import MerakiDevice
+    from .core.models.network import MerakiNetwork
     from custom_components.meraki_ha.services.camera_service import CameraService
     from custom_components.meraki_ha.services.device_control_service import (
         DeviceControlService,
@@ -37,6 +40,7 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
     config_entry: ConfigEntry
     update_interval: timedelta | None
+    config: CoordinatorConfig
 
     def __init__(
         self,
@@ -52,21 +56,23 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             entry: The config entry.
 
         """
-        config = get_coordinator_config(entry)
-
+        # Accept Beta/Refactor: Standardized Encapsulated config logic
+        self.config = get_coordinator_config(entry)
+        
         self.api = ApiClient(
             hass=hass,
-            api_key=config.api_key,
-            org_id=config.org_id,
+            api_key=self.config.api_key,
+            org_id=self.config.org_id,
         )
 
         self.data_fetch_manager = DataFetchManager(
             client=self.api,
-            enable_vpn_management=config.enable_vpn,
-            enable_firewall_rules=config.enable_firewall,
-            enable_traffic_shaping=config.enable_traffic,
-            enable_camera_sense=config.enable_camera_sense,
+            enable_vpn_management=self.config.enable_vpn,
+            enable_firewall_rules=self.config.enable_firewall,
+            enable_traffic_shaping=self.config.enable_traffic,
+            enable_camera_sense=self.config.enable_camera_sense,
         )
+        
         self.devices_by_serial: dict[str, MerakiDevice] = {}
         self.networks_by_id: dict[str, MerakiNetwork] = {}
         self.ssids_by_network_and_number: dict[tuple[str, int], dict[str, Any]] = {}
@@ -74,63 +80,38 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self.last_successful_data: dict[str, Any] = {}
 
         self.pending_update_manager = PendingUpdateManager()
-
-        default_interval = timedelta(seconds=config.scan_interval)
+        self.polling_manager = PollingManager(self.config.update_interval)
 
         super().__init__(
             hass,
             _LOGGER,
             name=DOMAIN,
-            update_interval=default_interval,
+            update_interval=self.config.update_interval,
         )
         self.config_entry = entry
 
-        self.polling_manager = PollingManager(default_interval)
-        self.update_processor = UpdateProcessor(hass, entry, self.polling_manager)
+        # Accept Beta/Refactor: UpdateProcessor replaces MerakiDataProcessor
+        self.update_processor = UpdateProcessor(
+            hass=hass,
+            config_entry=entry,
+            polling_manager=self.polling_manager,
+            config=self.config,
+        )
 
     def register_pending_update(
         self,
         unique_id: str | None,
         expiry_seconds: int = 150,
     ) -> None:
-        """
-        Register a pending update to ignore coordinator data.
-
-        This prevents overwriting an optimistic state with stale data from the
-        Meraki API, which can have a significant provisioning delay.
-
-        Args:
-        ----
-            unique_id: The unique ID of the entity.
-            expiry_seconds: The duration of the cooldown period.
-
-        """
+        """Register a pending update to ignore coordinator data."""
         self.pending_update_manager.register(unique_id, expiry_seconds)
 
     def is_pending(self, unique_id: str | None) -> bool:
-        """
-        Check if an entity is in a pending (cooldown) state.
-
-        Args:
-        ----
-            unique_id: The unique ID of the entity.
-
-        Returns
-        -------
-            True if the entity is in a pending state, False otherwise.
-
-        """
+        """Check if an entity is in a pending (cooldown) state."""
         return self.pending_update_manager.is_pending(unique_id)
 
     def cancel_pending_update(self, unique_id: str | None) -> None:
-        """
-        Cancel a pending update for a device.
-
-        Args:
-        ----
-            unique_id: The unique ID of the entity.
-
-        """
+        """Cancel a pending update for a device."""
         self.pending_update_manager.cancel(unique_id)
 
     async def _async_update_data(self) -> dict[str, Any]:
@@ -148,7 +129,7 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 _LOGGER.warning("API call to get_all_data returned no data.")
                 return self.last_successful_data
 
-            self._process_successful_update(data)
+            await self._process_successful_update(data)
             return data
 
         except Exception as err:
@@ -165,23 +146,25 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             _LOGGER.error("Meraki API took too long; check for semaphore deadlock")
             raise UpdateFailed("API Timeout") from None
 
-    def _process_successful_update(self, data: dict[str, Any]) -> None:
-        """Process successful data update."""
+    async def _process_successful_update(self, data: dict[str, Any]) -> None:
+        """Process successful data update via the specialized UpdateProcessor."""
+        # Accept Beta/Refactor: Delegated async logic reduces coordinator complexity
         (
             self.devices_by_serial,
             self.networks_by_id,
             self.ssids_by_network_and_number,
-            self.update_interval,
-        ) = self.update_processor.process_data(data, self.data, self.update_interval)
+            interval_changed,
+        ) = await self.update_processor.process_success(data, self.data)
+
+        if interval_changed:
+            self.update_interval = self.polling_manager.update_interval
 
         self.last_successful_update = datetime.now()
         self.last_successful_data = data
 
     def _handle_update_failure(self, err: Exception) -> dict[str, Any]:
-        """Handle update failure."""
-        # Update success history and reset consecutive successes
+        """Handle update failure via PollingManager."""
         if self.polling_manager.record_failure(err):
-            # If True, the interval was increased
             if self.update_interval != self.polling_manager.update_interval:
                 _LOGGER.warning(
                     "Increasing poll interval to %s due to failures.",
@@ -189,7 +172,6 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 )
                 self.update_interval = self.polling_manager.update_interval
 
-        # Log success rate for monitoring
         _LOGGER.debug(
             "Coordinator update success rate (last 5): %.1f%%",
             self.polling_manager.get_success_rate(),
@@ -199,95 +181,37 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             "Failed to fetch new data, using stale data. Error: %s",
             err,
         )
-        # Return the last successful data to maintain entity state
+        
         if self.last_successful_data:
             return self.last_successful_data
 
-        # If there's no last successful data, re-raise the exception
-        _LOGGER.error(
-            "Unexpected error fetching Meraki data for the first time: %s",
-            err,
-            exc_info=True,
-        )
         raise UpdateFailed(f"Error communicating with API: {err}") from err
 
     def get_device(self, serial: str | None) -> MerakiDevice | None:
-        """
-        Get device data by serial number.
-
-        Args:
-        ----
-            serial: The serial number of the device.
-
-        Returns
-        -------
-            The device data or None if not found.
-
-        """
+        """Get device data by serial number."""
         if not serial:
             return None
         return self.devices_by_serial.get(serial)
 
     def get_network(self, network_id: str) -> MerakiNetwork | None:
-        """
-        Get network data by ID.
-
-        Args:
-        ----
-            network_id: The ID of the network.
-
-        Returns
-        -------
-            The network data or None if not found.
-
-        """
+        """Get network data by ID."""
         return self.networks_by_id.get(network_id)
 
     def get_ssid(self, network_id: str, ssid_number: int) -> dict[str, Any] | None:
-        """
-        Get SSID data by network ID and SSID number.
-
-        Args:
-        ----
-            network_id: The ID of the network.
-            ssid_number: The number of the SSID.
-
-        Returns
-        -------
-            The SSID data or None if not found.
-
-        """
+        """Get SSID data by network ID and SSID number."""
         return self.ssids_by_network_and_number.get((network_id, ssid_number))
 
     def add_status_message(self, serial: str, message: str) -> None:
-        """
-        Add a status message for a device.
-
-        Args:
-        ----
-            serial: The serial number of the device.
-            message: The message to add.
-
-        """
+        """Add a status message for a device."""
         device = self.get_device(serial)
         if device:
-            # Avoid duplicate messages
             if message not in device.status_messages:
                 device.status_messages.append(message)
 
     def add_network_status_message(self, network_id: str, message: str) -> None:
-        """
-        Add a status message for a network.
-
-        Args:
-        ----
-            network_id: The ID of the network.
-            message: The message to add.
-
-        """
+        """Add a status message for a network."""
         network = self.get_network(network_id)
         if network:
-            # Avoid duplicate messages
             if message not in network.status_messages:
                 network.status_messages.append(message)
 
@@ -297,16 +221,7 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         switch_port_service: SwitchPortService,
         camera_service: CameraService,
     ) -> None:
-        """
-        Set up the services for the Meraki integration.
-
-        Args:
-        ----
-            device_control_service: The device control service.
-            switch_port_service: The switch port service.
-            camera_service: The camera service.
-
-        """
+        """Set up the services for the Meraki integration."""
         from .core.coordinator_helpers.service_setup import async_setup_services
 
         await async_setup_services(

@@ -70,16 +70,12 @@ class MerakiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignor
         """Handle the initial setup step."""
         errors: dict[str, str] = {}
         if user_input is not None:
-            from .authentication import validate_meraki_credentials
+            from .helpers.flow_utils import validate_credentials
 
-            try:
-                api_key = user_input[CONF_MERAKI_API_KEY]
+            errors, validation_result = await validate_credentials(self.hass, user_input)
+
+            if not errors and validation_result:
                 org_id = user_input[CONF_MERAKI_ORG_ID]
-                validation_result = await validate_meraki_credentials(
-                    self.hass,
-                    api_key,
-                    org_id,
-                )
                 org_name = validation_result.get("org_name", org_id)
 
                 await self.async_set_unique_id(org_id)
@@ -88,22 +84,12 @@ class MerakiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignor
                 return self.async_create_entry(
                     title=org_name,
                     data={
-                        CONF_MERAKI_API_KEY: api_key,
+                        CONF_MERAKI_API_KEY: user_input[CONF_MERAKI_API_KEY],
                         CONF_MERAKI_ORG_ID: org_id,
                         CONF_ENABLE_VPN_MANAGEMENT: False,
                         CONF_ENABLE_FIREWALL_RULES: False,
                     },
                 )
-
-            except MerakiAuthenticationError:
-                errors["base"] = "invalid_auth"
-            except MerakiConnectionError:
-                errors["base"] = "cannot_connect"
-            except AbortFlow as e:
-                raise e
-            except Exception:
-                _LOGGER.exception("Unexpected exception")
-                errors["base"] = "unknown"
 
         return self.async_show_form(
             step_id="user",
@@ -140,19 +126,9 @@ class MerakiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignor
             entry.entry_id
         ]["coordinator"]
 
-        network_options = []
-        if coordinator.data and coordinator.data.get("networks"):
-            for network in coordinator.data["networks"]:
-                name = getattr(network, "name", None)
-                if name is None and isinstance(network, dict):
-                    name = network.get("name")
+        from .helpers.flow_utils import get_network_options
 
-                net_id = getattr(network, "id", None)
-                if net_id is None and isinstance(network, dict):
-                    net_id = network.get("id")
-
-                if name and net_id:
-                    network_options.append({"label": name, "value": net_id})
+        network_options = get_network_options(coordinator.data)
 
         # Reconfigure uses the GENERAL schema as a baseline
         filtered_schema = get_filtered_schema(
