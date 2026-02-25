@@ -40,56 +40,18 @@ def parse_network_data(
     for network in networks:
         if not network.id:
             continue
-        network_id = str(network.id)
 
-        _parse_traffic(
-            network_id,
+        _process_single_network(
+            str(network.id),
             detail_data,
             previous_data,
             disabled_features,
             appliance_traffic,
-        )
-
-        _parse_vlans(
-            network_id,
-            detail_data,
-            previous_data,
-            disabled_features,
             vlan_by_network,
-        )
-
-        _parse_firewall_rules(
-            network_id,
-            detail_data,
-            previous_data,
             l3_firewall_rules_by_network,
-        )
-
-        _parse_traffic_shaping(
-            network_id,
-            detail_data,
-            previous_data,
             traffic_shaping_by_network,
-        )
-
-        _parse_vpn_status(
-            network_id,
-            detail_data,
-            previous_data,
             vpn_status_by_network,
-        )
-
-        _parse_rf_profiles(
-            network_id,
-            detail_data,
-            previous_data,
             rf_profiles_by_network,
-        )
-
-        _parse_content_filtering(
-            network_id,
-            detail_data,
-            previous_data,
             content_filtering_by_network,
         )
 
@@ -102,6 +64,72 @@ def parse_network_data(
         "rf_profiles": rf_profiles_by_network,
         "content_filtering": content_filtering_by_network,
     }
+
+
+def _process_single_network(
+    network_id: str,
+    detail_data: dict[str, Any],
+    previous_data: dict[str, Any],
+    disabled_features: set[str],
+    appliance_traffic: dict[str, Any],
+    vlan_by_network: dict[str, list[MerakiVlan]],
+    l3_firewall_rules_by_network: dict[str, list[MerakiFirewallRule]],
+    traffic_shaping_by_network: dict[str, MerakiTrafficShaping],
+    vpn_status_by_network: dict[str, MerakiVpn],
+    rf_profiles_by_network: dict[str, Any],
+    content_filtering_by_network: dict[str, Any],
+) -> None:
+    """Process a single network's data."""
+    _parse_traffic(
+        network_id,
+        detail_data,
+        previous_data,
+        disabled_features,
+        appliance_traffic,
+    )
+
+    _parse_vlans(
+        network_id,
+        detail_data,
+        previous_data,
+        disabled_features,
+        vlan_by_network,
+    )
+
+    _parse_firewall_rules(
+        network_id,
+        detail_data,
+        previous_data,
+        l3_firewall_rules_by_network,
+    )
+
+    _parse_traffic_shaping(
+        network_id,
+        detail_data,
+        previous_data,
+        traffic_shaping_by_network,
+    )
+
+    _parse_vpn_status(
+        network_id,
+        detail_data,
+        previous_data,
+        vpn_status_by_network,
+    )
+
+    _parse_rf_profiles(
+        network_id,
+        detail_data,
+        previous_data,
+        rf_profiles_by_network,
+    )
+
+    _parse_content_filtering(
+        network_id,
+        detail_data,
+        previous_data,
+        content_filtering_by_network,
+    )
 
 
 def _parse_traffic(
