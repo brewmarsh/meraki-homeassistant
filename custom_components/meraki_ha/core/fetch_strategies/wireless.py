@@ -2,13 +2,13 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, cast
+from typing import TYPE_CHECKING, Any
 
 from ...core.models.network import MerakiNetwork
 
 if TYPE_CHECKING:
     from ...core.models.device import MerakiDevice
-from ..parsers.wireless import parse_wireless_data
+from ..parsers.wireless import parse_wireless_data, update_processed_wireless_data
 from .base import BaseFetchStrategy
 
 
@@ -89,31 +89,4 @@ class WirelessFetchStrategy(BaseFetchStrategy):
             clients=detail_data.get("clients"),
         )
 
-        ssids = wireless_data.get("ssids", [])
-        if ssids:
-            if "ssids" not in processed_data:
-                processed_data["ssids"] = []
-
-            # SSID Duplicates Fix & Canonical Data Population
-            existing_ids = {
-                (s.get("networkId"), s.get("number"))
-                for s in cast(list[dict[str, Any]], processed_data["ssids"])
-            }
-
-            for ssid in ssids:
-                ssid_id = (ssid.get("networkId"), ssid.get("number"))
-                if ssid_id not in existing_ids:
-                    cast(list[dict[str, Any]], processed_data["ssids"]).append(ssid)
-                    existing_ids.add(ssid_id)
-
-        wireless_settings = wireless_data.get("wireless_settings", {})
-        if wireless_settings:
-            if "wireless_settings" not in processed_data:
-                processed_data["wireless_settings"] = {}
-            processed_data["wireless_settings"].update(wireless_settings)
-
-        rf_profiles = wireless_data.get("rf_profiles")
-        if isinstance(rf_profiles, dict):
-            if "rf_profiles" not in processed_data:
-                processed_data["rf_profiles"] = {}
-            processed_data["rf_profiles"].update(rf_profiles)
+        update_processed_wireless_data(processed_data, wireless_data)

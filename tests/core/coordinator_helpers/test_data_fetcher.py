@@ -42,12 +42,10 @@ async def test_get_all_data_includes_switch_ports(data_fetch_manager, mock_clien
     )
 
     # Simulate detailed switch ports response
-    async def coro():
-        return [{"portId": "1", "status": "Connected"}]
+    async def mock_build_strategy_tasks(data):
+        data["switch_ports_Q123"] = [{"portId": "1", "status": "Connected"}]
 
-    data_fetch_manager._build_detail_tasks = MagicMock(
-        return_value={"switch_ports_Q123": coro()}
-    )
+    data_fetch_manager._build_strategy_tasks = AsyncMock(side_effect=mock_build_strategy_tasks)
 
     with (
         patch(

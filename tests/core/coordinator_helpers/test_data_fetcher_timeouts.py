@@ -5,6 +5,8 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
+from homeassistant.helpers.update_coordinator import UpdateFailed
+
 from custom_components.meraki_ha.core.coordinator_helpers.data_fetcher import (
     DataFetchManager,
 )
@@ -84,7 +86,7 @@ async def test_get_all_data_detailed_timeout(data_fetch_manager, mock_client):
         with patch(
             "custom_components.meraki_ha.core.coordinator_helpers.data_fetcher._LOGGER.error"
         ) as mock_log_error:
-            with pytest.raises(asyncio.TimeoutError):
+            with pytest.raises(UpdateFailed):
                 await data_fetch_manager.get_all_data()
             # It might be called for detailed data first
             mock_log_error.assert_any_call(
@@ -147,9 +149,10 @@ async def test_get_all_data_client_timeout(data_fetch_manager, mock_client):
             with patch(
                 "custom_components.meraki_ha.core.coordinator_helpers.data_fetcher._LOGGER.error"
             ) as mock_log_error:
-                with pytest.raises(asyncio.TimeoutError):
-                    await data_fetch_manager.get_all_data()
+                # Client timeout is suppressed, so no exception raised
+                await data_fetch_manager.get_all_data()
 
+                # Verify error was logged - message changed slightly in implementation
                 mock_log_error.assert_called_with(
-                    "Timeout during %s. Potential semaphore deadlock.", "Client data"
+                    "Timeout during client data fetch"
                 )

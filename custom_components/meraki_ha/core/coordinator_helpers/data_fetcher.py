@@ -374,6 +374,36 @@ class DataFetchManager:
                     device, data, previous_devices_map.get(device.serial)
                 )
 
+    def _process_network_strategies(
+        self,
+        data: dict[str, Any],
+        current_data: dict[str, Any] | None,
+    ) -> None:
+        """Process strategy-based updates for networks."""
+        from ..models.network import MerakiNetwork
+
+        strategies = {
+            "wireless": self.wireless_strategy,
+            # Add other strategies here if they implement process_network_data
+        }
+
+        for network in data.get("networks", []):
+            if not isinstance(network, MerakiNetwork) or not network.id:
+                continue
+
+            network_id = str(network.id)
+            product_types = network.product_types or []
+
+            for product_type in product_types:
+                if strategy := strategies.get(product_type):
+                    if hasattr(strategy, "process_network_data"):
+                        strategy.process_network_data(
+                            network_id,
+                            data,
+                            current_data or {},
+                            data,
+                        )
+
     async def _fetch_client_data(self, data: dict[str, Any]) -> None:
         """Fetch client data for all networks."""
         networks = data.get("networks", [])
@@ -411,6 +441,9 @@ class DataFetchManager:
 
         # Strategy-based processing for individual devices
         self._process_device_strategies(data, previous_devices_map)
+
+        # Strategy-based processing for networks
+        self._process_network_strategies(data, current_data)
 
         # Parse aggregate network data (VLANs, SSIDs, etc.)
         network_details = parse_network_data(
