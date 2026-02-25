@@ -34,6 +34,8 @@ class MerakiVLANStatusSensor(MerakiVLANEntity, SensorEntity):
         if not self._network_id:
             raise ValueError("Network ID cannot be None for a VLAN entity")
         vlan_id = self._vlan.id
+        if not vlan_id:
+            raise ValueError("VLAN ID cannot be None for a VLAN sensor")
         vlan_name = self._vlan.name or ""
 
         # Unique ID
