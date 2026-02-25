@@ -6,6 +6,8 @@ import asyncio
 import logging
 from typing import TYPE_CHECKING, Any, cast
 
+from homeassistant.helpers.update_coordinator import UpdateFailed
+
 from ...core.const import DEFAULT_CAPS, DEVICE_CAPABILITIES
 
 # Import the custom errors so we can pass them to strategies
@@ -412,12 +414,17 @@ class DataFetchManager:
         timespan: int = 300,
     ) -> dict[str, Any]:
         """Fetch all data from the Meraki API in a coordinated cycle."""
-        data = await self._fetch_initial_org_data()
+        try:
+            async with asyncio.timeout(30):  # Moved from coordinator.py
+                data = await self._fetch_initial_org_data()
 
-        # Build and execute detail batch
-        await self._build_strategy_tasks(data)
+                # Build and execute detail batch
+                await self._build_strategy_tasks(data)
 
-        # Merge and process all results
-        await self._merge_and_process_results(data, current_data)
+                # Merge and process all results
+                await self._merge_and_process_results(data, current_data)
 
-        return data
+                return data
+        except TimeoutError:
+            _LOGGER.error("Meraki API took too long; check for semaphore deadlock")
+            raise UpdateFailed("API Timeout") from None
