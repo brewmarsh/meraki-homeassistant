@@ -20,8 +20,6 @@ from ...core.fetch_strategies.camera import CameraFetchStrategy
 from ...core.fetch_strategies.sensor import SensorFetchStrategy
 from ...core.fetch_strategies.switch import SwitchFetchStrategy
 from ...core.fetch_strategies.wireless import WirelessFetchStrategy
-from ...core.models.device import MerakiDevice
-from ...core.models.network import MerakiNetwork
 from ...core.parsers.appliance import parse_appliance_data
 from ...core.parsers.devices import parse_device_data
 from ...core.parsers.network import parse_network_data
@@ -30,6 +28,8 @@ from .client_fetcher import ClientFetcher
 
 if TYPE_CHECKING:
     from ..api.client import MerakiAPIClient
+    from ..models.device import MerakiDevice
+    from ..models.network import MerakiNetwork
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -218,6 +218,9 @@ class DataFetchManager:
 
     def _distribute_batch_data(self, batch_data: dict[str, Any]) -> dict[str, Any]:
         """Distribute initial batch data to respective parsers and models."""
+        from ..models.device import MerakiDevice
+        from ..models.network import MerakiNetwork
+
         data: dict[str, Any] = {}
 
         # Organization
@@ -281,6 +284,8 @@ class DataFetchManager:
 
     def _collect_network_tasks(self, data: dict[str, Any], tasks: dict[str, Any]) -> None:
         """Collect network-level strategy tasks."""
+        from ..models.network import MerakiNetwork
+
         network_strategy_map = {
             "appliance": lambda nid, pts, tks: self.appliance_strategy.build_network_tasks(
                 nid, tks
@@ -299,6 +304,8 @@ class DataFetchManager:
 
     def _collect_device_tasks(self, data: dict[str, Any], tasks: dict[str, Any]) -> None:
         """Collect device-level strategy tasks."""
+        from ..models.device import MerakiDevice
+
         strategies = {
             "appliance": self.appliance_strategy,
             "cellularGateway": self.appliance_strategy,
@@ -345,6 +352,8 @@ class DataFetchManager:
         previous_devices_map: dict[str, MerakiDevice],
     ) -> None:
         """Process strategy-based updates for individual devices."""
+        from ..models.device import MerakiDevice
+
         strategies = {
             "appliance": self.appliance_strategy,
             "cellularGateway": self.appliance_strategy,
@@ -391,6 +400,8 @@ class DataFetchManager:
         current_data: dict[str, Any] | None = None,
     ) -> None:
         """Merge and process all fetched data."""
+        from ..models.device import MerakiDevice
+
         # Map current devices for delta processing
         previous_devices_map = {}
         if current_data and "devices" in current_data:
@@ -420,7 +431,7 @@ class DataFetchManager:
     ) -> dict[str, Any]:
         """Fetch all data from the Meraki API in a coordinated cycle."""
         try:
-            async with asyncio.timeout(30):  # Moved from coordinator.py
+            async with asyncio.timeout(30):
                 data = await self._fetch_initial_org_data()
 
                 # Build and execute detail batch
