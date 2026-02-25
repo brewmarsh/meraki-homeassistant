@@ -1,4 +1,5 @@
-"""Device Sensor Provider."""
+"""Provider for physical device sensors (IP, Status, Diagnostics)."""
+
 from __future__ import annotations
 
 import logging
@@ -30,10 +31,10 @@ class PhysicalSensorProvider:
         config_entry: ConfigEntry,
         **kwargs: Any,
     ) -> list[Entity]:
-        """Get entities."""
+        """Get entities for device-level networking and diagnostics."""
         entities: list[Entity] = []
 
-        # Standard IPs
+        # Standard IPs (LAN/Public)
         entities.append(
             MerakiDeviceIPSensor(coordinator, device, config_entry, "lanIp", "LAN IP")
         )
@@ -43,7 +44,7 @@ class PhysicalSensorProvider:
             )
         )
 
-        # Diagnostics (IP/Gateway/DNS) from uplinks
+        # Diagnostics (IP/Gateway/DNS) derived from device uplinks
         if device.uplinks:
             for uplink in device.uplinks:
                 interface = uplink.get("interface")

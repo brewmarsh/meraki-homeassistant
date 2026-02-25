@@ -1,4 +1,5 @@
-"""Switch Port Provider."""
+"""Provider for switch port entities."""
+
 from __future__ import annotations
 
 import logging
@@ -35,13 +36,17 @@ class SwitchPortProvider:
         config_entry: ConfigEntry,
         **kwargs: Any,
     ) -> list[Entity]:
-        """Get entities."""
+        """Get entities for all ports on a switch."""
         if not config_entry.options.get(CONF_ENABLE_PORT_SENSORS, True):
             return []
+            
         entities: list[Entity] = []
         if device.ports_statuses:
             for port in device.ports_statuses:
+                # 1. Binary sensor for link status
                 entities.append(SwitchPortSensor(coordinator, device, port))
+                
+                # 2. General port sensors (Power, Energy, State)
                 entities.append(
                     MerakiSwitchPortSensor(coordinator, device, port, config_entry)
                 )
@@ -53,6 +58,8 @@ class SwitchPortProvider:
                         coordinator, device, port, config_entry
                     )
                 )
+                
+                # 3. Add PoE sensor only if port supports/reports power data
                 if (
                     port.get("powerUsageInWh") is not None
                     or port.get("powerUsage") is not None
@@ -60,11 +67,13 @@ class SwitchPortProvider:
                     entities.append(
                         MerakiSwitchPoESensor(coordinator, device, port, config_entry)
                     )
-                # RESOLVED: Updated constructor to include config_entry per beta branch
+                    
+                # 4. Control entities (Toggles and Buttons)
                 entities.append(
                     MerakiSwitchPortToggle(coordinator, device, port, config_entry)
                 )
                 entities.append(
                     MerakiPoECycleButton(coordinator, device, port, config_entry)
                 )
+                
         return entities

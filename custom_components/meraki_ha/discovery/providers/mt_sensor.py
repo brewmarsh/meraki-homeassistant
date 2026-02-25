@@ -1,4 +1,5 @@
-"""MT40 Power Monitor Provider."""
+"""Provider for MT40 power monitoring entities."""
+
 from __future__ import annotations
 
 import logging
@@ -34,7 +35,7 @@ class MT40PowerMonitorProvider:
         config_entry: ConfigEntry,
         **kwargs: Any,
     ) -> list[Entity]:
-        """Get entities."""
+        """Get power monitoring entities for MT40 smart outlets."""
         descriptions = [
             MT_POWER_DESCRIPTION,
             MT_VOLTAGE_DESCRIPTION,

@@ -1,4 +1,5 @@
-"""Appliance Port Provider."""
+"""Provider for appliance port entities."""
+
 from __future__ import annotations
 
 import logging
@@ -29,9 +30,10 @@ class AppliancePortProvider:
         config_entry: ConfigEntry,
         **kwargs: Any,
     ) -> list[Entity]:
-        """Get entities."""
+        """Get entities for the appliance ports."""
         if not config_entry.options.get(CONF_ENABLE_PORT_SENSORS, True):
             return []
+            
         entities: list[Entity] = []
         if device.appliance_ports:
             for port in device.appliance_ports:

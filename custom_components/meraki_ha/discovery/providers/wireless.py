@@ -1,4 +1,5 @@
-"""Wireless Radio Provider."""
+"""Provider for wireless radio entities."""
+
 from __future__ import annotations
 
 import logging
@@ -29,14 +30,14 @@ class WirelessRadioProvider:
         config_entry: ConfigEntry,
         **kwargs: Any,
     ) -> list[Entity]:
-        """Get entities."""
+        """Get entities for wireless radio settings (Channels and Power)."""
         if not device.serial or not device.wireless_radio_settings:
             return []
 
         entities: list[Entity] = []
         settings = device.wireless_radio_settings
 
-        # 2.4GHz Channel
+        # 1. 2.4GHz Channel
         if "twoFourGhzSettings" in settings:
             entities.append(
                 MerakiWirelessRadioSensor(
@@ -54,7 +55,7 @@ class WirelessRadioProvider:
                 )
             )
 
-        # 5GHz Channel
+        # 2. 5GHz Channel
         if "fiveGhzSettings" in settings:
             entities.append(
                 MerakiWirelessRadioSensor(
@@ -72,7 +73,7 @@ class WirelessRadioProvider:
                 )
             )
 
-        # 2.4GHz Target Power
+        # 3. 2.4GHz Target Power
         if "twoFourGhzSettings" in settings:
             entities.append(
                 MerakiWirelessRadioSensor(
@@ -91,8 +92,8 @@ class WirelessRadioProvider:
                 )
             )
 
-        # 5GHz Target Power (Generic "Target power" sensor for backward
-        # compatibility/requested name)
+        # 4. 5GHz Target Power 
+        # Note: Kept as generic "Target power" for backward compatibility
         if "fiveGhzSettings" in settings:
             entities.append(
                 MerakiWirelessRadioSensor(

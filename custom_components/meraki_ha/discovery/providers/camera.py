@@ -1,4 +1,5 @@
-"""Camera Providers."""
+"""Provider for camera analytics and stream entities."""
+
 from __future__ import annotations
 
 import logging
