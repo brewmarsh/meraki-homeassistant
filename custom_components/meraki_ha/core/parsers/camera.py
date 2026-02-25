@@ -26,7 +26,7 @@ def parse_camera_data(
             # Add analytics data
             analytics_data = detail_data.get(f"camera_analytics_{device.serial}")
             if isinstance(analytics_data, list):
-                device.analytics = analytics_data
+                device.camera_analytics = analytics_data
             else:
                 _LOGGER.debug(
                     "No analytics data found for camera %s",

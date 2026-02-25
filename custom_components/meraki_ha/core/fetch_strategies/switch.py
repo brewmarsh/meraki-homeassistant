@@ -26,7 +26,7 @@ class SwitchFetchStrategy(BaseFetchStrategy):
         from ...core.models.device import MerakiDevice
         # 1. Capability Guard: Does this device physically support switch ports?
         if "switch_ports" in capabilities:
-            statuses_key = f"ports_statuses_{device.serial}"
+            statuses_key = f"switch_ports_{device.serial}"
 
             # 2. Batch Awareness: Do we already have this data from the bulk fetch?
             # If detail_data has the key, we skip the task to save an API call.
@@ -43,12 +43,12 @@ class SwitchFetchStrategy(BaseFetchStrategy):
     ) -> None:
         """Process switch details."""
         from ...core.models.device import MerakiDevice
-        statuses_key = f"ports_statuses_{device.serial}"
+        statuses_key = f"switch_ports_{device.serial}"
         statuses = detail_data.get(statuses_key)
 
         # Defensive coding: Only assign if we got a valid list
         if isinstance(statuses, list):
-            device.ports_statuses = statuses
-        elif prev_device and hasattr(prev_device, "ports_statuses"):
+            device.switch_ports = statuses
+        elif prev_device and hasattr(prev_device, "switch_ports"):
             # Fallback to previous data if the API failed this round
-            device.ports_statuses = prev_device.ports_statuses
+            device.switch_ports = prev_device.switch_ports

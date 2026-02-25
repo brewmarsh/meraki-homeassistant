@@ -72,10 +72,10 @@ async def test_consolidation_switch_ports(data_fetch_manager, mock_client):
     strategy_spy.assert_called()
     call_args = strategy_spy.call_args
     # detail_data (4th arg) should contain unpacked statuses
-    assert f"ports_statuses_{switch_serial}" in call_args[0][3]
+    assert f"switch_ports_{switch_serial}" in call_args[0][3]
 
     # Ensure the device has the ports statuses
-    assert result["devices"][0].ports_statuses == switch_ports
+    assert result["devices"][0].switch_ports == switch_ports
 
 
 @pytest.mark.asyncio

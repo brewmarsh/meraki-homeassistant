@@ -52,7 +52,7 @@ class CameraFetchStrategy(BaseFetchStrategy):
             )
 
         # 2. Capability Guard: Check if camera supports analytics (Sense)
-        if "analytics" in capabilities:
+        if "camera_analytics" in capabilities:
             # Optimization: Only fetch expensive sense settings on specific intervals
             if self.should_fetch_sense:
                 tasks[f"sense_settings_{device.serial}"] = (
@@ -106,6 +106,6 @@ class CameraFetchStrategy(BaseFetchStrategy):
         # Prioritize fresh batch data
         if analytics := detail_data.get(f"camera_analytics_{device.serial}"):
             if isinstance(analytics, list):
-                device.analytics = analytics
+                device.camera_analytics = analytics
         elif prev_device:
-            device.analytics = getattr(prev_device, "analytics", [])
+            device.camera_analytics = getattr(prev_device, "camera_analytics", [])

@@ -43,7 +43,7 @@ def test_build_device_tasks(strategy):
     # Must increment poll count so should_fetch_sense is True
     strategy.increment_poll_count()
     strategy.build_device_tasks(
-        mock_device, tasks, capabilities=["camera_stream", "analytics"]
+        mock_device, tasks, capabilities=["camera_stream", "camera_analytics"]
     )
 
     assert f"video_settings_{mock_device.serial}" in tasks
@@ -63,7 +63,7 @@ def test_build_device_tasks_skips_analytics_if_in_detail_data(strategy):
     strategy.build_device_tasks(
         mock_device,
         tasks,
-        capabilities=["camera_stream", "analytics"],
+        capabilities=["camera_stream", "camera_analytics"],
         detail_data=detail_data,
     )
 
@@ -115,7 +115,7 @@ def test_process_device_details_analytics(strategy):
 
     strategy.process_device_details(mock_device, detail_data, None)
 
-    assert mock_device.analytics == detail_data[key]
+    assert mock_device.camera_analytics == detail_data[key]
 
 
 def test_process_device_details_fallback_to_prev(strategy):
@@ -128,7 +128,7 @@ def test_process_device_details_fallback_to_prev(strategy):
         video_settings={"rtsp_url": "rtsp://prev.com"},
         rtsp_url="rtsp://prev.com",
         sense_settings={"sense": "prev"},
-        analytics=[{"prev": "data"}],
+        camera_analytics=[{"prev": "data"}],
     )
 
     strategy.process_device_details(mock_device, detail_data, prev_device)
@@ -136,4 +136,4 @@ def test_process_device_details_fallback_to_prev(strategy):
     assert mock_device.video_settings == prev_device.video_settings
     assert mock_device.rtsp_url == prev_device.rtsp_url
     assert mock_device.sense_settings == prev_device.sense_settings
-    assert mock_device.analytics == prev_device.analytics
+    assert mock_device.camera_analytics == prev_device.camera_analytics

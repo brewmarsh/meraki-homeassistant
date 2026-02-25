@@ -26,7 +26,7 @@ async def test_camera_modulo_fetch():
     assert strategy.should_fetch_sense is True
     tasks = {}
     strategy.build_device_tasks(
-        device, tasks, capabilities=["camera_stream", "analytics"]
+        device, tasks, capabilities=["camera_stream", "camera_analytics"]
     )
     assert f"sense_settings_{device.serial}" in tasks
 
@@ -35,7 +35,7 @@ async def test_camera_modulo_fetch():
     assert strategy.should_fetch_sense is False
     tasks = {}
     strategy.build_device_tasks(
-        device, tasks, capabilities=["camera_stream", "analytics"]
+        device, tasks, capabilities=["camera_stream", "camera_analytics"]
     )
     assert f"sense_settings_{device.serial}" not in tasks
 
@@ -50,7 +50,7 @@ async def test_camera_modulo_fetch():
     assert strategy.should_fetch_sense is True
     tasks = {}
     strategy.build_device_tasks(
-        device, tasks, capabilities=["camera_stream", "analytics"]
+        device, tasks, capabilities=["camera_stream", "camera_analytics"]
     )
     assert f"sense_settings_{device.serial}" in tasks
 
@@ -69,7 +69,7 @@ async def test_camera_sense_disabled():
     assert strategy.should_fetch_sense is False
     tasks = {}
     strategy.build_device_tasks(
-        device, tasks, capabilities=["camera_stream", "analytics"]
+        device, tasks, capabilities=["camera_stream", "camera_analytics"]
     )
     assert f"sense_settings_{device.serial}" not in tasks
 
@@ -91,15 +91,17 @@ async def test_dfm_batch_analytics_modulo():
     # Poll 1
     dfm.camera_strategy.increment_poll_count()
 
-    # We test via _build_detail_tasks which calls strategy.build_device_tasks
-    tasks = dfm._build_detail_tasks({"devices": devices})
+    # We test via _collect_device_tasks
+    tasks = {}
+    dfm._collect_device_tasks({"devices": devices}, tasks)
 
     # Analytics should be present in poll 1 (1 % 5 == 1? No (1-1)%5 == 0)
     assert f"camera_analytics_{devices[0].serial}" in tasks
 
     # Poll 2
     dfm.camera_strategy.increment_poll_count()
-    tasks = dfm._build_detail_tasks({"devices": devices})
+    tasks = {}
+    dfm._collect_device_tasks({"devices": devices}, tasks)
 
     # Analytics should NOT be present in poll 2
     assert f"camera_analytics_{devices[0].serial}" not in tasks

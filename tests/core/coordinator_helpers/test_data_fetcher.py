@@ -46,7 +46,7 @@ async def test_get_all_data_includes_switch_ports(data_fetch_manager, mock_clien
         return [{"portId": "1", "status": "Connected"}]
 
     data_fetch_manager._build_detail_tasks = MagicMock(
-        return_value={"ports_statuses_Q123": coro()}
+        return_value={"switch_ports_Q123": coro()}
     )
 
     with (
@@ -62,7 +62,7 @@ async def test_get_all_data_includes_switch_ports(data_fetch_manager, mock_clien
 
     # Assert - Verifying that the strategy correctly injected data
     # into the device object
-    assert result["devices"][0].ports_statuses == [
+    assert result["devices"][0].switch_ports == [
         {"portId": "1", "status": "Connected"}
     ]
 

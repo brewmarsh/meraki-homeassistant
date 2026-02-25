@@ -265,7 +265,7 @@ class DataFetchManager:
         if data["switch_ports_statuses"]:
             for status in data["switch_ports_statuses"]:
                 if isinstance(status, dict) and (serial := status.get("serial")):
-                    data[f"ports_statuses_{serial}"] = status.get("ports", [])
+                    data[f"switch_ports_{serial}"] = status.get("ports", [])
 
     def _get_device_capabilities(self, model: str | None) -> list[str]:
         """Get capabilities for a device model using longest-prefix matching."""

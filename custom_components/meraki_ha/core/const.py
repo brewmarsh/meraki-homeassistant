@@ -38,7 +38,7 @@ _MS_CAPS = [
 _MV_CAPS = [
     "camera_stream",
     "storage_status",
-    "analytics",
+    "camera_analytics",
     "reboot",
     "status",
     "physical_sensors",

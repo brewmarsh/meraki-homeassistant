@@ -43,7 +43,7 @@ def mock_device():
     device = MagicMock()
     device.serial = "Q2AA-BB33-CC44"
     device.status = "online"
-    device.ports_statuses = [
+    device.switch_ports = [
         {"portId": "1", "enabled": True},
         {"portId": "2", "enabled": False},
     ]
@@ -150,7 +150,7 @@ async def test_switch_port_update(
     switch.async_write_ha_state = MagicMock()  # type: ignore[method-assign]
 
     # Simulate update with new data (disabled)
-    mock_device.ports_statuses = [{"portId": "1", "enabled": False}]
+    mock_device.switch_ports = [{"portId": "1", "enabled": False}]
     mock_coordinator.data["devices"] = [mock_device]
 
     switch._handle_coordinator_update()
@@ -177,7 +177,7 @@ async def test_switch_port_update_pending(
     mock_coordinator.is_pending.return_value = True
 
     # Simulate update with new data (disabled)
-    mock_device.ports_statuses = [{"portId": "1", "enabled": False}]
+    mock_device.switch_ports = [{"portId": "1", "enabled": False}]
     mock_coordinator.data["devices"] = [mock_device]
 
     switch._handle_coordinator_update()
