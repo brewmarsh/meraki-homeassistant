@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import logging
 from collections.abc import AsyncIterator
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from ...const_conf import (
     CONF_ENABLE_CLIENT_STATUS_SENSORS,
@@ -22,10 +22,9 @@ if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
     from homeassistant.helpers.entity import Entity
 
-    from ....coordinator import (
-        MerakiDataUpdateCoordinator,
-    )
+    from ....coordinator import MerakiDataUpdateCoordinator
     from ...services.network_control_service import NetworkControlService
+    from ...types import MerakiNetwork
 
 
 _LOGGER = logging.getLogger(__name__)
@@ -46,11 +45,6 @@ class NetworkHandler(BaseHandler):
 
     async def discover_entities(self) -> AsyncIterator[Entity]:
         """Discover network-level entities."""
-        from ...meraki_select.meraki_content_filtering import (
-            MerakiContentFilteringSelect,
-        )
-        from ...meraki_select.vpn import MerakiVpnSelect
-
         # Check if network sensors are enabled
         if not self._config_entry.options.get(CONF_ENABLE_NETWORK_SENSORS, True):
             _LOGGER.debug("Network sensors are disabled.")
@@ -62,99 +56,133 @@ class NetworkHandler(BaseHandler):
             return
 
         for network in networks:
-            # Select Entities
-            yield MerakiContentFilteringSelect(
+            async for entity in self._discover_select_entities(network):
+                yield entity
+            async for entity in self._discover_network_clients(network):
+                yield entity
+            async for entity in self._discover_client_status_sensors(network):
+                yield entity
+            async for entity in self._discover_appliance_features(network):
+                yield entity
+            async for entity in self._discover_traffic_shaping(network):
+                yield entity
+            async for entity in self._discover_vlans(network):
+                yield entity
+
+    async def _discover_select_entities(
+        self, network: MerakiNetwork
+    ) -> AsyncIterator[Entity]:
+        """Discover select entities (Content Filtering, VPN)."""
+        from ...meraki_select.meraki_content_filtering import (
+            MerakiContentFilteringSelect,
+        )
+        from ...meraki_select.vpn import MerakiVpnSelect
+
+        yield MerakiContentFilteringSelect(
+            self._coordinator,
+            self._coordinator.api,
+            self._config_entry,
+            network,
+        )
+        if self._config_entry.options.get(CONF_ENABLE_VPN_MANAGEMENT):
+            yield MerakiVpnSelect(
                 self._coordinator,
                 self._coordinator.api,
                 self._config_entry,
                 network,
             )
-            if self._config_entry.options.get(CONF_ENABLE_VPN_MANAGEMENT):
-                yield MerakiVpnSelect(
-                    self._coordinator,
-                    self._coordinator.api,
-                    self._config_entry,
-                    network,
-                )
 
-            # Network Clients Sensor
-            yield MerakiNetworkClientsSensor(
-                coordinator=self._coordinator,
-                config_entry=self._config_entry,
-                network_data=network,
-                network_control_service=self._network_control_service,
+    async def _discover_network_clients(
+        self, network: MerakiNetwork
+    ) -> AsyncIterator[Entity]:
+        """Discover network clients sensor."""
+        yield MerakiNetworkClientsSensor(
+            coordinator=self._coordinator,
+            config_entry=self._config_entry,
+            network_data=network,
+            network_control_service=self._network_control_service,
+        )
+
+    async def _discover_client_status_sensors(
+        self, network: MerakiNetwork
+    ) -> AsyncIterator[Entity]:
+        """Discover client status sensors."""
+        if not self._config_entry.options.get(CONF_ENABLE_CLIENT_STATUS_SENSORS, False):
+            return
+
+        from ...sensor.client.status import MerakiClientStatusSensor
+
+        clients = self._coordinator.data.get("clients", [])
+        network_clients = [c for c in clients if c.get("networkId") == network.id]
+
+        for client in network_clients:
+            yield MerakiClientStatusSensor(
+                self._coordinator,
+                client,
+                self._config_entry,
             )
 
-            # Client Status Sensors
-            if self._config_entry.options.get(CONF_ENABLE_CLIENT_STATUS_SENSORS, False):
-                # RESOLVED: Beta branch logic - import at top of block
-                # and use list comprehension
-                from ...sensor.client.status import MerakiClientStatusSensor
+    async def _discover_appliance_features(
+        self, network: MerakiNetwork
+    ) -> AsyncIterator[Entity]:
+        """Discover appliance features like content filtering switches."""
+        if "appliance" not in network.product_types:
+            return
 
-                clients = self._coordinator.data.get("clients", [])
-
-                network_clients = [
-                    c for c in clients if c.get("networkId") == network.id
-                ]
-
-                if network_clients:
-                    for client in network_clients:
-                        yield MerakiClientStatusSensor(
-                            self._coordinator,
-                            client,
-                            self._config_entry,
-                        )
-
-            # Content Filtering Switch
-            if "appliance" in network.product_types:
-                try:
-                    categories = await self._coordinator.api.appliance.get_network_appliance_content_filtering_categories(  # noqa: E501
-                        network.id
-                    )
-                    for category in categories.get("categories", []):
-                        yield MerakiContentFilteringSwitch(
-                            self._coordinator,
-                            self._config_entry,
-                            network,
-                            category,
-                        )
-                except Exception as e:
-                    _LOGGER.warning(
-                        "Could not get content filtering categories for network %s: %s",
-                        network.id,
-                        e,
-                    )
-
-            # Traffic Shaping Sensor
-            if self._config_entry.options.get(CONF_ENABLE_TRAFFIC_SHAPING, False):
-                yield TrafficShapingSensor(
+        try:
+            categories = await self._coordinator.api.appliance.get_network_appliance_content_filtering_categories(  # noqa: E501
+                network.id
+            )
+            for category in categories.get("categories", []):
+                yield MerakiContentFilteringSwitch(
                     self._coordinator,
                     self._config_entry,
-                    network.id,
+                    network,
+                    category,
                 )
+        except Exception as e:
+            _LOGGER.warning(
+                "Could not get content filtering categories for network %s: %s",
+                network.id,
+                e,
+            )
 
-            # VLAN Sensors
-            if self._config_entry.options.get(CONF_ENABLE_VLAN_SENSORS, True):
-                vlans = self._coordinator.data.get("vlans", {}).get(network.id, [])
-                if vlans:
-                    # Dynamically import VLAN sensors only if enabled
-                    from ...sensor.network.vlan import (
-                        MerakiVLANStatusSensor,
-                    )
-                    from ...sensor.network.vlans_list import VlansListSensor
+    async def _discover_traffic_shaping(
+        self, network: MerakiNetwork
+    ) -> AsyncIterator[Entity]:
+        """Discover traffic shaping sensors."""
+        if self._config_entry.options.get(CONF_ENABLE_TRAFFIC_SHAPING, False):
+            if network.id is None:
+                return
+            yield TrafficShapingSensor(
+                self._coordinator,
+                self._config_entry,
+                network.id,
+            )
 
-                    yield VlansListSensor(
-                        self._coordinator, self._config_entry, network
-                    )
+    async def _discover_vlans(self, network: MerakiNetwork) -> AsyncIterator[Entity]:
+        """Discover VLAN sensors."""
+        if not self._config_entry.options.get(CONF_ENABLE_VLAN_SENSORS, True):
+            _LOGGER.debug("VLAN sensors are disabled.")
+            return
 
-                    for vlan in vlans:
-                        yield MerakiVLANStatusSensor(
-                            self._coordinator,
-                            self._config_entry,
-                            network.id,
-                            vlan,
-                        )
-                else:
-                    _LOGGER.debug("No VLANs found for network %s", network.id)
-            else:
-                _LOGGER.debug("VLAN sensors are disabled.")
+        if network.id is None:
+            return
+
+        vlans = self._coordinator.data.get("vlans", {}).get(network.id, [])
+        if not vlans:
+            _LOGGER.debug("No VLANs found for network %s", network.id)
+            return
+
+        from ...sensor.network.vlan import MerakiVLANStatusSensor
+        from ...sensor.network.vlans_list import VlansListSensor
+
+        yield VlansListSensor(self._coordinator, self._config_entry, network)
+
+        for vlan in vlans:
+            yield MerakiVLANStatusSensor(
+                self._coordinator,
+                self._config_entry,
+                network.id,
+                vlan,
+            )

@@ -14,6 +14,7 @@ from custom_components.meraki_ha.sensor.client.status import MerakiClientStatusS
 from custom_components.meraki_ha.sensor.network.network_clients import (
     MerakiNetworkClientsSensor,
 )
+from custom_components.meraki_ha.core.models.network import MerakiVlan
 from custom_components.meraki_ha.sensor.network.vlan import MerakiVLANStatusSensor
 from custom_components.meraki_ha.types import MerakiNetwork
 
@@ -35,8 +36,8 @@ def mock_coordinator():
         "networks": [MOCK_NETWORK_1, MOCK_NETWORK_2],
         "vlans": {
             "N_5678": [
-                {"id": 10, "name": "Staff", "subnet": "192.168.10.0/24"},
-                {"id": 20, "name": "Guest", "subnet": "192.168.20.0/24"},
+                MerakiVlan(id=10, name="Staff", subnet="192.168.10.0/24"),
+                MerakiVlan(id=20, name="Guest", subnet="192.168.20.0/24"),
             ]
         },
         "clients": [],  # Initialize empty; specific tests will populate this
@@ -91,7 +92,7 @@ async def test_discover_entities_creates_vlan_status_sensors(
     vlan_sensors = [e for e in entities if isinstance(e, MerakiVLANStatusSensor)]
     assert len(vlan_sensors) == 2
 
-    vlan_ids = sorted([s._vlan["id"] for s in vlan_sensors])
+    vlan_ids = sorted([s._vlan.id for s in vlan_sensors])
     assert vlan_ids == [10, 20]
 
     # Safety check: Ensure old deprecated sensors are no longer present
