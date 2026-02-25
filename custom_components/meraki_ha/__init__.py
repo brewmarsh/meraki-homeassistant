@@ -25,6 +25,7 @@ from .frontend import async_register_frontend, async_remove_frontend
 from .helpers.migrations import async_cleanup_ghost_devices, async_migrate_entities
 from .services.camera_service import CameraService
 from .services.device_control_service import DeviceControlService
+from .services.manager import ServicesManager
 from .services.network_control_service import NetworkControlService
 from .services.switch_port_service import SwitchPortService
 from .webhook import async_register_webhook, async_unregister_webhook
@@ -117,11 +118,15 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     }
 
     await discovery_service.discover_entities()
-    await coordinator.async_setup_services(
-        device_control_service=device_control_service,
-        switch_port_service=switch_port_service,
-        camera_service=camera_service,
+
+    # Set up services
+    services_manager = ServicesManager(
+        hass,
+        device_control_service,
+        switch_port_service,
+        camera_service,
     )
+    await services_manager.async_register_services()
 
     # Set up webhook
     webhook_id = WEBHOOK_ID_FORMAT.format(entry_id=entry.entry_id)
