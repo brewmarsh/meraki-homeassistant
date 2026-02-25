@@ -308,6 +308,8 @@ class DataFetchManager:
         for device in data.get("devices", []):
             if not isinstance(device, MerakiDevice) or not device.serial:
                 continue
+            if not device.product_type:
+                continue
             if strategy := strategies.get(device.product_type):
                 strategy.build_device_tasks(
                     device, tasks, self._get_device_capabilities(device.model), data
@@ -351,6 +353,9 @@ class DataFetchManager:
         }
         for device in data.get("devices", []):
             if not isinstance(device, MerakiDevice) or not device.serial:
+                continue
+
+            if not device.product_type:
                 continue
 
             if strategy := strategies.get(device.product_type):
