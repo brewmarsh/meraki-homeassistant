@@ -49,8 +49,8 @@ class MerakiAnalyticsSensor(CoordinatorEntity, SensorEntity):
         """Return the state of the sensor."""
         if self._device.serial:
             device = self.coordinator.get_device(self._device.serial)
-            if device and device.analytics:
-                for reading in device.analytics:
+            if device and device.camera_analytics:
+                for reading in device.camera_analytics:
                     if reading.get("zoneId") == 0:  # Zone 0 is the entire frame
                         return reading.get(f"{self._object_type}_count", 0)
         return 0
@@ -60,8 +60,8 @@ class MerakiAnalyticsSensor(CoordinatorEntity, SensorEntity):
         """Return the state attributes."""
         if self._device.serial:
             device = self.coordinator.get_device(self._device.serial)
-            if device and device.analytics:
-                return {"raw_data": device.analytics}
+            if device and device.camera_analytics:
+                return {"raw_data": device.camera_analytics}
         return {}
 
 

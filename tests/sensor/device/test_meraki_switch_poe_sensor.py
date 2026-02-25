@@ -20,7 +20,7 @@ def mock_coordinator_and_device():
         model="MS220-8P",
         status="online",
         product_type="switch",
-        ports_statuses=[
+        switch_ports=[
             {
                 "portId": "1",
                 "powerUsage": {"power": 15.5, "voltage": 54.0, "current": 0.28},
@@ -38,7 +38,7 @@ def mock_coordinator_and_device():
 def test_meraki_switch_poe_sensor_init(mock_coordinator_and_device):
     """Test the Meraki switch PoE sensor initialization."""
     coordinator, device = mock_coordinator_and_device
-    port = device.ports_statuses[0]
+    port = device.switch_ports[0]
     config_entry = MagicMock()
 
     sensor = MerakiSwitchPoESensor(coordinator, device, port, config_entry)
@@ -57,19 +57,19 @@ def test_meraki_switch_poe_sensor_native_value(mock_coordinator_and_device):
 
     # Port 1: has powerUsage.power
     sensor1 = MerakiSwitchPoESensor(
-        coordinator, device, device.ports_statuses[0], config_entry
+        coordinator, device, device.switch_ports[0], config_entry
     )
     assert sensor1.native_value == 15.5
 
     # Port 2: has powerUsage but no power key
     sensor2 = MerakiSwitchPoESensor(
-        coordinator, device, device.ports_statuses[1], config_entry
+        coordinator, device, device.switch_ports[1], config_entry
     )
     assert sensor2.native_value == 0.0
 
     # Port 3: missing powerUsage
     sensor3 = MerakiSwitchPoESensor(
-        coordinator, device, device.ports_statuses[2], config_entry
+        coordinator, device, device.switch_ports[2], config_entry
     )
     assert sensor3.native_value == 0.0
 
@@ -81,7 +81,7 @@ def test_meraki_switch_poe_sensor_extra_state_attributes(mock_coordinator_and_de
 
     # Port 1
     sensor1 = MerakiSwitchPoESensor(
-        coordinator, device, device.ports_statuses[0], config_entry
+        coordinator, device, device.switch_ports[0], config_entry
     )
     attrs1 = sensor1.extra_state_attributes
     assert attrs1["power"] == 15.5
@@ -90,7 +90,7 @@ def test_meraki_switch_poe_sensor_extra_state_attributes(mock_coordinator_and_de
 
     # Port 2
     sensor2 = MerakiSwitchPoESensor(
-        coordinator, device, device.ports_statuses[1], config_entry
+        coordinator, device, device.switch_ports[1], config_entry
     )
     attrs2 = sensor2.extra_state_attributes
     assert attrs2["power"] is None
@@ -101,14 +101,14 @@ def test_meraki_switch_poe_sensor_extra_state_attributes(mock_coordinator_and_de
 def test_meraki_switch_poe_sensor_update(mock_coordinator_and_device):
     """Test the Meraki switch PoE sensor update."""
     coordinator, device = mock_coordinator_and_device
-    port = device.ports_statuses[0]
+    port = device.switch_ports[0]
     config_entry = MagicMock()
 
     sensor = MerakiSwitchPoESensor(coordinator, device, port, config_entry)
     sensor.async_write_ha_state = MagicMock()
 
     # Update data
-    device.ports_statuses[0]["powerUsage"]["power"] = 20.0
+    device.switch_ports[0]["powerUsage"]["power"] = 20.0
     coordinator.data = {"devices": [device]}
 
     sensor._handle_coordinator_update()

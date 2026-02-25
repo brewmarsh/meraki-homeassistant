@@ -31,7 +31,7 @@ def mock_device():
         model="MS120-8",
         mac="00:11:22:33:44:55",
         product_type="switch",
-        ports_statuses=[
+        switch_ports=[
             {"portId": "1", "enabled": True, "status": "Connected"},
             {"portId": "2", "enabled": True, "status": "Disconnected"},
         ],
@@ -54,8 +54,8 @@ async def test_button_initialization(
     mock_config_entry: ConfigEntry,
 ):
     """Test the button initialization."""
-    assert mock_device.ports_statuses is not None
-    port_info = mock_device.ports_statuses[0]
+    assert mock_device.switch_ports is not None
+    port_info = mock_device.switch_ports[0]
     button = MerakiPoECycleButton(
         mock_coordinator, mock_device, port_info, mock_config_entry
     )
@@ -76,8 +76,8 @@ async def test_button_press(
     mock_config_entry: ConfigEntry,
 ):
     """Test the button press action."""
-    assert mock_device.ports_statuses is not None
-    port_info = mock_device.ports_statuses[0]
+    assert mock_device.switch_ports is not None
+    port_info = mock_device.switch_ports[0]
     button = MerakiPoECycleButton(
         mock_coordinator, mock_device, port_info, mock_config_entry
     )

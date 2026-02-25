@@ -22,7 +22,7 @@ def parse_switch_data(
         if device.product_type != "switch":
             continue
 
-        ports_statuses_key = f"ports_statuses_{device.serial}"
-        ports_statuses = detail_data.get(ports_statuses_key)
+        switch_ports_key = f"switch_ports_{device.serial}"
+        ports_statuses = detail_data.get(switch_ports_key)
         if isinstance(ports_statuses, list):
-            device.ports_statuses = ports_statuses
+            device.switch_ports = ports_statuses

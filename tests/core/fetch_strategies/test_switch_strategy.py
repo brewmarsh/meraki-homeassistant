@@ -42,7 +42,7 @@ def test_build_device_tasks(strategy):
 
     strategy.build_device_tasks(mock_device, tasks, capabilities=["switch_ports"])
 
-    assert f"ports_statuses_{mock_device.serial}" in tasks
+    assert f"switch_ports_{mock_device.serial}" in tasks
 
 
 def test_build_device_tasks_skips_if_in_detail_data(strategy):
@@ -50,7 +50,7 @@ def test_build_device_tasks_skips_if_in_detail_data(strategy):
     mock_device = MagicMock()
     mock_device.serial = "SERIAL1"
     tasks = {}
-    detail_data = {f"ports_statuses_{mock_device.serial}": [{"portId": "1"}]}
+    detail_data = {f"switch_ports_{mock_device.serial}": [{"portId": "1"}]}
 
     strategy.build_device_tasks(
         mock_device,
@@ -59,19 +59,19 @@ def test_build_device_tasks_skips_if_in_detail_data(strategy):
         detail_data=detail_data,
     )
 
-    assert f"ports_statuses_{mock_device.serial}" not in tasks
+    assert f"switch_ports_{mock_device.serial}" not in tasks
 
 
 def test_process_device_details(strategy):
     """Test processing device details for switch ports statuses."""
     mock_device = MagicMock()
     mock_device.serial = "SERIAL1"
-    key = f"ports_statuses_{mock_device.serial}"
+    key = f"switch_ports_{mock_device.serial}"
     detail_data = {key: [{"portId": "1", "status": "Connected"}]}
 
     strategy.process_device_details(mock_device, detail_data, None)
 
-    assert mock_device.ports_statuses == detail_data[key]
+    assert mock_device.switch_ports == detail_data[key]
 
 
 def test_process_device_details_fallback_to_prev(strategy):
@@ -84,9 +84,9 @@ def test_process_device_details_fallback_to_prev(strategy):
     prev_device = MerakiDevice(
         serial="SERIAL1",
         name="Test Switch",  # Added generic name to satisfy potential required args
-        ports_statuses=[{"portId": "1", "status": "Disconnected"}],
+        switch_ports=[{"portId": "1", "status": "Disconnected"}],
     )
 
     strategy.process_device_details(mock_device, detail_data, prev_device)
 
-    assert mock_device.ports_statuses == prev_device.ports_statuses
+    assert mock_device.switch_ports == prev_device.switch_ports

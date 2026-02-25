@@ -162,7 +162,7 @@ async def test_e2e_panel_comprehensive(
                 "networkId": "N_12345",
                 "productType": "switch",
                 "status": "online",
-                "ports_statuses": [
+                "switch_ports": [
                     {"portId": "1", "status": "Connected", "enabled": True},
                     {"portId": "2", "status": "Disconnected", "enabled": False},
                 ],

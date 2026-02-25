@@ -62,7 +62,7 @@ class MerakiSwitchPortToggle(MerakiEntity, SwitchEntity):
         for device in self.coordinator.data.get("devices", []):
             if device.serial == self._device.serial:
                 self._device = device
-                ports = getattr(self._device, "ports_statuses", []) or []
+                ports = getattr(self._device, "switch_ports", []) or []
                 for port in ports:
                     port_id = self._port.get("portId") or self._port.get("number")
                     if port.get("portId") == port_id or port.get("number") == port_id:

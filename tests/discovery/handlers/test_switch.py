@@ -41,26 +41,26 @@ async def test_switch_handler_exclusion_logic(mock_coordinator, mock_config_entr
         serial="MX_SERIAL",
         model="MX64",
         product_type="appliance",
-        ports_statuses=[{"portId": "1", "enabled": True}],
+        switch_ports=[{"portId": "1", "enabled": True}],
     )
     z3_appliance = MerakiDevice(
         serial="Z3_SERIAL",
         model="Z3",
         product_type="appliance",
-        ports_statuses=[{"portId": "1", "enabled": True}],
+        switch_ports=[{"portId": "1", "enabled": True}],
     )
     # Some devices might have product_type="switch" but are MX models
     mx_labeled_switch = MerakiDevice(
         serial="MX_SWITCH_SERIAL",
         model="MX67",
         product_type="switch",
-        ports_statuses=[{"portId": "1", "enabled": True}],
+        switch_ports=[{"portId": "1", "enabled": True}],
     )
     normal_switch = MerakiDevice(
         serial="MS_SERIAL",
         model="MS120",
         product_type="switch",
-        ports_statuses=[{"portId": "1", "enabled": True}],
+        switch_ports=[{"portId": "1", "enabled": True}],
     )
     wireless_device = MerakiDevice(
         serial="MR_SERIAL", model="MR36", product_type="wireless"
@@ -120,7 +120,7 @@ async def test_switch_handler_unknown_model_fallback(
         serial="ms390-serial",
         model="MS390",
         product_type="switch",
-        ports_statuses=[{"portId": "1", "enabled": True}],
+        switch_ports=[{"portId": "1", "enabled": True}],
     )
 
     mock_coordinator.data = {"devices": [device]}

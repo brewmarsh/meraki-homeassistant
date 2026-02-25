@@ -5,20 +5,23 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any
 
-from .appliance import MerakiApplianceMixin, MerakiAppliancePort
-from .camera import MerakiCameraMixin
-from .sensor import MerakiSensorMixin
-from .switch import MerakiSwitchMixin
-from .wireless import MerakiWirelessMixin
+from .mixins import (
+    ApplianceMixin,
+    CameraMixin,
+    MerakiAppliancePort,
+    SensorMixin,
+    SwitchMixin,
+    WirelessMixin,
+)
 
 
 @dataclass(kw_only=True)
 class MerakiDevice(
-    MerakiApplianceMixin,
-    MerakiCameraMixin,
-    MerakiSensorMixin,
-    MerakiSwitchMixin,
-    MerakiWirelessMixin,
+    ApplianceMixin,
+    CameraMixin,
+    SensorMixin,
+    SwitchMixin,
+    WirelessMixin,
 ):
     """Dataclass for a Meraki device."""
 
@@ -91,12 +94,12 @@ class MerakiDevice(
                 "videoSettings": self.video_settings,
                 "rtspUrl": self.rtsp_url,
                 "senseSettings": self.sense_settings,
-                "analytics": self.analytics,
+                "analytics": self.camera_analytics,
             }
         )
 
         # Switch fields
-        data.update({"portsStatuses": self.ports_statuses})
+        data.update({"portsStatuses": self.switch_ports})
 
         # Wireless fields
         data.update({"wirelessRadioSettings": self.wireless_radio_settings})
@@ -113,9 +116,9 @@ class MerakiDevice(
                 "powerFactor": self.power_factor,
                 "current": self.current,
                 "voltage": self.voltage,
-                "doorOpen": self.door_open,
-                "waterPresent": self.water_present,
-                "buttonPress": self.button_press,
+                "door_open": self.door_open,
+                "water_present": self.water_present,
+                "button_press": self.button_press,
                 "frequency": self.frequency,
                 "energy": self.energy,
             }
@@ -158,9 +161,9 @@ class MerakiDevice(
             video_settings=data.get("videoSettings"),
             rtsp_url=data.get("rtspUrl"),
             sense_settings=data.get("senseSettings"),
-            analytics=data.get("analytics", []),
+            camera_analytics=data.get("analytics", []),
             # Switch fields
-            ports_statuses=data.get("portsStatuses", []),
+            switch_ports=data.get("portsStatuses", []),
             # Wireless fields
             wireless_radio_settings=data.get("wirelessRadioSettings"),
             # Sensor fields

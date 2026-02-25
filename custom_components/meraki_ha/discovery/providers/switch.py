@@ -41,8 +41,8 @@ class SwitchPortProvider:
             return []
             
         entities: list[Entity] = []
-        if device.ports_statuses:
-            for port in device.ports_statuses:
+        if device.switch_ports:
+            for port in device.switch_ports:
                 # 1. Binary sensor for link status
                 entities.append(SwitchPortSensor(coordinator, device, port))
                 

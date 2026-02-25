@@ -36,7 +36,7 @@ class AnalyticsSwitch(MerakiCameraSettingSwitchBase):
             meraki_client,
             device_data,
             "sense_enabled",
-            "sense_settings.analyticsEnabled",
+            "sense_settings.camera_analyticsEnabled",
         )
         self._attr_name = "Analytics"
         self._attr_icon = "mdi:chart-bar"

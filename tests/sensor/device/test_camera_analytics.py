@@ -36,7 +36,7 @@ async def test_person_count_sensor(mock_coordinator):
         mac="00:11:22:33:44:55",
         lan_ip="1.2.3.4",
         product_type="camera",
-        analytics=[{"zoneId": 0, "person_count": 5}],
+        camera_analytics=[{"zoneId": 0, "person_count": 5}],
     )
     mock_coordinator.get_device.return_value = device
     sensor = MerakiPersonCountSensor(mock_coordinator, device)
@@ -59,7 +59,7 @@ async def test_vehicle_count_sensor(mock_coordinator):
         mac="00:11:22:33:44:55",
         lan_ip="1.2.3.4",
         product_type="camera",
-        analytics=[{"zoneId": 0, "vehicle_count": 10}],
+        camera_analytics=[{"zoneId": 0, "vehicle_count": 10}],
     )
     mock_coordinator.get_device.return_value = device
     sensor = MerakiVehicleCountSensor(mock_coordinator, device)
