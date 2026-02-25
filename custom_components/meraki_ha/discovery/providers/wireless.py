@@ -30,7 +30,7 @@ class WirelessRadioProvider:
         config_entry: ConfigEntry,
         **kwargs: Any,
     ) -> list[Entity]:
-        """Get entities."""
+        """Get entities for wireless radio settings (Channels and Power)."""
         if not device.serial or not device.wireless_radio_settings:
             return []
 
@@ -92,8 +92,7 @@ class WirelessRadioProvider:
                 )
             )
 
-        # 5GHz Target Power (Generic "Target power" sensor for backward
-        # compatibility/requested name)
+        # 5GHz Target Power
         if "fiveGhzSettings" in settings:
             entities.append(
                 MerakiWirelessRadioSensor(

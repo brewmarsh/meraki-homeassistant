@@ -39,7 +39,7 @@ class UplinkProvider:
         config_entry: ConfigEntry,
         **kwargs: Any,
     ) -> list[Entity]:
-        """Get entities."""
+        """Get entities for appliance uplinks."""
         if not config_entry.options.get(CONF_ENABLE_PORT_SENSORS, True):
             return []
 
@@ -53,7 +53,7 @@ class UplinkProvider:
                 if interface := uplink.get("interface"):
                     uplink_data_by_interface[interface] = uplink
 
-        # Logic to identify interfaces from registry
+        # Reconcile interfaces from the Entity Registry to prevent orphan sensors
         registry_interfaces = set()
         hass = coordinator.hass
         if hass:
@@ -96,7 +96,7 @@ class UplinkPerformanceProvider:
         config_entry: ConfigEntry,
         **kwargs: Any,
     ) -> list[Entity]:
-        """Get entities."""
+        """Get entities for uplink performance (Latency, Loss, Jitter)."""
         if not config_entry.options.get(CONF_ENABLE_PORT_SENSORS, True):
             return []
 
@@ -108,65 +108,37 @@ class UplinkPerformanceProvider:
         if not device.uplinks:
             return []
 
+        
+
         for uplink in device.uplinks:
             interface = uplink.get("interface")
             if not interface:
                 continue
 
-            # Latency Sensor
-            entities.append(
-                MerakiUplinkPerformanceSensor(
-                    coordinator,
-                    device,
-                    config_entry,
-                    interface,
-                    "latencyMs",
-                    SensorEntityDescription(
-                        key=f"{interface}_latency",
-                        name=f"{interface.capitalize()} latency",
-                        native_unit_of_measurement=UnitOfTime.MILLISECONDS,
-                        device_class=SensorDeviceClass.DURATION,
-                        state_class=SensorStateClass.MEASUREMENT,
-                        icon="mdi:timer-outline",
-                    ),
-                )
-            )
+            # Performance Sensors configuration
+            perf_metrics = [
+                ("latencyMs", "latency", UnitOfTime.MILLISECONDS, SensorDeviceClass.DURATION, "mdi:timer-outline"),
+                ("lossPercent", "packet_loss", PERCENTAGE, None, "mdi:packet-loss"),
+                ("jitter", "jitter", UnitOfTime.MILLISECONDS, SensorDeviceClass.DURATION, "mdi:pulse"),
+            ]
 
-            # Loss Sensor
-            entities.append(
-                MerakiUplinkPerformanceSensor(
-                    coordinator,
-                    device,
-                    config_entry,
-                    interface,
-                    "lossPercent",
-                    SensorEntityDescription(
-                        key=f"{interface}_packet_loss",
-                        name=f"{interface.capitalize()} packet loss",
-                        native_unit_of_measurement=PERCENTAGE,
-                        state_class=SensorStateClass.MEASUREMENT,
-                        icon="mdi:packet-loss",
-                    ),
+            for attr, key_suffix, unit, dev_class, icon in perf_metrics:
+                entities.append(
+                    MerakiUplinkPerformanceSensor(
+                        coordinator,
+                        device,
+                        config_entry,
+                        interface,
+                        attr,
+                        SensorEntityDescription(
+                            key=f"{interface}_{key_suffix}",
+                            name=f"{interface.capitalize()} {key_suffix.replace('_', ' ')}",
+                            native_unit_of_measurement=unit,
+                            device_class=dev_class,
+                            state_class=SensorStateClass.MEASUREMENT,
+                            icon=icon,
+                        ),
+                    )
                 )
-            )
-
-            # Jitter Sensor
-            entities.append(
-                MerakiUplinkPerformanceSensor(
-                    coordinator,
-                    device,
-                    config_entry,
-                    interface,
-                    "jitter",
-                    SensorEntityDescription(
-                        key=f"{interface}_jitter",
-                        name=f"{interface.capitalize()} jitter",
-                        native_unit_of_measurement=UnitOfTime.MILLISECONDS,
-                        device_class=SensorDeviceClass.DURATION,
-                        state_class=SensorStateClass.MEASUREMENT,
-                        icon="mdi:pulse",
-                    ),
-                )
-            )
 
         return entities

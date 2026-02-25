@@ -35,7 +35,7 @@ class MT40PowerMonitorProvider:
         config_entry: ConfigEntry,
         **kwargs: Any,
     ) -> list[Entity]:
-        """Get entities."""
+        """Get power monitoring entities for MT40 smart outlets."""
         descriptions = [
             MT_POWER_DESCRIPTION,
             MT_VOLTAGE_DESCRIPTION,
