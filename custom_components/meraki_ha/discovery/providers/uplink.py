@@ -108,14 +108,12 @@ class UplinkPerformanceProvider:
         if not device.uplinks:
             return []
 
-        
-
         for uplink in device.uplinks:
             interface = uplink.get("interface")
             if not interface:
                 continue
 
-            # Performance Sensors configuration
+            # Table-Driven approach to minimize ACL and complexity
             perf_metrics = [
                 ("latencyMs", "latency", UnitOfTime.MILLISECONDS, SensorDeviceClass.DURATION, "mdi:timer-outline"),
                 ("lossPercent", "packet_loss", PERCENTAGE, None, "mdi:packet-loss"),

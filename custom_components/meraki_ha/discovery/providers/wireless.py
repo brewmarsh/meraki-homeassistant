@@ -37,7 +37,7 @@ class WirelessRadioProvider:
         entities: list[Entity] = []
         settings = device.wireless_radio_settings
 
-        # 2.4GHz Channel
+        # 1. 2.4GHz Channel
         if "twoFourGhzSettings" in settings:
             entities.append(
                 MerakiWirelessRadioSensor(
@@ -55,7 +55,7 @@ class WirelessRadioProvider:
                 )
             )
 
-        # 5GHz Channel
+        # 2. 5GHz Channel
         if "fiveGhzSettings" in settings:
             entities.append(
                 MerakiWirelessRadioSensor(
@@ -73,7 +73,7 @@ class WirelessRadioProvider:
                 )
             )
 
-        # 2.4GHz Target Power
+        # 3. 2.4GHz Target Power
         if "twoFourGhzSettings" in settings:
             entities.append(
                 MerakiWirelessRadioSensor(
@@ -92,7 +92,8 @@ class WirelessRadioProvider:
                 )
             )
 
-        # 5GHz Target Power
+        # 4. 5GHz Target Power 
+        # Note: Kept as generic "Target power" for backward compatibility
         if "fiveGhzSettings" in settings:
             entities.append(
                 MerakiWirelessRadioSensor(

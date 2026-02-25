@@ -43,10 +43,10 @@ class SwitchPortProvider:
         entities: list[Entity] = []
         if device.ports_statuses:
             for port in device.ports_statuses:
-                # Binary sensor for link status
+                # 1. Binary sensor for link status
                 entities.append(SwitchPortSensor(coordinator, device, port))
                 
-                # General port sensors
+                # 2. General port sensors (Power, Energy, State)
                 entities.append(
                     MerakiSwitchPortSensor(coordinator, device, port, config_entry)
                 )
@@ -59,7 +59,7 @@ class SwitchPortProvider:
                     )
                 )
                 
-                # Add PoE sensor only if port supports/reports power data
+                # 3. Add PoE sensor only if port supports/reports power data
                 if (
                     port.get("powerUsageInWh") is not None
                     or port.get("powerUsage") is not None
@@ -68,7 +68,7 @@ class SwitchPortProvider:
                         MerakiSwitchPoESensor(coordinator, device, port, config_entry)
                     )
                     
-                # Control entities (Toggles and Buttons)
+                # 4. Control entities (Toggles and Buttons)
                 entities.append(
                     MerakiSwitchPortToggle(coordinator, device, port, config_entry)
                 )
