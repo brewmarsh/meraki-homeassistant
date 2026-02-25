@@ -1,6 +1,6 @@
 """Test ApplianceFetchStrategy."""
 
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
 import pytest
 
@@ -52,7 +52,14 @@ def test_build_network_tasks_skips_disabled(strategy, disabled_features):
     disabled_features.add(f"vlans_{network_id}")
 
     tasks = {}
-    strategy.build_network_tasks(network_id, tasks)
+
+    # Patch async methods to avoid unawaited coroutine warnings
+    with patch.object(
+        strategy, "_async_get_appliance_ports", return_value=MagicMock()
+    ), patch.object(
+        strategy, "_get_uplink_performance", return_value=MagicMock()
+    ):
+        strategy.build_network_tasks(network_id, tasks)
 
     assert f"traffic_{network_id}" not in tasks
     assert f"vlans_{network_id}" not in tasks
@@ -63,7 +70,14 @@ def test_build_network_tasks_includes_enabled(strategy, disabled_features):
     network_id = "net1"
 
     tasks = {}
-    strategy.build_network_tasks(network_id, tasks)
+
+    # Patch async methods to avoid unawaited coroutine warnings
+    with patch.object(
+        strategy, "_async_get_appliance_ports", return_value=MagicMock()
+    ), patch.object(
+        strategy, "_get_uplink_performance", return_value=MagicMock()
+    ):
+        strategy.build_network_tasks(network_id, tasks)
 
     assert f"traffic_{network_id}" in tasks
     assert f"vlans_{network_id}" in tasks
@@ -85,7 +99,15 @@ def test_build_network_tasks_respects_feature_flags(mock_client, disabled_featur
         enable_traffic_shaping=True,
     )
     tasks = {}
-    strategy_enabled.build_network_tasks(network_id, tasks)
+
+    # Patch async methods to avoid unawaited coroutine warnings
+    with patch.object(
+        strategy_enabled, "_async_get_appliance_ports", return_value=MagicMock()
+    ), patch.object(
+        strategy_enabled, "_get_uplink_performance", return_value=MagicMock()
+    ):
+        strategy_enabled.build_network_tasks(network_id, tasks)
+
     assert f"vpn_status_{network_id}" in tasks
     assert f"l3_firewall_rules_{network_id}" in tasks
     assert f"traffic_shaping_{network_id}" in tasks
@@ -99,7 +121,15 @@ def test_build_network_tasks_respects_feature_flags(mock_client, disabled_featur
         enable_traffic_shaping=False,
     )
     tasks = {}
-    strategy_disabled.build_network_tasks(network_id, tasks)
+
+    # Patch async methods to avoid unawaited coroutine warnings
+    with patch.object(
+        strategy_disabled, "_async_get_appliance_ports", return_value=MagicMock()
+    ), patch.object(
+        strategy_disabled, "_get_uplink_performance", return_value=MagicMock()
+    ):
+        strategy_disabled.build_network_tasks(network_id, tasks)
+
     assert f"vpn_status_{network_id}" not in tasks
     assert f"l3_firewall_rules_{network_id}" not in tasks
     assert f"traffic_shaping_{network_id}" not in tasks

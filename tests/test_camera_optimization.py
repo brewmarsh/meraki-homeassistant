@@ -1,5 +1,5 @@
 from unittest.mock import AsyncMock, MagicMock
-
+import asyncio
 import pytest
 
 from custom_components.meraki_ha.core.coordinator_helpers.data_fetcher import (
@@ -30,6 +30,11 @@ async def test_camera_modulo_fetch():
     )
     assert f"sense_settings_{device.serial}" in tasks
 
+    # Cleanup Poll 1 tasks
+    for task in tasks.values():
+        if asyncio.iscoroutine(task):
+            task.close()
+
     # Poll 2
     strategy.increment_poll_count()
     assert strategy.should_fetch_sense is False
@@ -53,6 +58,11 @@ async def test_camera_modulo_fetch():
         device, tasks, capabilities=["camera_stream", "camera_analytics"]
     )
     assert f"sense_settings_{device.serial}" in tasks
+
+    # Cleanup Poll 6 tasks
+    for task in tasks.values():
+        if asyncio.iscoroutine(task):
+            task.close()
 
 
 @pytest.mark.asyncio
@@ -97,6 +107,11 @@ async def test_dfm_batch_analytics_modulo():
 
     # Analytics should be present in poll 1 (1 % 5 == 1? No (1-1)%5 == 0)
     assert f"camera_analytics_{devices[0].serial}" in tasks
+
+    # Cleanup Poll 1 tasks
+    for task in tasks.values():
+        if asyncio.iscoroutine(task):
+            await task
 
     # Poll 2
     dfm.camera_strategy.increment_poll_count()
