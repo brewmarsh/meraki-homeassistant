@@ -6,6 +6,7 @@ import pytest
 from homeassistant.const import EntityCategory
 
 from custom_components.meraki_ha.const_conf import CONF_ENABLE_VLAN_MANAGEMENT
+from custom_components.meraki_ha.core.models.network import MerakiVlan
 from custom_components.meraki_ha.discovery.service import DeviceDiscoveryService
 from custom_components.meraki_ha.types import MerakiNetwork
 
@@ -25,19 +26,19 @@ def mock_coordinator():
         product_types=["appliance"],
     )
 
-    # Create mock VLANs as dictionaries
-    vlan1 = {
-        "id": "1",
-        "name": "VLAN 1",
-        "subnet": "192.168.1.0/24",
-        "applianceIp": "192.168.1.1",
-    }
-    vlan2 = {
-        "id": "2",
-        "name": "VLAN 2",
-        "subnet": "192.168.2.0/24",
-        "applianceIp": "192.168.2.1",
-    }
+    # Create mock VLANs as MerakiVlan objects
+    vlan1 = MerakiVlan(
+        id="1",
+        name="VLAN 1",
+        subnet="192.168.1.0/24",
+        appliance_ip="192.168.1.1",
+    )
+    vlan2 = MerakiVlan(
+        id="2",
+        name="VLAN 2",
+        subnet="192.168.2.0/24",
+        appliance_ip="192.168.2.1",
+    )
 
     coordinator.data = {
         "networks": [mock_network],

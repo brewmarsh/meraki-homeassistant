@@ -137,7 +137,7 @@ def _setup_vlan_switches(
         if not isinstance(vlans, list):
             continue
         for vlan in vlans:
-            vlan_id = vlan.get("id")
+            vlan_id = vlan.id
             if not vlan_id:
                 continue
 

@@ -11,6 +11,7 @@ from homeassistant.const import EntityCategory
 
 from ...coordinator import MerakiDataUpdateCoordinator
 from ...core.entities.meraki_vlan_entity import MerakiVLANEntity
+from ...core.models.network import MerakiVlan
 from ...core.utils.entity_id_utils import get_vlan_entity_id
 
 _LOGGER = logging.getLogger(__name__)
@@ -26,14 +27,14 @@ class MerakiVLANStatusSensor(MerakiVLANEntity, SensorEntity):
         coordinator: MerakiDataUpdateCoordinator,
         config_entry: ConfigEntry,
         network_id: str,
-        vlan: dict,
+        vlan: MerakiVlan,
     ) -> None:
         """Initialize the sensor."""
         super().__init__(coordinator, config_entry, network_id, vlan)
         if not self._network_id:
             raise ValueError("Network ID cannot be None for a VLAN entity")
-        vlan_id = self._vlan["id"]
-        vlan_name = self._vlan.get("name", "")
+        vlan_id = self._vlan.id
+        vlan_name = self._vlan.name or ""
 
         # Unique ID
         self._attr_unique_id = get_vlan_entity_id(self._network_id, vlan_id, "status")
@@ -47,21 +48,19 @@ class MerakiVLANStatusSensor(MerakiVLANEntity, SensorEntity):
     @property
     def native_value(self) -> str | None:
         """Return the subnet (CIDR)."""
-        return self._vlan.get("subnet")
+        return self._vlan.subnet
 
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
         """Return the state attributes."""
         return {
-            "vlan_id": self._vlan.get("id"),
-            "name": self._vlan.get("name"),
-            "appliance_ip": self._vlan.get("applianceIp"),
-            "ipv6_enabled": self._vlan.get("ipv6", {}).get("enabled", False),
-            "ipv6_prefix": self._vlan.get("ipv6", {}).get("prefix"),
-            "dns_nameservers": self._vlan.get("dnsNameservers"),
-            "dhcp_handling": self._vlan.get("dhcpHandling"),
-            "dhcp_lease_time": self._vlan.get("dhcpLeaseTime"),
-            "dhcp_boot_options_enabled": self._vlan.get(
-                "dhcpBootOptionsEnabled", False
-            ),
+            "vlan_id": self._vlan.id,
+            "name": self._vlan.name,
+            "appliance_ip": self._vlan.appliance_ip,
+            "ipv6_enabled": (self._vlan.ipv6 or {}).get("enabled", False),
+            "ipv6_prefix": (self._vlan.ipv6 or {}).get("prefix"),
+            "dns_nameservers": self._vlan.dns_nameservers,
+            "dhcp_handling": self._vlan.dhcp_handling,
+            "dhcp_lease_time": self._vlan.dhcp_lease_time,
+            "dhcp_boot_options_enabled": self._vlan.dhcp_boot_options_enabled,
         }
