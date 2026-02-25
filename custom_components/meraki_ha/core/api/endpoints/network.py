@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING, Any, cast
 
 import meraki
 
-from custom_components.meraki_ha.core.utils.api_utils import (
+from custom_components.meraki_ha.core.utils.api import (
     handle_meraki_errors,
     validate_response,
 )
