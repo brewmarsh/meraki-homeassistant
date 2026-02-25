@@ -215,6 +215,18 @@ class ApplianceFetchStrategy(BaseFetchStrategy):
         prev_device: MerakiDevice | None,
     ) -> None:
         """Process appliance details."""
+        self._process_appliance_ports(device, detail_data, prev_device)
+        self._process_dynamic_dns(device, detail_data, prev_device)
+        self._process_management_interface(device, detail_data, prev_device)
+        self._process_uplink_performance(device, detail_data, prev_device)
+
+    def _process_appliance_ports(
+        self,
+        device: MerakiDevice,
+        detail_data: dict[str, Any],
+        prev_device: MerakiDevice | None,
+    ) -> None:
+        """Process appliance ports."""
         if ports := detail_data.get(f"appliance_ports_{device.network_id}"):
             if isinstance(ports, list):
                 device.appliance_ports = [
@@ -225,6 +237,13 @@ class ApplianceFetchStrategy(BaseFetchStrategy):
         elif prev_device and hasattr(prev_device, "appliance_ports"):
             device.appliance_ports = prev_device.appliance_ports
 
+    def _process_dynamic_dns(
+        self,
+        device: MerakiDevice,
+        detail_data: dict[str, Any],
+        prev_device: MerakiDevice | None,
+    ) -> None:
+        """Process dynamic DNS settings."""
         if settings := detail_data.get(f"appliance_settings_{device.serial}"):
             # Defensive check: Ensure settings is a dict before calling .get()
             if isinstance(settings, dict) and isinstance(
@@ -234,6 +253,13 @@ class ApplianceFetchStrategy(BaseFetchStrategy):
         elif prev_device and hasattr(prev_device, "dynamic_dns"):
             device.dynamic_dns = prev_device.dynamic_dns
 
+    def _process_management_interface(
+        self,
+        device: MerakiDevice,
+        detail_data: dict[str, Any],
+        prev_device: MerakiDevice | None,
+    ) -> None:
+        """Process management interface settings."""
         interface_key = f"management_interface_{device.serial}"
         if management_interface := detail_data.get(interface_key):
             if isinstance(management_interface, dict):
@@ -241,20 +267,16 @@ class ApplianceFetchStrategy(BaseFetchStrategy):
         elif prev_device and hasattr(prev_device, "management_interface"):
             device.management_interface = prev_device.management_interface
 
+    def _process_uplink_performance(
+        self,
+        device: MerakiDevice,
+        detail_data: dict[str, Any],
+        prev_device: MerakiDevice | None,
+    ) -> None:
+        """Process uplink performance data."""
         if performance := detail_data.get(f"uplink_performance_{device.network_id}"):
             if isinstance(performance, list):
-                # Normalize keys for robust mapping
-                # (loss -> lossPercent, latency -> latencyMs)
-                normalized_performance = []
-                for p in performance:
-                    if not isinstance(p, dict):
-                        continue
-                    item = p.copy()
-                    if "loss" in item and "lossPercent" not in item:
-                        item["lossPercent"] = item["loss"]
-                    if "latency" in item and "latencyMs" not in item:
-                        item["latencyMs"] = item["latency"]
-                    normalized_performance.append(item)
+                normalized_performance = self._normalize_uplink_performance(performance)
 
                 # Filter performance data for this device
                 device_perf = [
@@ -281,3 +303,19 @@ class ApplianceFetchStrategy(BaseFetchStrategy):
                 device.uplinks = merged_uplinks
         elif prev_device and hasattr(prev_device, "uplinks"):
             device.uplinks = prev_device.uplinks
+
+    def _normalize_uplink_performance(
+        self, performance: list[Any]
+    ) -> list[dict[str, Any]]:
+        """Normalize uplink performance data keys."""
+        normalized = []
+        for p in performance:
+            if not isinstance(p, dict):
+                continue
+            item = p.copy()
+            if "loss" in item and "lossPercent" not in item:
+                item["lossPercent"] = item["loss"]
+            if "latency" in item and "latencyMs" not in item:
+                item["latencyMs"] = item["latency"]
+            normalized.append(item)
+        return normalized
