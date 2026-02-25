@@ -5,6 +5,7 @@ from unittest.mock import MagicMock
 import pytest
 
 from custom_components.meraki_ha.const import DOMAIN
+from custom_components.meraki_ha.core.models.network import MerakiVlan
 from custom_components.meraki_ha.discovery.service import DeviceDiscoveryService
 from custom_components.meraki_ha.sensor.network.vlan import MerakiVLANStatusSensor
 from custom_components.meraki_ha.types import MerakiNetwork
@@ -30,18 +31,18 @@ def mock_coordinator():
         product_types=["appliance"],
     )
 
-    # Create mock VLANs using dictionaries (as expected by the implementation)
-    vlan1 = {
-        "id": 1,
-        "name": "VLAN 1",
-        "subnet": "192.168.1.0/24",
-        "applianceIp": "192.168.1.1",
-        "ipv6": {
+    # Create mock VLANs using MerakiVlan objects
+    vlan1 = MerakiVlan(
+        id=1,
+        name="VLAN 1",
+        subnet="192.168.1.0/24",
+        appliance_ip="192.168.1.1",
+        ipv6={
             "enabled": True,
             "prefix": "2001:db8:1::/64",
         },
-        "dhcpHandling": "Run a DHCP server",
-    }
+        dhcp_handling="Run a DHCP server",
+    )
 
     coordinator.data = {
         "networks": [mock_network],
