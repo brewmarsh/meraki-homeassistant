@@ -29,67 +29,104 @@ def parse_wireless_data(
     ssids: list[dict[str, Any]] = []
     wireless_settings: dict[str, list[dict[str, Any]]] = {}
     rf_profiles: dict[str, list[dict[str, Any]]] = {}
-    client_counts: dict[tuple[str, str], int] = {}
-
-    # Calculate online client counts per SSID
-    if clients:
-        for client in clients:
-            if (
-                "networkId" in client
-                and "ssid" in client
-                and str(client.get("status", "")).lower() == "online"
-            ):
-                key = (str(client["networkId"]), str(client["ssid"]))
-                client_counts[key] = client_counts.get(key, 0) + 1
+    client_counts = _calculate_client_counts(clients)
 
     for network in networks:
         network_id = str(network.id) if network.id else ""
         if not network_id:
             continue
 
-        # Process SSIDs
-        network_ssids_key = f"ssids_{network_id}"
-        network_ssids_raw = detail_data.get(network_ssids_key)
-
-        processed_network_ssids: list[dict[str, Any]] = []
-
-        if isinstance(network_ssids_raw, list):
-            for ssid in network_ssids_raw:
-                if (
-                    isinstance(ssid, dict)
-                    and "unconfigured ssid" not in ssid.get("name", "").lower()
-                ):
-                    ssid["networkId"] = network_id
-                    ssid_name = ssid.get("name")
-                    if ssid_name:
-                        count_key = (network_id, str(ssid_name))
-                        ssid["clientCount"] = client_counts.get(count_key, 0)
-                    else:
-                        ssid["clientCount"] = 0
-                    processed_network_ssids.append(ssid)
-        elif previous_data and "wireless_settings" in previous_data:
-            processed_network_ssids = previous_data["wireless_settings"].get(
-                network_id, []
-            )
-        elif previous_data and network_ssids_key in previous_data:
-            # Fallback for older data structure
-            processed_network_ssids = previous_data.get(network_ssids_key, [])
+        processed_network_ssids = _process_network_ssids(
+            network_id, detail_data, previous_data, client_counts
+        )
 
         wireless_settings[network_id] = processed_network_ssids
         ssids.extend(processed_network_ssids)
 
-        # Process RF Profiles
-        network_rf_profiles_key = f"rf_profiles_{network_id}"
-        network_rf_profiles = detail_data.get(network_rf_profiles_key)
-        if isinstance(network_rf_profiles, list):
-            rf_profiles[network_id] = network_rf_profiles
-        elif previous_data and "rf_profiles" in previous_data:
-            rf_profiles[network_id] = previous_data["rf_profiles"].get(network_id, [])
-        elif previous_data and network_rf_profiles_key in previous_data:
-            rf_profiles[network_id] = previous_data.get(network_rf_profiles_key, [])
+        rf_profiles[network_id] = _process_network_rf_profiles(
+            network_id, detail_data, previous_data
+        )
 
     return {
         "ssids": ssids,
         "wireless_settings": wireless_settings,
         "rf_profiles": rf_profiles,
     }
+
+
+def _calculate_client_counts(
+    clients: list[dict[str, Any]] | None,
+) -> dict[tuple[str, str], int]:
+    """Calculate online client counts per SSID."""
+    client_counts: dict[tuple[str, str], int] = {}
+    if not clients:
+        return client_counts
+
+    for client in clients:
+        if (
+            "networkId" in client
+            and "ssid" in client
+            and str(client.get("status", "")).lower() == "online"
+        ):
+            key = (str(client["networkId"]), str(client["ssid"]))
+            client_counts[key] = client_counts.get(key, 0) + 1
+    return client_counts
+
+
+def _process_network_ssids(
+    network_id: str,
+    detail_data: dict[str, Any],
+    previous_data: dict[str, Any],
+    client_counts: dict[tuple[str, str], int],
+) -> list[dict[str, Any]]:
+    """Process SSIDs for a single network."""
+    network_ssids_key = f"ssids_{network_id}"
+    network_ssids_raw = detail_data.get(network_ssids_key)
+
+    if isinstance(network_ssids_raw, list):
+        processed_ssids = []
+        for ssid in network_ssids_raw:
+            if not isinstance(ssid, dict):
+                continue
+            if "unconfigured ssid" in ssid.get("name", "").lower():
+                continue
+
+            ssid["networkId"] = network_id
+            ssid_name = ssid.get("name")
+            if ssid_name:
+                count_key = (network_id, str(ssid_name))
+                ssid["clientCount"] = client_counts.get(count_key, 0)
+            else:
+                ssid["clientCount"] = 0
+            processed_ssids.append(ssid)
+        return processed_ssids
+
+    if previous_data:
+        if "wireless_settings" in previous_data:
+            return previous_data["wireless_settings"].get(network_id, [])
+        if network_ssids_key in previous_data:
+            # Fallback for older data structure
+            return previous_data.get(network_ssids_key, [])
+
+    return []
+
+
+def _process_network_rf_profiles(
+    network_id: str,
+    detail_data: dict[str, Any],
+    previous_data: dict[str, Any],
+) -> list[dict[str, Any]]:
+    """Process RF Profiles for a single network."""
+    network_rf_profiles_key = f"rf_profiles_{network_id}"
+    network_rf_profiles = detail_data.get(network_rf_profiles_key)
+
+    if isinstance(network_rf_profiles, list):
+        return network_rf_profiles
+
+    if previous_data:
+        if "rf_profiles" in previous_data:
+            return previous_data["rf_profiles"].get(network_id, [])
+        if network_rf_profiles_key in previous_data:
+            return previous_data.get(network_rf_profiles_key, [])
+
+    return []

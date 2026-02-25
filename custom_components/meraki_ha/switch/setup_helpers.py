@@ -16,7 +16,11 @@ from ..const_conf import (
 )
 from ..coordinator import MerakiDataUpdateCoordinator
 from ..core.api.client import MerakiAPIClient
-from ..core.models.network import MerakiTrafficShaping, MerakiVpn
+from ..core.models.network import (
+    MerakiFirewallRule,
+    MerakiTrafficShaping,
+    MerakiVpn,
+)
 from ..core.utils.entity_id_utils import get_firewall_rule_entity_id
 from .camera_controls import AnalyticsSwitch
 from .firewall_rule import MerakiFirewallRuleSwitch
@@ -71,7 +75,7 @@ def _create_firewall_rule_entities(
     coordinator: MerakiDataUpdateCoordinator,
     config_entry: ConfigEntry,
     network_id: str,
-    rules: list[dict[str, Any]],
+    rules: list[MerakiFirewallRule],
     added_entities: set[str],
 ) -> list[SwitchEntity]:
     """Create firewall rule entities for a network."""
