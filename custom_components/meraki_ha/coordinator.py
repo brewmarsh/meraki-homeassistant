@@ -2,14 +2,13 @@
 
 from __future__ import annotations
 
-import asyncio
 import logging
 from datetime import datetime, timedelta
 from typing import TYPE_CHECKING, Any
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
+from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 
 from .const import DOMAIN
 from .core.api.client import MerakiAPIClient as ApiClient
@@ -49,9 +48,8 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             entry: The config entry.
 
         """
-        # Accept Beta/Refactor: Standardized Encapsulated config logic
         self.config = get_coordinator_config(entry)
-        
+
         self.api = ApiClient(
             hass=hass,
             api_key=self.config.api_key,
@@ -65,7 +63,7 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             enable_traffic_shaping=self.config.enable_traffic,
             enable_camera_sense=self.config.enable_camera_sense,
         )
-        
+
         self.devices_by_serial: dict[str, MerakiDevice] = {}
         self.networks_by_id: dict[str, MerakiNetwork] = {}
         self.ssids_by_network_and_number: dict[tuple[str, int], dict[str, Any]] = {}
@@ -83,7 +81,6 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         )
         self.config_entry = entry
 
-        # Accept Beta/Refactor: UpdateProcessor replaces MerakiDataProcessor
         self.update_processor = UpdateProcessor(
             hass=hass,
             config_entry=entry,
@@ -112,40 +109,25 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         try:
             return await self._execute_update_cycle()
         except Exception as err:
-            return self._handle_update_failure(err)
+            data, interval_changed = self.update_processor.process_failure(
+                err, self.last_successful_data
+            )
+            if interval_changed:
+                self.update_interval = self.polling_manager.update_interval
+            return data
 
     async def _execute_update_cycle(self) -> dict[str, Any]:
         """Execute the update cycle and process data."""
-        timespan = self._get_update_timespan()
-        data = await self._fetch_data_from_api(timespan)
+        timespan = int(self.update_interval.total_seconds()) if self.update_interval else 300
+        data = await self.data_fetch_manager.get_all_data(
+            self.last_successful_data, timespan=timespan
+        )
 
         if not data:
             _LOGGER.warning("API call to get_all_data returned no data.")
             return self.last_successful_data
 
-        await self._process_successful_update(data)
-        return data
-
-    def _get_update_timespan(self) -> int:
-        """Get the update timespan in seconds."""
-        if not self.update_interval:
-            return 300
-        return int(self.update_interval.total_seconds())
-
-    async def _fetch_data_from_api(self, timespan: int) -> dict[str, Any]:
-        """Fetch data from the API with a timeout."""
-        try:
-            async with asyncio.timeout(30):  # HA default setup limit
-                return await self.data_fetch_manager.get_all_data(
-                    self.last_successful_data, timespan=timespan
-                )
-        except TimeoutError:
-            _LOGGER.error("Meraki API took too long; check for semaphore deadlock")
-            raise UpdateFailed("API Timeout") from None
-
-    async def _process_successful_update(self, data: dict[str, Any]) -> None:
-        """Process successful data update via the specialized UpdateProcessor."""
-        # Accept Beta/Refactor: Delegated async logic reduces coordinator complexity
+        # Process successful update
         (
             self.devices_by_serial,
             self.networks_by_id,
@@ -158,41 +140,7 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
         self.last_successful_update = datetime.now()
         self.last_successful_data = data
-
-    def _handle_update_failure(self, err: Exception) -> dict[str, Any]:
-        """Handle update failure via PollingManager."""
-        self._record_and_adjust_polling(err)
-        self._log_update_status(err)
-
-        if not self.last_successful_data:
-            raise UpdateFailed(f"Error communicating with API: {err}") from err
-
-        return self.last_successful_data
-
-    def _record_and_adjust_polling(self, err: Exception) -> None:
-        """Record the failure and adjust poll interval if necessary."""
-        if not self.polling_manager.record_failure(err):
-            return
-
-        if self.update_interval == self.polling_manager.update_interval:
-            return
-
-        _LOGGER.warning(
-            "Increasing poll interval to %s due to failures.",
-            self.polling_manager.update_interval,
-        )
-        self.update_interval = self.polling_manager.update_interval
-
-    def _log_update_status(self, err: Exception) -> None:
-        """Log update status and failure details."""
-        _LOGGER.debug(
-            "Coordinator update success rate (last 5): %.1f%%",
-            self.polling_manager.get_success_rate(),
-        )
-        _LOGGER.warning(
-            "Failed to fetch new data, using stale data. Error: %s",
-            err,
-        )
+        return data
 
     def get_device(self, serial: str | None) -> MerakiDevice | None:
         """Get device data by serial number."""
