@@ -35,20 +35,18 @@ async def async_setup_entry(
     discovery_service: DeviceDiscoveryService = entry_data["discovery_service"]
 
     # Add entities from discovery service
-    switch_entities = [
+    discovery_entities = [
         entity
         for entity in discovery_service.all_entities
         if isinstance(entity, SwitchEntity)
     ]
+    if discovery_entities:
+        async_add_entities(discovery_entities)
 
     # Add other switches from setup helpers
-    switch_entities.extend(
-        async_setup_switches(hass, config_entry, coordinator, meraki_client)
+    async_setup_switches(
+        hass, config_entry, coordinator, meraki_client, async_add_entities
     )
-
-    _LOGGER.debug("Found %d switch entities", len(switch_entities))
-    if switch_entities:
-        async_add_entities(switch_entities)
 
     return True
 
