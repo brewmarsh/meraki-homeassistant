@@ -47,6 +47,14 @@ class ApplianceFetchStrategy(BaseFetchStrategy):
         tasks: dict[str, Any],
     ) -> None:
         """Add appliance specific network tasks."""
+        self._add_traffic_and_vlan_tasks(network_id, tasks)
+        self._add_feature_based_tasks(network_id, tasks)
+        self._add_standard_appliance_tasks(network_id, tasks)
+
+    def _add_traffic_and_vlan_tasks(
+        self, network_id: str, tasks: dict[str, Any]
+    ) -> None:
+        """Add traffic and vlan tasks if not disabled."""
         if f"traffic_{network_id}" not in self._disabled_features:
             tasks[f"traffic_{network_id}"] = self.client.run_with_semaphore(
                 self.client.network.get_network_traffic(network_id, "appliance"),
@@ -57,6 +65,10 @@ class ApplianceFetchStrategy(BaseFetchStrategy):
                 self.client.network.get_vlan_data(network_id),
             )
 
+    def _add_feature_based_tasks(
+        self, network_id: str, tasks: dict[str, Any]
+    ) -> None:
+        """Add tasks based on enabled features."""
         if self.enable_firewall_rules:
             tasks[f"l3_firewall_rules_{network_id}"] = self.client.run_with_semaphore(
                 self.client.appliance.get_l3_firewall_rules(network_id),
@@ -69,6 +81,11 @@ class ApplianceFetchStrategy(BaseFetchStrategy):
             tasks[f"vpn_status_{network_id}"] = self.client.run_with_semaphore(
                 self.client.appliance.get_vpn_status(network_id),
             )
+
+    def _add_standard_appliance_tasks(
+        self, network_id: str, tasks: dict[str, Any]
+    ) -> None:
+        """Add standard appliance tasks."""
         tasks[f"appliance_ports_{network_id}"] = self.client.run_with_semaphore(
             self._async_get_appliance_ports(network_id),
         )
@@ -106,26 +123,37 @@ class ApplianceFetchStrategy(BaseFetchStrategy):
         ]
 
         for method_name, extra_kwargs in methods:
-            if hasattr(self.client.dashboard.appliance, method_name):
-                method = getattr(self.client.dashboard.appliance, method_name)
-                try:
-                    _LOGGER.debug(
-                        "Attempting to fetch uplink performance using %s", method_name
-                    )
-                    performance = await self.client.run_sync(
-                        method, networkId=network_id, **extra_kwargs
-                    )
-                    if isinstance(performance, list):
-                        return performance
-                except Exception as e:
-                    _LOGGER.debug(
-                        "Method %s failed for network %s: %s",
-                        method_name,
-                        network_id,
-                        e,
-                    )
-                    continue
+            if result := await self._try_fetch_performance(
+                network_id, method_name, extra_kwargs
+            ):
+                return result
         return []
+
+    async def _try_fetch_performance(
+        self, network_id: str, method_name: str, extra_kwargs: dict[str, Any]
+    ) -> list[dict[str, Any]] | None:
+        """Try to fetch performance data using a specific method."""
+        if not hasattr(self.client.dashboard.appliance, method_name):
+            return None
+
+        method = getattr(self.client.dashboard.appliance, method_name)
+        try:
+            _LOGGER.debug(
+                "Attempting to fetch uplink performance using %s", method_name
+            )
+            performance = await self.client.run_sync(
+                method, networkId=network_id, **extra_kwargs
+            )
+            if isinstance(performance, list):
+                return performance
+        except Exception as e:  # pylint: disable=broad-except
+            _LOGGER.debug(
+                "Method %s failed for network %s: %s",
+                method_name,
+                network_id,
+                e,
+            )
+        return None
 
     def build_device_tasks(
         self,
@@ -160,29 +188,34 @@ class ApplianceFetchStrategy(BaseFetchStrategy):
         """Process traffic data for a network."""
         key = f"traffic_{network_id}"
         data = detail_data.get(key)
+
+        if result := self._handle_traffic_error(network_id, key, data):
+            appliance_traffic[network_id] = result
+        elif isinstance(data, dict):
+            appliance_traffic[network_id] = data
+        elif previous_data and key in previous_data:
+            appliance_traffic[network_id] = previous_data[key]
+
+    def _handle_traffic_error(
+        self, network_id: str, key: str, data: Any
+    ) -> dict[str, str] | None:
+        """Handle traffic analysis errors."""
         if isinstance(data, MerakiTrafficAnalysisError):
             self._disabled_features.add(key)
             _LOGGER.info(
                 "Traffic analysis is not enabled for network %s.",
                 network_id,
             )
-            appliance_traffic[network_id] = {
-                "error": "disabled",
-                "reason": str(data),
-            }
-        elif (
+            return {"error": "disabled", "reason": str(data)}
+
+        if (
             isinstance(data, MerakiInformationalError)
             and "traffic analysis" in str(data).lower()
         ):
             self._disabled_features.add(key)
-            appliance_traffic[network_id] = {
-                "error": "disabled",
-                "reason": str(data),
-            }
-        elif isinstance(data, dict):
-            appliance_traffic[network_id] = data
-        elif previous_data and key in previous_data:
-            appliance_traffic[network_id] = previous_data[key]
+            return {"error": "disabled", "reason": str(data)}
+
+        return None
 
     def process_network_vlans(
         self,
@@ -194,19 +227,28 @@ class ApplianceFetchStrategy(BaseFetchStrategy):
         """Process VLAN data for a network."""
         key = f"vlans_{network_id}"
         data = detail_data.get(key)
-        if isinstance(data, (MerakiVlanError, MerakiVlansDisabledError)):
-            self._disabled_features.add(key)
-            if isinstance(data, MerakiVlanError):
-                _LOGGER.info(str(data))
+
+        if self._handle_vlan_error(key, data):
             vlan_by_network[network_id] = []
-        elif isinstance(data, MerakiInformationalError):
-            if "vlans are not enabled" in str(data).lower():
-                self._disabled_features.add(key)
-                vlan_by_network[network_id] = []
         elif isinstance(data, list):
             vlan_by_network[network_id] = data
         elif previous_data and key in previous_data:
             vlan_by_network[network_id] = previous_data[key]
+
+    def _handle_vlan_error(self, key: str, data: Any) -> bool:
+        """Handle VLAN errors and return True if feature should be disabled."""
+        if isinstance(data, (MerakiVlanError, MerakiVlansDisabledError)):
+            self._disabled_features.add(key)
+            if isinstance(data, MerakiVlanError):
+                _LOGGER.info(str(data))
+            return True
+
+        if isinstance(data, MerakiInformationalError):
+            if "vlans are not enabled" in str(data).lower():
+                self._disabled_features.add(key)
+                return True
+
+        return False
 
     def process_device_details(
         self,
@@ -274,35 +316,44 @@ class ApplianceFetchStrategy(BaseFetchStrategy):
         prev_device: MerakiDevice | None,
     ) -> None:
         """Process uplink performance data."""
-        if performance := detail_data.get(f"uplink_performance_{device.network_id}"):
-            if isinstance(performance, list):
-                normalized_performance = self._normalize_uplink_performance(performance)
+        performance = detail_data.get(f"uplink_performance_{device.network_id}")
 
-                # Filter performance data for this device
-                device_perf = [
-                    p
-                    for p in normalized_performance
-                    if p.get("serial") == device.serial
-                ]
-                # Merge with existing status data in device.uplinks
-                perf_by_interface = {p.get("interface"): p for p in device_perf}
-                merged_uplinks = []
-                # Use appliance_uplink_statuses as the base for merging
-                for status_uplink in device.appliance_uplink_statuses:
-                    interface = status_uplink.get("interface")
-                    perf = perf_by_interface.get(interface, {})
-                    merged_uplinks.append({**status_uplink, **perf})
+        if not isinstance(performance, list):
+            if prev_device and hasattr(prev_device, "uplinks"):
+                device.uplinks = prev_device.uplinks
+            return
 
-                # Add any interfaces found in performance but not in status
-                status_interfaces = {
-                    u.get("interface") for u in device.appliance_uplink_statuses
-                }
-                for interface, perf in perf_by_interface.items():
-                    if interface not in status_interfaces:
-                        merged_uplinks.append(perf)
-                device.uplinks = merged_uplinks
-        elif prev_device and hasattr(prev_device, "uplinks"):
-            device.uplinks = prev_device.uplinks
+        normalized_performance = self._normalize_uplink_performance(performance)
+        device_perf = [
+            p for p in normalized_performance if p.get("serial") == device.serial
+        ]
+
+        device.uplinks = self._merge_uplink_status_and_performance(
+            device.appliance_uplink_statuses, device_perf
+        )
+
+    def _merge_uplink_status_and_performance(
+        self,
+        statuses: list[dict[str, Any]],
+        performance: list[dict[str, Any]],
+    ) -> list[dict[str, Any]]:
+        """Merge uplink status and performance data."""
+        perf_by_interface = {p.get("interface"): p for p in performance}
+        merged_uplinks = []
+
+        # Use appliance_uplink_statuses as the base for merging
+        for status_uplink in statuses:
+            interface = status_uplink.get("interface")
+            perf = perf_by_interface.get(interface, {})
+            merged_uplinks.append({**status_uplink, **perf})
+
+        # Add any interfaces found in performance but not in status
+        status_interfaces = {u.get("interface") for u in statuses}
+        for interface, perf in perf_by_interface.items():
+            if interface not in status_interfaces:
+                merged_uplinks.append(perf)
+
+        return merged_uplinks
 
     def _normalize_uplink_performance(
         self, performance: list[Any]
