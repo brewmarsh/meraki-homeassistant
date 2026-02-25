@@ -7,7 +7,7 @@ import pytest
 from custom_components.meraki_ha.core.entities.meraki_vlan_entity import (
     MerakiVLANEntity,
 )
-from custom_components.meraki_ha.types import MerakiNetwork
+from custom_components.meraki_ha.core.models.network import MerakiNetwork, MerakiVlan
 
 
 @pytest.fixture
@@ -33,13 +33,17 @@ def test_vlan_naming(mock_coordinator):
     )
     mock_coordinator.get_network.return_value = network
 
-    vlan = {
-        "id": 10,
-        "name": "VoIP",
-        "applianceIp": "192.168.10.1",
-        "subnet": "192.168.10.0/24",
-        "ipv6": None,
-    }
+    vlan = MerakiVlan(
+        id="10",
+        name="VoIP",
+        appliance_ip="192.168.10.1",
+        subnet="192.168.10.0/24",
+        ipv6=None,
+        dhcp_handling="Run a DHCP server",
+        dns_nameservers="upstream_dns",
+        dhcp_lease_time="1 day",
+        dhcp_boot_options_enabled=False,
+    )
 
     entity = MerakiVLANEntity(mock_coordinator, config_entry, "N_12345", vlan)
 

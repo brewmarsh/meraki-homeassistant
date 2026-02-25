@@ -63,9 +63,10 @@ async def test_appliance_features_fetching_behavior() -> None:
         enable_traffic_shaping=False,
     )
     # We patch asyncio.create_task just in case, though we don't use it directly here
+    tasks_disabled: dict[str, Any] = {}
     with patch("asyncio.create_task", side_effect=lambda x: x):
-        tasks_disabled = manager_disabled._build_detail_tasks(
-            {"networks": [mock_network]}
+        manager_disabled._collect_network_tasks(
+            {"networks": [mock_network]}, tasks_disabled
         )
 
     assert "l3_firewall_rules_net1" not in tasks_disabled
@@ -81,9 +82,10 @@ async def test_appliance_features_fetching_behavior() -> None:
         enable_firewall_rules=True,
         enable_traffic_shaping=True,
     )
+    tasks_enabled: dict[str, Any] = {}
     with patch("asyncio.create_task", side_effect=lambda x: x):
-        tasks_enabled = manager_enabled._build_detail_tasks(
-            {"networks": [mock_network]}
+        manager_enabled._collect_network_tasks(
+            {"networks": [mock_network]}, tasks_enabled
         )
 
     assert "l3_firewall_rules_net1" in tasks_enabled

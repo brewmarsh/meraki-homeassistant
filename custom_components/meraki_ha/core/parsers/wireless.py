@@ -4,7 +4,43 @@ from __future__ import annotations
 
 from typing import Any
 
+from typing import cast
+
 from ...core.models.network import MerakiNetwork
+
+
+def update_processed_wireless_data(
+    processed_data: dict[str, Any], new_data: dict[str, Any]
+) -> None:
+    """Update processed data with new wireless data, handling duplicates."""
+    ssids = new_data.get("ssids", [])
+    if ssids:
+        if "ssids" not in processed_data:
+            processed_data["ssids"] = []
+
+        # SSID Duplicates Fix & Canonical Data Population
+        existing_ids = {
+            (s.get("networkId"), s.get("number"))
+            for s in cast(list[dict[str, Any]], processed_data["ssids"])
+        }
+
+        for ssid in ssids:
+            ssid_id = (ssid.get("networkId"), ssid.get("number"))
+            if ssid_id not in existing_ids:
+                cast(list[dict[str, Any]], processed_data["ssids"]).append(ssid)
+                existing_ids.add(ssid_id)
+
+    wireless_settings = new_data.get("wireless_settings", {})
+    if wireless_settings:
+        if "wireless_settings" not in processed_data:
+            processed_data["wireless_settings"] = {}
+        processed_data["wireless_settings"].update(wireless_settings)
+
+    rf_profiles = new_data.get("rf_profiles")
+    if isinstance(rf_profiles, dict):
+        if "rf_profiles" not in processed_data:
+            processed_data["rf_profiles"] = {}
+        processed_data["rf_profiles"].update(rf_profiles)
 
 
 def parse_wireless_data(

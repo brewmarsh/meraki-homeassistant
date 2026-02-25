@@ -34,8 +34,6 @@ def mock_config():
 def update_processor(mock_hass, mock_config_entry, mock_polling_manager, mock_config):
     """Fixture for UpdateProcessor."""
     processor = UpdateProcessor(mock_hass, mock_config_entry, mock_polling_manager, mock_config)
-    # Mock the internal data_processor to isolate UpdateProcessor logic
-    processor.data_processor = AsyncMock()
     return processor
 
 @pytest.mark.asyncio
@@ -50,8 +48,8 @@ async def test_process_success_orchestration(update_processor):
         "ssids_by_network_and_number": {"s": 3}
     }
 
-    # Setup the mock DataProcessor to return our sample data
-    update_processor.data_processor.async_process = AsyncMock(return_value=processed_return)
+    # Setup the mock async_process to return our sample data
+    update_processor.async_process = AsyncMock(return_value=processed_return)
 
     with patch.object(update_processor, "_handle_interval_recovery", return_value=True) as mock_handle:
         result = await update_processor.process_success(data, current_data)
@@ -59,8 +57,8 @@ async def test_process_success_orchestration(update_processor):
         # Verify orchestrator called its recovery helper
         mock_handle.assert_called_once()
         
-        # Verify orchestration delegated to DataProcessor correctly
-        update_processor.data_processor.async_process.assert_awaited_once_with(data, current_data)
+        # Verify orchestration delegated to async_process correctly
+        update_processor.async_process.assert_awaited_once_with(data, current_data)
 
         # Verify the final unpacked result matches expectations
         assert result == ({"d": 1}, {"n": 2}, {"s": 3}, True)
