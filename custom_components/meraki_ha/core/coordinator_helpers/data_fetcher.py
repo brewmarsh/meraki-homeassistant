@@ -18,8 +18,6 @@ from ...core.fetch_strategies.camera import CameraFetchStrategy
 from ...core.fetch_strategies.sensor import SensorFetchStrategy
 from ...core.fetch_strategies.switch import SwitchFetchStrategy
 from ...core.fetch_strategies.wireless import WirelessFetchStrategy
-from ...core.models.device import MerakiDevice
-from ...core.models.network import MerakiNetwork
 from ...core.parsers.appliance import parse_appliance_data
 from ...core.parsers.devices import parse_device_data
 from ...core.parsers.network import parse_network_data
@@ -28,6 +26,8 @@ from .client_fetcher import ClientFetcher
 
 if TYPE_CHECKING:
     from ..api.client import MerakiAPIClient
+    from ..models.device import MerakiDevice
+    from ..models.network import MerakiNetwork
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -212,6 +212,9 @@ class DataFetchManager:
 
     def _distribute_batch_data(self, batch_data: dict[str, Any]) -> dict[str, Any]:
         """Distribute initial batch data to respective parsers and models."""
+        from ..models.device import MerakiDevice
+        from ..models.network import MerakiNetwork
+
         data: dict[str, Any] = {}
 
         # Organization
@@ -269,6 +272,9 @@ class DataFetchManager:
 
     def _build_detail_tasks(self, data: dict[str, Any]) -> dict[str, Any]:
         """Build tasks for detailed data fetching per network/device."""
+        from ..models.device import MerakiDevice
+        from ..models.network import MerakiNetwork
+
         tasks: dict[str, Any] = {}
 
         # 1. Network-level Tasks
@@ -314,6 +320,8 @@ class DataFetchManager:
         timespan: int = 300,
     ) -> dict[str, Any]:
         """Fetch all data from the Meraki API in a coordinated cycle."""
+        from ..models.device import MerakiDevice
+
         initial_data = await self._async_fetch_initial_data()
         data = self._distribute_batch_data(initial_data)
 
