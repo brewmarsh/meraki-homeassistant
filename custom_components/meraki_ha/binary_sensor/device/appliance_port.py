@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Any, cast
+from typing import TYPE_CHECKING, Any, cast
 
 from homeassistant.components.binary_sensor import (
     BinarySensorDeviceClass,
@@ -13,9 +13,11 @@ from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from ...const import DOMAIN
-from ...coordinator import MerakiDataUpdateCoordinator
 from ...core.models.device import MerakiAppliancePort, MerakiDevice
 from ...core.utils.naming_utils import format_device_name
+
+if TYPE_CHECKING:
+    from ...coordinator import MerakiDataUpdateCoordinator
 
 
 class AppliancePortBinarySensor(CoordinatorEntity, BinarySensorEntity):

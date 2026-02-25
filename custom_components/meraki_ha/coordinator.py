@@ -117,23 +117,27 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
     async def _async_update_data(self) -> dict[str, Any]:
         """Fetch data from API endpoint, apply filters, and handle exceptions."""
         try:
-            timespan = (
-                int(self.update_interval.total_seconds())
-                if self.update_interval
-                else 300
-            )
-
-            data = await self._fetch_data_from_api(timespan)
-
-            if not data:
-                _LOGGER.warning("API call to get_all_data returned no data.")
-                return self.last_successful_data
-
-            await self._process_successful_update(data)
-            return data
-
+            return await self._execute_update_cycle()
         except Exception as err:
             return self._handle_update_failure(err)
+
+    async def _execute_update_cycle(self) -> dict[str, Any]:
+        """Execute the update cycle and process data."""
+        timespan = self._get_update_timespan()
+        data = await self._fetch_data_from_api(timespan)
+
+        if not data:
+            _LOGGER.warning("API call to get_all_data returned no data.")
+            return self.last_successful_data
+
+        await self._process_successful_update(data)
+        return data
+
+    def _get_update_timespan(self) -> int:
+        """Get the update timespan in seconds."""
+        if not self.update_interval:
+            return 300
+        return int(self.update_interval.total_seconds())
 
     async def _fetch_data_from_api(self, timespan: int) -> dict[str, Any]:
         """Fetch data from the API with a timeout."""
@@ -164,28 +168,38 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
     def _handle_update_failure(self, err: Exception) -> dict[str, Any]:
         """Handle update failure via PollingManager."""
-        if self.polling_manager.record_failure(err):
-            if self.update_interval != self.polling_manager.update_interval:
-                _LOGGER.warning(
-                    "Increasing poll interval to %s due to failures.",
-                    self.polling_manager.update_interval,
-                )
-                self.update_interval = self.polling_manager.update_interval
+        self._record_and_adjust_polling(err)
+        self._log_update_status(err)
 
+        if not self.last_successful_data:
+            raise UpdateFailed(f"Error communicating with API: {err}") from err
+
+        return self.last_successful_data
+
+    def _record_and_adjust_polling(self, err: Exception) -> None:
+        """Record the failure and adjust poll interval if necessary."""
+        if not self.polling_manager.record_failure(err):
+            return
+
+        if self.update_interval == self.polling_manager.update_interval:
+            return
+
+        _LOGGER.warning(
+            "Increasing poll interval to %s due to failures.",
+            self.polling_manager.update_interval,
+        )
+        self.update_interval = self.polling_manager.update_interval
+
+    def _log_update_status(self, err: Exception) -> None:
+        """Log update status and failure details."""
         _LOGGER.debug(
             "Coordinator update success rate (last 5): %.1f%%",
             self.polling_manager.get_success_rate(),
         )
-
         _LOGGER.warning(
             "Failed to fetch new data, using stale data. Error: %s",
             err,
         )
-        
-        if self.last_successful_data:
-            return self.last_successful_data
-
-        raise UpdateFailed(f"Error communicating with API: {err}") from err
 
     def get_device(self, serial: str | None) -> MerakiDevice | None:
         """Get device data by serial number."""
