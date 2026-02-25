@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 from typing import TYPE_CHECKING, Any
 
 from ...sensor.device.network_settings import (
@@ -17,6 +18,8 @@ if TYPE_CHECKING:
     from ...coordinator import MerakiDataUpdateCoordinator
     from ...core.models.device import MerakiDevice
 
+_LOGGER = logging.getLogger(__name__)
+
 
 class PhysicalSensorProvider:
     """Provider for physical device sensors (IP, Status, Diagnostics)."""
@@ -28,10 +31,10 @@ class PhysicalSensorProvider:
         config_entry: ConfigEntry,
         **kwargs: Any,
     ) -> list[Entity]:
-        """Get entities."""
+        """Get entities for device-level networking and diagnostics."""
         entities: list[Entity] = []
 
-        # Standard IPs
+        # Standard IPs (LAN/Public)
         entities.append(
             MerakiDeviceIPSensor(coordinator, device, config_entry, "lanIp", "LAN IP")
         )
@@ -41,7 +44,7 @@ class PhysicalSensorProvider:
             )
         )
 
-        # Diagnostics (IP/Gateway/DNS) from uplinks
+        # Diagnostics (IP/Gateway/DNS) derived from device uplinks
         if device.uplinks:
             for uplink in device.uplinks:
                 interface = uplink.get("interface")

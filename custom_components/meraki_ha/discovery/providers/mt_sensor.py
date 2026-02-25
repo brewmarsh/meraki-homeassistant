@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 from typing import TYPE_CHECKING, Any
 
 from ...descriptions import (
@@ -21,6 +22,8 @@ if TYPE_CHECKING:
     from ...coordinator import MerakiDataUpdateCoordinator
     from ...core.models.device import MerakiDevice
 
+_LOGGER = logging.getLogger(__name__)
+
 
 class MT40PowerMonitorProvider:
     """Provider for MT40 power monitoring entities."""
@@ -32,7 +35,7 @@ class MT40PowerMonitorProvider:
         config_entry: ConfigEntry,
         **kwargs: Any,
     ) -> list[Entity]:
-        """Get entities."""
+        """Get power monitoring entities for MT40 smart outlets."""
         descriptions = [
             MT_POWER_DESCRIPTION,
             MT_VOLTAGE_DESCRIPTION,
