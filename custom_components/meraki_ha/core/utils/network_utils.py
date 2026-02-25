@@ -6,6 +6,8 @@ import ipaddress
 from typing import Any
 from urllib.parse import urlparse
 
+from ..models.network import MerakiVlan
+
 
 def calculate_network_health(data: dict[str, Any]) -> float:
     """
@@ -65,16 +67,30 @@ def get_active_vlans(network_data: dict[str, Any]) -> list[dict[str, Any]]:
         List of active VLAN dictionaries with id and subnet info.
 
     """
-    return [
-        {
-            "id": vlan.get("id"),
-            "name": vlan.get("name"),
-            "subnet": vlan.get("subnet"),
-            "applianceIp": vlan.get("applianceIp"),
-        }
-        for vlan in network_data.get("vlans", [])
-        if vlan.get("enabled")
-    ]
+    active_vlans: list[dict[str, Any]] = []
+    vlans = network_data.get("vlans", [])
+
+    for vlan in vlans:
+        if isinstance(vlan, MerakiVlan):
+            active_vlans.append(
+                {
+                    "id": vlan.id,
+                    "name": vlan.name,
+                    "subnet": vlan.subnet,
+                    "applianceIp": vlan.appliance_ip,
+                }
+            )
+        elif isinstance(vlan, dict):
+            if vlan.get("enabled"):
+                active_vlans.append(
+                    {
+                        "id": vlan.get("id"),
+                        "name": vlan.get("name"),
+                        "subnet": vlan.get("subnet"),
+                        "applianceIp": vlan.get("applianceIp"),
+                    }
+                )
+    return active_vlans
 
 
 def get_ssid_status(network_data: dict[str, Any], ssid_number: int) -> str | None:

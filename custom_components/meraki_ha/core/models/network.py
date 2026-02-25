@@ -61,6 +61,9 @@ class MerakiVlan:
     appliance_ip: str | None = None
     ipv6: dict | None = None
     dhcp_handling: str | None = None
+    dns_nameservers: str | None = None
+    dhcp_lease_time: str | None = None
+    dhcp_boot_options_enabled: bool = False
 
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> MerakiVlan:
@@ -72,6 +75,9 @@ class MerakiVlan:
             appliance_ip=data.get("applianceIp"),
             ipv6=data.get("ipv6"),
             dhcp_handling=data.get("dhcpHandling"),
+            dns_nameservers=data.get("dnsNameservers"),
+            dhcp_lease_time=data.get("dhcpLeaseTime"),
+            dhcp_boot_options_enabled=data.get("dhcpBootOptionsEnabled", False),
         )
 
 

@@ -5,6 +5,7 @@ from unittest.mock import MagicMock
 import pytest
 
 from custom_components.meraki_ha.const_conf import CONF_ENABLE_VLAN_MANAGEMENT
+from custom_components.meraki_ha.core.models.network import MerakiVlan
 from custom_components.meraki_ha.switch.setup_helpers import async_setup_switches
 from custom_components.meraki_ha.switch.vlan_dhcp import MerakiVLANDHCPSwitch
 from custom_components.meraki_ha.types import MerakiNetwork
@@ -13,11 +14,11 @@ from custom_components.meraki_ha.types import MerakiNetwork
 @pytest.fixture
 def mock_coordinator_with_vlan_data(mock_coordinator: MagicMock) -> MagicMock:
     """Fixture for a mocked MerakiDataUpdateCoordinator with VLAN data."""
-    vlan1 = {
-        "id": "1",
-        "name": "VLAN 1",
-        "dhcpHandling": "Run a DHCP server",
-    }
+    vlan1 = MerakiVlan(
+        id="1",
+        name="VLAN 1",
+        dhcp_handling="Run a DHCP server",
+    )
     network = MerakiNetwork(id="net1", name="Network 1")
     mock_coordinator.data = {
         "vlans": {"net1": [vlan1]},
@@ -54,11 +55,11 @@ def test_vlan_dhcp_switch_creation(
 ) -> None:
     """Test that the VLAN DHCP switch is created correctly."""
     hass = MagicMock()
-    entities = async_setup_switches(
+    entities = []; async_setup_switches(
         hass,
         mock_config_entry_with_vlan_management,
         mock_coordinator_with_vlan_data,
-        mock_meraki_client,
+        mock_meraki_client, entities.extend,
     )
 
     assert len(entities) == 1
@@ -76,17 +77,17 @@ def test_vlan_dhcp_switch_off_state(
     mock_meraki_client: MagicMock,
 ) -> None:
     """Test the off state of the VLAN DHCP switch."""
-    # Modify the dictionary
-    mock_coordinator_with_vlan_data.data["vlans"]["net1"][0]["dhcpHandling"] = (
+    # Modify the object
+    mock_coordinator_with_vlan_data.data["vlans"]["net1"][0].dhcp_handling = (
         "Do not respond to DHCP requests"
     )
 
     hass = MagicMock()
-    entities = async_setup_switches(
+    entities = []; async_setup_switches(
         hass,
         mock_config_entry_with_vlan_management,
         mock_coordinator_with_vlan_data,
-        mock_meraki_client,
+        mock_meraki_client, entities.extend,
     )
 
     assert len(entities) == 1
@@ -103,10 +104,10 @@ def test_vlan_dhcp_switch_creation_disabled(
     """Test that the VLAN DHCP switch is not created if the feature is disabled."""
     mock_config_entry.options = {CONF_ENABLE_VLAN_MANAGEMENT: False}
     hass = MagicMock()
-    entities = async_setup_switches(
+    entities = []; async_setup_switches(
         hass,
         mock_config_entry,
         mock_coordinator_with_vlan_data,
-        mock_meraki_client,
+        mock_meraki_client, entities.extend,
     )
     assert len(entities) == 0

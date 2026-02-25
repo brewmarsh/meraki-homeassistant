@@ -66,11 +66,11 @@ def test_vpn_switch_creation(
 ) -> None:
     """Test that the VPN switches are created correctly."""
     hass = MagicMock()
-    entities = async_setup_switches(
+    entities = []; async_setup_switches(
         hass,
         mock_config_entry_with_vpn,
         mock_coordinator_with_vpn_data,
-        mock_meraki_client,
+        mock_meraki_client, entities.extend,
     )
 
     assert len(entities) == 2
@@ -94,11 +94,11 @@ def test_vpn_switch_creation_disabled(
     """VPN switches are not created when the feature is disabled."""
     mock_config_entry.options = {CONF_ENABLE_VPN_MANAGEMENT: False}
     hass = MagicMock()
-    entities = async_setup_switches(
+    entities = []; async_setup_switches(
         hass,
         mock_config_entry,
         mock_coordinator_with_vpn_data,
-        mock_meraki_client,
+        mock_meraki_client, entities.extend,
     )
     assert len(entities) == 0
 
