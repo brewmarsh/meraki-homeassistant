@@ -24,13 +24,6 @@ from .core.managers import PendingUpdateManager, PollingManager
 if TYPE_CHECKING:
     from .core.models.device import MerakiDevice
     from .core.models.network import MerakiNetwork
-    from custom_components.meraki_ha.services.camera_service import CameraService
-    from custom_components.meraki_ha.services.device_control_service import (
-        DeviceControlService,
-    )
-    from custom_components.meraki_ha.services.switch_port_service import (
-        SwitchPortService,
-    )
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -228,19 +221,3 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         if network:
             if message not in network.status_messages:
                 network.status_messages.append(message)
-
-    async def async_setup_services(
-        self,
-        device_control_service: DeviceControlService,
-        switch_port_service: SwitchPortService,
-        camera_service: CameraService,
-    ) -> None:
-        """Set up the services for the Meraki integration."""
-        from .core.coordinator_helpers.service_setup import async_setup_services
-
-        await async_setup_services(
-            self.hass,
-            device_control_service,
-            switch_port_service,
-            camera_service,
-        )
