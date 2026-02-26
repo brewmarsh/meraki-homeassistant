@@ -5,14 +5,11 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any
 
-from .mixins import (
-    ApplianceMixin,
-    CameraMixin,
-    MerakiAppliancePort,
-    SensorMixin,
-    SwitchMixin,
-    WirelessMixin,
-)
+from .appliance import ApplianceMixin
+from .camera import CameraMixin
+from .sensor import SensorMixin
+from .switch import SwitchMixin
+from .wireless import WirelessMixin
 
 
 @dataclass(kw_only=True)
@@ -79,106 +76,47 @@ class MerakiDevice(
             "entity_id": self.entity_id,
         }
 
-        # Appliance fields
-        data.update(
-            {
-                "applianceUplinkStatuses": self.appliance_uplink_statuses,
-                "appliancePorts": [p.to_dict() for p in self.appliance_ports],
-                "dynamicDns": self.dynamic_dns,
-            }
-        )
-
-        # Camera fields
-        data.update(
-            {
-                "videoSettings": self.video_settings,
-                "rtspUrl": self.rtsp_url,
-                "senseSettings": self.sense_settings,
-                "analytics": self.camera_analytics,
-            }
-        )
-
-        # Switch fields
-        data.update({"portsStatuses": self.switch_ports})
-
-        # Wireless fields
-        data.update({"wirelessRadioSettings": self.wireless_radio_settings})
-
-        # Sensor fields
-        data.update(
-            {
-                "sensorRelationships": self.sensor_relationships,
-                "readings": self.readings,
-                "outletStatus": self.outlet_status,
-                "ambientNoise": self.ambient_noise,
-                "pm25": self.pm25,
-                "realPower": self.real_power,
-                "powerFactor": self.power_factor,
-                "current": self.current,
-                "voltage": self.voltage,
-                "door_open": self.door_open,
-                "water_present": self.water_present,
-                "button_press": self.button_press,
-                "frequency": self.frequency,
-                "energy": self.energy,
-            }
-        )
+        # Mixin fields
+        data.update(self.appliance_to_dict())
+        data.update(self.camera_to_dict())
+        data.update(self.switch_to_dict())
+        data.update(self.wireless_to_dict())
+        data.update(self.sensor_to_dict())
 
         return data
 
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> MerakiDevice:
         """Create a MerakiDevice instance from a dictionary."""
-        return cls(
-            serial=data.get("serial"),
-            name=data.get("name"),
-            model=data.get("model"),
-            mac=data.get("mac"),
-            lan_ip=data.get("lanIp"),
-            wan1_ip=data.get("wan1Ip"),
-            wan2_ip=data.get("wan2Ip"),
-            public_ip=data.get("publicIp"),
-            network_id=data.get("networkId"),
-            status=data.get("status"),
-            firmware=data.get("firmware"),
-            product_type=data.get("productType"),
-            tags=data.get("tags", []),
-            address=data.get("address"),
-            notes=data.get("notes"),
-            url=data.get("url"),
-            firmware_upgrades=data.get("firmwareUpgrades"),
-            management_interface=data.get("managementInterface"),
-            status_messages=data.get("statusMessages", []),
-            uplinks=data.get("uplinks", []),
-            entity_id=data.get("entity_id"),
-            # Appliance fields
-            appliance_uplink_statuses=data.get("applianceUplinkStatuses", []),
-            appliance_ports=[
-                MerakiAppliancePort.from_dict(p) for p in data.get("appliancePorts", [])
-            ],
-            dynamic_dns=data.get("dynamicDns"),
-            # Camera fields
-            video_settings=data.get("videoSettings"),
-            rtsp_url=data.get("rtspUrl"),
-            sense_settings=data.get("senseSettings"),
-            camera_analytics=data.get("analytics", []),
-            # Switch fields
-            switch_ports=data.get("portsStatuses", []),
-            # Wireless fields
-            wireless_radio_settings=data.get("wirelessRadioSettings"),
-            # Sensor fields
-            sensor_relationships=data.get("sensorRelationships", []),
-            readings=data.get("readings", []),
-            outlet_status=data.get("outletStatus"),
-            ambient_noise=data.get("ambientNoise"),
-            pm25=data.get("pm25"),
-            real_power=data.get("realPower"),
-            power_factor=data.get("powerFactor"),
-            current=data.get("current"),
-            voltage=data.get("voltage"),
-            door_open=data.get("doorOpen"),
-            water_present=data.get("waterPresent"),
-            button_press=data.get("buttonPress"),
-            frequency=data.get("frequency"),
-            energy=data.get("energy"),
-        )
+        device_kwargs: dict[str, Any] = {
+            "serial": data.get("serial"),
+            "name": data.get("name"),
+            "model": data.get("model"),
+            "mac": data.get("mac"),
+            "lan_ip": data.get("lanIp"),
+            "wan1_ip": data.get("wan1Ip"),
+            "wan2_ip": data.get("wan2Ip"),
+            "public_ip": data.get("publicIp"),
+            "network_id": data.get("networkId"),
+            "status": data.get("status"),
+            "firmware": data.get("firmware"),
+            "product_type": data.get("productType"),
+            "tags": data.get("tags", []),
+            "address": data.get("address"),
+            "notes": data.get("notes"),
+            "url": data.get("url"),
+            "firmware_upgrades": data.get("firmwareUpgrades"),
+            "management_interface": data.get("managementInterface"),
+            "status_messages": data.get("statusMessages", []),
+            "uplinks": data.get("uplinks", []),
+            "entity_id": data.get("entity_id"),
+        }
+
+        # Mixin fields
+        device_kwargs.update(ApplianceMixin.appliance_from_dict(data))
+        device_kwargs.update(CameraMixin.camera_from_dict(data))
+        device_kwargs.update(SwitchMixin.switch_from_dict(data))
+        device_kwargs.update(WirelessMixin.wireless_from_dict(data))
+        device_kwargs.update(SensorMixin.sensor_from_dict(data))
+
+        return cls(**device_kwargs)
