@@ -55,8 +55,14 @@ class MerakiMtSensor(MerakiSensor, RestoreSensor):
         """Handle entity which provides state restoration."""
         await super().async_added_to_hass()
         if (last_sensor_data := await self.async_get_last_sensor_data()) is not None:
-            if last_sensor_data.native_value is not UNDEFINED:
-                self._attr_native_value = last_sensor_data.native_value
+            value = last_sensor_data.native_value
+            if value is not UNDEFINED:
+                # Type check and conversion for MyPy compatibility
+                if isinstance(value, (str, float, bool)):
+                    self._attr_native_value = value
+                elif isinstance(value, (int, float)):  # Handle int->float conversion
+                    self._attr_native_value = float(value)
+                # Ignore other types (e.g. datetime) that don't match our state type
 
     @property
     def device_info(self) -> DeviceInfo:

@@ -91,7 +91,7 @@ def test_mt40_switch_state(
     """Test the initial state and update of the MT40 power outlet switch."""
     switch = mt40_power_outlet_switch
 
-    assert switch.unique_id == "mt40-1_net-123_outlet"
+    assert switch.unique_id == "meraki_device_mt40-1_outlet"
     assert switch.name == "Outlet"
     # Initial state might be None depending on initialization, but we check update
     # by simulating a coordinator update.

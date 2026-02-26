@@ -28,6 +28,11 @@ class MerakiMt40PowerOutlet(
     _attr_has_entity_name = True
     coordinator: MerakiDataUpdateCoordinator
 
+    @property
+    def unique_id(self) -> str | None:
+        """Return the unique ID."""
+        return f"meraki_device_{self._device_serial}_outlet"
+
     def __init__(
         self,
         coordinator: MerakiDataUpdateCoordinator,
