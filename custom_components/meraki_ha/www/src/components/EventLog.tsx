@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { safeCallWS } from '../utils/api';
 
 // Define the types for our data
 interface MerakiEvent {
@@ -61,7 +62,7 @@ const EventLog: React.FC<EventLogProps> = ({
           throw new Error('Hass connection not available');
         }
 
-        const resultData = await hass.callWS({
+        const resultData = await safeCallWS(hass, {
           type: 'meraki_ha/get_network_events',
           config_entry_id: configEntryId,
           network_id: networkId,

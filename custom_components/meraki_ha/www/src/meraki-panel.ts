@@ -1,5 +1,6 @@
 import { LitElement, html, css } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
+import { safeCallWS } from './utils/api';
 
 interface HassObject {
   connection: {
@@ -93,13 +94,17 @@ export class MerakiPanel extends LitElement {
         return;
       }
 
-      const data = await this.hass.connection.sendMessagePromise({
+      const data = await safeCallWS<MerakiData>(this.hass, {
         type: 'meraki_ha/get_config',
         config_entry_id: this.entryId,
       });
       this._data = data;
     } catch (err: any) {
-      this._error = `Failed to fetch Meraki data: ${err.message || 'Unknown error'}`;
+      if (err.code === 'not_found') {
+        this._error = 'Meraki integration not configured. Please add and configure the integration in Home Assistant.';
+      } else {
+        this._error = `Failed to fetch Meraki data: ${err.message || 'Unknown error'}`;
+      }
     } finally {
       this._loading = false;
     }

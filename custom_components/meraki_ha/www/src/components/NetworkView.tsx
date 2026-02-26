@@ -288,7 +288,7 @@ const NetworkView: React.FC<NetworkViewProps> = ({
                       <ha-icon icon="mdi:wifi"></ha-icon>
                       {enabledSsids} / {totalSsids} SSIDs Enabled
                     </div>
-                    <SSIDView hass={hass} ssids={network.ssids} />
+                    <SSIDView hass={hass} ssids={network.ssids} configEntryId={configEntryId} />
                   </>
                 )}
                 <EventLog

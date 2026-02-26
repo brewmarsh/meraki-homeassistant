@@ -93,17 +93,20 @@ async def ws_get_config(
     msg: dict[str, Any],
 ) -> None:
     """Handle get_config command."""
-    config_entry_id = msg["config_entry_id"]
+    try:
+        config_entry_id = msg["config_entry_id"]
 
-    if config_entry_id not in hass.data[DOMAIN]:
-        connection.send_error(msg["id"], "not_found", "Config entry not found")
-        return
+        if DOMAIN not in hass.data or config_entry_id not in hass.data[DOMAIN]:
+            connection.send_error(msg["id"], "not_found", "Config entry not found")
+            return
 
-    coordinator: MerakiDataUpdateCoordinator = hass.data[DOMAIN][config_entry_id][
-        "coordinator"
-    ]
-    data = to_serializable(coordinator.data)
-    connection.send_result(msg["id"], data)
+        coordinator: MerakiDataUpdateCoordinator = hass.data[DOMAIN][config_entry_id][
+            "coordinator"
+        ]
+        data = to_serializable(coordinator.data)
+        connection.send_result(msg["id"], data)
+    except Exception as err:  # pylint: disable=broad-except
+        connection.send_error(msg["id"], "unknown_error", str(err))
 
 
 @callback
@@ -113,29 +116,32 @@ def ws_subscribe_meraki_data(
     msg: dict[str, Any],
 ) -> None:
     """Subscribe to Meraki data updates."""
-    config_entry_id = msg["config_entry_id"]
+    try:
+        config_entry_id = msg["config_entry_id"]
 
-    if config_entry_id not in hass.data[DOMAIN]:
-        connection.send_error(msg["id"], "not_found", "Config entry not found")
-        return
+        if DOMAIN not in hass.data or config_entry_id not in hass.data[DOMAIN]:
+            connection.send_error(msg["id"], "not_found", "Config entry not found")
+            return
 
-    coordinator: MerakiDataUpdateCoordinator = hass.data[DOMAIN][config_entry_id][
-        "coordinator"
-    ]
+        coordinator: MerakiDataUpdateCoordinator = hass.data[DOMAIN][config_entry_id][
+            "coordinator"
+        ]
 
-    @callback
-    def async_send_update() -> None:
-        """Send update to client."""
+        @callback
+        def async_send_update() -> None:
+            """Send update to client."""
+            data = to_serializable(coordinator.data)
+            connection.send_message(websocket_api.event_message(msg["id"], data))
+
+        # Send initial data
         data = to_serializable(coordinator.data)
-        connection.send_message(websocket_api.event_message(msg["id"], data))
+        connection.send_result(msg["id"], data)
 
-    # Send initial data
-    data = to_serializable(coordinator.data)
-    connection.send_result(msg["id"], data)
-
-    # Register for updates
-    cancel_subscription = coordinator.async_add_listener(async_send_update)
-    connection.subscriptions[msg["id"]] = cancel_subscription
+        # Register for updates
+        cancel_subscription = coordinator.async_add_listener(async_send_update)
+        connection.subscriptions[msg["id"]] = cancel_subscription
+    except Exception as err:  # pylint: disable=broad-except
+        connection.send_error(msg["id"], "unknown_error", str(err))
 
 
 @websocket_api.async_response
@@ -154,15 +160,20 @@ async def ws_get_camera_stream_url(
         msg: The WebSocket message.
 
     """
-    config_entry_id = msg["config_entry_id"]
-    serial = msg["serial"]
-    if config_entry_id not in hass.data[DOMAIN]:
-        connection.send_error(msg["id"], "not_found", "Config entry not found")
-        return
+    try:
+        config_entry_id = msg["config_entry_id"]
+        serial = msg["serial"]
+        if DOMAIN not in hass.data or config_entry_id not in hass.data[DOMAIN]:
+            connection.send_error(msg["id"], "not_found", "Config entry not found")
+            return
 
-    camera_service: CameraService = hass.data[DOMAIN][config_entry_id]["camera_service"]
-    stream_url = await camera_service.get_video_stream_url(serial)
-    connection.send_result(msg["id"], {"url": stream_url})
+        camera_service: CameraService = hass.data[DOMAIN][config_entry_id][
+            "camera_service"
+        ]
+        stream_url = await camera_service.get_video_stream_url(serial)
+        connection.send_result(msg["id"], {"url": stream_url})
+    except Exception as err:  # pylint: disable=broad-except
+        connection.send_error(msg["id"], "unknown_error", str(err))
 
 
 @websocket_api.async_response
@@ -181,15 +192,20 @@ async def ws_get_camera_snapshot(
         msg: The WebSocket message.
 
     """
-    config_entry_id = msg["config_entry_id"]
-    serial = msg["serial"]
-    if config_entry_id not in hass.data[DOMAIN]:
-        connection.send_error(msg["id"], "not_found", "Config entry not found")
-        return
+    try:
+        config_entry_id = msg["config_entry_id"]
+        serial = msg["serial"]
+        if DOMAIN not in hass.data or config_entry_id not in hass.data[DOMAIN]:
+            connection.send_error(msg["id"], "not_found", "Config entry not found")
+            return
 
-    camera_service: CameraService = hass.data[DOMAIN][config_entry_id]["camera_service"]
-    snapshot_url = await camera_service.get_camera_snapshot(serial)
-    connection.send_result(msg["id"], {"url": snapshot_url})
+        camera_service: CameraService = hass.data[DOMAIN][config_entry_id][
+            "camera_service"
+        ]
+        snapshot_url = await camera_service.get_camera_snapshot(serial)
+        connection.send_result(msg["id"], {"url": snapshot_url})
+    except Exception as err:  # pylint: disable=broad-except
+        connection.send_error(msg["id"], "unknown_error", str(err))
 
 
 @websocket_api.async_response
@@ -199,6 +215,9 @@ async def ws_get_version(
     msg: dict[str, Any],
 ) -> None:
     """Handle get_version command."""
-    integration = await async_get_integration(hass, DOMAIN)
-    version = str(integration.version)
-    connection.send_result(msg["id"], {"version": version})
+    try:
+        integration = await async_get_integration(hass, DOMAIN)
+        version = str(integration.version)
+        connection.send_result(msg["id"], {"version": version})
+    except Exception as err:  # pylint: disable=broad-except
+        connection.send_error(msg["id"], "unknown_error", str(err))
