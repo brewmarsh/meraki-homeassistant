@@ -41,7 +41,7 @@ const Dashboard: React.FC<DashboardProps> = ({ setActiveView, data }) => {
       </div>
 
       <h2 className="text-xl font-semibold mb-4">All Devices</h2>
-      <DeviceTable devices={devices} setActiveView={setActiveView} />
+      <DeviceTable hass={null} devices={devices} setActiveView={setActiveView} />
     </div>
   );
 };

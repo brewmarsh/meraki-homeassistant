@@ -4,6 +4,7 @@ import NetworkView from './components/NetworkView';
 import DeviceView from './components/DeviceView';
 import Settings from './components/Settings';
 import TimedAccess from './components/TimedAccess';
+import { safeCallWS } from './utils/api';
 
 // Define the types for our data
 interface MerakiData {
@@ -20,7 +21,8 @@ const App: React.FC<AppProps> = ({ hass, panel }) => {
   const [data, setData] = useState<MerakiData | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const [activeView, setActiveView] = useState({
+  const [configNotFound, setConfigNotFound] = useState<boolean>(false);
+  const [activeView, setActiveView] = useState<{ view: string; deviceId?: string }>({
     view: 'dashboard',
     deviceId: undefined,
   });
@@ -31,7 +33,7 @@ const App: React.FC<AppProps> = ({ hass, panel }) => {
 
   // If we are in standalone mode, config_entry_id might come from window
   const finalConfigEntryId =
-    config_entry_id || (window as any).CONFIG_ENTRY_ID;
+    configEntryId || (window as any).CONFIG_ENTRY_ID;
 
   useEffect(() => {
     if (window.location.hostname === 'localhost') {
@@ -162,15 +164,21 @@ const App: React.FC<AppProps> = ({ hass, panel }) => {
 
     try {
       setLoading(true);
-      const result: MerakiData = await hass.callWS({
+      const result = await safeCallWS<MerakiData>(hass, {
         type: 'meraki_ha/get_config',
         config_entry_id: configEntryId,
       });
       setData(result);
       setError(null);
+      setConfigNotFound(false);
     } catch (err: any) {
       console.error('Error fetching Meraki data:', err);
-      setError(err.message || 'An unknown error occurred.');
+      if (err.code === 'not_found') {
+        setConfigNotFound(true);
+        setError('Meraki integration is not yet configured or config entry was not found.');
+      } else {
+        setError(err.message || 'An unknown error occurred.');
+      }
     } finally {
       setLoading(false);
     }
@@ -206,10 +214,53 @@ const App: React.FC<AppProps> = ({ hass, panel }) => {
     }
   };
 
-  if (loading || !data) {
+  if (loading) {
     return (
       <div className="flex justify-center items-center h-screen bg-light-background dark:bg-dark-background text-light-text dark:text-dark-text">
         Loading...
+      </div>
+    );
+  }
+
+  if (configNotFound) {
+    return (
+      <div className="flex flex-col justify-center items-center h-screen bg-light-background dark:bg-dark-background text-light-text dark:text-dark-text p-4 text-center">
+        <ha-icon icon="mdi:alert-circle-outline" style={{'--mdc-icon-size': '64px'} as any} class="mb-4 text-red-500"></ha-icon>
+        <h2 className="text-xl font-bold mb-2">Integration Not Configured</h2>
+        <p className="mb-6 max-w-md">
+          The Meraki integration has not been configured yet, or the configuration entry could not be found.
+          Please ensure the integration is added and configured in Home Assistant.
+        </p>
+        <a
+          href="/config/integrations"
+          className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+        >
+          Go to Integrations
+        </a>
+      </div>
+    );
+  }
+
+  if (error && !data) {
+    return (
+      <div className="flex flex-col justify-center items-center h-screen bg-light-background dark:bg-dark-background text-light-text dark:text-dark-text p-4 text-center">
+        <ha-icon icon="mdi:error-outline" style={{'--mdc-icon-size': '64px'} as any} class="mb-4 text-red-500"></ha-icon>
+        <h2 className="text-xl font-bold mb-2">Error</h2>
+        <p className="mb-6">{error}</p>
+        <button
+          onClick={fetchData}
+          className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+        >
+          Retry
+        </button>
+      </div>
+    );
+  }
+
+  if (!data) {
+    return (
+      <div className="flex justify-center items-center h-screen bg-light-background dark:bg-dark-background text-light-text dark:text-dark-text">
+        No data found.
       </div>
     );
   }
@@ -246,12 +297,13 @@ const App: React.FC<AppProps> = ({ hass, panel }) => {
       {activeView.view === 'dashboard' ? (
         <NetworkView
           hass={hass}
-          data={data}
+          data={data as any}
           onToggle={handleToggle}
           setActiveView={setActiveView}
           configEntryId={configEntryId}
         />
       ) : (
+        /* @ts-ignore */
         <DeviceView
           activeView={activeView}
           setActiveView={setActiveView}

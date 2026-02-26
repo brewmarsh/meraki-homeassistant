@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import QRCode from 'react-qr-code';
+import { safeCallWS } from '../utils/api';
 
 interface TimedAccessKey {
   identity_psk_id: string;
@@ -56,7 +57,7 @@ const TimedAccess: React.FC<TimedAccessProps> = ({
   const fetchKeys = async () => {
     setLoading(true);
     try {
-      const result = await hass.callWS({
+      const result = await safeCallWS(hass, {
         type: 'meraki_ha/timed_access/get_keys',
         config_entry_id: configEntryId,
       });
@@ -70,7 +71,7 @@ const TimedAccess: React.FC<TimedAccessProps> = ({
 
   const fetchPolicies = async (networkId: string) => {
     try {
-      const result = await hass.callWS({
+      const result = await safeCallWS(hass, {
         type: 'meraki_ha/timed_access/get_policies',
         config_entry_id: configEntryId,
         network_id: networkId,
@@ -86,7 +87,7 @@ const TimedAccess: React.FC<TimedAccessProps> = ({
     if (!selectedNetwork || !selectedSsid || !duration) return;
     setCreating(true);
     try {
-      await hass.callWS({
+      await safeCallWS(hass, {
         type: 'meraki_ha/timed_access/create',
         config_entry_id: configEntryId,
         network_id: selectedNetwork,
@@ -110,7 +111,7 @@ const TimedAccess: React.FC<TimedAccessProps> = ({
   const handleDelete = async (key: TimedAccessKey) => {
     if (!confirm('Are you sure you want to revoke this key?')) return;
     try {
-      await hass.callWS({
+      await safeCallWS(hass, {
         type: 'meraki_ha/timed_access/delete',
         config_entry_id: configEntryId,
         identity_psk_id: key.identity_psk_id,

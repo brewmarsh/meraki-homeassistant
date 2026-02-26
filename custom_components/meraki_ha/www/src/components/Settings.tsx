@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { safeCallWS } from '../utils/api';
 
 interface SettingsProps {
   hass: any; // Add hass to props
@@ -28,7 +29,7 @@ const Settings: React.FC<SettingsProps> = ({
     try {
       // Use the hass prop directly
       if (hass) {
-        await hass.callWS({
+        await safeCallWS(hass, {
           type: 'meraki_ha/update_options',
           config_entry_id: configEntryId,
           options: localOptions,
@@ -97,7 +98,7 @@ const Settings: React.FC<SettingsProps> = ({
 
   return (
     <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center z-50">
-      <ha-card class="p-6 w-full max-w-md bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 shadow-lg rounded-lg">
+      <ha-card className="p-6 w-full max-w-md bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 shadow-lg rounded-lg">
         <div className="card-header flex justify-between items-center mb-4">
           <h2 className="text-xl font-bold">Integration Settings</h2>
           <button
