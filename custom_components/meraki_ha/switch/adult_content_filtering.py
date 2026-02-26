@@ -48,6 +48,14 @@ class MerakiAdultContentFilteringSwitch(MerakiEntity, SwitchEntity):
         return self._ssid["number"]
 
     @property
+    def unique_id(self) -> str | None:
+        """Return the unique ID."""
+        return (
+            f"network_{self._network_id}_{self._network_id}_ssid_"
+            f"{self._ssid_number}_adult_content_filtering"
+        )
+
+    @property
     def device_info(self) -> DeviceInfo | None:
         """Return the device info."""
         return resolve_device_info(self._ssid, self._config_entry)

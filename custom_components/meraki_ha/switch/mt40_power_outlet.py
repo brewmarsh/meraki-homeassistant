@@ -9,18 +9,18 @@ from homeassistant.components.switch import SwitchEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import callback
 from homeassistant.helpers.device_registry import DeviceInfo
-from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from ..coordinator import MerakiDataUpdateCoordinator
 from ..core.api.client import MerakiAPIClient
 from ..core.models.device import MerakiDevice
+from ..entity import MerakiEntity
 from ..helpers.device_info_helpers import resolve_device_info
 
 _LOGGER = logging.getLogger(__name__)
 
 
 class MerakiMt40PowerOutlet(
-    CoordinatorEntity,
+    MerakiEntity,
     SwitchEntity,
 ):
     """Representation of a Meraki MT40 power outlet."""
@@ -48,9 +48,13 @@ class MerakiMt40PowerOutlet(
         """
         super().__init__(coordinator)
         self._device_info = device_info
+        self._device_serial = device_info.serial
+        self._network_id = device_info.network_id
         self._config_entry = config_entry
         self._meraki_client = meraki_client
-        self._attr_unique_id = f"{self._device_info.serial}-outlet"
+        self._attr_unique_id = (
+            f"{self._device_info.serial}_{self._device_info.network_id}_outlet"
+        )
         self._attr_name = "Outlet"
         self._attr_is_on: bool | None = None
 
