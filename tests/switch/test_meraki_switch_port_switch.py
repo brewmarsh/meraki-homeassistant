@@ -152,6 +152,7 @@ async def test_switch_port_update(
     # Simulate update with new data (disabled)
     mock_device.switch_ports = [{"portId": "1", "enabled": False}]
     mock_coordinator.data["devices"] = [mock_device]
+    mock_coordinator.get_device.return_value = mock_device
 
     switch._handle_coordinator_update()
 
@@ -179,6 +180,7 @@ async def test_switch_port_update_pending(
     # Simulate update with new data (disabled)
     mock_device.switch_ports = [{"portId": "1", "enabled": False}]
     mock_coordinator.data["devices"] = [mock_device]
+    mock_coordinator.get_device.return_value = mock_device
 
     switch._handle_coordinator_update()
 
