@@ -4,16 +4,15 @@ from typing import Any, Generator, List, Optional
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
+from homeassistant.config_entries import ConfigEntry
+from homeassistant.core import HomeAssistant
 
 # Assuming these imports exist in the actual component structure.
 # If these modules (client.py, coordinator.py) do not expose MerakiAPIClient
 # or MerakiDataCoordinator types, then MagicMock with a spec argument or Any
 # would be the appropriate fallback.
-from custom_components.meraki_ha.core.api.client import MerakiAPIClient
 from custom_components.meraki_ha.switch.mt40_power_outlet import MerakiMt40PowerOutlet
 from custom_components.meraki_ha.types import MerakiDevice
-from homeassistant.config_entries import ConfigEntry
-from homeassistant.core import HomeAssistant
 
 
 @pytest.fixture
@@ -59,11 +58,8 @@ def mock_coordinator_with_mt40_data(
 def mock_meraki_client() -> MagicMock:
     """Fixture for a mocked MerakiAPIClient."""
     # Using spec for MagicMock helps ensure the mock matches the API client's interface
-<<<<<<< fix/resolve-unique-id-collisions-9042854325858757258
-=======
     # However, since sensor is an instance attribute not present in the class definition,
     # spec=MerakiAPIClient prevents access to it. We use MagicMock() without spec.
->>>>>>> beta
     client = MagicMock()
     client.sensor.create_device_sensor_command = AsyncMock()
     return client

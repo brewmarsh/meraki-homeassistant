@@ -1,8 +1,13 @@
 """Tests for the UpdateProcessor."""
 
 from unittest.mock import AsyncMock, MagicMock, patch
+
 import pytest
-from custom_components.meraki_ha.core.coordinator_helpers.update_processor import UpdateProcessor
+
+from custom_components.meraki_ha.core.coordinator_helpers.update_processor import (
+    UpdateProcessor,
+)
+
 
 @pytest.fixture
 def mock_hass():
@@ -56,7 +61,7 @@ async def test_process_success_orchestration(update_processor):
 
         # Verify orchestrator called its recovery helper
         mock_handle.assert_called_once()
-        
+
         # Verify orchestration delegated to async_process correctly
         update_processor.async_process.assert_awaited_once_with(data, current_data)
 

@@ -1,9 +1,13 @@
 """Tests for Wireless SSIDs fetching and processing."""
 
+from unittest.mock import AsyncMock, MagicMock
+
 import pytest
-from unittest.mock import MagicMock, AsyncMock
-from custom_components.meraki_ha.core.coordinator_helpers.data_fetcher import DataFetchManager
-from custom_components.meraki_ha.core.models.network import MerakiNetwork
+
+from custom_components.meraki_ha.core.coordinator_helpers.data_fetcher import (
+    DataFetchManager,
+)
+
 
 @pytest.fixture
 def mock_client():
@@ -27,7 +31,6 @@ def data_fetch_manager(mock_client):
 @pytest.mark.asyncio
 async def test_wireless_ssids_processing(data_fetch_manager, mock_client):
     """Test that wireless SSIDs are correctly processed and added to data."""
-
     # Mock initial data return
     data_fetch_manager._async_fetch_initial_data = AsyncMock(return_value={
         "networks": [{"id": "N_123", "name": "Test Network", "productTypes": ["wireless"]}],
