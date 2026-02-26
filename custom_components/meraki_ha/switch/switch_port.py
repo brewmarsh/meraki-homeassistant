@@ -208,7 +208,7 @@ class MerakiSwitchPortToggle(_MerakiPortSwitchBase):
                 )
                 return
 
-            ports_statuses = getattr(self._device, "ports_statuses", [])
+            ports_statuses = getattr(self._device, "switch_ports", [])
             for port_data in ports_statuses:
                 if _get_port_identifier_from_data(port_data) == current_port_identifier:
                     self._port = port_data

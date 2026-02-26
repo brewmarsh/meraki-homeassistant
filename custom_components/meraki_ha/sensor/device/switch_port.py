@@ -100,7 +100,7 @@ class MerakiSwitchPortBaseSensor(CoordinatorEntity, SensorEntity, ABC):
 
         for device in self.coordinator.data.get("devices", []):
             if device.serial == self._device.serial:
-                for port in device.ports_statuses:
+                for port in device.switch_ports:
                     port_id_candidate = self._get_port_id_from_data(port)
                     if port_id_candidate == current_port_id:
                         return device, port

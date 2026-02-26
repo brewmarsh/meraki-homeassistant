@@ -88,7 +88,7 @@ async def test_feature_disabled_traffic_analysis(mock_instance):
 
     decorated = handle_meraki_errors(api_call)
 
-    with patch("custom_components.meraki_ha.core.utils.api_utils._LOGGER") as mock_logger:
+    with patch("custom_components.meraki_ha.core.utils.api.handlers._LOGGER") as mock_logger:
         result = await decorated(mock_instance, "net-123")
 
         assert result == {}
