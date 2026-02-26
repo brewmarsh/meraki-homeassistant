@@ -8,8 +8,8 @@ process_scorecard.py script.
 """
 
 import json
-import subprocess
 import os
+import subprocess
 import sys
 
 TARGET_DIR = "custom_components/meraki_ha/"

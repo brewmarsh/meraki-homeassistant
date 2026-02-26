@@ -1,7 +1,7 @@
 """Tests for network utils."""
-import pytest
-from custom_components.meraki_ha.core.utils.network_utils import get_active_vlans
 from custom_components.meraki_ha.core.models.network import MerakiVlan
+from custom_components.meraki_ha.core.utils.network_utils import get_active_vlans
+
 
 def test_get_active_vlans_with_dicts():
     """Test get_active_vlans with dictionaries (legacy)."""

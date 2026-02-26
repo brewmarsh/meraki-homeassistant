@@ -57,6 +57,11 @@ class MerakiMt40PowerOutlet(
         self._network_id = device_info.network_id
         self._config_entry = config_entry
         self._meraki_client = meraki_client
+        # Explicitly set the unique ID here to override the base class logic
+        # which might generate a different ID based on class name.
+        self._unique_id_override = (
+            f"{self._device_info.serial}_{self._device_info.network_id}_outlet"
+        )
         self._attr_name = "Outlet"
         self._attr_is_on: bool | None = None
 
@@ -136,6 +141,11 @@ class MerakiMt40PowerOutlet(
             _LOGGER.error("Error turning off MT40 outlet %s: %s", self.unique_id, e)
             if self.unique_id:
                 self.coordinator.cancel_pending_update(self.unique_id)
+
+    @property
+    def unique_id(self) -> str | None:
+        """Return the unique ID."""
+        return self._unique_id_override
 
     @property
     def available(self) -> bool:

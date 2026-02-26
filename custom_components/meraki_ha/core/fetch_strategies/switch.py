@@ -2,9 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Any
-
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from .base import BaseFetchStrategy
 
@@ -23,7 +21,6 @@ class SwitchFetchStrategy(BaseFetchStrategy):
         detail_data: dict[str, Any] | None = None,
     ) -> None:
         """Add switch specific device tasks."""
-        from ...core.models.device import MerakiDevice
         # 1. Capability Guard: Does this device physically support switch ports?
         if "switch_ports" in capabilities:
             statuses_key = f"switch_ports_{device.serial}"
@@ -42,7 +39,6 @@ class SwitchFetchStrategy(BaseFetchStrategy):
         prev_device: MerakiDevice | None,
     ) -> None:
         """Process switch details."""
-        from ...core.models.device import MerakiDevice
         statuses_key = f"switch_ports_{device.serial}"
         statuses = detail_data.get(statuses_key)
 

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
-from typing import TYPE_CHECKING, Any, cast
+from typing import TYPE_CHECKING, Any
 
 from homeassistant.helpers.update_coordinator import UpdateFailed
 
@@ -29,7 +29,6 @@ from .client_fetcher import ClientFetcher
 if TYPE_CHECKING:
     from ..api.client import MerakiAPIClient
     from ..models.device import MerakiDevice
-    from ..models.network import MerakiNetwork
 
 _LOGGER = logging.getLogger(__name__)
 

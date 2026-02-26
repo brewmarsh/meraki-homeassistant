@@ -92,7 +92,7 @@ class WirelessRadioProvider:
                 )
             )
 
-        # 4. 5GHz Target Power 
+        # 4. 5GHz Target Power
         # Note: Kept as generic "Target power" for backward compatibility
         if "fiveGhzSettings" in settings:
             entities.append(

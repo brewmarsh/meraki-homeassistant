@@ -1,6 +1,5 @@
 """Test the API utility functions."""
 
-import asyncio
 from json import JSONDecodeError
 from unittest.mock import AsyncMock, MagicMock, patch
 
@@ -8,14 +7,12 @@ import pytest
 from aiohttp import ClientError
 from meraki.exceptions import APIError  # type: ignore
 
-from custom_components.meraki_ha.core.utils.api_utils import handle_meraki_errors
 from custom_components.meraki_ha.core.errors import (
     MerakiAuthenticationError,
     MerakiConnectionError,
-    MerakiDeviceError,
-    MerakiInformationalError,
-    MerakiNetworkError,
 )
+from custom_components.meraki_ha.core.utils.api_utils import handle_meraki_errors
+
 
 @pytest.fixture
 def mock_api_client():

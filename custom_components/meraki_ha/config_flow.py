@@ -5,12 +5,9 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING, Any
 
-import voluptuous as vol
-
 from homeassistant import config_entries
 from homeassistant.config_entries import ConfigFlowResult
 from homeassistant.core import callback
-from homeassistant.data_entry_flow import AbortFlow
 
 try:
     from homeassistant.helpers.service_info.dhcp import DhcpServiceInfo
@@ -26,14 +23,10 @@ from .const_conf import (
     CONF_MERAKI_API_KEY,
     CONF_MERAKI_ORG_ID,
 )
-from .core.errors import MerakiAuthenticationError, MerakiConnectionError
 from .helpers.schema import get_filtered_schema, populate_schema_defaults
 from .schemas import (
     CONFIG_SCHEMA,
-    OPTIONS_SCHEMA_ADVANCED,
-    OPTIONS_SCHEMA_CAMERAS,
     OPTIONS_SCHEMA_GENERAL,
-    OPTIONS_SCHEMA_SENSORS,
 )
 
 if TYPE_CHECKING:
