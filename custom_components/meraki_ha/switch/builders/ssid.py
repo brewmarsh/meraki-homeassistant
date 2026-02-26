@@ -62,7 +62,10 @@ def _build_ssid_pair(
     rf_profile = _get_rf_profile(data, ssid.get("networkId"))
 
     # Enabled Switch
-    unique_id = f"{ssid['networkId']}ssid{ssid_number}_enabled_switch"
+    unique_id = (
+        f"network_{ssid['networkId']}_{ssid['networkId']}_ssid_"
+        f"{ssid_number}_enabled"
+    )
     if unique_id not in added_entities:
         entities.append(
             MerakiSSIDEnabledSwitch(
@@ -76,7 +79,10 @@ def _build_ssid_pair(
         added_entities.add(unique_id)
 
     # Broadcast Switch
-    unique_id = f"{ssid['networkId']}ssid{ssid_number}_broadcast_switch"
+    unique_id = (
+        f"network_{ssid['networkId']}_{ssid['networkId']}_ssid_"
+        f"{ssid_number}_broadcast"
+    )
     if unique_id not in added_entities:
         entities.append(
             MerakiSSIDBroadcastSwitch(

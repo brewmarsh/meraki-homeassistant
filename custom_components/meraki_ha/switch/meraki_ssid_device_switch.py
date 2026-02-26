@@ -97,12 +97,12 @@ class MerakiSSIDBaseSwitch(MerakiEntity, SwitchEntity):
     def unique_id(self) -> str | None:
         """Return a unique ID that prevents platform collisions.
 
-        By combining the network ID, SSID number, and the lowercased class name,
+        By combining the network ID, SSID number, and the switch type,
         we ensure that the registry stays unique for different switch types.
         """
         return (
-            f"{self._network_id}ssid{self._ssid_number}"
-            f"{self.__class__.__name__.lower()}"
+            f"network_{self._network_id}_{self._network_id}_ssid_"
+            f"{self._ssid_number}_{self._switch_type}"
         )
 
     @property
