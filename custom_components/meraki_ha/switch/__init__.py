@@ -40,12 +40,27 @@ async def async_setup_entry(
         for entity in discovery_service.all_entities
         if isinstance(entity, SwitchEntity)
     ]
+
+    seen_ids = set()
+    unique_discovery_entities = []
     if discovery_entities:
-        async_add_entities(discovery_entities)
+        for entity in discovery_entities:
+            if entity.unique_id:
+                if entity.unique_id not in seen_ids:
+                    seen_ids.add(entity.unique_id)
+                    unique_discovery_entities.append(entity)
+            else:
+                unique_discovery_entities.append(entity)
+        async_add_entities(unique_discovery_entities)
 
     # Add other switches from setup helpers
     async_setup_switches(
-        hass, config_entry, coordinator, meraki_client, async_add_entities
+        hass,
+        config_entry,
+        coordinator,
+        meraki_client,
+        async_add_entities,
+        added_entities=seen_ids,
     )
 
     return True
