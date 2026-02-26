@@ -1,14 +1,8 @@
 """Models package for Meraki API data structures."""
 
+from .appliance import ApplianceMixin, MerakiAppliancePort
+from .camera import CameraMixin
 from .device import MerakiDevice
-from .mixins import (
-    ApplianceMixin,
-    CameraMixin,
-    MerakiAppliancePort,
-    SensorMixin,
-    SwitchMixin,
-    WirelessMixin,
-)
 from .network import (
     MerakiFirewallRule,
     MerakiNetwork,
@@ -17,6 +11,9 @@ from .network import (
     MerakiVpn,
 )
 from .organization import MerakiOrganization
+from .sensor import SensorMixin
+from .switch import SwitchMixin
+from .wireless import WirelessMixin
 
 __all__ = [
     "ApplianceMixin",
