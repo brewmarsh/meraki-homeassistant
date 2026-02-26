@@ -28,6 +28,11 @@ class MerakiMt40PowerOutlet(
     _attr_has_entity_name = True
     coordinator: MerakiDataUpdateCoordinator
 
+    @property
+    def unique_id(self) -> str | None:
+        """Return the unique ID."""
+        return f"meraki_device_{self._device_serial}_outlet"
+
     def __init__(
         self,
         coordinator: MerakiDataUpdateCoordinator,
@@ -52,9 +57,6 @@ class MerakiMt40PowerOutlet(
         self._network_id = device_info.network_id
         self._config_entry = config_entry
         self._meraki_client = meraki_client
-        self._attr_unique_id = (
-            f"{self._device_info.serial}_{self._device_info.network_id}_outlet"
-        )
         self._attr_name = "Outlet"
         self._attr_is_on: bool | None = None
 

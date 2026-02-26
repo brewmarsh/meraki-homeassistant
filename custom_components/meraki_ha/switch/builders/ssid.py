@@ -63,7 +63,7 @@ def _build_ssid_pair(
 
     # Enabled Switch
     unique_id = (
-        f"network_{ssid['networkId']}_{ssid['networkId']}_ssid_"
+        f"meraki_network_{ssid['networkId']}_ssid_"
         f"{ssid_number}_enabled"
     )
     if unique_id not in added_entities:
@@ -80,7 +80,7 @@ def _build_ssid_pair(
 
     # Broadcast Switch
     unique_id = (
-        f"network_{ssid['networkId']}_{ssid['networkId']}_ssid_"
+        f"meraki_network_{ssid['networkId']}_ssid_"
         f"{ssid_number}_broadcast"
     )
     if unique_id not in added_entities:

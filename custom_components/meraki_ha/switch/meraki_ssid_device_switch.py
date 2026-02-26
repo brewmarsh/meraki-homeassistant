@@ -101,7 +101,7 @@ class MerakiSSIDBaseSwitch(MerakiEntity, SwitchEntity):
         we ensure that the registry stays unique for different switch types.
         """
         return (
-            f"network_{self._network_id}_{self._network_id}_ssid_"
+            f"meraki_network_{self._network_id}_ssid_"
             f"{self._ssid_number}_{self._switch_type}"
         )
 

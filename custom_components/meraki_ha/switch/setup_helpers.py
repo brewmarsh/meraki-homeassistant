@@ -28,9 +28,11 @@ def async_setup_switches(
     coordinator: MerakiDataUpdateCoordinator,
     meraki_client: "MerakiAPIClient",
     async_add_entities: AddEntitiesCallback,
+    added_entities: set[str] | None = None,
 ) -> None:
     """Set up all switch entities from the central coordinator."""
-    added_entities: set[str] = set()
+    if added_entities is None:
+        added_entities = set()
 
     if not coordinator.data:
         _LOGGER.warning("Coordinator has no data; skipping switch setup.")
