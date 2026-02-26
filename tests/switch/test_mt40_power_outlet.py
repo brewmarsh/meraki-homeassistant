@@ -59,6 +59,11 @@ def mock_coordinator_with_mt40_data(
 def mock_meraki_client() -> MagicMock:
     """Fixture for a mocked MerakiAPIClient."""
     # Using spec for MagicMock helps ensure the mock matches the API client's interface
+<<<<<<< fix/resolve-unique-id-collisions-9042854325858757258
+=======
+    # However, since sensor is an instance attribute not present in the class definition,
+    # spec=MerakiAPIClient prevents access to it. We use MagicMock() without spec.
+>>>>>>> beta
     client = MagicMock()
     client.sensor.create_device_sensor_command = AsyncMock()
     return client

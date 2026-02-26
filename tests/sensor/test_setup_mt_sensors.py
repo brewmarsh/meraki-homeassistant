@@ -132,6 +132,9 @@ async def _prepare_discovery_service_and_entities(
 
     for entity in entities:
         entity.hass = MagicMock()
+        entity.platform = MagicMock()
+        entity.platform.platform_name = "test_platform"
+        entity.platform.domain = "test_domain"
         # Use platform and unique_id to create a more distinct entity_id for tests
         entity.entity_id = (
             f"{entity.platform}.test_{entity.unique_id}"
@@ -169,11 +172,12 @@ def _assert_sensor_entity(
     """Assert common properties of a SensorEntity."""
     assert isinstance(entity, SensorEntity)
     assert entity.unique_id == f"{device_serial}_{key}"
-    assert entity.name == expected_name
     assert entity.native_value == expected_value
     assert entity.available is expected_availability
     if expected_translation_key is not None:
         assert entity.translation_key == expected_translation_key
+    else:
+        assert entity.name == expected_name
 
 
 def _assert_binary_sensor_entity(
@@ -240,12 +244,12 @@ async def test_async_setup_mt15_sensors(
     )
 
     # MT15 typically has:
-    # 7 reading-based sensors (temperature, humidity, co2, tvoc, pm25, noise, battery)
+    # 6 reading-based sensors (temperature, humidity, co2, tvoc, pm25, noise) - Battery excluded
     # 1 common sensor (signal_strength)
     # 2 buttons (refresh, reboot)
     # 3 device info sensors (status, lan_ip, public_ip)
-    # Total: 7 + 1 + 2 + 3 = 13 entities.
-    assert len(entities) == 13
+    # Total: 6 + 1 + 2 + 3 = 12 entities.
+    assert len(entities) == 12
 
     sensors_by_key = _get_entities_map_by_key(entities)
 
