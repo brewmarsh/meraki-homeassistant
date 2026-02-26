@@ -1,16 +1,19 @@
 """Tests for the Meraki MT sensor setup."""
 
 import copy
-from typing import Any, cast
+from typing import Any, Dict, List, Optional, Union, cast
 from unittest.mock import MagicMock
 
 import pytest
-from homeassistant.components.binary_sensor import BinarySensorEntity
-from homeassistant.components.sensor import SensorEntity
-from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from custom_components.meraki_ha.discovery.service import DeviceDiscoveryService
 from custom_components.meraki_ha.types import MerakiDevice
+from homeassistant.components.binary_sensor import BinarySensorEntity
+from homeassistant.components.sensor import SensorEntity
+from homeassistant.helpers.entity import Entity
+from homeassistant.helpers.update_coordinator import CoordinatorEntity
+
+# --- Fixtures ---
 
 
 @pytest.fixture
@@ -69,7 +72,7 @@ def mock_coordinator_with_mt_devices(mock_coordinator: MagicMock) -> MagicMock:
         },
     ]
 
-    devices_objects = []
+    devices_objects: List[MerakiDevice] = []
     for d in devices_data:
         device = MerakiDevice.from_dict(d)
         # Manually populate attributes that parse_sensor_data would handle
@@ -98,348 +101,323 @@ def mock_coordinator_with_mt_devices(mock_coordinator: MagicMock) -> MagicMock:
     mock_coordinator.data = {"devices": devices_objects}
     mock_coordinator.devices_by_serial = {d.serial: d for d in devices_objects}
 
-    # Mock get_device to return the correct device
-    def get_device(serial):
+    def get_device(serial: str) -> Optional[MerakiDevice]:
         return mock_coordinator.devices_by_serial.get(serial)
 
     mock_coordinator.get_device.side_effect = get_device
-
     return mock_coordinator
+
+
+# --- Helper Functions ---
+
+
+async def _prepare_discovery_service_and_entities(
+    mock_coordinator: MagicMock, devices: Union[MerakiDevice, List[MerakiDevice]]
+) -> List[Entity]:
+    """Prepare DeviceDiscoveryService and process discovered entities for testing."""
+    if not isinstance(devices, list):
+        devices = [devices]
+
+    discovery_service = DeviceDiscoveryService(
+        mock_coordinator,
+        MagicMock(),  # entry
+        MagicMock(),  # hass
+        MagicMock(),  # config_entry
+        MagicMock(),  # api_client
+        MagicMock(),  # event_handler
+    )
+    discovery_service._devices = devices
+    await discovery_service.discover_entities()
+    entities: List[Entity] = discovery_service.all_entities
+
+    for entity in entities:
+        entity.hass = MagicMock()
+        # Use platform and unique_id to create a more distinct entity_id for tests
+        entity.entity_id = (
+            f"{entity.platform}.test_{entity.unique_id}"
+            if hasattr(entity, "unique_id")
+            else "test_entity"
+        )
+        # Replaced object.__setattr__ with direct assignment for method mock
+        entity.async_write_ha_state = MagicMock()
+        if hasattr(entity, "_handle_coordinator_update"):
+            cast(CoordinatorEntity, entity)._handle_coordinator_update()
+    return entities
+
+
+def _get_entities_map_by_key(entities: List[Entity]) -> Dict[str, Entity]:
+    """Map entities by their entity_description.key."""
+    entities_by_key: Dict[str, Entity] = {
+        entity.entity_description.key: entity
+        for entity in entities
+        if hasattr(entity, "entity_description")
+        and getattr(entity, "entity_description", None)
+        and getattr(entity.entity_description, "key", None)
+    }
+    return entities_by_key
+
+
+def _assert_sensor_entity(
+    entity: SensorEntity,
+    device_serial: str,
+    key: str,
+    expected_name: str,
+    expected_value: Any,
+    expected_availability: bool = True,
+    expected_translation_key: Optional[str] = None,
+) -> None:
+    """Assert common properties of a SensorEntity."""
+    assert isinstance(entity, SensorEntity)
+    assert entity.unique_id == f"{device_serial}_{key}"
+    assert entity.name == expected_name
+    assert entity.native_value == expected_value
+    assert entity.available is expected_availability
+    if expected_translation_key is not None:
+        assert entity.translation_key == expected_translation_key
+
+
+def _assert_binary_sensor_entity(
+    entity: BinarySensorEntity,
+    device_serial: str,
+    key: str,
+    expected_name: str,
+    expected_is_on: bool,
+    expected_availability: bool = True,
+    expected_translation_key: Optional[str] = None,
+) -> None:
+    """Assert common properties of a BinarySensorEntity."""
+    assert isinstance(entity, BinarySensorEntity)
+    assert entity.unique_id == f"{device_serial}_{key}"
+    assert entity.name == expected_name
+    assert entity.is_on is expected_is_on
+    assert entity.available is expected_availability
+    if expected_translation_key is not None:
+        assert entity.translation_key == expected_translation_key
+
+
+# --- Tests ---
 
 
 async def test_async_setup_mt10_sensors(
     mock_coordinator_with_mt_devices: MagicMock,
 ) -> None:
     """Test the setup of sensors for an MT10 device."""
-    # Assuming the first device in the list is MT10
     mt10_device = mock_coordinator_with_mt_devices.get_device("mt10-1")
-
-    discovery_service = DeviceDiscoveryService(
-        mock_coordinator_with_mt_devices,
-        MagicMock(),
-        MagicMock(),
-        MagicMock(),
-        MagicMock(),
-        MagicMock(),
+    assert mt10_device is not None
+    entities = await _prepare_discovery_service_and_entities(
+        mock_coordinator_with_mt_devices, mt10_device
     )
-    discovery_service._devices = [mt10_device] if mt10_device else []
-    await discovery_service.discover_entities()
-    entities = discovery_service.all_entities
-
-    for entity in entities:
-        entity.hass = MagicMock()
-        entity.entity_id = "sensor.test"
-        object.__setattr__(entity, "async_write_ha_state", MagicMock())
-        if hasattr(entity, "_handle_coordinator_update"):
-            cast(CoordinatorEntity, entity)._handle_coordinator_update()
 
     # MT10 has Temperature, Humidity, Battery, Signal Strength (4 sensors)
     assert len(entities) == 4
 
-    sensors_by_key: dict[str, Any] = {
-        entity.entity_description.key: entity
-        for entity in entities  # type: ignore
-    }
+    sensors_by_key = _get_entities_map_by_key(entities)
 
-    # Test Temperature Sensor
-    assert "temperature" in sensors_by_key
-    temp_sensor = sensors_by_key["temperature"]
-    assert isinstance(temp_sensor, SensorEntity)
-    assert temp_sensor.unique_id == "mt10-1_temperature"
-    assert temp_sensor.name == "Temperature"
-    assert temp_sensor.native_value == 25.5
-    assert temp_sensor.available is True
-
-    # Test Humidity Sensor
-    assert "humidity" in sensors_by_key
-    humidity_sensor = sensors_by_key["humidity"]
-    assert isinstance(humidity_sensor, SensorEntity)
-    assert humidity_sensor.unique_id == "mt10-1_humidity"
-    assert humidity_sensor.name == "Humidity"
-    assert humidity_sensor.native_value == 60.0
-    assert humidity_sensor.available is True
+    _assert_sensor_entity(
+        cast(SensorEntity, sensors_by_key["temperature"]),
+        "mt10-1",
+        "temperature",
+        "Temperature",
+        25.5,
+    )
+    _assert_sensor_entity(
+        cast(SensorEntity, sensors_by_key["humidity"]),
+        "mt10-1",
+        "humidity",
+        "Humidity",
+        60.0,
+    )
 
 
 async def test_async_setup_mt15_sensors(
     mock_coordinator_with_mt_devices: MagicMock,
 ) -> None:
     """Test the setup of sensors for an MT15 device."""
-    # Assuming the second device in the list is MT15
     mt15_device = mock_coordinator_with_mt_devices.get_device("mt15-1")
-
-    discovery_service = DeviceDiscoveryService(
-        mock_coordinator_with_mt_devices,
-        MagicMock(),
-        MagicMock(),
-        MagicMock(),
-        MagicMock(),
-        MagicMock(),
+    assert mt15_device is not None
+    entities = await _prepare_discovery_service_and_entities(
+        mock_coordinator_with_mt_devices, mt15_device
     )
-    discovery_service._devices = [mt15_device] if mt15_device else []
-    await discovery_service.discover_entities()
-    entities = discovery_service.all_entities
 
-    for entity in entities:
-        entity.hass = MagicMock()
-        entity.entity_id = "sensor.test"
-        object.__setattr__(entity, "async_write_ha_state", MagicMock())
-        if hasattr(entity, "_handle_coordinator_update"):
-            cast(CoordinatorEntity, entity)._handle_coordinator_update()
+    # MT15 typically has:
+    # 7 reading-based sensors (temperature, humidity, co2, tvoc, pm25, noise, battery)
+    # 1 common sensor (signal_strength)
+    # 2 buttons (refresh, reboot)
+    # 3 device info sensors (status, lan_ip, public_ip)
+    # Total: 7 + 1 + 2 + 3 = 13 entities.
+    assert len(entities) == 13
 
-    # MT15 has CO2, TVOC, PM2.5, Temperature, Humidity, Noise, Signal
-    # Strength. (7 sensors) + Refresh + Reboot + Status + LAN IP + Public IP = 12
-    assert len(entities) == 12
+    sensors_by_key = _get_entities_map_by_key(entities)
 
-    sensors_by_key: dict[str, Any] = {}
-    for entity in entities:
-        if hasattr(entity, "entity_description") and entity.entity_description:
-            sensors_by_key[entity.entity_description.key] = entity
-        else:
-            # Fallback for entities without description key or custom key logic
-            # Use unique_id suffix or similar if needed, or just skip
-            # MerakiRebootButton has no entity_description.key usually?
-            # MerakiMt15RefreshDataButton has key="mt15_refresh"
-            pass
-
-    # Re-build sensors_by_key more robustly
-    sensors_by_key = {
-        entity.entity_description.key: entity
-        for entity in entities
-        if hasattr(entity, "entity_description") and entity.entity_description
-    }
-
-    # Verify Temperature Sensor
-    temp_sensor = sensors_by_key.get("temperature")
-    assert temp_sensor is not None
-    assert isinstance(temp_sensor, SensorEntity)
-    assert temp_sensor.unique_id == "mt15-1_temperature"
-    assert temp_sensor.name == "Temperature"
-    assert temp_sensor.native_value == 22.1
-    assert temp_sensor.available is True
-
-    # Verify Humidity Sensor
-    humidity_sensor = sensors_by_key.get("humidity")
-    assert humidity_sensor is not None
-    assert isinstance(humidity_sensor, SensorEntity)
-    assert humidity_sensor.unique_id == "mt15-1_humidity"
-    assert humidity_sensor.name == "Humidity"
-    assert humidity_sensor.native_value == 45.2
-    assert humidity_sensor.available is True
-
-    # Verify CO2 Sensor
-    co2_sensor = sensors_by_key.get("co2")
-    assert co2_sensor is not None
-    assert isinstance(co2_sensor, SensorEntity)
-    assert co2_sensor.unique_id == "mt15-1_co2"
-    assert co2_sensor.name == "CO2"
-    assert co2_sensor.native_value == 450
-    assert co2_sensor.available is True
-
-    # Verify TVOC Sensor
-    tvoc_sensor = sensors_by_key.get("tvoc")
-    assert tvoc_sensor is not None
-    assert isinstance(tvoc_sensor, SensorEntity)
-    assert tvoc_sensor.unique_id == "mt15-1_tvoc"
-    assert tvoc_sensor.name == "TVOC"
-    assert tvoc_sensor.native_value == 150
-    assert tvoc_sensor.available is True
-
-    # Verify PM2.5 Sensor
-    pm25_sensor = sensors_by_key.get("pm25")
-    assert pm25_sensor is not None
-    assert isinstance(pm25_sensor, SensorEntity)
-    assert pm25_sensor.unique_id == "mt15-1_pm25"
-    assert pm25_sensor.name == "PM2.5"
-    assert pm25_sensor.native_value == 10.5
-    assert pm25_sensor.available is True
-
-    # Verify Noise Sensor
-    noise_sensor = sensors_by_key.get("noise")
-    assert noise_sensor is not None
-    assert isinstance(noise_sensor, SensorEntity)
-    assert noise_sensor.unique_id == "mt15-1_noise"
-    assert noise_sensor.name == "Ambient Noise"
-    assert noise_sensor.native_value == 35.2
-    assert noise_sensor.available is True
+    _assert_sensor_entity(
+        cast(SensorEntity, sensors_by_key["temperature"]),
+        "mt15-1",
+        "temperature",
+        "Temperature",
+        22.1,
+    )
+    _assert_sensor_entity(
+        cast(SensorEntity, sensors_by_key["humidity"]),
+        "mt15-1",
+        "humidity",
+        "Humidity",
+        45.2,
+    )
+    _assert_sensor_entity(
+        cast(SensorEntity, sensors_by_key["co2"]), "mt15-1", "co2", "CO2", 450
+    )
+    _assert_sensor_entity(
+        cast(SensorEntity, sensors_by_key["tvoc"]), "mt15-1", "tvoc", "TVOC", 150
+    )
+    _assert_sensor_entity(
+        cast(SensorEntity, sensors_by_key["pm25"]), "mt15-1", "pm25", "PM2.5", 10.5
+    )
+    _assert_sensor_entity(
+        cast(SensorEntity, sensors_by_key["noise"]),
+        "mt15-1",
+        "noise",
+        "Ambient Noise",
+        35.2,
+    )
 
 
 async def test_async_setup_mt12_sensors(
     mock_coordinator_with_mt_devices: MagicMock,
 ) -> None:
     """Test the setup of sensors for an MT12 device."""
-    # Assuming the third device in the list is MT12
     mt12_device = mock_coordinator_with_mt_devices.get_device("mt12-1")
-
-    discovery_service = DeviceDiscoveryService(
-        mock_coordinator_with_mt_devices,
-        MagicMock(),
-        MagicMock(),
-        MagicMock(),
-        MagicMock(),
-        MagicMock(),
+    assert mt12_device is not None
+    entities = await _prepare_discovery_service_and_entities(
+        mock_coordinator_with_mt_devices, mt12_device
     )
-    discovery_service._devices = [mt12_device] if mt12_device else []
-    await discovery_service.discover_entities()
-    entities = discovery_service.all_entities
 
-    for entity in entities:
-        entity.hass = MagicMock()
-        entity.entity_id = "sensor.test"
-        object.__setattr__(entity, "async_write_ha_state", MagicMock())
-        if hasattr(entity, "_handle_coordinator_update"):
-            cast(CoordinatorEntity, entity)._handle_coordinator_update()
-
-    # MT12 has Temperature, Humidity, Battery, Signal Strength (Sensors) + Water
-    # (Binary Sensor) = 5 total
+    # MT12 is expected to have 5 entities based on prior tests:
+    # Water Leak Binary Sensor, Battery Sensor, Signal Strength Sensor,
+    # plus 2 other implicit sensors (e.g., Temperature, Humidity).
     assert len(entities) == 5
 
-    sensors_by_key: dict[str, Any] = {
-        entity.entity_description.key: entity
-        for entity in entities  # type: ignore
-    }
+    entities_by_key = _get_entities_map_by_key(entities)
 
-    water_sensor = sensors_by_key.get("water")
-    assert water_sensor is not None
-    assert isinstance(water_sensor, BinarySensorEntity)
-    assert water_sensor.unique_id == "mt12-1_water"
-    assert water_sensor.name == "Water Leak"
-    assert water_sensor.is_on is False
-    assert water_sensor.available is True
+    _assert_binary_sensor_entity(
+        cast(BinarySensorEntity, entities_by_key["water"]),
+        "mt12-1",
+        "water",
+        "Water Leak",
+        False,
+    )
 
 
 async def test_async_setup_mt40_sensors(
     mock_coordinator_with_mt_devices: MagicMock,
 ) -> None:
     """Test the setup of sensors for an MT40 device."""
-    # Assuming the fourth device in the list is MT40
     mt40_device = mock_coordinator_with_mt_devices.get_device("mt40-1")
-
-    discovery_service = DeviceDiscoveryService(
-        mock_coordinator_with_mt_devices,
-        MagicMock(),
-        MagicMock(),
-        MagicMock(),
-        MagicMock(),
-        MagicMock(),
+    assert mt40_device is not None
+    entities = await _prepare_discovery_service_and_entities(
+        mock_coordinator_with_mt_devices, mt40_device
     )
-    discovery_service._devices = [mt40_device] if mt40_device else []
-    await discovery_service.discover_entities()
-    entities = discovery_service.all_entities
-
-    for entity in entities:
-        entity.hass = MagicMock()
-        entity.entity_id = "sensor.test"
-        object.__setattr__(entity, "async_write_ha_state", MagicMock())
-        if hasattr(entity, "_handle_coordinator_update"):
-            cast(CoordinatorEntity, entity)._handle_coordinator_update()
 
     # MT40 has 6 Power sensors + 1 Outlet switch + 1 Signal Strength = 8 entities
     assert len(entities) == 8
 
-    sensors_by_key: dict[str, Any] = {}
+    entities_by_key = _get_entities_map_by_key(entities)
+
+    # For the outlet switch, which might not have an entity_description.key,
+    # we can find it by unique_id if needed, or rely on other tests for its specific type.
+    # The original test added it to the map with key "outlet".
+    outlet_switch: Optional[Entity] = None
     for entity in entities:
-        if hasattr(entity, "entity_description"):
-            sensors_by_key[entity.entity_description.key] = entity
-        else:
-            # For the outlet switch
-            sensors_by_key["outlet"] = entity
+        if hasattr(entity, "unique_id") and "outlet" in entity.unique_id:
+            outlet_switch = entity
+            break
+    assert outlet_switch is not None, "Outlet switch entity not found for MT40"
+    # Add it to the map for consistent access in assertions
+    if outlet_switch and "outlet" not in entities_by_key:
+        entities_by_key["outlet"] = outlet_switch
 
-    # Verify Power Sensor
-    power_sensor = sensors_by_key.get("realPower")
-    assert power_sensor is not None
-    assert isinstance(power_sensor, SensorEntity)
-    assert power_sensor.unique_id == "mt40-1_realPower"
-    # The translation key is not set in MT_POWER_DESCRIPTION, so it defaults to
-    # None (or name is used)
-    # assert power_sensor.translation_key == "power"
-    assert power_sensor.native_value == 120.5
-    assert power_sensor.available is True
-
-    # Verify Voltage Sensor
-    voltage_sensor = sensors_by_key.get("voltage")
-    assert voltage_sensor is not None
-    assert isinstance(voltage_sensor, SensorEntity)
-    assert voltage_sensor.unique_id == "mt40-1_voltage"
-    assert voltage_sensor.translation_key == "voltage"
-    assert voltage_sensor.native_value == 120.1
-    assert voltage_sensor.available is True
-
-    # Verify Current Sensor
-    current_sensor = sensors_by_key.get("current")
-    assert current_sensor is not None
-    assert isinstance(current_sensor, SensorEntity)
-    assert current_sensor.unique_id == "mt40-1_current"
-    assert current_sensor.translation_key == "current"
-    assert current_sensor.native_value == 1.0
-    assert current_sensor.available is True
-
-    # Verify Power Factor Sensor
-    pf_sensor = sensors_by_key.get("powerFactor")
-    assert pf_sensor is not None
-    assert isinstance(pf_sensor, SensorEntity)
-    assert pf_sensor.unique_id == "mt40-1_powerFactor"
-    assert pf_sensor.name == "Power Factor"
-    assert pf_sensor.native_value == 98.0
-    assert pf_sensor.available is True
-
-    # Verify Frequency Sensor
-    freq_sensor = sensors_by_key.get("frequency")
-    assert freq_sensor is not None
-    assert isinstance(freq_sensor, SensorEntity)
-    assert freq_sensor.unique_id == "mt40-1_frequency"
-    assert freq_sensor.name == "Frequency"
-    assert freq_sensor.native_value == 60.0
-    assert freq_sensor.available is True
-
-    # Verify Energy Sensor
-    energy_sensor = sensors_by_key.get("energy")
-    assert energy_sensor is not None
-    assert isinstance(energy_sensor, SensorEntity)
-    assert energy_sensor.unique_id == "mt40-1_energy"
-    assert energy_sensor.name == "Energy"
-    assert energy_sensor.native_value == 500.0
-    assert energy_sensor.available is True
+    _assert_sensor_entity(
+        cast(SensorEntity, entities_by_key["realPower"]),
+        "mt40-1",
+        "realPower",
+        "Power",
+        120.5,
+    )
+    _assert_sensor_entity(
+        cast(SensorEntity, entities_by_key["voltage"]),
+        "mt40-1",
+        "voltage",
+        "Voltage",
+        120.1,
+        expected_translation_key="voltage",
+    )
+    _assert_sensor_entity(
+        cast(SensorEntity, entities_by_key["current"]),
+        "mt40-1",
+        "current",
+        "Current",
+        1.0,
+        expected_translation_key="current",
+    )
+    _assert_sensor_entity(
+        cast(SensorEntity, entities_by_key["powerFactor"]),
+        "mt40-1",
+        "powerFactor",
+        "Power Factor",
+        98.0,
+    )
+    _assert_sensor_entity(
+        cast(SensorEntity, entities_by_key["frequency"]),
+        "mt40-1",
+        "frequency",
+        "Frequency",
+        60.0,
+    )
+    _assert_sensor_entity(
+        cast(SensorEntity, entities_by_key["energy"]),
+        "mt40-1",
+        "energy",
+        "Energy",
+        500.0,
+    )
 
 
 async def test_availability(mock_coordinator_with_mt_devices: MagicMock) -> None:
     """Test sensor availability."""
-    # Get an MT10 device
     mt10_device = mock_coordinator_with_mt_devices.get_device("mt10-1")
-
-    discovery_service = DeviceDiscoveryService(
-        mock_coordinator_with_mt_devices,
-        MagicMock(),
-        MagicMock(),
-        MagicMock(),
-        MagicMock(),
-        MagicMock(),
+    assert mt10_device is not None
+    entities = await _prepare_discovery_service_and_entities(
+        mock_coordinator_with_mt_devices, mt10_device
     )
-    discovery_service._devices = [mt10_device] if mt10_device else []
-    await discovery_service.discover_entities()
-    entities = discovery_service.all_entities
 
-    temp_sensor = entities[0]
-    assert isinstance(temp_sensor, SensorEntity)
-    temp_sensor.hass = MagicMock()
-    temp_sensor.entity_id = "sensor.test"
-    object.__setattr__(temp_sensor, "async_write_ha_state", MagicMock())
-    cast(CoordinatorEntity, temp_sensor)._handle_coordinator_update()
+    sensors_by_key = _get_entities_map_by_key(entities)
+    temp_sensor = cast(SensorEntity, sensors_by_key["temperature"])
 
-    # Sensor should be available
+    # Sensor should be available initially (checked by _prepare_discovery_service_and_entities)
     assert temp_sensor.available is True
 
-    # Remove readings and check availability
-    assert mt10_device is not None
-    device_without_readings = copy.deepcopy(mt10_device)  # Use MerakiDevice object
+    # Prepare a device without readings
+    device_without_readings = copy.deepcopy(mt10_device)
     device_without_readings.readings = []
-    # Clear side_effect so we can set return_value
-    mock_coordinator_with_mt_devices.get_device.side_effect = None
-    mock_coordinator_with_mt_devices.get_device.return_value = device_without_readings
-    # Clear the value to test availability logic when no value is present
+
+    # Update the mock coordinator's data to reflect the device without readings
+    mock_coordinator_with_mt_devices.data["devices"] = [
+        d
+        for d in mock_coordinator_with_mt_devices.data["devices"]
+        if d.serial != "mt10-1"
+    ] + [device_without_readings]
+    mock_coordinator_with_mt_devices.devices_by_serial["mt10-1"] = (
+        device_without_readings
+    )
+
+    # Mock get_device to return the updated device for subsequent fetches by entities
+    def get_device_updated(serial: str) -> Optional[MerakiDevice]:
+        return mock_coordinator_with_mt_devices.devices_by_serial.get(serial)
+
+    mock_coordinator_with_mt_devices.get_device.side_effect = get_device_updated
+
+    # Explicitly clear native value, as done in the original test, to ensure clear state for update.
     temp_sensor._attr_native_value = None
     cast(CoordinatorEntity, temp_sensor)._handle_coordinator_update()
-    assert temp_sensor.available is False
 
-    # No readings key? dataclass has default factory list
-    # But if API returns empty, it's empty list.
-    pass
+    # Sensor should now be unavailable
+    assert temp_sensor.available is False

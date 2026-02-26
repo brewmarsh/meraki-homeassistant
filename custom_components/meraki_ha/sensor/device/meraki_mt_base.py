@@ -25,6 +25,8 @@ _LOGGER = logging.getLogger(__name__)
 class MerakiMtSensor(MerakiSensor, RestoreSensor):
     """Representation of a Meraki MT sensor."""
 
+    _attr_native_value: str | float | bool | None
+
     def __init__(
         self,
         coordinator: MerakiDataUpdateCoordinator,
@@ -42,7 +44,7 @@ class MerakiMtSensor(MerakiSensor, RestoreSensor):
         if self.entity_description.name is not UNDEFINED:
             self._attr_name = cast(str | None, self.entity_description.name)
 
-        self._attr_native_value: Any = None
+        self._attr_native_value = None
         self._update_native_value()
 
     def _maybe_get_value(self, value: Any) -> Any | None:
@@ -68,87 +70,108 @@ class MerakiMtSensor(MerakiSensor, RestoreSensor):
             manufacturer="Cisco Meraki",
         )
 
-    def _update_native_value(self) -> None:
-        """Update the native value of the sensor."""
-        self._attr_native_value = None
-        key = self.entity_description.key
+    def _get_value_from_legacy_device_attributes(self, key: str) -> Any | None:
+        """Retrieve value from older MT device attributes."""
+        if key == "noise":
+            return self._maybe_get_value(self._device.ambient_noise)
+        if key == "pm25":
+            return self._maybe_get_value(self._device.pm25)
+        if key == "door":
+            return self._maybe_get_value(self._device.door_open)
+        return None
 
-        readings = self._device.readings
-        if not readings or not isinstance(readings, list):
-            # Fallback for older MT devices
-            if key == "noise":
-                self._attr_native_value = self._maybe_get_value(
-                    self._device.ambient_noise
-                )
-            elif key == "pm25":
-                self._attr_native_value = self._maybe_get_value(self._device.pm25)
-            elif key == "door":
-                self._attr_native_value = self._maybe_get_value(self._device.door_open)
-            return
+    def _extract_value_from_metric_data(
+        self, key: str, metric_data: dict[str, Any]
+    ) -> Any | None:
+        """Extract value from a metric_data dictionary based on key and specific rules."""
+        key_map: dict[str, str] = {
+            "battery": "percentage",
+            "temperature": "celsius",
+            "humidity": "relativePercentage",
+            "tvoc": "concentration",
+            "co2": "concentration",
+            "pm25": "concentration",
+            "rssi": "level",
+            "water": "present",
+            "button": "pressType",
+            "realPower": "draw",
+            "current": "draw",
+            "voltage": "level",
+            "powerFactor": "percentage",
+            "frequency": "level",
+            "energy": "draw",
+        }
+        value_key = key_map.get(key)
 
+        if value_key:
+            value = self._maybe_get_value(metric_data.get(value_key))
+            if value is not None:
+                return value
+
+            # Fallbacks for power monitoring if primary key_map value is None
+            if key == "voltage":
+                return self._maybe_get_value(metric_data.get("draw"))
+            if key == "energy":
+                return self._maybe_get_value(
+                    metric_data.get("energyUsage")
+                ) or self._maybe_get_value(metric_data.get("apparentPower"))
+            if key == "powerFactor":
+                return self._maybe_get_value(metric_data.get("factor"))
+            return None  # No value found after fallbacks
+
+        if key == "noise":
+            return self._maybe_get_value(metric_data.get("ambient", {}).get("level"))
+
+        return None
+
+    def _get_value_from_readings_list(
+        self, key: str, readings: list[dict[str, Any]]
+    ) -> Any | None:
+        """Iterate through readings list to find a matching metric and extract its value."""
         for reading in readings:
             metric = reading.get("metric")
+            # Handle "realPower" which might be reported as "power"
             if metric == key or (key == "realPower" and metric == "power"):
                 metric_data = reading.get(metric)
                 if isinstance(metric_data, dict):
-                    key_map = {
-                        "battery": "percentage",
-                        "temperature": "celsius",
-                        "humidity": "relativePercentage",
-                        "tvoc": "concentration",
-                        "co2": "concentration",
-                        "pm25": "concentration",
-                        "rssi": "level",
-                        "water": "present",
-                        "button": "pressType",
-                        "realPower": "draw",
-                        "current": "draw",
-                        "voltage": "level",
-                        "powerFactor": "percentage",
-                        "frequency": "level",
-                        "energy": "draw",
-                    }
-                    value_key = key_map.get(key)
-                    if value_key:
-                        self._attr_native_value = self._maybe_get_value(
-                            metric_data.get(value_key)
-                        )
+                    if value := self._extract_value_from_metric_data(key, metric_data):
+                        return value
+        return None
 
-                        # Fallbacks for power monitoring
-                        if key == "voltage" and self._attr_native_value is None:
-                            self._attr_native_value = self._maybe_get_value(
-                                metric_data.get("draw")
-                            )
-                        if key == "energy" and self._attr_native_value is None:
-                            self._attr_native_value = self._maybe_get_value(
-                                metric_data.get("energyUsage")
-                            ) or self._maybe_get_value(metric_data.get("apparentPower"))
-                        if key == "powerFactor" and self._attr_native_value is None:
-                            self._attr_native_value = self._maybe_get_value(
-                                metric_data.get("factor")
-                            )
-                        return
+    def _get_value_from_generic_device_attributes(self, key: str) -> Any | None:
+        """Retrieve value from generic device attributes using getattr."""
+        attr_map: dict[str, str] = {
+            "frequency": "frequency",
+            "powerFactor": "power_factor",
+            "energy": "energy",
+            "realPower": "real_power",
+            "voltage": "voltage",
+            "current": "current",
+        }
+        if attr_name := attr_map.get(key):
+            return self._maybe_get_value(getattr(self._device, attr_name, UNDEFINED))
+        return None
 
-                    if key == "noise":
-                        self._attr_native_value = self._maybe_get_value(
-                            metric_data.get("ambient", {}).get("level")
-                        )
-                        return
+    def _update_native_value(self) -> None:
+        """Update the native value of the sensor by trying different data sources."""
+        self._attr_native_value = None
+        key = self.entity_description.key
 
-        # Fallback to device attributes
-        if self._attr_native_value is None:
-            attr_map = {
-                "frequency": "frequency",
-                "powerFactor": "power_factor",
-                "energy": "energy",
-                "realPower": "real_power",
-                "voltage": "voltage",
-                "current": "current",
-            }
-            if key in attr_map:
-                self._attr_native_value = self._maybe_get_value(
-                    getattr(self._device, attr_map[key])
-                )
+        # 1. Try values from legacy device attributes
+        if value := self._get_value_from_legacy_device_attributes(key):
+            self._attr_native_value = value
+            return
+
+        # 2. Try values from the 'readings' list if available
+        if self._device.readings and isinstance(self._device.readings, list):
+            if value := self._get_value_from_readings_list(key, self._device.readings):
+                self._attr_native_value = value
+                return
+
+        # 3. Fallback to generic device attributes
+        if value := self._get_value_from_generic_device_attributes(key):
+            self._attr_native_value = value
+            return
 
     @callback
     def _handle_coordinator_update(self) -> None:
