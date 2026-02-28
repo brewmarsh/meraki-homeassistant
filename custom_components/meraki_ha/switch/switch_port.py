@@ -12,7 +12,8 @@ from homeassistant.core import callback
 from homeassistant.helpers.device_registry import DeviceInfo
 
 from ..coordinator import MerakiDataUpdateCoordinator
-from ..core.models.device import MerakiAppliancePort, MerakiDevice
+from ..core.models import MerakiAppliancePort
+from ..core.models.device import MerakiDevice
 from ..entity import MerakiEntity
 from ..helpers.device_info_helpers import resolve_device_info
 
