@@ -10,13 +10,6 @@ body:
       value: |
         ### 🤖 AI Agent Instructions
         When this issue is created, Jules will automatically begin analyzing the requirements based on the `ROADMAP.md` and the `beta` branch.
-  - type: input
-    id: milestone
-    attributes:
-      label: Milestone
-      value: 'v2.3.0 (2026.1 Infrastructure Update)'
-    validations:
-      required: true
   - type: textarea
     id: requirements
     attributes:
@@ -31,10 +24,3 @@ body:
       label: Specific Constraints
       description: List any technical constraints (e.g., specific files to ignore).
       value: 'Ignore all errors not related to the meraki_ha integration. Follow Home Assistant Sentence Case standards.'
-  - type: checkboxes
-    id: target
-    attributes:
-      label: Target Branch
-      options:
-        - label: This work must target the 'beta' branch.
-          required: true
