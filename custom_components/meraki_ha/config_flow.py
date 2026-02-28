@@ -23,11 +23,6 @@ from .const_conf import (
     CONF_MERAKI_API_KEY,
     CONF_MERAKI_ORG_ID,
 )
-from .helpers.schema import get_filtered_schema, populate_schema_defaults
-from .schemas import (
-    CONFIG_SCHEMA,
-    OPTIONS_SCHEMA_GENERAL,
-)
 
 if TYPE_CHECKING:
     from .coordinator import MerakiDataUpdateCoordinator
@@ -61,6 +56,8 @@ class MerakiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignor
         user_input: dict[str, Any] | None = None,
     ) -> ConfigFlowResult:
         """Handle the initial setup step."""
+        from .schemas import CONFIG_SCHEMA
+
         errors: dict[str, str] = {}
         if user_input is not None:
             from .helpers.flow_utils import validate_credentials
@@ -120,6 +117,8 @@ class MerakiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignor
         ]["coordinator"]
 
         from .helpers.flow_utils import get_network_options
+        from .helpers.schema import get_filtered_schema, populate_schema_defaults
+        from .schemas import OPTIONS_SCHEMA_GENERAL
 
         network_options = get_network_options(coordinator.data)
 

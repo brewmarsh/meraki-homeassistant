@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-from .core.models.device import MerakiAppliancePort, MerakiDevice
+from .core.models import MerakiAppliancePort
+from .core.models.device import MerakiDevice
 from .core.models.network import (
     MerakiFirewallRule,
     MerakiNetwork,

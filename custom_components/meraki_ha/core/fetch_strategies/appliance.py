@@ -13,7 +13,8 @@ from ...core.errors import (
     MerakiVlanError,
     MerakiVlansDisabledError,
 )
-from ...core.models.device import MerakiAppliancePort, MerakiDevice
+from ...core.models import MerakiAppliancePort
+from ...core.models.device import MerakiDevice
 from .base import BaseFetchStrategy
 
 if TYPE_CHECKING:
