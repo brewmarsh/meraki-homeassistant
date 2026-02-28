@@ -90,8 +90,9 @@ jobs:
           echo "Running Reset Script..."
           # Pass secrets implicitly via env vars defined above
           python3 tests/scripts/reset_integration.py
-
+          
       - name: Audit Logs for Errors
+        id: audit_logs
         shell: bash
         env:
           HASS_SERVER: ${{ secrets.HA_STAGING_URL }}
@@ -100,7 +101,7 @@ jobs:
           echo "Scanning logs for Meraki errors via API..."
           CLEAN_SERVER=$(echo "${HASS_SERVER}" | sed 's:/*$::')
 
-          # 1. Readiness Check (Wait up to 60s for API to be ready)
+          # 1. Readiness Check
           echo "Waiting for API to be ready..."
           READY=false
           for i in {1..6}; do
@@ -135,12 +136,39 @@ jobs:
             exit 1
           fi
 
-          # 3. Grep the content
-          if echo "$LOG_CONTENT" | grep -i "custom_components.meraki_ha"; then
+          # 3. Grep the content (Strictly meraki_ha errors only)
+          if echo "$LOG_CONTENT" | grep -i "custom_components.meraki_ha" > meraki_errors.txt; then
             echo "::error::CRITICAL: Found Meraki errors in the log!"
-            # Print the specific error lines for debugging
-            echo "$LOG_CONTENT" | grep -i "custom_components.meraki_ha"
-            exit 1
+            # Set an environment variable so the next step knows to fire
+            echo "HAS_ERRORS=true" >> $GITHUB_ENV
           else
             echo "Logs are clean. Smoke test passed."
+            echo "HAS_ERRORS=false" >> $GITHUB_ENV
           fi
+
+      - name: Create GitHub Issue for Errors
+        if: env.HAS_ERRORS == 'true'
+        shell: bash
+        env:
+          # Use your PAT here to authorize the issue creation
+          GH_TOKEN: ${{ secrets.GH_PAT }}
+          REPO: ${{ github.repository }}
+        run: |
+          echo "Constructing issue payload..."
+          # Format the errors into a Markdown code block
+          ERRORS=$(cat meraki_errors.txt)
+          BODY="The staging smoke test detected the following \`meraki_ha\` errors:\n\n\`\`\`text\n${ERRORS}\n\`\`\`"
+          
+          jq -n \
+            --arg title "🚨 Staging Smoke Test Failed: Meraki Errors Detected" \
+            --arg body "$BODY" \
+            '{title: $title, body: $body, labels: ["bug", "staging", "automated-report"]}' > issue_payload.json
+
+          echo "Submitting issue to GitHub API..."
+          curl -s -X POST -H "Authorization: token $GH_TOKEN" \
+               -H "Accept: application/vnd.github.v3+json" \
+               "https://api.github.com/repos/${REPO}/issues" \
+               -d @issue_payload.json > /dev/null
+
+          echo "Issue created successfully. Failing the workflow..."
+          exit 1
