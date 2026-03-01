@@ -65,7 +65,7 @@ def test_switch_port_energy_sensor(mock_coordinator_and_device):
     assert sensor.translation_key == "energy"
     assert sensor.device_class == SensorDeviceClass.ENERGY
     assert sensor.native_unit_of_measurement == UnitOfEnergy.WATT_HOUR
-    assert sensor.state_class == SensorStateClass.MEASUREMENT
+    assert sensor.state_class == SensorStateClass.TOTAL_INCREASING
 
     assert sensor.native_value == 240
 
