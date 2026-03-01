@@ -62,7 +62,8 @@ def _create_mt40_outlet_switch(
         return None
 
     serial = device_info.serial
-    unique_id = f"meraki_device_{serial}_outlet"
+    network_id = device_info.network_id
+    unique_id = f"{serial}_{network_id}_outlet"
     if unique_id in added_entities:
         return None
 
