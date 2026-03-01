@@ -1,4 +1,4 @@
-name: Deploy Beta to Staging (Smoke Test)
+name: Deploy beta to staging (smoke test)
 
 on:
   push:
@@ -10,7 +10,7 @@ jobs:
     runs-on: [self-hosted, meraki-smoketest]
 
     env:
-      DESTINATION_PATH: '/ha_config/custom_components/meraki_ha'
+      DESTINATION_PATH: '/config/custom_components/meraki_ha'
 
     steps:
       - name: Checkout repository
@@ -20,7 +20,7 @@ jobs:
         with:
           node-version: '20' # Use the Node version your project expects
 
-      - name: Build Custom Panel
+      - name: Build custom panel
         # IMPORTANT: Change this path to wherever your package.json lives!
         working-directory: ./custom_components/meraki_ha/www
         run: |
@@ -30,7 +30,7 @@ jobs:
           echo "Building frontend..."
           npm run build
 
-      - name: Copy files to Staging (rsync)
+      - name: Copy files to staging (rsync)
         shell: bash
         env:
           DEPLOY_PATH: ${{ env.DESTINATION_PATH }}
@@ -38,7 +38,7 @@ jobs:
           SourceComponentDir="${GITHUB_WORKSPACE}/custom_components/meraki_ha/"
           DestinationPath="${DEPLOY_PATH}"
 
-          echo "Starting Staging Deployment..."
+          echo "Starting staging deployment..."
           echo "Source: ${SourceComponentDir}"
           echo "Destination: ${DestinationPath}"
 
@@ -55,13 +55,13 @@ jobs:
             --exclude '.DS_Store' \
             "${SourceComponentDir}" "${DestinationPath}"
 
-          echo "Deployment to Staging Complete."
+          echo "Deployment to staging complete."
 
-      - name: Update Home Assistant Configuration
+      - name: Update Home Assistant configuration
         shell: bash
         run: |
           echo "Updating configuration.yaml..."
-          sudo tee /ha_config/configuration.yaml <<EOF
+          sudo tee /config/configuration.yaml <<EOF
           default_config:
 
           logger:
@@ -70,8 +70,8 @@ jobs:
               custom_components.meraki_ha: debug
           EOF
           # Ensure log file exists and is writable
-          sudo touch /ha_config/home-assistant.log
-          sudo chmod 666 /ha_config/home-assistant.log
+          sudo touch /config/home-assistant.log
+          sudo chmod 666 /config/home-assistant.log
 
       - name: Install jq
         run: sudo apt-get update && sudo apt-get install -y jq
@@ -86,7 +86,7 @@ jobs:
           python-version: '3.13'
           enable-cache: true
 
-      - name: Full Integration Reset (Delete > Restart > Add)
+      - name: Full integration reset (delete > restart > add)
         shell: bash
         env:
           HA_URL: ${{ secrets.HA_STAGING_URL }}
@@ -98,20 +98,20 @@ jobs:
           # uv run --with creates an ephemeral environment just for this command, protecting the system python
           uv run --with aiohttp python3 tests/scripts/reset_integration.py
           
-      - name: Audit Logs for Errors
+      - name: Audit logs for errors
         id: audit_logs
         shell: bash
         run: |
           echo "Scanning local log file for Meraki errors..."
           
           # Since we are on a self-hosted runner, we can just read the physical file
-          if [ ! -f "/ha_config/home-assistant.log" ]; then
-            echo "Warning: /ha_config/home-assistant.log not found. Skipping log scan."
+          if [ ! -f "/config/home-assistant.log" ]; then
+            echo "Warning: /config/home-assistant.log not found. Skipping log scan."
             exit 0
           fi
 
           # Grep the content (Strictly meraki_ha errors only)
-          if grep -i "custom_components.meraki_ha" /ha_config/home-assistant.log > meraki_errors.txt; then
+          if grep -i "custom_components.meraki_ha" /config/home-assistant.log > meraki_errors.txt; then
             echo "::error::CRITICAL: Found Meraki errors in the log!"
             echo "HAS_ERRORS=true" >> $GITHUB_ENV
           else
@@ -119,7 +119,7 @@ jobs:
             echo "HAS_ERRORS=false" >> $GITHUB_ENV
           fi
           
-      - name: Create GitHub Issue for Errors
+      - name: Create GitHub issue for errors
         if: env.HAS_ERRORS == 'true'
         shell: bash
         env:
@@ -133,7 +133,7 @@ jobs:
           BODY="The staging smoke test detected the following \`meraki_ha\` errors:\n\n\`\`\`text\n${ERRORS}\n\`\`\`"
           
           jq -n \
-            --arg title "🚨 Staging Smoke Test Failed: Meraki Errors Detected" \
+            --arg title "🚨 Staging smoke test failed: Meraki errors detected" \
             --arg body "$BODY" \
             '{title: $title, body: $body, labels: ["bug", "staging", "automated-report"]}' > issue_payload.json
 
