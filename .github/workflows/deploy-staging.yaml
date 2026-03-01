@@ -62,7 +62,7 @@ jobs:
       - name: Install jq
         run: sudo apt-get update && sudo apt-get install -y jq
 
-      # FIX 1: Install Python 3.13 first so 'uv --system' has a target
+      # Install Python 3.13 first so 'uv' has a target
       - uses: actions/setup-python@v6
         with:
           python-version: '3.13'
@@ -80,12 +80,9 @@ jobs:
           MERAKI_API_KEY: ${{ secrets.MERAKI_API_KEY }}
           MERAKI_ORG_ID: ${{ secrets.MERAKI_ORG_ID }}
         run: |
-          echo "Installing dependencies..."
-          uv pip install --system aiohttp > /dev/null
-
-          echo "Running Reset Script..."
-          # Pass secrets implicitly via env vars defined above
-          python3 tests/scripts/reset_integration.py
+          echo "Running Reset Script in isolated environment..."
+          # uv run --with creates an ephemeral environment just for this command, protecting the system python
+          uv run --with aiohttp python3 tests/scripts/reset_integration.py
           
       - name: Audit Logs for Errors
         id: audit_logs
