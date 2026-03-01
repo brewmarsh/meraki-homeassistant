@@ -2,13 +2,10 @@
 
 from __future__ import annotations
 
-import json
-from pathlib import Path
-
-import aiofiles  # type: ignore[import-untyped]
 from homeassistant.components import frontend
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
+from homeassistant.loader import async_get_loaded_integration
 
 
 async def async_register_frontend(hass: HomeAssistant, entry: ConfigEntry) -> None:
@@ -17,12 +14,9 @@ async def async_register_frontend(hass: HomeAssistant, entry: ConfigEntry) -> No
     if "meraki" in hass.data.get("frontend_panels", {}):
         return
 
-    # Load version from manifest to bust browser cache
-    manifest_path = Path(__file__).parent / "manifest.json"
-    async with aiofiles.open(manifest_path, encoding="utf-8") as f:
-        manifest_data = await f.read()
-        manifest = json.loads(manifest_data)
-    version = manifest.get("version", "0.0.0")
+    # Load version from integration to bust browser cache
+    integration = async_get_loaded_integration(hass, entry.domain)
+    version = integration.version
 
     # The custom panel will be served at `/meraki_ha_static/meraki-panel.js`.
     # We manually register the static path in `__init__.py` to serve files
