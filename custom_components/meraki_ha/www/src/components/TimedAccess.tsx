@@ -45,6 +45,7 @@ const TimedAccess: React.FC<TimedAccessProps> = ({
   // Initial load
   useEffect(() => {
     fetchKeys();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Fetch policies when network changes
@@ -52,12 +53,13 @@ const TimedAccess: React.FC<TimedAccessProps> = ({
     if (selectedNetwork) {
       fetchPolicies(selectedNetwork);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedNetwork]);
 
   const fetchKeys = async () => {
     setLoading(true);
     try {
-      const result = await safeCallWS(hass, {
+      const result = await safeCallWS<TimedAccessKey[]>(hass, {
         type: 'meraki_ha/timed_access/get_keys',
         config_entry_id: configEntryId,
       });
@@ -71,7 +73,7 @@ const TimedAccess: React.FC<TimedAccessProps> = ({
 
   const fetchPolicies = async (networkId: string) => {
     try {
-      const result = await safeCallWS(hass, {
+      const result = await safeCallWS<GroupPolicy[]>(hass, {
         type: 'meraki_ha/timed_access/get_policies',
         config_entry_id: configEntryId,
         network_id: networkId,
@@ -126,7 +128,6 @@ const TimedAccess: React.FC<TimedAccessProps> = ({
 
   // Helper to find SSIDs for selected network
   const getSsidsForNetwork = (networkId: string) => {
-    const net = data?.networks?.find((n: any) => n.id === networkId);
     // Ideally filter for IPSK without Radius.
     // We assume data.ssids or data.networks contains SSIDs details.
     // The main App.tsx passes `data` which has `ssids`. But those are flat list of ALL SSIDs?

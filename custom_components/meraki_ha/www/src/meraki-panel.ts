@@ -132,15 +132,6 @@ export class MerakiPanel extends LitElement {
     }
   }
 
-  private _moreInfo(entityId: string) {
-    const event = new Event('hass-more-info', {
-      bubbles: true,
-      composed: true,
-    });
-    (event as any).detail = { entityId };
-    this.dispatchEvent(event);
-  }
-
   render() {
     if (this._loading) {
       return html`<p>Loading...</p>`;
@@ -154,7 +145,7 @@ export class MerakiPanel extends LitElement {
       return html`<p>No data found.</p>`;
     }
 
-    const { networks, devices, version, enabled_networks } = this._data;
+    const { networks, version, enabled_networks } = this._data;
 
     return html`
       <ha-card header="Meraki Dashboard">
