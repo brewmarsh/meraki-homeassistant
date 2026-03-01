@@ -22,7 +22,7 @@ jobs:
 
       - name: Build Custom Panel
         # IMPORTANT: Change this path to wherever your package.json lives!
-        working-directory: ./custom_components/meraki_ha/frontend 
+        working-directory: ./
         run: |
           echo "Installing NPM dependencies..."
           npm ci
