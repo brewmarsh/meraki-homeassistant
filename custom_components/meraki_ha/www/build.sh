@@ -18,7 +18,7 @@ sed 's|/meraki-panel.js|/src/main.tsx|' index.html.bak > index.html
 
 # 3. Clean old build artifacts and run the Vite build
 rm -rf meraki-panel.js assets
-vite build
+npx vite build
 
 # 4. Restore the original index.html
 mv index.html.bak index.html
