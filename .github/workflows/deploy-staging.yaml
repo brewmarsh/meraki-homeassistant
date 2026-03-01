@@ -15,6 +15,20 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20' # Use the Node version your project expects
+
+      - name: Build Custom Panel
+        # IMPORTANT: Change this path to wherever your package.json lives!
+        working-directory: ./custom_components/meraki_ha/frontend 
+        run: |
+          echo "Installing NPM dependencies..."
+          npm ci
+          
+          echo "Building frontend..."
+          npm run build
 
       - name: Copy files to Staging (rsync)
         shell: bash
