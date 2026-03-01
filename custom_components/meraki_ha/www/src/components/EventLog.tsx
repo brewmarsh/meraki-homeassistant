@@ -19,6 +19,10 @@ interface EventLogProps {
   productTypes?: string[];
 }
 
+interface EventLogResponse {
+  events: MerakiEvent[];
+}
+
 const EventLog: React.FC<EventLogProps> = ({
   hass,
   networkId,
@@ -62,7 +66,7 @@ const EventLog: React.FC<EventLogProps> = ({
           throw new Error('Hass connection not available');
         }
 
-        const resultData = await safeCallWS(hass, {
+        const resultData = await safeCallWS<EventLogResponse>(hass, {
           type: 'meraki_ha/get_network_events',
           config_entry_id: configEntryId,
           network_id: networkId,

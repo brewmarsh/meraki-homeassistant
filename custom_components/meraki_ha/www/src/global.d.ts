@@ -1,3 +1,8 @@
+declare module '*.css?inline' {
+  const content: string;
+  export default content;
+}
+
 declare namespace JSX {
   interface IntrinsicElements {
     'ha-card': React.DetailedHTMLProps<
@@ -11,6 +16,7 @@ declare namespace JSX {
     'ha-switch': React.DetailedHTMLProps<
       React.HTMLAttributes<HTMLElement> & {
         checked?: boolean;
+        disabled?: boolean;
         onchange?: (e: any) => void;
       },
       HTMLElement

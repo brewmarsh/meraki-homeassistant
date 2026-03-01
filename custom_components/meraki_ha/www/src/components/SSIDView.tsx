@@ -21,7 +21,7 @@ const SSIDView: React.FC<SSIDViewProps> = ({
   configEntryId,
 }) => {
   const [localSSIDs, setLocalSSIDs] = useState(ssids);
-  const [isToggling, setIsToggling] = useState<Record<number, boolean>>({});
+  const [togglingStates, setTogglingStates] = useState<Record<number, boolean>>({});
 
   useEffect(() => {
     // Update local state if ssids prop changes
@@ -31,7 +31,7 @@ const SSIDView: React.FC<SSIDViewProps> = ({
   const handleToggle = async (ssidNumber: number, enabled: boolean) => {
     if (!hass || !configEntryId) return;
 
-    setIsToggling((prev) => ({ ...prev, [ssidNumber]: true }));
+    setTogglingStates((prev) => ({ ...prev, [ssidNumber]: true }));
 
     const updatedSSIDs = localSSIDs.map((ssid) =>
       ssid.number === ssidNumber ? { ...ssid, enabled: enabled } : ssid
@@ -51,7 +51,7 @@ const SSIDView: React.FC<SSIDViewProps> = ({
       // Revert UI state on error
       setLocalSSIDs(ssids); // Revert to original state from props
     } finally {
-      setIsToggling((prev) => ({ ...prev, [ssidNumber]: false }));
+      setTogglingStates((prev) => ({ ...prev, [ssidNumber]: false }));
     }
   };
 
@@ -67,7 +67,7 @@ const SSIDView: React.FC<SSIDViewProps> = ({
     <div className="mt-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
       {displayedSSIDs.map((ssid) => {
         const isEnabled = ssid.enabled || (ssid.entity_id && hass?.states?.[ssid.entity_id]?.state === 'on');
-        const isToggling = isToggling[ssid.number];
+        const isCurrentlyToggling = togglingStates[ssid.number];
 
         return (
           <div
@@ -78,7 +78,7 @@ const SSIDView: React.FC<SSIDViewProps> = ({
               <span className="font-medium text-lg">{ssid.name}</span>
               <ha-switch
                 checked={isEnabled}
-                disabled={isToggling}
+                disabled={isCurrentlyToggling}
                 onClick={(e: any) => {
                   e.stopPropagation(); // Prevent triggering parent onClick if any
                   handleToggle(ssid.number, !isEnabled);

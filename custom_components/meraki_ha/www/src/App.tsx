@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 // Frontend version: 2.3.0-beta.120
 import NetworkView from './components/NetworkView';
 import DeviceView from './components/DeviceView';
@@ -11,13 +11,14 @@ interface MerakiData {
   [key: string]: any;
 }
 
-// Update props to accept hass and panel
+// Update props to accept hass, panel, and config_entry_id
 interface AppProps {
   hass: any;
-  panel: any;
+  panel?: any;
+  config_entry_id?: string;
 }
 
-const App: React.FC<AppProps> = ({ hass, panel }) => {
+const App: React.FC<AppProps> = ({ hass, panel, config_entry_id }) => {
   const [data, setData] = useState<MerakiData | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -29,11 +30,7 @@ const App: React.FC<AppProps> = ({ hass, panel }) => {
   const [showSettings, setShowSettings] = useState(false);
   const [showTimedAccess, setShowTimedAccess] = useState(false);
 
-  const configEntryId = panel?.config?.config_entry_id;
-
-  // If we are in standalone mode, config_entry_id might come from window
-  const finalConfigEntryId =
-    configEntryId || (window as any).CONFIG_ENTRY_ID;
+  const configEntryId = config_entry_id || panel?.config?.config_entry_id;
 
   useEffect(() => {
     if (window.location.hostname === 'localhost') {
@@ -157,6 +154,7 @@ const App: React.FC<AppProps> = ({ hass, panel }) => {
     }
 
     fetchData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [configEntryId]); // Rerun if configEntryId changes
 
   const fetchData = async () => {
@@ -225,7 +223,7 @@ const App: React.FC<AppProps> = ({ hass, panel }) => {
   if (configNotFound) {
     return (
       <div className="flex flex-col justify-center items-center h-screen bg-light-background dark:bg-dark-background text-light-text dark:text-dark-text p-4 text-center">
-        <ha-icon icon="mdi:alert-circle-outline" style={{'--mdc-icon-size': '64px'} as any} class="mb-4 text-red-500"></ha-icon>
+        <ha-icon icon="mdi:alert-circle-outline" style={{'--mdc-icon-size': '64px'} as any} className="mb-4 text-red-500"></ha-icon>
         <h2 className="text-xl font-bold mb-2">Integration Not Configured</h2>
         <p className="mb-6 max-w-md">
           The Meraki integration has not been configured yet, or the configuration entry could not be found.
@@ -244,7 +242,7 @@ const App: React.FC<AppProps> = ({ hass, panel }) => {
   if (error && !data) {
     return (
       <div className="flex flex-col justify-center items-center h-screen bg-light-background dark:bg-dark-background text-light-text dark:text-dark-text p-4 text-center">
-        <ha-icon icon="mdi:error-outline" style={{'--mdc-icon-size': '64px'} as any} class="mb-4 text-red-500"></ha-icon>
+        <ha-icon icon="mdi:error-outline" style={{'--mdc-icon-size': '64px'} as any} className="mb-4 text-red-500"></ha-icon>
         <h2 className="text-xl font-bold mb-2">Error</h2>
         <p className="mb-6">{error}</p>
         <button
@@ -303,7 +301,6 @@ const App: React.FC<AppProps> = ({ hass, panel }) => {
           configEntryId={configEntryId}
         />
       ) : (
-        /* @ts-ignore */
         <DeviceView
           activeView={activeView}
           setActiveView={setActiveView}
