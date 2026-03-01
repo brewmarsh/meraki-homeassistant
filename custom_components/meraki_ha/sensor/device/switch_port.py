@@ -210,10 +210,10 @@ class MerakiSwitchPortPowerSensor(MerakiSwitchPortBaseSensor):
 class MerakiSwitchPortEnergySensor(MerakiSwitchPortBaseSensor):
     """Representation of a Meraki switch port energy sensor."""
 
-    _attr_device_class = SensorDeviceClass.ENERGY
-    _attr_native_unit_of_measurement = UnitOfEnergy.WATT_HOUR
-    _attr_state_class = SensorStateClass.TOTAL_INCREASING
-    _attr_translation_key = "energy"
+    _attr_device_class: SensorDeviceClass | None = None
+    _attr_native_unit_of_measurement: str = UnitOfEnergy.WATT_HOUR
+    _attr_state_class: SensorStateClass = SensorStateClass.MEASUREMENT
+    _attr_translation_key: str = "energy"
 
     def __init__(
         self,
