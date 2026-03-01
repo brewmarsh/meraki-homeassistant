@@ -41,27 +41,37 @@ async def async_setup_entry(
         if isinstance(entity, SwitchEntity)
     ]
 
-    seen_ids = set()
-    unique_discovery_entities = []
-    if discovery_entities:
-        for entity in discovery_entities:
+    seen_ids: set[str] = set()
+    entities_to_add: list[SwitchEntity] = []
+
+    def async_add_unique_entities(new_entities: list[SwitchEntity]) -> None:
+        """Filter and add unique entities."""
+        for entity in new_entities:
             if entity.unique_id:
                 if entity.unique_id not in seen_ids:
                     seen_ids.add(entity.unique_id)
-                    unique_discovery_entities.append(entity)
+                    entities_to_add.append(entity)
+                else:
+                    _LOGGER.debug("Ignoring duplicate entity with ID %s", entity.unique_id)
             else:
-                unique_discovery_entities.append(entity)
-        async_add_entities(unique_discovery_entities)
+                entities_to_add.append(entity)
 
-    # Add other switches from setup helpers
+    # Process discovery entities
+    if discovery_entities:
+        async_add_unique_entities(discovery_entities)
+
+    # Add other switches from setup helpers using the same deduplication logic
     async_setup_switches(
         hass,
         config_entry,
         coordinator,
         meraki_client,
-        async_add_entities,
+        async_add_unique_entities,
         added_entities=seen_ids,
     )
+
+    if entities_to_add:
+        async_add_entities(entities_to_add)
 
     return True
 
