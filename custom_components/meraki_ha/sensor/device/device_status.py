@@ -19,7 +19,7 @@ from homeassistant.core import callback
 from homeassistant.helpers.device_registry import DeviceInfo
 
 from ...const import DOMAIN
-from ..coordinators import MerakiMainCoordinator
+from ...coordinators import MerakiMainCoordinator
 from ...core.models.device import MerakiDevice
 from ...core.utils.naming_utils import format_device_name
 from ...entity import MerakiSensor

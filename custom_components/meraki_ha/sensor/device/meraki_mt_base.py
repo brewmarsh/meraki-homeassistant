@@ -14,7 +14,7 @@ from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.typing import UNDEFINED
 
 from ...const import DOMAIN
-from ..coordinators import MerakiSensorCoordinator
+from ...coordinators import MerakiSensorCoordinator
 from ...core.models.device import MerakiDevice
 from ...core.utils.naming_utils import format_device_name
 from ...entity import MerakiSensor

@@ -7,7 +7,7 @@ from homeassistant.components.switch import SwitchEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from ..coordinators import MerakiSwitchCoordinator
+from ...coordinators import MerakiSwitchCoordinator
 from ..mt40_power_outlet import MerakiMt40PowerOutlet
 
 if TYPE_CHECKING:

@@ -12,7 +12,7 @@ from homeassistant.const import EntityCategory
 from homeassistant.core import callback
 from homeassistant.helpers.typing import StateType
 
-from ..coordinators import MerakiMainCoordinator
+from ...coordinators import MerakiMainCoordinator
 from ...entity import MerakiEntity
 from ...helpers.device_info_helpers import resolve_device_info
 

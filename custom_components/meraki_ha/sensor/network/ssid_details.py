@@ -11,7 +11,7 @@ from homeassistant.const import UnitOfDataRate
 from homeassistant.core import callback
 from homeassistant.helpers.entity import EntityCategory
 
-from ..coordinators import MerakiMainCoordinator
+from ...coordinators import MerakiMainCoordinator
 from ...entity import MerakiEntity
 from ...helpers.device_info_helpers import resolve_device_info
 

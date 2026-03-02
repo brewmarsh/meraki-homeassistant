@@ -9,7 +9,7 @@ from homeassistant.components.switch import SwitchEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import callback
 
-from .coordinators import MerakiSwitchCoordinator
+from ..coordinators import MerakiSwitchCoordinator
 from ..core.entities.meraki_vlan_entity import MerakiVLANEntity
 from ..core.models.network import MerakiVlan
 from ..core.utils.entity_id_utils import get_vlan_entity_id

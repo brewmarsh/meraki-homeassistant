@@ -9,7 +9,7 @@ from homeassistant.components.sensor import SensorEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import EntityCategory
 
-from ..coordinators import MerakiMainCoordinator
+from ...coordinators import MerakiMainCoordinator
 from ...core.entities.meraki_vlan_entity import MerakiVLANEntity
 from ...core.models.network import MerakiVlan
 from ...core.utils.entity_id_utils import get_vlan_entity_id

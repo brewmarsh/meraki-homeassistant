@@ -8,7 +8,7 @@ from homeassistant.components.button import ButtonEntity, ButtonEntityDescriptio
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.device_registry import DeviceInfo
 
-from ..coordinators import MerakiSwitchCoordinator
+from ...coordinators import MerakiSwitchCoordinator
 from ...core.models.device import MerakiDevice
 from ...entity import MerakiEntity
 from ...helpers.device_info_helpers import resolve_device_info

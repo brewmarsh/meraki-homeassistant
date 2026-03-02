@@ -8,7 +8,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from ...const_conf import CONF_ENABLE_VLAN_MANAGEMENT
-from ..coordinators import MerakiSwitchCoordinator
+from ...coordinators import MerakiSwitchCoordinator
 from ..vlan_dhcp import MerakiVLANDHCPSwitch
 
 _LOGGER = logging.getLogger(__name__)

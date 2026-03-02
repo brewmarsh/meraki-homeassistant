@@ -9,7 +9,7 @@ from homeassistant.components.sensor import SensorEntity
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from ..coordinators import MerakiCameraCoordinator
+from ...coordinators import MerakiCameraCoordinator
 from ...helpers.device_info_helpers import resolve_device_info
 
 if TYPE_CHECKING:

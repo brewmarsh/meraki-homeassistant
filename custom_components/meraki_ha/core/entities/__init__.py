@@ -9,7 +9,7 @@ from homeassistant.helpers.entity import Entity
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from ...const import DOMAIN, MANUFACTURER
-from ..coordinators import MerakiMainCoordinator
+from ...coordinators import MerakiMainCoordinator
 from ..utils.naming_utils import standardize_device_name
 
 _LOGGER = logging.getLogger(__name__)

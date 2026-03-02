@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from homeassistant.config_entries import ConfigEntry
 
-from ..coordinators import MerakiMainCoordinator
+from ...coordinators import MerakiMainCoordinator
 from ..models.network import MerakiVlan
 from .meraki_network_entity import MerakiNetworkEntity
 
