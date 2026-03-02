@@ -11,8 +11,8 @@ from custom_components.meraki_ha.const_conf import (
     CONF_MERAKI_API_KEY,
     CONF_MERAKI_ORG_ID,
 )
-from custom_components.meraki_ha.coordinator import (
-    MerakiDataUpdateCoordinator as MerakiDataCoordinator,
+from custom_components.meraki_ha.coordinators.main import (
+    MerakiMainCoordinator as MerakiDataCoordinator,
 )
 
 
