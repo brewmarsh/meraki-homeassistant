@@ -182,13 +182,13 @@ const DeviceTable: React.FC<DeviceTableProps> = ({
           href={rtspUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="text-blue-500 hover:text-blue-700 underline"
+          className="text-ha-primary hover:underline"
           onClick={(e) => e.stopPropagation()}
         >
           Stream Link
         </a>
       ) : (
-        <span className="text-gray-400">-</span>
+        <span className="text-ha-secondary-text">-</span>
       );
     }
     return null;
@@ -199,44 +199,44 @@ const DeviceTable: React.FC<DeviceTableProps> = ({
   );
 
   return (
-    <div className="bg-light-card dark:bg-dark-card p-4 rounded-lg shadow-md">
+    <div className="bg-ha-card p-4 rounded-ha shadow-md border border-ha-border">
       <input
         type="text"
         placeholder="Search by name or serial..."
-        className="w-full p-2 mb-4 border rounded-lg bg-light-background dark:bg-dark-background dark:border-gray-600"
+        className="w-full p-2 mb-4 border border-ha-border rounded-lg bg-ha-background text-ha-text"
         value={searchTerm}
         onChange={(e) => setSearchTerm(e.target.value)}
       />
       <div className="overflow-x-auto">
         <table className="min-w-full">
           <thead>
-            <tr className="border-b border-light-border dark:border-dark-border">
-              <th className="text-left p-4 font-semibold">Name</th>
-              <th className="text-left p-4 font-semibold">Model</th>
-              <th className="text-left p-4 font-semibold">Status</th>
+            <tr className="border-b border-ha-border">
+              <th className="text-left p-4 font-semibold text-ha-secondary-text uppercase text-xs tracking-wider">Name</th>
+              <th className="text-left p-4 font-semibold text-ha-secondary-text uppercase text-xs tracking-wider">Model</th>
+              <th className="text-left p-4 font-semibold text-ha-secondary-text uppercase text-xs tracking-wider">Status</th>
               {hasExtraColumn && (
-                <th className="text-left p-4 font-semibold">
+                <th className="text-left p-4 font-semibold text-ha-secondary-text uppercase text-xs tracking-wider">
                   {renderExtraColumnHeader()}
                 </th>
               )}
-              <th className="text-center p-4 font-semibold w-16">Details</th>
+              <th className="text-center p-4 font-semibold text-ha-secondary-text uppercase text-xs tracking-wider w-16">Details</th>
             </tr>
           </thead>
           <tbody>
             {filteredDevices.map((device) => (
               <tr
                 key={device.serial}
-                className="border-b border-light-border dark:border-dark-border hover:bg-light-hover dark:hover:bg-dark-hover cursor-pointer"
+                className="border-b border-ha-border hover:bg-ha-hover cursor-pointer transition-colors duration-150"
                 onClick={(e) => handleDetailsClick(e, device.serial)}
               >
                 <td className="p-4">
                   <div style={{ display: 'flex', alignItems: 'center' }}>
                     <ha-icon
                       icon={getDeviceIcon(device.model)}
-                      style={{ marginRight: '8px' }}
+                      style={{ marginRight: '8px', color: 'var(--primary-color)' }}
                     ></ha-icon>
                     <span
-                      className="font-medium text-blue-500 hover:underline"
+                      className="font-medium text-ha-primary hover:underline"
                       onClick={(e) => {
                         if (device.entity_id) {
                           handleDeviceClick(e, device.entity_id);
@@ -248,14 +248,24 @@ const DeviceTable: React.FC<DeviceTableProps> = ({
                   </div>
                 </td>
                 <td className="p-4">{device.model || 'N/A'}</td>
-                <td className="p-4">{renderStatus(device)}</td>
+                <td className="p-4">
+                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                        ['online', 'active', 'home', 'on'].includes(renderStatus(device).toLowerCase())
+                        ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
+                        : renderStatus(device).toLowerCase() === 'alerting'
+                        ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400'
+                        : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'
+                    }`}>
+                        {renderStatus(device)}
+                    </span>
+                </td>
                 {hasExtraColumn && (
                   <td className="p-4">{renderExtraColumnCell(device)}</td>
                 )}
                 <td className="p-4 text-center">
                   <button
                     onClick={(e) => handleDetailsClick(e, device.serial)}
-                    className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-500 transition-colors"
+                    className="p-2 rounded-full hover:bg-ha-hover text-ha-secondary-text transition-colors"
                     title="View Details"
                   >
                     <ha-icon icon="mdi:information-outline"></ha-icon>

@@ -194,7 +194,7 @@ const NetworkView: React.FC<NetworkViewProps> = ({
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+    <div className="flex flex-col gap-4">
       {networks.map((network) => {
         const isOpen = openNetworkIds.includes(network.id);
         const enabledSsids = network.ssids
@@ -212,33 +212,25 @@ const NetworkView: React.FC<NetworkViewProps> = ({
         const networkVlans = vlans ? vlans[network.id] : undefined;
 
         return (
-          <ha-card key={network.id}>
+          <ha-card key={network.id} className="overflow-hidden">
             <div
-              className="card-header"
+              className="card-header flex items-center cursor-pointer p-4 hover:bg-ha-hover transition-colors"
               onClick={() => handleNetworkClick(network.id)}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                cursor: 'pointer',
-                padding: '16px',
-              }}
             >
-              <span>[Network] {network.name}</span>
+              <span className="font-bold text-lg">Network: {network.name}</span>
               <ha-icon
-                style={{ marginLeft: '8px' }}
+                className="ml-2 text-ha-secondary-text"
                 icon={isOpen ? 'mdi:chevron-up' : 'mdi:chevron-down'}
               ></ha-icon>
               <div
-                style={{
-                  marginLeft: 'auto',
-                  display: 'flex',
-                  alignItems: 'center',
-                }}
+                className="ml-auto flex items-center"
+                onClick={(e) => e.stopPropagation()}
               >
-                <span style={{ marginRight: '8px' }}>Track in</span>
+                <span className="mr-2 text-sm text-ha-secondary-text hidden sm:inline">Track in HA</span>
                 <ha-icon
                   icon="hass:home-assistant"
-                  style={{ color: 'var(--primary-color)', marginRight: '8px' }}
+                  className="mr-2"
+                  style={{ color: 'var(--primary-color)' }}
                 ></ha-icon>
                 <HaSwitch
                   checked={network.is_enabled}
@@ -247,7 +239,7 @@ const NetworkView: React.FC<NetworkViewProps> = ({
               </div>
             </div>
             {isOpen && network.is_enabled && (
-              <div className="card-content">
+              <div className="card-content p-4 border-t border-ha-border">
                 {groups.map((group) => {
                   if (group.devices.length === 0) return null;
                   const onlineCount =
@@ -255,12 +247,11 @@ const NetworkView: React.FC<NetworkViewProps> = ({
                   const totalCount = group.devices.length;
 
                   return (
-                    <div key={group.label} style={{ marginBottom: '16px' }}>
+                    <div key={group.label} className="mb-6">
                       <div
-                        className="hero-indicator"
-                        style={{ padding: '0 16px 16px' }}
+                        className="hero-indicator flex items-center text-ha-text font-medium mb-2"
                       >
-                        <ha-icon icon={group.icon}></ha-icon>
+                        <ha-icon icon={group.icon} className="mr-2" style={{ color: 'var(--primary-color)' }}></ha-icon>
                         {onlineCount} / {totalCount} {group.label} Online
                       </div>
                       <DeviceTable
@@ -274,22 +265,21 @@ const NetworkView: React.FC<NetworkViewProps> = ({
                 })}
 
                 {networkVlans && networkVlans.length > 0 && (
-                  <div style={{ marginBottom: '16px' }}>
+                  <div className="mb-6">
                     <VlanTable vlans={networkVlans} />
                   </div>
                 )}
 
                 {network.ssids && network.ssids.length > 0 && (
-                  <>
+                  <div className="mb-6">
                     <div
-                      className="hero-indicator"
-                      style={{ padding: '16px' }}
+                      className="hero-indicator flex items-center text-ha-text font-medium mb-2"
                     >
-                      <ha-icon icon="mdi:wifi"></ha-icon>
+                      <ha-icon icon="mdi:wifi" className="mr-2" style={{ color: 'var(--primary-color)' }}></ha-icon>
                       {enabledSsids} / {totalSsids} SSIDs Enabled
                     </div>
                     <SSIDView hass={hass} ssids={network.ssids} configEntryId={configEntryId} />
-                  </>
+                  </div>
                 )}
                 <EventLog
                   hass={hass}
@@ -298,6 +288,18 @@ const NetworkView: React.FC<NetworkViewProps> = ({
                   productTypes={network.productTypes}
                 />
               </div>
+            )}
+            {isOpen && !network.is_enabled && (
+                <div className="p-8 text-center bg-ha-hover/50">
+                    <ha-icon icon="mdi:eye-off-outline" className="mb-2 text-ha-secondary-text" style={{'--mdc-icon-size': '48px'} as any}></ha-icon>
+                    <p className="text-ha-secondary-text">This network is not being tracked in Home Assistant.</p>
+                    <button
+                        className="mt-4 text-ha-primary hover:underline"
+                        onClick={() => onToggle(network.id, true)}
+                    >
+                        Enable tracking to view devices
+                    </button>
+                </div>
             )}
           </ha-card>
         );
