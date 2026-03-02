@@ -2,7 +2,10 @@
 
 from __future__ import annotations
 
+from typing import Any
+
 import voluptuous as vol
+
 from homeassistant.components.device_automation import DEVICE_TRIGGER_BASE_SCHEMA
 from homeassistant.const import (
     CONF_DEVICE_ID,
@@ -26,6 +29,14 @@ TRIGGER_SCHEMA = DEVICE_TRIGGER_BASE_SCHEMA.extend(
 )
 
 
+def _get_meraki_serial(device: dr.DeviceEntry) -> str | None:
+    """Extract Meraki serial from device identifiers."""
+    for identifier in device.identifiers:
+        if identifier[0] == DOMAIN:
+            return identifier[1]
+    return None
+
+
 async def async_get_triggers(
     hass: HomeAssistant, device_id: str
 ) -> list[dict[str, str]]:
@@ -33,17 +44,7 @@ async def async_get_triggers(
     device_registry = dr.async_get(hass)
     device = device_registry.async_get(device_id)
 
-    if device is None:
-        return []
-
-    # Check if this device belongs to our domain
-    is_meraki_device = False
-    for identifier in device.identifiers:
-        if identifier[0] == DOMAIN:
-            is_meraki_device = True
-            break
-
-    if not is_meraki_device:
+    if device is None or _get_meraki_serial(device) is None:
         return []
 
     return [
@@ -54,6 +55,17 @@ async def async_get_triggers(
             CONF_TYPE: TRIGGER_TYPE,
         }
     ]
+
+
+def _is_trigger_match(data: dict[str, Any], serial: str) -> bool:
+    """Check if event data matches the device serial."""
+    if data.get("deviceSerial") == serial:
+        return True
+
+    if serial.startswith("network_") and data.get("networkId") == serial[8:]:
+        return True
+
+    return False
 
 
 async def async_attach_trigger(
@@ -70,32 +82,15 @@ async def async_attach_trigger(
     if device is None:
         return lambda: None
 
-    # Extract serial from identifiers
-    serial = None
-    for identifier in device.identifiers:
-        if identifier[0] == DOMAIN:
-            serial = identifier[1]
-            break
-
+    serial = _get_meraki_serial(device)
     if not serial:
         return lambda: None
 
     @callback
     def handle_event(event: Event) -> None:
         data = event.data
-        match = False
 
-        # Check for device serial match
-        if "deviceSerial" in data and data["deviceSerial"] == serial:
-            match = True
-
-        # Check for network ID match if the device is a Network device
-        elif serial.startswith("network_") and "networkId" in data:
-            network_id = serial[8:]  # remove "network_"
-            if data["networkId"] == network_id:
-                match = True
-
-        if match:
+        if _is_trigger_match(data, serial):
             hass.async_run_job(
                 action,
                 {

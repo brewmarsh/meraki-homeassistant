@@ -11,9 +11,10 @@ import json
 import os
 import re
 import subprocess
+from typing import Dict, List, Optional
 
 
-def run_gh(args):
+def run_gh(args: List[str]) -> Optional[str]:
     """Run a GitHub CLI command and return output."""
     cmd = ["gh"] + args
     try:
@@ -28,7 +29,7 @@ def run_gh(args):
         return None
 
 
-def parse_scorecard(filename):
+def parse_scorecard(filename: str) -> List[Dict[str, str]]:
     """
     Parse the scorecard output file for CRAFT prompts.
 
@@ -62,7 +63,7 @@ def parse_scorecard(filename):
         re.DOTALL | re.MULTILINE,
     )
 
-    tasks = []
+    tasks: List[Dict[str, str]] = []
     for match in pattern.finditer(content):
         task_data = match.groupdict()
 
@@ -85,61 +86,58 @@ def parse_scorecard(filename):
     return tasks
 
 
-def main():
-    """Process the scorecard and automate remediation."""
-    scorecard_file = "scorecard.txt"
-    tasks = parse_scorecard(scorecard_file)
+def check_existing_issue(title: str) -> bool:
+    """Check if a GitHub issue already exists."""
+    query = f'"{title}" in:title'
+    existing = run_gh(
+        [
+            "issue",
+            "list",
+            "--search",
+            query,
+            "--json",
+            "number",
+            "--state",
+            "all",
+        ]
+    )
+    if existing and json.loads(existing):
+        return True
+    return False
 
-    if not tasks:
-        print("No remediation tasks found in scorecard.")
+
+def create_issue(task: Dict[str, str], title: str) -> None:
+    """Create a new GitHub issue for the task."""
+    print(f"Creating issue for {task['file']}...")
+    run_gh(
+        [
+            "issue",
+            "create",
+            "--title",
+            title,
+            "--body",
+            task["prompt"],
+            "--label",
+            "tech-debt,ai-ready",
+        ]
+    )
+
+
+def process_high_cognitive_load_task(task: Dict[str, str]) -> None:
+    """Process a high cognitive load task by creating a GitHub issue."""
+    # Title following Home Assistant Sentence Case standards.
+    # Only the first word and proper nouns (if any) are capitalized.
+    title = f"Refactor: high cognitive load in {task['file']} ({task['rule']})"
+
+    if check_existing_issue(title):
+        print(f"Issue already exists for {task['file']}: {title}")
         return
 
-    typing_tasks = []
+    create_issue(task, title)
 
-    for task in tasks:
-        if task["type"] == "High Cognitive Load":
-            # Title following Home Assistant Sentence Case standards.
-            # Only the first word and proper nouns (if any) are capitalized.
-            title = f"Refactor: high cognitive load in {task['file']} ({task['rule']})"
 
-            # Check if an issue already exists (searching both open and closed)
-            query = f'"{title}" in:title'
-            existing = run_gh(
-                [
-                    "issue",
-                    "list",
-                    "--search",
-                    query,
-                    "--json",
-                    "number",
-                    "--state",
-                    "all",
-                ]
-            )
-
-            if existing and json.loads(existing):
-                print(f"Issue already exists for {task['file']}: {title}")
-                continue
-
-            # Create the issue with required labels
-            print(f"Creating issue for {task['file']}...")
-            run_gh(
-                [
-                    "issue",
-                    "create",
-                    "--title",
-                    title,
-                    "--body",
-                    task["prompt"],
-                    "--label",
-                    "tech-debt,ai-ready",
-                ]
-            )
-
-        elif task["type"] == "Low Type Safety":
-            typing_tasks.append(task)
-
-    # Write typing tasks to JSON for the subsequent CI step
+def save_typing_tasks(typing_tasks: List[Dict[str, str]]) -> None:
+    """Write typing tasks to JSON for the subsequent CI step."""
     if typing_tasks:
         with open("typing_tasks.json", "w", encoding="utf-8") as f:
             json.dump(typing_tasks, f, indent=2)
@@ -148,6 +146,31 @@ def main():
         # Clean up old task file if it exists
         if os.path.exists("typing_tasks.json"):
             os.remove("typing_tasks.json")
+
+
+def process_tasks(tasks: List[Dict[str, str]]) -> None:
+    """Iterate over tasks and handle them based on their type."""
+    typing_tasks: List[Dict[str, str]] = []
+
+    for task in tasks:
+        if task["type"] == "High Cognitive Load":
+            process_high_cognitive_load_task(task)
+        elif task["type"] == "Low Type Safety":
+            typing_tasks.append(task)
+
+    save_typing_tasks(typing_tasks)
+
+
+def main() -> None:
+    """Process the scorecard and automate remediation."""
+    scorecard_file = "scorecard.txt"
+    tasks = parse_scorecard(scorecard_file)
+
+    if not tasks:
+        print("No remediation tasks found in scorecard.")
+        return
+
+    process_tasks(tasks)
 
 
 if __name__ == "__main__":
