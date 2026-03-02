@@ -12,7 +12,7 @@ from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from ...const import DOMAIN
-from ...coordinator import MerakiDataUpdateCoordinator
+from ..coordinators import MerakiMainCoordinator
 from ...core.utils.naming_utils import format_device_name
 
 if TYPE_CHECKING:
@@ -32,7 +32,7 @@ class MerakiPoeUsageSensor(
     in watts. The attributes provide a breakdown of PoE usage per port.
     """
 
-    coordinator: MerakiDataUpdateCoordinator
+    coordinator: MerakiMainCoordinator
 
     _attr_state_class = SensorStateClass.MEASUREMENT
     _attr_native_unit_of_measurement = UnitOfPower.WATT
@@ -40,7 +40,7 @@ class MerakiPoeUsageSensor(
 
     def __init__(
         self,
-        coordinator: MerakiDataUpdateCoordinator,
+        coordinator: MerakiMainCoordinator,
         device: MerakiDevice,
     ) -> None:
         """

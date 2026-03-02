@@ -11,7 +11,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import callback
 from homeassistant.helpers.device_registry import DeviceInfo
 
-from ..coordinator import MerakiDataUpdateCoordinator
+from .coordinators import MerakiSwitchCoordinator
 from ..core.models import MerakiAppliancePort
 from ..core.models.device import MerakiDevice
 from ..entity import MerakiEntity
@@ -51,7 +51,7 @@ class _MerakiPortSwitchBase(MerakiEntity, SwitchEntity, ABC):
 
     def __init__(
         self,
-        coordinator: MerakiDataUpdateCoordinator,
+        coordinator: MerakiSwitchCoordinator,
         device: MerakiDevice,
         port_data: dict[str, Any],  # Raw dictionary representation of the port
         config_entry: ConfigEntry,
@@ -182,7 +182,7 @@ class MerakiSwitchPortToggle(_MerakiPortSwitchBase):
 
     def __init__(
         self,
-        coordinator: MerakiDataUpdateCoordinator,
+        coordinator: MerakiSwitchCoordinator,
         device: MerakiDevice,
         port: dict[str, Any],
         config_entry: ConfigEntry,
@@ -267,7 +267,7 @@ class MerakiAppliancePortSwitch(_MerakiPortSwitchBase):
 
     def __init__(
         self,
-        coordinator: MerakiDataUpdateCoordinator,
+        coordinator: MerakiSwitchCoordinator,
         device: MerakiDevice,
         port: MerakiAppliancePort,
         config_entry: ConfigEntry,

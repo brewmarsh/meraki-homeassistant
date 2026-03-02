@@ -13,7 +13,7 @@ from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from ...const import DOMAIN
-from ...coordinator import MerakiDataUpdateCoordinator
+from ..coordinators import MerakiMainCoordinator
 from ...core.utils.naming_utils import standardize_device_name, format_device_name
 
 if TYPE_CHECKING:
@@ -31,7 +31,7 @@ class MerakiWAN1ConnectivitySensor(
 ):
     """Representation of a Meraki WAN1 Connectivity Sensor."""
 
-    coordinator: MerakiDataUpdateCoordinator
+    coordinator: MerakiMainCoordinator
 
     _attr_icon = "mdi:wan"
     _attr_has_entity_name = True
@@ -40,7 +40,7 @@ class MerakiWAN1ConnectivitySensor(
 
     def __init__(
         self,
-        coordinator: MerakiDataUpdateCoordinator,
+        coordinator: MerakiMainCoordinator,
         device_data: MerakiDevice,
         config_entry: ConfigEntry,
     ) -> None:

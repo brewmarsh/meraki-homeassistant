@@ -19,7 +19,7 @@ from ..entity import MerakiSensor
 if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
 
-    from ..coordinator import MerakiDataUpdateCoordinator
+    from .coordinators import MerakiMainCoordinator
     from ..core.models.device import MerakiDevice
 
 _LOGGER = logging.getLogger(__name__)
@@ -59,7 +59,7 @@ class MerakiUplinkPerformanceSensor(MerakiSensor):
 
     def __init__(
         self,
-        coordinator: MerakiDataUpdateCoordinator,
+        coordinator: MerakiMainCoordinator,
         device: MerakiDevice,
         config_entry: ConfigEntry,  # Kept for consistency, though not directly used here
         interface: str,

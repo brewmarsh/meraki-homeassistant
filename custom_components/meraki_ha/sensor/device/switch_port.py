@@ -17,7 +17,7 @@ from homeassistant.core import callback
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from ...coordinator import MerakiDataUpdateCoordinator
+from ..coordinators import MerakiSwitchCoordinator
 from ...core.models.device import MerakiDevice
 from ...helpers.device_info_helpers import resolve_device_info
 
@@ -27,7 +27,7 @@ _LOGGER = logging.getLogger(__name__)
 class MerakiSwitchPortBaseSensor(CoordinatorEntity, SensorEntity, ABC):
     """Base representation of a Meraki switch port sensor."""
 
-    coordinator: MerakiDataUpdateCoordinator
+    coordinator: MerakiSwitchCoordinator
     _device: MerakiDevice
     _port: dict[str, Any]
     _config_entry: ConfigEntry
@@ -36,7 +36,7 @@ class MerakiSwitchPortBaseSensor(CoordinatorEntity, SensorEntity, ABC):
 
     def __init__(
         self,
-        coordinator: MerakiDataUpdateCoordinator,
+        coordinator: MerakiSwitchCoordinator,
         device: MerakiDevice,
         port: dict[str, Any],
         config_entry: ConfigEntry,
@@ -136,7 +136,7 @@ class MerakiSwitchPortSensor(MerakiSwitchPortBaseSensor):
 
     def __init__(
         self,
-        coordinator: MerakiDataUpdateCoordinator,
+        coordinator: MerakiSwitchCoordinator,
         device: MerakiDevice,
         port: dict[str, Any],
         config_entry: ConfigEntry,
@@ -180,7 +180,7 @@ class MerakiSwitchPortPowerSensor(MerakiSwitchPortBaseSensor):
 
     def __init__(
         self,
-        coordinator: MerakiDataUpdateCoordinator,
+        coordinator: MerakiSwitchCoordinator,
         device: MerakiDevice,
         port: dict[str, Any],
         config_entry: ConfigEntry,
@@ -217,7 +217,7 @@ class MerakiSwitchPortEnergySensor(MerakiSwitchPortBaseSensor):
 
     def __init__(
         self,
-        coordinator: MerakiDataUpdateCoordinator,
+        coordinator: MerakiSwitchCoordinator,
         device: MerakiDevice,
         port: dict[str, Any],
         config_entry: ConfigEntry,

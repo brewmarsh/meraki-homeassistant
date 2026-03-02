@@ -10,7 +10,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import EntityCategory
 from homeassistant.core import callback
 
-from ..coordinator import MerakiDataUpdateCoordinator
+from .coordinators import MerakiSwitchCoordinator
 from ..core.entities.meraki_firewall_rule_entity import MerakiFirewallRuleEntity
 from ..core.models.network import MerakiFirewallRule
 from ..core.utils.entity_id_utils import get_firewall_rule_entity_id
@@ -25,7 +25,7 @@ class MerakiFirewallRuleSwitch(MerakiFirewallRuleEntity, SwitchEntity):
 
     def __init__(
         self,
-        coordinator: MerakiDataUpdateCoordinator,
+        coordinator: MerakiSwitchCoordinator,
         config_entry: ConfigEntry,
         network_id: str,
         rule: MerakiFirewallRule,

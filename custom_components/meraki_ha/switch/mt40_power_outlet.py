@@ -10,7 +10,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import callback
 from homeassistant.helpers.device_registry import DeviceInfo
 
-from ..coordinator import MerakiDataUpdateCoordinator
+from .coordinators import MerakiSwitchCoordinator
 from ..core.api.client import MerakiAPIClient
 from ..core.models.device import MerakiDevice
 from ..entity import MerakiEntity
@@ -26,7 +26,7 @@ class MerakiMt40PowerOutlet(
     """Representation of a Meraki MT40 power outlet."""
 
     _attr_has_entity_name = True
-    coordinator: MerakiDataUpdateCoordinator
+    coordinator: MerakiSwitchCoordinator
 
     @property
     def unique_id(self) -> str | None:
@@ -35,7 +35,7 @@ class MerakiMt40PowerOutlet(
 
     def __init__(
         self,
-        coordinator: MerakiDataUpdateCoordinator,
+        coordinator: MerakiSwitchCoordinator,
         device_info: MerakiDevice,
         config_entry: ConfigEntry,
         meraki_client: MerakiAPIClient,

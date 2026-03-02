@@ -9,7 +9,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import EntityCategory
 from homeassistant.core import callback
 
-from ...coordinator import MerakiDataUpdateCoordinator
+from ..coordinators import MerakiMainCoordinator
 from ...core.entities.meraki_network_entity import MerakiNetworkEntity
 from ...core.models.network import MerakiNetwork
 
@@ -21,7 +21,7 @@ class VlansListSensor(MerakiNetworkEntity, SensorEntity):
 
     def __init__(
         self,
-        coordinator: MerakiDataUpdateCoordinator,
+        coordinator: MerakiMainCoordinator,
         config_entry: ConfigEntry,
         network_data: MerakiNetwork,
     ) -> None:

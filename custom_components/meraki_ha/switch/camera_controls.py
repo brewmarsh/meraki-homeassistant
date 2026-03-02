@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import logging
 
-from ..coordinator import MerakiDataUpdateCoordinator
+from .coordinators import MerakiSwitchCoordinator
 from ..core.api.client import MerakiAPIClient
 from ..core.models.device import MerakiDevice
 from .camera_settings import MerakiCameraSettingSwitchBase
@@ -17,7 +17,7 @@ class AnalyticsSwitch(MerakiCameraSettingSwitchBase):
 
     def __init__(
         self,
-        coordinator: MerakiDataUpdateCoordinator,
+        coordinator: MerakiSwitchCoordinator,
         meraki_client: MerakiAPIClient,
         device_data: MerakiDevice,
     ) -> None:

@@ -9,7 +9,7 @@ from homeassistant.config_entries import ConfigFlowResult
 
 from .const import DOMAIN
 from .const_conf import CONF_INTEGRATION_TITLE
-from .coordinator import MerakiDataUpdateCoordinator
+from .coordinators import MerakiMainCoordinator
 from .helpers.schema import get_filtered_schema, populate_schema_defaults
 from .schemas import (
     OPTIONS_SCHEMA_ADVANCED,
@@ -25,10 +25,10 @@ class MerakiOptionsFlowHandler(config_entries.OptionsFlow):
     def __init__(self, config_entry: config_entries.ConfigEntry) -> None:
         """Initialize options flow."""
         self.options = dict(config_entry.options)
-        self._coordinator_instance: MerakiDataUpdateCoordinator | None = None
+        self._coordinator_instance: MerakiMainCoordinator | None = None
 
     @property
-    def coordinator(self) -> MerakiDataUpdateCoordinator:
+    def coordinator(self) -> MerakiMainCoordinator:
         """Get the coordinator."""
         if self._coordinator_instance is None:
             self._coordinator_instance = self.hass.data[DOMAIN][

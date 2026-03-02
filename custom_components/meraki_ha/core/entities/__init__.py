@@ -9,7 +9,7 @@ from homeassistant.helpers.entity import Entity
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from ...const import DOMAIN, MANUFACTURER
-from ...coordinator import MerakiDataUpdateCoordinator
+from ..coordinators import MerakiMainCoordinator
 from ..utils.naming_utils import standardize_device_name
 
 _LOGGER = logging.getLogger(__name__)
@@ -25,11 +25,11 @@ class BaseMerakiEntity(CoordinatorEntity, Entity, ABC):
     - Common properties and attributes
     """
 
-    coordinator: MerakiDataUpdateCoordinator
+    coordinator: MerakiMainCoordinator
 
     def __init__(
         self,
-        coordinator: MerakiDataUpdateCoordinator,
+        coordinator: MerakiMainCoordinator,
         config_entry: ConfigEntry,
         serial: str | None = None,
         network_id: str | None = None,

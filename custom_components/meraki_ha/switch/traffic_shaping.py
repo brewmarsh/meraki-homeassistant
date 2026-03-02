@@ -9,7 +9,7 @@ from homeassistant.components.switch import SwitchEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import callback
 
-from ..coordinator import MerakiDataUpdateCoordinator
+from .coordinators import MerakiSwitchCoordinator
 from ..core.entities.meraki_network_entity import MerakiNetworkEntity
 from ..core.models.network import MerakiTrafficShaping
 
@@ -19,11 +19,11 @@ _LOGGER = logging.getLogger(__name__)
 class MerakiTrafficShapingSwitch(MerakiNetworkEntity, SwitchEntity):
     """Representation of a Meraki Traffic Shaping switch."""
 
-    coordinator: MerakiDataUpdateCoordinator
+    coordinator: MerakiSwitchCoordinator
 
     def __init__(
         self,
-        coordinator: MerakiDataUpdateCoordinator,
+        coordinator: MerakiSwitchCoordinator,
         config_entry: ConfigEntry,
         network_id: str,
         traffic_shaping: MerakiTrafficShaping,

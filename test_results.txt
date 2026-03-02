@@ -1,0 +1,12 @@
+ImportError while loading conftest '/app/tests/conftest.py'.
+tests/__init__.py:20: in <module>
+    from custom_components.meraki_ha.const import DOMAIN
+custom_components/meraki_ha/__init__.py:31: in <module>
+    from .discovery.service import DeviceDiscoveryService
+custom_components/meraki_ha/discovery/service.py:18: in <module>
+    from .handlers.network import NetworkHandler
+custom_components/meraki_ha/discovery/handlers/network.py:16: in <module>
+    from ...sensor.network.network_clients import MerakiNetworkClientsSensor
+custom_components/meraki_ha/sensor/network/network_clients.py:10: in <module>
+    from ..coordinators import MerakiMainCoordinator
+E   ModuleNotFoundError: No module named 'custom_components.meraki_ha.sensor.coordinators'

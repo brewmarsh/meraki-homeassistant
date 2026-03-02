@@ -7,7 +7,7 @@ from homeassistant.components.switch import SwitchEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from ...coordinator import MerakiDataUpdateCoordinator
+from ..coordinators import MerakiSwitchCoordinator
 from ..mt40_power_outlet import MerakiMt40PowerOutlet
 
 if TYPE_CHECKING:
@@ -18,7 +18,7 @@ _LOGGER = logging.getLogger(__name__)
 
 def setup_mt40_switches(
     config_entry: ConfigEntry,
-    coordinator: MerakiDataUpdateCoordinator,
+    coordinator: MerakiSwitchCoordinator,
     added_entities: set[str],
     meraki_client: "MerakiAPIClient",
     async_add_entities: AddEntitiesCallback,
@@ -32,7 +32,7 @@ def setup_mt40_switches(
 
 
 def _build_mt40_entities(
-    coordinator: MerakiDataUpdateCoordinator,
+    coordinator: MerakiSwitchCoordinator,
     data: dict[str, Any],
     config_entry: ConfigEntry,
     added_entities: set[str],
@@ -51,7 +51,7 @@ def _build_mt40_entities(
 
 
 def _create_mt40_outlet_switch(
-    coordinator: MerakiDataUpdateCoordinator,
+    coordinator: MerakiSwitchCoordinator,
     device_info: Any,
     config_entry: ConfigEntry,
     added_entities: set[str],

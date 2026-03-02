@@ -6,7 +6,7 @@ import logging
 
 from homeassistant.components.switch import SwitchEntityDescription
 
-from custom_components.meraki_ha.coordinator import MerakiDataUpdateCoordinator
+from custom_components.meraki_ha.coordinator import MerakiSwitchCoordinator
 
 from ..core.api.client import MerakiAPIClient
 from ..core.models.device import MerakiDevice
@@ -20,7 +20,7 @@ class MerakiCameraSenseSwitch(MerakiCameraSettingSwitchBase):
 
     def __init__(
         self,
-        coordinator: MerakiDataUpdateCoordinator,
+        coordinator: MerakiSwitchCoordinator,
         meraki_client: MerakiAPIClient,
         device_data: MerakiDevice,
     ) -> None:
@@ -54,7 +54,7 @@ class MerakiCameraAudioDetectionSwitch(MerakiCameraSettingSwitchBase):
 
     def __init__(
         self,
-        coordinator: MerakiDataUpdateCoordinator,
+        coordinator: MerakiSwitchCoordinator,
         meraki_client: MerakiAPIClient,
         device_data: MerakiDevice,
     ) -> None:

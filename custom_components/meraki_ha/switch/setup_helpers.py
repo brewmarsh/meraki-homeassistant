@@ -7,7 +7,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from ..coordinator import MerakiDataUpdateCoordinator
+from .coordinators import MerakiSwitchCoordinator
 from .builders.camera import setup_camera_switches
 from .builders.firewall import setup_firewall_rule_switches
 from .builders.mt40 import setup_mt40_switches
@@ -25,7 +25,7 @@ _LOGGER = logging.getLogger(__name__)
 def async_setup_switches(
     hass: HomeAssistant,
     config_entry: ConfigEntry,
-    coordinator: MerakiDataUpdateCoordinator,
+    coordinator: MerakiSwitchCoordinator,
     meraki_client: "MerakiAPIClient",
     async_add_entities: AddEntitiesCallback,
     added_entities: set[str] | None = None,

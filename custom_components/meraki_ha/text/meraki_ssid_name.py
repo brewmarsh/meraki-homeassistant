@@ -11,17 +11,17 @@ from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from ..coordinator import MerakiDataUpdateCoordinator
+from .coordinators import MerakiWirelessCoordinator
 from ..core.api.client import MerakiAPIClient
 from ..helpers.device_info_helpers import resolve_device_info
 
 _LOGGER = logging.getLogger(__name__)
 
 
-class MerakiSSIDNameText(CoordinatorEntity[MerakiDataUpdateCoordinator], TextEntity):
+class MerakiSSIDNameText(CoordinatorEntity[MerakiWirelessCoordinator], TextEntity):
     """Representation of a Meraki SSID Name text entity."""
 
-    coordinator: MerakiDataUpdateCoordinator
+    coordinator: MerakiWirelessCoordinator
 
     _attr_mode = TextMode.TEXT  # Or TextMode.PASSWORD if it were a password
     entity_category = EntityCategory.CONFIG
@@ -29,7 +29,7 @@ class MerakiSSIDNameText(CoordinatorEntity[MerakiDataUpdateCoordinator], TextEnt
 
     def __init__(
         self,
-        coordinator: MerakiDataUpdateCoordinator,
+        coordinator: MerakiWirelessCoordinator,
         meraki_client: MerakiAPIClient,
         config_entry: ConfigEntry,  # Added to match switch entities
         ssid_data: dict[str, Any],

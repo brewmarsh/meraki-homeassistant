@@ -10,7 +10,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import callback
 from homeassistant.helpers.device_registry import DeviceInfo
 
-from ..coordinator import MerakiDataUpdateCoordinator
+from .coordinators import MerakiSwitchCoordinator
 from ..entity import MerakiEntity
 from ..helpers.device_info_helpers import resolve_device_info
 
@@ -22,7 +22,7 @@ class MerakiAdultContentFilteringSwitch(MerakiEntity, SwitchEntity):
 
     def __init__(
         self,
-        coordinator: MerakiDataUpdateCoordinator,
+        coordinator: MerakiSwitchCoordinator,
         config_entry: ConfigEntry,
         ssid: dict[str, Any],
     ) -> None:

@@ -10,7 +10,7 @@ from homeassistant.core import HomeAssistant, callback
 from homeassistant.loader import async_get_integration
 
 from ..const import DOMAIN
-from ..coordinator import MerakiDataUpdateCoordinator
+from .coordinators import MerakiCameraCoordinator
 from ..helpers.serialization import to_serializable
 from ..services.camera_service import CameraService
 
@@ -100,7 +100,7 @@ async def ws_get_config(
             connection.send_error(msg["id"], "not_found", "Config entry not found")
             return
 
-        coordinator: MerakiDataUpdateCoordinator = hass.data[DOMAIN][config_entry_id][
+        coordinator: MerakiCameraCoordinator = hass.data[DOMAIN][config_entry_id][
             "coordinator"
         ]
         data = to_serializable(coordinator.data)
@@ -123,7 +123,7 @@ def ws_subscribe_meraki_data(
             connection.send_error(msg["id"], "not_found", "Config entry not found")
             return
 
-        coordinator: MerakiDataUpdateCoordinator = hass.data[DOMAIN][config_entry_id][
+        coordinator: MerakiCameraCoordinator = hass.data[DOMAIN][config_entry_id][
             "coordinator"
         ]
 

@@ -22,7 +22,7 @@ if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
     from homeassistant.helpers.entity import Entity
 
-    from ....coordinator import MerakiDataUpdateCoordinator
+    from ..coordinators import MerakiSwitchCoordinator
     from ...services.network_control_service import NetworkControlService
     from ...types import MerakiNetwork
 
@@ -35,7 +35,7 @@ class NetworkHandler(BaseHandler):
 
     def __init__(
         self,
-        coordinator: MerakiDataUpdateCoordinator,
+        coordinator: MerakiSwitchCoordinator,
         config_entry: ConfigEntry,
         network_control_service: NetworkControlService,
     ) -> None:

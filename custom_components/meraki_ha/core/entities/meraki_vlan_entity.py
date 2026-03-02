@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from homeassistant.config_entries import ConfigEntry
 
-from ...coordinator import MerakiDataUpdateCoordinator
+from ..coordinators import MerakiMainCoordinator
 from ..models.network import MerakiVlan
 from .meraki_network_entity import MerakiNetworkEntity
 
@@ -17,7 +17,7 @@ class MerakiVLANEntity(MerakiNetworkEntity):
 
     def __init__(
         self,
-        coordinator: MerakiDataUpdateCoordinator,
+        coordinator: MerakiMainCoordinator,
         config_entry: ConfigEntry,
         network_id: str,
         vlan: MerakiVlan,

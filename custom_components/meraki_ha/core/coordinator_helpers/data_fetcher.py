@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import time
 from typing import TYPE_CHECKING, Any
 
 from homeassistant.helpers.update_coordinator import UpdateFailed
@@ -38,6 +39,12 @@ SILENT_ERRORS = [
     "Traffic Analysis with Hostname Visibility must be enabled",
     "VLANs are not enabled for this network",
 ]
+
+# Shared cache for organization-wide data to prevent redundant API calls
+# between multiple domain-specific coordinators.
+_ORG_DATA_CACHE: dict[str, Any] = {}
+_ORG_DATA_CACHE_EXPIRY: float = 0
+CACHE_TTL = 30  # seconds
 
 
 class DataFetchManager:
@@ -186,7 +193,14 @@ class DataFetchManager:
         return None
 
     async def _async_fetch_initial_data(self) -> dict[str, Any]:
-        """Fetch the organization-wide data batch."""
+        """Fetch the organization-wide data batch with short-lived caching."""
+        global _ORG_DATA_CACHE_EXPIRY
+
+        current_time = time.time()
+        if _ORG_DATA_CACHE and current_time < _ORG_DATA_CACHE_EXPIRY:
+            _LOGGER.debug("Using cached organization-wide data")
+            return _ORG_DATA_CACHE
+
         if not self.client.has_dashboard:
             await self.client.async_setup()
 
@@ -213,7 +227,14 @@ class DataFetchManager:
                 self.client.organization.get_organization_switch_ports_statuses(),
             ),
         }
-        return await self._async_gather_with_timeout(tasks, label="Initial batch")
+        data = await self._async_gather_with_timeout(tasks, label="Initial batch")
+
+        # Update cache
+        _ORG_DATA_CACHE.clear()
+        _ORG_DATA_CACHE.update(data)
+        _ORG_DATA_CACHE_EXPIRY = current_time + CACHE_TTL
+
+        return data
 
     def _distribute_batch_data(self, batch_data: dict[str, Any]) -> dict[str, Any]:
         """Distribute initial batch data to respective parsers and models."""
