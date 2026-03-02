@@ -26,21 +26,21 @@ const Dashboard: React.FC<DashboardProps> = ({ setActiveView, data }) => {
     <div>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
         <StatusCard
-          title="Total Devices"
+          title="Total devices"
           value={metrics.totalDevices}
-          icon="📱"
+          icon="mdi:devices"
         />
         <StatusCard
           title="Wireless APs"
           value={metrics.wirelessAps}
-          icon="📡"
+          icon="mdi:wifi"
         />
-        <StatusCard title="Switches" value={metrics.switches} icon="🔄" />
-        <StatusCard title="Cameras" value={metrics.cameras} icon="📹" />
-        <StatusCard title="Virtual SSIDs" value={metrics.ssids} icon="📶" />
+        <StatusCard title="Switches" value={metrics.switches} icon="mdi:lan" />
+        <StatusCard title="Cameras" value={metrics.cameras} icon="mdi:cctv" />
+        <StatusCard title="Virtual SSIDs" value={metrics.ssids} icon="mdi:signal-cellular-outline" />
       </div>
 
-      <h2 className="text-xl font-semibold mb-4">All Devices</h2>
+      <h2 className="text-xl font-semibold mb-4 text-[var(--primary-text-color)]">All devices</h2>
       <DeviceTable hass={null} devices={devices} setActiveView={setActiveView} />
     </div>
   );

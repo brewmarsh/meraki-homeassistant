@@ -25,7 +25,7 @@ const VlanTable: React.FC<VlanTableProps> = ({ vlans }) => {
   );
 
   return (
-    <div className="bg-light-card dark:bg-dark-card p-4 rounded-lg shadow-md mb-4 border border-light-border dark:border-dark-border">
+    <ha-card className="p-4 mb-4">
       <div className="flex items-center mb-4 text-[var(--primary-text-color)]">
         <ha-icon
           icon="mdi:lan-connect"
@@ -36,14 +36,14 @@ const VlanTable: React.FC<VlanTableProps> = ({ vlans }) => {
       <input
         type="text"
         placeholder="Search VLANs..."
-        className="w-full p-2 mb-4 border rounded-lg bg-light-background dark:bg-dark-background dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-[var(--primary-color)] text-[var(--primary-text-color)]"
+        className="w-full p-2 mb-4 border border-[var(--divider-color)] rounded-lg bg-[var(--card-background-color)] text-[var(--primary-text-color)] focus:outline-none focus:ring-1 focus:ring-[var(--primary-color)]"
         value={searchTerm}
         onChange={(e) => setSearchTerm(e.target.value)}
       />
       <div className="overflow-x-auto">
         <table className="min-w-full">
           <thead>
-            <tr className="border-b border-light-border dark:border-dark-border">
+            <tr className="border-b border-[var(--divider-color)]">
               <th className="text-left p-4 font-semibold text-[var(--primary-text-color)]">ID</th>
               <th className="text-left p-4 font-semibold text-[var(--primary-text-color)]">Name</th>
               <th className="text-left p-4 font-semibold text-[var(--primary-text-color)]">Subnet</th>
@@ -54,7 +54,7 @@ const VlanTable: React.FC<VlanTableProps> = ({ vlans }) => {
             {filteredVlans.map((vlan) => (
               <tr
                 key={vlan.id}
-                className="border-b border-light-border dark:border-dark-border hover:bg-light-hover dark:hover:bg-dark-hover"
+                className="border-b border-[var(--divider-color)] last:border-0 hover:bg-[var(--secondary-background-color)]"
               >
                 <td className="p-4 text-[var(--primary-text-color)]">{vlan.id}</td>
                 <td className="p-4 text-[var(--primary-text-color)]">{vlan.name}</td>
@@ -65,7 +65,7 @@ const VlanTable: React.FC<VlanTableProps> = ({ vlans }) => {
           </tbody>
         </table>
       </div>
-    </div>
+    </ha-card>
   );
 };
 
