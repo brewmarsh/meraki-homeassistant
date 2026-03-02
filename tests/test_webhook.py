@@ -9,7 +9,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.network import NoURLAvailableError
 
 from custom_components.meraki_ha.const import DOMAIN, EVENT_MERAKI_WEBHOOK_ALERT
-from custom_components.meraki_ha.coordinator import MerakiDataUpdateCoordinator
+from custom_components.meraki_ha.coordinators.main import MerakiMainCoordinator as MerakiDataUpdateCoordinator
 from custom_components.meraki_ha.types import MerakiDevice
 from custom_components.meraki_ha.webhook import async_handle_webhook, get_webhook_url
 

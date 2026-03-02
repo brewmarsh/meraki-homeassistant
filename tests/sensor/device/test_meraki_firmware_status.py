@@ -5,7 +5,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from custom_components.meraki_ha.coordinator import MerakiDataUpdateCoordinator
+from custom_components.meraki_ha.coordinators.main import MerakiMainCoordinator as MerakiDataUpdateCoordinator
 from custom_components.meraki_ha.sensor.device.meraki_firmware_status import (
     MerakiFirmwareStatusSensor,
 )
