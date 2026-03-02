@@ -57,21 +57,31 @@ class MerakiSSIDBaseSensor(MerakiEntity, SensorEntity):
 
         # Look in wireless_settings (preferred) or flat ssids list
         if "wireless_settings" in self.coordinator.data:
-            network_ssids = self.coordinator.data["wireless_settings"].get(
-                self._network_id
-            )
-            if network_ssids:
-                for ssid in network_ssids:
-                    if str(ssid.get("number")) == str(self._ssid_number):
-                        return ssid
-            return None
+            return self._find_ssid_in_wireless_settings()
 
         if "ssids" in self.coordinator.data:
-            for ssid in self.coordinator.data["ssids"]:
-                if ssid.get("networkId") == self._network_id and str(
-                    ssid.get("number")
-                ) == str(self._ssid_number):
-                    return ssid
+            return self._find_ssid_in_flat_list()
+
+        return None
+
+    def _find_ssid_in_wireless_settings(self) -> dict[str, Any] | None:
+        """Find the SSID data in the wireless_settings structure."""
+        network_ssids = self.coordinator.data["wireless_settings"].get(self._network_id)
+        if not network_ssids:
+            return None
+
+        for ssid in network_ssids:
+            if str(ssid.get("number")) == str(self._ssid_number):
+                return ssid
+        return None
+
+    def _find_ssid_in_flat_list(self) -> dict[str, Any] | None:
+        """Find the SSID data in the flat ssids list."""
+        for ssid in self.coordinator.data["ssids"]:
+            if ssid.get("networkId") == self._network_id and str(
+                ssid.get("number")
+            ) == str(self._ssid_number):
+                return ssid
         return None
 
     @property

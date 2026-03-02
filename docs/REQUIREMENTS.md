@@ -206,3 +206,12 @@
 \*\*Code Quality & Refactoring
 
 - [ ] **Unit and Integration Tests:** Expand test coverage significantly.
+
+## Structural Improvements & Refactoring
+
+| Improvement                                                                                                                                                                     | Status   |
+| :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | :------- |
+| **ACL Score Reduction:** Refactored complex sensor update functions in `device_status.py` and `base.py` to bring Agent Cognitive Load (ACL) scores below 10.                    | Complete |
+| **Logic Decomposition:** Extracted nested data parsing and status determination logic into single-responsibility helper functions (e.g., `_determine_device_status`).           | Complete |
+| **Strict Type Hinting:** Applied comprehensive Python type hints to all refactored functions to improve maintainability and catch potential errors early.                       | Complete |
+| **Helper Function Size Constraints:** Ensured all new helper functions remain strictly under 50 lines of code, promoting readability and ease of testing.                       | Complete |
