@@ -10,7 +10,22 @@ from homeassistant.components import websocket_api
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.loader import async_get_integration
 
-from ..const import DOMAIN, DATA_CLIENT
+from ..const import (
+    DOMAIN,
+    DATA_CLIENT,
+    WS_CMD_GET_CONFIG,
+    WS_CMD_SUBSCRIBE_MERAKI_DATA,
+    WS_CMD_GET_CAMERA_STREAM_URL,
+    WS_CMD_GET_CAMERA_SNAPSHOT,
+    WS_CMD_GET_VERSION,
+    WS_CMD_GET_NETWORK_EVENTS,
+    WS_CMD_UPDATE_OPTIONS,
+    WS_CMD_UPDATE_ENABLED_NETWORKS,
+    WS_CMD_TIMED_ACCESS_GET_KEYS,
+    WS_CMD_TIMED_ACCESS_GET_POLICIES,
+    WS_CMD_TIMED_ACCESS_CREATE,
+    WS_CMD_TIMED_ACCESS_DELETE,
+)
 from ..helpers.serialization import to_serializable
 
 _LOGGER = logging.getLogger(__name__)
@@ -27,11 +42,11 @@ def async_setup_websocket_api(hass: HomeAssistant) -> None:
     # Register the command to get Meraki config
     websocket_api.async_register_command(
         hass,
-        "meraki_ha/get_config",
+        WS_CMD_GET_CONFIG,
         ws_get_config,
         vol.Schema(
             {
-                vol.Required("type"): "meraki_ha/get_config",
+                vol.Required("type"): WS_CMD_GET_CONFIG,
                 vol.Required("config_entry_id"): str,
             },
             extra=vol.ALLOW_EXTRA,
@@ -40,11 +55,11 @@ def async_setup_websocket_api(hass: HomeAssistant) -> None:
     # Register the command to subscribe to Meraki data
     websocket_api.async_register_command(
         hass,
-        "meraki_ha/subscribe_meraki_data",
+        WS_CMD_SUBSCRIBE_MERAKI_DATA,
         ws_subscribe_meraki_data,
         vol.Schema(
             {
-                vol.Required("type"): "meraki_ha/subscribe_meraki_data",
+                vol.Required("type"): WS_CMD_SUBSCRIBE_MERAKI_DATA,
                 vol.Required("config_entry_id"): str,
             },
             extra=vol.ALLOW_EXTRA,
@@ -53,11 +68,11 @@ def async_setup_websocket_api(hass: HomeAssistant) -> None:
     # Register the command to get camera stream URL
     websocket_api.async_register_command(
         hass,
-        "meraki_ha/get_camera_stream_url",
+        WS_CMD_GET_CAMERA_STREAM_URL,
         ws_get_camera_stream_url,
         vol.Schema(
             {
-                vol.Required("type"): vol.All(str, "meraki_ha/get_camera_stream_url"),
+                vol.Required("type"): vol.All(str, WS_CMD_GET_CAMERA_STREAM_URL),
                 vol.Required("config_entry_id"): str,
                 vol.Required("serial"): str,
             },
@@ -67,11 +82,11 @@ def async_setup_websocket_api(hass: HomeAssistant) -> None:
     # Register the command to get camera snapshot
     websocket_api.async_register_command(
         hass,
-        "meraki_ha/get_camera_snapshot",
+        WS_CMD_GET_CAMERA_SNAPSHOT,
         ws_get_camera_snapshot,
         vol.Schema(
             {
-                vol.Required("type"): vol.All(str, "meraki_ha/get_camera_snapshot"),
+                vol.Required("type"): vol.All(str, WS_CMD_GET_CAMERA_SNAPSHOT),
                 vol.Required("config_entry_id"): str,
                 vol.Required("serial"): str,
             },
@@ -81,11 +96,11 @@ def async_setup_websocket_api(hass: HomeAssistant) -> None:
     # Register the command to get version
     websocket_api.async_register_command(
         hass,
-        "meraki_ha/get_version",
+        WS_CMD_GET_VERSION,
         ws_get_version,
         vol.Schema(
             {
-                vol.Required("type"): vol.All(str, "meraki_ha/get_version"),
+                vol.Required("type"): vol.All(str, WS_CMD_GET_VERSION),
             },
             extra=vol.ALLOW_EXTRA,
         ),
@@ -93,11 +108,11 @@ def async_setup_websocket_api(hass: HomeAssistant) -> None:
     # Register the command to fetch network events
     websocket_api.async_register_command(
         hass,
-        "meraki_ha/get_network_events",
+        WS_CMD_GET_NETWORK_EVENTS,
         ws_get_network_events,
         vol.Schema(
             {
-                vol.Required("type"): "meraki_ha/get_network_events",
+                vol.Required("type"): WS_CMD_GET_NETWORK_EVENTS,
                 vol.Required("config_entry_id"): str,
                 vol.Required("network_id"): str,
                 vol.Optional("per_page"): int,
@@ -109,11 +124,11 @@ def async_setup_websocket_api(hass: HomeAssistant) -> None:
     # Register the command to update options
     websocket_api.async_register_command(
         hass,
-        "meraki_ha/update_options",
+        WS_CMD_UPDATE_OPTIONS,
         ws_update_options,
         vol.Schema(
             {
-                vol.Required("type"): "meraki_ha/update_options",
+                vol.Required("type"): WS_CMD_UPDATE_OPTIONS,
                 vol.Required("config_entry_id"): str,
                 vol.Required("options"): dict,
             },
@@ -123,11 +138,11 @@ def async_setup_websocket_api(hass: HomeAssistant) -> None:
     # Register the command to update enabled networks
     websocket_api.async_register_command(
         hass,
-        "meraki_ha/update_enabled_networks",
+        WS_CMD_UPDATE_ENABLED_NETWORKS,
         ws_update_enabled_networks,
         vol.Schema(
             {
-                vol.Required("type"): "meraki_ha/update_enabled_networks",
+                vol.Required("type"): WS_CMD_UPDATE_ENABLED_NETWORKS,
                 vol.Required("config_entry_id"): str,
                 vol.Required("enabled_networks"): [str],
             },
@@ -137,11 +152,11 @@ def async_setup_websocket_api(hass: HomeAssistant) -> None:
     # Register the command to get timed access keys
     websocket_api.async_register_command(
         hass,
-        "meraki_ha/timed_access/get_keys",
+        WS_CMD_TIMED_ACCESS_GET_KEYS,
         ws_timed_access_get_keys,
         vol.Schema(
             {
-                vol.Required("type"): "meraki_ha/timed_access/get_keys",
+                vol.Required("type"): WS_CMD_TIMED_ACCESS_GET_KEYS,
                 vol.Required("config_entry_id"): str,
                 vol.Optional("network_id"): str,
             },
@@ -151,11 +166,11 @@ def async_setup_websocket_api(hass: HomeAssistant) -> None:
     # Register the command to get group policies
     websocket_api.async_register_command(
         hass,
-        "meraki_ha/timed_access/get_policies",
+        WS_CMD_TIMED_ACCESS_GET_POLICIES,
         ws_timed_access_get_policies,
         vol.Schema(
             {
-                vol.Required("type"): "meraki_ha/timed_access/get_policies",
+                vol.Required("type"): WS_CMD_TIMED_ACCESS_GET_POLICIES,
                 vol.Required("config_entry_id"): str,
                 vol.Required("network_id"): str,
             },
@@ -165,11 +180,11 @@ def async_setup_websocket_api(hass: HomeAssistant) -> None:
     # Register the command to create a timed access key
     websocket_api.async_register_command(
         hass,
-        "meraki_ha/timed_access/create",
+        WS_CMD_TIMED_ACCESS_CREATE,
         ws_timed_access_create,
         vol.Schema(
             {
-                vol.Required("type"): "meraki_ha/timed_access/create",
+                vol.Required("type"): WS_CMD_TIMED_ACCESS_CREATE,
                 vol.Required("config_entry_id"): str,
                 vol.Required("network_id"): str,
                 vol.Required("ssid_number"): str,
@@ -184,11 +199,11 @@ def async_setup_websocket_api(hass: HomeAssistant) -> None:
     # Register the command to delete a timed access key
     websocket_api.async_register_command(
         hass,
-        "meraki_ha/timed_access/delete",
+        WS_CMD_TIMED_ACCESS_DELETE,
         ws_timed_access_delete,
         vol.Schema(
             {
-                vol.Required("type"): "meraki_ha/timed_access/delete",
+                vol.Required("type"): WS_CMD_TIMED_ACCESS_DELETE,
                 vol.Required("config_entry_id"): str,
                 vol.Required("identity_psk_id"): str,
                 vol.Required("network_id"): str,

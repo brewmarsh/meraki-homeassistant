@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { safeCallWS } from '../utils/api';
+import { WsCommand } from '../types/websocket';
 
 interface SettingsProps {
   hass: any; // Add hass to props
@@ -30,7 +31,7 @@ const Settings: React.FC<SettingsProps> = ({
       // Use the hass prop directly
       if (hass) {
         await safeCallWS(hass, {
-          type: 'meraki_ha/update_options',
+          type: WsCommand.UPDATE_OPTIONS,
           config_entry_id: configEntryId,
           options: localOptions,
         });

@@ -1,8 +1,10 @@
+import { WsMessagePayload } from '../types/websocket';
+
 /**
  * Utility for making safe WebSocket calls to Home Assistant.
  */
 
-export const safeCallWS = async <T = any>(hass: any, message: any): Promise<T> => {
+export const safeCallWS = async <T = any>(hass: any, message: WsMessagePayload): Promise<T> => {
   if (!hass) {
     throw new Error('Home Assistant object is not available.');
   }

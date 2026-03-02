@@ -5,6 +5,7 @@ import DeviceView from './components/DeviceView';
 import Settings from './components/Settings';
 import TimedAccess from './components/TimedAccess';
 import { safeCallWS } from './utils/api';
+import { WsCommand } from './types/websocket';
 
 // Define the types for our data
 interface MerakiData {
@@ -163,7 +164,7 @@ const App: React.FC<AppProps> = ({ hass, panel, config_entry_id }) => {
     try {
       setLoading(true);
       const result = await safeCallWS<MerakiData>(hass, {
-        type: 'meraki_ha/get_config',
+        type: WsCommand.GET_CONFIG,
         config_entry_id: configEntryId,
       });
       setData(result);
@@ -197,8 +198,8 @@ const App: React.FC<AppProps> = ({ hass, panel, config_entry_id }) => {
       .map((network: any) => network.id);
 
     try {
-      await hass.callWS({
-        type: 'meraki_ha/update_enabled_networks',
+      await safeCallWS(hass, {
+        type: WsCommand.UPDATE_ENABLED_NETWORKS,
         config_entry_id: configEntryId,
         enabled_networks: enabledNetworkIds,
       });

@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { safeCallWS } from '../utils/api';
+import { WsCommand } from '../types/websocket';
 
 // Define the types for our data
 interface MerakiEvent {
@@ -67,7 +68,7 @@ const EventLog: React.FC<EventLogProps> = ({
         }
 
         const resultData = await safeCallWS<EventLogResponse>(hass, {
-          type: 'meraki_ha/get_network_events',
+          type: WsCommand.GET_NETWORK_EVENTS,
           config_entry_id: configEntryId,
           network_id: networkId,
           per_page: 10,
