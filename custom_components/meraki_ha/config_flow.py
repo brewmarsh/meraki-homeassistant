@@ -26,6 +26,7 @@ from .const_conf import (
     CONF_ENABLE_FIREWALL_RULES,
     CONF_ENABLE_ORG_SENSORS,
     CONF_ENABLE_VPN_MANAGEMENT,
+    CONF_INTEGRATION_TITLE,
     CONF_MERAKI_API_KEY,
     CONF_MERAKI_ORG_ID,
 )
@@ -149,34 +150,109 @@ class MerakiOptionsFlowHandler(config_entries.OptionsFlow):
 
     def __init__(self, config_entry: config_entries.ConfigEntry) -> None:
         """Initialize options flow."""
-        self.config_entry = config_entry
+        self.options = dict(config_entry.options)
+        self._coordinator_instance: MerakiMainCoordinator | None = None
+        self._config_entry = config_entry
+
+    @property
+    def coordinator(self) -> MerakiMainCoordinator:
+        """Get the coordinator."""
+        if self._coordinator_instance is None:
+            entry_id = getattr(self, "config_entry_id", self._config_entry.entry_id)
+            self._coordinator_instance = self.hass.data[DOMAIN][
+                entry_id
+            ]["coordinator"]
+        return self._coordinator_instance
 
     async def async_step_init(
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
-        """Manage the options."""
-        if user_input is not None:
-            return self.async_create_entry(title="", data=user_input)
+        """Manage the options flow menu."""
+        from .helpers.flow_utils import has_cameras
 
-        options = self.config_entry.options
-        data_schema = vol.Schema(
-            {
-                vol.Optional(
-                    CONF_ENABLE_DEVICE_STATUS,
-                    default=options.get(CONF_ENABLE_DEVICE_STATUS, True),
-                ): bool,
-                vol.Optional(
-                    CONF_ENABLE_ORG_SENSORS,
-                    default=options.get(CONF_ENABLE_ORG_SENSORS, True),
-                ): bool,
-                vol.Optional(
-                    CONF_ENABLE_CAMERA_ENTITIES,
-                    default=options.get(CONF_ENABLE_CAMERA_ENTITIES, True),
-                ): bool,
-                vol.Optional(
-                    CONF_ENABLE_DEVICE_SENSORS,
-                    default=options.get(CONF_ENABLE_DEVICE_SENSORS, True),
-                ): bool,
-            }
+        menu_options = ["general", "sensors"]
+        if has_cameras(self.coordinator.data):
+            menu_options.append("cameras")
+        menu_options.append("advanced")
+
+        return self.async_show_menu(step_id="init", menu_options=menu_options)
+
+    async def async_step_general(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        """Manage general settings."""
+        if user_input is not None:
+            self.options.update(user_input)
+            return self.async_create_entry(title="", data=self.options)
+
+        from .helpers.flow_utils import get_network_options
+        from .helpers.schema import populate_schema_defaults
+        from .schemas import OPTIONS_SCHEMA_GENERAL
+
+        schema = populate_schema_defaults(
+            OPTIONS_SCHEMA_GENERAL,
+            self.options,
+            get_network_options(self.coordinator.data),
         )
-        return self.async_show_form(step_id="init", data_schema=data_schema)
+        return self.async_show_form(step_id="general", data_schema=schema)
+
+    async def async_step_sensors(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        """Manage sensor settings."""
+        if user_input is not None:
+            self.options.update(user_input)
+            return self.async_create_entry(title="", data=self.options)
+
+        from .helpers.schema import populate_schema_defaults
+        from .schemas import OPTIONS_SCHEMA_SENSORS
+
+        schema = populate_schema_defaults(
+            OPTIONS_SCHEMA_SENSORS,
+            self.options,
+        )
+        return self.async_show_form(step_id="sensors", data_schema=schema)
+
+    async def async_step_cameras(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        """Manage camera settings."""
+        if user_input is not None:
+            self.options.update(user_input)
+            return self.async_create_entry(title="", data=self.options)
+
+        from .helpers.schema import get_filtered_schema, populate_schema_defaults
+        from .schemas import OPTIONS_SCHEMA_CAMERAS
+
+        filtered_schema = get_filtered_schema(
+            self.coordinator.data.get("devices", []),
+            OPTIONS_SCHEMA_CAMERAS,
+        )
+
+        schema = populate_schema_defaults(
+            filtered_schema,
+            self.options,
+        )
+        return self.async_show_form(step_id="cameras", data_schema=schema)
+
+    async def async_step_advanced(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        """Manage advanced settings."""
+        if user_input is not None:
+            self.options.update(user_input)
+            return self.async_create_entry(title="", data=self.options)
+
+        from .helpers.schema import get_filtered_schema, populate_schema_defaults
+        from .schemas import OPTIONS_SCHEMA_ADVANCED
+
+        filtered_schema = get_filtered_schema(
+            self.coordinator.data.get("devices", []),
+            OPTIONS_SCHEMA_ADVANCED,
+        )
+
+        schema = populate_schema_defaults(
+            filtered_schema,
+            self.options,
+        )
+        return self.async_show_form(step_id="advanced", data_schema=schema)
