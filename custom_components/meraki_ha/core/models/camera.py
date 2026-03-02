@@ -5,6 +5,8 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any
 
+from .base import MerakiBaseDevice
+
 
 @dataclass(kw_only=True)
 class CameraMixin:
@@ -33,3 +35,21 @@ class CameraMixin:
             "sense_settings": data.get("senseSettings"),
             "camera_analytics": data.get("analytics", []),
         }
+
+
+@dataclass(kw_only=True)
+class MerakiCameraDevice(MerakiBaseDevice, CameraMixin):
+    """Dataclass for a Meraki Camera."""
+
+    def to_dict(self) -> dict[str, Any]:
+        """Convert to dictionary."""
+        data = self.base_to_dict()
+        data.update(self.camera_to_dict())
+        return data
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> MerakiCameraDevice:
+        """Create a MerakiCameraDevice from a dictionary."""
+        kwargs = cls.base_from_dict(data)
+        kwargs.update(cls.camera_from_dict(data))
+        return cls(**kwargs)

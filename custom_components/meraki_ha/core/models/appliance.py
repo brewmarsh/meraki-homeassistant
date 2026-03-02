@@ -5,6 +5,8 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any
 
+from .base import MerakiBaseDevice
+
 
 @dataclass(kw_only=True)
 class MerakiAppliancePort:
@@ -76,3 +78,21 @@ class ApplianceMixin:
             ],
             "dynamic_dns": data.get("dynamicDns"),
         }
+
+
+@dataclass(kw_only=True)
+class MerakiApplianceDevice(MerakiBaseDevice, ApplianceMixin):
+    """Dataclass for a Meraki Appliance."""
+
+    def to_dict(self) -> dict[str, Any]:
+        """Convert to dictionary."""
+        data = self.base_to_dict()
+        data.update(self.appliance_to_dict())
+        return data
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> MerakiApplianceDevice:
+        """Create a MerakiApplianceDevice from a dictionary."""
+        kwargs = cls.base_from_dict(data)
+        kwargs.update(cls.appliance_from_dict(data))
+        return cls(**kwargs)
