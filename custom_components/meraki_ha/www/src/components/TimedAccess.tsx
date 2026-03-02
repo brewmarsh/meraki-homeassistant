@@ -21,14 +21,12 @@ interface TimedAccessProps {
   hass: any;
   configEntryId: string;
   data: any;
-  onClose: () => void;
 }
 
 const TimedAccess: React.FC<TimedAccessProps> = ({
   hass,
   configEntryId,
   data,
-  onClose,
 }) => {
   const [keys, setKeys] = useState<TimedAccessKey[]>([]);
   const [policies, setPolicies] = useState<GroupPolicy[]>([]);
@@ -149,16 +147,10 @@ const TimedAccess: React.FC<TimedAccessProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-      <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+    <div className="max-w-6xl mx-auto">
+      <ha-card className="bg-[var(--card-background-color)] text-[var(--primary-text-color)] shadow-lg rounded-lg overflow-hidden p-6">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-xl font-bold">Timed Guest Access</h2>
-          <button
-            onClick={onClose}
-            className="text-gray-500 hover:text-gray-700"
-          >
-            <ha-icon icon="mdi:close"></ha-icon>
-          </button>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -331,7 +323,7 @@ const TimedAccess: React.FC<TimedAccessProps> = ({
             )}
           </div>
         </div>
-      </div>
+      </ha-card>
     </div>
   );
 };

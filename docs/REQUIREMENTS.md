@@ -225,3 +225,11 @@
 | **Logic Decomposition:** Extracted nested data parsing and status determination logic into single-responsibility helper functions (e.g., `_determine_device_status`).           | Complete |
 | **Strict Type Hinting:** Applied comprehensive Python type hints to all refactored functions to improve maintainability and catch potential errors early.                       | Complete |
 | **Helper Function Size Constraints:** Ensured all new helper functions remain strictly under 50 lines of code, promoting readability and ease of testing.                       | Complete |
+
+**Frontend UX Phase 6: Top-level Navigation**
+
+| Requirement                                                                                                                                  | Status      |
+| :------------------------------------------------------------------------------------------------------------------------------------------- | :---------- |
+| Implement scalable top-level navigation using Home Assistant's native `ha-tabs` and `paper-tab` web components.                              | In Progress |
+| Separate distinct feature sets (Networks, All Devices, Timed Access, Settings) into dedicated views accessible via tabs.                     | In Progress |
+| Ensure active tab state is tracked and the UI updates dynamically based on the selected tab.                                                 | In Progress |
