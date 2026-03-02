@@ -1,7 +1,7 @@
 """Tests for the Meraki MT sensor setup."""
 
 import copy
-from typing import Any, Dict, List, Optional, Union, cast
+from typing import Any, cast
 from unittest.mock import MagicMock
 
 import pytest
@@ -16,8 +16,34 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 # --- Fixtures ---
 
 
-@pytest.fixture
-def mock_coordinator_with_mt_devices(mock_coordinator: MagicMock) -> MagicMock:
+def _populate_mt_device_readings(
+    device: MerakiDevice, readings: list[dict[str, Any]]
+) -> None:
+    """Populate MT device attributes from readings."""
+    for reading in readings:
+        metric = reading.get("metric")
+        if metric == "noise":
+            device.ambient_noise = (
+                reading.get("noise", {}).get("ambient", {}).get("level")
+            )
+        elif metric == "pm25":
+            device.pm25 = reading.get("pm25", {}).get("concentration")
+        elif metric == "power":
+            device.real_power = reading.get("power", {}).get("draw")
+        elif metric == "powerFactor":
+            device.power_factor = reading.get("powerFactor", {}).get("percentage")
+        elif metric == "current":
+            device.current = reading.get("current", {}).get("draw")
+        elif metric == "voltage":
+            device.voltage = reading.get("voltage", {}).get("level")
+        elif metric == "door":
+            device.door_open = reading.get("door", {}).get("open")
+        elif metric == "water":
+            device.water_present = reading.get("water", {}).get("present")
+
+
+@pytest.fixture(name="mock_coordinator_with_mt_devices")
+def fixture_mock_coordinator_with_mt_devices(mock_coordinator: MagicMock) -> MagicMock:
     """Fixture for a mocked MerakiDataUpdateCoordinator with MT sensor data."""
     devices_data: list[dict[str, Any]] = [
         {
@@ -72,36 +98,16 @@ def mock_coordinator_with_mt_devices(mock_coordinator: MagicMock) -> MagicMock:
         },
     ]
 
-    devices_objects: List[MerakiDevice] = []
+    devices_objects: list[MerakiDevice] = []
     for d in devices_data:
         device = MerakiDevice.from_dict(d)
-        # Manually populate attributes that parse_sensor_data would handle
-        for reading in d.get("readings", []):
-            metric = reading.get("metric")
-            if metric == "noise":
-                device.ambient_noise = (
-                    reading.get("noise", {}).get("ambient", {}).get("level")
-                )
-            elif metric == "pm25":
-                device.pm25 = reading.get("pm25", {}).get("concentration")
-            elif metric == "power":
-                device.real_power = reading.get("power", {}).get("draw")
-            elif metric == "powerFactor":
-                device.power_factor = reading.get("powerFactor", {}).get("percentage")
-            elif metric == "current":
-                device.current = reading.get("current", {}).get("draw")
-            elif metric == "voltage":
-                device.voltage = reading.get("voltage", {}).get("level")
-            elif metric == "door":
-                device.door_open = reading.get("door", {}).get("open")
-            elif metric == "water":
-                device.water_present = reading.get("water", {}).get("present")
+        _populate_mt_device_readings(device, d.get("readings", []))
         devices_objects.append(device)
 
     mock_coordinator.data = {"devices": devices_objects}
     mock_coordinator.devices_by_serial = {d.serial: d for d in devices_objects}
 
-    def get_device(serial: str) -> Optional[MerakiDevice]:
+    def get_device(serial: str) -> MerakiDevice | None:
         return mock_coordinator.devices_by_serial.get(serial)
 
     mock_coordinator.get_device.side_effect = get_device
@@ -112,8 +118,8 @@ def mock_coordinator_with_mt_devices(mock_coordinator: MagicMock) -> MagicMock:
 
 
 async def _prepare_discovery_service_and_entities(
-    mock_coordinator: MagicMock, devices: Union[MerakiDevice, List[MerakiDevice]]
-) -> List[Entity]:
+    mock_coordinator: MagicMock, devices: MerakiDevice | list[MerakiDevice]
+) -> list[Entity]:
     """Prepare DeviceDiscoveryService and process discovered entities for testing."""
     if not isinstance(devices, list):
         devices = [devices]
@@ -128,26 +134,31 @@ async def _prepare_discovery_service_and_entities(
     )
     discovery_service._devices = devices
     await discovery_service.discover_entities()
-    entities: List[Entity] = discovery_service.all_entities
+    entities: list[Entity] = discovery_service.all_entities
 
     for entity in entities:
-        entity.hass = MagicMock()
-        # Use platform and unique_id to create a more distinct entity_id for tests
-        entity.entity_id = (
-            f"{entity.platform}.test_{entity.unique_id}"
-            if hasattr(entity, "unique_id")
-            else "test_entity"
-        )
-        # Replaced object.__setattr__ with direct assignment for method mock
-        entity.async_write_ha_state = MagicMock()
-        if hasattr(entity, "_handle_coordinator_update"):
-            cast(CoordinatorEntity, entity)._handle_coordinator_update()
+        _setup_test_entity(entity)
     return entities
 
 
-def _get_entities_map_by_key(entities: List[Entity]) -> Dict[str, Entity]:
+def _setup_test_entity(entity: Entity) -> None:
+    """Set up entity properties for testing."""
+    entity.hass = MagicMock()
+    # Use platform and unique_id to create a more distinct entity_id for tests
+    entity.entity_id = (
+        f"{entity.platform}.test_{entity.unique_id}"
+        if hasattr(entity, "unique_id")
+        else "test_entity"
+    )
+    # Replaced object.__setattr__ with direct assignment for method mock
+    entity.async_write_ha_state = MagicMock()
+    if hasattr(entity, "_handle_coordinator_update"):
+        cast(CoordinatorEntity, entity)._handle_coordinator_update()
+
+
+def _get_entities_map_by_key(entities: list[Entity]) -> dict[str, Entity]:
     """Map entities by their entity_description.key."""
-    entities_by_key: Dict[str, Entity] = {
+    entities_by_key: dict[str, Entity] = {
         entity.entity_description.key: entity
         for entity in entities
         if hasattr(entity, "entity_description")
@@ -164,7 +175,7 @@ def _assert_sensor_entity(
     expected_name: str,
     expected_value: Any,
     expected_availability: bool = True,
-    expected_translation_key: Optional[str] = None,
+    expected_translation_key: str | None = None,
 ) -> None:
     """Assert common properties of a SensorEntity."""
     assert isinstance(entity, SensorEntity)
@@ -183,7 +194,7 @@ def _assert_binary_sensor_entity(
     expected_name: str,
     expected_is_on: bool,
     expected_availability: bool = True,
-    expected_translation_key: Optional[str] = None,
+    expected_translation_key: str | None = None,
 ) -> None:
     """Assert common properties of a BinarySensorEntity."""
     assert isinstance(entity, BinarySensorEntity)
@@ -323,11 +334,12 @@ async def test_async_setup_mt40_sensors(
     entities_by_key = _get_entities_map_by_key(entities)
 
     # For the outlet switch, which might not have an entity_description.key,
-    # we can find it by unique_id if needed, or rely on other tests for its specific type.
+    # we can find it by unique_id if needed, or rely on other tests for its
+    # specific type.
     # The original test added it to the map with key "outlet".
-    outlet_switch: Optional[Entity] = None
+    outlet_switch: Entity | None = None
     for entity in entities:
-        if hasattr(entity, "unique_id") and "outlet" in entity.unique_id:
+        if hasattr(entity, "unique_id") and "outlet" in str(entity.unique_id):
             outlet_switch = entity
             break
     assert outlet_switch is not None, "Outlet switch entity not found for MT40"
@@ -392,7 +404,8 @@ async def test_availability(mock_coordinator_with_mt_devices: MagicMock) -> None
     sensors_by_key = _get_entities_map_by_key(entities)
     temp_sensor = cast(SensorEntity, sensors_by_key["temperature"])
 
-    # Sensor should be available initially (checked by _prepare_discovery_service_and_entities)
+    # Sensor should be available initially (checked by
+    # _prepare_discovery_service_and_entities)
     assert temp_sensor.available is True
 
     # Prepare a device without readings
@@ -409,13 +422,15 @@ async def test_availability(mock_coordinator_with_mt_devices: MagicMock) -> None
         device_without_readings
     )
 
-    # Mock get_device to return the updated device for subsequent fetches by entities
-    def get_device_updated(serial: str) -> Optional[MerakiDevice]:
+    # Mock get_device to return the updated device for subsequent fetches
+    # by entities
+    def get_device_updated(serial: str) -> MerakiDevice | None:
         return mock_coordinator_with_mt_devices.devices_by_serial.get(serial)
 
     mock_coordinator_with_mt_devices.get_device.side_effect = get_device_updated
 
-    # Explicitly clear native value, as done in the original test, to ensure clear state for update.
+    # Explicitly clear native value, as done in the original test, to ensure
+    # clear state for update.
     temp_sensor._attr_native_value = None
     cast(CoordinatorEntity, temp_sensor)._handle_coordinator_update()
 
