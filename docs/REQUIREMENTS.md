@@ -145,6 +145,8 @@
 | :------------------------------------------------------------------------------------------------------------------------------------------- | :------- |
 | Home Assistant Web Components must be explicitly registered in the global JSX namespace (e.g., `src/types/ha-frontend.d.ts`) for TypeScript. | Included |
 | WebSocket commands used by the frontend must be centralized in a type-safe enum (e.g., `src/types/websocket.ts`).                            | Included |
+| Vite build must use a dedicated `dist` directory for `outDir` and explicitly define `src/main.tsx` as the entry point in `rollupOptions.input`. | Included |
+| The `index.html` file must point to the TypeScript source entry point to allow Vite to transform it during the build process. | Included |
 
 ## Key Learnings from Debugging
 
