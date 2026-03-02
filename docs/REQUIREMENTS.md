@@ -139,6 +139,13 @@
 | :----------------------------------------------------- | :------- |
 | The Integration uses Voluptuous for schema validation. | Included |
 
+**Frontend Development
+
+| Requirement                                                                                                                                  | Status   |
+| :------------------------------------------------------------------------------------------------------------------------------------------- | :------- |
+| Home Assistant Web Components must be explicitly registered in the global JSX namespace (e.g., `src/types/ha-frontend.d.ts`) for TypeScript. | Included |
+| WebSocket commands used by the frontend must be centralized in a type-safe enum (e.g., `src/types/websocket.ts`).                            | Included |
+
 ## Key Learnings from Debugging
 
 | Requirement                                                                                | Status             |
