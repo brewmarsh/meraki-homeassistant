@@ -6,6 +6,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
+from homeassistant.core import HomeAssistant
 from tests.const import (
     MOCK_ALL_DATA,
     MOCK_DEVICE_INIT,
@@ -16,7 +17,7 @@ from tests.const import (
 
 
 @pytest.fixture(autouse=True)
-def mock_meraki():
+def mock_meraki() -> None:
     """Mock meraki module to avoid installation issues."""
     if "meraki" not in sys.modules:
         mock_meraki_module = MagicMock()
@@ -36,7 +37,7 @@ def mock_meraki():
 
 
 @pytest.fixture(autouse=True)
-def mock_aiortc():
+def mock_aiortc() -> None:
     """Mock aiortc module to avoid installation issues."""
     if "aiortc" not in sys.modules:
         sys.modules["aiortc"] = MagicMock()
@@ -47,7 +48,7 @@ def mock_aiortc():
 
 
 @pytest.fixture(autouse=True)
-def mock_http(hass):
+def mock_http(hass: HomeAssistant) -> None:
     """Mock the http component."""
     hass.http = MagicMock()
     hass.http.register_view = MagicMock()
@@ -75,102 +76,81 @@ def bypass_platform_setup() -> Generator[None, None, None]:
         yield
 
 
-@pytest.fixture
-def mock_coordinator() -> MagicMock:
-    """Fixture for a mocked MerakiDataUpdateCoordinator."""
+@pytest.fixture(name="mock_coordinator")  # type: ignore[untyped-decorator]
+def fixture_mock_coordinator() -> MagicMock:
+    """Fixture for a mocked MerakiMainCoordinator."""
     coordinator = MagicMock()
     coordinator.config_entry.options = {}
     coordinator.data = MOCK_ALL_DATA
-    coordinator.async_request_refresh = AsyncMock()
     coordinator.async_write_ha_state = MagicMock()
     coordinator.is_update_pending = MagicMock(return_value=False)
     coordinator.register_pending_update = MagicMock()
-    coordinator.async_request_refresh = AsyncMock()
     return coordinator
 
 
-@pytest.fixture
-def mock_config_entry() -> MagicMock:
+@pytest.fixture(name="mock_config_entry")  # type: ignore[untyped-decorator]
+def fixture_mock_config_entry() -> MagicMock:
     """Fixture for a mocked ConfigEntry."""
     entry = MagicMock()
     entry.options = {}
     return entry
 
 
-@pytest.fixture
-def mock_meraki_client():
+@pytest.fixture(name="mock_meraki_client")  # type: ignore[untyped-decorator]
+def fixture_mock_meraki_client() -> Generator[MagicMock, None, None]:
     """Fixture for a mocked Meraki API client."""
     with patch(
         "custom_components.meraki_ha.core.api.client.meraki.DashboardAPI"
     ) as mock_api:
         mock_dashboard = mock_api.return_value
 
-        # Organizations
-        mock_dashboard.organizations = MagicMock()
-        mock_dashboard.organizations.getOrganizations.return_value = [
-            {"id": "12345", "name": "Test Organization"}
-        ]
-        mock_dashboard.organizations.getOrganization.return_value = {
-            "id": "12345",
-            "name": "Test Organization",
-        }
-        mock_dashboard.organizations.getOrganizationNetworks.return_value = [
-            MOCK_NETWORK_INIT
-        ]
-        mock_dashboard.organizations.getOrganizationDevices.return_value = [
-            MOCK_DEVICE_INIT,
-            MOCK_MX_DEVICE_INIT,
-            MOCK_GX_DEVICE_INIT,
-        ]
-        mock_dashboard.organizations.getOrganizationDevicesStatuses.return_value = []
-        (
-            mock_dashboard.organizations.getOrganizationDevicesAvailabilities.return_value
-        ) = []
+        org_data = {"id": "12345", "name": "Test Organization"}
+        networks = [MOCK_NETWORK_INIT]
+        devices = [MOCK_DEVICE_INIT, MOCK_MX_DEVICE_INIT, MOCK_GX_DEVICE_INIT]
 
-        # Networks
-        mock_dashboard.networks = MagicMock()
-        # Some endpoints might still use this path depending on lib version
-        mock_dashboard.networks.getOrganizationNetworks.return_value = [
-            MOCK_NETWORK_INIT
-        ]
+        mock_dashboard.organizations.configure_mock(
+            **{
+                "getOrganizations.return_value": [org_data],
+                "getOrganization.return_value": org_data,
+                "getOrganizationNetworks.return_value": networks,
+                "getOrganizationDevices.return_value": devices,
+                "getOrganizationDevicesStatuses.return_value": [],
+                "getOrganizationDevicesAvailabilities.return_value": [],
+            }
+        )
+        mock_dashboard.networks.getOrganizationNetworks.return_value = networks
+        mock_dashboard.devices.getOrganizationDevices.return_value = devices
 
-        # Devices
-        mock_dashboard.devices = MagicMock()
-        mock_dashboard.devices.getOrganizationDevices.return_value = [
-            MOCK_DEVICE_INIT,
-            MOCK_MX_DEVICE_INIT,
-            MOCK_GX_DEVICE_INIT,
-        ]
+        mock_dashboard.appliance.configure_mock(
+            **{
+                "getOrganizationApplianceUplinkStatuses.return_value": [],
+                "getNetworkApplianceVlans.return_value": [],
+                "getNetworkApplianceFirewallL3FirewallRules.return_value": {},
+                "getNetworkApplianceTrafficShaping.return_value": {},
+                "getNetworkApplianceVpnSiteToSiteVpn.return_value": {},
+                "getNetworkApplianceContentFiltering.return_value": {},
+                "getNetworkApplianceSettings.return_value": {},
+                "getNetworkApplianceL7FirewallRules.return_value": {},
+                "getNetworkAppliancePorts.return_value": [],
+            }
+        )
 
-        # Appliance
-        appliance = mock_dashboard.appliance = MagicMock()
-        appliance.getOrganizationApplianceUplinkStatuses.return_value = []
-        appliance.getNetworkApplianceVlans.return_value = []
-        appliance.getNetworkApplianceFirewallL3FirewallRules.return_value = {}
-        appliance.getNetworkApplianceTrafficShaping.return_value = {}
-        appliance.getNetworkApplianceVpnSiteToSiteVpn.return_value = {}
-        appliance.getNetworkApplianceContentFiltering.return_value = {}
-        appliance.getNetworkApplianceSettings.return_value = {}
-        appliance.getNetworkApplianceL7FirewallRules.return_value = {}
-        appliance.getNetworkAppliancePorts.return_value = []
-
-        # Sensor
-        mock_dashboard.sensor = MagicMock()
         mock_dashboard.sensor.getOrganizationSensorReadingsLatest.return_value = []
-
-        # Wireless
-        mock_dashboard.wireless = MagicMock()
-        mock_dashboard.wireless.getNetworkWirelessSsids.return_value = []
-        mock_dashboard.wireless.getNetworkWirelessRfProfiles.return_value = []
-
-        # Camera
-        mock_dashboard.camera = MagicMock()
-        mock_dashboard.camera.getDeviceCameraVideoSettings.return_value = {}
-        mock_dashboard.camera.getDeviceCameraSense.return_value = {}
-        mock_dashboard.camera.getDeviceCameraAnalyticsRecent.return_value = []
-
-        # Switch
-        mock_dashboard.switch = MagicMock()
         mock_dashboard.switch.getDeviceSwitchPortsStatuses.return_value = []
+
+        mock_dashboard.wireless.configure_mock(
+            **{
+                "getNetworkWirelessSsids.return_value": [],
+                "getNetworkWirelessRfProfiles.return_value": [],
+            }
+        )
+
+        mock_dashboard.camera.configure_mock(
+            **{
+                "getDeviceCameraVideoSettings.return_value": {},
+                "getDeviceCameraSense.return_value": {},
+                "getDeviceCameraAnalyticsRecent.return_value": [],
+            }
+        )
 
         yield mock_api

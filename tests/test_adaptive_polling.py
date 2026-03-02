@@ -1,5 +1,6 @@
 """Tests for adaptive polling logic in the Meraki data coordinator."""
 
+from collections.abc import Generator
 from datetime import timedelta
 from unittest.mock import AsyncMock, patch
 
@@ -11,13 +12,16 @@ from custom_components.meraki_ha.const_conf import (
     CONF_MERAKI_API_KEY,
     CONF_MERAKI_ORG_ID,
 )
-from custom_components.meraki_ha.coordinator import (
-    MerakiDataUpdateCoordinator as MerakiDataCoordinator,
+from custom_components.meraki_ha.coordinators.main import (
+    MerakiMainCoordinator as MerakiDataCoordinator,
 )
+from homeassistant.core import HomeAssistant
 
 
-@pytest.fixture
-def coordinator(hass):
+@pytest.fixture(name="coordinator")  # type: ignore[untyped-decorator]
+def fixture_coordinator(
+    hass: HomeAssistant,
+) -> Generator[MerakiDataCoordinator, None, None]:
     """Fixture for a MerakiDataCoordinator instance."""
     entry = MockConfigEntry(
         domain=DOMAIN,
@@ -26,17 +30,23 @@ def coordinator(hass):
     )
     entry.add_to_hass(hass)
     with (
-        patch("custom_components.meraki_ha.coordinator.ApiClient"),
-        patch("custom_components.meraki_ha.coordinator.DataFetchManager"),
+        patch("custom_components.meraki_ha.coordinators.main.ApiClient"),
+        patch("custom_components.meraki_ha.coordinators.main.DataFetchManager"),
     ):
         coord = MerakiDataCoordinator(hass=hass, entry=entry)
         # Mock get_all_data on the instance created by the mock fetch manager
-        coord.data_fetch_manager.get_all_data = AsyncMock()
+        coord.data_fetch_manager.get_all_data = AsyncMock()  # type: ignore[method-assign]
         yield coord
 
 
-@pytest.mark.asyncio
-async def test_adaptive_polling_429(coordinator):
+async def _trigger_update_n_times(coordinator: MerakiDataCoordinator, n: int) -> None:
+    """Trigger update n times."""
+    for _ in range(n):
+        await coordinator._async_update_data()
+
+
+@pytest.mark.asyncio  # type: ignore[untyped-decorator]
+async def test_adaptive_polling_429(coordinator: MerakiDataCoordinator) -> None:
     """Test that update_interval increases on 429 error."""
     # Set default interval
     coordinator.polling_manager.default_interval = timedelta(seconds=30)
@@ -45,7 +55,8 @@ async def test_adaptive_polling_429(coordinator):
     coordinator.last_successful_data = {"some": "data"}  # Avoid raising UpdateFailed
 
     # Mock 429 error
-    coordinator.data_fetch_manager.get_all_data.side_effect = Exception(
+    mock_get_all_data: AsyncMock = coordinator.data_fetch_manager.get_all_data
+    mock_get_all_data.side_effect = Exception(
         "meraki.exceptions.APIError: 429 Too Many Requests"
     )
 
@@ -62,8 +73,8 @@ async def test_adaptive_polling_429(coordinator):
     assert coordinator.update_interval == timedelta(seconds=120)
 
 
-@pytest.mark.asyncio
-async def test_adaptive_polling_recovery(coordinator):
+@pytest.mark.asyncio  # type: ignore[untyped-decorator]
+async def test_adaptive_polling_recovery(coordinator: MerakiDataCoordinator) -> None:
     """Test that update_interval resets after 3 consecutive successes."""
     # Start in cooldown
     coordinator.polling_manager.default_interval = timedelta(seconds=30)
@@ -72,8 +83,9 @@ async def test_adaptive_polling_recovery(coordinator):
     coordinator.polling_manager._consecutive_successes = 0
 
     # Success 1
-    coordinator.data_fetch_manager.get_all_data.side_effect = None
-    coordinator.data_fetch_manager.get_all_data.return_value = {"success": True}
+    mock_get_all_data: AsyncMock = coordinator.data_fetch_manager.get_all_data
+    mock_get_all_data.side_effect = None
+    mock_get_all_data.return_value = {"success": True}
     await coordinator._async_update_data()
     assert coordinator.update_interval == timedelta(seconds=120)
     assert coordinator.polling_manager.consecutive_successes == 1
@@ -90,14 +102,14 @@ async def test_adaptive_polling_recovery(coordinator):
     assert coordinator.polling_manager.consecutive_successes == 3
 
 
-@pytest.mark.asyncio
-async def test_success_history_limit(coordinator):
+@pytest.mark.asyncio  # type: ignore[untyped-decorator]
+async def test_success_history_limit(coordinator: MerakiDataCoordinator) -> None:
     """Test that success_history only keeps the last 5 updates."""
-    coordinator.data_fetch_manager.get_all_data.return_value = {"success": True}
+    mock_get_all_data: AsyncMock = coordinator.data_fetch_manager.get_all_data
+    mock_get_all_data.return_value = {"success": True}
 
     # 6 successful updates
-    for _ in range(6):
-        await coordinator._async_update_data()
+    await _trigger_update_n_times(coordinator, 6)
 
     assert len(coordinator.polling_manager.success_history) == 5
     assert all(coordinator.polling_manager.success_history)

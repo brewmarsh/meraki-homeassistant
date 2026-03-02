@@ -1,7 +1,7 @@
 """Base class for Meraki MT binary sensor entities."""
 
 import logging
-from typing import cast
+from typing import Any, cast
 
 from homeassistant.components.binary_sensor import (
     BinarySensorEntityDescription,
@@ -66,45 +66,49 @@ class MerakiMtBinarySensor(MerakiBinarySensor):
                 self.async_write_ha_state()
                 return
 
-    @property
-    def is_on(self) -> bool | None:
-        """Return true if the binary sensor is on."""
+    def _get_metric_data(self) -> dict[str, Any] | None:
+        """Return the dictionary containing data for the configured metric."""
         readings = self._device.readings
-        if not readings or not isinstance(readings, list):
+        if not isinstance(readings, list):
             return None
 
         for reading in readings:
             if reading.get("metric") == self.entity_description.key:
                 metric_data = reading.get(self.entity_description.key)
-
                 if isinstance(metric_data, dict):
-                    # Map metric to the key holding its value
-                    key_map = {
-                        "water": "present",
-                        "door": "open",
-                    }
-                    value_key = key_map.get(self.entity_description.key)
-                    if value_key:
-                        val = metric_data.get(value_key)
-                        if isinstance(val, bool):
-                            last_reported = metric_data.get("last_reported")
-                            self._attr_extra_state_attributes = {
-                                "last_reported": str(last_reported)
-                                if last_reported is not None
-                                else None,
-                            }
-                            return val
+                    return metric_data
         return None
+
+    @property
+    def is_on(self) -> bool | None:
+        """Return true if the binary sensor is on."""
+        metric_data = self._get_metric_data()
+        if not metric_data:
+            return None
+
+        # Map metric to the key holding its value
+        key_map = {
+            "water": "present",
+            "door": "open",
+        }
+        value_key = key_map.get(self.entity_description.key)
+
+        if not value_key:
+            return None
+
+        val = metric_data.get(value_key)
+        if not isinstance(val, bool):
+            return None
+
+        last_reported = metric_data.get("last_reported")
+        self._attr_extra_state_attributes = {
+            "last_reported": str(last_reported) if last_reported is not None else None,
+        }
+
+        return val
 
     @property
     def available(self) -> bool:
         """Return if the sensor is available."""
-        # The sensor is available if there is a reading for its metric.
-        readings = self._device.readings
-        if not readings or not isinstance(readings, list):
-            return False
-
-        for reading in readings:
-            if reading.get("metric") == self.entity_description.key:
-                return True
-        return False
+        # The sensor is available if there is a valid dict reading for its metric.
+        return self._get_metric_data() is not None
