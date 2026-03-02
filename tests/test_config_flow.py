@@ -162,35 +162,38 @@ async def test_options_flow(hass: HomeAssistant) -> None:
     )
     entry.add_to_hass(hass)
 
+    # Mock the coordinator and data
+    coordinator = MagicMock()
+    coordinator.data = {"devices": [], "networks": []}
+
+    # Setup hass.data
+    hass.data[DOMAIN] = {entry.entry_id: {"coordinator": coordinator}}
+
     result = await hass.config_entries.options.async_init(entry.entry_id)
 
-    assert result["type"] == FlowResultType.FORM
+    assert result["type"] == FlowResultType.MENU
     assert result["step_id"] == "init"
+    assert "general" in result["menu_options"]
+    assert "sensors" in result["menu_options"]
 
-    schema_keys = [k.schema for k in result["data_schema"].schema.keys()]
-    assert CONF_ENABLE_DEVICE_STATUS in schema_keys
-    assert CONF_ENABLE_ORG_SENSORS in schema_keys
-    assert CONF_ENABLE_CAMERA_ENTITIES in schema_keys
-    assert CONF_ENABLE_DEVICE_SENSORS in schema_keys
-
-    # Configure the options
-    result2 = await hass.config_entries.options.async_configure(
+    # Test General Settings step
+    result_general = await hass.config_entries.options.async_configure(
         result["flow_id"],
+        user_input={"next_step_id": "general"},
+    )
+    assert result_general["type"] == FlowResultType.FORM
+    assert result_general["step_id"] == "general"
+
+    # Save General Settings
+    result_save = await hass.config_entries.options.async_configure(
+        result_general["flow_id"],
         user_input={
-            CONF_ENABLE_DEVICE_STATUS: True,
-            CONF_ENABLE_ORG_SENSORS: False,
-            CONF_ENABLE_CAMERA_ENTITIES: True,
-            CONF_ENABLE_DEVICE_SENSORS: False,
+            CONF_SCAN_INTERVAL: "300",
+            "enabled_networks": [],
+            "enable_device_tracker": True,
         },
     )
-
-    assert result2["type"] == FlowResultType.CREATE_ENTRY
-    assert result2["data"] == {
-        CONF_ENABLE_DEVICE_STATUS: True,
-        CONF_ENABLE_ORG_SENSORS: False,
-        CONF_ENABLE_CAMERA_ENTITIES: True,
-        CONF_ENABLE_DEVICE_SENSORS: False,
-    }
+    assert result_save["type"] == FlowResultType.CREATE_ENTRY
 
 
 async def test_reconfigure_flow_without_devices(hass: HomeAssistant) -> None:

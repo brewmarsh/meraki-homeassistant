@@ -2,15 +2,15 @@
   "config": {
     "step": {
       "user": {
-        "title": "Step 1 of 2: Meraki Credentials",
-        "description": "Enter your Meraki API Key and Organization ID.",
+        "title": "Step 1 of 2: Meraki credentials",
+        "description": "Enter your Meraki API key and organization ID.",
         "data": {
-          "meraki_api_key": "Meraki API Key",
-          "meraki_org_id": "Meraki Organization ID"
+          "meraki_api_key": "Meraki API key",
+          "meraki_org_id": "Meraki organization ID"
         }
       },
       "init": {
-        "title": "Step 2 of 2: General Settings",
+        "title": "Step 2 of 2: General settings",
         "description": "Configure general settings for the Meraki integration.",
         "data": {
           "scan_interval": "Update frequency",
@@ -108,16 +108,16 @@
   "options": {
     "step": {
       "init": {
-        "title": "Meraki Options",
+        "title": "Meraki options",
         "menu_options": {
-          "general": "General Settings",
-          "sensors": "Sensor Configuration",
-          "cameras": "Camera Settings",
-          "advanced": "Advanced Configuration"
+          "general": "General settings",
+          "sensors": "Sensor configuration",
+          "cameras": "Camera settings",
+          "advanced": "Advanced configuration"
         }
       },
       "general": {
-        "title": "General Settings",
+        "title": "General settings",
         "description": "Configure general settings for the Meraki integration.",
         "data": {
           "scan_interval": "Update frequency",
@@ -131,7 +131,7 @@
         }
       },
       "sensors": {
-        "title": "Sensor Configuration",
+        "title": "Sensor configuration",
         "description": "Select which sensor types to enable.",
         "data": {
           "enable_device_status": "Enable device status entities",
@@ -155,7 +155,7 @@
         }
       },
       "cameras": {
-        "title": "Camera Settings",
+        "title": "Camera settings",
         "description": "Configure Meraki camera integration.",
         "data": {
           "enable_camera_entities": "Enable camera entities",
@@ -167,7 +167,7 @@
         }
       },
       "advanced": {
-        "title": "Advanced Configuration",
+        "title": "Advanced configuration",
         "description": "Configure advanced integration features.",
         "data": {
           "enable_vlan_management": "Enable VLAN management",
