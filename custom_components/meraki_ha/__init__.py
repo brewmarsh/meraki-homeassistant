@@ -27,12 +27,12 @@ from .coordinators import (
 )
 from .core.repositories.camera_repository import CameraRepository
 from .core.repository import MerakiRepository
-from .core.timed_access_manager import TimedAccessManager
 from .discovery.service import DeviceDiscoveryService
 from .frontend import async_register_frontend, async_remove_frontend
 from .helpers.migrations import async_cleanup_ghost_devices, async_migrate_entities
 from .services.camera_service import CameraService
 from .services.device_control_service import DeviceControlService
+from .services.ipsk_manager import IPSKManager
 from .services.manager import ServicesManager
 from .services.network_control_service import NetworkControlService
 from .services.switch_port_service import SwitchPortService
@@ -61,6 +61,12 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
 
     """
     hass.data.setdefault(DOMAIN, {})
+
+    # Initialize the singleton IPSK Manager
+    if "ipsk_manager" not in hass.data[DOMAIN]:
+        ipsk_manager = IPSKManager(hass)
+        await ipsk_manager.async_setup()
+        hass.data[DOMAIN]["ipsk_manager"] = ipsk_manager
 
     # Register the static path for the custom panel
     if hass.http:
@@ -140,9 +146,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         network_control_service=network_control_service,
     )
 
-    timed_access_manager = TimedAccessManager(hass)
-    await timed_access_manager.async_setup()
-
     hass.data[DOMAIN][entry.entry_id] = {
         "coordinator": main_coordinator,  # Maintain for backward compatibility
         "main_coordinator": main_coordinator,
@@ -158,7 +161,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         "switch_port_service": switch_port_service,
         "network_control_service": network_control_service,
         "discovery_service": discovery_service,
-        "timed_access_manager": timed_access_manager,
     }
 
     await discovery_service.discover_entities()
@@ -209,8 +211,6 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     unload_ok = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
     if unload_ok:
         entry_data = hass.data[DOMAIN].pop(entry.entry_id)
-        if "timed_access_manager" in entry_data:
-            entry_data["timed_access_manager"].shutdown()
         if "webhook_id" in entry_data:
             await async_unregister_webhook(
                 hass, entry_data["webhook_id"], entry_data["meraki_client"]

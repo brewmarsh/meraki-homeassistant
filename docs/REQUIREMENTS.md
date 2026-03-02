@@ -187,6 +187,7 @@
   - [ ] **"Internet Time-Out" Switch per Device:** Create a `switch` entity to block internet access for specific clients.
 - [ ] **Guest Wi-Fi Management (MR Access Points):**
   - [ ] **Guest Wi-Fi Password Control:** Create a `text` entity to manage the guest Wi-Fi password.
+  - [x] **IPSK Lifecycle Management:** Implement a backend manager to track and reap temporary guest Identity PSKs (IPSKs) upon expiration, with persistent storage across reboots.
 - [ ] **Enhanced Home Security & Awareness (MV Cameras & MT Sensors):**
   - [ ] **Camera Motion Events:** Create `binary_sensor` entities for camera motion events.
   - [ ] **Per-Client Presence Detection:** Enhance the device tracker to show which AP a client is connected to.
