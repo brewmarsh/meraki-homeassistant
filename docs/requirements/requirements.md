@@ -23,4 +23,9 @@ This document verifies the state of the codebase against the requirements for th
 - **R5: Informative Feedback:**
   - **[PARTIAL]** The `MerakiCamera` entity has some error handling for streams, but it needs to be improved to be more state-driven and provide clearer feedback through the coordinator. The `camera_repository.py` also needs to be improved to handle non-RTSP URLs.
 
-This verification confirms the need for the planned refactoring steps. The new requirements (R4, R5) are now considered part of the standard for this integration.
+- **R6: Maintainability & ACL Score:**
+  - **[VERIFIED]** `resolve_device_info` in `helpers/device_info_helpers.py` refactored into specialized private helpers (`_resolve_ssid_info`, `_resolve_client_info`, `_resolve_network_info`, `_resolve_physical_device_info`).
+  - **[VERIFIED]** ACL score for `resolve_device_info` reduced below 10 by removing nested conditionals and delegating logic.
+  - **[VERIFIED]** All helper functions are strictly typed and under 50 lines of code.
+
+This verification confirms the need for the planned refactoring steps. The new requirements (R4, R5, R6) are now considered part of the standard for this integration.
