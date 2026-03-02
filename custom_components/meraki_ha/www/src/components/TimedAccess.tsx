@@ -1,16 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import QRCode from 'react-qr-code';
 import { safeCallWS } from '../utils/api';
-import { WsCommand } from '../types/websocket';
-
-interface TimedAccessKey {
-  identity_psk_id: string;
-  network_id: string;
-  ssid_number: string;
-  name: string;
-  passphrase: string;
-  expires_at: string;
-}
+import { WsCommand, WsIpskKey } from '../types/websocket';
 
 interface GroupPolicy {
   groupPolicyId: string;
@@ -28,7 +19,7 @@ const TimedAccess: React.FC<TimedAccessProps> = ({
   configEntryId,
   data,
 }) => {
-  const [keys, setKeys] = useState<TimedAccessKey[]>([]);
+  const [keys, setKeys] = useState<WsIpskKey[]>([]);
   const [policies, setPolicies] = useState<GroupPolicy[]>([]);
   const [loading, setLoading] = useState(false);
   const [creating, setCreating] = useState(false);
@@ -58,9 +49,9 @@ const TimedAccess: React.FC<TimedAccessProps> = ({
   const fetchKeys = async () => {
     setLoading(true);
     try {
-      const result = await safeCallWS<TimedAccessKey[]>(hass, {
-        type: WsCommand.TIMED_ACCESS_GET_KEYS,
-        config_entry_id: configEntryId,
+      const result = await safeCallWS<WsIpskKey[]>(hass, {
+        type: WsCommand.GET_GUEST_KEYS,
+        configEntryId: configEntryId,
       });
       setKeys(result);
     } catch (err) {
@@ -74,8 +65,8 @@ const TimedAccess: React.FC<TimedAccessProps> = ({
     try {
       const result = await safeCallWS<GroupPolicy[]>(hass, {
         type: WsCommand.TIMED_ACCESS_GET_POLICIES,
-        config_entry_id: configEntryId,
-        network_id: networkId,
+        configEntryId: configEntryId,
+        networkId: networkId,
       });
       setPolicies(result);
     } catch (err) {
@@ -89,14 +80,14 @@ const TimedAccess: React.FC<TimedAccessProps> = ({
     setCreating(true);
     try {
       await safeCallWS(hass, {
-        type: WsCommand.TIMED_ACCESS_CREATE,
-        config_entry_id: configEntryId,
-        network_id: selectedNetwork,
-        ssid_number: selectedSsid,
-        duration: parseInt(duration),
+        type: WsCommand.CREATE_GUEST_KEY,
+        configEntryId: configEntryId,
+        networkId: selectedNetwork,
+        ssidNumber: selectedSsid,
+        durationMinutes: parseInt(duration),
         name: customName || undefined,
         passphrase: customPassphrase || undefined,
-        group_policy_id: selectedPolicy || undefined,
+        groupPolicyId: selectedPolicy || undefined,
       });
       await fetchKeys();
       // Reset form
@@ -109,15 +100,12 @@ const TimedAccess: React.FC<TimedAccessProps> = ({
     }
   };
 
-  const handleDelete = async (key: TimedAccessKey) => {
+  const handleDelete = async (key: WsIpskKey) => {
     if (!confirm('Are you sure you want to revoke this key?')) return;
     try {
       await safeCallWS(hass, {
-        type: WsCommand.TIMED_ACCESS_DELETE,
-        config_entry_id: configEntryId,
-        identity_psk_id: key.identity_psk_id,
-        network_id: key.network_id,
-        ssid_number: key.ssid_number,
+        type: WsCommand.REVOKE_GUEST_KEY,
+        identityPskId: key.identity_psk_id,
       });
       fetchKeys();
     } catch (err) {
@@ -127,12 +115,6 @@ const TimedAccess: React.FC<TimedAccessProps> = ({
 
   // Helper to find SSIDs for selected network
   const getSsidsForNetwork = (networkId: string) => {
-    // Ideally filter for IPSK without Radius.
-    // We assume data.ssids or data.networks contains SSIDs details.
-    // The main App.tsx passes `data` which has `ssids`. But those are flat list of ALL SSIDs?
-    // In App.tsx:
-    // ssids: [ { number: 0, name: 'Main WiFi', networkId: 'N_12345' } ]
-    // Let's use that.
     return data?.ssids?.filter((s: any) => s.networkId === networkId) || [];
   };
 

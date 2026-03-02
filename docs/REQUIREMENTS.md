@@ -188,6 +188,7 @@
 - [ ] **Guest Wi-Fi Management (MR Access Points):**
   - [ ] **Guest Wi-Fi Password Control:** Create a `text` entity to manage the guest Wi-Fi password.
   - [x] **IPSK Lifecycle Management:** Implement a backend manager to track and reap temporary guest Identity PSKs (IPSKs) upon expiration, with persistent storage across reboots.
+  - [x] **IPSK WebSocket API:** Implement a strict WebSocket API contract for IPSK management with camelCase payload keys and centralized command definitions.
 - [ ] **Enhanced Home Security & Awareness (MV Cameras & MT Sensors):**
   - [ ] **Camera Motion Events:** Create `binary_sensor` entities for camera motion events.
   - [ ] **Per-Client Presence Detection:** Enhance the device tracker to show which AP a client is connected to.
@@ -225,6 +226,7 @@
 | **Logic Decomposition:** Extracted nested data parsing and status determination logic into single-responsibility helper functions (e.g., `_determine_device_status`).           | Complete |
 | **Strict Type Hinting:** Applied comprehensive Python type hints to all refactored functions to improve maintainability and catch potential errors early.                       | Complete |
 | **Helper Function Size Constraints:** Ensured all new helper functions remain strictly under 50 lines of code, promoting readability and ease of testing.                       | Complete |
+| **IPSK Manager Singleton:** Implemented a central `IPSKManager` singleton in `async_setup` to manage the lifecycle of guest PSKs across all config entries.                      | Complete |
 
 **Frontend UX Phase 6: Top-level Navigation**
 

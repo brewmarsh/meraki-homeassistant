@@ -21,10 +21,10 @@ from ..const import (
     WS_CMD_GET_NETWORK_EVENTS,
     WS_CMD_UPDATE_OPTIONS,
     WS_CMD_UPDATE_ENABLED_NETWORKS,
-    WS_CMD_TIMED_ACCESS_GET_KEYS,
+    WS_CMD_CREATE_GUEST_KEY,
+    WS_CMD_GET_GUEST_KEYS,
+    WS_CMD_REVOKE_GUEST_KEY,
     WS_CMD_TIMED_ACCESS_GET_POLICIES,
-    WS_CMD_TIMED_ACCESS_CREATE,
-    WS_CMD_TIMED_ACCESS_DELETE,
 )
 from ..helpers.serialization import to_serializable
 
@@ -33,7 +33,7 @@ _LOGGER = logging.getLogger(__name__)
 if TYPE_CHECKING:
     from ..core.api.client import MerakiAPIClient
     from ..services.camera_service import CameraService
-    from ..core.timed_access_manager import TimedAccessManager
+    from ..services.ipsk_manager import IPSKManager
 
 
 @callback
@@ -114,7 +114,9 @@ def async_setup_websocket_api(hass: HomeAssistant) -> None:
             {
                 vol.Required("type"): WS_CMD_GET_NETWORK_EVENTS,
                 vol.Required("config_entry_id"): str,
-                vol.Required("network_id"): str,
+                # Compatibility for both snack_case and camelCase
+                vol.Optional("network_id"): str,
+                vol.Optional("networkId"): str,
                 vol.Optional("per_page"): int,
                 vol.Optional("product_type"): str,
             },
@@ -149,16 +151,48 @@ def async_setup_websocket_api(hass: HomeAssistant) -> None:
             extra=vol.ALLOW_EXTRA,
         ),
     )
-    # Register the command to get timed access keys
+    # Register the command to get guest keys
     websocket_api.async_register_command(
         hass,
-        WS_CMD_TIMED_ACCESS_GET_KEYS,
-        ws_timed_access_get_keys,
+        WS_CMD_GET_GUEST_KEYS,
+        ws_get_guest_keys,
         vol.Schema(
             {
-                vol.Required("type"): WS_CMD_TIMED_ACCESS_GET_KEYS,
-                vol.Required("config_entry_id"): str,
-                vol.Optional("network_id"): str,
+                vol.Required("type"): WS_CMD_GET_GUEST_KEYS,
+                vol.Optional("configEntryId"): str,
+                vol.Optional("networkId"): str,
+            },
+            extra=vol.ALLOW_EXTRA,
+        ),
+    )
+    # Register the command to create a guest key
+    websocket_api.async_register_command(
+        hass,
+        WS_CMD_CREATE_GUEST_KEY,
+        ws_create_guest_key,
+        vol.Schema(
+            {
+                vol.Required("type"): WS_CMD_CREATE_GUEST_KEY,
+                vol.Required("configEntryId"): str,
+                vol.Required("networkId"): str,
+                vol.Required("ssidNumber"): str,
+                vol.Required("durationMinutes"): int,
+                vol.Optional("name"): str,
+                vol.Optional("passphrase"): str,
+                vol.Optional("groupPolicyId"): str,
+            },
+            extra=vol.ALLOW_EXTRA,
+        ),
+    )
+    # Register the command to revoke a guest key
+    websocket_api.async_register_command(
+        hass,
+        WS_CMD_REVOKE_GUEST_KEY,
+        ws_revoke_guest_key,
+        vol.Schema(
+            {
+                vol.Required("type"): WS_CMD_REVOKE_GUEST_KEY,
+                vol.Required("identityPskId"): str,
             },
             extra=vol.ALLOW_EXTRA,
         ),
@@ -171,43 +205,8 @@ def async_setup_websocket_api(hass: HomeAssistant) -> None:
         vol.Schema(
             {
                 vol.Required("type"): WS_CMD_TIMED_ACCESS_GET_POLICIES,
-                vol.Required("config_entry_id"): str,
-                vol.Required("network_id"): str,
-            },
-            extra=vol.ALLOW_EXTRA,
-        ),
-    )
-    # Register the command to create a timed access key
-    websocket_api.async_register_command(
-        hass,
-        WS_CMD_TIMED_ACCESS_CREATE,
-        ws_timed_access_create,
-        vol.Schema(
-            {
-                vol.Required("type"): WS_CMD_TIMED_ACCESS_CREATE,
-                vol.Required("config_entry_id"): str,
-                vol.Required("network_id"): str,
-                vol.Required("ssid_number"): str,
-                vol.Required("duration"): int,
-                vol.Optional("name"): str,
-                vol.Optional("passphrase"): str,
-                vol.Optional("group_policy_id"): str,
-            },
-            extra=vol.ALLOW_EXTRA,
-        ),
-    )
-    # Register the command to delete a timed access key
-    websocket_api.async_register_command(
-        hass,
-        WS_CMD_TIMED_ACCESS_DELETE,
-        ws_timed_access_delete,
-        vol.Schema(
-            {
-                vol.Required("type"): WS_CMD_TIMED_ACCESS_DELETE,
-                vol.Required("config_entry_id"): str,
-                vol.Required("identity_psk_id"): str,
-                vol.Required("network_id"): str,
-                vol.Required("ssid_number"): str,
+                vol.Required("configEntryId"): str,
+                vol.Required("networkId"): str,
             },
             extra=vol.ALLOW_EXTRA,
         ),
@@ -360,7 +359,11 @@ async def ws_get_network_events(
     """Handle get_network_events command."""
     try:
         config_entry_id = msg["config_entry_id"]
-        network_id = msg["network_id"]
+        network_id = msg.get("network_id") or msg.get("networkId")
+        if not network_id:
+            connection.send_error(msg["id"], "invalid_payload", "Network ID is required")
+            return
+
         if DOMAIN not in hass.data or config_entry_id not in hass.data[DOMAIN]:
             connection.send_error(msg["id"], "not_found", "Config entry not found")
             return
@@ -426,23 +429,83 @@ async def ws_update_enabled_networks(
 
 
 @websocket_api.async_response
-async def ws_timed_access_get_keys(
+async def ws_get_guest_keys(
     hass: HomeAssistant,
     connection: websocket_api.ActiveConnection,
     msg: dict[str, Any],
 ) -> None:
-    """Handle timed_access/get_keys command."""
+    """Handle IPSK/get command."""
     try:
-        config_entry_id = msg["config_entry_id"]
-        network_id = msg.get("network_id")
+        config_entry_id = msg.get("configEntryId")
+        network_id = msg.get("networkId")
 
-        if DOMAIN not in hass.data or config_entry_id not in hass.data[DOMAIN]:
-            connection.send_error(msg["id"], "not_found", "Config entry not found")
+        if "ipsk_manager" not in hass.data[DOMAIN]:
+            connection.send_error(msg["id"], "not_initialized", "IPSK Manager not initialized")
             return
 
-        manager: TimedAccessManager = hass.data[DOMAIN][config_entry_id]["timed_access_manager"]
-        keys = manager.get_keys(network_id)
+        manager: IPSKManager = hass.data[DOMAIN]["ipsk_manager"]
+        keys = manager.get_active_keys(config_entry_id, network_id)
         connection.send_result(msg["id"], to_serializable(keys))
+    except Exception as err:  # pylint: disable=broad-except
+        connection.send_error(msg["id"], "unknown_error", str(err))
+
+
+@websocket_api.async_response
+async def ws_create_guest_key(
+    hass: HomeAssistant,
+    connection: websocket_api.ActiveConnection,
+    msg: dict[str, Any],
+) -> None:
+    """Handle IPSK/create command."""
+    try:
+        config_entry_id = msg["configEntryId"]
+        network_id = msg["networkId"]
+        ssid_number = msg["ssidNumber"]
+        duration = msg["durationMinutes"]
+        name = msg.get("name", "Guest User")
+        passphrase = msg.get("passphrase")
+        group_policy_id = msg.get("groupPolicyId")
+
+        if "ipsk_manager" not in hass.data[DOMAIN]:
+            connection.send_error(msg["id"], "not_initialized", "IPSK Manager not initialized")
+            return
+
+        manager: IPSKManager = hass.data[DOMAIN]["ipsk_manager"]
+        key = await manager.create_guest_key(
+            config_entry_id=config_entry_id,
+            network_id=network_id,
+            ssid_number=ssid_number,
+            duration_minutes=duration,
+            name=name,
+            passphrase=passphrase,
+            group_policy_id=group_policy_id,
+        )
+        connection.send_result(msg["id"], to_serializable(key))
+    except Exception as err:  # pylint: disable=broad-except
+        _LOGGER.exception("Error in ws_create_guest_key: %s", err)
+        connection.send_error(msg["id"], "creation_failed", str(err))
+
+
+@websocket_api.async_response
+async def ws_revoke_guest_key(
+    hass: HomeAssistant,
+    connection: websocket_api.ActiveConnection,
+    msg: dict[str, Any],
+) -> None:
+    """Handle IPSK/revoke command."""
+    try:
+        identity_psk_id = msg["identityPskId"]
+
+        if "ipsk_manager" not in hass.data[DOMAIN]:
+            connection.send_error(msg["id"], "not_initialized", "IPSK Manager not initialized")
+            return
+
+        manager: IPSKManager = hass.data[DOMAIN]["ipsk_manager"]
+        success = await manager.remove_guest_key(identity_psk_id)
+        if success:
+            connection.send_result(msg["id"], {"success": True})
+        else:
+            connection.send_error(msg["id"], "revocation_failed", "Failed to revoke key")
     except Exception as err:  # pylint: disable=broad-except
         connection.send_error(msg["id"], "unknown_error", str(err))
 
@@ -455,8 +518,8 @@ async def ws_timed_access_get_policies(
 ) -> None:
     """Handle timed_access/get_policies command."""
     try:
-        config_entry_id = msg["config_entry_id"]
-        network_id = msg["network_id"]
+        config_entry_id = msg["configEntryId"]
+        network_id = msg["networkId"]
 
         if DOMAIN not in hass.data or config_entry_id not in hass.data[DOMAIN]:
             connection.send_error(msg["id"], "not_found", "Config entry not found")
@@ -465,70 +528,5 @@ async def ws_timed_access_get_policies(
         client: MerakiAPIClient = hass.data[DOMAIN][config_entry_id][DATA_CLIENT]
         policies = await client.network.get_group_policies(network_id)
         connection.send_result(msg["id"], to_serializable(policies))
-    except Exception as err:  # pylint: disable=broad-except
-        connection.send_error(msg["id"], "unknown_error", str(err))
-
-
-@websocket_api.async_response
-async def ws_timed_access_create(
-    hass: HomeAssistant,
-    connection: websocket_api.ActiveConnection,
-    msg: dict[str, Any],
-) -> None:
-    """Handle timed_access/create command."""
-    try:
-        config_entry_id = msg["config_entry_id"]
-        network_id = msg["network_id"]
-        ssid_number = msg["ssid_number"]
-        duration = msg["duration"]
-        name = msg.get("name")
-        passphrase = msg.get("passphrase")
-        group_policy_id = msg.get("group_policy_id")
-
-        if DOMAIN not in hass.data or config_entry_id not in hass.data[DOMAIN]:
-            connection.send_error(msg["id"], "not_found", "Config entry not found")
-            return
-
-        manager: TimedAccessManager = hass.data[DOMAIN][config_entry_id]["timed_access_manager"]
-        key = await manager.create_key(
-            config_entry_id=config_entry_id,
-            network_id=network_id,
-            ssid_number=ssid_number,
-            duration_minutes=duration,
-            name=name,
-            passphrase=passphrase,
-            group_policy_id=group_policy_id,
-        )
-        connection.send_result(msg["id"], to_serializable(key))
-    except Exception as err:  # pylint: disable=broad-except
-        _LOGGER.exception("Error in ws_timed_access_create: %s", err)
-        connection.send_error(msg["id"], "unknown_error", str(err))
-
-
-@websocket_api.async_response
-async def ws_timed_access_delete(
-    hass: HomeAssistant,
-    connection: websocket_api.ActiveConnection,
-    msg: dict[str, Any],
-) -> None:
-    """Handle timed_access/delete command."""
-    try:
-        config_entry_id = msg["config_entry_id"]
-        identity_psk_id = msg["identity_psk_id"]
-        network_id = msg["network_id"]
-        ssid_number = msg["ssid_number"]
-
-        if DOMAIN not in hass.data or config_entry_id not in hass.data[DOMAIN]:
-            connection.send_error(msg["id"], "not_found", "Config entry not found")
-            return
-
-        manager: TimedAccessManager = hass.data[DOMAIN][config_entry_id]["timed_access_manager"]
-        await manager.delete_key(
-            identity_psk_id=identity_psk_id,
-            network_id=network_id,
-            ssid_number=ssid_number,
-            config_entry_id=config_entry_id,
-        )
-        connection.send_result(msg["id"], {"success": True})
     except Exception as err:  # pylint: disable=broad-except
         connection.send_error(msg["id"], "unknown_error", str(err))
