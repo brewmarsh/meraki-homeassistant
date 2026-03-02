@@ -29,11 +29,16 @@ if [[ $# -ne 1 ]]; then
 fi
 PART="${1}"
 
-# 2. Fetch and sanitize the latest git tag
-echo "Fetching latest git tag..."
-LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null) || error_exit "Failed to get latest git tag. Make sure you have at least one tag."
-VERSION="${LATEST_TAG#v}"
-echo "Found latest tag: ${LATEST_TAG} (version: ${VERSION})"
+# 2. Get the current version from .bumpversion.toml as the source of truth.
+# This allows manual version jumps to be respected by the release process.
+echo "Reading current version from ${BUMP_CONFIG_FILE}..."
+VERSION=$(grep "^current_version =" "${BUMP_CONFIG_FILE}" | sed -E 's/current_version = "(.*)"/\1/')
+if [[ -z "${VERSION}" ]]; then
+  echo "Warning: Could not read version from ${BUMP_CONFIG_FILE}. Falling back to git tags."
+  LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null) || error_exit "Failed to get latest git tag and no version found in config."
+  VERSION="${LATEST_TAG#v}"
+fi
+echo "Current version identified as: ${VERSION}"
 
 # Normalize bare version numbers (e.g., 112 -> 112.0.0)
 if [[ "$VERSION" =~ ^[0-9]+$ ]]; then
