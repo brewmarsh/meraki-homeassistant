@@ -3,7 +3,7 @@ import React from 'react';
 interface StatusCardProps {
   title: string;
   value: number | string;
-  icon?: React.ReactNode;
+  icon?: string;
   onClick?: () => void;
 }
 
@@ -14,18 +14,14 @@ const StatusCard: React.FC<StatusCardProps> = ({
   onClick,
 }) => {
   return (
-    <div
-      className="bg-light-card dark:bg-dark-card p-4 rounded-lg shadow-md flex items-center transition-shadow duration-200 border border-light-border dark:border-dark-border"
+    <ha-card
+      className="p-4 flex items-center transition-shadow duration-200"
       onClick={onClick}
       style={{ cursor: onClick ? 'pointer' : 'default' }}
     >
       {icon && (
         <div className="mr-4 text-[var(--primary-color)] flex items-center justify-center">
-          {typeof icon === 'string' ? (
-            <span style={{ fontSize: '24px' }}>{icon}</span>
-          ) : (
-            icon
-          )}
+          <ha-icon icon={icon} style={{ fontSize: '24px' }}></ha-icon>
         </div>
       )}
       <div>
@@ -34,7 +30,7 @@ const StatusCard: React.FC<StatusCardProps> = ({
           {value}
         </p>
       </div>
-    </div>
+    </ha-card>
   );
 };
 
