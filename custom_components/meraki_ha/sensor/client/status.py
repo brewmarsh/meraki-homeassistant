@@ -22,6 +22,7 @@ from homeassistant.helpers.device_registry import DeviceInfo
 
 from ...const import DOMAIN
 from ...coordinator import MerakiDataUpdateCoordinator
+from ...core.utils.naming_utils import standardize_device_name
 from ...entity import MerakiSensor
 
 _LOGGER = logging.getLogger(__name__)
@@ -69,7 +70,7 @@ class MerakiClientStatusSensor(MerakiSensor):
 
         self._attr_device_info = DeviceInfo(
             identifiers={(DOMAIN, self._client_mac)},
-            name=client_name,
+            name=standardize_device_name(client_name),
             manufacturer=client_data.get("manufacturer", "Cisco Meraki"),
             model="Client",
             serial_number=self._client_mac,

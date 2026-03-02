@@ -8,6 +8,16 @@ from typing import Any, cast
 _LOGGER = logging.getLogger(__name__)
 
 
+def standardize_device_name(name: str | None) -> str:
+    """Standardize device name with Meraki prefix."""
+    if not name:
+        return "Meraki Device"
+    name_str = str(name)
+    if name_str.lower().startswith("meraki"):
+        return name_str
+    return f"Meraki {name_str}"
+
+
 def format_device_name(device: dict[str, Any] | Any, config: Mapping[str, Any]) -> str:
     """Format the device name based on the user's preference."""
     if dataclasses.is_dataclass(type(device)):
@@ -19,7 +29,8 @@ def format_device_name(device: dict[str, Any] | Any, config: Mapping[str, Any]) 
             name = f"[SSID {device.get('number')}]"
         else:
             name = f"Meraki {device.get('model', 'Device')} {device.get('serial')}"
-    return name
+
+    return standardize_device_name(name)
 
 
 def format_entity_name(

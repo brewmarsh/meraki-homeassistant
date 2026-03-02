@@ -10,6 +10,7 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from ...const import DOMAIN
 from ...coordinator import MerakiDataUpdateCoordinator
+from ...core.utils.naming_utils import standardize_device_name
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -41,8 +42,10 @@ class MerakiOrganizationDeviceTypeClientsSensor(CoordinatorEntity, SensorEntity)
         """Return the device info."""
         return DeviceInfo(
             identifiers={(DOMAIN, self._org_id)},
-            name=self.coordinator.data.get("organization", {}).get(
-                "name", "Meraki Organization"
+            name=standardize_device_name(
+                self.coordinator.data.get("organization", {}).get(
+                    "name", "Organization"
+                )
             ),
             manufacturer="Cisco Meraki",
         )
