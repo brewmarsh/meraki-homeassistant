@@ -146,76 +146,96 @@ class UniversalHandler(BaseDeviceHandler):
     async def discover_entities(self) -> AsyncIterator[Entity]:
         """Discover entities based on capabilities."""
         for cap in self.capabilities:
-            # Check if this capability is disabled via options
-            option_key = self.CAP_TO_OPTION.get(cap)
-            if option_key and not self._config_entry.options.get(option_key, True):
+            if not self._is_capability_enabled(cap):
                 continue
 
             provider = self.CAP_TO_ENTITY.get(cap)
             if not provider:
                 continue
 
-            # Standardized instantiation logic
+            async for entity in self._instantiate_entities(cap, provider):
+                yield entity
+
+    def _is_capability_enabled(self, cap: str) -> bool:
+        """Check if a capability is enabled in configuration options."""
+        option_key = self.CAP_TO_OPTION.get(cap)
+        if not option_key:
+            return True
+        return bool(self._config_entry.options.get(option_key, True))
+
+    async def _instantiate_entities(
+        self, cap: str, provider: type | Any
+    ) -> AsyncIterator[Entity]:
+        """Instantiate entities for a given capability and provider."""
+        try:
+            if hasattr(provider, "get_entities"):
+                async for entity in self._handle_provider_class(provider):
+                    yield entity
+            elif provider in (
+                MerakiRebootButton,
+                MerakiMt15RefreshDataButton,
+                MerakiMt40PowerOutlet,
+            ):
+                yield self._handle_special_entities(provider)
+            else:
+                yield self._handle_default_entity(cap, provider)
+        except Exception as e:
+            _LOGGER.error(
+                "Failed to instantiate entity for capability %s on %s: %s",
+                cap,
+                self.device.serial,
+                e,
+            )
+
+    async def _handle_provider_class(self, provider: Any) -> AsyncIterator[Entity]:
+        """Handle provider classes with get_entities method."""
+        res = provider.get_entities(
+            self._coordinator,
+            self.device,
+            self._config_entry,
+            camera_service=self._camera_service,
+            control_service=self._control_service,
+            network_control_service=self._network_control_service,
+        )
+        if hasattr(res, "__await__"):
+            entities = await res
+        else:
+            entities = res
+
+        for entity in entities:
+            yield entity
+
+    def _handle_special_entities(self, provider: type) -> Entity:
+        """Handle special entities with unique constructor signatures."""
+        if provider == MerakiRebootButton:
+            return provider(self._control_service, self.device, self._config_entry)
+        if provider == MerakiMt15RefreshDataButton:
+            return provider(
+                self._coordinator,
+                self.device,
+                self._config_entry,
+                self._coordinator.api,
+            )
+        # MerakiMt40PowerOutlet
+        return provider(
+            self._coordinator,
+            self.device,
+            self._config_entry,
+            self._coordinator.api,
+        )
+
+    def _handle_default_entity(self, cap: str, provider: type) -> Entity:
+        """Handle standard entity instantiation with fallback."""
+        try:
+            return provider(self._coordinator, self.device, self._config_entry)
+        except TypeError:
             try:
-                if hasattr(provider, "get_entities"):
-                    # Provider class with get_entities (can be sync or async)
-                    res = provider.get_entities(
-                        self._coordinator,
-                        self.device,
-                        self._config_entry,
-                        camera_service=self._camera_service,
-                        control_service=self._control_service,
-                        network_control_service=self._network_control_service,
-                    )
-                    if hasattr(res, "__await__"):
-                        for entity in await res:
-                            yield entity
-                    else:
-                        for entity in res:
-                            yield entity
-
-                elif provider == MerakiRebootButton:
-                    yield provider(
-                        self._control_service, self.device, self._config_entry
-                    )
-                elif provider == MerakiMt15RefreshDataButton:
-                    yield provider(
-                        self._coordinator,
-                        self.device,
-                        self._config_entry,
-                        self._coordinator.api,
-                    )
-                elif provider == MerakiMt40PowerOutlet:
-                    yield provider(
-                        self._coordinator,
-                        self.device,
-                        self._config_entry,
-                        self._coordinator.api,
-                    )
-                else:
-                    # Attempt instantiation with (coordinator, device, config_entry)
-                    # and fallback to (coordinator, device) if needed.
-                    try:
-                        yield provider(
-                            self._coordinator, self.device, self._config_entry
-                        )
-                    except TypeError:
-                        try:
-                            yield provider(self._coordinator, self.device)
-                        except Exception as e:
-                            _LOGGER.error(
-                                "Failed to instantiate entity class %s for "
-                                "capability %s: %s",
-                                provider.__name__,
-                                cap,
-                                e,
-                            )
-                            raise
-
+                return provider(self._coordinator, self.device)
             except Exception as e:
                 _LOGGER.error(
-                    "Failed to instantiate entity for capability %s on %s: %s",
+                    "Failed to instantiate entity class %s for capability %s: %s",
+                    provider.__name__,
                     cap,
-                    self.device.serial,
                     e,
                 )
+                raise
