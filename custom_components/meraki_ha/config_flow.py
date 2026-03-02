@@ -5,6 +5,8 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING, Any
 
+import voluptuous as vol
+
 from homeassistant import config_entries
 from homeassistant.config_entries import ConfigFlowResult
 from homeassistant.core import callback
@@ -18,7 +20,11 @@ except ImportError:
 
 from .const import DOMAIN
 from .const_conf import (
+    CONF_ENABLE_CAMERA_ENTITIES,
+    CONF_ENABLE_DEVICE_SENSORS,
+    CONF_ENABLE_DEVICE_STATUS,
     CONF_ENABLE_FIREWALL_RULES,
+    CONF_ENABLE_ORG_SENSORS,
     CONF_ENABLE_VPN_MANAGEMENT,
     CONF_MERAKI_API_KEY,
     CONF_MERAKI_ORG_ID,
@@ -93,8 +99,6 @@ class MerakiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignor
         config_entry: config_entries.ConfigEntry,
     ) -> config_entries.OptionsFlow:
         """Get the options flow handler."""
-        from .options_flow import MerakiOptionsFlowHandler
-
         return MerakiOptionsFlowHandler(config_entry)
 
     async def async_step_reconfigure(
@@ -138,3 +142,41 @@ class MerakiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignor
             step_id="reconfigure",
             data_schema=schema_with_defaults,
         )
+
+
+class MerakiOptionsFlowHandler(config_entries.OptionsFlow):
+    """Handle Meraki options."""
+
+    def __init__(self, config_entry: config_entries.ConfigEntry) -> None:
+        """Initialize options flow."""
+        self.config_entry = config_entry
+
+    async def async_step_init(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        """Manage the options."""
+        if user_input is not None:
+            return self.async_create_entry(title="", data=user_input)
+
+        options = self.config_entry.options
+        data_schema = vol.Schema(
+            {
+                vol.Optional(
+                    CONF_ENABLE_DEVICE_STATUS,
+                    default=options.get(CONF_ENABLE_DEVICE_STATUS, True),
+                ): bool,
+                vol.Optional(
+                    CONF_ENABLE_ORG_SENSORS,
+                    default=options.get(CONF_ENABLE_ORG_SENSORS, True),
+                ): bool,
+                vol.Optional(
+                    CONF_ENABLE_CAMERA_ENTITIES,
+                    default=options.get(CONF_ENABLE_CAMERA_ENTITIES, True),
+                ): bool,
+                vol.Optional(
+                    CONF_ENABLE_DEVICE_SENSORS,
+                    default=options.get(CONF_ENABLE_DEVICE_SENSORS, True),
+                ): bool,
+            }
+        )
+        return self.async_show_form(step_id="init", data_schema=data_schema)
