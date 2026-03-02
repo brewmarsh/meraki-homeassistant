@@ -38,6 +38,7 @@
 | The integration needs to have a configuration flow to take the API key and org id.                                                                                                                     | Included |
 | The integration must have a native, multi-step Home Assistant Options Flow to manage settings (e.g., enabling camera entities, device sensors) via a menu-driven interface, adhering to HA UX guidelines for complex integrations. | Included |
 | The integration should handle re-authentication of the API key.                                                                                                                                        | Included |
+| The integration must provide comprehensive localization for all configuration flows, including the multi-step Options Flow Menu, using `strings.json` and translation files. | Included |
 
 \*\*Mapping Meraki objects to Home Assistant objects
 
