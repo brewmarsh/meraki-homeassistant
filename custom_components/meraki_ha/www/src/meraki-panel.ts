@@ -1,6 +1,7 @@
 import { LitElement, html, css } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { safeCallWS } from './utils/api';
+import { WsCommand } from './types/websocket';
 
 interface HassObject {
   connection: {
@@ -95,7 +96,7 @@ export class MerakiPanel extends LitElement {
       }
 
       const data = await safeCallWS<MerakiData>(this.hass, {
-        type: 'meraki_ha/get_config',
+        type: WsCommand.GET_CONFIG,
         config_entry_id: this.entryId,
       });
       this._data = data;
@@ -121,8 +122,8 @@ export class MerakiPanel extends LitElement {
     this._data = { ...this._data, enabled_networks };
 
     try {
-      await this.hass.connection.sendMessagePromise({
-        type: 'meraki_ha/update_enabled_networks',
+      await safeCallWS(this.hass, {
+        type: WsCommand.UPDATE_ENABLED_NETWORKS,
         config_entry_id: this.entryId,
         enabled_networks,
       });
