@@ -29,6 +29,7 @@ class IPSKKey(TypedDict):
     network_id: str
     ssid_number: str
     name: str
+    passphrase: str
     expires_at: str  # ISO formatted string
     config_entry_id: str
 
@@ -102,6 +103,7 @@ class IPSKManager:
             "network_id": network_id,
             "ssid_number": str(ssid_number),
             "name": name,
+            "passphrase": result.get("passphrase", passphrase or ""),
             "expires_at": expires_at.isoformat(),
             "config_entry_id": config_entry_id,
         }
@@ -179,9 +181,22 @@ class IPSKManager:
             await self._save()
         return True
 
-    def get_active_keys(self) -> list[IPSKKey]:
-        """Return currently tracked active guest keys."""
-        return self.active_keys
+    def get_active_keys(
+        self, config_entry_id: str | None = None, network_id: str | None = None
+    ) -> list[IPSKKey]:
+        """
+        Return currently tracked active guest keys.
+
+        Args:
+            config_entry_id: Optional filter for a specific config entry.
+            network_id: Optional filter for a specific network.
+        """
+        keys = self.active_keys
+        if config_entry_id:
+            keys = [k for k in keys if k["config_entry_id"] == config_entry_id]
+        if network_id:
+            keys = [k for k in keys if k["network_id"] == network_id]
+        return keys
 
     async def async_check_expirations(self, _now: datetime | None = None) -> None:
         """Check for and reap expired keys."""
