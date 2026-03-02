@@ -11,6 +11,7 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from ...const import DOMAIN
 from ...coordinator import MerakiDataUpdateCoordinator
+from ...core.utils.naming_utils import standardize_device_name
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -49,7 +50,7 @@ class MerakiOrganizationSSIDClientsSensor(
         self._attr_unique_id = f"{org_id}_clients_ssid"
         self._attr_device_info = DeviceInfo(
             identifiers={(DOMAIN, org_id)},
-            name=org_name,
+            name=standardize_device_name(org_name),
             manufacturer="Cisco Meraki",
             model="Organization",
         )
@@ -106,7 +107,7 @@ class MerakiOrganizationWirelessClientsSensor(
         self._attr_unique_id = f"{org_id}_clients_wireless"
         self._attr_device_info = DeviceInfo(
             identifiers={(DOMAIN, org_id)},
-            name=org_name,
+            name=standardize_device_name(org_name),
             manufacturer="Cisco Meraki",
             model="Organization",
         )
@@ -162,7 +163,7 @@ class MerakiOrganizationApplianceClientsSensor(
         self._attr_unique_id = f"{org_id}_clients_appliance"
         self._attr_device_info = DeviceInfo(
             identifiers={(DOMAIN, org_id)},
-            name=org_name,
+            name=standardize_device_name(org_name),
             manufacturer="Cisco Meraki",
             model="Organization",
         )

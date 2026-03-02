@@ -12,6 +12,7 @@ from custom_components.meraki_ha.coordinator import MerakiDataUpdateCoordinator
 
 from ..core.api.client import MerakiAPIClient
 from ..core.models.device import MerakiDevice
+from ..core.utils.naming_utils import standardize_device_name
 from ..entity import MerakiEntity
 
 _LOGGER = logging.getLogger(__name__)
@@ -125,7 +126,7 @@ class MerakiCameraSettingSwitchBase(
         """Return device information."""
         return DeviceInfo(
             identifiers={("meraki_ha", cast(str, self._device_data.serial))},
-            name=self._device_data.name,
+            name=standardize_device_name(self._device_data.name),
             manufacturer="Cisco Meraki",
             model=self._device_data.model,
         )

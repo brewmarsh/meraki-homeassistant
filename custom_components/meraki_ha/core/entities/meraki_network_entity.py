@@ -10,6 +10,7 @@ from homeassistant.helpers.entity import DeviceInfo
 from ...const import DOMAIN
 from ...coordinator import MerakiDataUpdateCoordinator
 from ...core.models.network import MerakiNetwork
+from ...core.utils.naming_utils import standardize_device_name
 from ...helpers.device_info_helpers import resolve_device_info
 from . import BaseMerakiEntity
 
@@ -61,7 +62,7 @@ class MerakiNetworkEntity(BaseMerakiEntity):
 
         return DeviceInfo(
             identifiers={(DOMAIN, self._network.id)},
-            name=self._network.name or f"Network {self._network.id}",
-            manufacturer="Meraki",
+            name=standardize_device_name(self._network.name or f"Network {self._network.id}"),
+            manufacturer="Cisco Meraki",
             model="Meraki Network",
         )
