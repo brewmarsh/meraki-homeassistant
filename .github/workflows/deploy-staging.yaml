@@ -16,7 +16,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
       - name: Setup Node.js
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v4
         with:
           node-version: '20' # Use the Node version your project expects
 
@@ -77,11 +77,11 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y jq
 
       # Install Python 3.13 first so 'uv' has a target
-      - uses: actions/setup-python@v6
+      - uses: actions/setup-python@v5
         with:
           python-version: '3.13'
 
-      - uses: astral-sh/setup-uv@v7
+      - uses: astral-sh/setup-uv@v5
         with:
           python-version: '3.13'
           enable-cache: true
@@ -97,7 +97,12 @@ jobs:
           echo "Running Reset Script in isolated environment..."
           # uv run --with creates an ephemeral environment just for this command, protecting the system python
           uv run --with aiohttp python3 tests/scripts/reset_integration.py
-          
+
+      - name: Wait for initial Meraki data fetch
+        run: |
+          echo "Waiting 45 seconds for coordinators to fetch cloud data..."
+          sleep 45
+
       - name: Audit logs for errors
         id: audit_logs
         shell: bash

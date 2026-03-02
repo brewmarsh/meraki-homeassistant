@@ -20,7 +20,7 @@ jobs:
           fetch-depth: 0 # Required for git describe to work
 
       - name: Set up Python
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
@@ -45,7 +45,7 @@ jobs:
         run: ./scripts/release.sh ${{ env.part }}
 
       - name: Commit and push changes
-        uses: stefanzweifel/git-auto-commit-action@v7
+        uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: "chore(release): version bump"
           branch: ${{ github.ref_name }}
@@ -55,7 +55,7 @@ jobs:
         run: echo "tag=v$(jq -r .version custom_components/meraki_ha/manifest.json)" >> $GITHUB_OUTPUT
 
       - name: Create GitHub Release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.get_version.outputs.tag }}
           prerelease: ${{ github.ref_name == 'beta' }}

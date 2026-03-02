@@ -139,6 +139,12 @@
 | :----------------------------------------------------- | :------- |
 | The Integration uses Voluptuous for schema validation. | Included |
 
+**Testing & Hardening
+
+| Requirement                                                                                                                                                                                            | Status   |
+| :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :------- |
+| Automated smoke tests must include a 45-60 second wait after integration initialization to allow the Meraki coordinator's initial asynchronous cloud data fetch to complete before auditing logs or state. | Included |
+
 **Frontend Development
 
 | Requirement                                                                                                                                  | Status   |
