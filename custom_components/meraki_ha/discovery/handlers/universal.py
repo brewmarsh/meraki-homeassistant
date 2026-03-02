@@ -47,14 +47,20 @@ if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
     from homeassistant.helpers.entity import Entity
 
-    from ..coordinators import MerakiCameraCoordinator
-    from ....core.models.device import MerakiDevice
-    from ....services.camera_service import CameraService
-    from ....services.device_control_service import DeviceControlService
-    from ....services.network_control_service import NetworkControlService
+    from ...coordinators import MerakiMainCoordinator
+    from ...core.models.device import MerakiDevice
+    from ...services.camera_service import CameraService
+    from ...services.device_control_service import DeviceControlService
+    from ...services.network_control_service import NetworkControlService
 
 
 _LOGGER = logging.getLogger(__name__)
+
+SPECIAL_HANDLERS: set[type] = {
+    MerakiRebootButton,
+    MerakiMt15RefreshDataButton,
+    MerakiMt40PowerOutlet,
+}
 
 
 class UniversalHandler(BaseDeviceHandler):
@@ -117,7 +123,7 @@ class UniversalHandler(BaseDeviceHandler):
 
     def __init__(
         self,
-        coordinator: MerakiCameraCoordinator,
+        coordinator: MerakiMainCoordinator,
         device: MerakiDevice,
         config_entry: ConfigEntry,
         camera_service: CameraService,
@@ -146,15 +152,20 @@ class UniversalHandler(BaseDeviceHandler):
     async def discover_entities(self) -> AsyncIterator[Entity]:
         """Discover entities based on capabilities."""
         for cap in self.capabilities:
-            if not self._is_capability_enabled(cap):
-                continue
-
-            provider = self.CAP_TO_ENTITY.get(cap)
-            if not provider:
-                continue
-
-            async for entity in self._instantiate_entities(cap, provider):
+            async for entity in self._discover_capability(cap):
                 yield entity
+
+    async def _discover_capability(self, cap: str) -> AsyncIterator[Entity]:
+        """Discover entities for a specific capability."""
+        if not self._is_capability_enabled(cap):
+            return
+
+        provider = self.CAP_TO_ENTITY.get(cap)
+        if not provider:
+            return
+
+        async for entity in self._instantiate_entities(cap, provider):
+            yield entity
 
     def _is_capability_enabled(self, cap: str) -> bool:
         """Check if a capability is enabled in configuration options."""
@@ -171,14 +182,9 @@ class UniversalHandler(BaseDeviceHandler):
             if hasattr(provider, "get_entities"):
                 async for entity in self._handle_provider_class(provider):
                     yield entity
-            elif provider in (
-                MerakiRebootButton,
-                MerakiMt15RefreshDataButton,
-                MerakiMt40PowerOutlet,
-            ):
-                yield self._handle_special_entities(provider)
-            else:
-                yield self._handle_default_entity(cap, provider)
+                return
+
+            yield self._instantiate_single_entity(cap, provider)
         except Exception as e:
             _LOGGER.error(
                 "Failed to instantiate entity for capability %s on %s: %s",
@@ -186,6 +192,12 @@ class UniversalHandler(BaseDeviceHandler):
                 self.device.serial,
                 e,
             )
+
+    def _instantiate_single_entity(self, cap: str, provider: type) -> Entity:
+        """Instantiate a single entity."""
+        if provider in SPECIAL_HANDLERS:
+            return self._handle_special_entities(provider)
+        return self._handle_default_entity(cap, provider)
 
     async def _handle_provider_class(self, provider: Any) -> AsyncIterator[Entity]:
         """Handle provider classes with get_entities method."""
@@ -209,14 +221,8 @@ class UniversalHandler(BaseDeviceHandler):
         """Handle special entities with unique constructor signatures."""
         if provider == MerakiRebootButton:
             return provider(self._control_service, self.device, self._config_entry)
-        if provider == MerakiMt15RefreshDataButton:
-            return provider(
-                self._coordinator,
-                self.device,
-                self._config_entry,
-                self._coordinator.api,
-            )
-        # MerakiMt40PowerOutlet
+
+        # MT15 Refresh or MT40 Power Outlet
         return provider(
             self._coordinator,
             self.device,
@@ -229,13 +235,4 @@ class UniversalHandler(BaseDeviceHandler):
         try:
             return provider(self._coordinator, self.device, self._config_entry)
         except TypeError:
-            try:
-                return provider(self._coordinator, self.device)
-            except Exception as e:
-                _LOGGER.error(
-                    "Failed to instantiate entity class %s for capability %s: %s",
-                    provider.__name__,
-                    cap,
-                    e,
-                )
-                raise
+            return provider(self._coordinator, self.device)

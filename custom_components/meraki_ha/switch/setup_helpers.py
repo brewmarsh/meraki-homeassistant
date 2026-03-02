@@ -7,7 +7,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from .coordinators import MerakiSwitchCoordinator
+from ..coordinators import MerakiSwitchCoordinator
 from .builders.camera import setup_camera_switches
 from .builders.firewall import setup_firewall_rule_switches
 from .builders.mt40 import setup_mt40_switches
