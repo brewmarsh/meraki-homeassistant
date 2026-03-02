@@ -31,13 +31,13 @@
 
 \*\*Home Assistant Integration
 
-| Requirement                                                                                     | Status   |
-| :---------------------------------------------------------------------------------------------- | :------- |
-| The integration should create sensor, device tracker, and switch entities in Home Assistant.    | Included |
-| The integration must properly handle config entries, including setup, unloading, and reloading. | Included |
-| The integration needs to have a configuration flow to take the API key and org id.              | Included |
-| The integration should have option flow, to set scan interval and device name format.           | Included |
-| The integration should handle re-authentication of the API key.                                 | Included |
+| Requirement                                                                                                                                                                                            | Status   |
+| :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :------- |
+| The integration should create sensor, device tracker, and switch entities in Home Assistant.                                                                                                            | Included |
+| The integration must properly handle config entries, including setup, unloading, and reloading.                                                                                                        | Included |
+| The integration needs to have a configuration flow to take the API key and org id.                                                                                                                     | Included |
+| The integration must have a native Home Assistant Options Flow to manage settings (e.g., enabling camera entities, device sensors) instead of using a custom React panel, adhering to HA UX paradigms. | Included |
+| The integration should handle re-authentication of the API key.                                                                                                                                        | Included |
 
 \*\*Mapping Meraki objects to Home Assistant objects
 
