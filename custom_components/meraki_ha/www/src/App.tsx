@@ -3,7 +3,6 @@ import React, { useState, useEffect } from 'react';
 import NetworkView from './components/NetworkView';
 import DeviceView from './components/DeviceView';
 import Dashboard from './components/Dashboard';
-import Settings from './components/Settings';
 import TimedAccess from './components/TimedAccess';
 import { safeCallWS } from './utils/api';
 import { WsCommand } from './types/websocket';
@@ -231,7 +230,6 @@ const App: React.FC<AppProps> = ({ hass, panel, config_entry_id }) => {
         <paper-tab name="networks">Networks</paper-tab>
         <paper-tab name="devices">Devices</paper-tab>
         <paper-tab name="timed_access">Timed Access</paper-tab>
-        <paper-tab name="settings">Settings</paper-tab>
       </ha-tabs>
 
       {activeView.view !== 'dashboard' ? (
@@ -258,12 +256,6 @@ const App: React.FC<AppProps> = ({ hass, panel, config_entry_id }) => {
           hass={hass}
           configEntryId={configEntryId}
           data={data}
-        />
-      ) : activeTab === 'settings' ? (
-        <Settings
-          hass={hass}
-          options={data.options || {}}
-          configEntryId={configEntryId}
         />
       ) : null}
       <div className="absolute bottom-0 right-0 p-2 text-xs text-[var(--secondary-text-color)]">
