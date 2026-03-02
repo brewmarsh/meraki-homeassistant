@@ -6,7 +6,7 @@ from homeassistant.components.sensor import SensorEntityDescription, SensorState
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import UnitOfDataRate
 
-from ...coordinator import MerakiDataUpdateCoordinator
+from ..coordinators import MerakiMainCoordinator
 from .base import MerakiSSIDBaseSensor
 
 BANDWIDTH_LIMIT_UP = SensorEntityDescription(
@@ -33,7 +33,7 @@ class MerakiSSIDPerSsidBandwidthLimitSensor(MerakiSSIDBaseSensor):
 
     def __init__(
         self,
-        coordinator: MerakiDataUpdateCoordinator,
+        coordinator: MerakiMainCoordinator,
         config_entry: ConfigEntry,
         ssid_data: dict[str, Any],
         direction: str,

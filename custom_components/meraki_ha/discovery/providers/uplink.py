@@ -23,7 +23,7 @@ if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
     from homeassistant.helpers.entity import Entity
 
-    from ...coordinator import MerakiDataUpdateCoordinator
+    from ..coordinators import MerakiApplianceCoordinator
     from ...core.models.device import MerakiDevice
 
 _LOGGER = logging.getLogger(__name__)
@@ -34,7 +34,7 @@ class UplinkProvider:
 
     @staticmethod
     def get_entities(
-        coordinator: MerakiDataUpdateCoordinator,
+        coordinator: MerakiApplianceCoordinator,
         device: MerakiDevice,
         config_entry: ConfigEntry,
         **kwargs: Any,
@@ -91,7 +91,7 @@ class UplinkPerformanceProvider:
 
     @staticmethod
     def get_entities(
-        coordinator: MerakiDataUpdateCoordinator,
+        coordinator: MerakiApplianceCoordinator,
         device: MerakiDevice,
         config_entry: ConfigEntry,
         **kwargs: Any,

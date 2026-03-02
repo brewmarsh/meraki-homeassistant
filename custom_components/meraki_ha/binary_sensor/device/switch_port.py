@@ -12,7 +12,7 @@ from homeassistant.core import callback
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from ...coordinator import MerakiDataUpdateCoordinator
+from ..coordinators import MerakiSwitchCoordinator
 from ...core.models.device import MerakiDevice
 from ...helpers.device_info_helpers import resolve_device_info
 
@@ -20,14 +20,14 @@ from ...helpers.device_info_helpers import resolve_device_info
 class SwitchPortSensor(CoordinatorEntity, BinarySensorEntity):
     """Representation of a Meraki switch port sensor."""
 
-    coordinator: MerakiDataUpdateCoordinator
+    coordinator: MerakiSwitchCoordinator
 
     _attr_device_class = BinarySensorDeviceClass.CONNECTIVITY
     _attr_has_entity_name = True
 
     def __init__(
         self,
-        coordinator: MerakiDataUpdateCoordinator,
+        coordinator: MerakiSwitchCoordinator,
         device: MerakiDevice,
         port: dict[str, Any] | Any,
     ) -> None:

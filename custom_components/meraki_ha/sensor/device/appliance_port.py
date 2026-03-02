@@ -12,7 +12,7 @@ from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from ...const import DOMAIN
-from ...coordinator import MerakiDataUpdateCoordinator
+from ..coordinators import MerakiMainCoordinator
 from ...core.models import MerakiAppliancePort
 from ...core.models.device import MerakiDevice
 from ...core.utils.naming_utils import format_device_name
@@ -23,13 +23,13 @@ _LOGGER = logging.getLogger(__name__)
 class MerakiAppliancePortSensor(CoordinatorEntity, SensorEntity):
     """Representation of a Meraki appliance port sensor."""
 
-    coordinator: MerakiDataUpdateCoordinator
+    coordinator: MerakiMainCoordinator
 
     _attr_entity_category = EntityCategory.DIAGNOSTIC
 
     def __init__(
         self,
-        coordinator: MerakiDataUpdateCoordinator,
+        coordinator: MerakiMainCoordinator,
         device: MerakiDevice,
         port: MerakiAppliancePort,
     ) -> None:

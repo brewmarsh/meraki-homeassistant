@@ -13,7 +13,7 @@ from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from ...const import DOMAIN
-from ...coordinator import MerakiDataUpdateCoordinator
+from ..coordinators import MerakiMainCoordinator
 from ...core.utils.naming_utils import standardize_device_name
 
 if TYPE_CHECKING:
@@ -25,13 +25,13 @@ _LOGGER = logging.getLogger(__name__)
 class MerakiApplianceUplinkSensor(CoordinatorEntity, SensorEntity):
     """Representation of a Meraki appliance uplink sensor."""
 
-    coordinator: MerakiDataUpdateCoordinator
+    coordinator: MerakiMainCoordinator
 
     _attr_entity_category = EntityCategory.DIAGNOSTIC
 
     def __init__(
         self,
-        coordinator: MerakiDataUpdateCoordinator,
+        coordinator: MerakiMainCoordinator,
         device_data: MerakiDevice,
         config_entry: ConfigEntry,
         uplink_data: dict[str, Any],

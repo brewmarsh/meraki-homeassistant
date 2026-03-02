@@ -20,7 +20,7 @@ if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
     from homeassistant.helpers.entity import Entity
 
-    from ...coordinator import MerakiDataUpdateCoordinator
+    from ..coordinators import MerakiCameraCoordinator
     from ...core.models.device import MerakiDevice
     from ...services.camera_service import CameraService
 
@@ -32,7 +32,7 @@ class CameraAnalyticsProvider:
 
     @staticmethod
     async def get_entities(
-        coordinator: MerakiDataUpdateCoordinator,
+        coordinator: MerakiCameraCoordinator,
         device: MerakiDevice,
         config_entry: ConfigEntry,
         **kwargs: Any,
@@ -60,7 +60,7 @@ class CameraStreamProvider:
 
     @staticmethod
     async def get_entities(
-        coordinator: MerakiDataUpdateCoordinator,
+        coordinator: MerakiCameraCoordinator,
         device: MerakiDevice,
         config_entry: ConfigEntry,
         **kwargs: Any,

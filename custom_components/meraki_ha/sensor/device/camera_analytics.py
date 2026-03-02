@@ -9,7 +9,7 @@ from homeassistant.components.sensor import SensorEntity
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from ...coordinator import MerakiDataUpdateCoordinator
+from ..coordinators import MerakiCameraCoordinator
 from ...helpers.device_info_helpers import resolve_device_info
 
 if TYPE_CHECKING:
@@ -21,11 +21,11 @@ _LOGGER = logging.getLogger(__name__)
 class MerakiAnalyticsSensor(CoordinatorEntity, SensorEntity):
     """Base class for Meraki analytics sensors."""
 
-    coordinator: MerakiDataUpdateCoordinator
+    coordinator: MerakiCameraCoordinator
 
     def __init__(
         self,
-        coordinator: MerakiDataUpdateCoordinator,
+        coordinator: MerakiCameraCoordinator,
         device: MerakiDevice,
         object_type: str,
     ) -> None:
@@ -70,7 +70,7 @@ class MerakiPersonCountSensor(MerakiAnalyticsSensor):
 
     def __init__(
         self,
-        coordinator: MerakiDataUpdateCoordinator,
+        coordinator: MerakiCameraCoordinator,
         device: MerakiDevice,
     ) -> None:
         """Initialize the sensor."""
@@ -83,7 +83,7 @@ class MerakiVehicleCountSensor(MerakiAnalyticsSensor):
 
     def __init__(
         self,
-        coordinator: MerakiDataUpdateCoordinator,
+        coordinator: MerakiCameraCoordinator,
         device: MerakiDevice,
     ) -> None:
         """Initialize the sensor."""

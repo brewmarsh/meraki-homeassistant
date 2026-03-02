@@ -17,7 +17,7 @@ if TYPE_CHECKING:
     from homeassistant.helpers.entity import Entity
 
     from ....coordinator import (
-        MerakiDataUpdateCoordinator,
+        MerakiMainCoordinator,
     )
     from ....core.models.device import MerakiDevice
 
@@ -30,7 +30,7 @@ class BaseHandler(ABC):
 
     def __init__(
         self,
-        coordinator: MerakiDataUpdateCoordinator,
+        coordinator: MerakiMainCoordinator,
         config_entry: ConfigEntry,
     ) -> None:
         """Initialize the BaseHandler."""
@@ -48,7 +48,7 @@ class BaseDeviceHandler(BaseHandler, ABC):
 
     def __init__(
         self,
-        coordinator: MerakiDataUpdateCoordinator,
+        coordinator: MerakiMainCoordinator,
         device: MerakiDevice,
         config_entry: ConfigEntry,
     ) -> None:

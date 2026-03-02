@@ -11,7 +11,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import EntityCategory
 from homeassistant.core import callback
 
-from ...coordinator import MerakiDataUpdateCoordinator
+from ..coordinators import MerakiMainCoordinator
 from ...entity import MerakiSensor
 from ...helpers.device_info_helpers import resolve_device_info
 
@@ -29,7 +29,7 @@ class MerakiWirelessRadioSensor(MerakiSensor):
 
     def __init__(
         self,
-        coordinator: MerakiDataUpdateCoordinator,
+        coordinator: MerakiMainCoordinator,
         device_data: MerakiDevice,
         config_entry: ConfigEntry,
         description: SensorEntityDescription,

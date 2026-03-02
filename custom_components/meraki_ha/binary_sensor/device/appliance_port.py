@@ -18,20 +18,20 @@ from ...core.models.device import MerakiDevice
 from ...core.utils.naming_utils import format_device_name
 
 if TYPE_CHECKING:
-    from ...coordinator import MerakiDataUpdateCoordinator
+    from ..coordinators import MerakiApplianceCoordinator
 
 
 class AppliancePortBinarySensor(CoordinatorEntity, BinarySensorEntity):
     """Representation of a Meraki appliance port binary sensor."""
 
-    coordinator: MerakiDataUpdateCoordinator
+    coordinator: MerakiApplianceCoordinator
 
     _attr_device_class = BinarySensorDeviceClass.CONNECTIVITY
     _attr_has_entity_name = True
 
     def __init__(
         self,
-        coordinator: MerakiDataUpdateCoordinator,
+        coordinator: MerakiApplianceCoordinator,
         device: MerakiDevice,
         port: MerakiAppliancePort,
     ) -> None:

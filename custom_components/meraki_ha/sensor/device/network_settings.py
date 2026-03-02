@@ -12,7 +12,7 @@ from homeassistant.const import EntityCategory
 from homeassistant.core import callback
 from homeassistant.helpers.typing import StateType
 
-from ...coordinator import MerakiDataUpdateCoordinator
+from ..coordinators import MerakiMainCoordinator
 from ...entity import MerakiEntity
 from ...helpers.device_info_helpers import resolve_device_info
 
@@ -30,7 +30,7 @@ class MerakiDeviceUplinkBaseSensor(MerakiEntity, SensorEntity):
 
     def __init__(
         self,
-        coordinator: MerakiDataUpdateCoordinator,
+        coordinator: MerakiMainCoordinator,
         device_data: MerakiDevice,
         config_entry: ConfigEntry,
         interface: str,
@@ -71,7 +71,7 @@ class MerakiDeviceIPSensor(MerakiDeviceUplinkBaseSensor):
 
     def __init__(
         self,
-        coordinator: MerakiDataUpdateCoordinator,
+        coordinator: MerakiMainCoordinator,
         device_data: MerakiDevice,
         config_entry: ConfigEntry,
         interface: str,
@@ -115,7 +115,7 @@ class MerakiDeviceGatewaySensor(MerakiDeviceUplinkBaseSensor):
 
     def __init__(
         self,
-        coordinator: MerakiDataUpdateCoordinator,
+        coordinator: MerakiMainCoordinator,
         device_data: MerakiDevice,
         config_entry: ConfigEntry,
         interface: str,
@@ -151,7 +151,7 @@ class MerakiDeviceDNSSensor(MerakiDeviceUplinkBaseSensor):
 
     def __init__(
         self,
-        coordinator: MerakiDataUpdateCoordinator,
+        coordinator: MerakiMainCoordinator,
         device_data: MerakiDevice,
         config_entry: ConfigEntry,
         interface: str,

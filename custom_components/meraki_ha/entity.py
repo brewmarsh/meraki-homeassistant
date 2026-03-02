@@ -1,16 +1,21 @@
 """Base entity for all Meraki entities."""
 
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, Generic, TypeVar
+
 from homeassistant.components.binary_sensor import BinarySensorEntity
 from homeassistant.components.sensor import SensorEntity
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .coordinator import MerakiDataUpdateCoordinator
+if TYPE_CHECKING:
+    from .coordinators.base import MerakiBaseCoordinator
+
+T = TypeVar("T", bound="MerakiBaseCoordinator")
 
 
-class MerakiEntity(CoordinatorEntity):
+class MerakiEntity(CoordinatorEntity[T], Generic[T]):
     """Base Meraki entity."""
-
-    coordinator: MerakiDataUpdateCoordinator
 
     _attr_has_entity_name = True
 
@@ -55,9 +60,9 @@ class MerakiEntity(CoordinatorEntity):
         return getattr(self, "_attr_unique_id", None)
 
 
-class MerakiSensor(MerakiEntity, SensorEntity):
+class MerakiSensor(MerakiEntity[T], SensorEntity, Generic[T]):
     """Base Meraki sensor entity."""
 
 
-class MerakiBinarySensor(MerakiEntity, BinarySensorEntity):
+class MerakiBinarySensor(MerakiEntity[T], BinarySensorEntity, Generic[T]):
     """Base Meraki binary sensor entity."""

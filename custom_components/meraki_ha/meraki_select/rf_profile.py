@@ -11,7 +11,7 @@ from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from ..coordinator import MerakiDataUpdateCoordinator
+from .coordinators import MerakiMainCoordinator
 from ..core.api.client import MerakiAPIClient
 from ..helpers.device_info_helpers import resolve_device_info
 
@@ -21,13 +21,13 @@ _LOGGER = logging.getLogger(__name__)
 class MerakiRFProfileSelect(CoordinatorEntity, SelectEntity):
     """Representation of a Meraki RF Profile select entity."""
 
-    coordinator: MerakiDataUpdateCoordinator
+    coordinator: MerakiMainCoordinator
     entity_category = EntityCategory.CONFIG
     _attr_has_entity_name = True
 
     def __init__(
         self,
-        coordinator: MerakiDataUpdateCoordinator,
+        coordinator: MerakiMainCoordinator,
         meraki_client: MerakiAPIClient,
         config_entry: ConfigEntry,
         ssid_data: dict[str, Any],

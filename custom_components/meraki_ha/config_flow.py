@@ -25,7 +25,7 @@ from .const_conf import (
 )
 
 if TYPE_CHECKING:
-    from .coordinator import MerakiDataUpdateCoordinator
+    from .coordinators import MerakiMainCoordinator
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -112,7 +112,7 @@ class MerakiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignor
             await self.hass.config_entries.async_reload(entry.entry_id)
             return self.async_abort(reason="reconfigure_successful")
 
-        coordinator: MerakiDataUpdateCoordinator = self.hass.data[DOMAIN][
+        coordinator: MerakiMainCoordinator = self.hass.data[DOMAIN][
             entry.entry_id
         ]["coordinator"]
 

@@ -11,7 +11,7 @@ from homeassistant.const import UnitOfDataRate
 from homeassistant.core import callback
 from homeassistant.helpers.entity import EntityCategory
 
-from ...coordinator import MerakiDataUpdateCoordinator
+from ..coordinators import MerakiMainCoordinator
 from ...entity import MerakiEntity
 from ...helpers.device_info_helpers import resolve_device_info
 
@@ -26,7 +26,7 @@ class MerakiSSIDDetailSensor(MerakiEntity, SensorEntity):
 
     def __init__(
         self,
-        coordinator: MerakiDataUpdateCoordinator,
+        coordinator: MerakiMainCoordinator,
         config_entry: ConfigEntry,
         ssid_data: dict[str, Any],
         rf_profile: dict[str, Any] | None,

@@ -12,7 +12,7 @@ from homeassistant.components.event import (
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.device_registry import DeviceInfo
 
-from ...coordinator import MerakiDataUpdateCoordinator
+from ..coordinators import MerakiMainCoordinator
 from ...entity import MerakiEntity
 from ...helpers.device_info_helpers import resolve_device_info
 
@@ -31,7 +31,7 @@ class MerakiMtButtonEvent(MerakiEntity, EventEntity):
 
     def __init__(
         self,
-        coordinator: MerakiDataUpdateCoordinator,
+        coordinator: MerakiMainCoordinator,
         device: MerakiDevice,
         config_entry: ConfigEntry,
     ) -> None:
@@ -90,7 +90,7 @@ class MerakiMtButtonEvent(MerakiEntity, EventEntity):
 
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
-        coordinator = cast(MerakiDataUpdateCoordinator, self.coordinator)
+        coordinator = cast(MerakiMainCoordinator, self.coordinator)
         if self._device.serial:
             device = coordinator.get_device(self._device.serial)
             if device:

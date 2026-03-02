@@ -19,7 +19,7 @@ from homeassistant.core import callback
 from homeassistant.helpers.device_registry import DeviceInfo
 
 from ...const import DOMAIN
-from ...coordinator import MerakiDataUpdateCoordinator
+from ..coordinators import MerakiMainCoordinator
 from ...core.models.device import MerakiDevice
 from ...core.utils.naming_utils import format_device_name
 from ...entity import MerakiSensor
@@ -49,7 +49,7 @@ class MerakiDeviceStatusSensor(MerakiSensor):
 
     def __init__(
         self,
-        coordinator: MerakiDataUpdateCoordinator,
+        coordinator: MerakiMainCoordinator,
         device_data: "MerakiDevice",  # Initial device_data snapshot
         config_entry: ConfigEntry,
     ) -> None:

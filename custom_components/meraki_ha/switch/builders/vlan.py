@@ -8,7 +8,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from ...const_conf import CONF_ENABLE_VLAN_MANAGEMENT
-from ...coordinator import MerakiDataUpdateCoordinator
+from ..coordinators import MerakiSwitchCoordinator
 from ..vlan_dhcp import MerakiVLANDHCPSwitch
 
 _LOGGER = logging.getLogger(__name__)
@@ -16,7 +16,7 @@ _LOGGER = logging.getLogger(__name__)
 
 def setup_vlan_switches(
     config_entry: ConfigEntry,
-    coordinator: MerakiDataUpdateCoordinator,
+    coordinator: MerakiSwitchCoordinator,
     added_entities: set[str],
     async_add_entities: AddEntitiesCallback,
 ) -> None:
@@ -31,7 +31,7 @@ def setup_vlan_switches(
 
 
 def _build_vlan_entities(
-    coordinator: MerakiDataUpdateCoordinator,
+    coordinator: MerakiSwitchCoordinator,
     data: dict[str, Any],
     config_entry: ConfigEntry,
     added_entities: set[str],
@@ -50,7 +50,7 @@ def _build_vlan_entities(
 
 
 def _create_vlan_entities(
-    coordinator: MerakiDataUpdateCoordinator,
+    coordinator: MerakiSwitchCoordinator,
     config_entry: ConfigEntry,
     network_id: str,
     vlans: list[Any],
