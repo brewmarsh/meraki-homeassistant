@@ -7,14 +7,12 @@ interface SettingsProps {
   hass: any;
   options: Record<string, any>;
   configEntryId: string;
-  onClose: () => void;
 }
 
 const Settings: React.FC<SettingsProps> = ({
   hass,
   options,
   configEntryId,
-  onClose,
 }) => {
   const [localOptions, setLocalOptions] = useState(options);
   const [saving, setSaving] = useState(false);
@@ -43,7 +41,6 @@ const Settings: React.FC<SettingsProps> = ({
       alert('Failed to save settings.');
     } finally {
       setSaving(false);
-      onClose();
       window.location.reload();
     }
   };
@@ -94,18 +91,12 @@ const Settings: React.FC<SettingsProps> = ({
   ];
 
   return (
-    <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center z-50 p-4">
-      <ha-card className="w-full max-w-md bg-[var(--card-background-color)] text-[var(--primary-text-color)] shadow-lg rounded-lg overflow-hidden">
+    <div className="max-w-4xl mx-auto">
+      <ha-card className="bg-[var(--card-background-color)] text-[var(--primary-text-color)] shadow-lg rounded-lg overflow-hidden">
         <div className="p-4 border-b border-[var(--divider-color)] flex justify-between items-center">
           <h2 className="text-xl font-bold">Integration settings</h2>
-          <button
-            onClick={onClose}
-            className="text-[var(--secondary-text-color)] hover:text-[var(--primary-text-color)]"
-          >
-            <ha-icon icon="mdi:close"></ha-icon>
-          </button>
         </div>
-        <div className="max-h-96 overflow-y-auto">
+        <div>
           {sections.map((section) => (
             <ha-settings-row key={section.key} className="border-b border-[var(--divider-color)] last:border-0">
               <span slot="heading">{section.label}</span>
@@ -118,13 +109,6 @@ const Settings: React.FC<SettingsProps> = ({
           ))}
         </div>
         <div className="p-4 flex justify-end gap-4 border-t border-[var(--divider-color)]">
-          <button
-            onClick={onClose}
-            className="px-4 py-2 rounded border border-[var(--divider-color)] text-[var(--primary-text-color)] hover:bg-[var(--secondary-background-color)]"
-            disabled={saving}
-          >
-            Cancel
-          </button>
           <button
             onClick={handleSave}
             className="px-4 py-2 rounded bg-[var(--primary-color)] text-white hover:opacity-90 disabled:opacity-50"

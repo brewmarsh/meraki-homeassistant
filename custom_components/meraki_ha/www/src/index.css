@@ -26,3 +26,32 @@
   margin-right: 0.5rem;
   color: var(--primary-color);
 }
+
+ha-tabs {
+  display: flex;
+  background-color: var(--primary-background-color);
+  border-bottom: 1px solid var(--divider-color);
+}
+
+paper-tab {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 16px;
+  height: 48px;
+  cursor: pointer;
+  text-transform: uppercase;
+  font-weight: 500;
+  color: var(--secondary-text-color);
+  border-bottom: 2px solid transparent;
+  transition: all 0.2s ease-in-out;
+}
+
+paper-tab[selected] {
+  color: var(--primary-text-color);
+  border-bottom-color: var(--primary-color);
+}
+
+paper-tab:hover {
+  background-color: var(--secondary-background-color);
+}

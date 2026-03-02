@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 // Frontend version: 2.3.0-beta.120
 import NetworkView from './components/NetworkView';
 import DeviceView from './components/DeviceView';
+import Dashboard from './components/Dashboard';
 import Settings from './components/Settings';
 import TimedAccess from './components/TimedAccess';
 import { safeCallWS } from './utils/api';
@@ -24,12 +25,12 @@ const App: React.FC<AppProps> = ({ hass, panel, config_entry_id }) => {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [configNotFound, setConfigNotFound] = useState<boolean>(false);
+  const [activeTab, setActiveTab] = useState('networks');
+  const tabsRef = React.useRef<any>(null);
   const [activeView, setActiveView] = useState<{ view: string; deviceId?: string }>({
     view: 'dashboard',
     deviceId: undefined,
   });
-  const [showSettings, setShowSettings] = useState(false);
-  const [showTimedAccess, setShowTimedAccess] = useState(false);
 
   const configEntryId = config_entry_id || panel?.config?.config_entry_id;
 
@@ -187,18 +188,30 @@ const App: React.FC<AppProps> = ({ hass, panel, config_entry_id }) => {
     );
   }
 
+  useEffect(() => {
+    const tabs = tabsRef.current;
+    if (tabs) {
+      const handleSelectEvent = (e: any) => {
+        const newTab = e.target.selected || (e.detail && e.detail.selected);
+        if (newTab) {
+          setActiveTab(newTab);
+          setActiveView({ view: 'dashboard' });
+        }
+      };
+      tabs.addEventListener('iron-select', handleSelectEvent);
+      tabs.addEventListener('select', handleSelectEvent);
+      return () => {
+        tabs.removeEventListener('iron-select', handleSelectEvent);
+        tabs.removeEventListener('select', handleSelectEvent);
+      };
+    }
+  }, [loading, data]);
+
   return (
     <div className="p-4 relative bg-[var(--primary-background-color)] text-[var(--primary-text-color)] min-h-screen">
-      <div className="flex justify-between items-center mb-6">
+      <div className="flex justify-between items-center mb-4">
         <h1 className="text-2xl font-bold">Cisco Meraki Integration</h1>
         <div className="flex gap-2">
-          <button
-            onClick={() => setShowTimedAccess(true)}
-            className="p-2 rounded-full hover:bg-[var(--secondary-background-color)] text-[var(--secondary-text-color)] transition-colors"
-            title="Timed Guest Access"
-          >
-            <ha-icon icon="mdi:clock-outline"></ha-icon>
-          </button>
           <button
             onClick={fetchData}
             className="p-2 rounded-full hover:bg-[var(--secondary-background-color)] text-[var(--secondary-text-color)] transition-colors"
@@ -206,17 +219,28 @@ const App: React.FC<AppProps> = ({ hass, panel, config_entry_id }) => {
           >
             <ha-icon icon="mdi:refresh"></ha-icon>
           </button>
-          <button
-            onClick={() => setShowSettings(true)}
-            className="p-2 rounded-full hover:bg-[var(--secondary-background-color)] text-[var(--secondary-text-color)] transition-colors"
-            title="Settings"
-          >
-            <ha-icon icon="mdi:cog"></ha-icon>
-          </button>
         </div>
       </div>
 
-      {activeView.view === 'dashboard' ? (
+      <ha-tabs
+        ref={tabsRef}
+        selected={activeTab}
+        attr-for-selected="name"
+        className="mb-6 border-b border-[var(--divider-color)]"
+      >
+        <paper-tab name="networks">Networks</paper-tab>
+        <paper-tab name="devices">Devices</paper-tab>
+        <paper-tab name="timed_access">Timed Access</paper-tab>
+        <paper-tab name="settings">Settings</paper-tab>
+      </ha-tabs>
+
+      {activeView.view !== 'dashboard' ? (
+        <DeviceView
+          activeView={activeView}
+          setActiveView={setActiveView}
+          data={data}
+        />
+      ) : activeTab === 'networks' ? (
         <NetworkView
           hass={hass}
           data={data as any}
@@ -224,30 +248,24 @@ const App: React.FC<AppProps> = ({ hass, panel, config_entry_id }) => {
           setActiveView={setActiveView}
           configEntryId={configEntryId}
         />
-      ) : (
-        <DeviceView
-          activeView={activeView}
+      ) : activeTab === 'devices' ? (
+        <Dashboard
           setActiveView={setActiveView}
           data={data}
         />
-      )}
-
-      {showSettings && data && (
-        <Settings
-          hass={hass}
-          options={data.options || {}}
-          configEntryId={configEntryId}
-          onClose={() => setShowSettings(false)}
-        />
-      )}
-      {showTimedAccess && data && (
+      ) : activeTab === 'timed_access' ? (
         <TimedAccess
           hass={hass}
           configEntryId={configEntryId}
           data={data}
-          onClose={() => setShowTimedAccess(false)}
         />
-      )}
+      ) : activeTab === 'settings' ? (
+        <Settings
+          hass={hass}
+          options={data.options || {}}
+          configEntryId={configEntryId}
+        />
+      ) : null}
       <div className="absolute bottom-0 right-0 p-2 text-xs text-[var(--secondary-text-color)]">
         Version: {data.version || '2.3.0-beta.120'}
       </div>
