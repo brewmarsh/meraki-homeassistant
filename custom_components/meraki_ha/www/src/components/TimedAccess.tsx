@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import QRCode from 'react-qr-code';
 import { safeCallWS } from '../utils/api';
 import { WsCommand, WsIpskKey } from '../types/websocket';
@@ -23,6 +23,7 @@ const TimedAccess: React.FC<TimedAccessProps> = ({
   const [policies, setPolicies] = useState<GroupPolicy[]>([]);
   const [loading, setLoading] = useState(false);
   const [creating, setCreating] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   // Form state
   const [selectedNetwork, setSelectedNetwork] = useState<string>('');
@@ -31,6 +32,12 @@ const TimedAccess: React.FC<TimedAccessProps> = ({
   const [duration, setDuration] = useState<string>('60'); // Minutes
   const [customName, setCustomName] = useState<string>('');
   const [customPassphrase, setCustomPassphrase] = useState<string>('');
+
+  // Refs for custom elements
+  const networkSelectRef = useRef<any>(null);
+  const ssidSelectRef = useRef<any>(null);
+  const policySelectRef = useRef<any>(null);
+  const durationSelectRef = useRef<any>(null);
 
   // Initial load
   useEffect(() => {
@@ -42,20 +49,53 @@ const TimedAccess: React.FC<TimedAccessProps> = ({
   useEffect(() => {
     if (selectedNetwork) {
       fetchPolicies(selectedNetwork);
+    } else {
+      setPolicies([]);
+      setSelectedPolicy('');
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedNetwork]);
 
+  // Handle ha-select events
+  useEffect(() => {
+    const handleNetworkChange = (e: any) => {
+      setSelectedNetwork(e.target.value);
+      setSelectedSsid('');
+    };
+    const handleSsidChange = (e: any) => setSelectedSsid(e.target.value);
+    const handlePolicyChange = (e: any) => setSelectedPolicy(e.target.value);
+    const handleDurationChange = (e: any) => setDuration(e.target.value);
+
+    const networkEl = networkSelectRef.current;
+    const ssidEl = ssidSelectRef.current;
+    const policyEl = policySelectRef.current;
+    const durationEl = durationSelectRef.current;
+
+    networkEl?.addEventListener('change', handleNetworkChange);
+    ssidEl?.addEventListener('change', handleSsidChange);
+    policyEl?.addEventListener('change', handlePolicyChange);
+    durationEl?.addEventListener('change', handleDurationChange);
+
+    return () => {
+      networkEl?.removeEventListener('change', handleNetworkChange);
+      ssidEl?.removeEventListener('change', handleSsidChange);
+      policyEl?.removeEventListener('change', handlePolicyChange);
+      durationEl?.removeEventListener('change', handleDurationChange);
+    };
+  }, []);
+
   const fetchKeys = async () => {
     setLoading(true);
+    setErrorMessage(null);
     try {
       const result = await safeCallWS<WsIpskKey[]>(hass, {
         type: WsCommand.GET_GUEST_KEYS,
         configEntryId: configEntryId,
       });
       setKeys(result);
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
+      setErrorMessage(err.message || err.toString() || "Failed to fetch guest keys.");
     } finally {
       setLoading(false);
     }
@@ -69,7 +109,7 @@ const TimedAccess: React.FC<TimedAccessProps> = ({
         networkId: networkId,
       });
       setPolicies(result);
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
       setPolicies([]);
     }
@@ -78,6 +118,7 @@ const TimedAccess: React.FC<TimedAccessProps> = ({
   const handleCreate = async () => {
     if (!selectedNetwork || !selectedSsid || !duration) return;
     setCreating(true);
+    setErrorMessage(null);
     try {
       await safeCallWS(hass, {
         type: WsCommand.CREATE_GUEST_KEY,
@@ -93,8 +134,8 @@ const TimedAccess: React.FC<TimedAccessProps> = ({
       // Reset form
       setCustomName('');
       setCustomPassphrase('');
-    } catch (err) {
-      alert(`Error creating key: ${err}`);
+    } catch (err: any) {
+      setErrorMessage(err.message || err.toString() || "An unknown error occurred during creation.");
     } finally {
       setCreating(false);
     }
@@ -102,14 +143,15 @@ const TimedAccess: React.FC<TimedAccessProps> = ({
 
   const handleDelete = async (key: WsIpskKey) => {
     if (!confirm('Are you sure you want to revoke this key?')) return;
+    setErrorMessage(null);
     try {
       await safeCallWS(hass, {
         type: WsCommand.REVOKE_GUEST_KEY,
         identityPskId: key.identity_psk_id,
       });
       fetchKeys();
-    } catch (err) {
-      alert(`Error deleting key: ${err}`);
+    } catch (err: any) {
+      setErrorMessage(err.message || err.toString() || "Failed to revoke key.");
     }
   };
 
@@ -128,184 +170,178 @@ const TimedAccess: React.FC<TimedAccessProps> = ({
     return `${minutes} mins left (${date.toLocaleTimeString()})`;
   };
 
+  const networks = data?.networks?.filter((n: any) => n.productTypes?.includes('wireless')) || [];
+  const ssids = selectedNetwork ? getSsidsForNetwork(selectedNetwork) : [];
+
   return (
-    <div className="max-w-6xl mx-auto">
-      <ha-card className="bg-[var(--card-background-color)] text-[var(--primary-text-color)] shadow-lg rounded-lg overflow-hidden p-6">
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-xl font-bold">Timed Guest Access</h2>
-        </div>
+    <div className="max-w-6xl mx-auto p-4">
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-bold">Timed guest access</h1>
+      </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Create Section */}
-          <div className="space-y-4 border-r pr-6 border-gray-200 dark:border-gray-700">
-            <h3 className="text-lg font-semibold">Create New Key</h3>
+      {errorMessage && (
+        <ha-alert
+          alert-type="error"
+          className="mb-6 block"
+          dismissable
+          onClose={() => setErrorMessage(null)}
+        >
+          {errorMessage}
+        </ha-alert>
+      )}
 
-            <div>
-              <label className="block text-sm font-medium mb-1">Network</label>
-              <select
-                className="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600"
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        {/* Create Section */}
+        <div>
+          <ha-card header="Create new key" className="p-4">
+            <div className="space-y-4 flex flex-col">
+              <ha-select
+                ref={networkSelectRef}
+                label="Network"
                 value={selectedNetwork}
-                onChange={(e) => {
-                  setSelectedNetwork(e.target.value);
-                  setSelectedSsid('');
-                }}
+                className="w-full"
+                fixedMenuPosition
+                naturalMenuWidth
               >
-                <option value="">Select Network</option>
-                {data?.networks
-                  ?.filter((n: any) => n.productTypes?.includes('wireless'))
-                  .map((n: any) => (
-                    <option key={n.id} value={n.id}>
-                      {n.name}
-                    </option>
-                  ))}
-              </select>
-            </div>
-
-            {selectedNetwork && (
-              <div>
-                <label className="block text-sm font-medium mb-1">SSID</label>
-                <select
-                  className="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600"
-                  value={selectedSsid}
-                  onChange={(e) => setSelectedSsid(e.target.value)}
-                >
-                  <option value="">Select SSID</option>
-                  {getSsidsForNetwork(selectedNetwork).map((s: any) => (
-                    <option key={s.number} value={s.number}>
-                      {s.name} (SSID {s.number})
-                    </option>
-                  ))}
-                </select>
-              </div>
-            )}
-
-            <div>
-              <label className="block text-sm font-medium mb-1">
-                Group Policy
-              </label>
-              <select
-                className="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600"
-                value={selectedPolicy}
-                onChange={(e) => setSelectedPolicy(e.target.value)}
-                disabled={!selectedNetwork}
-              >
-                <option value="">None (Default)</option>
-                {policies.map((p) => (
-                  <option key={p.groupPolicyId} value={p.groupPolicyId}>
-                    {p.name}
-                  </option>
+                {networks.map((n: any) => (
+                  <ha-list-item key={n.id} value={n.id}>
+                    {n.name}
+                  </ha-list-item>
                 ))}
-              </select>
-            </div>
+              </ha-select>
 
-            <div>
-              <label className="block text-sm font-medium mb-1">
-                Duration (Minutes)
-              </label>
-              <select
-                className="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600"
-                value={duration}
-                onChange={(e) => setDuration(e.target.value)}
+              <ha-select
+                ref={ssidSelectRef}
+                label="SSID"
+                value={selectedSsid}
+                disabled={!selectedNetwork}
+                className="w-full"
+                fixedMenuPosition
+                naturalMenuWidth
               >
-                <option value="30">30 Minutes</option>
-                <option value="60">1 Hour</option>
-                <option value="240">4 Hours</option>
-                <option value="1440">24 Hours</option>
-                <option value="10080">7 Days</option>
-              </select>
-            </div>
+                {ssids.map((s: any) => (
+                  <ha-list-item key={s.number} value={s.number.toString()}>
+                    {s.name} (SSID {s.number})
+                  </ha-list-item>
+                ))}
+              </ha-select>
 
-            <div>
-              <label className="block text-sm font-medium mb-1">
-                Name (Optional)
-              </label>
-              <input
-                type="text"
-                className="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600"
+              <ha-select
+                ref={policySelectRef}
+                label="Group policy"
+                value={selectedPolicy}
+                disabled={!selectedNetwork}
+                className="w-full"
+                fixedMenuPosition
+                naturalMenuWidth
+              >
+                <ha-list-item value="">None (Default)</ha-list-item>
+                {policies.map((p) => (
+                  <ha-list-item key={p.groupPolicyId} value={p.groupPolicyId}>
+                    {p.name}
+                  </ha-list-item>
+                ))}
+              </ha-select>
+
+              <ha-select
+                ref={durationSelectRef}
+                label="Duration"
+                value={duration}
+                className="w-full"
+                fixedMenuPosition
+                naturalMenuWidth
+              >
+                <ha-list-item value="30">30 Minutes</ha-list-item>
+                <ha-list-item value="60">1 Hour</ha-list-item>
+                <ha-list-item value="240">4 Hours</ha-list-item>
+                <ha-list-item value="1440">24 Hours</ha-list-item>
+                <ha-list-item value="10080">7 Days</ha-list-item>
+              </ha-select>
+
+              <ha-textfield
+                label="Name (Optional)"
                 placeholder="e.g. Guest-John"
                 value={customName}
-                onChange={(e) => setCustomName(e.target.value)}
+                onInput={(e: any) => setCustomName(e.target.value)}
+                className="w-full"
               />
-            </div>
 
-            <div>
-              <label className="block text-sm font-medium mb-1">
-                Passphrase (Optional)
-              </label>
-              <input
-                type="text"
-                className="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600"
+              <ha-textfield
+                label="Passphrase (Optional)"
                 placeholder="Leave empty to auto-generate"
                 value={customPassphrase}
-                onChange={(e) => setCustomPassphrase(e.target.value)}
+                onInput={(e: any) => setCustomPassphrase(e.target.value)}
+                className="w-full"
               />
+
+              <ha-button
+                raised
+                onClick={handleCreate}
+                disabled={creating || !selectedNetwork || !selectedSsid}
+                className="w-full"
+              >
+                {creating ? 'Creating...' : 'Generate access key'}
+              </ha-button>
             </div>
+          </ha-card>
+        </div>
 
-            <button
-              className="w-full bg-blue-600 text-white p-2 rounded hover:bg-blue-700 disabled:opacity-50"
-              onClick={handleCreate}
-              disabled={creating || !selectedNetwork || !selectedSsid}
-            >
-              {creating ? 'Creating...' : 'Generate Access Key'}
-            </button>
-          </div>
+        {/* List Section */}
+        <div>
+          <h2 className="text-xl font-semibold mb-4">Active guest keys</h2>
+          {loading ? (
+            <div className="flex justify-center p-8">
+              <ha-circular-progress active></ha-circular-progress>
+            </div>
+          ) : keys.length === 0 ? (
+            <ha-card className="p-6 text-center text-[var(--secondary-text-color)] italic">
+              No active keys found.
+            </ha-card>
+          ) : (
+            <div className="space-y-4">
+              {keys.map((key) => {
+                const ssidName =
+                  getSsidsForNetwork(key.network_id).find(
+                    (s: any) => s.number.toString() === key.ssid_number
+                  )?.name || `SSID ${key.ssid_number}`;
+                const wifiString = `WIFI:T:WPA;S:${ssidName};P:${key.passphrase};;`;
 
-          {/* List Section */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold">Active Guest Keys</h3>
-            {loading ? (
-              <div>Loading keys...</div>
-            ) : keys.length === 0 ? (
-              <div className="text-gray-500 italic">No active keys found.</div>
-            ) : (
-              <div className="space-y-4">
-                {keys.map((key) => {
-                  const ssidName =
-                    getSsidsForNetwork(key.network_id).find(
-                      (s: any) => s.number.toString() === key.ssid_number
-                    )?.name || `SSID ${key.ssid_number}`;
-                  const wifiString = `WIFI:T:WPA;S:${ssidName};P:${key.passphrase};;`;
-
-                  return (
-                    <div
-                      key={key.identity_psk_id}
-                      className="border rounded p-4 dark:border-gray-700 flex flex-col gap-2"
-                    >
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <div className="font-bold">{key.name}</div>
-                          <div className="text-sm text-gray-500">
-                            {ssidName}
-                          </div>
+                return (
+                  <ha-card key={key.identity_psk_id} className="p-4">
+                    <div className="flex justify-between items-start mb-4">
+                      <div>
+                        <div className="text-lg font-bold">{key.name}</div>
+                        <div className="text-sm text-[var(--secondary-text-color)]">
+                          {ssidName}
                         </div>
-                        <button
-                          onClick={() => handleDelete(key)}
-                          className="text-red-500 hover:text-red-700 text-sm border border-red-500 rounded px-2 py-1"
-                        >
-                          Revoke
-                        </button>
                       </div>
+                      <ha-button
+                        onClick={() => handleDelete(key)}
+                        className="text-[var(--error-color)]"
+                      >
+                        Revoke
+                      </ha-button>
+                    </div>
 
-                      <div className="bg-gray-100 dark:bg-gray-900 p-2 rounded font-mono text-center text-lg select-all">
-                        {key.passphrase}
+                    <div className="bg-[var(--secondary-background-color)] p-3 rounded font-mono text-center text-xl select-all mb-4 border border-[var(--divider-color)]">
+                      {key.passphrase}
+                    </div>
+
+                    <div className="flex justify-between items-end">
+                      <div className="text-sm text-[var(--primary-color)] font-medium">
+                        {formatExpiry(key.expires_at)}
                       </div>
-
-                      <div className="flex justify-between items-end">
-                        <div className="text-sm text-blue-600 dark:text-blue-400">
-                          {formatExpiry(key.expires_at)}
-                        </div>
-                        <div className="bg-white p-1 rounded">
-                          <QRCode value={wifiString} size={64} />
-                        </div>
+                      <div className="bg-white p-2 rounded shadow-sm">
+                        <QRCode value={wifiString} size={80} />
                       </div>
                     </div>
-                  );
-                })}
-              </div>
-            )}
-          </div>
+                  </ha-card>
+                );
+              })}
+            </div>
+          )}
         </div>
-      </ha-card>
+      </div>
     </div>
   );
 };
