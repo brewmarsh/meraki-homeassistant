@@ -11,10 +11,12 @@ from custom_components.meraki_ha.const_conf import (
     CONF_MERAKI_API_KEY,
     CONF_MERAKI_ORG_ID,
 )
+
 # Resolved: Using the centralized coordinator path from the 2.3.0-beta.120 refactor
 from custom_components.meraki_ha.coordinators import (
     MerakiMainCoordinator as MerakiDataCoordinator,
 )
+
 
 @pytest.fixture
 def coordinator(hass):
@@ -34,6 +36,7 @@ def coordinator(hass):
         # Mock get_all_data on the instance created by the mock fetch manager
         coord.data_fetch_manager.get_all_data = AsyncMock()
         yield coord
+
 
 @pytest.mark.asyncio
 async def test_adaptive_polling_429(coordinator):
@@ -61,6 +64,7 @@ async def test_adaptive_polling_429(coordinator):
     await coordinator._async_update_data()
     assert coordinator.update_interval == timedelta(seconds=120)
 
+
 @pytest.mark.asyncio
 async def test_adaptive_polling_recovery(coordinator):
     """Test that update_interval resets after 3 consecutive successes."""
@@ -87,6 +91,7 @@ async def test_adaptive_polling_recovery(coordinator):
     # Should reset to default
     assert coordinator.update_interval == timedelta(seconds=30)
     assert coordinator.polling_manager.consecutive_successes == 3
+
 
 @pytest.mark.asyncio
 async def test_success_history_limit(coordinator):

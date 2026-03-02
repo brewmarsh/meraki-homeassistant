@@ -26,34 +26,39 @@ async def get_version() -> str:
     return manifest["version"]
 
 
-async def get_unhealthy_entities(
-    session: aiohttp.ClientSession,
-) -> list[dict[str, Any]]:
-    """Fetch all entities from Home Assistant and filter for unhealthy ones."""
+async def fetch_ha_states(session: aiohttp.ClientSession) -> list[dict[str, Any]]:
+    """Fetch all state entities from Home Assistant."""
     headers = {
         "Authorization": f"Bearer {HA_TOKEN}",
         "Content-Type": "application/json",
     }
     url = f"{HA_URL}/api/states"
-    unhealthy_entities = []
 
     try:
         async with session.get(
             url, headers=headers, timeout=aiohttp.ClientTimeout(total=30)
         ) as response:
             if response.status == 200:
-                entities = await response.json()
-                for entity in entities:
-                    if entity["entity_id"].startswith(f"{DOMAIN}.") and entity[
-                        "state"
-                    ] in ["unavailable", "unknown"]:
-                        unhealthy_entities.append(entity)
-            else:
-                print(f"Error fetching entities: {response.status}")
+                return await response.json()
+            print(f"Error fetching entities: {response.status}")
     except (aiohttp.ClientConnectorError, asyncio.TimeoutError) as e:
         print(f"Home Assistant API request failed: {e}")
+    return []
 
-    return unhealthy_entities
+
+def is_unhealthy_meraki_entity(entity: dict[str, Any]) -> bool:
+    """Check if an entity belongs to Meraki and is unhealthy."""
+    is_meraki = entity.get("entity_id", "").startswith(f"{DOMAIN}.")
+    is_unhealthy = entity.get("state") in ["unavailable", "unknown"]
+    return is_meraki and is_unhealthy
+
+
+async def get_unhealthy_entities(
+    session: aiohttp.ClientSession,
+) -> list[dict[str, Any]]:
+    """Fetch all entities from Home Assistant and filter for unhealthy ones."""
+    entities = await fetch_ha_states(session)
+    return [entity for entity in entities if is_unhealthy_meraki_entity(entity)]
 
 
 def run_gh_command(command: list[str]) -> str:
@@ -104,7 +109,7 @@ def find_existing_issue(version: str) -> int | None:
     return None
 
 
-def create_github_issue(version: str, unhealthy_entities: list[dict[str, Any]]):
+def create_github_issue(version: str, unhealthy_entities: list[dict[str, Any]]) -> None:
     """Create a new GitHub issue with the audit results."""
     if GITHUB_REPOSITORY is None:
         print("GITHUB_REPOSITORY is not set")
@@ -132,12 +137,8 @@ def create_github_issue(version: str, unhealthy_entities: list[dict[str, Any]]):
     print(f"Created new GitHub issue: {issue_title}")
 
 
-def update_github_issue(issue_number: int, unhealthy_entities: list[dict[str, Any]]):
-    """Update an existing GitHub issue with the latest audit results."""
-    if GITHUB_REPOSITORY is None:
-        print("GITHUB_REPOSITORY is not set")
-        return
-
+def get_existing_issue_body(issue_number: int) -> str | None:
+    """Retrieve the body of an existing GitHub issue."""
     existing_issue_body = run_gh_command(
         [
             "issue",
@@ -150,26 +151,60 @@ def update_github_issue(issue_number: int, unhealthy_entities: list[dict[str, An
         ]
     )
     if not existing_issue_body:
-        return
+        return None
+    return json.loads(existing_issue_body)["body"]
 
-    existing_body = json.loads(existing_issue_body)["body"]
-    existing_entities = set(re.findall(r"- \[[ x]\] `(.*?)`", existing_body))
-    new_entities = {entity["entity_id"] for entity in unhealthy_entities}
 
-    # Mark resolved entities as complete
-    for entity_id in existing_entities - new_entities:
-        existing_body = re.sub(
+def get_existing_entities(body: str) -> set[str]:
+    """Extract existing entities from the issue body."""
+    return set(re.findall(r"- \[[ x]\] `(.*?)`", body))
+
+
+def mark_resolved_entities(
+    body: str, existing_entities: set[str], new_entities: set[str]
+) -> str:
+    """Mark resolved entities as complete in the issue body."""
+    resolved_entities = existing_entities - new_entities
+    for entity_id in resolved_entities:
+        body = re.sub(
             f"(- \\[ \\] `{entity_id}`)",
             f"- [x] `{entity_id}`",
-            existing_body,
+            body,
         )
+    return body
 
-    # Add new unhealthy entities
+
+def append_new_entities(
+    body: str, unhealthy_entities: list[dict[str, Any]], existing_entities: set[str]
+) -> str:
+    """Append newly unhealthy entities to the issue body."""
     for entity in unhealthy_entities:
         if entity["entity_id"] not in existing_entities:
-            existing_body += (
-                f"\n- [ ] `{entity['entity_id']}` (State: {entity['state']})"
-            )
+            body += f"\n- [ ] `{entity['entity_id']}` (State: {entity['state']})"
+    return body
+
+
+def update_github_issue(
+    issue_number: int, unhealthy_entities: list[dict[str, Any]]
+) -> None:
+    """Update an existing GitHub issue with the latest audit results."""
+    if GITHUB_REPOSITORY is None:
+        print("GITHUB_REPOSITORY is not set")
+        return
+
+    existing_body = get_existing_issue_body(issue_number)
+    if not existing_body:
+        return
+
+    existing_entities = get_existing_entities(existing_body)
+    new_entities = {entity["entity_id"] for entity in unhealthy_entities}
+
+    updated_body = mark_resolved_entities(
+        existing_body, existing_entities, new_entities
+    )
+    updated_body = append_new_entities(
+        updated_body, unhealthy_entities, existing_entities
+    )
 
     run_gh_command(
         [
@@ -179,13 +214,13 @@ def update_github_issue(issue_number: int, unhealthy_entities: list[dict[str, An
             "--repo",
             GITHUB_REPOSITORY,
             "--body",
-            existing_body,
+            updated_body,
         ]
     )
     print(f"Updated GitHub issue #{issue_number}")
 
 
-async def main():
+async def main() -> None:
     """Run the main execution function."""
     if not all([HA_TOKEN, GITHUB_TOKEN, GITHUB_REPOSITORY]):
         print(

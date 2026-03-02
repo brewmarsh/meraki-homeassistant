@@ -11,10 +11,12 @@ import json
 import os
 import subprocess
 import sys
+from typing import Any
 
 TARGET_DIR = "custom_components/meraki_ha/"
 
-def run_command(cmd):
+
+def run_command(cmd: list[str]) -> str:
     """Run a shell command and return its stdout."""
     try:
         # mypy returns non-zero exit code on errors, so check=False is important
@@ -24,10 +26,21 @@ def run_command(cmd):
         print(f"Error running command {' '.join(cmd)}: {e}")
         return ""
 
-def generate_complexity_report():
+
+def generate_complexity_report() -> list[dict[str, str]]:
     """Generate report for high complexity functions using ruff."""
     # ruff check . --select C901 --output-format json
-    cmd = [sys.executable, "-m", "ruff", "check", TARGET_DIR, "--select", "C901", "--output-format", "json"]
+    cmd = [
+        sys.executable,
+        "-m",
+        "ruff",
+        "check",
+        TARGET_DIR,
+        "--select",
+        "C901",
+        "--output-format",
+        "json",
+    ]
     output = run_command(cmd)
     if not output:
         return []
@@ -38,28 +51,96 @@ def generate_complexity_report():
         print(f"Failed to decode ruff output: {output}")
         return []
 
-    tasks = []
+    tasks: list[dict[str, str]] = []
     for error in errors:
-        # Example: {"code": "C901", "filename": "...", "location": ..., "message": "function `foo` is too complex (15)"}
-        filename = error.get("filename")
-        message = error.get("message")
-        code = error.get("code")
+        # Example: {"code": "C901", "filename": "...",
+        # "message": "function `foo` is too complex (15)"}
+        filename = error.get("filename", "")
+        message = error.get("message", "")
+        code = error.get("code", "")
 
         # Make path relative if absolute
         if os.path.isabs(filename):
             filename = os.path.relpath(filename)
 
-        prompt = f"The {message}. Please refactor it to reduce cyclomatic complexity below 10."
+        prompt = f"The {message}. Refactor it to reduce complexity below 10."
 
-        tasks.append({
-            "type": "High Cognitive Load",
-            "file": filename,
-            "rule": code,
-            "prompt": prompt
-        })
+        tasks.append(
+            {
+                "type": "High Cognitive Load",
+                "file": filename,
+                "rule": code,
+                "prompt": prompt,
+            }
+        )
     return tasks
 
-def generate_typing_report():
+
+def parse_mypy_output(output: str) -> list[dict[str, Any]]:
+    """Parse mypy output into a list of error dictionaries."""
+    errors: list[dict[str, Any]] = []
+    try:
+        for line in output.splitlines():
+            if line.strip():
+                errors.append(json.loads(line))
+        return errors
+    except json.JSONDecodeError:
+        print("Failed to decode mypy output")
+        return []
+
+
+def _is_valid_mypy_error(error: dict[str, Any], files_with_issues: set[str]) -> bool:
+    """Check if a mypy error is valid and should be reported."""
+    filename = error.get("file")
+    severity = error.get("severity")
+
+    # Only report errors, not notes
+    if severity != "error" or not filename:
+        return False
+
+    if filename in files_with_issues:
+        return False
+
+    # Check if file is inside target dir (mypy might check dependencies or other files)
+    if TARGET_DIR not in filename and not filename.startswith(TARGET_DIR):
+        return False
+
+    return True
+
+
+def process_mypy_errors(errors: list[dict[str, Any]]) -> list[dict[str, str]]:
+    """Process mypy errors into a list of task dictionaries."""
+    tasks: list[dict[str, str]] = []
+    files_with_issues: set[str] = set()
+
+    for error in errors:
+        if not _is_valid_mypy_error(error, files_with_issues):
+            continue
+
+        filename = str(error.get("file"))
+        files_with_issues.add(filename)
+
+        # Make path relative if needed
+        if os.path.isabs(filename):
+            filename = os.path.relpath(filename)
+
+        prompt = (
+            f"The file `{filename}` has type errors or missing type hints. "
+            "Please fix them to improve type safety."
+        )
+
+        tasks.append(
+            {
+                "type": "Low Type Safety",
+                "file": filename,
+                "rule": "mypy",
+                "prompt": prompt,
+            }
+        )
+    return tasks
+
+
+def generate_typing_report() -> list[dict[str, str]]:
     """Generate report for typing issues using mypy."""
     # mypy . --output json
     # Note: mypy output format json returns line-delimited JSON objects
@@ -68,49 +149,13 @@ def generate_typing_report():
     if not output:
         return []
 
-    errors = []
-    try:
-        for line in output.splitlines():
-            if line.strip():
-                errors.append(json.loads(line))
-    except json.JSONDecodeError:
-        print(f"Failed to decode mypy output line: {line}")
-        return []
+    errors = parse_mypy_output(output)
+    return process_mypy_errors(errors)
 
-    tasks = []
-    files_with_issues = set()
 
-    for error in errors:
-        filename = error.get("file")
-        severity = error.get("severity")
-
-        # Only report errors, not notes
-        if severity != "error":
-            continue
-
-        if filename and filename not in files_with_issues:
-            # Check if file is inside target dir (mypy might check dependencies or other files)
-            if TARGET_DIR not in filename and not filename.startswith(TARGET_DIR):
-                continue
-
-            files_with_issues.add(filename)
-
-            # Make path relative if needed
-            if os.path.isabs(filename):
-                filename = os.path.relpath(filename)
-
-            prompt = f"The file `{filename}` has type errors or missing type hints. Please fix them to improve type safety."
-
-            tasks.append({
-                "type": "Low Type Safety",
-                "file": filename,
-                "rule": "mypy",
-                "prompt": prompt
-            })
-    return tasks
-
-def main():
-    tasks = []
+def main() -> None:
+    """Entry point for generating scorecard."""
+    tasks: list[dict[str, str]] = []
     tasks.extend(generate_complexity_report())
     tasks.extend(generate_typing_report())
 
@@ -122,8 +167,9 @@ def main():
         print(f"File: {task['file']}")
         print(f"Rule: {task['rule']}")
         print("Prompt:")
-        print(task['prompt'])
-        print("") # Empty line after block
+        print(task["prompt"])
+        print("")  # Empty line after block
+
 
 if __name__ == "__main__":
     main()

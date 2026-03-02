@@ -12,7 +12,6 @@ from typing import Any
 from unittest.mock import patch
 
 import pytest
-from homeassistant.core import HomeAssistant
 from playwright.async_api import Error, Page, async_playwright, expect
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
@@ -21,6 +20,7 @@ from custom_components.meraki_ha.const_conf import (
     CONF_MERAKI_API_KEY,
     CONF_MERAKI_ORG_ID,
 )
+from homeassistant.core import HomeAssistant
 
 from .const import MOCK_ALL_DATA
 
@@ -289,7 +289,7 @@ def http_server_and_test_file_fixture() -> tuple[int, str]:
 
 @pytest.fixture(name="playwright_browser_page")
 async def playwright_browser_page_fixture() -> Page:
-    """Launches a Playwright browser and provides a page."""
+    """Launch a Playwright browser and provides a page."""
     try:
         async with async_playwright() as p:
             browser = await p.chromium.launch()
@@ -307,7 +307,7 @@ async def playwright_browser_page_fixture() -> Page:
 
 @pytest.fixture(name="mock_hass_config_data")
 def mock_hass_config_data_fixture() -> dict[str, Any]:
-    """Generates comprehensive mock data for the Home Assistant frontend."""
+    """Generate comprehensive mock data for the Home Assistant frontend."""
     mock_data: dict[str, Any] = MOCK_ALL_DATA.copy()
     # Convert dataclasses to dicts for frontend consumption
     mock_data["networks"] = [
@@ -367,7 +367,7 @@ def mock_hass_config_data_fixture() -> dict[str, Any]:
 
 @pytest.fixture(name="javascript_init_script")
 def javascript_init_script_fixture(mock_hass_config_data: dict[str, Any]) -> str:
-    """Generates the full JavaScript init script for Playwright."""
+    """Generate the full JavaScript init script for Playwright."""
     mock_data_json = json.dumps(mock_hass_config_data)
     return JS_TEMPLATE.format(
         ha_elements_js=HA_ELEMENTS_JS,
@@ -377,13 +377,13 @@ def javascript_init_script_fixture(mock_hass_config_data: dict[str, Any]) -> str
 
 # Helper functions for UI interactions
 async def _wait_for_loading_to_hide(page: Page) -> None:
-    """Waits for the loading indicator to disappear."""
+    """Wait for the loading indicator to disappear."""
     loading_indicator = page.get_by_text("Loading...")
     await expect(loading_indicator).to_be_hidden(timeout=10000)
 
 
 async def _expand_network_card(page: Page, network_name: str) -> None:
-    """Expands a specific network card."""
+    """Expand a specific network card."""
     network_card = page.locator("ha-card").filter(has_text=network_name).first
     expand_button = network_card.locator("ha-icon[icon='mdi:chevron-down']")
     await expand_button.click()
@@ -391,7 +391,7 @@ async def _expand_network_card(page: Page, network_name: str) -> None:
 
 
 async def _verify_device_visibility(page: Page, device_names: list[str]) -> None:
-    """Verifies that specified devices are visible in the device table."""
+    """Verify that specified devices are visible in the device table."""
     for name in device_names:
         await expect(page.get_by_text(name)).to_be_visible()
 
@@ -416,7 +416,7 @@ async def _go_back_to_dashboard(page: Page) -> None:
 async def _verify_ssid_card_status(
     page: Page, ssid_name: str, expected_status: str
 ) -> None:
-    """Verifies the status text of an SSID card."""
+    """Verify the status text of an SSID card."""
     ssid_card = page.locator("div.bg-light-card", has_text=ssid_name).first
     await expect(ssid_card).to_be_visible()
     await expect(ssid_card).to_contain_text(expected_status)
@@ -425,7 +425,7 @@ async def _verify_ssid_card_status(
 async def _verify_camera_status(
     page: Page, camera_name: str, expected_status: str
 ) -> None:
-    """Verifies the status of a specific camera device."""
+    """Verify the status of a specific camera device."""
     camera_row = page.locator("tr", has_text=camera_name)
     status_cell = camera_row.locator("td").nth(2)  # 0=Name, 1=Model, 2=Status
     await expect(status_cell).to_contain_text(expected_status)
@@ -454,8 +454,9 @@ async def _toggle_setting_and_save(page: Page, setting_text: str) -> None:
 
 
 async def _get_websocket_calls(page: Page) -> list[dict[str, Any]]:
-    """Retrieves stored WebSocket calls from sessionStorage."""
-    # The '|| "[]"' handles cases where sessionStorage.getItem('mockCallWS') might be null
+    """Retrieve stored WebSocket calls from sessionStorage."""
+    # The '|| "[]"' handles cases where sessionStorage.getItem('mockCallWS')
+    # might be null
     return await page.evaluate(
         "JSON.parse(sessionStorage.getItem('mockCallWS') || '[]')"
     )
