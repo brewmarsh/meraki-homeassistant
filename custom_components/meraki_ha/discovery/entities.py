@@ -23,7 +23,7 @@ from ..sensor.device.meraki_mt_base import MerakiMtSensor
 if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
 
-    from .coordinators import MerakiMainCoordinator
+    from ..coordinators import MerakiMainCoordinator
     from ..core.models.device import MerakiDevice
 
 

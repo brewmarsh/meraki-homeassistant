@@ -16,7 +16,7 @@ from custom_components.meraki_ha.types import MerakiNetwork, MerakiTrafficShapin
 def mock_coordinator_with_traffic_shaping_data(
     mock_coordinator: MagicMock,
 ) -> MagicMock:
-    """Fixture for a mocked MerakiDataUpdateCoordinator with traffic shaping data."""
+    """Fixture for a mocked MerakiMainCoordinator with traffic shaping data."""
     ts_enabled = MerakiTrafficShaping(enabled=True)
     ts_disabled = MerakiTrafficShaping(enabled=False)
 

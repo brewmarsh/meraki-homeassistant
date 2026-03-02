@@ -12,7 +12,7 @@ from custom_components.meraki_ha.types import MerakiDevice
 
 @pytest.fixture
 def mock_data_coordinator():
-    """Fixture for a mocked MerakiDataUpdateCoordinator."""
+    """Fixture for a mocked MerakiMainCoordinator."""
     coordinator = MagicMock()
     coordinator.config_entry.options = {}
     coordinator.data = {

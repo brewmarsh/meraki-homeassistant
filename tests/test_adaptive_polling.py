@@ -11,8 +11,8 @@ from custom_components.meraki_ha.const_conf import (
     CONF_MERAKI_API_KEY,
     CONF_MERAKI_ORG_ID,
 )
-from custom_components.meraki_ha.coordinator import (
-    MerakiDataUpdateCoordinator as MerakiDataCoordinator,
+from custom_components.meraki_ha.coordinators import (
+    MerakiMainCoordinator as MerakiDataCoordinator,
 )
 
 
@@ -26,8 +26,8 @@ def coordinator(hass):
     )
     entry.add_to_hass(hass)
     with (
-        patch("custom_components.meraki_ha.coordinator.ApiClient"),
-        patch("custom_components.meraki_ha.coordinator.DataFetchManager"),
+        patch("custom_components.meraki_ha.coordinators.base.ApiClient"),
+        patch("custom_components.meraki_ha.coordinators.base.DataFetchManager"),
     ):
         coord = MerakiDataCoordinator(hass=hass, entry=entry)
         # Mock get_all_data on the instance created by the mock fetch manager

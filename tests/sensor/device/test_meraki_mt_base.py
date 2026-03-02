@@ -12,7 +12,7 @@ from custom_components.meraki_ha.types import MerakiDevice
 
 @pytest.fixture
 def mock_coordinator() -> MagicMock:
-    """Fixture for a mocked MerakiDataUpdateCoordinator."""
+    """Fixture for a mocked MerakiMainCoordinator."""
     coordinator = MagicMock()
     coordinator.data = {}
     return coordinator

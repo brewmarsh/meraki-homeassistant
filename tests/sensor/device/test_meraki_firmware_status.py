@@ -5,7 +5,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from custom_components.meraki_ha.coordinator import MerakiDataUpdateCoordinator
+from custom_components.meraki_ha.coordinators import MerakiMainCoordinator
 from custom_components.meraki_ha.sensor.device.meraki_firmware_status import (
     MerakiFirmwareStatusSensor,
 )
@@ -14,14 +14,14 @@ from custom_components.meraki_ha.types import MerakiDevice
 
 @pytest.fixture
 def mock_device_coordinator() -> MagicMock:
-    """Fixture for a mocked MerakiDataUpdateCoordinator.
+    """Fixture for a mocked MerakiMainCoordinator.
 
     This mock provides a structured 'data' attribute and a 'get_device' method
     as expected by the Meraki firmware status sensor.
     """
-    # Using spec=MerakiDataUpdateCoordinator allows type checkers to validate
+    # Using spec=MerakiMainCoordinator allows type checkers to validate
     # interactions with the mock against the actual coordinator's interface.
-    coordinator: MagicMock = MagicMock(spec=MerakiDataUpdateCoordinator)
+    coordinator: MagicMock = MagicMock(spec=MerakiMainCoordinator)
 
     device1: MerakiDevice = MerakiDevice(
         serial="dev1",

@@ -4,7 +4,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from custom_components.meraki_ha.coordinator import MerakiDataUpdateCoordinator
+from custom_components.meraki_ha.coordinators import MerakiMainCoordinator
 from custom_components.meraki_ha.core.api.client import MerakiAPIClient
 from custom_components.meraki_ha.core.api.endpoints.appliance import (
     ApplianceEndpoints,
@@ -28,7 +28,7 @@ def hass():
 @pytest.fixture
 def coordinator():
     """Fixture for a mocked coordinator."""
-    mock = MagicMock(spec=MerakiDataUpdateCoordinator)
+    mock = MagicMock(spec=MerakiMainCoordinator)
     return mock
 
 

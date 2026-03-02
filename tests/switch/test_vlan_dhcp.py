@@ -13,7 +13,7 @@ from custom_components.meraki_ha.types import MerakiNetwork
 
 @pytest.fixture
 def mock_coordinator_with_vlan_data(mock_coordinator: MagicMock) -> MagicMock:
-    """Fixture for a mocked MerakiDataUpdateCoordinator with VLAN data."""
+    """Fixture for a mocked MerakiMainCoordinator with VLAN data."""
     vlan1 = MerakiVlan(
         id="1",
         name="VLAN 1",

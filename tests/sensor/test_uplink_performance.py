@@ -14,7 +14,7 @@ from custom_components.meraki_ha.sensor.uplink_performance import (
 
 @pytest.fixture
 def mock_coordinator():
-    """Fixture for a mocked MerakiDataUpdateCoordinator."""
+    """Fixture for a mocked MerakiMainCoordinator."""
     coordinator = MagicMock()
     return coordinator
 

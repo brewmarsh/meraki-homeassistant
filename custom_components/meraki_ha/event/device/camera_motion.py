@@ -12,7 +12,7 @@ from homeassistant.components.event import (
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.device_registry import DeviceInfo
 
-from ..coordinators import MerakiCameraCoordinator
+from ...coordinators import MerakiCameraCoordinator
 from ...entity import MerakiEntity
 from ...helpers.device_info_helpers import resolve_device_info
 
