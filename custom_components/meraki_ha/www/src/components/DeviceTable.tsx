@@ -8,7 +8,7 @@ interface DeviceTableProps {
 }
 
 const DeviceTable: React.FC<DeviceTableProps> = ({
-  hass,
+  hass: _hass,
   devices,
   setActiveView,
   deviceType = 'other',
