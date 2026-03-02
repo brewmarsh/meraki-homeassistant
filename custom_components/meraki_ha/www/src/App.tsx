@@ -215,7 +215,7 @@ const App: React.FC<AppProps> = ({ hass, panel, config_entry_id }) => {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-screen bg-light-background dark:bg-dark-background text-light-text dark:text-dark-text">
+      <div className="flex justify-center items-center h-screen bg-light-background dark:bg-dark-background text-[var(--primary-text-color)]">
         Loading...
       </div>
     );
@@ -223,16 +223,16 @@ const App: React.FC<AppProps> = ({ hass, panel, config_entry_id }) => {
 
   if (configNotFound) {
     return (
-      <div className="flex flex-col justify-center items-center h-screen bg-light-background dark:bg-dark-background text-light-text dark:text-dark-text p-4 text-center">
-        <ha-icon icon="mdi:alert-circle-outline" style={{'--mdc-icon-size': '64px'} as any} className="mb-4 text-red-500"></ha-icon>
+      <div className="flex flex-col justify-center items-center h-screen bg-light-background dark:bg-dark-background text-[var(--primary-text-color)] p-4 text-center">
+        <ha-icon icon="mdi:alert-circle-outline" style={{'--mdc-icon-size': '64px', color: 'var(--error-color)'} as any} className="mb-4"></ha-icon>
         <h2 className="text-xl font-bold mb-2">Integration Not Configured</h2>
-        <p className="mb-6 max-w-md">
+        <p className="mb-6 max-w-md text-[var(--secondary-text-color)]">
           The Meraki integration has not been configured yet, or the configuration entry could not be found.
           Please ensure the integration is added and configured in Home Assistant.
         </p>
         <a
           href="/config/integrations"
-          className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+          className="bg-[var(--primary-color)] text-[var(--text-primary-color, white)] px-6 py-2 rounded-lg hover:opacity-90 transition-colors"
         >
           Go to Integrations
         </a>
@@ -242,13 +242,13 @@ const App: React.FC<AppProps> = ({ hass, panel, config_entry_id }) => {
 
   if (error && !data) {
     return (
-      <div className="flex flex-col justify-center items-center h-screen bg-light-background dark:bg-dark-background text-light-text dark:text-dark-text p-4 text-center">
-        <ha-icon icon="mdi:error-outline" style={{'--mdc-icon-size': '64px'} as any} className="mb-4 text-red-500"></ha-icon>
+      <div className="flex flex-col justify-center items-center h-screen bg-light-background dark:bg-dark-background text-[var(--primary-text-color)] p-4 text-center">
+        <ha-icon icon="mdi:error-outline" style={{'--mdc-icon-size': '64px', color: 'var(--error-color)'} as any} className="mb-4"></ha-icon>
         <h2 className="text-xl font-bold mb-2">Error</h2>
-        <p className="mb-6">{error}</p>
+        <p className="mb-6 text-[var(--secondary-text-color)]">{error}</p>
         <button
           onClick={fetchData}
-          className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+          className="bg-[var(--primary-color)] text-[var(--text-primary-color, white)] px-6 py-2 rounded-lg hover:opacity-90 transition-colors"
         >
           Retry
         </button>
@@ -258,34 +258,34 @@ const App: React.FC<AppProps> = ({ hass, panel, config_entry_id }) => {
 
   if (!data) {
     return (
-      <div className="flex justify-center items-center h-screen bg-light-background dark:bg-dark-background text-light-text dark:text-dark-text">
+      <div className="flex justify-center items-center h-screen bg-light-background dark:bg-dark-background text-[var(--primary-text-color)]">
         No data found.
       </div>
     );
   }
 
   return (
-    <div className="p-4 relative bg-light-background dark:bg-dark-background text-light-text dark:text-dark-text">
-      <div className="flex justify-between items-center mb-4">
+    <div className="p-4 relative bg-light-background dark:bg-dark-background text-[var(--primary-text-color)]">
+      <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">Cisco Meraki Integration</h1>
         <div className="flex gap-2">
           <button
             onClick={() => setShowTimedAccess(true)}
-            className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700"
+            className="p-2 rounded-full hover:bg-light-hover dark:hover:bg-dark-hover text-[var(--secondary-text-color)]"
             title="Timed Guest Access"
           >
             <ha-icon icon="mdi:clock-outline"></ha-icon>
           </button>
           <button
             onClick={fetchData}
-            className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700"
+            className="p-2 rounded-full hover:bg-light-hover dark:hover:bg-dark-hover text-[var(--secondary-text-color)]"
             title="Refresh Data"
           >
             <ha-icon icon="mdi:refresh"></ha-icon>
           </button>
           <button
             onClick={() => setShowSettings(true)}
-            className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700"
+            className="p-2 rounded-full hover:bg-light-hover dark:hover:bg-dark-hover text-[var(--secondary-text-color)]"
             title="Settings"
           >
             <ha-icon icon="mdi:cog"></ha-icon>
@@ -326,7 +326,7 @@ const App: React.FC<AppProps> = ({ hass, panel, config_entry_id }) => {
         />
       )}
       {data?.version && (
-        <div className="absolute bottom-0 right-0 p-2 text-xs text-gray-500">
+        <div className="absolute bottom-0 right-0 p-2 text-xs text-[var(--secondary-text-color)]">
           Version: {data.version}
         </div>
       )}
