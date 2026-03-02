@@ -5,6 +5,8 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any
 
+from .base import MerakiBaseDevice
+
 
 @dataclass(kw_only=True)
 class SwitchMixin:
@@ -20,3 +22,21 @@ class SwitchMixin:
     def switch_from_dict(data: dict[str, Any]) -> dict[str, Any]:
         """Parse switch fields from dictionary."""
         return {"switch_ports": data.get("portsStatuses", [])}
+
+
+@dataclass(kw_only=True)
+class MerakiSwitchDevice(MerakiBaseDevice, SwitchMixin):
+    """Dataclass for a Meraki Switch."""
+
+    def to_dict(self) -> dict[str, Any]:
+        """Convert to dictionary."""
+        data = self.base_to_dict()
+        data.update(self.switch_to_dict())
+        return data
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> MerakiSwitchDevice:
+        """Create a MerakiSwitchDevice from a dictionary."""
+        kwargs = cls.base_from_dict(data)
+        kwargs.update(cls.switch_from_dict(data))
+        return cls(**kwargs)

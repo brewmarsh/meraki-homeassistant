@@ -17,7 +17,7 @@ from ..coordinators import MerakiMainCoordinator
 from ...core.utils.naming_utils import standardize_device_name
 
 if TYPE_CHECKING:
-    from ...core.models.device import MerakiDevice
+    from ...core.models import MerakiApplianceDevice
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -32,7 +32,7 @@ class MerakiApplianceUplinkSensor(CoordinatorEntity, SensorEntity):
     def __init__(
         self,
         coordinator: MerakiMainCoordinator,
-        device_data: MerakiDevice,
+        device_data: MerakiApplianceDevice,
         config_entry: ConfigEntry,
         uplink_data: dict[str, Any],
     ) -> None:

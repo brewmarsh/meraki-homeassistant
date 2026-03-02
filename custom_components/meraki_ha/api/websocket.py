@@ -10,7 +10,7 @@ from homeassistant.core import HomeAssistant, callback
 from homeassistant.loader import async_get_integration
 
 from ..const import DOMAIN
-from .coordinators import MerakiCameraCoordinator
+from ..coordinators.camera import MerakiCameraCoordinator
 from ..helpers.serialization import to_serializable
 from ..services.camera_service import CameraService
 

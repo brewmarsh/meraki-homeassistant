@@ -13,7 +13,7 @@ from ..coordinators import MerakiCameraCoordinator
 from ...helpers.device_info_helpers import resolve_device_info
 
 if TYPE_CHECKING:
-    from ...core.models.device import MerakiDevice
+    from ...core.models import MerakiCameraDevice
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -26,7 +26,7 @@ class MerakiAnalyticsSensor(CoordinatorEntity, SensorEntity):
     def __init__(
         self,
         coordinator: MerakiCameraCoordinator,
-        device: MerakiDevice,
+        device: MerakiCameraDevice,
         object_type: str,
     ) -> None:
         """Initialize the sensor."""
@@ -71,7 +71,7 @@ class MerakiPersonCountSensor(MerakiAnalyticsSensor):
     def __init__(
         self,
         coordinator: MerakiCameraCoordinator,
-        device: MerakiDevice,
+        device: MerakiCameraDevice,
     ) -> None:
         """Initialize the sensor."""
         super().__init__(coordinator, device, "person")
@@ -84,7 +84,7 @@ class MerakiVehicleCountSensor(MerakiAnalyticsSensor):
     def __init__(
         self,
         coordinator: MerakiCameraCoordinator,
-        device: MerakiDevice,
+        device: MerakiCameraDevice,
     ) -> None:
         """Initialize the sensor."""
         super().__init__(coordinator, device, "vehicle")

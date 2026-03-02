@@ -16,7 +16,7 @@ from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from ..coordinators import MerakiSwitchCoordinator
-from ...core.models.device import MerakiDevice
+from ...core.models import MerakiSwitchDevice
 from ...helpers.device_info_helpers import resolve_device_info
 
 
@@ -33,7 +33,7 @@ class MerakiSwitchPoESensor(CoordinatorEntity, SensorEntity):
     def __init__(
         self,
         coordinator: MerakiSwitchCoordinator,
-        device: MerakiDevice,
+        device: MerakiSwitchDevice,
         port: dict[str, Any],
         config_entry: ConfigEntry,
     ) -> None:

@@ -5,6 +5,8 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any
 
+from .base import MerakiBaseDevice
+
 
 @dataclass(kw_only=True)
 class SensorMixin:
@@ -63,3 +65,21 @@ class SensorMixin:
             "frequency": data.get("frequency"),
             "energy": data.get("energy"),
         }
+
+
+@dataclass(kw_only=True)
+class MerakiSensorDevice(MerakiBaseDevice, SensorMixin):
+    """Dataclass for a Meraki Sensor."""
+
+    def to_dict(self) -> dict[str, Any]:
+        """Convert to dictionary."""
+        data = self.base_to_dict()
+        data.update(self.sensor_to_dict())
+        return data
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> MerakiSensorDevice:
+        """Create a MerakiSensorDevice from a dictionary."""
+        kwargs = cls.base_from_dict(data)
+        kwargs.update(cls.sensor_from_dict(data))
+        return cls(**kwargs)
