@@ -15,6 +15,7 @@ const DeviceTable: React.FC<DeviceTableProps> = ({
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
 
+  // Engineering Scaffolding: Centralized Icon Resolver
   const getDeviceIcon = (model: string) => {
     const m = model?.toUpperCase() || '';
     if (m.startsWith('MR')) return 'mdi:wifi';
@@ -22,18 +23,13 @@ const DeviceTable: React.FC<DeviceTableProps> = ({
     if (m.startsWith('MV')) return 'mdi:cctv';
     if (m.startsWith('MX')) return 'mdi:shield-check';
     if (m.startsWith('MG')) return 'mdi:signal-cellular-outline';
-
-    // MT Series Specifics
     if (m.startsWith('MT40')) return 'mdi:power-plug';
     if (m.startsWith('MT12')) return 'mdi:water';
     if (m.startsWith('MT20')) return 'mdi:door';
     if (m.startsWith('MT30')) return 'mdi:gesture-tap-button';
     if (m.startsWith('MT')) return 'mdi:thermometer';
-
     if (m.startsWith('Z')) return 'mdi:router-wireless';
-    if (m.startsWith('GS')) return 'mdi:lan';
-    if (m.startsWith('GR')) return 'mdi:wifi';
-    if (m.startsWith('GX')) return 'mdi:shield-check';
+    if (m.startsWith('GS') || m.startsWith('GS')) return 'mdi:lan';
     return 'mdi:help-circle';
   };
 
@@ -54,240 +50,105 @@ const DeviceTable: React.FC<DeviceTableProps> = ({
     e.currentTarget.dispatchEvent(event);
   };
 
-  const handleDetailsClick = (e: React.MouseEvent, serial: string) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setActiveView({ view: 'device', deviceId: serial });
-  };
-
-  const capitalizeFirst = (s: string) => {
-    if (!s) return '';
-    return s.charAt(0).toUpperCase() + s.slice(1);
-  };
-
   const getSensorHeroMetric = (device: any) => {
-    // If device is not online, fallback to device.status (which is handled in renderStatus)
     if (device.status !== 'online') return null;
-
     const model = device.model || '';
     const readings = device.readings || [];
 
-    // MT40: Power status (on / off)
-    if (model.startsWith('MT40')) {
-      const switchEntity = device.entities?.find((e: any) =>
-        e.entity_id.startsWith('switch.')
-      );
-      if (switchEntity) {
-        return switchEntity.state === 'on' ? 'On' : 'Off';
-      }
-      return 'Online';
-    }
+    const metricMap: { [key: string]: string } = {
+      'MT10': 'temperature',
+      'MT11': 'temperature',
+      'MT12': 'water',
+      'MT14': 'tvoc',
+      'MT15': 'tvoc',
+      'MT20': 'door'
+    };
 
-    // MT10, MT11: Temperature
-    if (model.startsWith('MT10') || model.startsWith('MT11')) {
-      const r = readings.find((r: any) => r.metric === 'temperature');
-      if (r?.temperature?.celsius !== undefined) {
-        return `${r.temperature.celsius.toFixed(1)} °C`;
-      }
-    }
+    const prefix = Object.keys(metricMap).find(p => model.startsWith(p));
+    if (!prefix) return null;
 
-    // MT12: Status (wet / dry)
-    if (model.startsWith('MT12')) {
-      const r = readings.find((r: any) => r.metric === 'water');
-      if (r?.water?.present !== undefined) {
-        return r.water.present ? 'Wet' : 'Dry';
-      }
-    }
+    const r = readings.find((read: any) => read.metric === metricMap[prefix]);
+    if (!r) return null;
 
-    // MT14, MT15: TVOC
-    if (model.startsWith('MT14') || model.startsWith('MT15')) {
-      const r = readings.find((r: any) => r.metric === 'tvoc');
-      if (r?.tvoc?.concentration !== undefined) {
-        return `${r.tvoc.concentration} μg/m³`;
-      }
-    }
-
-    // MT20: Door status (open / closed)
-    if (model.startsWith('MT20')) {
-      const r = readings.find((r: any) => r.metric === 'door');
-      if (r?.door?.open !== undefined) {
-        return r.door.open ? 'Open' : 'Closed';
-      }
-    }
-
+    if (prefix === 'MT12') return r.water?.present ? 'Wet' : 'Dry';
+    if (prefix === 'MT20') return r.door?.open ? 'Open' : 'Closed';
+    if (r.temperature) return `${r.temperature.celsius.toFixed(1)} °C`;
+    if (r.tvoc) return `${r.tvoc.concentration} μg/m³`;
+    
     return null;
   };
 
   const renderStatus = (device: any) => {
-    let statusText = 'N/A';
-    let statusValue = '';
-
-    // Prioritize API status for Cameras
-    if (deviceType === 'camera') {
-      statusText = device.status ? capitalizeFirst(device.status) : 'N/A';
-      statusValue = device.status?.toLowerCase() || '';
-    } else if (device.model?.startsWith('MT')) {
-      // MT Sensors Logic
-      const status = device.status || 'N/A';
-      if (status !== 'online') {
-        statusText = capitalizeFirst(status);
-        statusValue = status.toLowerCase();
-      } else {
-        // Device is online
-        const hero = getSensorHeroMetric(device);
-        if (hero) {
-          statusText = hero;
-          statusValue = hero.toLowerCase();
-        } else {
-          statusText = 'Online';
-          statusValue = 'online';
-        }
-      }
-    } else {
-      // Default logic: Prioritize HA entity state
-      const haState = device.entity_id && hass?.states?.[device.entity_id];
-      if (
-        haState &&
-        haState.state !== 'unavailable' &&
-        haState.state !== 'unknown'
-      ) {
-        statusText = capitalizeFirst(haState.state);
-        statusValue = haState.state.toLowerCase();
-      } else {
-        statusText = device.status ? capitalizeFirst(device.status) : 'N/A';
-        statusValue = device.status?.toLowerCase() || '';
-      }
+    let statusText = device.status ? device.status.charAt(0).toUpperCase() + device.status.slice(1) : 'N/A';
+    
+    if (device.model?.startsWith('MT') && device.status === 'online') {
+      const hero = getSensorHeroMetric(device);
+      if (hero) statusText = hero;
     }
 
-    const isActive = ['online', 'active', 'on', 'wet', 'connected', 'open'].includes(statusValue);
-    const isError = ['offline', 'unavailable', 'off', 'dry', 'disconnected', 'alerting', 'closed'].includes(statusValue);
+    const s = statusText.toLowerCase();
+    const isActive = ['online', 'active', 'on', 'wet', 'connected', 'open'].includes(s);
+    const isError = ['offline', 'unavailable', 'off', 'disconnected', 'alerting', 'closed'].includes(s);
 
-    const colorClass = isActive
-      ? 'text-[var(--state-active-color)]'
-      : isError
-      ? 'text-[var(--error-color)]'
-      : 'text-[var(--primary-text-color)]';
+    const color = isActive ? 'var(--success-color)' : isError ? 'var(--error-color)' : 'var(--primary-text-color)';
 
-    return <span className={`font-medium ${colorClass}`}>{statusText}</span>;
+    return <span style={{ color }}>{statusText}</span>;
   };
-
-  const renderExtraColumnHeader = () => {
-    if (deviceType === 'switch') return 'Ports';
-    if (deviceType === 'appliance') return 'External IP';
-    if (deviceType === 'camera') return 'RTSP';
-    return null;
-  };
-
-  const renderExtraColumnCell = (device: any) => {
-    if (deviceType === 'switch') {
-      // Calculate ports in use
-      if (device.ports_statuses && Array.isArray(device.ports_statuses)) {
-        const total = device.ports_statuses.length;
-        const inUse = device.ports_statuses.filter(
-          (p: any) => p.status === 'Connected'
-        ).length;
-        return `${inUse} / ${total}`;
-      }
-      return '-';
-    }
-    if (deviceType === 'appliance') {
-      const wan1 = device.wan1Ip;
-      const wan2 = device.wan2Ip;
-      if (wan1 && wan2) return `${wan1}, ${wan2}`;
-      return wan1 || wan2 || '-';
-    }
-    if (deviceType === 'camera') {
-      const rtspUrl = device.lanIp ? `rtsp://${device.lanIp}:9000/live` : null;
-      return rtspUrl ? (
-        <a
-          href={rtspUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-[var(--primary-color)] hover:underline"
-          onClick={(e) => e.stopPropagation()}
-        >
-          Stream Link
-        </a>
-      ) : (
-        <span className="text-[var(--secondary-text-color)]">-</span>
-      );
-    }
-    return null;
-  };
-
-  const hasExtraColumn = ['switch', 'appliance', 'camera'].includes(
-    deviceType
-  );
 
   return (
-    <div className="bg-light-card dark:bg-dark-card p-4 rounded-lg shadow-md border border-light-border dark:border-dark-border">
-      <input
-        type="text"
-        placeholder="Search by name or serial..."
-        className="w-full p-2 mb-4 border rounded-lg bg-light-background dark:bg-dark-background dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-[var(--primary-color)]"
-        value={searchTerm}
-        onChange={(e) => setSearchTerm(e.target.value)}
-      />
-      <div className="overflow-x-auto">
-        <table className="min-w-full">
-          <thead>
-            <tr className="border-b border-light-border dark:border-dark-border">
-              <th className="text-left p-4 font-semibold text-[var(--primary-text-color)]">Name</th>
-              <th className="text-left p-4 font-semibold text-[var(--primary-text-color)]">Model</th>
-              <th className="text-left p-4 font-semibold text-[var(--primary-text-color)]">Status</th>
-              {hasExtraColumn && (
-                <th className="text-left p-4 font-semibold text-[var(--primary-text-color)]">
-                  {renderExtraColumnHeader()}
-                </th>
-              )}
-              <th className="text-center p-4 font-semibold w-16 text-[var(--primary-text-color)]">Details</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredDevices.map((device) => (
-              <tr
-                key={device.serial}
-                className="border-b border-light-border dark:border-dark-border hover:bg-light-hover dark:hover:bg-dark-hover cursor-pointer"
-                onClick={(e) => handleDetailsClick(e, device.serial)}
-              >
-                <td className="p-4 text-[var(--primary-text-color)]">
-                  <div className="flex items-center">
-                    <ha-icon
-                      icon={getDeviceIcon(device.model)}
-                      style={{ marginRight: '8px', color: 'var(--state-icon-color)' }}
-                    ></ha-icon>
-                    <span
-                      className="font-medium text-[var(--primary-color)] hover:underline"
-                      onClick={(e) => {
-                        if (device.entity_id) {
-                          handleDeviceClick(e, device.entity_id);
-                        }
-                      }}
-                    >
-                      {device.name || 'N/A'}
-                    </span>
-                  </div>
-                </td>
-                <td className="p-4 text-[var(--primary-text-color)]">{device.model || 'N/A'}</td>
-                <td className="p-4">{renderStatus(device)}</td>
-                {hasExtraColumn && (
-                  <td className="p-4 text-[var(--primary-text-color)]">{renderExtraColumnCell(device)}</td>
-                )}
-                <td className="p-4 text-center">
-                  <button
-                    onClick={(e) => handleDetailsClick(e, device.serial)}
-                    className="p-2 rounded-full hover:bg-light-hover dark:hover:bg-dark-hover text-[var(--secondary-text-color)] transition-colors"
-                    title="View Details"
+    <ha-card className="mb-4">
+      <div className="p-4">
+        <input
+          type="text"
+          placeholder="Search by name or serial..."
+          className="w-full p-2 mb-4 border border-[var(--divider-color)] rounded-lg bg-[var(--card-background-color)] text-[var(--primary-text-color)] focus:outline-none focus:ring-1 focus:ring-[var(--primary-color)]"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+        />
+        
+        {/* Mobile-First Settings Row Layout */}
+        <div className="flex flex-col">
+          {filteredDevices.map((device) => (
+            <div 
+              key={device.serial}
+              className="border-b border-[var(--divider-color)] last:border-0 hover:bg-[var(--secondary-background-color)] transition-colors cursor-pointer"
+              onClick={() => setActiveView({ view: 'device', deviceId: device.serial })}
+            >
+              <ha-settings-row>
+                <div slot="prefix" className="flex items-center justify-center w-10">
+                  <ha-icon 
+                    icon={getDeviceIcon(device.model)} 
+                    style={{ color: 'var(--state-icon-color)' }}
+                  ></ha-icon>
+                </div>
+                
+                <div slot="heading" className="flex items-center gap-2">
+                  <span 
+                    className="font-medium text-[var(--primary-color)] hover:underline"
+                    onClick={(e) => device.entity_id && handleDeviceClick(e, device.entity_id)}
                   >
-                    <ha-icon icon="mdi:information-outline"></ha-icon>
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+                    {device.name || 'N/A'}
+                  </span>
+                </div>
+
+                <div slot="description" className="text-[var(--secondary-text-color)] text-sm">
+                  {device.model} • {device.serial}
+                </div>
+
+                <div className="flex flex-col items-end">
+                  {renderStatus(device)}
+                  {deviceType === 'switch' && device.ports_statuses && (
+                     <div className="text-xs text-[var(--secondary-text-color)]">
+                        {device.ports_statuses.filter((p: any) => p.status === 'Connected').length} / {device.ports_statuses.length} Ports
+                     </div>
+                  )}
+                </div>
+              </ha-settings-row>
+            </div>
+          ))}
+        </div>
       </div>
-    </div>
+    </ha-card>
   );
 };
 

@@ -82,110 +82,37 @@ const NetworkView: React.FC<NetworkViewProps> = ({
   };
 
   const isDeviceOnline = (device: Device) => {
-    // For cameras, prioritize device status from API
     if (device.model?.toUpperCase().startsWith('MV')) {
       return device.status === 'online';
     }
 
     const haState = device.entity_id && hass?.states?.[device.entity_id];
     let status = device.status;
-    if (
-      haState &&
-      haState.state !== 'unavailable' &&
-      haState.state !== 'unknown'
-    ) {
+    if (haState && haState.state !== 'unavailable' && haState.state !== 'unknown') {
       status = haState.state;
     }
-    return ['online', 'active', 'home', 'on'].includes(
-      status?.toLowerCase()
-    );
+    return ['online', 'active', 'home', 'on'].includes(status?.toLowerCase());
   };
 
   const networkGroups = React.useMemo(() => {
     if (!networks || !devices) return {};
-
     const result: Record<string, any[]> = {};
 
     networks.forEach((network) => {
-      // Group devices
       const networkDevices = devices.filter((d) => d.networkId === network.id);
-      const wirelessDevices = networkDevices.filter(
-        (d) =>
-          d.model?.toUpperCase().startsWith('MR') ||
-          d.model?.toUpperCase().startsWith('GR')
-      );
-      const switchDevices = networkDevices.filter(
-        (d) =>
-          d.model?.toUpperCase().startsWith('MS') ||
-          d.model?.toUpperCase().startsWith('GS')
-      );
-      const cameraDevices = networkDevices.filter(
-        (d) => d.model?.toUpperCase().startsWith('MV')
-      );
-      const sensorDevices = networkDevices.filter(
-        (d) => d.model?.toUpperCase().startsWith('MT')
-      );
-      const applianceDevices = networkDevices.filter(
-        (d) =>
-          d.model?.toUpperCase().startsWith('MX') ||
-          d.model?.toUpperCase().startsWith('Z') ||
-          d.model?.toUpperCase().startsWith('MG') ||
-          d.model?.toUpperCase().startsWith('GX')
-      );
-      const otherDevices = networkDevices.filter(
-        (d) =>
-          !d.model?.toUpperCase().startsWith('MR') &&
-          !d.model?.toUpperCase().startsWith('GR') &&
-          !d.model?.toUpperCase().startsWith('MS') &&
-          !d.model?.toUpperCase().startsWith('GS') &&
-          !d.model?.toUpperCase().startsWith('MV') &&
-          !d.model?.toUpperCase().startsWith('MT') &&
-          !d.model?.toUpperCase().startsWith('MX') &&
-          !d.model?.toUpperCase().startsWith('Z') &&
-          !d.model?.toUpperCase().startsWith('MG') &&
-          !d.model?.toUpperCase().startsWith('GX')
-      );
+      
+      const filterByPrefix = (prefixes: string[]) => 
+        networkDevices.filter(d => prefixes.some(p => d.model?.toUpperCase().startsWith(p)));
 
       result[network.id] = [
-        {
-          label: 'Appliances',
-          devices: applianceDevices,
-          icon: 'mdi:shield-check',
-          type: 'appliance',
-        },
-        {
-          label: 'Switches',
-          devices: switchDevices,
-          icon: 'mdi:lan',
-          type: 'switch',
-        },
-        {
-          label: 'Cameras',
-          devices: cameraDevices,
-          icon: 'mdi:cctv',
-          type: 'camera',
-        },
-        {
-          label: 'Sensors',
-          devices: sensorDevices,
-          icon: 'mdi:thermometer',
-          type: 'sensor',
-        },
-        {
-          label: 'Wireless APs',
-          devices: wirelessDevices,
-          icon: 'mdi:wifi',
-          type: 'wireless',
-        },
-        {
-          label: 'Other Devices',
-          devices: otherDevices,
-          icon: 'mdi:devices',
-          type: 'other',
-        },
+        { label: 'Appliances', devices: filterByPrefix(['MX', 'Z', 'MG', 'GX']), icon: 'mdi:shield-check', type: 'appliance' },
+        { label: 'Switches', devices: filterByPrefix(['MS', 'GS']), icon: 'mdi:lan', type: 'switch' },
+        { label: 'Cameras', devices: filterByPrefix(['MV']), icon: 'mdi:cctv', type: 'camera' },
+        { label: 'Sensors', devices: filterByPrefix(['MT']), icon: 'mdi:thermometer', type: 'sensor' },
+        { label: 'Wireless APs', devices: filterByPrefix(['MR', 'GR']), icon: 'mdi:wifi', type: 'wireless' },
+        { label: 'Other Devices', devices: networkDevices.filter(d => !['MR', 'GR', 'MS', 'GS', 'MV', 'MT', 'MX', 'Z', 'MG', 'GX'].some(p => d.model?.toUpperCase().startsWith(p))), icon: 'mdi:devices', type: 'other' },
       ];
     });
-
     return result;
   }, [networks, devices]);
 
@@ -194,77 +121,52 @@ const NetworkView: React.FC<NetworkViewProps> = ({
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+    <div className="flex flex-col gap-4">
       {networks.map((network) => {
         const isOpen = openNetworkIds.includes(network.id);
-        const enabledSsids = network.ssids
-          ? network.ssids.filter((s) => {
-              // Check entity state if available, else fallback to s.enabled
-              if (s.entity_id && hass?.states?.[s.entity_id]) {
-                return hass.states[s.entity_id].state === 'on';
-              }
-              return s.enabled;
-            }).length
-          : 0;
-        const totalSsids = network.ssids ? network.ssids.length : 0;
-
+        const enabledSsids = network.ssids?.filter((s) => 
+          (s.entity_id && hass?.states?.[s.entity_id]?.state === 'on') || (!s.entity_id && s.enabled)
+        ).length || 0;
+        
+        const totalSsids = network.ssids?.length || 0;
         const groups = networkGroups[network.id] || [];
-        const networkVlans = vlans ? vlans[network.id] : undefined;
+        const networkVlans = vlans?.[network.id];
 
         return (
-          <ha-card key={network.id}>
+          <ha-card key={network.id} className="overflow-hidden">
             <div
-              className="card-header"
+              className="flex items-center p-4 cursor-pointer hover:bg-[var(--secondary-background-color)] transition-colors text-[var(--primary-text-color)]"
               onClick={() => handleNetworkClick(network.id)}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                cursor: 'pointer',
-                padding: '16px',
-                color: 'var(--primary-text-color)',
-              }}
             >
-              <span className="font-bold">[Network] {network.name}</span>
+              <span className="font-bold text-lg">[Network] {network.name}</span>
               <ha-icon
-                style={{ marginLeft: '8px', color: 'var(--secondary-text-color)' }}
+                className="ml-2 text-[var(--secondary-text-color)]"
                 icon={isOpen ? 'mdi:chevron-up' : 'mdi:chevron-down'}
               ></ha-icon>
-              <div
-                style={{
-                  marginLeft: 'auto',
-                  display: 'flex',
-                  alignItems: 'center',
-                }}
-              >
-                <span style={{ marginRight: '8px', color: 'var(--secondary-text-color)', fontSize: '0.9rem' }}>Track in</span>
-                <ha-icon
-                  icon="hass:home-assistant"
-                  style={{ color: 'var(--primary-color)', marginRight: '8px' }}
-                ></ha-icon>
+              
+              <div className="ml-auto flex items-center" onClick={(e) => e.stopPropagation()}>
+                <span className="mr-2 text-sm text-[var(--secondary-text-color)] hidden sm:inline">Track in HA</span>
+                <ha-icon icon="hass:home-assistant" className="mr-2" style={{ color: 'var(--primary-color)' }}></ha-icon>
                 <HaSwitch
                   checked={network.is_enabled}
                   onChange={(checked) => onToggle(network.id, checked)}
                 />
               </div>
             </div>
+
             {isOpen && network.is_enabled && (
-              <div className="card-content" style={{ padding: '0 16px 16px' }}>
+              <div className="p-4 border-t border-[var(--divider-color)] bg-[var(--card-background-color)]">
                 {groups.map((group) => {
                   if (group.devices.length === 0) return null;
-                  const onlineCount =
-                    group.devices.filter(isDeviceOnline).length;
-                  const totalCount = group.devices.length;
+                  const onlineCount = group.devices.filter(isDeviceOnline).length;
 
                   return (
-                    <div key={group.label} style={{ marginBottom: '24px' }}>
-                      <div
-                        className="hero-indicator"
-                        style={{ padding: '8px 0', borderBottom: '1px solid var(--divider-color)', marginBottom: '12px' }}
-                      >
-                        <ha-icon icon={group.icon} style={{ color: 'var(--primary-color)', marginRight: '12px' }}></ha-icon>
+                    <div key={group.label} className="mb-8 last:mb-0">
+                      <div className="flex items-center pb-2 mb-4 border-b border-[var(--divider-color)]">
+                        <ha-icon icon={group.icon} className="mr-3" style={{ color: 'var(--primary-color)' }}></ha-icon>
                         <div className="flex items-baseline gap-2">
-                          <span className="text-lg font-semibold text-[var(--primary-text-color)]">
-                            <span className="text-[var(--state-active-color)]">{onlineCount}</span> / {totalCount}
+                          <span className="text-lg font-semibold">
+                            <span className="text-[var(--state-active-color)]">{onlineCount}</span> / {group.devices.length}
                           </span>
                           <span className="text-[var(--secondary-text-color)] uppercase text-xs tracking-wider font-bold">
                             {group.label} Online
@@ -282,57 +184,50 @@ const NetworkView: React.FC<NetworkViewProps> = ({
                 })}
 
                 {networkVlans && networkVlans.length > 0 && (
-                  <div style={{ marginBottom: '24px' }}>
-                    <div
-                      className="hero-indicator"
-                      style={{ padding: '8px 0', borderBottom: '1px solid var(--divider-color)', marginBottom: '12px' }}
-                    >
-                      <ha-icon icon="mdi:server-network" style={{ color: 'var(--primary-color)', marginRight: '12px' }}></ha-icon>
-                      <span className="text-[var(--secondary-text-color)] uppercase text-xs tracking-wider font-bold">
-                        VLANs / Subnets
-                      </span>
+                  <div className="mt-8">
+                    <div className="flex items-center pb-2 mb-4 border-b border-[var(--divider-color)]">
+                      <ha-icon icon="mdi:server-network" className="mr-3" style={{ color: 'var(--primary-color)' }}></ha-icon>
+                      <span className="text-[var(--secondary-text-color)] uppercase text-xs tracking-wider font-bold">VLANs / Subnets</span>
                     </div>
                     <VlanTable vlans={networkVlans} />
                   </div>
                 )}
 
                 {network.ssids && network.ssids.length > 0 && (
-                  <div style={{ marginBottom: '24px' }}>
-                    <div
-                      className="hero-indicator"
-                      style={{ padding: '8px 0', borderBottom: '1px solid var(--divider-color)', marginBottom: '12px' }}
-                    >
-                      <ha-icon icon="mdi:wifi" style={{ color: 'var(--primary-color)', marginRight: '12px' }}></ha-icon>
+                  <div className="mt-8">
+                    <div className="flex items-center pb-2 mb-4 border-b border-[var(--divider-color)]">
+                      <ha-icon icon="mdi:wifi" className="mr-3" style={{ color: 'var(--primary-color)' }}></ha-icon>
                       <div className="flex items-baseline gap-2">
-                        <span className="text-lg font-semibold text-[var(--primary-text-color)]">
+                        <span className="text-lg font-semibold">
                           <span className="text-[var(--state-active-color)]">{enabledSsids}</span> / {totalSsids}
                         </span>
-                        <span className="text-[var(--secondary-text-color)] uppercase text-xs tracking-wider font-bold">
-                          SSIDs Enabled
-                        </span>
+                        <span className="text-[var(--secondary-text-color)] uppercase text-xs tracking-wider font-bold">SSIDs Enabled</span>
                       </div>
                     </div>
                     <SSIDView hass={hass} ssids={network.ssids} configEntryId={configEntryId} />
                   </div>
                 )}
 
-                <div style={{ marginTop: '24px' }}>
-                  <div
-                    className="hero-indicator"
-                    style={{ padding: '8px 0', borderBottom: '1px solid var(--divider-color)', marginBottom: '12px' }}
-                  >
-                    <ha-icon icon="mdi:history" style={{ color: 'var(--primary-color)', marginRight: '12px' }}></ha-icon>
-                    <span className="text-[var(--secondary-text-color)] uppercase text-xs tracking-wider font-bold">
-                      Network Event Log
-                    </span>
+                <div className="mt-8 pt-4 border-t border-[var(--divider-color)]">
+                  <div className="flex items-center mb-4">
+                    <ha-icon icon="mdi:history" className="mr-3" style={{ color: 'var(--primary-color)' }}></ha-icon>
+                    <span className="text-[var(--secondary-text-color)] uppercase text-xs tracking-wider font-bold">Network Event Log</span>
                   </div>
-                  <EventLog
-                    hass={hass}
-                    networkId={network.id}
-                    configEntryId={configEntryId}
-                    productTypes={network.productTypes}
-                  />
+                  <EventLog hass={hass} networkId={network.id} configEntryId={configEntryId} productTypes={network.productTypes} />
                 </div>
+              </div>
+            )}
+
+            {isOpen && !network.is_enabled && (
+              <div className="p-12 text-center bg-[var(--secondary-background-color)] border-t border-[var(--divider-color)]">
+                <ha-icon icon="mdi:eye-off-outline" className="mb-3 text-[var(--secondary-text-color)]" style={{'--mdc-icon-size': '48px'} as any}></ha-icon>
+                <p className="text-[var(--secondary-text-color)]">This network is not being tracked in Home Assistant.</p>
+                <button
+                  className="mt-4 font-medium text-[var(--primary-color)] hover:underline"
+                  onClick={() => onToggle(network.id, true)}
+                >
+                  Enable tracking to view devices
+                </button>
               </div>
             )}
           </ha-card>

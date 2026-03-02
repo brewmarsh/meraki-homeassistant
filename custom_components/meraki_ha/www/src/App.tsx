@@ -34,80 +34,21 @@ const App: React.FC<AppProps> = ({ hass, panel, config_entry_id }) => {
   const configEntryId = config_entry_id || panel?.config?.config_entry_id;
 
   useEffect(() => {
+    // Development/Local Mock Data
     if (window.location.hostname === 'localhost') {
       setData({
         devices: [
-          {
-            name: 'Living Room AP',
-            model: 'MR33',
-            serial: 'Q2JD-XXXX-XXXX',
-            status: 'online',
-            entity_id: 'switch.living_room_ap',
-            networkId: 'N_12345',
-          },
-          {
-            name: 'Office Switch',
-            model: 'MS220-8P',
-            serial: 'Q2HD-XXXX-XXXX',
-            status: 'online',
-            entity_id: 'switch.office_switch',
-            networkId: 'N_12345',
-            ports_statuses: [
-              { status: 'Connected' },
-              { status: 'Connected' },
-              { status: 'Disconnected' },
-              { status: 'Disconnected' },
-            ], // 2/4 in use
-          },
-          {
-            name: 'Front Door Camera',
-            model: 'MV12',
-            serial: 'Q2FD-XXXX-XXXX',
-            status: 'online',
-            lanIp: '192.168.1.100',
-            entity_id: 'camera.front_door_camera',
-            networkId: 'N_12345',
-          },
-          {
-            name: 'Server Room Sensor',
-            model: 'MT10',
-            serial: 'Q2MT-XXXX-XXXX',
-            status: 'online',
-            networkId: 'N_12345',
-          },
-          {
-            name: 'Main Gateway',
-            model: 'MX68',
-            serial: 'Q2MX-XXXX-XXXX',
-            status: 'online',
-            networkId: 'N_12345',
-            wan1Ip: '203.0.113.1',
-            wan2Ip: '198.51.100.1',
-          },
+          { name: 'Living Room AP', model: 'MR33', serial: 'Q2JD-XXXX-XXXX', status: 'online', entity_id: 'switch.living_room_ap', networkId: 'N_12345' },
+          { name: 'Office Switch', model: 'MS220-8P', serial: 'Q2HD-XXXX-XXXX', status: 'online', entity_id: 'switch.office_switch', networkId: 'N_12345', ports_statuses: [{ status: 'Connected' }, { status: 'Connected' }, { status: 'Disconnected' }, { status: 'Disconnected' }] },
+          { name: 'Front Door Camera', model: 'MV12', serial: 'Q2FD-XXXX-XXXX', status: 'online', lanIp: '192.168.1.100', entity_id: 'camera.front_door_camera', networkId: 'N_12345' },
+          { name: 'Server Room Sensor', model: 'MT10', serial: 'Q2MT-XXXX-XXXX', status: 'online', networkId: 'N_12345' },
+          { name: 'Main Gateway', model: 'MX68', serial: 'Q2MX-XXXX-XXXX', status: 'online', networkId: 'N_12345', wan1Ip: '203.0.113.1', wan2Ip: '198.51.100.1' },
         ],
-        ssids: [
-          {
-            number: 0,
-            name: 'Main WiFi',
-            enabled: true,
-            networkId: 'N_12345',
-            entity_id: 'switch.main_wifi',
-          },
-        ],
+        ssids: [{ number: 0, name: 'Main WiFi', enabled: true, networkId: 'N_12345', entity_id: 'switch.main_wifi' }],
         vlans: {
           N_12345: [
-            {
-              id: '1',
-              name: 'Management',
-              subnet: '192.168.1.0/24',
-              applianceIp: '192.168.1.1',
-            },
-            {
-              id: '10',
-              name: 'IoT',
-              subnet: '192.168.10.0/24',
-              applianceIp: '192.168.10.1',
-            },
+            { id: '1', name: 'Management', subnet: '192.168.1.0/24', applianceIp: '192.168.1.1' },
+            { id: '10', name: 'IoT', subnet: '192.168.10.0/24', applianceIp: '192.168.10.1' },
           ],
         },
         networks: [
@@ -115,22 +56,8 @@ const App: React.FC<AppProps> = ({ hass, panel, config_entry_id }) => {
             id: 'N_12345',
             name: 'Main Office',
             is_enabled: true,
-            ssids: [
-              {
-                number: 0,
-                name: 'Main WiFi',
-                enabled: true,
-                networkId: 'N_12345',
-                entity_id: 'switch.main_wifi',
-              },
-            ],
-            productTypes: [
-              'wireless',
-              'switch',
-              'camera',
-              'sensor',
-              'appliance',
-            ],
+            ssids: [{ number: 0, name: 'Main WiFi', enabled: true, networkId: 'N_12345', entity_id: 'switch.main_wifi' }],
+            productTypes: ['wireless', 'switch', 'camera', 'sensor', 'appliance'],
           },
         ],
         options: {
@@ -143,6 +70,7 @@ const App: React.FC<AppProps> = ({ hass, panel, config_entry_id }) => {
           enable_port_sensors: true,
           enable_ssid_sensors: true,
         },
+        version: "2.3.0-beta.120"
       });
       setLoading(false);
       return;
@@ -155,12 +83,10 @@ const App: React.FC<AppProps> = ({ hass, panel, config_entry_id }) => {
     }
 
     fetchData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [configEntryId]); // Rerun if configEntryId changes
+  }, [configEntryId]);
 
   const fetchData = async () => {
     if (!hass || !configEntryId) return;
-
     try {
       setLoading(true);
       const result = await safeCallWS<MerakiData>(hass, {
@@ -185,11 +111,9 @@ const App: React.FC<AppProps> = ({ hass, panel, config_entry_id }) => {
 
   const handleToggle = async (networkId: string, enabled: boolean) => {
     if (!data) return;
-
     const updatedNetworks = data.networks.map((network: any) =>
       network.id === networkId ? { ...network, is_enabled: enabled } : network
     );
-
     const updatedData = { ...data, networks: updatedNetworks };
     setData(updatedData);
 
@@ -205,30 +129,28 @@ const App: React.FC<AppProps> = ({ hass, panel, config_entry_id }) => {
       });
     } catch (err: any) {
       console.error('Error updating enabled networks:', err);
-      setError(
-        err.message || 'An unknown error occurred while updating networks.'
-      );
-      // Revert UI if API call fails
+      setError(err.message || 'An unknown error occurred while updating networks.');
       setData(data);
     }
   };
 
+  // State: Loading
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-screen bg-light-background dark:bg-dark-background text-[var(--primary-text-color)]">
-        Loading...
+      <div className="flex justify-center items-center h-screen bg-[var(--primary-background-color)] text-[var(--primary-text-color)]">
+        <ha-circular-progress active alt="Loading Meraki data..."></ha-circular-progress>
       </div>
     );
   }
 
+  // State: Config Not Found
   if (configNotFound) {
     return (
-      <div className="flex flex-col justify-center items-center h-screen bg-light-background dark:bg-dark-background text-[var(--primary-text-color)] p-4 text-center">
-        <ha-icon icon="mdi:alert-circle-outline" style={{'--mdc-icon-size': '64px', color: 'var(--error-color)'} as any} className="mb-4"></ha-icon>
+      <div className="flex flex-col justify-center items-center h-screen bg-[var(--primary-background-color)] text-[var(--primary-text-color)] p-4 text-center">
+        <ha-icon icon="mdi:alert-circle-outline" style={{ '--mdc-icon-size': '64px', color: 'var(--error-color)' } as any} className="mb-4"></ha-icon>
         <h2 className="text-xl font-bold mb-2">Integration Not Configured</h2>
         <p className="mb-6 max-w-md text-[var(--secondary-text-color)]">
-          The Meraki integration has not been configured yet, or the configuration entry could not be found.
-          Please ensure the integration is added and configured in Home Assistant.
+          The Meraki integration has not been configured yet. Please ensure the integration is added in Home Assistant.
         </p>
         <a
           href="/config/integrations"
@@ -240,10 +162,11 @@ const App: React.FC<AppProps> = ({ hass, panel, config_entry_id }) => {
     );
   }
 
+  // State: Error
   if (error && !data) {
     return (
-      <div className="flex flex-col justify-center items-center h-screen bg-light-background dark:bg-dark-background text-[var(--primary-text-color)] p-4 text-center">
-        <ha-icon icon="mdi:error-outline" style={{'--mdc-icon-size': '64px', color: 'var(--error-color)'} as any} className="mb-4"></ha-icon>
+      <div className="flex flex-col justify-center items-center h-screen bg-[var(--primary-background-color)] text-[var(--primary-text-color)] p-4 text-center">
+        <ha-icon icon="mdi:error-outline" style={{ '--mdc-icon-size': '64px', color: 'var(--error-color)' } as any} className="mb-4"></ha-icon>
         <h2 className="text-xl font-bold mb-2">Error</h2>
         <p className="mb-6 text-[var(--secondary-text-color)]">{error}</p>
         <button
@@ -258,34 +181,34 @@ const App: React.FC<AppProps> = ({ hass, panel, config_entry_id }) => {
 
   if (!data) {
     return (
-      <div className="flex justify-center items-center h-screen bg-light-background dark:bg-dark-background text-[var(--primary-text-color)]">
+      <div className="flex justify-center items-center h-screen bg-[var(--primary-background-color)] text-[var(--primary-text-color)]">
         No data found.
       </div>
     );
   }
 
   return (
-    <div className="p-4 relative bg-light-background dark:bg-dark-background text-[var(--primary-text-color)]">
+    <div className="p-4 relative bg-[var(--primary-background-color)] text-[var(--primary-text-color)] min-h-screen">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">Cisco Meraki Integration</h1>
         <div className="flex gap-2">
           <button
             onClick={() => setShowTimedAccess(true)}
-            className="p-2 rounded-full hover:bg-light-hover dark:hover:bg-dark-hover text-[var(--secondary-text-color)]"
+            className="p-2 rounded-full hover:bg-[var(--secondary-background-color)] text-[var(--secondary-text-color)] transition-colors"
             title="Timed Guest Access"
           >
             <ha-icon icon="mdi:clock-outline"></ha-icon>
           </button>
           <button
             onClick={fetchData}
-            className="p-2 rounded-full hover:bg-light-hover dark:hover:bg-dark-hover text-[var(--secondary-text-color)]"
+            className="p-2 rounded-full hover:bg-[var(--secondary-background-color)] text-[var(--secondary-text-color)] transition-colors"
             title="Refresh Data"
           >
             <ha-icon icon="mdi:refresh"></ha-icon>
           </button>
           <button
             onClick={() => setShowSettings(true)}
-            className="p-2 rounded-full hover:bg-light-hover dark:hover:bg-dark-hover text-[var(--secondary-text-color)]"
+            className="p-2 rounded-full hover:bg-[var(--secondary-background-color)] text-[var(--secondary-text-color)] transition-colors"
             title="Settings"
           >
             <ha-icon icon="mdi:cog"></ha-icon>
@@ -311,7 +234,7 @@ const App: React.FC<AppProps> = ({ hass, panel, config_entry_id }) => {
 
       {showSettings && data && (
         <Settings
-          hass={hass} // Pass hass to settings
+          hass={hass}
           options={data.options || {}}
           configEntryId={configEntryId}
           onClose={() => setShowSettings(false)}
@@ -325,11 +248,9 @@ const App: React.FC<AppProps> = ({ hass, panel, config_entry_id }) => {
           onClose={() => setShowTimedAccess(false)}
         />
       )}
-      {data?.version && (
-        <div className="absolute bottom-0 right-0 p-2 text-xs text-[var(--secondary-text-color)]">
-          Version: {data.version}
-        </div>
-      )}
+      <div className="absolute bottom-0 right-0 p-2 text-xs text-[var(--secondary-text-color)]">
+        Version: {data.version || '2.3.0-beta.120'}
+      </div>
     </div>
   );
 };
