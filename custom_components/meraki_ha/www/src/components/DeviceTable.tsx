@@ -119,35 +119,56 @@ const DeviceTable: React.FC<DeviceTableProps> = ({
   };
 
   const renderStatus = (device: any) => {
+    let statusText = 'N/A';
+    let statusValue = '';
+
     // Prioritize API status for Cameras
     if (deviceType === 'camera') {
-      return device.status ? capitalizeFirst(device.status) : 'N/A';
-    }
-
-    // MT Sensors Logic
-    if (device.model?.startsWith('MT')) {
+      statusText = device.status ? capitalizeFirst(device.status) : 'N/A';
+      statusValue = device.status?.toLowerCase() || '';
+    } else if (device.model?.startsWith('MT')) {
+      // MT Sensors Logic
       const status = device.status || 'N/A';
       if (status !== 'online') {
-        return capitalizeFirst(status);
+        statusText = capitalizeFirst(status);
+        statusValue = status.toLowerCase();
+      } else {
+        // Device is online
+        const hero = getSensorHeroMetric(device);
+        if (hero) {
+          statusText = hero;
+          statusValue = hero.toLowerCase();
+        } else {
+          statusText = 'Online';
+          statusValue = 'online';
+        }
       }
-      // Device is online
-      const hero = getSensorHeroMetric(device);
-      if (hero) return hero;
-
-      return 'Online';
+    } else {
+      // Default logic: Prioritize HA entity state
+      const haState = device.entity_id && hass?.states?.[device.entity_id];
+      if (
+        haState &&
+        haState.state !== 'unavailable' &&
+        haState.state !== 'unknown'
+      ) {
+        statusText = capitalizeFirst(haState.state);
+        statusValue = haState.state.toLowerCase();
+      } else {
+        statusText = device.status ? capitalizeFirst(device.status) : 'N/A';
+        statusValue = device.status?.toLowerCase() || '';
+      }
     }
 
-    // Default logic: Prioritize HA entity state
-    const haState = device.entity_id && hass?.states?.[device.entity_id];
-    if (
-      haState &&
-      haState.state !== 'unavailable' &&
-      haState.state !== 'unknown'
-    ) {
-      return capitalizeFirst(haState.state);
-    }
-    const status = device.status || 'N/A';
-    return capitalizeFirst(status);
+    const isActive = ['online', 'active', 'on', 'wet', 'connected', 'open'].includes(statusValue);
+    const isError = ['offline', 'unavailable', 'off', 'dry', 'disconnected', 'alerting', 'closed'].includes(statusValue);
+
+    const colorClass = isActive
+      ? 'text-[var(--state-active-color)]'
+      : isError
+      ? 'text-[var(--error-color)]'
+      : 'text-[var(--primary-text-color)]';
+
+    return <span className={`font-medium ${colorClass}`}>{statusText}</span>;
   };
 
   const renderExtraColumnHeader = () => {
@@ -182,13 +203,13 @@ const DeviceTable: React.FC<DeviceTableProps> = ({
           href={rtspUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="text-blue-500 hover:text-blue-700 underline"
+          className="text-[var(--primary-color)] hover:underline"
           onClick={(e) => e.stopPropagation()}
         >
           Stream Link
         </a>
       ) : (
-        <span className="text-gray-400">-</span>
+        <span className="text-[var(--secondary-text-color)]">-</span>
       );
     }
     return null;
@@ -199,11 +220,11 @@ const DeviceTable: React.FC<DeviceTableProps> = ({
   );
 
   return (
-    <div className="bg-light-card dark:bg-dark-card p-4 rounded-lg shadow-md">
+    <div className="bg-light-card dark:bg-dark-card p-4 rounded-lg shadow-md border border-light-border dark:border-dark-border">
       <input
         type="text"
         placeholder="Search by name or serial..."
-        className="w-full p-2 mb-4 border rounded-lg bg-light-background dark:bg-dark-background dark:border-gray-600"
+        className="w-full p-2 mb-4 border rounded-lg bg-light-background dark:bg-dark-background dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-[var(--primary-color)]"
         value={searchTerm}
         onChange={(e) => setSearchTerm(e.target.value)}
       />
@@ -211,15 +232,15 @@ const DeviceTable: React.FC<DeviceTableProps> = ({
         <table className="min-w-full">
           <thead>
             <tr className="border-b border-light-border dark:border-dark-border">
-              <th className="text-left p-4 font-semibold">Name</th>
-              <th className="text-left p-4 font-semibold">Model</th>
-              <th className="text-left p-4 font-semibold">Status</th>
+              <th className="text-left p-4 font-semibold text-[var(--primary-text-color)]">Name</th>
+              <th className="text-left p-4 font-semibold text-[var(--primary-text-color)]">Model</th>
+              <th className="text-left p-4 font-semibold text-[var(--primary-text-color)]">Status</th>
               {hasExtraColumn && (
-                <th className="text-left p-4 font-semibold">
+                <th className="text-left p-4 font-semibold text-[var(--primary-text-color)]">
                   {renderExtraColumnHeader()}
                 </th>
               )}
-              <th className="text-center p-4 font-semibold w-16">Details</th>
+              <th className="text-center p-4 font-semibold w-16 text-[var(--primary-text-color)]">Details</th>
             </tr>
           </thead>
           <tbody>
@@ -229,14 +250,14 @@ const DeviceTable: React.FC<DeviceTableProps> = ({
                 className="border-b border-light-border dark:border-dark-border hover:bg-light-hover dark:hover:bg-dark-hover cursor-pointer"
                 onClick={(e) => handleDetailsClick(e, device.serial)}
               >
-                <td className="p-4">
-                  <div style={{ display: 'flex', alignItems: 'center' }}>
+                <td className="p-4 text-[var(--primary-text-color)]">
+                  <div className="flex items-center">
                     <ha-icon
                       icon={getDeviceIcon(device.model)}
-                      style={{ marginRight: '8px' }}
+                      style={{ marginRight: '8px', color: 'var(--state-icon-color)' }}
                     ></ha-icon>
                     <span
-                      className="font-medium text-blue-500 hover:underline"
+                      className="font-medium text-[var(--primary-color)] hover:underline"
                       onClick={(e) => {
                         if (device.entity_id) {
                           handleDeviceClick(e, device.entity_id);
@@ -247,15 +268,15 @@ const DeviceTable: React.FC<DeviceTableProps> = ({
                     </span>
                   </div>
                 </td>
-                <td className="p-4">{device.model || 'N/A'}</td>
+                <td className="p-4 text-[var(--primary-text-color)]">{device.model || 'N/A'}</td>
                 <td className="p-4">{renderStatus(device)}</td>
                 {hasExtraColumn && (
-                  <td className="p-4">{renderExtraColumnCell(device)}</td>
+                  <td className="p-4 text-[var(--primary-text-color)]">{renderExtraColumnCell(device)}</td>
                 )}
                 <td className="p-4 text-center">
                   <button
                     onClick={(e) => handleDetailsClick(e, device.serial)}
-                    className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-500 transition-colors"
+                    className="p-2 rounded-full hover:bg-light-hover dark:hover:bg-dark-hover text-[var(--secondary-text-color)] transition-colors"
                     title="View Details"
                   >
                     <ha-icon icon="mdi:information-outline"></ha-icon>

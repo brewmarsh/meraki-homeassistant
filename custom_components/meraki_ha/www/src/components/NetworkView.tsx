@@ -96,7 +96,7 @@ const NetworkView: React.FC<NetworkViewProps> = ({
     ) {
       status = haState.state;
     }
-    return ['online', 'alerting', 'active', 'home', 'on'].includes(
+    return ['online', 'active', 'home', 'on'].includes(
       status?.toLowerCase()
     );
   };
@@ -190,7 +190,7 @@ const NetworkView: React.FC<NetworkViewProps> = ({
   }, [networks, devices]);
 
   if (!networks || networks.length === 0) {
-    return <p>No networks found.</p>;
+    return <p className="text-[var(--primary-text-color)]">No networks found.</p>;
   }
 
   return (
@@ -221,11 +221,12 @@ const NetworkView: React.FC<NetworkViewProps> = ({
                 alignItems: 'center',
                 cursor: 'pointer',
                 padding: '16px',
+                color: 'var(--primary-text-color)',
               }}
             >
-              <span>[Network] {network.name}</span>
+              <span className="font-bold">[Network] {network.name}</span>
               <ha-icon
-                style={{ marginLeft: '8px' }}
+                style={{ marginLeft: '8px', color: 'var(--secondary-text-color)' }}
                 icon={isOpen ? 'mdi:chevron-up' : 'mdi:chevron-down'}
               ></ha-icon>
               <div
@@ -235,7 +236,7 @@ const NetworkView: React.FC<NetworkViewProps> = ({
                   alignItems: 'center',
                 }}
               >
-                <span style={{ marginRight: '8px' }}>Track in</span>
+                <span style={{ marginRight: '8px', color: 'var(--secondary-text-color)', fontSize: '0.9rem' }}>Track in</span>
                 <ha-icon
                   icon="hass:home-assistant"
                   style={{ color: 'var(--primary-color)', marginRight: '8px' }}
@@ -247,7 +248,7 @@ const NetworkView: React.FC<NetworkViewProps> = ({
               </div>
             </div>
             {isOpen && network.is_enabled && (
-              <div className="card-content">
+              <div className="card-content" style={{ padding: '0 16px 16px' }}>
                 {groups.map((group) => {
                   if (group.devices.length === 0) return null;
                   const onlineCount =
@@ -255,13 +256,20 @@ const NetworkView: React.FC<NetworkViewProps> = ({
                   const totalCount = group.devices.length;
 
                   return (
-                    <div key={group.label} style={{ marginBottom: '16px' }}>
+                    <div key={group.label} style={{ marginBottom: '24px' }}>
                       <div
                         className="hero-indicator"
-                        style={{ padding: '0 16px 16px' }}
+                        style={{ padding: '8px 0', borderBottom: '1px solid var(--divider-color)', marginBottom: '12px' }}
                       >
-                        <ha-icon icon={group.icon}></ha-icon>
-                        {onlineCount} / {totalCount} {group.label} Online
+                        <ha-icon icon={group.icon} style={{ color: 'var(--primary-color)', marginRight: '12px' }}></ha-icon>
+                        <div className="flex items-baseline gap-2">
+                          <span className="text-lg font-semibold text-[var(--primary-text-color)]">
+                            <span className="text-[var(--state-active-color)]">{onlineCount}</span> / {totalCount}
+                          </span>
+                          <span className="text-[var(--secondary-text-color)] uppercase text-xs tracking-wider font-bold">
+                            {group.label} Online
+                          </span>
+                        </div>
                       </div>
                       <DeviceTable
                         hass={hass}
@@ -274,29 +282,57 @@ const NetworkView: React.FC<NetworkViewProps> = ({
                 })}
 
                 {networkVlans && networkVlans.length > 0 && (
-                  <div style={{ marginBottom: '16px' }}>
+                  <div style={{ marginBottom: '24px' }}>
+                    <div
+                      className="hero-indicator"
+                      style={{ padding: '8px 0', borderBottom: '1px solid var(--divider-color)', marginBottom: '12px' }}
+                    >
+                      <ha-icon icon="mdi:server-network" style={{ color: 'var(--primary-color)', marginRight: '12px' }}></ha-icon>
+                      <span className="text-[var(--secondary-text-color)] uppercase text-xs tracking-wider font-bold">
+                        VLANs / Subnets
+                      </span>
+                    </div>
                     <VlanTable vlans={networkVlans} />
                   </div>
                 )}
 
                 {network.ssids && network.ssids.length > 0 && (
-                  <>
+                  <div style={{ marginBottom: '24px' }}>
                     <div
                       className="hero-indicator"
-                      style={{ padding: '16px' }}
+                      style={{ padding: '8px 0', borderBottom: '1px solid var(--divider-color)', marginBottom: '12px' }}
                     >
-                      <ha-icon icon="mdi:wifi"></ha-icon>
-                      {enabledSsids} / {totalSsids} SSIDs Enabled
+                      <ha-icon icon="mdi:wifi" style={{ color: 'var(--primary-color)', marginRight: '12px' }}></ha-icon>
+                      <div className="flex items-baseline gap-2">
+                        <span className="text-lg font-semibold text-[var(--primary-text-color)]">
+                          <span className="text-[var(--state-active-color)]">{enabledSsids}</span> / {totalSsids}
+                        </span>
+                        <span className="text-[var(--secondary-text-color)] uppercase text-xs tracking-wider font-bold">
+                          SSIDs Enabled
+                        </span>
+                      </div>
                     </div>
                     <SSIDView hass={hass} ssids={network.ssids} configEntryId={configEntryId} />
-                  </>
+                  </div>
                 )}
-                <EventLog
-                  hass={hass}
-                  networkId={network.id}
-                  configEntryId={configEntryId}
-                  productTypes={network.productTypes}
-                />
+
+                <div style={{ marginTop: '24px' }}>
+                  <div
+                    className="hero-indicator"
+                    style={{ padding: '8px 0', borderBottom: '1px solid var(--divider-color)', marginBottom: '12px' }}
+                  >
+                    <ha-icon icon="mdi:history" style={{ color: 'var(--primary-color)', marginRight: '12px' }}></ha-icon>
+                    <span className="text-[var(--secondary-text-color)] uppercase text-xs tracking-wider font-bold">
+                      Network Event Log
+                    </span>
+                  </div>
+                  <EventLog
+                    hass={hass}
+                    networkId={network.id}
+                    configEntryId={configEntryId}
+                    productTypes={network.productTypes}
+                  />
+                </div>
               </div>
             )}
           </ha-card>
