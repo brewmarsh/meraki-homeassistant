@@ -11,7 +11,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import callback
 from homeassistant.helpers.device_registry import DeviceInfo
 
-from .coordinators import MerakiSwitchCoordinator
+from ..coordinators import MerakiSwitchCoordinator
 from ..core.models import MerakiAppliancePort
 from ..core.models.device import MerakiDevice
 from ..entity import MerakiEntity

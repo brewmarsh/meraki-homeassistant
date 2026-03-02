@@ -6,7 +6,7 @@ from homeassistant.components.sensor import SensorEntityDescription, SensorState
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import UnitOfDataRate
 
-from ..coordinators import MerakiMainCoordinator
+from ...coordinators import MerakiMainCoordinator
 from .base import MerakiSSIDBaseSensor
 
 BANDWIDTH_LIMIT_UP = SensorEntityDescription(

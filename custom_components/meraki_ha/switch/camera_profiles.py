@@ -6,7 +6,7 @@ import logging
 
 from homeassistant.components.switch import SwitchEntityDescription
 
-from custom_components.meraki_ha.coordinator import MerakiSwitchCoordinator
+from custom_components.meraki_ha.coordinators import MerakiSwitchCoordinator
 
 from ..core.api.client import MerakiAPIClient
 from ..core.models.device import MerakiDevice

@@ -5,7 +5,7 @@ from __future__ import annotations
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.entity import DeviceInfo
 
-from ..coordinators import MerakiMainCoordinator
+from ...coordinators import MerakiMainCoordinator
 from ...core.models.network import MerakiFirewallRule
 from ...core.utils.naming_utils import standardize_device_name
 from . import BaseMerakiEntity

@@ -9,7 +9,7 @@ from homeassistant.core import callback
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity import EntityCategory
 
-from .coordinators import MerakiSwitchCoordinator
+from ..coordinators import MerakiSwitchCoordinator
 from ..core.api.client import MerakiAPIClient
 from ..core.utils.icon_utils import get_device_type_icon
 from ..entity import MerakiEntity

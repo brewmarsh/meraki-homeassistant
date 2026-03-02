@@ -7,7 +7,7 @@ from typing import Any
 from homeassistant.components.sensor import SensorEntityDescription
 from homeassistant.config_entries import ConfigEntry
 
-from ..coordinators import MerakiMainCoordinator
+from ...coordinators import MerakiMainCoordinator
 from .base import MerakiSSIDBaseSensor
 
 

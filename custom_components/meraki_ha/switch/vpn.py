@@ -10,7 +10,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import EntityCategory
 from homeassistant.core import callback
 
-from .coordinators import MerakiSwitchCoordinator
+from ..coordinators import MerakiSwitchCoordinator
 from ..core.entities.meraki_network_entity import MerakiNetworkEntity
 from ..core.models.network import MerakiNetwork
 

@@ -6,7 +6,7 @@ from homeassistant.components.sensor import SensorEntityDescription, SensorState
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import callback
 
-from ..coordinators import MerakiMainCoordinator
+from ...coordinators import MerakiMainCoordinator
 from .base import MerakiSSIDBaseSensor
 
 

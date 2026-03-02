@@ -7,7 +7,7 @@ from homeassistant.components.sensor import SensorEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import callback
 
-from ..coordinators import MerakiSwitchCoordinator
+from ...coordinators import MerakiSwitchCoordinator
 from ...entity import MerakiEntity
 from ...helpers.device_info_helpers import resolve_device_info
 

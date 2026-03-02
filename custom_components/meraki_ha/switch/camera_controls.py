@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import logging
 
-from .coordinators import MerakiSwitchCoordinator
+from ..coordinators import MerakiSwitchCoordinator
 from ..core.api.client import MerakiAPIClient
 from ..core.models.device import MerakiDevice
 from .camera_settings import MerakiCameraSettingSwitchBase

@@ -11,7 +11,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import EntityCategory
 from homeassistant.core import callback
 
-from ..coordinators import MerakiMainCoordinator
+from ...coordinators import MerakiMainCoordinator
 from ...entity import MerakiSensor
 from ...helpers.device_info_helpers import resolve_device_info
 

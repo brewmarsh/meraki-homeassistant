@@ -18,7 +18,7 @@ from ...core.models.device import MerakiDevice
 from ...core.utils.naming_utils import format_device_name
 
 if TYPE_CHECKING:
-    from ..coordinators import MerakiApplianceCoordinator
+    from ...coordinators import MerakiApplianceCoordinator
 
 
 class AppliancePortBinarySensor(CoordinatorEntity, BinarySensorEntity):
