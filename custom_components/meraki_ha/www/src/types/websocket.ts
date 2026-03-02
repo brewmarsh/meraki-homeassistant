@@ -8,7 +8,6 @@ export enum WsCommand {
   GET_CAMERA_SNAPSHOT = 'meraki_ha/get_camera_snapshot',
   GET_VERSION = 'meraki_ha/get_version',
   GET_NETWORK_EVENTS = 'meraki_ha/get_network_events',
-  UPDATE_OPTIONS = 'meraki_ha/update_options',
   UPDATE_ENABLED_NETWORKS = 'meraki_ha/update_enabled_networks',
   CREATE_GUEST_KEY = 'meraki_ha/ipsk/create',
   GET_GUEST_KEYS = 'meraki_ha/ipsk/get',

@@ -230,8 +230,8 @@
 
 **Frontend UX Phase 6: Top-level Navigation**
 
-| Requirement                                                                                                                                  | Status      |
-| :------------------------------------------------------------------------------------------------------------------------------------------- | :---------- |
-| Implement scalable top-level navigation using Home Assistant's native `ha-tabs` and `paper-tab` web components.                              | In Progress |
-| Separate distinct feature sets (Networks, All Devices, Timed Access, Settings) into dedicated views accessible via tabs.                     | In Progress |
-| Ensure active tab state is tracked and the UI updates dynamically based on the selected tab.                                                 | In Progress |
+| Requirement                                                                                                                                  | Status   |
+| :------------------------------------------------------------------------------------------------------------------------------------------- | :------- |
+| Implement scalable top-level navigation using Home Assistant's native `ha-tabs` and `paper-tab` web components.                              | Complete |
+| Separate distinct feature sets (Networks, All Devices, Timed Access) into dedicated views accessible via tabs.                               | Complete |
+| Ensure active tab state is tracked and the UI updates dynamically based on the selected tab.                                                 | Complete |
