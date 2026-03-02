@@ -77,7 +77,7 @@ def bypass_platform_setup() -> Generator[None, None, None]:
 
 @pytest.fixture
 def mock_coordinator() -> MagicMock:
-    """Fixture for a mocked MerakiDataUpdateCoordinator."""
+    """Fixture for a mocked MerakiMainCoordinator."""
     coordinator = MagicMock()
     coordinator.config_entry.options = {}
     coordinator.data = MOCK_ALL_DATA

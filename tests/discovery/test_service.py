@@ -7,7 +7,8 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 from homeassistant.config_entries import ConfigEntry
 
-from custom_components.meraki_ha.coordinators.main import MerakiMainCoordinator as MerakiDataUpdateCoordinator
+# Resolved: Using the centralized coordinator path from the 2.3.0-beta.120 refactor
+from custom_components.meraki_ha.coordinators import MerakiMainCoordinator
 from custom_components.meraki_ha.discovery.service import DeviceDiscoveryService
 from custom_components.meraki_ha.services.camera_service import CameraService
 from custom_components.meraki_ha.services.device_control_service import (
@@ -20,7 +21,7 @@ from tests.const import MOCK_DEVICE
 def mock_coordinator_with_devices(
     mock_coordinator: MagicMock,
 ) -> MagicMock:
-    """Fixture for a mocked MerakiDataUpdateCoordinator with various devices."""
+    """Fixture for a mocked MerakiMainCoordinator with various devices."""
     wireless_device = replace(MOCK_DEVICE, model="MR36")
     camera_device = replace(MOCK_DEVICE, serial="camera_serial", model="MV12")
     unsupported_device = replace(
@@ -47,7 +48,7 @@ def mock_control_service() -> MagicMock:
 
 
 def test_discovery_service_init(
-    mock_coordinator_with_devices: MerakiDataUpdateCoordinator,
+    mock_coordinator_with_devices: MerakiMainCoordinator,
     mock_config_entry: ConfigEntry,
     mock_camera_service: CameraService,
     mock_control_service: DeviceControlService,
@@ -70,7 +71,7 @@ def test_discovery_service_init(
 
 @pytest.mark.asyncio
 async def test_discover_entities_delegates_to_handler(
-    mock_coordinator_with_devices: MerakiDataUpdateCoordinator,
+    mock_coordinator_with_devices: MerakiMainCoordinator,
     mock_config_entry: ConfigEntry,
     mock_camera_service: CameraService,
     mock_control_service: DeviceControlService,

@@ -18,7 +18,7 @@ from custom_components.meraki_ha.types import MerakiDevice
 
 @pytest.fixture
 def mock_coordinator_with_mt_devices(mock_coordinator: MagicMock) -> MagicMock:
-    """Fixture for a mocked MerakiDataUpdateCoordinator with MT sensor data."""
+    """Fixture for a mocked MerakiMainCoordinator with MT sensor data."""
     devices_data: list[dict[str, Any]] = [
         {
             "serial": "mt10-1",

@@ -11,3 +11,11 @@ serialize = [
 ["bumpversion:file:custom_components/meraki_ha/manifest.json"]
 search = '"version": "{current_version}"'
 replace = '"version": "{new_version}"'
+
+["bumpversion:file:package.json"]
+search = '"version": "{current_version}"'
+replace = '"version": "{new_version}"'
+
+["bumpversion:file:custom_components/meraki_ha/www/package.json"]
+search = '"version": "{current_version}"'
+replace = '"version": "{new_version}"'

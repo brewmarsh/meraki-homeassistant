@@ -11,7 +11,8 @@ from custom_components.meraki_ha.const_conf import (
     CONF_MERAKI_API_KEY,
     CONF_MERAKI_ORG_ID,
 )
-from custom_components.meraki_ha.coordinators.main import (
+# Resolved: Using the centralized coordinator path from the 2.3.0-beta.120 refactor
+from custom_components.meraki_ha.coordinators import (
     MerakiMainCoordinator as MerakiDataCoordinator,
 )
 from tests.const import MOCK_NETWORK
@@ -21,7 +22,6 @@ from tests.const import MOCK_NETWORK
 def mock_api_client():
     """Fixture for a mocked MerakiAPIClient."""
     client = MagicMock()
-    # client.get_all_data is no longer used directly
     return client
 
 
@@ -42,13 +42,14 @@ def coordinator(hass, mock_api_client, mock_data_fetch_manager):
         options={},
     )
     entry.add_to_hass(hass)
+    # Patched to reflect the new internal module structure for base components
     with (
         patch(
-            "custom_components.meraki_ha.coordinator.ApiClient",
+            "custom_components.meraki_ha.coordinators.base.ApiClient",
             return_value=mock_api_client,
         ),
         patch(
-            "custom_components.meraki_ha.coordinator.DataFetchManager",
+            "custom_components.meraki_ha.coordinators.base.DataFetchManager",
             return_value=mock_data_fetch_manager,
         ),
     ):

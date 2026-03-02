@@ -14,7 +14,7 @@ from custom_components.meraki_ha.switch.meraki_ssid_device_switch import (
 
 @pytest.fixture
 def mock_coordinator_with_ssid_data(mock_coordinator: MagicMock) -> MagicMock:
-    """Fixture for a mocked MerakiDataUpdateCoordinator with SSID data."""
+    """Fixture for a mocked MerakiMainCoordinator with SSID data."""
     mock_coordinator.config_entry.options = {}
     mock_coordinator.async_request_refresh = AsyncMock()
     mock_coordinator.is_pending.return_value = False

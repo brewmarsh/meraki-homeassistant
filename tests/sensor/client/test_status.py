@@ -10,7 +10,7 @@ from custom_components.meraki_ha.sensor.client.status import MerakiClientStatusS
 
 @pytest.fixture
 def mock_coordinator():
-    """Fixture for a mocked MerakiDataUpdateCoordinator."""
+    """Fixture for a mocked MerakiMainCoordinator."""
     coordinator = MagicMock()
 
     client1 = {

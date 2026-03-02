@@ -14,7 +14,7 @@ from tests.const import MOCK_DEVICE
 
 @pytest.fixture
 def mock_coordinator() -> MagicMock:
-    """Fixture for a mocked MerakiDataUpdateCoordinator."""
+    """Fixture for a mocked MerakiMainCoordinator."""
     coordinator = MagicMock()
     coordinator.config_entry.options = {}
     # The coordinator's data is a dictionary that the entity will access

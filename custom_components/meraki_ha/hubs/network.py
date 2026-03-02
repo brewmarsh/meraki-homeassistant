@@ -13,7 +13,7 @@ from typing import TYPE_CHECKING, Any
 if TYPE_CHECKING:
     from ...core.models.device import MerakiDevice
     from ...core.models.network import MerakiNetwork
-    from .coordinators import MerakiMainCoordinator
+    from ..coordinators import MerakiMainCoordinator
 
 _LOGGER = logging.getLogger(__name__)
 

@@ -14,7 +14,7 @@ from custom_components.meraki_ha.sensor.device.device_status import (
 
 @pytest.fixture
 def mock_coordinator():
-    """Fixture for a mock MerakiDataUpdateCoordinator."""
+    """Fixture for a mock MerakiMainCoordinator."""
     coordinator = MagicMock()
     coordinator.data = {}
     coordinator.hass = MagicMock()

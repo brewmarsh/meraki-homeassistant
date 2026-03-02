@@ -5,7 +5,8 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from custom_components.meraki_ha.coordinators.main import MerakiMainCoordinator as MerakiDataUpdateCoordinator
+# Resolved: Using the centralized coordinator path from the 2.3.0-beta.120 refactor
+from custom_components.meraki_ha.coordinators import MerakiMainCoordinator
 from custom_components.meraki_ha.sensor.device.meraki_firmware_status import (
     MerakiFirmwareStatusSensor,
 )
@@ -14,14 +15,14 @@ from custom_components.meraki_ha.types import MerakiDevice
 
 @pytest.fixture
 def mock_device_coordinator() -> MagicMock:
-    """Fixture for a mocked MerakiDataUpdateCoordinator.
+    """Fixture for a mocked MerakiMainCoordinator.
 
     This mock provides a structured 'data' attribute and a 'get_device' method
     as expected by the Meraki firmware status sensor.
     """
-    # Using spec=MerakiDataUpdateCoordinator allows type checkers to validate
+    # Using spec=MerakiMainCoordinator allows type checkers to validate
     # interactions with the mock against the actual coordinator's interface.
-    coordinator: MagicMock = MagicMock(spec=MerakiDataUpdateCoordinator)
+    coordinator: MagicMock = MagicMock(spec=MerakiMainCoordinator)
 
     device1: MerakiDevice = MerakiDevice(
         serial="dev1",
@@ -55,7 +56,6 @@ def mock_device_coordinator() -> MagicMock:
 
     def get_device_side_effect(serial: str) -> Optional[MerakiDevice]:
         """Side effect function for coordinator.get_device to simulate lookup."""
-        # Assume coordinator.data["devices"] holds a list of MerakiDevice objects
         devices: List[MerakiDevice] = coordinator.data["devices"]
         for d in devices:
             if d.serial == serial:
@@ -74,7 +74,7 @@ def test_firmware_status_sensor(mock_device_coordinator: MagicMock) -> None:
     device1: MerakiDevice = mock_device_coordinator.data["devices"][0]
     device2: MerakiDevice = mock_device_coordinator.data["devices"][1]
 
-    # Mock a Home Assistant ConfigEntry, which is typically passed during setup
+    # Mock a Home Assistant ConfigEntry
     config_entry: MagicMock = MagicMock()
     config_entry.options = {}
 
@@ -86,7 +86,6 @@ def test_firmware_status_sensor(mock_device_coordinator: MagicMock) -> None:
     assert sensor1.name == "Firmware Status"
     assert sensor1.state == "update_available"
     assert sensor1.extra_state_attributes["latest_available_firmware_version"] == "27.1"
-    # Additional checks for expected attributes if needed, e.g., icon, device_info, etc.
 
     # Test sensor for device2 (up to date)
     sensor2: MerakiFirmwareStatusSensor = MerakiFirmwareStatusSensor(

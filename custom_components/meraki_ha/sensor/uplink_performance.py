@@ -19,7 +19,7 @@ from ..entity import MerakiSensor
 if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
 
-    from .coordinators import MerakiMainCoordinator
+    from ..coordinators import MerakiMainCoordinator
     from ..core.models.device import MerakiDevice
 
 _LOGGER = logging.getLogger(__name__)
