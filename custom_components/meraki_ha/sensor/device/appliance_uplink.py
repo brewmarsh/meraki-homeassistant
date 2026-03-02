@@ -14,6 +14,7 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from ...const import DOMAIN
 from ...coordinator import MerakiDataUpdateCoordinator
+from ...core.utils.naming_utils import standardize_device_name
 
 if TYPE_CHECKING:
     from ...core.models.device import MerakiDevice
@@ -49,7 +50,7 @@ class MerakiApplianceUplinkSensor(CoordinatorEntity, SensorEntity):
 
         self._attr_device_info = DeviceInfo(
             identifiers={(DOMAIN, self._device_serial)},
-            name=device_data.name,
+            name=standardize_device_name(device_data.name),
             model=device_data.model,
             manufacturer="Cisco Meraki",
         )

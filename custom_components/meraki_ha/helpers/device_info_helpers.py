@@ -10,6 +10,7 @@ from homeassistant.helpers.device_registry import DeviceEntryType, DeviceInfo
 from ..const import DOMAIN
 from ..core.models.device import MerakiDevice
 from ..core.models.network import MerakiNetwork
+from ..core.utils.naming_utils import standardize_device_name
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -22,6 +23,8 @@ DEVICE_TYPE_MAPPING = {
     "security": "Appliance",
     "cellularGateway": "Gateway",
 }
+
+
 
 
 def resolve_device_info(
@@ -73,8 +76,8 @@ def resolve_device_info(
     if client_mac and parent_serial:
         return DeviceInfo(
             identifiers={(DOMAIN, client_mac)},
-            name=str(entity_data.get("description") or client_mac),
-            manufacturer=str(entity_data.get("manufacturer") or "Unknown"),
+            name=standardize_device_name(str(entity_data.get("description") or client_mac)),
+            manufacturer=str(entity_data.get("manufacturer") or "Cisco Meraki"),
             via_device=(DOMAIN, parent_serial),
         )
 
@@ -94,7 +97,7 @@ def resolve_device_info(
 
         return DeviceInfo(
             identifiers={(DOMAIN, f"network_{network_id}")},
-            name=name,
+            name=standardize_device_name(name),
             manufacturer="Cisco Meraki",
             model="Network Controller Service",
             entry_type=DeviceEntryType.SERVICE,
@@ -127,7 +130,7 @@ def resolve_device_info(
 
         return DeviceInfo(
             identifiers={(DOMAIN, device_serial)},
-            name=name,
+            name=standardize_device_name(name),
             manufacturer="Cisco Meraki",
             model=model,
             sw_version=str(entity_data.get("firmware") or ""),

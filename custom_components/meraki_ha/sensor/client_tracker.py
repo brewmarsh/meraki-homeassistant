@@ -11,6 +11,7 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from ..const import DOMAIN
 from ..coordinator import MerakiDataUpdateCoordinator
+from ..core.utils.naming_utils import standardize_device_name
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -37,7 +38,7 @@ class ClientTrackerDeviceSensor(CoordinatorEntity, SensorEntity):
 
         self._attr_device_info = DeviceInfo(
             identifiers={(DOMAIN, CLIENT_TRACKER_DEVICE_ID)},
-            name="Client Tracker",
+            name=standardize_device_name("Client Tracker"),
             manufacturer="Cisco Meraki",
             model="Client Tracker",
         )

@@ -14,6 +14,7 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from ..const import DOMAIN
 from ..coordinator import MerakiDataUpdateCoordinator
 from ..core.models.network import MerakiNetwork
+from ..core.utils.naming_utils import standardize_device_name
 from ..helpers.device_info_helpers import resolve_device_info
 
 
@@ -69,7 +70,7 @@ class MerakiNetworkStatus(BinarySensorEntity):
 
         return DeviceInfo(
             identifiers={(DOMAIN, network_id)},
-            name=self._network.name,
+            name=standardize_device_name(self._network.name),
         )
 
     @property
