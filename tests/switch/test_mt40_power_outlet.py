@@ -11,11 +11,10 @@ import pytest
 # or MerakiDataCoordinator types, then MagicMock with a spec argument or Any
 # would be the appropriate fallback.
 from custom_components.meraki_ha.client import MerakiAPIClient
-from homeassistant.config_entries import ConfigEntry
-from homeassistant.core import HomeAssistant
-
 from custom_components.meraki_ha.switch.mt40_power_outlet import MerakiMt40PowerOutlet
 from custom_components.meraki_ha.types import MerakiDevice
+from homeassistant.config_entries import ConfigEntry
+from homeassistant.core import HomeAssistant
 
 
 @pytest.fixture

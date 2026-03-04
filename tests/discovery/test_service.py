@@ -6,11 +6,10 @@ from typing import Any
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-from custom_components.meraki_ha.meraki_client import MerakiClient
-from homeassistant.config_entries import ConfigEntry
 
 from custom_components.meraki_ha.coordinator import MerakiDataUpdateCoordinator
 from custom_components.meraki_ha.discovery.service import DeviceDiscoveryService
+from custom_components.meraki_ha.meraki_client import MerakiClient
 from custom_components.meraki_ha.services.camera_service import CameraService
 from custom_components.meraki_ha.services.device_control_service import (
     DeviceControlService,
@@ -18,6 +17,7 @@ from custom_components.meraki_ha.services.device_control_service import (
 from custom_components.meraki_ha.services.network_control_service import (
     NetworkControlService,
 )
+from homeassistant.config_entries import ConfigEntry
 from tests.const import MOCK_DEVICE
 
 
