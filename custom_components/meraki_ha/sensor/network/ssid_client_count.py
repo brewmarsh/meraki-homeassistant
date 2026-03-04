@@ -40,6 +40,10 @@ class MerakiSSIDClientCountSensor(MerakiSSIDBaseSensor):
         elif self.coordinator.data and "clients" in self.coordinator.data:
             # Fallback to manual calculation if clientCount not in ssid_data
             all_clients = self.coordinator.data.get("clients", [])
+            if not isinstance(all_clients, list):
+                self._attr_native_value = 0
+                return
+
             ssid_name = (
                 ssid_data.get("name")
                 if ssid_data
@@ -52,7 +56,8 @@ class MerakiSSIDClientCountSensor(MerakiSSIDBaseSensor):
             self._attr_native_value = sum(
                 1
                 for client in all_clients
-                if client.get("networkId") == self._network_id
+                if isinstance(client, dict)
+                and client.get("networkId") == self._network_id
                 and client.get("ssid") == ssid_name
                 and str(client.get("status", "")).lower() == "online"
             )

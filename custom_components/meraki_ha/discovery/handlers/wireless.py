@@ -64,7 +64,13 @@ class WirelessHandler(BaseHandler):
         if not self._config_entry.options.get(CONF_ENABLE_DEVICE_SENSORS, True):
             return
 
-        for device in self._coordinator.data.get("devices", []):
+        devices = self._coordinator.data.get("devices", [])
+        if not isinstance(devices, list):
+            return
+
+        for device in devices:
+            if not hasattr(device, "product_type"):
+                continue
             if device.product_type == "wireless":
                 # Client Count per AP
                 yield MerakiAPClientCountSensor(
@@ -87,8 +93,12 @@ class WirelessHandler(BaseHandler):
         if not self._config_entry.options.get(CONF_ENABLE_SSID_SENSORS, True):
             return
 
-        for ssid in self._coordinator.data.get("ssids", []):
-            if "networkId" not in ssid or "number" not in ssid:
+        ssids = self._coordinator.data.get("ssids", [])
+        if not isinstance(ssids, list):
+            return
+
+        for ssid in ssids:
+            if not isinstance(ssid, dict) or "networkId" not in ssid or "number" not in ssid:
                 continue
 
             rf_profile = self._get_rf_profile(ssid)
@@ -134,10 +144,9 @@ class WirelessHandler(BaseHandler):
 
     def _get_rf_profile(self, ssid: dict[str, Any]) -> dict[str, Any] | None:
         """Find the RF profile for this SSID's network."""
-        if self._coordinator.data and self._coordinator.data.get("rf_profiles"):
-            network_rf_profiles = self._coordinator.data["rf_profiles"].get(
-                ssid["networkId"]
-            )
+        rf_profiles = self._coordinator.data.get("rf_profiles") if self._coordinator.data else None
+        if isinstance(rf_profiles, dict):
+            network_rf_profiles = rf_profiles.get(ssid["networkId"])
             if network_rf_profiles:
                 return next(iter(network_rf_profiles), None)
         return None
