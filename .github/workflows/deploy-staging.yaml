@@ -15,6 +15,9 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          clean: true
+          fetch-depth: 0 # Prevents shallow clone desyncs
       - name: Setup Node.js
         uses: actions/setup-node@v6
         with:
@@ -116,13 +119,10 @@ jobs:
           fi
 
           # Grep the content (Strictly meraki_ha errors only)
-          if grep -i "custom_components.meraki_ha" /config/home-assistant.log > meraki_errors.txt; then
+          if grep -E -i "(ERROR|WARNING|EXCEPTION).*custom_components\.meraki_ha" /config/home-assistant.log > meraki_errors.txt; then
             echo "::error::CRITICAL: Found Meraki errors in the log!"
             echo "HAS_ERRORS=true" >> $GITHUB_ENV
           else
-            echo "Logs are clean. Smoke test passed."
-            echo "HAS_ERRORS=false" >> $GITHUB_ENV
-          fi
           
       - name: Create GitHub issue for errors
         if: env.HAS_ERRORS == 'true'
