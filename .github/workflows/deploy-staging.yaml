@@ -109,27 +109,6 @@ jobs:
       - name: Audit logs for errors
         id: audit_logs
         shell: bash
-        run: |
-          echo "Scanning local log file for Meraki errors..."
-          
-          if [ ! -f "${{ env.HA_CONFIG_DIR }}/home-assistant.log" ]; then
-            echo "Warning: home-assistant.log not found. Skipping log scan."
-            exit 0
-          fi
-
-          # The Fix: Loosened regex to catch 'meraki_ha' without the prefix
-          # Added -B 2 (Before 2 lines) and -A 25 (After 25 lines) to capture the full Python traceback
-          if grep -B 2 -A 25 -E -i "(error|warning|exception).*meraki_ha" ${{ env.HA_CONFIG_DIR }}/home-assistant.log > meraki_errors.txt; then
-            echo "::error::CRITICAL: Found Meraki errors in the log!"
-            echo "HAS_ERRORS=true" >> $GITHUB_ENV
-          else
-            echo "Logs are clean. Smoke test passed."
-            echo "HAS_ERRORS=false" >> $GITHUB_ENV
-          fi
-
-      - name: Audit logs for errors
-        id: audit_logs
-        shell: bash
         env:
           HA_URL: ${{ secrets.HA_STAGING_URL }}
           HA_TOKEN: ${{ secrets.HA_STAGING_TOKEN }}
@@ -147,8 +126,9 @@ jobs:
             exit 1
           fi
 
-          # Scan the downloaded text for our integration's errors
-          if grep -B 2 -A 25 -E -i "(error|warning|exception).*meraki_ha" full_ha_log.txt > meraki_errors.txt; then
+          # The Fix: Loosened regex to catch 'meraki_ha' without the prefix
+          # Added -B 2 (Before 2 lines) and -A 25 (After 25 lines) to capture the full Python traceback
+          if grep -B 2 -A 25 -E -i "(error|warning|exception).*meraki_ha" ${{ env.HA_CONFIG_DIR }}/home-assistant.log > meraki_errors.txt; then
             echo "::error::CRITICAL: Found Meraki errors in the log!"
             echo "HAS_ERRORS=true" >> $GITHUB_ENV
           else
