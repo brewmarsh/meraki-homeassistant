@@ -5,10 +5,10 @@ import { WsCommand } from './types/websocket';
 
 interface HassObject {
   connection: {
-    sendMessagePromise(message: any): Promise<any>;
+    sendMessagePromise<T = unknown>(message: Record<string, unknown>): Promise<T>;
   };
-  callWS(message: any): Promise<any>;
-  [key: string]: any;
+  callWS<T = unknown>(message: Record<string, unknown>): Promise<T>;
+  [key: string]: unknown;
 }
 
 interface PanelInfo {
@@ -40,6 +40,46 @@ interface MerakiData {
   devices: Device[];
   enabled_networks: string[];
 }
+
+interface ConfigEntry {
+  entry_id: string;
+  domain: string;
+}
+
+const getConfigEntryId = async (hass: HassObject): Promise<string> => {
+  const entries = await hass.callWS<ConfigEntry[]>({
+    type: 'config_entries/get',
+    domain: 'meraki_ha',
+  });
+
+  if (entries && entries.length > 0) {
+    return entries[0].entry_id;
+  }
+  throw new Error('No configuration found');
+};
+
+const getMerakiData = async (hass: HassObject, entryId: string): Promise<MerakiData> => {
+  return await safeCallWS<MerakiData>(hass, {
+    type: WsCommand.GET_CONFIG,
+    config_entry_id: entryId,
+  });
+};
+
+const getErrorMessage = (err: unknown): string => {
+  if (err && typeof err === 'object') {
+    const errorObj = err as Record<string, unknown>;
+    if (errorObj.code === 'not_found') {
+      return 'Meraki integration not configured. Please add and configure the integration in Home Assistant.';
+    }
+    if (typeof errorObj.message === 'string') {
+      return `Failed to fetch Meraki data: ${errorObj.message}`;
+    }
+  }
+  if (err instanceof Error) {
+    return `Failed to fetch Meraki data: ${err.message}`;
+  }
+  return `Failed to fetch Meraki data: Unknown error`;
+};
 
 @customElement('meraki-panel')
 export class MerakiPanel extends LitElement {
@@ -82,30 +122,10 @@ export class MerakiPanel extends LitElement {
     }
 
     try {
-      const entries = await this.hass.callWS({
-        type: 'config_entries/get',
-        domain: 'meraki_ha',
-      });
-
-      if (entries && (entries as any[]).length > 0) {
-        this.entryId = (entries as any[])[0].entry_id;
-      } else {
-        this._error = 'No configuration found';
-        this._loading = false;
-        return;
-      }
-
-      const data = await safeCallWS<MerakiData>(this.hass, {
-        type: WsCommand.GET_CONFIG,
-        config_entry_id: this.entryId,
-      });
-      this._data = data;
-    } catch (err: any) {
-      if (err.code === 'not_found') {
-        this._error = 'Meraki integration not configured. Please add and configure the integration in Home Assistant.';
-      } else {
-        this._error = `Failed to fetch Meraki data: ${err.message || 'Unknown error'}`;
-      }
+      this.entryId = await getConfigEntryId(this.hass);
+      this._data = await getMerakiData(this.hass, this.entryId);
+    } catch (err: unknown) {
+      this._error = getErrorMessage(err);
     } finally {
       this._loading = false;
     }
@@ -160,8 +180,8 @@ export class MerakiPanel extends LitElement {
                 <div class="card-actions">
                   <ha-switch
                     .checked=${enabled_networks.includes(network.id)}
-                    @change=${(e: any) =>
-                      this._handleToggle(network.id, e.target.checked)}
+                    @change=${(e: Event) =>
+                      this._handleToggle(network.id, (e.target as HTMLInputElement).checked)}
                   >
                   </ha-switch>
                 </div>

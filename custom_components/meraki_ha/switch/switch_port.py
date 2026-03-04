@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import logging
 from abc import ABC, abstractmethod
-from typing import Any, Protocol
+from typing import Any
 
 from homeassistant.components.switch import SwitchEntity, SwitchEntityDescription
 from homeassistant.config_entries import ConfigEntry
@@ -29,14 +29,6 @@ def _get_port_identifier_from_data(port_data: dict[str, Any]) -> str | None:
     if port_number is not None:
         return str(port_number)
     return None
-
-
-class MerakiPortApiCommand(Protocol):
-    """Protocol for API commands to update a Meraki port."""
-
-    async def __call__(self, enabled: bool) -> Any:
-        """Call method for the API command."""
-        ...
 
 
 class _MerakiPortSwitchBase(MerakiEntity, SwitchEntity, ABC):
@@ -99,10 +91,37 @@ class _MerakiPortSwitchBase(MerakiEntity, SwitchEntity, ABC):
         self._update_internal_state()
         self.async_write_ha_state()
 
-    @abstractmethod
     def _refresh_port_data_from_coordinator(self) -> None:
-        """Abstract method to refresh port data from coordinator."""
-        pass
+        """Refresh port data from the coordinator."""
+        updated_device = self.coordinator.get_device(self._device.serial)
+        if not updated_device:
+            return
+
+        self._device = updated_device
+        current_port_id = self._get_port_identifier()
+        if not current_port_id:
+            _LOGGER.warning(
+                "Could not find identifier for current port for device %s.",
+                self._device.serial,
+            )
+            return
+
+        for port_data in self._get_device_ports():
+            port_dict = port_data if isinstance(port_data, dict) else port_data.to_dict()
+            if _get_port_identifier_from_data(port_dict) == current_port_id:
+                self._port = port_dict
+                _LOGGER.debug(
+                    "Refreshed port %s for device %s",
+                    current_port_id,
+                    self._device.serial,
+                )
+                return
+
+        _LOGGER.warning(
+            "Port %s not found in updated data for device %s. It may have been removed or changed.",
+            current_port_id,
+            self._device.serial,
+        )
 
     def _get_port_identifier(self) -> str | None:
         """Get the primary identifier for the port."""
@@ -115,21 +134,15 @@ class _MerakiPortSwitchBase(MerakiEntity, SwitchEntity, ABC):
             return
         self._attr_is_on = self._port.get("enabled", False)
 
-    async def _execute_port_command(
-        self,
-        enabled: bool,
-        api_command_func: MerakiPortApiCommand,
-        port_description: str,
-    ) -> None:
+    async def _toggle_port(self, enabled: bool) -> None:
         """Execute a port enable/disable command with optimistic update and error handling."""
-        port_identifier = self._get_port_identifier()
-        if not self._device.serial or not port_identifier:
+        port_id = self._get_port_identifier()
+        if not self._device.serial or not port_id:
             _LOGGER.error(
-                "Cannot %s %s: Missing device serial (%s) or port identifier (%s).",
+                "Cannot %s port: Missing device serial (%s) or port identifier (%s).",
                 "enable" if enabled else "disable",
-                port_description,
                 self._device.serial,
-                port_identifier,
+                port_id,
             )
             return
 
@@ -142,21 +155,19 @@ class _MerakiPortSwitchBase(MerakiEntity, SwitchEntity, ABC):
             self.coordinator.register_pending_update(self.unique_id)
 
         try:
-            await api_command_func(enabled)
+            await self._async_update_port_status(port_id, enabled)
             _LOGGER.debug(
-                "Successfully set %s for %s (device: %s, port: %s).",
+                "Successfully set %s for port %s (device: %s).",
                 "enabled" if enabled else "disabled",
-                port_description,
+                port_id,
                 self._device.serial,
-                port_identifier,
             )
         except Exception as e:
             _LOGGER.error(
-                "Failed to %s %s (device: %s, port: %s): %s",
+                "Failed to %s port %s (device: %s): %s",
                 "enable" if enabled else "disable",
-                port_description,
+                port_id,
                 self._device.serial,
-                port_identifier,
                 e,
             )
             # Revert state on failure
@@ -166,15 +177,21 @@ class _MerakiPortSwitchBase(MerakiEntity, SwitchEntity, ABC):
             self.async_write_ha_state()
             raise  # Re-raise the exception to HA
 
-    @abstractmethod
     async def async_turn_on(self, **kwargs: Any) -> None:
         """Turn the switch on."""
-        pass
+        await self._toggle_port(True)
 
-    @abstractmethod
     async def async_turn_off(self, **kwargs: Any) -> None:
         """Turn the switch off."""
-        pass
+        await self._toggle_port(False)
+
+    @abstractmethod
+    def _get_device_ports(self) -> list[Any]:
+        """Return the list of ports for this device from the coordinator data."""
+
+    @abstractmethod
+    async def _async_update_port_status(self, port_id: str, enabled: bool) -> Any:
+        """Execute the API call to update the port status."""
 
 
 class MerakiSwitchPortToggle(_MerakiPortSwitchBase):
@@ -196,74 +213,21 @@ class MerakiSwitchPortToggle(_MerakiPortSwitchBase):
             entity_key_prefix="port_switch",
         )
 
-    def _refresh_port_data_from_coordinator(self) -> None:
-        """Refresh switch port data from the coordinator."""
-        updated_device = self.coordinator.get_device(self._device.serial)
-        if updated_device:
-            self._device = updated_device
-            current_port_identifier = self._get_port_identifier()
-            if not current_port_identifier:
-                _LOGGER.warning(
-                    "Could not find identifier for current switch port for device %s.",
-                    self._device.serial,
-                )
-                return
+    def _get_device_ports(self) -> list[Any]:
+        """Get switch ports for the device."""
+        return getattr(self._device, "switch_ports", [])
 
-            ports_statuses = getattr(self._device, "switch_ports", [])
-            for port_data in ports_statuses:
-                if _get_port_identifier_from_data(port_data) == current_port_identifier:
-                    self._port = port_data
-                    _LOGGER.debug(
-                        "Refreshed switch port %s for device %s",
-                        current_port_identifier,
-                        self._device.serial,
-                    )
-                    return
-            _LOGGER.warning(
-                "Switch port %s not found in updated data for device %s. It may have been removed or changed.",
-                current_port_identifier,
-                self._device.serial,
-            )
-
-    async def async_turn_on(self, **kwargs: Any) -> None:
-        """Turn the switch on (enable the port)."""
-        port_id = self._get_port_identifier()
-        if not port_id:
-            _LOGGER.error("Cannot enable switch port: Port identifier is missing.")
-            return
-
-        await self._execute_port_command(
-            enabled=True,
-            api_command_func=lambda enabled: self.coordinator.api.switch.update_device_switch_port(
-                serial=self._device.serial,
-                port_id=str(port_id),
-                enabled=enabled,
-            ),
-            port_description=f"switch port {port_id}",
-        )
-
-    async def async_turn_off(self, **kwargs: Any) -> None:
-        """Turn the switch off (disable the port)."""
-        port_id = self._get_port_identifier()
-        if not port_id:
-            _LOGGER.error("Cannot disable switch port: Port identifier is missing.")
-            return
-
-        await self._execute_port_command(
-            enabled=False,
-            api_command_func=lambda enabled: self.coordinator.api.switch.update_device_switch_port(
-                serial=self._device.serial,
-                port_id=str(port_id),
-                enabled=enabled,
-            ),
-            port_description=f"switch port {port_id}",
+    async def _async_update_port_status(self, port_id: str, enabled: bool) -> Any:
+        """Update switch port status via API."""
+        return await self.coordinator.api.switch.update_device_switch_port(
+            serial=self._device.serial,
+            port_id=port_id,
+            enabled=enabled,
         )
 
 
 class MerakiAppliancePortSwitch(_MerakiPortSwitchBase):
     """Representation of a Meraki Appliance Port toggle entity."""
-
-    _appliance_port: MerakiAppliancePort
 
     def __init__(
         self,
@@ -280,75 +244,17 @@ class MerakiAppliancePortSwitch(_MerakiPortSwitchBase):
             config_entry,
             entity_key_prefix="port_switch",  # Keep consistent with switch port unique IDs
         )
-        self._appliance_port = port  # Keep original model for direct access
 
-    def _refresh_port_data_from_coordinator(self) -> None:
-        """Refresh appliance port data from the coordinator."""
-        updated_device = self.coordinator.get_device(self._device.serial)
-        if updated_device:
-            self._device = updated_device
-            current_port_number = self._appliance_port.number
-            if current_port_number is None:
-                _LOGGER.warning(
-                    "Appliance port number is missing for device %s. Cannot refresh.",
-                    self._device.serial,
-                )
-                return
+    def _get_device_ports(self) -> list[Any]:
+        """Get appliance ports for the device."""
+        return getattr(self._device, "appliance_ports", [])
 
-            for port in self._device.appliance_ports:
-                if port.number == current_port_number:
-                    self._appliance_port = port
-                    self._port = port.to_dict()  # Update base _port dict
-                    _LOGGER.debug(
-                        "Refreshed appliance port %s for device %s",
-                        current_port_number,
-                        self._device.serial,
-                    )
-                    return
-            _LOGGER.warning(
-                "Appliance port %s not found in updated data for device %s. It may have been removed or changed.",
-                current_port_number,
-                self._device.serial,
-            )
-
-    async def async_turn_on(self, **kwargs: Any) -> None:
-        """Turn the switch on (enable the port)."""
-        port_number = self._appliance_port.number
-        if not self._device.network_id or port_number is None:
-            _LOGGER.error(
-                "Cannot enable appliance port: Missing network ID (%s) or port number (%s).",
-                self._device.network_id,
-                port_number,
-            )
-            return
-
-        await self._execute_port_command(
-            enabled=True,
-            api_command_func=lambda enabled: self.coordinator.api.appliance.update_network_appliance_port(
-                network_id=self._device.network_id,
-                port_id=str(port_number),
-                enabled=enabled,
-            ),
-            port_description=f"appliance port {port_number}",
-        )
-
-    async def async_turn_off(self, **kwargs: Any) -> None:
-        """Turn the switch off (disable the port)."""
-        port_number = self._appliance_port.number
-        if not self._device.network_id or port_number is None:
-            _LOGGER.error(
-                "Cannot disable appliance port: Missing network ID (%s) or port number (%s).",
-                self._device.network_id,
-                port_number,
-            )
-            return
-
-        await self._execute_port_command(
-            enabled=False,
-            api_command_func=lambda enabled: self.coordinator.api.appliance.update_network_appliance_port(
-                network_id=self._device.network_id,
-                port_id=str(port_number),
-                enabled=enabled,
-            ),
-            port_description=f"appliance port {port_number}",
+    async def _async_update_port_status(self, port_id: str, enabled: bool) -> Any:
+        """Update appliance port status via API."""
+        if not self._device.network_id:
+            raise ValueError(f"Missing network ID for device {self._device.serial}")
+        return await self.coordinator.api.appliance.update_network_appliance_port(
+            network_id=self._device.network_id,
+            port_id=port_id,
+            enabled=enabled,
         )
