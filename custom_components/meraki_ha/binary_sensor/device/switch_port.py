@@ -61,6 +61,8 @@ class SwitchPortSensor(CoordinatorEntity, BinarySensorEntity):
             self._device = device
             ports = device.switch_ports or device.appliance_ports or []
             for port_data in ports:
+                if port_data is None or isinstance(port_data, str):
+                    continue
                 if hasattr(port_data, "to_dict"):
                     port = port_data.to_dict()
                 else:

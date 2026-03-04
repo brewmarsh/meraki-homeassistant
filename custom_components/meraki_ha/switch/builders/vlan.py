@@ -59,6 +59,8 @@ def _create_vlan_entities(
     """Create VLAN entities for a network."""
     entities: list[SwitchEntity] = []
     for vlan in vlans:
+        if not vlan or not hasattr(vlan, "id"):
+            continue
         vlan_id = getattr(vlan, "id", None)
         if not vlan_id:
             continue

@@ -71,6 +71,8 @@ class MerakiSSIDBaseSensor(MerakiEntity, SensorEntity):
             return None
 
         for ssid in network_ssids:
+            if not isinstance(ssid, dict):
+                continue
             if str(ssid.get("number")) == str(self._ssid_number):
                 return ssid
         return None
@@ -78,6 +80,8 @@ class MerakiSSIDBaseSensor(MerakiEntity, SensorEntity):
     def _find_ssid_in_flat_list(self) -> dict[str, Any] | None:
         """Find the SSID data in the flat ssids list."""
         for ssid in self.coordinator.data["ssids"]:
+            if not isinstance(ssid, dict):
+                continue
             if ssid.get("networkId") == self._network_id and str(
                 ssid.get("number")
             ) == str(self._ssid_number):

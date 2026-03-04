@@ -75,12 +75,15 @@ class MerakiSwitchPortBaseSensor(CoordinatorEntity, SensorEntity, ABC):
         else:
             current_port_id = self._get_port_id_from_data(self._port)
             _LOGGER.debug(
-                "Could not find updated data for device serial '%s', port ID '%s' in coordinator data. Sensor might be stale or unavailable.",
+                "Could not find updated data for device serial '%s', port ID '%s' "
+                "in coordinator data. Sensor might be stale or unavailable.",
                 self._device.serial,
                 current_port_id,
             )
-            # If the device or port is not found, the entity should eventually reflect unavailability.
-            # For now, it will keep its last known state, and 'available' property check handles device online status.
+            # If the device or port is not found, the entity should
+            # eventually reflect unavailability.
+            # For now, it will keep its last known state, and 'available'
+            # property check handles device online status.
 
     def _get_port_id_from_data(self, port_data: dict[str, Any]) -> str | int | None:
         """Extract the port ID from port data, preferring 'portId' then 'number'."""
@@ -93,28 +96,37 @@ class MerakiSwitchPortBaseSensor(CoordinatorEntity, SensorEntity, ABC):
         current_port_id = self._get_port_id_from_data(self._port)
         if not current_port_id:
             _LOGGER.warning(
-                "Current port data for sensor '%s' is missing 'portId' or 'number'. Cannot update.",
+                "Current port data for sensor '%s' is missing 'portId' or 'number'. "
+                "Cannot update.",
                 self.unique_id,
             )
             return None, None
 
         for device in self.coordinator.data.get("devices", []):
+            if not hasattr(device, "serial"):
+                continue
             if device.serial == self._device.serial:
                 for port in device.switch_ports:
+                    if not isinstance(port, dict):
+                        continue
                     port_id_candidate = self._get_port_id_from_data(port)
                     if port_id_candidate == current_port_id:
                         return device, port
                 _LOGGER.debug(
-                    "Port ID '%s' not found in updated device '%s' port statuses. Sensor '%s' might be stale.",
+                    "Port ID '%s' not found in updated device '%s' port statuses. "
+                    "Sensor '%s' might be stale.",
                     current_port_id,
                     self._device.serial,
                     self.unique_id,
                 )
-                # Device found, but the specific port was not in its updated ports_statuses.
-                # This could mean the port was removed or its data is temporarily missing.
+                # Device found, but the specific port was not in its
+                # updated ports_statuses.
+                # This could mean the port was removed or its data is
+                # temporarily missing.
                 return device, None  # Return device, but not the specific port
         _LOGGER.debug(
-            "Device serial '%s' not found in coordinator data for sensor '%s'. Sensor might be stale or unavailable.",
+            "Device serial '%s' not found in coordinator data for sensor '%s'. "
+            "Sensor might be stale or unavailable.",
             self._device.serial,
             self.unique_id,
         )

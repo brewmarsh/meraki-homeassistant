@@ -57,6 +57,8 @@ class MerakiVLANDHCPSwitch(MerakiVLANEntity, SwitchEntity):
         """Handle updated data from the coordinator."""
         vlans = self.coordinator.data.get("vlans", {}).get(self._network_id, [])
         for vlan in vlans:
+            if not vlan or not hasattr(vlan, "id"):
+                continue
             if vlan.id == self._vlan.id:
                 self._vlan = vlan
                 break

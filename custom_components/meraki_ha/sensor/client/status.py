@@ -108,6 +108,8 @@ class MerakiClientStatusSensor(MerakiSensor):
         """Retrieve the latest data for this client from the coordinator."""
         if self.coordinator.data and self.coordinator.data.get("clients"):
             for client in self.coordinator.data["clients"]:
+                if not isinstance(client, dict):
+                    continue
                 if client.get("mac") == self._client_mac:
                     return client
         return None

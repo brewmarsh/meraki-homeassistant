@@ -42,6 +42,8 @@ def _build_mt40_entities(
     entities: list[SwitchEntity] = []
     devices = data.get("devices", [])
     for device_info in devices:
+        if not hasattr(device_info, "model"):
+            continue
         entity = _create_mt40_outlet_switch(
             coordinator, device_info, config_entry, added_entities, meraki_client
         )

@@ -25,7 +25,8 @@ if TYPE_CHECKING:
 _LOGGER = logging.getLogger(__name__)
 
 # --- Constants for metrics and units ---
-# Using a dict to map user-friendly metric names to Meraki API keys and Home Assistant units/device classes.
+# Using a dict to map user-friendly metric names to Meraki API keys
+# and Home Assistant units/device classes.
 # This centralizes configuration and makes the __init__ method cleaner.
 METRIC_MAPPING: dict[str, dict[str, Any]] = {
     "latency": {
@@ -61,7 +62,7 @@ class MerakiUplinkPerformanceSensor(MerakiSensor):
         self,
         coordinator: MerakiMainCoordinator,
         device: MerakiDevice,
-        config_entry: ConfigEntry,  # Kept for consistency, though not directly used here
+        config_entry: ConfigEntry,  # Kept for consistency
         interface: str,
         metric: Literal[
             "latency", "jitter", "lossPercent"
@@ -77,7 +78,8 @@ class MerakiUplinkPerformanceSensor(MerakiSensor):
                 device.name,
             )
             raise ValueError(
-                f"Device serial is required for uplink performance sensor (Device: {device.name})"
+                f"Device serial is required for uplink performance sensor (Device: "
+                f"{device.name})"
             )
         self._device_serial = device.serial
         self._interface = interface
@@ -86,7 +88,8 @@ class MerakiUplinkPerformanceSensor(MerakiSensor):
         metric_details = METRIC_MAPPING.get(metric)
         if not metric_details:
             _LOGGER.error(
-                "Unsupported uplink performance metric: %s for device %s. Supported: %s",
+                "Unsupported uplink performance metric: %s for device %s. "
+                "Supported: %s",
                 metric,
                 device.name,
                 ", ".join(METRIC_MAPPING.keys()),
@@ -120,11 +123,13 @@ class MerakiUplinkPerformanceSensor(MerakiSensor):
         interface: str,
         metric_api_key: str,
     ) -> float | None:
-        """
-        Helper to find and parse the metric value for a specific uplink interface.
+        """Find and parse the metric value for a specific uplink interface.
+
         Encapsulates the iteration and type conversion logic.
         """
         for uplink in uplinks:
+            if not isinstance(uplink, dict):
+                continue
             if uplink.get("interface") == interface:
                 value = uplink.get(metric_api_key)
                 if value is not None:
@@ -132,7 +137,8 @@ class MerakiUplinkPerformanceSensor(MerakiSensor):
                         return float(value)
                     except (ValueError, TypeError):
                         _LOGGER.debug(
-                            "Could not convert uplink value '%s' to float for interface '%s', metric '%s' on entity '%s'. "
+                            "Could not convert uplink value '%s' to float for "
+                            "interface '%s', metric '%s' on entity '%s'. "
                             "This may indicate unexpected data format from Meraki API.",
                             value,
                             interface,
@@ -142,7 +148,8 @@ class MerakiUplinkPerformanceSensor(MerakiSensor):
                         return None  # Value found but invalid type
                 else:
                     _LOGGER.debug(
-                        "Uplink metric '%s' value is None for interface '%s' on entity '%s'.",
+                        "Uplink metric '%s' value is None for interface '%s' "
+                        "on entity '%s'.",
                         metric_api_key,
                         interface,
                         self.name,
@@ -161,7 +168,8 @@ class MerakiUplinkPerformanceSensor(MerakiSensor):
         device = self.coordinator.get_device(self._device_serial)
         if not device or not device.uplinks:
             _LOGGER.debug(
-                "No device or no uplink data found for serial %s. Setting state to None for %s.",
+                "No device or no uplink data found for serial %s. "
+                "Setting state to None for %s.",
                 self._device_serial,
                 self.name,
             )
@@ -174,7 +182,8 @@ class MerakiUplinkPerformanceSensor(MerakiSensor):
             metric_api_key=self._metric_api_key,
         )
 
-        # If after attempting to get the value, it's still None, log informative message.
+        # If after attempting to get the value, it's still None,
+        # log informative message.
         if self._attr_native_value is None:
             _LOGGER.debug(
                 "Final native value for '%s' on interface '%s' for device %s is None. "
