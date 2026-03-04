@@ -2,41 +2,265 @@
   "config": {
     "step": {
       "user": {
-        "title": "Étape 1 sur 2 : Informations d'identification Meraki",
+        "title": "Informations d'identification Meraki",
         "description": "Entrez votre clé API Meraki et votre ID d'organisation.",
         "data": {
           "meraki_api_key": "Clé API Meraki",
           "meraki_org_id": "ID d'organisation Meraki"
         }
       },
-      "init": {
-        "title": "Étape 2 sur 2 : Configuration",
-        "description": "Définissez la configuration de l'intégration. Celles-ci peuvent être modifiées ultérieurement à partir du menu des options.",
+      "reauth": {
+        "title": "Réauthentifier Meraki",
+        "description": "La clé API pour l'organisation {org_id} n'est plus valide. Veuillez entrer une nouvelle clé API Meraki.",
         "data": {
-          "scan_interval": "Intervalle de mise à jour",
-          "enable_device_tracker": "Activer le suivi des appareils",
+          "meraki_api_key": "Clé API Meraki",
+          "meraki_org_id": "ID d'organisation Meraki"
+        }
+      },
+      "reconfigure": {
+        "title": "Reconfigurer Meraki",
+        "description": "Mettez à jour votre configuration Meraki.",
+        "data": {
+          "scan_interval": "Fréquence de mise à jour",
+          "enable_device_tracker": "Activer le suivi des clients",
           "enable_vlan_management": "Activer la gestion des VLAN",
-          "ignored_networks": "Réseaux ignorés"
+          "enable_device_status": "Activer les entités d'état de l'appareil",
+          "enable_org_sensors": "Activer les capteurs d'organisation",
+          "enable_camera_entities": "Activer les entités de caméra",
+          "enable_device_sensors": "Activer les capteurs d'appareil",
+          "enable_network_sensors": "Activer les capteurs de réseau",
+          "enable_vlan_sensors": "Activer les capteurs de VLAN",
+          "enable_port_sensors": "Activer les capteurs de port",
+          "enable_ssid_sensors": "Activer les capteurs de SSID",
+          "enable_client_status_sensors": "Activer les capteurs d'état des clients",
+          "enabled_networks": "Réseaux activés",
+          "enable_firewall_rules": "Activer les règles de pare-feu",
+          "enable_traffic_shaping": "Activer les contrôles de régulation du trafic",
+          "enable_vpn_management": "Gestion du VPN",
+          "enable_camera_sense": "Activer camera sense"
+        },
+        "data_description": {
+          "scan_interval": "Fréquence des mises à jour des données de l'API Meraki.",
+          "enable_device_tracker": "Suivre les appareils connectés à vos réseaux Meraki.",
+          "enable_vlan_management": "Autoriser la gestion des VLAN via les commutateurs.",
+          "enable_device_status": "Créer des capteurs binaires pour l'état en ligne/hors ligne de l'appareil.",
+          "enable_org_sensors": "Créer des capteurs pour les mesures à l'échelle de l'organisation.",
+          "enable_camera_entities": "Créer des entités pour les caméras Meraki.",
+          "enable_device_sensors": "Créer des capteurs pour les mesures spécifiques à l'appareil.",
+          "enable_network_sensors": "Créer des capteurs pour les mesures spécifiques au réseau.",
+          "enable_vlan_sensors": "Créer des capteurs pour les mesures de VLAN.",
+          "enable_port_sensors": "Créer des capteurs pour les mesures de port de commutateur.",
+          "enable_ssid_sensors": "Créer des capteurs pour les mesures de SSID.",
+          "enable_client_status_sensors": "Créer des capteurs pour l'état en ligne/hors ligne des clients.",
+          "enabled_networks": "Sélectionnez les réseaux Meraki à inclure dans Home Assistant.",
+          "enable_firewall_rules": "Active la gestion des règles de pare-feu de couche 3.",
+          "enable_traffic_shaping": "Vous permet d'afficher et de définir des limites de bande passante par SSID.",
+          "enable_vpn_management": "Expose les commutateurs pour basculer les paramètres VPN de site à site.",
+          "enable_camera_sense": "Activer les entités d'analyse Meraki MV Sense."
         }
       }
+    },
+    "error": {
+      "invalid_auth": "Clé API non valide",
+      "invalid_org_id": "L'ID de l'organisation est incorrect ou n'est pas accessible avec la clé API fournie",
+      "cannot_connect": "Impossible de se connecter à l'API Meraki",
+      "unknown": "Une erreur inconnue s'est produite"
+    },
+    "abort": {
+      "reauth_successful": "Réauthentification réussie",
+      "already_configured": "Cette organisation Meraki est déjà configurée",
+      "reconfigure_successful": "Reconfiguration réussie",
+      "unknown_entry": "Entrée de configuration inconnue"
     }
   },
   "options": {
     "step": {
       "init": {
-        "title": "Paramètres Meraki",
-        "description": "Configurez les paramètres de l'intégration Meraki.",
+        "title": "Options Meraki",
+        "menu_options": {
+          "general": "Paramètres généraux",
+          "sensors": "Configuration des capteurs",
+          "cameras": "Paramètres de la caméra",
+          "advanced": "Configuration avancée"
+        }
+      },
+      "general": {
+        "title": "Paramètres généraux",
+        "description": "Configurez les paramètres généraux de l'intégration Meraki.",
         "data": {
-          "scan_interval": "Intervalle de mise à jour",
-          "scan_interval_description": "Fréquence d'interrogation de l'API Meraki pour les mises à jour, en secondes.",
-          "enable_device_tracker": "Activer le suivi des appareils",
-          "enable_device_tracker_description": "Suivez les appareils connectés à vos réseaux Meraki en tant qu'entités Home Assistant.",
+          "scan_interval": "Fréquence de mise à jour",
+          "enabled_networks": "Réseaux activés",
+          "enable_device_tracker": "Activer le suivi des clients"
+        },
+        "data_description": {
+          "scan_interval": "Fréquence des mises à jour des données de l'API Meraki.",
+          "enabled_networks": "Sélectionnez les réseaux Meraki à inclure dans Home Assistant.",
+          "enable_device_tracker": "Suivre les appareils connectés à vos réseaux Meraki."
+        }
+      },
+      "sensors": {
+        "title": "Configuration des capteurs",
+        "description": "Sélectionnez les types de capteurs à activer.",
+        "data": {
+          "enable_device_status": "Activer les entités d'état de l'appareil",
+          "enable_org_sensors": "Activer les capteurs d'organisation",
+          "enable_device_sensors": "Activer les capteurs d'appareil",
+          "enable_network_sensors": "Activer les capteurs de réseau",
+          "enable_vlan_sensors": "Activer les capteurs de VLAN",
+          "enable_port_sensors": "Activer les capteurs de port",
+          "enable_ssid_sensors": "Activer les capteurs de SSID",
+          "enable_client_status_sensors": "Activer les capteurs d'état des clients"
+        },
+        "data_description": {
+          "enable_device_status": "Créer des capteurs binaires pour l'état en ligne/hors ligne de l'appareil.",
+          "enable_org_sensors": "Créer des capteurs pour les mesures à l'échelle de l'organisation.",
+          "enable_device_sensors": "Créer des capteurs pour les mesures spécifiques à l'appareil.",
+          "enable_network_sensors": "Créer des capteurs pour les mesures spécifiques au réseau.",
+          "enable_vlan_sensors": "Créer des capteurs pour les mesures de VLAN.",
+          "enable_port_sensors": "Créer des capteurs pour les mesures de port de commutateur.",
+          "enable_ssid_sensors": "Créer des capteurs pour les mesures de SSID.",
+          "enable_client_status_sensors": "Créer des capteurs pour l'état de connectivité du client."
+        }
+      },
+      "cameras": {
+        "title": "Paramètres de la caméra",
+        "description": "Configurez l'intégration de la caméra Meraki.",
+        "data": {
+          "enable_camera_entities": "Activer les entités de caméra",
+          "enable_camera_sense": "Activer camera sense"
+        },
+        "data_description": {
+          "enable_camera_entities": "Créer des entités pour les caméras Meraki.",
+          "enable_camera_sense": "Activer les entités d'analyse Meraki MV Sense."
+        }
+      },
+      "advanced": {
+        "title": "Configuration avancée",
+        "description": "Configurez les fonctionnalités d'intégration avancées.",
+        "data": {
           "enable_vlan_management": "Activer la gestion des VLAN",
-          "enable_vlan_management_description": "Exposez les contrôles pour gérer les paramètres VLAN sur vos réseaux.",
-          "ignored_networks": "Réseaux ignorés",
-          "ignored_networks_description": "Une liste de noms de réseau séparés par des virgules à exclure de l'intégration."
+          "enable_firewall_rules": "Activer les règles de pare-feu",
+          "enable_traffic_shaping": "Activer les contrôles de régulation du trafic",
+          "enable_vpn_management": "Gestion du VPN"
+        },
+        "data_description": {
+          "enable_vlan_management": "Autoriser la gestion des VLAN via les commutateurs.",
+          "enable_firewall_rules": "Active la gestion des règles de pare-feu de couche 3.",
+          "enable_traffic_shaping": "Vous permet d'afficher et de définir des limites de bande passante par SSID.",
+          "enable_vpn_management": "Expose les commutateurs pour basculer les paramètres VPN de site à site."
         }
       }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "meraki_wan1_connectivity": {
+        "name": "Connectivité WAN 1"
+      },
+      "meraki_wan2_connectivity": {
+        "name": "Connectivité WAN 2"
+      },
+      "meraki_network_info": {
+        "name": "Informations sur le réseau"
+      },
+      "meraki_firmware_status": {
+        "name": "État du micrologiciel",
+        "state": {
+          "up-to-date": "À jour",
+          "out-of-date": "Obsolète",
+          "unknown": "Inconnu"
+        }
+      },
+      "device_status": {
+        "name": "Statut",
+        "state": {
+          "online": "En ligne",
+          "offline": "Hors ligne",
+          "alerting": "En alerte",
+          "dormant": "Inactif",
+          "unknown": "Inconnu"
+        }
+      },
+      "power": {
+        "name": "Puissance"
+      },
+      "voltage": {
+        "name": "Tension"
+      },
+      "current": {
+        "name": "Courant"
+      },
+      "energy": {
+        "name": "Énergie"
+      },
+      "network_clients": {
+        "name": "Clients"
+      },
+      "vlan_id": {
+        "name": "ID du VLAN"
+      },
+      "ipv4_enabled": {
+        "name": "IPv4 activé"
+      },
+      "ipv4_interface_ip": {
+        "name": "IP de l'interface IPv4"
+      },
+      "ipv4_uplink": {
+        "name": "Liaison montante IPv4"
+      },
+      "ipv6_enabled": {
+        "name": "IPv6 activé"
+      },
+      "ipv6_interface_ip": {
+        "name": "IP de l'interface IPv6"
+      },
+      "ipv6_uplink": {
+        "name": "Liaison montante IPv6"
+      },
+      "uplink_latency": {
+        "name": "Latence"
+      },
+      "uplink_packet_loss": {
+        "name": "Perte de paquets"
+      },
+      "uplink_jitter": {
+        "name": "Gigue"
+      }
+    },
+    "switch": {
+      "meraki_ssid_enabled_switch": {
+        "name": "SSID activé"
+      },
+      "meraki_ssid_broadcast_switch": {
+        "name": "Diffusion SSID"
+      },
+      "meraki_camera_sense_switch": {
+        "name": "MV Sense"
+      },
+      "meraki_camera_audio_detection_switch": {
+        "name": "Détection audio"
+      },
+      "meraki_camera_rtsp_switch": {
+        "name": "Serveur RTSP"
+      }
+    },
+    "text": {
+      "meraki_ssid_name": {
+        "name": "Nom du SSID"
+      }
+    },
+    "event": {
+      "motion_event": {
+        "name": "Événement de mouvement"
+      },
+      "button_press": {
+        "name": "Pression sur le bouton"
+      }
+    }
+  },
+  "device_automation": {
+    "trigger_type": {
+      "meraki_alert": "Alerte Meraki reçue"
     }
   }
 }

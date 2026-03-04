@@ -2,41 +2,265 @@
   "config": {
     "step": {
       "user": {
-        "title": "Paso 1 de 2: Credenciales de Meraki",
+        "title": "Credenciales de Meraki",
         "description": "Introduzca su clave de API de Meraki y su ID de organización.",
         "data": {
           "meraki_api_key": "Clave de API de Meraki",
           "meraki_org_id": "ID de organización de Meraki"
         }
       },
-      "init": {
-        "title": "Paso 2 de 2: Configuración",
-        "description": "Establezca la configuración para la integración. Estos se pueden cambiar más tarde desde el menú de opciones.",
+      "reauth": {
+        "title": "Reautenticar Meraki",
+        "description": "La clave de API para la organización {org_id} ya no es válida. Por favor, introduzca una nueva clave de API de Meraki.",
         "data": {
-          "scan_interval": "Intervalo de actualización",
-          "enable_device_tracker": "Habilitar seguimiento de dispositivos",
+          "meraki_api_key": "Clave de API de Meraki",
+          "meraki_org_id": "ID de organización de Meraki"
+        }
+      },
+      "reconfigure": {
+        "title": "Reconfigurar Meraki",
+        "description": "Actualice su configuración de Meraki.",
+        "data": {
+          "scan_interval": "Frecuencia de actualización",
+          "enable_device_tracker": "Habilitar seguimiento de clientes",
           "enable_vlan_management": "Habilitar gestión de VLAN",
-          "ignored_networks": "Redes ignoradas"
+          "enable_device_status": "Habilitar entidades de estado de dispositivos",
+          "enable_org_sensors": "Habilitar sensores de organización",
+          "enable_camera_entities": "Habilitar entidades de cámara",
+          "enable_device_sensors": "Habilitar sensores de dispositivo",
+          "enable_network_sensors": "Habilitar sensores de red",
+          "enable_vlan_sensors": "Habilitar sensores de VLAN",
+          "enable_port_sensors": "Habilitar sensores de puerto",
+          "enable_ssid_sensors": "Habilitar sensores de SSID",
+          "enable_client_status_sensors": "Habilitar sensores de estado de clientes",
+          "enabled_networks": "Redes habilitadas",
+          "enable_firewall_rules": "Habilitar reglas de firewall",
+          "enable_traffic_shaping": "Habilitar controles de modelado de tráfico",
+          "enable_vpn_management": "Gestión de VPN",
+          "enable_camera_sense": "Habilitar cámara sense"
+        },
+        "data_description": {
+          "scan_interval": "Frecuencia de actualizaciones de datos desde la API de Meraki.",
+          "enable_device_tracker": "Rastree los dispositivos conectados a sus redes Meraki.",
+          "enable_vlan_management": "Permitir la gestión de VLAN a través de switches.",
+          "enable_device_status": "Crear sensores binarios para el estado en línea/fuera de línea del dispositivo.",
+          "enable_org_sensors": "Crear sensores para métricas de toda la organización.",
+          "enable_camera_entities": "Crear entidades para cámaras Meraki.",
+          "enable_device_sensors": "Crear sensores para métricas específicas del dispositivo.",
+          "enable_network_sensors": "Crear sensores para métricas específicas de la red.",
+          "enable_vlan_sensors": "Crear sensores para métricas de VLAN.",
+          "enable_port_sensors": "Crear sensores para métricas de puertos de switch.",
+          "enable_ssid_sensors": "Crear sensores para métricas de SSID.",
+          "enable_client_status_sensors": "Crear sensores para el estado en línea/fuera de línea de los clientes.",
+          "enabled_networks": "Seleccione qué redes Meraki incluir en Home Assistant.",
+          "enable_firewall_rules": "Habilita la gestión de reglas de firewall de Capa 3.",
+          "enable_traffic_shaping": "Le permite ver y establecer límites de ancho de banda por SSID.",
+          "enable_vpn_management": "Expone interruptores para alternar la configuración de VPN de sitio a sitio.",
+          "enable_camera_sense": "Habilitar entidades de análisis Meraki MV Sense."
         }
       }
+    },
+    "error": {
+      "invalid_auth": "Clave de API no válida",
+      "invalid_org_id": "El ID de la organización es incorrecto o no es accesible con la clave de API proporcionada",
+      "cannot_connect": "No se puede conectar a la API de Meraki",
+      "unknown": "Ocurrió un error desconocido"
+    },
+    "abort": {
+      "reauth_successful": "Reautenticación exitosa",
+      "already_configured": "Esta organización de Meraki ya está configurada",
+      "reconfigure_successful": "Reconfiguración exitosa",
+      "unknown_entry": "Entrada de configuración desconocida"
     }
   },
   "options": {
     "step": {
       "init": {
-        "title": "Configuración de Meraki",
-        "description": "Configure los ajustes para la integración de Meraki.",
+        "title": "Opciones de Meraki",
+        "menu_options": {
+          "general": "Ajustes generales",
+          "sensors": "Configuración de sensores",
+          "cameras": "Ajustes de cámara",
+          "advanced": "Configuración avanzada"
+        }
+      },
+      "general": {
+        "title": "Ajustes generales",
+        "description": "Configure los ajustes generales para la integración de Meraki.",
         "data": {
-          "scan_interval": "Intervalo de actualización",
-          "scan_interval_description": "La frecuencia con la que se sondea la API de Meraki en busca de actualizaciones, en segundos.",
-          "enable_device_tracker": "Habilitar seguimiento de dispositivos",
-          "enable_device_tracker_description": "Realice un seguimiento de los dispositivos conectados a sus redes Meraki como entidades de Home Assistant.",
+          "scan_interval": "Frecuencia de actualización",
+          "enabled_networks": "Redes habilitadas",
+          "enable_device_tracker": "Habilitar seguimiento de clientes"
+        },
+        "data_description": {
+          "scan_interval": "Frecuencia de actualizaciones de datos desde la API de Meraki.",
+          "enabled_networks": "Seleccione qué redes Meraki incluir en Home Assistant.",
+          "enable_device_tracker": "Rastree los dispositivos conectados a sus redes Meraki."
+        }
+      },
+      "sensors": {
+        "title": "Configuración de sensores",
+        "description": "Seleccione qué tipos de sensores habilitar.",
+        "data": {
+          "enable_device_status": "Habilitar entidades de estado de dispositivos",
+          "enable_org_sensors": "Habilitar sensores de organización",
+          "enable_device_sensors": "Habilitar sensores de dispositivo",
+          "enable_network_sensors": "Habilitar sensores de red",
+          "enable_vlan_sensors": "Habilitar sensores de VLAN",
+          "enable_port_sensors": "Habilitar sensores de puerto",
+          "enable_ssid_sensors": "Habilitar sensores de SSID",
+          "enable_client_status_sensors": "Habilitar sensores de estado de clientes"
+        },
+        "data_description": {
+          "enable_device_status": "Crear sensores binarios para el estado en línea/fuera de línea del dispositivo.",
+          "enable_org_sensors": "Crear sensores para métricas de toda la organización.",
+          "enable_device_sensors": "Crear sensores para métricas específicas del dispositivo.",
+          "enable_network_sensors": "Crear sensores para métricas específicas de la red.",
+          "enable_vlan_sensors": "Crear sensores para métricas de VLAN.",
+          "enable_port_sensors": "Crear sensores para métricas de puertos de switch.",
+          "enable_ssid_sensors": "Crear sensores para métricas de SSID.",
+          "enable_client_status_sensors": "Crear sensores para el estado de conectividad del cliente."
+        }
+      },
+      "cameras": {
+        "title": "Ajustes de cámara",
+        "description": "Configure la integración de cámaras Meraki.",
+        "data": {
+          "enable_camera_entities": "Habilitar entidades de cámara",
+          "enable_camera_sense": "Habilitar cámara sense"
+        },
+        "data_description": {
+          "enable_camera_entities": "Crear entidades para cámaras Meraki.",
+          "enable_camera_sense": "Habilitar entidades de análisis Meraki MV Sense."
+        }
+      },
+      "advanced": {
+        "title": "Configuración avanzada",
+        "description": "Configure funciones avanzadas de integración.",
+        "data": {
           "enable_vlan_management": "Habilitar gestión de VLAN",
-          "enable_vlan_management_description": "Exponga los controles para administrar la configuración de VLAN en sus redes.",
-          "ignored_networks": "Redes ignoradas",
-          "ignored_networks_description": "Una lista de nombres de red separados por comas para excluir de la integración."
+          "enable_firewall_rules": "Habilitar reglas de firewall",
+          "enable_traffic_shaping": "Habilitar controles de modelado de tráfico",
+          "enable_vpn_management": "Gestión de VPN"
+        },
+        "data_description": {
+          "enable_vlan_management": "Permitir la gestión de VLAN a través de switches.",
+          "enable_firewall_rules": "Habilita la gestión de reglas de firewall de Capa 3.",
+          "enable_traffic_shaping": "Le permite ver y establecer límites de ancho de banda por SSID.",
+          "enable_vpn_management": "Expone interruptores para alternar la configuración de VPN de sitio a sitio."
         }
       }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "meraki_wan1_connectivity": {
+        "name": "Conectividad WAN 1"
+      },
+      "meraki_wan2_connectivity": {
+        "name": "Conectividad WAN 2"
+      },
+      "meraki_network_info": {
+        "name": "Información de la red"
+      },
+      "meraki_firmware_status": {
+        "name": "Estado del firmware",
+        "state": {
+          "up-to-date": "Actualizado",
+          "out-of-date": "Desactualizado",
+          "unknown": "Desconocido"
+        }
+      },
+      "device_status": {
+        "name": "Estado",
+        "state": {
+          "online": "En línea",
+          "offline": "Fuera de línea",
+          "alerting": "Alertando",
+          "dormant": "Inactivo",
+          "unknown": "Desconocido"
+        }
+      },
+      "power": {
+        "name": "Potencia"
+      },
+      "voltage": {
+        "name": "Voltaje"
+      },
+      "current": {
+        "name": "Corriente"
+      },
+      "energy": {
+        "name": "Energía"
+      },
+      "network_clients": {
+        "name": "Clientes"
+      },
+      "vlan_id": {
+        "name": "ID de VLAN"
+      },
+      "ipv4_enabled": {
+        "name": "IPv4 habilitado"
+      },
+      "ipv4_interface_ip": {
+        "name": "IP de interfaz IPv4"
+      },
+      "ipv4_uplink": {
+        "name": "Enlace ascendente IPv4"
+      },
+      "ipv6_enabled": {
+        "name": "IPv6 habilitado"
+      },
+      "ipv6_interface_ip": {
+        "name": "IP de interfaz IPv6"
+      },
+      "ipv6_uplink": {
+        "name": "Enlace ascendente IPv6"
+      },
+      "uplink_latency": {
+        "name": "Latencia"
+      },
+      "uplink_packet_loss": {
+        "name": "Pérdida de paquetes"
+      },
+      "uplink_jitter": {
+        "name": "Jitter"
+      }
+    },
+    "switch": {
+      "meraki_ssid_enabled_switch": {
+        "name": "SSID habilitado"
+      },
+      "meraki_ssid_broadcast_switch": {
+        "name": "Difusión de SSID"
+      },
+      "meraki_camera_sense_switch": {
+        "name": "MV Sense"
+      },
+      "meraki_camera_audio_detection_switch": {
+        "name": "Detección de audio"
+      },
+      "meraki_camera_rtsp_switch": {
+        "name": "Servidor RTSP"
+      }
+    },
+    "text": {
+      "meraki_ssid_name": {
+        "name": "Nombre del SSID"
+      }
+    },
+    "event": {
+      "motion_event": {
+        "name": "Evento de movimiento"
+      },
+      "button_press": {
+        "name": "Pulsación de botón"
+      }
+    }
+  },
+  "device_automation": {
+    "trigger_type": {
+      "meraki_alert": "Alerta de Meraki recibida"
     }
   }
 }

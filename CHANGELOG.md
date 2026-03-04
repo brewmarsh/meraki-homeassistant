@@ -1,3 +1,20 @@
+# [2.3.0](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.2.0...v2.3.0) (2026-01-20)
+
+### Features
+
+- **MT40 Support:** Full integration for MT40 Smart Power Controller, including power monitoring and outlet control.
+- **Guest Wi-Fi (IPSK):** New management interface in the Meraki Panel for creating and revoking Identity PSKs.
+- **Advanced Network Controls:** Added support for toggling Site-to-Site VPN, managing Layer 3 firewall rules, and SSID Traffic Shaping.
+- **Enhanced Frontend:** Redesigned Meraki Panel with improved device grouping, real-time status updates, and integrated event logs.
+- **Uplink Metrics:** New sensors for WAN latency, jitter, and packet loss.
+- **MV Sense:** Integration for Meraki Camera analytics and person detection events.
+
+### Bug Fixes
+
+- **Stability:** Resolved multiple race conditions during integration startup.
+- **Frontend:** Fixed UI glitches in the SSID management and device tables.
+- **Coordination:** Improved data fetching efficiency and reduced API overhead for disabled features.
+
 # [2.2.0-beta.35](https://github.com/brewmarsh/meraki-homeassistant/compare/v2.2.0-beta.34...v2.2.0-beta.35) (2025-12-02)
 
 ### Bug Fixes
