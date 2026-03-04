@@ -43,31 +43,33 @@ class NetworkHandler(BaseHandler):
         super().__init__(coordinator, config_entry)
         self._network_control_service = network_control_service
 
-    async def discover_entities(self) -> AsyncIterator[Entity]:
-        """Discover network-level entities."""
-        # Check if network sensors are enabled
+    def _get_networks(self) -> list[MerakiNetwork]:
+        """Get the list of networks if network sensors are enabled."""
         if not self._config_entry.options.get(CONF_ENABLE_NETWORK_SENSORS, True):
             _LOGGER.debug("Network sensors are disabled.")
-            return
+            return []
+        return self._coordinator.data.get("networks", [])
 
-        networks = self._coordinator.data.get("networks", [])
+    async def discover_entities(self) -> AsyncIterator[Entity]:
+        """Discover network-level entities."""
+        networks = self._get_networks()
         if not networks:
             _LOGGER.debug("No networks found to create network-level entities.")
             return
 
+        generators = (
+            self._discover_select_entities,
+            self._discover_network_clients,
+            self._discover_client_status_sensors,
+            self._discover_appliance_features,
+            self._discover_traffic_shaping,
+            self._discover_vlans,
+        )
+
         for network in networks:
-            async for entity in self._discover_select_entities(network):
-                yield entity
-            async for entity in self._discover_network_clients(network):
-                yield entity
-            async for entity in self._discover_client_status_sensors(network):
-                yield entity
-            async for entity in self._discover_appliance_features(network):
-                yield entity
-            async for entity in self._discover_traffic_shaping(network):
-                yield entity
-            async for entity in self._discover_vlans(network):
-                yield entity
+            for generator in generators:
+                async for entity in generator(network):
+                    yield entity
 
     async def _discover_select_entities(
         self, network: MerakiNetwork
@@ -113,9 +115,7 @@ class NetworkHandler(BaseHandler):
         from ...sensor.client.status import MerakiClientStatusSensor
 
         clients = self._coordinator.data.get("clients", [])
-        network_clients = [c for c in clients if c.get("networkId") == network.id]
-
-        for client in network_clients:
+        for client in filter(lambda c: c.get("networkId") == network.id, clients):
             yield MerakiClientStatusSensor(
                 self._coordinator,
                 client,
@@ -151,14 +151,15 @@ class NetworkHandler(BaseHandler):
         self, network: MerakiNetwork
     ) -> AsyncIterator[Entity]:
         """Discover traffic shaping sensors."""
-        if self._config_entry.options.get(CONF_ENABLE_TRAFFIC_SHAPING, False):
-            if network.id is None:
-                return
-            yield TrafficShapingSensor(
-                self._coordinator,
-                self._config_entry,
-                network.id,
-            )
+        is_enabled = self._config_entry.options.get(CONF_ENABLE_TRAFFIC_SHAPING, False)
+        if not is_enabled or network.id is None:
+            return
+
+        yield TrafficShapingSensor(
+            self._coordinator,
+            self._config_entry,
+            network.id,
+        )
 
     async def _discover_vlans(self, network: MerakiNetwork) -> AsyncIterator[Entity]:
         """Discover VLAN sensors."""
