@@ -217,7 +217,8 @@ async def _start_config_flow(session: aiohttp.ClientSession) -> dict[str, Any] |
 
     logger.info("Initiating config flow for meraki_ha...")
     async with session.post(flow_url, json=payload) as resp:
-        if resp.status != 201:
+        # Accept both 200 (OK) and 201 (Created) as successful responses
+        if resp.status not in (200, 201):
             logger.error(f"Failed to start config flow: {resp.status}")
             logger.debug(await resp.text())
             return None
