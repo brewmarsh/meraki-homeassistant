@@ -94,11 +94,22 @@ async def _send_restart_command(session: aiohttp.ClientSession) -> bool:
     """Send the restart command to Home Assistant."""
     restart_url = f"{HA_URL}/api/services/homeassistant/restart"
     logger.info("Restarting Home Assistant...")
-    async with session.post(restart_url) as resp:
-        if resp.status != 200:
+    
+    try:
+        # A timeout ensures we don't hang if the reverse proxy blackholes the connection
+        async with session.post(restart_url, timeout=15) as resp:
+            # 200 = OK, 502/504 = Server went down before responding (Normal)
+            if resp.status in (200, 502, 504):
+                logger.warning(f"Restart command sent with status: {resp.status}")
+                return True
+                
             logger.error(f"Restart command failed: {resp.status}")
             return False
-    return True
+            
+    except (aiohttp.ClientError, asyncio.TimeoutError):
+        # Connection violently dropping is the ultimate proof it is restarting
+        logger.warning("Connection dropped. Restart is in progress.")
+        return True
 
 
 async def _wait_for_restart(session: aiohttp.ClientSession) -> bool:
@@ -206,7 +217,8 @@ async def _start_config_flow(session: aiohttp.ClientSession) -> dict[str, Any] |
 
     logger.info("Initiating config flow for meraki_ha...")
     async with session.post(flow_url, json=payload) as resp:
-        if resp.status != 201:
+        # Accept both 200 (OK) and 201 (Created) as successful responses
+        if resp.status not in (200, 201):
             logger.error(f"Failed to start config flow: {resp.status}")
             logger.debug(await resp.text())
             return None
@@ -218,8 +230,8 @@ def _build_form_payload(step_id: str, current_step: dict[str, Any]) -> dict[str,
     payload: dict[str, Any] = {}
     if step_id == "user":
         payload = {
-            "api_key": MERAKI_API_KEY,
-            "org_id": MERAKI_ORG_ID,
+            "meraki_api_key": MERAKI_API_KEY, # <-- Add 'meraki_' prefix
+            "meraki_org_id": MERAKI_ORG_ID,   # <-- Add 'meraki_' prefix
         }
     else:
         # Generic handler for other steps - just take defaults
