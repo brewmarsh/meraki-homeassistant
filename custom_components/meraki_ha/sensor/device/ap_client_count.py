@@ -67,7 +67,8 @@ class MerakiAPClientCountSensor(MerakiSensor):
         self._attr_native_value = sum(
             1
             for client in clients
-            if client.get("recentDeviceSerial") == self._device_serial
+            if isinstance(client, dict)
+            and client.get("recentDeviceSerial") == self._device_serial
         )
 
     @callback

@@ -43,6 +43,10 @@ class VlansListSensor(MerakiNetworkEntity, SensorEntity):
         if not self._network:
             return
         vlans = self.coordinator.data.get("vlans", {}).get(self._network.id, [])
-        self._vlan_list = [vlan.name or f"VLAN {vlan.id}" for vlan in vlans]
-        self._attr_native_value = len(vlans)
+        self._vlan_list = [
+            getattr(vlan, "name", None) or f"VLAN {vlan.id}"
+            for vlan in vlans
+            if vlan and hasattr(vlan, "id")
+        ]
+        self._attr_native_value = len(self._vlan_list)
         self.async_write_ha_state()

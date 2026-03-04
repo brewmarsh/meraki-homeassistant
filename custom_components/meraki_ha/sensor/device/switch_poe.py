@@ -62,9 +62,13 @@ class MerakiSwitchPoESensor(CoordinatorEntity, SensorEntity):
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
         for device in self.coordinator.data.get("devices", []):
+            if not hasattr(device, "serial"):
+                continue
             if device.serial == self._device.serial:
                 self._device = device
                 for port in self._device.switch_ports:
+                    if not isinstance(port, dict):
+                        continue
                     port_id = self._port.get("portId") or self._port.get("number")
                     if port.get("portId") == port_id or port.get("number") == port_id:
                         self._port = port

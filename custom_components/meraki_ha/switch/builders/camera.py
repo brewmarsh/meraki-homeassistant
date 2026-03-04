@@ -34,6 +34,8 @@ def _build_camera_entities(
     entities: list[SwitchEntity] = []
     devices = data.get("devices", [])
     for device_info in devices:
+        if not hasattr(device_info, "product_type"):
+            continue
         entity = _create_camera_analytics_switch(
             coordinator, device_info, added_entities
         )

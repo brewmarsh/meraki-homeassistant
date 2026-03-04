@@ -40,6 +40,8 @@ def _build_ssid_entities(
     entities: list[SwitchEntity] = []
     ssids = data.get("ssids", [])
     for ssid in ssids:
+        if not isinstance(ssid, dict):
+            continue
         entities.extend(
             _build_ssid_pair(coordinator, data, config_entry, ssid, added_entities)
         )

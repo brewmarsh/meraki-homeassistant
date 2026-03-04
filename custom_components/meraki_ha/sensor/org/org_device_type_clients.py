@@ -63,6 +63,8 @@ class MerakiOrganizationDeviceTypeClientsSensor(CoordinatorEntity, SensorEntity)
 
         count = 0
         for client in self.coordinator.data["clients"]:
+            if not isinstance(client, dict):
+                continue
             if client.get("deviceType") == self._device_type:
                 count += 1
         return count

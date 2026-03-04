@@ -88,7 +88,9 @@ class MerakiPoeUsageSensor(
             return None
 
         total_poe_usage_wh = sum(
-            port.get("powerUsageInWh", 0) or 0 for port in ports_statuses
+            port.get("powerUsageInWh", 0) or 0
+            for port in ports_statuses
+            if isinstance(port, dict)
         )
 
         # The API returns power usage in Wh over the last day.
@@ -107,4 +109,5 @@ class MerakiPoeUsageSensor(
         return {
             f"port_{port['portId']}_power_usage_wh": port.get("powerUsageInWh")
             for port in ports_statuses
+            if isinstance(port, dict) and "portId" in port
         }

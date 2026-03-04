@@ -87,6 +87,8 @@ class MerakiSSIDBaseSwitch(MerakiEntity, SwitchEntity):
         if not self.coordinator.data or "ssids" not in self.coordinator.data:
             return None
         for ssid in self.coordinator.data["ssids"]:
+            if not isinstance(ssid, dict):
+                continue
             if ssid.get("networkId") == self._network_id and str(
                 ssid.get("number")
             ) == str(self._ssid_number):

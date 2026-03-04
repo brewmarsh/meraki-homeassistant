@@ -97,6 +97,8 @@ class MerakiClientSensor(CoordinatorEntity, SensorEntity):
         client_info = {}
         if self.coordinator.data and self.coordinator.data.get("clients"):
             for client in self.coordinator.data["clients"]:
+                if not isinstance(client, dict):
+                    continue
                 if client.get("mac") == self._client_mac:
                     is_online = True
                     client_info = client
