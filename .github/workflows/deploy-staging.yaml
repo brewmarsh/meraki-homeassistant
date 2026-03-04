@@ -101,11 +101,6 @@ jobs:
           echo "Running Reset Script in isolated environment..."
           uv run --with aiohttp python3 tests/scripts/reset_integration.py
 
-      - name: Wait for initial Meraki data fetch
-        run: |
-          echo "Waiting 90 seconds for coordinators to fetch cloud data..."
-          sleep 90
-
       - name: Audit logs for errors
         id: audit_logs
         shell: bash
@@ -113,39 +108,30 @@ jobs:
           HA_URL: ${{ secrets.HA_STAGING_URL }}
           HA_TOKEN: ${{ secrets.HA_STAGING_TOKEN }}
         run: |
-          echo "Pulling error logs directly via Home Assistant API..."
-          
-          # Fetch the log directly from the API, bypassing file system completely
-          # Retry loop for curl (3 attempts, 5s delay)
-          SUCCESS=0
-          for i in {1..3}; do
-            if curl -s -f -H "Authorization: Bearer $HA_TOKEN" \
-                 -H "Content-Type: application/json" \
-                 "$HA_URL/api/error_log" > full_ha_log.txt; then
-              SUCCESS=1
-              break
-            fi
-            echo "Attempt $i failed. Retrying in 5 seconds..."
-            sleep 5
+          echo "Initiating 90s discovery wait cycle..."
+          sleep 90
+
+          echo "Fetching logs from Home Assistant API..."
+          # Use curl with --retry 3 as requested
+          curl --retry 3 -s -f -H "Authorization: Bearer $HA_TOKEN" \
+               -H "Content-Type: application/json" \
+               "$HA_URL/api/error_log" > full_ha_log.txt || { echo "Failed to fetch logs"; exit 1; }
+
+          # Multi-Stage Audit
+          # Stage 1: Search for string literal Traceback (most recent call last):
+          grep -A 30 "Traceback (most recent call last):" full_ha_log.txt > meraki_errors.txt || true
+
+          # Stage 2: Search for AttributeError, NameError, or TypeError specifically within the custom_components/meraki_ha namespace
+          # Stage 3: If any match is found, pipe the entire traceback (use grep -A 30) into meraki_errors.txt
+          grep -E "AttributeError|NameError|TypeError" full_ha_log.txt | grep "custom_components/meraki_ha" | while read -r line; do
+            grep -A 30 "$line" full_ha_log.txt >> meraki_errors.txt || true
           done
 
-          if [ $SUCCESS -ne 1 ]; then
-            echo "Error: Failed to fetch logs from Home Assistant API after 3 attempts."
+          # Fail Condition: The step must exit with code 1 only if meraki_errors.txt has a file size greater than 0
+          if [ -s meraki_errors.txt ]; then
+            echo "::error::CRITICAL: Meraki errors detected in Home Assistant logs!"
+            cat meraki_errors.txt
             exit 1
-          fi
-          
-          # Check if the API returned an unauthorized/error payload instead of a text log
-          if grep -q "401: Unauthorized" full_ha_log.txt; then
-            echo "Error: Failed to authenticate with Home Assistant API."
-            exit 1
-          fi
-
-          # Search for Meraki-specific errors using expanded regex
-          # Ensure meraki_errors.txt is only considered "found" if size > 0
-          if grep -B 2 -A 25 -E -i "(error|exception|traceback|attributeerror|nameerror).*meraki_ha" full_ha_log.txt > meraki_errors.txt && [ -s meraki_errors.txt ]; then
-            echo "::error::CRITICAL: Found Meraki errors in the log!"
-            echo "HAS_ERRORS=true" >> $GITHUB_ENV
           else
-            echo "Logs are clean. Smoke test passed."
-            echo "HAS_ERRORS=false" >> $GITHUB_ENV
+            echo "Logs are clean. Self-healing audit passed."
           fi
