@@ -19,7 +19,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           clean: true
-          fetch-depth: 0 # Prevents shallow clone desyncs
+          fetch-depth: 0
 
       - name: Setup Node.js
         uses: actions/setup-node@v6
@@ -44,16 +44,12 @@ jobs:
           DestinationPath="${DEPLOY_PATH}"
 
           echo "Starting staging deployment..."
-          
-          # PROOF OF LIFE: Let's see exactly what code the runner downloaded
-          echo "--- Content of downloaded manifest.json ---"
-          cat "${SourceComponentDir}manifest.json"
-          echo "-------------------------------------------"
+          echo "Source: ${SourceComponentDir}"
+          echo "Destination: ${DestinationPath}"
 
-          # Ensure destination exists
           sudo mkdir -p "${DestinationPath}"
 
-          # Sync files (Added -c for checksum, -v for verbose. Removed --inplace for safety)
+          # Sync files
           sudo rsync -rcvltpD --delete \
             --exclude '.git' \
             --exclude 'node_modules' \
@@ -69,7 +65,7 @@ jobs:
         shell: bash
         run: |
           echo "Updating configuration.yaml..."
-          sudo tee /config/configuration.yaml <<EOF
+          sudo tee ${{ env.HA_CONFIG_DIR }}/configuration.yaml <<EOF
           default_config:
 
           logger:
@@ -78,13 +74,12 @@ jobs:
               custom_components.meraki_ha: debug
           EOF
           # Ensure log file exists and is writable
-          sudo touch /config/home-assistant.log
-          sudo chmod 666 /config/home-assistant.log
+          sudo touch ${{ env.HA_CONFIG_DIR }}/home-assistant.log
+          sudo chmod 666 ${{ env.HA_CONFIG_DIR }}/home-assistant.log
 
       - name: Install jq
         run: sudo apt-get update && sudo apt-get install -y jq
 
-      # Install Python 3.13 first so 'uv' has a target
       - uses: actions/setup-python@v6
         with:
           python-version: '3.13'
@@ -103,7 +98,6 @@ jobs:
           MERAKI_ORG_ID: ${{ secrets.MERAKI_ORG_ID }}
         run: |
           echo "Running Reset Script in isolated environment..."
-          # uv run --with creates an ephemeral environment just for this command
           uv run --with aiohttp python3 tests/scripts/reset_integration.py
 
       - name: Wait for initial Meraki data fetch
@@ -117,13 +111,12 @@ jobs:
         run: |
           echo "Scanning local log file for Meraki errors..."
           
-          if [ ! -f "/config/home-assistant.log" ]; then
-            echo "Warning: /config/home-assistant.log not found. Skipping log scan."
+          if [ ! -f "${{ env.HA_CONFIG_DIR }}/home-assistant.log" ]; then
+            echo "Warning: home-assistant.log not found. Skipping log scan."
             exit 0
           fi
 
-          # Grep specifically for ERROR, WARNING, or EXCEPTION lines tied to your component
-          if grep -E -i "(ERROR|WARNING|EXCEPTION).*custom_components\.meraki_ha" /config/home-assistant.log > meraki_errors.txt; then
+          if grep -E -i "(ERROR|WARNING|EXCEPTION).*custom_components\.meraki_ha" ${{ env.HA_CONFIG_DIR }}/home-assistant.log > meraki_errors.txt; then
             echo "::error::CRITICAL: Found Meraki errors in the log!"
             echo "HAS_ERRORS=true" >> $GITHUB_ENV
           else
