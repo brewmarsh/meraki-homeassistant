@@ -109,43 +109,28 @@ jobs:
       - name: Audit logs for errors
         id: audit_logs
         shell: bash
+        env:
+          HA_URL: ${{ secrets.HA_STAGING_URL }}
+          HA_TOKEN: ${{ secrets.HA_STAGING_TOKEN }}
         run: |
-          echo "Scanning local log file for Meraki errors..."
+          echo "Pulling error logs directly via Home Assistant API..."
           
-          if [ ! -f "${{ env.HA_CONFIG_DIR }}/home-assistant.log" ]; then
-            echo "Warning: home-assistant.log not found. Skipping log scan."
-            exit 0
+          # Fetch the log directly from the API, bypassing file system completely
+          curl -s -H "Authorization: Bearer $HA_TOKEN" \
+               -H "Content-Type: application/json" \
+               "$HA_URL/api/error_log" > full_ha_log.txt
+          
+          # Check if the API returned an unauthorized/error payload instead of a text log
+          if grep -q "401: Unauthorized" full_ha_log.txt; then
+            echo "Error: Failed to authenticate with Home Assistant API."
+            exit 1
           fi
 
-          if grep -E -i "(ERROR|WARNING|EXCEPTION).*custom_components\.meraki_ha" ${{ env.HA_CONFIG_DIR }}/home-assistant.log > meraki_errors.txt; then
+          # The Fix: Point grep to the newly downloaded 'full_ha_log.txt'
+          if grep -B 2 -A 25 -E -i "(error|warning|exception).*meraki_ha" full_ha_log.txt > meraki_errors.txt; then
             echo "::error::CRITICAL: Found Meraki errors in the log!"
             echo "HAS_ERRORS=true" >> $GITHUB_ENV
           else
             echo "Logs are clean. Smoke test passed."
             echo "HAS_ERRORS=false" >> $GITHUB_ENV
           fi
-
-      - name: Create GitHub issue for errors
-        if: env.HAS_ERRORS == 'true'
-        shell: bash
-        env:
-          GH_TOKEN: ${{ secrets.GH_PAT }}
-          REPO: ${{ github.repository }}
-        run: |
-          echo "Constructing issue payload..."
-          ERRORS=$(cat meraki_errors.txt)
-          BODY="The staging smoke test detected the following \`meraki_ha\` errors:\n\n\`\`\`text\n${ERRORS}\n\`\`\`"
-          
-          jq -n \
-            --arg title "🚨 Staging smoke test failed: Meraki errors detected" \
-            --arg body "$BODY" \
-            '{title: $title, body: $body, labels: ["bug", "staging", "automated-report"]}' > issue_payload.json
-
-          echo "Submitting issue to GitHub API..."
-          curl -s -X POST -H "Authorization: token $GH_TOKEN" \
-               -H "Accept: application/vnd.github.v3+json" \
-               "https://api.github.com/repos/${REPO}/issues" \
-               -d @issue_payload.json > /dev/null
-
-          echo "Issue created successfully. Failing the workflow..."
-          exit 1
