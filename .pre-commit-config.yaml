@@ -77,6 +77,12 @@ repos:
   # Local hooks
   - repo: local
     hooks:
+      - id: ts-check
+        name: TypeScript Type Check
+        entry: bash -c 'cd custom_components/meraki_ha/www && npm run typecheck'
+        language: system
+        pass_filenames: false
+        files: ^custom_components/meraki_ha/www/.*\.(ts|tsx)$
       - id: forbid-agent-artifacts
         name: Forbid agent artifacts
         entry: python tools/check_artifacts.py
