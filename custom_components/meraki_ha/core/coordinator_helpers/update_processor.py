@@ -25,7 +25,7 @@ from .config_helper import CoordinatorConfig
 
 if TYPE_CHECKING:
     from homeassistant.helpers.device_registry import DeviceRegistry
-    from homeassistant.helpers.entity_registry import EntityRegistry
+    from homeassistant.helpers.entity_registry import EntityRegistry, RegistryEntry
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -39,14 +39,38 @@ def cleanup_whitespace(data: dict[str, Any]) -> None:
             data[key] = value.strip()
 
 
+def _get_network_id(network: Any) -> str | None:
+    """Get the network ID, handling both object and dict forms."""
+    if hasattr(network, "id"):
+        return str(network.id)
+    if isinstance(network, dict):
+        return str(network.get("id"))
+    return None
+
+
 def filter_ignored_networks(data: dict[str, Any], ignored_ids: list[str]) -> None:
     """Filter out networks that the user has chosen to ignore."""
-    if ignored_ids and "networks" in data:
-        data["networks"] = [
-            n
-            for n in data["networks"]
-            if (n.id if hasattr(n, "id") else n.get("id")) not in ignored_ids
-        ]
+    if not ignored_ids or "networks" not in data:
+        return
+    data["networks"] = [
+        n for n in data["networks"] if _get_network_id(n) not in ignored_ids
+    ]
+
+
+def _get_primary_entity_id(entities: list[RegistryEntry]) -> str | None:
+    """Determine the primary entity for a device to link."""
+    if not entities:
+        return None
+
+    primary_entity = entities[0]
+    for entity in entities:
+        if entity.domain == "camera":
+            primary_entity = entity
+            break
+        if entity.domain == "switch" and primary_entity.domain != "camera":
+            primary_entity = entity
+
+    return primary_entity.entity_id
 
 
 def update_device_registry_info(
@@ -63,24 +87,16 @@ def update_device_registry_info(
         device.status_messages = []
         if not device.serial:
             continue
+
         ha_device = dev_reg.async_get_device(
             identifiers={(DOMAIN, device.serial)},
         )
-        if ha_device:
-            entities_for_device = er.async_entries_for_device(
-                ent_reg,
-                ha_device.id,
-            )
-            if entities_for_device:
-                # Prioritize camera entities, then switch, then fallback to first
-                primary_entity = entities_for_device[0]
-                for entity in entities_for_device:
-                    if entity.domain == "camera":
-                        primary_entity = entity
-                        break
-                    if entity.domain == "switch" and primary_entity.domain != "camera":
-                        primary_entity = entity
-                device.entity_id = primary_entity.entity_id
+        if not ha_device:
+            continue
+
+        entities_for_device = er.async_entries_for_device(ent_reg, ha_device.id)
+        if entities_for_device:
+            device.entity_id = _get_primary_entity_id(entities_for_device)
 
 
 class UpdateProcessor:
@@ -159,31 +175,11 @@ class UpdateProcessor:
         if previous_data:
             cleanup_whitespace(previous_data)
 
-        # Normalize devices
-        devices_raw = data.get("devices", [])
-        devices = [
-            MerakiDevice.from_dict(d) if isinstance(d, dict) else d for d in devices_raw
-        ]
-        devices_by_serial = {d.serial: d for d in devices if d.serial}
-        data["devices"] = devices
+        # Normalize data and update registry
+        devices, devices_by_serial = self._normalize_devices(data)
+        _, networks_by_id = self._normalize_networks(data)
+        ssids_by_network_and_number = self._normalize_ssids(data)
 
-        # Normalize networks
-        networks_raw = data.get("networks", [])
-        networks = [
-            MerakiNetwork.from_dict(n) if isinstance(n, dict) else n
-            for n in networks_raw
-        ]
-        networks_by_id = {n.id: n for n in networks if n.id}
-        data["networks"] = networks
-
-        # Normalize SSIDs
-        ssids_by_network_and_number = {
-            (cast(str, s.get("networkId")), int(cast(int, s.get("number")))): s
-            for s in data.get("ssids", [])
-            if s.get("networkId") and s.get("number") is not None
-        }
-
-        # Update device registry info (linking entities)
         update_device_registry_info(self.hass, devices)
 
         # Return lookup tables
@@ -191,6 +187,41 @@ class UpdateProcessor:
             "devices_by_serial": devices_by_serial,
             "networks_by_id": networks_by_id,
             "ssids_by_network_and_number": ssids_by_network_and_number,
+        }
+
+    def _normalize_devices(
+        self, data: dict[str, Any]
+    ) -> tuple[list[MerakiDevice], dict[str, MerakiDevice]]:
+        """Normalize device data and build lookup table."""
+        devices_raw = data.get("devices", [])
+        devices = [
+            MerakiDevice.from_dict(d) if isinstance(d, dict) else d for d in devices_raw
+        ]
+        devices_by_serial = {d.serial: d for d in devices if d.serial}
+        data["devices"] = devices
+        return devices, devices_by_serial
+
+    def _normalize_networks(
+        self, data: dict[str, Any]
+    ) -> tuple[list[MerakiNetwork], dict[str, MerakiNetwork]]:
+        """Normalize network data and build lookup table."""
+        networks_raw = data.get("networks", [])
+        networks = [
+            MerakiNetwork.from_dict(n) if isinstance(n, dict) else n
+            for n in networks_raw
+        ]
+        networks_by_id = {n.id: n for n in networks if n.id}
+        data["networks"] = networks
+        return networks, networks_by_id
+
+    def _normalize_ssids(
+        self, data: dict[str, Any]
+    ) -> dict[tuple[str, int], dict[str, Any]]:
+        """Normalize SSID data and build lookup table."""
+        return {
+            (cast(str, s.get("networkId")), int(cast(int, s.get("number")))): s
+            for s in data.get("ssids", [])
+            if s.get("networkId") and s.get("number") is not None
         }
 
     def process_failure(
