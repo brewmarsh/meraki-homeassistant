@@ -7,7 +7,7 @@ of a specific Meraki device.
 """
 
 import logging
-from typing import cast
+from typing import Any, cast
 
 from homeassistant.components.sensor import (
     SensorDeviceClass,
@@ -19,7 +19,7 @@ from homeassistant.core import callback
 from homeassistant.helpers.device_registry import DeviceInfo
 
 from ...const import DOMAIN
-from ...coordinator import MerakiDataUpdateCoordinator
+from ...coordinators import MerakiMainCoordinator
 from ...core.models.device import MerakiDevice
 from ...core.utils.naming_utils import format_device_name
 from ...entity import MerakiSensor
@@ -49,7 +49,7 @@ class MerakiDeviceStatusSensor(MerakiSensor):
 
     def __init__(
         self,
-        coordinator: MerakiDataUpdateCoordinator,
+        coordinator: MerakiMainCoordinator,
         device_data: "MerakiDevice",  # Initial device_data snapshot
         config_entry: ConfigEntry,
     ) -> None:
@@ -122,8 +122,22 @@ class MerakiDeviceStatusSensor(MerakiSensor):
             self._attr_icon = "mdi:help-rhombus"
             return
 
-        # Status is the primary value of this sensor
-        device_status: str | None = current_device_data.status
+        self._attr_native_value = self._determine_device_status(current_device_data)
+
+        # Populate attributes from the latest device data
+        self._attr_extra_state_attributes = self._get_base_device_attributes(
+            current_device_data
+        )
+
+        # If the device is an appliance, add uplink information as attributes
+        if current_device_data.product_type == "appliance":
+            self._attr_extra_state_attributes.update(
+                self._get_appliance_uplink_attributes(current_device_data)
+            )
+
+    def _determine_device_status(self, device_data: MerakiDevice) -> str:
+        """Determine the device status with fallback logic."""
+        device_status: str | None = device_data.status
 
         # Determine base status
         native_value = "unknown"
@@ -134,53 +148,50 @@ class MerakiDeviceStatusSensor(MerakiSensor):
             native_value = device_status.lower()
 
         # Fallback to composite state from uplinks if base status is missing/unknown
-        if native_value == "unknown" and current_device_data.uplinks:
-            if any(u.get("status") == "active" for u in current_device_data.uplinks):
+        if native_value == "unknown" and device_data.uplinks:
+            if any(u.get("status") == "active" for u in device_data.uplinks):
                 native_value = "online"
-            elif all(u.get("status") == "failed" for u in current_device_data.uplinks):
+            elif all(u.get("status") == "failed" for u in device_data.uplinks):
                 native_value = "offline"
 
-        self._attr_native_value = native_value
+        return native_value
 
-        # Populate attributes from the latest device data
-        self._attr_extra_state_attributes = {
-            "model": current_device_data.model,
-            "serial_number": current_device_data.serial,
-            "firmware_version": current_device_data.firmware,
-            "product_type": current_device_data.product_type,
-            "mac_address": current_device_data.mac,
-            "lan_ip": current_device_data.lan_ip,
-            "public_ip": current_device_data.public_ip,
-            "wan1_ip": current_device_data.wan1_ip,
-            "wan2_ip": current_device_data.wan2_ip,
-            "tags": current_device_data.tags,
-            "network_id": current_device_data.network_id,
+    def _get_base_device_attributes(self, device_data: MerakiDevice) -> dict[str, Any]:
+        """Collect base attributes for the device."""
+        attrs = {
+            "model": device_data.model,
+            "serial_number": device_data.serial,
+            "firmware_version": device_data.firmware,
+            "product_type": device_data.product_type,
+            "mac_address": device_data.mac,
+            "lan_ip": device_data.lan_ip,
+            "public_ip": device_data.public_ip,
+            "wan1_ip": device_data.wan1_ip,
+            "wan2_ip": device_data.wan2_ip,
+            "tags": device_data.tags,
+            "network_id": device_data.network_id,
         }
         # Filter out None values from attributes
-        self._attr_extra_state_attributes = {
-            k: v for k, v in self._attr_extra_state_attributes.items() if v is not None
-        }
+        return {k: v for k, v in attrs.items() if v is not None}
 
-        # If the device is an appliance, add uplink information as attributes
-        if current_device_data.product_type == "appliance":
-            for uplink in current_device_data.appliance_uplink_statuses:
-                interface = uplink.get("interface")
-                if interface is not None:
-                    self._attr_extra_state_attributes[f"{interface}_status"] = (
-                        uplink.get("status")
-                    )
-                    self._attr_extra_state_attributes[f"{interface}_ip"] = uplink.get(
-                        "ip"
-                    )
-                    self._attr_extra_state_attributes[f"{interface}_gateway"] = (
-                        uplink.get("gateway")
-                    )
-                    self._attr_extra_state_attributes[f"{interface}_public_ip"] = (
-                        uplink.get("publicIp")
-                    )
-                    self._attr_extra_state_attributes[f"{interface}_dns_servers"] = (
-                        uplink.get("dns")
-                    )
+    def _get_appliance_uplink_attributes(
+        self, device_data: MerakiDevice
+    ) -> dict[str, Any]:
+        """Collect appliance-specific uplink attributes."""
+        attrs: dict[str, Any] = {}
+        for uplink in device_data.appliance_uplink_statuses:
+            interface = uplink.get("interface")
+            if interface is not None:
+                attrs.update(
+                    {
+                        f"{interface}_status": uplink.get("status"),
+                        f"{interface}_ip": uplink.get("ip"),
+                        f"{interface}_gateway": uplink.get("gateway"),
+                        f"{interface}_public_ip": uplink.get("publicIp"),
+                        f"{interface}_dns_servers": uplink.get("dns"),
+                    }
+                )
+        return attrs
 
     @callback
     def _handle_coordinator_update(self) -> None:

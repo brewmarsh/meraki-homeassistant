@@ -7,7 +7,7 @@ from typing import Any
 from homeassistant.components.sensor import SensorEntityDescription
 from homeassistant.config_entries import ConfigEntry
 
-from ...coordinator import MerakiDataUpdateCoordinator
+from ...coordinators import MerakiMainCoordinator
 from .base import MerakiSSIDBaseSensor
 
 
@@ -25,7 +25,7 @@ class MerakiSSIDAvailabilitySensor(MerakiSSIDBaseSensor):
 
     def __init__(
         self,
-        coordinator: MerakiDataUpdateCoordinator,
+        coordinator: MerakiMainCoordinator,
         config_entry: ConfigEntry,
         ssid_data: dict[str, Any],
     ) -> None:

@@ -16,7 +16,7 @@ from custom_components.meraki_ha.switch.switch_port import MerakiSwitchPortToggl
 
 @pytest.fixture
 def mock_coordinator():
-    """Fixture for a mock MerakiDataUpdateCoordinator."""
+    """Fixture for a mock MerakiMainCoordinator."""
     coordinator = MagicMock()
     coordinator.data = {}
     return coordinator

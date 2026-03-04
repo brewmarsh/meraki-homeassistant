@@ -9,7 +9,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from ...coordinator import MerakiDataUpdateCoordinator
+from ...coordinators import MerakiSensorCoordinator
 from ...core.api.client import MerakiAPIClient
 from ...core.models.device import MerakiDevice
 from ...helpers.device_info_helpers import resolve_device_info
@@ -24,7 +24,7 @@ class MerakiMt15RefreshDataButton(CoordinatorEntity, ButtonEntity):
 
     def __init__(
         self,
-        coordinator: MerakiDataUpdateCoordinator,
+        coordinator: MerakiSensorCoordinator,
         device: MerakiDevice,
         config_entry: ConfigEntry,
         meraki_client: MerakiAPIClient,

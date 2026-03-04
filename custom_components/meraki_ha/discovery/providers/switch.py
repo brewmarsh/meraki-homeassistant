@@ -20,7 +20,7 @@ if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
     from homeassistant.helpers.entity import Entity
 
-    from ...coordinator import MerakiDataUpdateCoordinator
+    from ..coordinators import MerakiSwitchCoordinator
     from ...core.models.device import MerakiDevice
 
 _LOGGER = logging.getLogger(__name__)
@@ -31,7 +31,7 @@ class SwitchPortProvider:
 
     @staticmethod
     def get_entities(
-        coordinator: MerakiDataUpdateCoordinator,
+        coordinator: MerakiSwitchCoordinator,
         device: MerakiDevice,
         config_entry: ConfigEntry,
         **kwargs: Any,

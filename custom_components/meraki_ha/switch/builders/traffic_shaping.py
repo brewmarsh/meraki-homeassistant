@@ -8,7 +8,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from ...const_conf import CONF_ENABLE_TRAFFIC_SHAPING
-from ...coordinator import MerakiDataUpdateCoordinator
+from ...coordinators import MerakiSwitchCoordinator
 from ...core.models.network import MerakiTrafficShaping
 from ..traffic_shaping import MerakiTrafficShapingSwitch
 
@@ -17,7 +17,7 @@ _LOGGER = logging.getLogger(__name__)
 
 def setup_traffic_shaping_switches(
     config_entry: ConfigEntry,
-    coordinator: MerakiDataUpdateCoordinator,
+    coordinator: MerakiSwitchCoordinator,
     added_entities: set[str],
     async_add_entities: AddEntitiesCallback,
 ) -> None:
@@ -32,7 +32,7 @@ def setup_traffic_shaping_switches(
 
 
 def _build_traffic_shaping_entities(
-    coordinator: MerakiDataUpdateCoordinator,
+    coordinator: MerakiSwitchCoordinator,
     data: dict[str, Any],
     config_entry: ConfigEntry,
     added_entities: set[str],
@@ -50,7 +50,7 @@ def _build_traffic_shaping_entities(
 
 
 def _create_traffic_shaping_entity(
-    coordinator: MerakiDataUpdateCoordinator,
+    coordinator: MerakiSwitchCoordinator,
     config_entry: ConfigEntry,
     network_id: str,
     traffic_shaping: Any,

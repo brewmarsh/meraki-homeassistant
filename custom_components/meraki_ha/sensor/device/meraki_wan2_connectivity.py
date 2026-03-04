@@ -13,8 +13,8 @@ from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from ...const import DOMAIN
-from ...coordinator import MerakiDataUpdateCoordinator
-from ...core.utils.naming_utils import format_device_name
+from ...coordinators import MerakiMainCoordinator
+from ...core.utils.naming_utils import standardize_device_name, format_device_name
 
 if TYPE_CHECKING:
     from ...core.models.device import MerakiDevice
@@ -31,7 +31,7 @@ class MerakiWAN2ConnectivitySensor(
 ):
     """Representation of a Meraki WAN2 Connectivity Sensor."""
 
-    coordinator: MerakiDataUpdateCoordinator
+    coordinator: MerakiMainCoordinator
 
     _attr_icon = "mdi:wan"
     _attr_has_entity_name = True
@@ -40,7 +40,7 @@ class MerakiWAN2ConnectivitySensor(
 
     def __init__(
         self,
-        coordinator: MerakiDataUpdateCoordinator,
+        coordinator: MerakiMainCoordinator,
         device_data: MerakiDevice,
         config_entry: ConfigEntry,
     ) -> None:
@@ -62,9 +62,10 @@ class MerakiWAN2ConnectivitySensor(
 
         self._attr_device_info = DeviceInfo(
             identifiers={(DOMAIN, self._device_serial)},
+            # format_device_name already calls standardize_device_name
             name=format_device_name(device_data, self._config_entry.options),
             model=device_data.model,
-            manufacturer="Meraki",
+            manufacturer="Cisco Meraki",
         )
         self._update_state()
 

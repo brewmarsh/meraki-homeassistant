@@ -1,5 +1,7 @@
 import { LitElement, html, css } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
+import { safeCallWS } from './utils/api';
+import { WsCommand } from './types/websocket';
 
 interface HassObject {
   connection: {
@@ -93,13 +95,17 @@ export class MerakiPanel extends LitElement {
         return;
       }
 
-      const data = await this.hass.connection.sendMessagePromise({
-        type: 'meraki_ha/get_config',
+      const data = await safeCallWS<MerakiData>(this.hass, {
+        type: WsCommand.GET_CONFIG,
         config_entry_id: this.entryId,
       });
       this._data = data;
     } catch (err: any) {
-      this._error = `Failed to fetch Meraki data: ${err.message || 'Unknown error'}`;
+      if (err.code === 'not_found') {
+        this._error = 'Meraki integration not configured. Please add and configure the integration in Home Assistant.';
+      } else {
+        this._error = `Failed to fetch Meraki data: ${err.message || 'Unknown error'}`;
+      }
     } finally {
       this._loading = false;
     }
@@ -116,8 +122,8 @@ export class MerakiPanel extends LitElement {
     this._data = { ...this._data, enabled_networks };
 
     try {
-      await this.hass.connection.sendMessagePromise({
-        type: 'meraki_ha/update_enabled_networks',
+      await safeCallWS(this.hass, {
+        type: WsCommand.UPDATE_ENABLED_NETWORKS,
         config_entry_id: this.entryId,
         enabled_networks,
       });
@@ -125,15 +131,6 @@ export class MerakiPanel extends LitElement {
       console.error('Error updating enabled networks:', err);
       this._data = originalData;
     }
-  }
-
-  private _moreInfo(entityId: string) {
-    const event = new Event('hass-more-info', {
-      bubbles: true,
-      composed: true,
-    });
-    (event as any).detail = { entityId };
-    this.dispatchEvent(event);
   }
 
   render() {
@@ -149,7 +146,7 @@ export class MerakiPanel extends LitElement {
       return html`<p>No data found.</p>`;
     }
 
-    const { networks, devices, version, enabled_networks } = this._data;
+    const { networks, version, enabled_networks } = this._data;
 
     return html`
       <ha-card header="Meraki Dashboard">

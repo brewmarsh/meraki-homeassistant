@@ -5,7 +5,7 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-from ....coordinator import MerakiDataUpdateCoordinator
+from ...coordinators import MerakiMainCoordinator
 from ....core.entities.device import MerakiDeviceEntity
 
 _LOGGER = logging.getLogger(__name__)
@@ -19,7 +19,7 @@ class MerakiConnectedClientsSensor(MerakiDeviceEntity):
 
     def __init__(
         self,
-        coordinator: MerakiDataUpdateCoordinator,
+        coordinator: MerakiMainCoordinator,
         device_serial: str,
     ) -> None:
         """

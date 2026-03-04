@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import logging
-from datetime import datetime, timedelta
+import time
 from typing import TYPE_CHECKING, Any
 
 from homeassistant.helpers.update_coordinator import UpdateFailed
@@ -39,6 +39,12 @@ _ORG_DATA_CACHE: dict[str, Any] = {}
 _ORG_DATA_CACHE_EXPIRY: datetime | None = None
 CACHE_TTL = timedelta(seconds=25)
 
+# Shared cache for organization-wide data to prevent redundant API calls
+# between multiple domain-specific coordinators.
+_ORG_DATA_CACHE: dict[str, Any] = {}
+_ORG_DATA_CACHE_EXPIRY: float = 0
+CACHE_TTL = 30  # seconds
+
 
 class DataFetchManager:
     """Manager for fetching and distributing Meraki data."""
@@ -66,13 +72,13 @@ class DataFetchManager:
         """Fetch the organization-wide data batch with short-lived caching."""
         global _ORG_DATA_CACHE_EXPIRY
 
-        if (
-            _ORG_DATA_CACHE
-            and _ORG_DATA_CACHE_EXPIRY
-            and datetime.now() < _ORG_DATA_CACHE_EXPIRY
-        ):
+        current_time = time.time()
+        if _ORG_DATA_CACHE and current_time < _ORG_DATA_CACHE_EXPIRY:
             _LOGGER.debug("Using cached organization-wide data")
-            return _ORG_DATA_CACHE.copy()
+            return _ORG_DATA_CACHE
+
+        if not self.client.has_dashboard:
+            await self.client.async_setup()
 
         tasks = {
             "organization": self.client.run_with_semaphore(
@@ -91,7 +97,14 @@ class DataFetchManager:
                 self.client.organization.get_organization_switch_ports_statuses()
             ),
         }
-        data = await async_gather_with_timeout(tasks, label="Initial batch")
+        data = await self._async_gather_with_timeout(tasks, label="Initial batch")
+
+        # Update cache
+        _ORG_DATA_CACHE.clear()
+        _ORG_DATA_CACHE.update(data)
+        _ORG_DATA_CACHE_EXPIRY = current_time + CACHE_TTL
+
+        return data
 
         # Update cache
         _ORG_DATA_CACHE.clear()
@@ -253,4 +266,23 @@ class DataFetchManager:
         appliance_details = parse_appliance_data(data["devices"], data, current_data)
         data.update(appliance_details)
 
-        return data
+    async def get_all_data(
+        self,
+        current_data: dict[str, Any] | None = None,
+        timespan: int = 300,
+    ) -> dict[str, Any]:
+        """Fetch all data from the Meraki API in a coordinated cycle."""
+        try:
+            async with asyncio.timeout(30):
+                data = await self._fetch_initial_org_data()
+
+                # Build and execute detail batch
+                await self._build_strategy_tasks(data)
+
+                # Merge and process all results
+                await self._merge_and_process_results(data, current_data)
+
+                return data
+        except TimeoutError:
+            _LOGGER.error("Meraki API took too long; check for semaphore deadlock")
+            raise UpdateFailed("API Timeout") from None

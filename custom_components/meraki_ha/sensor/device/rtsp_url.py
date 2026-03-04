@@ -12,7 +12,7 @@ from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from ...const import DOMAIN
-from ...coordinator import MerakiDataUpdateCoordinator
+from ...coordinators import MerakiMainCoordinator
 from ...core.models.device import MerakiDevice
 from ...core.utils.naming_utils import format_device_name
 from ...core.utils.network_utils import construct_rtsp_url
@@ -24,18 +24,18 @@ class MerakiRtspUrlSensor(CoordinatorEntity, SensorEntity):
     """
     Representation of an RTSP URL sensor.
 
-    This sensor is driven by the central MerakiDataUpdateCoordinator, which
+    This sensor is driven by the central MerakiMainCoordinator, which
     ensures that the state is always in sync with the latest data from the
     Meraki API.
     """
 
-    coordinator: MerakiDataUpdateCoordinator
+    coordinator: MerakiMainCoordinator
 
     _attr_entity_category = EntityCategory.DIAGNOSTIC
 
     def __init__(
         self,
-        coordinator: MerakiDataUpdateCoordinator,
+        coordinator: MerakiMainCoordinator,
         device_data: MerakiDevice,
         config_entry: ConfigEntry,
     ) -> None:

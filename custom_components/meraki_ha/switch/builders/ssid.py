@@ -7,7 +7,7 @@ from homeassistant.components.switch import SwitchEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from ...coordinator import MerakiDataUpdateCoordinator
+from ...coordinators import MerakiSwitchCoordinator
 from ..meraki_ssid_device_switch import (
     MerakiSSIDBroadcastSwitch,
     MerakiSSIDEnabledSwitch,
@@ -18,7 +18,7 @@ _LOGGER = logging.getLogger(__name__)
 
 def setup_ssid_switches(
     config_entry: ConfigEntry,
-    coordinator: MerakiDataUpdateCoordinator,
+    coordinator: MerakiSwitchCoordinator,
     added_entities: set[str],
     async_add_entities: AddEntitiesCallback,
 ) -> None:
@@ -31,7 +31,7 @@ def setup_ssid_switches(
 
 
 def _build_ssid_entities(
-    coordinator: MerakiDataUpdateCoordinator,
+    coordinator: MerakiSwitchCoordinator,
     data: dict[str, Any],
     config_entry: ConfigEntry,
     added_entities: set[str],
@@ -47,7 +47,7 @@ def _build_ssid_entities(
 
 
 def _build_ssid_pair(
-    coordinator: MerakiDataUpdateCoordinator,
+    coordinator: MerakiSwitchCoordinator,
     data: dict[str, Any],
     config_entry: ConfigEntry,
     ssid: dict[str, Any],
@@ -62,7 +62,10 @@ def _build_ssid_pair(
     rf_profile = _get_rf_profile(data, ssid.get("networkId"))
 
     # Enabled Switch
-    unique_id = f"{ssid['networkId']}ssid{ssid_number}_enabled_switch"
+    unique_id = (
+        f"meraki_network_{ssid['networkId']}_ssid_"
+        f"{ssid_number}_enabled"
+    )
     if unique_id not in added_entities:
         entities.append(
             MerakiSSIDEnabledSwitch(
@@ -76,7 +79,10 @@ def _build_ssid_pair(
         added_entities.add(unique_id)
 
     # Broadcast Switch
-    unique_id = f"{ssid['networkId']}ssid{ssid_number}_broadcast_switch"
+    unique_id = (
+        f"meraki_network_{ssid['networkId']}_ssid_"
+        f"{ssid_number}_broadcast"
+    )
     if unique_id not in added_entities:
         entities.append(
             MerakiSSIDBroadcastSwitch(

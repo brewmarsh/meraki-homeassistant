@@ -14,7 +14,7 @@ from custom_components.meraki_ha.sensor.uplink_performance import (
 
 @pytest.fixture
 def mock_coordinator():
-    """Fixture for a mocked MerakiDataUpdateCoordinator."""
+    """Fixture for a mocked MerakiMainCoordinator."""
     coordinator = MagicMock()
     return coordinator
 
@@ -30,7 +30,7 @@ def test_uplink_performance_sensor_mapping(mock_coordinator):
     # Test latency with API key
     desc = SensorEntityDescription(key="wan1_latency", name="Wan1 latency")
     sensor = MerakiUplinkPerformanceSensor(
-        mock_coordinator, device, MagicMock(), "wan1", "latencyMs", desc
+        mock_coordinator, device, MagicMock(), "wan1", "latency", desc
     )
     assert sensor.native_value == 10.0
     assert sensor.native_unit_of_measurement == UnitOfTime.MILLISECONDS
@@ -59,7 +59,7 @@ def test_uplink_performance_sensor_none_handling(mock_coordinator):
 
     desc = SensorEntityDescription(key="wan1_latency", name="Wan1 latency")
     sensor = MerakiUplinkPerformanceSensor(
-        mock_coordinator, device, MagicMock(), "wan1", "latencyMs", desc
+        mock_coordinator, device, MagicMock(), "wan1", "latency", desc
     )
     assert sensor.native_value is None
 

@@ -13,7 +13,8 @@ from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from ...const import DOMAIN
-from ...coordinator import MerakiDataUpdateCoordinator
+from ...coordinators import MerakiMainCoordinator
+from ...core.utils.naming_utils import standardize_device_name
 
 if TYPE_CHECKING:
     from ...core.models.device import MerakiDevice
@@ -24,7 +25,7 @@ _LOGGER = logging.getLogger(__name__)
 class MerakiFirmwareStatusSensor(CoordinatorEntity, SensorEntity):
     """Representation of a Meraki Device Firmware Status Sensor."""
 
-    coordinator: MerakiDataUpdateCoordinator
+    coordinator: MerakiMainCoordinator
 
     _attr_icon = "mdi:package-up"
     _attr_has_entity_name = True
@@ -34,7 +35,7 @@ class MerakiFirmwareStatusSensor(CoordinatorEntity, SensorEntity):
 
     def __init__(
         self,
-        coordinator: MerakiDataUpdateCoordinator,
+        coordinator: MerakiMainCoordinator,
         device_data: MerakiDevice,
         config_entry: ConfigEntry,
     ) -> None:
@@ -47,7 +48,7 @@ class MerakiFirmwareStatusSensor(CoordinatorEntity, SensorEntity):
 
         self._attr_device_info = DeviceInfo(
             identifiers={(DOMAIN, self._device_serial)},
-            name=device_data.name,
+            name=standardize_device_name(device_data.name),
             model=device_data.model,
             manufacturer="Cisco Meraki",
             sw_version=device_data.firmware,

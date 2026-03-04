@@ -20,7 +20,7 @@ if TYPE_CHECKING:
     from homeassistant.helpers.device_registry import DeviceInfo
     from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-    from .coordinator import MerakiDataUpdateCoordinator
+    from ..coordinators import MerakiCameraCoordinator
     from .core.models.device import MerakiDevice
     from .services.camera_service import CameraService
 
@@ -35,7 +35,7 @@ async def async_setup_entry(
 ) -> None:
     """Set up Meraki camera entities from a config entry."""
     entry_data = hass.data[DOMAIN][config_entry.entry_id]
-    coordinator: MerakiDataUpdateCoordinator = entry_data["coordinator"]
+    coordinator: MerakiCameraCoordinator = entry_data["coordinator"]
     camera_service: CameraService = entry_data["camera_service"]
 
     devices: list[MerakiDevice] = coordinator.data.get("devices", [])
@@ -62,18 +62,18 @@ class MerakiRTSPStreamCamera(MerakiEntity, Camera):
     """
     Representation of a Meraki RTSP stream camera.
 
-    This entity is state-driven by the central MerakiDataUpdateCoordinator.
+    This entity is state-driven by the central MerakiCameraCoordinator.
     """
 
     _attr_brand = "Cisco Meraki"
     _attr_has_entity_name = True
     _attr_supported_features = CameraEntityFeature.STREAM
 
-    coordinator: MerakiDataUpdateCoordinator
+    coordinator: MerakiCameraCoordinator
 
     def __init__(
         self,
-        coordinator: MerakiDataUpdateCoordinator,
+        coordinator: MerakiCameraCoordinator,
         device: MerakiDevice,
         camera_service: CameraService,
         config_entry: ConfigEntry,

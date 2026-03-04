@@ -2,11 +2,11 @@
 
 from __future__ import annotations
 
+import dataclasses
 import http.server
 import json
 import socketserver
 import threading
-from collections.abc import AsyncGenerator, Generator
 from pathlib import Path
 from typing import Any
 from unittest.mock import patch
@@ -23,10 +23,159 @@ from custom_components.meraki_ha.const_conf import (
 from homeassistant.core import HomeAssistant
 
 from .const import MOCK_ALL_DATA
-from .fixtures.e2e_js_templates import HA_ELEMENTS_JS, JS_TEMPLATE
-from .helpers.e2e_mock_data import prepare_mock_data
 
 MOCK_SETTINGS = {"scan_interval": 300, "enable_device_status": True}
+
+
+# JavaScript Templates for Playwright init script
+JS_TEMPLATE = """
+// Initialize calls storage if not exists
+if (!sessionStorage.getItem('mockCallWS')) {{
+    sessionStorage.setItem('mockCallWS', JSON.stringify([]));
+}}
+
+// Define mock HA elements
+{ha_elements_js}
+
+document.addEventListener('DOMContentLoaded', () => {{
+    const panel = document.createElement('meraki-panel');
+    document.body.appendChild(panel);
+    panel.panel = {{
+        config: {{
+            config_entry_id: 'test-entry-id-from-panel'
+        }}
+    }};
+    panel.hass = {{
+        states: {{
+            "switch.office_switch": {{ state: "on", attributes: {{}} }},
+            "camera.front_door_camera": {{
+                state: "idle",
+                attributes: {{}}
+            }},
+            "switch.guest_wifi": {{ state: "on", attributes: {{}} }}
+        }},
+        callWS: async (msg) => {{
+            console.log("callWS called with type: " + msg.type);
+
+            // Store in sessionStorage to persist across reloads
+            const calls = JSON.parse(
+                sessionStorage.getItem('mockCallWS') || '[]'
+            );
+            calls.push(msg);
+            sessionStorage.setItem('mockCallWS', JSON.stringify(calls));
+
+            if (msg.type === 'meraki_ha/get_config') {{
+                return {mock_data_json};
+            }}
+            if (msg.type === 'meraki_ha/update_options') {{
+                return {{}};
+            }}
+             if (msg.type === 'call_service') {{
+                return {{}};
+            }}
+            return {{}};
+        }},
+        callService: async (domain, service, data) => {{
+             console.log(`callService: ${{domain}}.${{service}}`, data);
+              const calls = JSON.parse(
+                sessionStorage.getItem('mockCallWS') || '[]'
+            );
+            calls.push({{
+                type: 'call_service',
+                domain,
+                service,
+                service_data: data
+            }});
+            sessionStorage.setItem('mockCallWS', JSON.stringify(calls));
+        }}
+    }};
+}});
+"""
+
+HA_ELEMENTS_JS = """
+class HACard extends HTMLElement {
+    constructor() { super(); this.attachShadow({mode: 'open'}); }
+    connectedCallback() {
+        this.shadowRoot.innerHTML = `
+            <div style="
+                border: 1px solid #ccc;
+                padding: 16px;
+                display: block;">
+                <slot></slot>
+            </div>
+        `;
+        this.style.display = 'block';
+    }
+}
+class HAIcon extends HTMLElement {
+    constructor() { super(); this.attachShadow({mode: 'open'}); }
+    connectedCallback() {
+        const icon = this.getAttribute('icon');
+        this.shadowRoot.innerHTML = `
+            <span style="display: flex; align-items: center;
+                         justify-content: center;">
+                icon: ${icon}
+            </span>
+        `;
+        this.style.display = 'inline-block';
+        this.style.width = '24px';
+        this.style.height = '24px';
+    }
+    static get observedAttributes() { return ['icon']; }
+    attributeChangedCallback(name, oldValue, newValue) {
+        if (name === 'icon') {
+            this.shadowRoot.innerHTML = `
+                <span style="display: flex; align-items: center;
+                             justify-content: center;">
+                    icon: ${newValue}
+                </span>
+            `;
+        }
+    }
+}
+class HASwitch extends HTMLElement {
+    constructor() { super(); this.attachShadow({mode: 'open'}); }
+    connectedCallback() {
+        this.shadowRoot.innerHTML = `<input type="checkbox" />`;
+        this.style.display = 'inline-block';
+        const input = this.shadowRoot.querySelector('input');
+        input.checked = this.hasAttribute('checked');
+        input.addEventListener('change', (e) => {
+           this.dispatchEvent(new CustomEvent('change', {
+               detail: { value: e.target.checked },
+               bubbles: true,
+               composed: true
+           }));
+        });
+    }
+    set checked(val) {
+        const input = this.shadowRoot.querySelector('input');
+        if (input) input.checked = val;
+        if (val) this.setAttribute('checked', '');
+        else this.removeAttribute('checked');
+    }
+    get checked() {
+        const input = this.shadowRoot.querySelector('input');
+        return input ? input.checked : false;
+    }
+    click() {
+        const input = this.shadowRoot.querySelector('input');
+        if (input) {
+            input.click();
+        }
+    }
+}
+
+if (!customElements.get('ha-card')) {
+    customElements.define('ha-card', HACard);
+}
+if (!customElements.get('ha-icon')) {
+    customElements.define('ha-icon', HAIcon);
+}
+if (!customElements.get('ha-switch')) {
+    customElements.define('ha-switch', HASwitch);
+}
+"""
 
 
 class ReuseAddrTCPServer(socketserver.TCPServer):
@@ -47,7 +196,7 @@ class _MerakiTestHTTPHandler(http.server.SimpleHTTPRequestHandler):
 async def setup_integration_fixture(
     hass: HomeAssistant,
     socket_enabled: None,  # pylint: disable=unused-argument
-) -> AsyncGenerator[MockConfigEntry, None]:
+) -> MockConfigEntry:
     """Set up the Meraki integration with the web UI enabled.
 
     Args:
@@ -55,8 +204,8 @@ async def setup_integration_fixture(
         hass: The Home Assistant instance.
         socket_enabled: The socket_enabled fixture.
 
-    Yields
-    ------
+    Returns
+    -------
         The mock config entry.
     """
     hass.config.external_url = "https://example.com"
@@ -72,7 +221,7 @@ async def setup_integration_fixture(
 
     with (
         patch(
-            "custom_components.meraki_ha.coordinators.main.MerakiMainCoordinator._async_update_data",
+            "custom_components.meraki_ha.MerakiMainCoordinator._async_update_data",
             return_value=MOCK_ALL_DATA,
         ),
         patch(
@@ -87,7 +236,7 @@ async def setup_integration_fixture(
 
 
 @pytest.fixture(name="http_server_and_test_file")
-def http_server_and_test_file_fixture() -> Generator[tuple[int, str], None, None]:
+def http_server_and_test_file_fixture() -> tuple[int, str]:
     """Set up and tear down a simple HTTP server to serve the www directory."""
     original_cwd = Path.cwd()
     www_dir = original_cwd / "custom_components" / "meraki_ha" / "www"
@@ -139,7 +288,7 @@ def http_server_and_test_file_fixture() -> Generator[tuple[int, str], None, None
 
 
 @pytest.fixture(name="playwright_browser_page")
-async def playwright_browser_page_fixture() -> AsyncGenerator[Page, None]:
+async def playwright_browser_page_fixture() -> Page:
     """Launch a Playwright browser and provides a page."""
     try:
         async with async_playwright() as p:
@@ -159,7 +308,61 @@ async def playwright_browser_page_fixture() -> AsyncGenerator[Page, None]:
 @pytest.fixture(name="mock_hass_config_data")
 def mock_hass_config_data_fixture() -> dict[str, Any]:
     """Generate comprehensive mock data for the Home Assistant frontend."""
-    return prepare_mock_data(MOCK_SETTINGS)
+    mock_data: dict[str, Any] = MOCK_ALL_DATA.copy()
+    # Convert dataclasses to dicts for frontend consumption
+    mock_data["networks"] = [
+        dataclasses.asdict(n) if dataclasses.is_dataclass(n) else n
+        for n in mock_data.get("networks", [])
+    ]
+    mock_data["devices"] = [
+        dataclasses.asdict(d) if dataclasses.is_dataclass(d) else d
+        for d in mock_data.get("devices", [])
+    ]
+
+    # Ensure at least one network is enabled
+    if mock_data["networks"]:
+        mock_data["networks"][0]["is_enabled"] = True
+
+    # Add specific devices and SSIDs for detailed testing
+    switch_device = {
+        "serial": "Q234-ABCD-SW1",
+        "name": "Office Switch",
+        "model": "MS220",
+        "networkId": "N_12345",
+        "productType": "switch",
+        "status": "online",
+        "ports_statuses": [
+            {"portId": "1", "status": "Connected", "enabled": True},
+            {"portId": "2", "status": "Disconnected", "enabled": False},
+        ],
+        "entity_id": "switch.office_switch",
+    }
+    camera_device = {
+        "serial": "Q234-ABCD-CAM1",
+        "name": "Front Door Camera",
+        "model": "MV12",
+        "networkId": "N_12345",
+        "productType": "camera",
+        "status": "online",
+        "lanIp": "192.168.1.50",
+        "entity_id": "camera.front_door_camera",
+    }
+    ssid_data = {
+        "number": 0,
+        "name": "Guest WiFi",
+        "enabled": True,
+        "networkId": "N_12345",
+        "entity_id": "switch.guest_wifi",
+    }
+
+    mock_data["devices"].extend([switch_device, camera_device])
+    mock_data["ssids"] = mock_data.get("ssids", []) + [ssid_data]
+    if mock_data["networks"]:
+        mock_data["networks"][0]["ssids"] = mock_data["ssids"]
+
+    mock_data["options"] = MOCK_SETTINGS
+
+    return mock_data
 
 
 @pytest.fixture(name="javascript_init_script")
@@ -173,13 +376,13 @@ def javascript_init_script_fixture(mock_hass_config_data: dict[str, Any]) -> str
 
 
 # Helper functions for UI interactions
-async def wait_for_loading_to_hide(page: Page) -> None:
+async def _wait_for_loading_to_hide(page: Page) -> None:
     """Wait for the loading indicator to disappear."""
     loading_indicator = page.get_by_text("Loading...")
     await expect(loading_indicator).to_be_hidden(timeout=10000)
 
 
-async def expand_network_card(page: Page, network_name: str) -> None:
+async def _expand_network_card(page: Page, network_name: str) -> None:
     """Expand a specific network card."""
     network_card = page.locator("ha-card").filter(has_text=network_name).first
     expand_button = network_card.locator("ha-icon[icon='mdi:chevron-down']")
@@ -187,13 +390,13 @@ async def expand_network_card(page: Page, network_name: str) -> None:
     await expect(page.locator("table").first).to_be_visible()
 
 
-async def verify_device_visibility(page: Page, device_names: list[str]) -> None:
+async def _verify_device_visibility(page: Page, device_names: list[str]) -> None:
     """Verify that specified devices are visible in the device table."""
     for name in device_names:
         await expect(page.get_by_text(name)).to_be_visible()
 
 
-async def view_device_details(page: Page, device_name: str) -> None:
+async def _view_device_details(page: Page, device_name: str) -> None:
     """Clicks to view details of a specific device."""
     device_row = page.locator("tr", has_text=device_name)
     details_button = device_row.locator("button[title='View Details']")
@@ -202,7 +405,7 @@ async def view_device_details(page: Page, device_name: str) -> None:
     await expect(page.get_by_text("Entities")).to_be_visible()
 
 
-async def go_back_to_dashboard(page: Page) -> None:
+async def _go_back_to_dashboard(page: Page) -> None:
     """Clicks the 'Back to Dashboard' button."""
     back_button = page.get_by_role("button", name="Back to Dashboard")
     await back_button.click()
@@ -210,7 +413,7 @@ async def go_back_to_dashboard(page: Page) -> None:
     await expect(page.locator("ha-card").first).to_be_visible()
 
 
-async def verify_ssid_card_status(
+async def _verify_ssid_card_status(
     page: Page, ssid_name: str, expected_status: str
 ) -> None:
     """Verify the status text of an SSID card."""
@@ -219,7 +422,7 @@ async def verify_ssid_card_status(
     await expect(ssid_card).to_contain_text(expected_status)
 
 
-async def verify_camera_status(
+async def _verify_camera_status(
     page: Page, camera_name: str, expected_status: str
 ) -> None:
     """Verify the status of a specific camera device."""
@@ -228,7 +431,7 @@ async def verify_camera_status(
     await expect(status_cell).to_contain_text(expected_status)
 
 
-async def navigate_to_settings(page: Page) -> None:
+async def _navigate_to_settings(page: Page) -> None:
     """Clicks the settings button to open the settings modal."""
     settings_button = page.locator("button[title='Settings']")
     await settings_button.click()
@@ -236,7 +439,7 @@ async def navigate_to_settings(page: Page) -> None:
     await expect(page.locator("div.fixed.inset-0")).to_be_visible()
 
 
-async def toggle_setting_and_save(page: Page, setting_text: str) -> None:
+async def _toggle_setting_and_save(page: Page, setting_text: str) -> None:
     """Toggles a specific setting switch and clicks Save & Reload."""
     settings_modal = page.locator("div.fixed.inset-0")
     settings_row = settings_modal.locator(
@@ -250,7 +453,7 @@ async def toggle_setting_and_save(page: Page, setting_text: str) -> None:
     await expect(settings_modal).to_be_hidden()  # Verify settings modal closed
 
 
-async def get_websocket_calls(page: Page) -> list[dict[str, Any]]:
+async def _get_websocket_calls(page: Page) -> list[dict[str, Any]]:
     """Retrieve stored WebSocket calls from sessionStorage."""
     # The '|| "[]"' handles cases where sessionStorage.getItem('mockCallWS')
     # might be null
@@ -291,7 +494,7 @@ async def test_e2e_panel_comprehensive(
     await page.goto(base_url)
 
     # 1. Panel Loading & Initial Navigation
-    await wait_for_loading_to_hide(page)
+    await _wait_for_loading_to_hide(page)
     network_card = page.locator("ha-card").first
     await expect(network_card).to_be_visible()
     await expect(network_card.locator("span", has_text="[Network]")).to_contain_text(
@@ -299,25 +502,25 @@ async def test_e2e_panel_comprehensive(
     )
 
     # 2. Device Expansion
-    await expand_network_card(page, "Main Office")
-    await verify_device_visibility(page, ["Office Switch", "Front Door Camera"])
+    await _expand_network_card(page, "Main Office")
+    await _verify_device_visibility(page, ["Office Switch", "Front Door Camera"])
 
     # 3. Switch Port Control (View Details & Back)
-    await view_device_details(page, "Office Switch")
-    await go_back_to_dashboard(page)
+    await _view_device_details(page, "Office Switch")
+    await _go_back_to_dashboard(page)
 
     # 4. SSID Visibility Check
-    await verify_ssid_card_status(page, "Guest WiFi", "Enabled")
+    await _verify_ssid_card_status(page, "Guest WiFi", "Enabled")
 
     # 5. Camera Visibility
-    await verify_camera_status(page, "Front Door Camera", "Online")
+    await _verify_camera_status(page, "Front Door Camera", "Online")
 
     # 6. Panel Settings Changes
-    await navigate_to_settings(page)
-    await toggle_setting_and_save(page, "Device & Entity Model")
+    await _navigate_to_settings(page)
+    await _toggle_setting_and_save(page, "Device & Entity Model")
 
     # Verify that 'meraki_ha/update_options' was called with the correct data
-    calls = await get_websocket_calls(page)
+    calls = await _get_websocket_calls(page)
     update_call = next(
         (c for c in calls if c["type"] == "meraki_ha/update_options"), None
     )

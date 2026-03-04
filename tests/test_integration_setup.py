@@ -100,11 +100,11 @@ async def test_ssid_device_creation_and_unification(
 
     with (
         patch(
-            "custom_components.meraki_ha.coordinator.ApiClient",
+            "custom_components.meraki_ha.coordinators.base.ApiClient",
             return_value=mock_meraki_client,
         ),
         patch(
-            "custom_components.meraki_ha.coordinator.DataFetchManager",
+            "custom_components.meraki_ha.coordinators.base.DataFetchManager",
             return_value=mock_data_fetch_manager,
         ),
         patch("custom_components.meraki_ha.async_register_webhook", return_value=None),
@@ -125,7 +125,7 @@ async def test_ssid_device_creation_and_unification(
         assert network_device is not None
 
         # Assert that the device has the correct name (Virtual Controller format)
-        assert network_device.name == "Site: Test Network"
+        assert network_device.name == "Meraki Site: Test Network"
 
         # Find all entities associated with this device by querying the entity registry
         entities = [
@@ -162,11 +162,11 @@ async def test_integration_reload(
 
     with (
         patch(
-            "custom_components.meraki_ha.coordinator.ApiClient",
+            "custom_components.meraki_ha.coordinators.base.ApiClient",
             return_value=mock_meraki_client,
         ),
         patch(
-            "custom_components.meraki_ha.coordinator.DataFetchManager",
+            "custom_components.meraki_ha.coordinators.base.DataFetchManager",
             return_value=mock_data_fetch_manager,
         ),
         patch("custom_components.meraki_ha.async_register_webhook", return_value=None),

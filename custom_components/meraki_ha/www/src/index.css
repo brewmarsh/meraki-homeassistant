@@ -2,6 +2,15 @@
 @tailwind components;
 @tailwind utilities;
 
+:host {
+  font-family: var(--primary-font-family), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+}
+
+#root {
+  font-family: inherit;
+  color: var(--primary-text-color);
+}
+
 .hero-indicator {
   display: flex;
   align-items: center;
@@ -9,11 +18,40 @@
   font-weight: 500;
   color: var(--primary-text-color);
   margin-bottom: 0.5rem;
-  border-bottom: 1px solid var(--divider-color, #e0e0e0);
+  border-bottom: 1px solid var(--divider-color);
   padding-bottom: 0.5rem;
 }
 
 .hero-indicator ha-icon {
   margin-right: 0.5rem;
   color: var(--primary-color);
+}
+
+ha-tabs {
+  display: flex;
+  background-color: var(--primary-background-color);
+  border-bottom: 1px solid var(--divider-color);
+}
+
+paper-tab {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 16px;
+  height: 48px;
+  cursor: pointer;
+  text-transform: uppercase;
+  font-weight: 500;
+  color: var(--secondary-text-color);
+  border-bottom: 2px solid transparent;
+  transition: all 0.2s ease-in-out;
+}
+
+paper-tab[selected] {
+  color: var(--primary-text-color);
+  border-bottom-color: var(--primary-color);
+}
+
+paper-tab:hover {
+  background-color: var(--secondary-background-color);
 }

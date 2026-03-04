@@ -12,7 +12,7 @@ from custom_components.meraki_ha.types import MerakiNetwork
 
 @pytest.fixture
 def mock_coordinator_with_content_filtering(mock_coordinator: MagicMock) -> MagicMock:
-    """Fixture for a mocked MerakiDataUpdateCoordinator with content filtering data."""
+    """Fixture for a mocked MerakiMainCoordinator with content filtering data."""
     mock_coordinator.data = {
         "content_filtering": {
             "net_1": {

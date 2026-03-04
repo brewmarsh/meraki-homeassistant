@@ -9,7 +9,8 @@ from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from ...const import DOMAIN
-from ...coordinator import MerakiDataUpdateCoordinator
+from ...coordinators import MerakiMainCoordinator
+from ...core.utils.naming_utils import standardize_device_name
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -17,14 +18,14 @@ _LOGGER = logging.getLogger(__name__)
 class MerakiOrganizationDeviceTypeClientsSensor(CoordinatorEntity, SensorEntity):
     """Representation of a Meraki organization-level client counter by device type."""
 
-    coordinator: MerakiDataUpdateCoordinator
+    coordinator: MerakiMainCoordinator
 
     _attr_state_class = SensorStateClass.MEASUREMENT
     _attr_has_entity_name = True
 
     def __init__(
         self,
-        coordinator: MerakiDataUpdateCoordinator,
+        coordinator: MerakiMainCoordinator,
         config_entry: ConfigEntry,
         device_type: str,
     ) -> None:
@@ -41,8 +42,10 @@ class MerakiOrganizationDeviceTypeClientsSensor(CoordinatorEntity, SensorEntity)
         """Return the device info."""
         return DeviceInfo(
             identifiers={(DOMAIN, self._org_id)},
-            name=self.coordinator.data.get("organization", {}).get(
-                "name", "Meraki Organization"
+            name=standardize_device_name(
+                self.coordinator.data.get("organization", {}).get(
+                    "name", "Organization"
+                )
             ),
             manufacturer="Cisco Meraki",
         )

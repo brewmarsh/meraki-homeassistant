@@ -31,13 +31,14 @@
 
 \*\*Home Assistant Integration
 
-| Requirement                                                                                     | Status   |
-| :---------------------------------------------------------------------------------------------- | :------- |
-| The integration should create sensor, device tracker, and switch entities in Home Assistant.    | Included |
-| The integration must properly handle config entries, including setup, unloading, and reloading. | Included |
-| The integration needs to have a configuration flow to take the API key and org id.              | Included |
-| The integration should have option flow, to set scan interval and device name format.           | Included |
-| The integration should handle re-authentication of the API key.                                 | Included |
+| Requirement                                                                                                                                                                                            | Status   |
+| :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :------- |
+| The integration should create sensor, device tracker, and switch entities in Home Assistant.                                                                                                            | Included |
+| The integration must properly handle config entries, including setup, unloading, and reloading.                                                                                                        | Included |
+| The integration needs to have a configuration flow to take the API key and org id.                                                                                                                     | Included |
+| The integration must have a native, multi-step Home Assistant Options Flow to manage settings (e.g., enabling camera entities, device sensors) via a menu-driven interface, adhering to HA UX guidelines for complex integrations. | Included |
+| The integration should handle re-authentication of the API key.                                                                                                                                        | Included |
+| The integration must provide comprehensive localization for all configuration flows, including the multi-step Options Flow Menu, using `strings.json` and translation files. | Included |
 
 \*\*Mapping Meraki objects to Home Assistant objects
 
@@ -139,6 +140,21 @@
 | :----------------------------------------------------- | :------- |
 | The Integration uses Voluptuous for schema validation. | Included |
 
+**Testing & Hardening
+
+| Requirement                                                                                                                                                                                            | Status   |
+| :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :------- |
+| Automated smoke tests must include a 45-60 second wait after integration initialization to allow the Meraki coordinator's initial asynchronous cloud data fetch to complete before auditing logs or state. | Included |
+
+**Frontend Development
+
+| Requirement                                                                                                                                  | Status   |
+| :------------------------------------------------------------------------------------------------------------------------------------------- | :------- |
+| Home Assistant Web Components must be explicitly registered in the global JSX namespace (e.g., `src/types/ha-frontend.d.ts`) for TypeScript. | Included |
+| WebSocket commands used by the frontend must be centralized in a type-safe enum (e.g., `src/types/websocket.ts`).                            | Included |
+| Vite build must use a dedicated `dist` directory for `outDir` and explicitly define `src/main.tsx` as the entry point in `rollupOptions.input`. | Included |
+| The `index.html` file must point to the TypeScript source entry point to allow Vite to transform it during the build process. | Included |
+
 ## Key Learnings from Debugging
 
 | Requirement                                                                                | Status             |
@@ -178,6 +194,9 @@
   - [ ] **"Internet Time-Out" Switch per Device:** Create a `switch` entity to block internet access for specific clients.
 - [ ] **Guest Wi-Fi Management (MR Access Points):**
   - [ ] **Guest Wi-Fi Password Control:** Create a `text` entity to manage the guest Wi-Fi password.
+  - [x] **IPSK Lifecycle Management:** Implement a backend manager to track and reap temporary guest Identity PSKs (IPSKs) upon expiration, with persistent storage across reboots.
+  - [x] **IPSK WebSocket API:** Implement a strict WebSocket API contract for IPSK management with camelCase payload keys and centralized command definitions.
+- [x] **IPSK Native UX Overhaul:** Rebuilt the TimedAccess.tsx component to provide a native Home Assistant experience using `ha-textfield`, `ha-select`, `ha-button`, and `ha-alert` web components.
 - [ ] **Enhanced Home Security & Awareness (MV Cameras & MT Sensors):**
   - [ ] **Camera Motion Events:** Create `binary_sensor` entities for camera motion events.
   - [ ] **Per-Client Presence Detection:** Enhance the device tracker to show which AP a client is connected to.
@@ -206,3 +225,21 @@
 \*\*Code Quality & Refactoring
 
 - [ ] **Unit and Integration Tests:** Expand test coverage significantly.
+
+## Structural Improvements & Refactoring
+
+| Improvement                                                                                                                                                                     | Status   |
+| :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | :------- |
+| **ACL Score Reduction:** Refactored complex sensor update functions in `device_status.py` and `base.py` to bring Agent Cognitive Load (ACL) scores below 10.                    | Complete |
+| **Logic Decomposition:** Extracted nested data parsing and status determination logic into single-responsibility helper functions (e.g., `_determine_device_status`).           | Complete |
+| **Strict Type Hinting:** Applied comprehensive Python type hints to all refactored functions to improve maintainability and catch potential errors early.                       | Complete |
+| **Helper Function Size Constraints:** Ensured all new helper functions remain strictly under 50 lines of code, promoting readability and ease of testing.                       | Complete |
+| **IPSK Manager Singleton:** Implemented a central `IPSKManager` singleton in `async_setup` to manage the lifecycle of guest PSKs across all config entries.                      | Complete |
+
+**Frontend UX Phase 6: Top-level Navigation**
+
+| Requirement                                                                                                                                  | Status   |
+| :------------------------------------------------------------------------------------------------------------------------------------------- | :------- |
+| Implement scalable top-level navigation using Home Assistant's native `ha-tabs` and `paper-tab` web components.                              | Complete |
+| Separate distinct feature sets (Networks, All Devices, Timed Access) into dedicated views accessible via tabs.                               | Complete |
+| Ensure active tab state is tracked and the UI updates dynamically based on the selected tab.                                                 | Complete |

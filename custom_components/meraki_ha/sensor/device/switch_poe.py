@@ -15,15 +15,15 @@ from homeassistant.core import callback
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from ...coordinator import MerakiDataUpdateCoordinator
-from ...core.models.device import MerakiDevice
+from ...coordinators import MerakiSwitchCoordinator
+from ...core.models import MerakiSwitchDevice
 from ...helpers.device_info_helpers import resolve_device_info
 
 
 class MerakiSwitchPoESensor(CoordinatorEntity, SensorEntity):
     """Representation of a Meraki switch port PoE sensor."""
 
-    coordinator: MerakiDataUpdateCoordinator
+    coordinator: MerakiSwitchCoordinator
 
     _attr_device_class = SensorDeviceClass.POWER
     _attr_native_unit_of_measurement = UnitOfPower.WATT
@@ -32,8 +32,8 @@ class MerakiSwitchPoESensor(CoordinatorEntity, SensorEntity):
 
     def __init__(
         self,
-        coordinator: MerakiDataUpdateCoordinator,
-        device: MerakiDevice,
+        coordinator: MerakiSwitchCoordinator,
+        device: MerakiSwitchDevice,
         port: dict[str, Any],
         config_entry: ConfigEntry,
     ) -> None:

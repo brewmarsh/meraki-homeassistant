@@ -8,8 +8,9 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.entity import DeviceInfo
 
 from ...const import DOMAIN
-from ...coordinator import MerakiDataUpdateCoordinator
+from ...coordinators import MerakiMainCoordinator
 from ...core.models.network import MerakiNetwork
+from ...core.utils.naming_utils import standardize_device_name
 from ...helpers.device_info_helpers import resolve_device_info
 from . import BaseMerakiEntity
 
@@ -19,11 +20,11 @@ _LOGGER = logging.getLogger(__name__)
 class MerakiNetworkEntity(BaseMerakiEntity):
     """Representation of a Meraki Network."""
 
-    coordinator: MerakiDataUpdateCoordinator
+    coordinator: MerakiMainCoordinator
 
     def __init__(
         self,
-        coordinator: MerakiDataUpdateCoordinator,
+        coordinator: MerakiMainCoordinator,
         config_entry: ConfigEntry,
         network: MerakiNetwork,
     ) -> None:
@@ -61,7 +62,7 @@ class MerakiNetworkEntity(BaseMerakiEntity):
 
         return DeviceInfo(
             identifiers={(DOMAIN, self._network.id)},
-            name=self._network.name or f"Network {self._network.id}",
-            manufacturer="Meraki",
+            name=standardize_device_name(self._network.name or f"Network {self._network.id}"),
+            manufacturer="Cisco Meraki",
             model="Meraki Network",
         )

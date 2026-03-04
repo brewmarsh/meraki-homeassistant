@@ -17,7 +17,7 @@ from homeassistant.core import callback
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from ...coordinator import MerakiDataUpdateCoordinator
+from ...coordinators import MerakiSwitchCoordinator
 from ...core.models.device import MerakiDevice
 from ...helpers.device_info_helpers import resolve_device_info
 
@@ -27,7 +27,7 @@ _LOGGER = logging.getLogger(__name__)
 class MerakiSwitchPortBaseSensor(CoordinatorEntity, SensorEntity, ABC):
     """Base representation of a Meraki switch port sensor."""
 
-    coordinator: MerakiDataUpdateCoordinator
+    coordinator: MerakiSwitchCoordinator
     _device: MerakiDevice
     _port: dict[str, Any]
     _config_entry: ConfigEntry
@@ -36,7 +36,7 @@ class MerakiSwitchPortBaseSensor(CoordinatorEntity, SensorEntity, ABC):
 
     def __init__(
         self,
-        coordinator: MerakiDataUpdateCoordinator,
+        coordinator: MerakiSwitchCoordinator,
         device: MerakiDevice,
         port: dict[str, Any],
         config_entry: ConfigEntry,
@@ -100,7 +100,7 @@ class MerakiSwitchPortBaseSensor(CoordinatorEntity, SensorEntity, ABC):
 
         for device in self.coordinator.data.get("devices", []):
             if device.serial == self._device.serial:
-                for port in device.ports_statuses:
+                for port in device.switch_ports:
                     port_id_candidate = self._get_port_id_from_data(port)
                     if port_id_candidate == current_port_id:
                         return device, port
@@ -136,7 +136,7 @@ class MerakiSwitchPortSensor(MerakiSwitchPortBaseSensor):
 
     def __init__(
         self,
-        coordinator: MerakiDataUpdateCoordinator,
+        coordinator: MerakiSwitchCoordinator,
         device: MerakiDevice,
         port: dict[str, Any],
         config_entry: ConfigEntry,
@@ -180,7 +180,7 @@ class MerakiSwitchPortPowerSensor(MerakiSwitchPortBaseSensor):
 
     def __init__(
         self,
-        coordinator: MerakiDataUpdateCoordinator,
+        coordinator: MerakiSwitchCoordinator,
         device: MerakiDevice,
         port: dict[str, Any],
         config_entry: ConfigEntry,
@@ -210,14 +210,14 @@ class MerakiSwitchPortPowerSensor(MerakiSwitchPortBaseSensor):
 class MerakiSwitchPortEnergySensor(MerakiSwitchPortBaseSensor):
     """Representation of a Meraki switch port energy sensor."""
 
-    _attr_device_class = SensorDeviceClass.ENERGY
-    _attr_native_unit_of_measurement = UnitOfEnergy.WATT_HOUR
-    _attr_state_class = SensorStateClass.MEASUREMENT
-    _attr_translation_key = "energy"
+    _attr_device_class: SensorDeviceClass | None = None
+    _attr_native_unit_of_measurement: str = UnitOfEnergy.WATT_HOUR
+    _attr_state_class: SensorStateClass = SensorStateClass.MEASUREMENT
+    _attr_translation_key: str = "energy"
 
     def __init__(
         self,
-        coordinator: MerakiDataUpdateCoordinator,
+        coordinator: MerakiSwitchCoordinator,
         device: MerakiDevice,
         port: dict[str, Any],
         config_entry: ConfigEntry,

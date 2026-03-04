@@ -1,4 +1,4 @@
-name: Deploy Beta to Staging (Smoke Test)
+name: Deploy beta to staging (smoke test)
 
 on:
   push:
@@ -10,13 +10,27 @@ jobs:
     runs-on: [self-hosted, meraki-smoketest]
 
     env:
-      DESTINATION_PATH: '/ha_config/custom_components/meraki_ha'
+      DESTINATION_PATH: '/config/custom_components/meraki_ha'
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '20' # Use the Node version your project expects
 
-      - name: Copy files to Staging (rsync)
+      - name: Build custom panel
+        # IMPORTANT: Change this path to wherever your package.json lives!
+        working-directory: ./custom_components/meraki_ha/www
+        run: |
+          echo "Installing NPM dependencies..."
+          npm ci
+          
+          echo "Building frontend..."
+          npm run build
+
+      - name: Copy files to staging (rsync)
         shell: bash
         env:
           DEPLOY_PATH: ${{ env.DESTINATION_PATH }}
@@ -24,7 +38,7 @@ jobs:
           SourceComponentDir="${GITHUB_WORKSPACE}/custom_components/meraki_ha/"
           DestinationPath="${DEPLOY_PATH}"
 
-          echo "Starting Staging Deployment..."
+          echo "Starting staging deployment..."
           echo "Source: ${SourceComponentDir}"
           echo "Destination: ${DestinationPath}"
 
@@ -41,13 +55,13 @@ jobs:
             --exclude '.DS_Store' \
             "${SourceComponentDir}" "${DestinationPath}"
 
-          echo "Deployment to Staging Complete."
+          echo "Deployment to staging complete."
 
-      - name: Update Home Assistant Configuration
+      - name: Update Home Assistant configuration
         shell: bash
         run: |
           echo "Updating configuration.yaml..."
-          sudo tee /ha_config/configuration.yaml <<EOF
+          sudo tee /config/configuration.yaml <<EOF
           default_config:
 
           logger:
@@ -56,13 +70,13 @@ jobs:
               custom_components.meraki_ha: debug
           EOF
           # Ensure log file exists and is writable
-          sudo touch /ha_config/home-assistant.log
-          sudo chmod 666 /ha_config/home-assistant.log
+          sudo touch /config/home-assistant.log
+          sudo chmod 666 /config/home-assistant.log
 
       - name: Install jq
         run: sudo apt-get update && sudo apt-get install -y jq
 
-      # FIX 1: Install Python 3.13 first so 'uv --system' has a target
+      # Install Python 3.13 first so 'uv' has a target
       - uses: actions/setup-python@v6
         with:
           python-version: '3.13'
@@ -72,7 +86,7 @@ jobs:
           python-version: '3.13'
           enable-cache: true
 
-      - name: Full Integration Reset (Delete > Restart > Add)
+      - name: Full integration reset (delete > restart > add)
         shell: bash
         env:
           HA_URL: ${{ secrets.HA_STAGING_URL }}
@@ -80,67 +94,59 @@ jobs:
           MERAKI_API_KEY: ${{ secrets.MERAKI_API_KEY }}
           MERAKI_ORG_ID: ${{ secrets.MERAKI_ORG_ID }}
         run: |
-          echo "Installing dependencies..."
-          uv pip install --system aiohttp > /dev/null
+          echo "Running Reset Script in isolated environment..."
+          # uv run --with creates an ephemeral environment just for this command, protecting the system python
+          uv run --with aiohttp python3 tests/scripts/reset_integration.py
 
-          echo "Force reinstalling aiodns and pycares..."
-          uv pip uninstall --system pycares aiodns
-          uv pip install --system --no-cache-dir pycares==4.11.0 aiodns==3.6.1
-
-          echo "Running Reset Script..."
-          # Pass secrets implicitly via env vars defined above
-          python3 tests/scripts/reset_integration.py
-
-      - name: Audit Logs for Errors
-        shell: bash
-        env:
-          HASS_SERVER: ${{ secrets.HA_STAGING_URL }}
-          HASS_TOKEN: ${{ secrets.HA_STAGING_TOKEN }}
+      - name: Wait for initial Meraki data fetch
         run: |
-          echo "Scanning logs for Meraki errors via API..."
-          CLEAN_SERVER=$(echo "${HASS_SERVER}" | sed 's:/*$::')
+          echo "Waiting 45 seconds for coordinators to fetch cloud data..."
+          sleep 45
 
-          # 1. Readiness Check (Wait up to 60s for API to be ready)
-          echo "Waiting for API to be ready..."
-          READY=false
-          for i in {1..6}; do
-            HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" -H "Authorization: Bearer ${HASS_TOKEN}" "$CLEAN_SERVER/api/config")
-            if [ "$HTTP_STATUS" -eq 200 ]; then
-              READY=true
-              echo "API is ready."
-              break
-            fi
-            echo "API returned $HTTP_STATUS. Waiting (Attempt $i/6)..."
-            sleep 10
-          done
-
-          if [ "$READY" != "true" ]; then
-            echo "::error::Home Assistant API did not become ready in time."
-            exit 1
-          fi
-
-          # 2. Fetch logs
-          echo "Fetching logs..."
-          RESPONSE=$(curl -s -H "Authorization: Bearer ${HASS_TOKEN}" -w "\n%{http_code}" "$CLEAN_SERVER/api/error_log")
-          HTTP_STATUS=$(echo "$RESPONSE" | tail -n1)
-          LOG_CONTENT=$(echo "$RESPONSE" | sed '$d')
-
-          if [ "$HTTP_STATUS" -eq 404 ]; then
-            echo "Warning: Log file API not available. Skipping log scan."
+      - name: Audit logs for errors
+        id: audit_logs
+        shell: bash
+        run: |
+          echo "Scanning local log file for Meraki errors..."
+          
+          # Since we are on a self-hosted runner, we can just read the physical file
+          if [ ! -f "/config/home-assistant.log" ]; then
+            echo "Warning: /config/home-assistant.log not found. Skipping log scan."
             exit 0
           fi
 
-          if [ "$HTTP_STATUS" -ne 200 ]; then
-            echo "::error::API failed with $HTTP_STATUS."
-            exit 1
-          fi
-
-          # 3. Grep the content
-          if echo "$LOG_CONTENT" | grep -i "custom_components.meraki_ha"; then
+          # Grep the content (Strictly meraki_ha errors only)
+          if grep -i "custom_components.meraki_ha" /config/home-assistant.log > meraki_errors.txt; then
             echo "::error::CRITICAL: Found Meraki errors in the log!"
-            # Print the specific error lines for debugging
-            echo "$LOG_CONTENT" | grep -i "custom_components.meraki_ha"
-            exit 1
+            echo "HAS_ERRORS=true" >> $GITHUB_ENV
           else
             echo "Logs are clean. Smoke test passed."
+            echo "HAS_ERRORS=false" >> $GITHUB_ENV
           fi
+          
+      - name: Create GitHub issue for errors
+        if: env.HAS_ERRORS == 'true'
+        shell: bash
+        env:
+          # Use your PAT here to authorize the issue creation
+          GH_TOKEN: ${{ secrets.GH_PAT }}
+          REPO: ${{ github.repository }}
+        run: |
+          echo "Constructing issue payload..."
+          # Format the errors into a Markdown code block
+          ERRORS=$(cat meraki_errors.txt)
+          BODY="The staging smoke test detected the following \`meraki_ha\` errors:\n\n\`\`\`text\n${ERRORS}\n\`\`\`"
+          
+          jq -n \
+            --arg title "🚨 Staging smoke test failed: Meraki errors detected" \
+            --arg body "$BODY" \
+            '{title: $title, body: $body, labels: ["bug", "staging", "automated-report"]}' > issue_payload.json
+
+          echo "Submitting issue to GitHub API..."
+          curl -s -X POST -H "Authorization: token $GH_TOKEN" \
+               -H "Accept: application/vnd.github.v3+json" \
+               "https://api.github.com/repos/${REPO}/issues" \
+               -d @issue_payload.json > /dev/null
+
+          echo "Issue created successfully. Failing the workflow..."
+          exit 1

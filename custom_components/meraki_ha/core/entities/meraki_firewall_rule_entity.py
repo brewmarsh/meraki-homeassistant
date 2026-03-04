@@ -5,8 +5,9 @@ from __future__ import annotations
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.entity import DeviceInfo
 
-from ...coordinator import MerakiDataUpdateCoordinator
+from ...coordinators import MerakiMainCoordinator
 from ...core.models.network import MerakiFirewallRule
+from ...core.utils.naming_utils import standardize_device_name
 from . import BaseMerakiEntity
 
 
@@ -15,7 +16,7 @@ class MerakiFirewallRuleEntity(BaseMerakiEntity):
 
     def __init__(
         self,
-        coordinator: MerakiDataUpdateCoordinator,
+        coordinator: MerakiMainCoordinator,
         config_entry: ConfigEntry,
         network_id: str,
         rule: MerakiFirewallRule,
@@ -50,7 +51,7 @@ class MerakiFirewallRuleEntity(BaseMerakiEntity):
                     f"firewall_rule_{network_id}_{rule_index}",
                 ),
             },
-            name=rule.comment,
+            name=standardize_device_name(rule.comment),
             manufacturer="Cisco Meraki",
             model="L3 Firewall Rule",
             via_device=(self._config_entry.domain, f"network_{network_id}"),

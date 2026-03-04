@@ -23,7 +23,7 @@ from ..sensor.device.meraki_mt_base import MerakiMtSensor
 if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
 
-    from ..coordinator import MerakiDataUpdateCoordinator
+    from ..coordinators import MerakiMainCoordinator
     from ..core.models.device import MerakiDevice
 
 
@@ -32,7 +32,7 @@ class MerakiTemperatureSensor(MerakiMtSensor):
 
     def __init__(
         self,
-        coordinator: MerakiDataUpdateCoordinator,
+        coordinator: MerakiMainCoordinator,
         device: MerakiDevice,
         config_entry: ConfigEntry,
     ) -> None:
@@ -45,7 +45,7 @@ class MerakiHumiditySensor(MerakiMtSensor):
 
     def __init__(
         self,
-        coordinator: MerakiDataUpdateCoordinator,
+        coordinator: MerakiMainCoordinator,
         device: MerakiDevice,
         config_entry: ConfigEntry,
     ) -> None:
@@ -58,7 +58,7 @@ class MerakiBatterySensor(MerakiMtSensor):
 
     def __init__(
         self,
-        coordinator: MerakiDataUpdateCoordinator,
+        coordinator: MerakiMainCoordinator,
         device: MerakiDevice,
         config_entry: ConfigEntry,
     ) -> None:
@@ -71,7 +71,7 @@ class MerakiSignalStrengthSensor(MerakiMtSensor):
 
     def __init__(
         self,
-        coordinator: MerakiDataUpdateCoordinator,
+        coordinator: MerakiMainCoordinator,
         device: MerakiDevice,
         config_entry: ConfigEntry,
     ) -> None:
@@ -84,7 +84,7 @@ class MerakiCO2Sensor(MerakiMtSensor):
 
     def __init__(
         self,
-        coordinator: MerakiDataUpdateCoordinator,
+        coordinator: MerakiMainCoordinator,
         device: MerakiDevice,
         config_entry: ConfigEntry,
     ) -> None:
@@ -97,7 +97,7 @@ class MerakiButtonPressSensor(MerakiMtSensor):
 
     def __init__(
         self,
-        coordinator: MerakiDataUpdateCoordinator,
+        coordinator: MerakiMainCoordinator,
         device: MerakiDevice,
         config_entry: ConfigEntry,
     ) -> None:
@@ -110,7 +110,7 @@ class MerakiWaterSensor(MerakiMtBinarySensor):
 
     def __init__(
         self,
-        coordinator: MerakiDataUpdateCoordinator,
+        coordinator: MerakiMainCoordinator,
         device: MerakiDevice,
         config_entry: ConfigEntry,
     ) -> None:
@@ -123,7 +123,7 @@ class MerakiDoorSensor(MerakiMtBinarySensor):
 
     def __init__(
         self,
-        coordinator: MerakiDataUpdateCoordinator,
+        coordinator: MerakiMainCoordinator,
         device: MerakiDevice,
         config_entry: ConfigEntry,
     ) -> None:
@@ -136,7 +136,7 @@ class MerakiTVOCSensor(MerakiMtSensor):
 
     def __init__(
         self,
-        coordinator: MerakiDataUpdateCoordinator,
+        coordinator: MerakiMainCoordinator,
         device: MerakiDevice,
         config_entry: ConfigEntry,
     ) -> None:
@@ -149,7 +149,7 @@ class MerakiPM25Sensor(MerakiMtSensor):
 
     def __init__(
         self,
-        coordinator: MerakiDataUpdateCoordinator,
+        coordinator: MerakiMainCoordinator,
         device: MerakiDevice,
         config_entry: ConfigEntry,
     ) -> None:
@@ -162,7 +162,7 @@ class MerakiNoiseSensor(MerakiMtSensor):
 
     def __init__(
         self,
-        coordinator: MerakiDataUpdateCoordinator,
+        coordinator: MerakiMainCoordinator,
         device: MerakiDevice,
         config_entry: ConfigEntry,
     ) -> None:

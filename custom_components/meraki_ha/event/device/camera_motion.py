@@ -12,7 +12,7 @@ from homeassistant.components.event import (
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.device_registry import DeviceInfo
 
-from ...coordinator import MerakiDataUpdateCoordinator
+from ...coordinators import MerakiCameraCoordinator
 from ...entity import MerakiEntity
 from ...helpers.device_info_helpers import resolve_device_info
 
@@ -32,7 +32,7 @@ class MerakiCameraMotionEvent(MerakiEntity, EventEntity):
 
     def __init__(
         self,
-        coordinator: MerakiDataUpdateCoordinator,
+        coordinator: MerakiCameraCoordinator,
         device: MerakiDevice,
         camera_service: CameraService,
         config_entry: ConfigEntry,

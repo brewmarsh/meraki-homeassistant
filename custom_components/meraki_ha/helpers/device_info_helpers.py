@@ -10,6 +10,7 @@ from homeassistant.helpers.device_registry import DeviceEntryType, DeviceInfo
 from ..const import DOMAIN
 from ..core.models.device import MerakiDevice
 from ..core.models.network import MerakiNetwork
+from ..core.utils.naming_utils import standardize_device_name
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -22,6 +23,92 @@ DEVICE_TYPE_MAPPING = {
     "security": "Appliance",
     "cellularGateway": "Gateway",
 }
+
+
+def _resolve_ssid_info(data: dict[str, Any]) -> DeviceInfo | None:
+    """Resolve DeviceInfo for an SSID (Virtual Controller)."""
+    network_id = data.get("networkId")
+    if network_id:
+        # Refactor: SSID entities are now attached to the Virtual Controller
+        # (Network Device). We return only the identifier, letting the
+        # MerakiNetworkEntity populate details.
+        return DeviceInfo(
+            identifiers={(DOMAIN, f"network_{network_id}")},
+        )
+    return None
+
+
+def _resolve_client_info(data: dict[str, Any]) -> DeviceInfo | None:
+    """Resolve DeviceInfo for a client device."""
+    client_mac = data.get("mac")
+    parent_serial = data.get("recentDeviceSerial")
+    if client_mac and parent_serial:
+        return DeviceInfo(
+            identifiers={(DOMAIN, client_mac)},
+            name=standardize_device_name(str(data.get("description") or client_mac)),
+            manufacturer=str(data.get("manufacturer") or "Unknown"),
+            via_device=(DOMAIN, parent_serial),
+        )
+    return None
+
+
+def _resolve_network_info(data: dict[str, Any]) -> DeviceInfo | None:
+    """Resolve DeviceInfo for a network device (Virtual Controller)."""
+    network_id = data.get("id")
+    is_network = "productTypes" in data and not data.get("serial")
+    if is_network and network_id:
+        # Refactor: Virtual Controller Pattern
+        raw_net_name = data.get("name") or "Unknown Network"
+
+        # Design Doc: Name format "Site: {name}"
+        # Check if already prefixed to avoid double prefix
+        if str(raw_net_name).startswith("Site: "):
+            name = raw_net_name
+        else:
+            name = f"Site: {raw_net_name}"
+
+        return DeviceInfo(
+            identifiers={(DOMAIN, f"network_{network_id}")},
+            name=standardize_device_name(name),
+            manufacturer="Cisco Meraki",
+            model="Network Controller Service",
+            entry_type=DeviceEntryType.SERVICE,
+            configuration_url=f"https://dashboard.meraki.com/gen/n/{network_id}/manage/nodes",
+        )
+    return None
+
+
+def _resolve_physical_device_info(data: dict[str, Any]) -> DeviceInfo | None:
+    """Resolve DeviceInfo for a physical device."""
+    device_serial = data.get("serial")
+    if device_serial:
+        product_type = str(data.get("productType") or data.get("product_type") or "")
+        model = str(data.get("model") or "Unknown")
+
+        # Identify Camera Logic: strictly enforce [Camera] prefix for all camera models
+        is_camera = product_type.lower() == "camera" or model.startswith(("MV", "CS-"))
+
+        if is_camera:
+            prefix = "Camera"
+        else:
+            prefix = DEVICE_TYPE_MAPPING.get(product_type, "Device")
+
+        raw_name = data.get("name") or device_serial
+        full_prefix = f"[{prefix}] "
+
+        if raw_name and str(raw_name).startswith(full_prefix):
+            name = raw_name
+        else:
+            name = f"{full_prefix}{raw_name}"
+
+        return DeviceInfo(
+            identifiers={(DOMAIN, device_serial)},
+            name=standardize_device_name(name),
+            manufacturer="Cisco Meraki",
+            model=model,
+            sw_version=str(data.get("firmware") or ""),
+        )
+    return None
 
 
 def resolve_device_info(
@@ -51,87 +138,23 @@ def resolve_device_info(
         effective_data = ssid_data
 
     # Convert dataclasses to dicts for consistent access below
-    if is_dataclass(entity_data):
+    if is_dataclass(entity_data) and not isinstance(entity_data, type):
         entity_data = asdict(entity_data)
-    if is_dataclass(effective_data):
+    if is_dataclass(effective_data) and not isinstance(effective_data, type):
         effective_data = asdict(effective_data)
 
-    # Create device info for an SSID (Now Virtual Controller)
+    # Resolve using specialized helpers
     if is_ssid:
-        network_id = effective_data.get("networkId")
-        if network_id:
-            # Refactor: SSID entities are now attached to the Virtual Controller
-            # (Network Device). We return only the identifier, letting the
-            # MerakiNetworkEntity populate details.
-            return DeviceInfo(
-                identifiers={(DOMAIN, f"network_{network_id}")},
-            )
+        return _resolve_ssid_info(effective_data)
 
-    # Handle client devices, which are linked to a physical device
-    client_mac = entity_data.get("mac")
-    parent_serial = entity_data.get("recentDeviceSerial")
-    if client_mac and parent_serial:
-        return DeviceInfo(
-            identifiers={(DOMAIN, client_mac)},
-            name=str(entity_data.get("description") or client_mac),
-            manufacturer=str(entity_data.get("manufacturer") or "Unknown"),
-            via_device=(DOMAIN, parent_serial),
-        )
+    if info := _resolve_client_info(entity_data):
+        return info
 
-    # Handle network devices (Virtual Controller)
-    network_id = entity_data.get("id")
-    is_network = "productTypes" in entity_data and not entity_data.get("serial")
-    if is_network and network_id:
-        # Refactor: Virtual Controller Pattern
-        raw_net_name = entity_data.get("name") or "Unknown Network"
+    if info := _resolve_network_info(entity_data):
+        return info
 
-        # Design Doc: Name format "Site: {name}"
-        # Check if already prefixed to avoid double prefix
-        if str(raw_net_name).startswith("Site: "):
-            name = raw_net_name
-        else:
-            name = f"Site: {raw_net_name}"
-
-        return DeviceInfo(
-            identifiers={(DOMAIN, f"network_{network_id}")},
-            name=name,
-            manufacturer="Cisco Meraki",
-            model="Network Controller Service",
-            entry_type=DeviceEntryType.SERVICE,
-            configuration_url=f"https://dashboard.meraki.com/gen/n/{network_id}/manage/nodes",
-        )
-
-    # Fallback to creating device info for a physical device
-    device_serial = entity_data.get("serial")
-    if device_serial:
-        product_type = str(
-            entity_data.get("productType") or entity_data.get("product_type") or ""
-        )
-        model = str(entity_data.get("model") or "Unknown")
-
-        # Identify Camera Logic: strictly enforce [Camera] prefix for all camera models
-        is_camera = product_type.lower() == "camera" or model.startswith(("MV", "CS-"))
-
-        if is_camera:
-            prefix = "Camera"
-        else:
-            prefix = DEVICE_TYPE_MAPPING.get(product_type, "Device")
-
-        raw_name = entity_data.get("name") or device_serial
-        full_prefix = f"[{prefix}] "
-
-        if raw_name and str(raw_name).startswith(full_prefix):
-            name = raw_name
-        else:
-            name = f"{full_prefix}{raw_name}"
-
-        return DeviceInfo(
-            identifiers={(DOMAIN, device_serial)},
-            name=name,
-            manufacturer="Cisco Meraki",
-            model=model,
-            sw_version=str(entity_data.get("firmware") or ""),
-        )
+    if info := _resolve_physical_device_info(entity_data):
+        return info
 
     # This may happen temporarily during startup or if a device type is unknown
     _LOGGER.debug("Could not resolve device info for entity data: %s", entity_data)

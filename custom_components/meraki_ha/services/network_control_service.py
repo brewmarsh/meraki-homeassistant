@@ -10,7 +10,7 @@ import logging
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from ..coordinator import MerakiDataUpdateCoordinator
+    from ..coordinators import MerakiMainCoordinator
     from ..core.api.client import MerakiAPIClient
 
 
@@ -23,7 +23,7 @@ class NetworkControlService:
     def __init__(
         self,
         api_client: MerakiAPIClient,
-        coordinator: MerakiDataUpdateCoordinator,
+        coordinator: MerakiMainCoordinator,
     ) -> None:
         """Initialize the network control service."""
         self._api_client = api_client

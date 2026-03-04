@@ -10,7 +10,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from ..const import DOMAIN
-from ..coordinator import MerakiDataUpdateCoordinator
+from ..coordinators import MerakiCameraCoordinator
 from .device.camera_motion import MerakiCameraMotionEvent
 from .device.mt_button import MerakiMtButtonEvent
 
@@ -24,7 +24,7 @@ async def async_setup_entry(
 ) -> None:
     """Set up Meraki event entities from a config entry."""
     data = hass.data[DOMAIN][entry.entry_id]
-    coordinator: MerakiDataUpdateCoordinator = data["coordinator"]
+    coordinator: MerakiCameraCoordinator = data["coordinator"]
     camera_service = data["camera_service"]
 
     if not coordinator.data or "devices" not in coordinator.data:

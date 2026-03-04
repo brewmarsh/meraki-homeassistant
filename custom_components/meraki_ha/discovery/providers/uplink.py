@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import logging
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Literal, cast
 
 from homeassistant.components.sensor import (
     SensorDeviceClass,
@@ -23,7 +23,7 @@ if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
     from homeassistant.helpers.entity import Entity
 
-    from ...coordinator import MerakiDataUpdateCoordinator
+    from ..coordinators import MerakiApplianceCoordinator
     from ...core.models.device import MerakiDevice
 
 _LOGGER = logging.getLogger(__name__)
@@ -34,7 +34,7 @@ class UplinkProvider:
 
     @staticmethod
     def get_entities(
-        coordinator: MerakiDataUpdateCoordinator,
+        coordinator: MerakiApplianceCoordinator,
         device: MerakiDevice,
         config_entry: ConfigEntry,
         **kwargs: Any,
@@ -91,7 +91,7 @@ class UplinkPerformanceProvider:
 
     @staticmethod
     def get_entities(
-        coordinator: MerakiDataUpdateCoordinator,
+        coordinator: MerakiApplianceCoordinator,
         device: MerakiDevice,
         config_entry: ConfigEntry,
         **kwargs: Any,
@@ -114,14 +114,9 @@ class UplinkPerformanceProvider:
                 continue
 
             # Table-Driven approach to minimize ACL and complexity
+            # attr is the metric key expected by MerakiUplinkPerformanceSensor (Literal['latency', 'jitter', 'lossPercent'])
             perf_metrics = [
-                (
-                    "latencyMs",
-                    "latency",
-                    UnitOfTime.MILLISECONDS,
-                    SensorDeviceClass.DURATION,
-                    "mdi:timer-outline",
-                ),
+                ("latency", "latency", UnitOfTime.MILLISECONDS, SensorDeviceClass.DURATION, "mdi:timer-outline"),
                 ("lossPercent", "packet_loss", PERCENTAGE, None, "mdi:packet-loss"),
                 (
                     "jitter",
@@ -133,13 +128,15 @@ class UplinkPerformanceProvider:
             ]
 
             for attr, key_suffix, unit, dev_class, icon in perf_metrics:
+                # Cast attr to the required Literal type for MyPy compliance
+                metric_type = cast(Literal["latency", "jitter", "lossPercent"], attr)
                 entities.append(
                     MerakiUplinkPerformanceSensor(
                         coordinator,
                         device,
                         config_entry,
                         interface,
-                        attr,
+                        metric_type,
                         SensorEntityDescription(
                             key=f"{interface}_{key_suffix}",
                             name=f"{interface.capitalize()} {key_suffix.replace('_', ' ')}",

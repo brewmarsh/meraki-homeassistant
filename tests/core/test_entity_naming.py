@@ -12,7 +12,7 @@ from custom_components.meraki_ha.core.models.network import MerakiNetwork, Merak
 
 @pytest.fixture
 def mock_coordinator():
-    """Fixture for a mocked MerakiDataUpdateCoordinator."""
+    """Fixture for a mocked MerakiMainCoordinator."""
     coordinator = MagicMock()
     coordinator.data = {}
     return coordinator
@@ -48,7 +48,7 @@ def test_vlan_naming(mock_coordinator):
     entity = MerakiVLANEntity(mock_coordinator, config_entry, "N_12345", vlan)
 
     # Refactor: Device name is now the Site Controller
-    assert entity.device_info["name"] == "Site: Site A"
+    assert entity.device_info["name"] == "Meraki Site: Site A"
     # MerakiVLANEntity has no name by default, subclasses set it
     assert entity.name is None
 
@@ -83,7 +83,7 @@ def test_camera_naming(mock_coordinator):
     assert entity.has_entity_name is True
     # The entity inherits the device name "Front Door" because name is None
     assert entity.name is None
-    assert entity.device_info["name"] == "[Camera] Front Door"
+    assert entity.device_info["name"] == "Meraki [Camera] Front Door"
 
 
 def test_network_status_naming(mock_coordinator):
@@ -107,4 +107,4 @@ def test_network_status_naming(mock_coordinator):
     # Supplemental entities keep a descriptive name
     assert entity.name == "Uplink status"
     # Refactor: Device name is now the Site Controller
-    assert entity.device_info["name"] == "Site: Warehouse"
+    assert entity.device_info["name"] == "Meraki Site: Warehouse"

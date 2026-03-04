@@ -12,7 +12,7 @@ from homeassistant.const import EntityCategory
 from homeassistant.core import callback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from ..coordinator import MerakiDataUpdateCoordinator
+from ..coordinators import MerakiSwitchCoordinator
 from ..core.models.device import MerakiDevice
 from ..helpers.device_info_helpers import resolve_device_info
 
@@ -26,11 +26,11 @@ class MerakiDeviceLEDSwitch(CoordinatorEntity, SwitchEntity):
     _attr_has_entity_name = True
     _attr_icon = "mdi:led-on"
 
-    coordinator: MerakiDataUpdateCoordinator
+    coordinator: MerakiSwitchCoordinator
 
     def __init__(
         self,
-        coordinator: MerakiDataUpdateCoordinator,
+        coordinator: MerakiSwitchCoordinator,
         device_data: MerakiDevice,
         config_entry: ConfigEntry,
     ) -> None:

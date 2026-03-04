@@ -9,28 +9,33 @@ from homeassistant.components.switch import SwitchEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import callback
 from homeassistant.helpers.device_registry import DeviceInfo
-from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from ..coordinator import MerakiDataUpdateCoordinator
+from ..coordinators import MerakiSwitchCoordinator
 from ..core.api.client import MerakiAPIClient
 from ..core.models.device import MerakiDevice
+from ..entity import MerakiEntity
 from ..helpers.device_info_helpers import resolve_device_info
 
 _LOGGER = logging.getLogger(__name__)
 
 
 class MerakiMt40PowerOutlet(
-    CoordinatorEntity,
+    MerakiEntity,
     SwitchEntity,
 ):
     """Representation of a Meraki MT40 power outlet."""
 
     _attr_has_entity_name = True
-    coordinator: MerakiDataUpdateCoordinator
+    coordinator: MerakiSwitchCoordinator
+
+    @property
+    def unique_id(self) -> str | None:
+        """Return the unique ID."""
+        return f"meraki_device_{self._device_serial}_outlet"
 
     def __init__(
         self,
-        coordinator: MerakiDataUpdateCoordinator,
+        coordinator: MerakiSwitchCoordinator,
         device_info: MerakiDevice,
         config_entry: ConfigEntry,
         meraki_client: MerakiAPIClient,
@@ -48,9 +53,15 @@ class MerakiMt40PowerOutlet(
         """
         super().__init__(coordinator)
         self._device_info = device_info
+        self._device_serial = device_info.serial
+        self._network_id = device_info.network_id
         self._config_entry = config_entry
         self._meraki_client = meraki_client
-        self._attr_unique_id = f"{self._device_info.serial}-outlet"
+        # Explicitly set the unique ID here to override the base class logic
+        # which might generate a different ID based on class name.
+        self._unique_id_override = (
+            f"{self._device_info.serial}_{self._device_info.network_id}_outlet"
+        )
         self._attr_name = "Outlet"
         self._attr_is_on: bool | None = None
 
@@ -130,6 +141,11 @@ class MerakiMt40PowerOutlet(
             _LOGGER.error("Error turning off MT40 outlet %s: %s", self.unique_id, e)
             if self.unique_id:
                 self.coordinator.cancel_pending_update(self.unique_id)
+
+    @property
+    def unique_id(self) -> str | None:
+        """Return the unique ID."""
+        return self._unique_id_override
 
     @property
     def available(self) -> bool:

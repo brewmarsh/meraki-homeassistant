@@ -10,7 +10,8 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-from ...core.models.device import MerakiAppliancePort, MerakiDevice
+from ...core.models import MerakiAppliancePort
+from ...core.models.device import MerakiDevice
 
 _LOGGER = logging.getLogger(__name__)
 

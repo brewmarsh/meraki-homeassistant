@@ -10,7 +10,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import EntityCategory
 from homeassistant.core import callback
 
-from ..coordinator import MerakiDataUpdateCoordinator
+from ..coordinators import MerakiSwitchCoordinator
 from ..core.entities.meraki_network_entity import MerakiNetworkEntity
 from ..core.models.network import MerakiNetwork
 
@@ -21,11 +21,11 @@ class MerakiVPNSwitch(MerakiNetworkEntity, SwitchEntity):
     """Representation of a Meraki Site-to-Site VPN switch."""
 
     _attr_entity_category = EntityCategory.CONFIG
-    coordinator: MerakiDataUpdateCoordinator
+    coordinator: MerakiSwitchCoordinator
 
     def __init__(
         self,
-        coordinator: MerakiDataUpdateCoordinator,
+        coordinator: MerakiSwitchCoordinator,
         config_entry: ConfigEntry,
         network: MerakiNetwork,
     ) -> None:

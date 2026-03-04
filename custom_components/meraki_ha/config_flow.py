@@ -18,19 +18,19 @@ except ImportError:
 
 from .const import DOMAIN
 from .const_conf import (
+    CONF_ENABLE_CAMERA_ENTITIES,
+    CONF_ENABLE_DEVICE_SENSORS,
+    CONF_ENABLE_DEVICE_STATUS,
     CONF_ENABLE_FIREWALL_RULES,
+    CONF_ENABLE_ORG_SENSORS,
     CONF_ENABLE_VPN_MANAGEMENT,
+    CONF_INTEGRATION_TITLE,
     CONF_MERAKI_API_KEY,
     CONF_MERAKI_ORG_ID,
 )
-from .helpers.schema import get_filtered_schema, populate_schema_defaults
-from .schemas import (
-    CONFIG_SCHEMA,
-    OPTIONS_SCHEMA_GENERAL,
-)
 
 if TYPE_CHECKING:
-    from .coordinator import MerakiDataUpdateCoordinator
+    from .coordinators import MerakiMainCoordinator
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -61,6 +61,8 @@ class MerakiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignor
         user_input: dict[str, Any] | None = None,
     ) -> ConfigFlowResult:
         """Handle the initial setup step."""
+        from .schemas import CONFIG_SCHEMA
+
         errors: dict[str, str] = {}
         if user_input is not None:
             from .helpers.flow_utils import validate_credentials
@@ -98,8 +100,6 @@ class MerakiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignor
         config_entry: config_entries.ConfigEntry,
     ) -> config_entries.OptionsFlow:
         """Get the options flow handler."""
-        from .options_flow import MerakiOptionsFlowHandler
-
         return MerakiOptionsFlowHandler(config_entry)
 
     async def async_step_reconfigure(
@@ -117,11 +117,13 @@ class MerakiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignor
             await self.hass.config_entries.async_reload(entry.entry_id)
             return self.async_abort(reason="reconfigure_successful")
 
-        coordinator: MerakiDataUpdateCoordinator = self.hass.data[DOMAIN][
+        coordinator: MerakiMainCoordinator = self.hass.data[DOMAIN][
             entry.entry_id
         ]["coordinator"]
 
         from .helpers.flow_utils import get_network_options
+        from .helpers.schema import get_filtered_schema, populate_schema_defaults
+        from .schemas import OPTIONS_SCHEMA_GENERAL
 
         network_options = get_network_options(coordinator.data)
 
@@ -141,3 +143,116 @@ class MerakiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignor
             step_id="reconfigure",
             data_schema=schema_with_defaults,
         )
+
+
+class MerakiOptionsFlowHandler(config_entries.OptionsFlow):
+    """Handle Meraki options."""
+
+    def __init__(self, config_entry: config_entries.ConfigEntry) -> None:
+        """Initialize options flow."""
+        self.options = dict(config_entry.options)
+        self._coordinator_instance: MerakiMainCoordinator | None = None
+        self._config_entry = config_entry
+
+    @property
+    def coordinator(self) -> MerakiMainCoordinator:
+        """Get the coordinator."""
+        if self._coordinator_instance is None:
+            entry_id = getattr(self, "config_entry_id", self._config_entry.entry_id)
+            self._coordinator_instance = self.hass.data[DOMAIN][
+                entry_id
+            ]["coordinator"]
+        return self._coordinator_instance
+
+    async def async_step_init(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        """Manage the options flow menu."""
+        from .helpers.flow_utils import has_cameras
+
+        menu_options = ["general", "sensors"]
+        if has_cameras(self.coordinator.data):
+            menu_options.append("cameras")
+        menu_options.append("advanced")
+
+        return self.async_show_menu(step_id="init", menu_options=menu_options)
+
+    async def async_step_general(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        """Manage general settings."""
+        if user_input is not None:
+            self.options.update(user_input)
+            return self.async_create_entry(title="", data=self.options)
+
+        from .helpers.flow_utils import get_network_options
+        from .helpers.schema import populate_schema_defaults
+        from .schemas import OPTIONS_SCHEMA_GENERAL
+
+        schema = populate_schema_defaults(
+            OPTIONS_SCHEMA_GENERAL,
+            self.options,
+            get_network_options(self.coordinator.data),
+        )
+        return self.async_show_form(step_id="general", data_schema=schema)
+
+    async def async_step_sensors(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        """Manage sensor settings."""
+        if user_input is not None:
+            self.options.update(user_input)
+            return self.async_create_entry(title="", data=self.options)
+
+        from .helpers.schema import populate_schema_defaults
+        from .schemas import OPTIONS_SCHEMA_SENSORS
+
+        schema = populate_schema_defaults(
+            OPTIONS_SCHEMA_SENSORS,
+            self.options,
+        )
+        return self.async_show_form(step_id="sensors", data_schema=schema)
+
+    async def async_step_cameras(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        """Manage camera settings."""
+        if user_input is not None:
+            self.options.update(user_input)
+            return self.async_create_entry(title="", data=self.options)
+
+        from .helpers.schema import get_filtered_schema, populate_schema_defaults
+        from .schemas import OPTIONS_SCHEMA_CAMERAS
+
+        filtered_schema = get_filtered_schema(
+            self.coordinator.data.get("devices", []),
+            OPTIONS_SCHEMA_CAMERAS,
+        )
+
+        schema = populate_schema_defaults(
+            filtered_schema,
+            self.options,
+        )
+        return self.async_show_form(step_id="cameras", data_schema=schema)
+
+    async def async_step_advanced(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        """Manage advanced settings."""
+        if user_input is not None:
+            self.options.update(user_input)
+            return self.async_create_entry(title="", data=self.options)
+
+        from .helpers.schema import get_filtered_schema, populate_schema_defaults
+        from .schemas import OPTIONS_SCHEMA_ADVANCED
+
+        filtered_schema = get_filtered_schema(
+            self.coordinator.data.get("devices", []),
+            OPTIONS_SCHEMA_ADVANCED,
+        )
+
+        schema = populate_schema_defaults(
+            filtered_schema,
+            self.options,
+        )
+        return self.async_show_form(step_id="advanced", data_schema=schema)

@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Deploy to Test Server
         uses: appleboy/ssh-action@v1.2.5
@@ -49,6 +49,11 @@ jobs:
           done
           echo "Home Assistant did not become ready in time."
           exit 1
+
+      - name: Wait for initial Meraki data fetch
+        run: |
+          echo "Waiting 45 seconds for coordinators to fetch cloud data..."
+          sleep 45
 
       - name: Install Python Dependencies
         run: |

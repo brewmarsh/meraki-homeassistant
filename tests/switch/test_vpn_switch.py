@@ -14,7 +14,7 @@ from custom_components.meraki_ha.types import MerakiNetwork, MerakiVpn
 def mock_coordinator_with_vpn_data(
     mock_coordinator: MagicMock,
 ) -> MagicMock:
-    """Fixture for a mocked MerakiDataUpdateCoordinator with VPN data."""
+    """Fixture for a mocked MerakiMainCoordinator with VPN data."""
     vpn_enabled = MerakiVpn(mode="hub")
     vpn_disabled = MerakiVpn(mode="none")
 

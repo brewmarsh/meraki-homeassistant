@@ -33,53 +33,65 @@ def parse_network_data(
 
     return {
         "appliance_traffic": {
-            nid: data
+            nid: traffic_data
             for nid in network_ids
             if (
-                data := _extract_appliance_traffic(
+                traffic_data := _extract_appliance_traffic(
                     nid, detail_data, previous_data, disabled_features
                 )
             )
             is not None
         },
         "vlans": {
-            nid: data
+            nid: vlan_data
             for nid in network_ids
             if (
-                data := _extract_vlans(
+                vlan_data := _extract_vlans(
                     nid, detail_data, previous_data, disabled_features
                 )
             )
             is not None
         },
         "l3_firewall_rules": {
-            nid: data
+            nid: firewall_data
             for nid in network_ids
-            if (data := _extract_firewall_rules(nid, detail_data, previous_data))
+            if (
+                firewall_data := _extract_firewall_rules(
+                    nid, detail_data, previous_data
+                )
+            )
             is not None
         },
         "traffic_shaping": {
-            nid: data
+            nid: shaping_data
             for nid in network_ids
-            if (data := _extract_traffic_shaping(nid, detail_data, previous_data))
+            if (
+                shaping_data := _extract_traffic_shaping(
+                    nid, detail_data, previous_data
+                )
+            )
             is not None
         },
         "vpn_status": {
-            nid: data
+            nid: vpn_data
             for nid in network_ids
-            if (data := _extract_vpn_status(nid, detail_data, previous_data))
+            if (vpn_data := _extract_vpn_status(nid, detail_data, previous_data))
             is not None
         },
         "rf_profiles": {
-            nid: data
+            nid: rf_data
             for nid in network_ids
-            if (data := _extract_rf_profiles(nid, detail_data, previous_data))
+            if (rf_data := _extract_rf_profiles(nid, detail_data, previous_data))
             is not None
         },
         "content_filtering": {
-            nid: data
+            nid: content_data
             for nid in network_ids
-            if (data := _extract_content_filtering(nid, detail_data, previous_data))
+            if (
+                content_data := _extract_content_filtering(
+                    nid, detail_data, previous_data
+                )
+            )
             is not None
         },
     }

@@ -5,7 +5,7 @@ from unittest.mock import AsyncMock, MagicMock
 import pytest
 from homeassistant.core import HomeAssistant
 
-from custom_components.meraki_ha.core.models.device import MerakiAppliancePort
+from custom_components.meraki_ha.core.models.appliance import MerakiAppliancePort
 from custom_components.meraki_ha.switch.switch_port import MerakiAppliancePortSwitch
 
 

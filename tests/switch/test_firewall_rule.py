@@ -12,7 +12,7 @@ from custom_components.meraki_ha.types import MerakiFirewallRule
 
 @pytest.fixture
 def mock_coordinator_with_firewall_data(mock_coordinator: MagicMock) -> MagicMock:
-    """Fixture for a mocked MerakiDataUpdateCoordinator with Firewall data."""
+    """Fixture for a mocked MerakiMainCoordinator with Firewall data."""
     rule1 = MerakiFirewallRule(
         comment="Block Bad Site",
         policy="deny",

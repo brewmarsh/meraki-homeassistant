@@ -9,7 +9,7 @@ from homeassistant.core import callback
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity import EntityCategory
 
-from ..coordinator import MerakiDataUpdateCoordinator
+from ..coordinators import MerakiSwitchCoordinator
 from ..core.api.client import MerakiAPIClient
 from ..core.utils.icon_utils import get_device_type_icon
 from ..entity import MerakiEntity
@@ -25,7 +25,7 @@ class MerakiSSIDBaseSwitch(MerakiEntity, SwitchEntity):
 
     def __init__(
         self,
-        coordinator: MerakiDataUpdateCoordinator,
+        coordinator: MerakiSwitchCoordinator,
         meraki_client: MerakiAPIClient,
         config_entry: ConfigEntry,
         ssid_data: dict[str, Any],
@@ -97,12 +97,12 @@ class MerakiSSIDBaseSwitch(MerakiEntity, SwitchEntity):
     def unique_id(self) -> str | None:
         """Return a unique ID that prevents platform collisions.
 
-        By combining the network ID, SSID number, and the lowercased class name,
+        By combining the network ID, SSID number, and the switch type,
         we ensure that the registry stays unique for different switch types.
         """
         return (
-            f"{self._network_id}ssid{self._ssid_number}"
-            f"{self.__class__.__name__.lower()}"
+            f"meraki_network_{self._network_id}_ssid_"
+            f"{self._ssid_number}_{self._switch_type}"
         )
 
     @property
@@ -182,7 +182,7 @@ class MerakiSSIDEnabledSwitch(MerakiSSIDBaseSwitch):
 
     def __init__(
         self,
-        coordinator: MerakiDataUpdateCoordinator,
+        coordinator: MerakiSwitchCoordinator,
         meraki_client: MerakiAPIClient,
         config_entry: ConfigEntry,
         ssid_data: dict[str, Any],
@@ -213,7 +213,7 @@ class MerakiSSIDBroadcastSwitch(MerakiSSIDBaseSwitch):
 
     def __init__(
         self,
-        coordinator: MerakiDataUpdateCoordinator,
+        coordinator: MerakiSwitchCoordinator,
         meraki_client: MerakiAPIClient,
         config_entry: ConfigEntry,
         ssid_data: dict[str, Any],

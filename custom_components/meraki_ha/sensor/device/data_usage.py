@@ -13,7 +13,7 @@ from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from ...const import DOMAIN
-from ...coordinator import MerakiDataUpdateCoordinator
+from ...coordinators import MerakiMainCoordinator
 from ...core.utils.naming_utils import format_device_name
 
 if TYPE_CHECKING:
@@ -25,7 +25,7 @@ _LOGGER = logging.getLogger(__name__)
 class MerakiDataUsageSensor(CoordinatorEntity, SensorEntity):
     """Representation of a Meraki appliance data usage sensor."""
 
-    coordinator: MerakiDataUpdateCoordinator
+    coordinator: MerakiMainCoordinator
 
     _attr_state_class: SensorStateClass | None = SensorStateClass.MEASUREMENT
     _attr_native_unit_of_measurement: UnitOfInformation | None = (
@@ -37,7 +37,7 @@ class MerakiDataUsageSensor(CoordinatorEntity, SensorEntity):
 
     def __init__(
         self,
-        coordinator: MerakiDataUpdateCoordinator,
+        coordinator: MerakiMainCoordinator,
         device_data: MerakiDevice,
         config_entry: ConfigEntry,
     ) -> None:

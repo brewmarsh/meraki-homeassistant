@@ -12,8 +12,9 @@ from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from ..const import DOMAIN
-from ..coordinator import MerakiDataUpdateCoordinator
+from ..coordinators import MerakiMainCoordinator
 from ..core.models.network import MerakiNetwork
+from ..core.utils.naming_utils import standardize_device_name
 from ..helpers.device_info_helpers import resolve_device_info
 
 
@@ -23,7 +24,7 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up Meraki network status binary sensor entities."""
-    coordinator: MerakiDataUpdateCoordinator = hass.data[DOMAIN][config_entry.entry_id][
+    coordinator: MerakiMainCoordinator = hass.data[DOMAIN][config_entry.entry_id][
         "coordinator"
     ]
 
@@ -44,7 +45,7 @@ class MerakiNetworkStatus(BinarySensorEntity):
 
     def __init__(
         self,
-        coordinator: MerakiDataUpdateCoordinator,
+        coordinator: MerakiMainCoordinator,
         network: MerakiNetwork,
     ) -> None:
         """Initialize the sensor."""
@@ -69,7 +70,7 @@ class MerakiNetworkStatus(BinarySensorEntity):
 
         return DeviceInfo(
             identifiers={(DOMAIN, network_id)},
-            name=self._network.name,
+            name=standardize_device_name(self._network.name),
         )
 
     @property

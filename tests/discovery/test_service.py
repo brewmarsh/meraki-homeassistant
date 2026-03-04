@@ -6,26 +6,23 @@ from typing import Any
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
+from homeassistant.config_entries import ConfigEntry
 
-from custom_components.meraki_ha.coordinator import MerakiDataUpdateCoordinator
+# Resolved: Using the centralized coordinator path from the 2.3.0-beta.120 refactor
+from custom_components.meraki_ha.coordinators import MerakiMainCoordinator
 from custom_components.meraki_ha.discovery.service import DeviceDiscoveryService
-from custom_components.meraki_ha.meraki_client import MerakiClient
 from custom_components.meraki_ha.services.camera_service import CameraService
 from custom_components.meraki_ha.services.device_control_service import (
     DeviceControlService,
 )
-from custom_components.meraki_ha.services.network_control_service import (
-    NetworkControlService,
-)
-from homeassistant.config_entries import ConfigEntry
 from tests.const import MOCK_DEVICE
 
 
 @pytest.fixture
 def mock_coordinator_with_devices(
     mock_coordinator: MagicMock,
-) -> MagicMock[MerakiDataUpdateCoordinator]:
-    """Fixture for a mocked MerakiDataUpdateCoordinator with various devices."""
+) -> MagicMock:
+    """Fixture for a mocked MerakiMainCoordinator with various devices."""
     wireless_device = replace(MOCK_DEVICE, model="MR36")
     camera_device = replace(MOCK_DEVICE, serial="camera_serial", model="MV12")
     unsupported_device = replace(
@@ -40,26 +37,26 @@ def mock_coordinator_with_devices(
 
 
 @pytest.fixture
-def mock_camera_service() -> AsyncMock[CameraService]:
+def mock_camera_service() -> AsyncMock:
     """Fixture for a mocked CameraService."""
     return AsyncMock()
 
 
 @pytest.fixture
-def mock_control_service() -> MagicMock[DeviceControlService]:
+def mock_control_service() -> MagicMock:
     """Fixture for a mock DeviceControlService."""
     return MagicMock()
 
 
 def test_discovery_service_init(
-    mock_coordinator_with_devices: MerakiDataUpdateCoordinator,
+    mock_coordinator_with_devices: MerakiMainCoordinator,
     mock_config_entry: ConfigEntry,
     mock_camera_service: CameraService,
     mock_control_service: DeviceControlService,
 ) -> None:
     """Test the initialization of the DeviceDiscoveryService."""
-    mock_meraki_client: MagicMock[MerakiClient] = MagicMock()
-    mock_network_control_service: MagicMock[NetworkControlService] = MagicMock()
+    mock_meraki_client: MagicMock = MagicMock()
+    mock_network_control_service: MagicMock = MagicMock()
 
     service: DeviceDiscoveryService = DeviceDiscoveryService(
         coordinator=mock_coordinator_with_devices,
@@ -75,7 +72,7 @@ def test_discovery_service_init(
 
 @pytest.mark.asyncio
 async def test_discover_entities_delegates_to_handler(
-    mock_coordinator_with_devices: MerakiDataUpdateCoordinator,
+    mock_coordinator_with_devices: MerakiMainCoordinator,
     mock_config_entry: ConfigEntry,
     mock_camera_service: CameraService,
     mock_control_service: DeviceControlService,
@@ -116,8 +113,8 @@ async def test_discover_entities_delegates_to_handler(
         mock_wireless_handler_instance.discover_entities.side_effect = mock_aiter_empty
         MockWirelessHandler.return_value = mock_wireless_handler_instance
 
-        mock_meraki_client: MagicMock[MerakiClient] = MagicMock()
-        mock_network_control_service: MagicMock[NetworkControlService] = MagicMock()
+        mock_meraki_client: MagicMock = MagicMock()
+        mock_network_control_service: MagicMock = MagicMock()
 
         service: DeviceDiscoveryService = DeviceDiscoveryService(
             coordinator=mock_coordinator_with_devices,

@@ -7,7 +7,7 @@ from homeassistant.components.switch import SwitchEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from ...coordinator import MerakiDataUpdateCoordinator
+from ...coordinators import MerakiSwitchCoordinator
 from ..camera_controls import AnalyticsSwitch
 
 _LOGGER = logging.getLogger(__name__)
@@ -15,7 +15,7 @@ _LOGGER = logging.getLogger(__name__)
 
 def setup_camera_switches(
     config_entry: ConfigEntry,
-    coordinator: MerakiDataUpdateCoordinator,
+    coordinator: MerakiSwitchCoordinator,
     added_entities: set[str],
     async_add_entities: AddEntitiesCallback,
 ) -> None:
@@ -26,7 +26,7 @@ def setup_camera_switches(
 
 
 def _build_camera_entities(
-    coordinator: MerakiDataUpdateCoordinator,
+    coordinator: MerakiSwitchCoordinator,
     data: dict[str, Any],
     added_entities: set[str],
 ) -> list[SwitchEntity]:
@@ -43,7 +43,7 @@ def _build_camera_entities(
 
 
 def _create_camera_analytics_switch(
-    coordinator: MerakiDataUpdateCoordinator,
+    coordinator: MerakiSwitchCoordinator,
     device_info: Any,
     added_entities: set[str],
 ) -> SwitchEntity | None:

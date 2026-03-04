@@ -2,7 +2,7 @@
 Organization Hub.
 
 This module defines the OrganizationHub class, which is responsible for
-processing and managing organization-level data from the MerakiDataUpdateCoordinator.
+processing and managing organization-level data from the MerakiMainCoordinator.
 """
 
 from __future__ import annotations
@@ -11,7 +11,7 @@ import logging
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from ..coordinator import MerakiDataUpdateCoordinator
+    from ..coordinators import MerakiMainCoordinator
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -19,7 +19,7 @@ _LOGGER = logging.getLogger(__name__)
 class OrganizationHub:
     """A hub for processing organization-level data."""
 
-    def __init__(self, coordinator: MerakiDataUpdateCoordinator) -> None:
+    def __init__(self, coordinator: MerakiMainCoordinator) -> None:
         """Initialize the OrganizationHub."""
         self._coordinator = coordinator
         self.data: dict = {}

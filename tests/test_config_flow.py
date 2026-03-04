@@ -18,6 +18,9 @@ from pytest_homeassistant_custom_component.common import MockConfigEntry
 from custom_components.meraki_ha.const import DOMAIN
 from custom_components.meraki_ha.const_conf import (
     CONF_ENABLE_CAMERA_ENTITIES,
+    CONF_ENABLE_DEVICE_SENSORS,
+    CONF_ENABLE_DEVICE_STATUS,
+    CONF_ENABLE_ORG_SENSORS,
     CONF_ENABLE_VLAN_MANAGEMENT,
     CONF_MERAKI_API_KEY,
     CONF_MERAKI_ORG_ID,
@@ -150,71 +153,16 @@ async def test_reconfigure(hass: HomeAssistant) -> None:
     assert result["step_id"] == "reconfigure"
 
 
-async def test_options_flow_with_devices(hass: HomeAssistant) -> None:
-    """Test options flow when cameras and switches are present."""
+async def test_options_flow(hass: HomeAssistant) -> None:
+    """Test the new options flow."""
     entry = MockConfigEntry(
         domain=DOMAIN,
         data={CONF_MERAKI_API_KEY: "test-api-key", CONF_MERAKI_ORG_ID: "test-org-id"},
-        options={CONF_SCAN_INTERVAL: "300"},
+        options={},
     )
     entry.add_to_hass(hass)
 
     # Mock the coordinator and data
-    coordinator = MagicMock()
-
-    # Mock devices
-    camera = MagicMock()
-    camera.product_type = "camera"
-    camera.model = "MV12"
-
-    switch = MagicMock()
-    switch.product_type = "switch"
-    switch.model = "MS120"
-
-    coordinator.data = {"devices": [camera, switch], "networks": []}
-
-    # Setup hass.data
-    hass.data[DOMAIN] = {entry.entry_id: {"coordinator": coordinator}}
-
-    result = await hass.config_entries.options.async_init(entry.entry_id)
-
-    assert result["type"] == FlowResultType.MENU
-    assert result["step_id"] == "init"
-    # ACCEPT REFACTOR: Verify specific menu options exist
-    assert "cameras" in result["menu_options"]
-    assert "advanced" in result["menu_options"]
-
-    # Check General Step
-    result_general = await hass.config_entries.options.async_configure(
-        result["flow_id"], user_input={"next_step_id": "general"}
-    )
-    assert result_general["type"] == FlowResultType.FORM
-    assert result_general["data_schema"] is not None
-    assert CONF_SCAN_INTERVAL in [
-        k.schema for k in result_general["data_schema"].schema.keys()
-    ]
-
-    # Re-init to check Cameras Step
-    result = await hass.config_entries.options.async_init(entry.entry_id)
-    result_cameras = await hass.config_entries.options.async_configure(
-        result["flow_id"], user_input={"next_step_id": "cameras"}
-    )
-    assert result_cameras["data_schema"] is not None
-    assert CONF_ENABLE_CAMERA_ENTITIES in [
-        k.schema for k in result_cameras["data_schema"].schema.keys()
-    ]
-
-
-async def test_options_flow_without_devices(hass: HomeAssistant) -> None:
-    """Test options flow when cameras and switches are NOT present."""
-    entry = MockConfigEntry(
-        domain=DOMAIN,
-        data={CONF_MERAKI_API_KEY: "test-api-key", CONF_MERAKI_ORG_ID: "test-org-id"},
-        options={CONF_SCAN_INTERVAL: "300"},
-    )
-    entry.add_to_hass(hass)
-
-    # Mock the coordinator and data (no devices)
     coordinator = MagicMock()
     coordinator.data = {"devices": [], "networks": []}
 
@@ -225,17 +173,27 @@ async def test_options_flow_without_devices(hass: HomeAssistant) -> None:
 
     assert result["type"] == FlowResultType.MENU
     assert result["step_id"] == "init"
-    # UPDATED: We must check menu_options, not data_schema, for the new flow
-    assert "cameras" not in result["menu_options"]
-    assert "advanced" in result["menu_options"]
+    assert "general" in result["menu_options"]
+    assert "sensors" in result["menu_options"]
 
-    # Check Advanced Step (VLAN Management should be hidden)
-    result_advanced = await hass.config_entries.options.async_configure(
-        result["flow_id"], user_input={"next_step_id": "advanced"}
+    # Test General Settings step
+    result_general = await hass.config_entries.options.async_configure(
+        result["flow_id"],
+        user_input={"next_step_id": "general"},
     )
-    assert result_advanced["data_schema"] is not None
-    schema_keys = [k.schema for k in result_advanced["data_schema"].schema.keys()]
-    assert CONF_ENABLE_VLAN_MANAGEMENT not in schema_keys
+    assert result_general["type"] == FlowResultType.FORM
+    assert result_general["step_id"] == "general"
+
+    # Save General Settings
+    result_save = await hass.config_entries.options.async_configure(
+        result_general["flow_id"],
+        user_input={
+            CONF_SCAN_INTERVAL: "300",
+            "enabled_networks": [],
+            "enable_device_tracker": True,
+        },
+    )
+    assert result_save["type"] == FlowResultType.CREATE_ENTRY
 
 
 async def test_reconfigure_flow_without_devices(hass: HomeAssistant) -> None:

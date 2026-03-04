@@ -14,7 +14,7 @@ from typing import TYPE_CHECKING, Any
 from ....core.entities.device import MerakiDeviceEntity
 
 if TYPE_CHECKING:
-    from ....coordinator import MerakiDataUpdateCoordinator
+    from ...coordinators import MerakiMainCoordinator
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -30,7 +30,7 @@ class MerakiUplinkStatusSensor(MerakiDeviceEntity):
 
     def __init__(
         self,
-        coordinator: MerakiDataUpdateCoordinator,
+        coordinator: MerakiMainCoordinator,
         device_serial: str,
     ) -> None:
         """Initialize the Meraki MX Appliance Uplink Status sensor."""
