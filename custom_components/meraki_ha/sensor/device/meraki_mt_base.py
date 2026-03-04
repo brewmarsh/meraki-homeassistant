@@ -16,7 +16,7 @@ from homeassistant.helpers.typing import UNDEFINED
 from ...const import DOMAIN
 from ...coordinators import MerakiSensorCoordinator
 from ...core.models.device import MerakiDevice
-from ...core.utils.naming_utils import format_device_name
+from ...helpers.device_info_helpers import resolve_device_info
 from ...entity import MerakiSensor
 
 _LOGGER = logging.getLogger(__name__)
@@ -65,16 +65,9 @@ class MerakiMtSensor(MerakiSensor, RestoreSensor):
                 # Ignore other types (e.g. datetime) that don't match our state type
 
     @property
-    def device_info(self) -> DeviceInfo:
+    def device_info(self) -> DeviceInfo | None:
         """Return device information."""
-        return DeviceInfo(
-            identifiers={(DOMAIN, cast(str, self._device.serial))},
-            name=format_device_name(
-                self._device, self.coordinator.config_entry.options
-            ),
-            model=self._device.model,
-            manufacturer="Cisco Meraki",
-        )
+        return resolve_device_info(self._device, self.coordinator.config_entry)
 
     def _get_value_from_legacy_device_attributes(self, key: str) -> Any | None:
         """Retrieve value from older MT device attributes."""

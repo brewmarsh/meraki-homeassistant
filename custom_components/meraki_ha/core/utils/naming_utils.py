@@ -13,7 +13,11 @@ def standardize_device_name(name: str | None) -> str:
     if not name:
         return "Meraki Device"
     name_str = str(name)
-    if name_str.lower().startswith("meraki"):
+    if (
+        name_str.lower().startswith("meraki")
+        or name_str.startswith("[")
+        or name_str.startswith("Site: ")
+    ):
         return name_str
     return f"Meraki {name_str}"
 
@@ -24,11 +28,19 @@ def format_device_name(device: dict[str, Any] | Any, config: Mapping[str, Any]) 
         device = dataclasses.asdict(cast(Any, device))
 
     name = device.get("name")
+    model = str(device.get("model") or "")
+    product_type = str(device.get("productType") or device.get("product_type") or "")
+
     if not name:
-        if device.get("productType") == "ssid":
+        if product_type == "ssid":
             name = f"[SSID {device.get('number')}]"
         else:
-            name = f"Meraki {device.get('model', 'Device')} {device.get('serial')}"
+            name = f"{model} {device.get('serial')}"
+
+    # Enforce [Sensor] prefix for MT devices
+    if product_type == "sensor" or model.startswith("MT"):
+        if not str(name).startswith("[Sensor]"):
+            name = f"[Sensor] {name}"
 
     return standardize_device_name(name)
 

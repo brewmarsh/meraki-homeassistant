@@ -10,6 +10,7 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from ...const import DOMAIN, MANUFACTURER
 from ...coordinators import MerakiMainCoordinator
+from ...helpers.device_info_helpers import resolve_device_info
 from ..utils.naming_utils import standardize_device_name
 
 _LOGGER = logging.getLogger(__name__)
@@ -26,6 +27,7 @@ class BaseMerakiEntity(CoordinatorEntity, Entity, ABC):
     """
 
     coordinator: MerakiMainCoordinator
+    _attr_has_entity_name = True
 
     def __init__(
         self,
@@ -46,7 +48,6 @@ class BaseMerakiEntity(CoordinatorEntity, Entity, ABC):
 
         """
         super().__init__(coordinator)
-        self._config_entry = config_entry
         self._serial = serial
         self._network_id = network_id
         self._attr_has_entity_name = True
@@ -70,30 +71,13 @@ class BaseMerakiEntity(CoordinatorEntity, Entity, ABC):
         if self._network_id and not self._serial:
             network = self.coordinator.get_network(self._network_id)
             if network:
-                return DeviceInfo(
-                    identifiers={(DOMAIN, f"network_{self._network_id}")},
-                    name=standardize_device_name(network.name),
-                    manufacturer=MANUFACTURER,
-                    model="Network",
-                    sw_version="unknown",
-                )
+                return resolve_device_info(network, self.coordinator.config_entry)
 
         # Handle device-based entities
         if self._serial:
             device = self.coordinator.get_device(self._serial)
             if device:
-                model = device.model
-                return DeviceInfo(
-                    identifiers={(DOMAIN, self._serial)},
-                    name=standardize_device_name(device.name),
-                    manufacturer=MANUFACTURER,
-                    model=model,
-                    sw_version=device.firmware or "unknown",
-                    suggested_area=device.address or "",
-                    hw_version=model,
-                    configuration_url=device.url
-                    or f"https://dashboard.meraki.com/devices/{self._serial}",
-                )
+                return resolve_device_info(device, self.coordinator.config_entry)
 
         return None
 
