@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite --host",
+    "typecheck": "tsc --noEmit",
     "build": "tsc && vite build",
     "postbuild": "cp dist/meraki-panel.js . && cp -r dist/assets .",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
