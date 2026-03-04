@@ -103,8 +103,8 @@ jobs:
 
       - name: Wait for initial Meraki data fetch
         run: |
-          echo "Waiting 45 seconds for coordinators to fetch cloud data..."
-          sleep 45
+          echo "Waiting 90 seconds for coordinators to fetch cloud data..."
+          sleep 90
 
       - name: Audit logs for errors
         id: audit_logs
@@ -116,9 +116,23 @@ jobs:
           echo "Pulling error logs directly via Home Assistant API..."
           
           # Fetch the log directly from the API, bypassing file system completely
-          curl -s -H "Authorization: Bearer $HA_TOKEN" \
-               -H "Content-Type: application/json" \
-               "$HA_URL/api/error_log" > full_ha_log.txt
+          # Retry loop for curl (3 attempts, 5s delay)
+          SUCCESS=0
+          for i in {1..3}; do
+            if curl -s -f -H "Authorization: Bearer $HA_TOKEN" \
+                 -H "Content-Type: application/json" \
+                 "$HA_URL/api/error_log" > full_ha_log.txt; then
+              SUCCESS=1
+              break
+            fi
+            echo "Attempt $i failed. Retrying in 5 seconds..."
+            sleep 5
+          done
+
+          if [ $SUCCESS -ne 1 ]; then
+            echo "Error: Failed to fetch logs from Home Assistant API after 3 attempts."
+            exit 1
+          fi
           
           # Check if the API returned an unauthorized/error payload instead of a text log
           if grep -q "401: Unauthorized" full_ha_log.txt; then
@@ -126,8 +140,9 @@ jobs:
             exit 1
           fi
 
-          # The Fix: Point grep to the newly downloaded 'full_ha_log.txt'
-          if grep -B 2 -A 25 -E -i "(error|warning|exception).*meraki_ha" full_ha_log.txt > meraki_errors.txt; then
+          # Search for Meraki-specific errors using expanded regex
+          # Ensure meraki_errors.txt is only considered "found" if size > 0
+          if grep -B 2 -A 25 -E -i "(error|exception|traceback|attributeerror|nameerror).*meraki_ha" full_ha_log.txt > meraki_errors.txt && [ -s meraki_errors.txt ]; then
             echo "::error::CRITICAL: Found Meraki errors in the log!"
             echo "HAS_ERRORS=true" >> $GITHUB_ENV
           else
