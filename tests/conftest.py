@@ -5,7 +5,9 @@ from collections.abc import Generator
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
+from homeassistant.core import HomeAssistant
 
+from custom_components.meraki_ha.const import DOMAIN
 from tests.const import (
     MOCK_ALL_DATA,
     MOCK_DEVICE_INIT,
@@ -13,6 +15,14 @@ from tests.const import (
     MOCK_MX_DEVICE_INIT,
     MOCK_NETWORK_INIT,
 )
+
+
+@pytest.fixture(autouse=True)
+def cleanup_ipsk_manager(hass: HomeAssistant) -> Generator[None, None, None]:
+    """Ensure IPSKManager is unloaded after tests to avoid lingering timers."""
+    yield
+    if DOMAIN in hass.data and "ipsk_manager" in hass.data[DOMAIN]:
+        hass.data[DOMAIN]["ipsk_manager"].async_unload()
 
 
 @pytest.fixture(autouse=True)

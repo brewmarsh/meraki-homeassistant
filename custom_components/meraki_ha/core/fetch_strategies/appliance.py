@@ -15,6 +15,9 @@ from ...core.errors import (
 )
 from ...core.models import MerakiAppliancePort
 from ...core.models.device import MerakiDevice
+from .appliance_device import ApplianceDeviceHelper
+from .appliance_traffic import ApplianceTrafficHelper
+from .appliance_uplinks import ApplianceUplinkHelper
 from .base import BaseFetchStrategy
 
 if TYPE_CHECKING:
