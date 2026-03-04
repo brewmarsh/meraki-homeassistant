@@ -126,9 +126,8 @@ jobs:
             exit 1
           fi
 
-          # The Fix: Loosened regex to catch 'meraki_ha' without the prefix
-          # Added -B 2 (Before 2 lines) and -A 25 (After 25 lines) to capture the full Python traceback
-          if grep -B 2 -A 25 -E -i "(error|warning|exception).*meraki_ha" ${{ env.HA_CONFIG_DIR }}/home-assistant.log > meraki_errors.txt; then
+          # The Fix: Point grep to the newly downloaded 'full_ha_log.txt'
+          if grep -B 2 -A 25 -E -i "(error|warning|exception).*meraki_ha" full_ha_log.txt > meraki_errors.txt; then
             echo "::error::CRITICAL: Found Meraki errors in the log!"
             echo "HAS_ERRORS=true" >> $GITHUB_ENV
           else
