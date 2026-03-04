@@ -57,7 +57,7 @@ class MerakiNetworkEntity(BaseMerakiEntity):
         if self._network.id is None:
             raise ValueError("Network ID cannot be None")
 
-        if info := resolve_device_info(self._network.to_dict(), self._config_entry):
+        if info := resolve_device_info(self._network.to_dict(), self.coordinator.config_entry):
             return info
 
         return DeviceInfo(

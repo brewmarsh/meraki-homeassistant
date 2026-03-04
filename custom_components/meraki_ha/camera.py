@@ -83,7 +83,6 @@ class MerakiRTSPStreamCamera(MerakiEntity, Camera):
         Camera.__init__(self)
         self._device_serial = device.serial or ""
         self._camera_service = camera_service
-        self._config_entry = config_entry
 
         # Setting name to None with has_entity_name=True makes this the "Main" entity
         self._attr_name = None
@@ -109,14 +108,14 @@ class MerakiRTSPStreamCamera(MerakiEntity, Camera):
     @property
     def device_info(self) -> DeviceInfo | None:
         """Return device information."""
-        return resolve_device_info(self.device_data, self._config_entry)
+        return resolve_device_info(self.device_data, self.coordinator.config_entry)
 
     async def async_added_to_hass(self) -> None:
         """Handle when entity is added to hass."""
         await super().async_added_to_hass()
 
         if (
-            self._config_entry.options.get(CONF_ENABLE_CAMERA_ENTITIES, True)
+            self.coordinator.config_entry.options.get(CONF_ENABLE_CAMERA_ENTITIES, True)
             and not self.device_data.rtsp_url
         ):
             try:
