@@ -45,11 +45,13 @@ Welcome to the **Meraki Home Assistant Integration**! This project bridges the g
 
 ## Key features ✨
 
-- **Comprehensive Monitoring:** Keep tabs on all your Meraki hardware, including Wireless Access Points (MR/GR), Switches (MS/GS), Security Appliances (MX), Cameras (MV), and Environmental Sensors (MT).
-- **Powerful Controls:** Enable/disable SSIDs, block specific clients (Parental Controls), and manage content filtering categories directly from Home Assistant.
-- **Web Interface:** A dedicated web UI for advanced features like guest Wi-Fi management and viewing event logs.
-- **Rich Sensor Data:** Creates a wide array of sensors for device status, client counts, data usage, firmware updates, PoE consumption, and much more.
-- **Camera Integration:** View live RTSP streams from your Meraki cameras within Home Assistant.
+- **Comprehensive Monitoring:** Keep tabs on all your Meraki hardware, including Wireless Access Points (MR/GR), Switches (MS/GS), Security Appliances (MX), Cameras (MV), and Environmental Sensors (MT/MT40).
+- **Powerful Controls:** Enable/disable SSIDs, block specific clients (Parental Controls), manage content filtering, and control MT40 smart power outlets.
+- **Guest Wi-Fi (IPSK) Management:** Create, manage, and revoke temporary guest Wi-Fi keys directly from the dedicated Meraki Panel.
+- **Advanced Network Management:** Toggle Site-to-Site VPN settings, manage Layer 3 firewall rules, and configure bandwidth limits (Traffic Shaping) per SSID.
+- **Enhanced Meraki Panel:** A redesigned dedicated web interface for advanced features, real-time device monitoring, and event logs.
+- **Rich Sensor Data:** Creates a wide array of sensors for device status, client counts, data usage, firmware updates, PoE consumption, and uplink metrics (latency, jitter, packet loss).
+- **Camera Integration:** View live RTSP streams and MV Sense analytics from your Meraki cameras within Home Assistant.
 
 ## Troubleshooting
 
