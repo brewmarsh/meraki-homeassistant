@@ -14,7 +14,6 @@
 
 # Build artifacts
 dist/
-/custom_components/meraki_ha/www
 node_modules/
 /custom_components/meraki_ha/frontend/
 .DS_Store
