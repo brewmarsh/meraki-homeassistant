@@ -50,7 +50,8 @@ jobs:
           sudo mkdir -p "${DestinationPath}"
 
           # Sync files
-          sudo rsync -rcvltpD --delete \
+          # Sync files (Restored --inplace to fix Docker bind mount temp file errors)
+          sudo rsync -rcvltpD --inplace --delete \
             --exclude '.git' \
             --exclude 'node_modules' \
             --exclude 'tests' \
