@@ -1,3 +1,11 @@
+#!/usr/bin/env python3
+"""Reset the Meraki HA integration by deleting and re-adding it via REST API.
+
+This script is used in staging to ensure a clean state for smoke testing.
+It uses the Home Assistant REST API to delete any existing Meraki entries,
+restarts Home Assistant, and then adds a new entry with the correct credentials.
+"""
+
 import asyncio
 import logging
 import os
@@ -6,227 +14,223 @@ from typing import Any
 
 import aiohttp
 
-# --- Setup Logging ---
+# Configuration from environment variables
+HA_URL = os.getenv("HA_URL", "http://localhost:8123")
+HA_TOKEN = os.getenv("HA_TOKEN")
+MERAKI_API_KEY = os.getenv("MERAKI_API_KEY")
+MERAKI_ORG_ID = os.getenv("MERAKI_ORG_ID")
+
+# Setup logging
 logging.basicConfig(
-    level=logging.DEBUG,  # Set to DEBUG to see detailed flow
+    level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(message)s",
     datefmt="%H:%M:%S",
 )
 logger = logging.getLogger(__name__)
 
-# --- Configuration ---
-HA_URL = os.getenv("HA_URL")
-HA_TOKEN = os.getenv("HA_TOKEN")
-MERAKI_API_KEY = os.getenv("MERAKI_API_KEY")
-MERAKI_ORG_ID = os.getenv("MERAKI_ORG_ID")
-
-# IMPROVED Sanity Check
-required_vars = {
-    "HA_URL": HA_URL,
-    "HA_TOKEN": HA_TOKEN,
-    "MERAKI_API_KEY": MERAKI_API_KEY,
-    "MERAKI_ORG_ID": MERAKI_ORG_ID,
-}
-missing = [key for key, val in required_vars.items() if not val]
-
-if missing:
-    logger.critical(
-        "❌ CRITICAL: The following env variables are MISSING or EMPTY: %s",
-        ", ".join(missing),
-    )
-    logger.critical(
-        "Please check your GitHub Repository Secrets and "
-        ".github/workflows/test.yml mappings."
-    )
-    sys.exit(1)
-
-HEADERS = {
-    "Authorization": f"Bearer {HA_TOKEN}",
-    "Content-Type": "application/json",
-}
-
 
 async def dump_error_log(session: aiohttp.ClientSession) -> None:
-    """Fetch and log the last 20 lines of the Home Assistant error log."""
-    logger.info("Fetching error log to diagnose failure...")
+    """Fetch and print the last few lines of the Home Assistant log."""
+    url = f"{HA_URL}/api/error_log"
     try:
-        async with session.get(f"{HA_URL}/api/error/log") as log_resp:
-            if log_resp.status == 200:
-                log_text = await log_resp.text()
-                logger.error("--- SYSTEM LOG (Last 20 lines) ---")
-                lines = log_text.splitlines()
-                for line in lines[-20:]:
-                    logger.error(line)
-                logger.error("----------------------------------")
-            else:
-                logger.error(f"Failed to fetch error log: {log_resp.status}")
+        async with session.get(url) as resp:
+            if resp.status == 200:
+                text = await resp.text()
+                logger.error("--- Home Assistant Error Log (Last 20 lines) ---")
+                for line in text.splitlines()[-20:]:
+                    print(line)
+                logger.error("--- End of Log ---")
     except Exception as e:
         logger.error(f"Error fetching error log: {e}")
 
 
-async def delete_existing_entries(session: aiohttp.ClientSession) -> bool:
-    """Delete any existing Meraki HA config entries."""
-    logger.info("Checking for existing Meraki HA entries...")
+async def _get_existing_entries(
+    session: aiohttp.ClientSession,
+) -> list[dict[str, Any]] | None:
+    """Fetch all Meraki HA config entries."""
     url = f"{HA_URL}/api/config/config_entries/entry"
     logger.debug(f"GET {url}")
 
     async with session.get(url) as resp:
         if resp.status != 200:
             logger.error(f"Error fetching entries: {resp.status} - {await resp.text()}")
-            return False
+            return None
 
         entries = await resp.json()
-        meraki_entries = [e for e in entries if e["domain"] == "meraki_ha"]
+        return [e for e in entries if e["domain"] == "meraki_ha"]
 
-        if not meraki_entries:
-            logger.info("No existing entries found.")
-            return True
 
-        for entry in meraki_entries:
-            entry_id = entry["entry_id"]
-            logger.info(f"Removed existing Meraki HA configuration ({entry_id}).")
-            async with session.delete(f"{url}/{entry_id}") as del_resp:
-                if del_resp.status != 200:
-                    logger.error(f"Failed to delete entry: {del_resp.status}")
-                    return False
+async def _delete_entries(
+    session: aiohttp.ClientSession, entries: list[dict[str, Any]]
+) -> bool:
+    """Delete the provided config entries."""
+    url = f"{HA_URL}/api/config/config_entries/entry"
+    for entry in entries:
+        entry_id = entry["entry_id"]
+        logger.info(f"Removing existing Meraki HA configuration ({entry_id}).")
+        async with session.delete(f"{url}/{entry_id}") as del_resp:
+            if del_resp.status != 200:
+                logger.error(f"Failed to delete entry: {del_resp.status}")
+                return False
+    return True
+
+
+async def delete_existing_entries(session: aiohttp.ClientSession) -> bool:
+    """Delete any existing Meraki HA config entries."""
+    logger.info("Checking for existing Meraki HA entries...")
+
+    meraki_entries = await _get_existing_entries(session)
+    if meraki_entries is None:
+        return False
+
+    if not meraki_entries:
+        logger.info("No existing entries found.")
         return True
+
+    return await _delete_entries(session, meraki_entries)
 
 
 async def _send_restart_command(session: aiohttp.ClientSession) -> bool:
     """Send the restart command to Home Assistant."""
-    try:
-        async with session.post(f"{HA_URL}/api/services/homeassistant/restart") as resp:
-            if resp.status == 200:
-                logger.debug("Restart command sent successfully.")
-            else:
-                logger.warning(f"Restart command sent with status: {resp.status}")
-    except (
-        aiohttp.ServerDisconnectedError,
-        aiohttp.ClientConnectionError,
-        aiohttp.ClientOSError,
-    ):
-        logger.info("Server disconnected immediately (Restart successful).")
-    except Exception as e:
-        logger.error(f"Unexpected error during restart: {e}")
-        return False
+    restart_url = f"{HA_URL}/api/services/homeassistant/restart"
+    logger.info("Restarting Home Assistant...")
+    async with session.post(restart_url) as resp:
+        if resp.status != 200:
+            logger.error(f"Restart command failed: {resp.status}")
+            return False
     return True
 
 
-async def _poll_for_running_state(session: aiohttp.ClientSession) -> bool:
-    """Poll Home Assistant until it is in the RUNNING state."""
+async def _wait_for_restart(session: aiohttp.ClientSession) -> bool:
+    """Wait for Home Assistant to become available again."""
     logger.info("Waiting for Home Assistant to restart...")
-    await asyncio.sleep(15)  # Initial buffer
+    # Wait for HA to go down
+    await asyncio.sleep(10)
 
-    for i in range(30):
+    max_retries = 30
+    retry_interval = 10
+
+    for i in range(max_retries):
         try:
-            async with session.get(f"{HA_URL}/api/config", timeout=5) as resp:
+            async with session.get(f"{HA_URL}/api/") as resp:
                 if resp.status == 200:
-                    data = await resp.json()
-                    state = data.get("state")
-                    if state == "RUNNING":
-                        logger.info("Home Assistant is RUNNING.")
-                        return True
-                    else:
-                        logger.debug(f"Home Assistant state: {state}")
-                else:
-                    logger.debug(f"API Ping failed: {resp.status}")
-        except Exception as e:
-            logger.debug(f"Connection failed: {e}")
+                    logger.info("✅ Home Assistant is back online.")
+                    # Wait a little longer for components to initialize
+                    await asyncio.sleep(15)
+                    return True
+        except (aiohttp.ClientError, asyncio.TimeoutError):
+            pass
 
-        await asyncio.sleep(10)
-        logger.info(f"Waiting... ({i + 1}/30)")
+        if i % 3 == 0:
+            logger.info(f"  Still waiting... ({i*retry_interval}s)")
+        await asyncio.sleep(retry_interval)
 
     logger.error("Timed out waiting for Home Assistant to restart.")
     return False
 
 
-async def restart_and_wait(session: aiohttp.ClientSession) -> bool:
-    """Restart Home Assistant and wait for it to come back online."""
-    logger.info("Restarting Home Assistant...")
+async def restart_homeassistant(session: aiohttp.ClientSession) -> bool:
+    """Restart Home Assistant and wait for it to be ready."""
     if not await _send_restart_command(session):
         return False
-    return await _poll_for_running_state(session)
+
+    return await _wait_for_restart(session)
 
 
 async def _check_api_connection(session: aiohttp.ClientSession) -> bool:
-    """Check user permissions and API connection."""
-    async with session.get(f"{HA_URL}/api/") as resp:
-        if resp.status == 200:
-            msg = await resp.json()
-            logger.info(f"✅ API Connection OK. Message: {msg.get('message')}")
-            return True
-        logger.error(
-            f"❌ API Connection Failed: {resp.status} "
-            "(Check HA_STAGING_TOKEN permissions)"
-        )
+    """Check if the Home Assistant REST API is accessible."""
+    try:
+        async with session.get(f"{HA_URL}/api/") as resp:
+            if resp.status == 200:
+                data = await resp.json()
+                if data.get("message") == "API running.":
+                    return True
+            logger.error(f"API Check Failed: {resp.status} - {await resp.text()}")
+            return False
+    except Exception as e:
+        logger.error(f"Failed to connect to Home Assistant at {HA_URL}: {e}")
         return False
+
+
+def _verify_components(components: set[str]) -> bool:
+    """Verify required components are loaded."""
+    if "config" in components:
+        logger.info("✅ 'config' component is LOADED.")
+        return True
+
+    logger.error("🚨 'config' component is MISSING! (This is why WebSocket fails)")
+    logger.debug(f"Loaded components: {sorted(components)}")
+    return False
+
+
+def _verify_safe_mode(safe_mode: bool) -> bool:
+    """Verify safe mode is not enabled."""
+    if safe_mode:
+        logger.error("🚨 SAFE MODE IS ENABLED! (Commands are disabled)")
+        return False
+
+    logger.info("✅ Safe Mode is OFF.")
+    return True
 
 
 async def _check_components_and_safe_mode(
     session: aiohttp.ClientSession,
 ) -> bool:
-    """Check loaded components and safe mode state."""
-    async with session.get(f"{HA_URL}/api/config") as resp:
-        if resp.status != 200:
-            logger.error(f"❌ Failed to fetch config: {resp.status}")
-            return False
+    """Check if safe mode is enabled or critical components are missing."""
+    url = f"{HA_URL}/api/config"
+    try:
+        async with session.get(url) as resp:
+            if resp.status != 200:
+                logger.error(f"Failed to fetch config: {resp.status}")
+                return False
 
-        data = await resp.json()
-        components = set(data.get("components", []))
+            data = await resp.json()
 
-        if "config" in components:
-            logger.info("✅ 'config' component is LOADED.")
-        else:
-            logger.error(
-                "🚨 'config' component is MISSING! (This is why WebSocket fails)"
-            )
-            logger.debug(f"Loaded components: {sorted(components)}")
+            components_ok = _verify_components(set(data.get("components", [])))
+            safe_mode_ok = _verify_safe_mode(data.get("safe_mode", False))
 
-        safe_mode = data.get("safe_mode", False)
-        if safe_mode:
-            logger.error("🚨 SAFE MODE IS ENABLED! (Commands are disabled)")
-        else:
-            logger.info("✅ Safe Mode is OFF.")
+            if not components_ok or not safe_mode_ok:
+                await dump_error_log(session)
+                return False
 
-        if "config" not in components or safe_mode:
-            await dump_error_log(session)
-            return False
-
-        return True
-
-
-async def diagnose_server_state(session: aiohttp.ClientSession) -> bool:
-    """Diagnose server state.
-
-    Perform deep diagnostics to check permissions, components,
-    and safe mode. Replaces the simple 'check_loaded_components'.
-    """
-    logger.info("--- DIAGNOSTIC CHECK ---")
-
-    if not await _check_api_connection(session):
+            return True
+    except Exception as e:
+        logger.error(f"Failed to fetch config components: {e}")
         return False
 
-    if not await _check_components_and_safe_mode(session):
-        return False
 
-    logger.info("------------------------")
-    return True
+async def _start_config_flow(session: aiohttp.ClientSession) -> dict[str, Any] | None:
+    """Initiate the configuration flow for meraki_ha."""
+    flow_url = f"{HA_URL}/api/config/config_entries/flow"
+    payload = {"handler": "meraki_ha", "show_advanced_options": True}
 
-
-async def _start_config_flow(
-    session: aiohttp.ClientSession,
-) -> dict[str, Any] | None:
-    """Start the configuration flow."""
-    start_url = f"{HA_URL}/api/config/config_entries/flow"
-    start_payload = {"handler": "meraki_ha"}
-    logger.info(f"POST {start_url} with payload: {start_payload}")
-
-    async with session.post(start_url, json=start_payload) as resp:
-        if resp.status != 200:
+    logger.info("Initiating config flow for meraki_ha...")
+    async with session.post(flow_url, json=payload) as resp:
+        if resp.status != 201:
             logger.error(f"Failed to start config flow: {resp.status}")
-            logger.error(await resp.text())
+            logger.debug(await resp.text())
             return None
         return await resp.json()  # type: ignore
+
+
+def _build_form_payload(step_id: str, current_step: dict[str, Any]) -> dict[str, Any]:
+    """Build the payload for submitting a form step."""
+    payload: dict[str, Any] = {}
+    if step_id == "user":
+        payload = {
+            "api_key": MERAKI_API_KEY,
+            "org_id": MERAKI_ORG_ID,
+        }
+    else:
+        # Generic handler for other steps - just take defaults
+        for field in current_step.get("data_schema", []):
+            if "default" in field:
+                payload[field["name"]] = field["default"]
+            else:
+                logger.warning(
+                    f"Required field '{field['name']}' has no default value."
+                )
+    return payload
 
 
 async def _handle_form_step(
@@ -236,29 +240,58 @@ async def _handle_form_step(
     step_id = current_step.get("step_id")
     logger.info(f"ℹ️ Received form step: {step_id}")
 
-    payload: dict[str, Any] = {}
-    if step_id == "user":
-        payload = {
-            "meraki_api_key": MERAKI_API_KEY,
-            "meraki_org_id": MERAKI_ORG_ID,
-        }
-    else:
-        for field in current_step.get("data_schema", []):
-            if "default" in field:
-                payload[field["name"]] = field["default"]
-            elif field.get("required"):
-                logger.warning(
-                    f"Required field '{field['name']}' has no default value."
-                )
+    payload = _build_form_payload(step_id, current_step)
 
     submit_url = f"{HA_URL}/api/config/config_entries/flow/{flow_id}"
     logger.info(f"POST {submit_url} for step {step_id} with payload: {payload}")
     async with session.post(submit_url, json=payload) as resp:
         if resp.status != 200:
             logger.error(f"Failed to submit step {step_id}: {resp.status}")
-            logger.error(await resp.text())
+            logger.debug(await resp.text())
             return None
         return await resp.json()  # type: ignore
+
+
+async def _handle_step_abort(current_step: dict[str, Any]) -> bool:
+    """Handle an aborted step in the configuration flow."""
+    reason = current_step.get("reason")
+    if reason == "already_configured":
+        logger.info("Integration is already configured.")
+        return True
+    logger.error(f"Flow aborted: {current_step}")
+    return False
+
+
+async def _handle_step_form(
+    session: aiohttp.ClientSession, current_step: dict[str, Any], flow_id: str
+) -> dict[str, Any] | None:
+    """Handle a form step and return the next step, or None if failed."""
+    next_step = await _handle_form_step(session, current_step, flow_id)
+    if next_step is None:
+        return None
+    return next_step
+
+
+async def _process_single_flow_step(
+    session: aiohttp.ClientSession, current_step: dict[str, Any], flow_id: str
+) -> tuple[bool, bool, dict[str, Any] | None]:
+    """Process a single step and return (is_done, success_status, next_step)."""
+    step_type = current_step.get("type")
+
+    if step_type == "create_entry":
+        logger.info("SUCCESS: Integration re-added via REST API.")
+        return True, True, None
+    if step_type == "abort":
+        return True, await _handle_step_abort(current_step), None
+    if step_type == "form":
+        next_step = await _handle_step_form(session, current_step, flow_id)
+        if next_step is None:
+            return True, False, None
+        return False, False, next_step
+
+    logger.error(f"FAILED: Unexpected response type: {step_type}")
+    logger.debug(f"Response: {current_step}")
+    return True, False, None
 
 
 async def _process_flow_steps(
@@ -267,66 +300,70 @@ async def _process_flow_steps(
     """Process the steps of the configuration flow."""
     current_step = initial_step
     while True:
-        step_type = current_step.get("type")
-
-        if step_type == "create_entry":
-            logger.info("SUCCESS: Integration re-added via REST API.")
-            return True
-
-        if step_type == "abort":
-            reason = current_step.get("reason")
-            if reason == "already_configured":
-                logger.info("Integration is already configured.")
-                return True
-            logger.error(f"Flow aborted: {current_step}")
-            return False
-
-        if step_type == "form":
-            next_step = await _handle_form_step(session, current_step, flow_id)
-            if next_step is None:
-                return False
+        is_done, success, next_step = await _process_single_flow_step(
+            session, current_step, flow_id
+        )
+        if is_done:
+            return success
+        if next_step is not None:
             current_step = next_step
-            continue
-
-        logger.error(f"FAILED: Unexpected response type: {step_type}")
-        logger.debug(f"Response: {current_step}")
-        return False
 
 
 async def add_integration(session: aiohttp.ClientSession) -> bool:
-    """Add the Meraki HA integration via HTTP REST API."""
-    logger.info("--- Starting REST API Config Flow ---")
-
-    current_step = await _start_config_flow(session)
-    if current_step is None:
+    """Re-add the Meraki integration using the config flow."""
+    flow_data = await _start_config_flow(session)
+    if not flow_data:
         return False
 
-    flow_id = current_step.get("flow_id")
+    flow_id = flow_data.get("flow_id")
     if not flow_id:
-        logger.error(f"Could not find flow_id in response: {current_step}")
+        logger.error("No flow_id returned from initial step.")
         return False
-    logger.info(f"Config flow started. flow_id: {flow_id}")
 
-    return await _process_flow_steps(session, current_step, flow_id)
+    return await _process_flow_steps(session, flow_data, flow_id)
 
 
 async def main() -> None:
-    """
-    Remove existing Meraki entries, restart Home Assistant,
-    verify server state, and re-add integration.
-    """  # noqa: D205
-    async with aiohttp.ClientSession(headers=HEADERS) as session:
-        # --- Stop Delete Existing Entries ---
-        if not await delete_existing_entries(session):
-            sys.exit(1)
-        if not await restart_and_wait(session):
-            sys.exit(1)
-        # Added Diagnostic Step:
-        if not await diagnose_server_state(session):
+    """Run the reset sequence."""
+    if not HA_TOKEN or not MERAKI_API_KEY or not MERAKI_ORG_ID:
+        logger.error(
+            "Missing environment variables: HA_TOKEN, MERAKI_API_KEY, or MERAKI_ORG_ID"
+        )
+        sys.exit(1)
+
+    headers = {
+        "Authorization": f"Bearer {HA_TOKEN}",
+        "Content-Type": "application/json",
+    }
+
+    async with aiohttp.ClientSession(headers=headers) as session:
+        # Step 1: Verification
+        logger.info("--- Step 1: Pre-Reset Verification ---")
+        if not await _check_api_connection(session):
             sys.exit(1)
 
-        if not await add_integration(session):
+        if not await _check_components_and_safe_mode(session):
+            logger.warning("Continuing despite verification warnings...")
+
+        # Step 2: Delete
+        logger.info("--- Step 2: Delete Existing Entry ---")
+        if not await delete_existing_entries(session):
+            logger.error("Failed to delete existing entries.")
             sys.exit(1)
+
+        # Step 3: Restart
+        logger.info("--- Step 3: Restart Home Assistant ---")
+        if not await restart_homeassistant(session):
+            sys.exit(1)
+
+        # Step 4: Add
+        logger.info("--- Step 4: Add Integration ---")
+        if not await add_integration(session):
+            logger.error("Failed to re-add integration.")
+            await dump_error_log(session)
+            sys.exit(1)
+
+        logger.info("✨ Meraki HA Reset Sequence Complete!")
 
 
 if __name__ == "__main__":
