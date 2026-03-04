@@ -118,7 +118,13 @@ class UplinkPerformanceProvider:
             perf_metrics = [
                 ("latency", "latency", UnitOfTime.MILLISECONDS, SensorDeviceClass.DURATION, "mdi:timer-outline"),
                 ("lossPercent", "packet_loss", PERCENTAGE, None, "mdi:packet-loss"),
-                ("jitter", "jitter", UnitOfTime.MILLISECONDS, SensorDeviceClass.DURATION, "mdi:pulse"),
+                (
+                    "jitter",
+                    "jitter",
+                    UnitOfTime.MILLISECONDS,
+                    SensorDeviceClass.DURATION,
+                    "mdi:pulse",
+                ),
             ]
 
             for attr, key_suffix, unit, dev_class, icon in perf_metrics:

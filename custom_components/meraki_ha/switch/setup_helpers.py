@@ -47,9 +47,7 @@ def async_setup_switches(
     )
     setup_vpn_switches(config_entry, coordinator, added_entities, async_add_entities)
     setup_ssid_switches(config_entry, coordinator, added_entities, async_add_entities)
-    setup_camera_switches(
-        config_entry, coordinator, added_entities, async_add_entities
-    )
+    setup_camera_switches(config_entry, coordinator, added_entities, async_add_entities)
     setup_mt40_switches(
         config_entry,
         coordinator,

@@ -1,6 +1,6 @@
 """Tests for the Meraki Device Status Sensor."""
 
-from typing import Callable, Dict, List, Optional
+from collections.abc import Callable
 from unittest.mock import MagicMock
 
 import pytest
@@ -50,16 +50,16 @@ def mock_device_coordinator() -> MagicMock:
         ],
     )
 
-    coordinator.data: Dict[str, List[MerakiDevice]] = {"devices": [device1, device2]}
+    coordinator.data: dict[str, list[MerakiDevice]] = {"devices": [device1, device2]}
 
     # Setup get_device return values
-    def get_device(serial: str) -> Optional[MerakiDevice]:
+    def get_device(serial: str) -> MerakiDevice | None:
         for d in coordinator.data["devices"]:
             if d.serial == serial:
                 return d
         return None
 
-    coordinator.get_device.side_effect: Callable[[str], Optional[MerakiDevice]] = (
+    coordinator.get_device.side_effect: Callable[[str], MerakiDevice | None] = (
         get_device
     )
     coordinator.last_update_success = True

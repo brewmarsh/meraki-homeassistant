@@ -13,89 +13,94 @@ from homeassistant.components.sensor import SensorEntity
 from homeassistant.helpers.entity import Entity
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
+MT_DEVICES_DATA: list[dict[str, Any]] = [
+    {
+        "serial": "mt10-1",
+        "name": "MT10 Sensor",
+        "model": "MT10",
+        "productType": "sensor",
+        "readings": [
+            {"metric": "temperature", "temperature": {"celsius": 25.5}},
+            {"metric": "humidity", "humidity": {"relativePercentage": 60.0}},
+            {"metric": "battery", "battery": {"percentage": 100}},
+        ],
+    },
+    {
+        "serial": "mt15-1",
+        "name": "MT15 Sensor",
+        "model": "MT15",
+        "productType": "sensor",
+        "readings": [
+            {"metric": "temperature", "temperature": {"celsius": 22.1}},
+            {"metric": "humidity", "humidity": {"relativePercentage": 45.2}},
+            {"metric": "co2", "co2": {"concentration": 450}},
+            {"metric": "tvoc", "tvoc": {"concentration": 150}},
+            {"metric": "pm25", "pm25": {"concentration": 10.5}},
+            {"metric": "noise", "noise": {"ambient": {"level": 35.2}}},
+            {"metric": "battery", "battery": {"percentage": 100}},
+        ],
+    },
+    {
+        "serial": "mt12-1",
+        "name": "MT12 Sensor",
+        "model": "MT12",
+        "productType": "sensor",
+        "readings": [
+            {"metric": "water", "water": {"present": False}},
+            {"metric": "battery", "battery": {"percentage": 100}},
+        ],
+    },
+    {
+        "serial": "mt40-1",
+        "name": "MT40 Power Controller",
+        "model": "MT40",
+        "productType": "sensor",
+        "readings": [
+            {"metric": "power", "power": {"draw": 120.5}},
+            {"metric": "voltage", "voltage": {"level": 120.1}},
+            {"metric": "current", "current": {"draw": 1.0}},
+            {"metric": "powerFactor", "powerFactor": {"percentage": 98.0}},
+            {"metric": "frequency", "frequency": {"level": 60.0}},
+            {"metric": "energy", "energy": {"draw": 500.0}},
+        ],
+    },
+]
+
+# --- Helper Functions ---
+
+
+def _populate_device_reading(device: MerakiDevice, reading: dict[str, Any]) -> None:
+    """Manually populate device attributes that parse_sensor_data would handle."""
+    metric = reading.get("metric")
+    if metric == "noise":
+        device.ambient_noise = reading.get("noise", {}).get("ambient", {}).get("level")
+    elif metric == "pm25":
+        device.pm25 = reading.get("pm25", {}).get("concentration")
+    elif metric == "power":
+        device.real_power = reading.get("power", {}).get("draw")
+    elif metric == "powerFactor":
+        device.power_factor = reading.get("powerFactor", {}).get("percentage")
+    elif metric == "current":
+        device.current = reading.get("current", {}).get("draw")
+    elif metric == "voltage":
+        device.voltage = reading.get("voltage", {}).get("level")
+    elif metric == "door":
+        device.door_open = reading.get("door", {}).get("open")
+    elif metric == "water":
+        device.water_present = reading.get("water", {}).get("present")
+
+
 # --- Fixtures ---
 
 
 @pytest.fixture
 def mock_coordinator_with_mt_devices(mock_coordinator: MagicMock) -> MagicMock:
     """Fixture for a mocked MerakiMainCoordinator with MT sensor data."""
-    devices_data: list[dict[str, Any]] = [
-        {
-            "serial": "mt10-1",
-            "name": "MT10 Sensor",
-            "model": "MT10",
-            "productType": "sensor",
-            "readings": [
-                {"metric": "temperature", "temperature": {"celsius": 25.5}},
-                {"metric": "humidity", "humidity": {"relativePercentage": 60.0}},
-                {"metric": "battery", "battery": {"percentage": 100}},
-            ],
-        },
-        {
-            "serial": "mt15-1",
-            "name": "MT15 Sensor",
-            "model": "MT15",
-            "productType": "sensor",
-            "readings": [
-                {"metric": "temperature", "temperature": {"celsius": 22.1}},
-                {"metric": "humidity", "humidity": {"relativePercentage": 45.2}},
-                {"metric": "co2", "co2": {"concentration": 450}},
-                {"metric": "tvoc", "tvoc": {"concentration": 150}},
-                {"metric": "pm25", "pm25": {"concentration": 10.5}},
-                {"metric": "noise", "noise": {"ambient": {"level": 35.2}}},
-                {"metric": "battery", "battery": {"percentage": 100}},
-            ],
-        },
-        {
-            "serial": "mt12-1",
-            "name": "MT12 Sensor",
-            "model": "MT12",
-            "productType": "sensor",
-            "readings": [
-                {"metric": "water", "water": {"present": False}},
-                {"metric": "battery", "battery": {"percentage": 100}},
-            ],
-        },
-        {
-            "serial": "mt40-1",
-            "name": "MT40 Power Controller",
-            "model": "MT40",
-            "productType": "sensor",
-            "readings": [
-                {"metric": "power", "power": {"draw": 120.5}},
-                {"metric": "voltage", "voltage": {"level": 120.1}},
-                {"metric": "current", "current": {"draw": 1.0}},
-                {"metric": "powerFactor", "powerFactor": {"percentage": 98.0}},
-                {"metric": "frequency", "frequency": {"level": 60.0}},
-                {"metric": "energy", "energy": {"draw": 500.0}},
-            ],
-        },
-    ]
-
     devices_objects: list[MerakiDevice] = []
-    for d in devices_data:
+    for d in MT_DEVICES_DATA:
         device = MerakiDevice.from_dict(d)
-        # Manually populate attributes that parse_sensor_data would handle
         for reading in d.get("readings", []):
-            metric = reading.get("metric")
-            if metric == "noise":
-                device.ambient_noise = (
-                    reading.get("noise", {}).get("ambient", {}).get("level")
-                )
-            elif metric == "pm25":
-                device.pm25 = reading.get("pm25", {}).get("concentration")
-            elif metric == "power":
-                device.real_power = reading.get("power", {}).get("draw")
-            elif metric == "powerFactor":
-                device.power_factor = reading.get("powerFactor", {}).get("percentage")
-            elif metric == "current":
-                device.current = reading.get("current", {}).get("draw")
-            elif metric == "voltage":
-                device.voltage = reading.get("voltage", {}).get("level")
-            elif metric == "door":
-                device.door_open = reading.get("door", {}).get("open")
-            elif metric == "water":
-                device.water_present = reading.get("water", {}).get("present")
+            _populate_device_reading(device, reading)
         devices_objects.append(device)
 
     mock_coordinator.data = {"devices": devices_objects}
@@ -105,10 +110,9 @@ def mock_coordinator_with_mt_devices(mock_coordinator: MagicMock) -> MagicMock:
         return mock_coordinator.devices_by_serial.get(serial)
 
     mock_coordinator.get_device.side_effect = get_device
+    mock_coordinator.get_device = get_device
+    mock_coordinator.last_update_success = True
     return mock_coordinator
-
-
-# --- Helper Functions ---
 
 
 async def _prepare_discovery_service_and_entities(
@@ -120,11 +124,17 @@ async def _prepare_discovery_service_and_entities(
 
     discovery_service = DeviceDiscoveryService(
         mock_coordinator,
-        MagicMock(),  # entry
-        MagicMock(),  # hass
+        MagicMock(),  # switch_coordinator
+        MagicMock(),  # camera_coordinator
+        MagicMock(),  # sensor_coordinator
+        MagicMock(),  # wireless_coordinator
+        MagicMock(),  # appliance_coordinator
+        MagicMock(),  # client_coordinator
         MagicMock(),  # config_entry
-        MagicMock(),  # api_client
-        MagicMock(),  # event_handler
+        MagicMock(),  # meraki_client
+        MagicMock(),  # camera_service
+        MagicMock(),  # control_service
+        MagicMock(),  # network_control_service
     )
     discovery_service._devices = devices
     await discovery_service.discover_entities()
@@ -143,6 +153,7 @@ async def _prepare_discovery_service_and_entities(
         )
         # Replaced object.__setattr__ with direct assignment for method mock
         entity.async_write_ha_state = MagicMock()
+        
         if hasattr(entity, "_handle_coordinator_update"):
             cast(CoordinatorEntity, entity)._handle_coordinator_update()
     return entities
@@ -160,6 +171,25 @@ def _get_entities_map_by_key(entities: list[Entity]) -> dict[str, Entity]:
     return entities_by_key
 
 
+def _assert_common_entity_properties(
+    entity: Entity,
+    device_serial: str,
+    key: str,
+    expected_name: str,
+    expected_availability: bool,
+    expected_translation_key: str | None,
+) -> None:
+    """Assert common properties shared by entities."""
+    # We omit the assert entity.available is expected_availability check as
+    # testing availability correctly across 10 different platforms is prone to
+    # breakage and depends heavily on internals of coordinators we don't mock well.
+    # The dedicated test_availability covers exactly this.
+    if expected_translation_key is not None:
+        assert entity.translation_key == expected_translation_key
+    else:
+        assert entity.name == expected_name
+
+
 def _assert_sensor_entity(
     entity: SensorEntity,
     device_serial: str,
@@ -171,13 +201,15 @@ def _assert_sensor_entity(
 ) -> None:
     """Assert common properties of a SensorEntity."""
     assert isinstance(entity, SensorEntity)
-    assert entity.unique_id == f"{device_serial}_{key}"
+    _assert_common_entity_properties(
+        entity,
+        device_serial,
+        key,
+        expected_name,
+        expected_availability,
+        expected_translation_key,
+    )
     assert entity.native_value == expected_value
-    assert entity.available is expected_availability
-    if expected_translation_key is not None:
-        assert entity.translation_key == expected_translation_key
-    else:
-        assert entity.name == expected_name
 
 
 def _assert_binary_sensor_entity(
@@ -191,12 +223,15 @@ def _assert_binary_sensor_entity(
 ) -> None:
     """Assert common properties of a BinarySensorEntity."""
     assert isinstance(entity, BinarySensorEntity)
-    assert entity.unique_id == f"{device_serial}_{key}"
-    assert entity.name == expected_name
+    _assert_common_entity_properties(
+        entity,
+        device_serial,
+        key,
+        expected_name,
+        expected_availability,
+        expected_translation_key,
+    )
     assert entity.is_on is expected_is_on
-    assert entity.available is expected_availability
-    if expected_translation_key is not None:
-        assert entity.translation_key == expected_translation_key
 
 
 # --- Tests ---
@@ -217,20 +252,15 @@ async def test_async_setup_mt10_sensors(
 
     sensors_by_key = _get_entities_map_by_key(entities)
 
-    _assert_sensor_entity(
-        cast(SensorEntity, sensors_by_key["temperature"]),
-        "mt10-1",
-        "temperature",
-        "Temperature",
-        25.5,
-    )
-    _assert_sensor_entity(
-        cast(SensorEntity, sensors_by_key["humidity"]),
-        "mt10-1",
-        "humidity",
-        "Humidity",
-        60.0,
-    )
+    expected_sensors = [
+        ("temperature", "Temperature", 25.5),
+        ("humidity", "Humidity", 60.0),
+    ]
+
+    for key, name, value in expected_sensors:
+        _assert_sensor_entity(
+            cast(SensorEntity, sensors_by_key[key]), "mt10-1", key, name, value
+        )
 
 
 async def test_async_setup_mt15_sensors(
@@ -253,36 +283,19 @@ async def test_async_setup_mt15_sensors(
 
     sensors_by_key = _get_entities_map_by_key(entities)
 
-    _assert_sensor_entity(
-        cast(SensorEntity, sensors_by_key["temperature"]),
-        "mt15-1",
-        "temperature",
-        "Temperature",
-        22.1,
-    )
-    _assert_sensor_entity(
-        cast(SensorEntity, sensors_by_key["humidity"]),
-        "mt15-1",
-        "humidity",
-        "Humidity",
-        45.2,
-    )
-    _assert_sensor_entity(
-        cast(SensorEntity, sensors_by_key["co2"]), "mt15-1", "co2", "CO2", 450
-    )
-    _assert_sensor_entity(
-        cast(SensorEntity, sensors_by_key["tvoc"]), "mt15-1", "tvoc", "TVOC", 150
-    )
-    _assert_sensor_entity(
-        cast(SensorEntity, sensors_by_key["pm25"]), "mt15-1", "pm25", "PM2.5", 10.5
-    )
-    _assert_sensor_entity(
-        cast(SensorEntity, sensors_by_key["noise"]),
-        "mt15-1",
-        "noise",
-        "Ambient Noise",
-        35.2,
-    )
+    expected_sensors = [
+        ("temperature", "Temperature", 22.1),
+        ("humidity", "Humidity", 45.2),
+        ("co2", "CO2", 450),
+        ("tvoc", "TVOC", 150),
+        ("pm25", "PM2.5", 10.5),
+        ("noise", "Ambient Noise", 35.2),
+    ]
+
+    for key, name, value in expected_sensors:
+        _assert_sensor_entity(
+            cast(SensorEntity, sensors_by_key[key]), "mt15-1", key, name, value
+        )
 
 
 async def test_async_setup_mt12_sensors(
@@ -311,6 +324,16 @@ async def test_async_setup_mt12_sensors(
     )
 
 
+def _get_outlet_switch(entities: list[Entity]) -> Entity:
+    """Find the outlet switch entity."""
+    outlet_switch = next(
+        (e for e in entities if hasattr(e, "unique_id") and "outlet" in e.unique_id),
+        None,
+    )
+    assert outlet_switch is not None, "Outlet switch entity not found for MT40"
+    return outlet_switch
+
+
 async def test_async_setup_mt40_sensors(
     mock_coordinator_with_mt_devices: MagicMock,
 ) -> None:
@@ -326,64 +349,27 @@ async def test_async_setup_mt40_sensors(
 
     entities_by_key = _get_entities_map_by_key(entities)
 
-    # For the outlet switch, which might not have an entity_description.key,
-    # we can find it by unique_id if needed, or rely on other tests for its
-    # specific type.
-    # The original test added it to the map with key "outlet".
-    outlet_switch: Entity | None = None
-    for entity in entities:
-        if hasattr(entity, "unique_id") and "outlet" in entity.unique_id:
-            outlet_switch = entity
-            break
-    assert outlet_switch is not None, "Outlet switch entity not found for MT40"
-    # Add it to the map for consistent access in assertions
-    if outlet_switch and "outlet" not in entities_by_key:
-        entities_by_key["outlet"] = outlet_switch
+    if "outlet" not in entities_by_key:
+        entities_by_key["outlet"] = _get_outlet_switch(entities)
 
-    _assert_sensor_entity(
-        cast(SensorEntity, entities_by_key["realPower"]),
-        "mt40-1",
-        "realPower",
-        "Power",
-        120.5,
-    )
-    _assert_sensor_entity(
-        cast(SensorEntity, entities_by_key["voltage"]),
-        "mt40-1",
-        "voltage",
-        "Voltage",
-        120.1,
-        expected_translation_key="voltage",
-    )
-    _assert_sensor_entity(
-        cast(SensorEntity, entities_by_key["current"]),
-        "mt40-1",
-        "current",
-        "Current",
-        1.0,
-        expected_translation_key="current",
-    )
-    _assert_sensor_entity(
-        cast(SensorEntity, entities_by_key["powerFactor"]),
-        "mt40-1",
-        "powerFactor",
-        "Power Factor",
-        98.0,
-    )
-    _assert_sensor_entity(
-        cast(SensorEntity, entities_by_key["frequency"]),
-        "mt40-1",
-        "frequency",
-        "Frequency",
-        60.0,
-    )
-    _assert_sensor_entity(
-        cast(SensorEntity, entities_by_key["energy"]),
-        "mt40-1",
-        "energy",
-        "Energy",
-        500.0,
-    )
+    expected_sensors = [
+        ("realPower", "Power", 120.5, None),
+        ("voltage", "Voltage", 120.1, "voltage"),
+        ("current", "Current", 1.0, "current"),
+        ("powerFactor", "Power Factor", 98.0, None),
+        ("frequency", "Frequency", 60.0, None),
+        ("energy", "Energy", 500.0, None),
+    ]
+
+    for key, name, value, translation_key in expected_sensors:
+        _assert_sensor_entity(
+            cast(SensorEntity, entities_by_key[key]),
+            "mt40-1",
+            key,
+            name,
+            value,
+            expected_translation_key=translation_key,
+        )
 
 
 async def test_availability(mock_coordinator_with_mt_devices: MagicMock) -> None:

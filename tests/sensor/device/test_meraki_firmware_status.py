@@ -1,6 +1,5 @@
 """Tests for the Meraki device firmware status sensor."""
 
-from typing import List, Optional
 from unittest.mock import MagicMock
 
 import pytest
@@ -54,7 +53,7 @@ def mock_device_coordinator() -> MagicMock:
     # Mimic the coordinator's data structure
     coordinator.data = {"devices": [device1, device2]}
 
-    def get_device_side_effect(serial: str) -> Optional[MerakiDevice]:
+    def get_device_side_effect(serial: str) -> MerakiDevice | None:
         """Side effect function for coordinator.get_device to simulate lookup."""
         devices: List[MerakiDevice] = coordinator.data["devices"]
         for d in devices:

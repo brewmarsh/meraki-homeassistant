@@ -35,6 +35,7 @@ def test_get_active_vlans_with_dicts():
     assert active[1]["id"] == "3"
     assert active[0]["applianceIp"] == "192.168.1.1"
 
+
 def test_get_active_vlans_with_objects():
     """Test get_active_vlans with MerakiVlan objects."""
     vlan1 = MerakiVlan(
@@ -50,9 +51,7 @@ def test_get_active_vlans_with_objects():
         appliance_ip="10.0.20.1",
     )
 
-    network_data = {
-        "vlans": [vlan1, vlan2]
-    }
+    network_data = {"vlans": [vlan1, vlan2]}
 
     # This should handle objects and assume they are active
     active = get_active_vlans(network_data)

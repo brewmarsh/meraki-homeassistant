@@ -5,8 +5,6 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING, Any
 
-import voluptuous as vol
-
 from homeassistant import config_entries
 from homeassistant.config_entries import ConfigFlowResult
 from homeassistant.core import callback
@@ -69,7 +67,9 @@ class MerakiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignor
         if user_input is not None:
             from .helpers.flow_utils import validate_credentials
 
-            errors, validation_result = await validate_credentials(self.hass, user_input)
+            errors, validation_result = await validate_credentials(
+                self.hass, user_input
+            )
 
             if not errors and validation_result:
                 org_id = user_input[CONF_MERAKI_ORG_ID]

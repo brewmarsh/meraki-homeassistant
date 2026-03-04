@@ -48,7 +48,7 @@ async def test_get_uplink_performance_usage_history(strategy, mock_client):
         return_value=mock_data
     )
 
-    result = await strategy._get_uplink_performance("net1")
+    result = await strategy.uplink_helper.get_uplink_performance("net1")
 
     assert result == mock_data
     mock_client.dashboard.appliance.getNetworkApplianceUplinksUsageHistory.assert_called_once_with(
@@ -69,7 +69,7 @@ async def test_get_uplink_performance_fallback(strategy, mock_client):
         MagicMock(return_value=mock_data)
     )
 
-    result = await strategy._get_uplink_performance("net1")
+    result = await strategy.uplink_helper.get_uplink_performance("net1")
 
     assert result == mock_data
     mock_client.dashboard.appliance.getNetworkApplianceUplinksLossAndLatency.assert_called_once_with(
@@ -93,7 +93,7 @@ async def test_get_uplink_performance_legacy_fallback(strategy, mock_client):
         return_value=mock_data
     )
 
-    result = await strategy._get_uplink_performance("net1")
+    result = await strategy.uplink_helper.get_uplink_performance("net1")
 
     assert result == mock_data
     mock_client.dashboard.appliance.getNetworkApplianceUplinksPerformance.assert_called_once_with(

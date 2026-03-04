@@ -107,9 +107,7 @@ class SsidStatusCalculator:
 
         for device_info in devices:
             if not isinstance(device_info, dict):
-                _LOGGER.warning(
-                    "Skipping non-dictionary device item: %s", device_info
-                )
+                _LOGGER.warning("Skipping non-dictionary device item: %s", device_info)
                 continue
 
             if not cls._is_valid_ap(device_info):

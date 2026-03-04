@@ -24,6 +24,58 @@ interface EventLogResponse {
   events: MerakiEvent[];
 }
 
+/**
+ * Returns mock event data for localhost development.
+ */
+function getMockEvents(): MerakiEvent[] {
+  return [
+    {
+      occurredAt: new Date().toISOString(),
+      type: 'client_connect',
+      description: 'Client connected',
+      clientDescription: 'iPhone',
+    },
+    {
+      occurredAt: new Date(Date.now() - 3600000).toISOString(),
+      type: 'device_online',
+      description: 'Device came online',
+      deviceName: 'Living Room AP',
+    },
+  ];
+}
+
+/**
+ * Fetches network events from the Home Assistant WebSocket API.
+ */
+async function fetchNetworkEvents(
+  hass: any,
+  networkId: string,
+  configEntryId: string,
+  productTypes?: string[]
+): Promise<MerakiEvent[]> {
+  if (window.location.hostname === 'localhost') {
+    return getMockEvents();
+  }
+
+  if (!hass) {
+    throw new Error('Hass connection not available');
+  }
+
+  const resultData = await safeCallWS<EventLogResponse>(hass, {
+    type: WsCommand.GET_NETWORK_EVENTS,
+    config_entry_id: configEntryId,
+    network_id: networkId,
+    per_page: 10,
+    product_type: productTypes ? productTypes[0] : undefined, // Use first product type if available
+  });
+
+  if (resultData && Array.isArray(resultData.events)) {
+    return resultData.events;
+  }
+  
+  return [];
+}
+
 const EventLog: React.FC<EventLogProps> = ({
   hass,
   networkId,
@@ -36,60 +88,34 @@ const EventLog: React.FC<EventLogProps> = ({
   const socketRef = useRef<WebSocket | null>(null); // Keep WebSocket instance
 
   useEffect(() => {
-    const fetchEvents = async () => {
+    const loadEvents = async () => {
       if (!networkId) return;
 
       setLoading(true);
       setError(null);
 
       try {
-        if (window.location.hostname === 'localhost') {
-          // Mock Data for Localhost (No Backend)
-          setEvents([
-            {
-              occurredAt: new Date().toISOString(),
-              type: 'client_connect',
-              description: 'Client connected',
-              clientDescription: 'iPhone',
-            },
-            {
-              occurredAt: new Date(Date.now() - 3600000).toISOString(),
-              type: 'device_online',
-              description: 'Device came online',
-              deviceName: 'Living Room AP',
-            },
-          ]);
-          setLoading(false);
-          return;
-        }
-
-        if (!hass) {
-          throw new Error('Hass connection not available');
-        }
-
-        const resultData = await safeCallWS<EventLogResponse>(hass, {
-          type: WsCommand.GET_NETWORK_EVENTS,
-          config_entry_id: configEntryId,
-          network_id: networkId,
-          per_page: 10,
-          product_type: productTypes ? productTypes[0] : undefined, // Use first product type if available
-        });
-
-        if (resultData && Array.isArray(resultData.events)) {
-          setEvents(resultData.events);
-        } else {
-          setEvents([]);
-        }
+        const resultEvents = await fetchNetworkEvents(
+          hass,
+          networkId,
+          configEntryId,
+          productTypes
+        );
+        setEvents(resultEvents);
         setError(null);
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error('Error fetching Meraki events:', err);
-        setError(err.message || 'Failed to fetch events');
+        if (err instanceof Error) {
+          setError(err.message || 'Failed to fetch events');
+        } else {
+          setError(String(err) || 'Failed to fetch events');
+        }
       } finally {
         setLoading(false);
       }
     };
 
-    fetchEvents();
+    void loadEvents();
 
     // Cleanup WebSocket connection on unmount if it exists and is open
     return () => {

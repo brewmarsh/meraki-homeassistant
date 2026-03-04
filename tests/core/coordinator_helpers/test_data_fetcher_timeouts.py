@@ -10,6 +10,7 @@ from custom_components.meraki_ha.core.coordinator_helpers.data_fetcher import (
     DataFetchManager,
 )
 from custom_components.meraki_ha.core.models.network import MerakiNetwork
+from homeassistant.helpers.update_coordinator import UpdateFailed
 
 
 async def clean_exit_wait_for(coro, timeout=None):
@@ -101,7 +102,7 @@ async def test_get_all_data_client_timeout(data_fetch_manager, mock_client):
     MerakiNetwork(id="n1", product_types=["appliance"])
     data_fetch_manager._async_fetch_initial_data = AsyncMock(
         return_value={
-            "networks": [{"id": "n1", "productTypes": ["appliance"]}], # Raw data
+            "networks": [{"id": "n1", "productTypes": ["appliance"]}],  # Raw data
             "devices": [],
         }
     )
@@ -152,6 +153,4 @@ async def test_get_all_data_client_timeout(data_fetch_manager, mock_client):
                 await data_fetch_manager.get_all_data()
 
                 # Verify error was logged - message changed slightly in implementation
-                mock_log_error.assert_called_with(
-                    "Timeout during client data fetch"
-                )
+                mock_log_error.assert_called_with("Timeout during client data fetch")

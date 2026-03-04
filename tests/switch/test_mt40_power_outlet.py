@@ -1,6 +1,7 @@
 """Tests for the Meraki MT40 power outlet switch."""
 
-from typing import Any, Generator, List, Optional
+from collections.abc import Generator
+from typing import Any
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
@@ -38,9 +39,9 @@ def mock_coordinator_with_mt40_data(
 
     mock_coordinator.is_pending = MagicMock(return_value=False)
 
-    def _get_device(serial: str) -> Optional[MerakiDevice]:
+    def _get_device(serial: str) -> MerakiDevice | None:
         """Helper to simulate the coordinator's get_device method."""
-        devices: List[MerakiDevice] = mock_coordinator.data["devices"]
+        devices: list[MerakiDevice] = mock_coordinator.data["devices"]
         for d in devices:
             if d.serial == serial:
                 return d
