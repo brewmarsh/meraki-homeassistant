@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING, Any
 
 from homeassistant.helpers.update_coordinator import UpdateFailed
 
-from ...const_api import DEFAULT_CAPS
+from ..const import DEFAULT_CAPS
 from ...core.parsers.appliance import parse_appliance_data
 from ...core.parsers.devices import parse_device_data
 from ...core.parsers.network import parse_network_data
@@ -32,12 +32,6 @@ if TYPE_CHECKING:
     from ..models.device import MerakiDevice
 
 _LOGGER = logging.getLogger(__name__)
-
-# Shared cache for organization-wide data to prevent redundant API calls
-# between multiple domain-specific coordinators.
-_ORG_DATA_CACHE: dict[str, Any] = {}
-_ORG_DATA_CACHE_EXPIRY: datetime | None = None
-CACHE_TTL = timedelta(seconds=25)
 
 # Shared cache for organization-wide data to prevent redundant API calls
 # between multiple domain-specific coordinators.
