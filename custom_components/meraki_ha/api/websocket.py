@@ -4,8 +4,11 @@ from __future__ import annotations
 
 import logging
 from typing import Any, TYPE_CHECKING
+import voluptuous as vol
 
 from homeassistant.core import HomeAssistant, callback
+from homeassistant.components import websocket_api
+from homeassistant.loader import async_get_integration
 
 from ..const import (
     DOMAIN,
