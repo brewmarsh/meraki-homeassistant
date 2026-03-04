@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING, Any
 
 from meraki.exceptions import APIError
 
-from ...core.models.appliance import MerakiAppliancePort
+from ...core.models import MerakiAppliancePort
 
 if TYPE_CHECKING:
     from ...core.api.client import MerakiAPIClient
