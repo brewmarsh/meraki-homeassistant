@@ -43,9 +43,20 @@ CACHE_TTL = 30  # seconds
 class DataFetchManager:
     """Manager for fetching and distributing Meraki data."""
 
-    def __init__(self, client: MerakiAPIClient) -> None:
+    def __init__(
+        self,
+        client: MerakiAPIClient,
+        enable_vpn_management: bool = False,
+        enable_firewall_rules: bool = False,
+        enable_traffic_shaping: bool = False,
+        enable_camera_sense: bool = False,
+    ) -> None:
         """Initialize the data fetch manager."""
         self.client = client
+        self.enable_vpn_management = enable_vpn_management
+        self.enable_firewall_rules = enable_firewall_rules
+        self.enable_traffic_shaping = enable_traffic_shaping
+        self.enable_camera_sense = enable_camera_sense
         self._disabled_features: set[str] = set()
         self.client_fetcher = ClientFetcher(client)
 
@@ -53,13 +64,17 @@ class DataFetchManager:
         self.appliance_strategy = ApplianceFetchStrategy(
             client,
             self._disabled_features,
-            enable_vpn_management=True,
-            enable_firewall_rules=True,
-            enable_traffic_shaping=True,
+            enable_vpn_management=self.enable_vpn_management,
+            enable_firewall_rules=self.enable_firewall_rules,
+            enable_traffic_shaping=self.enable_traffic_shaping,
         )
         self.wireless_strategy = WirelessFetchStrategy(client, self._disabled_features)
         self.switch_strategy = SwitchFetchStrategy(client, self._disabled_features)
-        self.camera_strategy = CameraFetchStrategy(client, self._disabled_features)
+        self.camera_strategy = CameraFetchStrategy(
+            client,
+            self._disabled_features,
+            enable_camera_sense=self.enable_camera_sense,
+        )
         self.sensor_strategy = SensorFetchStrategy(client, self._disabled_features)
 
     async def _async_fetch_initial_data(self) -> dict[str, Any]:
@@ -91,19 +106,12 @@ class DataFetchManager:
                 self.client.organization.get_organization_switch_ports_statuses()
             ),
         }
-        data = await self._async_gather_with_timeout(tasks, label="Initial batch")
+        data = await async_gather_with_timeout(tasks, label="Initial batch")
 
         # Update cache
         _ORG_DATA_CACHE.clear()
         _ORG_DATA_CACHE.update(data)
         _ORG_DATA_CACHE_EXPIRY = current_time + CACHE_TTL
-
-        return data
-
-        # Update cache
-        _ORG_DATA_CACHE.clear()
-        _ORG_DATA_CACHE.update(data)
-        _ORG_DATA_CACHE_EXPIRY = datetime.now() + CACHE_TTL
 
         return data
 
@@ -156,8 +164,7 @@ class DataFetchManager:
     ) -> None:
         """Parse device statuses and switch ports into the device models."""
         statuses = batch_data.get("statuses") or []
-        switch_ports = batch_data.get("switch_ports") or []
-        parse_device_data(data["devices"], statuses, switch_ports)
+        parse_device_data(data["devices"], statuses)
 
     def _get_device_capabilities(self, model: str | None) -> list[str]:
         """Return hardcoded capabilities based on device model."""
@@ -219,7 +226,7 @@ class DataFetchManager:
             return
 
         tasks = {
-            f"clients_{n.id}": self.client_fetcher.async_fetch_network_clients(n.id)
+            f"clients_{n.id}": self.client_fetcher.async_fetch_network_clients([n])
             for n in networks
             if n.id
         }
@@ -227,7 +234,13 @@ class DataFetchManager:
             client_results = await async_gather_with_timeout(
                 tasks, timeout=30, label="Client batch"
             )
-            data["clients"] = self.client_fetcher.derive_device_clients(client_results)
+            all_clients: list[dict[str, Any]] = []
+            for result in client_results.values():
+                if isinstance(result, list):
+                    all_clients.extend(result)
+            data["clients"] = self.client_fetcher.derive_device_clients(
+                all_clients, data["devices"]
+            )
         except Exception:  # pylint: disable=broad-except
             _LOGGER.error("Timeout during client data fetch")
             data["clients"] = {}
@@ -250,33 +263,13 @@ class DataFetchManager:
 
         # Parse aggregate network data (VLANs, SSIDs, etc.)
         network_details = parse_network_data(
-            data["networks"],
             data,
+            data["networks"],
             current_data or {},
+            self._disabled_features,
         )
         data.update(network_details)
 
         # Parse appliance-specific data
-        appliance_details = parse_appliance_data(data["devices"], data, current_data)
-        data.update(appliance_details)
-
-    async def get_all_data(
-        self,
-        current_data: dict[str, Any] | None = None,
-        timespan: int = 300,
-    ) -> dict[str, Any]:
-        """Fetch all data from the Meraki API in a coordinated cycle."""
-        try:
-            async with asyncio.timeout(30):
-                data = await self._fetch_initial_org_data()
-
-                # Build and execute detail batch
-                await self._build_strategy_tasks(data)
-
-                # Merge and process all results
-                await self._merge_and_process_results(data, current_data)
-
-                return data
-        except TimeoutError:
-            _LOGGER.error("Meraki API took too long; check for semaphore deadlock")
-            raise UpdateFailed("API Timeout") from None
+        parse_appliance_data(data["devices"], data.get("statuses", []))
+        return data
