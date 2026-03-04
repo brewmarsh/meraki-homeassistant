@@ -1,18 +1,25 @@
 """Tests for the UpdateProcessor."""
 
 from unittest.mock import AsyncMock, MagicMock, patch
+
 import pytest
-from custom_components.meraki_ha.core.coordinator_helpers.update_processor import UpdateProcessor
+
+from custom_components.meraki_ha.core.coordinator_helpers.update_processor import (
+    UpdateProcessor,
+)
+
 
 @pytest.fixture
 def mock_hass():
     """Mock HomeAssistant."""
     return MagicMock()
 
+
 @pytest.fixture
 def mock_config_entry():
     """Mock ConfigEntry."""
     return MagicMock()
+
 
 @pytest.fixture
 def mock_polling_manager():
@@ -23,6 +30,7 @@ def mock_polling_manager():
     manager.get_success_rate.return_value = 100.0
     return manager
 
+
 @pytest.fixture
 def mock_config():
     """Mock CoordinatorConfig."""
@@ -30,11 +38,15 @@ def mock_config():
     config.ignored_networks = []
     return config
 
+
 @pytest.fixture
 def update_processor(mock_hass, mock_config_entry, mock_polling_manager, mock_config):
     """Fixture for UpdateProcessor."""
-    processor = UpdateProcessor(mock_hass, mock_config_entry, mock_polling_manager, mock_config)
+    processor = UpdateProcessor(
+        mock_hass, mock_config_entry, mock_polling_manager, mock_config
+    )
     return processor
+
 
 @pytest.mark.asyncio
 async def test_process_success_orchestration(update_processor):
@@ -45,23 +57,26 @@ async def test_process_success_orchestration(update_processor):
     processed_return = {
         "devices_by_serial": {"d": 1},
         "networks_by_id": {"n": 2},
-        "ssids_by_network_and_number": {"s": 3}
+        "ssids_by_network_and_number": {"s": 3},
     }
 
     # Setup the mock async_process to return our sample data
     update_processor.async_process = AsyncMock(return_value=processed_return)
 
-    with patch.object(update_processor, "_handle_interval_recovery", return_value=True) as mock_handle:
+    with patch.object(
+        update_processor, "_handle_interval_recovery", return_value=True
+    ) as mock_handle:
         result = await update_processor.process_success(data, current_data)
 
         # Verify orchestrator called its recovery helper
         mock_handle.assert_called_once()
-        
+
         # Verify orchestration delegated to async_process correctly
         update_processor.async_process.assert_awaited_once_with(data, current_data)
 
         # Verify the final unpacked result matches expectations
         assert result == ({"d": 1}, {"n": 2}, {"s": 3}, True)
+
 
 def test_handle_interval_recovery(update_processor, mock_polling_manager):
     """Test _handle_interval_recovery logic based on PollingManager feedback."""

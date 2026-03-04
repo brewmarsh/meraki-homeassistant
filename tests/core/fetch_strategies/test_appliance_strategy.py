@@ -54,10 +54,13 @@ def test_build_network_tasks_skips_disabled(strategy, disabled_features):
     tasks = {}
 
     # Patch async methods to avoid unawaited coroutine warnings
-    with patch.object(
-        strategy, "_async_get_appliance_ports", return_value=MagicMock()
-    ), patch.object(
-        strategy, "_get_uplink_performance", return_value=MagicMock()
+    with (
+        patch.object(
+            strategy.device_helper, "get_appliance_ports", return_value=MagicMock()
+        ),
+        patch.object(
+            strategy.uplink_helper, "get_uplink_performance", return_value=MagicMock()
+        ),
     ):
         strategy.build_network_tasks(network_id, tasks)
 
@@ -72,10 +75,13 @@ def test_build_network_tasks_includes_enabled(strategy, disabled_features):
     tasks = {}
 
     # Patch async methods to avoid unawaited coroutine warnings
-    with patch.object(
-        strategy, "_async_get_appliance_ports", return_value=MagicMock()
-    ), patch.object(
-        strategy, "_get_uplink_performance", return_value=MagicMock()
+    with (
+        patch.object(
+            strategy.device_helper, "get_appliance_ports", return_value=MagicMock()
+        ),
+        patch.object(
+            strategy.uplink_helper, "get_uplink_performance", return_value=MagicMock()
+        ),
     ):
         strategy.build_network_tasks(network_id, tasks)
 
@@ -101,10 +107,17 @@ def test_build_network_tasks_respects_feature_flags(mock_client, disabled_featur
     tasks = {}
 
     # Patch async methods to avoid unawaited coroutine warnings
-    with patch.object(
-        strategy_enabled, "_async_get_appliance_ports", return_value=MagicMock()
-    ), patch.object(
-        strategy_enabled, "_get_uplink_performance", return_value=MagicMock()
+    with (
+        patch.object(
+            strategy_enabled.device_helper,
+            "get_appliance_ports",
+            return_value=MagicMock(),
+        ),
+        patch.object(
+            strategy_enabled.uplink_helper,
+            "get_uplink_performance",
+            return_value=MagicMock(),
+        ),
     ):
         strategy_enabled.build_network_tasks(network_id, tasks)
 
@@ -123,10 +136,17 @@ def test_build_network_tasks_respects_feature_flags(mock_client, disabled_featur
     tasks = {}
 
     # Patch async methods to avoid unawaited coroutine warnings
-    with patch.object(
-        strategy_disabled, "_async_get_appliance_ports", return_value=MagicMock()
-    ), patch.object(
-        strategy_disabled, "_get_uplink_performance", return_value=MagicMock()
+    with (
+        patch.object(
+            strategy_disabled.device_helper,
+            "get_appliance_ports",
+            return_value=MagicMock(),
+        ),
+        patch.object(
+            strategy_disabled.uplink_helper,
+            "get_uplink_performance",
+            return_value=MagicMock(),
+        ),
     ):
         strategy_disabled.build_network_tasks(network_id, tasks)
 

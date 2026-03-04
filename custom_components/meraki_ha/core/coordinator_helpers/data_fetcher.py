@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
-from typing import TYPE_CHECKING, Any, cast
+from typing import TYPE_CHECKING, Any
 
 from homeassistant.helpers.update_coordinator import UpdateFailed
 
@@ -29,7 +29,6 @@ from .client_fetcher import ClientFetcher
 if TYPE_CHECKING:
     from ..api.client import MerakiAPIClient
     from ..models.device import MerakiDevice
-    from ..models.network import MerakiNetwork
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -238,8 +237,7 @@ class DataFetchManager:
         # Devices
         devices_raw = batch_data.get("devices") or []
         data["devices"] = [
-            MerakiDevice.from_dict(d) if isinstance(d, dict) else d
-            for d in devices_raw
+            MerakiDevice.from_dict(d) if isinstance(d, dict) else d for d in devices_raw
         ]
 
         # Statuses and initial parsing
@@ -282,17 +280,19 @@ class DataFetchManager:
 
         return list(DEFAULT_CAPS)
 
-    def _collect_network_tasks(self, data: dict[str, Any], tasks: dict[str, Any]) -> None:
+    def _collect_network_tasks(
+        self, data: dict[str, Any], tasks: dict[str, Any]
+    ) -> None:
         """Collect network-level strategy tasks."""
         from ..models.network import MerakiNetwork
 
         network_strategy_map = {
-            "appliance": lambda nid, pts, tks: self.appliance_strategy.build_network_tasks(
-                nid, tks
-            ),
-            "wireless": lambda nid, pts, tks: self.wireless_strategy.build_network_tasks(
-                nid, pts, tks
-            ),
+            "appliance": lambda nid,
+            pts,
+            tks: self.appliance_strategy.build_network_tasks(nid, tks),
+            "wireless": lambda nid,
+            pts,
+            tks: self.wireless_strategy.build_network_tasks(nid, pts, tks),
         }
         for network in data.get("networks", []):
             if not isinstance(network, MerakiNetwork) or not network.id:
@@ -302,7 +302,9 @@ class DataFetchManager:
                 if ptype in product_types:
                     build_func(network_id, product_types, tasks)
 
-    def _collect_device_tasks(self, data: dict[str, Any], tasks: dict[str, Any]) -> None:
+    def _collect_device_tasks(
+        self, data: dict[str, Any], tasks: dict[str, Any]
+    ) -> None:
         """Collect device-level strategy tasks."""
         from ..models.device import MerakiDevice
 

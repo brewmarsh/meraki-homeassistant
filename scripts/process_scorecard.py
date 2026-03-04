@@ -11,10 +11,9 @@ import json
 import os
 import re
 import subprocess
-from typing import Dict, List, Optional
 
 
-def run_gh(args: List[str]) -> Optional[str]:
+def run_gh(args: list[str]) -> str | None:
     """Run a GitHub CLI command and return output."""
     cmd = ["gh"] + args
     try:
@@ -29,7 +28,7 @@ def run_gh(args: List[str]) -> Optional[str]:
         return None
 
 
-def parse_scorecard(filename: str) -> List[Dict[str, str]]:
+def parse_scorecard(filename: str) -> list[dict[str, str]]:
     """
     Parse the scorecard output file for CRAFT prompts.
 
@@ -63,7 +62,7 @@ def parse_scorecard(filename: str) -> List[Dict[str, str]]:
         re.DOTALL | re.MULTILINE,
     )
 
-    tasks: List[Dict[str, str]] = []
+    tasks: list[dict[str, str]] = []
     for match in pattern.finditer(content):
         task_data = match.groupdict()
 
@@ -106,7 +105,7 @@ def check_existing_issue(title: str) -> bool:
     return False
 
 
-def create_issue(task: Dict[str, str], title: str) -> None:
+def create_issue(task: dict[str, str], title: str) -> None:
     """Create a new GitHub issue for the task."""
     print(f"Creating issue for {task['file']}...")
     run_gh(
@@ -123,7 +122,7 @@ def create_issue(task: Dict[str, str], title: str) -> None:
     )
 
 
-def process_high_cognitive_load_task(task: Dict[str, str]) -> None:
+def process_high_cognitive_load_task(task: dict[str, str]) -> None:
     """Process a high cognitive load task by creating a GitHub issue."""
     # Title following Home Assistant Sentence Case standards.
     # Only the first word and proper nouns (if any) are capitalized.
@@ -136,7 +135,7 @@ def process_high_cognitive_load_task(task: Dict[str, str]) -> None:
     create_issue(task, title)
 
 
-def save_typing_tasks(typing_tasks: List[Dict[str, str]]) -> None:
+def save_typing_tasks(typing_tasks: list[dict[str, str]]) -> None:
     """Write typing tasks to JSON for the subsequent CI step."""
     if typing_tasks:
         with open("typing_tasks.json", "w", encoding="utf-8") as f:
@@ -148,9 +147,9 @@ def save_typing_tasks(typing_tasks: List[Dict[str, str]]) -> None:
             os.remove("typing_tasks.json")
 
 
-def process_tasks(tasks: List[Dict[str, str]]) -> None:
+def process_tasks(tasks: list[dict[str, str]]) -> None:
     """Iterate over tasks and handle them based on their type."""
-    typing_tasks: List[Dict[str, str]] = []
+    typing_tasks: list[dict[str, str]] = []
 
     for task in tasks:
         if task["type"] == "High Cognitive Load":

@@ -11,7 +11,7 @@ from ..const_conf import CONF_MERAKI_API_KEY, CONF_MERAKI_ORG_ID
 from ..core.errors import MerakiAuthenticationError, MerakiConnectionError
 
 if TYPE_CHECKING:
-    from ..coordinator import MerakiDataUpdateCoordinator
+    pass
 
 _LOGGER = logging.getLogger(__name__)
 

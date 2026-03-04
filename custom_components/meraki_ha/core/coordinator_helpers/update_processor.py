@@ -49,7 +49,9 @@ def filter_ignored_networks(data: dict[str, Any], ignored_ids: list[str]) -> Non
         ]
 
 
-def update_device_registry_info(hass: HomeAssistant, devices: list[MerakiDevice]) -> None:
+def update_device_registry_info(
+    hass: HomeAssistant, devices: list[MerakiDevice]
+) -> None:
     """Populate device data with associated Home Assistant entities."""
     if not devices:
         return
@@ -76,10 +78,7 @@ def update_device_registry_info(hass: HomeAssistant, devices: list[MerakiDevice]
                     if entity.domain == "camera":
                         primary_entity = entity
                         break
-                    if (
-                        entity.domain == "switch"
-                        and primary_entity.domain != "camera"
-                    ):
+                    if entity.domain == "switch" and primary_entity.domain != "camera":
                         primary_entity = entity
                 device.entity_id = primary_entity.entity_id
 
@@ -195,9 +194,7 @@ class UpdateProcessor:
         }
 
     def process_failure(
-        self,
-        err: Exception,
-        last_successful_data: dict[str, Any]
+        self, err: Exception, last_successful_data: dict[str, Any]
     ) -> tuple[dict[str, Any], bool]:
         """
         Handle update failure via PollingManager.

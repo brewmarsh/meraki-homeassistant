@@ -5,6 +5,10 @@ from datetime import timedelta
 from unittest.mock import AsyncMock, patch
 
 import pytest
+from custom_components.meraki_ha.coordinators.main import (
+    MerakiMainCoordinator as MerakiDataCoordinator,
+)
+from homeassistant.core import HomeAssistant
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.meraki_ha.const import DOMAIN
@@ -12,10 +16,6 @@ from custom_components.meraki_ha.const_conf import (
     CONF_MERAKI_API_KEY,
     CONF_MERAKI_ORG_ID,
 )
-from custom_components.meraki_ha.coordinators.main import (
-    MerakiMainCoordinator as MerakiDataCoordinator,
-)
-from homeassistant.core import HomeAssistant
 
 
 @pytest.fixture(name="coordinator")  # type: ignore[untyped-decorator]

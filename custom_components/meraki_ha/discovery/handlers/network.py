@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import logging
 from collections.abc import AsyncIterator
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 from ...const_conf import (
     CONF_ENABLE_CLIENT_STATUS_SENSORS,

@@ -67,7 +67,8 @@ def parse_network_data(
         "vpn_status": {
             nid: data
             for nid in network_ids
-            if (data := _extract_vpn_status(nid, detail_data, previous_data)) is not None
+            if (data := _extract_vpn_status(nid, detail_data, previous_data))
+            is not None
         },
         "rf_profiles": {
             nid: data

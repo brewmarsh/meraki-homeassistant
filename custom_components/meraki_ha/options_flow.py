@@ -4,8 +4,9 @@ from __future__ import annotations
 
 from typing import Any
 
-from homeassistant import config_entries
 from homeassistant.config_entries import ConfigFlowResult
+
+from homeassistant import config_entries
 
 from .const import DOMAIN
 from .const_conf import CONF_INTEGRATION_TITLE

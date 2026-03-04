@@ -4,7 +4,6 @@ import asyncio
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-
 from homeassistant.helpers.update_coordinator import UpdateFailed
 
 from custom_components.meraki_ha.core.coordinator_helpers.data_fetcher import (
@@ -99,10 +98,10 @@ async def test_get_all_data_detailed_timeout(data_fetch_manager, mock_client):
 async def test_get_all_data_client_timeout(data_fetch_manager, mock_client):
     """Test that get_all_data logs error and raises TimeoutError on client timeout."""
     # Provide at least one network so client fetching is attempted
-    mock_network = MerakiNetwork(id="n1", product_types=["appliance"])
+    MerakiNetwork(id="n1", product_types=["appliance"])
     data_fetch_manager._async_fetch_initial_data = AsyncMock(
         return_value={
-            "networks": [{"id": "n1", "productTypes": ["appliance"]}], # Raw data
+            "networks": [{"id": "n1", "productTypes": ["appliance"]}],  # Raw data
             "devices": [],
         }
     )
@@ -138,14 +137,14 @@ async def test_get_all_data_client_timeout(data_fetch_manager, mock_client):
     with patch(
         "custom_components.meraki_ha.core.coordinator_helpers.data_fetcher.ClientFetcher.async_fetch_network_clients",
         new_callable=MagicMock,
-    ) as mock_fetch:
-        f = asyncio.Future()
+    ):
+        asyncio.Future()
         # The future hangs or we mock wait_for to raise.
 
         with patch(
             "custom_components.meraki_ha.core.coordinator_helpers.data_fetcher.asyncio.wait_for",
             side_effect=clean_exit_wait_for,
-        ) as mock_wait_for:
+        ):
             with patch(
                 "custom_components.meraki_ha.core.coordinator_helpers.data_fetcher._LOGGER.error"
             ) as mock_log_error:
@@ -153,6 +152,4 @@ async def test_get_all_data_client_timeout(data_fetch_manager, mock_client):
                 await data_fetch_manager.get_all_data()
 
                 # Verify error was logged - message changed slightly in implementation
-                mock_log_error.assert_called_with(
-                    "Timeout during client data fetch"
-                )
+                mock_log_error.assert_called_with("Timeout during client data fetch")

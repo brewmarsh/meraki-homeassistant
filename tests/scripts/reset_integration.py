@@ -178,7 +178,7 @@ async def _check_components_and_safe_mode(
             logger.info("✅ 'config' component is LOADED.")
         else:
             logger.error(
-                "🚨 'config' component is MISSING! " "(This is why WebSocket fails)"
+                "🚨 'config' component is MISSING! (This is why WebSocket fails)"
             )
             logger.debug(f"Loaded components: {sorted(components)}")
 

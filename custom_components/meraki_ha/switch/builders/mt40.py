@@ -67,6 +67,4 @@ def _create_mt40_outlet_switch(
         return None
 
     added_entities.add(unique_id)
-    return MerakiMt40PowerOutlet(
-        coordinator, device_info, config_entry, meraki_client
-    )
+    return MerakiMt40PowerOutlet(coordinator, device_info, config_entry, meraki_client)

@@ -118,7 +118,9 @@ class MerakiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
     async def _execute_update_cycle(self) -> dict[str, Any]:
         """Execute the update cycle and process data."""
-        timespan = int(self.update_interval.total_seconds()) if self.update_interval else 300
+        timespan = (
+            int(self.update_interval.total_seconds()) if self.update_interval else 300
+        )
         data = await self.data_fetch_manager.get_all_data(
             self.last_successful_data, timespan=timespan
         )

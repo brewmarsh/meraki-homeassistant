@@ -13,7 +13,6 @@
 
 from unittest.mock import MagicMock, patch
 
-from homeassistant import config_entries, setup
 from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResultType
 from pytest_homeassistant_custom_component.common import MockConfigEntry
@@ -30,6 +29,7 @@ from custom_components.meraki_ha.core.errors import (
     MerakiAuthenticationError,
     MerakiConnectionError,
 )
+from homeassistant import config_entries, setup
 
 
 async def test_form(hass: HomeAssistant) -> None:

@@ -1,6 +1,7 @@
 """Tests for the Meraki MT40 power outlet switch."""
 
-from typing import Any, Generator, List, Optional
+from collections.abc import Generator
+from typing import Any
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
@@ -10,10 +11,11 @@ import pytest
 # or MerakiDataCoordinator types, then MagicMock with a spec argument or Any
 # would be the appropriate fallback.
 from custom_components.meraki_ha.client import MerakiAPIClient
-from custom_components.meraki_ha.switch.mt40_power_outlet import MerakiMt40PowerOutlet
-from custom_components.meraki_ha.types import MerakiDevice
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
+
+from custom_components.meraki_ha.switch.mt40_power_outlet import MerakiMt40PowerOutlet
+from custom_components.meraki_ha.types import MerakiDevice
 
 
 @pytest.fixture
@@ -38,9 +40,9 @@ def mock_coordinator_with_mt40_data(
 
     mock_coordinator.is_pending = MagicMock(return_value=False)
 
-    def _get_device(serial: str) -> Optional[MerakiDevice]:
+    def _get_device(serial: str) -> MerakiDevice | None:
         """Helper to simulate the coordinator's get_device method."""
-        devices: List[MerakiDevice] = mock_coordinator.data["devices"]
+        devices: list[MerakiDevice] = mock_coordinator.data["devices"]
         for d in devices:
             if d.serial == serial:
                 return d

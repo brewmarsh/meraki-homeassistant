@@ -47,9 +47,15 @@ async def test_appliance_features_fetching_behavior() -> None:
     )
 
     # Mock fallback performance methods
-    mock_client.dashboard.appliance.getNetworkApplianceUplinksUsageHistory = AsyncMock(return_value=[])
-    mock_client.dashboard.appliance.getNetworkApplianceUplinksLossAndLatency = AsyncMock(return_value=[])
-    mock_client.dashboard.appliance.getNetworkApplianceUplinksPerformance = AsyncMock(return_value=[])
+    mock_client.dashboard.appliance.getNetworkApplianceUplinksUsageHistory = AsyncMock(
+        return_value=[]
+    )
+    mock_client.dashboard.appliance.getNetworkApplianceUplinksLossAndLatency = (
+        AsyncMock(return_value=[])
+    )
+    mock_client.dashboard.appliance.getNetworkApplianceUplinksPerformance = AsyncMock(
+        return_value=[]
+    )
     mock_client.run_sync = AsyncMock(return_value=[])
 
     mock_client.network.get_network_traffic = AsyncMock(return_value=[])

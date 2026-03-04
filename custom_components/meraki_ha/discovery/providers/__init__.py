@@ -1,4 +1,5 @@
 """Discovery providers for Meraki devices."""
+
 from .appliance import AppliancePortProvider
 from .camera import CameraAnalyticsProvider, CameraStreamProvider
 from .device import PhysicalSensorProvider
