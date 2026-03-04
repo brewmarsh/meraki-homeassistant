@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING, Any
 from urllib.parse import urlparse
 
 from aiohttp import web
+
 from homeassistant.components import webhook
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.network import NoURLAvailableError, get_url
@@ -49,6 +50,19 @@ def _get_base_webhook_url(
             return None
 
 
+def _is_local_hostname(hostname: str | None) -> bool:
+    """Check if the given hostname is a local network address."""
+    if not hostname:
+        return False
+    return (
+        hostname.startswith("192.168.")
+        or hostname.startswith("10.")
+        or hostname.startswith("172.")
+        or hostname == "localhost"
+        or hostname.endswith(".local")
+    )
+
+
 def _validate_webhook_url(base_url: str) -> bool:
     """Validate that the webhook URL meets Meraki's requirements."""
     if not base_url.startswith("https://"):
@@ -59,14 +73,7 @@ def _validate_webhook_url(base_url: str) -> bool:
         return False
 
     parsed = urlparse(base_url)
-    hostname = parsed.hostname
-    if hostname and (
-        hostname.startswith("192.168.")
-        or hostname.startswith("10.")
-        or hostname.startswith("172.")
-        or hostname == "localhost"
-        or hostname.endswith(".local")
-    ):
+    if _is_local_hostname(parsed.hostname):
         raise MerakiConnectionError(
             "Meraki webhooks require a public URL, but the current URL "
             "appears to be a local address. Please configure a public HTTPS URL.",
@@ -111,6 +118,19 @@ def get_webhook_url(
     return f"{base_url}/api/webhook/{webhook_id}"
 
 
+def _resolve_registration_params(
+    hass: HomeAssistant,
+    webhook_id: str,
+    entry: ConfigEntry | None = None,
+    config_entry_id: str | None = None,
+) -> tuple[str | None, str | None]:
+    """Resolve webhook URL and config entry ID for registration."""
+    webhook_url_from_entry = entry.data.get("webhook_url") if entry else None
+    webhook_url = get_webhook_url(hass, webhook_id, webhook_url_from_entry)
+    resolved_id = config_entry_id or (entry.entry_id if entry else None)
+    return webhook_url, resolved_id
+
+
 async def async_register_webhook(
     hass: HomeAssistant,
     webhook_id: str,
@@ -134,12 +154,11 @@ async def async_register_webhook(
     webhook.async_register(hass, DOMAIN, "Meraki", webhook_id, async_handle_webhook)
 
     try:
-        webhook_url_from_entry = entry.data.get("webhook_url") if entry else None
-        webhook_url = get_webhook_url(hass, webhook_id, webhook_url_from_entry)
-        if not config_entry_id and entry:
-            config_entry_id = entry.entry_id
-        if webhook_url and config_entry_id:
-            await api_client.register_webhook(webhook_url, secret, config_entry_id)
+        webhook_url, resolved_id = _resolve_registration_params(
+            hass, webhook_id, entry, config_entry_id
+        )
+        if webhook_url and resolved_id:
+            await api_client.register_webhook(webhook_url, secret, resolved_id)
     except Exception:
         _LOGGER.error("Failed to register webhook", exc_info=True)
 
@@ -200,6 +219,50 @@ def _handle_client_connectivity_changed_alert(data: dict, coordinator: Any) -> N
             break
 
 
+async def _parse_webhook_request(
+    webhook_id: str,
+    request: web.Request,
+) -> dict[str, Any] | None:
+    """Parse the JSON payload from a webhook request."""
+    try:
+        data = await request.json()
+        _LOGGER.debug("Webhook %s received: %s", webhook_id, data)
+        return data
+    except ValueError:
+        _LOGGER.warning("Received invalid JSON in webhook %s", webhook_id)
+        return None
+
+
+def _validate_webhook_payload(
+    hass: HomeAssistant,
+    webhook_id: str,
+    data: dict[str, Any],
+) -> dict[str, Any] | None:
+    """Validate webhook payload and return entry data if valid."""
+    entry_data = hass.data.get(DOMAIN, {}).get(webhook_id)
+    if not entry_data:
+        _LOGGER.warning("Received webhook for unknown config entry: %s", webhook_id)
+        return None
+
+    secret = entry_data.get("secret")
+    if not secret or data.get("sharedSecret") != secret:
+        _LOGGER.warning("Received webhook with invalid secret: %s", webhook_id)
+        return None
+
+    return entry_data
+
+
+def _dispatch_webhook_alert(data: dict[str, Any], coordinator: Any) -> None:
+    """Dispatch webhook alert to the appropriate handler."""
+    alert_type = data.get("alertType")
+    if alert_type == "APs went down":
+        _handle_ap_went_down_alert(data, coordinator)
+    elif alert_type == "Client connectivity changed":
+        _handle_client_connectivity_changed_alert(data, coordinator)
+    else:
+        _LOGGER.debug("Ignoring webhook alert type: %s", alert_type)
+
+
 async def async_handle_webhook(
     hass: HomeAssistant,
     webhook_id: str,
@@ -215,21 +278,12 @@ async def async_handle_webhook(
         request: The request object.
 
     """
-    try:
-        data = await request.json()
-        _LOGGER.debug("Webhook %s received: %s", webhook_id, data)
-    except ValueError:
-        _LOGGER.warning("Received invalid JSON in webhook %s", webhook_id)
+    data = await _parse_webhook_request(webhook_id, request)
+    if not data:
         return
 
-    entry_data = hass.data.get(DOMAIN, {}).get(webhook_id)
+    entry_data = _validate_webhook_payload(hass, webhook_id, data)
     if not entry_data:
-        _LOGGER.warning("Received webhook for unknown config entry: %s", webhook_id)
-        return
-
-    secret = entry_data.get("secret")
-    if not secret or data.get("sharedSecret") != secret:
-        _LOGGER.warning("Received webhook with invalid secret: %s", webhook_id)
         return
 
     # Fire event for automation triggers
@@ -240,10 +294,4 @@ async def async_handle_webhook(
         _LOGGER.warning("Coordinator not found for webhook: %s", webhook_id)
         return
 
-    alert_type = data.get("alertType")
-    if alert_type == "APs went down":
-        _handle_ap_went_down_alert(data, coordinator)
-    elif alert_type == "Client connectivity changed":
-        _handle_client_connectivity_changed_alert(data, coordinator)
-    else:
-        _LOGGER.debug("Ignoring webhook alert type: %s", alert_type)
+    _dispatch_webhook_alert(data, coordinator)
