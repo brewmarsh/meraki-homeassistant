@@ -10,7 +10,9 @@ jobs:
     runs-on: [self-hosted, meraki-smoketest]
 
     env:
-      DESTINATION_PATH: '/config/custom_components/meraki_ha'
+      # Use the runner container's internal volume mount name
+      HA_CONFIG_DIR: '/ha_config'
+      DESTINATION_PATH: '/ha_config/custom_components/meraki_ha'
 
     steps:
       - name: Checkout repository
