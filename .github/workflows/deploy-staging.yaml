@@ -18,13 +18,13 @@ jobs:
         with:
           clean: true
           fetch-depth: 0 # Prevents shallow clone desyncs
+
       - name: Setup Node.js
         uses: actions/setup-node@v6
         with:
-          node-version: '20' # Use the Node version your project expects
+          node-version: '20'
 
       - name: Build custom panel
-        # IMPORTANT: Change this path to wherever your package.json lives!
         working-directory: ./custom_components/meraki_ha/www
         run: |
           echo "Installing NPM dependencies..."
@@ -98,7 +98,7 @@ jobs:
           MERAKI_ORG_ID: ${{ secrets.MERAKI_ORG_ID }}
         run: |
           echo "Running Reset Script in isolated environment..."
-          # uv run --with creates an ephemeral environment just for this command, protecting the system python
+          # uv run --with creates an ephemeral environment just for this command
           uv run --with aiohttp python3 tests/scripts/reset_integration.py
 
       - name: Wait for initial Meraki data fetch
@@ -112,28 +112,28 @@ jobs:
         run: |
           echo "Scanning local log file for Meraki errors..."
           
-          # Since we are on a self-hosted runner, we can just read the physical file
           if [ ! -f "/config/home-assistant.log" ]; then
             echo "Warning: /config/home-assistant.log not found. Skipping log scan."
             exit 0
           fi
 
-          # Grep the content (Strictly meraki_ha errors only)
+          # Grep specifically for ERROR, WARNING, or EXCEPTION lines tied to your component
           if grep -E -i "(ERROR|WARNING|EXCEPTION).*custom_components\.meraki_ha" /config/home-assistant.log > meraki_errors.txt; then
             echo "::error::CRITICAL: Found Meraki errors in the log!"
             echo "HAS_ERRORS=true" >> $GITHUB_ENV
           else
-          
+            echo "Logs are clean. Smoke test passed."
+            echo "HAS_ERRORS=false" >> $GITHUB_ENV
+          fi
+
       - name: Create GitHub issue for errors
         if: env.HAS_ERRORS == 'true'
         shell: bash
         env:
-          # Use your PAT here to authorize the issue creation
           GH_TOKEN: ${{ secrets.GH_PAT }}
           REPO: ${{ github.repository }}
         run: |
           echo "Constructing issue payload..."
-          # Format the errors into a Markdown code block
           ERRORS=$(cat meraki_errors.txt)
           BODY="The staging smoke test detected the following \`meraki_ha\` errors:\n\n\`\`\`text\n${ERRORS}\n\`\`\`"
           
