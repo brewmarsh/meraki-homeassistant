@@ -13,7 +13,7 @@ from homeassistant.helpers.typing import UNDEFINED
 from ...const import DOMAIN
 from ...coordinators import MerakiSensorCoordinator as MerakiDataCoordinator
 from ...core.models.device import MerakiDevice
-from ...core.utils.naming_utils import format_device_name
+from ...helpers.device_info_helpers import resolve_device_info
 from ...entity import MerakiBinarySensor
 
 _LOGGER = logging.getLogger(__name__)
@@ -37,25 +37,11 @@ class MerakiMtBinarySensor(MerakiBinarySensor):
             self._attr_name = cast(str | None, self.entity_description.name)
 
     @property
-    def device_info(self) -> DeviceInfo:
+    def device_info(self) -> DeviceInfo | None:
         """Return device information."""
-        device_identifiers = set()
-        if self._device.serial:
-            device_identifiers = {(DOMAIN, str(self._device.serial))}
-
-        if self.coordinator.config_entry:
-            format_device_name(self._device, self.coordinator.config_entry.options)
-        return DeviceInfo(
-            identifiers=device_identifiers,
-            name=format_device_name(
-                self._device,
-                self.coordinator.config_entry.options
-                if self.coordinator.config_entry
-                else {},
-            ),
-            model=str(self._device.model),
-            manufacturer="Cisco Meraki",
-        )
+        if not self.coordinator.config_entry:
+            return None
+        return resolve_device_info(self._device, self.coordinator.config_entry)
 
     @callback
     def _handle_coordinator_update(self) -> None:

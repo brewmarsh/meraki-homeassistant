@@ -39,7 +39,6 @@ class MerakiDeviceConnectedClientsSensor(MerakiSensor):
         """Initialize the sensor."""
         super().__init__(coordinator)
         self._device_serial: str | None = device_data.serial
-        self._config_entry = config_entry
         self.entity_description = SensorEntityDescription(
             key="connected_clients",
             name="Connected Clients",
@@ -47,7 +46,7 @@ class MerakiDeviceConnectedClientsSensor(MerakiSensor):
 
         self._attr_device_info = resolve_device_info(
             entity_data=asdict(device_data),
-            config_entry=self._config_entry,
+            config_entry=self.coordinator.config_entry,
         )
         self._update_state()
 

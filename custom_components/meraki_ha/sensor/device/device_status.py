@@ -21,7 +21,7 @@ from homeassistant.helpers.device_registry import DeviceInfo
 from ...const import DOMAIN
 from ...coordinators import MerakiMainCoordinator
 from ...core.models.device import MerakiDevice
-from ...core.utils.naming_utils import format_device_name
+from ...helpers.device_info_helpers import resolve_device_info
 from ...entity import MerakiSensor
 
 _LOGGER = logging.getLogger(__name__)
@@ -69,16 +69,7 @@ class MerakiDeviceStatusSensor(MerakiSensor):
 
         # Set device info for linking to HA device registry
         # This uses the initial device_data for static info.
-        self._attr_device_info = DeviceInfo(
-            identifiers={(DOMAIN, self._device_serial)},
-            name=format_device_name(device_data, config_entry.options),
-            model=device_data.model,
-            manufacturer="Cisco Meraki",
-            serial_number=self._device_serial,
-            sw_version=device_data.firmware,
-            suggested_area=device_data.address,
-            configuration_url=device_data.url,
-        )
+        self._attr_device_info = resolve_device_info(device_data, config_entry)
 
         # _attr_name is not explicitly set
         self.entity_description = SensorEntityDescription(
