@@ -31,6 +31,33 @@ RE_OLD_NAME_TEXT = re.compile(r"^ssid-(.+)-(\d+)_name_text$")
 RE_OLD_ADULT_FILTER = re.compile(r"^meraki-adult-content-filtering-(.+)-(\d+)$")
 
 
+def _get_new_unique_id(old_unique_id: str) -> str | None:
+    """Map old unique IDs to the new standardized format."""
+    # Check against patterns
+    if match := RE_OLD_SSID_SWITCH.match(old_unique_id):
+        net_id, ssid_num, sw_type = match.groups()
+        return f"{net_id}ssid{ssid_num}_{sw_type}_switch"
+    if match := RE_OLD_RF_PROFILE.match(old_unique_id):
+        net_id, ssid_num = match.groups()
+        return f"{net_id}ssid{ssid_num}_rf_profile"
+    if match := RE_OLD_NAME_TEXT.match(old_unique_id):
+        net_id, ssid_num = match.groups()
+        return f"{net_id}ssid{ssid_num}_name_text"
+    if match := RE_OLD_ADULT_FILTER.match(old_unique_id):
+        net_id, ssid_num = match.groups()
+        return f"{net_id}ssid{ssid_num}_adult_content_filtering"
+    if match := RE_OLD_SSID_SENSOR.match(old_unique_id):
+        net_id, ssid_num, attr = match.groups()
+        # Avoid matching new format by accident
+        if "ssid" not in net_id:
+            return f"{net_id}ssid{ssid_num}_{attr}"
+    if match := RE_UNDERSCORE_SSID_SENSOR.match(old_unique_id):
+        net_id, ssid_num, attr = match.groups()
+        # This handles the legacy N_123_0_walled_garden format
+        return f"{net_id}ssid{ssid_num}_{attr}"
+    return None
+
+
 async def async_migrate_entities(hass: HomeAssistant, entry_id: str) -> None:
     """Migrate entity unique IDs to the new standardized format."""
     entity_registry = er.async_get(hass)
@@ -38,30 +65,7 @@ async def async_migrate_entities(hass: HomeAssistant, entry_id: str) -> None:
 
     for entity in entities:
         old_unique_id = entity.unique_id
-        new_unique_id = None
-
-        # Check against patterns
-        if match := RE_OLD_SSID_SWITCH.match(old_unique_id):
-            net_id, ssid_num, sw_type = match.groups()
-            new_unique_id = f"{net_id}ssid{ssid_num}_{sw_type}_switch"
-        elif match := RE_OLD_RF_PROFILE.match(old_unique_id):
-            net_id, ssid_num = match.groups()
-            new_unique_id = f"{net_id}ssid{ssid_num}_rf_profile"
-        elif match := RE_OLD_NAME_TEXT.match(old_unique_id):
-            net_id, ssid_num = match.groups()
-            new_unique_id = f"{net_id}ssid{ssid_num}_name_text"
-        elif match := RE_OLD_ADULT_FILTER.match(old_unique_id):
-            net_id, ssid_num = match.groups()
-            new_unique_id = f"{net_id}ssid{ssid_num}_adult_content_filtering"
-        elif match := RE_OLD_SSID_SENSOR.match(old_unique_id):
-            net_id, ssid_num, attr = match.groups()
-            # Avoid matching new format by accident
-            if "ssid" not in net_id:
-                new_unique_id = f"{net_id}ssid{ssid_num}_{attr}"
-        elif match := RE_UNDERSCORE_SSID_SENSOR.match(old_unique_id):
-            net_id, ssid_num, attr = match.groups()
-            # This handles the legacy N_123_0_walled_garden format
-            new_unique_id = f"{net_id}ssid{ssid_num}_{attr}"
+        new_unique_id = _get_new_unique_id(old_unique_id)
 
         if new_unique_id and new_unique_id != old_unique_id:
             _LOGGER.info(

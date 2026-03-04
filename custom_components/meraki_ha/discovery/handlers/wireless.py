@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import logging
 from collections.abc import AsyncIterator
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from ...const_conf import (
     CONF_ENABLE_DEVICE_SENSORS,
@@ -26,8 +26,8 @@ if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
     from homeassistant.helpers.entity import Entity
 
-    from ..coordinators import MerakiSwitchCoordinator
     from ...core.api.client import MerakiAPIClient
+    from ..coordinators import MerakiSwitchCoordinator
 
 
 _LOGGER = logging.getLogger(__name__)
@@ -48,30 +48,42 @@ class WirelessHandler(BaseHandler):
 
     async def discover_entities(self) -> AsyncIterator[Entity]:
         """Discover entities for wireless devices and SSIDs."""
+        if not self._coordinator.data or "ssids" not in self._coordinator.data:
+            return
+
+        # Discover AP Device entities
+        async for entity in self._discover_device_entities():
+            yield entity
+
+        # Discover SSID entities
+        async for entity in self._discover_ssid_entities():
+            yield entity
+
+    async def _discover_device_entities(self) -> AsyncIterator[Entity]:
+        """Discover entities for wireless devices."""
+        if not self._config_entry.options.get(CONF_ENABLE_DEVICE_SENSORS, True):
+            return
+
+        for device in self._coordinator.data.get("devices", []):
+            if device.product_type == "wireless":
+                # Client Count per AP
+                yield MerakiAPClientCountSensor(
+                    self._coordinator, device, self._config_entry
+                )
+                # LED Control
+                if device.management_interface:
+                    yield MerakiDeviceLEDSwitch(
+                        self._coordinator, device, self._config_entry
+                    )
+
+    async def _discover_ssid_entities(self) -> AsyncIterator[Entity]:
+        """Discover entities for wireless SSIDs."""
         from ...meraki_select.rf_profile import MerakiRFProfileSelect
         from ...switch.meraki_ssid_device_switch import (
             MerakiSSIDBroadcastSwitch,
             MerakiSSIDEnabledSwitch,
         )
 
-        if not self._coordinator.data or "ssids" not in self._coordinator.data:
-            return
-
-        # Discover AP Device entities
-        if self._config_entry.options.get(CONF_ENABLE_DEVICE_SENSORS, True):
-            for device in self._coordinator.data.get("devices", []):
-                if device.product_type == "wireless":
-                    # Client Count per AP
-                    yield MerakiAPClientCountSensor(
-                        self._coordinator, device, self._config_entry
-                    )
-                    # LED Control
-                    if device.management_interface:
-                        yield MerakiDeviceLEDSwitch(
-                            self._coordinator, device, self._config_entry
-                        )
-
-        # Check if SSID sensors/entities are enabled
         if not self._config_entry.options.get(CONF_ENABLE_SSID_SENSORS, True):
             return
 
@@ -79,14 +91,7 @@ class WirelessHandler(BaseHandler):
             if "networkId" not in ssid or "number" not in ssid:
                 continue
 
-            # Find the RF profile for this SSID's network
-            rf_profile = None
-            if self._coordinator.data and self._coordinator.data.get("rf_profiles"):
-                network_rf_profiles = self._coordinator.data["rf_profiles"].get(
-                    ssid["networkId"]
-                )
-                if network_rf_profiles:
-                    rf_profile = next(iter(network_rf_profiles), None)
+            rf_profile = self._get_rf_profile(ssid)
 
             yield MerakiSSIDEnabledSwitch(
                 self._coordinator,
@@ -126,3 +131,13 @@ class WirelessHandler(BaseHandler):
                 self._config_entry,
                 ssid,
             )
+
+    def _get_rf_profile(self, ssid: dict[str, Any]) -> dict[str, Any] | None:
+        """Find the RF profile for this SSID's network."""
+        if self._coordinator.data and self._coordinator.data.get("rf_profiles"):
+            network_rf_profiles = self._coordinator.data["rf_profiles"].get(
+                ssid["networkId"]
+            )
+            if network_rf_profiles:
+                return next(iter(network_rf_profiles), None)
+        return None

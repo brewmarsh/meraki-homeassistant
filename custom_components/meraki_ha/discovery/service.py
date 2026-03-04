@@ -93,56 +93,12 @@ class DeviceDiscoveryService:
         all_entities: list[Entity] = []
 
         # Discover network-level entities
-        if self._config_entry.options.get(CONF_ENABLE_NETWORK_SENSORS, True):
-            network_handler = NetworkHandler(
-                self._main_coordinator,
-                self._config_entry,
-                self._network_control_service,
-            )
-            async for entity in network_handler.discover_entities():
-                all_entities.append(entity)
-        else:
-            _LOGGER.debug("Network sensors are disabled.")
+        async for entity in self._discover_network_entities():
+            all_entities.append(entity)
 
-        _LOGGER.debug("Starting entity discovery for %d devices", len(self._devices))
-
-        for device in self._devices:
-            if not device.model:
-                _LOGGER.warning("Device %s has no model, skipping", device.serial)
-                continue
-
-            # Select coordinator based on product type
-            coordinator = self._main_coordinator
-            if device.product_type == "switch":
-                coordinator = self._switch_coordinator
-            elif device.product_type == "camera":
-                coordinator = self._camera_coordinator
-            elif device.product_type == "sensor":
-                coordinator = self._sensor_coordinator
-            elif device.product_type in ["appliance", "cellularGateway"]:
-                coordinator = self._appliance_coordinator
-            elif device.product_type == "wireless":
-                coordinator = self._wireless_coordinator
-
-            # Use the UniversalHandler to create entities based on capabilities
-            handler = UniversalHandler(
-                coordinator,
-                device,
-                self._config_entry,
-                self._camera_service,
-                self._control_service,
-                self._network_control_service,
-            )
-
-            _LOGGER.debug(
-                "Using UniversalHandler for %s (model: %s) with capabilities: %s",
-                device.serial,
-                device.model,
-                handler.capabilities,
-            )
-
-            async for entity in handler.discover_entities():
-                all_entities.append(entity)
+        # Discover device-level entities
+        async for entity in self._discover_device_entities():
+            all_entities.append(entity)
 
         # Create Wireless handler for devices and virtual SSID devices
         wireless_handler = WirelessHandler(
@@ -159,3 +115,53 @@ class DeviceDiscoveryService:
         _LOGGER.info("Entity discovery complete. Found %d entities.", len(all_entities))
         self.all_entities = all_entities
         return self.all_entities
+
+    async def _discover_network_entities(self):
+        """Discover network-level entities."""
+        if self._config_entry.options.get(CONF_ENABLE_NETWORK_SENSORS, True):
+            network_handler = NetworkHandler(
+                self._main_coordinator,
+                self._config_entry,
+                self._network_control_service,
+            )
+            async for entity in network_handler.discover_entities():
+                yield entity
+        else:
+            _LOGGER.debug("Network sensors are disabled.")
+
+    async def _discover_device_entities(self):
+        """Discover entities for all devices."""
+        _LOGGER.debug("Starting entity discovery for %d devices", len(self._devices))
+
+        for device in self._devices:
+            if not device.model:
+                _LOGGER.warning("Device %s has no model, skipping", device.serial)
+                continue
+
+            coordinator = self._get_coordinator_for_device(device)
+
+            handler = UniversalHandler(
+                coordinator,
+                device,
+                self._config_entry,
+                self._camera_service,
+                self._control_service,
+                self._network_control_service,
+            )
+
+            async for entity in handler.discover_entities():
+                yield entity
+
+    def _get_coordinator_for_device(self, device: MerakiDevice):
+        """Select coordinator based on product type."""
+        if device.product_type == "switch":
+            return self._switch_coordinator
+        if device.product_type == "camera":
+            return self._camera_coordinator
+        if device.product_type == "sensor":
+            return self._sensor_coordinator
+        if device.product_type in ["appliance", "cellularGateway"]:
+            return self._appliance_coordinator
+        if device.product_type == "wireless":
+            return self._wireless_coordinator
+        return self._main_coordinator
