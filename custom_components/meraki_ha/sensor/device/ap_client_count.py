@@ -63,7 +63,7 @@ class MerakiAPClientCountSensor(MerakiSensor):
         """Update the native value of the sensor based on coordinator data."""
         # Dynamic filtering of the coordinator's cached client list
         # as requested in the task requirements.
-        clients = self.coordinator.data.get("clients", [])
+        clients = self.coordinator.data.get("clients") or []
         self._attr_native_value = sum(
             1
             for client in clients
