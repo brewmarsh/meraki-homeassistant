@@ -170,18 +170,18 @@ class MerakiRTSPStreamCamera(MerakiEntity, Camera):
             _LOGGER.debug("Skipping snapshot for offline camera: %s", self.name)
             return None
 
-        url = await self._camera_service.generate_snapshot(self._device_serial)
-        if not url:
-            _LOGGER.debug("Failed to get snapshot URL for %s", self.name)
-            return None
-
         try:
+            url = await self._camera_service.generate_snapshot(self._device_serial)
+            if not url:
+                _LOGGER.debug("Failed to get snapshot URL for %s", self.name)
+                return None
+
             session = async_get_clientsession(self.hass)
             async with session.get(url) as response:
                 response.raise_for_status()
                 return await response.read()
-        except aiohttp.ClientError as e:
-            _LOGGER.error("Error fetching snapshot for %s: %s", self.name, e)
+        except Exception as err:
+            _LOGGER.warning("Failed to fetch camera snapshot: %s", err)
             return None
 
     @property
