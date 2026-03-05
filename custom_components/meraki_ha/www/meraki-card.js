@@ -710,8 +710,8 @@ const Y = class Y extends M {
           <div class="form-container">
             <ha-select
               label="Network"
-              .value="${this._selectedNetwork}"
-              @selected="${this._handleNetworkChanged}"
+              value="${this._selectedNetwork}"
+              @closed="${this._handleNetworkChanged}"
               fixedMenuPosition
               naturalMenuWidth
             >
@@ -722,9 +722,9 @@ const Y = class Y extends M {
 
             <ha-select
               label="SSID"
-              .value="${this._selectedSsid}"
+              value="${this._selectedSsid}"
               .disabled="${!this._selectedNetwork}"
-              @selected="${this._handleSsidChanged}"
+              @closed="${this._handleSsidChanged}"
               fixedMenuPosition
               naturalMenuWidth
             >
@@ -735,9 +735,9 @@ const Y = class Y extends M {
 
             <ha-select
               label="Group Policy"
-              .value="${this._selectedPolicy}"
+              value="${this._selectedPolicy}"
               .disabled="${!this._selectedNetwork}"
-              @selected="${(s) => this._selectedPolicy = s.target.value}"
+              @closed="${(s) => this._selectedPolicy = s.target.value}"
               fixedMenuPosition
               naturalMenuWidth
             >
@@ -749,8 +749,8 @@ const Y = class Y extends M {
 
             <ha-select
               label="Duration"
-              .value="${this._duration}"
-              @selected="${(s) => this._duration = s.target.value}"
+              value="${this._duration}"
+              @closed="${(s) => this._duration = s.target.value}"
               fixedMenuPosition
               naturalMenuWidth
             >
