@@ -6,7 +6,6 @@ import logging
 import secrets
 import string
 
-from homeassistant.components.http import StaticPathConfig
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import config_validation as cv
@@ -30,11 +29,10 @@ from .core.api.client import MerakiAPIClient
 from .core.repositories.camera_repository import CameraRepository
 from .core.repository import MerakiRepository
 from .discovery.service import DeviceDiscoveryService
-from .frontend import async_register_frontend, async_remove_frontend
 from .helpers.migrations import async_cleanup_ghost_devices, async_migrate_entities
+from .services import async_setup_services
 from .services.camera_service import CameraService
 from .services.device_control_service import DeviceControlService
-from .services import async_setup_services
 from .services.ipsk_manager import IPSKManager
 from .services.manager import ServicesManager
 from .services.network_control_service import NetworkControlService
@@ -74,18 +72,6 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     # Set up services
     await async_setup_services(hass)
 
-    # Register the static path for the custom panel
-    if hass.http:
-        await hass.http.async_register_static_paths(
-            [
-                StaticPathConfig(
-                    "/meraki_ha_static",
-                    hass.config.path(f"custom_components/{DOMAIN}/www"),
-                    cache_headers=True,
-                )
-            ]
-        )
-
     return True
 
 
@@ -102,7 +88,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         Whether the setup was successful.
 
     """
-    await async_register_frontend(hass, entry)
     async_setup_websocket_api(hass)
     # Perform migrations before coordinator refresh
     await async_migrate_entities(hass, entry.entry_id)
@@ -129,8 +114,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     # This is strictly required to populate the Device Registry promptly.
     await device_coordinator.async_config_entry_first_refresh()
 
-    # Seed the specialized coordinators with the basic device data so discovery can proceed
-    # without waiting for the heavy full organizational/sensor refresh.
+    # Seed the specialized coordinators with the basic device data so discovery
+    # can proceed without waiting for the heavy full organizational/sensor refresh.
     # We explicitly do NOT use async_set_updated_data() here because that would mark
     # the coordinators as having had a successful first update, making entities
     # prematurely "available" with incomplete data.
@@ -146,7 +131,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         coord.data = device_coordinator.data
         coord.devices_by_serial = device_coordinator.devices_by_serial
         coord.networks_by_id = device_coordinator.networks_by_id
-        coord.ssids_by_network_and_number = device_coordinator.ssids_by_network_and_number
+        coord.ssids_by_network_and_number = (
+            device_coordinator.ssids_by_network_and_number
+        )
 
     # 2. Start heavy fetching for other coordinators in the background.
     # This prevents blocking the Home Assistant UI and avoids setup timeouts.
@@ -256,7 +243,6 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             await async_unregister_webhook(
                 hass, entry_data["webhook_id"], entry_data["meraki_client"]
             )
-        await async_remove_frontend(hass)
 
     return unload_ok
 

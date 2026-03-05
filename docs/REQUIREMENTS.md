@@ -31,14 +31,14 @@
 
 ### Home Assistant Integration
 
-| Requirement                                                                                                                                                                                            | Status   |
-| :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :------- |
-| The integration should create sensor, device tracker, and switch entities in Home Assistant.                                                                                                            | Included |
-| The integration must properly handle config entries, including setup, unloading, and reloading.                                                                                                        | Included |
-| The integration needs to have a configuration flow to take the API key and org id.                                                                                                                     | Included |
+| Requirement                                                                                                                                                                                                                        | Status   |
+| :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :------- |
+| The integration should create sensor, device tracker, and switch entities in Home Assistant.                                                                                                                                       | Included |
+| The integration must properly handle config entries, including setup, unloading, and reloading.                                                                                                                                    | Included |
+| The integration needs to have a configuration flow to take the API key and org id.                                                                                                                                                 | Included |
 | The integration must have a native, multi-step Home Assistant Options Flow to manage settings (e.g., enabling camera entities, device sensors) via a menu-driven interface, adhering to HA UX guidelines for complex integrations. | Included |
-| The integration should handle re-authentication of the API key.                                                                                                                                        | Included |
-| The integration must provide comprehensive localization for all configuration flows, including the multi-step Options Flow Menu, using `strings.json` and translation files. | Included |
+| The integration should handle re-authentication of the API key.                                                                                                                                                                    | Included |
+| The integration must provide comprehensive localization for all configuration flows, including the multi-step Options Flow Menu, using `strings.json` and translation files.                                                       | Included |
 
 ### Mapping Meraki objects to Home Assistant objects
 
@@ -104,10 +104,10 @@
 
 ### Error Handling
 
-| Requirement                                                                                | Status   |
-| :----------------------------------------------------------------------------------------- | :------- |
-| The integration should handle API errors, network issues, and other exceptions gracefully. | Included |
-| Logging should be used for debugging and error reporting.                                  | Included |
+| Requirement                                                                                 | Status   |
+| :------------------------------------------------------------------------------------------ | :------- |
+| The integration should handle API errors, network issues, and other exceptions gracefully.  | Included |
+| Logging should be used for debugging and error reporting.                                   | Included |
 | The integration must implement an adaptive back-off algorithm when 429 errors are detected. | Included |
 
 ### Data Coordination
@@ -143,19 +143,19 @@
 
 ### Testing & Hardening
 
-| Requirement                                                                                                                                                                                            | Status   |
-| :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :------- |
-| The integration uses a non-blocking setup sequence where only Tier 1 data (basic device skeleton) is awaited during `async_setup_entry`. Heavy sensor data is fetched in the background.                | Included |
-| Automated smoke tests must include a 90-second wait after integration initialization to allow the Meraki background coordinators to complete their initial data fetch before auditing logs or state.    | Included |
+| Requirement                                                                                                                                                                                          | Status   |
+| :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :------- |
+| The integration uses a non-blocking setup sequence where only Tier 1 data (basic device skeleton) is awaited during `async_setup_entry`. Heavy sensor data is fetched in the background.             | Included |
+| Automated smoke tests must include a 90-second wait after integration initialization to allow the Meraki background coordinators to complete their initial data fetch before auditing logs or state. | Included |
 
-### Frontend Development
+\*\*Frontend Development (DEPRECATED - Removed in v2.3.0)
 
-| Requirement                                                                                                                                  | Status   |
-| :------------------------------------------------------------------------------------------------------------------------------------------- | :------- |
-| Home Assistant Web Components must be explicitly registered in the global JSX namespace (e.g., `src/types/ha-frontend.d.ts`) for TypeScript. | Included |
-| WebSocket commands used by the frontend must be centralized in a type-safe enum (e.g., `src/types/websocket.ts`).                            | Included |
-| Vite build must use a dedicated `dist` directory for `outDir` and explicitly define `src/main.tsx` as the entry point in `rollupOptions.input`. | Included |
-| The `index.html` file must point to the TypeScript source entry point to allow Vite to transform it during the build process. | Included |
+| Requirement                                                                                                                                     | Status  |
+| :---------------------------------------------------------------------------------------------------------------------------------------------- | :------ |
+| Home Assistant Web Components must be explicitly registered in the global JSX namespace (e.g., `src/types/ha-frontend.d.ts`) for TypeScript.    | Removed |
+| WebSocket commands used by the frontend must be centralized in a type-safe enum (e.g., `src/types/websocket.ts`).                               | Removed |
+| Vite build must use a dedicated `dist` directory for `outDir` and explicitly define `src/main.tsx` as the entry point in `rollupOptions.input`. | Removed |
+| The `index.html` file must point to the TypeScript source entry point to allow Vite to transform it during the build process.                   | Removed |
 
 ## Key Learnings from Debugging
 
@@ -206,8 +206,8 @@
   - [x] **IPSK WebSocket API:** Implement a strict WebSocket API contract for IPSK management with camelCase payload keys and centralized command definitions.
   - [x] **IPSK Native Service Action:** Expose IPSK creation functionality as a standard Home Assistant Service Action, allowing users to create timed guest keys without the custom frontend panel.
   - [x] **Guest Wi-Fi Blueprint:** Provide a plug-and-play automation template for creating temporary guest keys via the `meraki_ha.create_guest_key` action.
-- [x] **IPSK Native UX Overhaul:** Rebuilt the TimedAccess.tsx component to provide a native Home Assistant experience using `ha-textfield`, `ha-select`, `ha-button`, and `ha-alert` web components.
-- [ ] **Enhanced Home Security & Awareness (MV Cameras & MT Sensors):**
+  - [x] **IPSK Native UX Overhaul:** Rebuilt the TimedAccess.tsx component to provide a native Home Assistant experience using `ha-textfield`, `ha-select`, `ha-button`, and `ha-alert` web components.
+  - [ ] **Enhanced Home Security & Awareness (MV Cameras & MT Sensors):**
   - [ ] **Camera Motion Events:** Create `binary_sensor` entities for camera motion events.
   - [ ] **Per-Client Presence Detection:** Enhance the device tracker to show which AP a client is connected to.
 - [ ] **PoE Control for Smart Homes (MS Switches):**
@@ -249,11 +249,11 @@
 
 ## Structural Improvements & Refactoring
 
-| Improvement                                                                                                                                                                     | Status   |
-| :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | :------- |
-| **ACL Score Reduction:** Refactored complex sensor update functions in `device_status.py` and `base.py` to bring Agent Cognitive Load (ACL) scores below 10.                    | Complete |
-| **Logic Decomposition:** Extracted nested data parsing and status determination logic into single-responsibility helper functions (e.g., `_determine_device_status`).           | Complete |
-| **Strict Type Hinting:** Applied comprehensive Python type hints to all refactored functions to improve maintainability and catch potential errors early.                       | Complete |
-| **Helper Function Size Constraints:** Ensured all new helper functions remain strictly under 50 lines of code, promoting readability and ease of testing.                       | Complete |
-| **IPSK Manager Singleton:** Implemented a central `IPSKManager` singleton in `async_setup` to manage the lifecycle of guest PSKs across all config entries.                      | Complete |
-| **Custom Panel Simplification:** Removed redundant Device, Network, and SSID views from the custom panel, consolidating the UI to focus on Timed Guest Access (IPSK).           | Complete |
+| Improvement                                                                                                                                                           | Status   |
+| :-------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :------- |
+| **ACL Score Reduction:** Refactored complex sensor update functions in `device_status.py` and `base.py` to bring Agent Cognitive Load (ACL) scores below 10.          | Complete |
+| **Logic Decomposition:** Extracted nested data parsing and status determination logic into single-responsibility helper functions (e.g., `_determine_device_status`). | Complete |
+| **Strict Type Hinting:** Applied comprehensive Python type hints to all refactored functions to improve maintainability and catch potential errors early.             | Complete |
+| **Helper Function Size Constraints:** Ensured all new helper functions remain strictly under 50 lines of code, promoting readability and ease of testing.             | Complete |
+| **IPSK Manager Singleton:** Implemented a central `IPSKManager` singleton in `async_setup` to manage the lifecycle of guest PSKs across all config entries.           | Complete |
+| **Custom Panel Removal:** Completely removed the custom React sidebar panel; all functionality (IPSK management) is now handled via native HA Service Actions and UI. | Complete |

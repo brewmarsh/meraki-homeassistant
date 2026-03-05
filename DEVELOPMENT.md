@@ -61,42 +61,6 @@ Before submitting, you **must** run all quality checks. These are also enforced 
     docker run --rm -v "$(pwd)":/github/workspace ghcr.io/home-assistant/hassfest
     ```
 
-## 3. Frontend Development
-
-The Meraki side panel is a modern web application built with React, Vite, and TypeScript.
-
-### 3.1. Frontend Code Location
-
-The source code for the frontend panel is located in the `custom_components/meraki_ha/www/` directory.
-
-### 3.2. Installing Dependencies
-
-To work with the frontend code, you must first install the necessary Node.js dependencies.
-
-```bash
-cd custom_components/meraki_ha/www/
-npm install
-```
-
-### 3.3. Building the Frontend
-
-After making changes to the frontend code, you must rebuild the panel to generate the final JavaScript and CSS files.
-
-```bash
-npm run build
-```
-
-This will compile the frontend application and place the necessary `meraki-panel.js` and `style.css` files in the `custom_components/meraki_ha/www/` directory.
-
-### 3.4. Development Server
-
-For a more interactive development experience, you can run the Vite development server:
-
-```bash
-npm run dev
-```
-
-This will start a local server, typically on port 5173, that provides hot-reloading. Note that in this mode, the panel will not have access to the Home Assistant `hass` object and may not function completely.
 
 ## 4. Core Architectural Principles
 

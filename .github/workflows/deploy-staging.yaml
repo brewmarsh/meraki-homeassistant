@@ -92,10 +92,10 @@ jobs:
         run: |
           echo "Initiating 90s discovery wait cycle..."
           sleep 90
-          
+
           echo "Extracting logs from Home Assistant API..."
           curl -sS -H "Authorization: Bearer ${{ env.HA_TOKEN }}" -H "Content-Type: application/json" "${{ env.HA_URL }}/api/error_log" > full_ha_log.txt || { echo "Failed to fetch logs from API"; exit 1; }
-          
+
           # Multi-Stage Audit
           # Stage 1: Search for string literal Traceback (most recent call last):
           grep -A 30 "Traceback (most recent call last
