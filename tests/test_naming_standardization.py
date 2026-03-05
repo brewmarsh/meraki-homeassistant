@@ -26,4 +26,4 @@ def test_format_device_name():
         "model": "MT14",
         "serial": "Q2XX-XXXX-XXXX",
     }
-    assert format_device_name(device_meraki_name, config) == "Meraki Kitchen"
+    assert format_device_name(device_meraki_name, config) == "[Sensor] Meraki Kitchen"
