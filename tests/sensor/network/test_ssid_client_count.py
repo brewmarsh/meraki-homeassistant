@@ -21,10 +21,12 @@ async def test_ssid_client_count_sensor_wireless_settings() -> None:
 
     # Setup initial coordinator data with new structure
     coordinator.data = {"wireless_settings": {"N_123": [ssid_data]}}
+    coordinator.get_network.return_value = MagicMock(name="Test Network")
+    coordinator.get_network.return_value.name = "Test Network"
 
     sensor = MerakiSSIDClientCountSensor(coordinator, config_entry, ssid_data)
 
-    assert sensor.name == "Test SSID client count"
+    assert sensor.name == "Test Network SSID Test SSID client count"
     assert sensor.native_value == 5
 
     # Test update

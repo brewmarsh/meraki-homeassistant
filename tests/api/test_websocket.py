@@ -235,7 +235,7 @@ async def test_ipsk_get_keys(
         {
             "id": 1,
             "type": "meraki_ha/ipsk/get",
-            "configEntryId": "test_entry",
+            "config_entry_id": "test_entry",
         }
     )
 
@@ -265,8 +265,8 @@ async def test_timed_access_get_policies(
         {
             "id": 1,
             "type": "meraki_ha/timed_access/get_policies",
-            "configEntryId": entry_id,
-            "networkId": "N_123",
+            "config_entry_id": entry_id,
+            "network_id": "N_123",
         }
     )
 
@@ -292,10 +292,10 @@ async def test_ipsk_create(
         {
             "id": 1,
             "type": "meraki_ha/ipsk/create",
-            "configEntryId": "test_entry",
-            "networkId": "N_123",
-            "ssidNumber": "0",
-            "durationMinutes": 60,
+            "config_entry_id": "test_entry",
+            "network_id": "N_123",
+            "ssid_number": "0",
+            "duration_minutes": 60,
             "name": "Guest",
         }
     )
@@ -330,7 +330,7 @@ async def test_ipsk_revoke(
         {
             "id": 1,
             "type": "meraki_ha/ipsk/revoke",
-            "identityPskId": "psk1",
+            "identity_psk_id": "psk1",
         }
     )
 

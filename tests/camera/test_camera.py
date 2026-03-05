@@ -26,14 +26,20 @@ def mock_camera(
     )
 
 
-async def test_camera_properties(mock_camera):
+async def test_camera_properties(mock_camera, mock_camera_service):
     """Test the properties of the camera entity."""
     assert mock_camera.name is None
     assert (
         mock_camera.unique_id == f"{MOCK_CAMERA_DEVICE.serial}_merakirtspstreamcamera"
     )
     assert mock_camera.is_streaming is True
-    assert await mock_camera.stream_source() == MOCK_CAMERA_DEVICE.rtsp_url
+
+    # Test async_stream_source calls the service
+    mock_camera_service.get_video_stream_url.return_value = "rtsp://test_service_url"
+    assert await mock_camera.async_stream_source() == "rtsp://test_service_url"
+    mock_camera_service.get_video_stream_url.assert_called_once_with(
+        MOCK_CAMERA_DEVICE.serial
+    )
 
 
 @pytest.mark.asyncio

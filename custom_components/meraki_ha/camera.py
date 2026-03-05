@@ -67,7 +67,6 @@ class MerakiRTSPStreamCamera(MerakiEntity, Camera):
 
     _attr_brand = "Cisco Meraki"
     _attr_has_entity_name = True
-    _attr_supported_features = CameraEntityFeature.STREAM
 
     coordinator: MerakiCameraCoordinator
 
@@ -170,19 +169,24 @@ class MerakiRTSPStreamCamera(MerakiEntity, Camera):
             _LOGGER.debug("Skipping snapshot for offline camera: %s", self.name)
             return None
 
-        url = await self._camera_service.generate_snapshot(self._device_serial)
-        if not url:
-            _LOGGER.debug("Failed to get snapshot URL for %s", self.name)
-            return None
-
         try:
+            url = await self._camera_service.generate_snapshot(self._device_serial)
+            if not url:
+                _LOGGER.debug("Failed to get snapshot URL for %s", self.name)
+                return None
+
             session = async_get_clientsession(self.hass)
             async with session.get(url) as response:
                 response.raise_for_status()
                 return await response.read()
-        except aiohttp.ClientError as e:
-            _LOGGER.error("Error fetching snapshot for %s: %s", self.name, e)
+        except Exception as err:
+            _LOGGER.warning("Failed to fetch camera snapshot: %s", err)
             return None
+
+    @property
+    def supported_features(self) -> CameraEntityFeature:
+        """Return supported features."""
+        return CameraEntityFeature.STREAM
 
     @property
     def is_streaming(self) -> bool:
@@ -191,11 +195,9 @@ class MerakiRTSPStreamCamera(MerakiEntity, Camera):
             return False
         return True
 
-    async def stream_source(self) -> str | None:
+    async def async_stream_source(self) -> str | None:
         """Return the source of the stream."""
-        if self.device_data.rtsp_url is None:
-            return None
-        return self.device_data.rtsp_url
+        return await self._camera_service.get_video_stream_url(self._device_serial)
 
     @property
     def extra_state_attributes(self) -> dict[str, Any]:

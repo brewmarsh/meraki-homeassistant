@@ -11,6 +11,7 @@ from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
+from ..const import DOMAIN
 from ..coordinators import MerakiMainCoordinator
 from ..core.api import MerakiApiClientProtocol
 from ..helpers.device_info_helpers import resolve_device_info
@@ -47,7 +48,9 @@ class MerakiRFProfileSelect(CoordinatorEntity, SelectEntity):
             icon="mdi:wifi-cog",
         )
 
-        self._attr_name = None
+        network = coordinator.get_network(self._network_id)
+        network_name = network.name if network else f"Network {self._network_id}"
+        self._attr_name = f"{network_name} SSID {self._ssid_name} RF profile"
         self._attr_unique_id = f"{self._network_id}ssid{self._ssid_number}_rf_profile"
         self._attr_options: list[str] = []
         self._update_internal_state()
@@ -56,10 +59,9 @@ class MerakiRFProfileSelect(CoordinatorEntity, SelectEntity):
 
     @property
     def device_info(self) -> DeviceInfo | None:
-        """Return device information to link this entity to the SSID 'device'."""
-        return resolve_device_info(
-            entity_data=self._ssid_data,
-            config_entry=self._config_entry,
+        """Return device information to link this entity to the Network device."""
+        return DeviceInfo(
+            identifiers={(DOMAIN, f"network_{self._network_id}")},
         )
 
     @property

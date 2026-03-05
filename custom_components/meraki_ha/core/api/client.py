@@ -143,21 +143,18 @@ class MerakiApiClientProtocol:
                     if "VLANs" in error_msg:
                         raise MerakiVlansDisabledError(error_msg) from e
                     raise MerakiInformationalError(error_msg) from e
-                _LOGGER.error(
-                    "Meraki API Error encountered: %s",
-                    e,
-                    exc_info=True,
-                )
+                _LOGGER.warning("Meraki API Error encountered: %s", e)
+                _LOGGER.debug("Meraki API Error stack trace", exc_info=True)
                 raise ApiClientCommunicationError(
                     f"Error communicating with Meraki API: {e}"
                 ) from e
             except Exception as e:
-                _LOGGER.error(
+                _LOGGER.warning(
                     "An unexpected error occurred during API call: %s. Type: %s",
                     e,
                     type(e).__name__,
-                    exc_info=True,
                 )
+                _LOGGER.debug("Unexpected API error stack trace", exc_info=True)
                 if "JSON" in str(e):
                     raise ApiClientCommunicationError(
                         f"Invalid JSON response from Meraki API. "

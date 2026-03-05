@@ -47,5 +47,7 @@ class MerakiSSIDPerSsidBandwidthLimitSensor(MerakiSSIDBaseSensor):
         self._attr_native_value = self._ssid_data_at_init.get(attribute)
 
         # Robust unique_id format: serial_classname_key
-        serial = ssid_data.get("serial") or getattr(coordinator, "serial", "unknown")
-        self._attr_unique_id = f"{serial}_{self.__class__.__name__}_{attribute}"
+        # For SSID entities, we use a combination of networkId and SSID number
+        serial = ssid_data.get("networkId", "unknown")
+        number = ssid_data.get("number", "unknown")
+        self._attr_unique_id = f"{serial}_{number}_{self.__class__.__name__}_{attribute}"
