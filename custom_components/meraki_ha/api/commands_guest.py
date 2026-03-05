@@ -34,8 +34,8 @@ def async_register_guest_commands(hass: HomeAssistant) -> None:
         vol.Schema(
             {
                 vol.Required("type"): WS_CMD_GET_GUEST_KEYS,
-                vol.Optional("configEntryId"): str,
-                vol.Optional("networkId"): str,
+                vol.Optional("config_entry_id"): str,
+                vol.Optional("network_id"): str,
             },
             extra=vol.ALLOW_EXTRA,
         ),
@@ -47,13 +47,13 @@ def async_register_guest_commands(hass: HomeAssistant) -> None:
         vol.Schema(
             {
                 vol.Required("type"): WS_CMD_CREATE_GUEST_KEY,
-                vol.Required("configEntryId"): str,
-                vol.Required("networkId"): str,
-                vol.Required("ssidNumber"): str,
-                vol.Required("durationMinutes"): int,
+                vol.Required("config_entry_id"): str,
+                vol.Required("network_id"): str,
+                vol.Required("ssid_number"): str,
+                vol.Required("duration_minutes"): int,
                 vol.Optional("name"): str,
                 vol.Optional("passphrase"): str,
-                vol.Optional("groupPolicyId"): str,
+                vol.Optional("group_policy_id"): str,
             },
             extra=vol.ALLOW_EXTRA,
         ),
@@ -65,7 +65,7 @@ def async_register_guest_commands(hass: HomeAssistant) -> None:
         vol.Schema(
             {
                 vol.Required("type"): WS_CMD_REVOKE_GUEST_KEY,
-                vol.Required("identityPskId"): str,
+                vol.Required("identity_psk_id"): str,
             },
             extra=vol.ALLOW_EXTRA,
         ),
@@ -80,8 +80,8 @@ async def ws_get_guest_keys(
     msg: dict[str, Any],
 ) -> None:
     """Handle IPSK/get command."""
-    config_entry_id = msg.get("configEntryId")
-    network_id = msg.get("networkId")
+    config_entry_id = msg.get("config_entry_id")
+    network_id = msg.get("network_id")
 
     if "ipsk_manager" not in hass.data.get(DOMAIN, {}):
         connection.send_error(
@@ -112,13 +112,13 @@ async def ws_create_guest_key(
 
     try:
         key = await manager.create_guest_key(
-            config_entry_id=msg["configEntryId"],
-            network_id=msg["networkId"],
-            ssid_number=msg["ssidNumber"],
-            duration_minutes=msg["durationMinutes"],
+            config_entry_id=msg["config_entry_id"],
+            network_id=msg["network_id"],
+            ssid_number=msg["ssid_number"],
+            duration_minutes=msg["duration_minutes"],
             name=msg.get("name", "Guest User"),
             passphrase=msg.get("passphrase"),
-            group_policy_id=msg.get("groupPolicyId"),
+            group_policy_id=msg.get("group_policy_id"),
         )
         connection.send_result(msg["id"], to_serializable(key))
     except Exception as err:  # pylint: disable=broad-except
@@ -134,7 +134,7 @@ async def ws_revoke_guest_key(
     msg: dict[str, Any],
 ) -> None:
     """Handle IPSK/revoke command."""
-    identity_psk_id = msg["identityPskId"]
+    identity_psk_id = msg["identity_psk_id"]
 
     if "ipsk_manager" not in hass.data.get(DOMAIN, {}):
         connection.send_error(
