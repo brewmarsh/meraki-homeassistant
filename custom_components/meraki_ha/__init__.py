@@ -89,13 +89,16 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         Whether the setup was successful.
 
     """
-    # Register frontend assets
+    # Register static path for frontend
     if "frontend" in hass.config.components:
         hass.http.register_static_path(
-            "/local/meraki_ha",
+            "/meraki_ha_static",
             hass.config.path("custom_components/meraki_ha/www"),
+            cache_headers=False,  # Set to False during beta/smoketest for easier debugging
         )
-        add_extra_js_url(hass, "/local/meraki_ha/meraki-card.js")
+
+        # Register the JavaScript module so it appears in the dashboard
+        add_extra_js_url(hass, "/meraki_ha_static/meraki-card.js")
 
     async_setup_websocket_api(hass)
     # Perform migrations before coordinator refresh
