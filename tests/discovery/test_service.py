@@ -154,5 +154,4 @@ async def test_discover_entities_delegates_to_handler(
             mock_camera_service,
             mock_control_service,
             mock_network_control_service,
-            status_coordinator=mock_coordinator_with_devices,
         )

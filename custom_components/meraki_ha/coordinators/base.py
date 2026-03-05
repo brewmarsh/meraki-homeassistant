@@ -18,6 +18,7 @@ from ..core.coordinator_helpers.config_helper import (
 )
 from ..core.coordinator_helpers.data_fetcher import DataFetchManager
 from ..core.coordinator_helpers.update_processor import UpdateProcessor
+from ..core.models import MerakiDevice, MerakiNetwork
 from ..core.managers import PendingUpdateManager, PollingManager
 
 T = TypeVar("T")

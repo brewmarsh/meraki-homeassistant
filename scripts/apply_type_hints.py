@@ -4,12 +4,13 @@ import json
 import os
 import re
 import time
-from typing import Any
 
 try:
     from google import genai
 except ImportError:
-    print("Error: google-genai package is not installed. Please run 'pip install google-genai'.")
+    print(
+        "Error: google-genai package is not installed. Please run 'pip install google-genai'."
+    )
     genai = None
 
 
@@ -31,7 +32,7 @@ def apply_type_hints() -> None:
         return
 
     try:
-        with open(tasks_file, "r", encoding="utf-8") as f:
+        with open(tasks_file, encoding="utf-8") as f:
             tasks = json.load(f)
     except json.JSONDecodeError as e:
         print(f"Error decoding {tasks_file}: {e}")
@@ -45,7 +46,7 @@ def apply_type_hints() -> None:
 
         print(f"Processing {file_path}...")
         try:
-            with open(file_path, "r", encoding="utf-8") as f:
+            with open(file_path, encoding="utf-8") as f:
                 content = f.read()
 
             prompt = (
@@ -82,12 +83,16 @@ def apply_type_hints() -> None:
                     f.write(refactored_code)
                 print(f"Successfully updated {file_path}.")
             else:
-                print(f"Error: Could not extract code from Gemini response for {file_path}.")
+                print(
+                    f"Error: Could not extract code from Gemini response for {file_path}."
+                )
 
         except Exception as e:
             error_str = str(e)
             if "429" in error_str:
-                print(f"Rate limit reached (429) for {file_path}. Waiting 60 seconds...")
+                print(
+                    f"Rate limit reached (429) for {file_path}. Waiting 60 seconds..."
+                )
                 time.sleep(60)
                 # We could retry here, but for simplicity we'll just move on or rely on next run.
             else:

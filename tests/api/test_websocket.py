@@ -36,7 +36,9 @@ def verify_cleanup() -> Generator[None, None, None]:
 
 
 @pytest.fixture
-async def setup_integration(hass: HomeAssistant) -> AsyncGenerator[MockConfigEntry, None]:
+async def setup_integration(
+    hass: HomeAssistant,
+) -> AsyncGenerator[MockConfigEntry, None]:
     """Set up the Meraki integration."""
     mock_component(hass, "frontend")
     mock_component(hass, "panel_custom")
@@ -197,7 +199,9 @@ async def test_update_enabled_networks(
     ws_client: Any,
 ) -> None:
     """Test updating enabled networks."""
-    config_entry = MockConfigEntry(domain=DOMAIN, entry_id="test_entry", options={"existing": "option"})
+    config_entry = MockConfigEntry(
+        domain=DOMAIN, entry_id="test_entry", options={"existing": "option"}
+    )
     config_entry.add_to_hass(hass)
 
     await ws_client.send_json(

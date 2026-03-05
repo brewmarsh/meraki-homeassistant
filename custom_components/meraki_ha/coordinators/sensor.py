@@ -46,14 +46,7 @@ class MerakiSensorCoordinator(MerakiBaseCoordinator[dict[str, Any]]):
 
             return data
         except Exception as err:
-            _LOGGER.error("Error fetching Meraki sensor data: %s", err)
-
-            # Record failure and potentially back off
-            updated = self.polling_manager.record_failure(err)
-            self.apply_polling_update(updated)
-
-            if "429" in str(err):
-                raise UpdateFailed(f"Meraki API rate limit: {err}") from err
-
-            data, _ = self.update_processor.process_failure(err, self.last_successful_data)
+            data, _ = self.update_processor.process_failure(
+                err, self.last_successful_data
+            )
             return data

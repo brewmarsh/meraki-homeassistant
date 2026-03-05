@@ -133,7 +133,7 @@ async def _wait_for_restart(session: aiohttp.ClientSession) -> bool:
             pass
 
         if i % 3 == 0:
-            logger.info(f"  Still waiting... ({i*retry_interval}s)")
+            logger.info(f"  Still waiting... ({i * retry_interval}s)")
         await asyncio.sleep(retry_interval)
 
     logger.error("Timed out waiting for Home Assistant to restart.")

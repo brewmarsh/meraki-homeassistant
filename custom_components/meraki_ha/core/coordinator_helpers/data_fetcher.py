@@ -115,9 +115,9 @@ class DataFetchManager:
         data = await async_gather_with_timeout(tasks, label="Batch fetch")
 
         # Update cache
-        self._org_data_cache.clear()
-        self._org_data_cache.update(data)
-        self._org_data_cache_expiry = current_time + self._cache_ttl
+        _ORG_DATA_CACHE.clear()
+        _ORG_DATA_CACHE.update(data)
+        _ORG_DATA_CACHE_EXPIRY = current_time + CACHE_TTL
 
         return data
 
@@ -149,8 +149,7 @@ class DataFetchManager:
 
         devices_raw = batch_data.get("devices") or []
         data["devices"] = [
-            MerakiDevice.from_dict(d) if isinstance(d, dict) else d
-            for d in devices_raw
+            MerakiDevice.from_dict(d) if isinstance(d, dict) else d for d in devices_raw
         ]
 
     def _distribute_batch_data(self, batch_data: dict[str, Any]) -> dict[str, Any]:
@@ -312,5 +311,5 @@ class DataFetchManager:
         data.update(network_details)
 
         # Parse appliance-specific data
-        parse_appliance_data(data["devices"], data.get("statuses", []))
-        return data
+        appliance_details = parse_appliance_data(data["devices"], data, current_data)
+        data.update(appliance_details)

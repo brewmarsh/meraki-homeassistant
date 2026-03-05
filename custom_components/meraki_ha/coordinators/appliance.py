@@ -38,5 +38,7 @@ class MerakiApplianceCoordinator(MerakiBaseCoordinator[dict[str, Any]]):
                 self.last_successful_data = data
             return data
         except Exception as err:
-            data, _ = self.update_processor.process_failure(err, self.last_successful_data)
+            data, _ = self.update_processor.process_failure(
+                err, self.last_successful_data
+            )
             return data

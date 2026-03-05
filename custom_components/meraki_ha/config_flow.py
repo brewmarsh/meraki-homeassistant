@@ -5,9 +5,10 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING, Any
 
-from homeassistant import config_entries
 from homeassistant.config_entries import ConfigFlowResult
 from homeassistant.core import callback
+
+from homeassistant import config_entries
 
 try:
     from homeassistant.helpers.service_info.dhcp import DhcpServiceInfo
@@ -112,9 +113,9 @@ class MerakiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignor
             await self.hass.config_entries.async_reload(entry.entry_id)
             return self.async_abort(reason="reconfigure_successful")
 
-        coordinator: MerakiMainCoordinator = self.hass.data[DOMAIN][
-            entry.entry_id
-        ]["coordinator"]
+        coordinator: MerakiMainCoordinator = self.hass.data[DOMAIN][entry.entry_id][
+            "coordinator"
+        ]
 
         from .helpers.flow_utils import get_network_options
         from .helpers.schema import get_filtered_schema, populate_schema_defaults
@@ -154,9 +155,7 @@ class MerakiOptionsFlowHandler(config_entries.OptionsFlow):
         """Get the coordinator."""
         if self._coordinator_instance is None:
             entry_id = getattr(self, "config_entry_id", self._config_entry.entry_id)
-            self._coordinator_instance = self.hass.data[DOMAIN][
-                entry_id
-            ]["coordinator"]
+            self._coordinator_instance = self.hass.data[DOMAIN][entry_id]["coordinator"]
         return self._coordinator_instance
 
     async def async_step_init(
