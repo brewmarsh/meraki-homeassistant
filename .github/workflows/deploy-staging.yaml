@@ -21,20 +21,6 @@ jobs:
           clean: true
           fetch-depth: 0
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v6
-        with:
-          node-version: '20'
-
-      - name: Build custom panel
-        working-directory: ./custom_components/meraki_ha/www
-        run: |
-          echo "Installing NPM dependencies..."
-          npm ci
-          
-          echo "Building frontend..."
-          npm run build
-
       - name: Copy files to staging (rsync)
         shell: bash
         env:

@@ -47,4 +47,4 @@ convention = "numpy"
 
 
 [tool.codespell]
-skip = "*meraki-panel.js,*/dist/*"
+skip = "*/dist/*"
