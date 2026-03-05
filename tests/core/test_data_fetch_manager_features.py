@@ -70,7 +70,9 @@ async def test_appliance_features_fetching_behavior() -> None:
     )
     # We patch asyncio.create_task just in case, though we don't use it directly here
     tasks_disabled: dict[str, Any] = {}
-    from custom_components.meraki_ha.core.coordinator_helpers.strategy_executor import collect_network_tasks
+    from custom_components.meraki_ha.core.coordinator_helpers.strategy_executor import (
+        collect_network_tasks,
+    )
     with patch("asyncio.create_task", side_effect=lambda x: x):
         collect_network_tasks(
             {"networks": [mock_network]}, tasks_disabled, manager_disabled.strategies

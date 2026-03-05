@@ -1,5 +1,0 @@
-custom_components/meraki_ha/api/websocket.py
-custom_components/meraki_ha/event/__init__.py
-custom_components/meraki_ha/config_flow.py
-custom_components/meraki_ha/diagnostics.py
-custom_components/meraki_ha/options_flow.py

@@ -10,7 +10,6 @@ from custom_components.meraki_ha.core.coordinator_helpers.data_fetcher import (
     DataFetchManager,
 )
 from custom_components.meraki_ha.core.models.network import MerakiNetwork
-from homeassistant.helpers.update_coordinator import UpdateFailed
 
 
 async def clean_exit_wait_for(coro, timeout=None):

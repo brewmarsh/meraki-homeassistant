@@ -1,6 +1,9 @@
 
-import pytest
-from custom_components.meraki_ha.core.utils.naming_utils import standardize_device_name, format_device_name
+from custom_components.meraki_ha.core.utils.naming_utils import (
+    format_device_name,
+    standardize_device_name,
+)
+
 
 def test_standardize_device_name():
     assert standardize_device_name("Kitchen MT14") == "Meraki Kitchen MT14"
