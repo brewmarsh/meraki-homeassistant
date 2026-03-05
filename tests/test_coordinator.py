@@ -48,15 +48,11 @@ def coordinator(hass, mock_api_client, mock_data_fetch_manager):
     # Patched to reflect the new internal module structure for base components
     with (
         patch(
-            "custom_components.meraki_ha.coordinators.base.ApiClient",
-            return_value=mock_api_client,
-        ),
-        patch(
             "custom_components.meraki_ha.coordinators.base.DataFetchManager",
             return_value=mock_data_fetch_manager,
         ),
     ):
-        yield MerakiDataCoordinator(hass=hass, entry=entry)
+        yield MerakiDataCoordinator(hass=hass, entry=entry, api_client=mock_api_client)
 
 
 @pytest.mark.asyncio

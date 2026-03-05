@@ -25,7 +25,7 @@ async def async_setup_entry(
 ) -> None:
     """Set up Meraki network status binary sensor entities."""
     coordinator: MerakiMainCoordinator = hass.data[DOMAIN][config_entry.entry_id][
-        "coordinator"
+        "main_coordinator"
     ]
 
     if coordinator.data.get("networks"):

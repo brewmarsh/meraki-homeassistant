@@ -126,7 +126,7 @@ async def test_ssid_device_creation_and_unification(
 
     with (
         patch(
-            "custom_components.meraki_ha.coordinators.base.ApiClient",
+            "custom_components.meraki_ha.MerakiAPIClient",
             return_value=mock_meraki_client,
         ),
         patch(
@@ -188,7 +188,7 @@ async def test_integration_reload(
 
     with (
         patch(
-            "custom_components.meraki_ha.coordinators.base.ApiClient",
+            "custom_components.meraki_ha.MerakiAPIClient",
             return_value=mock_meraki_client,
         ),
         patch(
@@ -208,4 +208,4 @@ async def test_integration_reload(
         # Check that the coordinator is still there, indicating a successful reload
         assert DOMAIN in hass.data
         assert mock_config_entry.entry_id in hass.data[DOMAIN]
-        assert "coordinator" in hass.data[DOMAIN][mock_config_entry.entry_id]
+        assert "main_coordinator" in hass.data[DOMAIN][mock_config_entry.entry_id]

@@ -14,7 +14,7 @@ from homeassistant.helpers.typing import ConfigType
 
 from .api.websocket import async_setup_websocket_api
 from .const import DOMAIN, WEBHOOK_ID_FORMAT
-from .const_conf import CONF_MERAKI_ORG_ID
+from .const_conf import CONF_MERAKI_API_KEY, CONF_MERAKI_ORG_ID
 from .const_platform import PLATFORMS
 from .coordinators import (
     MerakiApplianceCoordinator,
@@ -26,6 +26,7 @@ from .coordinators import (
     MerakiSwitchCoordinator,
     MerakiWirelessCoordinator,
 )
+from .core.api.client import MerakiAPIClient
 from .core.repositories.camera_repository import CameraRepository
 from .core.repository import MerakiRepository
 from .discovery.service import DeviceDiscoveryService
@@ -107,15 +108,22 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     await async_migrate_entities(hass, entry.entry_id)
     await async_cleanup_ghost_devices(hass, entry.entry_id)
 
+    # Initialize shared API client
+    api_client = MerakiAPIClient(
+        hass=hass,
+        api_key=entry.data[CONF_MERAKI_API_KEY],
+        org_id=entry.data[CONF_MERAKI_ORG_ID],
+    )
+
     # Initialize specialized coordinators
-    main_coordinator = MerakiMainCoordinator(hass, entry)
-    device_coordinator = MerakiDeviceCoordinator(hass, entry)
-    switch_coordinator = MerakiSwitchCoordinator(hass, entry)
-    camera_coordinator = MerakiCameraCoordinator(hass, entry)
-    sensor_coordinator = MerakiSensorCoordinator(hass, entry)
-    wireless_coordinator = MerakiWirelessCoordinator(hass, entry)
-    appliance_coordinator = MerakiApplianceCoordinator(hass, entry)
-    client_coordinator = MerakiClientCoordinator(hass, entry)
+    main_coordinator = MerakiMainCoordinator(hass, entry, api_client)
+    device_coordinator = MerakiDeviceCoordinator(hass, entry, api_client)
+    switch_coordinator = MerakiSwitchCoordinator(hass, entry, api_client)
+    camera_coordinator = MerakiCameraCoordinator(hass, entry, api_client)
+    sensor_coordinator = MerakiSensorCoordinator(hass, entry, api_client)
+    wireless_coordinator = MerakiWirelessCoordinator(hass, entry, api_client)
+    appliance_coordinator = MerakiApplianceCoordinator(hass, entry, api_client)
+    client_coordinator = MerakiClientCoordinator(hass, entry, api_client)
 
     # 1. Block setup until the basic device skeleton is loaded (Tier 1)
     # This is strictly required to populate the Device Registry promptly.
@@ -155,7 +163,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             hass, coord.async_request_refresh(), name=name
         )
 
-    api_client = main_coordinator.api
     repo = MerakiRepository(api_client)
     device_control_service = DeviceControlService(repo)
     switch_port_service = SwitchPortService(repo)

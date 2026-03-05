@@ -35,7 +35,7 @@ async def async_setup_entry(
 ) -> None:
     """Set up Meraki camera entities from a config entry."""
     entry_data = hass.data[DOMAIN][config_entry.entry_id]
-    coordinator: MerakiCameraCoordinator = entry_data["coordinator"]
+    coordinator: MerakiCameraCoordinator = entry_data["camera_coordinator"]
     camera_service: CameraService = entry_data["camera_service"]
 
     devices: list[MerakiDevice] = coordinator.data.get("devices", [])
