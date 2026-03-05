@@ -111,6 +111,9 @@ class DataFetchManager:
             tasks["switch_ports"] = self.client.run_with_semaphore(
                 self.client.organization.get_organization_switch_ports_statuses()
             )
+            tasks["appliance_uplink_statuses"] = self.client.run_with_semaphore(
+                self.client.appliance.get_organization_appliance_uplink_statuses()
+            )
 
         data = await async_gather_with_timeout(tasks, label="Batch fetch")
 
@@ -160,6 +163,8 @@ class DataFetchManager:
         self._distribute_networks(data, batch_data)
         self._distribute_devices(data, batch_data)
         self._parse_initial_statuses(data, batch_data)
+
+        data["appliance_uplink_statuses"] = batch_data.get("appliance_uplink_statuses")
 
         data["clients"] = []
         return data

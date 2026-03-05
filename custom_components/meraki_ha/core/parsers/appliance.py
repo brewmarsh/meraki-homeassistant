@@ -18,8 +18,9 @@ _LOGGER = logging.getLogger(__name__)
 
 def parse_appliance_data(
     devices: list[MerakiDevice],
-    appliance_uplink_statuses: list[dict[str, Any]] | Exception | None,
-) -> None:
+    detail_data: dict[str, Any],
+    previous_data: dict[str, Any] | None = None,
+) -> dict[str, Any]:
     """
     Parse appliance-specific data and update device objects.
 
@@ -28,17 +29,26 @@ def parse_appliance_data(
 
     Args:
         devices: A list of device objects to update.
-        appliance_uplink_statuses: A list of appliance uplink statuses.
+        detail_data: Dictionary containing fetched data.
+        previous_data: Dictionary containing previous data for fallback.
+
+    Returns:
+        An empty dictionary.
     """
+    appliance_uplink_statuses = detail_data.get("appliance_uplink_statuses")
+
+    if appliance_uplink_statuses is None and previous_data:
+        appliance_uplink_statuses = previous_data.get("appliance_uplink_statuses")
+
     if isinstance(appliance_uplink_statuses, Exception):
         _LOGGER.warning(
             "Could not fetch appliance uplink statuses, data will be unavailable: %s",
             appliance_uplink_statuses,
         )
-        return
+        return {}
 
     if not appliance_uplink_statuses:
-        return
+        return {}
 
     _LOGGER.debug("Parsing appliance data for %s items", len(appliance_uplink_statuses))
 
@@ -56,6 +66,8 @@ def parse_appliance_data(
                 # will be enriched with performance metrics later
                 device.uplinks = uplinks
                 break
+
+    return {}
 
 
 def parse_appliance_ports(
