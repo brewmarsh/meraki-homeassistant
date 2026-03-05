@@ -32,6 +32,7 @@ from .frontend import async_register_frontend, async_remove_frontend
 from .helpers.migrations import async_cleanup_ghost_devices, async_migrate_entities
 from .services.camera_service import CameraService
 from .services.device_control_service import DeviceControlService
+from .services import async_setup_services
 from .services.ipsk_manager import IPSKManager
 from .services.manager import ServicesManager
 from .services.network_control_service import NetworkControlService
@@ -67,6 +68,9 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
         ipsk_manager = IPSKManager(hass)
         await ipsk_manager.async_setup()
         hass.data[DOMAIN]["ipsk_manager"] = ipsk_manager
+
+    # Set up services
+    await async_setup_services(hass)
 
     # Register the static path for the custom panel
     if hass.http:
