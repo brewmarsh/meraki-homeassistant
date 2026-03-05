@@ -21,7 +21,7 @@ _LOGGER = logging.getLogger(__name__)
 
 
 def _get_port_identifier_from_data(port_data: dict[str, Any]) -> str | None:
-    """Extracts the port identifier (portId or number) from port data."""
+    """Extract the port identifier (portId or number) from port data."""
     port_id = port_data.get("portId")
     if port_id is not None:
         return str(port_id)
@@ -107,7 +107,9 @@ class _MerakiPortSwitchBase(MerakiEntity, SwitchEntity, ABC):
             return
 
         for port_data in self._get_device_ports():
-            port_dict = port_data if isinstance(port_data, dict) else port_data.to_dict()
+            port_dict = (
+                port_data if isinstance(port_data, dict) else port_data.to_dict()
+            )
             if _get_port_identifier_from_data(port_dict) == current_port_id:
                 self._port = port_dict
                 _LOGGER.debug(

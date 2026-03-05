@@ -167,12 +167,12 @@ def _fallback_network_ssids(
     """Get fallback SSIDs from previous data."""
     if not previous_data:
         return []
-    
+
     if "wireless_settings" in previous_data:
         return previous_data["wireless_settings"].get(network_id, [])
     if network_ssids_key in previous_data:
         return previous_data.get(network_ssids_key, [])
-        
+
     return []
 
 

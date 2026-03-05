@@ -6,13 +6,11 @@ import logging
 import time
 from typing import TYPE_CHECKING, Any
 
-from homeassistant.helpers.update_coordinator import UpdateFailed
-
-from ..const import DEFAULT_CAPS
 from ...core.parsers.appliance import parse_appliance_data
 from ...core.parsers.devices import parse_device_data
 from ...core.parsers.network import parse_network_data
 from ...core.parsers.sensors import parse_sensor_data
+from ..const import DEFAULT_CAPS
 from ..fetch_strategies.appliance import ApplianceFetchStrategy
 from ..fetch_strategies.camera import CameraFetchStrategy
 from ..fetch_strategies.sensor import SensorFetchStrategy
@@ -100,13 +98,6 @@ class DataFetchManager:
 
         return data
 
-        # Update cache
-        _ORG_DATA_CACHE.clear()
-        _ORG_DATA_CACHE.update(data)
-        _ORG_DATA_CACHE_EXPIRY = datetime.now() + CACHE_TTL
-
-        return data
-
     def _distribute_organization(
         self, data: dict[str, Any], batch_data: dict[str, Any]
     ) -> None:
@@ -135,8 +126,7 @@ class DataFetchManager:
 
         devices_raw = batch_data.get("devices") or []
         data["devices"] = [
-            MerakiDevice.from_dict(d) if isinstance(d, dict) else d
-            for d in devices_raw
+            MerakiDevice.from_dict(d) if isinstance(d, dict) else d for d in devices_raw
         ]
 
     def _distribute_batch_data(self, batch_data: dict[str, Any]) -> dict[str, Any]:
@@ -259,24 +249,3 @@ class DataFetchManager:
         # Parse appliance-specific data
         appliance_details = parse_appliance_data(data["devices"], data, current_data)
         data.update(appliance_details)
-
-    async def get_all_data(
-        self,
-        current_data: dict[str, Any] | None = None,
-        timespan: int = 300,
-    ) -> dict[str, Any]:
-        """Fetch all data from the Meraki API in a coordinated cycle."""
-        try:
-            async with asyncio.timeout(30):
-                data = await self._fetch_initial_org_data()
-
-                # Build and execute detail batch
-                await self._build_strategy_tasks(data)
-
-                # Merge and process all results
-                await self._merge_and_process_results(data, current_data)
-
-                return data
-        except TimeoutError:
-            _LOGGER.error("Meraki API took too long; check for semaphore deadlock")
-            raise UpdateFailed("API Timeout") from None

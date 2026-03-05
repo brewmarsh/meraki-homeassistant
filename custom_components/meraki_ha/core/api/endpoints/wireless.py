@@ -228,6 +228,37 @@ class WirelessEndpoints:
             )
         return tasks
 
+    def _process_network_ssids(
+        self,
+        detail_data: dict[str, Any],
+        network_id: str,
+        previous_data: dict[str, Any] | None,
+        result: dict[str, Any],
+    ) -> None:
+        network_ssids_key = f"ssids_{network_id}"
+        network_ssids = detail_data.get(network_ssids_key)
+        if isinstance(network_ssids, list):
+            for ssid in network_ssids:
+                if "unconfigured ssid" not in ssid.get("name", "").lower():
+                    ssid["networkId"] = network_id
+                    result["ssids"].append(ssid)
+        elif previous_data and network_ssids_key in previous_data:
+            result["ssids"].extend(previous_data[network_ssids_key])
+
+    def _process_network_rf_profiles(
+        self,
+        detail_data: dict[str, Any],
+        network_id: str,
+        previous_data: dict[str, Any] | None,
+        result: dict[str, Any],
+    ) -> None:
+        network_rf_profiles_key = f"rf_profiles_{network_id}"
+        network_rf_profiles = detail_data.get(network_rf_profiles_key)
+        if isinstance(network_rf_profiles, list):
+            result["rf_profiles"][network_id] = network_rf_profiles
+        elif previous_data and network_rf_profiles_key in previous_data:
+            result["rf_profiles"][network_id] = previous_data[network_rf_profiles_key]
+
     def process_network_detail_data(
         self,
         detail_data: dict[str, Any],
@@ -253,22 +284,10 @@ class WirelessEndpoints:
             "rf_profiles": {},
         }
 
-        network_ssids_key = f"ssids_{network_id}"
-        network_ssids = detail_data.get(network_ssids_key)
-        if isinstance(network_ssids, list):
-            for ssid in network_ssids:
-                if "unconfigured ssid" not in ssid.get("name", "").lower():
-                    ssid["networkId"] = network_id
-                    result["ssids"].append(ssid)
-        elif previous_data and network_ssids_key in previous_data:
-            result["ssids"].extend(previous_data[network_ssids_key])
-
-        network_rf_profiles_key = f"rf_profiles_{network_id}"
-        network_rf_profiles = detail_data.get(network_rf_profiles_key)
-        if isinstance(network_rf_profiles, list):
-            result["rf_profiles"][network_id] = network_rf_profiles
-        elif previous_data and network_rf_profiles_key in previous_data:
-            result["rf_profiles"][network_id] = previous_data[network_rf_profiles_key]
+        self._process_network_ssids(detail_data, network_id, previous_data, result)
+        self._process_network_rf_profiles(
+            detail_data, network_id, previous_data, result
+        )
 
         return result
 

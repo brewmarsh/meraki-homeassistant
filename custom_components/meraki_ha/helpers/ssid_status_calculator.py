@@ -26,49 +26,33 @@ class SsidStatusCalculator:
     def calculate_ssid_status(
         cls,
         ssids: list[dict[str, Any]] | None,
-        # Device list; tags are expected within each device dict.
         devices: list[dict[str, Any]] | None,
-        # The `device_tags` parameter (previously a separate dict) has been
-        # removed.
     ) -> list[dict[str, Any]]:
-        """
-        Calculate the operational status of each SSID provided.
-
-        The status of an SSID is determined by the state of the wireless access
-        points (APs) that are tagged to broadcast it. The logic is permissive:
-        if an SSID has tags, an AP needs to match only one of those tags.
-        If an SSID has no tags, any AP is considered a match.
-
-        The rules are:
-        - 'disabled': If the SSID itself is administratively disabled.
-        - 'no_matching_devices': If no APs are tagged to broadcast this SSID.
-        - 'online': If all APs matching this SSID (by tag) are online.
-        - 'partially_online': If some, but not all, matching APs are online.
-        - 'offline': If all APs matching this SSID are offline.
-        - 'unknown_device_data_missing': If `devices` is None.
-
-        Args:
-        ----
-            ssids: A list of SSID dictionaries.
-            devices: A list of Meraki device dictionaries.
-
-        Returns
-        -------
-            A list of SSID dictionaries, each updated with new keys:
-            'matching_devices_online' (count), 'matching_devices_total' (count),
-            and 'status' (string). Returns an empty list if `ssids` is None.
-
-        """
-        if not ssids:  # Handles None or empty list for ssids.
+        """Calculate the operational status of each SSID provided."""
+        if not ssids:
             return []
 
         if devices is None:
-            _LOGGER.warning("Device data is None; SSID statuses cannot be determined.")
-            for ssid in ssids:
-                if isinstance(ssid, dict):
-                    ssid["status"] = "unknown_device_data_missing"
-            return ssids
+            return cls._handle_missing_devices(ssids)
 
+        return cls._process_all_ssids(ssids, devices)
+
+    @classmethod
+    def _handle_missing_devices(
+        cls, ssids: list[dict[str, Any]]
+    ) -> list[dict[str, Any]]:
+        """Handle the case where device data is missing."""
+        _LOGGER.warning("Device data is None; SSID statuses cannot be determined.")
+        for ssid in ssids:
+            if isinstance(ssid, dict):
+                ssid["status"] = "unknown_device_data_missing"
+        return ssids
+
+    @classmethod
+    def _process_all_ssids(
+        cls, ssids: list[dict[str, Any]], devices: list[dict[str, Any]]
+    ) -> list[dict[str, Any]]:
+        """Process all SSIDs against the device list."""
         updated_ssids_list: list[dict[str, Any]] = []
         for ssid_info in ssids:
             if not isinstance(ssid_info, dict):

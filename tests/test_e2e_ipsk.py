@@ -19,7 +19,11 @@ def mock_meraki_client(hass):
     client._disabled_features = set()
     client.wireless = MagicMock()
     client.wireless.create_identity_psk = AsyncMock(
-        return_value={"id": "mock_ipsk_id", "name": "Guest User", "passphrase": "secretpassphrase"}
+        return_value={
+            "id": "mock_ipsk_id",
+            "name": "Guest User",
+            "passphrase": "secretpassphrase",
+        }
     )
     client.wireless.delete_identity_psk = AsyncMock()
     return client
@@ -85,14 +89,10 @@ async def test_e2e_create_and_expire_ipsk(
 
 
 @pytest.mark.asyncio
-async def test_e2e_ipsk_flow_real_endpoints(
-    hass, mock_meraki_client, manager
-):
+async def test_e2e_ipsk_flow_real_endpoints(hass, mock_meraki_client, manager):
     """Simplified integration test verifying parameter passing."""
     # Setup Hass data
-    hass.data[DOMAIN] = {
-        "test_entry_id": {DATA_CLIENT: mock_meraki_client}
-    }
+    hass.data[DOMAIN] = {"test_entry_id": {DATA_CLIENT: mock_meraki_client}}
 
     await manager.async_setup()
     try:

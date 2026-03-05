@@ -52,7 +52,9 @@ async def async_setup_entry(
                     seen_ids.add(entity.unique_id)
                     entities_to_add.append(entity)
                 else:
-                    _LOGGER.debug("Ignoring duplicate entity with ID %s", entity.unique_id)
+                    _LOGGER.debug(
+                        "Ignoring duplicate entity with ID %s", entity.unique_id
+                    )
             else:
                 entities_to_add.append(entity)
 

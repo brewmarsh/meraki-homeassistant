@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import logging
 from datetime import datetime, timedelta
-from typing import TYPE_CHECKING, Any, TypedDict, cast
+from typing import TYPE_CHECKING, TypedDict, cast
 
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers import event, storage
@@ -82,7 +82,9 @@ class IPSKManager:
         """Create a guest IPSK on Meraki and track it in HA."""
         client = self._get_client(config_entry_id)
         if not client:
-            raise ValueError(f"Meraki client not found for config entry {config_entry_id}")
+            raise ValueError(
+                f"Meraki client not found for config entry {config_entry_id}"
+            )
 
         result = await client.wireless.create_identity_psk(
             network_id,
@@ -120,7 +122,9 @@ class IPSKManager:
 
         return new_key
 
-    async def remove_guest_key(self, identity_psk_id: str, save_after: bool = True) -> bool:
+    async def remove_guest_key(
+        self, identity_psk_id: str, save_after: bool = True
+    ) -> bool:
         """
         Remove a guest IPSK from Meraki and stop tracking it.
 
@@ -128,7 +132,8 @@ class IPSKManager:
             identity_psk_id: The ID of the PSK to remove.
             save_after: Whether to save the store after removal.
 
-        Returns:
+        Returns
+        -------
             True if removed from tracking (either succeeded or not found/deleted),
             False if deletion failed due to transient error.
         """
@@ -161,7 +166,10 @@ class IPSKManager:
                 # If the PSK doesn't exist, we should remove from tracking.
                 error_msg = str(e).lower()
                 if "404" in error_msg or "not found" in error_msg:
-                    _LOGGER.debug("IPSK %s not found on Meraki, removing from tracking", identity_psk_id)
+                    _LOGGER.debug(
+                        "IPSK %s not found on Meraki, removing from tracking",
+                        identity_psk_id,
+                    )
                 else:
                     _LOGGER.error(
                         "Failed to delete IPSK %s from Meraki: %s", identity_psk_id, e

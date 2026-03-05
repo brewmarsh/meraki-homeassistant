@@ -1,6 +1,7 @@
-from playwright.sync_api import Page, expect, sync_playwright
-import os
 import time
+
+from playwright.sync_api import Page, sync_playwright
+
 
 def verify_semantic_ui(page: Page):
     url = "http://localhost:8080/index.html"
@@ -52,15 +53,19 @@ def verify_semantic_ui(page: Page):
     time.sleep(1)
     page.screenshot(path="verification/network_view_dark.png", full_page=True)
 
+
 if __name__ == "__main__":
     import subprocess
-    server_process = subprocess.Popen(["python3", "-m", "http.server", "8080"], cwd="custom_components/meraki_ha/www")
+
+    server_process = subprocess.Popen(
+        ["python3", "-m", "http.server", "8080"], cwd="custom_components/meraki_ha/www"
+    )
 
     time.sleep(2)
 
     with sync_playwright() as p:
         browser = p.chromium.launch(headless=True)
-        page = browser.new_page(viewport={'width': 1280, 'height': 1200})
+        page = browser.new_page(viewport={"width": 1280, "height": 1200})
         try:
             verify_semantic_ui(page)
         except Exception as e:

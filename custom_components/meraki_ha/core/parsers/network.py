@@ -31,70 +31,62 @@ def parse_network_data(
     """Parse and process network-level data."""
     network_ids = [str(n.id) for n in networks if n.id]
 
-    return {
-        "appliance_traffic": {
-            nid: traffic_data
-            for nid in network_ids
-            if (
-                traffic_data := _extract_appliance_traffic(
-                    nid, detail_data, previous_data, disabled_features
-                )
-            )
-            is not None
-        },
-        "vlans": {
-            nid: vlan_data
-            for nid in network_ids
-            if (
-                vlan_data := _extract_vlans(
-                    nid, detail_data, previous_data, disabled_features
-                )
-            )
-            is not None
-        },
-        "l3_firewall_rules": {
-            nid: firewall_data
-            for nid in network_ids
-            if (
-                firewall_data := _extract_firewall_rules(
-                    nid, detail_data, previous_data
-                )
-            )
-            is not None
-        },
-        "traffic_shaping": {
-            nid: shaping_data
-            for nid in network_ids
-            if (
-                shaping_data := _extract_traffic_shaping(
-                    nid, detail_data, previous_data
-                )
-            )
-            is not None
-        },
-        "vpn_status": {
-            nid: vpn_data
-            for nid in network_ids
-            if (vpn_data := _extract_vpn_status(nid, detail_data, previous_data))
-            is not None
-        },
-        "rf_profiles": {
-            nid: rf_data
-            for nid in network_ids
-            if (rf_data := _extract_rf_profiles(nid, detail_data, previous_data))
-            is not None
-        },
-        "content_filtering": {
-            nid: content_data
-            for nid in network_ids
-            if (
-                content_data := _extract_content_filtering(
-                    nid, detail_data, previous_data
-                )
-            )
-            is not None
-        },
+    result: dict[str, dict[str, Any]] = {
+        "appliance_traffic": {},
+        "vlans": {},
+        "l3_firewall_rules": {},
+        "traffic_shaping": {},
+        "vpn_status": {},
+        "rf_profiles": {},
+        "content_filtering": {},
     }
+
+    for nid in network_ids:
+        _process_network_id(nid, detail_data, previous_data, disabled_features, result)
+
+    return result
+
+
+def _process_network_id(
+    nid: str,
+    detail_data: dict[str, Any],
+    previous_data: dict[str, Any],
+    disabled_features: set[str],
+    result: dict[str, dict[str, Any]],
+) -> None:
+    """Extract and populate data for a single network ID."""
+    if (
+        traffic_data := _extract_appliance_traffic(
+            nid, detail_data, previous_data, disabled_features
+        )
+    ) is not None:
+        result["appliance_traffic"][nid] = traffic_data
+
+    if (
+        vlan_data := _extract_vlans(nid, detail_data, previous_data, disabled_features)
+    ) is not None:
+        result["vlans"][nid] = vlan_data
+
+    if (
+        firewall_data := _extract_firewall_rules(nid, detail_data, previous_data)
+    ) is not None:
+        result["l3_firewall_rules"][nid] = firewall_data
+
+    if (
+        shaping_data := _extract_traffic_shaping(nid, detail_data, previous_data)
+    ) is not None:
+        result["traffic_shaping"][nid] = shaping_data
+
+    if (vpn_data := _extract_vpn_status(nid, detail_data, previous_data)) is not None:
+        result["vpn_status"][nid] = vpn_data
+
+    if (rf_data := _extract_rf_profiles(nid, detail_data, previous_data)) is not None:
+        result["rf_profiles"][nid] = rf_data
+
+    if (
+        content_data := _extract_content_filtering(nid, detail_data, previous_data)
+    ) is not None:
+        result["content_filtering"][nid] = content_data
 
 
 def _extract_appliance_traffic(

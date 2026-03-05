@@ -1,4 +1,5 @@
 """Tests for network utils."""
+
 from custom_components.meraki_ha.core.models.network import MerakiVlan
 from custom_components.meraki_ha.core.utils.network_utils import get_active_vlans
 

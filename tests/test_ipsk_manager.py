@@ -78,11 +78,15 @@ async def test_remove_guest_key(hass, mock_meraki_client, manager):
 
 
 @pytest.mark.asyncio
-async def test_remove_guest_key_failure_keeps_tracking(hass, mock_meraki_client, manager):
+async def test_remove_guest_key_failure_keeps_tracking(
+    hass, mock_meraki_client, manager
+):
     """Test that transient failure keeps the key in tracking."""
     await manager.async_setup()
 
-    mock_meraki_client.wireless.delete_identity_psk.side_effect = Exception("Transient Error")
+    mock_meraki_client.wireless.delete_identity_psk.side_effect = Exception(
+        "Transient Error"
+    )
 
     # Manually add a key to track
     key = {
@@ -103,11 +107,15 @@ async def test_remove_guest_key_failure_keeps_tracking(hass, mock_meraki_client,
 
 
 @pytest.mark.asyncio
-async def test_remove_guest_key_404_removes_from_tracking(hass, mock_meraki_client, manager):
+async def test_remove_guest_key_404_removes_from_tracking(
+    hass, mock_meraki_client, manager
+):
     """Test that 404 error removes the key from tracking."""
     await manager.async_setup()
 
-    mock_meraki_client.wireless.delete_identity_psk.side_effect = Exception("404 Not Found")
+    mock_meraki_client.wireless.delete_identity_psk.side_effect = Exception(
+        "404 Not Found"
+    )
 
     # Manually add a key to track
     key = {

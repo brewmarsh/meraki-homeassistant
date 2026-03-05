@@ -1,6 +1,6 @@
 """Tests for the Meraki HA WebSocket API."""
 
-from collections.abc import AsyncGenerator, Callable, Generator
+from collections.abc import AsyncGenerator, Generator
 from typing import Any
 from unittest.mock import AsyncMock, MagicMock, patch
 
@@ -10,7 +10,7 @@ from pytest_homeassistant_custom_component.common import MockConfigEntry, mock_c
 from pytest_homeassistant_custom_component.typing import WebSocketGenerator
 
 from custom_components.meraki_ha.api.websocket import async_setup_websocket_api
-from custom_components.meraki_ha.const import DOMAIN, DATA_CLIENT
+from custom_components.meraki_ha.const import DATA_CLIENT, DOMAIN
 from custom_components.meraki_ha.const_conf import (
     CONF_MERAKI_API_KEY,
     CONF_MERAKI_ORG_ID,
@@ -36,7 +36,9 @@ def verify_cleanup() -> Generator[None, None, None]:
 
 
 @pytest.fixture
-async def setup_integration(hass: HomeAssistant) -> AsyncGenerator[MockConfigEntry, None]:
+async def setup_integration(
+    hass: HomeAssistant,
+) -> AsyncGenerator[MockConfigEntry, None]:
     """Set up the Meraki integration."""
     mock_component(hass, "frontend")
     mock_component(hass, "panel_custom")
@@ -197,7 +199,9 @@ async def test_update_enabled_networks(
     ws_client: Any,
 ) -> None:
     """Test updating enabled networks."""
-    config_entry = MockConfigEntry(domain=DOMAIN, entry_id="test_entry", options={"existing": "option"})
+    config_entry = MockConfigEntry(
+        domain=DOMAIN, entry_id="test_entry", options={"existing": "option"}
+    )
     config_entry.add_to_hass(hass)
 
     await ws_client.send_json(

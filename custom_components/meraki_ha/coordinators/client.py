@@ -23,5 +23,7 @@ class MerakiClientCoordinator(MerakiBaseCoordinator[dict[str, Any]]):
         try:
             return await self.data_fetch_manager.get_all_data(self.last_successful_data)
         except Exception as err:
-            data, _ = self.update_processor.process_failure(err, self.last_successful_data)
+            data, _ = self.update_processor.process_failure(
+                err, self.last_successful_data
+            )
             return data

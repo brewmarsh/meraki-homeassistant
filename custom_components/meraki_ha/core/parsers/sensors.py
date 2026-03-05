@@ -120,6 +120,16 @@ def _merge_battery_readings(
             device_readings.append(reading)
 
 
+def _process_reading(device: MerakiDevice, reading: dict[str, Any]) -> None:
+    """Process a single reading for a device."""
+    metric = reading.get("metric")
+    if metric == "power":
+        _LOGGER.debug("MT40 Power Reading Payload: %s", reading)
+
+    if metric and metric in METRIC_HANDLERS:
+        METRIC_HANDLERS[metric](device, reading)
+
+
 def _process_single_device(
     device: MerakiDevice,
     readings_map: dict[str, list[dict[str, Any]]],
@@ -139,12 +149,11 @@ def _process_single_device(
 
     device.readings = device_readings
     for reading in device_readings:
-        metric = reading.get("metric")
-        if metric == "power":
-            _LOGGER.debug("MT40 Power Reading Payload: %s", reading)
+        _process_reading(device, reading)
 
-        if metric and metric in METRIC_HANDLERS:
-            METRIC_HANDLERS[metric](device, reading)
+
+def _safe_list(data: list[dict[str, Any]] | None) -> list[dict[str, Any]]:
+    return data if data is not None else []
 
 
 def parse_sensor_data(
@@ -153,13 +162,11 @@ def parse_sensor_data(
     battery_readings: list[dict[str, Any]] | None,
 ) -> None:
     """Parse and merge sensor and battery readings into the device list."""
-    if not sensor_readings:
-        sensor_readings = []
-    if not battery_readings:
-        battery_readings = []
+    sensor_list = _safe_list(sensor_readings)
+    battery_list = _safe_list(battery_readings)
 
-    readings_map = _build_readings_map(sensor_readings)
-    battery_map = _build_readings_map(battery_readings)
+    readings_map = _build_readings_map(sensor_list)
+    battery_map = _build_readings_map(battery_list)
 
     for device in devices:
         _process_single_device(device, readings_map, battery_map)
