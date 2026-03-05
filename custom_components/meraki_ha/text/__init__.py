@@ -22,8 +22,8 @@ async def async_setup_entry(
     if config_entry.entry_id not in hass.data[DOMAIN]:
         return False
     entry_data = hass.data[DOMAIN][config_entry.entry_id]
-    coordinator = entry_data["coordinator"]
-    meraki_client = coordinator.api
+    coordinator = entry_data["main_coordinator"]
+    meraki_client = entry_data["meraki_client"]
 
     if coordinator.data:
         text_entities = [

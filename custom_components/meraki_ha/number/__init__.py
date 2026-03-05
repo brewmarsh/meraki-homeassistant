@@ -21,7 +21,7 @@ async def async_setup_entry(
     """Set up Meraki number entities from a config entry."""
     if config_entry.entry_id not in hass.data[DOMAIN]:
         return False
-    coordinator = hass.data[DOMAIN][config_entry.entry_id]["coordinator"]
+    coordinator = hass.data[DOMAIN][config_entry.entry_id]["main_coordinator"]
 
     number_entities = async_setup_numbers(hass, config_entry, coordinator)
 

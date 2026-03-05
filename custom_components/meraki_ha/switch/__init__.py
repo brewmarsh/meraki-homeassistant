@@ -24,7 +24,7 @@ async def async_setup_entry(
         # This entry is not ready yet, we'll wait for the coordinator to be ready
         return False
     entry_data = hass.data[DOMAIN][config_entry.entry_id]
-    coordinator = entry_data["coordinator"]
+    coordinator = entry_data["switch_coordinator"]
     meraki_client = entry_data.get("meraki_client")
     if not meraki_client:
         _LOGGER.warning("Meraki client not available; skipping switch setup.")

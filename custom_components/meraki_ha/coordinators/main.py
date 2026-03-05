@@ -19,9 +19,9 @@ _LOGGER = logging.getLogger(__name__)
 class MerakiMainCoordinator(MerakiBaseCoordinator[dict[str, Any]]):
     """A centralized coordinator for main Meraki organization and network data."""
 
-    def __init__(self, hass, entry) -> None:
+    def __init__(self, hass, entry, api_client) -> None:
         """Initialize the main coordinator."""
-        super().__init__(hass, entry, name="main")
+        super().__init__(hass, entry, api_client, name="main")
         self.last_successful_update: datetime | None = None
         self.last_successful_data: dict[str, Any] = {}
         # Slow poll interval
