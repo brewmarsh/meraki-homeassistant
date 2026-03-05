@@ -73,7 +73,7 @@ async def handle_rate_limit(
 ) -> None:
     """Handle rate limiting by sleeping and raising RetryRequest."""
     if attempt >= max_retries:
-        _LOGGER.error(
+        _LOGGER.warning(
             "Meraki API rate limit reached after %s retries: %s",
             max_retries,
             err,
@@ -106,7 +106,7 @@ async def handle_rate_limit(
 
 def handle_meraki_api_error(err: APIError) -> None:
     """Handle standard Meraki API errors."""
-    _LOGGER.error("Meraki API error: %s", err)
+    _LOGGER.warning("Meraki API error: %s", err)
     if is_auth_error(err):
         raise MerakiAuthenticationError(f"Authentication failed: {err}") from err
     if is_device_error(err):
@@ -121,7 +121,7 @@ def handle_unexpected_error(err: Exception) -> None:
     """Handle unexpected exceptions."""
     if isinstance(err, UpdateFailed):
         raise err
-    _LOGGER.error("Unexpected error: %s", err)
+    _LOGGER.warning("Unexpected error: %s", err)
     raise MerakiConnectionError(f"Unexpected error: {err}") from err
 
 
