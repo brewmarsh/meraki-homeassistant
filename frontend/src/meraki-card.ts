@@ -164,7 +164,7 @@ export class MerakiGuestAccessCard extends LitElement {
               naturalMenuWidth
             >
               ${(this._networks || []).map(
-                (n) => html`<md-select-option .value="${String(n.id)}">${n.name}</md-select-option>`
+                (n) => html`<mwc-list-item value="${String(n.id)}">${n.name}</mwc-list-item>`
               )}
             </ha-select>
 
@@ -177,7 +177,7 @@ export class MerakiGuestAccessCard extends LitElement {
               naturalMenuWidth
             >
               ${(filteredSsids || []).map(
-                (s) => html`<md-select-option .value="${String(s.number)}">${s.name} (SSID ${s.number})</md-select-option>`
+                (s) => html`<mwc-list-item value="${String(s.number)}">${s.name} (SSID ${s.number})</mwc-list-item>`
               )}
             </ha-select>
 
@@ -189,9 +189,9 @@ export class MerakiGuestAccessCard extends LitElement {
               fixedMenuPosition
               naturalMenuWidth
             >
-              <md-select-option .value="">None (Default)</md-select-option>
+              <mwc-list-item value="">None (Default)</mwc-list-item>
               ${(this._policies || []).map(
-                (p) => html`<md-select-option .value="${String(p.groupPolicyId)}">${p.name}</md-select-option>`
+                (p) => html`<mwc-list-item value="${String(p.groupPolicyId)}">${p.name}</mwc-list-item>`
               )}
             </ha-select>
 
@@ -202,11 +202,11 @@ export class MerakiGuestAccessCard extends LitElement {
               fixedMenuPosition
               naturalMenuWidth
             >
-              <md-select-option .value="${"30"}">30 Minutes</md-select-option>
-              <md-select-option .value="${"60"}">1 Hour</md-select-option>
-              <md-select-option .value="${"240"}">4 Hours</md-select-option>
-              <md-select-option .value="${"1440"}">24 Hours</md-select-option>
-              <md-select-option .value="${"10080"}">7 Days</md-select-option>
+              <mwc-list-item value="${"30"}">30 Minutes</mwc-list-item>
+              <mwc-list-item value="${"60"}">1 Hour</mwc-list-item>
+              <mwc-list-item value="${"240"}">4 Hours</mwc-list-item>
+              <mwc-list-item value="${"1440"}">24 Hours</mwc-list-item>
+              <mwc-list-item value="${"10080"}">7 Days</mwc-list-item>
             </ha-select>
 
             <ha-textfield
