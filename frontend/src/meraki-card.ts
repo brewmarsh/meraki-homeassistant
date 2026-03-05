@@ -304,3 +304,11 @@ export class MerakiGuestAccessCard extends LitElement {
     }
   `;
 }
+// Register the card in the Home Assistant Lovelace UI picker
+(window as any).customCards = (window as any).customCards || [];
+(window as any).customCards.push({
+  type: "meraki-guest-access-card",
+  name: "Meraki Guest Access",
+  description: "Create and manage Meraki IPSK guest access keys.",
+  preview: true,
+});
