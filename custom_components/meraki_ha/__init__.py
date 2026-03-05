@@ -27,7 +27,7 @@ from .coordinators import (
     MerakiSwitchCoordinator,
     MerakiWirelessCoordinator,
 )
-from .core.api.client import MerakiAPIClient
+from .core.api.factory import create_api_client
 from .core.repositories.camera_repository import CameraRepository
 from .core.repository import MerakiRepository
 from .discovery.service import DeviceDiscoveryService
@@ -111,7 +111,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     await async_cleanup_ghost_devices(hass, entry.entry_id)
 
     # Initialize shared API client
-    api_client = MerakiAPIClient(
+    api_client = create_api_client(
         hass=hass,
         api_key=entry.data[CONF_MERAKI_API_KEY],
         org_id=entry.data[CONF_MERAKI_ORG_ID],

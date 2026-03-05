@@ -14,6 +14,7 @@ from functools import partial
 from typing import Any, cast
 
 import meraki
+
 from homeassistant.core import HomeAssistant
 
 from ...core.errors import (
@@ -22,14 +23,16 @@ from ...core.errors import (
     MerakiTrafficAnalysisError,
     MerakiVlansDisabledError,
 )
-from .endpoints.appliance import ApplianceEndpoints
-from .endpoints.camera import CameraEndpoints
-from .endpoints.devices import DevicesEndpoints
-from .endpoints.network import NetworkEndpoints
-from .endpoints.organization import OrganizationEndpoints
-from .endpoints.sensor import SensorEndpoints
-from .endpoints.switch import SwitchEndpoints
-from .endpoints.wireless import WirelessEndpoints
+from .protocol import (
+    ApplianceEndpointsProtocol,
+    CameraEndpointsProtocol,
+    DevicesEndpointsProtocol,
+    NetworkEndpointsProtocol,
+    OrganizationEndpointsProtocol,
+    SensorEndpointsProtocol,
+    SwitchEndpointsProtocol,
+    WirelessEndpointsProtocol,
+)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -44,14 +47,14 @@ class MerakiAPIClient:
 
     _disabled_features: set[str] = set()
     _enable_vpn_management: bool = False
-    appliance: ApplianceEndpoints
-    camera: CameraEndpoints
-    devices: DevicesEndpoints
-    network: NetworkEndpoints
-    organization: OrganizationEndpoints
-    switch: SwitchEndpoints
-    wireless: WirelessEndpoints
-    sensor: SensorEndpoints
+    appliance: ApplianceEndpointsProtocol
+    camera: CameraEndpointsProtocol
+    devices: DevicesEndpointsProtocol
+    network: NetworkEndpointsProtocol
+    organization: OrganizationEndpointsProtocol
+    switch: SwitchEndpointsProtocol
+    wireless: WirelessEndpointsProtocol
+    sensor: SensorEndpointsProtocol
 
     def __init__(
         self,
@@ -85,16 +88,6 @@ class MerakiAPIClient:
             wait_on_rate_limit=True,
             nginx_429_retry_wait_time=2,
         )
-
-        # Initialize endpoint handlers
-        self.appliance = ApplianceEndpoints(self, self._hass)
-        self.camera = CameraEndpoints(self)
-        self.devices = DevicesEndpoints(self)
-        self.network = NetworkEndpoints(self)
-        self.organization = OrganizationEndpoints(self)
-        self.switch = SwitchEndpoints(self)
-        self.wireless = WirelessEndpoints(self)
-        self.sensor = SensorEndpoints(self)
 
         # Semaphore to limit concurrent API calls
         self._semaphore = asyncio.Semaphore(2)

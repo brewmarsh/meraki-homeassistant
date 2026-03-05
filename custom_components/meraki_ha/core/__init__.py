@@ -1,6 +1,6 @@
 """Core functionality package."""
 
-from .api import MerakiAPIClient
+from .api import MerakiAPIClient, create_api_client
 from .utils import (
     DEVICE_TYPE_APPLIANCE,
     DEVICE_TYPE_CAMERA,
@@ -15,6 +15,7 @@ from .utils import (
 
 __all__ = [
     "MerakiAPIClient",
+    "create_api_client",
     "DEVICE_TYPE_WIRELESS",
     "DEVICE_TYPE_SWITCH",
     "DEVICE_TYPE_APPLIANCE",
