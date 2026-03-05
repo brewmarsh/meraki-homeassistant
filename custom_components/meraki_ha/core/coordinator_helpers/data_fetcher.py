@@ -114,6 +114,9 @@ class DataFetchManager:
             tasks["appliance_uplink_statuses"] = self.client.run_with_semaphore(
                 self.client.appliance.get_organization_appliance_uplink_statuses()
             )
+            tasks["sensor_readings"] = self.client.run_with_semaphore(
+                self.client.sensor.get_organization_sensor_readings_latest()
+            )
 
         data = await async_gather_with_timeout(tasks, label="Batch fetch")
 
@@ -165,6 +168,7 @@ class DataFetchManager:
         self._parse_initial_statuses(data, batch_data)
 
         data["appliance_uplink_statuses"] = batch_data.get("appliance_uplink_statuses")
+        data["sensor_readings"] = batch_data.get("sensor_readings")
 
         data["clients"] = []
         return data
@@ -251,7 +255,14 @@ class DataFetchManager:
         self._process_data(data, current_data)
 
         # Sensor parsing
-        parse_sensor_data(data["devices"], data.get("sensor_readings"), [])
+        try:
+            sensor_details = parse_sensor_data(
+                data["devices"], data.get("sensor_readings"), []
+            )
+            data.update(sensor_details)
+        except Exception as err:  # pylint: disable=broad-except
+            _LOGGER.error("Failed to parse sensor data: %s", err, exc_info=True)
+
         return data
 
     async def get_all_data(
