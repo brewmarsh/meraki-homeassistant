@@ -144,7 +144,8 @@
 
 | Requirement                                                                                                                                                                                            | Status   |
 | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :------- |
-| Automated smoke tests must include a 45-60 second wait after integration initialization to allow the Meraki coordinator's initial asynchronous cloud data fetch to complete before auditing logs or state. | Included |
+| The integration uses a non-blocking setup sequence where only Tier 1 data (basic device skeleton) is awaited during `async_setup_entry`. Heavy sensor data is fetched in the background.                | Included |
+| Automated smoke tests must include a 90-second wait after integration initialization to allow the Meraki background coordinators to complete their initial data fetch before auditing logs or state.    | Included |
 
 **Frontend Development
 
