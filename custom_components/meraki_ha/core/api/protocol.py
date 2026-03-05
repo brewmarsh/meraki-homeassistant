@@ -484,3 +484,46 @@ class MerakiApiClientProtocol(Protocol):
     async def run_with_semaphore(self, coro: Awaitable[Any]) -> Any:
         """Run an awaitable with the semaphore."""
         ...
+
+    def mark_feature_disabled(
+        self, feature: str, network_id: str | None = None
+    ) -> None:
+        """Mark a feature as disabled for the current session."""
+        ...
+
+    def is_feature_disabled(self, feature: str, network_id: str | None = None) -> bool:
+        """Check if a feature is disabled for the current session."""
+        ...
+
+    async def register_webhook(
+        self, webhook_url: str, secret: str, config_entry_id: str
+    ) -> None:
+        """Register a webhook with the Meraki API."""
+        ...
+
+    async def unregister_webhook(self, config_entry_id: str) -> None:
+        """Unregister a webhook with the Meraki API."""
+        ...
+
+    async def async_reboot_device(self, serial: str) -> dict[str, Any]:
+        """Reboot a device."""
+        ...
+
+    async def async_get_switch_port_statuses(
+        self,
+        serial: str,
+    ) -> list[dict[str, Any]]:
+        """Get statuses for all ports of a switch."""
+        ...
+
+    async def async_cycle_switch_ports(
+        self,
+        serial: str,
+        ports: list[str],
+    ) -> dict[str, Any]:
+        """Cycle a set of switch ports."""
+        ...
+
+    async def async_setup(self) -> None:
+        """Perform asynchronous setup of the API client."""
+        ...

@@ -29,7 +29,7 @@ async def test_validate_meraki_credentials(hass: HomeAssistant) -> None:
 
     """
     with patch(
-        "custom_components.meraki_ha.authentication.MerakiAPIClient",
+        "custom_components.meraki_ha.authentication.create_api_client",
     ) as mock_client:
         mock_client.return_value.async_setup = AsyncMock()
         mock_client.return_value.organization.get_organization = AsyncMock(
@@ -51,7 +51,7 @@ async def test_validate_meraki_credentials_invalid_org(hass: HomeAssistant) -> N
     """
     with (
         patch(
-            "custom_components.meraki_ha.authentication.MerakiAPIClient",
+            "custom_components.meraki_ha.authentication.create_api_client",
         ) as mock_client,
         pytest.raises(InvalidOrgID),
     ):
@@ -74,7 +74,7 @@ async def test_validate_meraki_credentials_auth_failed(hass: HomeAssistant) -> N
     """
     with (
         patch(
-            "custom_components.meraki_ha.authentication.MerakiAPIClient",
+            "custom_components.meraki_ha.authentication.create_api_client",
         ) as mock_client,
         pytest.raises(ConfigEntryAuthFailed),
     ):
@@ -97,7 +97,7 @@ async def test_validate_meraki_credentials_no_dashboard(hass: HomeAssistant) -> 
     """
     with (
         patch(
-            "custom_components.meraki_ha.authentication.MerakiAPIClient",
+            "custom_components.meraki_ha.authentication.create_api_client",
         ) as mock_client,
         pytest.raises(MerakiConnectionError),
     ):

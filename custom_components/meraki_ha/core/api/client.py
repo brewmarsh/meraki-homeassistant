@@ -37,7 +37,7 @@ from .protocol import (
 _LOGGER = logging.getLogger(__name__)
 
 
-class MerakiApiClientProtocol:
+class MerakiAPIClient:
     """
     Facade for the Meraki Dashboard API client.
 

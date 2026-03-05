@@ -18,7 +18,7 @@ async def test_static_path_registration(hass: HomeAssistant) -> None:
     # Ensure frontend is in components to trigger the registration block
     hass.config.components.add("frontend")
 
-    with patch("custom_components.meraki_ha.MerakiAPIClient"), \
+    with patch("custom_components.meraki_ha.create_api_client"), \
          patch("custom_components.meraki_ha.coordinators.base.DataFetchManager"), \
          patch("custom_components.meraki_ha.async_register_webhook", return_value=None):
 
