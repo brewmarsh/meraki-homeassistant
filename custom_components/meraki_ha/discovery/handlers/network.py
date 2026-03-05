@@ -22,9 +22,9 @@ if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
     from homeassistant.helpers.entity import Entity
 
-    from ..coordinators import MerakiSwitchCoordinator
     from ...services.network_control_service import NetworkControlService
     from ...types import MerakiNetwork
+    from ..coordinators import MerakiSwitchCoordinator
 
 
 _LOGGER = logging.getLogger(__name__)

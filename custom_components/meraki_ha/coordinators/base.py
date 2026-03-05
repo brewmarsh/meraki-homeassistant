@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import logging
-from datetime import datetime, timedelta
+from datetime import timedelta
 from typing import Any, Generic, TypeVar
 
 from homeassistant.config_entries import ConfigEntry
@@ -109,3 +109,13 @@ class MerakiBaseCoordinator(DataUpdateCoordinator[T], Generic[T]):
     def get_ssid(self, network_id: str, ssid_number: int) -> dict[str, Any] | None:
         """Get SSID data by network ID and SSID number."""
         return self.ssids_by_network_and_number.get((network_id, ssid_number))
+
+    def apply_polling_update(self, updated: bool) -> None:
+        """Update the coordinator's update interval if the manager changed it."""
+        if updated:
+            self.update_interval = self.polling_manager.update_interval
+            _LOGGER.debug(
+                "Coordinator %s update interval changed to %s",
+                self.name,
+                self.update_interval,
+            )

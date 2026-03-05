@@ -20,9 +20,9 @@ if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
     from homeassistant.helpers.entity import Entity
 
-    from ..coordinators import MerakiCameraCoordinator
     from ...core.models.device import MerakiDevice
     from ...services.camera_service import CameraService
+    from ..coordinators import MerakiCameraCoordinator
 
 _LOGGER = logging.getLogger(__name__)
 

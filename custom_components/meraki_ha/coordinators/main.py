@@ -6,11 +6,12 @@ import logging
 from datetime import datetime
 from typing import TYPE_CHECKING, Any
 
+from homeassistant.helpers.update_coordinator import UpdateFailed
+
 from .base import MerakiBaseCoordinator
 
 if TYPE_CHECKING:
-    from ..core.models.device import MerakiDevice
-    from ..core.models.network import MerakiNetwork
+    pass
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -30,13 +31,24 @@ class MerakiMainCoordinator(MerakiBaseCoordinator[dict[str, Any]]):
     async def _async_update_data(self) -> dict[str, Any]:
         """Fetch data from API endpoint, apply filters, and handle exceptions."""
         try:
-            return await self._execute_update_cycle()
+            data = await self._execute_update_cycle()
+
+            # Record success and potentially reset interval
+            updated = self.polling_manager.record_success()
+            self.apply_polling_update(updated)
+
+            return data
         except Exception as err:
-            data, interval_changed = self.update_processor.process_failure(
-                err, self.last_successful_data
-            )
-            if interval_changed:
-                self.update_interval = self.polling_manager.update_interval
+            _LOGGER.error("Error fetching Meraki main data: %s", err)
+
+            # Record failure and potentially back off
+            updated = self.polling_manager.record_failure(err)
+            self.apply_polling_update(updated)
+
+            if "429" in str(err):
+                raise UpdateFailed(f"Meraki API rate limit: {err}") from err
+
+            data, _ = self.update_processor.process_failure(err, self.last_successful_data)
             return data
 
     async def _execute_update_cycle(self) -> dict[str, Any]:
