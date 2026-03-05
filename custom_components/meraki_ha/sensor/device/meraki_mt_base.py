@@ -210,6 +210,9 @@ class MerakiMtSensor(MerakiSensor, RestoreSensor):
     @property
     def available(self) -> bool:
         """Return if the sensor is available."""
+        if self.coordinator.data is None:
+            return False
+
         if self.native_value is not None:
             return True
 

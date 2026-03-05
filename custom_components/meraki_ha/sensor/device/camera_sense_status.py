@@ -103,7 +103,7 @@ class MerakiCameraSenseStatusSensor(CoordinatorEntity, SensorEntity):
     @property
     def available(self) -> bool:
         """Return True if entity is available and data is present."""
-        if not super().available:
+        if self.coordinator.data is None or not super().available:
             return False
 
         current_device_data = self._get_current_device_data()

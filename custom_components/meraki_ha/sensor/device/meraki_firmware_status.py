@@ -102,4 +102,6 @@ class MerakiFirmwareStatusSensor(CoordinatorEntity, SensorEntity):
     @property
     def available(self) -> bool:
         """Return if entity is available."""
+        if self.coordinator.data is None:
+            return False
         return super().available and self._get_current_device_data() is not None

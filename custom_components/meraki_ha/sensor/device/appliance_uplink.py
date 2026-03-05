@@ -93,4 +93,6 @@ class MerakiApplianceUplinkSensor(CoordinatorEntity, SensorEntity):
     @property
     def available(self) -> bool:
         """Return if entity is available."""
+        if self.coordinator.data is None:
+            return False
         return super().available

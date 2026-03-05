@@ -124,7 +124,7 @@ class MerakiSSIDBaseSwitch(MerakiEntity, SwitchEntity):
     @property
     def available(self) -> bool:
         """Return True if entity is available."""
-        if not super().available or not self.coordinator.data:
+        if self.coordinator.data is None or not super().available:
             return False
         ssid_data = self._get_current_ssid_data()
         return ssid_data is not None and ssid_data.get("enabled", False)
@@ -132,6 +132,8 @@ class MerakiSSIDBaseSwitch(MerakiEntity, SwitchEntity):
     @callback
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
+        if self.coordinator.data is None:
+            return
         self._update_internal_state()
         self.async_write_ha_state()
 
@@ -205,7 +207,7 @@ class MerakiSSIDEnabledSwitch(MerakiSSIDBaseSwitch):
     @property
     def available(self) -> bool:
         """Return True even when disabled so you can toggle it back on."""
-        if not self.coordinator.last_update_success or not self.coordinator.data:
+        if self.coordinator.data is None or not self.coordinator.last_update_success:
             return False
         return self._get_current_ssid_data() is not None
 

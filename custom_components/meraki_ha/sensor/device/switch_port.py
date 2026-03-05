@@ -61,12 +61,16 @@ class MerakiSwitchPortBaseSensor(CoordinatorEntity, SensorEntity, ABC):
     @property
     def available(self) -> bool:
         """Return if the entity is available."""
+        if self.coordinator.data is None:
+            return False
         # An entity is only available if its parent device is online.
         return self._device.status == "online"
 
     @callback
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
+        if self.coordinator.data is None:
+            return
         updated_device, updated_port = self._find_updated_device_and_port()
         if updated_device and updated_port:
             self._device = updated_device
@@ -93,6 +97,8 @@ class MerakiSwitchPortBaseSensor(CoordinatorEntity, SensorEntity, ABC):
         self,
     ) -> tuple[MerakiDevice | None, dict[str, Any] | None]:
         """Find the updated device and port data from the coordinator's data."""
+        if self.coordinator.data is None:
+            return None, None
         current_port_id = self._get_port_id_from_data(self._port)
         if not current_port_id:
             _LOGGER.warning(

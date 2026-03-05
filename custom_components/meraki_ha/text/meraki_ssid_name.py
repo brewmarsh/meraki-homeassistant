@@ -74,7 +74,7 @@ class MerakiSSIDNameText(CoordinatorEntity[MerakiWirelessCoordinator], TextEntit
     @property
     def available(self) -> bool:
         """Return True if entity is available."""
-        if not super().available or not self.coordinator.data:
+        if self.coordinator.data is None or not super().available:
             return False
         ssid_data = self._get_current_ssid_data()
         # This entity should be available as long as we have data for the SSID,
@@ -95,6 +95,8 @@ class MerakiSSIDNameText(CoordinatorEntity[MerakiWirelessCoordinator], TextEntit
     @callback
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
+        if self.coordinator.data is None:
+            return
         self._update_internal_state()
         self.async_write_ha_state()
 

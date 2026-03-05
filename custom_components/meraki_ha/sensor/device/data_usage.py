@@ -106,6 +106,8 @@ class MerakiDataUsageSensor(CoordinatorEntity, SensorEntity):
     @property
     def available(self) -> bool:
         """Return if entity is available."""
+        if self.coordinator.data is None:
+            return False
         # This sensor should be available even if traffic analysis is disabled
         # so it can show the "Disabled" state.
         return super().available and self._get_current_device_data() is not None

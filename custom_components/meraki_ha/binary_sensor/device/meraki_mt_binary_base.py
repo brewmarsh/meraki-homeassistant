@@ -46,6 +46,8 @@ class MerakiMtBinarySensor(MerakiBinarySensor):
     @callback
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
+        if self.coordinator.data is None:
+            return
         for device in self.coordinator.data.get("devices", []):
             if device.serial == self._device.serial:
                 self._device = device
@@ -54,6 +56,8 @@ class MerakiMtBinarySensor(MerakiBinarySensor):
 
     def _get_metric_data(self) -> dict[str, Any] | None:
         """Return the dictionary containing data for the configured metric."""
+        if self.coordinator.data is None:
+            return None
         readings = self._device.readings
         if not isinstance(readings, list):
             return None
@@ -96,5 +100,7 @@ class MerakiMtBinarySensor(MerakiBinarySensor):
     @property
     def available(self) -> bool:
         """Return if the sensor is available."""
+        if self.coordinator.data is None:
+            return False
         # The sensor is available if there is a valid dict reading for its metric.
         return self._get_metric_data() is not None

@@ -20,6 +20,14 @@ class MerakiEntity(CoordinatorEntity[T], Generic[T]):
     _attr_has_entity_name = True
 
     @property
+    def available(self) -> bool:
+        """Return True if entity is available."""
+        # Entity is unavailable if the coordinator hasn't fetched data yet
+        if self.coordinator.data is None:
+            return False
+        return super().available
+
+    @property
     def unique_id(self) -> str | None:
         """Return a dynamic unique ID to prevent platform collisions.
 

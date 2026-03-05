@@ -73,7 +73,7 @@ class MerakiMt40PowerOutlet(
     @callback
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
-        if not self._device_info.serial:
+        if self.coordinator.data is None or not self._device_info.serial:
             return
         device: MerakiDevice | None = self.coordinator.get_device(
             serial=self._device_info.serial
@@ -150,4 +150,6 @@ class MerakiMt40PowerOutlet(
     @property
     def available(self) -> bool:
         """Return if the entity is available."""
+        if self.coordinator.data is None:
+            return False
         return super().available and self._device_info.outlet_status is not None
