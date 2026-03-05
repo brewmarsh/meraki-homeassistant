@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import logging
-from datetime import datetime, timedelta
+from datetime import timedelta
 from typing import Any, Generic, TypeVar
 
 from homeassistant.config_entries import ConfigEntry

@@ -16,13 +16,11 @@ from homeassistant.components.sensor import (
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import EntityCategory
 from homeassistant.core import callback
-from homeassistant.helpers.device_registry import DeviceInfo
 
-from ...const import DOMAIN
 from ...coordinators import MerakiMainCoordinator
 from ...core.models.device import MerakiDevice
-from ...helpers.device_info_helpers import resolve_device_info
 from ...entity import MerakiSensor
+from ...helpers.device_info_helpers import resolve_device_info
 
 _LOGGER = logging.getLogger(__name__)
 

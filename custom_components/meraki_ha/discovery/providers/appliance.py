@@ -14,8 +14,8 @@ if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
     from homeassistant.helpers.entity import Entity
 
-    from ..coordinators import MerakiSwitchCoordinator
     from ...core.models.device import MerakiDevice
+    from ..coordinators import MerakiSwitchCoordinator
 
 _LOGGER = logging.getLogger(__name__)
 

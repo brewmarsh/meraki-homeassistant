@@ -14,7 +14,7 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from ...const import DOMAIN
 from ...coordinators import MerakiMainCoordinator
-from ...core.utils.naming_utils import standardize_device_name, format_device_name
+from ...core.utils.naming_utils import format_device_name
 
 if TYPE_CHECKING:
     from ...core.models.device import MerakiDevice

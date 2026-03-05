@@ -6,13 +6,11 @@ import logging
 import time
 from typing import TYPE_CHECKING, Any
 
-from homeassistant.helpers.update_coordinator import UpdateFailed
-
-from ..const import DEFAULT_CAPS
 from ...core.parsers.appliance import parse_appliance_data
 from ...core.parsers.devices import parse_device_data
 from ...core.parsers.network import parse_network_data
 from ...core.parsers.sensors import parse_sensor_data
+from ..const import DEFAULT_CAPS
 from ..fetch_strategies.appliance import ApplianceFetchStrategy
 from ..fetch_strategies.camera import CameraFetchStrategy
 from ..fetch_strategies.sensor import SensorFetchStrategy
