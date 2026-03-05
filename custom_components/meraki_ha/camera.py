@@ -67,6 +67,7 @@ class MerakiRTSPStreamCamera(MerakiEntity, Camera):
 
     _attr_brand = "Cisco Meraki"
     _attr_has_entity_name = True
+    _attr_supported_features = CameraEntityFeature.STREAM
 
     coordinator: MerakiCameraCoordinator
 
@@ -182,11 +183,6 @@ class MerakiRTSPStreamCamera(MerakiEntity, Camera):
         except Exception as err:
             _LOGGER.warning("Failed to fetch camera snapshot: %s", err)
             return None
-
-    @property
-    def supported_features(self) -> CameraEntityFeature:
-        """Return supported features."""
-        return CameraEntityFeature.STREAM
 
     @property
     def is_streaming(self) -> bool:

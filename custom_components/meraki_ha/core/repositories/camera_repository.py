@@ -101,14 +101,18 @@ class CameraRepository:
             )
             url = video_link_data.get("url")
 
-            # Validate that we received a valid RTSP URL
-            if url and url.startswith("rtsp://"):
+            # Validate that we received a valid RTSP or HTTP(S) .m3u8 stream URL
+            if url and (
+                url.startswith("rtsp://")
+                or url.startswith("https://")
+                or url.endswith(".m3u8")
+            ):
                 return url
 
-            # If we get a non-RTSP URL, log it and return None
+            # If we get a non-supported URL, log it and return None
             if url:
                 _LOGGER.debug(
-                    "API returned a non-RTSP URL, assuming no stream available: %s",
+                    "API returned a non-supported video URL, assuming no stream available: %s",
                     url,
                 )
             return None
