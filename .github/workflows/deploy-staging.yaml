@@ -104,18 +104,12 @@ jobs:
       - name: Audit logs for errors
         id: audit_logs
         shell: bash
-        env:
-          HA_URL: ${{ secrets.HA_STAGING_URL }}
-          HA_TOKEN: ${{ secrets.HA_STAGING_TOKEN }}
         run: |
           echo "Initiating 90s discovery wait cycle..."
           sleep 90
 
-          echo "Fetching logs from Home Assistant API..."
-          # Use curl with --retry 3 as requested
-          curl --retry 3 -s -f -H "Authorization: Bearer $HA_TOKEN" \
-               -H "Content-Type: application/json" \
-               "$HA_URL/api/error_log" > full_ha_log.txt || { echo "Failed to fetch logs"; exit 1; }
+          echo "Extracting logs from local Home Assistant config directory..."
+          cat "$HA_CONFIG_DIR/home-assistant.log" > full_ha_log.txt || { echo "Failed to read local log file"; exit 1; }
 
           # Multi-Stage Audit
           # Stage 1: Search for string literal Traceback (most recent call last):
