@@ -29,7 +29,8 @@ def mock_api_client():
 def mock_data_fetch_manager():
     """Fixture for a mocked DataFetchManager."""
     manager = MagicMock()
-    manager.get_all_data = AsyncMock()
+    manager.get_sensor_data = AsyncMock()
+    manager.get_all_data = manager.get_sensor_data
     return manager
 
 
