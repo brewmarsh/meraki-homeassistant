@@ -118,18 +118,49 @@ class MerakiRTSPStreamCamera(MerakiEntity, Camera):
             self.coordinator.config_entry.options.get(CONF_ENABLE_CAMERA_ENTITIES, True)
             and not self.device_data.rtsp_url
         ):
-            try:
+            # Move the blocking API call to a background task to prevent Setup timeout
+            self.coordinator.config_entry.async_create_background_task(
+                self.hass,
+                self._async_enable_rtsp(),
+                f"meraki_ha_enable_rtsp_{self._device_serial}",
+            )
+
+    async def _async_enable_rtsp(self) -> None:
+        """Enable RTSP stream in the background."""
+        try:
+            _LOGGER.debug(
+                "RTSP stream is missing, enabling for camera %s in background",
+                self._device_serial,
+            )
+            # 1. Enable RTSP
+            await self._camera_service.async_set_rtsp_stream_enabled(
+                self._device_serial, True
+            )
+
+            # 2. Fetch the URL immediately
+            url = await self._camera_service.get_video_stream_url(self._device_serial)
+            if url:
                 _LOGGER.debug(
-                    "RTSP stream is missing, enabling for camera %s",
+                    "Successfully enabled and retrieved RTSP URL for %s: %s",
+                    self._device_serial,
+                    url,
+                )
+                # Update the device data model directly so the UI can use it
+                self.device_data.rtsp_url = url
+                self.async_write_ha_state()
+            else:
+                _LOGGER.debug(
+                    "RTSP enabled for %s, but URL not yet available. "
+                    "It will be picked up on the next coordinator refresh.",
                     self._device_serial,
                 )
-                await self._camera_service.async_set_rtsp_stream_enabled(
-                    self._device_serial, True
-                )
-            except Exception as e:
-                _LOGGER.warning(
-                    "Could not enable RTSP stream for %s: %s", self._device_serial, e
-                )
+
+        except Exception as e:
+            _LOGGER.warning(
+                "Could not enable RTSP stream for %s in background: %s",
+                self._device_serial,
+                e,
+            )
 
     async def async_camera_image(
         self, width: int | None = None, height: int | None = None
