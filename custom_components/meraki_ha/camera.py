@@ -67,7 +67,6 @@ class MerakiRTSPStreamCamera(MerakiEntity, Camera):
 
     _attr_brand = "Cisco Meraki"
     _attr_has_entity_name = True
-    _attr_supported_features = CameraEntityFeature.STREAM
 
     coordinator: MerakiCameraCoordinator
 
@@ -185,17 +184,20 @@ class MerakiRTSPStreamCamera(MerakiEntity, Camera):
             return None
 
     @property
+    def supported_features(self) -> CameraEntityFeature:
+        """Return supported features."""
+        return CameraEntityFeature.STREAM
+
+    @property
     def is_streaming(self) -> bool:
         """Return True if the camera is streaming."""
         if self.device_data.rtsp_url is None:
             return False
         return True
 
-    async def stream_source(self) -> str | None:
+    async def async_stream_source(self) -> str | None:
         """Return the source of the stream."""
-        if self.device_data.rtsp_url is None:
-            return None
-        return self.device_data.rtsp_url
+        return await self._camera_service.get_video_stream_url(self._device_serial)
 
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
