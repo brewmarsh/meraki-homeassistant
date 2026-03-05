@@ -22,7 +22,7 @@ let lt = class {
     return this.cssText;
   }
 };
-const $t = (r) => new lt(typeof r == "string" ? r : r + "", void 0, q), ft = (r, ...t) => {
+const ft = (r) => new lt(typeof r == "string" ? r : r + "", void 0, q), $t = (r, ...t) => {
   const e = r.length === 1 ? r[0] : t.reduce((s, i, n) => s + ((o) => {
     if (o._$cssResult$ === !0) return o.cssText;
     if (typeof o == "number") return o;
@@ -38,7 +38,7 @@ const $t = (r) => new lt(typeof r == "string" ? r : r + "", void 0, q), ft = (r,
 }, Z = K ? (r) => r : (r) => r instanceof CSSStyleSheet ? ((t) => {
   let e = "";
   for (const s of t.cssRules) e += s.cssText;
-  return $t(e);
+  return ft(e);
 })(r) : r;
 /**
  * @license
@@ -296,8 +296,8 @@ const Ct = (r, t) => {
   let i, n = t === 2 ? "<svg>" : t === 3 ? "<math>" : "", o = C;
   for (let h = 0; h < e; h++) {
     const a = r[h];
-    let c, p, l = -1, f = 0;
-    for (; f < a.length && (o.lastIndex = f, p = o.exec(a), p !== null); ) f = o.lastIndex, o === C ? p[1] === "!--" ? o = st : p[1] !== void 0 ? o = it : p[2] !== void 0 ? (ut.test(p[2]) && (i = RegExp("</" + p[2], "g")), o = A) : p[3] !== void 0 && (o = A) : o === A ? p[0] === ">" ? (o = i ?? C, l = -1) : p[1] === void 0 ? l = -2 : (l = o.lastIndex - p[2].length, c = p[1], o = p[3] === void 0 ? A : p[3] === '"' ? nt : rt) : o === nt || o === rt ? o = A : o === st || o === it ? o = C : (o = A, i = void 0);
+    let c, p, l = -1, $ = 0;
+    for (; $ < a.length && (o.lastIndex = $, p = o.exec(a), p !== null); ) $ = o.lastIndex, o === C ? p[1] === "!--" ? o = st : p[1] !== void 0 ? o = it : p[2] !== void 0 ? (ut.test(p[2]) && (i = RegExp("</" + p[2], "g")), o = A) : p[3] !== void 0 && (o = A) : o === A ? p[0] === ">" ? (o = i ?? C, l = -1) : p[1] === void 0 ? l = -2 : (l = o.lastIndex - p[2].length, c = p[1], o = p[3] === void 0 ? A : p[3] === '"' ? nt : rt) : o === nt || o === rt ? o = A : o === st || o === it ? o = C : (o = A, i = void 0);
     const m = o === A && r[h + 1].startsWith("/>") ? " " : "";
     n += o === C ? a + bt : l >= 0 ? (s.push(c), a.slice(0, l) + ct + a.slice(l) + g + m) : a + g + (l === -2 ? h : m);
   }
@@ -316,15 +316,15 @@ class U {
     for (; (i = w.nextNode()) !== null && a.length < h; ) {
       if (i.nodeType === 1) {
         if (i.hasAttributes()) for (const l of i.getAttributeNames()) if (l.endsWith(ct)) {
-          const f = p[o++], m = i.getAttribute(l).split(g), R = /([.?@])?(.*)/.exec(f);
+          const $ = p[o++], m = i.getAttribute(l).split(g), R = /([.?@])?(.*)/.exec($);
           a.push({ type: 1, index: n, name: R[2], strings: m, ctor: R[1] === "." ? xt : R[1] === "?" ? Mt : R[1] === "@" ? Tt : G }), i.removeAttribute(l);
         } else l.startsWith(g) && (a.push({ type: 6, index: n }), i.removeAttribute(l));
         if (ut.test(i.tagName)) {
-          const l = i.textContent.split(g), f = l.length - 1;
-          if (f > 0) {
+          const l = i.textContent.split(g), $ = l.length - 1;
+          if ($ > 0) {
             i.textContent = j ? j.emptyScript : "";
-            for (let m = 0; m < f; m++) i.append(l[m], T()), w.nextNode(), a.push({ type: 2, index: ++n });
-            i.append(l[f], T());
+            for (let m = 0; m < $; m++) i.append(l[m], T()), w.nextNode(), a.push({ type: 2, index: ++n });
+            i.append(l[$], T());
           }
         }
       } else if (i.nodeType === 8) if (i.data === dt) a.push({ type: 2, index: n });
@@ -598,7 +598,7 @@ function _t(r) {
  * Copyright 2017 Google LLC
  * SPDX-License-Identifier: BSD-3-Clause
  */
-function $(r) {
+function f(r) {
   return _t({ ...r, state: !0, attribute: !1 });
 }
 var W = /* @__PURE__ */ ((r) => (r.GET_CONFIG = "meraki_ha/get_config", r.SUBSCRIBE_MERAKI_DATA = "meraki_ha/subscribe_meraki_data", r.GET_CAMERA_STREAM_URL = "meraki_ha/get_camera_stream_url", r.GET_CAMERA_SNAPSHOT = "meraki_ha/get_camera_snapshot", r.GET_VERSION = "meraki_ha/get_version", r.GET_NETWORK_EVENTS = "meraki_ha/get_network_events", r.UPDATE_ENABLED_NETWORKS = "meraki_ha/update_enabled_networks", r.CREATE_GUEST_KEY = "meraki_ha/ipsk/create", r.GET_GUEST_KEYS = "meraki_ha/ipsk/get", r.REVOKE_GUEST_KEY = "meraki_ha/ipsk/revoke", r.TIMED_ACCESS_GET_POLICIES = "meraki_ha/timed_access/get_policies", r))(W || {});
@@ -638,7 +638,8 @@ let u = class extends M {
     super.firstUpdated(r), this._fetchInitialData();
   }
   updated(r) {
-    super.updated(r), r.has("hass") && this.hass && !this._networks.length && this._fetchInitialData();
+    var t;
+    super.updated(r), r.has("hass") && this.hass && (this._networks.length || this._fetchInitialData(), (t = this.hass.user) != null && t.name && !this._customName && (this._customName = this.hass.user.name));
   }
   async _fetchInitialData() {
     var r;
@@ -725,7 +726,7 @@ let u = class extends M {
               naturalMenuWidth
             >
               ${this._networks.map(
-      (s) => v`<mwc-list-item .value="${s.id}">${s.name}</mwc-list-item>`
+      (s) => v`<mwc-list-item value="${s.id}">${s.name}</mwc-list-item>`
     )}
             </ha-select>
 
@@ -738,7 +739,7 @@ let u = class extends M {
               naturalMenuWidth
             >
               ${r.map(
-      (s) => v`<mwc-list-item .value="${s.number.toString()}">${s.name} (SSID ${s.number})</mwc-list-item>`
+      (s) => v`<mwc-list-item value="${s.number.toString()}">${s.name} (SSID ${s.number})</mwc-list-item>`
     )}
             </ha-select>
 
@@ -750,9 +751,9 @@ let u = class extends M {
               fixedMenuPosition
               naturalMenuWidth
             >
-              <mwc-list-item .value="">None (Default)</mwc-list-item>
+              <mwc-list-item value="">None (Default)</mwc-list-item>
               ${this._policies.map(
-      (s) => v`<mwc-list-item .value="${s.groupPolicyId}">${s.name}</mwc-list-item>`
+      (s) => v`<mwc-list-item value="${s.groupPolicyId}">${s.name}</mwc-list-item>`
     )}
             </ha-select>
 
@@ -763,11 +764,11 @@ let u = class extends M {
               fixedMenuPosition
               naturalMenuWidth
             >
-              <mwc-list-item .value="${"30"}">30 Minutes</mwc-list-item>
-              <mwc-list-item .value="${"60"}">1 Hour</mwc-list-item>
-              <mwc-list-item .value="${"240"}">4 Hours</mwc-list-item>
-              <mwc-list-item .value="${"1440"}">24 Hours</mwc-list-item>
-              <mwc-list-item .value="${"10080"}">7 Days</mwc-list-item>
+              <mwc-list-item value="30">30 Minutes</mwc-list-item>
+              <mwc-list-item value="60">1 Hour</mwc-list-item>
+              <mwc-list-item value="240">4 Hours</mwc-list-item>
+              <mwc-list-item value="1440">24 Hours</mwc-list-item>
+              <mwc-list-item value="10080">7 Days</mwc-list-item>
             </ha-select>
 
             <ha-textfield
@@ -823,7 +824,7 @@ let u = class extends M {
     }
   }
 };
-u.styles = ft`
+u.styles = $t`
     :host {
       display: block;
     }
@@ -856,46 +857,46 @@ _([
   _t({ attribute: !1 })
 ], u.prototype, "hass", 2);
 _([
-  $()
+  f()
 ], u.prototype, "_config", 2);
 _([
-  $()
+  f()
 ], u.prototype, "_selectedNetwork", 2);
 _([
-  $()
+  f()
 ], u.prototype, "_selectedSsid", 2);
 _([
-  $()
+  f()
 ], u.prototype, "_selectedPolicy", 2);
 _([
-  $()
+  f()
 ], u.prototype, "_duration", 2);
 _([
-  $()
+  f()
 ], u.prototype, "_customName", 2);
 _([
-  $()
+  f()
 ], u.prototype, "_customPassphrase", 2);
 _([
-  $()
+  f()
 ], u.prototype, "_creating", 2);
 _([
-  $()
+  f()
 ], u.prototype, "_error", 2);
 _([
-  $()
+  f()
 ], u.prototype, "_success", 2);
 _([
-  $()
+  f()
 ], u.prototype, "_networks", 2);
 _([
-  $()
+  f()
 ], u.prototype, "_ssids", 2);
 _([
-  $()
+  f()
 ], u.prototype, "_policies", 2);
 _([
-  $()
+  f()
 ], u.prototype, "_loading", 2);
 u = _([
   Ht("meraki-guest-access-card")

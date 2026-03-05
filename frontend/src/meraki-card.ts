@@ -52,8 +52,13 @@ export class MerakiGuestAccessCard extends LitElement {
 
   protected updated(changedProperties: PropertyValues) {
     super.updated(changedProperties);
-    if (changedProperties.has('hass') && this.hass && !this._networks.length) {
-      this._fetchInitialData();
+    if (changedProperties.has('hass') && this.hass) {
+      if (!this._networks.length) {
+        this._fetchInitialData();
+      }
+      if (this.hass.user?.name && !this._customName) {
+        this._customName = this.hass.user.name;
+      }
     }
   }
 
@@ -158,7 +163,7 @@ export class MerakiGuestAccessCard extends LitElement {
               naturalMenuWidth
             >
               ${this._networks.map(
-                (n) => html`<mwc-list-item .value="${n.id}">${n.name}</mwc-list-item>`
+                (n) => html`<mwc-list-item value="${n.id}">${n.name}</mwc-list-item>`
               )}
             </ha-select>
 
@@ -171,7 +176,7 @@ export class MerakiGuestAccessCard extends LitElement {
               naturalMenuWidth
             >
               ${filteredSsids.map(
-                (s) => html`<mwc-list-item .value="${s.number.toString()}">${s.name} (SSID ${s.number})</mwc-list-item>`
+                (s) => html`<mwc-list-item value="${s.number.toString()}">${s.name} (SSID ${s.number})</mwc-list-item>`
               )}
             </ha-select>
 
@@ -183,9 +188,9 @@ export class MerakiGuestAccessCard extends LitElement {
               fixedMenuPosition
               naturalMenuWidth
             >
-              <mwc-list-item .value="">None (Default)</mwc-list-item>
+              <mwc-list-item value="">None (Default)</mwc-list-item>
               ${this._policies.map(
-                (p) => html`<mwc-list-item .value="${p.groupPolicyId}">${p.name}</mwc-list-item>`
+                (p) => html`<mwc-list-item value="${p.groupPolicyId}">${p.name}</mwc-list-item>`
               )}
             </ha-select>
 
@@ -196,11 +201,11 @@ export class MerakiGuestAccessCard extends LitElement {
               fixedMenuPosition
               naturalMenuWidth
             >
-              <mwc-list-item .value="${"30"}">30 Minutes</mwc-list-item>
-              <mwc-list-item .value="${"60"}">1 Hour</mwc-list-item>
-              <mwc-list-item .value="${"240"}">4 Hours</mwc-list-item>
-              <mwc-list-item .value="${"1440"}">24 Hours</mwc-list-item>
-              <mwc-list-item .value="${"10080"}">7 Days</mwc-list-item>
+              <mwc-list-item value="30">30 Minutes</mwc-list-item>
+              <mwc-list-item value="60">1 Hour</mwc-list-item>
+              <mwc-list-item value="240">4 Hours</mwc-list-item>
+              <mwc-list-item value="1440">24 Hours</mwc-list-item>
+              <mwc-list-item value="10080">7 Days</mwc-list-item>
             </ha-select>
 
             <ha-textfield

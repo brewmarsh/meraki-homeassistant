@@ -5,4 +5,10 @@ export interface HomeAssistant {
     components: string[];
   };
   connection: any;
+  user: {
+    name: string;
+    id: string;
+    is_owner: boolean;
+    is_admin: boolean;
+  };
 }
