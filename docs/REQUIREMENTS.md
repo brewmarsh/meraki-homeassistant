@@ -235,11 +235,4 @@
 | **Strict Type Hinting:** Applied comprehensive Python type hints to all refactored functions to improve maintainability and catch potential errors early.                       | Complete |
 | **Helper Function Size Constraints:** Ensured all new helper functions remain strictly under 50 lines of code, promoting readability and ease of testing.                       | Complete |
 | **IPSK Manager Singleton:** Implemented a central `IPSKManager` singleton in `async_setup` to manage the lifecycle of guest PSKs across all config entries.                      | Complete |
-
-**Frontend UX Phase 6: Top-level Navigation**
-
-| Requirement                                                                                                                                  | Status   |
-| :------------------------------------------------------------------------------------------------------------------------------------------- | :------- |
-| Implement scalable top-level navigation using Home Assistant's native `ha-tabs` and `paper-tab` web components.                              | Complete |
-| Separate distinct feature sets (Networks, All Devices, Timed Access) into dedicated views accessible via tabs.                               | Complete |
-| Ensure active tab state is tracked and the UI updates dynamically based on the selected tab.                                                 | Complete |
+| **Custom Panel Simplification:** Removed redundant Device, Network, and SSID views from the custom panel, consolidating the UI to focus on Timed Guest Access (IPSK).           | Complete |

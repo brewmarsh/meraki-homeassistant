@@ -9,8 +9,7 @@ from typing import TYPE_CHECKING, Any
 from .base import MerakiBaseCoordinator
 
 if TYPE_CHECKING:
-    from ..core.models.device import MerakiDevice
-    from ..core.models.network import MerakiNetwork
+    pass
 
 _LOGGER = logging.getLogger(__name__)
 
