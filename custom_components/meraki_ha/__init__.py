@@ -7,6 +7,7 @@ import secrets
 import string
 
 from homeassistant.components.frontend import add_extra_js_url
+from homeassistant.components.http import StaticPathConfig
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import config_validation as cv
@@ -91,10 +92,14 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """
     # Register static path for frontend
     if "frontend" in hass.config.components:
-        hass.http.register_static_path(
-            "/meraki_ha_static",
-            hass.config.path("custom_components/meraki_ha/www"),
-            cache_headers=False,  # Set to False during beta/smoketest for easier debugging
+        await hass.http.async_register_static_paths(
+            [
+                StaticPathConfig(
+                    url_path="/meraki_ha_static",
+                    path=hass.config.path("custom_components/meraki_ha/www"),
+                    cache_headers=False,
+                )
+            ]
         )
 
         # Register the JavaScript module so it appears in the dashboard
