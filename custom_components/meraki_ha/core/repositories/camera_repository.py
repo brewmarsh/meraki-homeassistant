@@ -139,7 +139,7 @@ class CameraRepository:
             )
             return snapshot_data.get("url")
         except Exception as e:
-            _LOGGER.error("Error generating snapshot for %s: %s", serial, e)
+            _LOGGER.warning("Error generating snapshot for %s: %s", serial, e)
             return None
 
     async def set_rtsp_stream_enabled(self, serial: str, enabled: bool) -> None:
