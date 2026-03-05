@@ -7,6 +7,7 @@ from typing import Any
 
 from homeassistant.components.switch import SwitchEntity, SwitchEntityDescription
 from homeassistant.config_entries import ConfigEntry
+from homeassistant.const import EntityCategory
 from homeassistant.core import callback
 from homeassistant.helpers.device_registry import DeviceInfo
 
@@ -20,6 +21,8 @@ _LOGGER = logging.getLogger(__name__)
 
 class MerakiAdultContentFilteringSwitch(MerakiEntity, SwitchEntity):
     """Representation of a Meraki Adult Content Filtering switch."""
+
+    _attr_entity_category = EntityCategory.CONFIG
 
     def __init__(
         self,

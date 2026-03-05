@@ -23,8 +23,6 @@ class MerakiCameraSettingSwitchBase(
 ):
     """Base class for a Meraki Camera Setting Switch."""
 
-    _attr_entity_category = EntityCategory.CONFIG
-
     def __init__(
         self,
         coordinator: MerakiSwitchCoordinator,

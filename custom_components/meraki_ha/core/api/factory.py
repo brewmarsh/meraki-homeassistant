@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from homeassistant.core import HomeAssistant
 
-from .client import MerakiAPIClient
+from .client import MerakiApiClientProtocol as MerakiAPIClient
 from .protocol import MerakiApiClientProtocol
 from .endpoints.appliance import ApplianceEndpoints
 from .endpoints.camera import CameraEndpoints
