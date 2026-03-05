@@ -126,7 +126,7 @@ async def test_ssid_device_creation_and_unification(
 
     with (
         patch(
-            "custom_components.meraki_ha.MerakiAPIClient",
+            "custom_components.meraki_ha.create_api_client",
             return_value=mock_meraki_client,
         ),
         patch(
@@ -188,7 +188,7 @@ async def test_integration_reload(
 
     with (
         patch(
-            "custom_components.meraki_ha.MerakiAPIClient",
+            "custom_components.meraki_ha.create_api_client",
             return_value=mock_meraki_client,
         ),
         patch(
