@@ -19,6 +19,7 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ) -> bool:
     """Set up Meraki sensor entities from a config entry."""
+    from ..discovery.entities import MerakiSignalStrengthSensor
     from ..discovery.service import DeviceDiscoveryService
 
     if config_entry.entry_id not in hass.data[DOMAIN]:
@@ -28,11 +29,21 @@ async def async_setup_entry(
     discovery_service: DeviceDiscoveryService = entry_data["discovery_service"]
 
     # Entities have already been discovered in __init__.py
-    sensor_entities = [
-        entity
-        for entity in discovery_service.all_entities
-        if isinstance(entity, SensorEntity)
-    ]
+    sensor_entities = []
+    for entity in discovery_service.all_entities:
+        if not isinstance(entity, SensorEntity):
+            continue
+
+        # Skip Signal Strength sensors for MT devices as they use BLE
+        if isinstance(entity, MerakiSignalStrengthSensor):
+            device = getattr(entity, "_device", None)
+            if device and device.model and device.model.startswith("MT"):
+                _LOGGER.debug(
+                    "Skipping Signal Strength sensor for BLE device %s", device.serial
+                )
+                continue
+
+        sensor_entities.append(entity)
 
     # Filter out organization sensors if disabled
     if not config_entry.options.get(CONF_ENABLE_ORG_SENSORS, True):

@@ -10,6 +10,7 @@ from homeassistant.components.sensor import SensorEntity
 from homeassistant.helpers.entity import Entity
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
+from custom_components.meraki_ha.discovery.entities import MerakiSignalStrengthSensor
 from custom_components.meraki_ha.discovery.service import DeviceDiscoveryService
 from custom_components.meraki_ha.types import MerakiDevice
 
@@ -139,7 +140,15 @@ async def _prepare_discovery_service_and_entities(
     )
     discovery_service._devices = devices
     await discovery_service.discover_entities()
-    entities: list[Entity] = discovery_service.all_entities
+
+    # Filter out Signal Strength sensors for MT devices as per the new logic in sensor/__init__.py
+    entities: list[Entity] = []
+    for entity in discovery_service.all_entities:
+        if isinstance(entity, MerakiSignalStrengthSensor):
+            device_obj = getattr(entity, "_device", None)
+            if device_obj and device_obj.model and device_obj.model.startswith("MT"):
+                continue
+        entities.append(entity)
 
     for entity in entities:
         entity.hass = MagicMock()
@@ -248,8 +257,8 @@ async def test_async_setup_mt10_sensors(
         mock_coordinator_with_mt_devices, mt10_device
     )
 
-    # MT10 has Temperature, Humidity, Battery, Signal Strength (4 sensors)
-    assert len(entities) == 4
+    # MT10 has Temperature, Humidity, Battery, (Signal Strength skipped)
+    assert len(entities) == 3
 
     sensors_by_key = _get_entities_map_by_key(entities)
 
@@ -276,11 +285,11 @@ async def test_async_setup_mt15_sensors(
 
     # MT15 typically has:
     # 6 reading-based sensors (temp, humidity, co2, tvoc, pm25, noise)
-    # 1 common sensor (signal_strength)
+    # 0 common sensor (signal_strength skipped)
     # 2 buttons (refresh, reboot)
     # 3 device info sensors (status, lan_ip, public_ip)
-    # Total: 6 + 1 + 2 + 3 = 12 entities.
-    assert len(entities) == 12
+    # Total: 6 + 0 + 2 + 3 = 11 entities.
+    assert len(entities) == 11
 
     sensors_by_key = _get_entities_map_by_key(entities)
 
@@ -309,10 +318,8 @@ async def test_async_setup_mt12_sensors(
         mock_coordinator_with_mt_devices, mt12_device
     )
 
-    # MT12 is expected to have 5 entities based on prior tests:
-    # Water Leak Binary Sensor, Battery Sensor, Signal Strength Sensor,
-    # plus 2 other implicit sensors (e.g., Temperature, Humidity).
-    assert len(entities) == 5
+    # MT12 is expected to have 4 entities (Signal Strength skipped)
+    assert len(entities) == 4
 
     entities_by_key = _get_entities_map_by_key(entities)
 
@@ -345,8 +352,8 @@ async def test_async_setup_mt40_sensors(
         mock_coordinator_with_mt_devices, mt40_device
     )
 
-    # MT40 has 6 Power sensors + 1 Outlet switch + 1 Signal Strength = 8 entities
-    assert len(entities) == 8
+    # MT40 has 6 Power sensors + 1 Outlet switch + 0 Signal Strength = 7 entities
+    assert len(entities) == 7
 
     entities_by_key = _get_entities_map_by_key(entities)
 

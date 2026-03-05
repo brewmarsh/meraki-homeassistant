@@ -22,8 +22,6 @@ _LOGGER = logging.getLogger(__name__)
 class MerakiSSIDBaseSwitch(MerakiEntity, SwitchEntity):
     """Base class for Meraki SSID Switches."""
 
-    entity_category = EntityCategory.CONFIG
-
     def __init__(
         self,
         coordinator: MerakiSwitchCoordinator,

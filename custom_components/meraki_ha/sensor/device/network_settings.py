@@ -93,6 +93,9 @@ class MerakiDeviceIPSensor(MerakiDeviceUplinkBaseSensor):
         """Update the sensor state."""
         device = self.coordinator.get_device(self._device_serial)
         if self._interface == "lanIp" and device:
+            if device.model and device.model.startswith("MT"):
+                self._attr_native_value = "N/A (Bluetooth)"
+                return
             lan_ip = device.lan_ip
             if (not lan_ip) and device.model and (
                 device.model.startswith("MX") or device.model.startswith("Z3")
@@ -102,7 +105,10 @@ class MerakiDeviceIPSensor(MerakiDeviceUplinkBaseSensor):
                 self._attr_native_value = lan_ip
             return
         if self._interface == "publicIp" and device:
-            self._attr_native_value = device.public_ip
+            if device.model and device.model.startswith("MT"):
+                self._attr_native_value = "N/A (Bluetooth)"
+            else:
+                self._attr_native_value = device.public_ip
             return
 
         uplink_data = self._get_uplink_data()
