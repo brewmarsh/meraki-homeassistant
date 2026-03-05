@@ -58,6 +58,8 @@ class MerakiDeviceUplinkBaseSensor(MerakiEntity, SensorEntity):
     @property
     def available(self) -> bool:
         """Return if entity is available."""
+        if self.coordinator.data is None:
+            return False
         if self._interface in ["lanIp", "publicIp"]:
             return (
                 super().available

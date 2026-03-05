@@ -56,11 +56,15 @@ class MerakiSwitchPoESensor(CoordinatorEntity, SensorEntity):
     @property
     def available(self) -> bool:
         """Return if the entity is available."""
+        if self.coordinator.data is None:
+            return False
         return self._device.status == "online"
 
     @callback
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
+        if self.coordinator.data is None:
+            return
         devices = self.coordinator.data.get("devices", [])
         if not isinstance(devices, list):
             return

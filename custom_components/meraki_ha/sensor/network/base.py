@@ -91,7 +91,7 @@ class MerakiSSIDBaseSensor(MerakiEntity, SensorEntity):
     @property
     def available(self) -> bool:
         """Return True if entity is available."""
-        if not super().available or not self.coordinator.data:
+        if self.coordinator.data is None or not super().available:
             return False
         ssid_data = self._get_current_ssid_data()
         return ssid_data is not None and ssid_data.get("enabled", False)
@@ -122,6 +122,8 @@ class MerakiSSIDBaseSensor(MerakiEntity, SensorEntity):
     @callback
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
+        if self.coordinator.data is None:
+            return
         ssid_data = self._get_current_ssid_data()
         if ssid_data:
             self._attr_native_value = ssid_data.get(self._attribute)

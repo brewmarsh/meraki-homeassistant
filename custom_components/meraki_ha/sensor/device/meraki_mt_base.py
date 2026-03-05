@@ -59,7 +59,7 @@ class MerakiMtSensor(MerakiSensor, RestoreSensor):
                 # Type check and conversion for MyPy compatibility
                 if isinstance(value, (str, float, bool)):
                     self._attr_native_value = value
-                elif isinstance(value, (int, float)):  # Handle int->float conversion
+                elif isinstance(value, int):  # Handle int->float conversion safely
                     self._attr_native_value = float(value)
                 # Ignore other types (e.g. datetime) that don't match our state type
 
@@ -186,13 +186,12 @@ class MerakiMtSensor(MerakiSensor, RestoreSensor):
     @callback
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
-        if not self._device.serial:
-            return
-        device = self.coordinator.get_device(self._device.serial)
-        if device:
+        if self._device.serial and (device := self.coordinator.get_device(self._device.serial)):
             self._device = device
             self._update_native_value()
-            self.async_write_ha_state()
+            
+        # Ensure we call the parent callback to write the state and handle upstream logic
+        super()._handle_coordinator_update()
 
     @property
     def native_value(self) -> str | float | bool | None:
@@ -209,6 +208,7 @@ class MerakiMtSensor(MerakiSensor, RestoreSensor):
     @property
     def available(self) -> bool:
         """Return if the sensor is available."""
+        # Defer to the parent MerakiEntity logic which checks the coordinator state
         if not super().available:
             return False
 

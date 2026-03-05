@@ -85,7 +85,7 @@ class BaseMerakiEntity(CoordinatorEntity, Entity, ABC):
     def available(self) -> bool:
         """Return True if entity is available."""
         # First check if coordinator has data
-        if not self.coordinator.last_update_success:
+        if self.coordinator.data is None or not self.coordinator.last_update_success:
             return False
 
         # For device-based entities, check device status

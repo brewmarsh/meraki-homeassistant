@@ -61,11 +61,13 @@ class MerakiContentFilteringSelect(CoordinatorEntity, SelectEntity):
     @property
     def available(self) -> bool:
         """Return True if entity is available."""
-        return super().available and self.coordinator.data is not None
+        return self.coordinator.data is not None and super().available
 
     @callback
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
+        if self.coordinator.data is None:
+            return
         self._update_internal_state()
         self.async_write_ha_state()
 
