@@ -10,11 +10,10 @@ from homeassistant.core import callback
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.typing import UNDEFINED
 
-from ...const import DOMAIN
 from ...coordinators import MerakiSensorCoordinator as MerakiDataCoordinator
 from ...core.models.device import MerakiDevice
-from ...helpers.device_info_helpers import resolve_device_info
 from ...entity import MerakiBinarySensor
+from ...helpers.device_info_helpers import resolve_device_info
 
 _LOGGER = logging.getLogger(__name__)
 

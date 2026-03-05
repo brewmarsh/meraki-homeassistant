@@ -2,14 +2,14 @@
 
 from unittest.mock import MagicMock, patch
 
+from homeassistant import config_entries, setup
+from homeassistant.core import HomeAssistant
+from homeassistant.data_entry_flow import FlowResultType
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.meraki_ha.const import DOMAIN
 from custom_components.meraki_ha.const_conf import (
     CONF_ENABLE_CAMERA_ENTITIES,
-    CONF_ENABLE_DEVICE_SENSORS,
-    CONF_ENABLE_DEVICE_STATUS,
-    CONF_ENABLE_ORG_SENSORS,
     CONF_ENABLE_VLAN_MANAGEMENT,
     CONF_MERAKI_API_KEY,
     CONF_MERAKI_ORG_ID,
@@ -19,9 +19,6 @@ from custom_components.meraki_ha.core.errors import (
     MerakiAuthenticationError,
     MerakiConnectionError,
 )
-from homeassistant import config_entries, setup
-from homeassistant.core import HomeAssistant
-from homeassistant.data_entry_flow import FlowResultType
 
 
 async def test_form(hass: HomeAssistant) -> None:

@@ -106,7 +106,9 @@ async def test_async_gather_with_timeout_batching(data_fetch_manager):
     # Expected sleeps: 2 (one after batch 1, one after batch 2)
 
     with patch("asyncio.sleep", new_callable=AsyncMock) as mock_sleep:
-        from custom_components.meraki_ha.core.coordinator_helpers.batch_utils import async_gather_with_timeout
+        from custom_components.meraki_ha.core.coordinator_helpers.batch_utils import (
+            async_gather_with_timeout,
+        )
         results = await async_gather_with_timeout(
             tasks, label="Test Batching"
         )

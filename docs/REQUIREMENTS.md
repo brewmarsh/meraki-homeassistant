@@ -108,6 +108,7 @@
 | :----------------------------------------------------------------------------------------- | :------- |
 | The integration should handle API errors, network issues, and other exceptions gracefully. | Included |
 | Logging should be used for debugging and error reporting.                                  | Included |
+| The integration must implement an adaptive back-off algorithm when 429 errors are detected. | Included |
 
 \*\*Data Coordination
 
@@ -144,7 +145,8 @@
 
 | Requirement                                                                                                                                                                                            | Status   |
 | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :------- |
-| Automated smoke tests must include a 45-60 second wait after integration initialization to allow the Meraki coordinator's initial asynchronous cloud data fetch to complete before auditing logs or state. | Included |
+| The integration uses a non-blocking setup sequence where only Tier 1 data (basic device skeleton) is awaited during `async_setup_entry`. Heavy sensor data is fetched in the background.                | Included |
+| Automated smoke tests must include a 90-second wait after integration initialization to allow the Meraki background coordinators to complete their initial data fetch before auditing logs or state.    | Included |
 
 **Frontend Development
 
@@ -196,6 +198,7 @@
   - [ ] **Guest Wi-Fi Password Control:** Create a `text` entity to manage the guest Wi-Fi password.
   - [x] **IPSK Lifecycle Management:** Implement a backend manager to track and reap temporary guest Identity PSKs (IPSKs) upon expiration, with persistent storage across reboots.
   - [x] **IPSK WebSocket API:** Implement a strict WebSocket API contract for IPSK management with camelCase payload keys and centralized command definitions.
+  - [x] **IPSK Native Service Action:** Expose IPSK creation functionality as a standard Home Assistant Service Action, allowing users to create timed guest keys without the custom frontend panel.
 - [x] **IPSK Native UX Overhaul:** Rebuilt the TimedAccess.tsx component to provide a native Home Assistant experience using `ha-textfield`, `ha-select`, `ha-button`, and `ha-alert` web components.
 - [ ] **Enhanced Home Security & Awareness (MV Cameras & MT Sensors):**
   - [ ] **Camera Motion Events:** Create `binary_sensor` entities for camera motion events.
@@ -235,11 +238,4 @@
 | **Strict Type Hinting:** Applied comprehensive Python type hints to all refactored functions to improve maintainability and catch potential errors early.                       | Complete |
 | **Helper Function Size Constraints:** Ensured all new helper functions remain strictly under 50 lines of code, promoting readability and ease of testing.                       | Complete |
 | **IPSK Manager Singleton:** Implemented a central `IPSKManager` singleton in `async_setup` to manage the lifecycle of guest PSKs across all config entries.                      | Complete |
-
-**Frontend UX Phase 6: Top-level Navigation**
-
-| Requirement                                                                                                                                  | Status   |
-| :------------------------------------------------------------------------------------------------------------------------------------------- | :------- |
-| Implement scalable top-level navigation using Home Assistant's native `ha-tabs` and `paper-tab` web components.                              | Complete |
-| Separate distinct feature sets (Networks, All Devices, Timed Access) into dedicated views accessible via tabs.                               | Complete |
-| Ensure active tab state is tracked and the UI updates dynamically based on the selected tab.                                                 | Complete |
+| **Custom Panel Simplification:** Removed redundant Device, Network, and SSID views from the custom panel, consolidating the UI to focus on Timed Guest Access (IPSK).           | Complete |

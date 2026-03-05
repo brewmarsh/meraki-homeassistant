@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from unittest.mock import AsyncMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 from homeassistant.core import HomeAssistant
@@ -35,7 +35,7 @@ def mock_config_entry() -> MockConfigEntry:
 @pytest.fixture
 def mock_meraki_client() -> AsyncMock:
     """Fixture for a mocked MerakiAPIClient."""
-    client = AsyncMock()
+    client = MagicMock(spec=AsyncMock)
     client.unregister_webhook = AsyncMock(return_value=None)
     client.appliance = AsyncMock()
     client.appliance.get_network_appliance_content_filtering_categories = AsyncMock(
@@ -48,7 +48,33 @@ def mock_meraki_client() -> AsyncMock:
 def mock_data_fetch_manager() -> AsyncMock:
     """Fixture for a mocked DataFetchManager."""
     manager = AsyncMock()
-    manager.get_all_data = AsyncMock(
+    manager.get_device_data = AsyncMock(
+        return_value={
+            "devices": [MOCK_DEVICE, MOCK_MX_DEVICE, MOCK_GX_DEVICE],
+            "networks": [  # Using MerakiNetwork directly
+                MerakiNetwork(
+                    id=MOCK_NETWORK.id,
+                    name="Test Network",
+                    product_types=["wireless", "appliance"],
+                    organization_id="fake_org",
+                ),
+            ],
+            "ssids": [
+                {
+                    "number": 0,
+                    "name": "Test SSID",
+                    "enabled": True,
+                    "networkId": MOCK_NETWORK.id,
+                },
+            ],
+            "clients": [],
+            "vlans": {},
+            "appliance_uplink_statuses": [],
+            "rf_profiles": {},
+            "appliance_traffic": {},
+        },
+    )
+    manager.get_sensor_data = AsyncMock(
         return_value={
             "devices": [MOCK_DEVICE, MOCK_MX_DEVICE, MOCK_GX_DEVICE],
             "networks": [  # Using MerakiNetwork directly
@@ -125,7 +151,7 @@ async def test_ssid_device_creation_and_unification(
         assert network_device is not None
 
         # Assert that the device has the correct name (Virtual Controller format)
-        assert network_device.name == "Meraki Site: Test Network"
+        assert network_device.name == "Site: Test Network"
 
         # Find all entities associated with this device by querying the entity registry
         entities = [

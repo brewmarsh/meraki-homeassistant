@@ -33,6 +33,7 @@ from .frontend import async_register_frontend, async_remove_frontend
 from .helpers.migrations import async_cleanup_ghost_devices, async_migrate_entities
 from .services.camera_service import CameraService
 from .services.device_control_service import DeviceControlService
+from .services import async_setup_services
 from .services.ipsk_manager import IPSKManager
 from .services.manager import ServicesManager
 from .services.network_control_service import NetworkControlService
@@ -68,6 +69,9 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
         ipsk_manager = IPSKManager(hass)
         await ipsk_manager.async_setup()
         hass.data[DOMAIN]["ipsk_manager"] = ipsk_manager
+
+    # Set up services
+    await async_setup_services(hass)
 
     # Register the static path for the custom panel
     if hass.http:
@@ -113,18 +117,43 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     appliance_coordinator = MerakiApplianceCoordinator(hass, entry)
     client_coordinator = MerakiClientCoordinator(hass, entry)
 
-    # Initial refresh for organization data
-    await main_coordinator.async_config_entry_first_refresh()
-
-    # Other coordinators can refresh lazily or be refreshed now
-    # We'll do a first refresh for all to ensure discovery has full data
+    # 1. Block setup until the basic device skeleton is loaded (Tier 1)
+    # This is strictly required to populate the Device Registry promptly.
     await device_coordinator.async_config_entry_first_refresh()
-    await switch_coordinator.async_config_entry_first_refresh()
-    await camera_coordinator.async_config_entry_first_refresh()
-    await sensor_coordinator.async_config_entry_first_refresh()
-    await wireless_coordinator.async_config_entry_first_refresh()
-    await appliance_coordinator.async_config_entry_first_refresh()
-    await client_coordinator.async_config_entry_first_refresh()
+
+    # Seed the specialized coordinators with the basic device data so discovery can proceed
+    # without waiting for the heavy full organizational/sensor refresh.
+    # We explicitly do NOT use async_set_updated_data() here because that would mark
+    # the coordinators as having had a successful first update, making entities
+    # prematurely "available" with incomplete data.
+    for coord in [
+        main_coordinator,
+        switch_coordinator,
+        camera_coordinator,
+        sensor_coordinator,
+        wireless_coordinator,
+        appliance_coordinator,
+        client_coordinator,
+    ]:
+        coord.data = device_coordinator.data
+        coord.devices_by_serial = device_coordinator.devices_by_serial
+        coord.networks_by_id = device_coordinator.networks_by_id
+        coord.ssids_by_network_and_number = device_coordinator.ssids_by_network_and_number
+
+    # 2. Start heavy fetching for other coordinators in the background.
+    # This prevents blocking the Home Assistant UI and avoids setup timeouts.
+    for coord, name in [
+        (main_coordinator, "meraki_main_init"),
+        (switch_coordinator, "meraki_switch_init"),
+        (camera_coordinator, "meraki_camera_init"),
+        (sensor_coordinator, "meraki_sensor_init"),
+        (wireless_coordinator, "meraki_wireless_init"),
+        (appliance_coordinator, "meraki_appliance_init"),
+        (client_coordinator, "meraki_client_init"),
+    ]:
+        entry.async_create_background_task(
+            hass, coord.async_request_refresh(), name=name
+        )
 
     api_client = main_coordinator.api
     repo = MerakiRepository(api_client)

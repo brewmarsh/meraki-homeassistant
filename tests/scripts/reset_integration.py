@@ -94,7 +94,7 @@ async def _send_restart_command(session: aiohttp.ClientSession) -> bool:
     """Send the restart command to Home Assistant."""
     restart_url = f"{HA_URL}/api/services/homeassistant/restart"
     logger.info("Restarting Home Assistant...")
-    
+
     try:
         # A timeout ensures we don't hang if the reverse proxy blackholes the connection
         async with session.post(restart_url, timeout=15) as resp:
@@ -102,10 +102,10 @@ async def _send_restart_command(session: aiohttp.ClientSession) -> bool:
             if resp.status in (200, 502, 504):
                 logger.warning(f"Restart command sent with status: {resp.status}")
                 return True
-                
+
             logger.error(f"Restart command failed: {resp.status}")
             return False
-            
+
     except (aiohttp.ClientError, asyncio.TimeoutError):
         # Connection violently dropping is the ultimate proof it is restarting
         logger.warning("Connection dropped. Restart is in progress.")

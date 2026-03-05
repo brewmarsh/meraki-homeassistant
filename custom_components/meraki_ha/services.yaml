@@ -1,5 +1,5 @@
-create_timed_access:
-  name: Create Timed Access Key
+create_guest_key:
+  name: Create Guest Key
   description: Generates a temporary Identity PSK for a Meraki SSID.
   fields:
     network_id:
@@ -16,7 +16,7 @@ create_timed_access:
         number:
           min: 0
           max: 14
-    duration:
+    duration_minutes:
       name: Duration
       description: Duration in minutes before the key is auto-deleted.
       required: true
@@ -27,11 +27,12 @@ create_timed_access:
     name:
       name: Name
       description: Name for the key (e.g., "Guest-iPad").
+      default: Guest Key
       selector:
         text:
     passphrase:
       name: Passphrase
-      description: If empty, auto-generate a secure 8-char alphanumeric string.
+      description: If empty, Meraki will auto-generate a secure passphrase.
       selector:
         text:
     group_policy_id:

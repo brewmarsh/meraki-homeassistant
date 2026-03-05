@@ -5,8 +5,8 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-from ...coordinators import MerakiMainCoordinator
 from ....core.entities.meraki_network_entity import MerakiNetworkEntity
+from ...coordinators import MerakiMainCoordinator
 
 _LOGGER = logging.getLogger(__name__)
 

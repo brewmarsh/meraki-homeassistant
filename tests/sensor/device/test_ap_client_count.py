@@ -1,12 +1,13 @@
 """Tests for the Meraki AP client count sensor."""
 
 from unittest.mock import MagicMock
+
 import pytest
 
+from custom_components.meraki_ha.core.models.device import MerakiDevice
 from custom_components.meraki_ha.sensor.device.ap_client_count import (
     MerakiAPClientCountSensor,
 )
-from custom_components.meraki_ha.core.models.device import MerakiDevice
 
 
 @pytest.fixture

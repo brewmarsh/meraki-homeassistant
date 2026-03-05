@@ -131,13 +131,10 @@ class UpdateProcessor:
         This method acts as an orchestrator, delegating specific tasks to
         sub-methods to maintain a low Agent Cognitive Load (ACL).
         """
-        # 1. Update polling metrics and check for recovery via PollingManager
-        interval_changed = self._handle_interval_recovery()
-
-        # 2. Process the raw data (previously in MerakiDataProcessor)
+        # Process the raw data (previously in MerakiDataProcessor)
         processed_data = await self.async_process(data, current_data)
 
-        # 3. Extract results from the processed payload
+        # Extract results from the processed payload
         devices_by_serial = processed_data["devices_by_serial"]
         networks_by_id = processed_data["networks_by_id"]
         ssids_by_network_and_number = processed_data["ssids_by_network_and_number"]
@@ -146,7 +143,7 @@ class UpdateProcessor:
             devices_by_serial,
             networks_by_id,
             ssids_by_network_and_number,
-            interval_changed,
+            False,  # interval_changed is now handled in _async_update_data
         )
 
     async def async_process(
@@ -232,7 +229,6 @@ class UpdateProcessor:
 
         Returns the data to use and whether the interval changed.
         """
-        interval_changed = self._handle_interval_failure(err)
         self._log_failure(err)
 
         if not last_successful_data:
@@ -243,7 +239,7 @@ class UpdateProcessor:
                 raise err
             raise UpdateFailed(f"Error communicating with API: {err}") from err
 
-        return last_successful_data, interval_changed
+        return last_successful_data, False  # interval_changed is now handled in _async_update_data
 
     def _handle_interval_recovery(self) -> bool:
         """Handle polling interval recovery logic and return if interval changed."""

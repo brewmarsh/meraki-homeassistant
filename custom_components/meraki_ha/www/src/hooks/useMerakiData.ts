@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { MerakiData, MerakiNetwork } from '../types/data';
+import { MerakiData } from '../types/data';
 import { safeCallWS } from '../utils/api';
 import { WsCommand } from '../types/websocket';
 
@@ -83,30 +83,5 @@ export const useMerakiData = (hass: any, configEntryId?: string) => {
     fetchData();
   }, [fetchData]);
 
-  const handleToggleNetwork = async (networkId: string, enabled: boolean) => {
-    if (!data || !data.networks) return;
-    const updatedNetworks = data.networks.map((network: MerakiNetwork) =>
-      network.id === networkId ? { ...network, is_enabled: enabled } : network
-    );
-    const updatedData = { ...data, networks: updatedNetworks };
-    setData(updatedData);
-
-    const enabledNetworkIds = updatedNetworks
-      .filter((network: MerakiNetwork) => network.is_enabled)
-      .map((network: MerakiNetwork) => network.id);
-
-    try {
-      await safeCallWS(hass, {
-        type: WsCommand.UPDATE_ENABLED_NETWORKS,
-        config_entry_id: configEntryId,
-        enabled_networks: enabledNetworkIds,
-      });
-    } catch (err: any) {
-      console.error('Error updating enabled networks:', err);
-      setError(err.message || 'An unknown error occurred while updating networks.');
-      setData(data); // Revert to old data on error
-    }
-  };
-
-  return { data, loading, error, configNotFound, fetchData, handleToggleNetwork };
+  return { data, loading, error, configNotFound, fetchData };
 };

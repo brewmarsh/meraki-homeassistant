@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import logging
 from datetime import datetime, timedelta
-from typing import TYPE_CHECKING, Any, TypedDict, cast
+from typing import TYPE_CHECKING, TypedDict, cast
 
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers import event, storage
@@ -128,7 +128,8 @@ class IPSKManager:
             identity_psk_id: The ID of the PSK to remove.
             save_after: Whether to save the store after removal.
 
-        Returns:
+        Returns
+        -------
             True if removed from tracking (either succeeded or not found/deleted),
             False if deletion failed due to transient error.
         """

@@ -23,8 +23,8 @@ if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
     from homeassistant.helpers.entity import Entity
 
-    from ..coordinators import MerakiApplianceCoordinator
     from ...core.models.device import MerakiDevice
+    from ..coordinators import MerakiApplianceCoordinator
 
 _LOGGER = logging.getLogger(__name__)
 
