@@ -20,6 +20,7 @@ from .coordinators import (
     MerakiApplianceCoordinator,
     MerakiCameraCoordinator,
     MerakiClientCoordinator,
+    MerakiDeviceCoordinator,
     MerakiMainCoordinator,
     MerakiSensorCoordinator,
     MerakiSwitchCoordinator,
@@ -104,6 +105,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     # Initialize specialized coordinators
     main_coordinator = MerakiMainCoordinator(hass, entry)
+    device_coordinator = MerakiDeviceCoordinator(hass, entry)
     switch_coordinator = MerakiSwitchCoordinator(hass, entry)
     camera_coordinator = MerakiCameraCoordinator(hass, entry)
     sensor_coordinator = MerakiSensorCoordinator(hass, entry)
@@ -116,6 +118,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     # Other coordinators can refresh lazily or be refreshed now
     # We'll do a first refresh for all to ensure discovery has full data
+    await device_coordinator.async_config_entry_first_refresh()
     await switch_coordinator.async_config_entry_first_refresh()
     await camera_coordinator.async_config_entry_first_refresh()
     await sensor_coordinator.async_config_entry_first_refresh()
@@ -133,6 +136,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     discovery_service: DeviceDiscoveryService = DeviceDiscoveryService(
         main_coordinator=main_coordinator,
+        device_coordinator=device_coordinator,
         switch_coordinator=switch_coordinator,
         camera_coordinator=camera_coordinator,
         sensor_coordinator=sensor_coordinator,
@@ -149,6 +153,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     hass.data[DOMAIN][entry.entry_id] = {
         "coordinator": main_coordinator,  # Maintain for backward compatibility
         "main_coordinator": main_coordinator,
+        "device_coordinator": device_coordinator,
         "switch_coordinator": switch_coordinator,
         "camera_coordinator": camera_coordinator,
         "sensor_coordinator": sensor_coordinator,

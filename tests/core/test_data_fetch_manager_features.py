@@ -70,9 +70,10 @@ async def test_appliance_features_fetching_behavior() -> None:
     )
     # We patch asyncio.create_task just in case, though we don't use it directly here
     tasks_disabled: dict[str, Any] = {}
+    from custom_components.meraki_ha.core.coordinator_helpers.strategy_executor import collect_network_tasks
     with patch("asyncio.create_task", side_effect=lambda x: x):
-        manager_disabled._collect_network_tasks(
-            {"networks": [mock_network]}, tasks_disabled
+        collect_network_tasks(
+            {"networks": [mock_network]}, tasks_disabled, manager_disabled.strategies
         )
 
     assert "l3_firewall_rules_net1" not in tasks_disabled
@@ -90,8 +91,8 @@ async def test_appliance_features_fetching_behavior() -> None:
     )
     tasks_enabled: dict[str, Any] = {}
     with patch("asyncio.create_task", side_effect=lambda x: x):
-        manager_enabled._collect_network_tasks(
-            {"networks": [mock_network]}, tasks_enabled
+        collect_network_tasks(
+            {"networks": [mock_network]}, tasks_enabled, manager_enabled.strategies
         )
 
     assert "l3_firewall_rules_net1" in tasks_enabled
