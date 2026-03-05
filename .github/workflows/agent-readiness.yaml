@@ -27,8 +27,7 @@ jobs:
           python-version: '3.11'
 
       - name: Install tool
-        run: pip install git+https://github.com/brewmarsh/agent-readiness-scorecard.git tree-sitter
-
+        run: pip install git+https://github.com/brewmarsh/agent-readiness-scorecard.git tree-sitter tree-sitter-javascript tree-sitter-typescript tree-sitter-python
       - name: Run agent scorecard (diff mode)
         continue-on-error: true
         run: |
