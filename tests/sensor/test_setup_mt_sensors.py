@@ -123,10 +123,11 @@ async def _prepare_discovery_service_and_entities(
         devices = [devices]
 
     discovery_service = DeviceDiscoveryService(
-        mock_coordinator,
+        MagicMock(),  # main_coordinator
+        mock_coordinator,  # device_coordinator
         MagicMock(),  # switch_coordinator
         MagicMock(),  # camera_coordinator
-        MagicMock(),  # sensor_coordinator
+        mock_coordinator,  # sensor_coordinator
         MagicMock(),  # wireless_coordinator
         MagicMock(),  # appliance_coordinator
         MagicMock(),  # client_coordinator

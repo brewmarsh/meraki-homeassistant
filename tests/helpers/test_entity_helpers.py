@@ -7,6 +7,6 @@ def test_format_entity_name():
     """Test the format_entity_name function."""
     device = {"name": "Device Name"}
     config = {}
-    assert format_entity_name(device, config, "Sensor") == "Device Name Sensor"
-    assert format_entity_name(device, config, "") == "Device Name"
-    assert format_entity_name(device, config, " ") == "Device Name"
+    assert format_entity_name(device, config, "Sensor") == "Meraki Device Name Sensor"
+    assert format_entity_name(device, config, "") == "Meraki Device Name"
+    assert format_entity_name(device, config, " ") == "Meraki Device Name"

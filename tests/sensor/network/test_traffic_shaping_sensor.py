@@ -52,6 +52,13 @@ async def test_traffic_shaping_sensor_creation_enabled(mock_coordinator):
     # Run the setup
     discovery_service = DeviceDiscoveryService(
         mock_coordinator,
+        mock_coordinator,
+        mock_coordinator,
+        mock_coordinator,
+        mock_coordinator,
+        mock_coordinator,
+        mock_coordinator,
+        mock_coordinator,
         mock_coordinator.config_entry,
         MagicMock(),
         MagicMock(),
@@ -90,6 +97,13 @@ async def test_traffic_shaping_sensor_creation_disabled(mock_coordinator):
 
     # Run the setup
     discovery_service = DeviceDiscoveryService(
+        mock_coordinator,
+        mock_coordinator,
+        mock_coordinator,
+        mock_coordinator,
+        mock_coordinator,
+        mock_coordinator,
+        mock_coordinator,
         mock_coordinator,
         mock_coordinator.config_entry,
         MagicMock(),

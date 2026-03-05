@@ -12,7 +12,7 @@ def test_format_device_name():
         {"name": "My AP", "model": "MR33", "productType": "wireless"}
     )
     config = {}
-    assert format_device_name(device, config) == "My AP"
+    assert format_device_name(device, config) == "Meraki My AP"
 
 
 def test_format_device_name_no_name():
@@ -28,14 +28,14 @@ def test_format_device_name_no_product_type():
     """Test the format_device_name function with no product type."""
     device = MerakiDevice.from_dict({"name": "My AP", "model": "MR33"})
     config = {"device_name_format": "prefix"}
-    assert format_device_name(device, config) == "My AP"
+    assert format_device_name(device, config) == "Meraki My AP"
 
 
 def test_format_device_name_camera_inferred():
     """Test the format_device_name function for camera inferred from model."""
     device = MerakiDevice.from_dict({"name": "My Cam", "model": "MV12"})
     config = {"device_name_format": "prefix"}
-    assert format_device_name(device, config) == "My Cam"
+    assert format_device_name(device, config) == "Meraki My Cam"
 
 
 def test_format_device_name_camera():
@@ -44,4 +44,4 @@ def test_format_device_name_camera():
         {"name": "Big Boss", "model": "MV13", "productType": "camera"}
     )
     config = {"device_name_format": "prefix"}
-    assert format_device_name(device, config) == "Big Boss"
+    assert format_device_name(device, config) == "Meraki Big Boss"
