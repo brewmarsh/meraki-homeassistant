@@ -115,9 +115,9 @@ class DataFetchManager:
         data = await async_gather_with_timeout(tasks, label="Batch fetch")
 
         # Update cache
-        _ORG_DATA_CACHE.clear()
-        _ORG_DATA_CACHE.update(data)
-        _ORG_DATA_CACHE_EXPIRY = current_time + CACHE_TTL
+        self._org_data_cache.clear()
+        self._org_data_cache.update(data)
+        self._org_data_cache_expiry = current_time + self._cache_ttl
 
         return data
 

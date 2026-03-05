@@ -29,6 +29,8 @@ if TYPE_CHECKING:
 
 _LOGGER = logging.getLogger(__name__)
 
+_ORG_DATA_CACHE: dict[str, Any] = {}
+
 
 def cleanup_whitespace(data: dict[str, Any]) -> None:
     """Strip whitespace from string values in the data dictionary."""
@@ -271,4 +273,5 @@ class UpdateProcessor:
         _LOGGER.warning(
             "Failed to fetch new data, using stale data. Error: %s",
             err,
+            exc_info=True,
         )
