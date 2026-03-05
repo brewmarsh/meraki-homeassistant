@@ -55,7 +55,13 @@ class MerakiVLANDHCPSwitch(MerakiVLANEntity, SwitchEntity):
     @callback
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
-        vlans = self.coordinator.data.get("vlans", {}).get(self._network_id, [])
+        vlans_data = self.coordinator.data.get("vlans", {})
+        if not isinstance(vlans_data, dict):
+            return
+        vlans = vlans_data.get(self._network_id, [])
+        if not isinstance(vlans, list):
+            return
+
         for vlan in vlans:
             if not vlan or not hasattr(vlan, "id"):
                 continue

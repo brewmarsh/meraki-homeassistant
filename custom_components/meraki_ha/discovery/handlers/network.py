@@ -114,8 +114,14 @@ class NetworkHandler(BaseHandler):
 
         from ...sensor.client.status import MerakiClientStatusSensor
 
-        clients = self._coordinator.data.get("clients", [])
-        for client in filter(lambda c: c.get("networkId") == network.id, clients):
+        clients = self._coordinator.data.get("clients")
+        if not isinstance(clients, list):
+            return
+
+        for client in filter(
+            lambda c: isinstance(c, dict) and c.get("networkId") == network.id,
+            clients,
+        ):
             yield MerakiClientStatusSensor(
                 self._coordinator,
                 client,
@@ -170,8 +176,11 @@ class NetworkHandler(BaseHandler):
         if network.id is None:
             return
 
-        vlans = self._coordinator.data.get("vlans", {}).get(network.id, [])
-        if not vlans:
+        vlans_data = self._coordinator.data.get("vlans", {})
+        if not isinstance(vlans_data, dict):
+            return
+        vlans = vlans_data.get(network.id, [])
+        if not vlans or not isinstance(vlans, list):
             _LOGGER.debug("No VLANs found for network %s", network.id)
             return
 
@@ -181,6 +190,8 @@ class NetworkHandler(BaseHandler):
         yield VlansListSensor(self._coordinator, self._config_entry, network)
 
         for vlan in vlans:
+            if not vlan:
+                continue
             yield MerakiVLANStatusSensor(
                 self._coordinator,
                 self._config_entry,

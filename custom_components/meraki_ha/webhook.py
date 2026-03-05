@@ -188,7 +188,13 @@ def _handle_ap_went_down_alert(data: dict, coordinator: Any) -> None:
     if not device_serial or not coordinator.data:
         return
 
-    for i, device in enumerate(coordinator.data.get("devices", [])):
+    devices = coordinator.data.get("devices", [])
+    if not isinstance(devices, list):
+        return
+
+    for i, device in enumerate(devices):
+        if not hasattr(device, "serial"):
+            continue
         if device.serial == device_serial:
             _LOGGER.info(
                 "Device %s reported as down via webhook",
@@ -206,7 +212,13 @@ def _handle_client_connectivity_changed_alert(data: dict, coordinator: Any) -> N
     if not client_mac or not coordinator.data:
         return
 
-    for i, client in enumerate(coordinator.data.get("clients", [])):
+    clients = coordinator.data.get("clients", [])
+    if not isinstance(clients, list):
+        return
+
+    for i, client in enumerate(clients):
+        if not isinstance(client, dict):
+            continue
         if client.get("mac") == client_mac:
             _LOGGER.info(
                 "Client %s connectivity changed via webhook",

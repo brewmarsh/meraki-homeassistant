@@ -66,7 +66,13 @@ class MerakiAppliancePortSensor(CoordinatorEntity, SensorEntity):
         device = self.coordinator.get_device(self._device.serial)
         if device:
             self._device = device
-            for port in device.appliance_ports:
+            appliance_ports = getattr(device, "appliance_ports", [])
+            if not isinstance(appliance_ports, list):
+                return
+
+            for port in appliance_ports:
+                if not hasattr(port, "number"):
+                    continue
                 if port.number == self._port.number:
                     self._port = port
                     self.async_write_ha_state()

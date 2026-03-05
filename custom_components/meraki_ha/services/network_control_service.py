@@ -31,13 +31,17 @@ class NetworkControlService:
 
     def get_network_client_count(self, network_id: str) -> int:
         """Get the number of clients on a specific network."""
-        if not self._coordinator.data or not self._coordinator.data.get("clients"):
+        if not self._coordinator.data:
+            return 0
+
+        clients = self._coordinator.data.get("clients")
+        if not isinstance(clients, list):
             return 0
 
         return len(
             [
                 client
-                for client in self._coordinator.data["clients"]
-                if client.get("networkId") == network_id
+                for client in clients
+                if isinstance(client, dict) and client.get("networkId") == network_id
             ]
         )

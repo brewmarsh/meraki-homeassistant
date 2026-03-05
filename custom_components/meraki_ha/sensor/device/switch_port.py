@@ -102,11 +102,19 @@ class MerakiSwitchPortBaseSensor(CoordinatorEntity, SensorEntity, ABC):
             )
             return None, None
 
-        for device in self.coordinator.data.get("devices", []):
+        devices = self.coordinator.data.get("devices", [])
+        if not isinstance(devices, list):
+            return None, None
+
+        for device in devices:
             if not hasattr(device, "serial"):
                 continue
             if device.serial == self._device.serial:
-                for port in device.switch_ports:
+                switch_ports = getattr(device, "switch_ports", [])
+                if not isinstance(switch_ports, list):
+                    return device, None
+
+                for port in switch_ports:
                     if not isinstance(port, dict):
                         continue
                     port_id_candidate = self._get_port_id_from_data(port)
