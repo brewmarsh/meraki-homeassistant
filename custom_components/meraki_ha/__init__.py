@@ -6,7 +6,6 @@ import logging
 import secrets
 import string
 
-from homeassistant.components.http import StaticPathConfig
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import config_validation as cv
@@ -29,7 +28,6 @@ from .coordinators import (
 from .core.repositories.camera_repository import CameraRepository
 from .core.repository import MerakiRepository
 from .discovery.service import DeviceDiscoveryService
-from .frontend import async_register_frontend, async_remove_frontend
 from .helpers.migrations import async_cleanup_ghost_devices, async_migrate_entities
 from .services.camera_service import CameraService
 from .services.device_control_service import DeviceControlService
@@ -73,18 +71,6 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     # Set up services
     await async_setup_services(hass)
 
-    # Register the static path for the custom panel
-    if hass.http:
-        await hass.http.async_register_static_paths(
-            [
-                StaticPathConfig(
-                    "/meraki_ha_static",
-                    hass.config.path(f"custom_components/{DOMAIN}/www"),
-                    cache_headers=True,
-                )
-            ]
-        )
-
     return True
 
 
@@ -101,7 +87,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         Whether the setup was successful.
 
     """
-    await async_register_frontend(hass, entry)
     async_setup_websocket_api(hass)
     # Perform migrations before coordinator refresh
     await async_migrate_entities(hass, entry.entry_id)
@@ -249,7 +234,6 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             await async_unregister_webhook(
                 hass, entry_data["webhook_id"], entry_data["meraki_client"]
             )
-        await async_remove_frontend(hass)
 
     return unload_ok
 
