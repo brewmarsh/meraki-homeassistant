@@ -206,6 +206,17 @@
   - [ ] **Per-Client Presence Detection:** Enhance the device tracker to show which AP a client is connected to.
 - [ ] **PoE Control for Smart Homes (MS Switches):**
   - [ ] **Per-Port PoE Control:** Create a `switch` entity for each PoE-capable port.
+- [ ] **Blueprints (Automations):**
+  - [ ] **EV Arrived Trigger:** Presence detection to trigger garage/lights.
+  - [ ] **Dinner Time Policy Enforcer:** Scheduling Meraki Group Policies.
+  - [ ] **Scheduled Guest Key:** Auto-generating and notifying service workers.
+  - [ ] **Dead Node Auto-Heal:** Cycling PoE power if an HA entity goes unavailable.
+  - [ ] **MT Sensor Threshold Alerts:** Critical notifications for temp/water.
+- [ ] **Custom Lovelace Cards (Dashboards):**
+  - [ ] **Event Host QR Generator:** Generating IPSK and rendering a QR code.
+  - [ ] **Client Locator Glance Card:** Search for a client to see AP and RSSI.
+  - [ ] **Network Vitals Header:** Traffic graphs and gateway/switch/AP health dots.
+  - [ ] **Smart PoE Port Toggle:** List ports, show power draw, toggle PoE state.
 
 \*\*Enhancements / Bug Fixes
 
