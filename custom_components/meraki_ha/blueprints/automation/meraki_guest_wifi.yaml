@@ -16,12 +16,40 @@ blueprint:
     ssid_number:
       name: SSID Number
       description: The SSID index (0-14) where the key will be created.
-      default: 0
+      default: "0"
       selector:
-        number:
-          min: 0
-          max: 14
-          mode: box
+        select:
+          options:
+            - label: "SSID 0"
+              value: "0"
+            - label: "SSID 1"
+              value: "1"
+            - label: "SSID 2"
+              value: "2"
+            - label: "SSID 3"
+              value: "3"
+            - label: "SSID 4"
+              value: "4"
+            - label: "SSID 5"
+              value: "5"
+            - label: "SSID 6"
+              value: "6"
+            - label: "SSID 7"
+              value: "7"
+            - label: "SSID 8"
+              value: "8"
+            - label: "SSID 9"
+              value: "9"
+            - label: "SSID 10"
+              value: "10"
+            - label: "SSID 11"
+              value: "11"
+            - label: "SSID 12"
+              value: "12"
+            - label: "SSID 13"
+              value: "13"
+            - label: "SSID 14"
+              value: "14"
     duration_minutes:
       name: Duration (Minutes)
       description: How long the guest key should remain active before being automatically deleted.
