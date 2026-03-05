@@ -74,16 +74,20 @@ class PollingManager:
         error_str = str(error)
         if "429" in error_str:
             old_interval = self._current_interval
-            self._current_interval = max(
-                self._current_interval * 2, timedelta(seconds=60)
-            )
-            _LOGGER.warning(
-                "Meraki API rate limit detected (429). Entering cooldown state. "
-                "Update interval increased from %s to %s",
-                old_interval,
-                self._current_interval,
-            )
-            return True
+            # Double the interval, capped at 10 minutes (600 seconds)
+            new_seconds = min(old_interval.total_seconds() * 2, 600)
+            # Ensure it's at least 60 seconds if it was somehow lower
+            new_seconds = max(new_seconds, 60)
+            self._current_interval = timedelta(seconds=new_seconds)
+
+            if self._current_interval != old_interval:
+                _LOGGER.warning(
+                    "Meraki API rate limit detected (429). Entering cooldown state. "
+                    "Update interval increased from %s to %s",
+                    old_interval,
+                    self._current_interval,
+                )
+                return True
         return False
 
     def get_success_rate(self) -> float:

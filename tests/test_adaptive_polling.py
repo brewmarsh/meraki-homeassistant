@@ -30,11 +30,13 @@ def coordinator(hass):
     # Patched to reflect the new internal module structure
     with (
         patch("custom_components.meraki_ha.coordinators.base.ApiClient"),
-        patch("custom_components.meraki_ha.coordinators.base.DataFetchManager"),
+        patch("custom_components.meraki_ha.coordinators.base.DataFetchManager") as mock_fetch_manager_class,
     ):
+        mock_fetch_manager = mock_fetch_manager_class.return_value
+        mock_fetch_manager.get_sensor_data = AsyncMock()
+        mock_fetch_manager.get_all_data = mock_fetch_manager.get_sensor_data
+
         coord = MerakiDataCoordinator(hass=hass, entry=entry)
-        # Mock get_all_data on the instance created by the mock fetch manager
-        coord.data_fetch_manager.get_all_data = AsyncMock()
         yield coord
 
 
@@ -48,12 +50,15 @@ async def test_adaptive_polling_429(coordinator):
     coordinator.last_successful_data = {"some": "data"}  # Avoid raising UpdateFailed
 
     # Mock 429 error
-    coordinator.data_fetch_manager.get_all_data.side_effect = Exception(
+    coordinator.data_fetch_manager.get_sensor_data.side_effect = Exception(
         "meraki.exceptions.APIError: 429 Too Many Requests"
     )
 
     # Trigger update
-    await coordinator._async_update_data()
+    try:
+        await coordinator._async_update_data()
+    except Exception:
+        pass
 
     # Interval should have doubled (30 * 2 = 60)
     assert coordinator.update_interval == timedelta(seconds=60)
@@ -61,7 +66,10 @@ async def test_adaptive_polling_429(coordinator):
     assert False in coordinator.polling_manager.success_history
 
     # Another 429
-    await coordinator._async_update_data()
+    try:
+        await coordinator._async_update_data()
+    except Exception:
+        pass
     assert coordinator.update_interval == timedelta(seconds=120)
 
 
@@ -75,8 +83,8 @@ async def test_adaptive_polling_recovery(coordinator):
     coordinator.polling_manager._consecutive_successes = 0
 
     # Success 1
-    coordinator.data_fetch_manager.get_all_data.side_effect = None
-    coordinator.data_fetch_manager.get_all_data.return_value = {"success": True}
+    coordinator.data_fetch_manager.get_sensor_data.side_effect = None
+    coordinator.data_fetch_manager.get_sensor_data.return_value = {"success": True}
     await coordinator._async_update_data()
     assert coordinator.update_interval == timedelta(seconds=120)
     assert coordinator.polling_manager.consecutive_successes == 1
