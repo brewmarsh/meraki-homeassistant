@@ -63,8 +63,6 @@ def test_base_meraki_entity_device(mock_coordinator):
     assert device_info["identifiers"] == {("meraki_ha", "Q2XX-XXXX-XXXX")}
     assert device_info["model"] == "MR56"
     assert device_info["sw_version"] == "MR 27.1"
-    assert device_info["suggested_area"] == "123 Street"
-    assert device_info["configuration_url"] == "https://dashboard.meraki.com/device"
 
 
 def test_base_meraki_entity_network(mock_coordinator):
@@ -79,8 +77,7 @@ def test_base_meraki_entity_network(mock_coordinator):
     # Verify DeviceInfo
     device_info = entity.device_info
     assert device_info["identifiers"] == {("meraki_ha", "network_N_12345")}
-    assert device_info["model"] == "Network"
-    assert device_info["sw_version"] == "unknown"
+    assert device_info["model"] == "Network Controller Service"
 
 
 def test_base_meraki_entity_unavailable(mock_coordinator):

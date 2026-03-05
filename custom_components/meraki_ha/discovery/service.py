@@ -28,6 +28,7 @@ if TYPE_CHECKING:
         MerakiApplianceCoordinator,
         MerakiCameraCoordinator,
         MerakiClientCoordinator,
+        MerakiDeviceCoordinator,
         MerakiMainCoordinator,
         MerakiSensorCoordinator,
         MerakiSwitchCoordinator,
@@ -48,6 +49,7 @@ class DeviceDiscoveryService:
     def __init__(
         self,
         main_coordinator: MerakiMainCoordinator,
+        device_coordinator: MerakiDeviceCoordinator,
         switch_coordinator: MerakiSwitchCoordinator,
         camera_coordinator: MerakiCameraCoordinator,
         sensor_coordinator: MerakiSensorCoordinator,
@@ -62,6 +64,7 @@ class DeviceDiscoveryService:
     ) -> None:
         """Initialize the DeviceDiscoveryService."""
         self._main_coordinator = main_coordinator
+        self._device_coordinator = device_coordinator
         self._switch_coordinator = switch_coordinator
         self._camera_coordinator = camera_coordinator
         self._sensor_coordinator = sensor_coordinator
@@ -147,6 +150,7 @@ class DeviceDiscoveryService:
                 self._camera_service,
                 self._control_service,
                 self._network_control_service,
+                status_coordinator=self._device_coordinator,
             )
 
             async for entity in handler.discover_entities():

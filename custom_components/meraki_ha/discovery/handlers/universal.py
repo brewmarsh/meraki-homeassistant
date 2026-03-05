@@ -47,7 +47,7 @@ if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
     from homeassistant.helpers.entity import Entity
 
-    from ...coordinators import MerakiMainCoordinator
+    from ...coordinators import MerakiDeviceCoordinator, MerakiMainCoordinator
     from ...core.models.device import MerakiDevice
     from ...services.camera_service import CameraService
     from ...services.device_control_service import DeviceControlService
@@ -130,9 +130,11 @@ class UniversalHandler(BaseDeviceHandler):
         control_service: DeviceControlService,
         network_control_service: NetworkControlService,
         capabilities: list[str] | None = None,
+        status_coordinator: MerakiDeviceCoordinator | None = None,
     ) -> None:
         """Initialize the UniversalHandler."""
         super().__init__(coordinator, device, config_entry)
+        self._status_coordinator = status_coordinator
         self.capabilities = (
             capabilities
             if capabilities is not None
@@ -195,6 +197,8 @@ class UniversalHandler(BaseDeviceHandler):
 
     def _instantiate_single_entity(self, cap: str, provider: type) -> Entity:
         """Instantiate a single entity."""
+        if cap == "status" and self._status_coordinator:
+            return provider(self._status_coordinator, self.device, self._config_entry)
         if provider in SPECIAL_HANDLERS:
             return self._handle_special_entities(provider)
         return self._handle_default_entity(cap, provider)

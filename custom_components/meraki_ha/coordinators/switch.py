@@ -17,11 +17,17 @@ class MerakiSwitchCoordinator(MerakiBaseCoordinator[dict[str, Any]]):
         """Initialize the switch coordinator."""
         super().__init__(hass, entry, name="switch")
         self.last_successful_data: dict[str, Any] = {}
+        # Slow poll interval
+        from datetime import timedelta
+        self.update_interval = timedelta(seconds=600)
 
     async def _async_update_data(self) -> dict[str, Any]:
         """Fetch switch data."""
         try:
-            data = await self.data_fetch_manager.get_all_data(self.last_successful_data)
+            timespan = int(self.update_interval.total_seconds()) if self.update_interval else 600
+            data = await self.data_fetch_manager.get_sensor_data(
+                self.last_successful_data, timespan=timespan
+            )
             if data:
                 (
                     self.devices_by_serial,

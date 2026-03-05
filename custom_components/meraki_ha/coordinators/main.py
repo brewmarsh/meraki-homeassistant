@@ -23,6 +23,9 @@ class MerakiMainCoordinator(MerakiBaseCoordinator[dict[str, Any]]):
         super().__init__(hass, entry, name="main")
         self.last_successful_update: datetime | None = None
         self.last_successful_data: dict[str, Any] = {}
+        # Slow poll interval
+        from datetime import timedelta
+        self.update_interval = timedelta(seconds=600)
 
     async def _async_update_data(self) -> dict[str, Any]:
         """Fetch data from API endpoint, apply filters, and handle exceptions."""
@@ -38,8 +41,8 @@ class MerakiMainCoordinator(MerakiBaseCoordinator[dict[str, Any]]):
 
     async def _execute_update_cycle(self) -> dict[str, Any]:
         """Execute the update cycle and process data."""
-        timespan = int(self.update_interval.total_seconds()) if self.update_interval else 300
-        data = await self.data_fetch_manager.get_all_data(
+        timespan = int(self.update_interval.total_seconds()) if self.update_interval else 600
+        data = await self.data_fetch_manager.get_sensor_data(
             self.last_successful_data, timespan=timespan
         )
 

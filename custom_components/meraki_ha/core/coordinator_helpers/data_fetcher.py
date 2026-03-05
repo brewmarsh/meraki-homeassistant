@@ -33,12 +33,6 @@ if TYPE_CHECKING:
 
 _LOGGER = logging.getLogger(__name__)
 
-# Shared cache for organization-wide data to prevent redundant API calls
-# between multiple domain-specific coordinators.
-_ORG_DATA_CACHE: dict[str, Any] = {}
-_ORG_DATA_CACHE_EXPIRY: float = 0
-CACHE_TTL = 30  # seconds
-
 
 class DataFetchManager:
     """Manager for fetching and distributing Meraki data."""
@@ -60,6 +54,11 @@ class DataFetchManager:
         self._disabled_features: set[str] = set()
         self.client_fetcher = ClientFetcher(client)
 
+        # Instance-based cache for organization-wide data
+        self._org_data_cache: dict[str, Any] = {}
+        self._org_data_cache_expiry: float = 0
+        self._cache_ttl = 30  # seconds
+
         # Initialize strategies
         self.appliance_strategy = ApplianceFetchStrategy(
             client,
@@ -77,14 +76,19 @@ class DataFetchManager:
         )
         self.sensor_strategy = SensorFetchStrategy(client, self._disabled_features)
 
-    async def _async_fetch_initial_data(self) -> dict[str, Any]:
+    async def _async_fetch_batch_data(self, fast_only: bool = False) -> dict[str, Any]:
         """Fetch the organization-wide data batch with short-lived caching."""
-        global _ORG_DATA_CACHE_EXPIRY
-
         current_time = time.time()
-        if _ORG_DATA_CACHE and current_time < _ORG_DATA_CACHE_EXPIRY:
+        # If we have cached data and it's not expired, use it.
+        # But if we need slow data (fast_only=False) and cache only has fast data,
+        # we might need to refresh. For simplicity, we refresh if switch_ports missing.
+        if (
+            self._org_data_cache
+            and current_time < self._org_data_cache_expiry
+            and (fast_only or "switch_ports" in self._org_data_cache)
+        ):
             _LOGGER.debug("Using cached organization-wide data")
-            return _ORG_DATA_CACHE
+            return self._org_data_cache
 
         if not self.client.has_dashboard:
             await self.client.async_setup()
@@ -102,16 +106,19 @@ class DataFetchManager:
             "statuses": self.client.run_with_semaphore(
                 self.client.organization.get_organization_devices_statuses()
             ),
-            "switch_ports": self.client.run_with_semaphore(
-                self.client.organization.get_organization_switch_ports_statuses()
-            ),
         }
-        data = await async_gather_with_timeout(tasks, label="Initial batch")
+
+        if not fast_only:
+            tasks["switch_ports"] = self.client.run_with_semaphore(
+                self.client.organization.get_organization_switch_ports_statuses()
+            )
+
+        data = await async_gather_with_timeout(tasks, label="Batch fetch")
 
         # Update cache
-        _ORG_DATA_CACHE.clear()
-        _ORG_DATA_CACHE.update(data)
-        _ORG_DATA_CACHE_EXPIRY = current_time + CACHE_TTL
+        self._org_data_cache.clear()
+        self._org_data_cache.update(data)
+        self._org_data_cache_expiry = current_time + self._cache_ttl
 
         return data
 
@@ -199,17 +206,29 @@ class DataFetchManager:
             )
             data.update(results)
 
-    async def get_all_data(
-        self, current_data: dict[str, Any] | None = None, timespan: int = 300
+    async def get_device_data(
+        self, current_data: dict[str, Any] | None = None
     ) -> dict[str, Any]:
-        """Perform a full orchestrated data fetch."""
-        batch_data = await self._async_fetch_initial_data()
+        """Perform a lightweight orchestrated data fetch (Fast Poll)."""
+        batch_data = await self._async_fetch_batch_data(fast_only=True)
         data = self._distribute_batch_data(batch_data)
 
-        # Strategy tasks (async)
+        # Still process base data to ensure models are instantiated
+        self._process_data(data, current_data)
+
+        return data
+
+    async def get_sensor_data(
+        self, current_data: dict[str, Any] | None = None, timespan: int = 300
+    ) -> dict[str, Any]:
+        """Perform a full heavy orchestrated data fetch (Slow Poll)."""
+        batch_data = await self._async_fetch_batch_data(fast_only=False)
+        data = self._distribute_batch_data(batch_data)
+
+        # Strategy tasks (async) - Heavy
         await self._build_strategy_tasks(data)
 
-        # Client data fetch (async)
+        # Client data fetch (async) - Heavy
         await self._fetch_client_data(data)
 
         # Orchestrated parsing
@@ -218,6 +237,12 @@ class DataFetchManager:
         # Sensor parsing
         parse_sensor_data(data["devices"], data.get("sensor_readings"), [])
         return data
+
+    async def get_all_data(
+        self, current_data: dict[str, Any] | None = None, timespan: int = 300
+    ) -> dict[str, Any]:
+        """Legacy method for backward compatibility. Performs full fetch."""
+        return await self.get_sensor_data(current_data, timespan)
 
     async def _fetch_client_data(self, data: dict[str, Any]) -> None:
         """Fetch client data for all networks."""

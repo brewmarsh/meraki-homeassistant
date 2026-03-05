@@ -4,6 +4,7 @@ from .appliance import MerakiApplianceCoordinator
 from .base import MerakiBaseCoordinator
 from .camera import MerakiCameraCoordinator
 from .client import MerakiClientCoordinator
+from .device import MerakiDeviceCoordinator
 from .main import MerakiMainCoordinator
 from .sensor import MerakiSensorCoordinator
 from .switch import MerakiSwitchCoordinator
@@ -14,6 +15,7 @@ __all__ = [
     "MerakiBaseCoordinator",
     "MerakiCameraCoordinator",
     "MerakiClientCoordinator",
+    "MerakiDeviceCoordinator",
     "MerakiMainCoordinator",
     "MerakiSensorCoordinator",
     "MerakiSwitchCoordinator",

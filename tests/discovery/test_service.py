@@ -59,14 +59,21 @@ def test_discovery_service_init(
     mock_network_control_service: MagicMock = MagicMock()
 
     service: DeviceDiscoveryService = DeviceDiscoveryService(
-        coordinator=mock_coordinator_with_devices,
+        main_coordinator=mock_coordinator_with_devices,
+        device_coordinator=mock_coordinator_with_devices,
+        switch_coordinator=mock_coordinator_with_devices,
+        camera_coordinator=mock_coordinator_with_devices,
+        sensor_coordinator=mock_coordinator_with_devices,
+        wireless_coordinator=mock_coordinator_with_devices,
+        appliance_coordinator=mock_coordinator_with_devices,
+        client_coordinator=mock_coordinator_with_devices,
         config_entry=mock_config_entry,
         meraki_client=mock_meraki_client,
         camera_service=mock_camera_service,
         control_service=mock_control_service,
         network_control_service=mock_network_control_service,
     )
-    assert service._coordinator is mock_coordinator_with_devices
+    assert service._main_coordinator is mock_coordinator_with_devices
     assert len(service._devices) == 3
 
 
@@ -117,7 +124,14 @@ async def test_discover_entities_delegates_to_handler(
         mock_network_control_service: MagicMock = MagicMock()
 
         service: DeviceDiscoveryService = DeviceDiscoveryService(
-            coordinator=mock_coordinator_with_devices,
+            main_coordinator=mock_coordinator_with_devices,
+            device_coordinator=mock_coordinator_with_devices,
+            switch_coordinator=mock_coordinator_with_devices,
+            camera_coordinator=mock_coordinator_with_devices,
+            sensor_coordinator=mock_coordinator_with_devices,
+            wireless_coordinator=mock_coordinator_with_devices,
+            appliance_coordinator=mock_coordinator_with_devices,
+            client_coordinator=mock_coordinator_with_devices,
             config_entry=mock_config_entry,
             meraki_client=mock_meraki_client,
             camera_service=mock_camera_service,
@@ -140,4 +154,5 @@ async def test_discover_entities_delegates_to_handler(
             mock_camera_service,
             mock_control_service,
             mock_network_control_service,
+            status_coordinator=mock_coordinator_with_devices,
         )
