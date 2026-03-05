@@ -62,9 +62,10 @@ async def test_async_gather_with_timeout_intercepts_traffic_analysis_error(
     tasks = {"test_key": traffic_error_coro()}
 
     with patch(
-        "custom_components.meraki_ha.core.coordinator_helpers.data_fetcher._LOGGER"
+        "custom_components.meraki_ha.core.coordinator_helpers.batch_utils._LOGGER"
     ) as mock_logger:
-        results = await data_fetch_manager._async_gather_with_timeout(
+        from custom_components.meraki_ha.core.coordinator_helpers.batch_utils import async_gather_with_timeout
+        results = await async_gather_with_timeout(
             tasks, label="Test Intercept"
         )
 
@@ -88,9 +89,10 @@ async def test_async_gather_with_timeout_intercepts_vlans_error(data_fetch_manag
     tasks = {"test_key": vlan_error_coro()}
 
     with patch(
-        "custom_components.meraki_ha.core.coordinator_helpers.data_fetcher._LOGGER"
+        "custom_components.meraki_ha.core.coordinator_helpers.batch_utils._LOGGER"
     ) as mock_logger:
-        results = await data_fetch_manager._async_gather_with_timeout(
+        from custom_components.meraki_ha.core.coordinator_helpers.batch_utils import async_gather_with_timeout
+        results = await async_gather_with_timeout(
             tasks, label="Test Intercept"
         )
 
@@ -116,9 +118,10 @@ async def test_async_gather_with_timeout_fallback_to_error_for_other_400(
     tasks = {"test_key": other_error_coro()}
 
     with patch(
-        "custom_components.meraki_ha.core.coordinator_helpers.data_fetcher._LOGGER"
+        "custom_components.meraki_ha.core.coordinator_helpers.batch_utils._LOGGER"
     ) as mock_logger:
-        results = await data_fetch_manager._async_gather_with_timeout(
+        from custom_components.meraki_ha.core.coordinator_helpers.batch_utils import async_gather_with_timeout
+        results = await async_gather_with_timeout(
             tasks, label="Test Fallback"
         )
 

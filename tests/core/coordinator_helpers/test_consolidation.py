@@ -47,9 +47,10 @@ async def test_consolidation_switch_ports(data_fetch_manager, mock_client):
         "devices": [{"serial": switch_serial, "productType": "switch"}],
         "appliance_uplink_statuses": [],
         "sensor_readings": [],
-        "switch_ports_statuses": [{"serial": switch_serial, "ports": switch_ports}],
+        "switch_ports": [{"serial": switch_serial, "ports": switch_ports}],
+        "statuses": [],
     }
-    data_fetch_manager._async_fetch_initial_data = AsyncMock(return_value=mock_initial)
+    data_fetch_manager._async_fetch_batch_data = AsyncMock(return_value=mock_initial)
     data_fetch_manager.client_fetcher.async_fetch_network_clients = AsyncMock(
         return_value=[]
     )
@@ -94,9 +95,10 @@ async def test_consolidation_clients(data_fetch_manager, mock_client):
         "devices": [{"serial": device_serial, "productType": "wireless"}],
         "appliance_uplink_statuses": [],
         "sensor_readings": [],
-        "switch_ports_statuses": [],
+        "switch_ports": [],
+        "statuses": [],
     }
-    data_fetch_manager._async_fetch_initial_data = AsyncMock(return_value=mock_initial)
+    data_fetch_manager._async_fetch_batch_data = AsyncMock(return_value=mock_initial)
 
     # Mock network client fetch
     data_fetch_manager.client_fetcher.async_fetch_network_clients = AsyncMock(

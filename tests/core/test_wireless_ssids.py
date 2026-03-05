@@ -35,12 +35,14 @@ def data_fetch_manager(mock_client):
 async def test_wireless_ssids_processing(data_fetch_manager, mock_client):
     """Test that wireless SSIDs are correctly processed and added to data."""
     # Mock initial data return
-    data_fetch_manager._async_fetch_initial_data = AsyncMock(
+    data_fetch_manager._async_fetch_batch_data = AsyncMock(
         return_value={
             "networks": [
                 {"id": "N_123", "name": "Test Network", "productTypes": ["wireless"]}
             ],
             "devices": [],
+            "organization": {"name": "Test Org"},
+            "statuses": [],
         }
     )
 
