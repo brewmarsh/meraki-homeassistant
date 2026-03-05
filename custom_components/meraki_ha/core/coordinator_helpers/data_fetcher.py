@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import logging
 import time
 from typing import TYPE_CHECKING, Any
@@ -171,6 +172,12 @@ class DataFetchManager:
         statuses = batch_data.get("statuses") or []
         parse_device_data(data["devices"], statuses)
 
+        # Unpack batch switch ports into detail_data format for strategies
+        switch_ports = batch_data.get("switch_ports") or []
+        for entry in switch_ports:
+            if isinstance(entry, dict) and (serial := entry.get("serial")):
+                data[f"switch_ports_{serial}"] = entry.get("ports", [])
+
     def _get_device_capabilities(self, model: str | None) -> list[str]:
         """Return hardcoded capabilities based on device model."""
         from ..const import DEVICE_CAPABILITIES
@@ -268,9 +275,10 @@ class DataFetchManager:
             for result in client_results.values():
                 if isinstance(result, list):
                     all_clients.extend(result)
-            data["clients"] = self.client_fetcher.derive_device_clients(
+            data["clients_by_serial"] = self.client_fetcher.derive_device_clients(
                 all_clients, data["devices"]
             )
+            data["clients"] = all_clients
         except Exception:  # pylint: disable=broad-except
             _LOGGER.error("Timeout during client data fetch")
             data["clients"] = {}
@@ -286,6 +294,9 @@ class DataFetchManager:
                     previous_devices_map[d.serial] = d
 
         # Strategy-based processing for individual devices
+        # Ensure strategies that expect 'clients' get 'clients_by_serial'
+        if "clients_by_serial" in data:
+            data["clients"] = data["clients_by_serial"]
         process_device_strategies(data, previous_devices_map, self.strategies)
 
         # Strategy-based processing for networks

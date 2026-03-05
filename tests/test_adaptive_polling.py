@@ -29,14 +29,15 @@ def coordinator(hass):
     entry.add_to_hass(hass)
     # Patched to reflect the new internal module structure
     with (
-        patch("custom_components.meraki_ha.coordinators.base.ApiClient"),
+        patch("custom_components.meraki_ha.coordinators.base.ApiClient") as mock_api_client_class,
         patch("custom_components.meraki_ha.coordinators.base.DataFetchManager") as mock_fetch_manager_class,
     ):
+        mock_api_client = mock_api_client_class.return_value
         mock_fetch_manager = mock_fetch_manager_class.return_value
         mock_fetch_manager.get_sensor_data = AsyncMock()
         mock_fetch_manager.get_all_data = mock_fetch_manager.get_sensor_data
 
-        coord = MerakiDataCoordinator(hass=hass, entry=entry)
+        coord = MerakiDataCoordinator(hass=hass, entry=entry, api_client=mock_api_client)
         yield coord
 
 

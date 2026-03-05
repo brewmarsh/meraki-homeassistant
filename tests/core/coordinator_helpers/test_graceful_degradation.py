@@ -61,9 +61,10 @@ async def test_async_gather_with_timeout_graceful_traffic_analysis(
     tasks = {"test_traffic": traffic_error_coro()}
 
     with patch(
-        "custom_components.meraki_ha.core.coordinator_helpers.data_fetcher._LOGGER"
+        "custom_components.meraki_ha.core.coordinator_helpers.batch_utils._LOGGER"
     ) as mock_logger:
-        results = await data_fetch_manager._async_gather_with_timeout(
+        from custom_components.meraki_ha.core.coordinator_helpers.batch_utils import async_gather_with_timeout
+        results = await async_gather_with_timeout(
             tasks, label="Test Graceful"
         )
 
@@ -90,9 +91,10 @@ async def test_async_gather_with_timeout_graceful_vlans(data_fetch_manager):
     tasks = {"test_vlans": vlan_error_coro()}
 
     with patch(
-        "custom_components.meraki_ha.core.coordinator_helpers.data_fetcher._LOGGER"
+        "custom_components.meraki_ha.core.coordinator_helpers.batch_utils._LOGGER"
     ) as mock_logger:
-        results = await data_fetch_manager._async_gather_with_timeout(
+        from custom_components.meraki_ha.core.coordinator_helpers.batch_utils import async_gather_with_timeout
+        results = await async_gather_with_timeout(
             tasks, label="Test Graceful"
         )
 
@@ -121,9 +123,10 @@ async def test_async_gather_with_timeout_handles_wrapped_meraki_errors(
     tasks = {"test_wrapped": wrapped_error_coro()}
 
     with patch(
-        "custom_components.meraki_ha.core.coordinator_helpers.data_fetcher._LOGGER"
+        "custom_components.meraki_ha.core.coordinator_helpers.batch_utils._LOGGER"
     ) as mock_logger:
-        results = await data_fetch_manager._async_gather_with_timeout(
+        from custom_components.meraki_ha.core.coordinator_helpers.batch_utils import async_gather_with_timeout
+        results = await async_gather_with_timeout(
             tasks, label="Test Wrapped"
         )
 
@@ -147,11 +150,12 @@ async def test_async_gather_with_timeout_true_failures_still_log_error(
     tasks = {"test_fail": true_failure_coro()}
 
     with patch(
-        "custom_components.meraki_ha.core.coordinator_helpers.data_fetcher._LOGGER"
+        "custom_components.meraki_ha.core.coordinator_helpers.batch_utils._LOGGER"
     ) as mock_logger:
         # result will be None because _handle_fetch_exception returns None
         # and logs error
-        results = await data_fetch_manager._async_gather_with_timeout(
+        from custom_components.meraki_ha.core.coordinator_helpers.batch_utils import async_gather_with_timeout
+        results = await async_gather_with_timeout(
             tasks, label="Test Failure"
         )
 

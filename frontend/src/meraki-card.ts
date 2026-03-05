@@ -45,10 +45,6 @@ export class MerakiGuestAccessCard extends LitElement {
     };
   }
 
-  public static getConfigElement(): HTMLElement {
-    return document.createElement('div');
-  }
-
   protected firstUpdated(changedProperties: PropertyValues) {
     super.firstUpdated(changedProperties);
     this._fetchInitialData();
@@ -162,7 +158,7 @@ export class MerakiGuestAccessCard extends LitElement {
               naturalMenuWidth
             >
               ${this._networks.map(
-                (n) => html`<ha-list-item .value="${n.id}">${n.name}</ha-list-item>`
+                (n) => html`<mwc-list-item .value="${n.id}">${n.name}</mwc-list-item>`
               )}
             </ha-select>
 
@@ -175,7 +171,7 @@ export class MerakiGuestAccessCard extends LitElement {
               naturalMenuWidth
             >
               ${filteredSsids.map(
-                (s) => html`<ha-list-item .value="${s.number.toString()}">${s.name} (SSID ${s.number})</ha-list-item>`
+                (s) => html`<mwc-list-item .value="${s.number.toString()}">${s.name} (SSID ${s.number})</mwc-list-item>`
               )}
             </ha-select>
 
@@ -187,9 +183,9 @@ export class MerakiGuestAccessCard extends LitElement {
               fixedMenuPosition
               naturalMenuWidth
             >
-              <ha-list-item value="">None (Default)</ha-list-item>
+              <mwc-list-item .value="">None (Default)</mwc-list-item>
               ${this._policies.map(
-                (p) => html`<ha-list-item .value="${p.groupPolicyId}">${p.name}</ha-list-item>`
+                (p) => html`<mwc-list-item .value="${p.groupPolicyId}">${p.name}</mwc-list-item>`
               )}
             </ha-select>
 
@@ -200,11 +196,11 @@ export class MerakiGuestAccessCard extends LitElement {
               fixedMenuPosition
               naturalMenuWidth
             >
-              <ha-list-item value="30">30 Minutes</ha-list-item>
-              <ha-list-item value="60">1 Hour</ha-list-item>
-              <ha-list-item value="240">4 Hours</ha-list-item>
-              <ha-list-item value="1440">24 Hours</ha-list-item>
-              <ha-list-item value="10080">7 Days</ha-list-item>
+              <mwc-list-item .value="${"30"}">30 Minutes</mwc-list-item>
+              <mwc-list-item .value="${"60"}">1 Hour</mwc-list-item>
+              <mwc-list-item .value="${"240"}">4 Hours</mwc-list-item>
+              <mwc-list-item .value="${"1440"}">24 Hours</mwc-list-item>
+              <mwc-list-item .value="${"10080"}">7 Days</mwc-list-item>
             </ha-select>
 
             <ha-textfield

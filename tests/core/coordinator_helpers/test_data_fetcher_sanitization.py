@@ -47,9 +47,10 @@ async def test_async_gather_with_timeout_sanitization(data_fetch_manager):
 
     # Act
     with patch(
-        "custom_components.meraki_ha.core.coordinator_helpers.data_fetcher._LOGGER"
+        "custom_components.meraki_ha.core.coordinator_helpers.batch_utils._LOGGER"
     ) as mock_logger:
-        results = await data_fetch_manager._async_gather_with_timeout(
+        from custom_components.meraki_ha.core.coordinator_helpers.batch_utils import async_gather_with_timeout
+        results = await async_gather_with_timeout(
             tasks, label="Test Batch"
         )
 
@@ -68,15 +69,14 @@ async def test_async_gather_with_timeout_sanitization(data_fetch_manager):
 async def test_get_all_data_resilience_to_none(data_fetch_manager, mock_client):
     """Test that get_all_data handles None values for networks and devices."""
     # Simulate sanitization returning None for networks and devices
-    data_fetch_manager._async_fetch_initial_data = AsyncMock(
+    data_fetch_manager._async_fetch_batch_data = AsyncMock(
         return_value={
             "networks": None,
             "devices": None,
             "organization": {"name": "Test Org"},
+            "statuses": [],
         }
     )
-
-    data_fetch_manager._fetch_batch_camera_analytics = AsyncMock(return_value={})
 
     # Use regular MagicMock to return a string/None instead of a coroutine
     # since we'll mock _async_gather_with_timeout anyway.
@@ -94,8 +94,9 @@ async def test_get_all_data_resilience_to_none(data_fetch_manager, mock_client):
         patch(
             "custom_components.meraki_ha.core.coordinator_helpers.data_fetcher.parse_sensor_data"
         ),
-        patch.object(
-            data_fetch_manager, "_async_gather_with_timeout", new_callable=AsyncMock
+        patch(
+            "custom_components.meraki_ha.core.coordinator_helpers.data_fetcher.async_gather_with_timeout",
+            new_callable=AsyncMock
         ) as mock_gather,
     ):
         # We need mock_gather to return a dict for the client_results call
