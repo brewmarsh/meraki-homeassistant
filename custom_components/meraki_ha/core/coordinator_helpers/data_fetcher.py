@@ -173,8 +173,15 @@ class DataFetchManager:
 
     def _get_device_capabilities(self, model: str | None) -> list[str]:
         """Return hardcoded capabilities based on device model."""
+        from ..const import DEVICE_CAPABILITIES
+
         if not model:
             return list(DEFAULT_CAPS)
+
+        # Iterate and match prefix (e.g. MV12W match MV12)
+        for prefix, caps in DEVICE_CAPABILITIES.items():
+            if model.startswith(prefix):
+                return list(caps)
 
         return list(DEFAULT_CAPS)
 

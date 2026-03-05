@@ -18,6 +18,8 @@ def mock_camera(
 ) -> MerakiRTSPStreamCamera:
     """Create a mock MerakiRTSPStreamCamera entity."""
     mock_coordinator.get_device.return_value = MOCK_CAMERA_DEVICE
+    # Ensure the coordinator uses the same config entry as the fixture
+    mock_coordinator.config_entry = mock_config_entry
     return MerakiRTSPStreamCamera(
         coordinator=mock_coordinator,
         device=MOCK_CAMERA_DEVICE,
@@ -54,7 +56,22 @@ async def test_camera_auto_enables_stream(
         mock_config_entry.options = {CONF_ENABLE_CAMERA_ENTITIES: True}
 
         # Act
-        await mock_camera.async_added_to_hass()
+        # In HA 2024.12+, async_create_background_task is the preferred way.
+        # We mock it to just run the task so we can wait for it.
+        # Using MagicMock for the task to prevent 'coroutine was never awaited'
+        mock_task = MagicMock()
+        with patch.object(
+                mock_config_entry, "async_create_background_task", return_value=mock_task
+        ) as mock_create_task:
+            await mock_camera.async_added_to_hass()
+
+        # Manually await the coroutine that was passed to async_create_background_task
+        # It's the second argument (index 1) in the call
+        coro = mock_create_task.call_args[0][1]
+        await coro
+
+        # Wait for background tasks
+        await hass.async_block_till_done()
 
         # Assert
         mock_camera_service.async_set_rtsp_stream_enabled.assert_awaited_once_with(
@@ -109,7 +126,12 @@ async def test_camera_does_not_auto_enable_if_option_disabled(
         mock_config_entry.options = {CONF_ENABLE_CAMERA_ENTITIES: False}
 
         # Act
-        await mock_camera.async_added_to_hass()
+        # Even if we don't expect a task, we should mock it to be safe
+        with patch.object(
+                mock_config_entry, "async_create_background_task"
+        ) as mock_create_task:
+            await mock_camera.async_added_to_hass()
 
         # Assert
         mock_camera_service.async_set_rtsp_stream_enabled.assert_not_called()
+        mock_create_task.assert_not_called()

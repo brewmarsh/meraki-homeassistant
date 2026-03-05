@@ -102,11 +102,25 @@ async def test_dfm_batch_analytics_modulo():
     # Poll 1
     dfm.camera_strategy.increment_poll_count()
 
-    # We test via _collect_device_tasks
+    # We test via collect_device_tasks
+    from custom_components.meraki_ha.core.coordinator_helpers.strategy_executor import (
+        collect_device_tasks,
+    )
+
     tasks = {}
-    dfm._collect_device_tasks({"devices": devices}, tasks)
+    data = {"devices": devices}
+    strategies = {
+        "appliance": dfm.appliance_strategy,
+        "wireless": dfm.wireless_strategy,
+        "switch": dfm.switch_strategy,
+        "camera": dfm.camera_strategy,
+        "sensor": dfm.sensor_strategy,
+    }
+
+    collect_device_tasks(data, tasks, strategies, dfm._get_device_capabilities)
 
     # Analytics should be present in poll 1 (1 % 5 == 1? No (1-1)%5 == 0)
+    # Note: strategy.build_device_tasks checks for 'camera_analytics' in capabilities
     assert f"camera_analytics_{devices[0].serial}" in tasks
 
     # Cleanup Poll 1 tasks
@@ -117,7 +131,7 @@ async def test_dfm_batch_analytics_modulo():
     # Poll 2
     dfm.camera_strategy.increment_poll_count()
     tasks = {}
-    dfm._collect_device_tasks({"devices": devices}, tasks)
+    collect_device_tasks(data, tasks, strategies, dfm._get_device_capabilities)
 
     # Analytics should NOT be present in poll 2
     assert f"camera_analytics_{devices[0].serial}" not in tasks
