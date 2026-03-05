@@ -160,7 +160,7 @@ def parse_sensor_data(
     devices: list[MerakiDevice],
     sensor_readings: list[dict[str, Any]] | None,
     battery_readings: list[dict[str, Any]] | None,
-) -> None:
+) -> dict[str, Any]:
     """Parse and merge sensor and battery readings into the device list."""
     sensor_list = _safe_list(sensor_readings)
     battery_list = _safe_list(battery_readings)
@@ -170,3 +170,5 @@ def parse_sensor_data(
 
     for device in devices:
         _process_single_device(device, readings_map, battery_map)
+
+    return {}
