@@ -11,7 +11,6 @@ interface Config {
   config_entry_id?: string;
 }
 
-@customElement('meraki-guest-access-card')
 export class MerakiGuestAccessCard extends LitElement {
   @property({ attribute: false }) public hass!: HomeAssistant;
   @state() private _config?: Config;
@@ -31,6 +30,7 @@ export class MerakiGuestAccessCard extends LitElement {
   @state() private _ssids: SSID[] = [];
   @state() private _policies: any[] = [];
   @state() private _loading: boolean = true;
+  @state() private _initDone: boolean = false;
 
   public setConfig(config: Config): void {
     if (!config) {
@@ -53,7 +53,7 @@ export class MerakiGuestAccessCard extends LitElement {
   protected updated(changedProperties: PropertyValues) {
     super.updated(changedProperties);
     if (changedProperties.has('hass') && this.hass) {
-      if (!this._networks.length) {
+      if (!this._initDone && this.hass) {
         this._fetchInitialData();
       }
       if (this.hass.user?.name && !this._customName) {
@@ -63,6 +63,7 @@ export class MerakiGuestAccessCard extends LitElement {
   }
 
   private async _fetchInitialData() {
+    this._initDone = true;
     if (!this.hass) return;
     this._loading = true;
     try {
@@ -305,6 +306,11 @@ export class MerakiGuestAccessCard extends LitElement {
     }
   `;
 }
+
+if (!customElements.get("meraki-guest-access-card")) {
+  customElements.define("meraki-guest-access-card", MerakiGuestAccessCard);
+}
+
 // Register the card in the Home Assistant Lovelace UI picker
 (window as any).customCards = (window as any).customCards || [];
 (window as any).customCards.push({
