@@ -9,6 +9,7 @@ from homeassistant.core import callback
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity import EntityCategory
 
+from ..const import DOMAIN
 from ..coordinators import MerakiSwitchCoordinator
 from ..core.api.client import MerakiAPIClient
 from ..core.utils.icon_utils import get_device_type_icon
@@ -109,11 +110,9 @@ class MerakiSSIDBaseSwitch(MerakiEntity, SwitchEntity):
 
     @property
     def device_info(self) -> DeviceInfo | None:
-        """Return device information to link this entity to the SSID device."""
-        return resolve_device_info(
-            entity_data={"networkId": self._network_id, "number": self._ssid_number},
-            config_entry=self._config_entry,
-            ssid_data=self._ssid_data_at_init,
+        """Return device information to link this entity to the Network device."""
+        return DeviceInfo(
+            identifiers={(DOMAIN, f"network_{self._network_id}")},
         )
 
     @property
@@ -202,7 +201,9 @@ class MerakiSSIDEnabledSwitch(MerakiSSIDBaseSwitch):
             "enabled",
             rf_profile,
         )
-        self._attr_name = f"{ssid_data['name']} enabled"
+        network = coordinator.get_network(self._network_id)
+        network_name = network.name if network else f"Network {self._network_id}"
+        self._attr_name = f"{network_name} SSID {ssid_data['name']} Enabled"
 
     @property
     def available(self) -> bool:
@@ -233,4 +234,6 @@ class MerakiSSIDBroadcastSwitch(MerakiSSIDBaseSwitch):
             "visible",
             rf_profile,
         )
-        self._attr_name = f"{ssid_data['name']} broadcast"
+        network = coordinator.get_network(self._network_id)
+        network_name = network.name if network else f"Network {self._network_id}"
+        self._attr_name = f"{network_name} SSID {ssid_data['name']} Broadcast"

@@ -16,7 +16,6 @@ from ...const import DOMAIN
 from ...const_conf import CONF_IGNORED_NETWORKS, DEFAULT_IGNORED_NETWORKS
 from ..helpers.device_registry import (
     async_ensure_network_devices_exist,
-    async_ensure_ssid_devices_exist,
 )
 from ..managers import PollingManager
 from ..models.device import MerakiDevice
@@ -160,8 +159,6 @@ class UpdateProcessor:
         async_ensure_network_devices_exist(
             self.hass, self.config_entry, data.get("networks", [])
         )
-        if "ssids" in data:
-            async_ensure_ssid_devices_exist(self.hass, self.config_entry, data["ssids"])
 
         # Apply filters
         ignored_ids = self.config_entry.options.get(

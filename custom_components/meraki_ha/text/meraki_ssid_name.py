@@ -11,6 +11,7 @@ from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
+from ..const import DOMAIN
 from ..coordinators import MerakiWirelessCoordinator
 from ..core.api.client import MerakiAPIClient
 from ..helpers.device_info_helpers import resolve_device_info
@@ -47,9 +48,11 @@ class MerakiSSIDNameText(CoordinatorEntity[MerakiWirelessCoordinator], TextEntit
         )  # Can be int or str depending on source
 
         # EntityDescription can be used for name, icon etc.
+        network = coordinator.get_network(self._network_id)
+        network_name = network.name if network else f"Network {self._network_id}"
         self.entity_description = TextEntityDescription(
             key=f"{self._network_id}ssid{self._ssid_number}_ssid_name",
-            name="SSID name",
+            name=f"{network_name} SSID {ssid_data.get('name')} name",
             icon="mdi:form-textbox",
             native_min=1,
             native_max=32,
@@ -64,11 +67,9 @@ class MerakiSSIDNameText(CoordinatorEntity[MerakiWirelessCoordinator], TextEntit
 
     @property
     def device_info(self) -> DeviceInfo | None:
-        """Return device information to link this entity to the SSID device."""
-        return resolve_device_info(
-            entity_data={"networkId": self._network_id},
-            config_entry=self._config_entry,
-            ssid_data=self._ssid_data,
+        """Return device information to link this entity to the Network device."""
+        return DeviceInfo(
+            identifiers={(DOMAIN, f"network_{self._network_id}")},
         )
 
     @property

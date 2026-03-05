@@ -9,8 +9,10 @@ from homeassistant.components.sensor import SensorEntity, SensorEntityDescriptio
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import UnitOfDataRate
 from homeassistant.core import callback
+from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity import EntityCategory
 
+from ...const import DOMAIN
 from ...coordinators import MerakiMainCoordinator
 from ...entity import MerakiEntity
 from ...helpers.device_info_helpers import resolve_device_info
@@ -38,14 +40,14 @@ class MerakiSSIDDetailSensor(MerakiEntity, SensorEntity):
         self._network_id = ssid_data.get("networkId")
         self._ssid_number = ssid_data.get("number")
         self._rf_profile = rf_profile
-        self._attr_device_info = resolve_device_info(
-            entity_data={"networkId": self._network_id},
-            config_entry=self._config_entry,
-            ssid_data=self._ssid_data,
+        self._attr_device_info = DeviceInfo(
+            identifiers={(DOMAIN, f"network_{self._network_id}")},
         )
 
         # Rule 1: Use explicit naming to include SSID name for unique identification
-        self._attr_name = f"{ssid_data['name']} {self.entity_description.name}"
+        network = coordinator.get_network(self._network_id)
+        network_name = network.name if network else f"Network {self._network_id}"
+        self._attr_name = f"{network_name} SSID {ssid_data['name']} {self.entity_description.name}"
 
         # Rule 2: Robust unique_id format (serial_classname_key)
         # For SSID-bound entities, we use network_id and ssid_number as the

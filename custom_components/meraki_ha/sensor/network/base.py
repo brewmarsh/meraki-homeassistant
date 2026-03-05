@@ -6,7 +6,9 @@ from typing import Any
 from homeassistant.components.sensor import SensorEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import callback
+from homeassistant.helpers.device_registry import DeviceInfo
 
+from ...const import DOMAIN
 from ...coordinators import MerakiSwitchCoordinator
 from ...entity import MerakiEntity
 from ...helpers.device_info_helpers import resolve_device_info
@@ -36,18 +38,19 @@ class MerakiSSIDBaseSensor(MerakiEntity, SensorEntity):
 
         # Unique ID is now handled by the dynamic @property method below
         self._attr_has_entity_name = True
+        network = coordinator.get_network(self._network_id)
+        network_name = network.name if network else f"Network {self._network_id}"
         ssid_name = ssid_data.get("name", f"SSID {self._ssid_number}")
         if (
             hasattr(self, "entity_description")
             and self.entity_description
             and self.entity_description.name
         ):
-            self._attr_name = f"{ssid_name} {self.entity_description.name}"
+            self._attr_name = f"{network_name} SSID {ssid_name} {self.entity_description.name}"
 
-        # SSID entities are logical children of the "Virtual SSID Device"
-        self._attr_device_info = resolve_device_info(
-            entity_data=self._ssid_data_at_init,
-            config_entry=self._config_entry,
+        # SSID entities are logical children of the "Virtual SSID Device" (Network Device)
+        self._attr_device_info = DeviceInfo(
+            identifiers={(DOMAIN, f"network_{self._network_id}")},
         )
 
     def _get_current_ssid_data(self) -> dict[str, Any] | None:
