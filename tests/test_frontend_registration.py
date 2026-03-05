@@ -1,7 +1,12 @@
-from unittest.mock import patch, MagicMock
-import pytest
+from unittest.mock import MagicMock, patch
+
 from homeassistant.core import HomeAssistant
-from custom_components.meraki_ha.frontend import async_register_frontend, async_remove_frontend
+
+from custom_components.meraki_ha.frontend import (
+    async_register_frontend,
+    async_remove_frontend,
+)
+
 
 async def test_async_register_frontend(hass: HomeAssistant):
     """Test frontend registration."""

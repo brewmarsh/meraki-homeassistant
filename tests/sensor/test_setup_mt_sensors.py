@@ -5,13 +5,13 @@ from typing import Any, cast
 from unittest.mock import MagicMock
 
 import pytest
-
-from custom_components.meraki_ha.discovery.service import DeviceDiscoveryService
-from custom_components.meraki_ha.types import MerakiDevice
 from homeassistant.components.binary_sensor import BinarySensorEntity
 from homeassistant.components.sensor import SensorEntity
 from homeassistant.helpers.entity import Entity
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
+
+from custom_components.meraki_ha.discovery.service import DeviceDiscoveryService
+from custom_components.meraki_ha.types import MerakiDevice
 
 MT_DEVICES_DATA: list[dict[str, Any]] = [
     {
@@ -153,7 +153,7 @@ async def _prepare_discovery_service_and_entities(
         )
         # Replaced object.__setattr__ with direct assignment for method mock
         entity.async_write_ha_state = MagicMock()
-        
+
         if hasattr(entity, "_handle_coordinator_update"):
             cast(CoordinatorEntity, entity)._handle_coordinator_update()
     return entities

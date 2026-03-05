@@ -1,9 +1,14 @@
 
-import pytest
 from unittest.mock import MagicMock
-from custom_components.meraki_ha.sensor.device.ap_client_count import MerakiAPClientCountSensor
-from custom_components.meraki_ha.services.network_control_service import NetworkControlService
+
 from custom_components.meraki_ha.core.models.device import MerakiDevice
+from custom_components.meraki_ha.sensor.device.ap_client_count import (
+    MerakiAPClientCountSensor,
+)
+from custom_components.meraki_ha.services.network_control_service import (
+    NetworkControlService,
+)
+
 
 def test_ap_client_count_sensor_handles_none_clients():
     coordinator = MagicMock()
