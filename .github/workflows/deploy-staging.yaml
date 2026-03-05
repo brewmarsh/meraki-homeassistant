@@ -47,12 +47,15 @@ jobs:
         run: |
           SourceComponentDir="${GITHUB_WORKSPACE}/custom_components/meraki_ha/"
           DestinationPath="${DEPLOY_PATH}"
+          SourceBlueprintsDir="${SourceComponentDir}blueprints/"
+          DestinationBlueprintsPath="${{ env.HA_CONFIG_DIR }}/blueprints/"
 
           echo "Starting staging deployment..."
           echo "Source: ${SourceComponentDir}"
           echo "Destination: ${DestinationPath}"
 
           sudo mkdir -p "${DestinationPath}"
+          sudo mkdir -p "${DestinationBlueprintsPath}"
 
           # Sync files (Restored --inplace to fix Docker bind mount temp file errors)
           sudo rsync -rcvltpD --inplace --delete \
@@ -63,6 +66,13 @@ jobs:
             --exclude '__pycache__' \
             --exclude '.DS_Store' \
             "${SourceComponentDir}" "${DestinationPath}"
+
+          # Sync blueprints to the root /config/blueprints/ directory (No --delete to avoid wiping others)
+          echo "Syncing blueprints..."
+          echo "Source Blueprints: ${SourceBlueprintsDir}"
+          echo "Destination Blueprints: ${DestinationBlueprintsPath}"
+          sudo rsync -rcvltpD --inplace \
+            "${SourceBlueprintsDir}" "${DestinationBlueprintsPath}"
 
           echo "Deployment to staging complete."
 
