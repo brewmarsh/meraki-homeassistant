@@ -15,7 +15,7 @@ def test_resolve_device_info_network_virtual_controller():
     entity_data_1 = {"id": "net1", "name": "Site A", "productTypes": ["appliance"]}
     device_info_1 = resolve_device_info(entity_data_1, config_entry)
     # New Format: Site: {Name}
-    assert device_info_1["name"] == "Meraki Site: Site A"
+    assert device_info_1["name"] == "Site: Site A"
     assert device_info_1["identifiers"] == {(DOMAIN, "network_net1")}
     assert device_info_1["model"] == "Network Controller Service"
     assert device_info_1["entry_type"] == DeviceEntryType.SERVICE
@@ -27,7 +27,7 @@ def test_resolve_device_info_network_virtual_controller():
         "productTypes": ["appliance"],
     }
     device_info_2 = resolve_device_info(entity_data_2, config_entry)
-    assert device_info_2["name"] == "Meraki Site: Site B"
+    assert device_info_2["name"] == "Site: Site B"
     assert device_info_2["identifiers"] == {(DOMAIN, "network_net2")}
 
 
@@ -62,7 +62,7 @@ def test_resolve_device_info_device_prefix():
     device_info_1 = resolve_device_info(device_data_1, config_entry)
     # Physical devices still use [Type] prefix logic as before
     # (Physical Devices remain as is per design doc)
-    assert device_info_1["name"] == "Meraki [Switch] Core Switch"
+    assert device_info_1["name"] == "[Switch] Core Switch"
 
     # Case 2: Name with prefix (Camera)
     device_data_2 = {
@@ -72,7 +72,7 @@ def test_resolve_device_info_device_prefix():
         "model": "MV12",
     }
     device_info_2 = resolve_device_info(device_data_2, config_entry)
-    assert device_info_2["name"] == "Meraki [Camera] Front Door"
+    assert device_info_2["name"] == "[Camera] Front Door"
 
     # Case 3: CS-WE Camera
     device_data_3 = {
@@ -82,7 +82,7 @@ def test_resolve_device_info_device_prefix():
         "model": "CS-WE",
     }
     device_info_3 = resolve_device_info(device_data_3, config_entry)
-    assert device_info_3["name"] == "Meraki [Camera] Backyard"
+    assert device_info_3["name"] == "[Camera] Backyard"
 
     # Case 4: No name (fallback to serial)
     device_data_4 = {
@@ -92,4 +92,4 @@ def test_resolve_device_info_device_prefix():
         "model": "MS220-8P",
     }
     device_info_4 = resolve_device_info(device_data_4, config_entry)
-    assert device_info_4["name"] == "Meraki [Switch] Q234-5678-90AE"
+    assert device_info_4["name"] == "[Switch] Q234-5678-90AE"

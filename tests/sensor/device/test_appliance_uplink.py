@@ -82,7 +82,14 @@ async def test_appliance_uplink_sensor_creation(mock_coordinator):
     network_control_service = MagicMock()
 
     discovery_service = DeviceDiscoveryService(
-        mock_coordinator,
+        MagicMock(),  # main_coordinator
+        mock_coordinator,  # device_coordinator
+        MagicMock(),  # switch_coordinator
+        MagicMock(),  # camera_coordinator
+        MagicMock(),  # sensor_coordinator
+        MagicMock(),  # wireless_coordinator
+        mock_coordinator,  # appliance_coordinator
+        MagicMock(),  # client_coordinator
         config_entry,
         meraki_client,
         camera_service,

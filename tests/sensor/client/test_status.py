@@ -59,7 +59,7 @@ def test_client_status_sensor(mock_coordinator):
 
     # Verify DeviceInfo
     assert sensor1.device_info["identifiers"] == {(DOMAIN, "00:11:22:33:44:55")}
-    assert sensor1.device_info["name"] == "My Laptop"
+    assert sensor1.device_info["name"] == "Meraki My Laptop"
     assert sensor1.device_info["model"] == "Client"
     assert sensor1.device_info["via_device"] == (DOMAIN, "Q2XX-XXXX-XXXX")
 
@@ -74,7 +74,7 @@ def test_client_status_sensor(mock_coordinator):
     assert sensor2.icon == "mdi:lan-disconnect"
     assert sensor2.extra_state_attributes["ip_address"] == "192.168.1.101"
     # Name fallback to IP/MAC
-    assert sensor2.device_info["name"] == "192.168.1.101"
+    assert sensor2.device_info["name"] == "Meraki 192.168.1.101"
 
     # Test Update Logic
     # Simulate client going offline

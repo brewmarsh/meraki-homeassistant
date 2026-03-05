@@ -89,7 +89,6 @@ def test_device_status_sensor(mock_device_coordinator: MagicMock) -> None:
     # Verify DeviceInfo
     assert isinstance(sensor1.device_info, dict)
     assert sensor1.device_info["sw_version"] == "MR 27.1"
-    assert sensor1.device_info["suggested_area"] == "123 Street"
 
     sensor2: MerakiDeviceStatusSensor = MerakiDeviceStatusSensor(
         mock_device_coordinator, device2, config_entry

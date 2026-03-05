@@ -63,6 +63,13 @@ async def test_vlan_sensor_creation(mock_coordinator):
     # Run the setup
     discovery_service = DeviceDiscoveryService(
         mock_coordinator,
+        mock_coordinator,
+        mock_coordinator,
+        mock_coordinator,
+        mock_coordinator,
+        mock_coordinator,
+        mock_coordinator,
+        mock_coordinator,
         mock_coordinator.config_entry,
         MagicMock(),
         MagicMock(),
