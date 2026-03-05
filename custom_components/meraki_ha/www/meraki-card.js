@@ -675,7 +675,7 @@ const Y = class Y extends M {
         const o = await ht(this.hass, {
           type: W.TIMED_ACCESS_GET_POLICIES,
           config_entry_id: s,
-          networkId: t
+          network_id: t
         });
         this._policies = Array.isArray(o) ? o : (o == null ? void 0 : o.policies) || [];
       } catch (s) {

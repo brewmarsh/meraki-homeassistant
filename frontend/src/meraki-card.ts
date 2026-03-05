@@ -115,7 +115,7 @@ export class MerakiGuestAccessCard extends LitElement {
       const policies = await safeCallWS<any[]>(this.hass, {
         type: WsCommand.TIMED_ACCESS_GET_POLICIES,
         config_entry_id: entryId,
-        networkId: networkId,
+        network_id: networkId,
       });
       this._policies = Array.isArray(policies) ? policies : (policies as any)?.policies || [];
     } catch (err: any) {

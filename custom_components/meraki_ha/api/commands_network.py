@@ -31,9 +31,7 @@ def async_register_network_commands(hass: HomeAssistant) -> None:
             {
                 vol.Required("type"): WS_CMD_GET_NETWORK_EVENTS,
                 vol.Required("config_entry_id"): str,
-                # Compatibility for both snack_case and camelCase
                 vol.Optional("network_id"): str,
-                vol.Optional("networkId"): str,
                 vol.Optional("per_page"): int,
                 vol.Optional("product_type"): str,
             },
@@ -47,8 +45,8 @@ def async_register_network_commands(hass: HomeAssistant) -> None:
         vol.Schema(
             {
                 vol.Required("type"): WS_CMD_TIMED_ACCESS_GET_POLICIES,
-                vol.Required("configEntryId"): str,
-                vol.Required("networkId"): str,
+                vol.Required("config_entry_id"): str,
+                vol.Required("network_id"): str,
             },
             extra=vol.ALLOW_EXTRA,
         ),
@@ -64,7 +62,7 @@ async def ws_get_network_events(
 ) -> None:
     """Handle get_network_events command."""
     config_entry_id = msg["config_entry_id"]
-    network_id = msg.get("network_id") or msg.get("networkId")
+    network_id = msg.get("network_id")
 
     if not network_id:
         connection.send_error(msg["id"], "invalid_payload", "Network ID is required")
@@ -94,8 +92,8 @@ async def ws_timed_access_get_policies(
     msg: dict[str, Any],
 ) -> None:
     """Handle timed_access/get_policies command."""
-    config_entry_id = msg["configEntryId"]
-    network_id = msg["networkId"]
+    config_entry_id = msg["config_entry_id"]
+    network_id = msg["network_id"]
 
     client: MerakiAPIClient | None = get_config_entry_data(
         hass, connection, msg, config_entry_id, DATA_CLIENT
