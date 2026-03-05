@@ -16,11 +16,20 @@ mv index.html index.html.bak
 # 2. Create a temporary index.html pointing to the source entry point
 sed 's|/meraki-panel.js|/src/main.tsx|' index.html.bak > index.html
 
-# 3. Clean old build artifacts and run the Vite build
-rm -rf meraki-panel.js assets
-npx vite build
+# 3. Clean old build artifacts
+rm -rf meraki-panel.js meraki-guest-access-card.js assets dist
 
-# 4. Restore the original index.html
+# 4. Build the Meraki Panel
+BUILD_TARGET=panel npx vite build
+
+# 5. Build the Meraki Guest Access Card
+BUILD_TARGET=card npx vite build
+
+# 6. Copy build artifacts to root
+cp dist/meraki-panel.js .
+cp dist/meraki-guest-access-card.js .
+
+# 5. Restore the original index.html
 mv index.html.bak index.html
 
 echo "Frontend build completed successfully."
