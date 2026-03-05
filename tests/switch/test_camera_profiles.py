@@ -51,6 +51,7 @@ async def test_camera_sense_switch(hass, mock_device_coordinator, mock_api_clien
     assert switch.unique_id == "cam1_merakicamerasenseswitch_sense_enabled"
     assert switch.name == "MV Sense"
     assert switch.is_on is True
+    assert switch.entity_category is None
 
     await switch.async_turn_off()
     mock_api_client.camera.update_camera_sense_settings.assert_called_once_with(
@@ -89,6 +90,7 @@ async def test_camera_audio_detection_switch(
     assert switch.unique_id == "cam1_merakicameraaudiodetectionswitch_audio_detection"
     assert switch.name == "Audio Detection"
     assert switch.is_on is True
+    assert switch.entity_category is None
 
     await switch.async_turn_off()
     mock_api_client.camera.update_camera_video_settings.assert_called_once_with(

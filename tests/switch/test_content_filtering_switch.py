@@ -4,6 +4,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
+from homeassistant.const import EntityCategory
 from custom_components.meraki_ha.switch.content_filtering import (
     MerakiContentFilteringSwitch,
 )
@@ -38,6 +39,7 @@ def test_switch_creation(
         == "meraki-content-filtering-net_1-meraki:contentFiltering/category/1"
     )
     assert switch.name == "Block Social Media"
+    assert switch.entity_category == EntityCategory.CONFIG
 
 
 def test_is_on(
