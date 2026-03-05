@@ -33,3 +33,16 @@ This document outlines the planned high-value Home Assistant Blueprints and Cust
 - **Smart PoE Port Toggle**
   - A specialized list for Meraki switches that shows all ports.
   - Displays: Current power draw (W), port status, and a toggle to enable/disable PoE on that specific port.
+
+## Native HA Entity Integrations
+
+- **Native Firmware Management**
+  - Allow users to view and trigger Meraki network upgrades natively from the HA UI via the `update` entity.
+- **Edge Analytics & Presence**
+  - Feed MV camera object detection (e.g., person/vehicle) directly into HA for instant automation triggers via the `binary_sensor` entity.
+- **Network Device Tracking**
+  - Use MR access point client associations for hyper-reliable, network-level presence tracking via the `device_tracker` entity.
+- **PoE Port Control**
+  - Expose MS switch ports as native toggles to easily bounce PoE power for locked-up smart home devices via the `switch` entity.
+- **Dynamic Bandwidth Toggles**
+  - Allow users to toggle specific SSIDs or Traffic Shaping rules via standard HA dashboards via the `select` or `switch` entity.
