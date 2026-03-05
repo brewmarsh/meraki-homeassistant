@@ -52,8 +52,13 @@ export class MerakiGuestAccessCard extends LitElement {
 
   protected updated(changedProperties: PropertyValues) {
     super.updated(changedProperties);
-    if (changedProperties.has('hass') && this.hass && !this._networks.length) {
-      this._fetchInitialData();
+    if (changedProperties.has('hass') && this.hass) {
+      if (!this._networks.length) {
+        this._fetchInitialData();
+      }
+      if (this.hass.user?.name && !this._customName) {
+        this._customName = this.hass.user.name;
+      }
     }
   }
 
