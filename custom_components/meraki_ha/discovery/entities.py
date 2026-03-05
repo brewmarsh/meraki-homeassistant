@@ -78,6 +78,13 @@ class MerakiSignalStrengthSensor(MerakiMtSensor):
         """Initialize."""
         super().__init__(coordinator, device, MT_SIGNAL_STRENGTH_DESCRIPTION)
 
+    @property
+    def native_value(self) -> float | None:
+        """Return the state of the sensor."""
+        if self._device.model and self._device.model.startswith("MT"):
+            return None
+        return cast(float | None, self._attr_native_value)
+
 
 class MerakiCO2Sensor(MerakiMtSensor):
     """CO2 sensor."""
