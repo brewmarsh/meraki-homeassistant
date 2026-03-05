@@ -39,16 +39,13 @@ class MerakiBaseCoordinator(DataUpdateCoordinator[T], Generic[T]):
         self,
         hass: HomeAssistant,
         entry: ConfigEntry,
+        api_client: ApiClient,
         name: str = DOMAIN,
     ) -> None:
         """Initialize the base coordinator."""
         self.config = get_coordinator_config(entry)
 
-        self.api = ApiClient(
-            hass=hass,
-            api_key=self.config.api_key,
-            org_id=self.config.org_id,
-        )
+        self.api = api_client
 
         self.data_fetch_manager = DataFetchManager(
             client=self.api,

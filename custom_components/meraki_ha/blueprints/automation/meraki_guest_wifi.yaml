@@ -1,0 +1,59 @@
+blueprint:
+  name: Meraki Guest Wi-Fi Creator
+  description: Automatically creates a temporary Guest Wi-Fi key (IPSK) when a trigger entity is activated.
+  domain: automation
+  input:
+    trigger_entity:
+      name: Trigger Entity
+      description: The entity that triggers the creation of the guest key (e.g., a button or a binary sensor).
+      selector:
+        entity: {}
+    network_id:
+      name: Network ID
+      description: The ID of the Meraki network where the key will be created.
+      selector:
+        text: {}
+    ssid_number:
+      name: SSID Number
+      description: The SSID index (0-14) where the key will be created.
+      default: 0
+      selector:
+        number:
+          min: 0
+          max: 14
+          mode: box
+    duration_minutes:
+      name: Duration (Minutes)
+      description: How long the guest key should remain active before being automatically deleted.
+      default: 60
+      selector:
+        number:
+          min: 1
+          unit_of_measurement: minutes
+          mode: box
+    name:
+      name: Key Name
+      description: The name for the created guest key.
+      default: "Guest Key"
+      selector:
+        text: {}
+    passphrase:
+      name: Passphrase (Optional)
+      description: A specific passphrase to use. If left blank, Meraki will generate a secure one.
+      default: ""
+      selector:
+        text: {}
+
+trigger:
+  - platform: state
+    entity_id: !input trigger_entity
+    to: "on"
+
+action:
+  - service: meraki_ha.create_guest_key
+    data:
+      network_id: !input network_id
+      ssid_number: !input ssid_number
+      duration_minutes: !input duration_minutes
+      name: !input name
+      passphrase: !input passphrase

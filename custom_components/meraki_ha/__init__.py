@@ -13,7 +13,7 @@ from homeassistant.helpers.typing import ConfigType
 
 from .api.websocket import async_setup_websocket_api
 from .const import DOMAIN, WEBHOOK_ID_FORMAT
-from .const_conf import CONF_MERAKI_ORG_ID
+from .const_conf import CONF_MERAKI_API_KEY, CONF_MERAKI_ORG_ID
 from .const_platform import PLATFORMS
 from .coordinators import (
     MerakiApplianceCoordinator,
@@ -25,13 +25,14 @@ from .coordinators import (
     MerakiSwitchCoordinator,
     MerakiWirelessCoordinator,
 )
+from .core.api.client import MerakiAPIClient
 from .core.repositories.camera_repository import CameraRepository
 from .core.repository import MerakiRepository
 from .discovery.service import DeviceDiscoveryService
 from .helpers.migrations import async_cleanup_ghost_devices, async_migrate_entities
+from .services import async_setup_services
 from .services.camera_service import CameraService
 from .services.device_control_service import DeviceControlService
-from .services import async_setup_services
 from .services.ipsk_manager import IPSKManager
 from .services.manager import ServicesManager
 from .services.network_control_service import NetworkControlService
@@ -92,22 +93,29 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     await async_migrate_entities(hass, entry.entry_id)
     await async_cleanup_ghost_devices(hass, entry.entry_id)
 
+    # Initialize shared API client
+    api_client = MerakiAPIClient(
+        hass=hass,
+        api_key=entry.data[CONF_MERAKI_API_KEY],
+        org_id=entry.data[CONF_MERAKI_ORG_ID],
+    )
+
     # Initialize specialized coordinators
-    main_coordinator = MerakiMainCoordinator(hass, entry)
-    device_coordinator = MerakiDeviceCoordinator(hass, entry)
-    switch_coordinator = MerakiSwitchCoordinator(hass, entry)
-    camera_coordinator = MerakiCameraCoordinator(hass, entry)
-    sensor_coordinator = MerakiSensorCoordinator(hass, entry)
-    wireless_coordinator = MerakiWirelessCoordinator(hass, entry)
-    appliance_coordinator = MerakiApplianceCoordinator(hass, entry)
-    client_coordinator = MerakiClientCoordinator(hass, entry)
+    main_coordinator = MerakiMainCoordinator(hass, entry, api_client)
+    device_coordinator = MerakiDeviceCoordinator(hass, entry, api_client)
+    switch_coordinator = MerakiSwitchCoordinator(hass, entry, api_client)
+    camera_coordinator = MerakiCameraCoordinator(hass, entry, api_client)
+    sensor_coordinator = MerakiSensorCoordinator(hass, entry, api_client)
+    wireless_coordinator = MerakiWirelessCoordinator(hass, entry, api_client)
+    appliance_coordinator = MerakiApplianceCoordinator(hass, entry, api_client)
+    client_coordinator = MerakiClientCoordinator(hass, entry, api_client)
 
     # 1. Block setup until the basic device skeleton is loaded (Tier 1)
     # This is strictly required to populate the Device Registry promptly.
     await device_coordinator.async_config_entry_first_refresh()
 
-    # Seed the specialized coordinators with the basic device data so discovery can proceed
-    # without waiting for the heavy full organizational/sensor refresh.
+    # Seed the specialized coordinators with the basic device data so discovery
+    # can proceed without waiting for the heavy full organizational/sensor refresh.
     # We explicitly do NOT use async_set_updated_data() here because that would mark
     # the coordinators as having had a successful first update, making entities
     # prematurely "available" with incomplete data.
@@ -123,7 +131,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         coord.data = device_coordinator.data
         coord.devices_by_serial = device_coordinator.devices_by_serial
         coord.networks_by_id = device_coordinator.networks_by_id
-        coord.ssids_by_network_and_number = device_coordinator.ssids_by_network_and_number
+        coord.ssids_by_network_and_number = (
+            device_coordinator.ssids_by_network_and_number
+        )
 
     # 2. Start heavy fetching for other coordinators in the background.
     # This prevents blocking the Home Assistant UI and avoids setup timeouts.
@@ -140,7 +150,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             hass, coord.async_request_refresh(), name=name
         )
 
-    api_client = main_coordinator.api
     repo = MerakiRepository(api_client)
     device_control_service = DeviceControlService(repo)
     switch_port_service = SwitchPortService(repo)

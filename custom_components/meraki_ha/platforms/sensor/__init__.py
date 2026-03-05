@@ -25,9 +25,7 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up sensors based on a config entry."""
-    coordinator: MerakiDeviceDataUpdateCoordinator = hass.data[DOMAIN][
-        config_entry.entry_id
-    ]
+    coordinator = hass.data[DOMAIN][config_entry.entry_id]["main_coordinator"]
 
     # List to collect all entities
     entities = []
