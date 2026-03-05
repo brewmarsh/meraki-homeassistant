@@ -2,7 +2,7 @@
 
 ## Core Functionality
 
-\*\*Meraki API Integration
+### Meraki API Integration
 
 | Requirement                                                                   | Status   |
 | :---------------------------------------------------------------------------- | :------- |
@@ -10,7 +10,7 @@
 | It requires an API key and organization ID for authentication.                | Included |
 | The API key must be stored securely.                                          | Included |
 
-\*\*Meraki Device Discovery and Setup
+### Meraki Device Discovery and Setup
 
 | Requirement                                                                                                 | Status   |
 | :---------------------------------------------------------------------------------------------------------- | :------- |
@@ -20,7 +20,7 @@
 | Device names should be formattable, with options for prefixes, suffixes, or omission of device type labels. | Included |
 | Devices should include the model name, serial number, MAC address(es) and firmware version.                 | Included |
 
-\*\*Data Retrieval
+### Data Retrieval
 
 | Requirement                                                                                             | Status   |
 | :------------------------------------------------------------------------------------------------------ | :------- |
@@ -29,7 +29,7 @@
 | The integration should retrieve device data, including connected clients for network switches (MS, GS). | Included |
 | Data should be updated at a configurable scan interval.                                                 | Included |
 
-\*\*Home Assistant Integration
+### Home Assistant Integration
 
 | Requirement                                                                                                                                                                                            | Status   |
 | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :------- |
@@ -40,7 +40,7 @@
 | The integration should handle re-authentication of the API key.                                                                                                                                        | Included |
 | The integration must provide comprehensive localization for all configuration flows, including the multi-step Options Flow Menu, using `strings.json` and translation files. | Included |
 
-\*\*Mapping Meraki objects to Home Assistant objects
+### Mapping Meraki objects to Home Assistant objects
 
 | Requirement                                                                                                           | Status   |
 | :-------------------------------------------------------------------------------------------------------------------- | :------- |
@@ -49,7 +49,7 @@
 | Meraki SSIDs (wireless networks) will be shown as Home Assistant devices.                                             | Included |
 | Meraki VLANs will be shown as Home Assistant devices.                                                                 | Included |
 
-\*\*Meraki Appliances
+### Meraki Appliances
 
 | Requirement                                                                                              | Status   |
 | :------------------------------------------------------------------------------------------------------- | :------- |
@@ -61,7 +61,7 @@
 | Meraki appliances should have a sensor that tracks the number of ports available.                        | Included |
 | Meraki appliances should show the status of the appliance uplinks                                        | Included |
 
-\*\*Meraki Wireless
+### Meraki Wireless
 
 | Requirement                                                                                                                                                                                                   | Status   |
 | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | :------- |
@@ -73,7 +73,7 @@
 | SSIDs should be able to have the "Broadcast SSID" feature enabled / disabled                                                                                                                                  | Fixed    |
 | Meraki SSIDs should have sensors for splash page, auth mode, encryption mode, WPA encryption mode, IP assignment mode, band selection, per-client bandwidth limits, per-SSID bandwidth limits, and visibility | Included |
 
-\*\*Meraki Switches
+### Meraki Switches
 
 | Requirement                                                                                  | Status   |
 | :------------------------------------------------------------------------------------------- | :------- |
@@ -81,14 +81,14 @@
 | Meraki switches should have a sensor that tracks the number of ports in use.                 | Included |
 | Meraki switches should have a sensor that tracks the number of ports available.              | Included |
 
-\*\*Meraki Cameras
+### Meraki Cameras
 
 | Requirement                                                                           | Status   |
 | :------------------------------------------------------------------------------------ | :------- |
 | Meraki cameras should have a data element that reflects the URL of the camera stream. | Included |
 | Meraki cameras should have a Home Assistant switch that enables RTSP streaming.       | Included |
 
-\*\*Meraki Sensors
+### Meraki Sensors
 
 | Requirement                                                                           | Status   |
 | :------------------------------------------------------------------------------------ | :------- |
@@ -96,13 +96,13 @@
 
 ## Technical Requirements
 
-\*\*Asynchronous Operations
+### Asynchronous Operations
 
 | Requirement                                                         | Status   |
 | :------------------------------------------------------------------ | :------- |
 | All API calls and Home Assistant interactions must be asynchronous. | Included |
 
-\*\*Error Handling
+### Error Handling
 
 | Requirement                                                                                | Status   |
 | :----------------------------------------------------------------------------------------- | :------- |
@@ -110,45 +110,45 @@
 | Logging should be used for debugging and error reporting.                                  | Included |
 | The integration must implement an adaptive back-off algorithm when 429 errors are detected. | Included |
 
-\*\*Data Coordination
+### Data Coordination
 
 | Requirement                                                                                    | Status   |
 | :--------------------------------------------------------------------------------------------- | :------- |
 | A DataUpdateCoordinator should be used to manage data updates and prevent excessive API calls. | Included |
 | A separate coordinator should be created to manage the device creations.                       | Included |
 
-\*\*Configuration Flow
+### Configuration Flow
 
 | Requirement                                                                                        | Status   |
 | :------------------------------------------------------------------------------------------------- | :------- |
 | The integration must provide a configuration flow for users to enter their Meraki API credentials. | Included |
 
-\*\*Home Assistant API
+### Home Assistant API
 
 | Requirement                                                                       | Status   |
 | :-------------------------------------------------------------------------------- | :------- |
 | The integration must adhere to the Home Assistant API guidelines and conventions. | Included |
 
-\*\*Use of AIOHTTP
+### Use of AIOHTTP
 
 | Requirement                                     | Status   |
 | :---------------------------------------------- | :------- |
 | The Integration uses AIOHTTP for the API calls. | Included |
 
-\*\*Use of Voluptuous
+### Use of Voluptuous
 
 | Requirement                                            | Status   |
 | :----------------------------------------------------- | :------- |
 | The Integration uses Voluptuous for schema validation. | Included |
 
-**Testing & Hardening
+### Testing & Hardening
 
 | Requirement                                                                                                                                                                                            | Status   |
 | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :------- |
 | The integration uses a non-blocking setup sequence where only Tier 1 data (basic device skeleton) is awaited during `async_setup_entry`. Heavy sensor data is fetched in the background.                | Included |
 | Automated smoke tests must include a 90-second wait after integration initialization to allow the Meraki background coordinators to complete their initial data fetch before auditing logs or state.    | Included |
 
-**Frontend Development
+### Frontend Development
 
 | Requirement                                                                                                                                  | Status   |
 | :------------------------------------------------------------------------------------------------------------------------------------------- | :------- |
@@ -170,15 +170,21 @@
 
 ## Future Work
 
-\*\*High Priority / Core Functionality
+### High Priority / Core Functionality
 
 - [ ] **Refactor to use `core` components:** The highest priority is to refactor the codebase to use the new `core` components and remove the old, redundant code. This will involve updating the platforms to use the new `core` entities and coordinators, and removing the old API client, coordinators, and entities.
 - [ ] **Improve Error Handling and Logging:** Enhance error catching, provide more user-friendly error messages, and ensure consistent logging across the integration.
 - [ ] **Optimize Data Retrieval:** Review API call patterns to optimize for performance and minimize API rate limit impact, especially for large organizations.
 - [ ] **Real-time Updates:** Investigate using webhooks or WebSockets for real-time data updates.
 
-\*\*New Features / Entities
+### New Features / Entities
 
+- [ ] **Native HA Entity Integrations:**
+  - [ ] **Native Firmware Management (`update` entity):** Allow users to view and trigger Meraki network upgrades natively from the HA UI.
+  - [ ] **Edge Analytics & Presence (`binary_sensor` entity):** Feed MV camera object detection (e.g., person/vehicle) directly into HA for instant automation triggers.
+  - [ ] **Network Device Tracking (`device_tracker` entity):** Use MR access point client associations for hyper-reliable, network-level presence tracking.
+  - [ ] **PoE Port Control (`switch` entity):** Expose MS switch ports as native toggles to easily bounce PoE power for locked-up smart home devices.
+  - [ ] **Dynamic Bandwidth Toggles (`select` or `switch` entity):** Allow users to toggle specific SSIDs or Traffic Shaping rules via standard HA dashboards.
 - [ ] **Implement Switches for Internet Ports:** Allow control over WAN/Internet ports on MX appliances if API supports.
 - [ ] **Device Services:** Add services to reboot a device and blink its LEDs.
 - [ ] **Client List Sensor:** Add a sensor that provides a list of connected clients as an attribute.
@@ -218,7 +224,7 @@
   - [ ] **Network Vitals Header:** Traffic graphs and gateway/switch/AP health dots.
   - [ ] **Smart PoE Port Toggle:** List ports, show power draw, toggle PoE state.
 
-\*\*Enhancements / Bug Fixes
+### Enhancements / Bug Fixes
 
 - [ ] **Relaxed Tag Matching:** Add an option to allow for relaxed tag matching when associating SSIDs with wireless devices.
 - [ ] **Configuration Option for SSID Sensor Selection:** Allow users to choose which specific sensors (availability, channel, client count, etc.) they want to enable per SSID to reduce entity clutter.
@@ -229,7 +235,7 @@
 - [ ] **Fix SSID entity `device_info`:** Correctly link to parent AP via `via_device` attribute in `MerakiEntity` for SSID-specific entities.
 - [ ] **Tag-based SSID Control Review:** The current `MerakiSSIDSwitch` uses device tags to control SSID state. Evaluate if a more direct API method for enabling/disabling SSIDs per AP (if available and appropriate) would be better, or if the tag strategy is the most robust.
 
-\*\*Documentation
+### Documentation
 
 - [ ] **Troubleshooting Section:** Add a comprehensive troubleshooting section to `README.md` covering common issues (API key errors, rate limits, device discovery problems).
 - [ ] **Configuration Guide:** Create a more detailed guide on configuring the integration, including explanations of all options in the config flow and options flow.
@@ -237,7 +243,7 @@
 - [ ] **MkDocs for Documentation Generation:** Set up MkDocs (or similar like Sphinx) for generating more structured and navigable documentation, potentially hosted on GitHub Pages.
 - [ ] **Developer Documentation:** Add notes or a separate document for developers looking to contribute, explaining the coordinator structure, API client usage, and entity creation patterns.
 
-\*\*Code Quality & Refactoring
+### Code Quality & Refactoring
 
 - [ ] **Unit and Integration Tests:** Expand test coverage significantly.
 
