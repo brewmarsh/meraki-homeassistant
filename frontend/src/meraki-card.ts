@@ -83,8 +83,8 @@ export class MerakiGuestAccessCard extends LitElement {
         config_entry_id: entryId,
       });
 
-      this._networks = data.networks.filter((n: any) => n.productTypes?.includes('wireless')) || [];
-      this._ssids = data.ssids || [];
+      this._networks = (Array.isArray(data.networks) ? data.networks : []).filter((n: any) => n.productTypes?.includes('wireless'));
+      this._ssids = Array.isArray(data.ssids) ? data.ssids : [];
 
       if (this._networks.length > 0 && !this._selectedNetwork) {
         this._selectedNetwork = this._networks[0].id;
@@ -116,7 +116,7 @@ export class MerakiGuestAccessCard extends LitElement {
         config_entry_id: entryId,
         networkId: networkId,
       });
-      this._policies = policies;
+      this._policies = Array.isArray(policies) ? policies : (policies as any)?.policies || [];
     } catch (err: any) {
       console.error('Failed to fetch policies:', err);
       this._policies = [];
@@ -134,7 +134,7 @@ export class MerakiGuestAccessCard extends LitElement {
       `;
     }
 
-    const filteredSsids = this._ssids.filter(s => s.networkId === this._selectedNetwork);
+    const filteredSsids = (this._ssids || []).filter(s => s.networkId === this._selectedNetwork);
 
     return html`
       <ha-card .header="${this._config?.name || 'Meraki Guest Access'}">
@@ -162,8 +162,8 @@ export class MerakiGuestAccessCard extends LitElement {
               fixedMenuPosition
               naturalMenuWidth
             >
-              ${this._networks.map(
-                (n) => html`<mwc-list-item value="${n.id}">${n.name}</mwc-list-item>`
+              ${(this._networks || []).map(
+                (n) => html`<md-select-option .value="${String(n.id)}">${n.name}</md-select-option>`
               )}
             </ha-select>
 
@@ -175,8 +175,8 @@ export class MerakiGuestAccessCard extends LitElement {
               fixedMenuPosition
               naturalMenuWidth
             >
-              ${filteredSsids.map(
-                (s) => html`<mwc-list-item value="${s.number.toString()}">${s.name} (SSID ${s.number})</mwc-list-item>`
+              ${(filteredSsids || []).map(
+                (s) => html`<md-select-option .value="${String(s.number)}">${s.name} (SSID ${s.number})</md-select-option>`
               )}
             </ha-select>
 
@@ -188,9 +188,9 @@ export class MerakiGuestAccessCard extends LitElement {
               fixedMenuPosition
               naturalMenuWidth
             >
-              <mwc-list-item value="">None (Default)</mwc-list-item>
-              ${this._policies.map(
-                (p) => html`<mwc-list-item value="${p.groupPolicyId}">${p.name}</mwc-list-item>`
+              <md-select-option .value="">None (Default)</md-select-option>
+              ${(this._policies || []).map(
+                (p) => html`<md-select-option .value="${String(p.groupPolicyId)}">${p.name}</md-select-option>`
               )}
             </ha-select>
 
@@ -201,11 +201,11 @@ export class MerakiGuestAccessCard extends LitElement {
               fixedMenuPosition
               naturalMenuWidth
             >
-              <mwc-list-item value="30">30 Minutes</mwc-list-item>
-              <mwc-list-item value="60">1 Hour</mwc-list-item>
-              <mwc-list-item value="240">4 Hours</mwc-list-item>
-              <mwc-list-item value="1440">24 Hours</mwc-list-item>
-              <mwc-list-item value="10080">7 Days</mwc-list-item>
+              <md-select-option .value="${"30"}">30 Minutes</md-select-option>
+              <md-select-option .value="${"60"}">1 Hour</md-select-option>
+              <md-select-option .value="${"240"}">4 Hours</md-select-option>
+              <md-select-option .value="${"1440"}">24 Hours</md-select-option>
+              <md-select-option .value="${"10080"}">7 Days</md-select-option>
             </ha-select>
 
             <ha-textfield
