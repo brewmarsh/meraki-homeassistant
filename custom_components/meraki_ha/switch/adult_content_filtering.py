@@ -10,6 +10,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import callback
 from homeassistant.helpers.device_registry import DeviceInfo
 
+from ..const import DOMAIN
 from ..coordinators import MerakiSwitchCoordinator
 from ..entity import MerakiEntity
 from ..helpers.device_info_helpers import resolve_device_info
@@ -32,9 +33,11 @@ class MerakiAdultContentFilteringSwitch(MerakiEntity, SwitchEntity):
         self._ssid = ssid
         self._client = coordinator.api
 
+        network = coordinator.get_network(self._network_id)
+        network_name = network.name if network else f"Network {self._network_id}"
         self.entity_description = SwitchEntityDescription(
             key="adult_content_filtering",
-            name=f"Adult Content Filtering on {ssid['name']}",
+            name=f"{network_name} SSID {ssid['name']} Adult Content Filtering",
         )
 
     @property
@@ -58,7 +61,9 @@ class MerakiAdultContentFilteringSwitch(MerakiEntity, SwitchEntity):
     @property
     def device_info(self) -> DeviceInfo | None:
         """Return the device info."""
-        return resolve_device_info(self._ssid, self._config_entry)
+        return DeviceInfo(
+            identifiers={(DOMAIN, f"network_{self._network_id}")},
+        )
 
     @property
     def is_on(self) -> bool:

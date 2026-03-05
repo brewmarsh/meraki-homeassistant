@@ -41,7 +41,7 @@ class MerakiSSIDAvailabilitySensor(MerakiSSIDBaseSensor):
         """
         super().__init__(coordinator, config_entry, ssid_data, "enabled")
         self._attr_unique_id = (
-            f"{ssid_data['serial']}_MerakiSSIDAvailabilitySensor_"
-            f"{self.entity_description.key}"
+            f"{ssid_data.get('networkId')}_{ssid_data.get('number')}_"
+            f"MerakiSSIDAvailabilitySensor_{self.entity_description.key}"
         )
         self._attr_native_value = self._ssid_data_at_init.get("enabled")
