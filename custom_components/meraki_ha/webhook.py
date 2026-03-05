@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING, Any
 from urllib.parse import urlparse
 
 from aiohttp import web
+
 from homeassistant.components import webhook
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.network import NoURLAvailableError, get_url
@@ -17,7 +18,7 @@ from .core.errors import MerakiConnectionError
 if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
 
-    from .core.api import MerakiAPIClient
+    from .core.api import MerakiApiClientProtocol
 
 
 _LOGGER = logging.getLogger(__name__)
@@ -134,7 +135,7 @@ async def async_register_webhook(
     hass: HomeAssistant,
     webhook_id: str,
     secret: str,
-    api_client: MerakiAPIClient,
+    api_client: MerakiApiClientProtocol,
     entry: ConfigEntry | None = None,
     config_entry_id: str | None = None,
 ) -> None:
@@ -165,7 +166,7 @@ async def async_register_webhook(
 async def async_unregister_webhook(
     hass: HomeAssistant,
     webhook_id: str,
-    api_client: MerakiAPIClient,
+    api_client: MerakiApiClientProtocol,
 ) -> None:
     """
     Unregister a webhook with the Meraki API.

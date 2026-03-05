@@ -31,7 +31,7 @@ def mock_device_coordinator():
 
 @pytest.fixture
 def mock_api_client():
-    """Fixture for a mocked MerakiAPIClient."""
+    """Fixture for a mocked MerakiApiClientProtocol."""
     client = MagicMock()
     client.camera = MagicMock()
     client.camera.update_camera_sense_settings = AsyncMock()

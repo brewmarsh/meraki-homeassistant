@@ -10,7 +10,7 @@ from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity import EntityCategory
 
 from ..coordinators import MerakiSwitchCoordinator
-from ..core.api.client import MerakiAPIClient
+from ..core.api import MerakiApiClientProtocol
 from ..core.utils.icon_utils import get_device_type_icon
 from ..entity import MerakiEntity
 from ..helpers.device_info_helpers import resolve_device_info
@@ -26,7 +26,7 @@ class MerakiSSIDBaseSwitch(MerakiEntity, SwitchEntity):
     def __init__(
         self,
         coordinator: MerakiSwitchCoordinator,
-        meraki_client: MerakiAPIClient,
+        meraki_client: MerakiApiClientProtocol,
         config_entry: ConfigEntry,
         ssid_data: dict[str, Any],
         switch_type: str,  # "enabled" or "broadcast"
@@ -187,7 +187,7 @@ class MerakiSSIDEnabledSwitch(MerakiSSIDBaseSwitch):
     def __init__(
         self,
         coordinator: MerakiSwitchCoordinator,
-        meraki_client: MerakiAPIClient,
+        meraki_client: MerakiApiClientProtocol,
         config_entry: ConfigEntry,
         ssid_data: dict[str, Any],
         rf_profile: dict[str, Any] | None = None,
@@ -218,7 +218,7 @@ class MerakiSSIDBroadcastSwitch(MerakiSSIDBaseSwitch):
     def __init__(
         self,
         coordinator: MerakiSwitchCoordinator,
-        meraki_client: MerakiAPIClient,
+        meraki_client: MerakiApiClientProtocol,
         config_entry: ConfigEntry,
         ssid_data: dict[str, Any],
         rf_profile: dict[str, Any] | None = None,

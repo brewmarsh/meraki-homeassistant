@@ -12,7 +12,7 @@ from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from ..coordinators import MerakiWirelessCoordinator
-from ..core.api.client import MerakiAPIClient
+from ..core.api import MerakiApiClientProtocol
 from ..helpers.device_info_helpers import resolve_device_info
 
 _LOGGER = logging.getLogger(__name__)
@@ -30,7 +30,7 @@ class MerakiSSIDNameText(CoordinatorEntity[MerakiWirelessCoordinator], TextEntit
     def __init__(
         self,
         coordinator: MerakiWirelessCoordinator,
-        meraki_client: MerakiAPIClient,
+        meraki_client: MerakiApiClientProtocol,
         config_entry: ConfigEntry,  # Added to match switch entities
         ssid_data: dict[str, Any],
     ) -> None:

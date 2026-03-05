@@ -6,7 +6,7 @@ import logging
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
-    from ...core.api.client import MerakiAPIClient
+    from ...core.api import MerakiApiClientProtocol
     from ...core.models.device import MerakiDevice
 
 _LOGGER = logging.getLogger(__name__)
@@ -15,7 +15,7 @@ _LOGGER = logging.getLogger(__name__)
 class ApplianceUplinkHelper:
     """Helper class for appliance uplink operations."""
 
-    def __init__(self, client: MerakiAPIClient) -> None:
+    def __init__(self, client: MerakiApiClientProtocol) -> None:
         """Initialize the helper."""
         self.client = client
 

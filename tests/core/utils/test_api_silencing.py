@@ -5,7 +5,9 @@ from unittest.mock import MagicMock
 import pytest
 from meraki.exceptions import APIError
 
-from custom_components.meraki_ha.core.api.client import MerakiAPIClient
+from custom_components.meraki_ha.core.api import (
+    MerakiApiClientProtocol,
+)
 from custom_components.meraki_ha.core.utils.api_utils import handle_meraki_errors
 
 
@@ -60,7 +62,7 @@ class DummyEndpoint:
 @pytest.mark.asyncio
 async def test_api_silencing_traffic():
     """Test that traffic analysis 400 error is silenced and feature disabled."""
-    client = MagicMock(spec=MerakiAPIClient)
+    client = MagicMock(spec=MerakiApiClientProtocol)
     # Mock the behavior of mark_feature_disabled
     client._disabled_features = set()
 
@@ -81,7 +83,7 @@ async def test_api_silencing_traffic():
 @pytest.mark.asyncio
 async def test_api_silencing_vlans():
     """Test that VLANs 400 error is silenced and feature disabled."""
-    client = MagicMock(spec=MerakiAPIClient)
+    client = MagicMock(spec=MerakiApiClientProtocol)
     client._disabled_features = set()
 
     def mark_disabled(feature, network_id):

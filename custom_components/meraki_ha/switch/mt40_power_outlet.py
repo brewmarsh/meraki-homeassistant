@@ -11,7 +11,7 @@ from homeassistant.core import callback
 from homeassistant.helpers.device_registry import DeviceInfo
 
 from ..coordinators import MerakiSwitchCoordinator
-from ..core.api.client import MerakiAPIClient
+from ..core.api import MerakiApiClientProtocol
 from ..core.models.device import MerakiDevice
 from ..entity import MerakiEntity
 from ..helpers.device_info_helpers import resolve_device_info
@@ -28,17 +28,12 @@ class MerakiMt40PowerOutlet(
     _attr_has_entity_name = True
     coordinator: MerakiSwitchCoordinator
 
-    @property
-    def unique_id(self) -> str | None:
-        """Return the unique ID."""
-        return f"meraki_device_{self._device_serial}_outlet"
-
     def __init__(
         self,
         coordinator: MerakiSwitchCoordinator,
         device_info: MerakiDevice,
         config_entry: ConfigEntry,
-        meraki_client: MerakiAPIClient,
+        meraki_client: MerakiApiClientProtocol,
     ) -> None:
         """
         Initialize the switch.

@@ -3,11 +3,11 @@
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-from homeassistant.core import HomeAssistant
-from homeassistant.setup import async_setup_component
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.meraki_ha.const import DOMAIN
+from homeassistant.core import HomeAssistant
+from homeassistant.setup import async_setup_component
 from tests.const import MOCK_NETWORK
 
 
@@ -24,7 +24,7 @@ def mock_config_entry() -> MockConfigEntry:
 
 @pytest.fixture
 def mock_meraki_client() -> MagicMock:
-    """Fixture for a mocked MerakiAPIClient."""
+    """Fixture for a mocked MerakiApiClientProtocol."""
     client = MagicMock()
     # Ensure network data is consistent
 

@@ -13,7 +13,7 @@ from homeassistant.util import dt as dt_util
 from ..const import DATA_CLIENT, DOMAIN
 
 if TYPE_CHECKING:
-    from ..core.api.client import MerakiAPIClient
+    from ..core.api import MerakiApiClientProtocol
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -229,14 +229,15 @@ class IPSKManager:
         if reaped_any:
             await self._save()
 
-    def _get_client(self, config_entry_id: str) -> MerakiAPIClient | None:
+    def _get_client(self, config_entry_id: str) -> MerakiApiClientProtocol | None:
         """Retrieve Meraki API client for a config entry."""
         if DOMAIN not in self.hass.data:
             return None
         if config_entry_id not in self.hass.data[DOMAIN]:
             return None
         return cast(
-            "MerakiAPIClient", self.hass.data[DOMAIN][config_entry_id].get(DATA_CLIENT)
+            "MerakiApiClientProtocol",
+            self.hass.data[DOMAIN][config_entry_id].get(DATA_CLIENT),
         )
 
     @callback

@@ -10,7 +10,7 @@ from meraki.exceptions import APIError
 from ...core.models import MerakiAppliancePort
 
 if TYPE_CHECKING:
-    from ...core.api.client import MerakiAPIClient
+    from ...core.api import MerakiApiClientProtocol
     from ...core.models.device import MerakiDevice
 
 _LOGGER = logging.getLogger(__name__)
@@ -21,7 +21,7 @@ _VLAN_WARNING_LOGGED = False
 class ApplianceDeviceHelper:
     """Helper class for processing appliance device details."""
 
-    def __init__(self, client: MerakiAPIClient) -> None:
+    def __init__(self, client: MerakiApiClientProtocol) -> None:
         """Initialize the helper."""
         self.client = client
 

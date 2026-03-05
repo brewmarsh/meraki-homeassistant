@@ -17,7 +17,7 @@ from .builders.vlan import setup_vlan_switches
 from .builders.vpn import setup_vpn_switches
 
 if TYPE_CHECKING:
-    from ..core.api.client import MerakiAPIClient
+    from ..core.api import MerakiApiClientProtocol
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -26,7 +26,7 @@ def async_setup_switches(
     hass: HomeAssistant,
     config_entry: ConfigEntry,
     coordinator: MerakiSwitchCoordinator,
-    meraki_client: "MerakiAPIClient",
+    meraki_client: "MerakiApiClientProtocol",
     async_add_entities: AddEntitiesCallback,
     added_entities: set[str] | None = None,
 ) -> None:

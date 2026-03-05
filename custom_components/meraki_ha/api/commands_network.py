@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any
 
 import voluptuous as vol
+
 from homeassistant.components import websocket_api
 from homeassistant.core import HomeAssistant, callback
 
@@ -17,7 +18,7 @@ from ..helpers.serialization import to_serializable
 from .utils import get_config_entry_data, handle_ws_error
 
 if TYPE_CHECKING:
-    from ..core.api.client import MerakiAPIClient
+    from ..core.api import MerakiApiClientProtocol
 
 
 @callback
@@ -70,7 +71,7 @@ async def ws_get_network_events(
         connection.send_error(msg["id"], "invalid_payload", "Network ID is required")
         return
 
-    client: MerakiAPIClient | None = get_config_entry_data(
+    client: MerakiApiClientProtocol | None = get_config_entry_data(
         hass, connection, msg, config_entry_id, DATA_CLIENT
     )
     if client is None:
@@ -97,7 +98,7 @@ async def ws_timed_access_get_policies(
     config_entry_id = msg["configEntryId"]
     network_id = msg["networkId"]
 
-    client: MerakiAPIClient | None = get_config_entry_data(
+    client: MerakiApiClientProtocol | None = get_config_entry_data(
         hass, connection, msg, config_entry_id, DATA_CLIENT
     )
     if client is None:

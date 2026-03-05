@@ -34,7 +34,7 @@ if TYPE_CHECKING:
         MerakiSwitchCoordinator,
         MerakiWirelessCoordinator,
     )
-    from ..core.api.client import MerakiAPIClient
+    from ..core.api import MerakiApiClientProtocol
     from ..services.camera_service import CameraService
     from ..services.device_control_service import DeviceControlService
     from ..services.network_control_service import NetworkControlService
@@ -57,7 +57,7 @@ class DeviceDiscoveryService:
         appliance_coordinator: MerakiApplianceCoordinator,
         client_coordinator: MerakiClientCoordinator,
         config_entry: ConfigEntry,
-        meraki_client: MerakiAPIClient,
+        meraki_client: MerakiApiClientProtocol,
         camera_service: CameraService,
         control_service: DeviceControlService,
         network_control_service: NetworkControlService,

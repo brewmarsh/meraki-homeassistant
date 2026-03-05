@@ -3,13 +3,13 @@
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
-from homeassistant.core import HomeAssistant
 
 from custom_components.meraki_ha.const import DOMAIN
 from custom_components.meraki_ha.switch.meraki_ssid_device_switch import (
     MerakiSSIDBroadcastSwitch,
     MerakiSSIDEnabledSwitch,
 )
+from homeassistant.core import HomeAssistant
 
 
 @pytest.fixture
@@ -35,7 +35,7 @@ def mock_coordinator_with_ssid_data(mock_coordinator: MagicMock) -> MagicMock:
 
 @pytest.fixture
 def mock_meraki_client() -> MagicMock:
-    """Fixture for a mocked MerakiAPIClient."""
+    """Fixture for a mocked MerakiApiClientProtocol."""
     client = MagicMock()
     # Mock the specific method that will be called by the switch
     client.wireless.update_network_wireless_ssid = AsyncMock()

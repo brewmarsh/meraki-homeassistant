@@ -30,7 +30,7 @@ def mock_coordinator_mt15(mock_coordinator: MagicMock) -> MagicMock:
 
 @pytest.fixture
 def mock_meraki_client() -> MagicMock:
-    """Fixture for a mocked MerakiAPIClient."""
+    """Fixture for a mocked MerakiApiClientProtocol."""
     client = MagicMock()
     client.sensor.create_device_sensor_command = AsyncMock()
     return client

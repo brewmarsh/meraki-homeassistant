@@ -3,7 +3,6 @@
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-from homeassistant.helpers.update_coordinator import UpdateFailed
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.meraki_ha.const import DOMAIN
@@ -16,12 +15,13 @@ from custom_components.meraki_ha.const_conf import (
 from custom_components.meraki_ha.coordinators import (
     MerakiMainCoordinator as MerakiDataCoordinator,
 )
+from homeassistant.helpers.update_coordinator import UpdateFailed
 from tests.const import MOCK_NETWORK
 
 
 @pytest.fixture
 def mock_api_client():
-    """Fixture for a mocked MerakiAPIClient."""
+    """Fixture for a mocked MerakiApiClientProtocol."""
     client = MagicMock()
     return client
 

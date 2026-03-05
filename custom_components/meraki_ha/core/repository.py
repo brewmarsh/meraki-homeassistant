@@ -13,7 +13,7 @@ from typing import TYPE_CHECKING, Any
 from .errors import ApiClientCommunicationError
 
 if TYPE_CHECKING:
-    from .api.client import MerakiAPIClient
+    from .api.client import MerakiApiClientProtocol
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -21,7 +21,7 @@ _LOGGER = logging.getLogger(__name__)
 class MerakiRepository:
     """A repository for accessing Meraki data."""
 
-    def __init__(self, api_client: MerakiAPIClient) -> None:
+    def __init__(self, api_client: MerakiApiClientProtocol) -> None:
         """Initialize the MerakiRepository."""
         self._api_client = api_client
 

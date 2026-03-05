@@ -57,7 +57,7 @@ def mock_config_entry_with_traffic_shaping(mock_config_entry: MagicMock) -> Magi
 
 @pytest.fixture
 def mock_meraki_client() -> MagicMock:
-    """Fixture for a mocked MerakiAPIClient."""
+    """Fixture for a mocked MerakiApiClientProtocol."""
     return MagicMock()
 
 

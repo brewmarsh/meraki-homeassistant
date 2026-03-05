@@ -12,7 +12,7 @@ from .appliance_uplinks import ApplianceUplinkHelper
 from .base import BaseFetchStrategy
 
 if TYPE_CHECKING:
-    from ...core.api.client import MerakiAPIClient
+    from ...core.api import MerakiApiClientProtocol
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -22,7 +22,7 @@ class ApplianceFetchStrategy(BaseFetchStrategy):
 
     def __init__(
         self,
-        client: MerakiAPIClient,
+        client: MerakiApiClientProtocol,
         _disabled_features: set[str],
         enable_vpn_management: bool,
         enable_firewall_rules: bool,

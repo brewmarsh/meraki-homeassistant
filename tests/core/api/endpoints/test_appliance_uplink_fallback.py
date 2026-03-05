@@ -4,7 +4,9 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from custom_components.meraki_ha.core.api.client import MerakiAPIClient
+from custom_components.meraki_ha.core.api import (
+    create_api_client,
+)
 from custom_components.meraki_ha.core.api.endpoints.appliance import (
     ApplianceEndpoints,
 )
@@ -28,8 +30,8 @@ def hass():
 
 @pytest.fixture
 def api_client(hass, mock_dashboard):
-    """Fixture for a MerakiAPIClient instance."""
-    client = MerakiAPIClient(hass=hass, api_key="test-key", org_id="test-org")
+    """Fixture for a MerakiApiClientProtocol instance."""
+    client = create_api_client(hass=hass, api_key="test-key", org_id="test-org")
     client.dashboard = mock_dashboard
 
     # Mock run_sync to execute the function directly

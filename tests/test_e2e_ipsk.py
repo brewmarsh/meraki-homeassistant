@@ -6,7 +6,9 @@ from unittest.mock import AsyncMock, MagicMock
 import pytest
 
 from custom_components.meraki_ha.const import DATA_CLIENT, DOMAIN
-from custom_components.meraki_ha.core.api.client import MerakiAPIClient
+from custom_components.meraki_ha.core.api import (
+    MerakiApiClientProtocol,
+)
 from custom_components.meraki_ha.services.ipsk_manager import IPSKManager
 
 _LOGGER = logging.getLogger(__name__)
@@ -15,7 +17,7 @@ _LOGGER = logging.getLogger(__name__)
 @pytest.fixture
 def mock_meraki_client(hass):
     """Create a mock Meraki API client."""
-    client = MagicMock(spec=MerakiAPIClient)
+    client = MagicMock(spec=MerakiApiClientProtocol)
     client._disabled_features = set()
     client.wireless = MagicMock()
     client.wireless.create_identity_psk = AsyncMock(

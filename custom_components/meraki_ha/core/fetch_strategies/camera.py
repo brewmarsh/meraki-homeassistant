@@ -8,7 +8,7 @@ from ...core.models.device import MerakiDevice
 from .base import BaseFetchStrategy
 
 if TYPE_CHECKING:
-    from ...core.api.client import MerakiAPIClient
+    from ...core.api import MerakiApiClientProtocol
 
 
 class CameraFetchStrategy(BaseFetchStrategy):
@@ -16,7 +16,7 @@ class CameraFetchStrategy(BaseFetchStrategy):
 
     def __init__(
         self,
-        client: MerakiAPIClient,
+        client: MerakiApiClientProtocol,
         _disabled_features: set[str],
         enable_camera_sense: bool = True,
     ) -> None:

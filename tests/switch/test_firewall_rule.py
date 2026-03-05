@@ -49,7 +49,7 @@ def mock_config_entry_with_firewall_rules(mock_config_entry: MagicMock) -> Magic
 
 @pytest.fixture
 def mock_meraki_client() -> MagicMock:
-    """Fixture for a mocked MerakiAPIClient."""
+    """Fixture for a mocked MerakiApiClientProtocol."""
     return MagicMock()
 
 

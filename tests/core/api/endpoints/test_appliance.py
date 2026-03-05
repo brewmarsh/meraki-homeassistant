@@ -6,7 +6,9 @@ import pytest
 
 # Resolved: Using the centralized coordinator path from the 2.3.0-beta.120 refactor
 from custom_components.meraki_ha.coordinators import MerakiMainCoordinator
-from custom_components.meraki_ha.core.api.client import MerakiAPIClient
+from custom_components.meraki_ha.core.api import (
+    create_api_client,
+)
 from custom_components.meraki_ha.core.api.endpoints.appliance import (
     ApplianceEndpoints,
 )
@@ -36,9 +38,9 @@ def coordinator():
 
 @pytest.fixture
 def api_client(hass, mock_dashboard, coordinator):
-    """Fixture for a MerakiAPIClient instance."""
+    """Fixture for a MerakiApiClientProtocol instance."""
     with patch("meraki.DashboardAPI", return_value=mock_dashboard):
-        client = MerakiAPIClient(hass=hass, api_key="test-key", org_id="test-org")
+        client = create_api_client(hass=hass, api_key="test-key", org_id="test-org")
         client.dashboard = mock_dashboard
         yield client
 

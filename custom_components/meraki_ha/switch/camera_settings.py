@@ -4,13 +4,12 @@ import dataclasses
 import logging
 from typing import Any, cast
 
+from custom_components.meraki_ha.coordinators import MerakiSwitchCoordinator
 from homeassistant.components.switch import SwitchEntity
 from homeassistant.const import EntityCategory
 from homeassistant.helpers.device_registry import DeviceInfo
 
-from custom_components.meraki_ha.coordinators import MerakiSwitchCoordinator
-
-from ..core.api.client import MerakiAPIClient
+from ..core.api import MerakiApiClientProtocol
 from ..core.models.device import MerakiDevice
 from ..core.utils.naming_utils import standardize_device_name
 from ..entity import MerakiEntity
@@ -29,7 +28,7 @@ class MerakiCameraSettingSwitchBase(
     def __init__(
         self,
         coordinator: MerakiSwitchCoordinator,
-        meraki_client: MerakiAPIClient,
+        meraki_client: MerakiApiClientProtocol,
         device_data: "MerakiDevice",
         key: str,
         api_field: str,

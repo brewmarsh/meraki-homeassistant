@@ -11,7 +11,7 @@ from ...coordinators import MerakiSwitchCoordinator
 from ..mt40_power_outlet import MerakiMt40PowerOutlet
 
 if TYPE_CHECKING:
-    from ...core.api.client import MerakiAPIClient
+    from ...core.api import MerakiApiClientProtocol
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -20,7 +20,7 @@ def setup_mt40_switches(
     config_entry: ConfigEntry,
     coordinator: MerakiSwitchCoordinator,
     added_entities: set[str],
-    meraki_client: "MerakiAPIClient",
+    meraki_client: "MerakiApiClientProtocol",
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up MT40 power outlet switches."""
@@ -36,7 +36,7 @@ def _build_mt40_entities(
     data: dict[str, Any],
     config_entry: ConfigEntry,
     added_entities: set[str],
-    meraki_client: "MerakiAPIClient",
+    meraki_client: "MerakiApiClientProtocol",
 ) -> list[SwitchEntity]:
     """Build MT40 power outlet entities."""
     entities: list[SwitchEntity] = []
@@ -57,7 +57,7 @@ def _create_mt40_outlet_switch(
     device_info: Any,
     config_entry: ConfigEntry,
     added_entities: set[str],
-    meraki_client: "MerakiAPIClient",
+    meraki_client: "MerakiApiClientProtocol",
 ) -> SwitchEntity | None:
     """Create an MT40 power outlet switch if applicable and not already added."""
     if not (device_info.model or "").startswith("MT40"):

@@ -10,11 +10,12 @@ from __future__ import annotations
 import logging
 from typing import Any, NoReturn
 
-from homeassistant.core import HomeAssistant
-from homeassistant.exceptions import ConfigEntryAuthFailed
 from meraki.exceptions import APIError as MerakiSDKAPIError
 
-from .core.api.client import MerakiAPIClient
+from homeassistant.core import HomeAssistant
+from homeassistant.exceptions import ConfigEntryAuthFailed
+
+from .core.api import MerakiApiClientProtocol, create_api_client
 from .core.errors import (
     InvalidOrgID,  # Ensure this is imported for validation logic
     MerakiAuthenticationError,
@@ -47,9 +48,9 @@ class MerakiAuthentication:
         self.api_key: str = api_key
         self.organization_id: str = organization_id
 
-    async def _async_get_authenticated_client(self) -> MerakiAPIClient:
+    async def _async_get_authenticated_client(self) -> MerakiApiClientProtocol:
         """Initialize and setup the Meraki API client."""
-        client = MerakiAPIClient(
+        client = create_api_client(
             hass=self.hass,
             api_key=self.api_key,
             org_id=self.organization_id,

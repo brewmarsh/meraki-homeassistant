@@ -5,14 +5,16 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
-    from ..api.client import MerakiAPIClient
+    from ..api.client import MerakiApiClientProtocol
     from ..models.device import MerakiDevice
 
 
 class BaseFetchStrategy:
     """Base class for fetch strategies."""
 
-    def __init__(self, client: MerakiAPIClient, _disabled_features: set[str]) -> None:
+    def __init__(
+        self, client: MerakiApiClientProtocol, _disabled_features: set[str]
+    ) -> None:
         """
         Initialize the strategy.
 

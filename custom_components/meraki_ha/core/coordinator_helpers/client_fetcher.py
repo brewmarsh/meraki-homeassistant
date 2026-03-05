@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING, Any
 if TYPE_CHECKING:
     from ...core.models.device import MerakiDevice
     from ...core.models.network import MerakiNetwork
-    from ..api.client import MerakiAPIClient
+    from ..api.client import MerakiApiClientProtocol
 
 
 _LOGGER = logging.getLogger(__name__)
@@ -18,7 +18,7 @@ _LOGGER = logging.getLogger(__name__)
 class ClientFetcher:
     """Class to fetch client data."""
 
-    def __init__(self, client: MerakiAPIClient) -> None:
+    def __init__(self, client: MerakiApiClientProtocol) -> None:
         """
         Initialize the client fetcher.
 

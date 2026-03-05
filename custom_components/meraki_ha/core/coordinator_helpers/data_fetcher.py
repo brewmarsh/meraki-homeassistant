@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import asyncio
 import logging
 import time
 from typing import TYPE_CHECKING, Any
@@ -27,7 +26,7 @@ from .strategy_executor import (
 )
 
 if TYPE_CHECKING:
-    from ..api.client import MerakiAPIClient
+    from ..api import MerakiApiClientProtocol as MerakiApiClientProtocol
     from ..models.device import MerakiDevice
 
 _LOGGER = logging.getLogger(__name__)
@@ -38,7 +37,7 @@ class DataFetchManager:
 
     def __init__(
         self,
-        client: MerakiAPIClient,
+        client: MerakiApiClientProtocol,
         enable_vpn_management: bool = False,
         enable_firewall_rules: bool = False,
         enable_traffic_shaping: bool = False,

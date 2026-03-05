@@ -11,7 +11,7 @@ from custom_components.meraki_ha.services.network_control_service import (
 
 @pytest.fixture
 def mock_api_client() -> MagicMock:
-    """Fixture for a mocked MerakiAPIClient."""
+    """Fixture for a mocked MerakiApiClientProtocol."""
     return MagicMock()
 
 

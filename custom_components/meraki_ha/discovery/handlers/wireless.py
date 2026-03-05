@@ -26,7 +26,7 @@ if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
     from homeassistant.helpers.entity import Entity
 
-    from ...core.api.client import MerakiAPIClient
+    from ...core.api import MerakiApiClientProtocol
     from ..coordinators import MerakiSwitchCoordinator
 
 
@@ -40,7 +40,7 @@ class WirelessHandler(BaseHandler):
         self,
         coordinator: MerakiSwitchCoordinator,
         config_entry: ConfigEntry,
-        meraki_client: MerakiAPIClient,
+        meraki_client: MerakiApiClientProtocol,
     ) -> None:
         """Initialize the WirelessHandler."""
         super().__init__(coordinator, config_entry)
@@ -98,7 +98,11 @@ class WirelessHandler(BaseHandler):
             return
 
         for ssid in ssids:
-            if not isinstance(ssid, dict) or "networkId" not in ssid or "number" not in ssid:
+            if (
+                not isinstance(ssid, dict)
+                or "networkId" not in ssid
+                or "number" not in ssid
+            ):
                 continue
 
             rf_profile = self._get_rf_profile(ssid)
@@ -144,7 +148,11 @@ class WirelessHandler(BaseHandler):
 
     def _get_rf_profile(self, ssid: dict[str, Any]) -> dict[str, Any] | None:
         """Find the RF profile for this SSID's network."""
-        rf_profiles = self._coordinator.data.get("rf_profiles") if self._coordinator.data else None
+        rf_profiles = (
+            self._coordinator.data.get("rf_profiles")
+            if self._coordinator.data
+            else None
+        )
         if isinstance(rf_profiles, dict):
             network_rf_profiles = rf_profiles.get(ssid["networkId"])
             if network_rf_profiles:
