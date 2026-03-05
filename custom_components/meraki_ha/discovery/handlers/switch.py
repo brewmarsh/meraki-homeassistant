@@ -33,7 +33,14 @@ class SwitchHandler(BaseHandler):
 
         # Discover Switch Device entities
         if self._config_entry.options.get(CONF_ENABLE_DEVICE_SENSORS, True):
-            for device in self._coordinator.data.get("devices", []):
+            devices = self._coordinator.data.get("devices", [])
+            if not isinstance(devices, list):
+                return
+
+            for device in devices:
+                if not hasattr(device, "product_type"):
+                    continue
+
                 # Add Exclusion Logic
                 if device.product_type == "appliance" or (
                     device.model

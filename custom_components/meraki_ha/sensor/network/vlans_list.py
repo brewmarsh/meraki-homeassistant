@@ -42,7 +42,13 @@ class VlansListSensor(MerakiNetworkEntity, SensorEntity):
         """Handle updated data from the coordinator."""
         if not self._network:
             return
-        vlans = self.coordinator.data.get("vlans", {}).get(self._network.id, [])
+        vlans_data = self.coordinator.data.get("vlans", {})
+        if not isinstance(vlans_data, dict):
+            return
+        vlans = vlans_data.get(self._network.id, [])
+        if not isinstance(vlans, list):
+            return
+
         self._vlan_list = [
             getattr(vlan, "name", None) or f"VLAN {vlan.id}"
             for vlan in vlans

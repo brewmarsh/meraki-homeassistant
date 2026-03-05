@@ -61,12 +61,20 @@ class MerakiSwitchPoESensor(CoordinatorEntity, SensorEntity):
     @callback
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
-        for device in self.coordinator.data.get("devices", []):
+        devices = self.coordinator.data.get("devices", [])
+        if not isinstance(devices, list):
+            return
+
+        for device in devices:
             if not hasattr(device, "serial"):
                 continue
             if device.serial == self._device.serial:
                 self._device = device
-                for port in self._device.switch_ports:
+                switch_ports = getattr(self._device, "switch_ports", [])
+                if not isinstance(switch_ports, list):
+                    break
+
+                for port in switch_ports:
                     if not isinstance(port, dict):
                         continue
                     port_id = self._port.get("portId") or self._port.get("number")

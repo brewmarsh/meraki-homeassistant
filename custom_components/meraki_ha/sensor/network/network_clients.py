@@ -46,6 +46,8 @@ class MerakiNetworkClientsSensor(MerakiNetworkEntity, SensorEntity):
     @property
     def native_value(self) -> int:
         """Return the state of the sensor."""
+        if not self._network_id:
+            return 0
         return self._network_control_service.get_network_client_count(
             str(self._network_id)
         )

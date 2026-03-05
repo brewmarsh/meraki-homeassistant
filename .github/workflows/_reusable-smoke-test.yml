@@ -52,8 +52,8 @@ jobs:
 
       - name: Wait for initial Meraki data fetch
         run: |
-          echo "Waiting 45 seconds for coordinators to fetch cloud data..."
-          sleep 45
+          echo "Waiting 90 seconds for coordinators to fetch cloud data..."
+          sleep 90
 
       - name: Install Python Dependencies
         run: |

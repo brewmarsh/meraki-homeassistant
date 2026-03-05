@@ -34,7 +34,11 @@ class NetworkControlService:
         if not self._coordinator.data:
             return 0
 
-        clients = self._coordinator.data.get("clients") or []
+        clients = self._coordinator.data.get("clients")
+        
+        # This safely handles both NoneType and unexpected dictionary/string returns
+        if not isinstance(clients, list):
+            return 0
 
         return len(
             [
