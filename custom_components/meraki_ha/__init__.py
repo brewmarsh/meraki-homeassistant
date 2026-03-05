@@ -6,6 +6,7 @@ import logging
 import secrets
 import string
 
+from homeassistant.components.frontend import add_extra_js_url
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import config_validation as cv
@@ -88,6 +89,14 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         Whether the setup was successful.
 
     """
+    # Register frontend assets
+    if "frontend" in hass.config.components:
+        hass.http.register_static_path(
+            "/local/meraki_ha",
+            hass.config.path("custom_components/meraki_ha/www"),
+        )
+        add_extra_js_url(hass, "/local/meraki_ha/meraki-card.js")
+
     async_setup_websocket_api(hass)
     # Perform migrations before coordinator refresh
     await async_migrate_entities(hass, entry.entry_id)
