@@ -5,6 +5,7 @@ export interface HomeAssistant {
     components: string[];
   };
   connection: any;
+  states: { [entity_id: string]: any };
   user: {
     name: string;
     id: string;
