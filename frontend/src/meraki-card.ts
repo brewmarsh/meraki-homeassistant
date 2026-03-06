@@ -158,8 +158,8 @@ export class MerakiGuestAccessCard extends LitElement {
           <div class="form-container">
             <ha-select
               label="Network"
-              .value="${this._selectedNetwork}"
-              @selected="${this._handleNetworkChanged}"
+              value="${this._selectedNetwork}"
+              @closed="${this._handleNetworkChanged}"
               fixedMenuPosition
               naturalMenuWidth
             >
@@ -170,9 +170,9 @@ export class MerakiGuestAccessCard extends LitElement {
 
             <ha-select
               label="SSID"
-              .value="${this._selectedSsid}"
+              value="${this._selectedSsid}"
               .disabled="${!this._selectedNetwork}"
-              @selected="${this._handleSsidChanged}"
+              @closed="${this._handleSsidChanged}"
               fixedMenuPosition
               naturalMenuWidth
             >
@@ -183,9 +183,9 @@ export class MerakiGuestAccessCard extends LitElement {
 
             <ha-select
               label="Group Policy"
-              .value="${this._selectedPolicy}"
+              value="${this._selectedPolicy}"
               .disabled="${!this._selectedNetwork}"
-              @selected="${(e: any) => (this._selectedPolicy = e.target.value)}"
+              @closed="${(e: any) => (this._selectedPolicy = e.target.value)}"
               fixedMenuPosition
               naturalMenuWidth
             >
@@ -197,8 +197,8 @@ export class MerakiGuestAccessCard extends LitElement {
 
             <ha-select
               label="Duration"
-              .value="${this._duration}"
-              @selected="${(e: any) => (this._duration = e.target.value)}"
+              value="${this._duration}"
+              @closed="${(e: any) => (this._duration = e.target.value)}"
               fixedMenuPosition
               naturalMenuWidth
             >

@@ -37,7 +37,7 @@ from .protocol import (
 _LOGGER = logging.getLogger(__name__)
 
 
-class MerakiApiClientProtocol:
+class MerakiAPIClient:
     """
     Facade for the Meraki Dashboard API client.
 
@@ -78,16 +78,7 @@ class MerakiApiClientProtocol:
         self._hass = hass
         self._base_url = base_url
 
-        self.dashboard = meraki.DashboardAPI(
-            api_key=self._api_key,
-            base_url=self._base_url,
-            output_log=False,
-            print_console=False,
-            suppress_logging=True,
-            maximum_retries=3,
-            wait_on_rate_limit=True,
-            nginx_429_retry_wait_time=2,
-        )
+        self.dashboard: meraki.DashboardAPI | None = None
 
         # Semaphore to limit concurrent API calls
         self._semaphore = asyncio.Semaphore(2)
@@ -103,8 +94,20 @@ class MerakiApiClientProtocol:
 
     async def async_setup(self) -> None:
         """Perform asynchronous setup of the API client."""
-        # Dashboard API is now initialized in __init__
-        pass
+        if self.dashboard is None:
+            self.dashboard = await self._hass.async_add_executor_job(
+                partial(
+                    meraki.DashboardAPI,
+                    api_key=self._api_key,
+                    base_url=self._base_url,
+                    output_log=False,
+                    print_console=False,
+                    suppress_logging=True,
+                    maximum_retries=3,
+                    wait_on_rate_limit=True,
+                    nginx_429_retry_wait_time=2,
+                )
+            )
 
     async def run_sync(
         self,

@@ -36,6 +36,7 @@ def mock_config_entry() -> MockConfigEntry:
 def mock_meraki_client() -> AsyncMock:
     """Fixture for a mocked MerakiApiClientProtocol."""
     client = MagicMock(spec=AsyncMock)
+    client.async_setup = AsyncMock(return_value=None)
     client.unregister_webhook = AsyncMock(return_value=None)
     client.appliance = AsyncMock()
     client.appliance.get_network_appliance_content_filtering_categories = AsyncMock(
@@ -126,7 +127,7 @@ async def test_ssid_device_creation_and_unification(
 
     with (
         patch(
-            "custom_components.meraki_ha.MerakiAPIClient",
+            "custom_components.meraki_ha.create_api_client",
             return_value=mock_meraki_client,
         ),
         patch(
@@ -188,7 +189,7 @@ async def test_integration_reload(
 
     with (
         patch(
-            "custom_components.meraki_ha.MerakiAPIClient",
+            "custom_components.meraki_ha.create_api_client",
             return_value=mock_meraki_client,
         ),
         patch(
