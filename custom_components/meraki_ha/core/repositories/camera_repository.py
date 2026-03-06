@@ -13,7 +13,7 @@ from typing import TYPE_CHECKING, Any
 from ..errors import MerakiInformationalError
 
 if TYPE_CHECKING:
-    from ..api.client import MerakiApiClientProtocol
+    from ..api import MerakiApiClientProtocol
 
 
 _LOGGER = logging.getLogger(__name__)

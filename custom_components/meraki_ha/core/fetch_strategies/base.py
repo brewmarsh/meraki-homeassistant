@@ -5,7 +5,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
-    from ..api.client import MerakiApiClientProtocol
+    from ..api import MerakiApiClientProtocol
     from ..models.device import MerakiDevice
 
 
