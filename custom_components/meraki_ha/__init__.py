@@ -116,6 +116,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         api_key=entry.data[CONF_MERAKI_API_KEY],
         org_id=entry.data[CONF_MERAKI_ORG_ID],
     )
+    await api_client.async_setup()
 
     # Initialize specialized coordinators
     main_coordinator = MerakiMainCoordinator(hass, entry, api_client)
