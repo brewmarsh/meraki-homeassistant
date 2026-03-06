@@ -26,24 +26,21 @@ def mock_config_entry() -> MockConfigEntry:
 def mock_meraki_client() -> MagicMock:
     """Fixture for a mocked MerakiApiClientProtocol."""
     client = MagicMock()
-    # Ensure network data is consistent
 
-    # Mock the appliance object (must be MagicMock for attribute access)
     client.appliance = MagicMock()
     client.appliance.update_network_appliance_content_filtering = AsyncMock()
 
     client.unregister_webhook = AsyncMock(return_value=None)
-    # Mock the update method
-    client.appliance = MagicMock()
-    client.appliance.update_network_appliance_content_filtering = AsyncMock()
     client.appliance.get_network_appliance_content_filtering_categories = AsyncMock(
         return_value={
             "categories": [
-                {"id": "topSites", "name": "Top Sites"},
-                {"id": "fullList", "name": "Full List"},
+                {"id": "meraki:contentFiltering/category/1", "name": "Adult and Pornography"},
             ]
         }
     )
+
+    client.async_setup = AsyncMock()
+    client.has_dashboard = True
 
     return client
 
@@ -54,28 +51,33 @@ def mock_data_fetch_manager() -> AsyncMock:
     manager = AsyncMock()
     from custom_components.meraki_ha.types import MerakiDevice
 
-    manager.get_all_data = AsyncMock(
-        return_value={
-            "devices": [
-                MerakiDevice(
-                    serial="Q234-ABCD-CF", model="MX64", name="Filtering Appliance"
-                )
-            ],
-            "networks": [MOCK_NETWORK],
-            "content_filtering": {
-                MOCK_NETWORK.id: {
-                    "networkId": MOCK_NETWORK.id,
-                    "urlCategoryListSize": "topSites",
-                }
-            },
-            "ssids": [],
-            "clients": [],
-            "vlans": {},
-            "appliance_uplink_statuses": [],
-            "rf_profiles": {},
-            "appliance_traffic": {},
-        }
-    )
+    data = {
+        "devices": [
+            MerakiDevice(
+                serial="Q234-ABCD-CF", model="MX64", name="Filtering Appliance"
+            )
+        ],
+        "networks": [MOCK_NETWORK],
+        "content_filtering": {
+            MOCK_NETWORK.id: {
+                "networkId": MOCK_NETWORK.id,
+                "blockedUrlCategories": [
+                    "meraki:contentFiltering/category/8",
+                    "meraki:contentFiltering/category/9",
+                    "meraki:contentFiltering/category/11",
+                ],
+            }
+        },
+        "ssids": [],
+        "clients": [],
+        "vlans": {},
+        "appliance_uplink_statuses": [],
+        "rf_profiles": {},
+        "appliance_traffic": {},
+    }
+    manager.get_all_data = AsyncMock(return_value=data)
+    manager.get_device_data = AsyncMock(return_value=data)
+    manager.get_sensor_data = AsyncMock(return_value=data)
     return manager
 
 
@@ -91,7 +93,7 @@ async def test_content_filtering_select_entity(
 
     with (
         patch(
-            "custom_components.meraki_ha.coordinators.base.ApiClient",
+            "custom_components.meraki_ha.create_api_client",
             return_value=mock_meraki_client,
         ),
         patch(
@@ -99,6 +101,7 @@ async def test_content_filtering_select_entity(
             return_value=mock_data_fetch_manager,
         ),
         patch("custom_components.meraki_ha.async_register_webhook", return_value=None),
+        patch("homeassistant.components.camera.img_util.TurboJPEG", create=True),
     ):
         assert await hass.config_entries.async_setup(mock_config_entry.entry_id)
         await hass.async_block_till_done()
@@ -119,21 +122,22 @@ async def test_content_filtering_select_entity(
         assert target_entity is not None
         assert target_entity.domain == "select"
 
-        # Verify state
+        # Verify state (Security profile matches the mocked data)
         state = hass.states.get(target_entity.entity_id)
         assert state is not None
-        assert state.state == "topSites"
+        assert state.state == "Security"
 
         # Test selection
         await hass.services.async_call(
             "select",
             "select_option",
-            {"entity_id": target_entity.entity_id, "option": "fullList"},
+            {"entity_id": target_entity.entity_id, "option": "Family"},
             blocking=True,
         )
 
-        # Verify API called
+        # Verify API called with Family categories
+        from custom_components.meraki_ha.meraki_select.meraki_content_filtering import CONTENT_FILTERING_PROFILES
         mock_meraki_client.appliance.update_network_appliance_content_filtering.assert_called_with(
-            networkId=MOCK_NETWORK.id,
-            urlCategoryListSize="fullList",
+            network_id=MOCK_NETWORK.id,
+            blockedUrlCategories=CONTENT_FILTERING_PROFILES["Family"],
         )
