@@ -15,7 +15,6 @@ from ...const_conf import (
 )
 from ...sensor.network.network_clients import MerakiNetworkClientsSensor
 from ...sensor.network.traffic_shaping import TrafficShapingSensor
-from ...switch.content_filtering import MerakiContentFilteringSwitch
 from .base import BaseHandler
 
 if TYPE_CHECKING:
@@ -61,7 +60,6 @@ class NetworkHandler(BaseHandler):
             self._discover_select_entities,
             self._discover_network_clients,
             self._discover_client_status_sensors,
-            self._discover_appliance_features,
             self._discover_traffic_shaping,
             self._discover_vlans,
         )
@@ -126,31 +124,6 @@ class NetworkHandler(BaseHandler):
                 self._coordinator,
                 client,
                 self._config_entry,
-            )
-
-    async def _discover_appliance_features(
-        self, network: MerakiNetwork
-    ) -> AsyncIterator[Entity]:
-        """Discover appliance features like content filtering switches."""
-        if "appliance" not in network.product_types:
-            return
-
-        try:
-            categories = await self._coordinator.api.appliance.get_network_appliance_content_filtering_categories(  # noqa: E501
-                network.id
-            )
-            for category in categories.get("categories", []):
-                yield MerakiContentFilteringSwitch(
-                    self._coordinator,
-                    self._config_entry,
-                    network,
-                    category,
-                )
-        except Exception as e:
-            _LOGGER.warning(
-                "Could not get content filtering categories for network %s: %s",
-                network.id,
-                e,
             )
 
     async def _discover_traffic_shaping(
