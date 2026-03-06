@@ -1,0 +1,72 @@
+blueprint:
+  name: Scheduled Meraki Content Filter
+  description: Automatically switch Meraki Content Filtering profiles based on a schedule.
+  domain: automation
+  input:
+    filter_entity:
+      name: Meraki Filter Entity
+      description: The select entity for Meraki network content filtering.
+      selector:
+        entity:
+          domain: select
+    start_time:
+      name: Restriction Start Time
+      description: When the restricted profile should be applied.
+      selector:
+        time: {}
+    end_time:
+      name: Restriction End Time
+      description: When the baseline profile should be reapplied.
+      selector:
+        time: {}
+    restricted_profile:
+      name: Restricted Profile
+      description: The profile to apply during the scheduled time.
+      default: "Strict"
+      selector:
+        select:
+          options:
+            - "None"
+            - "Security"
+            - "Family"
+            - "Strict"
+    baseline_profile:
+      name: Baseline Profile
+      description: The profile to revert to outside the scheduled time.
+      default: "None"
+      selector:
+        select:
+          options:
+            - "None"
+            - "Security"
+            - "Family"
+            - "Strict"
+
+trigger:
+  - platform: time
+    at: !input start_time
+    id: trigger_start
+  - platform: time
+    at: !input end_time
+    id: trigger_end
+
+action:
+  - choose:
+      - conditions:
+          - condition: trigger
+            id: trigger_start
+        sequence:
+          - service: select.select_option
+            target:
+              entity_id: !input filter_entity
+            data:
+              option: !input restricted_profile
+      - conditions:
+          - condition: trigger
+            id: trigger_end
+        sequence:
+          - service: select.select_option
+            target:
+              entity_id: !input filter_entity
+            data:
+              option: !input baseline_profile
