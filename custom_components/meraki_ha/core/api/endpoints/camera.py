@@ -78,10 +78,22 @@ class CameraEndpoints:
         self, serial: str, **kwargs: Any
     ) -> dict[str, Any]:
         """Update video settings for a specific camera."""
+        # Map snake_case keys to camelCase keys for the Meraki API
+        payload = {}
+        mapping = {
+            "external_rtsp_enabled": "externalRtspEnabled",
+            "rtsp_enabled": "rtspEnabled",
+        }
+        for key, value in kwargs.items():
+            if key in mapping:
+                payload[mapping[key]] = value
+            else:
+                payload[key] = value
+
         result = await self._api_client.run_sync(
             self._api_client.dashboard.camera.updateDeviceCameraVideoSettings,
             serial=serial,
-            **kwargs,
+            **payload,
         )
         validated = validate_response(result)
         if not isinstance(validated, dict):
@@ -94,10 +106,24 @@ class CameraEndpoints:
         self, serial: str, **kwargs: Any
     ) -> dict[str, Any]:
         """Update sense settings for a specific camera."""
+        # Map snake_case keys to camelCase keys for the Meraki API
+        payload = {}
+        mapping = {
+            "sense_enabled": "senseEnabled",
+            "mqtt_broker_id": "mqttBrokerId",
+            "audio_detection": "audioDetection",
+            "detection_model_id": "detectionModelId",
+        }
+        for key, value in kwargs.items():
+            if key in mapping:
+                payload[mapping[key]] = value
+            else:
+                payload[key] = value
+
         result = await self._api_client.run_sync(
             self._api_client.dashboard.camera.updateDeviceCameraSense,
             serial=serial,
-            **kwargs,
+            **payload,
         )
         validated = validate_response(result)
         if not isinstance(validated, dict):
