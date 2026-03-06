@@ -10,7 +10,7 @@ from ...core.parsers.appliance import parse_appliance_data
 from ...core.parsers.devices import parse_device_data
 from ...core.parsers.network import parse_network_data
 from ...core.parsers.sensors import parse_sensor_data
-from ..const import DEFAULT_CAPS
+from ...const_device import DEFAULT_CAPS
 from ..fetch_strategies.appliance import ApplianceFetchStrategy
 from ..fetch_strategies.camera import CameraFetchStrategy
 from ..fetch_strategies.sensor import SensorFetchStrategy
@@ -187,7 +187,7 @@ class DataFetchManager:
 
     def _get_device_capabilities(self, model: str | None) -> list[str]:
         """Return hardcoded capabilities based on device model."""
-        from ..const import DEVICE_CAPABILITIES
+        from ...const_device import DEVICE_CAPABILITIES
 
         if not model:
             return list(DEFAULT_CAPS)
