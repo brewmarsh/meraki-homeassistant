@@ -16,9 +16,9 @@ export class MerakiGuestAccessCard extends LitElement {
   @state() private _config?: Config;
 
   @state() private _selectedNetwork: string = '';
-  @state() private _selectedSsid: string = '';
+  @state() private _selectedSSID: string = '';
   @state() private _selectedPolicy: string = '';
-  @state() private _duration: string = '60';
+  @state() private _selectedDuration: string = '60';
   @state() private _customName: string = '';
   @state() private _customPassphrase: string = '';
 
@@ -98,6 +98,10 @@ export class MerakiGuestAccessCard extends LitElement {
     }
   }
 
+  private async _fetchSSIDs() {
+    // Placeholder as SSIDs are currently fetched in _fetchInitialData
+  }
+
   private async _fetchPolicies(networkId: string, configEntryId?: string) {
     if (!this.hass) return;
     try {
@@ -159,7 +163,7 @@ export class MerakiGuestAccessCard extends LitElement {
             <ha-select
               label="Network"
               value="${this._selectedNetwork}"
-              @closed="${this._handleNetworkChanged}"
+              @closed="${this._handleNetworkChange}"
               fixedMenuPosition
               naturalMenuWidth
             >
@@ -170,9 +174,9 @@ export class MerakiGuestAccessCard extends LitElement {
 
             <ha-select
               label="SSID"
-              value="${this._selectedSsid}"
+              value="${this._selectedSSID}"
               .disabled="${!this._selectedNetwork}"
-              @closed="${this._handleSsidChanged}"
+              @closed="${this._handleSSIDChange}"
               fixedMenuPosition
               naturalMenuWidth
             >
@@ -185,7 +189,7 @@ export class MerakiGuestAccessCard extends LitElement {
               label="Group Policy"
               value="${this._selectedPolicy}"
               .disabled="${!this._selectedNetwork}"
-              @closed="${(e: any) => (this._selectedPolicy = e.target.value)}"
+              @closed="${this._handlePolicyChange}"
               fixedMenuPosition
               naturalMenuWidth
             >
@@ -197,8 +201,8 @@ export class MerakiGuestAccessCard extends LitElement {
 
             <ha-select
               label="Duration"
-              value="${this._duration}"
-              @closed="${(e: any) => (this._duration = e.target.value)}"
+              value="${this._selectedDuration}"
+              @closed="${this._handleDurationChange}"
               fixedMenuPosition
               naturalMenuWidth
             >
@@ -225,7 +229,7 @@ export class MerakiGuestAccessCard extends LitElement {
 
             <ha-button
               raised
-              .disabled="${this._creating || !this._selectedNetwork || !this._selectedSsid}"
+              .disabled="${this._creating || !this._selectedNetwork || !this._selectedSSID}"
               @click="${this._handleCreate}"
             >
               ${this._creating ? 'Creating...' : 'Generate access key'}
@@ -236,21 +240,30 @@ export class MerakiGuestAccessCard extends LitElement {
     `;
   }
 
-  private _handleNetworkChanged(e: any) {
-    const newNetworkId = e.target.value;
+  private _handleNetworkChange(e: Event) {
+    const newNetworkId = (e.target as any).value;
     if (newNetworkId === this._selectedNetwork) return;
     this._selectedNetwork = newNetworkId;
-    this._selectedSsid = '';
+    this._selectedSSID = '';
     this._selectedPolicy = '';
+    this._fetchSSIDs();
     this._fetchPolicies(newNetworkId);
   }
 
-  private _handleSsidChanged(e: any) {
-    this._selectedSsid = e.target.value;
+  private _handleSSIDChange(e: Event) {
+    this._selectedSSID = (e.target as any).value;
+  }
+
+  private _handlePolicyChange(e: Event) {
+    this._selectedPolicy = (e.target as any).value;
+  }
+
+  private _handleDurationChange(e: Event) {
+    this._selectedDuration = (e.target as any).value;
   }
 
   private async _handleCreate() {
-    if (!this._selectedNetwork || !this._selectedSsid) return;
+    if (!this._selectedNetwork || !this._selectedSSID) return;
 
     this._creating = true;
     this._error = null;
@@ -259,8 +272,8 @@ export class MerakiGuestAccessCard extends LitElement {
     try {
       await this.hass.callService('meraki_ha', 'create_guest_key', {
         network_id: this._selectedNetwork,
-        ssid_number: parseInt(this._selectedSsid, 10),
-        duration_minutes: parseInt(this._duration, 10),
+        ssid_number: parseInt(this._selectedSSID, 10),
+        duration_minutes: parseInt(this._selectedDuration, 10),
         name: this._customName || undefined,
         passphrase: this._customPassphrase || undefined,
         group_policy_id: this._selectedPolicy || undefined,
