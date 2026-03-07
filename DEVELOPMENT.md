@@ -81,6 +81,15 @@ The staging deployment workflow (`deploy-staging.yaml`) runs automated smoke tes
 
 If any of these checks fail, the workflow will automatically create a GitHub Issue titled `🚨 Staging Smoke Test Failed` (if one doesn't already exist) to track the regression.
 
+### 3.2. AI-Driven Regression Triage
+
+To accelerate resolution, the staging workflow includes rich error details (e.g., Python tracebacks or lists of unavailable entities) directly in the GitHub Issue.
+
+Automated issues are tagged with the `jules` label. This label acts as a trigger for the external AI processor, which automatically:
+1.  Analyzes the provided error details.
+2.  Correlates the failure with recent code changes.
+3.  Suggests a fix or performs auto-triage to the appropriate subsystem.
+
 > **Note:** The `deploy-staging.yaml` workflow requires explicit `permissions` for the `GITHUB_TOKEN` to function correctly. Specifically, it needs `contents: read` for repository access and `issues: write` to create failure reports.
 
 ## 4. Core Architectural Principles

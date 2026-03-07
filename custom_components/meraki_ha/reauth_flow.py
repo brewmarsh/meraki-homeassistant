@@ -7,9 +7,8 @@ from typing import TYPE_CHECKING, Any
 
 import aiohttp
 import voluptuous as vol
-from homeassistant.exceptions import ConfigEntryAuthFailed
-
 from homeassistant import config_entries
+from homeassistant.exceptions import ConfigEntryAuthFailed
 
 from .authentication import validate_meraki_credentials
 from .const_conf import CONF_MERAKI_API_KEY, CONF_MERAKI_ORG_ID

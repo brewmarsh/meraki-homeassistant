@@ -32,7 +32,8 @@ def parse_appliance_data(
         detail_data: Dictionary containing fetched data.
         previous_data: Dictionary containing previous data for fallback.
 
-    Returns:
+    Returns
+    -------
         An empty dictionary.
     """
     appliance_uplink_statuses = detail_data.get("appliance_uplink_statuses")
