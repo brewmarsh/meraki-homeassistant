@@ -4,6 +4,7 @@ import { HomeAssistant } from './types/ha';
 import './meraki-content-filter-card';
 import './meraki-wifi-qr-card';
 import './meraki-network-vitals-card';
+import './meraki-guest-access-card-editor';
 import { Network, SSID } from './types/meraki';
 import { WsCommand } from './types/websocket';
 import { safeCallWS } from './utils/api';
@@ -32,7 +33,7 @@ export class MerakiGuestAccessCard extends LitElement {
   @state() private _networks: Network[] = [];
   @state() private _ssids: SSID[] = [];
   @state() private _policies: any[] = [];
-  @state() private _loading: boolean = true;
+  @state() private _isLoading: boolean = true;
   @state() private _initDone: boolean = false;
 
   public static async getConfigElement() {
@@ -44,6 +45,10 @@ export class MerakiGuestAccessCard extends LitElement {
       throw new Error('Invalid configuration');
     }
     this._config = config;
+  }
+
+  public static async getConfigElement() {
+    return document.createElement("meraki-guest-access-card-editor");
   }
 
   public static getStubConfig(): Record<string, unknown> {
@@ -72,7 +77,7 @@ export class MerakiGuestAccessCard extends LitElement {
   private async _fetchInitialData() {
     this._initDone = true;
     if (!this.hass) return;
-    this._loading = true;
+    this._isLoading = true;
     try {
       const configEntries = await this.hass.callWS<any[]>({
         type: 'config_entries/get',
@@ -82,7 +87,7 @@ export class MerakiGuestAccessCard extends LitElement {
       const entryId = this._config?.config_entry_id || (configEntries.length > 0 ? configEntries[0].entry_id : null);
       if (!entryId) {
         this._error = 'Meraki integration not found. Please configure it first.';
-        this._loading = false;
+        this._isLoading = false;
         return;
       }
 
@@ -96,12 +101,12 @@ export class MerakiGuestAccessCard extends LitElement {
 
       if (this._networks.length > 0 && !this._selectedNetwork) {
         this._selectedNetwork = this._networks[0].id;
-        this._fetchPolicies(this._selectedNetwork, entryId);
+        await this._fetchPolicies(this._selectedNetwork, entryId);
       }
     } catch (err: any) {
       this._error = `Failed to fetch Meraki data: ${err.message || err}`;
     } finally {
-      this._loading = false;
+      this._isLoading = false;
     }
   }
 
@@ -136,10 +141,10 @@ export class MerakiGuestAccessCard extends LitElement {
   }
 
   protected render() {
-    if (this._loading && !this._networks.length) {
+    if (this._isLoading) {
       return html`
         <ha-card .header="${this._config?.name || 'Meraki Guest Access'}">
-          <div class="card-content flex justify-center p-8">
+          <div class="card-content flex justify-center items-center p-8">
             <ha-circular-progress active></ha-circular-progress>
           </div>
         </ha-card>
@@ -169,23 +174,23 @@ export class MerakiGuestAccessCard extends LitElement {
           <div class="form-container">
             <ha-select
               label="Network"
-              value="${this._selectedNetwork}"
+              .value="${this._selectedNetwork}"
               @closed="${this._handleNetworkChange}"
               fixedMenuPosition
               naturalMenuWidth
             >
               ${(this._networks || []).map(
                 (n) => html`
-                  <mwc-list-item value="${n.id}">
+                  <ha-list-item .value="${n.id}">
                     ${n.name}
-                  </mwc-list-item>
+                  </ha-list-item>
                 `
               )}
             </ha-select>
 
             <ha-select
               label="SSID"
-              value="${this._selectedSSID}"
+              .value="${this._selectedSSID}"
               .disabled="${!this._selectedNetwork}"
               @closed="${this._handleSSIDChange}"
               fixedMenuPosition
@@ -193,43 +198,43 @@ export class MerakiGuestAccessCard extends LitElement {
             >
               ${(filteredSsids || []).map(
                 (s) => html`
-                  <mwc-list-item value="${String(s.number)}">
+                  <ha-list-item .value="${String(s.number)}">
                     ${s.name} (SSID ${s.number})
-                  </mwc-list-item>
+                  </ha-list-item>
                 `
               )}
             </ha-select>
 
             <ha-select
               label="Group Policy"
-              value="${this._selectedPolicy}"
+              .value="${this._selectedPolicy}"
               .disabled="${!this._selectedNetwork}"
               @closed="${this._handlePolicyChange}"
               fixedMenuPosition
               naturalMenuWidth
             >
-              <mwc-list-item value="">None (Default)</mwc-list-item>
+              <ha-list-item value="">None (Default)</ha-list-item>
               ${(this._policies || []).map(
                 (p) => html`
-                  <mwc-list-item value="${String(p.groupPolicyId)}">
+                  <ha-list-item .value="${String(p.groupPolicyId)}">
                     ${p.name}
-                  </mwc-list-item>
+                  </ha-list-item>
                 `
               )}
             </ha-select>
 
             <ha-select
               label="Duration"
-              value="${this._selectedDuration}"
+              .value="${this._selectedDuration}"
               @closed="${this._handleDurationChange}"
               fixedMenuPosition
               naturalMenuWidth
             >
-              <mwc-list-item value="30">30 Minutes</mwc-list-item>
-              <mwc-list-item value="60">1 Hour</mwc-list-item>
-              <mwc-list-item value="240">4 Hours</mwc-list-item>
-              <mwc-list-item value="1440">24 Hours</mwc-list-item>
-              <mwc-list-item value="10080">7 Days</mwc-list-item>
+              <ha-list-item value="30">30 Minutes</ha-list-item>
+              <ha-list-item value="60">1 Hour</ha-list-item>
+              <ha-list-item value="240">4 Hours</ha-list-item>
+              <ha-list-item value="1440">24 Hours</ha-list-item>
+              <ha-list-item value="10080">7 Days</ha-list-item>
             </ha-select>
 
             <ha-textfield
@@ -340,6 +345,9 @@ export class MerakiGuestAccessCard extends LitElement {
     }
     .justify-center {
       justify-content: center;
+    }
+    .items-center {
+      align-items: center;
     }
     .p-8 {
       padding: 32px;
