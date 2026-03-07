@@ -20,6 +20,8 @@ jobs:
       HA_TOKEN: ${{ secrets.HA_STAGING_TOKEN }}
       MERAKI_API_KEY: ${{ secrets.MERAKI_API_KEY }}
       MERAKI_ORG_ID: ${{ secrets.MERAKI_ORG_ID }}
+      HA_USERNAME: ${{ secrets.HA_STAGING_USERNAME }}
+      HA_PASSWORD: ${{ secrets.HA_STAGING_PASSWORD }}
 
     steps:
       - name: Checkout repository
