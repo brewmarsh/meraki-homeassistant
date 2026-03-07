@@ -59,21 +59,19 @@ export class MerakiWifiQrCardEditor extends LitElement {
 
   private _handleNetworkChange(ev: any) {
     ev.stopPropagation();
-    this._selectedNetwork = ev.target.value;
+    const newNetworkId = ev.target.value;
+    if (newNetworkId !== this._selectedNetwork) {
+      this._selectedNetwork = newNetworkId;
+      // Clear SSID on network change
+      this._updateConfig('ssid', '');
+    }
   }
 
-  private _handleSSIDSelect(ev: any) {
+  private _handleSSIDChange(ev: any) {
     ev.stopPropagation();
-    const ssidNumber = ev.target.value;
-    const ssid = this._ssids.find(s => s.networkId === this._selectedNetwork && String(s.number) === ssidNumber);
-    if (ssid && this._config) {
-      const newConfig = {
-        ...this._config,
-        ssid: ssid.name,
-        password: (ssid as any).psk || ''
-      };
-      this._config = newConfig;
-      this._dispatchEvent(newConfig);
+    const newSsidName = ev.target.value;
+    if (newSsidName && newSsidName !== this._config?.ssid) {
+      this._updateConfig('ssid', newSsidName);
     }
   }
 
@@ -81,10 +79,16 @@ export class MerakiWifiQrCardEditor extends LitElement {
     if (!this._config) return;
     const target = ev.target;
     const field = target.configValue;
-    if (this._config[field] === target.value) return;
+    if (!field) return;
+    if (this._config[field as keyof Config] === target.value) return;
+    this._updateConfig(field as keyof Config, target.value);
+  }
+
+  private _updateConfig(field: keyof Config, value: string) {
+    if (!this._config) return;
     const newConfig = {
       ...this._config,
-      [field]: target.value,
+      [field]: value,
     };
     this._config = newConfig;
     this._dispatchEvent(newConfig);
@@ -102,39 +106,32 @@ export class MerakiWifiQrCardEditor extends LitElement {
   protected render() {
     if (!this.hass || !this._config) return html``;
 
-    const filteredSsids = this._ssids.filter(s => s.networkId === this._selectedNetwork);
+    const filteredSsids = (this._ssids || []).filter(s => s.networkId === this._selectedNetwork);
 
     return html`
       <div class="card-config">
         <ha-select
           label="Network (Optional - to populate SSID)"
-          value="${this._selectedNetwork}"
+          .value="${this._selectedNetwork}"
           @closed="${this._handleNetworkChange}"
           fixedMenuPosition
           naturalMenuWidth
         >
-          <mwc-list-item value="">Select a network</mwc-list-item>
-          ${this._networks.map(n => html`<mwc-list-item value="${n.id}">${n.name}</mwc-list-item>`)}
+          <ha-list-item value="">Select a network</ha-list-item>
+          ${(this._networks || []).map(n => html`<ha-list-item .value="${n.id}">${n.name}</ha-list-item>`)}
         </ha-select>
 
         <ha-select
-          label="SSID from Meraki"
-          value=""
+          label="SSID"
+          .value="${this._config?.ssid || ''}"
           .disabled="${!this._selectedNetwork}"
-          @closed="${this._handleSSIDSelect}"
+          @closed="${this._handleSSIDChange}"
           fixedMenuPosition
           naturalMenuWidth
         >
-          <mwc-list-item value="">Select an SSID</mwc-list-item>
-          ${filteredSsids.map(s => html`<mwc-list-item value="${String(s.number)}">${s.name}</mwc-list-item>`)}
+          <ha-list-item value="">Select an SSID</ha-list-item>
+          ${filteredSsids.map(s => html`<ha-list-item .value="${s.name}">${s.name}</ha-list-item>`)}
         </ha-select>
-
-        <ha-textfield
-          label="SSID Name or Entity ID"
-          .value="${this._config.ssid || ''}"
-          .configValue="${'ssid'}"
-          @input="${this._valueChanged}"
-        ></ha-textfield>
 
         <ha-textfield
           label="Password or Entity ID"
@@ -312,159 +309,6 @@ export class MerakiWifiQrCard extends LitElement {
       padding: 2px 4px;
       border-radius: 4px;
       font-family: monospace;
-    }
-  `;
-}
-
-@customElement('meraki-wifi-qr-card-editor')
-export class MerakiWifiQrCardEditor extends LitElement {
-  @property({ attribute: false }) public hass!: HomeAssistant;
-  @state() private _config?: Config;
-
-  public setConfig(config: Config): void {
-    this._config = config;
-  }
-
-  protected render() {
-    if (!this.hass || !this._config) {
-      return html``;
-    }
-
-    return html`
-      <div class="card-config">
-        <ha-textfield
-          label="Name (Optional)"
-          .value=${this._config.name || ""}
-          .configValue=${"name"}
-          @input=${this._valueChanged}
-        ></ha-textfield>
-        <ha-textfield
-          label="SSID (Required, string or entity_id)"
-          .value=${this._config.ssid || ""}
-          .configValue=${"ssid"}
-          @input=${this._valueChanged}
-        ></ha-textfield>
-        <ha-textfield
-          label="Password (Optional, string or entity_id)"
-          .value=${this._config.password || ""}
-          .configValue=${"password"}
-          @input=${this._valueChanged}
-        ></ha-textfield>
-      </div>
-    `;
-  }
-
-  private _valueChanged(ev: any): void {
-    if (!this._config || !this.hass) {
-      return;
-    }
-    const target = ev.target;
-    const configValue = target.configValue;
-
-    if (!configValue) {
-      return;
-    }
-
-    let newValue = target.value;
-    if (this._config[configValue] === newValue) {
-      return;
-    }
-
-    const newConfig = { ...this._config };
-    if (newValue === "" || newValue === undefined) {
-      delete newConfig[configValue];
-    } else {
-      newConfig[configValue] = newValue;
-    }
-
-    this._config = newConfig;
-
-    const event = new CustomEvent("config-changed", {
-      detail: { config: this._config },
-      bubbles: true,
-      composed: true,
-    });
-    this.dispatchEvent(event);
-  }
-
-  static styles = css`
-    .card-config ha-textfield {
-      display: block;
-      margin-bottom: 16px;
-    }
-  `;
-}
-
-if (!customElements.get("meraki-wifi-qr-card")) {
-  customElements.define("meraki-wifi-qr-card", MerakiWifiQrCard);
-}
-
-@customElement('meraki-wifi-qr-card-editor')
-export class MerakiWifiQrCardEditor extends LitElement {
-  @property({ attribute: false }) public hass?: HomeAssistant;
-  @state() private _config?: Config;
-
-  public setConfig(config: Config): void {
-    this._config = config;
-  }
-
-  protected render() {
-    if (!this.hass || !this._config) {
-      return html``;
-    }
-
-    return html`
-      <div class="card-config">
-        <ha-textfield
-          label="Name (Optional)"
-          .value="${this._config.name || ""}"
-          .configValue="${"name"}"
-          @input="${this._valueChanged}"
-          style="width: 100%; margin-bottom: 16px;"
-        ></ha-textfield>
-        <ha-textfield
-          label="SSID"
-          .value="${this._config.ssid || ""}"
-          .configValue="${"ssid"}"
-          @input="${this._valueChanged}"
-          style="width: 100%; margin-bottom: 16px;"
-        ></ha-textfield>
-        <ha-textfield
-          label="Password (Optional)"
-          .value="${this._config.password || ""}"
-          .configValue="${"password"}"
-          @input="${this._valueChanged}"
-          style="width: 100%; display: block;"
-        ></ha-textfield>
-      </div>
-    `;
-  }
-
-  private _valueChanged(ev: any): void {
-    if (!this._config || !this.hass) return;
-    const target = ev.target;
-    const configValue = target.value;
-    const configKey = target.configValue;
-
-    if (this._config[configKey as keyof Config] === configValue) return;
-
-    const newConfig = {
-      ...this._config,
-      [configKey]: configValue,
-    };
-
-    const event = new CustomEvent("config-changed", {
-      detail: { config: newConfig },
-      bubbles: true,
-      composed: true,
-    });
-    this.dispatchEvent(event);
-  }
-
-  static styles = css`
-    .card-config {
-      display: flex;
-      flex-direction: column;
     }
   `;
 }
