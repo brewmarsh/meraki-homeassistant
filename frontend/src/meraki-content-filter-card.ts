@@ -164,7 +164,7 @@ export class MerakiContentFilterCardEditor extends LitElement {
         <ha-entity-picker
           .hass=${this.hass}
           .value=${this._config.entity}
-          .configValue=${"entity"}
+          configValue="entity"
           .includeDomains=${["select"]}
           @value-changed=${this._valueChanged}
           allow-custom-entity
@@ -173,7 +173,7 @@ export class MerakiContentFilterCardEditor extends LitElement {
         <ha-textfield
           label="Name (Optional)"
           .value=${this._config.name || ""}
-          .configValue=${"name"}
+          configValue="name"
           @input=${this._valueChanged}
         ></ha-textfield>
       </div>

@@ -167,7 +167,7 @@ export class MerakiNetworkVitalsCardEditor extends LitElement {
         <ha-textfield
           label="Name (Optional)"
           .value=${this._config.name || ""}
-          .configValue=${"name"}
+          configValue="name"
           @input=${this._valueChanged}
           style="width: 100%; margin-bottom: 16px;"
         ></ha-textfield>
@@ -175,7 +175,7 @@ export class MerakiNetworkVitalsCardEditor extends LitElement {
           label="Gateway Entity"
           .hass=${this.hass}
           .value=${this._config.gateway_entity || ""}
-          .configValue=${"gateway_entity"}
+          configValue="gateway_entity"
           @value-changed=${this._valueChanged}
           allow-custom-entity
           style="width: 100%; margin-bottom: 16px; display: block;"
@@ -184,7 +184,7 @@ export class MerakiNetworkVitalsCardEditor extends LitElement {
           label="Switch Entity"
           .hass=${this.hass}
           .value=${this._config.switch_entity || ""}
-          .configValue=${"switch_entity"}
+          configValue="switch_entity"
           @value-changed=${this._valueChanged}
           allow-custom-entity
           style="width: 100%; margin-bottom: 16px; display: block;"
@@ -193,7 +193,7 @@ export class MerakiNetworkVitalsCardEditor extends LitElement {
           label="AP Entity"
           .hass=${this.hass}
           .value=${this._config.ap_entity || ""}
-          .configValue=${"ap_entity"}
+          configValue="ap_entity"
           @value-changed=${this._valueChanged}
           allow-custom-entity
           style="width: 100%; margin-bottom: 16px; display: block;"
@@ -202,7 +202,7 @@ export class MerakiNetworkVitalsCardEditor extends LitElement {
           label="Throughput Entity"
           .hass=${this.hass}
           .value=${this._config.throughput_entity || ""}
-          .configValue=${"throughput_entity"}
+          configValue="throughput_entity"
           @value-changed=${this._valueChanged}
           allow-custom-entity
           style="width: 100%; display: block;"

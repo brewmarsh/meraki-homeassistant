@@ -136,14 +136,14 @@ export class MerakiWifiQrCardEditor extends LitElement {
         <ha-textfield
           label="Password or Entity ID"
           .value=${this._config.password || ''}
-          .configValue=${'password'}
+          configValue="password"
           @input=${this._valueChanged}
         ></ha-textfield>
 
         <ha-textfield
           label="Card Title"
           .value=${this._config.name || ''}
-          .configValue=${'name'}
+          configValue="name"
           @input=${this._valueChanged}
         ></ha-textfield>
       </div>
