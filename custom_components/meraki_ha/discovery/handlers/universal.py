@@ -12,11 +12,14 @@ from custom_components.meraki_ha.const.config import (
     CONF_ENABLE_CAMERA_ENTITIES,
     CONF_ENABLE_DEVICE_SENSORS,
     CONF_ENABLE_DEVICE_STATUS,
-    CONF_ENABLE_PORT_SENSORS
+    CONF_ENABLE_PORT_SENSORS,
 )
-from custom_components.meraki_ha.const.device import DEFAULT_CAPS, DEVICE_CAPABILITIES
+from custom_components.meraki_ha.const.device import (
+    DEFAULT_CAPS,
+    DEVICE_CAPABILITIES,
+)
 
-from...sensor.device.device_status import MerakiDeviceStatusSensor
+from ...sensor.device.device_status import MerakiDeviceStatusSensor
 from ...sensor.device.poe_usage import MerakiPoeUsageSensor
 from ...switch.mt40_power_outlet import MerakiMt40PowerOutlet
 from ..entities import (
@@ -48,7 +51,11 @@ if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
     from homeassistant.helpers.entity import Entity
 
-    from ...coordinators import MerakiDeviceCoordinator, MerakiMainCoordinator
+    from ...coordinators import (
+        MerakiDeviceCoordinator, 
+        MerakiMainCoordinator,
+        MerakiSensorCoordinator,
+    )
     from ...core.models.device import MerakiDevice
     from ...services.camera_service import CameraService
     from ...services.device_control_service import DeviceControlService
@@ -195,6 +202,7 @@ class UniversalHandler(BaseDeviceHandler):
                 "Failed to instantiate entity for capability %s on %s: %s",
                 cap,
                 self.device.serial,
+                self.device.model,
                 e,
             )
 
@@ -203,7 +211,7 @@ class UniversalHandler(BaseDeviceHandler):
         # Use specialized coordinator if available for MT sensors
         coordinator = self._coordinator
         if self.device.model and self.device.model.startswith("MT"):
-            # Ensure we use the specialized sensor coordinator for MT devices if it's not the main one
+            # Ensure we use the specialized sensor coordinator for MT devices
             if hasattr(self, "_sensor_coordinator") and self._sensor_coordinator:
                 coordinator = self._sensor_coordinator
 

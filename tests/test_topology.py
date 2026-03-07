@@ -6,7 +6,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers import device_registry as dr
 
 from . import async_get_config_entry
-from custom_components.meraki_ha.const.integration import MERAKI_TEST_NETWORK_ID, MERAKI_TEST_ORG_ID
+from .const import MERAKI_TEST_NETWORK_ID, MERAKI_TEST_ORG_ID
 
 async def test_network_device_creation(
     hass: HomeAssistant,
@@ -32,4 +32,4 @@ async def test_network_device_creation(
     )
     assert device is not None
     # Refactor: New name format for Virtual Controller
-    assert device.name == "Site: Site A"
+    assert device.name == "[Network] Site A"

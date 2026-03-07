@@ -1,10 +1,14 @@
 """Utility functions for mapping and validating Meraki device types."""
 
 from itertools import chain
+import re
 
-from custom_components.meraki_ha.const.device_types import VALID_DEVICE_TYPES, DeviceType
+from custom_components.meraki_ha.const.device_types import (
+    VALID_DEVICE_TYPES,
+    DeviceType,
+)
 
-from._data import DEVICE_PREFIX_MAPPINGS, DEVICE_TYPE_DESCRIPTIONS, MODEL_PATTERN
+from ._data import DEVICE_PREFIX_MAPPINGS, DEVICE_TYPE_DESCRIPTIONS, MODEL_PATTERN
 
 
 def map_meraki_model_to_device_type(model: str | None) -> str:
