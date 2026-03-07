@@ -31,7 +31,7 @@ def mock_data_fetch_manager():
     """Fixture for a mocked DataFetchManager."""
     manager = MagicMock()
     manager.get_all_data = AsyncMock()
-    manager.get_sensor_data = AsyncMock()
+    manager.get_all_data = AsyncMock()
     manager.get_device_data = AsyncMock()
     return manager
 
@@ -59,7 +59,7 @@ def coordinator(hass, mock_api_client, mock_data_fetch_manager):
 async def test_update_data_handles_errors(coordinator, mock_data_fetch_manager):
     """Test that _async_update_data handles disabled features."""
     # Arrange
-    mock_data_fetch_manager.get_sensor_data.return_value = {
+    mock_data_fetch_manager.get_all_data.return_value = {
         "networks": [MOCK_NETWORK],
         "devices": [],
         "appliance_traffic": {
@@ -86,7 +86,7 @@ async def test_update_data_handles_errors(coordinator, mock_data_fetch_manager):
 async def test_update_data_handles_timeout(coordinator, mock_data_fetch_manager):
     """Test that _async_update_data handles timeout."""
     # Arrange
-    mock_data_fetch_manager.get_sensor_data.side_effect = TimeoutError()
+    mock_data_fetch_manager.get_all_data.side_effect = TimeoutError()
 
     # Act & Assert
 
