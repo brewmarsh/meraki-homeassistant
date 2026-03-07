@@ -22,7 +22,7 @@ let pt = class {
     return this.cssText;
   }
 };
-const gt = (r) => new pt(typeof r == "string" ? r : r + "", void 0, q), _t = (r, ...t) => {
+const yt = (r) => new pt(typeof r == "string" ? r : r + "", void 0, q), _t = (r, ...t) => {
   const e = r.length === 1 ? r[0] : t.reduce((i, s, o) => i + ((n) => {
     if (n._$cssResult$ === !0) return n.cssText;
     if (typeof n == "number") return n;
@@ -38,7 +38,7 @@ const gt = (r) => new pt(typeof r == "string" ? r : r + "", void 0, q), _t = (r,
 }, et = K ? (r) => r : (r) => r instanceof CSSStyleSheet ? ((t) => {
   let e = "";
   for (const i of t.cssRules) e += i.cssText;
-  return gt(e);
+  return yt(e);
 })(r) : r;
 /**
  * @license
@@ -95,8 +95,8 @@ let E = class extends HTMLElement {
       this[e] = n;
     } };
     return { get: s, set(n) {
-      const l = s == null ? void 0 : s.call(this);
-      o == null || o.call(this, n), this.requestUpdate(t, l, i);
+      const c = s == null ? void 0 : s.call(this);
+      o == null || o.call(this, n), this.requestUpdate(t, c, i);
     }, configurable: !0, enumerable: !0 };
   }
   static getPropertyOptions(t) {
@@ -192,17 +192,17 @@ let E = class extends HTMLElement {
     var o, n;
     const i = this.constructor, s = i._$Eh.get(t);
     if (s !== void 0 && this._$Em !== s) {
-      const l = i.getPropertyOptions(s), a = typeof l.converter == "function" ? { fromAttribute: l.converter } : ((o = l.converter) == null ? void 0 : o.fromAttribute) !== void 0 ? l.converter : j;
+      const c = i.getPropertyOptions(s), a = typeof c.converter == "function" ? { fromAttribute: c.converter } : ((o = c.converter) == null ? void 0 : o.fromAttribute) !== void 0 ? c.converter : j;
       this._$Em = s;
-      const h = a.fromAttribute(e, l.type);
+      const h = a.fromAttribute(e, c.type);
       this[s] = h ?? ((n = this._$Ej) == null ? void 0 : n.get(s)) ?? h, this._$Em = null;
     }
   }
   requestUpdate(t, e, i, s = !1, o) {
     var n;
     if (t !== void 0) {
-      const l = this.constructor;
-      if (s === !1 && (o = this[t]), i ?? (i = l.getPropertyOptions(t)), !((i.hasChanged ?? J)(o, e) || i.useDefault && i.reflect && o === ((n = this._$Ej) == null ? void 0 : n.get(t)) && !this.hasAttribute(l._$Eu(t, i)))) return;
+      const c = this.constructor;
+      if (s === !1 && (o = this[t]), i ?? (i = c.getPropertyOptions(t)), !((i.hasChanged ?? J)(o, e) || i.useDefault && i.reflect && o === ((n = this._$Ej) == null ? void 0 : n.get(t)) && !this.hasAttribute(c._$Eu(t, i)))) return;
       this.C(t, e, i);
     }
     this.isUpdatePending === !1 && (this._$ES = this._$EP());
@@ -233,8 +233,8 @@ let E = class extends HTMLElement {
       }
       const s = this.constructor.elementProperties;
       if (s.size > 0) for (const [o, n] of s) {
-        const { wrapped: l } = n, a = this[o];
-        l !== !0 || this._$AL.has(o) || a === void 0 || this.C(o, void 0, n, a);
+        const { wrapped: c } = n, a = this[o];
+        c !== !0 || this._$AL.has(o) || a === void 0 || this.C(o, void 0, n, a);
       }
     }
     let t = !1;
@@ -284,53 +284,53 @@ E.elementStyles = [], E.shadowRootOptions = { mode: "open" }, E[N("elementProper
  * Copyright 2017 Google LLC
  * SPDX-License-Identifier: BSD-3-Clause
  */
-const M = globalThis, rt = (r) => r, L = M.trustedTypes, ot = L ? L.createPolicy("lit-html", { createHTML: (r) => r }) : void 0, ft = "$lit$", g = `lit$${Math.random().toFixed(9).slice(2)}$`, $t = "?" + g, Ct = `<${$t}>`, b = document, O = () => b.createComment(""), T = (r) => r === null || typeof r != "object" && typeof r != "function", Y = Array.isArray, xt = (r) => Y(r) || typeof (r == null ? void 0 : r[Symbol.iterator]) == "function", B = `[
+const M = globalThis, rt = (r) => r, L = M.trustedTypes, ot = L ? L.createPolicy("lit-html", { createHTML: (r) => r }) : void 0, ft = "$lit$", y = `lit$${Math.random().toFixed(9).slice(2)}$`, $t = "?" + y, Ct = `<${$t}>`, b = document, O = () => b.createComment(""), T = (r) => r === null || typeof r != "object" && typeof r != "function", Y = Array.isArray, xt = (r) => Y(r) || typeof (r == null ? void 0 : r[Symbol.iterator]) == "function", B = `[
 \f\r]`, x = /<(?:(!--|\/[^a-zA-Z])|(\/?[a-zA-Z][^>\s]*)|(\/?$))/g, nt = /-->/g, at = />/g, A = RegExp(`>|${B}(?:([^\\s"'>=/]+)(${B}*=${B}*(?:[^
-\f\r"'\`<>=]|("|')|))|$)`, "g"), lt = /'/g, ct = /"/g, mt = /^(?:script|style|textarea|title)$/i, Nt = (r) => (t, ...e) => ({ _$litType$: r, strings: t, values: e }), $ = Nt(1), P = Symbol.for("lit-noChange"), u = Symbol.for("lit-nothing"), ht = /* @__PURE__ */ new WeakMap(), w = b.createTreeWalker(b, 129);
-function yt(r, t) {
+\f\r"'\`<>=]|("|')|))|$)`, "g"), ct = /'/g, lt = /"/g, mt = /^(?:script|style|textarea|title)$/i, Nt = (r) => (t, ...e) => ({ _$litType$: r, strings: t, values: e }), $ = Nt(1), P = Symbol.for("lit-noChange"), u = Symbol.for("lit-nothing"), ht = /* @__PURE__ */ new WeakMap(), w = b.createTreeWalker(b, 129);
+function gt(r, t) {
   if (!Y(r) || !r.hasOwnProperty("raw")) throw Error("invalid template strings array");
   return ot !== void 0 ? ot.createHTML(t) : t;
 }
 const Mt = (r, t) => {
   const e = r.length - 1, i = [];
   let s, o = t === 2 ? "<svg>" : t === 3 ? "<math>" : "", n = x;
-  for (let l = 0; l < e; l++) {
-    const a = r[l];
-    let h, p, c = -1, m = 0;
-    for (; m < a.length && (n.lastIndex = m, p = n.exec(a), p !== null); ) m = n.lastIndex, n === x ? p[1] === "!--" ? n = nt : p[1] !== void 0 ? n = at : p[2] !== void 0 ? (mt.test(p[2]) && (s = RegExp("</" + p[2], "g")), n = A) : p[3] !== void 0 && (n = A) : n === A ? p[0] === ">" ? (n = s ?? x, c = -1) : p[1] === void 0 ? c = -2 : (c = n.lastIndex - p[2].length, h = p[1], n = p[3] === void 0 ? A : p[3] === '"' ? ct : lt) : n === ct || n === lt ? n = A : n === nt || n === at ? n = x : (n = A, s = void 0);
-    const y = n === A && r[l + 1].startsWith("/>") ? " " : "";
-    o += n === x ? a + Ct : c >= 0 ? (i.push(h), a.slice(0, c) + ft + a.slice(c) + g + y) : a + g + (c === -2 ? l : y);
+  for (let c = 0; c < e; c++) {
+    const a = r[c];
+    let h, p, l = -1, m = 0;
+    for (; m < a.length && (n.lastIndex = m, p = n.exec(a), p !== null); ) m = n.lastIndex, n === x ? p[1] === "!--" ? n = nt : p[1] !== void 0 ? n = at : p[2] !== void 0 ? (mt.test(p[2]) && (s = RegExp("</" + p[2], "g")), n = A) : p[3] !== void 0 && (n = A) : n === A ? p[0] === ">" ? (n = s ?? x, l = -1) : p[1] === void 0 ? l = -2 : (l = n.lastIndex - p[2].length, h = p[1], n = p[3] === void 0 ? A : p[3] === '"' ? lt : ct) : n === lt || n === ct ? n = A : n === nt || n === at ? n = x : (n = A, s = void 0);
+    const g = n === A && r[c + 1].startsWith("/>") ? " " : "";
+    o += n === x ? a + Ct : l >= 0 ? (i.push(h), a.slice(0, l) + ft + a.slice(l) + y + g) : a + y + (l === -2 ? c : g);
   }
-  return [yt(r, o + (r[e] || "<?>") + (t === 2 ? "</svg>" : t === 3 ? "</math>" : "")), i];
+  return [gt(r, o + (r[e] || "<?>") + (t === 2 ? "</svg>" : t === 3 ? "</math>" : "")), i];
 };
 class D {
   constructor({ strings: t, _$litType$: e }, i) {
     let s;
     this.parts = [];
     let o = 0, n = 0;
-    const l = t.length - 1, a = this.parts, [h, p] = Mt(t, e);
+    const c = t.length - 1, a = this.parts, [h, p] = Mt(t, e);
     if (this.el = D.createElement(h, i), w.currentNode = this.el.content, e === 2 || e === 3) {
-      const c = this.el.content.firstChild;
-      c.replaceWith(...c.childNodes);
+      const l = this.el.content.firstChild;
+      l.replaceWith(...l.childNodes);
     }
-    for (; (s = w.nextNode()) !== null && a.length < l; ) {
+    for (; (s = w.nextNode()) !== null && a.length < c; ) {
       if (s.nodeType === 1) {
-        if (s.hasAttributes()) for (const c of s.getAttributeNames()) if (c.endsWith(ft)) {
-          const m = p[n++], y = s.getAttribute(c).split(g), H = /([.?@])?(.*)/.exec(m);
-          a.push({ type: 1, index: o, name: H[2], strings: y, ctor: H[1] === "." ? Tt : H[1] === "?" ? Dt : H[1] === "@" ? Ut : G }), s.removeAttribute(c);
-        } else c.startsWith(g) && (a.push({ type: 6, index: o }), s.removeAttribute(c));
+        if (s.hasAttributes()) for (const l of s.getAttributeNames()) if (l.endsWith(ft)) {
+          const m = p[n++], g = s.getAttribute(l).split(y), H = /([.?@])?(.*)/.exec(m);
+          a.push({ type: 1, index: o, name: H[2], strings: g, ctor: H[1] === "." ? Tt : H[1] === "?" ? Dt : H[1] === "@" ? Ut : G }), s.removeAttribute(l);
+        } else l.startsWith(y) && (a.push({ type: 6, index: o }), s.removeAttribute(l));
         if (mt.test(s.tagName)) {
-          const c = s.textContent.split(g), m = c.length - 1;
+          const l = s.textContent.split(y), m = l.length - 1;
           if (m > 0) {
             s.textContent = L ? L.emptyScript : "";
-            for (let y = 0; y < m; y++) s.append(c[y], O()), w.nextNode(), a.push({ type: 2, index: ++o });
-            s.append(c[m], O());
+            for (let g = 0; g < m; g++) s.append(l[g], O()), w.nextNode(), a.push({ type: 2, index: ++o });
+            s.append(l[m], O());
           }
         }
       } else if (s.nodeType === 8) if (s.data === $t) a.push({ type: 2, index: o });
       else {
-        let c = -1;
-        for (; (c = s.data.indexOf(g, c + 1)) !== -1; ) a.push({ type: 7, index: o }), c += g.length - 1;
+        let l = -1;
+        for (; (l = s.data.indexOf(y, l + 1)) !== -1; ) a.push({ type: 7, index: o }), l += y.length - 1;
       }
       o++;
     }
@@ -341,11 +341,11 @@ class D {
   }
 }
 function C(r, t, e = r, i) {
-  var n, l;
+  var n, c;
   if (t === P) return t;
   let s = i !== void 0 ? (n = e._$Co) == null ? void 0 : n[i] : e._$Cl;
   const o = T(t) ? void 0 : t._$litDirective$;
-  return (s == null ? void 0 : s.constructor) !== o && ((l = s == null ? void 0 : s._$AO) == null || l.call(s, !1), o === void 0 ? s = void 0 : (s = new o(r), s._$AT(r, e, i)), i !== void 0 ? (e._$Co ?? (e._$Co = []))[i] = s : e._$Cl = s), s !== void 0 && (t = C(r, s._$AS(r, t.values), s, i)), t;
+  return (s == null ? void 0 : s.constructor) !== o && ((c = s == null ? void 0 : s._$AO) == null || c.call(s, !1), o === void 0 ? s = void 0 : (s = new o(r), s._$AT(r, e, i)), i !== void 0 ? (e._$Co ?? (e._$Co = []))[i] = s : e._$Cl = s), s !== void 0 && (t = C(r, s._$AS(r, t.values), s, i)), t;
 }
 class Ot {
   constructor(t, e) {
@@ -360,11 +360,11 @@ class Ot {
   u(t) {
     const { el: { content: e }, parts: i } = this._$AD, s = ((t == null ? void 0 : t.creationScope) ?? b).importNode(e, !0);
     w.currentNode = s;
-    let o = w.nextNode(), n = 0, l = 0, a = i[0];
+    let o = w.nextNode(), n = 0, c = 0, a = i[0];
     for (; a !== void 0; ) {
       if (n === a.index) {
         let h;
-        a.type === 2 ? h = new I(o, o.nextSibling, this, t) : a.type === 1 ? h = new a.ctor(o, a.name, a.strings, this, t) : a.type === 6 && (h = new It(o, this, t)), this._$AV.push(h), a = i[++l];
+        a.type === 2 ? h = new I(o, o.nextSibling, this, t) : a.type === 1 ? h = new a.ctor(o, a.name, a.strings, this, t) : a.type === 6 && (h = new It(o, this, t)), this._$AV.push(h), a = i[++c];
       }
       n !== (a == null ? void 0 : a.index) && (o = w.nextNode(), n++);
     }
@@ -408,11 +408,11 @@ class I {
   }
   $(t) {
     var o;
-    const { values: e, _$litType$: i } = t, s = typeof i == "number" ? this._$AC(t) : (i.el === void 0 && (i.el = D.createElement(yt(i.h, i.h[0]), this.options)), i);
+    const { values: e, _$litType$: i } = t, s = typeof i == "number" ? this._$AC(t) : (i.el === void 0 && (i.el = D.createElement(gt(i.h, i.h[0]), this.options)), i);
     if (((o = this._$AH) == null ? void 0 : o._$AD) === s) this._$AH.p(e);
     else {
-      const n = new Ot(s, this), l = n.u(this.options);
-      n.p(e), this.T(l), this._$AH = n;
+      const n = new Ot(s, this), c = n.u(this.options);
+      n.p(e), this.T(c), this._$AH = n;
     }
   }
   _$AC(t) {
@@ -453,9 +453,9 @@ class G {
     let n = !1;
     if (o === void 0) t = C(this, t, e, 0), n = !T(t) || t !== this._$AH && t !== P, n && (this._$AH = t);
     else {
-      const l = t;
+      const c = t;
       let a, h;
-      for (t = o[0], a = 0; a < o.length - 1; a++) h = C(this, l[i + a], e, a), h === P && (h = this._$AH[a]), n || (n = !T(h) || h !== this._$AH[a]), h === u ? t = u : t !== u && (t += (h ?? "") + o[a + 1]), this._$AH[a] = h;
+      for (t = o[0], a = 0; a < o.length - 1; a++) h = C(this, c[i + a], e, a), h === P && (h = this._$AH[a]), n || (n = !T(h) || h !== this._$AH[a]), h === u ? t = u : t !== u && (t += (h ?? "") + o[a + 1]), this._$AH[a] = h;
     }
     n && !s && this.j(t);
   }
@@ -571,18 +571,18 @@ const jt = { attribute: !0, type: String, converter: j, reflect: !1, hasChanged:
   let o = globalThis.litPropertyMetadata.get(s);
   if (o === void 0 && globalThis.litPropertyMetadata.set(s, o = /* @__PURE__ */ new Map()), i === "setter" && ((r = Object.create(r)).wrapped = !0), o.set(e.name, r), i === "accessor") {
     const { name: n } = e;
-    return { set(l) {
+    return { set(c) {
       const a = t.get.call(this);
-      t.set.call(this, l), this.requestUpdate(n, a, r, !0, l);
-    }, init(l) {
-      return l !== void 0 && this.C(n, void 0, r, l), l;
+      t.set.call(this, c), this.requestUpdate(n, a, r, !0, c);
+    }, init(c) {
+      return c !== void 0 && this.C(n, void 0, r, c), c;
     } };
   }
   if (i === "setter") {
     const { name: n } = e;
-    return function(l) {
+    return function(c) {
       const a = this[n];
-      t.call(this, l), this.requestUpdate(n, a, r, !0, l);
+      t.call(this, c), this.requestUpdate(n, a, r, !0, c);
     };
   }
   throw Error("Unsupported decorator location: " + i);
@@ -867,7 +867,11 @@ const X = class X extends k {
               naturalMenuWidth
             >
               ${(this._networks || []).map(
-      (s) => $`<mwc-list-item value="${String(s.id)}">${s.name}</mwc-list-item>`
+      (s) => $`
+                  <mwc-list-item value="${s.id}">
+                    ${s.name}
+                  </mwc-list-item>
+                `
     )}
             </ha-select>
 
@@ -880,7 +884,11 @@ const X = class X extends k {
               naturalMenuWidth
             >
               ${(t || []).map(
-      (s) => $`<mwc-list-item value="${String(s.number)}">${s.name} (SSID ${s.number})</mwc-list-item>`
+      (s) => $`
+                  <mwc-list-item value="${String(s.number)}">
+                    ${s.name} (SSID ${s.number})
+                  </mwc-list-item>
+                `
     )}
             </ha-select>
 
@@ -894,7 +902,11 @@ const X = class X extends k {
             >
               <mwc-list-item value="">None (Default)</mwc-list-item>
               ${(this._policies || []).map(
-      (s) => $`<mwc-list-item value="${String(s.groupPolicyId)}">${s.name}</mwc-list-item>`
+      (s) => $`
+                  <mwc-list-item value="${String(s.groupPolicyId)}">
+                    ${s.name}
+                  </mwc-list-item>
+                `
     )}
             </ha-select>
 
@@ -905,11 +917,11 @@ const X = class X extends k {
               fixedMenuPosition
               naturalMenuWidth
             >
-              <mwc-list-item value="${"30"}">30 Minutes</mwc-list-item>
-              <mwc-list-item value="${"60"}">1 Hour</mwc-list-item>
-              <mwc-list-item value="${"240"}">4 Hours</mwc-list-item>
-              <mwc-list-item value="${"1440"}">24 Hours</mwc-list-item>
-              <mwc-list-item value="${"10080"}">7 Days</mwc-list-item>
+              <mwc-list-item value="30">30 Minutes</mwc-list-item>
+              <mwc-list-item value="60">1 Hour</mwc-list-item>
+              <mwc-list-item value="240">4 Hours</mwc-list-item>
+              <mwc-list-item value="1440">24 Hours</mwc-list-item>
+              <mwc-list-item value="10080">7 Days</mwc-list-item>
             </ha-select>
 
             <ha-textfield
@@ -939,17 +951,24 @@ const X = class X extends k {
     `;
   }
   _handleNetworkChange(t) {
-    const e = t.target.value;
-    e !== this._selectedNetwork && (this._selectedNetwork = e, this._selectedSSID = "", this._selectedPolicy = "", this._fetchSSIDs(), this._fetchPolicies(e));
+    t.stopPropagation();
+    const i = t.target.value;
+    !i || i === this._selectedNetwork || (this._selectedNetwork = i, this._selectedSSID = "", this._selectedPolicy = "", this._fetchSSIDs(), this._fetchPolicies(i));
   }
   _handleSSIDChange(t) {
-    this._selectedSSID = t.target.value;
+    t.stopPropagation();
+    const e = t.target;
+    this._selectedSSID = e.value;
   }
   _handlePolicyChange(t) {
-    this._selectedPolicy = t.target.value;
+    t.stopPropagation();
+    const e = t.target;
+    this._selectedPolicy = e.value;
   }
   _handleDurationChange(t) {
-    this._selectedDuration = t.target.value;
+    t.stopPropagation();
+    const e = t.target;
+    this._selectedDuration = e.value;
   }
   async _handleCreate() {
     if (!(!this._selectedNetwork || !this._selectedSSID)) {

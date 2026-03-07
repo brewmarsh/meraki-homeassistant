@@ -169,7 +169,11 @@ export class MerakiGuestAccessCard extends LitElement {
               naturalMenuWidth
             >
               ${(this._networks || []).map(
-                (n) => html`<mwc-list-item value="${String(n.id)}">${n.name}</mwc-list-item>`
+                (n) => html`
+                  <mwc-list-item value="${n.id}">
+                    ${n.name}
+                  </mwc-list-item>
+                `
               )}
             </ha-select>
 
@@ -182,7 +186,11 @@ export class MerakiGuestAccessCard extends LitElement {
               naturalMenuWidth
             >
               ${(filteredSsids || []).map(
-                (s) => html`<mwc-list-item value="${String(s.number)}">${s.name} (SSID ${s.number})</mwc-list-item>`
+                (s) => html`
+                  <mwc-list-item value="${String(s.number)}">
+                    ${s.name} (SSID ${s.number})
+                  </mwc-list-item>
+                `
               )}
             </ha-select>
 
@@ -196,7 +204,11 @@ export class MerakiGuestAccessCard extends LitElement {
             >
               <mwc-list-item value="">None (Default)</mwc-list-item>
               ${(this._policies || []).map(
-                (p) => html`<mwc-list-item value="${String(p.groupPolicyId)}">${p.name}</mwc-list-item>`
+                (p) => html`
+                  <mwc-list-item value="${String(p.groupPolicyId)}">
+                    ${p.name}
+                  </mwc-list-item>
+                `
               )}
             </ha-select>
 
@@ -207,11 +219,11 @@ export class MerakiGuestAccessCard extends LitElement {
               fixedMenuPosition
               naturalMenuWidth
             >
-              <mwc-list-item value="${"30"}">30 Minutes</mwc-list-item>
-              <mwc-list-item value="${"60"}">1 Hour</mwc-list-item>
-              <mwc-list-item value="${"240"}">4 Hours</mwc-list-item>
-              <mwc-list-item value="${"1440"}">24 Hours</mwc-list-item>
-              <mwc-list-item value="${"10080"}">7 Days</mwc-list-item>
+              <mwc-list-item value="30">30 Minutes</mwc-list-item>
+              <mwc-list-item value="60">1 Hour</mwc-list-item>
+              <mwc-list-item value="240">4 Hours</mwc-list-item>
+              <mwc-list-item value="1440">24 Hours</mwc-list-item>
+              <mwc-list-item value="10080">7 Days</mwc-list-item>
             </ha-select>
 
             <ha-textfield
@@ -242,8 +254,10 @@ export class MerakiGuestAccessCard extends LitElement {
   }
 
   private _handleNetworkChange(e: Event) {
-    const newNetworkId = (e.target as any).value;
-    if (newNetworkId === this._selectedNetwork) return;
+    e.stopPropagation();
+    const target = e.target as any;
+    const newNetworkId = target.value;
+    if (!newNetworkId || newNetworkId === this._selectedNetwork) return;
     this._selectedNetwork = newNetworkId;
     this._selectedSSID = '';
     this._selectedPolicy = '';
@@ -252,15 +266,21 @@ export class MerakiGuestAccessCard extends LitElement {
   }
 
   private _handleSSIDChange(e: Event) {
-    this._selectedSSID = (e.target as any).value;
+    e.stopPropagation();
+    const target = e.target as any;
+    this._selectedSSID = target.value;
   }
 
   private _handlePolicyChange(e: Event) {
-    this._selectedPolicy = (e.target as any).value;
+    e.stopPropagation();
+    const target = e.target as any;
+    this._selectedPolicy = target.value;
   }
 
   private _handleDurationChange(e: Event) {
-    this._selectedDuration = (e.target as any).value;
+    e.stopPropagation();
+    const target = e.target as any;
+    this._selectedDuration = target.value;
   }
 
   private async _handleCreate() {
