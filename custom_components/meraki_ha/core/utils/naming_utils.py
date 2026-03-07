@@ -17,6 +17,7 @@ def standardize_device_name(name: str | None) -> str:
         name_str.lower().startswith("meraki")
         or name_str.startswith("[")
         or name_str.startswith("Site: ")
+        or name_str.startswith("[Network]")
     ):
         return name_str
     return f"Meraki {name_str}"

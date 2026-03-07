@@ -13,9 +13,11 @@ _LOGGER = logging.getLogger(__name__)
 class MerakiSensorCoordinator(MerakiBaseCoordinator[dict[str, Any]]):
     """A coordinator for Meraki sensor data."""
 
-    def __init__(self, hass, entry, api_client) -> None:
+    def __init__(self, hass, entry, api_client, data_fetch_manager=None) -> None:
         """Initialize the sensor coordinator."""
-        super().__init__(hass, entry, api_client, name="sensor")
+        super().__init__(
+            hass, entry, api_client, name="sensor", data_fetch_manager=data_fetch_manager
+        )
         self.last_successful_data: dict[str, Any] = {}
         # Slow poll interval
         from datetime import timedelta
@@ -43,7 +45,13 @@ class MerakiSensorCoordinator(MerakiBaseCoordinator[dict[str, Any]]):
             self.apply_polling_update(updated)
 
             # Return a merged dictionary keyed by serial/ID for efficient extraction
-            return {**self.devices_by_serial, **self.networks_by_id}
+            return {
+                **self.devices_by_serial,
+                **self.networks_by_id,
+                "devices": list(self.devices_by_serial.values()),
+                "networks": list(self.networks_by_id.values()),
+                "ssids": list(self.ssids_by_network_and_number.values()),
+            }
         except Exception as err:
             # Fallback to last successful data if update fails
             self.update_processor.process_failure(
