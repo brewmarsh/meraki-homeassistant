@@ -934,8 +934,6 @@ const st = class st extends b {
       }
     }
   }
-  async _fetchSSIDs() {
-  }
   async _fetchPolicies(t, e) {
     var i;
     if (this.hass)
@@ -1031,11 +1029,11 @@ const st = class st extends b {
               fixedMenuPosition
               naturalMenuWidth
             >
-              <mwc-list-item value="${"30"}">30 Minutes</mwc-list-item>
-              <mwc-list-item value="${"60"}">1 Hour</mwc-list-item>
-              <mwc-list-item value="${"240"}">4 Hours</mwc-list-item>
-              <mwc-list-item value="${"1440"}">24 Hours</mwc-list-item>
-              <mwc-list-item value="${"10080"}">7 Days</mwc-list-item>
+              <mwc-list-item value="30">30 Minutes</mwc-list-item>
+              <mwc-list-item value="60">1 Hour</mwc-list-item>
+              <mwc-list-item value="240">4 Hours</mwc-list-item>
+              <mwc-list-item value="1440">24 Hours</mwc-list-item>
+              <mwc-list-item value="10080">7 Days</mwc-list-item>
             </ha-select>
 
             <ha-textfield
@@ -1065,17 +1063,24 @@ const st = class st extends b {
     `;
   }
   _handleNetworkChange(t) {
-    const e = t.target.value;
-    e !== this._selectedNetwork && (this._selectedNetwork = e, this._selectedSSID = "", this._selectedPolicy = "", this._fetchSSIDs(), this._fetchPolicies(e));
+    t.stopPropagation();
+    const i = t.target.value;
+    !i || i === this._selectedNetwork || (this._selectedNetwork = i, this._selectedSSID = "", this._selectedPolicy = "", this._fetchPolicies(i));
   }
   _handleSSIDChange(t) {
-    this._selectedSSID = t.target.value;
+    t.stopPropagation();
+    const e = t.target;
+    this._selectedSSID = e.value;
   }
   _handlePolicyChange(t) {
-    this._selectedPolicy = t.target.value;
+    t.stopPropagation();
+    const e = t.target;
+    this._selectedPolicy = e.value;
   }
   _handleDurationChange(t) {
-    this._selectedDuration = t.target.value;
+    t.stopPropagation();
+    const e = t.target;
+    this._selectedDuration = e.value;
   }
   async _handleCreate() {
     if (!(!this._selectedNetwork || !this._selectedSSID)) {
