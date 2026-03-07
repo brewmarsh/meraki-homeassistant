@@ -5,7 +5,7 @@ import ast
 def check_file(filepath):
     with open(filepath, 'r') as f:
         try:
-            tree = ast.parse(f.read())
+            ast.parse(f.read())
         except SyntaxError as e:
             print(f"SYNTAX ERROR in {filepath}: {e}")
             return False

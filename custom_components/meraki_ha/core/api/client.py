@@ -80,8 +80,7 @@ class MerakiAPIClient:
         self.dashboard: meraki.DashboardAPI | None = None
 
         # Semaphore to limit concurrent API calls
-        # Meraki API allows 10 requests per second per API key.
-        self._semaphore = asyncio.Semaphore(10)
+        self._semaphore = asyncio.Semaphore(2)
 
         # Set of disabled features to prevent repetitive API calls
         self._disabled_features: set[str] = set()
@@ -169,6 +168,7 @@ class MerakiAPIClient:
                         f"An unexpected error occurred: {e}"
                     ) from e
 
+        await asyncio.sleep(0.1)
         return result
 
     async def run_with_semaphore(self, coro: Awaitable[Any]) -> Any:

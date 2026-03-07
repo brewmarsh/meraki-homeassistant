@@ -41,8 +41,6 @@ from .services.manager import ServicesManager
 from .services.network_control_service import NetworkControlService
 from .services.switch_port_service import SwitchPortService
 from .webhook import async_register_webhook, async_unregister_webhook
-from .core.coordinator_helpers.data_fetcher import DataFetchManager
-from .core.coordinator_helpers.config_helper import get_coordinator_config
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -121,24 +119,15 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     )
     await api_client.async_setup()
 
-    # Initialize shared DataFetchManager and specialized coordinators
-    config = get_coordinator_config(entry)
-    data_fetch_manager = DataFetchManager(
-        client=api_client,
-        enable_vpn_management=config.enable_vpn,
-        enable_firewall_rules=config.enable_firewall,
-        enable_traffic_shaping=config.enable_traffic,
-        enable_camera_sense=config.enable_camera_sense,
-    )
-
-    main_coordinator = MerakiMainCoordinator(hass, entry, api_client, data_fetch_manager=data_fetch_manager)
-    device_coordinator = MerakiDeviceCoordinator(hass, entry, api_client, data_fetch_manager=data_fetch_manager)
-    switch_coordinator = MerakiSwitchCoordinator(hass, entry, api_client, data_fetch_manager=data_fetch_manager)
-    camera_coordinator = MerakiCameraCoordinator(hass, entry, api_client, data_fetch_manager=data_fetch_manager)
-    sensor_coordinator = MerakiSensorCoordinator(hass, entry, api_client, data_fetch_manager=data_fetch_manager)
-    wireless_coordinator = MerakiWirelessCoordinator(hass, entry, api_client, data_fetch_manager=data_fetch_manager)
-    appliance_coordinator = MerakiApplianceCoordinator(hass, entry, api_client, data_fetch_manager=data_fetch_manager)
-    client_coordinator = MerakiClientCoordinator(hass, entry, api_client, data_fetch_manager=data_fetch_manager)
+    # Initialize specialized coordinators
+    main_coordinator = MerakiMainCoordinator(hass, entry, api_client)
+    device_coordinator = MerakiDeviceCoordinator(hass, entry, api_client)
+    switch_coordinator = MerakiSwitchCoordinator(hass, entry, api_client)
+    camera_coordinator = MerakiCameraCoordinator(hass, entry, api_client)
+    sensor_coordinator = MerakiSensorCoordinator(hass, entry, api_client)
+    wireless_coordinator = MerakiWirelessCoordinator(hass, entry, api_client)
+    appliance_coordinator = MerakiApplianceCoordinator(hass, entry, api_client)
+    client_coordinator = MerakiClientCoordinator(hass, entry, api_client)
 
     # 1. Block setup until the basic device skeleton is loaded (Tier 1)
     # This is strictly required to populate the Device Registry promptly.

@@ -21,26 +21,21 @@ SILENT_ERRORS = [
 ]
 
 
-async def execute_batches(
-    tasks: dict[str, Any],
-    label: str,
-    batch_size: int = BATCH_SIZE,
-    cooldown: float = 1.0,
-) -> list[Any]:
+async def execute_batches(tasks: dict[str, Any], label: str) -> list[Any]:
     """Execute tasks in batches with cooldown."""
     task_items = list(tasks.items())
     all_results = []
-    for i in range(0, len(task_items), batch_size):
-        if i > 0 and cooldown > 0:
-            _LOGGER.debug("Cooling down for %.2fs between %s batches...", cooldown, label)
-            await asyncio.sleep(cooldown)
+    for i in range(0, len(task_items), BATCH_SIZE):
+        if i > 0:
+            _LOGGER.debug("Cooling down for 1s between %s batches...", label)
+            await asyncio.sleep(1)
 
-        chunk = dict(task_items[i : i + batch_size])
+        chunk = dict(task_items[i : i + BATCH_SIZE])
         _LOGGER.debug(
             "Executing %s batch: items %d to %d",
             label,
             i + 1,
-            min(i + batch_size, len(task_items)),
+            min(i + BATCH_SIZE, len(task_items)),
         )
         chunk_results = await asyncio.gather(*chunk.values(), return_exceptions=True)
         all_results.extend(chunk_results)
@@ -114,25 +109,18 @@ def handle_batch_exceptions(tasks: dict[str, Any], label: str) -> None:
 
 
 async def async_gather_with_timeout(
-    tasks: dict[str, Any],
-    timeout: int = 25,
-    label: str = "Tasks",
-    batch_size: int = BATCH_SIZE,
-    cooldown: float = 1.0,
+    tasks: dict[str, Any], timeout: int = 25, label: str = "Tasks"
 ) -> dict[str, Any]:
     """Gather tasks with timeout, batching, and smart error transformation."""
     if not tasks:
         return {}
 
     _LOGGER.debug(
-        "Starting %s: %s items in batches of %s", label, len(tasks), batch_size
+        "Starting %s: %s items in batches of %s", label, len(tasks), BATCH_SIZE
     )
 
     try:
-        results = await asyncio.wait_for(
-            execute_batches(tasks, label, batch_size=batch_size, cooldown=cooldown),
-            timeout=timeout,
-        )
+        results = await asyncio.wait_for(execute_batches(tasks, label), timeout=timeout)
         return process_batch_results(tasks, results, label)
 
     except asyncio.TimeoutError:

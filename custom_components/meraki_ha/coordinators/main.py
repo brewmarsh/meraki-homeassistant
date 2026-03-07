@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import logging
-from datetime import datetime, timedelta
+from datetime import datetime
 from typing import TYPE_CHECKING, Any
 
 from homeassistant.helpers.update_coordinator import UpdateFailed
@@ -19,14 +19,13 @@ _LOGGER = logging.getLogger(__name__)
 class MerakiMainCoordinator(MerakiBaseCoordinator[dict[str, Any]]):
     """A centralized coordinator for main Meraki organization and network data."""
 
-    def __init__(self, hass, entry, api_client, data_fetch_manager=None) -> None:
+    def __init__(self, hass, entry, api_client) -> None:
         """Initialize the main coordinator."""
-        super().__init__(
-            hass, entry, api_client, name="main", data_fetch_manager=data_fetch_manager
-        )
+        super().__init__(hass, entry, api_client, name="main")
         self.last_successful_update: datetime | None = None
         self.last_successful_data: dict[str, Any] = {}
-        # Slow poll interval to manage global organization data fetch load
+        # Slow poll interval
+        from datetime import timedelta
         self.update_interval = timedelta(seconds=600)
 
     async def _async_update_data(self) -> dict[str, Any]:
@@ -38,16 +37,7 @@ class MerakiMainCoordinator(MerakiBaseCoordinator[dict[str, Any]]):
             updated = self.polling_manager.record_success()
             self.apply_polling_update(updated)
 
-            # Return a merged dictionary keyed by serial/ID for efficient extraction.
-            # This fulfills the data contract for all downstream entities.
-            return {
-                **self.devices_by_serial,
-                **self.networks_by_id,
-                "devices": list(self.devices_by_serial.values()),
-                "networks": list(self.networks_by_id.values()),
-                "ssids": list(self.ssids_by_network_and_number.values()),
-            }
-            
+            return data
         except Exception as err:
             _LOGGER.error("Error fetching Meraki main data: %s", err)
 
@@ -74,7 +64,7 @@ class MerakiMainCoordinator(MerakiBaseCoordinator[dict[str, Any]]):
             _LOGGER.warning("API call to get_all_data returned no data.")
             return self.last_successful_data
 
-        # Process successful update to populate internal O(1) maps
+        # Process successful update
         (
             self.devices_by_serial,
             self.networks_by_id,

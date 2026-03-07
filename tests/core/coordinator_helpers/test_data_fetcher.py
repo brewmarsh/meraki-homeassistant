@@ -119,24 +119,4 @@ async def test_async_gather_with_timeout_batching(data_fetch_manager):
 
         # Verify batching logic
         assert mock_sleep.call_count == 2
-        mock_sleep.assert_called_with(1.0)
-
-@pytest.mark.asyncio
-async def test_async_gather_with_timeout_custom_batching(data_fetch_manager):
-    """Test that tasks are executed with custom batch size and cooldown."""
-    tasks = {f"task_{i}": AsyncMock(return_value={"id": i})() for i in range(12)}
-
-    # batch_size=10, so 12 tasks = 2 batches (10, 2)
-    # Expected sleeps: 1 (one after batch 1)
-
-    with patch("asyncio.sleep", new_callable=AsyncMock) as mock_sleep:
-        from custom_components.meraki_ha.core.coordinator_helpers.batch_utils import (
-            async_gather_with_timeout,
-        )
-        results = await async_gather_with_timeout(
-            tasks, label="Test Custom Batching", batch_size=10, cooldown=0.5
-        )
-
-        assert len(results) == 12
-        assert mock_sleep.call_count == 1
-        mock_sleep.assert_called_with(0.5)
+        mock_sleep.assert_called_with(1)
