@@ -49,7 +49,9 @@ async def test_async_gather_with_timeout_sanitization(data_fetch_manager):
     with patch(
         "custom_components.meraki_ha.core.coordinator_helpers.batch_utils._LOGGER"
     ) as mock_logger:
-        from custom_components.meraki_ha.core.coordinator_helpers.batch_utils import async_gather_with_timeout
+        from custom_components.meraki_ha.core.coordinator_helpers.batch_utils import (
+            async_gather_with_timeout,
+        )
         results = await async_gather_with_timeout(
             tasks, label="Test Batch"
         )

@@ -189,7 +189,7 @@ class MerakiMtSensor(MerakiSensor, RestoreSensor):
         if self._device.serial and (device := self.coordinator.get_device(self._device.serial)):
             self._device = device
             self._update_native_value()
-            
+
         # Ensure we call the parent callback to write the state and handle upstream logic
         super()._handle_coordinator_update()
 

@@ -5,8 +5,6 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-from homeassistant.helpers.update_coordinator import UpdateFailed
-
 from .base import MerakiBaseCoordinator
 
 _LOGGER = logging.getLogger(__name__)
