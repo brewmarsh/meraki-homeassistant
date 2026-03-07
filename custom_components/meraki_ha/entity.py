@@ -44,7 +44,7 @@ class MerakiEntity(CoordinatorEntity[T], Generic[T]):
         An entity is available if its coordinator has data and the specific
         device or network data exists in the centralized payload.
         """
-        if not self.coordinator.data:
+        if not isinstance(self.coordinator.data, dict):
             return False
 
         identifier = self._get_identifier()
@@ -53,51 +53,56 @@ class MerakiEntity(CoordinatorEntity[T], Generic[T]):
         if not identifier:
             return self.coordinator.last_update_success
 
-        # Check O(1) maps if they exist on the coordinator
-        if hasattr(self.coordinator, "devices_by_serial") and self.coordinator.devices_by_serial:
-            if identifier in self.coordinator.devices_by_serial:
-                return True
+        data = self.coordinator.data.get(identifier)
+        if not data:
+            return False
 
-        if hasattr(self.coordinator, "networks_by_id") and self.coordinator.networks_by_id:
-            if identifier in self.coordinator.networks_by_id:
-                return True
+        # Status-based availability for devices
+        if hasattr(data, "status"):
+            return data.status in ["online", "alerting"]
 
-        return identifier in self.coordinator.data
+        return True
 
     @callback
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the centralized coordinator."""
-        if not self.coordinator.data:
+        if not isinstance(self.coordinator.data, dict):
             self._attr_available = False
         else:
             identifier = self._get_identifier()
+            data = self.coordinator.data.get(identifier) if identifier else None
 
-            if identifier and (data := self.coordinator.data.get(identifier)):
-                self._attr_available = True
+            if identifier and data:
+                # Device status check for availability
+                if hasattr(data, "status"):
+                    self._attr_available = data.status in ["online", "alerting"]
+                else:
+                    self._attr_available = True
                 
-                # Proactively call the specific update method for the platform
-                if hasattr(self, "_update_state_from_data"):
-                    self._update_state_from_data(data)
-                elif hasattr(self, "_update_sensor_data"):
-                    self._update_sensor_data()
-                elif hasattr(self, "_update_native_value"):
-                    # For MerakiMtSensor and similar platform implementations
+                if self._attr_available:
+                    # Update local device reference if applicable
                     if hasattr(self, "_device") and hasattr(data, "serial"):
                         self._device = data
-                    self._update_native_value()
+
+                    # Proactively call the specific update method for the platform
+                    if hasattr(self, "_update_state_from_data"):
+                        self._update_state_from_data(data)
+                    elif hasattr(self, "_update_sensor_data"):
+                        self._update_sensor_data()
+                    elif hasattr(self, "_update_native_value"):
+                        self._update_native_value()
             else:
                 # If identifier exists but data is missing from payload, mark unavailable
                 if identifier:
-                    self._attr_available = identifier in self.coordinator.data
-                    if not self._attr_available:
-                        _LOGGER.debug(
-                            "Entity %s could not find %s in coordinator data. Available keys: %s",
-                            self.entity_id,
-                            identifier,
-                            list(self.coordinator.data.keys()),
-                        )
+                    self._attr_available = False
+                    _LOGGER.debug(
+                        "Entity %s could not find %s in coordinator data. Available keys: %s",
+                        self.entity_id,
+                        identifier,
+                        list(self.coordinator.data.keys()),
+                    )
                 else:
-                    self._attr_available = True
+                    self._attr_available = self.coordinator.last_update_success
 
         self.async_write_ha_state()
 
