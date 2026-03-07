@@ -4,6 +4,7 @@ import { HomeAssistant } from './types/ha';
 import './meraki-content-filter-card';
 import './meraki-wifi-qr-card';
 import './meraki-network-vitals-card';
+import './meraki-guest-access-card-editor';
 import { Network, SSID } from './types/meraki';
 import { WsCommand } from './types/websocket';
 import { safeCallWS } from './utils/api';
@@ -40,6 +41,10 @@ export class MerakiGuestAccessCard extends LitElement {
       throw new Error('Invalid configuration');
     }
     this._config = config;
+  }
+
+  public static async getConfigElement() {
+    return document.createElement("meraki-guest-access-card-editor");
   }
 
   public static getStubConfig(): Record<string, unknown> {
