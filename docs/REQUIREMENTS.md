@@ -221,7 +221,7 @@
   - [ ] **Dead Node Auto-Heal:** Cycling PoE power if an HA entity goes unavailable.
   - [ ] **MT Sensor Threshold Alerts:** Critical notifications for temp/water.
 - [ ] **Custom Lovelace Cards (Dashboards):**
-  - [ ] **Event Host QR Generator:** Generating IPSK and rendering a QR code.
+  - [x] **Event Host QR Generator:** Generating IPSK and rendering a QR code (`meraki-wifi-qr-card`).
   - [ ] **Client Locator Glance Card:** Search for a client to see AP and RSSI.
   - [x] **Meraki Network Vitals Card:** Compact horizontal header for network health (Gateways, Switches, APs) and real-time WAN throughput.
   - [ ] **Smart PoE Port Toggle:** List ports, show power draw, toggle PoE state.
