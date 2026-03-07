@@ -29,9 +29,12 @@ This document verifies the state of the codebase against the requirements for th
   - **[VERIFIED]** All helper functions are strictly typed and under 50 lines of code.
 
 - **R7: Visual Card Editors:**
-  - **[IN PROGRESS]** Implementation of visual configuration editors for Meraki custom cards to replace YAML-only editing and improve user experience with native Home Assistant entity pickers.
+  - **[VERIFIED]** Implementation of visual configuration editors for Meraki custom cards to replace YAML-only editing and improve user experience with native Home Assistant entity pickers. Fixed a bug where entity pickers were not displaying due to incorrect Lit property bindings.
 
 - **R8: Native Loading States:**
   - **[VERIFIED]** Implementation of native loading states in the `meraki-guest-access-card` to provide visual feedback during asynchronous data fetching.
 
-This verification confirms the need for the planned refactoring steps. The new requirements (R4, R5, R6, R7, R8) are now considered part of the standard for this integration.
+- **R9: Correct Dropdown Selection:**
+  - **[VERIFIED]** All `<ha-select>` components must use `<mwc-list-item>` as children with attribute binding (`value="${...}"`) instead of property binding (`.value="${...}"`) to ensure correct event registration and selection in the Home Assistant UI.
+
+This verification confirms the need for the planned refactoring steps. The new requirements (R4, R5, R6, R7, R8, R9) are now considered part of the standard for this integration.

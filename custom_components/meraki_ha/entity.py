@@ -23,13 +23,11 @@ class MerakiEntity(CoordinatorEntity[T], Generic[T]):
     def available(self) -> bool:
         """Return if entity is available.
 
-        An entity is unavailable if its coordinator has never successfully fetched data
-        or if the background fetch is still initializing (data is empty/None).
+        An entity is available if its coordinator has data. We allow availability
+        if data is present (even if seeded) to prevent 'unavailable' states during
+        initial background synchronization of specialized coordinators.
         """
-        # A coordinator's data is initialized to {} or [] by default, but it's
-        # only "ready" after the first refresh or if explicitly seeded.
-        # We check last_update_success and if data is present.
-        return self.coordinator.last_update_success and bool(self.coordinator.data)
+        return bool(self.coordinator.data)
 
     @property
     def unique_id(self) -> str | None:

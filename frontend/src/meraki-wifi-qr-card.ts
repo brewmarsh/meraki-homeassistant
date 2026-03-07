@@ -1,5 +1,6 @@
 import { LitElement, html, css, PropertyValues } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
+import '@material/mwc-list/mwc-list-item';
 import { HomeAssistant } from './types/ha';
 import { Network, SSID } from './types/meraki';
 import { WsCommand } from './types/websocket';
@@ -112,39 +113,39 @@ export class MerakiWifiQrCardEditor extends LitElement {
       <div class="card-config">
         <ha-select
           label="Network (Optional - to populate SSID)"
-          .value="${this._selectedNetwork}"
-          @closed="${this._handleNetworkChange}"
+          .value=${this._selectedNetwork}
+          @closed=${this._handleNetworkChange}
           fixedMenuPosition
           naturalMenuWidth
         >
-          <ha-list-item value="">Select a network</ha-list-item>
-          ${(this._networks || []).map(n => html`<ha-list-item .value="${n.id}">${n.name}</ha-list-item>`)}
+          <mwc-list-item value="">Select a network</mwc-list-item>
+          ${(this._networks || []).map(n => html`<mwc-list-item value="${n.id}">${n.name}</mwc-list-item>`)}
         </ha-select>
 
         <ha-select
           label="SSID"
-          .value="${this._config?.ssid || ''}"
-          .disabled="${!this._selectedNetwork}"
-          @closed="${this._handleSSIDChange}"
+          .value=${this._config?.ssid || ''}
+          .disabled=${!this._selectedNetwork}
+          @closed=${this._handleSSIDChange}
           fixedMenuPosition
           naturalMenuWidth
         >
-          <ha-list-item value="">Select an SSID</ha-list-item>
-          ${filteredSsids.map(s => html`<ha-list-item .value="${s.name}">${s.name}</ha-list-item>`)}
+          <mwc-list-item value="">Select an SSID</mwc-list-item>
+          ${filteredSsids.map(s => html`<mwc-list-item value="${s.name}">${s.name}</mwc-list-item>`)}
         </ha-select>
 
         <ha-textfield
           label="Password or Entity ID"
-          .value="${this._config.password || ''}"
-          .configValue="${'password'}"
-          @input="${this._valueChanged}"
+          .value=${this._config.password || ''}
+          .configValue=${'password'}
+          @input=${this._valueChanged}
         ></ha-textfield>
 
         <ha-textfield
           label="Card Title"
-          .value="${this._config.name || ''}"
-          .configValue="${'name'}"
-          @input="${this._valueChanged}"
+          .value=${this._config.name || ''}
+          .configValue=${'name'}
+          @input=${this._valueChanged}
         ></ha-textfield>
       </div>
     `;
@@ -311,6 +312,10 @@ export class MerakiWifiQrCard extends LitElement {
       font-family: monospace;
     }
   `;
+}
+
+if (!customElements.get("meraki-wifi-qr-card")) {
+  customElements.define("meraki-wifi-qr-card", MerakiWifiQrCard);
 }
 
 // Register the card in the Home Assistant Lovelace UI picker

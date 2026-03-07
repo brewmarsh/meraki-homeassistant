@@ -156,9 +156,10 @@ class UpdateProcessor:
         This method orchestrates all data normalization and registry updates.
         """
         # Ensure registry entries exist
-        async_ensure_network_devices_exist(
-            self.hass, self.config_entry, data.get("networks", [])
-        )
+        networks = data.get("networks", [])
+        if asyncio.iscoroutine(networks):
+            networks = await networks
+        async_ensure_network_devices_exist(self.hass, self.config_entry, networks)
 
         # Apply filters
         ignored_ids = self.config_entry.options.get(
@@ -172,24 +173,39 @@ class UpdateProcessor:
             cleanup_whitespace(previous_data)
 
         # Normalize data and update registry
-        devices, devices_by_serial = self._normalize_devices(data)
-        _, networks_by_id = self._normalize_networks(data)
-        ssids_by_network_and_number = self._normalize_ssids(data)
+        devices, devices_by_serial = await self._normalize_devices(data)
+        _, networks_by_id = await self._normalize_networks(data)
+        ssids_by_network_and_number = await self._normalize_ssids(data)
 
         update_device_registry_info(self.hass, devices)
 
         # Return lookup tables
+        data.update(
+            {
+                "devices": devices,
+                "networks": list(networks_by_id.values()),
+                "devices_by_serial": devices_by_serial,
+                "networks_by_id": networks_by_id,
+                "ssids_by_network_and_number": ssids_by_network_and_number,
+            }
+        )
+
         return {
+            "devices": devices,
+            "networks": list(networks_by_id.values()),
             "devices_by_serial": devices_by_serial,
             "networks_by_id": networks_by_id,
             "ssids_by_network_and_number": ssids_by_network_and_number,
         }
 
-    def _normalize_devices(
+    async def _normalize_devices(
         self, data: dict[str, Any]
     ) -> tuple[list[MerakiDevice], dict[str, MerakiDevice]]:
         """Normalize device data and build lookup table."""
         devices_raw = data.get("devices", [])
+        if asyncio.iscoroutine(devices_raw):
+            devices_raw = await devices_raw
+
         devices = [
             MerakiDevice.from_dict(d) if isinstance(d, dict) else d for d in devices_raw
         ]
@@ -197,11 +213,14 @@ class UpdateProcessor:
         data["devices"] = devices
         return devices, devices_by_serial
 
-    def _normalize_networks(
+    async def _normalize_networks(
         self, data: dict[str, Any]
     ) -> tuple[list[MerakiNetwork], dict[str, MerakiNetwork]]:
         """Normalize network data and build lookup table."""
         networks_raw = data.get("networks", [])
+        if asyncio.iscoroutine(networks_raw):
+            networks_raw = await networks_raw
+
         networks = [
             MerakiNetwork.from_dict(n) if isinstance(n, dict) else n
             for n in networks_raw
@@ -210,13 +229,17 @@ class UpdateProcessor:
         data["networks"] = networks
         return networks, networks_by_id
 
-    def _normalize_ssids(
+    async def _normalize_ssids(
         self, data: dict[str, Any]
     ) -> dict[tuple[str, int], dict[str, Any]]:
         """Normalize SSID data and build lookup table."""
+        ssids_raw = data.get("ssids", [])
+        if asyncio.iscoroutine(ssids_raw):
+            ssids_raw = await ssids_raw
+
         return {
             (cast(str, s.get("networkId")), int(cast(int, s.get("number")))): s
-            for s in data.get("ssids", [])
+            for s in ssids_raw
             if s.get("networkId") and s.get("number") is not None
         }
 

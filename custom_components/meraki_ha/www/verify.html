@@ -1,0 +1,45 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Meraki Card Verification</title>
+    <script type="module" src="meraki-card.js"></script>
+    <style>
+        body {
+            background-color: #f0f0f0;
+            padding: 20px;
+            font-family: sans-serif;
+        }
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <meraki-guest-access-card id="guest-card"></meraki-guest-access-card>
+        <meraki-wifi-qr-card id="qr-card"></meraki-wifi-qr-card>
+    </div>
+    <script>
+        const hass = {
+            states: {
+                "sensor.test_ssid": { state: "Guest-Network", attributes: { friendly_name: "Test SSID" } },
+                "sensor.test_password": { state: "secret123", attributes: { friendly_name: "Test Password" } }
+            },
+            user: { name: "Jules" },
+            callWS: async (msg) => {
+                if (msg.type === 'config_entries/get') return [{ entry_id: 'test_entry' }];
+                return [];
+            },
+            callService: async () => {}
+        };
+
+        document.getElementById('guest-card').hass = hass;
+        document.getElementById('guest-card').setConfig({ type: 'meraki-guest-access-card', name: 'Guest Access' });
+
+        document.getElementById('qr-card').hass = hass;
+        document.getElementById('qr-card').setConfig({ type: 'meraki-wifi-qr-card', ssid: 'sensor.test_ssid', password: 'sensor.test_password', name: 'WiFi QR' });
+    </script>
+</body>
+</html>

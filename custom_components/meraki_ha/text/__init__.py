@@ -1,5 +1,6 @@
 """Text platform for Meraki."""
 
+import asyncio
 import logging
 
 from homeassistant.config_entries import ConfigEntry
@@ -26,9 +27,13 @@ async def async_setup_entry(
     meraki_client = entry_data["meraki_client"]
 
     if coordinator.data:
+        ssids = coordinator.data.get("ssids", [])
+        if asyncio.iscoroutine(ssids):
+            ssids = await ssids
+
         text_entities = [
             MerakiSSIDNameText(coordinator, meraki_client, config_entry, ssid)
-            for ssid in coordinator.data.get("ssids", [])
+            for ssid in ssids
         ]
 
         if text_entities:
