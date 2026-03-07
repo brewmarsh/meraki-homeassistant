@@ -63,7 +63,9 @@ async def test_async_gather_with_timeout_graceful_traffic_analysis(
     with patch(
         "custom_components.meraki_ha.core.coordinator_helpers.batch_utils._LOGGER"
     ) as mock_logger:
-        from custom_components.meraki_ha.core.coordinator_helpers.batch_utils import async_gather_with_timeout
+        from custom_components.meraki_ha.core.coordinator_helpers.batch_utils import (
+            async_gather_with_timeout,
+        )
         results = await async_gather_with_timeout(
             tasks, label="Test Graceful"
         )
@@ -93,7 +95,9 @@ async def test_async_gather_with_timeout_graceful_vlans(data_fetch_manager):
     with patch(
         "custom_components.meraki_ha.core.coordinator_helpers.batch_utils._LOGGER"
     ) as mock_logger:
-        from custom_components.meraki_ha.core.coordinator_helpers.batch_utils import async_gather_with_timeout
+        from custom_components.meraki_ha.core.coordinator_helpers.batch_utils import (
+            async_gather_with_timeout,
+        )
         results = await async_gather_with_timeout(
             tasks, label="Test Graceful"
         )
@@ -125,7 +129,9 @@ async def test_async_gather_with_timeout_handles_wrapped_meraki_errors(
     with patch(
         "custom_components.meraki_ha.core.coordinator_helpers.batch_utils._LOGGER"
     ) as mock_logger:
-        from custom_components.meraki_ha.core.coordinator_helpers.batch_utils import async_gather_with_timeout
+        from custom_components.meraki_ha.core.coordinator_helpers.batch_utils import (
+            async_gather_with_timeout,
+        )
         results = await async_gather_with_timeout(
             tasks, label="Test Wrapped"
         )
@@ -154,7 +160,9 @@ async def test_async_gather_with_timeout_true_failures_still_log_error(
     ) as mock_logger:
         # result will be None because _handle_fetch_exception returns None
         # and logs error
-        from custom_components.meraki_ha.core.coordinator_helpers.batch_utils import async_gather_with_timeout
+        from custom_components.meraki_ha.core.coordinator_helpers.batch_utils import (
+            async_gather_with_timeout,
+        )
         results = await async_gather_with_timeout(
             tasks, label="Test Failure"
         )

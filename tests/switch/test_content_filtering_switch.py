@@ -3,8 +3,8 @@
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-
 from homeassistant.const import EntityCategory
+
 from custom_components.meraki_ha.switch.content_filtering import (
     MerakiContentFilteringSwitch,
 )

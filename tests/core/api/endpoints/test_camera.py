@@ -1,8 +1,11 @@
 """Tests for the Camera Endpoints."""
 
 from unittest.mock import AsyncMock, MagicMock
+
 import pytest
+
 from custom_components.meraki_ha.core.api.endpoints.camera import CameraEndpoints
+
 
 @pytest.fixture
 def mock_client():

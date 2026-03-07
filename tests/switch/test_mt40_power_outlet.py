@@ -5,6 +5,8 @@ from typing import Any
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
+from homeassistant.config_entries import ConfigEntry
+from homeassistant.core import HomeAssistant
 
 # Assuming these imports exist in the actual component structure.
 # If these modules (client.py, coordinator.py) do not expose MerakiApiClientProtocol
@@ -12,8 +14,6 @@ import pytest
 # would be the appropriate fallback.
 from custom_components.meraki_ha.switch.mt40_power_outlet import MerakiMt40PowerOutlet
 from custom_components.meraki_ha.types import MerakiDevice
-from homeassistant.config_entries import ConfigEntry
-from homeassistant.core import HomeAssistant
 
 
 @pytest.fixture

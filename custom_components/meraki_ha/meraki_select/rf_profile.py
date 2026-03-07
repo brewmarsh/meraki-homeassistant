@@ -1,5 +1,7 @@
 """Select entity for controlling Meraki RF Profiles."""
 
+from __future__ import annotations
+
 import logging
 from typing import Any
 
@@ -9,13 +11,11 @@ from homeassistant.core import callback
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity import EntityCategory
-from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from ..const import DOMAIN
 from ..coordinators import MerakiMainCoordinator
 from ..core.api import MerakiApiClientProtocol
 from ..entity import MerakiEntity
-from ..helpers.device_info_helpers import resolve_device_info
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -51,7 +51,7 @@ class MerakiRFProfileSelect(MerakiEntity[MerakiMainCoordinator], SelectEntity):
 
         network = coordinator.get_network(self._network_id)
         network_name = network.name if network else f"Network {self._network_id}"
-        self._attr_name = f"{network_name} SSID {self._ssid_name} RF profile"
+        self._attr_name = f"RF profile"
         self._attr_unique_id = f"{self._network_id}ssid{self._ssid_number}_rf_profile"
         self._attr_options: list[str] = []
         self._update_internal_state()
@@ -68,14 +68,24 @@ class MerakiRFProfileSelect(MerakiEntity[MerakiMainCoordinator], SelectEntity):
     @callback
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
-        if self.coordinator.data is None:
-            return
-        self._update_internal_state()
+        # Use centralized data extraction from beta branch logic
+        if not self.coordinator.data:
+            self._attr_available = False
+        else:
+            # Identifier based on network and SSID number
+            identifier = f"{self._network_id}ssid{self._ssid_number}"
+            
+            # Check if this specific network/SSID exists in the master dict
+            if self.coordinator.data.get("networks", {}).get(self._network_id):
+                self._attr_available = True
+                self._update_internal_state()
+            else:
+                self._attr_available = False
+                
         self.async_write_ha_state()
 
     def _update_internal_state(self) -> None:
         """Update the internal state of the select entity."""
-        # ### Data Mapping
         options = ["None"]
         current_option = "None"
 
@@ -89,15 +99,13 @@ class MerakiRFProfileSelect(MerakiEntity[MerakiMainCoordinator], SelectEntity):
             }
             options.extend(sorted(profile_map.keys()))
 
-            # Get current RF profile for this SSID
-            # We need to find the SSID in the latest coordinator data
+            # Find the SSID in the latest coordinator data
             current_ssid = self.coordinator.get_ssid(
                 self._network_id, int(self._ssid_number)
             )
             if current_ssid:
                 current_profile_id = current_ssid.get("rfProfileId")
                 if current_profile_id:
-                    # Find name from ID
                     for name, prof_id in profile_map.items():
                         if prof_id == current_profile_id:
                             current_option = name
@@ -108,7 +116,6 @@ class MerakiRFProfileSelect(MerakiEntity[MerakiMainCoordinator], SelectEntity):
 
     async def async_select_option(self, option: str) -> None:
         """Change the selected option."""
-        # ### Data Mapping
         rf_profiles = self.coordinator.data.get("rf_profiles", {}).get(
             self._network_id, []
         )
@@ -119,7 +126,6 @@ class MerakiRFProfileSelect(MerakiEntity[MerakiMainCoordinator], SelectEntity):
             )
 
         try:
-            # Preparing update call
             update_params = {"rfProfileId": profile_id}
             await self._meraki_client.wireless.update_network_wireless_ssid(
                 network_id=self._network_id,

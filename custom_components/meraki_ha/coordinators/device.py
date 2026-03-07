@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import logging
-from datetime import datetime, timedelta
+from datetime import timedelta
 from typing import Any
 
 from homeassistant.helpers.update_coordinator import UpdateFailed
@@ -42,7 +42,8 @@ class MerakiDeviceCoordinator(MerakiBaseCoordinator[dict[str, Any]]):
             updated = self.polling_manager.record_success()
             self.apply_polling_update(updated)
 
-            return data
+            # Return a merged dictionary keyed by serial/ID for efficient extraction
+            return {**self.devices_by_serial, **self.networks_by_id}
         except Exception as err:
             _LOGGER.error("Error fetching Meraki device data: %s", err)
 
@@ -53,5 +54,6 @@ class MerakiDeviceCoordinator(MerakiBaseCoordinator[dict[str, Any]]):
             if "429" in str(err):
                 raise UpdateFailed(f"Meraki API rate limit: {err}") from err
 
-            data, _ = self.update_processor.process_failure(err, self.last_successful_data)
-            return data
+            # Fallback to last successful data if update fails
+            self.update_processor.process_failure(err, self.last_successful_data)
+            return {**self.devices_by_serial, **self.networks_by_id}

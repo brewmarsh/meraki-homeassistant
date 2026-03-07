@@ -7,7 +7,7 @@ from __future__ import annotations
 
 # Re-export from the new centralized location
 from ..const_device import (  # noqa: F401
-    DEVICE_CAPABILITIES,
     DEFAULT_CAPS,
+    DEVICE_CAPABILITIES,
     get_ssid_identifier,
 )

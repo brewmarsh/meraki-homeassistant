@@ -18,18 +18,18 @@ def replace_content(content):
     content = content.replace('MerakiApiClientProtocol(', 'create_api_client(')
     return content
 
-for root, dirs, files in os.walk(root_dir):
+for root, _dirs, files in os.walk(root_dir):
     for file in files:
         if file.endswith('.py'):
             file_path = os.path.join(root, file)
-            with open(file_path, 'r', encoding='utf-8') as f:
+            with open(file_path, encoding='utf-8') as f:
                 try:
                     content = f.read()
                 except UnicodeDecodeError:
                     continue
-            
+
             new_content = replace_content(content)
-            
+
             if new_content != content:
                 with open(file_path, 'w', encoding='utf-8') as f:
                     f.write(new_content)

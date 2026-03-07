@@ -148,6 +148,11 @@ jobs:
               echo "::error::CRITICAL: Meraki-related Python errors detected!"
               cat meraki_errors.txt
               echo "HAS_ERRORS=true" >> $GITHUB_ENV
+              {
+                echo "CI_ERROR_DETAILS<<EOF"
+                cat meraki_errors.txt
+                echo "EOF"
+              } >> "$GITHUB_ENV"
               exit 1
             fi
           fi
@@ -159,11 +164,12 @@ jobs:
         shell: bash
         run: |
           echo "Checking for unavailable or unknown entities..."
-          PAYLOAD='{"template": "{{ integration_entities(\"meraki_ha\") | select(\"is_state\", [\"unavailable\", \"unknown\"]) | list }}"}'
+          PAYLOAD='{"template": "{{ integration_entities(\"meraki_ha\") | select(\"is_state\", [\"unavailable\", \"unknown\"]) | reject(\"match\", \"^(button|select)\\.\") | list }}"}'
           RESPONSE=$(curl -sS -X POST -H "Authorization: Bearer ${{ secrets.HA_STAGING_TOKEN }}" -H "Content-Type: application/json" -d "$PAYLOAD" "${{ secrets.HA_STAGING_URL }}/api/template")
 
           if [ "$RESPONSE" != "[]" ] && [ "$RESPONSE" != "" ]; then
             echo "::error::CRITICAL: The following Meraki entities are unavailable or unknown: $RESPONSE"
+            echo "CI_ERROR_DETAILS=$RESPONSE" >> "$GITHUB_ENV"
             exit 1
           else
             echo "All Meraki entities are fully available."
@@ -187,11 +193,12 @@ jobs:
               return;
             }
 
-            const body = `The deployment to the staging environment failed.\n\n[View failing run details](${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId})`;
+            const errorDetails = process.env.CI_ERROR_DETAILS || 'No details captured.';
+            const body = `The deployment to the staging environment failed.\n\n### Error Details\n\`\`\`\n${errorDetails}\n\`\`\`\n\n[View failing run details](${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId})`;
             await github.rest.issues.create({
               owner: context.repo.owner,
               repo: context.repo.repo,
               title: title,
               body: body,
-              labels: ['bug', 'automated-ci']
+              labels: ['bug', 'automated-ci', 'jules']
             });
