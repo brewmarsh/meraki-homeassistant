@@ -206,6 +206,7 @@
   - [x] **IPSK WebSocket API:** Implement a strict WebSocket API contract for IPSK management with camelCase payload keys and centralized command definitions.
   - [x] **IPSK Native Service Action:** Expose IPSK creation functionality as a standard Home Assistant Service Action, allowing users to create timed guest keys without the custom frontend panel.
   - [x] **Guest Wi-Fi Blueprint:** Provide a plug-and-play automation template for creating temporary guest keys via the `meraki_ha.create_guest_key` action.
+  - [x] **Dual-WAN Failover Blueprint:** Provide an automation template for critical alerts when the primary internet connection fails on Meraki MX appliances.
   - [x] **IPSK Native UX Overhaul:** Rebuilt the TimedAccess.tsx component to provide a native Home Assistant experience using `ha-textfield`, `ha-select`, `ha-button`, and `ha-alert` web components.
   - [ ] **Enhanced Home Security & Awareness (MV Cameras & MT Sensors):**
   - [ ] **Camera Motion Events:** Create `binary_sensor` entities for camera motion events.
