@@ -5,7 +5,6 @@ from __future__ import annotations
 from homeassistant.core import HomeAssistant
 
 from .client import MerakiAPIClient
-from .protocol import MerakiApiClientProtocol as MerakiApiClientProtocolType
 from .endpoints.appliance import ApplianceEndpoints
 from .endpoints.camera import CameraEndpoints
 from .endpoints.devices import DevicesEndpoints
@@ -14,6 +13,7 @@ from .endpoints.organization import OrganizationEndpoints
 from .endpoints.sensor import SensorEndpoints
 from .endpoints.switch import SwitchEndpoints
 from .endpoints.wireless import WirelessEndpoints
+from .protocol import MerakiApiClientProtocol as MerakiApiClientProtocolType
 
 
 def create_api_client(

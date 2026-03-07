@@ -4,7 +4,6 @@ import asyncio
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-from homeassistant.helpers.update_coordinator import UpdateFailed
 
 from custom_components.meraki_ha.core.coordinator_helpers.data_fetcher import (
     DataFetchManager,
@@ -107,7 +106,6 @@ async def test_get_all_data_detailed_timeout(data_fetch_manager, mock_client):
 async def test_get_all_data_client_timeout(data_fetch_manager, mock_client):
     """Test that get_all_data logs error and raises TimeoutError on client timeout."""
     # Provide at least one network so client fetching is attempted
-    from custom_components.meraki_ha.core.models.network import MerakiNetwork
     net = MerakiNetwork(id="n1", product_types=["appliance"])
     data_fetch_manager._async_fetch_batch_data = AsyncMock(
         return_value={
