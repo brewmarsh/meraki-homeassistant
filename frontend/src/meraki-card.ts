@@ -42,6 +42,10 @@ export class MerakiGuestAccessCard extends LitElement {
     this._config = config;
   }
 
+  public static async getConfigElement() {
+    return document.createElement("meraki-guest-access-card-editor");
+  }
+
   public static getStubConfig(): Record<string, unknown> {
     return {
       name: 'Meraki Guest Access',
@@ -339,6 +343,63 @@ export class MerakiGuestAccessCard extends LitElement {
     }
     .p-8 {
       padding: 32px;
+    }
+  `;
+}
+
+@customElement('meraki-guest-access-card-editor')
+export class MerakiGuestAccessCardEditor extends LitElement {
+  @property({ attribute: false }) public hass?: HomeAssistant;
+  @state() private _config?: Config;
+
+  public setConfig(config: Config): void {
+    this._config = config;
+  }
+
+  protected render() {
+    if (!this.hass || !this._config) {
+      return html``;
+    }
+
+    return html`
+      <div class="card-config">
+        <ha-textfield
+          label="Name (Optional)"
+          .value="${this._config.name || ""}"
+          .configValue="${"name"}"
+          @input="${this._valueChanged}"
+          style="width: 100%;"
+        ></ha-textfield>
+      </div>
+    `;
+  }
+
+  private _valueChanged(ev: any): void {
+    if (!this._config || !this.hass) return;
+    const target = ev.target;
+    const configValue = target.value;
+    const configKey = target.configValue;
+
+    if (this._config[configKey as keyof Config] === configValue) return;
+
+    const newConfig = {
+      ...this._config,
+      [configKey]: configValue,
+    };
+
+    const event = new CustomEvent("config-changed", {
+      detail: { config: newConfig },
+      bubbles: true,
+      composed: true,
+    });
+    this.dispatchEvent(event);
+  }
+
+  static styles = css`
+    .card-config {
+      display: flex;
+      flex-direction: column;
+      padding: 8px 0;
     }
   `;
 }
