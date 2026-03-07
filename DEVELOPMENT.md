@@ -81,6 +81,8 @@ The staging deployment workflow (`deploy-staging.yaml`) runs automated smoke tes
 
 If any of these checks fail, the workflow will automatically create a GitHub Issue titled `🚨 Staging Smoke Test Failed` (if one doesn't already exist) to track the regression.
 
+> **Note:** The `deploy-staging.yaml` workflow requires explicit `permissions` for the `GITHUB_TOKEN` to function correctly. Specifically, it needs `contents: read` for repository access and `issues: write` to create failure reports.
+
 ## 4. Core Architectural Principles
 
 ### 4.1. The "Optimistic UI with Cooldown" Pattern
