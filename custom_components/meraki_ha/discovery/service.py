@@ -151,6 +151,7 @@ class DeviceDiscoveryService:
                 self._control_service,
                 self._network_control_service,
                 status_coordinator=self._device_coordinator,
+                sensor_coordinator=self._sensor_coordinator,
             )
 
             async for entity in handler.discover_entities():

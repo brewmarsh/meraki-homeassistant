@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import asyncio
+
 from homeassistant.components.binary_sensor import (
     BinarySensorDeviceClass,
     BinarySensorEntity,
@@ -28,12 +30,13 @@ async def async_setup_entry(
         "main_coordinator"
     ]
 
-    if coordinator.data.get("networks"):
+    networks = coordinator.data.get("networks")
+    if asyncio.iscoroutine(networks):
+        networks = await networks
+
+    if networks:
         async_add_entities(
-            [
-                MerakiNetworkStatus(coordinator, network)
-                for network in coordinator.data["networks"]
-            ]
+            [MerakiNetworkStatus(coordinator, network) for network in networks]
         )
 
 

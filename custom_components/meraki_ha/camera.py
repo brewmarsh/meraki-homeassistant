@@ -38,7 +38,7 @@ async def async_setup_entry(
     coordinator: MerakiCameraCoordinator = entry_data["camera_coordinator"]
     camera_service: CameraService = entry_data["camera_service"]
 
-    devices: list[MerakiDevice] = coordinator.data.get("devices", [])
+    devices: list[MerakiDevice] = list(coordinator.devices_by_serial.values())
     camera_entities: list[MerakiRTSPStreamCamera] = []
 
     for device in devices:

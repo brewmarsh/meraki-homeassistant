@@ -14,32 +14,33 @@ from homeassistant.components.button import ButtonEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.entity import DeviceInfo
 
+from ..entity import MerakiEntity
 from ..helpers.device_info_helpers import resolve_device_info
 
 if TYPE_CHECKING:
+    from ..coordinators import MerakiDeviceCoordinator
     from ..core.models.device import MerakiDevice
     from ..services.device_control_service import DeviceControlService
 
 _LOGGER = logging.getLogger(__name__)
 
 
-class MerakiRebootButton(ButtonEntity):
+class MerakiRebootButton(MerakiEntity, ButtonEntity):
     """A button to reboot a Meraki device."""
-
-    _attr_has_entity_name = True
 
     def __init__(
         self,
+        coordinator: MerakiDeviceCoordinator,
         control_service: DeviceControlService,
         device: MerakiDevice,
         config_entry: ConfigEntry,
     ) -> None:
         """Initialize the reboot button."""
+        super().__init__(coordinator)
         self._control_service = control_service
         self._device = device
         self._config_entry = config_entry
         self._attr_name = "Reboot"
-        self._attr_unique_id = f"{device.serial}-reboot"
 
     @property
     def device_info(self) -> DeviceInfo | None:

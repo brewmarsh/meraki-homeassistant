@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import logging
 from collections.abc import AsyncIterator
 from typing import TYPE_CHECKING
@@ -52,6 +53,9 @@ class NetworkHandler(BaseHandler):
     async def discover_entities(self) -> AsyncIterator[Entity]:
         """Discover network-level entities."""
         networks = self._get_networks()
+        if asyncio.iscoroutine(networks):
+            networks = await networks
+
         if not networks:
             _LOGGER.debug("No networks found to create network-level entities.")
             return

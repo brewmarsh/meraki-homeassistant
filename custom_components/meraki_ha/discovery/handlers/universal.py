@@ -131,10 +131,12 @@ class UniversalHandler(BaseDeviceHandler):
         network_control_service: NetworkControlService,
         capabilities: list[str] | None = None,
         status_coordinator: MerakiDeviceCoordinator | None = None,
+        sensor_coordinator: MerakiSensorCoordinator | None = None,
     ) -> None:
         """Initialize the UniversalHandler."""
         super().__init__(coordinator, device, config_entry)
         self._status_coordinator = status_coordinator
+        self._sensor_coordinator = sensor_coordinator
         self.capabilities = (
             capabilities
             if capabilities is not None
@@ -197,11 +199,18 @@ class UniversalHandler(BaseDeviceHandler):
 
     def _instantiate_single_entity(self, cap: str, provider: type) -> Entity:
         """Instantiate a single entity."""
+        # Use specialized coordinator if available for MT sensors
+        coordinator = self._coordinator
+        if self.device.model and self.device.model.startswith("MT"):
+            # Ensure we use the specialized sensor coordinator for MT devices if it's not the main one
+            if hasattr(self, "_sensor_coordinator") and self._sensor_coordinator:
+                coordinator = self._sensor_coordinator
+
         if cap == "status" and self._status_coordinator:
             return provider(self._status_coordinator, self.device, self._config_entry)
         if provider in SPECIAL_HANDLERS:
             return self._handle_special_entities(provider)
-        return self._handle_default_entity(cap, provider)
+        return self._handle_default_entity(cap, provider, coordinator)
 
     async def _handle_provider_class(self, provider: Any) -> AsyncIterator[Entity]:
         """Handle provider classes with get_entities method."""
@@ -224,7 +233,12 @@ class UniversalHandler(BaseDeviceHandler):
     def _handle_special_entities(self, provider: type) -> Entity:
         """Handle special entities with unique constructor signatures."""
         if provider == MerakiRebootButton:
-            return provider(self._control_service, self.device, self._config_entry)
+            return provider(
+                self._status_coordinator or self._coordinator,
+                self._control_service,
+                self.device,
+                self._config_entry,
+            )
 
         # MT15 Refresh or MT40 Power Outlet
         return provider(
@@ -234,9 +248,12 @@ class UniversalHandler(BaseDeviceHandler):
             self._coordinator.api,
         )
 
-    def _handle_default_entity(self, cap: str, provider: type) -> Entity:
+    def _handle_default_entity(
+        self, cap: str, provider: type, coordinator: Any = None
+    ) -> Entity:
         """Handle standard entity instantiation with fallback."""
+        coord = coordinator or self._coordinator
         try:
-            return provider(self._coordinator, self.device, self._config_entry)
+            return provider(coord, self.device, self._config_entry)
         except TypeError:
-            return provider(self._coordinator, self.device)
+            return provider(coord, self.device)
