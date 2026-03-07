@@ -8,13 +8,13 @@ from typing import TYPE_CHECKING, Any
 
 from ...button.device.mt15_refresh_data import MerakiMt15RefreshDataButton
 from ...button.reboot import MerakiRebootButton
-from custom_components.meraki_ha.const.integration import (
+from custom_components.meraki_ha.const.config import (
     CONF_ENABLE_CAMERA_ENTITIES,
     CONF_ENABLE_DEVICE_SENSORS,
     CONF_ENABLE_DEVICE_STATUS,
     CONF_ENABLE_PORT_SENSORS
 )
-from custom_components.meraki_ha.const.integration import DEFAULT_CAPS, DEVICE_CAPABILITIES
+from custom_components.meraki_ha.const.device import DEFAULT_CAPS, DEVICE_CAPABILITIES
 
 from...sensor.device.device_status import MerakiDeviceStatusSensor
 from ...sensor.device.poe_usage import MerakiPoeUsageSensor

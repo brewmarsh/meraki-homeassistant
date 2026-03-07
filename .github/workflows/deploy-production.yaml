@@ -212,6 +212,32 @@ jobs:
             fi
           fi
 
+      - name: Capture HA Logs on Failure (Production)
+        if: failure()
+        shell: bash
+        run: |
+          echo "Capturing Home Assistant logs for production..."
+          # Since this is production, we might want to check the actual log file if available
+          # Similar to staging, but assuming HA_CONFIG_DIR is defined for prod.
+          if [ -f "${{ env.HA_CONFIG_DIR }}/home-assistant.log" ]; then
+            {
+              echo "ERROR_LOGS<<EOF"
+              tail -n 50 "${{ env.HA_CONFIG_DIR }}/home-assistant.log"
+              echo "EOF"
+            } >> "$GITHUB_ENV"
+          else
+            # Fallback to the full_ha_log.txt we just downloaded if it exists
+            if [ -f "full_ha_log.txt" ]; then
+              {
+                echo "ERROR_LOGS<<EOF"
+                tail -n 50 full_ha_log.txt
+                echo "EOF"
+              } >> "$GITHUB_ENV"
+            else
+              echo "ERROR_LOGS=Log file not found." >> "$GITHUB_ENV"
+            fi
+          fi
+
       - name: Upload artifacts on failure
         if: failure()
         uses: actions/upload-artifact@v4
@@ -240,7 +266,8 @@ jobs:
               const title = '🚨 Production Deployment Failed';
               const failedStep = process.env.FAILED_STEP_NAME || 'Unknown Step';
               let errorDetails = process.env.CI_ERROR_DETAILS || 'No details captured.';
-              const body = `### ❌ Failed Step: \`${failedStep}\`\n\n### 📋 Error Details\n\`\`\`text\n${errorDetails}\n\`\`\``;
+              const errorLogs = process.env.ERROR_LOGS ? `### 📋 Home Assistant Logs\n\`\`\`text\n${process.env.ERROR_LOGS}\n\`\`\`\n\n` : '';
+              const body = `### ❌ Failed Step: \`${failedStep}\`\n\n### 📋 Error Details\n\`\`\`text\n${errorDetails}\n\`\`\`\n\n${errorLogs}`;
 
               await github.rest.issues.create({
                 owner: context.repo.owner,

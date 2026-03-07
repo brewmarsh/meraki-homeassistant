@@ -5,7 +5,7 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING, Any
 
-from custom_components.meraki_ha.const.integration import CONF_ENABLE_PORT_SENSORS
+from custom_components.meraki_ha.const.config import CONF_ENABLE_PORT_SENSORS
 
 from ...binary_sensor.device.appliance_port import AppliancePortBinarySensor
 from ...sensor.device.appliance_port import MerakiAppliancePortSensor

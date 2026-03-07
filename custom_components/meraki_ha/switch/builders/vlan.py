@@ -3,7 +3,7 @@
 import logging
 from typing import Any
 
-from custom_components.meraki_ha.const.integration import CONF_ENABLE_VLAN_MANAGEMENT
+from custom_components.meraki_ha.const.config import CONF_ENABLE_VLAN_MANAGEMENT
 from homeassistant.components.switch import SwitchEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.entity_platform import AddEntitiesCallback

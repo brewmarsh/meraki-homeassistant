@@ -5,7 +5,7 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING, Any
 
-from custom_components.meraki_ha.const.integration import (
+from custom_components.meraki_ha.const.config import (
     CONF_ENABLE_CAMERA_ENTITIES,
     CONF_RTSP_STREAM_ENABLED,
 )
