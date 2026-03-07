@@ -16,6 +16,10 @@ export class MerakiWifiQrCard extends LitElement {
   @state() private _config?: Config;
   @state() private _qrSvg: string = '';
 
+  public static async getConfigElement() {
+    return document.createElement("meraki-wifi-qr-card-editor");
+  }
+
   public setConfig(config: Config): void {
     if (!config || !config.ssid) {
       throw new Error('Please define an SSID');
@@ -160,11 +164,83 @@ if (!customElements.get("meraki-wifi-qr-card")) {
   customElements.define("meraki-wifi-qr-card", MerakiWifiQrCard);
 }
 
+@customElement('meraki-wifi-qr-card-editor')
+export class MerakiWifiQrCardEditor extends LitElement {
+  @property({ attribute: false }) public hass?: HomeAssistant;
+  @state() private _config?: Config;
+
+  public setConfig(config: Config): void {
+    this._config = config;
+  }
+
+  protected render() {
+    if (!this.hass || !this._config) {
+      return html``;
+    }
+
+    return html`
+      <div class="card-config">
+        <ha-textfield
+          label="Name (Optional)"
+          .value="${this._config.name || ""}"
+          .configValue="${"name"}"
+          @input="${this._valueChanged}"
+          style="width: 100%; margin-bottom: 16px;"
+        ></ha-textfield>
+        <ha-textfield
+          label="SSID"
+          .value="${this._config.ssid || ""}"
+          .configValue="${"ssid"}"
+          @input="${this._valueChanged}"
+          style="width: 100%; margin-bottom: 16px;"
+        ></ha-textfield>
+        <ha-textfield
+          label="Password (Optional)"
+          .value="${this._config.password || ""}"
+          .configValue="${"password"}"
+          @input="${this._valueChanged}"
+          style="width: 100%; display: block;"
+        ></ha-textfield>
+      </div>
+    `;
+  }
+
+  private _valueChanged(ev: any): void {
+    if (!this._config || !this.hass) return;
+    const target = ev.target;
+    const configValue = target.value;
+    const configKey = target.configValue;
+
+    if (this._config[configKey as keyof Config] === configValue) return;
+
+    const newConfig = {
+      ...this._config,
+      [configKey]: configValue,
+    };
+
+    const event = new CustomEvent("config-changed", {
+      detail: { config: newConfig },
+      bubbles: true,
+      composed: true,
+    });
+    this.dispatchEvent(event);
+  }
+
+  static styles = css`
+    .card-config {
+      display: flex;
+      flex-direction: column;
+    }
+  `;
+}
+
 // Register the card in the Home Assistant Lovelace UI picker
 (window as any).customCards = (window as any).customCards || [];
-(window as any).customCards.push({
-  type: "meraki-wifi-qr-card",
-  name: "Meraki Wi-Fi QR Card",
-  description: "Display a scannable Wi-Fi QR code for guests.",
-  preview: true,
-});
+if (!(window as any).customCards.some((c: any) => c.type === 'meraki-wifi-qr-card')) {
+  (window as any).customCards.push({
+    type: "meraki-wifi-qr-card",
+    name: "Meraki Wi-Fi QR Card",
+    description: "Display a scannable Wi-Fi QR code for guests.",
+    preview: true,
+  });
+}
