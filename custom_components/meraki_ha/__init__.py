@@ -185,6 +185,21 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         "discovery_service": discovery_service,
     }
 
+    # Verify that the device coordinator has data before starting discovery.
+    # If devices_by_serial is empty, discovery will find 0 entities.
+    if not device_coordinator.devices_by_serial:
+        _LOGGER.warning(
+            "Device coordinator has no device data after first refresh. "
+            "Entity discovery may be incomplete. "
+            "Check Meraki API connectivity and organization ID: %s",
+            entry.data[CONF_MERAKI_ORG_ID],
+        )
+    else:
+        _LOGGER.info(
+            "Device coordinator populated with %d devices. Starting discovery.",
+            len(device_coordinator.devices_by_serial),
+        )
+
     await discovery_service.discover_entities()
 
     # Set up services
