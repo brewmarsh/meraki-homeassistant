@@ -26,9 +26,9 @@ export class MerakiGuestAccessCardEditor extends LitElement {
       <div class="card-config">
         <ha-textfield
           label="Name (Optional)"
-          .value="${this._config.name || ""}"
-          .configValue="${"name"}"
-          @input="${this._valueChanged}"
+          .value=${this._config.name || ""}
+          .configValue=${"name"}
+          @input=${this._valueChanged}
           style="width: 100%; margin-bottom: 16px;"
         ></ha-textfield>
       </div>

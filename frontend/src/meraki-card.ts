@@ -170,14 +170,14 @@ export class MerakiGuestAccessCard extends LitElement {
           <div class="form-container">
             <ha-select
               label="Network"
-              .value="${this._selectedNetwork}"
-              @closed="${this._handleNetworkChange}"
+              .value=${this._selectedNetwork}
+              @closed=${this._handleNetworkChange}
               fixedMenuPosition
               naturalMenuWidth
             >
               ${(this._networks || []).map(
                 (n) => html`
-                  <ha-list-item .value="${n.id}">
+                  <ha-list-item .value=${n.id}>
                     ${n.name}
                   </ha-list-item>
                 `
@@ -186,15 +186,15 @@ export class MerakiGuestAccessCard extends LitElement {
 
             <ha-select
               label="SSID"
-              .value="${this._selectedSSID}"
-              .disabled="${!this._selectedNetwork}"
-              @closed="${this._handleSSIDChange}"
+              .value=${this._selectedSSID}
+              .disabled=${!this._selectedNetwork}
+              @closed=${this._handleSSIDChange}
               fixedMenuPosition
               naturalMenuWidth
             >
               ${(filteredSsids || []).map(
                 (s) => html`
-                  <ha-list-item .value="${String(s.number)}">
+                  <ha-list-item .value=${String(s.number)}>
                     ${s.name} (SSID ${s.number})
                   </ha-list-item>
                 `
@@ -203,16 +203,16 @@ export class MerakiGuestAccessCard extends LitElement {
 
             <ha-select
               label="Group Policy"
-              .value="${this._selectedPolicy}"
-              .disabled="${!this._selectedNetwork}"
-              @closed="${this._handlePolicyChange}"
+              .value=${this._selectedPolicy}
+              .disabled=${!this._selectedNetwork}
+              @closed=${this._handlePolicyChange}
               fixedMenuPosition
               naturalMenuWidth
             >
               <ha-list-item value="">None (Default)</ha-list-item>
               ${(this._policies || []).map(
                 (p) => html`
-                  <ha-list-item .value="${String(p.groupPolicyId)}">
+                  <ha-list-item .value=${String(p.groupPolicyId)}>
                     ${p.name}
                   </ha-list-item>
                 `
@@ -221,8 +221,8 @@ export class MerakiGuestAccessCard extends LitElement {
 
             <ha-select
               label="Duration"
-              .value="${this._selectedDuration}"
-              @closed="${this._handleDurationChange}"
+              .value=${this._selectedDuration}
+              @closed=${this._handleDurationChange}
               fixedMenuPosition
               naturalMenuWidth
             >
@@ -236,21 +236,21 @@ export class MerakiGuestAccessCard extends LitElement {
             <ha-textfield
               label="Name (Optional)"
               placeholder="e.g. Guest-John"
-              .value="${this._customName}"
-              @input="${(e: any) => (this._customName = e.target.value)}"
+              .value=${this._customName}
+              @input=${(e: any) => (this._customName = e.target.value)}
             ></ha-textfield>
 
             <ha-textfield
               label="Passphrase (Optional)"
               placeholder="Leave empty to auto-generate"
-              .value="${this._customPassphrase}"
-              @input="${(e: any) => (this._customPassphrase = e.target.value)}"
+              .value=${this._customPassphrase}
+              @input=${(e: any) => (this._customPassphrase = e.target.value)}
             ></ha-textfield>
 
             <ha-button
               raised
-              .disabled="${this._creating || !this._selectedNetwork || !this._selectedSSID}"
-              @click="${this._handleCreate}"
+              .disabled=${this._creating || !this._selectedNetwork || !this._selectedSSID}
+              @click=${this._handleCreate}
             >
               ${this._creating ? 'Creating...' : 'Generate access key'}
             </ha-button>
