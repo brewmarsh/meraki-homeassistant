@@ -40,6 +40,15 @@ jobs:
         working-directory: frontend
         run: npm run build
 
+      - name: Verify build artifacts
+        shell: bash
+        run: |
+          if [ ! -f "custom_components/meraki_ha/www/meraki-card.js" ]; then
+            echo "::error::Build artifact meraki-card.js missing!"
+            exit 1
+          fi
+          echo "Build artifact verified: meraki-card.js"
+
       - name: Copy files to staging (rsync)
         shell: bash
         env:
