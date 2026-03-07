@@ -9,11 +9,11 @@ from homeassistant.components.sensor import SensorEntity, SensorStateClass
 from homeassistant.const import UnitOfPower
 from homeassistant.core import callback
 from homeassistant.helpers.device_registry import DeviceInfo
-from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from ...const import DOMAIN
 from ...coordinators import MerakiMainCoordinator
 from ...core.utils.naming_utils import format_device_name
+from ...entity import MerakiSensor
 
 if TYPE_CHECKING:
     from ...core.models.device import MerakiDevice
@@ -22,8 +22,7 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class MerakiPoeUsageSensor(
-    CoordinatorEntity,
-    SensorEntity,
+    MerakiSensor,
 ):
     """
     Representation of a Meraki switch PoE usage sensor.
@@ -54,6 +53,7 @@ class MerakiPoeUsageSensor(
         """
         super().__init__(coordinator)
         self._device = device
+        self._serial = device.serial
         self._attr_has_entity_name = True
         self._attr_unique_id = f"{device.serial}_poe_usage"
         self._attr_name = "PoE Usage"
@@ -74,11 +74,14 @@ class MerakiPoeUsageSensor(
     @callback
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
-        if self._device.serial:
-            device = self.coordinator.get_device(self._device.serial)
+        super()._handle_coordinator_update()
+
+    def _update_sensor_data(self) -> None:
+        """Update sensor data."""
+        if self._device.serial and self.coordinator.data:
+            device = self.coordinator.data.get(self._device.serial)
             if device:
                 self._device = device
-                self.async_write_ha_state()
 
     @property
     def native_value(self) -> float | None:

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import logging
 import secrets
 import string
@@ -128,45 +129,19 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     appliance_coordinator = MerakiApplianceCoordinator(hass, entry, api_client)
     client_coordinator = MerakiClientCoordinator(hass, entry, api_client)
 
-    # 1. Block setup until the basic device skeleton is loaded (Tier 1)
-    # This is strictly required to populate the Device Registry promptly.
-    await device_coordinator.async_config_entry_first_refresh()
-
-    # Seed the specialized coordinators with the basic device data so discovery
-    # can proceed without waiting for the heavy full organizational/sensor refresh.
-    # We explicitly do NOT use async_set_updated_data() here because that would mark
-    # the coordinators as having had a successful first update, making entities
-    # prematurely "available" with incomplete data.
-    for coord in [
-        main_coordinator,
-        switch_coordinator,
-        camera_coordinator,
-        sensor_coordinator,
-        wireless_coordinator,
-        appliance_coordinator,
-        client_coordinator,
-    ]:
-        coord.data = device_coordinator.data
-        coord.devices_by_serial = device_coordinator.devices_by_serial
-        coord.networks_by_id = device_coordinator.networks_by_id
-        coord.ssids_by_network_and_number = (
-            device_coordinator.ssids_by_network_and_number
-        )
-
-    # 2. Start heavy fetching for other coordinators in the background.
-    # This prevents blocking the Home Assistant UI and avoids setup timeouts.
-    for coord, name in [
-        (main_coordinator, "meraki_main_init"),
-        (switch_coordinator, "meraki_switch_init"),
-        (camera_coordinator, "meraki_camera_init"),
-        (sensor_coordinator, "meraki_sensor_init"),
-        (wireless_coordinator, "meraki_wireless_init"),
-        (appliance_coordinator, "meraki_appliance_init"),
-        (client_coordinator, "meraki_client_init"),
-    ]:
-        entry.async_create_background_task(
-            hass, coord.async_request_refresh(), name=name
-        )
+    # 1. Block setup until all coordinators have performed their first refresh.
+    # This ensures a consistent data contract and prevents race conditions
+    # where entities are created before their data is available.
+    await asyncio.gather(
+        device_coordinator.async_config_entry_first_refresh(),
+        main_coordinator.async_config_entry_first_refresh(),
+        switch_coordinator.async_config_entry_first_refresh(),
+        camera_coordinator.async_config_entry_first_refresh(),
+        sensor_coordinator.async_config_entry_first_refresh(),
+        wireless_coordinator.async_config_entry_first_refresh(),
+        appliance_coordinator.async_config_entry_first_refresh(),
+        client_coordinator.async_config_entry_first_refresh(),
+    )
 
     repo = MerakiRepository(api_client)
     device_control_service = DeviceControlService(repo)

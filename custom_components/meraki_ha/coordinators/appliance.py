@@ -36,9 +36,12 @@ class MerakiApplianceCoordinator(MerakiBaseCoordinator[dict[str, Any]]):
                     _,
                 ) = await self.update_processor.process_success(data, self.data)
                 self.last_successful_data = data
-            return data
+
+            # Return a merged dictionary keyed by serial/ID for efficient extraction
+            return {**self.devices_by_serial, **self.networks_by_id}
         except Exception as err:
-            data, _ = self.update_processor.process_failure(
+            # Fallback to last successful data if update fails
+            self.update_processor.process_failure(
                 err, self.last_successful_data
             )
-            return data
+            return {**self.devices_by_serial, **self.networks_by_id}

@@ -2,10 +2,12 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Generic, TypeVar
+import logging
+from typing import TYPE_CHECKING, Any, Generic, TypeVar
 
 from homeassistant.components.binary_sensor import BinarySensorEntity
 from homeassistant.components.sensor import SensorEntity
+from homeassistant.core import callback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 if TYPE_CHECKING:
@@ -23,11 +25,58 @@ class MerakiEntity(CoordinatorEntity[T], Generic[T]):
     def available(self) -> bool:
         """Return if entity is available.
 
-        An entity is available if its coordinator has data. We allow availability
-        if data is present (even if seeded) to prevent 'unavailable' states during
-        initial background synchronization of specialized coordinators.
+        An entity is available if its coordinator has data and the specific
+        device or network data exists in the centralized payload.
         """
-        return bool(self.coordinator.data)
+        if not self.coordinator.data:
+            return False
+
+        # Extract identifier
+        identifier = getattr(self, "_serial", None) or getattr(
+            self, "_device_serial", None
+        )
+        if not identifier and hasattr(self, "_device"):
+            identifier = getattr(self._device, "serial", None)
+
+        if not identifier:
+            identifier = getattr(self, "_network_id", None)
+
+        if not identifier:
+            return True
+
+        return identifier in self.coordinator.data
+
+    @callback
+    def _handle_coordinator_update(self) -> None:
+        """Handle updated data from the centralized coordinator."""
+        if not self.coordinator.data:
+            self._attr_available = False
+        else:
+            # Extract only this specific device's data from the master dict
+            identifier = getattr(self, "_serial", None) or getattr(
+                self, "_device_serial", None
+            )
+            if not identifier and hasattr(self, "_device"):
+                identifier = getattr(self._device, "serial", None)
+
+            if not identifier:
+                identifier = getattr(self, "_network_id", None)
+
+            if identifier and (data := self.coordinator.data.get(identifier)):
+                self._attr_available = True
+                if hasattr(self, "_update_state_from_data"):
+                    self._update_state_from_data(data)
+                elif hasattr(self, "_update_sensor_data"):
+                    self._update_sensor_data()
+                elif hasattr(self, "_update_native_value"):
+                    # For MerakiMtSensor
+                    if hasattr(self, "_device") and hasattr(data, "serial"):
+                        self._device = data
+                    self._update_native_value()
+            else:
+                self._attr_available = identifier in self.coordinator.data if identifier else True
+
+        self.async_write_ha_state()
 
     @property
     def unique_id(self) -> str | None:
@@ -36,6 +85,10 @@ class MerakiEntity(CoordinatorEntity[T], Generic[T]):
         This logic attempts to find a serial number or network/SSID identifier
         across various internal naming schemes used in the integration.
         """
+        # Prioritize manually assigned _attr_unique_id
+        if manual_id := getattr(self, "_attr_unique_id", None):
+            return manual_id
+
         serial = None
 
         # 1. Attempt to find a physical device serial
@@ -66,8 +119,7 @@ class MerakiEntity(CoordinatorEntity[T], Generic[T]):
             # (e.g., 'serial_merakirtspstreamcamera')
             return f"{serial}_{self.__class__.__name__.lower()}"
 
-        # Final fallback to manually assigned _attr_unique_id
-        return getattr(self, "_attr_unique_id", None)
+        return None
 
 
 class MerakiSensor(MerakiEntity[T], SensorEntity, Generic[T]):
