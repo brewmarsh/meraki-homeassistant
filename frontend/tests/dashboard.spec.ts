@@ -1,11 +1,17 @@
 import { test, expect } from '@playwright/test';
 
 test('Dashboard cards render without errors', async ({ page }) => {
+  // Debug log to confirm which variables are reaching the process
+  console.log('Environment HA_ keys:', Object.keys(process.env).filter(k => k.startsWith('HA_')));
+
   const username = process.env.HA_USERNAME;
   const password = process.env.HA_PASSWORD;
 
-  if (!username || !password) {
-    throw new Error('HA_USERNAME and HA_PASSWORD environment variables must be set');
+  if (!username) {
+    throw new Error('HA_USERNAME environment variable must be set');
+  }
+  if (!password) {
+    throw new Error('HA_PASSWORD environment variable must be set');
   }
 
   // Go to Home Assistant login page
