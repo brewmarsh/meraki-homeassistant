@@ -36,12 +36,9 @@ class MerakiCameraCoordinator(MerakiBaseCoordinator[dict[str, Any]]):
                     _,
                 ) = await self.update_processor.process_success(data, self.data)
                 self.last_successful_data = data
-
-            # Return a merged dictionary keyed by serial/ID for efficient extraction
-            return {**self.devices_by_serial, **self.networks_by_id}
+            return data
         except Exception as err:
-            # Fallback to last successful data if update fails
-            self.update_processor.process_failure(
+            data, _ = self.update_processor.process_failure(
                 err, self.last_successful_data
             )
-            return {**self.devices_by_serial, **self.networks_by_id}
+            return data

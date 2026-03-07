@@ -104,6 +104,6 @@ class MerakiDeviceConnectedClientsSensor(MerakiSensor):
     @property
     def available(self) -> bool:
         """Return if entity is available."""
-        if not super().available:
+        if self.coordinator.data is None:
             return False
-        return self._get_current_device_data() is not None
+        return super().available and self._get_current_device_data() is not None

@@ -42,8 +42,7 @@ class MerakiDeviceCoordinator(MerakiBaseCoordinator[dict[str, Any]]):
             updated = self.polling_manager.record_success()
             self.apply_polling_update(updated)
 
-            # Return a merged dictionary keyed by serial/ID for efficient extraction
-            return {**self.devices_by_serial, **self.networks_by_id}
+            return data
         except Exception as err:
             _LOGGER.error("Error fetching Meraki device data: %s", err)
 
@@ -54,6 +53,5 @@ class MerakiDeviceCoordinator(MerakiBaseCoordinator[dict[str, Any]]):
             if "429" in str(err):
                 raise UpdateFailed(f"Meraki API rate limit: {err}") from err
 
-            # Fallback to last successful data if update fails
-            self.update_processor.process_failure(err, self.last_successful_data)
-            return {**self.devices_by_serial, **self.networks_by_id}
+            data, _ = self.update_processor.process_failure(err, self.last_successful_data)
+            return data

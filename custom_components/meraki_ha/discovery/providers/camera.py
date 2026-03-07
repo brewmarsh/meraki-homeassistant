@@ -14,7 +14,6 @@ from ...sensor.device.camera_analytics import (
     MerakiPersonCountSensor,
     MerakiVehicleCountSensor,
 )
-from ...camera import MerakiRTSPStreamCamera
 from ...sensor.device.rtsp_url import MerakiRtspUrlSensor
 from ...switch.camera_controls import AnalyticsSwitch
 
@@ -92,12 +91,6 @@ class CameraStreamProvider:
             return []
 
         return [
-            MerakiRTSPStreamCamera(
-                coordinator,
-                device,
-                camera_service,
-                config_entry,
-            ),
             MerakiMotionSensor(
                 coordinator,
                 device,

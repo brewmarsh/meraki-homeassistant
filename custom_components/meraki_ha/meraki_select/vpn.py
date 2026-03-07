@@ -13,13 +13,12 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from ..coordinators import MerakiMainCoordinator
 from ..core.api import MerakiApiClientProtocol
 from ..core.models.network import MerakiNetwork, MerakiVpn
-from ..entity import MerakiEntity
 from ..helpers.device_info_helpers import resolve_device_info
 
 _LOGGER = logging.getLogger(__name__)
 
 
-class MerakiVpnSelect(MerakiEntity[MerakiMainCoordinator], SelectEntity):
+class MerakiVpnSelect(CoordinatorEntity, SelectEntity):
     """Representation of a Meraki VPN select entity."""
 
     entity_category = EntityCategory.CONFIG
@@ -58,6 +57,11 @@ class MerakiVpnSelect(MerakiEntity[MerakiMainCoordinator], SelectEntity):
             entity_data=self._network_data,
             config_entry=self._config_entry,
         )
+
+    @property
+    def available(self) -> bool:
+        """Return True if entity is available."""
+        return self.coordinator.data is not None and super().available
 
     @callback
     def _handle_coordinator_update(self) -> None:

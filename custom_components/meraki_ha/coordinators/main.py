@@ -31,14 +31,13 @@ class MerakiMainCoordinator(MerakiBaseCoordinator[dict[str, Any]]):
     async def _async_update_data(self) -> dict[str, Any]:
         """Fetch data from API endpoint, apply filters, and handle exceptions."""
         try:
-            await self._execute_update_cycle()
+            data = await self._execute_update_cycle()
 
             # Record success and potentially reset interval
             updated = self.polling_manager.record_success()
             self.apply_polling_update(updated)
 
-            # Return a merged dictionary keyed by serial/ID for efficient extraction
-            return {**self.devices_by_serial, **self.networks_by_id}
+            return data
         except Exception as err:
             _LOGGER.error("Error fetching Meraki main data: %s", err)
 
@@ -49,11 +48,10 @@ class MerakiMainCoordinator(MerakiBaseCoordinator[dict[str, Any]]):
             if "429" in str(err):
                 raise UpdateFailed(f"Meraki API rate limit: {err}") from err
 
-            # Fallback to last successful data if update fails
-            self.update_processor.process_failure(err, self.last_successful_data)
-            return {**self.devices_by_serial, **self.networks_by_id}
+            data, _ = self.update_processor.process_failure(err, self.last_successful_data)
+            return data
 
-    async def _execute_update_cycle(self) -> None:
+    async def _execute_update_cycle(self) -> dict[str, Any]:
         """Execute the update cycle and process data."""
         timespan = (
             int(self.update_interval.total_seconds()) if self.update_interval else 300
@@ -64,7 +62,7 @@ class MerakiMainCoordinator(MerakiBaseCoordinator[dict[str, Any]]):
 
         if not data:
             _LOGGER.warning("API call to get_all_data returned no data.")
-            return
+            return self.last_successful_data
 
         # Process successful update
         (
@@ -79,3 +77,4 @@ class MerakiMainCoordinator(MerakiBaseCoordinator[dict[str, Any]]):
 
         self.last_successful_update = datetime.now()
         self.last_successful_data = data
+        return data

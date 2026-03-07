@@ -30,7 +30,17 @@ class MerakiDeviceStatusSensor(MerakiSensor):
     Representation of a Meraki Device Status sensor.
 
     This sensor displays the actual reported status of a Meraki device
-    (e.g., "online", "offline", "alerting").
+    (e.g., "online", "offline", "alerting"). It uses SensorEntityDescription
+    to define its core properties. The device status is fetched from the
+    coordinator's data. Additional device details are provided as state attributes,
+    and the icon dynamically changes based on the device model.
+
+    The `name` property is derived from the `EntityDescription` ("Status"), and
+    Home Assistant combines this with the device name because `_attr_has_entity_name`
+    is True. Properties like `options`, `suggested_unit_of_measurement`,
+    `suggested_display_precision`, and `last_reset` default to None behavior
+    as they are not applicable or overridden by the base `SensorEntity` or
+    `SensorEntityDescription` defaults for categorical sensors.
     """
 
     _attr_entity_category = EntityCategory.DIAGNOSTIC
@@ -38,21 +48,33 @@ class MerakiDeviceStatusSensor(MerakiSensor):
     def __init__(
         self,
         coordinator: MerakiMainCoordinator,
-        device_data: "MerakiDevice",
+        device_data: "MerakiDevice",  # Initial device_data snapshot
         config_entry: ConfigEntry,
     ) -> None:
-        """Initialize the Meraki Device Status sensor."""
+        """
+        Initialize the Meraki Device Status sensor.
+
+        Args:
+        ----
+            coordinator: The data update coordinator.
+            device_data: A dictionary containing initial information about the
+                Meraki device.
+            config_entry: The config entry.
+
+        """
         super().__init__(coordinator)
-        self._device_serial: str = cast(str, device_data.serial)
+        self._device_serial: str = cast(str, device_data.serial)  # Serial is mandatory
 
         # Set device info for linking to HA device registry
+        # This uses the initial device_data for static info.
         self._attr_device_info = resolve_device_info(device_data, config_entry)
 
+        # _attr_name is not explicitly set
         self.entity_description = SensorEntityDescription(
             key="device_status",
             name="Status",
-            native_unit_of_measurement=None,
-            state_class=None,
+            native_unit_of_measurement=None,  # Categorical status, no unit
+            state_class=None,  # Categorical status
             device_class=SensorDeviceClass.ENUM,
             icon="mdi:help-network-outline",
         )
@@ -76,15 +98,19 @@ class MerakiDeviceStatusSensor(MerakiSensor):
             )
         return "mdi:help-network-outline"
 
+    def _get_current_device_data(self) -> MerakiDevice | None:
+        """Retrieve the latest data for this sensor's device from the coordinator."""
+        return self.coordinator.get_device(self._device_serial)
+
     def _update_sensor_data(self) -> None:
         """Update sensor state and attributes from coordinator data."""
-        # Data extraction is handled by MerakiEntity; we access it via self.coordinator.data
-        if not self.coordinator.data or self._device_serial not in self.coordinator.data:
+        current_device_data = self._get_current_device_data()
+
+        if not current_device_data:
             self._attr_native_value = None
             self._attr_icon = "mdi:help-rhombus"
             return
 
-        current_device_data = self.coordinator.data[self._device_serial]
         self._attr_native_value = self._determine_device_status(current_device_data)
 
         # Populate attributes from the latest device data
@@ -93,21 +119,25 @@ class MerakiDeviceStatusSensor(MerakiSensor):
         )
 
         # If the device is an appliance, add uplink information as attributes
-        if getattr(current_device_data, "product_type", None) == "appliance":
+        if current_device_data.product_type == "appliance":
             self._attr_extra_state_attributes.update(
                 self._get_appliance_uplink_attributes(current_device_data)
             )
 
     def _determine_device_status(self, device_data: MerakiDevice) -> str:
         """Determine the device status with fallback logic."""
-        device_status: str | None = getattr(device_data, "status", None)
+        device_status: str | None = device_data.status
 
+        # Determine base status
         native_value = "unknown"
-        if isinstance(device_status, str) and device_status.lower() not in ["", "unknown"]:
+        if isinstance(device_status, str) and device_status.lower() not in [
+            "",
+            "unknown",
+        ]:
             native_value = device_status.lower()
 
-        # Fallback to composite state from uplinks
-        if native_value == "unknown" and hasattr(device_data, "uplinks") and device_data.uplinks:
+        # Fallback to composite state from uplinks if base status is missing/unknown
+        if native_value == "unknown" and device_data.uplinks:
             if any(u.get("status") == "active" for u in device_data.uplinks):
                 native_value = "online"
             elif all(u.get("status") == "failed" for u in device_data.uplinks):
@@ -118,38 +148,56 @@ class MerakiDeviceStatusSensor(MerakiSensor):
     def _get_base_device_attributes(self, device_data: MerakiDevice) -> dict[str, Any]:
         """Collect base attributes for the device."""
         attrs = {
-            "model": getattr(device_data, "model", None),
-            "serial_number": getattr(device_data, "serial", None),
-            "firmware_version": getattr(device_data, "firmware", None),
-            "product_type": getattr(device_data, "product_type", None),
-            "mac_address": getattr(device_data, "mac", None),
-            "lan_ip": getattr(device_data, "lan_ip", None),
-            "public_ip": getattr(device_data, "public_ip", None),
-            "wan1_ip": getattr(device_data, "wan1_ip", None),
-            "wan2_ip": getattr(device_data, "wan2_ip", None),
-            "tags": getattr(device_data, "tags", None),
-            "network_id": getattr(device_data, "network_id", None),
+            "model": device_data.model,
+            "serial_number": device_data.serial,
+            "firmware_version": device_data.firmware,
+            "product_type": device_data.product_type,
+            "mac_address": device_data.mac,
+            "lan_ip": device_data.lan_ip,
+            "public_ip": device_data.public_ip,
+            "wan1_ip": device_data.wan1_ip,
+            "wan2_ip": device_data.wan2_ip,
+            "tags": device_data.tags,
+            "network_id": device_data.network_id,
         }
+        # Filter out None values from attributes
         return {k: v for k, v in attrs.items() if v is not None}
 
-    def _get_appliance_uplink_attributes(self, device_data: MerakiDevice) -> dict[str, Any]:
+    def _get_appliance_uplink_attributes(
+        self, device_data: MerakiDevice
+    ) -> dict[str, Any]:
         """Collect appliance-specific uplink attributes."""
         attrs: dict[str, Any] = {}
-        statuses = getattr(device_data, "appliance_uplink_statuses", [])
-        for uplink in statuses:
+        for uplink in device_data.appliance_uplink_statuses:
             interface = uplink.get("interface")
             if interface is not None:
-                attrs.update({
-                    f"{interface}_status": uplink.get("status"),
-                    f"{interface}_ip": uplink.get("ip"),
-                    f"{interface}_gateway": uplink.get("gateway"),
-                    f"{interface}_public_ip": uplink.get("publicIp"),
-                    f"{interface}_dns_servers": uplink.get("dns"),
-                })
+                attrs.update(
+                    {
+                        f"{interface}_status": uplink.get("status"),
+                        f"{interface}_ip": uplink.get("ip"),
+                        f"{interface}_gateway": uplink.get("gateway"),
+                        f"{interface}_public_ip": uplink.get("publicIp"),
+                        f"{interface}_dns_servers": uplink.get("dns"),
+                    }
+                )
         return attrs
 
     @callback
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
-        # Use the base class logic to verify availability and call update methods
-        super()._handle_coordinator_update()
+        self._update_sensor_data()
+        self.async_write_ha_state()
+
+    @property
+    def available(self) -> bool:
+        """Return True if entity is available."""
+        # Check basic coordinator availability
+        if self.coordinator.data is None or not super().available:
+            return False
+        # Check if the specific device data is available
+        if self.coordinator.data.get("devices"):
+            return any(
+                dev.serial == self._device_serial
+                for dev in self.coordinator.data["devices"]
+            )
+        return False
