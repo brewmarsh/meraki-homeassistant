@@ -7,7 +7,7 @@ from typing import Any
 import voluptuous as vol
 from homeassistant.helpers import selector
 
-from custom_components.meraki_ha.const_conf import (
+from custom_components.meraki_ha.const.config import (
     CONF_ENABLE_CAMERA_ENTITIES,
     CONF_ENABLE_CAMERA_SENSE,
     CONF_ENABLE_VLAN_MANAGEMENT,
