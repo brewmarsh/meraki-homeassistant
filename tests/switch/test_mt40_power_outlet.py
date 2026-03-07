@@ -35,17 +35,15 @@ def mock_coordinator_with_mt40_data(
         ],
         "outletStatus": True,
     }
-    mock_coordinator.data = {"devices": [MerakiDevice.from_dict(device_data)]}
+    device = MerakiDevice.from_dict(device_data)
+    mock_coordinator.data = {"mt40-1": device}
+    mock_coordinator.devices_by_serial = mock_coordinator.data
 
     mock_coordinator.is_pending = MagicMock(return_value=False)
 
     def _get_device(serial: str) -> MerakiDevice | None:
         """Helper to simulate the coordinator's get_device method."""
-        devices: list[MerakiDevice] = mock_coordinator.data["devices"]
-        for d in devices:
-            if d.serial == serial:
-                return d
-        return None
+        return mock_coordinator.data.get(serial)
 
     # Assigning the helper as a side effect for the mocked get_device method
     mock_coordinator.get_device.side_effect = _get_device  # type: ignore[attr-defined] # `get_device` is mocked onto MagicMock
@@ -74,7 +72,7 @@ def mt40_power_outlet_switch(
     mock_meraki_client: MagicMock,  # Mock of MerakiApiClientProtocol
 ) -> Generator[MerakiMt40PowerOutlet, None, None]:
     """Fixture for an initialized MerakiMt40PowerOutlet instance."""
-    device_info: MerakiDevice = mock_coordinator_with_mt40_data.data["devices"][0]
+    device_info: MerakiDevice = mock_coordinator_with_mt40_data.data["mt40-1"]
     switch = MerakiMt40PowerOutlet(
         mock_coordinator_with_mt40_data,
         device_info,
@@ -153,13 +151,8 @@ def test_mt40_availability(
     switch._handle_coordinator_update()  # Ensure initial state is loaded
     assert switch.available is True
 
-    # Simulate a change in the underlying device data in the coordinator
-    # and then trigger an update on the switch.
-    device_info_in_coordinator: MerakiDevice = mock_coordinator_with_mt40_data.data[
-        "devices"
-    ][0]
-    device_info_in_coordinator.outlet_status = None
-
-    # Trigger an update on the switch to reflect the change in coordinator data
+    # Test unavailable when serial not in coordinator data
+    mock_coordinator_with_mt40_data.data = {}
+    mock_coordinator_with_mt40_data.devices_by_serial = {}
     switch._handle_coordinator_update()
     assert switch.available is False

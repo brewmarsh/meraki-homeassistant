@@ -187,9 +187,11 @@ class MerakiMtSensor(MerakiSensor, RestoreSensor):
 
     def _update_native_value_hook(self) -> None:
         """Hook for the parent class to trigger a value update."""
-        if self._device.serial and (device := self.coordinator.get_device(self._device.serial)):
-            self._device = device
-            self._update_native_value()
+        if self._device.serial:
+            device = self.coordinator.get_device(self._device.serial)
+            if device:
+                self._device = device
+                self._update_native_value()
 
     @property
     def native_value(self) -> str | float | bool | None:
@@ -199,7 +201,11 @@ class MerakiMtSensor(MerakiSensor, RestoreSensor):
     @property
     def available(self) -> bool:
         """Return if the sensor is available.
-        
+
         Standardizes on the MerakiEntity logic to check centralized data presence.
         """
-        return super().available
+        if not super().available:
+            return False
+
+        # Ensure the specific metric for this sensor is present in the latest data
+        return self._attr_native_value is not None
