@@ -260,14 +260,13 @@ export class MerakiWifiQrCard extends LitElement {
     }
 
     const ssid = this._getValue(this._config.ssid);
-    const password = this._getValue(this._config.password);
 
     return html`
-      <ha-card .header="${this._config.name || 'Wi-Fi Access'}">
+      <ha-card .header=${this._config.name || 'Wi-Fi Access'}>
         <div class="card-content">
           <div class="ssid-display">${ssid}</div>
-          <div class="qr-container" .innerHTML="${this._qrSvg}"></div>
-          ${password ? html`<div class="password-display">Password: <code>${password}</code></div>` : ''}
+          <div class="qr-container" .innerHTML=${this._qrSvg}></div>
+          ${this._getValue(this._config.password) ? html`<div class="password-display">Password: <code>${this._getValue(this._config.password)}</code></div>` : ''}
         </div>
       </ha-card>
     `;
@@ -312,10 +311,6 @@ export class MerakiWifiQrCard extends LitElement {
       font-family: monospace;
     }
   `;
-}
-
-if (!customElements.get("meraki-wifi-qr-card")) {
-  customElements.define("meraki-wifi-qr-card", MerakiWifiQrCard);
 }
 
 // Register the card in the Home Assistant Lovelace UI picker
