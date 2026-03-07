@@ -71,6 +71,12 @@ class MerakiEntity(CoordinatorEntity[T], Generic[T]):
             self._attr_available = False
         else:
             identifier = self._get_identifier()
+            _LOGGER.debug(
+                "Entity %s looking for %s in keys: %s",
+                self.entity_id,
+                identifier,
+                list(self.coordinator.data.keys()),
+            )
 
             if identifier and (data := self.coordinator.data.get(identifier)):
                 self._attr_available = True

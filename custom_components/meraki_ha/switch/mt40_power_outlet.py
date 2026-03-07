@@ -10,7 +10,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import callback
 from homeassistant.helpers.device_registry import DeviceInfo
 
-from ..coordinators import MerakiSwitchCoordinator
+from ..coordinators import MerakiSensorCoordinator, MerakiSwitchCoordinator
 from ..core.api import MerakiApiClientProtocol
 from ..core.models.device import MerakiDevice
 from ..entity import MerakiEntity
@@ -26,11 +26,11 @@ class MerakiMt40PowerOutlet(
     """Representation of a Meraki MT40 power outlet."""
 
     _attr_has_entity_name = True
-    coordinator: MerakiSwitchCoordinator
+    coordinator: MerakiSensorCoordinator
 
     def __init__(
         self,
-        coordinator: MerakiSwitchCoordinator,
+        coordinator: MerakiSensorCoordinator,
         device_info: MerakiDevice,
         config_entry: ConfigEntry,
         meraki_client: MerakiApiClientProtocol,
@@ -68,18 +68,16 @@ class MerakiMt40PowerOutlet(
     @callback
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
-        if self.coordinator.data is None or not self._device_info.serial:
-            return
-        device: MerakiDevice | None = self.coordinator.get_device(
-            serial=self._device_info.serial
-        )
-        if device:
-            self._device_info = device
-            if self.unique_id and not self.coordinator.is_pending(self.unique_id):
-                self._attr_is_on = self._get_power_state()
-            self.async_write_ha_state()
-        else:
-            super()._handle_coordinator_update()
+        if self._device_info.serial:
+            device: MerakiDevice | None = self.coordinator.get_device(
+                serial=self._device_info.serial
+            )
+            if device:
+                self._device_info = device
+                if self.unique_id and not self.coordinator.is_pending(self.unique_id):
+                    self._attr_is_on = self._get_power_state()
+
+        super()._handle_coordinator_update()
 
     def _get_power_state(self) -> bool | None:
         """Get the power state from the device information."""
@@ -145,6 +143,6 @@ class MerakiMt40PowerOutlet(
     @property
     def available(self) -> bool:
         """Return if the entity is available."""
-        if self.coordinator.data is None:
+        if not super().available:
             return False
-        return super().available and self._device_info.outlet_status is not None
+        return self._device_info.outlet_status is not None
