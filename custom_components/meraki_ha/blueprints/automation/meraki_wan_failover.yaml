@@ -1,0 +1,38 @@
+blueprint:
+  name: Meraki Dual-WAN Failover Alert
+  description: Send a critical notification when the primary WAN link fails and the network fails over to the secondary link.
+  domain: automation
+  input:
+    primary_wan_sensor:
+      name: Primary WAN Sensor
+      description: The sensor tracking your WAN1 uplink status.
+      selector:
+        entity:
+          domain: sensor
+    secondary_wan_sensor:
+      name: Secondary WAN Sensor
+      description: (Optional) The sensor tracking your WAN2 or Cellular uplink status.
+      default: []
+      selector:
+        entity:
+          domain: sensor
+    notify_device:
+      name: Notification Device
+      description: The device to receive the failover alert.
+      selector:
+        device:
+          integration: mobile_app
+
+trigger:
+  - platform: state
+    entity_id: !input primary_wan_sensor
+    to:
+      - "failed"
+      - "offline"
+
+action:
+  - device_id: !input notify_device
+    domain: mobile_app
+    type: notify
+    title: "Meraki Network Alert"
+    message: "Primary internet has failed. The network is now running on the backup link."

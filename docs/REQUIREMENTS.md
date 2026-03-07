@@ -147,6 +147,7 @@
 | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :------- |
 | The integration uses a non-blocking setup sequence where only Tier 1 data (basic device skeleton) is awaited during `async_setup_entry`. Heavy sensor data is fetched in the background.             | Included |
 | Automated smoke tests must include a 90-second wait after integration initialization to allow the Meraki background coordinators to complete their initial data fetch before auditing logs or state. | Included |
+| Staging smoke tests must audit entity states via the Home Assistant Template API to ensure no Meraki entities are in an 'unavailable' or 'unknown' state before passing.                             | Included |
 
 \*\*Frontend Development (DEPRECATED - Removed in v2.3.0)
 
@@ -206,6 +207,7 @@
   - [x] **IPSK WebSocket API:** Implement a strict WebSocket API contract for IPSK management with camelCase payload keys and centralized command definitions.
   - [x] **IPSK Native Service Action:** Expose IPSK creation functionality as a standard Home Assistant Service Action, allowing users to create timed guest keys without the custom frontend panel.
   - [x] **Guest Wi-Fi Blueprint:** Provide a plug-and-play automation template for creating temporary guest keys via the `meraki_ha.create_guest_key` action.
+  - [x] **Dual-WAN Failover Blueprint:** Provide an automation template for critical alerts when the primary internet connection fails on Meraki MX appliances.
   - [x] **IPSK Native UX Overhaul:** Rebuilt the TimedAccess.tsx component to provide a native Home Assistant experience using `ha-textfield`, `ha-select`, `ha-button`, and `ha-alert` web components.
   - [ ] **Enhanced Home Security & Awareness (MV Cameras & MT Sensors):**
   - [ ] **Camera Motion Events:** Create `binary_sensor` entities for camera motion events.
@@ -221,7 +223,7 @@
 - [ ] **Custom Lovelace Cards (Dashboards):**
   - [ ] **Event Host QR Generator:** Generating IPSK and rendering a QR code.
   - [ ] **Client Locator Glance Card:** Search for a client to see AP and RSSI.
-  - [ ] **Network Vitals Header:** Traffic graphs and gateway/switch/AP health dots.
+  - [x] **Meraki Network Vitals Card:** Compact horizontal header for network health (Gateways, Switches, APs) and real-time WAN throughput.
   - [ ] **Smart PoE Port Toggle:** List ports, show power draw, toggle PoE state.
 
 ### Enhancements / Bug Fixes

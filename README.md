@@ -53,6 +53,14 @@ Welcome to the **Meraki Home Assistant Integration**! This project bridges the g
 - **Rich Sensor Data:** Creates a wide array of sensors for device status, client counts, data usage, firmware updates, PoE consumption, and uplink metrics (latency, jitter, packet loss).
 - **Camera Integration:** View live RTSP streams and MV Sense analytics from your Meraki cameras within Home Assistant.
 
+## Automation examples 🚀
+
+The integration includes pre-built Blueprints to simplify common automations. These are automatically discovered by Home Assistant and can be found under **Settings > Automations & Scenes > Blueprints**.
+
+Available blueprints in `automation/meraki/`:
+- **Meraki Guest Wi-Fi Creator**: Automatically creates a temporary Guest Wi-Fi key (IPSK) when a trigger entity is activated.
+- **Scheduled Meraki Content Filter**: Automatically switch Meraki Content Filtering profiles based on a schedule.
+
 ## Troubleshooting
 
 If you encounter issues with the integration, please check the following:
