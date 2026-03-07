@@ -132,6 +132,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     # 1. Block setup until all coordinators have performed their first refresh.
     # This ensures a consistent data contract and prevents race conditions
     # where entities are created before their data is available.
+    # We use gather to run these concurrently to minimize startup time.
     await asyncio.gather(
         device_coordinator.async_config_entry_first_refresh(),
         main_coordinator.async_config_entry_first_refresh(),

@@ -43,32 +43,33 @@ def mock_meraki_client() -> MagicMock:
 def mock_data_fetch_manager() -> AsyncMock:
     """Fixture for a mocked DataFetchManager."""
     manager = AsyncMock()
-    manager.get_all_data = AsyncMock(
-        return_value={
-            "devices": [],
-            "networks": [MOCK_NETWORK],
-            "ssids": [
-                {
-                    "networkId": MOCK_NETWORK.id,
-                    "number": 1,
-                    "name": "Test SSID",
-                    "rfProfileId": "p1",
-                }
-            ],
-            "rf_profiles": {
-                MOCK_NETWORK.id: [
-                    {"id": "p1", "name": "Profile 1"},
-                    {"id": "p2", "name": "Profile 2"},
-                ]
-            },
-            "vpn_status": {},
-            "clients": [],
-            "vlans": {},
-            "appliance_uplink_statuses": [],
-            "appliance_traffic": {},
-            "content_filtering": {},
-        }
-    )
+    data = {
+        "devices": [],
+        "networks": [MOCK_NETWORK],
+        "ssids": [
+            {
+                "networkId": MOCK_NETWORK.id,
+                "number": 1,
+                "name": "Test SSID",
+                "rfProfileId": "p1",
+            }
+        ],
+        "rf_profiles": {
+            MOCK_NETWORK.id: [
+                {"id": "p1", "name": "Profile 1"},
+                {"id": "p2", "name": "Profile 2"},
+            ]
+        },
+        "vpn_status": {},
+        "clients": [],
+        "vlans": {},
+        "appliance_uplink_statuses": [],
+        "appliance_traffic": {},
+        "content_filtering": {},
+    }
+    manager.get_all_data = AsyncMock(return_value=data)
+    manager.get_device_data = AsyncMock(return_value=data)
+    manager.get_sensor_data = AsyncMock(return_value=data)
     return manager
 
 

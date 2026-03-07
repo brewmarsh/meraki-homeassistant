@@ -54,28 +54,29 @@ def mock_data_fetch_manager() -> AsyncMock:
     manager = AsyncMock()
     from custom_components.meraki_ha.types import MerakiDevice
 
-    manager.get_all_data = AsyncMock(
-        return_value={
-            "devices": [
-                MerakiDevice(
-                    serial="Q234-ABCD-CF", model="MX64", name="Filtering Appliance"
-                )
-            ],
-            "networks": [MOCK_NETWORK],
-            "content_filtering": {
-                MOCK_NETWORK.id: {
-                    "networkId": MOCK_NETWORK.id,
-                    "urlCategoryListSize": "topSites",
-                }
-            },
-            "ssids": [],
-            "clients": [],
-            "vlans": {},
-            "appliance_uplink_statuses": [],
-            "rf_profiles": {},
-            "appliance_traffic": {},
-        }
-    )
+    data = {
+        "devices": [
+            MerakiDevice(
+                serial="Q234-ABCD-CF", model="MX64", name="Filtering Appliance"
+            )
+        ],
+        "networks": [MOCK_NETWORK],
+        "content_filtering": {
+            MOCK_NETWORK.id: {
+                "networkId": MOCK_NETWORK.id,
+                "urlCategoryListSize": "topSites",
+            }
+        },
+        "ssids": [],
+        "clients": [],
+        "vlans": {},
+        "appliance_uplink_statuses": [],
+        "rf_profiles": {},
+        "appliance_traffic": {},
+    }
+    manager.get_all_data = AsyncMock(return_value=data)
+    manager.get_device_data = AsyncMock(return_value=data)
+    manager.get_sensor_data = AsyncMock(return_value=data)
     return manager
 
 

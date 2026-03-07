@@ -31,7 +31,7 @@ class MerakiEntity(CoordinatorEntity[T], Generic[T]):
         if not self.coordinator.data:
             return False
 
-        # Extract identifier
+        # Extract identifier across various naming schemes
         identifier = getattr(self, "_serial", None) or getattr(
             self, "_device_serial", None
         )
@@ -41,8 +41,13 @@ class MerakiEntity(CoordinatorEntity[T], Generic[T]):
         if not identifier:
             identifier = getattr(self, "_network_id", None)
 
+        # If no specific identifier is found, fall back to general coordinator success
         if not identifier:
-            return True
+            return self.coordinator.last_update_success
+
+        # Check O(1) maps if they exist on the coordinator
+        if hasattr(self.coordinator, "devices_by_serial") and self.coordinator.devices_by_serial:
+            return identifier in self.coordinator.devices_by_serial
 
         return identifier in self.coordinator.data
 
@@ -52,7 +57,7 @@ class MerakiEntity(CoordinatorEntity[T], Generic[T]):
         if not self.coordinator.data:
             self._attr_available = False
         else:
-            # Extract only this specific device's data from the master dict
+            # Extract identifier to find this specific entity's slice of data
             identifier = getattr(self, "_serial", None) or getattr(
                 self, "_device_serial", None
             )
@@ -64,16 +69,19 @@ class MerakiEntity(CoordinatorEntity[T], Generic[T]):
 
             if identifier and (data := self.coordinator.data.get(identifier)):
                 self._attr_available = True
+                
+                # Proactively call the specific update method for the platform
                 if hasattr(self, "_update_state_from_data"):
                     self._update_state_from_data(data)
                 elif hasattr(self, "_update_sensor_data"):
                     self._update_sensor_data()
                 elif hasattr(self, "_update_native_value"):
-                    # For MerakiMtSensor
+                    # For MerakiMtSensor and similar platform implementations
                     if hasattr(self, "_device") and hasattr(data, "serial"):
                         self._device = data
                     self._update_native_value()
             else:
+                # If identifier exists but data is missing from payload, mark unavailable
                 self._attr_available = identifier in self.coordinator.data if identifier else True
 
         self.async_write_ha_state()
@@ -107,7 +115,6 @@ class MerakiEntity(CoordinatorEntity[T], Generic[T]):
 
         if serial:
             # Prefer using the entity description key for unique granularity
-            # (e.g., 'serial_voltage')
             if (
                 hasattr(self, "entity_description")
                 and self.entity_description
@@ -116,7 +123,6 @@ class MerakiEntity(CoordinatorEntity[T], Generic[T]):
                 return f"{serial}_{self.entity_description.key}"
 
             # Fallback to class name for non-described entities
-            # (e.g., 'serial_merakirtspstreamcamera')
             return f"{serial}_{self.__class__.__name__.lower()}"
 
         return None
