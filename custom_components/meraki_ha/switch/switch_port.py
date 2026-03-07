@@ -69,7 +69,8 @@ class _MerakiPortSwitchBase(MerakiEntity, SwitchEntity, ABC):
 
         self.entity_description = SwitchEntityDescription(
             key=f"{entity_key_prefix}_{port_id_str}",
-            name=f"Port {port_id_str} enabled",
+            translation_key="switch_port_enabled",
+            translation_placeholders={"port_id": port_id_str},
         )
         self._update_internal_state()
 

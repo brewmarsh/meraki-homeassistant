@@ -242,6 +242,9 @@
       },
       "meraki_camera_rtsp_switch": {
         "name": "RTSP server"
+      },
+      "switch_port_enabled": {
+        "name": "Port {port_id} enabled"
       }
     },
     "text": {
