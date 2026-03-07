@@ -73,7 +73,8 @@ async def test_appliance_port_switch_init(
     switch.hass = hass
 
     assert switch.unique_id == "Q2AA-BB33-CC44_port_switch_1"
-    assert switch.name == "Port 1 enabled"
+    assert switch.translation_key == "switch_port_enabled"
+    assert switch.entity_description.translation_placeholders == {"port_id": "1"}
     assert switch.is_on is True
 
 
