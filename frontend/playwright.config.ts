@@ -20,6 +20,9 @@ export default defineConfig({
     /* Base URL to use in actions like `await page.goto('/')`. */
     baseURL: process.env.HA_URL || 'http://localhost:8123',
 
+    /* Standard timeout for individual actions to account for potentially slow staging server responses */
+    actionTimeout: 10000,
+
     /* Collect trace on failure. See https://playwright.dev/docs/trace-viewer */
     trace: 'retain-on-failure',
 
