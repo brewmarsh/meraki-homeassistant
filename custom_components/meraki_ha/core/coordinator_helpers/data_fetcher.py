@@ -2,13 +2,14 @@
 
 from __future__ import annotations
 
+import asyncio
 import logging
 import time
 from typing import TYPE_CHECKING, Any
 
 from custom_components.meraki_ha.const.integration import DEFAULT_CAPS
 
-from...core.parsers.appliance import parse_appliance_data
+from ...core.parsers.appliance import parse_appliance_data
 from ...core.parsers.devices import parse_device_data
 from ...core.parsers.network import parse_network_data
 from ...core.parsers.sensors import parse_sensor_data
@@ -27,7 +28,7 @@ from .strategy_executor import (
 )
 
 if TYPE_CHECKING:
-    from ..api import MerakiApiClientProtocol as MerakiApiClientProtocol
+    from ..api import MerakiApiClientProtocol
     from ..models.device import MerakiDevice
 
 _LOGGER = logging.getLogger(__name__)
@@ -52,6 +53,7 @@ class DataFetchManager:
         self.enable_camera_sense = enable_camera_sense
         self._disabled_features: set[str] = set()
         self.client_fetcher = ClientFetcher(client)
+        self._fetch_lock = asyncio.Lock()
 
         # Instance-based cache for organization-wide data
         self._org_data_cache: dict[str, Any] = {}
@@ -76,56 +78,62 @@ class DataFetchManager:
         self.sensor_strategy = SensorFetchStrategy(client, self._disabled_features)
 
     async def _async_fetch_batch_data(self, fast_only: bool = False) -> dict[str, Any]:
-        """Fetch the organization-wide data batch with short-lived caching."""
-        current_time = time.time()
-        # If we have cached data and it's not expired, use it.
-        # But if we need slow data (fast_only=False) and cache only has fast data,
-        # we might need to refresh. For simplicity, we refresh if switch_ports missing.
-        if (
-            self._org_data_cache
-            and current_time < self._org_data_cache_expiry
-            and (fast_only or "switch_ports" in self._org_data_cache)
-        ):
-            _LOGGER.debug("Using cached organization-wide data")
-            return self._org_data_cache
+        """Fetch organization data with lock protection and optimized concurrency."""
+        async with self._fetch_lock:
+            current_time = time.time()
+            # Double-check cache inside the lock to prevent redundant API thundering herds
+            if (
+                self._org_data_cache
+                and current_time < self._org_data_cache_expiry
+                and (fast_only or "switch_ports" in self._org_data_cache)
+            ):
+                _LOGGER.debug("Using cached organization-wide data (locked)")
+                return self._org_data_cache
 
-        if not self.client.has_dashboard:
-            await self.client.async_setup()
+            if not self.client.has_dashboard:
+                await self.client.async_setup()
 
-        tasks = {
-            "organization": self.client.run_with_semaphore(
-                self.client.organization.get_organization()
-            ),
-            "networks": self.client.run_with_semaphore(
-                self.client.organization.get_organization_networks()
-            ),
-            "devices": self.client.run_with_semaphore(
-                self.client.organization.get_organization_devices()
-            ),
-            "statuses": self.client.run_with_semaphore(
-                self.client.organization.get_organization_devices_statuses()
-            ),
-        }
+            # "Light" management tasks for fast skeleton discovery
+            tasks = {
+                "organization": self.client.run_with_semaphore(
+                    self.client.organization.get_organization()
+                ),
+                "networks": self.client.run_with_semaphore(
+                    self.client.organization.get_organization_networks()
+                ),
+                "devices": self.client.run_with_semaphore(
+                    self.client.organization.get_organization_devices()
+                ),
+                "statuses": self.client.run_with_semaphore(
+                    self.client.organization.get_organization_devices_statuses()
+                ),
+            }
 
-        if not fast_only:
-            tasks["switch_ports"] = self.client.run_with_semaphore(
-                self.client.organization.get_organization_switch_ports_statuses()
+            # "Heavy" telemetry tasks for slow poll cycles
+            if not fast_only:
+                tasks["switch_ports"] = self.client.run_with_semaphore(
+                    self.client.organization.get_organization_switch_ports_statuses()
+                )
+                tasks["appliance_uplink_statuses"] = self.client.run_with_semaphore(
+                    self.client.appliance.get_organization_appliance_uplink_statuses()
+                )
+                tasks["sensor_readings"] = self.client.run_with_semaphore(
+                    self.client.sensor.get_organization_sensor_readings_latest()
+                )
+
+            data = await async_gather_with_timeout(
+                tasks,
+                label="Batch fetch",
+                batch_size=10,  # Parallelize light management calls aggressively
+                cooldown=0.0,   # No artificial delay for core skeleton data
             )
-            tasks["appliance_uplink_statuses"] = self.client.run_with_semaphore(
-                self.client.appliance.get_organization_appliance_uplink_statuses()
-            )
-            tasks["sensor_readings"] = self.client.run_with_semaphore(
-                self.client.sensor.get_organization_sensor_readings_latest()
-            )
 
-        data = await async_gather_with_timeout(tasks, label="Batch fetch")
+            # Update cache
+            self._org_data_cache.clear()
+            self._org_data_cache.update(data)
+            self._org_data_cache_expiry = current_time + self._cache_ttl
 
-        # Update cache
-        self._org_data_cache.clear()
-        self._org_data_cache.update(data)
-        self._org_data_cache_expiry = current_time + self._cache_ttl
-
-        return data
+            return data
 
     def _distribute_organization(
         self, data: dict[str, Any], batch_data: dict[str, Any]
@@ -180,20 +188,18 @@ class DataFetchManager:
         statuses = batch_data.get("statuses") or []
         parse_device_data(data["devices"], statuses)
 
-        # Unpack batch switch ports into detail_data format for strategies
         switch_ports = batch_data.get("switch_ports") or []
         for entry in switch_ports:
             if isinstance(entry, dict) and (serial := entry.get("serial")):
                 data[f"switch_ports_{serial}"] = entry.get("ports", [])
 
     def _get_device_capabilities(self, model: str | None) -> list[str]:
-        """Return hardcoded capabilities based on device model."""
+        """Return capabilities based on device model with fallback."""
         from custom_components.meraki_ha.const.integration import DEVICE_CAPABILITIES
 
-if not model:
+        if not model:
             return list(DEFAULT_CAPS)
 
-        # Iterate and match prefix (e.g. MV12W match MV12)
         for prefix, caps in DEVICE_CAPABILITIES.items():
             if model.startswith(prefix):
                 return list(caps)
@@ -213,7 +219,7 @@ if not model:
         }
 
     async def _build_strategy_tasks(self, data: dict[str, Any]) -> None:
-        """Build and execute detailed data fetching tasks."""
+        """Build and execute detailed data fetching tasks with minimal rate-limit cooldown."""
         tasks: dict[str, Any] = {}
         collect_network_tasks(data, tasks, self.strategies)
         collect_device_tasks(
@@ -222,7 +228,11 @@ if not model:
 
         if tasks:
             results = await async_gather_with_timeout(
-                tasks, timeout=45, label="Detail batch"
+                tasks,
+                timeout=45,
+                label="Detail batch",
+                batch_size=10,  # Maximize parallel throughput
+                cooldown=0.2,   # Respect Meraki rate limits (10 req/s)
             )
             data.update(results)
 
@@ -232,10 +242,7 @@ if not model:
         """Perform a lightweight orchestrated data fetch (Fast Poll)."""
         batch_data = await self._async_fetch_batch_data(fast_only=True)
         data = self._distribute_batch_data(batch_data)
-
-        # Still process base data to ensure models are instantiated
         self._process_data(data, current_data)
-
         return data
 
     async def get_sensor_data(
@@ -245,87 +252,4 @@ if not model:
         batch_data = await self._async_fetch_batch_data(fast_only=False)
         data = self._distribute_batch_data(batch_data)
 
-        # Strategy tasks (async) - Heavy
-        await self._build_strategy_tasks(data)
-
-        # Client data fetch (async) - Heavy
-        await self._fetch_client_data(data)
-
-        # Orchestrated parsing
-        self._process_data(data, current_data)
-
-        # Sensor parsing
-        try:
-            sensor_details = parse_sensor_data(
-                data["devices"], data.get("sensor_readings"), []
-            )
-            data.update(sensor_details)
-        except Exception as err:  # pylint: disable=broad-except
-            _LOGGER.error("Failed to parse sensor data: %s", err, exc_info=True)
-
-        return data
-
-    async def get_all_data(
-        self, current_data: dict[str, Any] | None = None, timespan: int = 300
-    ) -> dict[str, Any]:
-        """Legacy method for backward compatibility. Performs full fetch."""
-        return await self.get_sensor_data(current_data, timespan)
-
-    async def _fetch_client_data(self, data: dict[str, Any]) -> None:
-        """Fetch client data for all networks."""
-        networks = data.get("networks", [])
-        if not networks:
-            return
-
-        tasks = {
-            f"clients_{n.id}": self.client_fetcher.async_fetch_network_clients([n])
-            for n in networks
-            if n.id
-        }
-        try:
-            client_results = await async_gather_with_timeout(
-                tasks, timeout=30, label="Client batch"
-            )
-            all_clients: list[dict[str, Any]] = []
-            for result in client_results.values():
-                if isinstance(result, list):
-                    all_clients.extend(result)
-            data["clients_by_serial"] = self.client_fetcher.derive_device_clients(
-                all_clients, data["devices"]
-            )
-            data["clients"] = all_clients
-        except Exception:  # pylint: disable=broad-except
-            _LOGGER.error("Timeout during client data fetch")
-            data["clients"] = {}
-
-    def _process_data(
-        self, data: dict[str, Any], current_data: dict[str, Any] | None
-    ) -> dict[str, Any]:
-        """Orchestrate the parsing and strategy processing."""
-        previous_devices_map: dict[str, MerakiDevice] = {}
-        if current_data and "devices" in current_data:
-            for d in current_data["devices"]:
-                if d.serial:
-                    previous_devices_map[d.serial] = d
-
-        # Strategy-based processing for individual devices
-        # Ensure strategies that expect 'clients' get 'clients_by_serial'
-        if "clients_by_serial" in data:
-            data["clients"] = data["clients_by_serial"]
-        process_device_strategies(data, previous_devices_map, self.strategies)
-
-        # Strategy-based processing for networks
-        process_network_strategies(data, current_data, self.strategies)
-
-        # Parse aggregate network data (VLANs, SSIDs, etc.)
-        network_details = parse_network_data(
-            data,
-            data["networks"],
-            current_data or {},
-            self._disabled_features,
-        )
-        data.update(network_details)
-
-        # Parse appliance-specific data
-        appliance_details = parse_appliance_data(data["devices"], data, current_data)
-        data.update(appliance_details)
+        await self._
