@@ -23,7 +23,15 @@ For a more isolated and consistent testing environment, you can use the provided
     docker compose up
     ```
     This will start a local Home Assistant instance with your local version of the Meraki integration mounted.
-3.  **Access Home Assistant:**
+3.  **Build Frontend (Lovelace Cards):**
+    The project uses TypeScript for custom Lovelace cards. Build artifacts are *not* tracked in Git.
+    ```bash
+    cd frontend
+    npm install
+    npm run build
+    ```
+    This will generate `meraki-card.js` in `custom_components/meraki_ha/www/`.
+4.  **Access Home Assistant:**
     - URL: `http://localhost:8123`
     - Follow the on-screen prompts to create a user and configure the Meraki integration.
 
@@ -79,6 +87,12 @@ This is the **most critical pattern** in this codebase for all entities that mod
 
 - All calls to the `meraki` library object **must** use `snake_case` methods.
 - This project's own client wrapper methods also use `snake_case` for consistency.
+
+### 4.3. Frontend Development
+
+- Source code resides in the `frontend/` directory.
+- Build artifacts (`.js` files) in `custom_components/meraki_ha/www/` are excluded from version control.
+- CI/CD pipelines are responsible for building the frontend before deployment.
 
 ## 5. Home Assistant Integration Best Practices
 

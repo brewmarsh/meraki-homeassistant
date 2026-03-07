@@ -55,3 +55,6 @@ blocked_message.md
 # AI Scorecard artifacts
 scorecard.txt
 typing_tasks.json
+
+# Meraki custom card build artifacts
+custom_components/meraki_ha/www/*.js
