@@ -215,6 +215,10 @@ class MerakiMtSensor(MerakiSensor, RestoreSensor):
         if self.native_value is not None:
             return True
 
+        # Check for device existence in O(1) specialized map
+        if self._device.serial not in self.coordinator.devices_by_serial:
+            return False
+
         readings = self._get_readings_list()
         if readings is not None and self._is_metric_in_readings(readings):
             return True

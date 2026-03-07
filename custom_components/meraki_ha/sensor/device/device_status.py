@@ -191,13 +191,9 @@ class MerakiDeviceStatusSensor(MerakiSensor):
     @property
     def available(self) -> bool:
         """Return True if entity is available."""
-        # Check basic coordinator availability
-        if self.coordinator.data is None or not super().available:
+        # Defer to the parent MerakiEntity logic which checks the coordinator state
+        if not super().available:
             return False
-        # Check if the specific device data is available
-        if self.coordinator.data.get("devices"):
-            return any(
-                dev.serial == self._device_serial
-                for dev in self.coordinator.data["devices"]
-            )
-        return False
+
+        # Check if the specific device serial exists in the centralized maps
+        return self._device_serial in self.coordinator.devices_by_serial

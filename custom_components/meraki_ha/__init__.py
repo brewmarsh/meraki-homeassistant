@@ -146,11 +146,11 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         appliance_coordinator,
         client_coordinator,
     ]:
-        coord.data = device_coordinator.data
-        coord.devices_by_serial = device_coordinator.devices_by_serial
-        coord.networks_by_id = device_coordinator.networks_by_id
+        coord.data = device_coordinator.data or {}
+        coord.devices_by_serial = device_coordinator.devices_by_serial or {}
+        coord.networks_by_id = device_coordinator.networks_by_id or {}
         coord.ssids_by_network_and_number = (
-            device_coordinator.ssids_by_network_and_number
+            device_coordinator.ssids_by_network_and_number or {}
         )
 
     # 2. Start heavy fetching for other coordinators in the background.

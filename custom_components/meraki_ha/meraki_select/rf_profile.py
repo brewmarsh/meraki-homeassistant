@@ -14,12 +14,13 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from ..const import DOMAIN
 from ..coordinators import MerakiMainCoordinator
 from ..core.api import MerakiApiClientProtocol
+from ..entity import MerakiEntity
 from ..helpers.device_info_helpers import resolve_device_info
 
 _LOGGER = logging.getLogger(__name__)
 
 
-class MerakiRFProfileSelect(CoordinatorEntity, SelectEntity):
+class MerakiRFProfileSelect(MerakiEntity[MerakiMainCoordinator], SelectEntity):
     """Representation of a Meraki RF Profile select entity."""
 
     coordinator: MerakiMainCoordinator
@@ -63,11 +64,6 @@ class MerakiRFProfileSelect(CoordinatorEntity, SelectEntity):
         return DeviceInfo(
             identifiers={(DOMAIN, f"network_{self._network_id}")},
         )
-
-    @property
-    def available(self) -> bool:
-        """Return True if entity is available."""
-        return self.coordinator.data is not None and super().available
 
     @callback
     def _handle_coordinator_update(self) -> None:

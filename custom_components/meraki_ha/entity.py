@@ -27,6 +27,45 @@ class MerakiEntity(CoordinatorEntity[T], Generic[T]):
         if data is present (even if seeded) to prevent 'unavailable' states during
         initial background synchronization of specialized coordinators.
         """
+        if not self.coordinator.last_update_success and not self.coordinator.data:
+            return False
+
+        # 1. Check specialized device map for O(1) availability
+        serial = None
+        if hasattr(self, "_device_serial"):
+            serial = self._device_serial
+        elif hasattr(self, "_serial"):
+            serial = self._serial
+        elif hasattr(self, "_device"):
+            serial = getattr(self._device, "serial", None)
+        elif hasattr(self, "_device_data"):
+            serial = getattr(self._device_data, "serial", None)
+
+        if serial:
+            if self.coordinator.devices_by_serial:
+                return serial in self.coordinator.devices_by_serial
+            return bool(self.coordinator.data)
+
+        # 2. Check specialized network map
+        network_id = getattr(self, "_network_id", None)
+        ssid_number = getattr(self, "_ssid_number", None)
+
+        if network_id and ssid_number is not None:
+            # 3. Check specialized SSID map
+            if self.coordinator.ssids_by_network_and_number:
+                try:
+                    ssid_key = (network_id, int(ssid_number))
+                    return ssid_key in self.coordinator.ssids_by_network_and_number
+                except (TypeError, ValueError):
+                    pass
+            return bool(self.coordinator.data)
+
+        if network_id:
+            if self.coordinator.networks_by_id:
+                return network_id in self.coordinator.networks_by_id
+            return bool(self.coordinator.data)
+
+        # Fallback to general data presence for entities without specific identifiers
         return bool(self.coordinator.data)
 
     @property
