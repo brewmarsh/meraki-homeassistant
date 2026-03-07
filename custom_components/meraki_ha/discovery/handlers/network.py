@@ -7,14 +7,19 @@ import logging
 from collections.abc import AsyncIterator
 from typing import TYPE_CHECKING
 
-from custom_components.meraki_ha.const.integration import (
-    (,
+from homeassistant.exceptions import HomeAssistantError
+
+# Specialized Exception Handling
+from ...core.errors import MerakiHAException, MerakiInformationalError
+
+# Decomposed Constants
+from custom_components.meraki_ha.const.integration import DOMAIN
+from custom_components.meraki_ha.const.config import (
     CONF_ENABLE_CLIENT_STATUS_SENSORS,
     CONF_ENABLE_NETWORK_SENSORS,
     CONF_ENABLE_TRAFFIC_SHAPING,
     CONF_ENABLE_VLAN_SENSORS,
     CONF_ENABLE_VPN_MANAGEMENT,
-    ),
 )
 from ...sensor.network.network_clients import MerakiNetworkClientsSensor
 from ...sensor.network.traffic_shaping import TrafficShapingSensor
@@ -48,12 +53,17 @@ class NetworkHandler(BaseHandler):
     def _get_networks(self) -> list[MerakiNetwork]:
         """Get the list of networks if network sensors are enabled."""
         if not self._config_entry.options.get(CONF_ENABLE_NETWORK_SENSORS, True):
-            _LOGGER.debug("Network sensors are disabled.")
+            _LOGGER.debug("Network sensors are disabled in configuration options.")
             return []
         return self._coordinator.data.get("networks", [])
 
     async def discover_entities(self) -> AsyncIterator[Entity]:
-        """Discover network-level entities."""
+        """
+        Discover network-level entities with error resilience.
+        
+        This handler bypasses networks or features that return 400/403 errors
+        to ensure the discovery of remaining valid entities.
+        """
         networks = self._get_networks()
         if asyncio.iscoroutine(networks):
             networks = await networks
@@ -72,8 +82,24 @@ class NetworkHandler(BaseHandler):
 
         for network in networks:
             for generator in generators:
-                async for entity in generator(network):
-                    yield entity
+                try:
+                    async for entity in generator(network):
+                        yield entity
+                except MerakiInformationalError as e:
+                    # Gracefully bypass disabled dashboard features
+                    _LOGGER.info(
+                        "Bypassing optional feature '%s' for network %s: %s",
+                        generator.__name__,
+                        network.id,
+                        e,
+                    )
+                except (MerakiHAException, HomeAssistantError) as e:
+                    _LOGGER.error(
+                        "Critical error in discovery generator '%s' for network %s: %s",
+                        generator.__name__,
+                        network.id,
+                        e,
+                    )
 
     async def _discover_select_entities(
         self, network: MerakiNetwork
@@ -149,7 +175,6 @@ class NetworkHandler(BaseHandler):
     async def _discover_vlans(self, network: MerakiNetwork) -> AsyncIterator[Entity]:
         """Discover VLAN sensors."""
         if not self._config_entry.options.get(CONF_ENABLE_VLAN_SENSORS, True):
-            _LOGGER.debug("VLAN sensors are disabled.")
             return
 
         if network.id is None:
@@ -158,6 +183,7 @@ class NetworkHandler(BaseHandler):
         vlans_data = self._coordinator.data.get("vlans", {})
         if not isinstance(vlans_data, dict):
             return
+            
         vlans = vlans_data.get(network.id, [])
         if not vlans or not isinstance(vlans, list):
             _LOGGER.debug("No VLANs found for network %s", network.id)

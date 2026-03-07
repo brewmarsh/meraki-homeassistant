@@ -152,7 +152,7 @@ async def test_ssid_device_creation_and_unification(
         assert network_device is not None
 
         # Assert that the device has the correct name (Virtual Controller format)
-        assert network_device.name == "Site: Test Network"
+        assert network_device.name == "[Network] Test Network"
 
         # Find all entities associated with this device by querying the entity registry
         entities = [

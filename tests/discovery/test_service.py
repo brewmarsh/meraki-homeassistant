@@ -28,11 +28,13 @@ def mock_coordinator_with_devices(
     unsupported_device = replace(
         MOCK_DEVICE, serial="unsupported_serial", model="unsupported"
     )
+    devices = [wireless_device, camera_device, unsupported_device]
     mock_coordinator.data = {
-        "devices": [wireless_device, camera_device, unsupported_device],
+        "devices": devices,
         "networks": [],
         "ssids": [],
     }
+    mock_coordinator.devices_by_serial = {d.serial: d for d in devices}
     return mock_coordinator
 
 
@@ -147,11 +149,15 @@ async def test_discover_entities_delegates_to_handler(
 
         # Assert UniversalHandler called for each device
         assert MockUniversalHandler.call_count == 3
+        # Use the first device from the list we created in the fixture
+        first_device = list(mock_coordinator_with_devices.devices_by_serial.values())[0]
         MockUniversalHandler.assert_any_call(
             mock_coordinator_with_devices,
-            mock_coordinator_with_devices.data["devices"][0],
+            first_device,
             mock_config_entry,
             mock_camera_service,
             mock_control_service,
             mock_network_control_service,
+            status_coordinator=mock_coordinator_with_devices,
+            sensor_coordinator=mock_coordinator_with_devices,
         )

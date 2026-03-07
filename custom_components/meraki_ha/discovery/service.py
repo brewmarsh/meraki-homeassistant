@@ -13,6 +13,9 @@ from typing import TYPE_CHECKING
 
 from custom_components.meraki_ha.const.integration import (, CONF_ENABLE_NETWORK_SENSORS, )
 from ..core.models.device import MerakiDevice
+from homeassistant.exceptions import HomeAssistantError
+
+from ..core.errors import MerakiHAException, MerakiInformationalError
 from .handlers.network import NetworkHandler
 from .handlers.switch import SwitchHandler
 from .handlers.universal import UniversalHandler
@@ -76,11 +79,9 @@ class DeviceDiscoveryService:
         self._control_service = control_service
         self._network_control_service = network_control_service
 
-        devices_data = self._device_coordinator.data.get("devices", [])
-        self._devices: list[MerakiDevice] = [
-            d if isinstance(d, MerakiDevice) else MerakiDevice.from_dict(d)
-            for d in devices_data
-        ]
+        self._devices: list[MerakiDevice] = list(
+            self._device_coordinator.devices_by_serial.values()
+        )
         self.all_entities: list[Entity] = []
 
     async def discover_entities(self) -> list[Entity]:
@@ -94,24 +95,36 @@ class DeviceDiscoveryService:
         all_entities: list[Entity] = []
 
         # Discover network-level entities
-        async for entity in self._discover_network_entities():
-            all_entities.append(entity)
+        try:
+            async for entity in self._discover_network_entities():
+                all_entities.append(entity)
+        except (MerakiHAException, HomeAssistantError) as e:
+            _LOGGER.error("Failed to discover network entities: %s", e)
 
         # Discover device-level entities
-        async for entity in self._discover_device_entities():
-            all_entities.append(entity)
+        try:
+            async for entity in self._discover_device_entities():
+                all_entities.append(entity)
+        except (MerakiHAException, HomeAssistantError) as e:
+            _LOGGER.error("Failed to discover device entities: %s", e)
 
         # Create Wireless handler for devices and virtual SSID devices
-        wireless_handler = WirelessHandler(
-            self._wireless_coordinator, self._config_entry, self._meraki_client
-        )
-        async for entity in wireless_handler.discover_entities():
-            all_entities.append(entity)
+        try:
+            wireless_handler = WirelessHandler(
+                self._wireless_coordinator, self._config_entry, self._meraki_client
+            )
+            async for entity in wireless_handler.discover_entities():
+                all_entities.append(entity)
+        except (MerakiHAException, HomeAssistantError) as e:
+            _LOGGER.error("Failed to discover wireless entities: %s", e)
 
         # Create Switch handler for switch devices
-        switch_handler = SwitchHandler(self._switch_coordinator, self._config_entry)
-        async for entity in switch_handler.discover_entities():
-            all_entities.append(entity)
+        try:
+            switch_handler = SwitchHandler(self._switch_coordinator, self._config_entry)
+            async for entity in switch_handler.discover_entities():
+                all_entities.append(entity)
+        except (MerakiHAException, HomeAssistantError) as e:
+            _LOGGER.error("Failed to discover switch entities: %s", e)
 
         _LOGGER.info("Entity discovery complete. Found %d entities.", len(all_entities))
         self.all_entities = all_entities
@@ -125,13 +138,18 @@ class DeviceDiscoveryService:
                 self._config_entry,
                 self._network_control_service,
             )
-            async for entity in network_handler.discover_entities():
-                yield entity
+            try:
+                async for entity in network_handler.discover_entities():
+                    yield entity
+            except (MerakiHAException, HomeAssistantError) as e:
+                _LOGGER.error("Error during network entity discovery: %s", e)
         else:
             _LOGGER.debug("Network sensors are disabled.")
 
     async def _discover_device_entities(self):
         """Discover entities for all devices."""
+        # Refresh devices list from coordinator to ensure it's populated
+        self._devices = list(self._device_coordinator.devices_by_serial.values())
         _LOGGER.debug("Starting entity discovery for %d devices", len(self._devices))
 
         for device in self._devices:
@@ -139,21 +157,27 @@ class DeviceDiscoveryService:
                 _LOGGER.warning("Device %s has no model, skipping", device.serial)
                 continue
 
-            coordinator = self._get_coordinator_for_device(device)
+            try:
+                coordinator = self._get_coordinator_for_device(device)
 
-            handler = UniversalHandler(
-                coordinator,
-                device,
-                self._config_entry,
-                self._camera_service,
-                self._control_service,
-                self._network_control_service,
-                status_coordinator=self._device_coordinator,
-                sensor_coordinator=self._sensor_coordinator,
-            )
+                handler = UniversalHandler(
+                    coordinator,
+                    device,
+                    self._config_entry,
+                    self._camera_service,
+                    self._control_service,
+                    self._network_control_service,
+                    status_coordinator=self._device_coordinator,
+                    sensor_coordinator=self._sensor_coordinator,
+                )
 
-            async for entity in handler.discover_entities():
-                yield entity
+                async for entity in handler.discover_entities():
+                    yield entity
+            except (MerakiHAException, HomeAssistantError) as e:
+                _LOGGER.error(
+                    "Error discovering entities for device %s: %s", device.serial, e
+                )
+                continue
 
     def _get_coordinator_for_device(self, device: MerakiDevice):
         """Select coordinator based on product type."""

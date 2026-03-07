@@ -180,15 +180,15 @@ class UpdateProcessor:
         update_device_registry_info(self.hass, devices)
 
         # Return lookup tables
-        data.update(
-            {
-                "devices": devices,
-                "networks": list(networks_by_id.values()),
-                "devices_by_serial": devices_by_serial,
-                "networks_by_id": networks_by_id,
-                "ssids_by_network_and_number": ssids_by_network_and_number,
-            }
-        )
+        update_dict = {
+            "devices": devices,
+            "networks": list(networks_by_id.values()),
+            "devices_by_serial": devices_by_serial,
+            "networks_by_id": networks_by_id,
+            "ssids_by_network_and_number": ssids_by_network_and_number,
+        }
+        if isinstance(data, dict):
+            data.update(update_dict)
 
         return {
             "devices": devices,

@@ -42,4 +42,13 @@ This document verifies the state of the codebase against the requirements for th
   - **[VERIFIED]** Staging workflow (`deploy-staging.yaml`) enhanced to capture rich error details in the `CI_ERROR_DETAILS` environment variable.
   - **[VERIFIED]** Automated GitHub Issues now include these error details in the body and are tagged with the `jules` label to trigger AI-driven triage.
 
-This verification confirms the need for the planned refactoring steps. The new requirements (R4, R5, R6, R7, R8, R9, R10) are now considered part of the standard for this integration.
+- **R11: Centralized Data Contract:**
+  - **[VERIFIED]** Coordinators now return a merged dictionary keyed by device `serial` or network `id` in `_async_update_data`.
+  - **[VERIFIED]** `MerakiEntity` and `BaseMerakiEntity` implement centralized data extraction using these identifiers in `_handle_coordinator_update` and the `available` property.
+  - **[VERIFIED]** All specialized coordinators are awaited during `async_setup_entry` via `asyncio.gather` to prevent race conditions during platform setup.
+
+- **R12: Python 3.14 Syntax Compatibility:**
+  - **[VERIFIED]** Audited `custom_components/meraki_ha/` for `return`, `break`, or `continue` statements inside `finally` blocks.
+  - **[VERIFIED]** `core/api/client.py` and other complex sync/async wrappers verified to be free of these anti-patterns.
+
+This verification confirms the need for the planned refactoring steps. The new requirements (R4, R5, R6, R7, R8, R9, R10, R11, R12) are now considered part of the standard for this integration.

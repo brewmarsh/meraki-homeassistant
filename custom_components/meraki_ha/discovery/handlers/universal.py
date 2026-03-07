@@ -6,6 +6,9 @@ import logging
 from collections.abc import AsyncIterator
 from typing import TYPE_CHECKING, Any
 
+from homeassistant.exceptions import HomeAssistantError
+
+from ...core.errors import MerakiHAException, MerakiInformationalError
 from ...button.device.mt15_refresh_data import MerakiMt15RefreshDataButton
 from ...button.reboot import MerakiRebootButton
 from custom_components.meraki_ha.const.integration import (
@@ -159,8 +162,23 @@ class UniversalHandler(BaseDeviceHandler):
     async def discover_entities(self) -> AsyncIterator[Entity]:
         """Discover entities based on capabilities."""
         for cap in self.capabilities:
-            async for entity in self._discover_capability(cap):
-                yield entity
+            try:
+                async for entity in self._discover_capability(cap):
+                    yield entity
+            except MerakiInformationalError as e:
+                _LOGGER.info(
+                    "Feature '%s' is disabled or unavailable for device %s: %s",
+                    cap,
+                    self.device.serial,
+                    e,
+                )
+            except (MerakiHAException, HomeAssistantError) as e:
+                _LOGGER.error(
+                    "Failed to discover capability '%s' for device %s: %s",
+                    cap,
+                    self.device.serial,
+                    e,
+                )
 
     async def _discover_capability(self, cap: str) -> AsyncIterator[Entity]:
         """Discover entities for a specific capability."""

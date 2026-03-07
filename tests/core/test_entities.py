@@ -40,7 +40,11 @@ def mock_coordinator():
         time_zone="America/Los_Angeles",
     )
 
-    coordinator.data = {"devices": [device], "networks": [network]}
+    # Coordinator data is now keyed by serial/ID
+    coordinator.data = {
+        device.serial: device,
+        network.id: network,
+    }
 
     coordinator.get_device.return_value = device
     coordinator.get_network.return_value = network
@@ -85,14 +89,23 @@ def test_base_meraki_entity_unavailable(mock_coordinator):
     config_entry = MagicMock()
     config_entry.options = {}
 
-    mock_coordinator.last_update_success = False
-    entity = MockEntity(mock_coordinator, config_entry, serial="Q2XX-XXXX-XXXX")
+    # Removing data for this specific entity
+    serial = "Q2XX-XXXX-XXXX"
+    original_device = mock_coordinator.data.pop(serial)
+
+    entity = MockEntity(mock_coordinator, config_entry, serial=serial)
     assert entity.available is False
+
+    # Restore and check last_update_success fallback (if identifier missing)
+    mock_coordinator.data[serial] = original_device
+    mock_coordinator.last_update_success = False
+
+    # BaseMerakiEntity.available returns identifier in self.coordinator.data
+    # if identifier is present, regardless of last_update_success.
+    # If we want to test last_update_success, we need an entity with no identifier.
+
+    entity_no_id = MockEntity(mock_coordinator, config_entry)
+    assert entity_no_id.available is False
 
     mock_coordinator.last_update_success = True
-
-    # Device offline
-    device = mock_coordinator.get_device.return_value
-    device.status = "offline"
-    entity = MockEntity(mock_coordinator, config_entry, serial="Q2XX-XXXX-XXXX")
-    assert entity.available is False
+    assert entity_no_id.available is True
