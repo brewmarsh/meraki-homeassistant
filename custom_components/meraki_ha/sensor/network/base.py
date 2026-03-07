@@ -3,14 +3,13 @@
 import logging
 from typing import Any
 
+from custom_components.meraki_ha.const.integration import DOMAIN
 from homeassistant.components.sensor import SensorEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import callback
 from homeassistant.helpers.device_registry import DeviceInfo
 
-from custom_components.meraki_ha.const.integration import DOMAIN
-
-from...coordinators import MerakiSwitchCoordinator
+from ...coordinators import MerakiSwitchCoordinator
 from ...entity import MerakiEntity
 
 _LOGGER = logging.getLogger(__name__)
@@ -46,7 +45,9 @@ class MerakiSSIDBaseSensor(MerakiEntity, SensorEntity):
             and self.entity_description
             and self.entity_description.name
         ):
-            self._attr_name = f"{network_name} SSID {ssid_name} {self.entity_description.name}"
+            self._attr_name = (
+                f"{network_name} SSID {ssid_name} {self.entity_description.name}"
+            )
 
         # SSID entities are logical children of the "Virtual SSID Device" (Network Device)
         self._attr_device_info = DeviceInfo(

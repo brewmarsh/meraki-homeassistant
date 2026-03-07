@@ -190,7 +190,7 @@ class DataFetchManager:
         """Return hardcoded capabilities based on device model."""
         from custom_components.meraki_ha.const.integration import DEVICE_CAPABILITIES
 
-if not model:
+        if not model:
             return list(DEFAULT_CAPS)
 
         # Iterate and match prefix (e.g. MV12W match MV12)

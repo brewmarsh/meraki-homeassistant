@@ -11,7 +11,7 @@ from homeassistant.helpers import event, storage
 from homeassistant.util import dt as dt_util
 
 from custom_components.meraki_ha.const.api import DATA_CLIENT
-from custom_components.meraki_ha.const.integration import from custom_components.meraki_ha.const.integration import DOMAIN
+from custom_components.meraki_ha.const.integration import DOMAIN
 
 if TYPE_CHECKING:
     from ..core.api import MerakiApiClientProtocol

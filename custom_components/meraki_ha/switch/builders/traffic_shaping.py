@@ -3,13 +3,12 @@
 import logging
 from typing import Any
 
+from custom_components.meraki_ha.const.integration import CONF_ENABLE_TRAFFIC_SHAPING
 from homeassistant.components.switch import SwitchEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from custom_components.meraki_ha.const.integration import CONF_ENABLE_TRAFFIC_SHAPING
-
-from...coordinators import MerakiSwitchCoordinator
+from ...coordinators import MerakiSwitchCoordinator
 from ...core.models.network import MerakiTrafficShaping
 from ..traffic_shaping import MerakiTrafficShapingSwitch
 

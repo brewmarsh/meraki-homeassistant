@@ -3,15 +3,14 @@
 import logging
 from typing import Any
 
+from custom_components.meraki_ha.const.integration import DOMAIN
 from homeassistant.components.sensor import SensorEntity, SensorEntityDescription
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import callback
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from custom_components.meraki_ha.const.integration import DOMAIN
-
-from..coordinators import MerakiMainCoordinator
+from ..coordinators import MerakiMainCoordinator
 from ..core.utils.naming_utils import standardize_device_name
 
 _LOGGER = logging.getLogger(__name__)
@@ -53,7 +52,9 @@ class ClientTrackerDeviceSensor(CoordinatorEntity, SensorEntity):
 
     def _update_state(self) -> None:
         """Update the state of the sensor."""
-        clients = self.coordinator.data.get("clients") if self.coordinator.data else None
+        clients = (
+            self.coordinator.data.get("clients") if self.coordinator.data else None
+        )
         if isinstance(clients, list):
             self._attr_native_value = len(clients)
         else:
@@ -97,7 +98,9 @@ class MerakiClientSensor(CoordinatorEntity, SensorEntity):
         """Update the state of the sensor."""
         is_online = False
         client_info = {}
-        clients = self.coordinator.data.get("clients") if self.coordinator.data else None
+        clients = (
+            self.coordinator.data.get("clients") if self.coordinator.data else None
+        )
         if isinstance(clients, list):
             for client in clients:
                 if not isinstance(client, dict):

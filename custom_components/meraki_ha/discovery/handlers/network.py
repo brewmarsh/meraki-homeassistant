@@ -8,7 +8,6 @@ from collections.abc import AsyncIterator
 from typing import TYPE_CHECKING
 
 from custom_components.meraki_ha.const.integration import (
-    (,
     CONF_ENABLE_CLIENT_STATUS_SENSORS,
     CONF_ENABLE_NETWORK_SENSORS,
     CONF_ENABLE_TRAFFIC_SHAPING,

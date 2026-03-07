@@ -5,6 +5,7 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING, cast
 
+from custom_components.meraki_ha.const.integration import DOMAIN
 from homeassistant.components.sensor import SensorEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import EntityCategory
@@ -12,9 +13,7 @@ from homeassistant.core import callback
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from custom_components.meraki_ha.const.integration import DOMAIN
-
-from...coordinators import MerakiMainCoordinator
+from ...coordinators import MerakiMainCoordinator
 from ...core.utils.naming_utils import format_device_name
 
 if TYPE_CHECKING:

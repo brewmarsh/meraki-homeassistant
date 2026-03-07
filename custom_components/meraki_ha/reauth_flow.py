@@ -7,11 +7,15 @@ from typing import TYPE_CHECKING, Any
 
 import aiohttp
 import voluptuous as vol
+
+from custom_components.meraki_ha.const.integration import (
+    CONF_MERAKI_API_KEY,
+    CONF_MERAKI_ORG_ID,
+)
 from homeassistant import config_entries
 from homeassistant.exceptions import ConfigEntryAuthFailed
 
 from .authentication import validate_meraki_credentials
-from custom_components.meraki_ha.const.integration import CONF_MERAKI_API_KEY, CONF_MERAKI_ORG_ID
 
 if TYPE_CHECKING:
     from .config_flow import MerakiConfigFlow

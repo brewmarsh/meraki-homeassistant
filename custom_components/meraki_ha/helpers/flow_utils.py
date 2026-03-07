@@ -5,11 +5,13 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING, Any
 
+from custom_components.meraki_ha.const.integration import (
+    CONF_MERAKI_API_KEY,
+    CONF_MERAKI_ORG_ID,
+)
 from homeassistant.core import HomeAssistant
 
-from custom_components.meraki_ha.const.integration import CONF_MERAKI_API_KEY, CONF_MERAKI_ORG_ID
-
-from..core.errors import MerakiAuthenticationError, MerakiConnectionError
+from ..core.errors import MerakiAuthenticationError, MerakiConnectionError
 
 if TYPE_CHECKING:
     pass

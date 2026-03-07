@@ -5,10 +5,10 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING, Any
 
-from ...binary_sensor.device.appliance_port import AppliancePortBinarySensor
 from custom_components.meraki_ha.const.integration import CONF_ENABLE_PORT_SENSORS
 
-from...sensor.device.appliance_port import MerakiAppliancePortSensor
+from ...binary_sensor.device.appliance_port import AppliancePortBinarySensor
+from ...sensor.device.appliance_port import MerakiAppliancePortSensor
 from ...switch.switch_port import MerakiAppliancePortSwitch
 
 if TYPE_CHECKING:

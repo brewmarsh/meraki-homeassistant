@@ -5,11 +5,11 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING, Any
 
-from ...binary_sensor.device.switch_port import SwitchPortSensor
-from ...button.device.poe_cycle import MerakiPoECycleButton
 from custom_components.meraki_ha.const.integration import CONF_ENABLE_PORT_SENSORS
 
-from...sensor.device.switch_poe import MerakiSwitchPoESensor
+from ...binary_sensor.device.switch_port import SwitchPortSensor
+from ...button.device.poe_cycle import MerakiPoECycleButton
+from ...sensor.device.switch_poe import MerakiSwitchPoESensor
 from ...sensor.device.switch_port import (
     MerakiSwitchPortEnergySensor,
     MerakiSwitchPortPowerSensor,

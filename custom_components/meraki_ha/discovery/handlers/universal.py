@@ -9,7 +9,6 @@ from typing import TYPE_CHECKING, Any
 from ...button.device.mt15_refresh_data import MerakiMt15RefreshDataButton
 from ...button.reboot import MerakiRebootButton
 from custom_components.meraki_ha.const.integration import (
-    (,
     CONF_ENABLE_CAMERA_ENTITIES,
     CONF_ENABLE_DEVICE_SENSORS,
     CONF_ENABLE_DEVICE_STATUS,

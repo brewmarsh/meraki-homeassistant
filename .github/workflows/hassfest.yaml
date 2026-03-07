@@ -10,4 +10,15 @@ jobs:
     runs-on: 'ubuntu-latest'
     steps:
       - uses: 'actions/checkout@v4'
-      - uses: 'home-assistant/actions/hassfest@master'
+
+      - name: 'Run Hassfest'
+        id: hassfest
+        uses: 'home-assistant/actions/hassfest@master'
+        continue-on-error: true
+
+      - name: 'Handle Hassfest Failure'
+        if: steps.hassfest.outcome == 'failure'
+        run: |
+          echo "FAILED_STEP_NAME=Hassfest Validation" >> $GITHUB_ENV
+          echo "CI_ERROR_DETAILS=Hassfest validation failed. Check the Action logs for specific integration manifest or configuration errors." >> $GITHUB_ENV
+          exit 1

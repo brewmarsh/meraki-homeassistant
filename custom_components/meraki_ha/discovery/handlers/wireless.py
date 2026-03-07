@@ -12,7 +12,6 @@ from collections.abc import AsyncIterator
 from typing import TYPE_CHECKING, Any
 
 from custom_components.meraki_ha.const.integration import (
-    (,
     CONF_ENABLE_DEVICE_SENSORS,
     CONF_ENABLE_SSID_SENSORS,
     ),

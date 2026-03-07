@@ -11,9 +11,12 @@ import logging
 from collections.abc import AsyncIterator
 from typing import TYPE_CHECKING
 
-from custom_components.meraki_ha.const.integration import CONF_ENABLE_DEVICE_SENSORS, CONF_ENABLE_PORT_SENSORS
+from custom_components.meraki_ha.const.integration import (
+    CONF_ENABLE_DEVICE_SENSORS,
+    CONF_ENABLE_PORT_SENSORS,
+)
 
-from...sensor.device.switch_client_count import MerakiSwitchClientCountSensor
+from ...sensor.device.switch_client_count import MerakiSwitchClientCountSensor
 from ..providers import SwitchPortProvider
 from .base import BaseHandler
 

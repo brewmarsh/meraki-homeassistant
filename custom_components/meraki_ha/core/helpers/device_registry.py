@@ -57,5 +57,3 @@ def async_ensure_network_devices_exist(
             manufacturer="Cisco Meraki",
             model="Meraki Network",
         )
-
-

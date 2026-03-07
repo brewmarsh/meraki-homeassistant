@@ -4,13 +4,12 @@ from __future__ import annotations
 
 import logging
 
+from custom_components.meraki_ha.const.integration import DOMAIN
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from custom_components.meraki_ha.const.integration import DOMAIN
-
-from...core.coordinators.device import MerakiDeviceDataUpdateCoordinator
+from ...core.coordinators.device import MerakiDeviceDataUpdateCoordinator
 from ...core.utils.device_types import (
     DEVICE_TYPE_APPLIANCE,
     DEVICE_TYPE_CAMERA,

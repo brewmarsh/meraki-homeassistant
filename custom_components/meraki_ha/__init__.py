@@ -6,6 +6,13 @@ import logging
 import secrets
 import string
 
+from custom_components.meraki_ha.const.config import (
+    CONF_MERAKI_API_KEY,
+    CONF_MERAKI_ORG_ID,
+)
+from custom_components.meraki_ha.const.integration import DOMAIN
+from custom_components.meraki_ha.const.platform import PLATFORMS
+from custom_components.meraki_ha.const.webhooks import WEBHOOK_ID_FORMAT
 from homeassistant.components.frontend import add_extra_js_url
 from homeassistant.components.http import StaticPathConfig
 from homeassistant.config_entries import ConfigEntry
@@ -14,10 +21,6 @@ from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers.typing import ConfigType
 
 from .api.websocket import async_setup_websocket_api
-from custom_components.meraki_ha.const.integration import DOMAIN
-from custom_components.meraki_ha.const.webhooks import WEBHOOK_ID_FORMAT
-from custom_components.meraki_ha.const.config import CONF_MERAKI_API_KEY, CONF_MERAKI_ORG_ID
-from custom_components.meraki_ha.const.platform import PLATFORMS
 from .coordinators import (
     MerakiApplianceCoordinator,
     MerakiCameraCoordinator,

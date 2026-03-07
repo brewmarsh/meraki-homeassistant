@@ -1,0 +1,252 @@
+name: Deploy to Production
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  safe-to-prod:
+    name: Safe to Prod Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check last beta deployment status
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { data: runs } = await github.rest.actions.listWorkflowRuns({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              workflow_id: 'deploy-staging.yaml',
+              branch: 'beta',
+              status: 'completed',
+              per_page: 1
+            });
+
+            if (runs.workflow_runs.length === 0) {
+              core.setFailed('No completed staging deployments found for branch "beta".');
+            } else if (runs.workflow_runs[0].conclusion !== 'success') {
+              core.setFailed(`Last staging deployment was not successful (conclusion: ${runs.workflow_runs[0].conclusion}). Fix staging before deploying to production.`);
+            } else {
+              console.log('Last staging deployment was successful. Proceeding to production.');
+            }
+
+  deploy-to-production:
+    name: Deploy to Production Server
+    needs: safe-to-prod
+    runs-on: [self-hosted, meraki-smoketest]
+    environment: Production
+    permissions:
+      contents: read
+      issues: write
+
+    env:
+      HA_CONFIG_DIR: '/ha_config_prod'
+      DESTINATION_PATH: '/ha_config_prod/custom_components/meraki_ha'
+      HA_URL: ${{ secrets.HA_PROD_URL }}
+      HA_TOKEN: ${{ secrets.HA_PROD_TOKEN }}
+      MERAKI_API_KEY: ${{ secrets.MERAKI_API_KEY }}
+      MERAKI_ORG_ID: ${{ secrets.MERAKI_ORG_ID }}
+      HA_USERNAME: ${{ secrets.HA_PROD_USERNAME }}
+      HA_PASSWORD: ${{ secrets.HA_PROD_PASSWORD }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          clean: true
+          fetch-depth: 0
+
+      - name: Pre-flight Validation
+        shell: bash
+        run: |
+          set -o pipefail
+          echo "Validating manifest.json..."
+          if ! python3 -c "import json; json.load(open('custom_components/meraki_ha/manifest.json'))" > /dev/null 2>&1; then
+            echo "FAILED_STEP_NAME=Pre-flight Validation (manifest.json)" >> $GITHUB_ENV
+            echo "CI_ERROR_DETAILS=manifest.json is not valid JSON." >> $GITHUB_ENV
+            exit 1
+          fi
+          echo "Validating schemas.py..."
+          if ! python3 -m py_compile custom_components/meraki_ha/schemas.py 2>&1 | tee schema_errors.txt; then
+            echo "FAILED_STEP_NAME=Pre-flight Validation (schemas.py)" >> $GITHUB_ENV
+            {
+              echo "CI_ERROR_DETAILS<<EOF"
+              cat schema_errors.txt
+              echo "EOF"
+            } >> $GITHUB_ENV
+            exit 1
+          fi
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install frontend dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: Build frontend
+        working-directory: frontend
+        shell: bash
+        run: |
+          set -o pipefail
+          if ! npm run build 2>&1 | tee build_output.txt; then
+            echo "FAILED_STEP_NAME=Build frontend" >> $GITHUB_ENV
+            {
+              echo "CI_ERROR_DETAILS<<EOF"
+              tail -n 20 build_output.txt
+              echo "EOF"
+            } >> $GITHUB_ENV
+            exit 1
+          fi
+
+      - name: Verify build artifacts
+        shell: bash
+        run: |
+          if [ ! -f "custom_components/meraki_ha/www/meraki-card.js" ]; then
+            echo "::error::Build artifact meraki-card.js missing!"
+            echo "FAILED_STEP_NAME=Verify build artifacts" >> $GITHUB_ENV
+            echo "CI_ERROR_DETAILS=The Vite build failed to output meraki-card.js" >> $GITHUB_ENV
+            exit 1
+          fi
+
+      - name: Install Playwright browsers
+        working-directory: frontend
+        run: npx playwright install --with-deps chromium
+
+      - name: Run E2E tests (Production Server)
+        id: playwright_test
+        working-directory: frontend
+        shell: bash
+        env:
+          HA_URL: ${{ secrets.HA_PROD_URL }}
+          HA_USERNAME: ${{ secrets.HA_PROD_USERNAME }}
+          HA_PASSWORD: ${{ secrets.HA_PROD_PASSWORD }}
+        run: |
+          set -o pipefail
+          if ! npm run test:e2e 2>&1 | tee playwright_output.txt; then
+            echo "FAILED_STEP_NAME=Run E2E tests" >> $GITHUB_ENV
+            {
+              echo "CI_ERROR_DETAILS<<EOF"
+              cat playwright_output.txt
+              echo "EOF"
+            } >> $GITHUB_ENV
+            exit 1
+          fi
+
+      - name: Copy files to Production (rsync)
+        shell: bash
+        run: |
+          SourceComponentDir="${GITHUB_WORKSPACE}/custom_components/meraki_ha/"
+          DestinationPath="${DESTINATION_PATH}"
+          SourceBlueprintsDir="${SourceComponentDir}blueprints/"
+          DestinationBlueprintsPath="${HA_CONFIG_DIR}/blueprints/"
+
+          sudo mkdir -p "${DestinationPath}"
+          sudo mkdir -p "${DestinationBlueprintsPath}"
+
+          if ! sudo rsync -rcvltpD --inplace --delete \
+            --exclude '.git' \
+            --exclude 'node_modules' \
+            --exclude 'tests' \
+            --exclude '*.log' \
+            --exclude '__pycache__' \
+            --exclude '.DS_Store' \
+            "${SourceComponentDir}" "${DestinationPath}" 2>&1 | tee rsync_output.txt; then
+            echo "FAILED_STEP_NAME=Copy files to production (rsync)" >> $GITHUB_ENV
+            {
+              echo "CI_ERROR_DETAILS<<EOF"
+              tail -n 20 rsync_output.txt
+              echo "EOF"
+            } >> $GITHUB_ENV
+            exit 1
+          fi
+
+          sudo rsync -rcvltpD --inplace \
+            "${SourceBlueprintsDir}" "${DestinationBlueprintsPath}"
+
+      - name: Install jq
+        run: sudo apt-get update && sudo apt-get install -y jq
+
+      - uses: astral-sh/setup-uv@v5
+        with:
+          python-version: '3.13'
+          enable-cache: true
+
+      - name: Full integration reset (Production Server)
+        shell: bash
+        run: |
+          if ! uv run --with aiohttp python3 tests/scripts/reset_integration.py 2>&1 | tee reset_output.txt; then
+            echo "FAILED_STEP_NAME=Full integration reset (Production)" >> $GITHUB_ENV
+            {
+              echo "CI_ERROR_DETAILS<<EOF"
+              tail -n 20 reset_output.txt
+              echo "EOF"
+            } >> $GITHUB_ENV
+            exit 1
+          fi
+
+      - name: Audit logs for errors (Production)
+        id: audit_logs
+        shell: bash
+        env:
+          HA_URL: ${{ secrets.HA_PROD_URL }}
+          HA_TOKEN: ${{ secrets.HA_PROD_TOKEN }}
+        run: |
+          sleep 90
+          curl -sS -H "Authorization: Bearer $HA_TOKEN" "$HA_URL/api/error_log" > full_ha_log.txt
+          if grep -i -E "traceback|attributeerror|nameerror|typeerror" full_ha_log.txt | grep -i "meraki" > /dev/null; then
+            grep -A 30 -i -E "traceback|attributeerror|nameerror|typeerror" full_ha_log.txt > meraki_errors.txt
+            if [ -s meraki_errors.txt ]; then
+              echo "FAILED_STEP_NAME=Audit logs for errors (Production)" >> "$GITHUB_ENV"
+              {
+                echo "CI_ERROR_DETAILS<<EOF"
+                cat meraki_errors.txt
+                echo "EOF"
+              } >> "$GITHUB_ENV"
+              exit 1
+            fi
+          fi
+
+      - name: Upload artifacts on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: production-failure-artifacts
+          path: |
+            frontend/test-results/
+            full_ha_log.txt
+            meraki_errors.txt
+            frontend/playwright_output.txt
+            rsync_output.txt
+            build_output.txt
+            reset_output.txt
+          if-no-files-found: ignore
+          retention-days: 7
+
+      - name: Create Issue on Failure
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            try {
+              const script = require('./scripts/generate_failure_issue.js');
+              await script({github, context});
+            } catch (e) {
+              const title = '🚨 Production Deployment Failed';
+              const failedStep = process.env.FAILED_STEP_NAME || 'Unknown Step';
+              let errorDetails = process.env.CI_ERROR_DETAILS || 'No details captured.';
+              const body = `### ❌ Failed Step: \`${failedStep}\`\n\n### 📋 Error Details\n\`\`\`text\n${errorDetails}\n\`\`\``;
+
+              await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title: title,
+                body: body,
+                labels: ['bug', 'automated-ci', 'jules', 'production']
+              });
+            }

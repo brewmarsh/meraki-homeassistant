@@ -2,14 +2,13 @@
 
 import logging
 
+from custom_components.meraki_ha.const.integration import DOMAIN
 from homeassistant.components.binary_sensor import BinarySensorEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from custom_components.meraki_ha.const.integration import DOMAIN
-
-from.network import async_setup_entry as async_setup_network_entry
+from .network import async_setup_entry as async_setup_network_entry
 
 _LOGGER = logging.getLogger(__name__)
 

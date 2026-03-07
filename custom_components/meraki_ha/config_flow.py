@@ -16,14 +16,13 @@ except ImportError:
         DhcpServiceInfo,  # type: ignore[no-redef, attr-defined]
     )
 
-from custom_components.meraki_ha.const.integration import DOMAIN
-
 from custom_components.meraki_ha.const.config import (
     CONF_ENABLE_FIREWALL_RULES,
     CONF_ENABLE_VPN_MANAGEMENT,
     CONF_MERAKI_API_KEY,
     CONF_MERAKI_ORG_ID,
 )
+from custom_components.meraki_ha.const.integration import DOMAIN
 
 if TYPE_CHECKING:
     from .coordinators import MerakiMainCoordinator

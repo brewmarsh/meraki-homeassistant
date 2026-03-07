@@ -7,7 +7,6 @@ import pytest
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.meraki_ha.const.integration import DOMAIN
-
 from custom_components.meraki_ha.const_conf import (
     CONF_MERAKI_API_KEY,
     CONF_MERAKI_ORG_ID,
@@ -30,15 +29,21 @@ def coordinator(hass):
     entry.add_to_hass(hass)
     # Patched to reflect the new internal module structure
     with (
-        patch("custom_components.meraki_ha.coordinators.base.ApiClient") as mock_api_client_class,
-        patch("custom_components.meraki_ha.coordinators.base.DataFetchManager") as mock_fetch_manager_class,
+        patch(
+            "custom_components.meraki_ha.coordinators.base.ApiClient"
+        ) as mock_api_client_class,
+        patch(
+            "custom_components.meraki_ha.coordinators.base.DataFetchManager"
+        ) as mock_fetch_manager_class,
     ):
         mock_api_client = mock_api_client_class.return_value
         mock_fetch_manager = mock_fetch_manager_class.return_value
         mock_fetch_manager.get_sensor_data = AsyncMock()
         mock_fetch_manager.get_all_data = mock_fetch_manager.get_sensor_data
 
-        coord = MerakiDataCoordinator(hass=hass, entry=entry, api_client=mock_api_client)
+        coord = MerakiDataCoordinator(
+            hass=hass, entry=entry, api_client=mock_api_client
+        )
         yield coord
 
 

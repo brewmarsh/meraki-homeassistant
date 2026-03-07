@@ -5,6 +5,7 @@ from __future__ import annotations
 import logging
 from typing import Any
 
+from custom_components.meraki_ha.const.integration import DOMAIN
 from homeassistant.components.sensor import SensorEntity, SensorEntityDescription
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import UnitOfDataRate
@@ -12,9 +13,7 @@ from homeassistant.core import callback
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity import EntityCategory
 
-from custom_components.meraki_ha.const.integration import DOMAIN
-
-from...coordinators import MerakiMainCoordinator
+from ...coordinators import MerakiMainCoordinator
 from ...entity import MerakiEntity
 
 _LOGGER = logging.getLogger(__name__)
@@ -47,7 +46,9 @@ class MerakiSSIDDetailSensor(MerakiEntity, SensorEntity):
         # Rule 1: Use explicit naming to include SSID name for unique identification
         network = coordinator.get_network(self._network_id)
         network_name = network.name if network else f"Network {self._network_id}"
-        self._attr_name = f"{network_name} SSID {ssid_data['name']} {self.entity_description.name}"
+        self._attr_name = (
+            f"{network_name} SSID {ssid_data['name']} {self.entity_description.name}"
+        )
 
         # Rule 2: Robust unique_id format (serial_classname_key)
         # For SSID-bound entities, we use network_id and ssid_number as the

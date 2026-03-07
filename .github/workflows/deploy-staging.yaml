@@ -131,18 +131,18 @@ jobs:
         run: |
           echo "Initiating 90s discovery wait cycle..."
           sleep 90
-          
+
           echo "Extracting logs from Home Assistant API..."
           curl -sS -H "Authorization: Bearer $HA_TOKEN" \
                -H "Content-Type: application/json" \
                "$HA_URL/api/error_log" > full_ha_log.txt || { echo "Failed to fetch logs from API"; exit 1; }
-          
+
           # Stage 1 & 2: Search for Tracebacks or specific Python errors mentioning meraki
           if grep -i -E "traceback|attributeerror|nameerror|typeerror" full_ha_log.txt | grep -i "meraki" > /dev/null; then
             echo "Errors found! Extracting full tracebacks..."
             # Stage 3: Grab the error and the next 30 lines for context
             grep -A 30 -i -E "traceback|attributeerror|nameerror|typeerror" full_ha_log.txt > meraki_errors.txt
-            
+
             # Fail condition: Only fail if the file is greater than 0 bytes
             if [ -s meraki_errors.txt ]; then
               echo "::error::CRITICAL: Meraki-related Python errors detected!"
@@ -156,7 +156,7 @@ jobs:
               exit 1
             fi
           fi
-          
+
           echo "Logs appear clean."
           echo "HAS_ERRORS=false" >> $GITHUB_ENV
 

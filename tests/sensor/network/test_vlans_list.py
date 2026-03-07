@@ -5,7 +5,7 @@ from unittest.mock import MagicMock
 import pytest
 from homeassistant.const import EntityCategory
 
-from custom_components.meraki_ha.const_conf import CONF_ENABLE_VLAN_MANAGEMENT
+from custom_components.meraki_ha.const.config import CONF_ENABLE_VLAN_MANAGEMENT
 from custom_components.meraki_ha.core.models.network import MerakiVlan
 from custom_components.meraki_ha.discovery.service import DeviceDiscoveryService
 from custom_components.meraki_ha.types import MerakiNetwork

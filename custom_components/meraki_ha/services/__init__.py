@@ -1,15 +1,16 @@
 """Services for the Meraki HA integration."""
+
 from __future__ import annotations
 
 import logging
 from typing import TYPE_CHECKING
 
 import voluptuous as vol
+
+from custom_components.meraki_ha.const.integration import DOMAIN
 from homeassistant.core import HomeAssistant, ServiceCall
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers import config_validation as cv
-
-from custom_components.meraki_ha.const.integration import DOMAIN
 
 if TYPE_CHECKING:
     from .ipsk_manager import IPSKManager
@@ -28,6 +29,7 @@ SERVICE_CREATE_GUEST_KEY_SCHEMA = vol.Schema(
         vol.Optional("group_policy_id"): cv.string,
     }
 )
+
 
 async def async_setup_services(hass: HomeAssistant) -> None:
     """Set up services for the Meraki integration."""
@@ -53,12 +55,18 @@ async def async_setup_services(hass: HomeAssistant) -> None:
 
             # Check if this entry has the network_id
             main_coordinator = entry_data.get("main_coordinator")
-            if main_coordinator and hasattr(main_coordinator, "networks_by_id") and network_id in main_coordinator.networks_by_id:
+            if (
+                main_coordinator
+                and hasattr(main_coordinator, "networks_by_id")
+                and network_id in main_coordinator.networks_by_id
+            ):
                 config_entry_id = entry_id
                 break
 
         if not config_entry_id:
-            raise HomeAssistantError(f"Network ID {network_id} not found in any Meraki config entry")
+            raise HomeAssistantError(
+                f"Network ID {network_id} not found in any Meraki config entry"
+            )
 
         await ipsk_manager.create_guest_key(
             config_entry_id=config_entry_id,

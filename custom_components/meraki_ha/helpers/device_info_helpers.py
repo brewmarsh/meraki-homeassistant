@@ -4,12 +4,11 @@ import logging
 from dataclasses import asdict, is_dataclass
 from typing import Any
 
+from custom_components.meraki_ha.const.integration import DOMAIN
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.device_registry import DeviceEntryType, DeviceInfo
 
-from custom_components.meraki_ha.const.integration import DOMAIN
-
-from..core.models.device import MerakiDevice
+from ..core.models.device import MerakiDevice
 from ..core.models.network import MerakiNetwork
 from ..core.utils.naming_utils import standardize_device_name
 
@@ -56,7 +55,9 @@ def _resolve_client_info(data: dict[str, Any]) -> DeviceInfo | None:
 def _resolve_network_info(data: dict[str, Any]) -> DeviceInfo | None:
     """Resolve DeviceInfo for a network device (Virtual Controller)."""
     network_id = data.get("id")
-    is_network = ("productTypes" in data or "product_types" in data) and not data.get("serial")
+    is_network = ("productTypes" in data or "product_types" in data) and not data.get(
+        "serial"
+    )
     if is_network and network_id:
         # Special case: if model is already "Network", return it (tests rely on this)
         model = data.get("model") or "Network Controller Service"

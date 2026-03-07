@@ -6,10 +6,9 @@ import logging
 import re
 from typing import TYPE_CHECKING
 
+from custom_components.meraki_ha.const.integration import DOMAIN
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers import entity_registry as er
-
-from custom_components.meraki_ha.const.integration import DOMAIN
 
 if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
