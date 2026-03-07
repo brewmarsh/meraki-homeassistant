@@ -32,7 +32,7 @@ export class MerakiGuestAccessCard extends LitElement {
   @state() private _networks: Network[] = [];
   @state() private _ssids: SSID[] = [];
   @state() private _policies: any[] = [];
-  @state() private _loading: boolean = true;
+  @state() private _isLoading: boolean = true;
   @state() private _initDone: boolean = false;
 
   public setConfig(config: Config): void {
@@ -68,7 +68,7 @@ export class MerakiGuestAccessCard extends LitElement {
   private async _fetchInitialData() {
     this._initDone = true;
     if (!this.hass) return;
-    this._loading = true;
+    this._isLoading = true;
     try {
       const configEntries = await this.hass.callWS<any[]>({
         type: 'config_entries/get',
@@ -78,7 +78,7 @@ export class MerakiGuestAccessCard extends LitElement {
       const entryId = this._config?.config_entry_id || (configEntries.length > 0 ? configEntries[0].entry_id : null);
       if (!entryId) {
         this._error = 'Meraki integration not found. Please configure it first.';
-        this._loading = false;
+        this._isLoading = false;
         return;
       }
 
@@ -92,12 +92,12 @@ export class MerakiGuestAccessCard extends LitElement {
 
       if (this._networks.length > 0 && !this._selectedNetwork) {
         this._selectedNetwork = this._networks[0].id;
-        this._fetchPolicies(this._selectedNetwork, entryId);
+        await this._fetchPolicies(this._selectedNetwork, entryId);
       }
     } catch (err: any) {
       this._error = `Failed to fetch Meraki data: ${err.message || err}`;
     } finally {
-      this._loading = false;
+      this._isLoading = false;
     }
   }
 
@@ -132,10 +132,10 @@ export class MerakiGuestAccessCard extends LitElement {
   }
 
   protected render() {
-    if (this._loading && !this._networks.length) {
+    if (this._isLoading) {
       return html`
         <ha-card .header="${this._config?.name || 'Meraki Guest Access'}">
-          <div class="card-content flex justify-center p-8">
+          <div class="card-content flex justify-center items-center p-8">
             <ha-circular-progress active></ha-circular-progress>
           </div>
         </ha-card>
@@ -336,6 +336,9 @@ export class MerakiGuestAccessCard extends LitElement {
     }
     .justify-center {
       justify-content: center;
+    }
+    .items-center {
+      align-items: center;
     }
     .p-8 {
       padding: 32px;

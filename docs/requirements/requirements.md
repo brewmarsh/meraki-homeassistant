@@ -31,4 +31,7 @@ This document verifies the state of the codebase against the requirements for th
 - **R7: Visual Card Editors:**
   - **[IN PROGRESS]** Implementation of visual configuration editors for Meraki custom cards to replace YAML-only editing and improve user experience with native Home Assistant entity pickers.
 
-This verification confirms the need for the planned refactoring steps. The new requirements (R4, R5, R6, R7) are now considered part of the standard for this integration.
+- **R8: Native Loading States:**
+  - **[VERIFIED]** Implementation of native loading states in the `meraki-guest-access-card` to provide visual feedback during asynchronous data fetching.
+
+This verification confirms the need for the planned refactoring steps. The new requirements (R4, R5, R6, R7, R8) are now considered part of the standard for this integration.
