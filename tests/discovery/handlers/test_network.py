@@ -18,7 +18,7 @@ from custom_components.meraki_ha.sensor.network.network_clients import (
 from custom_components.meraki_ha.sensor.network.vlan import MerakiVLANStatusSensor
 from custom_components.meraki_ha.types import MerakiNetwork
 
-from ...const import MOCK_CONFIG_ENTRY
+from ..const import MOCK_CONFIG_ENTRY
 
 MOCK_NETWORK_1 = MerakiNetwork(
     id="N_1234", name="Network 1", organization_id="org1", product_types=["wireless"]
@@ -125,8 +125,7 @@ async def test_discover_entities_creates_client_status_sensors_when_enabled(
         },
         {
             "mac": "11:22:33:44:55:66",
-            "networkId": "N_OTHER",  # Should be ignored (network not in
-            # mock_coordinator.data["networks"])
+            "networkId": "N_OTHER",  # Should be ignored
             "status": "Online",
         },
     ]
@@ -153,10 +152,9 @@ async def test_discover_entities_creates_client_status_sensors_when_enabled(
     ]
 
     # 4. Assertions
-    # We expect 2 sensors (Client 1 and Client 2). Client 3 (N_OTHER) is skipped.
     assert len(client_status_sensors) == 2
 
-    # Verify specific sensor data (ensures deep attribute mapping works)
+    # Verify specific sensor data
     sensor1 = next(
         s for s in client_status_sensors if s._client_mac == "00:11:22:33:44:55"
     )

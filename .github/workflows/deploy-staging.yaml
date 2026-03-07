@@ -169,10 +169,29 @@ jobs:
 
           if [ "$RESPONSE" != "[]" ] && [ "$RESPONSE" != "" ]; then
             echo "::error::CRITICAL: The following Meraki entities are unavailable or unknown: $RESPONSE"
-            echo "CI_ERROR_DETAILS=$RESPONSE" >> "$GITHUB_ENV"
+            {
+              echo "CI_ERROR_DETAILS<<EOF"
+              echo "$RESPONSE"
+              echo "EOF"
+            } >> "$GITHUB_ENV"
             exit 1
           else
             echo "All Meraki entities are fully available."
+          fi
+
+      - name: Capture HA Logs on Failure
+        if: failure()
+        shell: bash
+        run: |
+          echo "Capturing Home Assistant logs..."
+          if [ -f "${{ env.HA_CONFIG_DIR }}/home-assistant.log" ]; then
+            {
+              echo "ERROR_LOGS<<EOF"
+              tail -n 50 "${{ env.HA_CONFIG_DIR }}/home-assistant.log"
+              echo "EOF"
+            } >> "$GITHUB_ENV"
+          else
+            echo "ERROR_LOGS=Log file not found at ${{ env.HA_CONFIG_DIR }}/home-assistant.log" >> "$GITHUB_ENV"
           fi
 
       - name: Create Issue on Failure
@@ -194,7 +213,8 @@ jobs:
             }
 
             const errorDetails = process.env.CI_ERROR_DETAILS || 'No details captured.';
-            const body = `The deployment to the staging environment failed.\n\n### Error Details\n\`\`\`\n${errorDetails}\n\`\`\`\n\n[View failing run details](${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId})`;
+            const errorLogs = process.env.ERROR_LOGS ? `### 📋 Home Assistant Logs\n\`\`\`text\n${process.env.ERROR_LOGS}\n\`\`\`\n\n` : '';
+            const body = `The deployment to the staging environment failed.\n\n### 📋 Error Details\n\`\`\`text\n${errorDetails}\n\`\`\`\n\n${errorLogs}[🔗 View full failing run details](${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId})`;
             await github.rest.issues.create({
               owner: context.repo.owner,
               repo: context.repo.repo,

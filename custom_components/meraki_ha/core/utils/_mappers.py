@@ -1,6 +1,7 @@
 """Utility functions for mapping and validating Meraki device types."""
 
 from itertools import chain
+import re
 
 from custom_components.meraki_ha.const.device_types import (
     VALID_DEVICE_TYPES,
