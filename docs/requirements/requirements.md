@@ -28,4 +28,7 @@ This document verifies the state of the codebase against the requirements for th
   - **[VERIFIED]** ACL score for `resolve_device_info` reduced below 10 by removing nested conditionals and delegating logic.
   - **[VERIFIED]** All helper functions are strictly typed and under 50 lines of code.
 
-This verification confirms the need for the planned refactoring steps. The new requirements (R4, R5, R6) are now considered part of the standard for this integration.
+- **R7: Visual Card Editors:**
+  - **[IN PROGRESS]** Implementation of visual configuration editors for Meraki custom cards to replace YAML-only editing and improve user experience with native Home Assistant entity pickers.
+
+This verification confirms the need for the planned refactoring steps. The new requirements (R4, R5, R6, R7) are now considered part of the standard for this integration.

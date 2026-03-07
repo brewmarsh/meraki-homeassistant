@@ -156,3 +156,30 @@ jobs:
           else
             echo "All Meraki entities are fully available."
           fi
+
+      - name: Create Issue on Failure
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const title = '🚨 Staging Smoke Test Failed';
+            const { data: issues } = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+            });
+
+            const existingIssue = issues.find(issue => issue.title === title);
+            if (existingIssue) {
+              console.log(`Issue already exists: ${existingIssue.html_url}`);
+              return;
+            }
+
+            const body = `The deployment to the staging environment failed.\n\n[View failing run details](${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId})`;
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: title,
+              body: body,
+              labels: ['bug', 'automated-ci']
+            });
