@@ -142,3 +142,17 @@ jobs:
           
           echo "Logs appear clean."
           echo "HAS_ERRORS=false" >> $GITHUB_ENV
+
+      - name: Audit Entity States
+        shell: bash
+        run: |
+          echo "Checking for unavailable or unknown entities..."
+          PAYLOAD='{"template": "{{ integration_entities(\"meraki_ha\") | select(\"is_state\", [\"unavailable\", \"unknown\"]) | list }}"}'
+          RESPONSE=$(curl -sS -X POST -H "Authorization: Bearer ${{ secrets.HA_STAGING_TOKEN }}" -H "Content-Type: application/json" -d "$PAYLOAD" "${{ secrets.HA_STAGING_URL }}/api/template")
+
+          if [ "$RESPONSE" != "[]" ] && [ "$RESPONSE" != "" ]; then
+            echo "::error::CRITICAL: The following Meraki entities are unavailable or unknown: $RESPONSE"
+            exit 1
+          else
+            echo "All Meraki entities are fully available."
+          fi
