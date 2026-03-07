@@ -27,7 +27,7 @@ export class MerakiContentFilterCard extends LitElement {
 
   public static getStubConfig(): Record<string, unknown> {
     return {
-      entity: 'select.meraki_network_content_filter',
+      entity: '',
       name: 'Meraki Content Filter',
     };
   }
@@ -107,10 +107,6 @@ export class MerakiContentFilterCard extends LitElement {
     .card-content {
       padding: 16px;
     }
-    .network-name {
-      font-weight: 500;
-      margin-bottom: 4px;
-    }
     .current-profile {
       color: var(--secondary-text-color);
       font-size: 0.9em;
@@ -123,8 +119,6 @@ export class MerakiContentFilterCard extends LitElement {
     }
     .profile-button {
       flex: 1 1 calc(50% - 4px);
-      --mdc-theme-primary: var(--primary-text-color);
-      --mdc-theme-on-primary: var(--card-background-color);
       border: 1px solid var(--divider-color);
       border-radius: 8px;
       padding: 8px;
@@ -198,6 +192,10 @@ export class MerakiContentFilterCardEditor extends LitElement {
     }
 
     let newValue = target.value;
+    if (ev.detail && ev.detail.value !== undefined) {
+      newValue = ev.detail.value;
+    }
+
     if (this._config[configValue] === newValue) {
       return;
     }
@@ -224,6 +222,7 @@ export class MerakiContentFilterCardEditor extends LitElement {
     .card-config ha-textfield {
       display: block;
       margin-bottom: 16px;
+      width: 100%;
     }
   `;
 }
