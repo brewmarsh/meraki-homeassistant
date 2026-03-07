@@ -8,7 +8,7 @@ from homeassistant.helpers import entity_registry as er
 from homeassistant.setup import async_setup_component
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from custom_components.meraki_ha.const import DOMAIN
+from custom_components.meraki_ha.const.integration import DOMAIN
 from custom_components.meraki_ha.const_conf import CONF_ENABLE_VPN_MANAGEMENT
 from custom_components.meraki_ha.types import MerakiVpn
 from tests.const import MOCK_NETWORK
@@ -46,23 +46,24 @@ def mock_data_fetch_manager() -> AsyncMock:
     from custom_components.meraki_ha.types import MerakiDevice
 
     manager = AsyncMock()
-    data = {
-        "devices": [
-            MerakiDevice(serial="Q234-ABCD-VPN", model="MX64", name="VPN Appliance")
-        ],
-        "networks": [MOCK_NETWORK],
-        "vpn_status": {MOCK_NETWORK.id: MerakiVpn(mode="spoke", hubs=[], subnets=[])},
-        "ssids": [],
-        "clients": [],
-        "vlans": {},
-        "appliance_uplink_statuses": [],
-        "rf_profiles": {},
-        "appliance_traffic": {},
-        "content_filtering": {},
-    }
-    manager.get_all_data = AsyncMock(return_value=data)
-    manager.get_device_data = AsyncMock(return_value=data)
-    manager.get_sensor_data = AsyncMock(return_value=data)
+    manager.get_all_data = AsyncMock(
+        return_value={
+            "devices": [
+                MerakiDevice(serial="Q234-ABCD-VPN", model="MX64", name="VPN Appliance")
+            ],
+            "networks": [MOCK_NETWORK],
+            "vpn_status": {
+                MOCK_NETWORK.id: MerakiVpn(mode="spoke", hubs=[], subnets=[])
+            },
+            "ssids": [],
+            "clients": [],
+            "vlans": {},
+            "appliance_uplink_statuses": [],
+            "rf_profiles": {},
+            "appliance_traffic": {},
+            "content_filtering": {},
+        }
+    )
     return manager
 
 

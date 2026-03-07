@@ -11,12 +11,9 @@ import logging
 from collections.abc import AsyncIterator
 from typing import TYPE_CHECKING
 
-from homeassistant.exceptions import HomeAssistantError
+from custom_components.meraki_ha.const.integration import CONF_ENABLE_DEVICE_SENSORS, CONF_ENABLE_PORT_SENSORS
 
-from ...core.errors import MerakiHAException, MerakiInformationalError
-
-from ...const_conf import CONF_ENABLE_DEVICE_SENSORS, CONF_ENABLE_PORT_SENSORS
-from ...sensor.device.switch_client_count import MerakiSwitchClientCountSensor
+from...sensor.device.switch_client_count import MerakiSwitchClientCountSensor
 from ..providers import SwitchPortProvider
 from .base import BaseHandler
 
@@ -42,45 +39,29 @@ class SwitchHandler(BaseHandler):
                 return
 
             for device in devices:
-                try:
-                    if not hasattr(device, "product_type"):
-                        continue
+                if not hasattr(device, "product_type"):
+                    continue
 
-                    # Add Exclusion Logic
-                    if device.product_type == "appliance" or (
-                        device.model
-                        and (
-                            device.model.startswith("MX") or device.model.startswith("Z3")
-                        )
-                    ):
-                        _LOGGER.debug(
-                            "Skipping device %s in Switch Handler (Appliance Handler)",
-                            device.serial,
-                        )
-                        continue
-
-                    if device.product_type == "switch":
-                        # Client Count per Switch
-                        yield MerakiSwitchClientCountSensor(
-                            self._coordinator, device, self._config_entry
-                        )
-
-                        # Switch Ports
-                        if self._config_entry.options.get(CONF_ENABLE_PORT_SENSORS, True):
-                            for entity in SwitchPortProvider.get_entities(
-                                self._coordinator, device, self._config_entry
-                            ):
-                                yield entity
-                except MerakiInformationalError as e:
-                    _LOGGER.info(
-                        "Optional feature for switch %s is disabled: %s",
-                        getattr(device, "serial", "unknown"),
-                        e,
-                    )
-                except (MerakiHAException, HomeAssistantError) as e:
-                    _LOGGER.error(
-                        "Error discovering entities for switch %s: %s",
-                        getattr(device, "serial", "unknown"),
-                        e,
+                # Add Exclusion Logic
+                if device.product_type == "appliance" or (
+                    device.model
+                    and (device.model.startswith("MX") or device.model.startswith("Z3"))
+                ):
+                    _LOGGER.debug(
+                        "Skipping device %s in Switch Handler (Appliance Handler)",
+                        device.serial,
                     )
                     continue
+
+                if device.product_type == "switch":
+                    # Client Count per Switch
+                    yield MerakiSwitchClientCountSensor(
+                        self._coordinator, device, self._config_entry
+                    )
+
+                    # Switch Ports
+                    if self._config_entry.options.get(CONF_ENABLE_PORT_SENSORS, True):
+                        for entity in SwitchPortProvider.get_entities(
+                            self._coordinator, device, self._config_entry
+                        ):
+                            yield entity

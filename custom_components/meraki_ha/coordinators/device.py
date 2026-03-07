@@ -16,11 +16,9 @@ _LOGGER = logging.getLogger(__name__)
 class MerakiDeviceCoordinator(MerakiBaseCoordinator[dict[str, Any]]):
     """A coordinator for fast-poll Meraki device status data."""
 
-    def __init__(self, hass, entry, api_client, data_fetch_manager=None) -> None:
+    def __init__(self, hass, entry, api_client) -> None:
         """Initialize the device coordinator."""
-        super().__init__(
-            hass, entry, api_client, name="device", data_fetch_manager=data_fetch_manager
-        )
+        super().__init__(hass, entry, api_client, name="device")
         self.last_successful_data: dict[str, Any] = {}
         # Fast poll interval
         self.update_interval = timedelta(seconds=60)
@@ -44,14 +42,7 @@ class MerakiDeviceCoordinator(MerakiBaseCoordinator[dict[str, Any]]):
             updated = self.polling_manager.record_success()
             self.apply_polling_update(updated)
 
-            # Return a merged dictionary keyed by serial/ID for efficient extraction
-            return {
-                **self.devices_by_serial,
-                **self.networks_by_id,
-                "devices": list(self.devices_by_serial.values()),
-                "networks": list(self.networks_by_id.values()),
-                "ssids": list(self.ssids_by_network_and_number.values()),
-            }
+            return data
         except Exception as err:
             _LOGGER.error("Error fetching Meraki device data: %s", err)
 
@@ -62,6 +53,5 @@ class MerakiDeviceCoordinator(MerakiBaseCoordinator[dict[str, Any]]):
             if "429" in str(err):
                 raise UpdateFailed(f"Meraki API rate limit: {err}") from err
 
-            # Fallback to last successful data if update fails
-            self.update_processor.process_failure(err, self.last_successful_data)
-            return {**self.devices_by_serial, **self.networks_by_id}
+            data, _ = self.update_processor.process_failure(err, self.last_successful_data)
+            return data

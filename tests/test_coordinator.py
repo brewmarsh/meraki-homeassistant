@@ -6,7 +6,8 @@ import pytest
 from homeassistant.helpers.update_coordinator import UpdateFailed
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from custom_components.meraki_ha.const import DOMAIN
+from custom_components.meraki_ha.const.integration import DOMAIN
+
 from custom_components.meraki_ha.const_conf import (
     CONF_MERAKI_API_KEY,
     CONF_MERAKI_ORG_ID,
@@ -59,7 +60,7 @@ def coordinator(hass, mock_api_client, mock_data_fetch_manager):
 async def test_update_data_handles_errors(coordinator, mock_data_fetch_manager):
     """Test that _async_update_data handles disabled features."""
     # Arrange
-    mock_data_fetch_manager.get_all_data.return_value = {
+    mock_data_fetch_manager.get_sensor_data.return_value = {
         "networks": [MOCK_NETWORK],
         "devices": [],
         "appliance_traffic": {
@@ -86,7 +87,7 @@ async def test_update_data_handles_errors(coordinator, mock_data_fetch_manager):
 async def test_update_data_handles_timeout(coordinator, mock_data_fetch_manager):
     """Test that _async_update_data handles timeout."""
     # Arrange
-    mock_data_fetch_manager.get_all_data.side_effect = TimeoutError()
+    mock_data_fetch_manager.get_sensor_data.side_effect = TimeoutError()
 
     # Act & Assert
 

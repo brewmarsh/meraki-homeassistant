@@ -7,9 +7,7 @@ from typing import Any, TypeVar
 from homeassistant.components import websocket_api
 from homeassistant.core import HomeAssistant
 
-from ..const import DOMAIN
-
-_LOGGER = logging.getLogger(__name__)
+from custom_components.meraki_ha.const.integration import DOMAIN, _LOGGER= logging.getLogger(__name__)
 
 T = TypeVar("T")
 

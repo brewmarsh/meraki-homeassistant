@@ -10,8 +10,9 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 
-from ..const import DOMAIN
-from ..core.api import MerakiApiClientProtocol as ApiClient
+from custom_components.meraki_ha.const.integration import DOMAIN
+
+from..core.api import MerakiApiClientProtocol as ApiClient
 from ..core.coordinator_helpers.config_helper import (
     CoordinatorConfig,
     get_coordinator_config,
@@ -42,14 +43,13 @@ class MerakiBaseCoordinator(DataUpdateCoordinator[T], Generic[T]):
         entry: ConfigEntry,
         api_client: ApiClient,
         name: str = DOMAIN,
-        data_fetch_manager: DataFetchManager | None = None,
     ) -> None:
         """Initialize the base coordinator."""
         self.config = get_coordinator_config(entry)
 
         self.api = api_client
 
-        self.data_fetch_manager = data_fetch_manager or DataFetchManager(
+        self.data_fetch_manager = DataFetchManager(
             client=self.api,
             enable_vpn_management=self.config.enable_vpn,
             enable_firewall_rules=self.config.enable_firewall,

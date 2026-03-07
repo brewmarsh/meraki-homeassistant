@@ -8,7 +8,7 @@ import homeassistant.helpers.config_validation as cv
 import voluptuous as vol
 from homeassistant.const import CONF_API_KEY, CONF_NAME
 
-from ...const_conf import CONF_MERAKI_ORG_ID, CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL
+from custom_components.meraki_ha.const.config import CONF_MERAKI_ORG_ID, CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL
 
 VALID_MERAKI_API_KEY = re.compile(r"^[0-9a-f]{40}$")
 VALID_MERAKI_ORG_ID = re.compile(r"^[0-9]{6,12}$")

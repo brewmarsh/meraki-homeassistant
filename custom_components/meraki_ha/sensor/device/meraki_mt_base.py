@@ -22,11 +22,7 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class MerakiMtSensor(MerakiSensor, RestoreSensor):
-    """Representation of a Meraki MT sensor.
-    
-    This class handles state restoration and complex metric extraction from 
-    the centralized Meraki sensor coordinator.
-    """
+    """Representation of a Meraki MT sensor."""
 
     _attr_native_value: str | float | bool | None
 
@@ -40,6 +36,8 @@ class MerakiMtSensor(MerakiSensor, RestoreSensor):
         super().__init__(coordinator)
         self._device = device
         self.entity_description = entity_description
+
+        # We no longer set _attr_unique_id here as the @property below handles it.
         self._attr_has_entity_name = True
 
         if self.entity_description.name is not UNDEFINED:
@@ -58,10 +56,12 @@ class MerakiMtSensor(MerakiSensor, RestoreSensor):
         if (last_sensor_data := await self.async_get_last_sensor_data()) is not None:
             value = last_sensor_data.native_value
             if value is not UNDEFINED:
+                # Type check and conversion for MyPy compatibility
                 if isinstance(value, (str, float, bool)):
                     self._attr_native_value = value
-                elif isinstance(value, int):
+                elif isinstance(value, int):  # Handle int->float conversion safely
                     self._attr_native_value = float(value)
+                # Ignore other types (e.g. datetime) that don't match our state type
 
     @property
     def device_info(self) -> DeviceInfo | None:
@@ -125,6 +125,7 @@ class MerakiMtSensor(MerakiSensor, RestoreSensor):
     def _extract_from_reading(self, key: str, reading: dict[str, Any]) -> Any | None:
         """Extract value if the reading metric matches the desired key."""
         metric = reading.get("metric")
+        # Handle "realPower" which might be reported as "power"
         if metric == key or (key == "realPower" and metric == "power"):
             metric_data = reading.get(metric)
             if isinstance(metric_data, dict):
@@ -133,7 +134,7 @@ class MerakiMtSensor(MerakiSensor, RestoreSensor):
 
     def _get_readings_list(self) -> list[dict[str, Any]] | None:
         """Return the device readings as a list if valid."""
-        readings = getattr(self._device, "readings", None)
+        readings = self._device.readings
         if readings and isinstance(readings, list):
             return readings
         return None
@@ -166,15 +167,18 @@ class MerakiMtSensor(MerakiSensor, RestoreSensor):
         self._attr_native_value = None
         key = self.entity_description.key
 
+        # 1. Try values from legacy device attributes
         if value := self._get_value_from_legacy_device_attributes(key):
             self._attr_native_value = value
             return
 
+        # 2. Try values from the 'readings' list if available
         readings = self._get_readings_list()
         if readings and (value := self._get_value_from_readings_list(key, readings)):
             self._attr_native_value = value
             return
 
+        # 3. Fallback to generic device attributes
         if value := self._get_value_from_generic_device_attributes(key):
             self._attr_native_value = value
             return
@@ -182,24 +186,37 @@ class MerakiMtSensor(MerakiSensor, RestoreSensor):
     @callback
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
-        # The parent handles basic availability and calls update hooks
-        super()._handle_coordinator_update()
-
-    def _update_native_value_hook(self) -> None:
-        """Hook for the parent class to trigger a value update."""
         if self._device.serial and (device := self.coordinator.get_device(self._device.serial)):
             self._device = device
             self._update_native_value()
+
+        # Ensure we call the parent callback to write the state and handle upstream logic
+        super()._handle_coordinator_update()
 
     @property
     def native_value(self) -> str | float | bool | None:
         """Return the state of the sensor."""
         return self._attr_native_value
 
+    def _is_metric_in_readings(self, readings: list[dict[str, Any]]) -> bool:
+        """Check if the sensor's metric exists in the given readings list."""
+        for reading in readings:
+            if reading.get("metric") == self.entity_description.key:
+                return True
+        return False
+
     @property
     def available(self) -> bool:
-        """Return if the sensor is available.
-        
-        Standardizes on the MerakiEntity logic to check centralized data presence.
-        """
-        return super().available
+        """Return if the sensor is available."""
+        # Defer to the parent MerakiEntity logic which checks the coordinator state
+        if not super().available:
+            return False
+
+        if self.native_value is not None:
+            return True
+
+        readings = self._get_readings_list()
+        if readings is not None and self._is_metric_in_readings(readings):
+            return True
+
+        return False

@@ -6,7 +6,8 @@ import pytest
 from homeassistant.core import HomeAssistant
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from custom_components.meraki_ha.const import DOMAIN
+from custom_components.meraki_ha.const.integration import DOMAIN
+
 from custom_components.meraki_ha.webhook import (
     async_handle_webhook,
     async_register_webhook,

@@ -141,12 +141,6 @@
 | :----------------------------------------------------- | :------- |
 | The Integration uses Voluptuous for schema validation. | Included |
 
-### Python 3.14 Compatibility
-
-| Requirement                                                                                                                                                 | Status   |
-| :---------------------------------------------------------------------------------------------------------------------------------------------------------- | :------- |
-| The integration must be free of syntax anti-patterns that trigger `SyntaxWarning` in Python 3.14+, such as `return`, `break`, or `continue` inside `finally` blocks. | Included |
-
 ### Testing & Hardening
 
 | Requirement                                                                                                                                                                                          | Status   |

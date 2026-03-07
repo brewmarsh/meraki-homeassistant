@@ -17,61 +17,59 @@ from custom_components.meraki_ha.types import MerakiDevice
 @pytest.fixture
 def mock_coordinator_mt_sensor(mock_coordinator: MagicMock) -> MagicMock:
     """Fixture for a mocked MerakiDataCoordinator with MT sensor data."""
-    devices = [
-        MerakiDevice.from_dict(
-            {
-                "serial": "mt10-1",
-                "name": "MT10 Sensor",
-                "model": "MT10",
-                "productType": "sensor",
-                "readings": [
-                    {
-                        "metric": "temperature",
-                        "temperature": {"celsius": 25.5},
-                    },
-                    {
-                        "metric": "humidity",
-                        "humidity": {"relativePercentage": 50},
-                    },
-                    {
-                        "metric": "battery",
-                        "battery": {"percentage": 95},
-                    },
-                ],
-            }
-        ),
-        MerakiDevice.from_dict(
-            {
-                "serial": "mt30-1",
-                "name": "MT30 Button",
-                "model": "MT30",
-                "productType": "sensor",
-                "readings": [
-                    {
-                        "metric": "battery",
-                        "battery": {"percentage": 88},
-                    },
-                    {
-                        "metric": "button",
-                        "button": {"pressType": "short"},
-                    },
-                ],
-            }
-        ),
-    ]
+    mock_coordinator.data = {
+        "devices": [
+            MerakiDevice.from_dict(
+                {
+                    "serial": "mt10-1",
+                    "name": "MT10 Sensor",
+                    "model": "MT10",
+                    "productType": "sensor",
+                    "readings": [
+                        {
+                            "metric": "temperature",
+                            "temperature": {"celsius": 25.5},
+                        },
+                        {
+                            "metric": "humidity",
+                            "humidity": {"relativePercentage": 50},
+                        },
+                        {
+                            "metric": "battery",
+                            "battery": {"percentage": 95},
+                        },
+                    ],
+                }
+            ),
+            MerakiDevice.from_dict(
+                {
+                    "serial": "mt30-1",
+                    "name": "MT30 Button",
+                    "model": "MT30",
+                    "productType": "sensor",
+                    "readings": [
+                        {
+                            "metric": "battery",
+                            "battery": {"percentage": 88},
+                        },
+                        {
+                            "metric": "button",
+                            "button": {"pressType": "short"},
+                        },
+                    ],
+                }
+            ),
+        ]
+    }
 
     # Mock get_device to return the correct device
     def get_device(serial):
-        for d in devices:
+        for d in mock_coordinator.data["devices"]:
             if d.serial == serial:
                 return d
         return None
 
     mock_coordinator.get_device.side_effect = get_device
-
-    # Update coordinator.data to be a dictionary keyed by serial/ID
-    mock_coordinator.data = {d.serial: d for d in devices}
-
     return mock_coordinator
 
 
@@ -79,7 +77,7 @@ def test_mt10_temperature_sensor(
     mock_coordinator_mt_sensor: MagicMock,
 ):
     """Test the MT10 temperature sensor."""
-    device_info = mock_coordinator_mt_sensor.get_device("mt10-1")
+    device_info = mock_coordinator_mt_sensor.data["devices"][0]
     sensor = MerakiMtSensor(
         mock_coordinator_mt_sensor, device_info, MT_TEMPERATURE_DESCRIPTION
     )
@@ -96,7 +94,7 @@ def test_mt10_battery_sensor(
     mock_coordinator_mt_sensor: MagicMock,
 ):
     """Test the MT10 battery sensor."""
-    device_info = mock_coordinator_mt_sensor.get_device("mt10-1")
+    device_info = mock_coordinator_mt_sensor.data["devices"][0]
     sensor = MerakiMtSensor(
         mock_coordinator_mt_sensor, device_info, MT_BATTERY_DESCRIPTION
     )
@@ -113,7 +111,7 @@ def test_mt30_button_sensor(
     mock_coordinator_mt_sensor: MagicMock,
 ):
     """Test the MT30 button sensor."""
-    device_info = mock_coordinator_mt_sensor.get_device("mt30-1")
+    device_info = mock_coordinator_mt_sensor.data["devices"][1]
     sensor = MerakiMtSensor(
         mock_coordinator_mt_sensor, device_info, MT_BUTTON_DESCRIPTION
     )

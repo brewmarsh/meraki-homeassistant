@@ -12,8 +12,8 @@ from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.update_coordinator import UpdateFailed
 
-from ...const import DOMAIN
-from ...const_conf import CONF_IGNORED_NETWORKS, DEFAULT_IGNORED_NETWORKS
+from custom_components.meraki_ha.const.integration import DOMAIN
+from custom_components.meraki_ha.const.config import CONF_IGNORED_NETWORKS, DEFAULT_IGNORED_NETWORKS
 from ..helpers.device_registry import (
     async_ensure_network_devices_exist,
 )
@@ -180,15 +180,15 @@ class UpdateProcessor:
         update_device_registry_info(self.hass, devices)
 
         # Return lookup tables
-        update_dict = {
-            "devices": devices,
-            "networks": list(networks_by_id.values()),
-            "devices_by_serial": devices_by_serial,
-            "networks_by_id": networks_by_id,
-            "ssids_by_network_and_number": ssids_by_network_and_number,
-        }
-        if isinstance(data, dict):
-            data.update(update_dict)
+        data.update(
+            {
+                "devices": devices,
+                "networks": list(networks_by_id.values()),
+                "devices_by_serial": devices_by_serial,
+                "networks_by_id": networks_by_id,
+                "ssids_by_network_and_number": ssids_by_network_and_number,
+            }
+        )
 
         return {
             "devices": devices,

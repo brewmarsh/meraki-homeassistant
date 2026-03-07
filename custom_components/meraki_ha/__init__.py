@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import asyncio
 import logging
 import secrets
 import string
@@ -15,9 +14,10 @@ from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers.typing import ConfigType
 
 from .api.websocket import async_setup_websocket_api
-from .const import DOMAIN, WEBHOOK_ID_FORMAT
-from .const_conf import CONF_MERAKI_API_KEY, CONF_MERAKI_ORG_ID
-from .const_platform import PLATFORMS
+from custom_components.meraki_ha.const.integration import DOMAIN
+from custom_components.meraki_ha.const.webhooks import WEBHOOK_ID_FORMAT
+from custom_components.meraki_ha.const.config import CONF_MERAKI_API_KEY, CONF_MERAKI_ORG_ID
+from custom_components.meraki_ha.const.platform import PLATFORMS
 from .coordinators import (
     MerakiApplianceCoordinator,
     MerakiCameraCoordinator,
@@ -41,8 +41,6 @@ from .services.manager import ServicesManager
 from .services.network_control_service import NetworkControlService
 from .services.switch_port_service import SwitchPortService
 from .webhook import async_register_webhook, async_unregister_webhook
-from .core.coordinator_helpers.data_fetcher import DataFetchManager
-from .core.coordinator_helpers.config_helper import get_coordinator_config
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -121,39 +119,55 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     )
     await api_client.async_setup()
 
-    # Initialize shared DataFetchManager and specialized coordinators
-    config = get_coordinator_config(entry)
-    data_fetch_manager = DataFetchManager(
-        client=api_client,
-        enable_vpn_management=config.enable_vpn,
-        enable_firewall_rules=config.enable_firewall,
-        enable_traffic_shaping=config.enable_traffic,
-        enable_camera_sense=config.enable_camera_sense,
-    )
+    # Initialize specialized coordinators
+    main_coordinator = MerakiMainCoordinator(hass, entry, api_client)
+    device_coordinator = MerakiDeviceCoordinator(hass, entry, api_client)
+    switch_coordinator = MerakiSwitchCoordinator(hass, entry, api_client)
+    camera_coordinator = MerakiCameraCoordinator(hass, entry, api_client)
+    sensor_coordinator = MerakiSensorCoordinator(hass, entry, api_client)
+    wireless_coordinator = MerakiWirelessCoordinator(hass, entry, api_client)
+    appliance_coordinator = MerakiApplianceCoordinator(hass, entry, api_client)
+    client_coordinator = MerakiClientCoordinator(hass, entry, api_client)
 
-    main_coordinator = MerakiMainCoordinator(hass, entry, api_client, data_fetch_manager=data_fetch_manager)
-    device_coordinator = MerakiDeviceCoordinator(hass, entry, api_client, data_fetch_manager=data_fetch_manager)
-    switch_coordinator = MerakiSwitchCoordinator(hass, entry, api_client, data_fetch_manager=data_fetch_manager)
-    camera_coordinator = MerakiCameraCoordinator(hass, entry, api_client, data_fetch_manager=data_fetch_manager)
-    sensor_coordinator = MerakiSensorCoordinator(hass, entry, api_client, data_fetch_manager=data_fetch_manager)
-    wireless_coordinator = MerakiWirelessCoordinator(hass, entry, api_client, data_fetch_manager=data_fetch_manager)
-    appliance_coordinator = MerakiApplianceCoordinator(hass, entry, api_client, data_fetch_manager=data_fetch_manager)
-    client_coordinator = MerakiClientCoordinator(hass, entry, api_client, data_fetch_manager=data_fetch_manager)
+    # 1. Block setup until the basic device skeleton is loaded (Tier 1)
+    # This is strictly required to populate the Device Registry promptly.
+    await device_coordinator.async_config_entry_first_refresh()
 
-    # 1. Block setup until all coordinators have performed their first refresh.
-    # This ensures a consistent data contract and prevents race conditions
-    # where entities are created before their data is available.
-    # We use gather to run these concurrently to minimize startup time.
-    await asyncio.gather(
-        device_coordinator.async_config_entry_first_refresh(),
-        main_coordinator.async_config_entry_first_refresh(),
-        switch_coordinator.async_config_entry_first_refresh(),
-        camera_coordinator.async_config_entry_first_refresh(),
-        sensor_coordinator.async_config_entry_first_refresh(),
-        wireless_coordinator.async_config_entry_first_refresh(),
-        appliance_coordinator.async_config_entry_first_refresh(),
-        client_coordinator.async_config_entry_first_refresh(),
-    )
+    # Seed the specialized coordinators with the basic device data so discovery
+    # can proceed without waiting for the heavy full organizational/sensor refresh.
+    # We explicitly do NOT use async_set_updated_data() here because that would mark
+    # the coordinators as having had a successful first update, making entities
+    # prematurely "available" with incomplete data.
+    for coord in [
+        main_coordinator,
+        switch_coordinator,
+        camera_coordinator,
+        sensor_coordinator,
+        wireless_coordinator,
+        appliance_coordinator,
+        client_coordinator,
+    ]:
+        coord.data = device_coordinator.data
+        coord.devices_by_serial = device_coordinator.devices_by_serial
+        coord.networks_by_id = device_coordinator.networks_by_id
+        coord.ssids_by_network_and_number = (
+            device_coordinator.ssids_by_network_and_number
+        )
+
+    # 2. Start heavy fetching for other coordinators in the background.
+    # This prevents blocking the Home Assistant UI and avoids setup timeouts.
+    for coord, name in [
+        (main_coordinator, "meraki_main_init"),
+        (switch_coordinator, "meraki_switch_init"),
+        (camera_coordinator, "meraki_camera_init"),
+        (sensor_coordinator, "meraki_sensor_init"),
+        (wireless_coordinator, "meraki_wireless_init"),
+        (appliance_coordinator, "meraki_appliance_init"),
+        (client_coordinator, "meraki_client_init"),
+    ]:
+        entry.async_create_background_task(
+            hass, coord.async_request_refresh(), name=name
+        )
 
     repo = MerakiRepository(api_client)
     device_control_service = DeviceControlService(repo)
@@ -195,21 +209,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         "network_control_service": network_control_service,
         "discovery_service": discovery_service,
     }
-
-    # Verify that the device coordinator has data before starting discovery.
-    # If devices_by_serial is empty, discovery will find 0 entities.
-    if not device_coordinator.devices_by_serial:
-        _LOGGER.warning(
-            "Device coordinator has no device data after first refresh. "
-            "Entity discovery may be incomplete. "
-            "Check Meraki API connectivity and organization ID: %s",
-            entry.data[CONF_MERAKI_ORG_ID],
-        )
-    else:
-        _LOGGER.info(
-            "Device coordinator populated with %d devices. Starting discovery.",
-            len(device_coordinator.devices_by_serial),
-        )
 
     await discovery_service.discover_entities()
 

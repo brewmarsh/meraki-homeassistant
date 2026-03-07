@@ -12,8 +12,9 @@ from homeassistant.core import callback
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from ...const import DOMAIN
-from ...core.models import MerakiAppliancePort
+from custom_components.meraki_ha.const.integration import DOMAIN
+
+from...core.models import MerakiAppliancePort
 from ...core.models.device import MerakiDevice
 from ...core.utils.naming_utils import format_device_name
 

@@ -9,7 +9,7 @@ from homeassistant.core import HomeAssistant, ServiceCall
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers import config_validation as cv
 
-from ..const import DOMAIN
+from custom_components.meraki_ha.const.integration import DOMAIN
 
 if TYPE_CHECKING:
     from .ipsk_manager import IPSKManager

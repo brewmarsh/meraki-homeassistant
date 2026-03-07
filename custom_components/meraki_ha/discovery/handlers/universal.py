@@ -6,19 +6,19 @@ import logging
 from collections.abc import AsyncIterator
 from typing import TYPE_CHECKING, Any
 
-from homeassistant.exceptions import HomeAssistantError
-
-from ...core.errors import MerakiHAException, MerakiInformationalError
 from ...button.device.mt15_refresh_data import MerakiMt15RefreshDataButton
 from ...button.reboot import MerakiRebootButton
-from ...const_conf import (
+from custom_components.meraki_ha.const.integration import (
+    (,
     CONF_ENABLE_CAMERA_ENTITIES,
     CONF_ENABLE_DEVICE_SENSORS,
     CONF_ENABLE_DEVICE_STATUS,
     CONF_ENABLE_PORT_SENSORS,
+    ),
 )
-from ...core.const import DEFAULT_CAPS, DEVICE_CAPABILITIES
-from ...sensor.device.device_status import MerakiDeviceStatusSensor
+from custom_components.meraki_ha.const.integration import DEFAULT_CAPS, DEVICE_CAPABILITIES
+
+from...sensor.device.device_status import MerakiDeviceStatusSensor
 from ...sensor.device.poe_usage import MerakiPoeUsageSensor
 from ...switch.mt40_power_outlet import MerakiMt40PowerOutlet
 from ..entities import (
@@ -159,23 +159,8 @@ class UniversalHandler(BaseDeviceHandler):
     async def discover_entities(self) -> AsyncIterator[Entity]:
         """Discover entities based on capabilities."""
         for cap in self.capabilities:
-            try:
-                async for entity in self._discover_capability(cap):
-                    yield entity
-            except MerakiInformationalError as e:
-                _LOGGER.info(
-                    "Feature '%s' is disabled or unavailable for device %s: %s",
-                    cap,
-                    self.device.serial,
-                    e,
-                )
-            except (MerakiHAException, HomeAssistantError) as e:
-                _LOGGER.error(
-                    "Failed to discover capability '%s' for device %s: %s",
-                    cap,
-                    self.device.serial,
-                    e,
-                )
+            async for entity in self._discover_capability(cap):
+                yield entity
 
     async def _discover_capability(self, cap: str) -> AsyncIterator[Entity]:
         """Discover entities for a specific capability."""

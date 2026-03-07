@@ -4,13 +4,13 @@ import logging
 from abc import ABC
 
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.core import callback
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity import Entity
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from ...const import DOMAIN, MANUFACTURER
-from ...coordinators import MerakiMainCoordinator
+from custom_components.meraki_ha.const.integration import DOMAIN, MANUFACTURER
+
+from...coordinators import MerakiMainCoordinator
 from ...helpers.device_info_helpers import resolve_device_info
 from ..utils.naming_utils import standardize_device_name
 
@@ -86,30 +86,17 @@ class BaseMerakiEntity(CoordinatorEntity, Entity, ABC):
     def available(self) -> bool:
         """Return True if entity is available."""
         # First check if coordinator has data
-        if self.coordinator.data is None:
+        if self.coordinator.data is None or not self.coordinator.last_update_success:
             return False
 
-        # Check for specific identifier in centralized data
-        identifier = self._serial or self._network_id
-        if identifier:
-            return identifier in self.coordinator.data
+        # For device-based entities, check device status
+        if self._serial:
+            device = self.coordinator.get_device(self._serial)
+            return bool(device and device.status == "online")
 
-        return self.coordinator.last_update_success
+        # For network-based entities, check network status
+        if self._network_id:
+            network = self.coordinator.get_network(self._network_id)
+            return bool(network)
 
-    @callback
-    def _handle_coordinator_update(self) -> None:
-        """Handle updated data from the centralized coordinator."""
-        if not self.coordinator.data:
-            self._attr_available = False
-        else:
-            identifier = self._serial or self._network_id
-            if identifier and (data := self.coordinator.data.get(identifier)):
-                self._attr_available = True
-                if hasattr(self, "_update_state_from_data"):
-                    self._update_state_from_data(data)
-                elif hasattr(self, "_update_sensor_data"):
-                    self._update_sensor_data()
-            else:
-                self._attr_available = identifier in self.coordinator.data if identifier else True
-
-        self.async_write_ha_state()
+        return True

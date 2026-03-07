@@ -7,16 +7,14 @@ import logging
 from collections.abc import AsyncIterator
 from typing import TYPE_CHECKING
 
-from homeassistant.exceptions import HomeAssistantError
-
-from ...core.errors import MerakiHAException, MerakiInformationalError
-
-from ...const_conf import (
+from custom_components.meraki_ha.const.integration import (
+    (,
     CONF_ENABLE_CLIENT_STATUS_SENSORS,
     CONF_ENABLE_NETWORK_SENSORS,
     CONF_ENABLE_TRAFFIC_SHAPING,
     CONF_ENABLE_VLAN_SENSORS,
     CONF_ENABLE_VPN_MANAGEMENT,
+    ),
 )
 from ...sensor.network.network_clients import MerakiNetworkClientsSensor
 from ...sensor.network.traffic_shaping import TrafficShapingSensor
@@ -74,23 +72,8 @@ class NetworkHandler(BaseHandler):
 
         for network in networks:
             for generator in generators:
-                try:
-                    async for entity in generator(network):
-                        yield entity
-                except MerakiInformationalError as e:
-                    _LOGGER.info(
-                        "Optional feature '%s' is disabled for network %s: %s",
-                        generator.__name__,
-                        network.id,
-                        e,
-                    )
-                except (MerakiHAException, HomeAssistantError) as e:
-                    _LOGGER.error(
-                        "Error in discovery generator '%s' for network %s: %s",
-                        generator.__name__,
-                        network.id,
-                        e,
-                    )
+                async for entity in generator(network):
+                    yield entity
 
     async def _discover_select_entities(
         self, network: MerakiNetwork

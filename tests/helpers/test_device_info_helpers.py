@@ -2,7 +2,7 @@ from unittest.mock import MagicMock
 
 from homeassistant.helpers.device_registry import DeviceEntryType
 
-from custom_components.meraki_ha.const import DOMAIN
+from custom_components.meraki_ha.const.integration import DOMAIN
 from custom_components.meraki_ha.helpers.device_info_helpers import resolve_device_info
 
 

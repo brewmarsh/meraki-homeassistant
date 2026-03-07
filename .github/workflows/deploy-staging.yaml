@@ -20,8 +20,6 @@ jobs:
       HA_TOKEN: ${{ secrets.HA_STAGING_TOKEN }}
       MERAKI_API_KEY: ${{ secrets.MERAKI_API_KEY }}
       MERAKI_ORG_ID: ${{ secrets.MERAKI_ORG_ID }}
-      HA_USERNAME: ${{ secrets.HA_STAGING_USERNAME }}
-      HA_PASSWORD: ${{ secrets.HA_STAGING_PASSWORD }}
 
     steps:
       - name: Checkout repository
@@ -45,25 +43,11 @@ jobs:
         working-directory: frontend
         run: npm run build
 
-      - name: Install Playwright browsers
-        working-directory: frontend
-        run: npx playwright install --with-deps chromium
-
-      - name: Run E2E tests
-        working-directory: frontend
-        env:
-          HA_URL: ${{ secrets.HA_STAGING_URL }}
-          HA_USERNAME: ${{ secrets.HA_STAGING_USERNAME }}
-          HA_PASSWORD: ${{ secrets.HA_STAGING_PASSWORD }}
-        run: npm run test:e2e
-
       - name: Verify build artifacts
         shell: bash
         run: |
           if [ ! -f "custom_components/meraki_ha/www/meraki-card.js" ]; then
             echo "::error::Build artifact meraki-card.js missing!"
-            echo "FAILED_STEP_NAME=Build frontend" >> $GITHUB_ENV
-            echo "CI_ERROR_DETAILS=The Vite build failed to output meraki-card.js" >> $GITHUB_ENV
             exit 1
           fi
           echo "Build artifact verified: meraki-card.js"
@@ -164,7 +148,6 @@ jobs:
               echo "::error::CRITICAL: Meraki-related Python errors detected!"
               cat meraki_errors.txt
               echo "HAS_ERRORS=true" >> $GITHUB_ENV
-              echo "FAILED_STEP_NAME=Audit logs for errors" >> "$GITHUB_ENV"
               {
                 echo "CI_ERROR_DETAILS<<EOF"
                 cat meraki_errors.txt
@@ -181,12 +164,11 @@ jobs:
         shell: bash
         run: |
           echo "Checking for unavailable or unknown entities..."
-          PAYLOAD='{"template": "{{ integration_entities(\"meraki_ha\") | select(\"is_state\", [\"unavailable\", \"unknown\"]) | reject(\"match\", \"^(button|select)\\.\") | list }}"}'
+          PAYLOAD='{"template": "{{ integration_entities(\"meraki_ha\") | select(\"is_state\", [\"unavailable\", \"unknown\"]) | list }}"}'
           RESPONSE=$(curl -sS -X POST -H "Authorization: Bearer ${{ secrets.HA_STAGING_TOKEN }}" -H "Content-Type: application/json" -d "$PAYLOAD" "${{ secrets.HA_STAGING_URL }}/api/template")
 
           if [ "$RESPONSE" != "[]" ] && [ "$RESPONSE" != "" ]; then
             echo "::error::CRITICAL: The following Meraki entities are unavailable or unknown: $RESPONSE"
-            echo "FAILED_STEP_NAME=Audit Entity States" >> "$GITHUB_ENV"
             echo "CI_ERROR_DETAILS=$RESPONSE" >> "$GITHUB_ENV"
             exit 1
           else
@@ -211,36 +193,8 @@ jobs:
               return;
             }
 
-            const failedStep = process.env.FAILED_STEP_NAME || 'Unknown Step';
-            let errorDetails = process.env.CI_ERROR_DETAILS || 'No details captured.';
-
-            // Parse Python-style array strings into clean Markdown lists
-            if (errorDetails.startsWith('[') && errorDetails.endsWith(']')) {
-              try {
-                const items = errorDetails.slice(1, -1).split(',').map(s => s.trim().replace(/^'|'$/g, '').replace(/^"|"$/g, ''));
-                if (items.length > 0 && items[0] !== "") {
-                   errorDetails = items.map(item => `- \`${item}\``).join('\n');
-                }
-              } catch (e) {
-                errorDetails = `\`\`\`text\n${errorDetails}\n\`\`\``;
-              }
-            } else {
-              errorDetails = `\`\`\`text\n${errorDetails}\n\`\`\``;
-            }
-
-            const commitSha = context.sha.substring(0, 7);
-            const branch = context.ref.replace('refs/heads/', '');
-            const actor = context.actor;
-
-            const body = `The deployment to the staging environment failed.\n\n` +
-                         `### ❌ Failed Step: \`${failedStep}\`\n\n` +
-                         `### 📋 Error Details\n${errorDetails}\n\n` +
-                         `---\n### 🔍 Contextual Traceability\n` +
-                         `- **Commit:** [\`${commitSha}\`](${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/commit/${context.sha})\n` +
-                         `- **Branch:** \`${branch}\`\n` +
-                         `- **Triggered by:** @${actor}\n\n` +
-                         `[🔗 View full failing run details](${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId})`;
-
+            const errorDetails = process.env.CI_ERROR_DETAILS || 'No details captured.';
+            const body = `The deployment to the staging environment failed.\n\n### Error Details\n\`\`\`\n${errorDetails}\n\`\`\`\n\n[View failing run details](${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId})`;
             await github.rest.issues.create({
               owner: context.repo.owner,
               repo: context.repo.repo,

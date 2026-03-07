@@ -2,13 +2,13 @@
 
 from __future__ import annotations
 
-import asyncio
 import logging
 import time
 from typing import TYPE_CHECKING, Any
 
-from ...const_device import DEFAULT_CAPS
-from ...core.parsers.appliance import parse_appliance_data
+from custom_components.meraki_ha.const.integration import DEFAULT_CAPS
+
+from...core.parsers.appliance import parse_appliance_data
 from ...core.parsers.devices import parse_device_data
 from ...core.parsers.network import parse_network_data
 from ...core.parsers.sensors import parse_sensor_data
@@ -57,7 +57,6 @@ class DataFetchManager:
         self._org_data_cache: dict[str, Any] = {}
         self._org_data_cache_expiry: float = 0
         self._cache_ttl = 30  # seconds
-        self._fetch_lock = asyncio.Lock()
 
         # Initialize strategies
         self.appliance_strategy = ApplianceFetchStrategy(
@@ -90,59 +89,43 @@ class DataFetchManager:
             _LOGGER.debug("Using cached organization-wide data")
             return self._org_data_cache
 
-        async with self._fetch_lock:
-            # Re-check cache inside lock to prevent redundant fetches
-            current_time = time.time()
-            if (
-                self._org_data_cache
-                and current_time < self._org_data_cache_expiry
-                and (fast_only or "switch_ports" in self._org_data_cache)
-            ):
-                _LOGGER.debug("Using cached organization-wide data (locked)")
-                return self._org_data_cache
+        if not self.client.has_dashboard:
+            await self.client.async_setup()
 
-            if not self.client.has_dashboard:
-                await self.client.async_setup()
+        tasks = {
+            "organization": self.client.run_with_semaphore(
+                self.client.organization.get_organization()
+            ),
+            "networks": self.client.run_with_semaphore(
+                self.client.organization.get_organization_networks()
+            ),
+            "devices": self.client.run_with_semaphore(
+                self.client.organization.get_organization_devices()
+            ),
+            "statuses": self.client.run_with_semaphore(
+                self.client.organization.get_organization_devices_statuses()
+            ),
+        }
 
-            tasks = {
-                "organization": self.client.run_with_semaphore(
-                    self.client.organization.get_organization()
-                ),
-                "networks": self.client.run_with_semaphore(
-                    self.client.organization.get_organization_networks()
-                ),
-                "devices": self.client.run_with_semaphore(
-                    self.client.organization.get_organization_devices()
-                ),
-                "statuses": self.client.run_with_semaphore(
-                    self.client.organization.get_organization_devices_statuses()
-                ),
-            }
-
-            if not fast_only:
-                tasks["switch_ports"] = self.client.run_with_semaphore(
-                    self.client.organization.get_organization_switch_ports_statuses()
-                )
-                tasks["appliance_uplink_statuses"] = self.client.run_with_semaphore(
-                    self.client.appliance.get_organization_appliance_uplink_statuses()
-                )
-                tasks["sensor_readings"] = self.client.run_with_semaphore(
-                    self.client.sensor.get_organization_sensor_readings_latest()
-                )
-
-            data = await async_gather_with_timeout(
-                tasks,
-                label="Batch fetch",
-                batch_size=10,  # Maximize parallelism for "Light" management calls
-                cooldown=0.0,  # No cooldown for basic skeleton data
+        if not fast_only:
+            tasks["switch_ports"] = self.client.run_with_semaphore(
+                self.client.organization.get_organization_switch_ports_statuses()
+            )
+            tasks["appliance_uplink_statuses"] = self.client.run_with_semaphore(
+                self.client.appliance.get_organization_appliance_uplink_statuses()
+            )
+            tasks["sensor_readings"] = self.client.run_with_semaphore(
+                self.client.sensor.get_organization_sensor_readings_latest()
             )
 
-            # Update cache
-            self._org_data_cache.clear()
-            self._org_data_cache.update(data)
-            self._org_data_cache_expiry = current_time + self._cache_ttl
+        data = await async_gather_with_timeout(tasks, label="Batch fetch")
 
-            return data
+        # Update cache
+        self._org_data_cache.clear()
+        self._org_data_cache.update(data)
+        self._org_data_cache_expiry = current_time + self._cache_ttl
+
+        return data
 
     def _distribute_organization(
         self, data: dict[str, Any], batch_data: dict[str, Any]
@@ -205,9 +188,9 @@ class DataFetchManager:
 
     def _get_device_capabilities(self, model: str | None) -> list[str]:
         """Return hardcoded capabilities based on device model."""
-        from ...const_device import DEVICE_CAPABILITIES
+        from custom_components.meraki_ha.const.integration import DEVICE_CAPABILITIES
 
-        if not model:
+if not model:
             return list(DEFAULT_CAPS)
 
         # Iterate and match prefix (e.g. MV12W match MV12)
@@ -239,11 +222,7 @@ class DataFetchManager:
 
         if tasks:
             results = await async_gather_with_timeout(
-                tasks,
-                timeout=45,
-                label="Detail batch",
-                batch_size=10,  # Parallelize heavy calls more aggressively
-                cooldown=0.2,  # Minimal cooldown to respect Meraki rate limits (10 req/s)
+                tasks, timeout=45, label="Detail batch"
             )
             data.update(results)
 
@@ -305,11 +284,7 @@ class DataFetchManager:
         }
         try:
             client_results = await async_gather_with_timeout(
-                tasks,
-                timeout=30,
-                label="Client batch",
-                batch_size=10,
-                cooldown=0.2,
+                tasks, timeout=30, label="Client batch"
             )
             all_clients: list[dict[str, Any]] = []
             for result in client_results.values():

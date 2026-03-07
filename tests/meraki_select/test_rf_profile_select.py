@@ -8,7 +8,7 @@ from homeassistant.helpers import entity_registry as er
 from homeassistant.setup import async_setup_component
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from custom_components.meraki_ha.const import DOMAIN
+from custom_components.meraki_ha.const.integration import DOMAIN
 from custom_components.meraki_ha.const_conf import CONF_ENABLE_SSID_SENSORS
 from tests.const import MOCK_NETWORK
 
@@ -43,33 +43,32 @@ def mock_meraki_client() -> MagicMock:
 def mock_data_fetch_manager() -> AsyncMock:
     """Fixture for a mocked DataFetchManager."""
     manager = AsyncMock()
-    data = {
-        "devices": [],
-        "networks": [MOCK_NETWORK],
-        "ssids": [
-            {
-                "networkId": MOCK_NETWORK.id,
-                "number": 1,
-                "name": "Test SSID",
-                "rfProfileId": "p1",
-            }
-        ],
-        "rf_profiles": {
-            MOCK_NETWORK.id: [
-                {"id": "p1", "name": "Profile 1"},
-                {"id": "p2", "name": "Profile 2"},
-            ]
-        },
-        "vpn_status": {},
-        "clients": [],
-        "vlans": {},
-        "appliance_uplink_statuses": [],
-        "appliance_traffic": {},
-        "content_filtering": {},
-    }
-    manager.get_all_data = AsyncMock(return_value=data)
-    manager.get_device_data = AsyncMock(return_value=data)
-    manager.get_sensor_data = AsyncMock(return_value=data)
+    manager.get_all_data = AsyncMock(
+        return_value={
+            "devices": [],
+            "networks": [MOCK_NETWORK],
+            "ssids": [
+                {
+                    "networkId": MOCK_NETWORK.id,
+                    "number": 1,
+                    "name": "Test SSID",
+                    "rfProfileId": "p1",
+                }
+            ],
+            "rf_profiles": {
+                MOCK_NETWORK.id: [
+                    {"id": "p1", "name": "Profile 1"},
+                    {"id": "p2", "name": "Profile 2"},
+                ]
+            },
+            "vpn_status": {},
+            "clients": [],
+            "vlans": {},
+            "appliance_uplink_statuses": [],
+            "appliance_traffic": {},
+            "content_filtering": {},
+        }
+    )
     return manager
 
 

@@ -20,7 +20,8 @@ from pytest_homeassistant_custom_component.common import (
     async_mock_service,
 )
 
-from custom_components.meraki_ha.const import DOMAIN, EVENT_MERAKI_WEBHOOK_ALERT
+from custom_components.meraki_ha.const.integration import DOMAIN
+from custom_components.meraki_ha.const.webhooks import EVENT_MERAKI_WEBHOOK_ALERT
 
 
 @pytest.fixture

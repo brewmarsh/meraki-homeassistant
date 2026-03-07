@@ -8,11 +8,8 @@ import voluptuous as vol
 from homeassistant.components import websocket_api
 from homeassistant.core import HomeAssistant, callback
 
-from ..const import (
-    DOMAIN,
-    WS_CMD_GET_CAMERA_SNAPSHOT,
-    WS_CMD_GET_CAMERA_STREAM_URL,
-)
+from custom_components.meraki_ha.const.integration import DOMAIN
+from custom_components.meraki_ha.const.websocket import WS_CMD_GET_CAMERA_SNAPSHOT, WS_CMD_GET_CAMERA_STREAM_URL
 from .utils import handle_ws_error
 
 if TYPE_CHECKING:
