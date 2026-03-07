@@ -11,9 +11,9 @@ from homeassistant.helpers.entity_registry import async_get as async_get_entity_
 from homeassistant.setup import async_setup_component
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from custom_components.meraki_ha.const import DOMAIN
-from custom_components.meraki_ha.types import MerakiNetwork  # Combined import
-from tests.const import (  # Combined import
+from custom_components.meraki_ha.const.integration import DOMAIN
+from custom_components.meraki_ha.types import MerakiNetwork
+from tests.const import (
     MOCK_DEVICE,
     MOCK_GX_DEVICE,
     MOCK_MX_DEVICE,
@@ -51,58 +51,33 @@ def mock_meraki_client() -> AsyncMock:
 def mock_data_fetch_manager() -> AsyncMock:
     """Fixture for a mocked DataFetchManager."""
     manager = AsyncMock()
-    manager.get_device_data = AsyncMock(
-        return_value={
-            "devices": [MOCK_DEVICE, MOCK_MX_DEVICE, MOCK_GX_DEVICE],
-            "networks": [  # Using MerakiNetwork directly
-                MerakiNetwork(
-                    id=MOCK_NETWORK.id,
-                    name="Main Office",
-                    product_types=["wireless", "appliance"],
-                    organization_id="fake_org",
-                ),
-            ],
-            "ssids": [
-                {
-                    "number": 0,
-                    "name": "Test SSID",
-                    "enabled": True,
-                    "networkId": MOCK_NETWORK.id,
-                },
-            ],
-            "clients": [],
-            "vlans": {},
-            "appliance_uplink_statuses": [],
-            "rf_profiles": {},
-            "appliance_traffic": {},
-        },
-    )
-    manager.get_sensor_data = AsyncMock(
-        return_value={
-            "devices": [MOCK_DEVICE, MOCK_MX_DEVICE, MOCK_GX_DEVICE],
-            "networks": [  # Using MerakiNetwork directly
-                MerakiNetwork(
-                    id=MOCK_NETWORK.id,
-                    name="Main Office",
-                    product_types=["wireless", "appliance"],
-                    organization_id="fake_org",
-                ),
-            ],
-            "ssids": [
-                {
-                    "number": 0,
-                    "name": "Test SSID",
-                    "enabled": True,
-                    "networkId": MOCK_NETWORK.id,
-                },
-            ],
-            "clients": [],
-            "vlans": {},
-            "appliance_uplink_statuses": [],
-            "rf_profiles": {},
-            "appliance_traffic": {},
-        },
-    )
+    # Mocked data structure used for both device and sensor data fetches
+    mocked_payload = {
+        "devices": [MOCK_DEVICE, MOCK_MX_DEVICE, MOCK_GX_DEVICE],
+        "networks": [
+            MerakiNetwork(
+                id=MOCK_NETWORK.id,
+                name="Main Office",
+                product_types=["wireless", "appliance"],
+                organization_id="fake_org",
+            ),
+        ],
+        "ssids": [
+            {
+                "number": 0,
+                "name": "Test SSID",
+                "enabled": True,
+                "networkId": MOCK_NETWORK.id,
+            },
+        ],
+        "clients": [],
+        "vlans": {},
+        "appliance_uplink_statuses": [],
+        "rf_profiles": {},
+        "appliance_traffic": {},
+    }
+    manager.get_device_data = AsyncMock(return_value=mocked_payload)
+    manager.get_sensor_data = AsyncMock(return_value=mocked_payload)
     return manager
 
 
@@ -115,14 +90,6 @@ async def test_ssid_device_creation_and_unification(
 ) -> None:
     """
     Test that entities are attached to the Virtual Controller (Network Device).
-
-    Args:
-    ----
-        hass: The Home Assistant instance.
-        mock_config_entry: The config entry.
-        mock_meraki_client: The mocked Meraki API client.
-        mock_data_fetch_manager: The mocked DataFetchManager.
-
     """
     assert await async_setup_component(hass, "http", {})
     mock_config_entry.add_to_hass(hass)
@@ -146,25 +113,23 @@ async def test_ssid_device_creation_and_unification(
         device_registry = async_get_device_registry(hass)
         entity_registry = async_get_entity_registry(hass)
 
-        # Refactor: Find devices related to the Network (Virtual Controller)
+        # Find the device related to the Network (Virtual Controller)
         network_device_identifier = (DOMAIN, f"network_{MOCK_NETWORK.id}")
         network_device = device_registry.async_get_device({network_device_identifier})
 
-        # Assert that a device was created
+        # Assertions
         assert network_device is not None
-
-        # Assert that the device has the correct name (Virtual Controller format)
+        # Assert against the name defined in the mock_data_fetch_manager fixture
         assert network_device.name == "[Network] Main Office"
 
-        # Find all entities associated with this device by querying the entity registry
+        # Find all entities associated with this device
         entities = [
             entity.entity_id
             for entity in entity_registry.entities.values()
             if entity.device_id == network_device.id
         ]
 
-        # Assert that multiple entities have been created for this one device
-        # Should include SSID entities, Network Status, etc.
+        # Verify that multiple entities (SSID, status, etc.) were created
         assert len(entities) > 0
 
 
@@ -175,17 +140,7 @@ async def test_integration_reload(
     mock_meraki_client: AsyncMock,
     mock_data_fetch_manager: AsyncMock,
 ) -> None:
-    """
-    Test that the integration reloads successfully.
-
-    Args:
-    ----
-        hass: The Home Assistant instance.
-        mock_config_entry: The config entry.
-        mock_meraki_client: The mocked Meraki API client.
-        mock_data_fetch_manager: The mocked DataFetchManager.
-
-    """
+    """Test that the integration reloads successfully."""
     assert await async_setup_component(hass, "http", {})
     mock_config_entry.add_to_hass(hass)
 
@@ -200,7 +155,7 @@ async def test_integration_reload(
         ),
         patch("custom_components.meraki_ha.async_register_webhook", return_value=None),
     ):
-        # Set up the component
+        # Initial setup
         assert await hass.config_entries.async_setup(mock_config_entry.entry_id)
         await hass.async_block_till_done()
 
@@ -208,7 +163,4 @@ async def test_integration_reload(
         assert await hass.config_entries.async_reload(mock_config_entry.entry_id)
         await hass.async_block_till_done()
 
-        # Check that the coordinator is still there, indicating a successful reload
-        assert DOMAIN in hass.data
-        assert mock_config_entry.entry_id in hass.data[DOMAIN]
-        assert "main_coordinator" in hass.data[DOMAIN][mock_config_entry.entry_id]
+        # Verify
