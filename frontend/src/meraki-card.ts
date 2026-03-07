@@ -170,23 +170,23 @@ export class MerakiGuestAccessCard extends LitElement {
           <div class="form-container">
             <ha-select
               label="Network"
-              value="${this._selectedNetwork}"
+              .value="${this._selectedNetwork}"
               @closed="${this._handleNetworkChange}"
               fixedMenuPosition
               naturalMenuWidth
             >
               ${(this._networks || []).map(
                 (n) => html`
-                  <mwc-list-item value="${n.id}">
+                  <ha-list-item .value="${n.id}">
                     ${n.name}
-                  </mwc-list-item>
+                  </ha-list-item>
                 `
               )}
             </ha-select>
 
             <ha-select
               label="SSID"
-              value="${this._selectedSSID}"
+              .value="${this._selectedSSID}"
               .disabled="${!this._selectedNetwork}"
               @closed="${this._handleSSIDChange}"
               fixedMenuPosition
@@ -194,43 +194,43 @@ export class MerakiGuestAccessCard extends LitElement {
             >
               ${(filteredSsids || []).map(
                 (s) => html`
-                  <mwc-list-item value="${String(s.number)}">
+                  <ha-list-item .value="${String(s.number)}">
                     ${s.name} (SSID ${s.number})
-                  </mwc-list-item>
+                  </ha-list-item>
                 `
               )}
             </ha-select>
 
             <ha-select
               label="Group Policy"
-              value="${this._selectedPolicy}"
+              .value="${this._selectedPolicy}"
               .disabled="${!this._selectedNetwork}"
               @closed="${this._handlePolicyChange}"
               fixedMenuPosition
               naturalMenuWidth
             >
-              <mwc-list-item value="">None (Default)</mwc-list-item>
+              <ha-list-item value="">None (Default)</ha-list-item>
               ${(this._policies || []).map(
                 (p) => html`
-                  <mwc-list-item value="${String(p.groupPolicyId)}">
+                  <ha-list-item .value="${String(p.groupPolicyId)}">
                     ${p.name}
-                  </mwc-list-item>
+                  </ha-list-item>
                 `
               )}
             </ha-select>
 
             <ha-select
               label="Duration"
-              value="${this._selectedDuration}"
+              .value="${this._selectedDuration}"
               @closed="${this._handleDurationChange}"
               fixedMenuPosition
               naturalMenuWidth
             >
-              <mwc-list-item value="30">30 Minutes</mwc-list-item>
-              <mwc-list-item value="60">1 Hour</mwc-list-item>
-              <mwc-list-item value="240">4 Hours</mwc-list-item>
-              <mwc-list-item value="1440">24 Hours</mwc-list-item>
-              <mwc-list-item value="10080">7 Days</mwc-list-item>
+              <ha-list-item value="30">30 Minutes</ha-list-item>
+              <ha-list-item value="60">1 Hour</ha-list-item>
+              <ha-list-item value="240">4 Hours</ha-list-item>
+              <ha-list-item value="1440">24 Hours</ha-list-item>
+              <ha-list-item value="10080">7 Days</ha-list-item>
             </ha-select>
 
             <ha-textfield
