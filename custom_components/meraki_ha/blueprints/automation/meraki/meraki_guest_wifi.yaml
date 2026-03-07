@@ -78,7 +78,7 @@ trigger:
     to: "on"
 
 action:
-  - service: meraki_ha.create_guest_key
+  - action: meraki_ha.create_guest_key
     data:
       network_id: !input network_id
       ssid_number: !input ssid_number
