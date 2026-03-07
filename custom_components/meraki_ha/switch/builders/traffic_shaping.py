@@ -7,7 +7,7 @@ from homeassistant.components.switch import SwitchEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from ...const_conf import CONF_ENABLE_TRAFFIC_SHAPING
+from ...const.config import CONF_ENABLE_TRAFFIC_SHAPING
 from ...coordinators import MerakiSwitchCoordinator
 from ...core.models.network import MerakiTrafficShaping
 from ..traffic_shaping import MerakiTrafficShapingSwitch

@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING, Any
 
 from homeassistant.helpers import device_registry as dr
 
-from ...const import DOMAIN
+from ...const.integration import DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
 

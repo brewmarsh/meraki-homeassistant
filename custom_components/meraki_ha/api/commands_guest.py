@@ -9,7 +9,7 @@ import voluptuous as vol
 from homeassistant.components import websocket_api
 from homeassistant.core import HomeAssistant, callback
 
-from ..const import (
+from ..const.integration import (
     DOMAIN,
     WS_CMD_CREATE_GUEST_KEY,
     WS_CMD_GET_GUEST_KEYS,

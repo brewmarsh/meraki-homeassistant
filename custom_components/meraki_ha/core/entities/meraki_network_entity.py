@@ -7,7 +7,7 @@ import logging
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.entity import DeviceInfo
 
-from ...const import DOMAIN
+from ...const.integration import DOMAIN
 from ...coordinators import MerakiMainCoordinator
 from ...core.models.network import MerakiNetwork
 from ...core.utils.naming_utils import standardize_device_name

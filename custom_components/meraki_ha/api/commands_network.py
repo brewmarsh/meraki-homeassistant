@@ -8,7 +8,7 @@ import voluptuous as vol
 from homeassistant.components import websocket_api
 from homeassistant.core import HomeAssistant, callback
 
-from ..const import (
+from ..const.integration import (
     DATA_CLIENT,
     WS_CMD_GET_NETWORK_EVENTS,
     WS_CMD_TIMED_ACCESS_GET_POLICIES,

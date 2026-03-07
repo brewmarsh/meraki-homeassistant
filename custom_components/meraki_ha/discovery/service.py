@@ -11,7 +11,7 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING
 
-from ..const_conf import (
+from ..const.config import (
     CONF_ENABLE_NETWORK_SENSORS,
 )
 from ..core.models.device import MerakiDevice

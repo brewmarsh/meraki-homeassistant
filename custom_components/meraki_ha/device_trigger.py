@@ -17,7 +17,7 @@ from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers.trigger import TriggerActionType, TriggerInfo
 from homeassistant.helpers.typing import ConfigType
 
-from .const import DOMAIN, EVENT_MERAKI_WEBHOOK_ALERT
+from .const.integration import DOMAIN, EVENT_MERAKI_WEBHOOK_ALERT
 
 TRIGGER_TYPE = "meraki_alert"
 

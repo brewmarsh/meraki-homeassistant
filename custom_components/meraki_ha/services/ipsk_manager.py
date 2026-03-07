@@ -10,7 +10,7 @@ from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers import event, storage
 from homeassistant.util import dt as dt_util
 
-from ..const import DATA_CLIENT, DOMAIN
+from ..const.integration import DATA_CLIENT, DOMAIN
 
 if TYPE_CHECKING:
     from ..core.api import MerakiApiClientProtocol

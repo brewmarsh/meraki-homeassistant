@@ -12,7 +12,7 @@ from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity import EntityCategory
 
-from ..const import DOMAIN
+from ..const.integration import DOMAIN
 from ..coordinators import MerakiMainCoordinator
 from ..core.api import MerakiApiClientProtocol
 from ..entity import MerakiEntity

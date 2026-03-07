@@ -11,7 +11,7 @@ from homeassistant.const import EntityCategory
 from homeassistant.core import callback
 from homeassistant.helpers.device_registry import DeviceInfo
 
-from ..const import DOMAIN
+from ..const.integration import DOMAIN
 from ..coordinators import MerakiSwitchCoordinator
 from ..entity import MerakiEntity
 

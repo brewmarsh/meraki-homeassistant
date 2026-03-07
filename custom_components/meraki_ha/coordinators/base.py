@@ -10,7 +10,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 
-from ..const import DOMAIN
+from ..const.integration import DOMAIN
 from ..core.api import MerakiApiClientProtocol as ApiClient
 from ..core.coordinator_helpers.config_helper import (
     CoordinatorConfig,
