@@ -224,7 +224,7 @@
   - [x] **Event Host QR Generator:** Generating IPSK and rendering a QR code (`meraki-wifi-qr-card`).
   - [ ] **Client Locator Glance Card:** Search for a client to see AP and RSSI.
   - [x] **Meraki Network Vitals Card:** Compact horizontal header for network health (Gateways, Switches, APs) and real-time WAN throughput.
-  - [x] **Visual Configuration Editors:** Native Home Assistant visual editors for all custom Lovelace cards to improve user experience.
+  - [x] **Visual Configuration Editors:** Native Home Assistant visual editors for all custom Lovelace cards (Guest Access, Content Filter, Wi-Fi QR, Network Vitals) to improve user experience.
   - [ ] **Smart PoE Port Toggle:** List ports, show power draw, toggle PoE state.
 
 ### Enhancements / Bug Fixes

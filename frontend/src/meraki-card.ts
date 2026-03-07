@@ -4,7 +4,6 @@ import { HomeAssistant } from './types/ha';
 import './meraki-content-filter-card';
 import './meraki-wifi-qr-card';
 import './meraki-network-vitals-card';
-import './meraki-guest-access-card-editor';
 import { Network, SSID } from './types/meraki';
 import { WsCommand } from './types/websocket';
 import { safeCallWS } from './utils/api';
@@ -45,10 +44,6 @@ export class MerakiGuestAccessCard extends LitElement {
       throw new Error('Invalid configuration');
     }
     this._config = config;
-  }
-
-  public static async getConfigElement() {
-    return document.createElement("meraki-guest-access-card-editor");
   }
 
   public static getStubConfig(): Record<string, unknown> {
@@ -357,7 +352,7 @@ export class MerakiGuestAccessCard extends LitElement {
 
 @customElement('meraki-guest-access-card-editor')
 export class MerakiGuestAccessCardEditor extends LitElement {
-  @property({ attribute: false }) public hass!: HomeAssistant;
+  @property({ attribute: false }) public hass?: HomeAssistant;
   @state() private _config?: Config;
 
   public setConfig(config: Config): void {
@@ -376,38 +371,34 @@ export class MerakiGuestAccessCardEditor extends LitElement {
           .value=${this._config.name || ""}
           .configValue=${"name"}
           @input=${this._valueChanged}
+          style="width: 100%;"
         ></ha-textfield>
         <ha-textfield
           label="Config Entry ID (Optional)"
           .value=${this._config.config_entry_id || ""}
           .configValue=${"config_entry_id"}
           @input=${this._valueChanged}
+          style="width: 100%;"
         ></ha-textfield>
       </div>
     `;
   }
 
   private _valueChanged(ev: any): void {
-    if (!this._config || !this.hass) {
-      return;
-    }
+    if (!this._config || !this.hass) return;
     const target = ev.target;
-    const configValue = target.configValue;
+    const configKey = target.configValue;
 
-    if (!configValue) {
-      return;
-    }
+    if (!configKey) return;
 
     let newValue = target.value;
-    if (this._config[configValue] === newValue) {
-      return;
-    }
+    if (this._config[configKey as keyof Config] === newValue) return;
 
     const newConfig = { ...this._config };
     if (newValue === "" || newValue === undefined) {
-      delete newConfig[configValue];
+      delete newConfig[configKey as keyof Config];
     } else {
-      newConfig[configValue] = newValue;
+      (newConfig as any)[configKey] = newValue;
     }
 
     this._config = newConfig;
@@ -421,9 +412,11 @@ export class MerakiGuestAccessCardEditor extends LitElement {
   }
 
   static styles = css`
-    .card-config ha-textfield {
-      display: block;
-      margin-bottom: 16px;
+    .card-config {
+      display: flex;
+      flex-direction: column;
+      padding: 8px 0;
+      gap: 16px;
     }
   `;
 }
