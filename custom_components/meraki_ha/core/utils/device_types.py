@@ -5,7 +5,7 @@ This module re-exports the constants, data structures, and functions
 from the internal _const, _data, and _mappers modules.
 """
 
-from custom_components.meraki_ha.const.integration import (
+from custom_components.meraki_ha.const.device_types import (
     DEVICE_TYPE_APPLIANCE,
     DEVICE_TYPE_CAMERA,
     DEVICE_TYPE_CELLULAR,

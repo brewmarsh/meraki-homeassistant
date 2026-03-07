@@ -5,7 +5,7 @@ from unittest.mock import MagicMock, patch
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.meraki_ha.const.integration import DOMAIN
-from custom_components.meraki_ha.const_conf import (
+from custom_components.meraki_ha.const.config import (
     CONF_ENABLE_CAMERA_ENTITIES,
     CONF_ENABLE_VLAN_MANAGEMENT,
     CONF_MERAKI_API_KEY,

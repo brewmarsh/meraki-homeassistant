@@ -6,7 +6,7 @@ import pytest
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.meraki_ha.const.integration import DOMAIN
-from custom_components.meraki_ha.const_conf import CONF_ENABLE_VPN_MANAGEMENT
+from custom_components.meraki_ha.const.config import CONF_ENABLE_VPN_MANAGEMENT
 from custom_components.meraki_ha.types import MerakiVpn
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import entity_registry as er

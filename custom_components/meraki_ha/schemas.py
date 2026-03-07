@@ -5,7 +5,7 @@ from __future__ import annotations
 import voluptuous as vol
 from homeassistant.helpers import selector
 
-from custom_components.meraki_ha.const.integration import (
+from custom_components.meraki_ha.const.config import (
     CONF_ENABLE_CAMERA_ENTITIES,
     CONF_ENABLE_CAMERA_SENSE,
     CONF_ENABLE_CLIENT_STATUS_SENSORS,
