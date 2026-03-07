@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING, Any
 import aiohttp
 import voluptuous as vol
 
-from custom_components.meraki_ha.const.integration import (
+from custom_components.meraki_ha.const.config import (
     CONF_MERAKI_API_KEY,
     CONF_MERAKI_ORG_ID,
 )
