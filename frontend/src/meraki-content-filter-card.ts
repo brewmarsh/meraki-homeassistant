@@ -6,12 +6,17 @@ interface Config {
   type: string;
   entity: string;
   name?: string;
+  [key: string]: any;
 }
 
 @customElement('meraki-content-filter-card')
 export class MerakiContentFilterCard extends LitElement {
   @property({ attribute: false }) public hass!: HomeAssistant;
   @state() private _config?: Config;
+
+  public static async getConfigElement() {
+    return document.createElement("meraki-content-filter-card-editor");
+  }
 
   public setConfig(config: Config): void {
     if (!config || !config.entity) {
@@ -146,11 +151,90 @@ export class MerakiContentFilterCard extends LitElement {
   `;
 }
 
+@customElement('meraki-content-filter-card-editor')
+export class MerakiContentFilterCardEditor extends LitElement {
+  @property({ attribute: false }) public hass!: HomeAssistant;
+  @state() private _config?: Config;
+
+  public setConfig(config: Config): void {
+    this._config = config;
+  }
+
+  protected render() {
+    if (!this.hass || !this._config) {
+      return html``;
+    }
+
+    return html`
+      <div class="card-config">
+        <ha-entity-picker
+          .hass=${this.hass}
+          .value=${this._config.entity}
+          .configValue=${"entity"}
+          .includeDomains=${["select"]}
+          @value-changed=${this._valueChanged}
+          allow-custom-entity
+          label="Entity (Required)"
+        ></ha-entity-picker>
+        <ha-textfield
+          label="Name (Optional)"
+          .value=${this._config.name || ""}
+          .configValue=${"name"}
+          @input=${this._valueChanged}
+        ></ha-textfield>
+      </div>
+    `;
+  }
+
+  private _valueChanged(ev: any): void {
+    if (!this._config || !this.hass) {
+      return;
+    }
+    const target = ev.target;
+    const configValue = target.configValue;
+
+    if (!configValue) {
+      return;
+    }
+
+    let newValue = target.value;
+    if (this._config[configValue] === newValue) {
+      return;
+    }
+
+    const newConfig = { ...this._config };
+    if (newValue === "" || newValue === undefined) {
+      delete newConfig[configValue];
+    } else {
+      newConfig[configValue] = newValue;
+    }
+
+    this._config = newConfig;
+
+    const event = new CustomEvent("config-changed", {
+      detail: { config: this._config },
+      bubbles: true,
+      composed: true,
+    });
+    this.dispatchEvent(event);
+  }
+
+  static styles = css`
+    .card-config ha-entity-picker,
+    .card-config ha-textfield {
+      display: block;
+      margin-bottom: 16px;
+    }
+  `;
+}
+
 // Register the card in the Home Assistant Lovelace UI picker
 (window as any).customCards = (window as any).customCards || [];
-(window as any).customCards.push({
-  type: "meraki-content-filter-card",
-  name: "Meraki Content Filter",
-  description: "Control Meraki Content Filtering profiles.",
-  preview: true,
-});
+if (!(window as any).customCards.some((c: any) => c.type === 'meraki-content-filter-card')) {
+  (window as any).customCards.push({
+    type: "meraki-content-filter-card",
+    name: "Meraki Content Filter",
+    description: "Control Meraki Content Filtering profiles.",
+    preview: true,
+  });
+}
