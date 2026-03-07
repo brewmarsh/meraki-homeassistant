@@ -6,7 +6,6 @@ from the internal _const, _data, and _mappers modules.
 """
 
 from custom_components.meraki_ha.const.integration import (
-    (,
     DEVICE_TYPE_APPLIANCE,
     DEVICE_TYPE_CAMERA,
     DEVICE_TYPE_CELLULAR,
@@ -18,7 +17,6 @@ from custom_components.meraki_ha.const.integration import (
     DEVICE_TYPE_WIRELESS,
     VALID_DEVICE_TYPES,
     DeviceType,
-    ),
 )
 from ._data import (
     DEVICE_PREFIX_MAPPINGS,
