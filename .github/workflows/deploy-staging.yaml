@@ -13,7 +13,7 @@ jobs:
       issues: write
 
     env:
-      # Job-Level Environment Variables (Available to ALL steps)
+      # Job-Level Environment Variables (Inherited by all steps automatically)
       HA_CONFIG_DIR: '/ha_config'
       DESTINATION_PATH: '/ha_config/custom_components/meraki_ha'
       HA_URL: ${{ secrets.HA_STAGING_URL }}
@@ -50,12 +50,16 @@ jobs:
         run: npx playwright install --with-deps chromium
 
       - name: Run E2E tests
+        id: playwright_test
         working-directory: frontend
-        env:
-          HA_URL: ${{ secrets.HA_STAGING_URL }}
-          HA_USERNAME: ${{ secrets.HA_STAGING_USERNAME }}
-          HA_PASSWORD: ${{ secrets.HA_STAGING_PASSWORD }}
+        # Removed local env block to allow inheritance from Job-level env
         run: npm run test:e2e
+
+      - name: Handle E2E Failure
+        if: failure() && steps.playwright_test.outcome == 'failure'
+        run: |
+          echo "FAILED_STEP_NAME=Run E2E tests" >> $GITHUB_ENV
+          echo "CI_ERROR_DETAILS=Playwright E2E tests failed. Check the Action artifacts for the trace.zip file." >> $GITHUB_ENV
 
       - name: Verify build artifacts
         shell: bash
@@ -70,22 +74,15 @@ jobs:
 
       - name: Copy files to staging (rsync)
         shell: bash
-        env:
-          DEPLOY_PATH: ${{ env.DESTINATION_PATH }}
         run: |
           SourceComponentDir="${GITHUB_WORKSPACE}/custom_components/meraki_ha/"
-          DestinationPath="${DEPLOY_PATH}"
+          DestinationPath="${DESTINATION_PATH}"
           SourceBlueprintsDir="${SourceComponentDir}blueprints/"
-          DestinationBlueprintsPath="${{ env.HA_CONFIG_DIR }}/blueprints/"
-
-          echo "Starting staging deployment..."
-          echo "Source: ${SourceComponentDir}"
-          echo "Destination: ${DestinationPath}"
+          DestinationBlueprintsPath="${HA_CONFIG_DIR}/blueprints/"
 
           sudo mkdir -p "${DestinationPath}"
           sudo mkdir -p "${DestinationBlueprintsPath}"
 
-          # Sync files (Restored --inplace to fix Docker bind mount temp file errors)
           sudo rsync -rcvltpD --inplace --delete \
             --exclude '.git' \
             --exclude 'node_modules' \
@@ -95,37 +92,24 @@ jobs:
             --exclude '.DS_Store' \
             "${SourceComponentDir}" "${DestinationPath}"
 
-          # Sync blueprints to the root /config/blueprints/ directory (No --delete to avoid wiping others)
-          echo "Syncing blueprints..."
-          echo "Source Blueprints: ${SourceBlueprintsDir}"
-          echo "Destination Blueprints: ${DestinationBlueprintsPath}"
           sudo rsync -rcvltpD --inplace \
             "${SourceBlueprintsDir}" "${DestinationBlueprintsPath}"
-
-          echo "Deployment to staging complete."
 
       - name: Update Home Assistant configuration
         shell: bash
         run: |
-          echo "Updating configuration.yaml..."
           sudo tee ${{ env.HA_CONFIG_DIR }}/configuration.yaml <<EOF
           default_config:
-
           logger:
             default: info
             logs:
               custom_components.meraki_ha: debug
           EOF
-          # Ensure log file exists and is writable
           sudo touch ${{ env.HA_CONFIG_DIR }}/home-assistant.log
           sudo chmod 666 ${{ env.HA_CONFIG_DIR }}/home-assistant.log
 
       - name: Install jq
         run: sudo apt-get update && sudo apt-get install -y jq
-
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.13'
 
       - uses: astral-sh/setup-uv@v5
         with:
@@ -134,9 +118,7 @@ jobs:
 
       - name: Full integration reset (delete > restart > add)
         shell: bash
-        run: |
-          echo "Running Reset Script in isolated environment..."
-          uv run --with aiohttp python3 tests/scripts/reset_integration.py
+        run: uv run --with aiohttp python3 tests/scripts/reset_integration.py
 
       - name: Audit logs for errors
         id: audit_logs
@@ -145,25 +127,11 @@ jobs:
           HA_URL: ${{ secrets.HA_STAGING_URL }}
           HA_TOKEN: ${{ secrets.HA_STAGING_TOKEN }}
         run: |
-          echo "Initiating 90s discovery wait cycle..."
           sleep 90
-          
-          echo "Extracting logs from Home Assistant API..."
-          curl -sS -H "Authorization: Bearer $HA_TOKEN" \
-               -H "Content-Type: application/json" \
-               "$HA_URL/api/error_log" > full_ha_log.txt || { echo "Failed to fetch logs from API"; exit 1; }
-          
-          # Stage 1 & 2: Search for Tracebacks or specific Python errors mentioning meraki
+          curl -sS -H "Authorization: Bearer $HA_TOKEN" "$HA_URL/api/error_log" > full_ha_log.txt
           if grep -i -E "traceback|attributeerror|nameerror|typeerror" full_ha_log.txt | grep -i "meraki" > /dev/null; then
-            echo "Errors found! Extracting full tracebacks..."
-            # Stage 3: Grab the error and the next 30 lines for context
             grep -A 30 -i -E "traceback|attributeerror|nameerror|typeerror" full_ha_log.txt > meraki_errors.txt
-            
-            # Fail condition: Only fail if the file is greater than 0 bytes
             if [ -s meraki_errors.txt ]; then
-              echo "::error::CRITICAL: Meraki-related Python errors detected!"
-              cat meraki_errors.txt
-              echo "HAS_ERRORS=true" >> $GITHUB_ENV
               echo "FAILED_STEP_NAME=Audit logs for errors" >> "$GITHUB_ENV"
               {
                 echo "CI_ERROR_DETAILS<<EOF"
@@ -173,24 +141,16 @@ jobs:
               exit 1
             fi
           fi
-          
-          echo "Logs appear clean."
-          echo "HAS_ERRORS=false" >> $GITHUB_ENV
 
       - name: Audit Entity States
         shell: bash
         run: |
-          echo "Checking for unavailable or unknown entities..."
           PAYLOAD='{"template": "{{ integration_entities(\"meraki_ha\") | select(\"is_state\", [\"unavailable\", \"unknown\"]) | reject(\"match\", \"^(button|select)\\.\") | list }}"}'
           RESPONSE=$(curl -sS -X POST -H "Authorization: Bearer ${{ secrets.HA_STAGING_TOKEN }}" -H "Content-Type: application/json" -d "$PAYLOAD" "${{ secrets.HA_STAGING_URL }}/api/template")
-
           if [ "$RESPONSE" != "[]" ] && [ "$RESPONSE" != "" ]; then
-            echo "::error::CRITICAL: The following Meraki entities are unavailable or unknown: $RESPONSE"
             echo "FAILED_STEP_NAME=Audit Entity States" >> "$GITHUB_ENV"
             echo "CI_ERROR_DETAILS=$RESPONSE" >> "$GITHUB_ENV"
             exit 1
-          else
-            echo "All Meraki entities are fully available."
           fi
 
       - name: Create Issue on Failure
@@ -204,42 +164,14 @@ jobs:
               repo: context.repo.repo,
               state: 'open',
             });
-
-            const existingIssue = issues.find(issue => issue.title === title);
-            if (existingIssue) {
-              console.log(`Issue already exists: ${existingIssue.html_url}`);
-              return;
-            }
+            if (issues.find(issue => issue.title === title)) return;
 
             const failedStep = process.env.FAILED_STEP_NAME || 'Unknown Step';
             let errorDetails = process.env.CI_ERROR_DETAILS || 'No details captured.';
 
-            // Parse Python-style array strings into clean Markdown lists
-            if (errorDetails.startsWith('[') && errorDetails.endsWith(']')) {
-              try {
-                const items = errorDetails.slice(1, -1).split(',').map(s => s.trim().replace(/^'|'$/g, '').replace(/^"|"$/g, ''));
-                if (items.length > 0 && items[0] !== "") {
-                   errorDetails = items.map(item => `- \`${item}\``).join('\n');
-                }
-              } catch (e) {
-                errorDetails = `\`\`\`text\n${errorDetails}\n\`\`\``;
-              }
-            } else {
-              errorDetails = `\`\`\`text\n${errorDetails}\n\`\`\``;
-            }
-
             const commitSha = context.sha.substring(0, 7);
             const branch = context.ref.replace('refs/heads/', '');
-            const actor = context.actor;
-
-            const body = `The deployment to the staging environment failed.\n\n` +
-                         `### ❌ Failed Step: \`${failedStep}\`\n\n` +
-                         `### 📋 Error Details\n${errorDetails}\n\n` +
-                         `---\n### 🔍 Contextual Traceability\n` +
-                         `- **Commit:** [\`${commitSha}\`](${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/commit/${context.sha})\n` +
-                         `- **Branch:** \`${branch}\`\n` +
-                         `- **Triggered by:** @${actor}\n\n` +
-                         `[🔗 View full failing run details](${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId})`;
+            const body = `### ❌ Failed Step: \`${failedStep}\`\n\n### 📋 Error Details\n\`\`\`text\n${errorDetails}\n\`\`\``;
 
             await github.rest.issues.create({
               owner: context.repo.owner,
