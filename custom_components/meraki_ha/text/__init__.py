@@ -7,7 +7,8 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from custom_components.meraki_ha.const.integration import DOMAIN, from custom_components.meraki_ha.const.platform import PLATFORM_TEXT
+from custom_components.meraki_ha.const.integration import DOMAIN
+from custom_components.meraki_ha.const.platform import PLATFORM_TEXT
 from .meraki_ssid_name import MerakiSSIDNameText
 
 _LOGGER = logging.getLogger(__name__)

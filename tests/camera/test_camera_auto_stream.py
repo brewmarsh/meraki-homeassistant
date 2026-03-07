@@ -6,7 +6,8 @@ import pytest
 from homeassistant.core import HomeAssistant
 
 from custom_components.meraki_ha.camera import MerakiRTSPStreamCamera
-from custom_components.meraki_ha.const.config import CONF_ENABLE_CAMERA_ENTITIES, from tests.const import MOCK_CAMERA_DEVICE
+from custom_components.meraki_ha.const.config import CONF_ENABLE_CAMERA_ENTITIES
+from tests.const import MOCK_CAMERA_DEVICE
 
 
 @pytest.fixture

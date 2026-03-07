@@ -4,7 +4,8 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from custom_components.meraki_ha.const.config import CONF_ENABLE_VLAN_MANAGEMENT, from custom_components.meraki_ha.core.models.network import MerakiVlan
+from custom_components.meraki_ha.const.config import CONF_ENABLE_VLAN_MANAGEMENT
+from custom_components.meraki_ha.core.models.network import MerakiVlan
 from custom_components.meraki_ha.switch.setup_helpers import async_setup_switches
 from custom_components.meraki_ha.switch.vlan_dhcp import MerakiVLANDHCPSwitch
 from custom_components.meraki_ha.types import MerakiNetwork

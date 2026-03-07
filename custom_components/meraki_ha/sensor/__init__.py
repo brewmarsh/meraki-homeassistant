@@ -7,7 +7,8 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from custom_components.meraki_ha.const.integration import DOMAIN, from custom_components.meraki_ha.const.config import CONF_ENABLE_ORG_SENSORS
+from custom_components.meraki_ha.const.integration import DOMAIN
+from custom_components.meraki_ha.const.config import CONF_ENABLE_ORG_SENSORS
 
 _LOGGER = logging.getLogger(__name__)
 

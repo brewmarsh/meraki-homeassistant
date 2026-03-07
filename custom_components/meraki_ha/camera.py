@@ -8,7 +8,8 @@ from typing import TYPE_CHECKING, Any
 from homeassistant.components.camera import Camera, CameraEntityFeature
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
-from custom_components.meraki_ha.const.integration import DOMAIN, from custom_components.meraki_ha.const.config import CONF_ENABLE_CAMERA_ENTITIES
+from custom_components.meraki_ha.const.integration import DOMAIN
+from custom_components.meraki_ha.const.config import CONF_ENABLE_CAMERA_ENTITIES
 from .entity import MerakiEntity
 from .helpers.device_info_helpers import resolve_device_info
 

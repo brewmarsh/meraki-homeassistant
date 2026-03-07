@@ -3,7 +3,8 @@
 import voluptuous as vol
 from homeassistant.helpers import selector
 
-from custom_components.meraki_ha.const.config import CONF_IGNORED_NETWORKS, from custom_components.meraki_ha.helpers.schema import populate_schema_defaults
+from custom_components.meraki_ha.const.config import CONF_IGNORED_NETWORKS
+from custom_components.meraki_ha.helpers.schema import populate_schema_defaults
 
 
 def test_populate_schema_defaults():

@@ -11,7 +11,8 @@ from homeassistant.helpers.entity_registry import async_get as async_get_entity_
 from homeassistant.setup import async_setup_component
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from custom_components.meraki_ha.const.integration import DOMAIN, from custom_components.meraki_ha.types import MerakiNetwork  # Combined import
+from custom_components.meraki_ha.const.integration import DOMAIN
+from custom_components.meraki_ha.types import MerakiNetwork  # Combined import
 from tests.const import (  # Combined import
     MOCK_DEVICE,
     MOCK_GX_DEVICE,
