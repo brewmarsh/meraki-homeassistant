@@ -4,7 +4,7 @@ import { resolve } from 'path';
 export default defineConfig({
   build: {
     lib: {
-      entry: resolve(__dirname, 'src/meraki-card.ts'),
+      entry: resolve(__dirname, 'src/meraki-guest-access-card.ts'),
       name: 'MerakiCard',
       fileName: () => 'meraki-card.js',
       formats: ['es'],

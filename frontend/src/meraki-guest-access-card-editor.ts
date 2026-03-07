@@ -31,6 +31,13 @@ export class MerakiGuestAccessCardEditor extends LitElement {
           @input=${this._valueChanged}
           style="width: 100%; margin-bottom: 16px;"
         ></ha-textfield>
+        <ha-textfield
+          label="Config Entry ID (Optional)"
+          .value=${this._config.config_entry_id || ""}
+          .configValue=${"config_entry_id"}
+          @input=${this._valueChanged}
+          style="width: 100%;"
+        ></ha-textfield>
       </div>
     `;
   }
