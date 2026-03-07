@@ -10,6 +10,7 @@ from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
 from .const import DOMAIN
 from .const_conf import CONF_ENABLE_CAMERA_ENTITIES
+from .const_platform import PLATFORM_CAMERA
 from .entity import MerakiEntity
 from .helpers.device_info_helpers import resolve_device_info
 
@@ -34,26 +35,20 @@ async def async_setup_entry(
 ) -> None:
     """Set up Meraki camera entities from a config entry."""
     entry_data = hass.data[DOMAIN][config_entry.entry_id]
-    coordinator: MerakiCameraCoordinator = entry_data["camera_coordinator"]
-    camera_service: CameraService = entry_data["camera_service"]
 
-    devices: list[MerakiDevice] = list(coordinator.devices_by_serial.values())
-    camera_entities: list[MerakiRTSPStreamCamera] = []
+    from .discovery.service import DeviceDiscoveryService
 
-    for device in devices:
-        if device.product_type == "camera":
-            _LOGGER.debug("Found camera device: %s", device.serial)
-            camera_entities.append(
-                MerakiRTSPStreamCamera(
-                    coordinator,
-                    device,
-                    camera_service,
-                    config_entry,
-                )
-            )
+    discovery_service: DeviceDiscoveryService = entry_data["discovery_service"]
+
+    # Add entities from discovery service
+    camera_entities = [
+        entity
+        for entity in discovery_service.all_entities
+        if isinstance(entity, Camera)
+    ]
 
     if camera_entities:
-        _LOGGER.debug("Adding %d camera entities", len(camera_entities))
+        _LOGGER.debug("Adding %d camera entities via discovery", len(camera_entities))
         async_add_entities(camera_entities)
 
 
