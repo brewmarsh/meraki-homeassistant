@@ -108,8 +108,8 @@ export class MerakiWifiQrCardEditor extends LitElement {
       <div class="card-config">
         <ha-select
           label="Network (Optional - to populate SSID)"
-          value="${this._selectedNetwork}"
-          @closed="${this._handleNetworkChange}"
+          .value=${this._selectedNetwork}
+          @closed=${this._handleNetworkChange}
           fixedMenuPosition
           naturalMenuWidth
         >
@@ -119,9 +119,9 @@ export class MerakiWifiQrCardEditor extends LitElement {
 
         <ha-select
           label="SSID from Meraki"
-          value=""
-          .disabled="${!this._selectedNetwork}"
-          @closed="${this._handleSSIDSelect}"
+          .value=${""}
+          .disabled=${!this._selectedNetwork}
+          @closed=${this._handleSSIDSelect}
           fixedMenuPosition
           naturalMenuWidth
         >
@@ -131,23 +131,23 @@ export class MerakiWifiQrCardEditor extends LitElement {
 
         <ha-textfield
           label="SSID Name or Entity ID"
-          .value="${this._config.ssid || ''}"
-          .configValue="${'ssid'}"
-          @input="${this._valueChanged}"
+          .value=${this._config.ssid || ''}
+          .configValue=${'ssid'}
+          @input=${this._valueChanged}
         ></ha-textfield>
 
         <ha-textfield
           label="Password or Entity ID"
-          .value="${this._config.password || ''}"
-          .configValue="${'password'}"
-          @input="${this._valueChanged}"
+          .value=${this._config.password || ''}
+          .configValue=${'password'}
+          @input=${this._valueChanged}
         ></ha-textfield>
 
         <ha-textfield
           label="Card Title"
-          .value="${this._config.name || ''}"
-          .configValue="${'name'}"
-          @input="${this._valueChanged}"
+          .value=${this._config.name || ''}
+          .configValue=${'name'}
+          @input=${this._valueChanged}
         ></ha-textfield>
       </div>
     `;
