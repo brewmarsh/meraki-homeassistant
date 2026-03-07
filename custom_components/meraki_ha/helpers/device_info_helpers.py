@@ -7,7 +7,9 @@ from typing import Any
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.device_registry import DeviceEntryType, DeviceInfo
 
-from custom_components.meraki_ha.const.integration import DOMAIN, from..core.models.device import MerakiDevice
+from custom_components.meraki_ha.const.integration import DOMAIN
+
+from..core.models.device import MerakiDevice
 from ..core.models.network import MerakiNetwork
 from ..core.utils.naming_utils import standardize_device_name
 

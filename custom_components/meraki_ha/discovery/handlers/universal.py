@@ -16,7 +16,9 @@ from custom_components.meraki_ha.const.integration import (
     CONF_ENABLE_PORT_SENSORS,
     ),
 )
-from custom_components.meraki_ha.const.integration import DEFAULT_CAPS, DEVICE_CAPABILITIES, from...sensor.device.device_status import MerakiDeviceStatusSensor
+from custom_components.meraki_ha.const.integration import DEFAULT_CAPS, DEVICE_CAPABILITIES
+
+from...sensor.device.device_status import MerakiDeviceStatusSensor
 from ...sensor.device.poe_usage import MerakiPoeUsageSensor
 from ...switch.mt40_power_outlet import MerakiMt40PowerOutlet
 from ..entities import (

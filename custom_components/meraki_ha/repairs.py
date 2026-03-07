@@ -3,9 +3,13 @@
 from __future__ import annotations
 
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.issue_registry import IssueSeverity, async_create_issue
+from homeassistant.helpers.issue_registry import IssueSeverity
 
-from custom_components.meraki_ha.const.integration import DOMAIN, async def async_create_api_key_issue(hass: HomeAssistant, entry_id: str) -> None:
+async_create_issue
+
+from custom_components.meraki_ha.const.integration import DOMAIN
+
+async def async_create_api_key_issue(hass: HomeAssistant, entry_id: str) -> None:
     """
     Create an issue for an invalid API key.
 

@@ -5,7 +5,9 @@ from unittest.mock import AsyncMock, MagicMock
 import pytest
 from homeassistant.core import HomeAssistant
 
-from custom_components.meraki_ha.const.integration import DOMAIN, from custom_components.meraki_ha.switch.meraki_ssid_device_switch import (
+from custom_components.meraki_ha.const.integration import DOMAIN
+
+from custom_components.meraki_ha.switch.meraki_ssid_device_switch import (
     MerakiSSIDBroadcastSwitch,
     MerakiSSIDEnabledSwitch,
 )

@@ -13,7 +13,9 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from custom_components.meraki_ha.const.integration import DOMAIN, from..coordinators import MerakiMainCoordinator
+from custom_components.meraki_ha.const.integration import DOMAIN
+
+from..coordinators import MerakiMainCoordinator
 from ..core.models.network import MerakiNetwork
 from ..core.utils.naming_utils import standardize_device_name
 from ..helpers.device_info_helpers import resolve_device_info
