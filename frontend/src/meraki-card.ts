@@ -35,6 +35,10 @@ export class MerakiGuestAccessCard extends LitElement {
   @state() private _loading: boolean = true;
   @state() private _initDone: boolean = false;
 
+  public static async getConfigElement() {
+    return document.createElement("meraki-guest-access-card-editor");
+  }
+
   public setConfig(config: Config): void {
     if (!config) {
       throw new Error('Invalid configuration');
@@ -339,6 +343,79 @@ export class MerakiGuestAccessCard extends LitElement {
     }
     .p-8 {
       padding: 32px;
+    }
+  `;
+}
+
+@customElement('meraki-guest-access-card-editor')
+export class MerakiGuestAccessCardEditor extends LitElement {
+  @property({ attribute: false }) public hass!: HomeAssistant;
+  @state() private _config?: Config;
+
+  public setConfig(config: Config): void {
+    this._config = config;
+  }
+
+  protected render() {
+    if (!this.hass || !this._config) {
+      return html``;
+    }
+
+    return html`
+      <div class="card-config">
+        <ha-textfield
+          label="Name (Optional)"
+          .value=${this._config.name || ""}
+          .configValue=${"name"}
+          @input=${this._valueChanged}
+        ></ha-textfield>
+        <ha-textfield
+          label="Config Entry ID (Optional)"
+          .value=${this._config.config_entry_id || ""}
+          .configValue=${"config_entry_id"}
+          @input=${this._valueChanged}
+        ></ha-textfield>
+      </div>
+    `;
+  }
+
+  private _valueChanged(ev: any): void {
+    if (!this._config || !this.hass) {
+      return;
+    }
+    const target = ev.target;
+    const configValue = target.configValue;
+
+    if (!configValue) {
+      return;
+    }
+
+    let newValue = target.value;
+    if (this._config[configValue] === newValue) {
+      return;
+    }
+
+    const newConfig = { ...this._config };
+    if (newValue === "" || newValue === undefined) {
+      delete newConfig[configValue];
+    } else {
+      newConfig[configValue] = newValue;
+    }
+
+    this._config = newConfig;
+
+    const event = new CustomEvent("config-changed", {
+      detail: { config: this._config },
+      bubbles: true,
+      composed: true,
+    });
+    this.dispatchEvent(event);
+  }
+
+  static styles = css`
+    .card-config ha-textfield {
+      display: block;
+      margin-bottom: 16px;
     }
   `;
 }
