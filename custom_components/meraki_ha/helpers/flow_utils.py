@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING, Any
 
 from homeassistant.core import HomeAssistant
 
-from ..const_conf import CONF_MERAKI_API_KEY, CONF_MERAKI_ORG_ID
+from ..const.config import CONF_MERAKI_API_KEY, CONF_MERAKI_ORG_ID
 from ..core.errors import MerakiAuthenticationError, MerakiConnectionError
 
 if TYPE_CHECKING:

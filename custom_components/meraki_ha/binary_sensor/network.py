@@ -13,7 +13,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from ..const import DOMAIN
+from ..const.integration import DOMAIN
 from ..coordinators import MerakiMainCoordinator
 from ..core.models.network import MerakiNetwork
 from ..core.utils.naming_utils import standardize_device_name

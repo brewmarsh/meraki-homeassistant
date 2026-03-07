@@ -12,8 +12,8 @@ from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.update_coordinator import UpdateFailed
 
-from ...const import DOMAIN
-from ...const_conf import CONF_IGNORED_NETWORKS, DEFAULT_IGNORED_NETWORKS
+from ...const.integration import DOMAIN
+from ...const.config import CONF_IGNORED_NETWORKS, DEFAULT_IGNORED_NETWORKS
 from ..helpers.device_registry import (
     async_ensure_network_devices_exist,
 )

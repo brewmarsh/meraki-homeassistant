@@ -9,7 +9,7 @@ from homeassistant.components import websocket_api
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.loader import async_get_integration
 
-from ..const import (
+from ..const.integration import (
     DOMAIN,
     WS_CMD_GET_CONFIG,
     WS_CMD_GET_VERSION,

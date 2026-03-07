@@ -15,7 +15,7 @@ from homeassistant.exceptions import HomeAssistantError
 
 from ...core.errors import MerakiHAException, MerakiInformationalError
 
-from ...const_conf import CONF_ENABLE_DEVICE_SENSORS, CONF_ENABLE_PORT_SENSORS
+from ...const.config import CONF_ENABLE_DEVICE_SENSORS, CONF_ENABLE_PORT_SENSORS
 from ...sensor.device.switch_client_count import MerakiSwitchClientCountSensor
 from ..providers import SwitchPortProvider
 from .base import BaseHandler

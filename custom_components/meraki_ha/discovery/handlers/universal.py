@@ -11,7 +11,7 @@ from homeassistant.exceptions import HomeAssistantError
 from ...core.errors import MerakiHAException, MerakiInformationalError
 from ...button.device.mt15_refresh_data import MerakiMt15RefreshDataButton
 from ...button.reboot import MerakiRebootButton
-from ...const_conf import (
+from ...const.config import (
     CONF_ENABLE_CAMERA_ENTITIES,
     CONF_ENABLE_DEVICE_SENSORS,
     CONF_ENABLE_DEVICE_STATUS,

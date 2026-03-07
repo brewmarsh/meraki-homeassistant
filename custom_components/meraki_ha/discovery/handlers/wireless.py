@@ -14,7 +14,7 @@ from typing import TYPE_CHECKING, Any
 from homeassistant.exceptions import HomeAssistantError
 
 from ...core.errors import MerakiHAException, MerakiInformationalError
-from ...const_conf import (
+from ...const.config import (
     CONF_ENABLE_DEVICE_SENSORS,
     CONF_ENABLE_SSID_SENSORS,
 )

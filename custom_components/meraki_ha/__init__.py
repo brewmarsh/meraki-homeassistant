@@ -15,9 +15,9 @@ from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers.typing import ConfigType
 
 from .api.websocket import async_setup_websocket_api
-from .const import DOMAIN, WEBHOOK_ID_FORMAT
-from .const_conf import CONF_MERAKI_API_KEY, CONF_MERAKI_ORG_ID
-from .const_platform import PLATFORMS
+from .const.integration import DOMAIN, WEBHOOK_ID_FORMAT
+from .const.config import CONF_MERAKI_API_KEY, CONF_MERAKI_ORG_ID
+from .const.platform import PLATFORMS
 from .coordinators import (
     MerakiApplianceCoordinator,
     MerakiCameraCoordinator,
