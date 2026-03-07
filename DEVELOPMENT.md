@@ -113,6 +113,7 @@ This is the **most critical pattern** in this codebase for all entities that mod
 ### 4.3. Frontend Development
 
 - Source code resides in the `frontend/` directory.
+- **IMPORTANT:** Never explicitly import `@material/*` components (e.g., `@material/mwc-list/mwc-list-item`) in custom cards. Home Assistant registers these globally. Explicitly importing them will cause a fatal `CustomElementRegistry` collision (e.g., "mwc-ripple").
 - Build artifacts (`.js` files) in `custom_components/meraki_ha/www/` are excluded from version control.
 - CI/CD pipelines are responsible for building the frontend before deployment.
 

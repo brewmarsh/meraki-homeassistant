@@ -1,6 +1,5 @@
 import { LitElement, html, css, PropertyValues } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
-import '@material/mwc-list/mwc-list-item';
 import { HomeAssistant } from './types/ha';
 import './meraki-content-filter-card';
 import './meraki-wifi-qr-card';
