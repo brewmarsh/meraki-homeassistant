@@ -25,7 +25,6 @@ class MerakiEntity(CoordinatorEntity[T], Generic[T]):
 
     def _get_identifier(self) -> str | None:
         """Extract the identifier (serial or network ID) for this entity."""
-        # Extract identifier across various naming schemes
         identifier = getattr(self, "_serial", None) or getattr(
             self, "_device_serial", None
         )
@@ -39,88 +38,77 @@ class MerakiEntity(CoordinatorEntity[T], Generic[T]):
 
     @property
     def available(self) -> bool:
-        """Return if entity is available.
-
-        An entity is available if its coordinator has data and the specific
-        device or network data exists in the centralized payload.
-        """
-        if not self.coordinator.data:
+        """Return if entity is available via O(1) dictionary lookup."""
+        if not isinstance(self.coordinator.data, dict):
             return False
 
         identifier = self._get_identifier()
-
-        # If no specific identifier is found, fall back to general coordinator success
         if not identifier:
             return self.coordinator.last_update_success
 
-        # Check O(1) maps if they exist on the coordinator
-        if hasattr(self.coordinator, "devices_by_serial") and self.coordinator.devices_by_serial:
-            if identifier in self.coordinator.devices_by_serial:
-                return True
+        data = self.coordinator.data.get(identifier)
+        if not data:
+            return False
 
-        if hasattr(self.coordinator, "networks_by_id") and self.coordinator.networks_by_id:
-            if identifier in self.coordinator.networks_by_id:
-                return True
+        # Status-based availability for devices
+        if hasattr(data, "status"):
+            return data.status in ["online", "alerting"]
 
-        return identifier in self.coordinator.data
+        return True
 
     @callback
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the centralized coordinator."""
-        if not self.coordinator.data:
+        if not isinstance(self.coordinator.data, dict):
             self._attr_available = False
+            _LOGGER.debug("Coordinator data for %s is not a dictionary", self.entity_id)
         else:
             identifier = self._get_identifier()
-            _LOGGER.debug(
-                "Entity %s looking for %s in keys: %s",
-                self.entity_id,
-                identifier,
-                list(self.coordinator.data.keys()),
-            )
+            # O(1) Lookup: Directly fetch data by serial/ID instead of iterating lists
+            data = self.coordinator.data.get(identifier) if identifier else None
 
-            if identifier and (data := self.coordinator.data.get(identifier)):
-                self._attr_available = True
+            if identifier and data:
+                # Device status check for availability
+                if hasattr(data, "status"):
+                    self._attr_available = data.status in ["online", "alerting"]
+                else:
+                    self._attr_available = True
                 
-                # Proactively call the specific update method for the platform
-                if hasattr(self, "_update_state_from_data"):
-                    self._update_state_from_data(data)
-                elif hasattr(self, "_update_sensor_data"):
-                    self._update_sensor_data()
-                elif hasattr(self, "_update_native_value"):
-                    # For MerakiMtSensor and similar platform implementations
+                if self._attr_available:
+                    # Update local device reference if applicable
                     if hasattr(self, "_device") and hasattr(data, "serial"):
                         self._device = data
-                    self._update_native_value()
+
+                    # Proactively call the specific update method for the platform
+                    if hasattr(self, "_update_state_from_data"):
+                        self._update_state_from_data(data)
+                    elif hasattr(self, "_update_sensor_data"):
+                        self._update_sensor_data()
+                    elif hasattr(self, "_update_native_value"):
+                        self._update_native_value()
             else:
                 # If identifier exists but data is missing from payload, mark unavailable
                 if identifier:
-                    self._attr_available = identifier in self.coordinator.data
-                    if not self._attr_available:
-                        _LOGGER.debug(
-                            "Entity %s could not find %s in coordinator data. Available keys: %s",
-                            self.entity_id,
-                            identifier,
-                            list(self.coordinator.data.keys()),
-                        )
+                    self._attr_available = False
+                    _LOGGER.debug(
+                        "Entity %s could not find %s in coordinator data. Available keys: %s",
+                        self.entity_id,
+                        identifier,
+                        list(self.coordinator.data.keys()),
+                    )
                 else:
-                    self._attr_available = True
+                    self._attr_available = self.coordinator.last_update_success
 
         self.async_write_ha_state()
 
     @property
     def unique_id(self) -> str | None:
-        """Return a dynamic unique ID to prevent platform collisions.
-
-        This logic attempts to find a serial number or network/SSID identifier
-        across various internal naming schemes used in the integration.
-        """
-        # Prioritize manually assigned _attr_unique_id
+        """Return a dynamic unique ID to prevent platform collisions."""
         if manual_id := getattr(self, "_attr_unique_id", None):
             return manual_id
 
         serial = None
 
-        # 1. Attempt to find a physical device serial
         if hasattr(self, "_device") and hasattr(self._device, "serial"):
             serial = self._device.serial
         elif hasattr(self, "_device_data") and hasattr(self._device_data, "serial"):
@@ -129,13 +117,10 @@ class MerakiEntity(CoordinatorEntity[T], Generic[T]):
             serial = self._device_serial
         elif hasattr(self, "_serial"):
             serial = self._serial
-
-        # 2. Fallback to Virtual SSID identifier if physical serial is missing
         elif hasattr(self, "_network_id") and hasattr(self, "_ssid_number"):
             serial = f"{self._network_id}ssid{self._ssid_number}"
 
         if serial:
-            # Prefer using the entity description key for unique granularity
             if (
                 hasattr(self, "entity_description")
                 and self.entity_description
@@ -143,7 +128,6 @@ class MerakiEntity(CoordinatorEntity[T], Generic[T]):
             ):
                 return f"{serial}_{self.entity_description.key}"
 
-            # Fallback to class name for non-described entities
             return f"{serial}_{self.__class__.__name__.lower()}"
 
         return None
