@@ -50,7 +50,11 @@ def mock_device_coordinator() -> MagicMock:
         ],
     )
 
-    coordinator.data: dict[str, list[MerakiDevice]] = {"devices": [device1, device2]}
+    coordinator.data: dict[str, Any] = {
+        device1.serial: device1,
+        device2.serial: device2,
+        "devices": [device1, device2],
+    }
 
     # Setup get_device return values
     def get_device(serial: str) -> MerakiDevice | None:

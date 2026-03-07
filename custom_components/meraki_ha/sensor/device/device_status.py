@@ -100,7 +100,9 @@ class MerakiDeviceStatusSensor(MerakiSensor):
 
     def _get_current_device_data(self) -> MerakiDevice | None:
         """Retrieve the latest data for this sensor's device from the coordinator."""
-        return self.coordinator.get_device(self._device_serial)
+        if self.coordinator.data:
+            return self.coordinator.data.get(self._device_serial)
+        return None
 
     def _update_sensor_data(self) -> None:
         """Update sensor state and attributes from coordinator data."""
@@ -185,19 +187,5 @@ class MerakiDeviceStatusSensor(MerakiSensor):
     @callback
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
-        self._update_sensor_data()
-        self.async_write_ha_state()
-
-    @property
-    def available(self) -> bool:
-        """Return True if entity is available."""
-        # Check basic coordinator availability
-        if self.coordinator.data is None or not super().available:
-            return False
-        # Check if the specific device data is available
-        if self.coordinator.data.get("devices"):
-            return any(
-                dev.serial == self._device_serial
-                for dev in self.coordinator.data["devices"]
-            )
-        return False
+        # MerakiEntity handles data extraction and calls _update_sensor_data
+        super()._handle_coordinator_update()
