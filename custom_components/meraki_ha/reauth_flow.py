@@ -11,7 +11,7 @@ from homeassistant import config_entries
 from homeassistant.exceptions import ConfigEntryAuthFailed
 
 from .authentication import validate_meraki_credentials
-from .const_conf import CONF_MERAKI_API_KEY, CONF_MERAKI_ORG_ID
+from .const.config import CONF_MERAKI_API_KEY, CONF_MERAKI_ORG_ID
 
 if TYPE_CHECKING:
     from .config_flow import MerakiConfigFlow

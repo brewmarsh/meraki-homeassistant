@@ -16,8 +16,8 @@ except ImportError:
         DhcpServiceInfo,  # type: ignore[no-redef, attr-defined]
     )
 
-from .const import DOMAIN
-from .const_conf import (
+from .const.integration import DOMAIN
+from .const.config import (
     CONF_ENABLE_FIREWALL_RULES,
     CONF_ENABLE_VPN_MANAGEMENT,
     CONF_MERAKI_API_KEY,

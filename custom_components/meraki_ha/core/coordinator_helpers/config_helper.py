@@ -7,7 +7,7 @@ from datetime import timedelta
 
 from homeassistant.config_entries import ConfigEntry
 
-from ...const_conf import (
+from ...const.config import (
     CONF_ENABLE_CAMERA_SENSE,
     CONF_ENABLE_FIREWALL_RULES,
     CONF_ENABLE_TRAFFIC_SHAPING,

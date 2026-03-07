@@ -4,7 +4,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from custom_components.meraki_ha.const_conf import (
+from custom_components.meraki_ha.const.config import (
     CONF_ENABLE_CLIENT_STATUS_SENSORS,
     CONF_ENABLE_NETWORK_SENSORS,
     CONF_ENABLE_VLAN_SENSORS,

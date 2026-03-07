@@ -8,7 +8,7 @@ import voluptuous as vol
 from homeassistant.components import websocket_api
 from homeassistant.core import HomeAssistant, callback
 
-from ..const import (
+from ..const.integration import (
     DOMAIN,
     WS_CMD_GET_CAMERA_SNAPSHOT,
     WS_CMD_GET_CAMERA_STREAM_URL,

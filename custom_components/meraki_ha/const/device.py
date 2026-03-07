@@ -5,7 +5,7 @@ from __future__ import annotations
 from typing import Final
 
 # Re-export for backward compatibility
-from .const_sensor import (  # noqa: F401
+from .sensor import (  # noqa: F401
     SENSOR_CLIENT_COUNT,
     SENSOR_DATA_USAGE,
     SENSOR_SIGNAL_STRENGTH,

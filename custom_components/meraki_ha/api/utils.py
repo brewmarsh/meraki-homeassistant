@@ -7,7 +7,7 @@ from typing import Any, TypeVar
 from homeassistant.components import websocket_api
 from homeassistant.core import HomeAssistant
 
-from ..const import DOMAIN
+from ..const.integration import DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
 

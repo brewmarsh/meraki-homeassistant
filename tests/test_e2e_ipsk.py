@@ -5,7 +5,7 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from custom_components.meraki_ha.const import DATA_CLIENT, DOMAIN
+from custom_components.meraki_ha.const.integration import DATA_CLIENT, DOMAIN
 from custom_components.meraki_ha.core.api import (
     MerakiApiClientProtocol,
 )

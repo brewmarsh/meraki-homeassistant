@@ -3,4 +3,4 @@
 from __future__ import annotations
 
 # Re-export for backward compatibility
-from .const_data import MERAKI_CONTENT_FILTERING_CATEGORIES  # noqa: F401
+from .data import MERAKI_CONTENT_FILTERING_CATEGORIES  # noqa: F401

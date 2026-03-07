@@ -11,7 +11,7 @@ from homeassistant.components import webhook
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.network import NoURLAvailableError, get_url
 
-from .const import DOMAIN, EVENT_MERAKI_WEBHOOK_ALERT
+from .const.integration import DOMAIN, EVENT_MERAKI_WEBHOOK_ALERT
 from .core.errors import MerakiConnectionError
 
 if TYPE_CHECKING:

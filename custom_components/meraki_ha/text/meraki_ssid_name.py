@@ -11,7 +11,7 @@ from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from ..const import DOMAIN
+from ..const.integration import DOMAIN
 from ..coordinators import MerakiWirelessCoordinator
 from ..core.api import MerakiApiClientProtocol
 

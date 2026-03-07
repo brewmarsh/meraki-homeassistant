@@ -11,7 +11,7 @@ from homeassistant.exceptions import HomeAssistantError
 
 from ...core.errors import MerakiHAException, MerakiInformationalError
 
-from ...const_conf import (
+from ...const.config import (
     CONF_ENABLE_CLIENT_STATUS_SENSORS,
     CONF_ENABLE_NETWORK_SENSORS,
     CONF_ENABLE_TRAFFIC_SHAPING,
