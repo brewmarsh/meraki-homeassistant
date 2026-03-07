@@ -11,8 +11,7 @@ from custom_components.meraki_ha.const.integration import (
     CONF_ENABLE_CAMERA_ENTITIES,
     CONF_ENABLE_CAMERA_SENSE,
     CONF_ENABLE_VLAN_MANAGEMENT,
-    CONF_IGNORED_NETWORKS,
-    ),
+    CONF_IGNORED_NETWORKS
 )
 
 

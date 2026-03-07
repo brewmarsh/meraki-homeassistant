@@ -12,8 +12,7 @@ from custom_components.meraki_ha.const.integration import (
     CONF_ENABLE_CAMERA_ENTITIES,
     CONF_ENABLE_DEVICE_SENSORS,
     CONF_ENABLE_DEVICE_STATUS,
-    CONF_ENABLE_PORT_SENSORS,
-    ),
+    CONF_ENABLE_PORT_SENSORS
 )
 from custom_components.meraki_ha.const.integration import DEFAULT_CAPS, DEVICE_CAPABILITIES
 

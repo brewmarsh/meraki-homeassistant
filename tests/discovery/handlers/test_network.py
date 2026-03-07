@@ -8,8 +8,7 @@ from custom_components.meraki_ha.const.config import (
     (,
     CONF_ENABLE_CLIENT_STATUS_SENSORS,
     CONF_ENABLE_NETWORK_SENSORS,
-    CONF_ENABLE_VLAN_SENSORS,
-    ),
+    CONF_ENABLE_VLAN_SENSORS
 )
 from custom_components.meraki_ha.core.models.network import MerakiVlan
 from custom_components.meraki_ha.discovery.handlers.network import NetworkHandler

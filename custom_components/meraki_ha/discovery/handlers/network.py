@@ -12,8 +12,7 @@ from custom_components.meraki_ha.const.integration import (
     CONF_ENABLE_NETWORK_SENSORS,
     CONF_ENABLE_TRAFFIC_SHAPING,
     CONF_ENABLE_VLAN_SENSORS,
-    CONF_ENABLE_VPN_MANAGEMENT,
-    ),
+    CONF_ENABLE_VPN_MANAGEMENT
 )
 from ...sensor.network.network_clients import MerakiNetworkClientsSensor
 from ...sensor.network.traffic_shaping import TrafficShapingSensor

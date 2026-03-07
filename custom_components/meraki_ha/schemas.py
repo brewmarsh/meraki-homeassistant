@@ -41,7 +41,6 @@ from custom_components.meraki_ha.const.integration import (
     DEFAULT_ENABLE_VPN_MANAGEMENT,
     DEFAULT_ENABLED_NETWORKS,
     DEFAULT_SCAN_INTERVAL,
-    ),
 )
 
 CONFIG_SCHEMA = vol.Schema(
