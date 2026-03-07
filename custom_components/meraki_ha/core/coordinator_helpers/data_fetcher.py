@@ -6,7 +6,7 @@ import logging
 import time
 from typing import TYPE_CHECKING, Any
 
-from custom_components.meraki_ha.const.integration import DEFAULT_CAPS
+from custom_components.meraki_ha.const.device import DEFAULT_CAPS
 
 from...core.parsers.appliance import parse_appliance_data
 from ...core.parsers.devices import parse_device_data
@@ -188,7 +188,7 @@ class DataFetchManager:
 
     def _get_device_capabilities(self, model: str | None) -> list[str]:
         """Return hardcoded capabilities based on device model."""
-        from custom_components.meraki_ha.const.integration import DEVICE_CAPABILITIES
+        from custom_components.meraki_ha.const.device import DEVICE_CAPABILITIES
 
         if not model:
             return list(DEFAULT_CAPS)

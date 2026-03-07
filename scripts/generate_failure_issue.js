@@ -14,6 +14,7 @@ module.exports = async ({ github, context }) => {
 
   const failedStep = process.env.FAILED_STEP_NAME || 'Unknown Step';
   let errorDetails = process.env.CI_ERROR_DETAILS || 'No details captured.';
+  const errorLogs = process.env.ERROR_LOGS || '';
 
   // Special handling for HA_USERNAME error
   if (errorDetails.includes('HA_USERNAME and HA_PASSWORD environment variables must be set')) {
@@ -45,6 +46,10 @@ module.exports = async ({ github, context }) => {
     `The deployment to the staging environment failed.\n\n` +
     `### ❌ Failed Step: \`${failedStep}\`\n\n` +
     `### 📋 Error Details\n${errorDetails}\n\n`;
+
+  if (errorLogs) {
+    body += `### 📋 Home Assistant Logs\n\`\`\`text\n${errorLogs}\n\`\`\`\n\n`;
+  }
 
   if (failedStep === 'Run E2E tests') {
     body +=

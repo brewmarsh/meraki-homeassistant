@@ -11,7 +11,7 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING
 
-from custom_components.meraki_ha.const.integration import CONF_ENABLE_NETWORK_SENSORS
+from custom_components.meraki_ha.const.config import CONF_ENABLE_NETWORK_SENSORS
 from ..core.models.device import MerakiDevice
 from .handlers.network import NetworkHandler
 from .handlers.switch import SwitchHandler

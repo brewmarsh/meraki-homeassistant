@@ -18,7 +18,7 @@ from custom_components.meraki_ha.sensor.network.network_clients import (
 from custom_components.meraki_ha.sensor.network.vlan import MerakiVLANStatusSensor
 from custom_components.meraki_ha.types import MerakiNetwork
 
-from custom_components.meraki_ha.const.integration import MOCK_CONFIG_ENTRY
+from ..const import MOCK_CONFIG_ENTRY
 
 MOCK_NETWORK_1 = MerakiNetwork(
     id="N_1234", name="Network 1", organization_id="org1", product_types=["wireless"]
