@@ -52,8 +52,24 @@ jobs:
       - name: Run E2E tests
         id: playwright_test
         working-directory: frontend
-        # Removed local env block to allow inheritance from Job-level env
-        run: npm run test:e2e
+        shell: bash
+        # Local env explicitly included to ensure Playwright receives credentials
+        env:
+          HA_URL: ${{ secrets.HA_STAGING_URL }}
+          HA_USERNAME: ${{ secrets.HA_STAGING_USERNAME }}
+          HA_PASSWORD: ${{ secrets.HA_STAGING_PASSWORD }}
+        run: |
+          # Use pipefail to ensure 'exit 1' if the first command in the pipe fails
+          set -o pipefail
+          if ! npm run test:e2e 2>&1 | tee playwright_output.txt; then
+            echo "FAILED_STEP_NAME=Run E2E tests" >> $GITHUB_ENV
+            {
+              echo "CI_ERROR_DETAILS<<EOF"
+              cat playwright_output.txt
+              echo "EOF"
+            } >> $GITHUB_ENV
+            exit 1
+          fi
 
       - name: Handle E2E Failure
         if: failure() && steps.playwright_test.outcome == 'failure'
@@ -153,30 +169,36 @@ jobs:
             exit 1
           fi
 
+      - name: Upload Playwright artifacts
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-trace
+          path: frontend/test-results/
+          if-no-files-found: ignore
+          retention-days: 7
+
       - name: Create Issue on Failure
         if: failure()
         uses: actions/github-script@v7
         with:
           script: |
-            const title = '🚨 Staging Smoke Test Failed';
-            const { data: issues } = await github.rest.issues.listForRepo({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              state: 'open',
-            });
-            if (issues.find(issue => issue.title === title)) return;
-
-            const failedStep = process.env.FAILED_STEP_NAME || 'Unknown Step';
-            let errorDetails = process.env.CI_ERROR_DETAILS || 'No details captured.';
-
-            const commitSha = context.sha.substring(0, 7);
-            const branch = context.ref.replace('refs/heads/', '');
-            const body = `### ❌ Failed Step: \`${failedStep}\`\n\n### 📋 Error Details\n\`\`\`text\n${errorDetails}\n\`\`\``;
-
-            await github.rest.issues.create({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              title: title,
-              body: body,
-              labels: ['bug', 'automated-ci', 'jules']
-            });
+            // Prioritize the external script from the fix-ci-error-capture branch
+            try {
+              const script = require('./scripts/generate_failure_issue.js');
+              await script({github, context});
+            } catch (e) {
+              // Fallback to inline reporter if script is missing or fails
+              const title = '🚨 Staging Smoke Test Failed';
+              const failedStep = process.env.FAILED_STEP_NAME || 'Unknown Step';
+              let errorDetails = process.env.CI_ERROR_DETAILS || 'No details captured.';
+              const body = `### ❌ Failed Step: \`${failedStep}\`\n\n### 📋 Error Details\n\`\`\`text\n${errorDetails}\n\`\`\``;
+              
+              await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title: title,
+                body: body,
+                labels: ['bug', 'automated-ci', 'jules']
+              });
+            }
