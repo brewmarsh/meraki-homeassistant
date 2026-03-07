@@ -61,6 +61,17 @@ Before submitting, you **must** run all quality checks. These are also enforced 
     docker run --rm -v "$(pwd)":/github/workspace ghcr.io/home-assistant/hassfest
     ```
 
+## 3. CI/CD Pipeline
+
+This project uses GitHub Actions for continuous integration and deployment.
+
+### 3.1. Staging Smoke Tests
+
+The staging deployment workflow (`deploy-staging.yaml`) runs automated smoke tests on the `beta` branch. These tests include:
+- Auditing Home Assistant logs for Meraki-related Python errors or tracebacks.
+- Verifying that all Meraki entities are available and not in an `unknown` or `unavailable` state.
+
+If any of these checks fail, the workflow will automatically create a GitHub Issue titled `🚨 Staging Smoke Test Failed` (if one doesn't already exist) to track the regression.
 
 ## 4. Core Architectural Principles
 
