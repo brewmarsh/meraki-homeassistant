@@ -12,6 +12,7 @@
     "vite": "^5.0.0"
   },
   "dependencies": {
+    "@material/mwc-list": "^0.27.0",
     "lit": "^3.0.0",
     "qrcode": "^1.5.4"
   }

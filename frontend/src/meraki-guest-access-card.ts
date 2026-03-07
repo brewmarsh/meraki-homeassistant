@@ -1,9 +1,11 @@
 import { LitElement, html, css, PropertyValues } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
+import '@material/mwc-list/mwc-list-item';
 import { HomeAssistant } from './types/ha';
 import './meraki-content-filter-card';
 import './meraki-wifi-qr-card';
 import './meraki-network-vitals-card';
+import './meraki-guest-access-card-editor';
 import { Network, SSID } from './types/meraki';
 import { WsCommand } from './types/websocket';
 import { safeCallWS } from './utils/api';
@@ -176,9 +178,9 @@ export class MerakiGuestAccessCard extends LitElement {
             >
               ${(this._networks || []).map(
                 (n) => html`
-                  <ha-list-item .value=${n.id}>
+                  <mwc-list-item value="${n.id}">
                     ${n.name}
-                  </ha-list-item>
+                  </mwc-list-item>
                 `
               )}
             </ha-select>
@@ -193,9 +195,9 @@ export class MerakiGuestAccessCard extends LitElement {
             >
               ${(filteredSsids || []).map(
                 (s) => html`
-                  <ha-list-item .value=${String(s.number)}>
+                  <mwc-list-item value="${String(s.number)}">
                     ${s.name} (SSID ${s.number})
-                  </ha-list-item>
+                  </mwc-list-item>
                 `
               )}
             </ha-select>
@@ -208,12 +210,12 @@ export class MerakiGuestAccessCard extends LitElement {
               fixedMenuPosition
               naturalMenuWidth
             >
-              <ha-list-item value="">None (Default)</ha-list-item>
+              <mwc-list-item value="">None (Default)</mwc-list-item>
               ${(this._policies || []).map(
                 (p) => html`
-                  <ha-list-item .value=${String(p.groupPolicyId)}>
+                  <mwc-list-item value="${String(p.groupPolicyId)}">
                     ${p.name}
-                  </ha-list-item>
+                  </mwc-list-item>
                 `
               )}
             </ha-select>
@@ -225,11 +227,11 @@ export class MerakiGuestAccessCard extends LitElement {
               fixedMenuPosition
               naturalMenuWidth
             >
-              <ha-list-item value="30">30 Minutes</ha-list-item>
-              <ha-list-item value="60">1 Hour</ha-list-item>
-              <ha-list-item value="240">4 Hours</ha-list-item>
-              <ha-list-item value="1440">24 Hours</ha-list-item>
-              <ha-list-item value="10080">7 Days</ha-list-item>
+              <mwc-list-item value="30">30 Minutes</mwc-list-item>
+              <mwc-list-item value="60">1 Hour</mwc-list-item>
+              <mwc-list-item value="240">4 Hours</mwc-list-item>
+              <mwc-list-item value="1440">24 Hours</mwc-list-item>
+              <mwc-list-item value="10080">7 Days</mwc-list-item>
             </ha-select>
 
             <ha-textfield
@@ -346,77 +348,6 @@ export class MerakiGuestAccessCard extends LitElement {
     }
     .p-8 {
       padding: 32px;
-    }
-  `;
-}
-
-@customElement('meraki-guest-access-card-editor')
-export class MerakiGuestAccessCardEditor extends LitElement {
-  @property({ attribute: false }) public hass?: HomeAssistant;
-  @state() private _config?: Config;
-
-  public setConfig(config: Config): void {
-    this._config = config;
-  }
-
-  protected render() {
-    if (!this.hass || !this._config) {
-      return html``;
-    }
-
-    return html`
-      <div class="card-config">
-        <ha-textfield
-          label="Name (Optional)"
-          .value=${this._config.name || ""}
-          .configValue=${"name"}
-          @input=${this._valueChanged}
-          style="width: 100%;"
-        ></ha-textfield>
-        <ha-textfield
-          label="Config Entry ID (Optional)"
-          .value=${this._config.config_entry_id || ""}
-          .configValue=${"config_entry_id"}
-          @input=${this._valueChanged}
-          style="width: 100%;"
-        ></ha-textfield>
-      </div>
-    `;
-  }
-
-  private _valueChanged(ev: any): void {
-    if (!this._config || !this.hass) return;
-    const target = ev.target;
-    const configKey = target.configValue;
-
-    if (!configKey) return;
-
-    let newValue = target.value;
-    if (this._config[configKey as keyof Config] === newValue) return;
-
-    const newConfig = { ...this._config };
-    if (newValue === "" || newValue === undefined) {
-      delete newConfig[configKey as keyof Config];
-    } else {
-      (newConfig as any)[configKey] = newValue;
-    }
-
-    this._config = newConfig;
-
-    const event = new CustomEvent("config-changed", {
-      detail: { config: this._config },
-      bubbles: true,
-      composed: true,
-    });
-    this.dispatchEvent(event);
-  }
-
-  static styles = css`
-    .card-config {
-      display: flex;
-      flex-direction: column;
-      padding: 8px 0;
-      gap: 16px;
     }
   `;
 }

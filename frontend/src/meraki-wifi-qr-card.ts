@@ -1,5 +1,6 @@
 import { LitElement, html, css, PropertyValues } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
+import '@material/mwc-list/mwc-list-item';
 import { HomeAssistant } from './types/ha';
 import { Network, SSID } from './types/meraki';
 import { WsCommand } from './types/websocket';
@@ -59,21 +60,19 @@ export class MerakiWifiQrCardEditor extends LitElement {
 
   private _handleNetworkChange(ev: any) {
     ev.stopPropagation();
-    this._selectedNetwork = ev.target.value;
+    const newNetworkId = ev.target.value;
+    if (newNetworkId !== this._selectedNetwork) {
+      this._selectedNetwork = newNetworkId;
+      // Clear SSID on network change
+      this._updateConfig('ssid', '');
+    }
   }
 
-  private _handleSSIDSelect(ev: any) {
+  private _handleSSIDChange(ev: any) {
     ev.stopPropagation();
-    const ssidNumber = ev.target.value;
-    const ssid = this._ssids.find(s => s.networkId === this._selectedNetwork && String(s.number) === ssidNumber);
-    if (ssid && this._config) {
-      const newConfig = {
-        ...this._config,
-        ssid: ssid.name,
-        password: (ssid as any).psk || ''
-      };
-      this._config = newConfig;
-      this._dispatchEvent(newConfig);
+    const newSsidName = ev.target.value;
+    if (newSsidName && newSsidName !== this._config?.ssid) {
+      this._updateConfig('ssid', newSsidName);
     }
   }
 
@@ -81,10 +80,16 @@ export class MerakiWifiQrCardEditor extends LitElement {
     if (!this._config) return;
     const target = ev.target;
     const field = target.configValue;
+    if (!field) return;
     if (this._config[field as keyof Config] === target.value) return;
+    this._updateConfig(field as keyof Config, target.value);
+  }
+
+  private _updateConfig(field: keyof Config, value: string) {
+    if (!this._config) return;
     const newConfig = {
       ...this._config,
-      [field]: target.value,
+      [field]: value,
     };
     this._config = newConfig;
     this._dispatchEvent(newConfig);
@@ -102,7 +107,7 @@ export class MerakiWifiQrCardEditor extends LitElement {
   protected render() {
     if (!this.hass || !this._config) return html``;
 
-    const filteredSsids = this._ssids.filter(s => s.networkId === this._selectedNetwork);
+    const filteredSsids = (this._ssids || []).filter(s => s.networkId === this._selectedNetwork);
 
     return html`
       <div class="card-config">
@@ -114,27 +119,20 @@ export class MerakiWifiQrCardEditor extends LitElement {
           naturalMenuWidth
         >
           <mwc-list-item value="">Select a network</mwc-list-item>
-          ${this._networks.map(n => html`<mwc-list-item value="${n.id}">${n.name}</mwc-list-item>`)}
+          ${(this._networks || []).map(n => html`<mwc-list-item value="${n.id}">${n.name}</mwc-list-item>`)}
         </ha-select>
 
         <ha-select
-          label="SSID from Meraki"
-          .value=${""}
+          label="SSID"
+          .value=${this._config?.ssid || ''}
           .disabled=${!this._selectedNetwork}
-          @closed=${this._handleSSIDSelect}
+          @closed=${this._handleSSIDChange}
           fixedMenuPosition
           naturalMenuWidth
         >
           <mwc-list-item value="">Select an SSID</mwc-list-item>
-          ${filteredSsids.map(s => html`<mwc-list-item value="${String(s.number)}">${s.name}</mwc-list-item>`)}
+          ${filteredSsids.map(s => html`<mwc-list-item value="${s.name}">${s.name}</mwc-list-item>`)}
         </ha-select>
-
-        <ha-textfield
-          label="SSID Name or Entity ID"
-          .value=${this._config.ssid || ''}
-          .configValue=${'ssid'}
-          @input=${this._valueChanged}
-        ></ha-textfield>
 
         <ha-textfield
           label="Password or Entity ID"
