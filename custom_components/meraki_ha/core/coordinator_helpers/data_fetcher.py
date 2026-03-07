@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import logging
 import time
 from typing import TYPE_CHECKING, Any
@@ -56,6 +57,7 @@ class DataFetchManager:
         self._org_data_cache: dict[str, Any] = {}
         self._org_data_cache_expiry: float = 0
         self._cache_ttl = 30  # seconds
+        self._fetch_lock = asyncio.Lock()
 
         # Initialize strategies
         self.appliance_strategy = ApplianceFetchStrategy(
@@ -88,43 +90,54 @@ class DataFetchManager:
             _LOGGER.debug("Using cached organization-wide data")
             return self._org_data_cache
 
-        if not self.client.has_dashboard:
-            await self.client.async_setup()
+        async with self._fetch_lock:
+            # Re-check cache inside lock to prevent redundant fetches
+            current_time = time.time()
+            if (
+                self._org_data_cache
+                and current_time < self._org_data_cache_expiry
+                and (fast_only or "switch_ports" in self._org_data_cache)
+            ):
+                _LOGGER.debug("Using cached organization-wide data (locked)")
+                return self._org_data_cache
 
-        tasks = {
-            "organization": self.client.run_with_semaphore(
-                self.client.organization.get_organization()
-            ),
-            "networks": self.client.run_with_semaphore(
-                self.client.organization.get_organization_networks()
-            ),
-            "devices": self.client.run_with_semaphore(
-                self.client.organization.get_organization_devices()
-            ),
-            "statuses": self.client.run_with_semaphore(
-                self.client.organization.get_organization_devices_statuses()
-            ),
-        }
+            if not self.client.has_dashboard:
+                await self.client.async_setup()
 
-        if not fast_only:
-            tasks["switch_ports"] = self.client.run_with_semaphore(
-                self.client.organization.get_organization_switch_ports_statuses()
-            )
-            tasks["appliance_uplink_statuses"] = self.client.run_with_semaphore(
-                self.client.appliance.get_organization_appliance_uplink_statuses()
-            )
-            tasks["sensor_readings"] = self.client.run_with_semaphore(
-                self.client.sensor.get_organization_sensor_readings_latest()
-            )
+            tasks = {
+                "organization": self.client.run_with_semaphore(
+                    self.client.organization.get_organization()
+                ),
+                "networks": self.client.run_with_semaphore(
+                    self.client.organization.get_organization_networks()
+                ),
+                "devices": self.client.run_with_semaphore(
+                    self.client.organization.get_organization_devices()
+                ),
+                "statuses": self.client.run_with_semaphore(
+                    self.client.organization.get_organization_devices_statuses()
+                ),
+            }
 
-        data = await async_gather_with_timeout(tasks, label="Batch fetch")
+            if not fast_only:
+                tasks["switch_ports"] = self.client.run_with_semaphore(
+                    self.client.organization.get_organization_switch_ports_statuses()
+                )
+                tasks["appliance_uplink_statuses"] = self.client.run_with_semaphore(
+                    self.client.appliance.get_organization_appliance_uplink_statuses()
+                )
+                tasks["sensor_readings"] = self.client.run_with_semaphore(
+                    self.client.sensor.get_organization_sensor_readings_latest()
+                )
 
-        # Update cache
-        self._org_data_cache.clear()
-        self._org_data_cache.update(data)
-        self._org_data_cache_expiry = current_time + self._cache_ttl
+            data = await async_gather_with_timeout(tasks, label="Batch fetch")
 
-        return data
+            # Update cache
+            self._org_data_cache.clear()
+            self._org_data_cache.update(data)
+            self._org_data_cache_expiry = current_time + self._cache_ttl
+
+            return data
 
     def _distribute_organization(
         self, data: dict[str, Any], batch_data: dict[str, Any]

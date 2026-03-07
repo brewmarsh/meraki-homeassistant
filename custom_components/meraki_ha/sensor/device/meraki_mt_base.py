@@ -208,15 +208,4 @@ class MerakiMtSensor(MerakiSensor, RestoreSensor):
     @property
     def available(self) -> bool:
         """Return if the sensor is available."""
-        # Defer to the parent MerakiEntity logic which checks the coordinator state
-        if not super().available:
-            return False
-
-        if self.native_value is not None:
-            return True
-
-        readings = self._get_readings_list()
-        if readings is not None and self._is_metric_in_readings(readings):
-            return True
-
-        return False
+        return super().available
