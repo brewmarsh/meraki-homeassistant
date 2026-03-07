@@ -58,14 +58,13 @@ class MerakiDeviceUplinkBaseSensor(MerakiEntity, SensorEntity):
     @property
     def available(self) -> bool:
         """Return if entity is available."""
-        if self.coordinator.data is None:
+        if not super().available:
             return False
+
         if self._interface in ["lanIp", "publicIp"]:
-            return (
-                super().available
-                and self.coordinator.get_device(self._device_serial) is not None
-            )
-        return super().available and self._get_uplink_data() is not None
+            return self.coordinator.get_device(self._device_serial) is not None
+
+        return self._get_uplink_data() is not None
 
 
 class MerakiDeviceIPSensor(MerakiDeviceUplinkBaseSensor):
@@ -121,7 +120,7 @@ class MerakiDeviceIPSensor(MerakiDeviceUplinkBaseSensor):
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
         self._update_state()
-        self.async_write_ha_state()
+        super()._handle_coordinator_update()
 
 
 class MerakiDeviceGatewaySensor(MerakiDeviceUplinkBaseSensor):
@@ -157,7 +156,7 @@ class MerakiDeviceGatewaySensor(MerakiDeviceUplinkBaseSensor):
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
         self._update_state()
-        self.async_write_ha_state()
+        super()._handle_coordinator_update()
 
 
 class MerakiDeviceDNSSensor(MerakiDeviceUplinkBaseSensor):
@@ -197,4 +196,4 @@ class MerakiDeviceDNSSensor(MerakiDeviceUplinkBaseSensor):
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
         self._update_state()
-        self.async_write_ha_state()
+        super()._handle_coordinator_update()

@@ -15,11 +15,27 @@ if TYPE_CHECKING:
 
 T = TypeVar("T", bound="MerakiBaseCoordinator")
 
+_LOGGER = logging.getLogger(__name__)
+
 
 class MerakiEntity(CoordinatorEntity[T], Generic[T]):
     """Base Meraki entity."""
 
     _attr_has_entity_name = True
+
+    def _get_identifier(self) -> str | None:
+        """Extract the identifier (serial or network ID) for this entity."""
+        # Extract identifier across various naming schemes
+        identifier = getattr(self, "_serial", None) or getattr(
+            self, "_device_serial", None
+        )
+        if not identifier and hasattr(self, "_device"):
+            identifier = getattr(self._device, "serial", None)
+
+        if not identifier:
+            identifier = getattr(self, "_network_id", None)
+
+        return identifier
 
     @property
     def available(self) -> bool:
@@ -31,15 +47,7 @@ class MerakiEntity(CoordinatorEntity[T], Generic[T]):
         if not self.coordinator.data:
             return False
 
-        # Extract identifier across various naming schemes
-        identifier = getattr(self, "_serial", None) or getattr(
-            self, "_device_serial", None
-        )
-        if not identifier and hasattr(self, "_device"):
-            identifier = getattr(self._device, "serial", None)
-
-        if not identifier:
-            identifier = getattr(self, "_network_id", None)
+        identifier = self._get_identifier()
 
         # If no specific identifier is found, fall back to general coordinator success
         if not identifier:
@@ -47,7 +55,12 @@ class MerakiEntity(CoordinatorEntity[T], Generic[T]):
 
         # Check O(1) maps if they exist on the coordinator
         if hasattr(self.coordinator, "devices_by_serial") and self.coordinator.devices_by_serial:
-            return identifier in self.coordinator.devices_by_serial
+            if identifier in self.coordinator.devices_by_serial:
+                return True
+
+        if hasattr(self.coordinator, "networks_by_id") and self.coordinator.networks_by_id:
+            if identifier in self.coordinator.networks_by_id:
+                return True
 
         return identifier in self.coordinator.data
 
@@ -57,15 +70,7 @@ class MerakiEntity(CoordinatorEntity[T], Generic[T]):
         if not self.coordinator.data:
             self._attr_available = False
         else:
-            # Extract identifier to find this specific entity's slice of data
-            identifier = getattr(self, "_serial", None) or getattr(
-                self, "_device_serial", None
-            )
-            if not identifier and hasattr(self, "_device"):
-                identifier = getattr(self._device, "serial", None)
-
-            if not identifier:
-                identifier = getattr(self, "_network_id", None)
+            identifier = self._get_identifier()
 
             if identifier and (data := self.coordinator.data.get(identifier)):
                 self._attr_available = True
@@ -82,7 +87,17 @@ class MerakiEntity(CoordinatorEntity[T], Generic[T]):
                     self._update_native_value()
             else:
                 # If identifier exists but data is missing from payload, mark unavailable
-                self._attr_available = identifier in self.coordinator.data if identifier else True
+                if identifier:
+                    self._attr_available = identifier in self.coordinator.data
+                    if not self._attr_available:
+                        _LOGGER.debug(
+                            "Entity %s could not find %s in coordinator data. Available keys: %s",
+                            self.entity_id,
+                            identifier,
+                            list(self.coordinator.data.keys()),
+                        )
+                else:
+                    self._attr_available = True
 
         self.async_write_ha_state()
 
