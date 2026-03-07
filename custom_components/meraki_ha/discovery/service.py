@@ -78,11 +78,9 @@ class DeviceDiscoveryService:
         self._control_service = control_service
         self._network_control_service = network_control_service
 
-        devices_data = self._device_coordinator.data.get("devices", [])
-        self._devices: list[MerakiDevice] = [
-            d if isinstance(d, MerakiDevice) else MerakiDevice.from_dict(d)
-            for d in devices_data
-        ]
+        self._devices: list[MerakiDevice] = list(
+            self._device_coordinator.devices_by_serial.values()
+        )
         self.all_entities: list[Entity] = []
 
     async def discover_entities(self) -> list[Entity]:
@@ -134,6 +132,8 @@ class DeviceDiscoveryService:
 
     async def _discover_device_entities(self):
         """Discover entities for all devices."""
+        # Refresh devices list from coordinator to ensure it's populated
+        self._devices = list(self._device_coordinator.devices_by_serial.values())
         _LOGGER.debug("Starting entity discovery for %d devices", len(self._devices))
 
         for device in self._devices:
