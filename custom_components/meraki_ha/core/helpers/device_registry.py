@@ -7,7 +7,9 @@ from typing import TYPE_CHECKING, Any
 
 from homeassistant.helpers import device_registry as dr
 
-from custom_components.meraki_ha.const.integration import DOMAIN, _LOGGER= logging.getLogger(__name__)
+from custom_components.meraki_ha.const.integration import DOMAIN
+
+_LOGGER = logging.getLogger(__name__)
 
 if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
