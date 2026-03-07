@@ -16,9 +16,11 @@ _LOGGER = logging.getLogger(__name__)
 class MerakiDeviceCoordinator(MerakiBaseCoordinator[dict[str, Any]]):
     """A coordinator for fast-poll Meraki device status data."""
 
-    def __init__(self, hass, entry, api_client) -> None:
+    def __init__(self, hass, entry, api_client, data_fetch_manager=None) -> None:
         """Initialize the device coordinator."""
-        super().__init__(hass, entry, api_client, name="device")
+        super().__init__(
+            hass, entry, api_client, name="device", data_fetch_manager=data_fetch_manager
+        )
         self.last_successful_data: dict[str, Any] = {}
         # Fast poll interval
         self.update_interval = timedelta(seconds=60)
@@ -43,7 +45,13 @@ class MerakiDeviceCoordinator(MerakiBaseCoordinator[dict[str, Any]]):
             self.apply_polling_update(updated)
 
             # Return a merged dictionary keyed by serial/ID for efficient extraction
-            return {**self.devices_by_serial, **self.networks_by_id}
+            return {
+                **self.devices_by_serial,
+                **self.networks_by_id,
+                "devices": list(self.devices_by_serial.values()),
+                "networks": list(self.networks_by_id.values()),
+                "ssids": list(self.ssids_by_network_and_number.values()),
+            }
         except Exception as err:
             _LOGGER.error("Error fetching Meraki device data: %s", err)
 

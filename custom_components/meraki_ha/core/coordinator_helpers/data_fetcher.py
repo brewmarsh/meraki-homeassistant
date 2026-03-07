@@ -130,7 +130,12 @@ class DataFetchManager:
                     self.client.sensor.get_organization_sensor_readings_latest()
                 )
 
-            data = await async_gather_with_timeout(tasks, label="Batch fetch")
+            data = await async_gather_with_timeout(
+                tasks,
+                label="Batch fetch",
+                batch_size=10,  # Maximize parallelism for "Light" management calls
+                cooldown=0.0,  # No cooldown for basic skeleton data
+            )
 
             # Update cache
             self._org_data_cache.clear()
@@ -234,7 +239,11 @@ class DataFetchManager:
 
         if tasks:
             results = await async_gather_with_timeout(
-                tasks, timeout=45, label="Detail batch"
+                tasks,
+                timeout=45,
+                label="Detail batch",
+                batch_size=10,  # Parallelize heavy calls more aggressively
+                cooldown=0.2,  # Minimal cooldown to respect Meraki rate limits (10 req/s)
             )
             data.update(results)
 
@@ -296,7 +305,11 @@ class DataFetchManager:
         }
         try:
             client_results = await async_gather_with_timeout(
-                tasks, timeout=30, label="Client batch"
+                tasks,
+                timeout=30,
+                label="Client batch",
+                batch_size=10,
+                cooldown=0.2,
             )
             all_clients: list[dict[str, Any]] = []
             for result in client_results.values():

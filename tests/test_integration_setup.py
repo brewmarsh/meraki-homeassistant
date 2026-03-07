@@ -38,6 +38,8 @@ def mock_meraki_client() -> AsyncMock:
     client = MagicMock(spec=AsyncMock)
     client.async_setup = AsyncMock(return_value=None)
     client.unregister_webhook = AsyncMock(return_value=None)
+    client.has_dashboard = True
+    client.organization_id = "fake_org"
     client.appliance = AsyncMock()
     client.appliance.get_network_appliance_content_filtering_categories = AsyncMock(
         return_value={"categories": []}
@@ -55,7 +57,7 @@ def mock_data_fetch_manager() -> AsyncMock:
             "networks": [  # Using MerakiNetwork directly
                 MerakiNetwork(
                     id=MOCK_NETWORK.id,
-                    name="Test Network",
+                    name="Main Office",
                     product_types=["wireless", "appliance"],
                     organization_id="fake_org",
                 ),
@@ -81,7 +83,7 @@ def mock_data_fetch_manager() -> AsyncMock:
             "networks": [  # Using MerakiNetwork directly
                 MerakiNetwork(
                     id=MOCK_NETWORK.id,
-                    name="Test Network",
+                    name="Main Office",
                     product_types=["wireless", "appliance"],
                     organization_id="fake_org",
                 ),
@@ -131,7 +133,7 @@ async def test_ssid_device_creation_and_unification(
             return_value=mock_meraki_client,
         ),
         patch(
-            "custom_components.meraki_ha.coordinators.base.DataFetchManager",
+            "custom_components.meraki_ha.core.coordinator_helpers.data_fetcher.DataFetchManager",
             return_value=mock_data_fetch_manager,
         ),
         patch("custom_components.meraki_ha.async_register_webhook", return_value=None),
@@ -152,7 +154,7 @@ async def test_ssid_device_creation_and_unification(
         assert network_device is not None
 
         # Assert that the device has the correct name (Virtual Controller format)
-        assert network_device.name == "Site: Test Network"
+        assert network_device.name == "[Network] Main Office"
 
         # Find all entities associated with this device by querying the entity registry
         entities = [
@@ -193,7 +195,7 @@ async def test_integration_reload(
             return_value=mock_meraki_client,
         ),
         patch(
-            "custom_components.meraki_ha.coordinators.base.DataFetchManager",
+            "custom_components.meraki_ha.core.coordinator_helpers.data_fetcher.DataFetchManager",
             return_value=mock_data_fetch_manager,
         ),
         patch("custom_components.meraki_ha.async_register_webhook", return_value=None),

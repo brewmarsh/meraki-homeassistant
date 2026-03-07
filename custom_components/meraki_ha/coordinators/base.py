@@ -42,13 +42,14 @@ class MerakiBaseCoordinator(DataUpdateCoordinator[T], Generic[T]):
         entry: ConfigEntry,
         api_client: ApiClient,
         name: str = DOMAIN,
+        data_fetch_manager: DataFetchManager | None = None,
     ) -> None:
         """Initialize the base coordinator."""
         self.config = get_coordinator_config(entry)
 
         self.api = api_client
 
-        self.data_fetch_manager = DataFetchManager(
+        self.data_fetch_manager = data_fetch_manager or DataFetchManager(
             client=self.api,
             enable_vpn_management=self.config.enable_vpn,
             enable_firewall_rules=self.config.enable_firewall,
