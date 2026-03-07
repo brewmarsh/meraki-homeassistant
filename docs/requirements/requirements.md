@@ -37,4 +37,7 @@ This document verifies the state of the codebase against the requirements for th
 - **R9: Correct Dropdown Selection:**
   - **[VERIFIED]** All `<ha-select>` components must use `<mwc-list-item>` as children with attribute binding (`value="${...}"`) instead of property binding (`.value="${...}"`) to ensure correct event registration and selection in the Home Assistant UI.
 
-This verification confirms the need for the planned refactoring steps. The new requirements (R4, R5, R6, R7, R8, R9) are now considered part of the standard for this integration.
+- **R10: No Explicit Material Imports:**
+  - **[VERIFIED]** Custom Lovelace cards must not explicitly import `@material/*` components (e.g., `mwc-list-item`). Home Assistant registers these components globally, and bundling them causes a `CustomElementRegistry` collision ("mwc-ripple").
+
+This verification confirms the need for the planned refactoring steps. The new requirements (R4, R5, R6, R7, R8, R9, R10) are now considered part of the standard for this integration.
