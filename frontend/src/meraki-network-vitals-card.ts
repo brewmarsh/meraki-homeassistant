@@ -16,6 +16,10 @@ export class MerakiNetworkVitalsCard extends LitElement {
   @property({ attribute: false }) public hass!: HomeAssistant;
   @state() private _config?: Config;
 
+  public static async getConfigElement() {
+    return document.createElement("meraki-network-vitals-card-editor");
+  }
+
   public setConfig(config: Config): void {
     if (!config) {
       throw new Error('Invalid configuration');
@@ -140,6 +144,98 @@ export class MerakiNetworkVitalsCard extends LitElement {
     }
     ha-icon {
       --mdc-icon-size: 18px;
+    }
+  `;
+}
+
+@customElement('meraki-network-vitals-card-editor')
+export class MerakiNetworkVitalsCardEditor extends LitElement {
+  @property({ attribute: false }) public hass?: HomeAssistant;
+  @state() private _config?: Config;
+
+  public setConfig(config: Config): void {
+    this._config = config;
+  }
+
+  protected render() {
+    if (!this.hass || !this._config) {
+      return html``;
+    }
+
+    return html`
+      <div class="card-config">
+        <ha-textfield
+          label="Name (Optional)"
+          .value="${this._config.name || ""}"
+          .configValue="${"name"}"
+          @input="${this._valueChanged}"
+          style="width: 100%; margin-bottom: 16px;"
+        ></ha-textfield>
+        <ha-entity-picker
+          label="Gateway Entity"
+          .hass="${this.hass}"
+          .value="${this._config.gateway_entity || ""}"
+          .configValue="${"gateway_entity"}"
+          @value-changed="${this._valueChanged}"
+          allow-custom-entity
+          style="width: 100%; margin-bottom: 16px; display: block;"
+        ></ha-entity-picker>
+        <ha-entity-picker
+          label="Switch Entity"
+          .hass="${this.hass}"
+          .value="${this._config.switch_entity || ""}"
+          .configValue="${"switch_entity"}"
+          @value-changed="${this._valueChanged}"
+          allow-custom-entity
+          style="width: 100%; margin-bottom: 16px; display: block;"
+        ></ha-entity-picker>
+        <ha-entity-picker
+          label="AP Entity"
+          .hass="${this.hass}"
+          .value="${this._config.ap_entity || ""}"
+          .configValue="${"ap_entity"}"
+          @value-changed="${this._valueChanged}"
+          allow-custom-entity
+          style="width: 100%; margin-bottom: 16px; display: block;"
+        ></ha-entity-picker>
+        <ha-entity-picker
+          label="Throughput Entity"
+          .hass="${this.hass}"
+          .value="${this._config.throughput_entity || ""}"
+          .configValue="${"throughput_entity"}"
+          @value-changed="${this._valueChanged}"
+          allow-custom-entity
+          style="width: 100%; display: block;"
+        ></ha-entity-picker>
+      </div>
+    `;
+  }
+
+  private _valueChanged(ev: any): void {
+    if (!this._config || !this.hass) return;
+    const target = ev.target;
+    const configValue = target.value;
+    const configKey = target.configValue;
+
+    if (this._config[configKey as keyof Config] === configValue) return;
+
+    const newConfig = {
+      ...this._config,
+      [configKey]: configValue,
+    };
+
+    const event = new CustomEvent("config-changed", {
+      detail: { config: newConfig },
+      bubbles: true,
+      composed: true,
+    });
+    this.dispatchEvent(event);
+  }
+
+  static styles = css`
+    .card-config {
+      display: flex;
+      flex-direction: column;
     }
   `;
 }
