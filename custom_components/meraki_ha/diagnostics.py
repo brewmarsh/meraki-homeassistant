@@ -8,10 +8,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 
 from ..coordinators import MerakiMainCoordinator
-from .const import DOMAIN
-
-
-async def async_get_config_entry_diagnostics(
+from custom_components.meraki_ha.const.integration import DOMAIN, async def async_get_config_entry_diagnostics(
     hass: HomeAssistant,
     entry: ConfigEntry,
 ) -> dict[str, Any]:

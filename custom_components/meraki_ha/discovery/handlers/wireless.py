@@ -11,9 +11,11 @@ import logging
 from collections.abc import AsyncIterator
 from typing import TYPE_CHECKING, Any
 
-from ...const_conf import (
+from custom_components.meraki_ha.const.integration import (
+    (,
     CONF_ENABLE_DEVICE_SENSORS,
     CONF_ENABLE_SSID_SENSORS,
+    ),
 )
 from ...sensor.device.ap_client_count import MerakiAPClientCountSensor
 from ...sensor.network.ssid_client_count import MerakiSSIDClientCountSensor

@@ -9,12 +9,7 @@ import voluptuous as vol
 from homeassistant.components import websocket_api
 from homeassistant.core import HomeAssistant, callback
 
-from ..const import (
-    DOMAIN,
-    WS_CMD_CREATE_GUEST_KEY,
-    WS_CMD_GET_GUEST_KEYS,
-    WS_CMD_REVOKE_GUEST_KEY,
-)
+from custom_components.meraki_ha.const.integration import DOMAIN, from custom_components.meraki_ha.const.websocket import WS_CMD_CREATE_GUEST_KEY, WS_CMD_GET_GUEST_KEYS, WS_CMD_REVOKE_GUEST_KEY
 from ..helpers.serialization import to_serializable
 from .utils import handle_ws_error
 

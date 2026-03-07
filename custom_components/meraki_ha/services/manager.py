@@ -14,9 +14,7 @@ import voluptuous as vol
 from homeassistant.core import HomeAssistant, ServiceCall
 from homeassistant.helpers import config_validation as cv
 
-from ..const import DOMAIN
-
-if TYPE_CHECKING:
+from custom_components.meraki_ha.const.integration import DOMAIN, if TYPE_CHECKING:
     from .camera_service import CameraService
     from .device_control_service import DeviceControlService
     from .switch_port_service import SwitchPortService

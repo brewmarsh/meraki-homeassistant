@@ -7,8 +7,7 @@ from homeassistant.components.switch import SwitchEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from ...const_conf import CONF_ENABLE_FIREWALL_RULES
-from ...coordinators import MerakiSwitchCoordinator
+from custom_components.meraki_ha.const.integration import CONF_ENABLE_FIREWALL_RULES, from...coordinators import MerakiSwitchCoordinator
 from ...core.models.network import MerakiFirewallRule
 from ...core.utils.entity_id_utils import get_firewall_rule_entity_id
 from ..firewall_rule import MerakiFirewallRuleSwitch

@@ -4,8 +4,7 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from custom_components.meraki_ha.const_conf import CONF_ENABLE_TRAFFIC_SHAPING
-from custom_components.meraki_ha.switch.setup_helpers import async_setup_switches
+from custom_components.meraki_ha.const.config import CONF_ENABLE_TRAFFIC_SHAPING, from custom_components.meraki_ha.switch.setup_helpers import async_setup_switches
 from custom_components.meraki_ha.switch.traffic_shaping import (
     MerakiTrafficShapingSwitch,
 )

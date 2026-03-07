@@ -6,10 +6,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers import device_registry as dr
 
 from . import async_get_config_entry
-from .const import MERAKI_TEST_NETWORK_ID, MERAKI_TEST_ORG_ID
-
-
-async def test_network_device_creation(
+from custom_components.meraki_ha.const.integration import MERAKI_TEST_NETWORK_ID, MERAKI_TEST_ORG_ID, async def test_network_device_creation(
     hass: HomeAssistant,
     mock_meraki_client: MagicMock,
     device_registry: dr.DeviceRegistry,

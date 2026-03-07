@@ -6,7 +6,8 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 from homeassistant.util import dt as dt_util
 
-from custom_components.meraki_ha.const import DATA_CLIENT, DOMAIN
+from custom_components.meraki_ha.const.api import DATA_CLIENT
+from custom_components.meraki_ha.const.integration import from custom_components.meraki_ha.const.integration import DOMAIN
 from custom_components.meraki_ha.core.timed_access_manager import (
     TimedAccessKey,
     TimedAccessManager,

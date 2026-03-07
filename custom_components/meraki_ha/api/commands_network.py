@@ -8,11 +8,8 @@ import voluptuous as vol
 from homeassistant.components import websocket_api
 from homeassistant.core import HomeAssistant, callback
 
-from ..const import (
-    DATA_CLIENT,
-    WS_CMD_GET_NETWORK_EVENTS,
-    WS_CMD_TIMED_ACCESS_GET_POLICIES,
-)
+from custom_components.meraki_ha.const.api import DATA_CLIENT
+from custom_components.meraki_ha.const.integration import from custom_components.meraki_ha.const.websocket import WS_CMD_GET_NETWORK_EVENTS, WS_CMD_TIMED_ACCESS_GET_POLICIES
 from ..helpers.serialization import to_serializable
 from .utils import get_config_entry_data, handle_ws_error
 

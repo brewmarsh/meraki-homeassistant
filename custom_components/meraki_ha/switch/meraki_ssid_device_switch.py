@@ -8,8 +8,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import callback
 from homeassistant.helpers.device_registry import DeviceInfo
 
-from ..const import DOMAIN
-from ..coordinators import MerakiSwitchCoordinator
+from custom_components.meraki_ha.const.integration import DOMAIN, from..coordinators import MerakiSwitchCoordinator
 from ..core.api import MerakiApiClientProtocol
 from ..core.utils.icon_utils import get_device_type_icon
 from ..entity import MerakiEntity

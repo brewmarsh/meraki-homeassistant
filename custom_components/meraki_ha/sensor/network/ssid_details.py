@@ -12,8 +12,7 @@ from homeassistant.core import callback
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity import EntityCategory
 
-from ...const import DOMAIN
-from ...coordinators import MerakiMainCoordinator
+from custom_components.meraki_ha.const.integration import DOMAIN, from...coordinators import MerakiMainCoordinator
 from ...entity import MerakiEntity
 
 _LOGGER = logging.getLogger(__name__)

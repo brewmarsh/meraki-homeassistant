@@ -3,7 +3,8 @@
 import re
 from typing import Final
 
-from ._const import (
+from custom_components.meraki_ha.const.integration import (
+    (,
     DEVICE_TYPE_APPLIANCE,
     DEVICE_TYPE_CAMERA,
     DEVICE_TYPE_CELLULAR,
@@ -13,6 +14,7 @@ from ._const import (
     DEVICE_TYPE_UNKNOWN,
     DEVICE_TYPE_WIRELESS,
     DeviceType,
+    ),
 )
 
 # Compiled regex pattern for model validation

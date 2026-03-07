@@ -6,8 +6,7 @@ import logging
 import time
 from typing import TYPE_CHECKING, Any
 
-from ...const_device import DEFAULT_CAPS
-from ...core.parsers.appliance import parse_appliance_data
+from custom_components.meraki_ha.const.integration import DEFAULT_CAPS, from...core.parsers.appliance import parse_appliance_data
 from ...core.parsers.devices import parse_device_data
 from ...core.parsers.network import parse_network_data
 from ...core.parsers.sensors import parse_sensor_data
@@ -187,9 +186,7 @@ class DataFetchManager:
 
     def _get_device_capabilities(self, model: str | None) -> list[str]:
         """Return hardcoded capabilities based on device model."""
-        from ...const_device import DEVICE_CAPABILITIES
-
-        if not model:
+        from custom_components.meraki_ha.const.integration import DEVICE_CAPABILITIES, if not model:
             return list(DEFAULT_CAPS)
 
         # Iterate and match prefix (e.g. MV12W match MV12)

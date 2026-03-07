@@ -9,8 +9,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from ..const import DOMAIN
-from ..coordinators import MerakiCameraCoordinator
+from custom_components.meraki_ha.const.integration import DOMAIN, from..coordinators import MerakiCameraCoordinator
 from .device.camera_motion import MerakiCameraMotionEvent
 from .device.mt_button import MerakiMtButtonEvent
 

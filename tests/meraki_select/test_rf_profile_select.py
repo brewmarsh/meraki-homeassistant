@@ -8,8 +8,7 @@ from homeassistant.helpers import entity_registry as er
 from homeassistant.setup import async_setup_component
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from custom_components.meraki_ha.const import DOMAIN
-from custom_components.meraki_ha.const_conf import CONF_ENABLE_SSID_SENSORS
+from custom_components.meraki_ha.const.integration import DOMAIN, from custom_components.meraki_ha.const_conf import CONF_ENABLE_SSID_SENSORS
 from tests.const import MOCK_NETWORK
 
 

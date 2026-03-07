@@ -8,8 +8,7 @@ from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity import Entity
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from ...const import DOMAIN, MANUFACTURER
-from ...coordinators import MerakiMainCoordinator
+from custom_components.meraki_ha.const.integration import DOMAIN, MANUFACTURER, from...coordinators import MerakiMainCoordinator
 from ...helpers.device_info_helpers import resolve_device_info
 from ..utils.naming_utils import standardize_device_name
 

@@ -8,7 +8,7 @@ import pytest
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.network import NoURLAvailableError
 
-from custom_components.meraki_ha.const import DOMAIN, EVENT_MERAKI_WEBHOOK_ALERT
+from custom_components.meraki_ha.const.integration import DOMAIN, from custom_components.meraki_ha.const.webhooks import EVENT_MERAKI_WEBHOOK_ALERT
 
 # Resolved: Using the centralized coordinator path from the 2.3.0-beta.120 refactor
 from custom_components.meraki_ha.coordinators import MerakiMainCoordinator

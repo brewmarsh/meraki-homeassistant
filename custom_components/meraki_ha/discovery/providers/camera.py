@@ -7,8 +7,7 @@ from typing import TYPE_CHECKING, Any
 
 from ...binary_sensor.device.camera_motion import MerakiMotionSensor
 from ...button.device.camera_snapshot import MerakiSnapshotButton
-from ...const_conf import CONF_ENABLE_CAMERA_ENTITIES, CONF_RTSP_STREAM_ENABLED
-from ...core.errors import MerakiInformationalError
+from custom_components.meraki_ha.const.integration import CONF_ENABLE_CAMERA_ENTITIES, CONF_RTSP_STREAM_ENABLED, from...core.errors import MerakiInformationalError
 from ...sensor.device.camera_analytics import (
     MerakiPersonCountSensor,
     MerakiVehicleCountSensor,

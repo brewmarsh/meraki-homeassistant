@@ -4,8 +4,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from custom_components.meraki_ha.const import DOMAIN
-from custom_components.meraki_ha.sensor.client.status import MerakiClientStatusSensor
+from custom_components.meraki_ha.const.integration import DOMAIN, from custom_components.meraki_ha.sensor.client.status import MerakiClientStatusSensor
 
 
 @pytest.fixture

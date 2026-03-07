@@ -5,10 +5,7 @@ from homeassistant.components.http import StaticPathConfig
 from homeassistant.core import HomeAssistant
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from custom_components.meraki_ha.const import DOMAIN
-
-
-async def test_static_path_registration(hass: HomeAssistant) -> None:
+from custom_components.meraki_ha.const.integration import DOMAIN, async def test_static_path_registration(hass: HomeAssistant) -> None:
     """Test that static path registration uses the new async method."""
     entry = MockConfigEntry(
         domain=DOMAIN,

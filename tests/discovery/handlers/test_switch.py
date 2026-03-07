@@ -5,8 +5,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from custom_components.meraki_ha.button.device.poe_cycle import MerakiPoECycleButton
-from custom_components.meraki_ha.const_conf import CONF_ENABLE_PORT_SENSORS
-from custom_components.meraki_ha.core.models.device import MerakiDevice
+from custom_components.meraki_ha.const.config import CONF_ENABLE_PORT_SENSORS, from custom_components.meraki_ha.core.models.device import MerakiDevice
 from custom_components.meraki_ha.discovery.handlers.switch import SwitchHandler
 from custom_components.meraki_ha.sensor.device.switch_client_count import (
     MerakiSwitchClientCountSensor,

@@ -13,8 +13,7 @@ from homeassistant.const import PERCENTAGE, UnitOfTime
 from homeassistant.core import callback
 from homeassistant.helpers.device_registry import DeviceInfo
 
-from ..const import DOMAIN
-from ..entity import MerakiSensor
+from custom_components.meraki_ha.const.integration import DOMAIN, from..entity import MerakiSensor
 
 if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry

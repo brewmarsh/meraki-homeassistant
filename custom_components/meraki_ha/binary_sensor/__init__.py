@@ -7,8 +7,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from ..const import DOMAIN
-from .network import async_setup_entry as async_setup_network_entry
+from custom_components.meraki_ha.const.integration import DOMAIN, from.network import async_setup_entry as async_setup_network_entry
 
 _LOGGER = logging.getLogger(__name__)
 

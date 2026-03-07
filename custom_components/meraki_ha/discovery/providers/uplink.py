@@ -14,8 +14,7 @@ from homeassistant.const import PERCENTAGE, UnitOfTime
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers import entity_registry as er
 
-from ...const import DOMAIN
-from ...const_conf import CONF_ENABLE_PORT_SENSORS
+from custom_components.meraki_ha.const.integration import DOMAIN, from custom_components.meraki_ha.const.config import CONF_ENABLE_PORT_SENSORS
 from ...sensor.device.appliance_uplink import MerakiApplianceUplinkSensor
 from ...sensor.uplink_performance import MerakiUplinkPerformanceSensor
 
