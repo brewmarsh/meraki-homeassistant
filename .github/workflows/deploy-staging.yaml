@@ -43,6 +43,18 @@ jobs:
         working-directory: frontend
         run: npm run build
 
+      - name: Install Playwright browsers
+        working-directory: frontend
+        run: npx playwright install --with-deps chromium
+
+      - name: Run E2E tests
+        working-directory: frontend
+        env:
+          HA_URL: ${{ secrets.HA_STAGING_URL }}
+          HA_USERNAME: ${{ secrets.HA_STAGING_USERNAME }}
+          HA_PASSWORD: ${{ secrets.HA_STAGING_PASSWORD }}
+        run: npm run test:e2e
+
       - name: Verify build artifacts
         shell: bash
         run: |
