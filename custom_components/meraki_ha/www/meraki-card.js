@@ -22,7 +22,7 @@ let yt = class {
     return this.cssText;
   }
 };
-const At = (r) => new yt(typeof r == "string" ? r : r + "", void 0, X), F = (r, ...t) => {
+const bt = (r) => new yt(typeof r == "string" ? r : r + "", void 0, X), F = (r, ...t) => {
   const e = r.length === 1 ? r[0] : t.reduce((i, s, n) => i + ((o) => {
     if (o._$cssResult$ === !0) return o.cssText;
     if (typeof o == "number") return o;
@@ -38,7 +38,7 @@ const At = (r) => new yt(typeof r == "string" ? r : r + "", void 0, X), F = (r, 
 }, ot = Q ? (r) => r : (r) => r instanceof CSSStyleSheet ? ((t) => {
   let e = "";
   for (const i of t.cssRules) e += i.cssText;
-  return At(e);
+  return bt(e);
 })(r) : r;
 /**
  * @license
@@ -366,7 +366,7 @@ class It {
         let h;
         a.type === 2 ? h = new j(n, n.nextSibling, this, t) : a.type === 1 ? h = new a.ctor(n, a.name, a.strings, this, t) : a.type === 6 && (h = new Vt(n, this, t)), this._$AV.push(h), a = i[++c];
       }
-      o !== (a == null ? void 0 : a.index) && (n = A.nextNode(), o++);
+      n !== (a == null ? void 0 : a.index) && (n = A.nextNode(), o++);
     }
     return A.currentNode = E, s;
   }
@@ -601,12 +601,18 @@ function V(r) {
 function p(r) {
   return V({ ...r, state: !0, attribute: !1 });
 }
+
 var Bt = Object.defineProperty, Ft = Object.getOwnPropertyDescriptor, it = (r, t, e, i) => {
   for (var s = i > 1 ? void 0 : i ? Ft(t, e) : t, n = r.length - 1, o; n >= 0; n--)
     (o = r[n]) && (s = (i ? o(t, e, s) : o(s)) || s);
   return i && s && Bt(t, e, s), s;
 };
+
+// --- CONTENT FILTER CARD ---
 let I = class extends w {
+  static async getConfigElement() {
+    return document.createElement("meraki-content-filter-card-editor");
+  }
   setConfig(r) {
     if (!r || !r.entity)
       throw new Error("Please define a Meraki content filter entity");
@@ -733,13 +739,70 @@ it([
 I = it([
   st("meraki-content-filter-card")
 ], I);
-window.customCards = window.customCards || [];
-window.customCards.push({
-  type: "meraki-content-filter-card",
-  name: "Meraki Content Filter",
-  description: "Control Meraki Content Filtering profiles.",
-  preview: !0
-});
+
+// --- CONTENT FILTER EDITOR ---
+let H_editor = class extends w {
+  setConfig(r) {
+    this._config = r;
+  }
+  render() {
+    return !this.hass || !this._config ? _`` : _`
+      <div class="card-config">
+        <ha-entity-picker
+          .hass=${this.hass}
+          .value=${this._config.entity}
+          .configValue=${"entity"}
+          .includeDomains=${["select"]}
+          @value-changed=${this._valueChanged}
+          allow-custom-entity
+          label="Entity (Required)"
+        ></ha-entity-picker>
+        <ha-textfield
+          label="Name (Optional)"
+          .value=${this._config.name || ""}
+          .configValue=${"name"}
+          @input=${this._valueChanged}
+        ></ha-textfield>
+      </div>
+    `;
+  }
+  _valueChanged(r) {
+    if (!this._config || !this.hass)
+      return;
+    const t = r.target, e = t.configValue;
+    if (!e)
+      return;
+    let i = t.value;
+    if (this._config[e] === i)
+      return;
+    const s = { ...this._config };
+    i === "" || i === void 0 ? delete s[e] : s[e] = i, this._config = s;
+    const o = new CustomEvent("config-changed", {
+      detail: { config: this._config },
+      bubbles: !0,
+      composed: !0
+    });
+    this.dispatchEvent(o);
+  }
+};
+H_editor.styles = F`
+    .card-config ha-entity-picker,
+    .card-config ha-textfield {
+      display: block;
+      margin-bottom: 16px;
+    }
+  `;
+it([
+  V({ attribute: !1 })
+], H_editor.prototype, "hass", 2);
+it([
+  p()
+], H_editor.prototype, "_config", 2);
+H_editor = it([
+  st("meraki-content-filter-card-editor")
+], H_editor);
+
+// --- NETWORK VITALS CARD ---
 var Kt = Object.defineProperty, Wt = Object.getOwnPropertyDescriptor, P = (r, t, e, i) => {
   for (var s = i > 1 ? void 0 : i ? Wt(t, e) : t, n = r.length - 1, o; n >= 0; n--)
     (o = r[n]) && (s = (i ? o(t, e, s) : o(s)) || s);
@@ -862,6 +925,8 @@ P([
 H = P([
   st("meraki-network-vitals-card")
 ], H);
+
+// --- NETWORK VITALS EDITOR ---
 let R = class extends w {
   setConfig(r) {
     this._config = r;
@@ -945,6 +1010,7 @@ P([
 R = P([
   st("meraki-network-vitals-card-editor")
 ], R);
+
 window.customCards = window.customCards || [];
 window.customCards.some((r) => r.type === "meraki-network-vitals-card") || window.customCards.push({
   type: "meraki-network-vitals-card",
@@ -952,6 +1018,8 @@ window.customCards.some((r) => r.type === "meraki-network-vitals-card") || windo
   description: "Compact horizontal header for Meraki network health and throughput.",
   preview: !0
 });
+
+// --- GUEST ACCESS CARD WEBSOCKETS ---
 var Z = /* @__PURE__ */ ((r) => (r.GET_CONFIG = "meraki_ha/get_config", r.SUBSCRIBE_MERAKI_DATA = "meraki_ha/subscribe_meraki_data", r.GET_CAMERA_STREAM_URL = "meraki_ha/get_camera_stream_url", r.GET_CAMERA_SNAPSHOT = "meraki_ha/get_camera_snapshot", r.GET_VERSION = "meraki_ha/get_version", r.GET_NETWORK_EVENTS = "meraki_ha/get_network_events", r.UPDATE_ENABLED_NETWORKS = "meraki_ha/update_enabled_networks", r.CREATE_GUEST_KEY = "meraki_ha/ipsk/create", r.GET_GUEST_KEYS = "meraki_ha/ipsk/get", r.REVOKE_GUEST_KEY = "meraki_ha/ipsk/revoke", r.TIMED_ACCESS_GET_POLICIES = "meraki_ha/timed_access/get_policies", r))(Z || {});
 const gt = async (r, t) => {
   if (!r)
@@ -971,6 +1039,7 @@ var qt = Object.defineProperty, g = (r, t, e, i) => {
     (o = r[n]) && (s = o(t, e, s) || s);
   return s && qt(t, e, s), s;
 };
+
 const rt = class rt extends w {
   constructor() {
     super(...arguments), this._selectedNetwork = "", this._selectedSSID = "", this._selectedPolicy = "", this._selectedDuration = "60", this._customName = "", this._customPassphrase = "", this._creating = !1, this._error = null, this._success = null, this._networks = [], this._ssids = [], this._policies = [], this._loading = !0, this._initDone = !1;
@@ -1073,23 +1142,23 @@ const rt = class rt extends w {
           <div class="form-container">
             <ha-select
               label="Network"
-              value="${this._selectedNetwork}"
+              .value="${this._selectedNetwork}"
               @closed="${this._handleNetworkChange}"
               fixedMenuPosition
               naturalMenuWidth
             >
               ${(this._networks || []).map(
       (s) => _`
-                  <mwc-list-item value="${s.id}">
+                  <ha-list-item value="${s.id}">
                     ${s.name}
-                  </mwc-list-item>
+                  </ha-list-item>
                 `
     )}
             </ha-select>
 
             <ha-select
               label="SSID"
-              value="${this._selectedSSID}"
+              .value="${this._selectedSSID}"
               .disabled="${!this._selectedNetwork}"
               @closed="${this._handleSSIDChange}"
               fixedMenuPosition
@@ -1097,43 +1166,43 @@ const rt = class rt extends w {
             >
               ${(t || []).map(
       (s) => _`
-                  <mwc-list-item value="${String(s.number)}">
+                  <ha-list-item value="${String(s.number)}">
                     ${s.name} (SSID ${s.number})
-                  </mwc-list-item>
+                  </ha-list-item>
                 `
     )}
             </ha-select>
 
             <ha-select
               label="Group Policy"
-              value="${this._selectedPolicy}"
+              .value="${this._selectedPolicy}"
               .disabled="${!this._selectedNetwork}"
               @closed="${this._handlePolicyChange}"
               fixedMenuPosition
               naturalMenuWidth
             >
-              <mwc-list-item value="">None (Default)</mwc-list-item>
+              <ha-list-item value="">None (Default)</ha-list-item>
               ${(this._policies || []).map(
       (s) => _`
-                  <mwc-list-item value="${String(s.groupPolicyId)}">
+                  <ha-list-item value="${String(s.groupPolicyId)}">
                     ${s.name}
-                  </mwc-list-item>
+                  </ha-list-item>
                 `
     )}
             </ha-select>
 
             <ha-select
               label="Duration"
-              value="${this._selectedDuration}"
+              .value="${this._selectedDuration}"
               @closed="${this._handleDurationChange}"
               fixedMenuPosition
               naturalMenuWidth
             >
-              <mwc-list-item value="30">30 Minutes</mwc-list-item>
-              <mwc-list-item value="60">1 Hour</mwc-list-item>
-              <mwc-list-item value="240">4 Hours</mwc-list-item>
-              <mwc-list-item value="1440">24 Hours</mwc-list-item>
-              <mwc-list-item value="10080">7 Days</mwc-list-item>
+              <ha-list-item value="30">30 Minutes</ha-list-item>
+              <ha-list-item value="60">1 Hour</ha-list-item>
+              <ha-list-item value="240">4 Hours</ha-list-item>
+              <ha-list-item value="1440">24 Hours</ha-list-item>
+              <ha-list-item value="10080">7 Days</ha-list-item>
             </ha-select>
 
             <ha-textfield
