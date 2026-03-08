@@ -41,13 +41,27 @@ jobs:
 
       - name: Build frontend
         working-directory: frontend
-        run: npm run build
+        shell: bash
+        run: |
+          set -o pipefail
+          if ! npm run build 2>&1 | tee build_output.txt; then
+            echo "FAILED_STEP_NAME=Build frontend" >> $GITHUB_ENV
+            {
+              echo "CI_ERROR_DETAILS<<EOF"
+              tail -n 20 build_output.txt
+              echo "EOF"
+            } >> $GITHUB_ENV
+            exit 1
+          fi
 
       - name: Verify build artifacts
         shell: bash
         run: |
+          set -o pipefail
           if [ ! -f "custom_components/meraki_ha/www/meraki-card.js" ]; then
             echo "::error::Build artifact meraki-card.js missing!"
+            echo "FAILED_STEP_NAME=Verify build artifacts" >> $GITHUB_ENV
+            echo "CI_ERROR_DETAILS=The Vite build failed to output meraki-card.js" >> $GITHUB_ENV
             exit 1
           fi
           echo "Build artifact verified: meraki-card.js"
@@ -57,6 +71,7 @@ jobs:
         env:
           DEPLOY_PATH: ${{ env.DESTINATION_PATH }}
         run: |
+          set -o pipefail
           SourceComponentDir="${GITHUB_WORKSPACE}/custom_components/meraki_ha/"
           DestinationPath="${DEPLOY_PATH}"
           SourceBlueprintsDir="${SourceComponentDir}blueprints/"
@@ -70,19 +85,25 @@ jobs:
           sudo mkdir -p "${DestinationBlueprintsPath}"
 
           # Sync files (Restored --inplace to fix Docker bind mount temp file errors)
-          sudo rsync -rcvltpD --inplace --delete \
+          if ! sudo rsync -rcvltpD --inplace --delete \
             --exclude '.git' \
             --exclude 'node_modules' \
             --exclude 'tests' \
             --exclude '*.log' \
             --exclude '__pycache__' \
             --exclude '.DS_Store' \
-            "${SourceComponentDir}" "${DestinationPath}"
+            "${SourceComponentDir}" "${DestinationPath}" 2>&1 | tee rsync_output.txt; then
+            echo "FAILED_STEP_NAME=Copy files to staging (rsync)" >> $GITHUB_ENV
+            {
+              echo "CI_ERROR_DETAILS<<EOF"
+              tail -n 20 rsync_output.txt
+              echo "EOF"
+            } >> $GITHUB_ENV
+            exit 1
+          fi
 
           # Sync blueprints to the root /config/blueprints/ directory (No --delete to avoid wiping others)
           echo "Syncing blueprints..."
-          echo "Source Blueprints: ${SourceBlueprintsDir}"
-          echo "Destination Blueprints: ${DestinationBlueprintsPath}"
           sudo rsync -rcvltpD --inplace \
             "${SourceBlueprintsDir}" "${DestinationBlueprintsPath}"
 
@@ -91,6 +112,7 @@ jobs:
       - name: Update Home Assistant configuration
         shell: bash
         run: |
+          set -o pipefail
           echo "Updating configuration.yaml..."
           sudo tee ${{ env.HA_CONFIG_DIR }}/configuration.yaml <<EOF
           default_config:
@@ -119,8 +141,17 @@ jobs:
       - name: Full integration reset (delete > restart > add)
         shell: bash
         run: |
+          set -o pipefail
           echo "Running Reset Script in isolated environment..."
-          uv run --with aiohttp python3 tests/scripts/reset_integration.py
+          if ! uv run --with aiohttp python3 tests/scripts/reset_integration.py 2>&1 | tee reset_output.txt; then
+            echo "FAILED_STEP_NAME=Full integration reset (Staging)" >> $GITHUB_ENV
+            {
+              echo "CI_ERROR_DETAILS<<EOF"
+              tail -n 20 reset_output.txt
+              echo "EOF"
+            } >> $GITHUB_ENV
+            exit 1
+          fi
 
       - name: Audit logs for errors
         id: audit_logs
@@ -129,13 +160,32 @@ jobs:
           HA_URL: ${{ secrets.HA_STAGING_URL }}
           HA_TOKEN: ${{ secrets.HA_STAGING_TOKEN }}
         run: |
+          set -o pipefail
           echo "Initiating 90s discovery wait cycle..."
           sleep 90
 
-          echo "Extracting logs from Home Assistant API..."
-          curl -sS -H "Authorization: Bearer $HA_TOKEN" \
+          echo "Attempting to fetch logs via HA API..."
+          # Action 2: API fetch with robust fallback to prevent truncation of physical source
+          if curl -sfS -H "Authorization: Bearer $HA_TOKEN" \
                -H "Content-Type: application/json" \
-               "$HA_URL/api/error_log" > full_ha_log.txt || { echo "Failed to fetch logs from API"; exit 1; }
+               "$HA_URL/api/error_log" > api_log_fetch.txt; then
+            echo "API log fetch successful. Updating dual-source: ${{ env.HA_CONFIG_DIR }}/home-assistant.log"
+            sudo cp api_log_fetch.txt "${{ env.HA_CONFIG_DIR }}/home-assistant.log"
+            cp api_log_fetch.txt full_ha_log.txt
+          else
+            echo "API log fetch failed (or API returned error). Falling back to physical log file..."
+            if [ -f "${{ env.HA_CONFIG_DIR }}/home-assistant.log" ]; then
+              sudo cat "${{ env.HA_CONFIG_DIR }}/home-assistant.log" > full_ha_log.txt
+            else
+              echo "::error::Log file not found at ${{ env.HA_CONFIG_DIR }}/home-assistant.log"
+              echo "FAILED_STEP_NAME=Audit logs for errors" >> "$GITHUB_ENV"
+              echo "CI_ERROR_DETAILS=Log file not found at ${{ env.HA_CONFIG_DIR }}/home-assistant.log and API fetch failed." >> "$GITHUB_ENV"
+              exit 1
+            fi
+          fi
+
+          # Action 3: Ensure permissions for reporter bot immediately after creation/update
+          sudo chmod 666 "${{ env.HA_CONFIG_DIR }}/home-assistant.log"
 
           # Stage 1 & 2: Search for Tracebacks or specific Python errors mentioning meraki
           if grep -i -E "traceback|attributeerror|nameerror|typeerror" full_ha_log.txt | grep -i "meraki" > /dev/null; then
@@ -143,11 +193,10 @@ jobs:
             # Stage 3: Grab the error and the next 30 lines for context
             grep -A 30 -i -E "traceback|attributeerror|nameerror|typeerror" full_ha_log.txt > meraki_errors.txt
 
-            # Fail condition: Only fail if the file is greater than 0 bytes
             if [ -s meraki_errors.txt ]; then
               echo "::error::CRITICAL: Meraki-related Python errors detected!"
               cat meraki_errors.txt
-              echo "HAS_ERRORS=true" >> $GITHUB_ENV
+              echo "FAILED_STEP_NAME=Audit logs for errors" >> "$GITHUB_ENV"
               {
                 echo "CI_ERROR_DETAILS<<EOF"
                 cat meraki_errors.txt
@@ -158,17 +207,23 @@ jobs:
           fi
 
           echo "Logs appear clean."
-          echo "HAS_ERRORS=false" >> $GITHUB_ENV
 
       - name: Audit Entity States
         shell: bash
         run: |
+          set -o pipefail
           echo "Checking for unavailable or unknown entities..."
           PAYLOAD='{"template": "{{ integration_entities(\"meraki_ha\") | select(\"is_state\", [\"unavailable\", \"unknown\"]) | list }}"}'
-          RESPONSE=$(curl -sS -X POST -H "Authorization: Bearer ${{ secrets.HA_STAGING_TOKEN }}" -H "Content-Type: application/json" -d "$PAYLOAD" "${{ secrets.HA_STAGING_URL }}/api/template")
+          # Proactive optimization: Use -f flag for curl to catch HTTP errors
+          if ! RESPONSE=$(curl -sfS -X POST -H "Authorization: Bearer ${{ secrets.HA_STAGING_TOKEN }}" -H "Content-Type: application/json" -d "$PAYLOAD" "${{ secrets.HA_STAGING_URL }}/api/template"); then
+            echo "FAILED_STEP_NAME=Audit Entity States" >> "$GITHUB_ENV"
+            echo "CI_ERROR_DETAILS=Failed to query HA API for entity states" >> "$GITHUB_ENV"
+            exit 1
+          fi
 
           if [ "$RESPONSE" != "[]" ] && [ "$RESPONSE" != "" ]; then
             echo "::error::CRITICAL: The following Meraki entities are unavailable or unknown: $RESPONSE"
+            echo "FAILED_STEP_NAME=Audit Entity States" >> "$GITHUB_ENV"
             {
               echo "CI_ERROR_DETAILS<<EOF"
               echo "$RESPONSE"
@@ -183,6 +238,7 @@ jobs:
         if: failure()
         shell: bash
         run: |
+          set -o pipefail
           echo "Capturing Home Assistant logs..."
           # Priority check: standard locations, then fallback to API-captured logs
           LOG_FILE=""
@@ -205,12 +261,10 @@ jobs:
             } >> "$GITHUB_ENV"
           else
             # Final fallback: Attempt to capture recent stdout/stderr if the log file is missing.
-            # This is a best-effort to capture context from the runner's own execution.
             {
               echo "ERROR_LOGS<<EOF"
               echo "--- LOG BACKUP (STDOUT/STDERR FALLBACK) ---"
               echo "Primary log files missing. Capturing last 50 lines of available console output..."
-              # On some runners, we can try to peek at the system log or just provide a placeholder.
               if command -v journalctl > /dev/null; then
                 sudo journalctl -n 50 --no-pager
               else
@@ -225,7 +279,20 @@ jobs:
         uses: actions/github-script@v7
         with:
           script: |
+            const fs = require('fs');
             const title = '🚨 Staging Smoke Test Failed';
+            const failedStep = process.env.FAILED_STEP_NAME || 'Unknown Step';
+            let errorDetails = process.env.CI_ERROR_DETAILS || 'No details captured.';
+
+            // Action 4: Explicitly check if 'meraki_errors.txt' exists before trying to read it
+            if (fs.existsSync('meraki_errors.txt')) {
+                console.log('Action 4: Found meraki_errors.txt, reading content for high-fidelity error reporting...');
+                const merakiErrors = fs.readFileSync('meraki_errors.txt', 'utf8');
+                if (merakiErrors && merakiErrors.trim()) {
+                    errorDetails = merakiErrors;
+                }
+            }
+
             const { data: issues } = await github.rest.issues.listForRepo({
               owner: context.repo.owner,
               repo: context.repo.repo,
@@ -238,9 +305,8 @@ jobs:
               return;
             }
 
-            const errorDetails = process.env.CI_ERROR_DETAILS || 'No details captured.';
             const errorLogs = process.env.ERROR_LOGS ? `### 📋 Home Assistant Logs\n\`\`\`text\n${process.env.ERROR_LOGS}\n\`\`\`\n\n` : '';
-            const body = `The deployment to the staging environment failed.\n\n### 📋 Error Details\n\`\`\`text\n${errorDetails}\n\`\`\`\n\n${errorLogs}[🔗 View full failing run details](${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId})`;
+            const body = `The deployment to the staging environment failed.\n\n### ❌ Failed Step: \`${failedStep}\`\n\n### 📋 Error Details\n\`\`\`text\n${errorDetails}\n\`\`\`\n\n${errorLogs}[🔗 View full failing run details](${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId})`;
             await github.rest.issues.create({
               owner: context.repo.owner,
               repo: context.repo.repo,
