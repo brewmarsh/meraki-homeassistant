@@ -18,7 +18,7 @@ from custom_components.meraki_ha.sensor.network.network_clients import (
 from custom_components.meraki_ha.sensor.network.vlan import MerakiVLANStatusSensor
 from custom_components.meraki_ha.types import MerakiNetwork
 
-from ..const import MOCK_CONFIG_ENTRY
+from ...const import MOCK_CONFIG_ENTRY
 
 MOCK_NETWORK_1 = MerakiNetwork(
     id="N_1234", name="Network 1", organization_id="org1", product_types=["wireless"]
@@ -32,6 +32,7 @@ MOCK_NETWORK_2 = MerakiNetwork(
 def mock_coordinator():
     """Fixture for a mock MerakiMainCoordinator."""
     coordinator = MagicMock()
+    coordinator.api.organization_id = "org1"
     coordinator.data = {
         "networks": [MOCK_NETWORK_1, MOCK_NETWORK_2],
         "vlans": {

@@ -16,6 +16,7 @@ from custom_components.meraki_ha.const.config import (
 )
 from ...sensor.network.network_clients import MerakiNetworkClientsSensor
 from ...sensor.network.traffic_shaping import TrafficShapingSensor
+from ...types import MerakiNetwork
 from .base import BaseHandler
 
 if TYPE_CHECKING:
@@ -48,7 +49,19 @@ class NetworkHandler(BaseHandler):
         if not self._config_entry.options.get(CONF_ENABLE_NETWORK_SENSORS, True):
             _LOGGER.debug("Network sensors are disabled.")
             return []
-        return self._coordinator.data.get("networks", [])
+
+        networks = self._coordinator.data.get("networks", [])
+        if not networks:
+            return []
+
+        # Filter networks by organization ID to ensure we only discover
+        # entities for the current organization.
+        org_id = self._coordinator.api.organization_id
+        return [
+            n
+            for n in networks
+            if isinstance(n, MerakiNetwork) and n.organization_id == org_id
+        ]
 
     async def discover_entities(self) -> AsyncIterator[Entity]:
         """Discover network-level entities."""
