@@ -30,12 +30,12 @@ def test_config_schema():
     with pytest.raises(vol.Invalid):
         CONFIG_SCHEMA({})
     with pytest.raises(vol.Invalid):
-        CONFIG_SCHEMA({"api_key": "invalid", "meraki_org_id": "123456"})
+        CONFIG_SCHEMA({"api_key": "invalid", "organization_id": "123456"})
     with pytest.raises(vol.Invalid):
-        CONFIG_SCHEMA({"api_key": "0" * 40, "meraki_org_id": "invalid"})
-    assert CONFIG_SCHEMA({"api_key": "0" * 40, "meraki_org_id": "123456"}) == {
+        CONFIG_SCHEMA({"api_key": "0" * 40, "organization_id": "invalid"})
+    assert CONFIG_SCHEMA({"api_key": "0" * 40, "organization_id": "123456"}) == {
         "api_key": "0" * 40,
-        "meraki_org_id": "123456",
+        "organization_id": "123456",
         "scan_interval": 300,
     }
 

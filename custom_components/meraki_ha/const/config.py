@@ -9,7 +9,7 @@ CONF_INTEGRATION_TITLE: Final = "Meraki"
 """Title for the integration."""
 
 
-CONF_MERAKI_ORG_ID: Final = "meraki_org_id"
+CONF_MERAKI_ORG_ID: Final = "organization_id"
 """Configuration key for the Meraki organization ID."""
 
 CONF_SCAN_INTERVAL: Final = "scan_interval"

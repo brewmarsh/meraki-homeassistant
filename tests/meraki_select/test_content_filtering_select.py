@@ -16,7 +16,7 @@ def mock_config_entry() -> MockConfigEntry:
     """Fixture for a mocked config entry."""
     return MockConfigEntry(
         domain=DOMAIN,
-        data={"meraki_api_key": "fake_key", "meraki_org_id": "fake_org"},
+        data={"api_key": "fake_key", "organization_id": "fake_org"},
         options={},
         entry_id="test_entry",
     )
