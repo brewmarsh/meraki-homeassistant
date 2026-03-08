@@ -15,16 +15,17 @@ interface Config {
   config_entry_id?: string;
 }
 
+@customElement('meraki-guest-access-card')
 export class MerakiGuestAccessCard extends LitElement {
   @property({ attribute: false }) public hass!: HomeAssistant;
   @state() private _config?: Config;
 
   @state() private _selectedNetwork: string = '';
-  @state() private _selectedSSID: string = '';
+  @state() private _selectedSsid: string = '';
   @state() private _selectedPolicy: string = '';
-  @state() private _selectedDuration: string = '60';
-  @state() private _customName: string = '';
-  @state() private _customPassphrase: string = '';
+  @state() private _duration: string = '60';
+  @state() private _guestName: string = '';
+  @state() private _passphrase: string = '';
 
   @state() private _creating: boolean = false;
   @state() private _error: string | null = null;
@@ -64,8 +65,8 @@ export class MerakiGuestAccessCard extends LitElement {
       if (!this._initDone && this.hass) {
         this._fetchInitialData();
       }
-      if (this.hass.user?.name && !this._customName) {
-        this._customName = this.hass.user.name;
+      if (this.hass.user?.name && !this._guestName) {
+        this._guestName = this.hass.user.name;
       }
     }
   }
@@ -104,10 +105,6 @@ export class MerakiGuestAccessCard extends LitElement {
     } finally {
       this._isLoading = false;
     }
-  }
-
-  private async _fetchSSIDs() {
-    // Placeholder as SSIDs are currently fetched in _fetchInitialData
   }
 
   private async _fetchPolicies(networkId: string, configEntryId?: string) {
@@ -186,9 +183,9 @@ export class MerakiGuestAccessCard extends LitElement {
 
             <ha-select
               label="SSID"
-              .value=${this._selectedSSID}
+              .value=${this._selectedSsid}
               .disabled=${!this._selectedNetwork}
-              @closed=${this._handleSSIDChange}
+              @closed=${this._handleSsidChange}
               fixedMenuPosition
               naturalMenuWidth
             >
@@ -221,7 +218,7 @@ export class MerakiGuestAccessCard extends LitElement {
 
             <ha-select
               label="Duration"
-              .value=${this._selectedDuration}
+              .value=${this._duration}
               @closed=${this._handleDurationChange}
               fixedMenuPosition
               naturalMenuWidth
@@ -236,23 +233,23 @@ export class MerakiGuestAccessCard extends LitElement {
             <ha-textfield
               label="Name (Optional)"
               placeholder="e.g. Guest-John"
-              .value=${this._customName}
-              @input=${(e: any) => (this._customName = e.target.value)}
+              .value=${this._guestName}
+              @input=${this._handleGuestNameChange}
             ></ha-textfield>
 
             <ha-textfield
               label="Passphrase (Optional)"
               placeholder="Leave empty to auto-generate"
-              .value=${this._customPassphrase}
-              @input=${(e: any) => (this._customPassphrase = e.target.value)}
+              .value=${this._passphrase}
+              @input=${this._handlePassphraseChange}
             ></ha-textfield>
 
             <ha-button
               raised
-              .disabled=${this._creating || !this._selectedNetwork || !this._selectedSSID}
-              @click=${this._handleCreate}
+              .disabled=${this._creating || !this._selectedNetwork || !this._selectedSsid}
+              @click=${this._generateAccessKey}
             >
-              ${this._creating ? 'Creating...' : 'Generate access key'}
+              ${this._creating ? html`<ha-circular-progress active size="small"></ha-circular-progress> Creating...` : 'Generate access key'}
             </ha-button>
           </div>
         </div>
@@ -266,16 +263,15 @@ export class MerakiGuestAccessCard extends LitElement {
     const newNetworkId = target.value;
     if (!newNetworkId || newNetworkId === this._selectedNetwork) return;
     this._selectedNetwork = newNetworkId;
-    this._selectedSSID = '';
+    this._selectedSsid = '';
     this._selectedPolicy = '';
-    this._fetchSSIDs();
     this._fetchPolicies(newNetworkId);
   }
 
-  private _handleSSIDChange(e: Event) {
+  private _handleSsidChange(e: Event) {
     e.stopPropagation();
     const target = e.target as any;
-    this._selectedSSID = target.value;
+    this._selectedSsid = target.value;
   }
 
   private _handlePolicyChange(e: Event) {
@@ -287,29 +283,39 @@ export class MerakiGuestAccessCard extends LitElement {
   private _handleDurationChange(e: Event) {
     e.stopPropagation();
     const target = e.target as any;
-    this._selectedDuration = target.value;
+    this._duration = target.value;
   }
 
-  private async _handleCreate() {
-    if (!this._selectedNetwork || !this._selectedSSID) return;
+  private _handleGuestNameChange(e: Event) {
+    const target = e.target as any;
+    this._guestName = target.value;
+  }
+
+  private _handlePassphraseChange(e: Event) {
+    const target = e.target as any;
+    this._passphrase = target.value;
+  }
+
+  private async _generateAccessKey() {
+    if (!this._selectedNetwork || !this._selectedSsid) return;
 
     this._creating = true;
     this._error = null;
     this._success = null;
 
     try {
-      await this.hass.callService('meraki_ha', 'create_guest_key', {
+      await this.hass.callService('meraki_ha', 'generate_guest_access', {
         network_id: this._selectedNetwork,
-        ssid_number: parseInt(this._selectedSSID, 10),
-        duration_minutes: parseInt(this._selectedDuration, 10),
-        name: this._customName || undefined,
-        passphrase: this._customPassphrase || undefined,
+        ssid_number: parseInt(this._selectedSsid, 10),
+        duration_minutes: parseInt(this._duration, 10),
+        name: this._guestName || undefined,
+        passphrase: this._passphrase || undefined,
         group_policy_id: this._selectedPolicy || undefined,
       });
 
       this._success = 'Guest access key created successfully!';
-      this._customName = '';
-      this._customPassphrase = '';
+      this._guestName = '';
+      this._passphrase = '';
     } catch (err: any) {
       this._error = `Failed to create guest key: ${err.message || err}`;
     } finally {
@@ -348,6 +354,10 @@ export class MerakiGuestAccessCard extends LitElement {
     .p-8 {
       padding: 32px;
     }
+    ha-button ha-circular-progress {
+      --mdc-theme-primary: var(--primary-background-color);
+      margin-right: 8px;
+    }
   `;
 }
 
@@ -357,9 +367,11 @@ if (!customElements.get("meraki-guest-access-card")) {
 
 // Register the card in the Home Assistant Lovelace UI picker
 (window as any).customCards = (window as any).customCards || [];
-(window as any).customCards.push({
-  type: "meraki-guest-access-card",
-  name: "Meraki Guest Access",
-  description: "Create and manage Meraki IPSK guest access keys.",
-  preview: true,
-});
+if (!(window as any).customCards.some((c: any) => c.type === 'meraki-guest-access-card')) {
+  (window as any).customCards.push({
+    type: "meraki-guest-access-card",
+    name: "Meraki Guest Access",
+    description: "Create and manage Meraki IPSK guest access keys.",
+    preview: true,
+  });
+}
