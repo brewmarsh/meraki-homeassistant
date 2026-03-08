@@ -9,11 +9,14 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import os
 from collections.abc import Awaitable, Callable
 from functools import partial
 from typing import Any, cast
 
+import braintrust
 import meraki
+from dotenv import load_dotenv
 from homeassistant.core import HomeAssistant
 
 from ...core.errors import (
@@ -34,6 +37,11 @@ from .protocol import (
 )
 
 _LOGGER = logging.getLogger(__name__)
+
+# Initialize Braintrust for observability
+load_dotenv()
+if os.getenv("BRAINTRUST_API_KEY"):
+    braintrust.init(project="Meraki HA", api_key=os.getenv("BRAINTRUST_API_KEY"))
 
 
 class MerakiClient:
@@ -108,6 +116,7 @@ class MerakiClient:
                 )
             )
 
+    @braintrust.traced
     async def run_sync(
         self,
         func: Callable[..., Any],
@@ -127,6 +136,20 @@ class MerakiClient:
             The result of the function.
 
         """
+        # Extract metadata for Braintrust
+        org_id = kwargs.get("organizationId") or self.organization_id
+        serial = kwargs.get("serial") or kwargs.get("deviceSerial")
+        if not serial and args and isinstance(args[0], str):
+            # Many Meraki calls have serial as the first positional argument
+            serial = args[0]
+
+        braintrust.current_span().log(
+            metadata={
+                "organization_id": org_id,
+                "device_serial": serial,
+            }
+        )
+
         async with self._semaphore:
             try:
                 loop = asyncio.get_event_loop()
@@ -134,6 +157,19 @@ class MerakiClient:
                     None, partial(func, *args, **kwargs)
                 )
             except meraki.APIError as e:
+                # Log error details to Braintrust
+                braintrust.current_span().log(
+                    metadata={
+                        "error_message": str(e),
+                        "status_code": getattr(e, "status", None),
+                        "meraki_request_id": (
+                            e.response.headers.get("X-Cisco-Meraki-API-Request-Id")
+                            if e.response is not None and hasattr(e.response, "headers")
+                            else None
+                        ),
+                    }
+                )
+
                 error_msg = str(e)
                 if (
                     "Traffic Analysis with Hostname Visibility" in error_msg
