@@ -62,6 +62,8 @@ class MerakiClient:
 
     _disabled_features: set[str] = set()
     _enable_vpn_management: bool = False
+    
+    # Type hints for endpoint protocols
     appliance: ApplianceEndpointsProtocol
     camera: CameraEndpointsProtocol
     devices: DevicesEndpointsProtocol
@@ -78,16 +80,7 @@ class MerakiClient:
         org_id: str | None = None,
         base_url: str = "https://api.meraki.com/api/v1",
     ) -> None:
-        """
-        Initialize the API client.
-
-        Args:
-            hass: The Home Assistant instance.
-            api_key: The Meraki API key.
-            org_id: The organization ID.
-            base_url: The base URL for the Meraki API.
-
-        """
+        """Initialize the API client and compose endpoint handlers."""
         self._api_key = api_key
         self._org_id = org_id
         self._hass = hass
@@ -102,15 +95,15 @@ class MerakiClient:
         self._disabled_features: set[str] = set()
         self._enable_vpn_management = False
 
-        # Initialize endpoint handlers
-        self.appliance = ApplianceEndpoints(self, hass)
+        # Action 2: Initialize endpoint handlers to prevent AttributeErrors in config flow
+        self.organization = OrganizationEndpoints(self)
+        self.appliance = ApplianceEndpoints(self, self._hass)
         self.camera = CameraEndpoints(self)
         self.devices = DevicesEndpoints(self)
         self.network = NetworkEndpoints(self)
-        self.organization = OrganizationEndpoints(self)
+        self.sensor = SensorEndpoints(self)
         self.switch = SwitchEndpoints(self)
         self.wireless = WirelessEndpoints(self)
-        self.sensor = SensorEndpoints(self)
 
     @property
     def has_dashboard(self) -> bool:
@@ -141,24 +134,10 @@ class MerakiClient:
         *args: Any,
         **kwargs: Any,
     ) -> Any:
-        """
-        Run a synchronous function in a thread pool with rate limiting.
-
-        Args:
-            func: The synchronous function to run.
-            *args: Positional arguments to pass to the function.
-            **kwargs: Keyword arguments to pass to the function.
-
-        Returns
-        -------
-            The result of the function.
-
-        """
-        # Extract metadata for Braintrust
+        """Run a synchronous function in a thread pool with rate limiting."""
         org_id = kwargs.get("organizationId") or self.organization_id
         serial = kwargs.get("serial") or kwargs.get("deviceSerial")
         if not serial and args and isinstance(args[0], str):
-            # Many Meraki calls have serial as the first positional argument
             serial = args[0]
 
         braintrust.current_span().log(
@@ -175,7 +154,6 @@ class MerakiClient:
                     None, partial(func, *args, **kwargs)
                 )
             except meraki.APIError as e:
-                # Log error details to Braintrust
                 braintrust.current_span().log(
                     metadata={
                         "error_message": str(e),
@@ -200,58 +178,34 @@ class MerakiClient:
                         raise MerakiVlansDisabledError(error_msg) from e
                     raise MerakiInformationalError(error_msg) from e
                 _LOGGER.warning("Meraki API Error encountered: %s", e)
-                _LOGGER.debug("Meraki API Error stack trace", exc_info=True)
                 raise ApiClientCommunicationError(
                     f"Error communicating with Meraki API: {e}"
                 ) from e
             except Exception as e:
                 _LOGGER.warning(
-                    "An unexpected error occurred during API call: %s. Type: %s",
+                    "An unexpected error occurred: %s. Type: %s",
                     e,
                     type(e).__name__,
                 )
-                _LOGGER.debug("Unexpected API error stack trace", exc_info=True)
                 if "JSON" in str(e):
                     raise ApiClientCommunicationError(
-                        f"Invalid JSON response from Meraki API. "
-                        f"Please check Meraki logs or network connectivity. "
-                        f"Details: {e}"
+                        f"Invalid JSON response from Meraki API: {e}"
                     ) from e
-                else:
-                    raise ApiClientCommunicationError(
-                        f"An unexpected error occurred: {e}"
-                    ) from e
+                raise ApiClientCommunicationError(
+                    f"An unexpected error occurred: {e}"
+                ) from e
 
         await asyncio.sleep(0.1)
         return result
 
     async def run_with_semaphore(self, coro: Awaitable[Any]) -> Any:
-        """
-        Run an awaitable with the rate limiter.
-
-        Args:
-            coro: The awaitable to run.
-
-        Returns
-        -------
-            The result of the awaitable.
-
-        """
-        # Governance is now handled at the API level via run_sync.
-        # This wrapper is maintained for compatibility with the fetch strategies.
+        """Run an awaitable with the rate limiter."""
         return await coro
 
     def mark_feature_disabled(
         self, feature: str, network_id: str | None = None
     ) -> None:
-        """
-        Mark a feature as disabled for the current session.
-
-        Args:
-            feature: The feature to disable (e.g., "traffic", "vlans").
-            network_id: The ID of the network.
-
-        """
+        """Mark a feature as disabled for the current session."""
         key = feature
         if network_id:
             key = f"{feature}_{network_id}"
@@ -259,18 +213,7 @@ class MerakiClient:
         _LOGGER.debug("Feature %s marked as disabled for the session", key)
 
     def is_feature_disabled(self, feature: str, network_id: str | None = None) -> bool:
-        """
-        Check if a feature is disabled for the current session.
-
-        Args:
-            feature: The feature to check.
-            network_id: The ID of the network.
-
-        Returns
-        -------
-            True if disabled, False otherwise.
-
-        """
+        """Check if a feature is disabled for the current session."""
         key = feature
         if network_id:
             key = f"{feature}_{network_id}"
@@ -284,60 +227,26 @@ class MerakiClient:
     async def register_webhook(
         self, webhook_url: str, secret: str, config_entry_id: str
     ) -> None:
-        """
-        Register a webhook with the Meraki API.
-
-        Args:
-            webhook_url: The URL of the webhook.
-            secret: The secret for the webhook.
-            config_entry_id: The ID of the Home Assistant config entry.
-
-        """
+        """Register a webhook with the Meraki API."""
         await self.network.register_webhook(webhook_url, secret, config_entry_id)
 
     async def unregister_webhook(self, config_entry_id: str) -> None:
-        """
-        Unregister a webhook with the Meraki API.
-
-        Args:
-            config_entry_id: The ID of the Home Assistant config entry.
-
-        """
+        """Unregister a webhook with the Meraki API."""
         await self.network.unregister_webhook(config_entry_id)
 
     async def async_reboot_device(self, serial: str) -> dict[str, Any]:
-        """
-        Reboot a device.
-
-        Args:
-            serial: The serial number of the device to reboot.
-
-        Returns
-        -------
-            The API response.
-
-        """
+        """Reboot a device via the appliance endpoint handler."""
         return cast(dict[str, Any], await self.appliance.reboot_device(serial))
 
     async def get_organizations(self) -> list[dict[str, Any]]:
-        """Get all organizations accessible by the API key."""
+        """Action 4: Fetch organizations using the composed handler."""
         return await self.organization.get_organizations()
 
     async def async_get_switch_port_statuses(
         self,
         serial: str,
     ) -> list[dict[str, Any]]:
-        """
-        Get statuses for all ports of a switch.
-
-        Args:
-            serial: The serial number of the switch.
-
-        Returns
-        -------
-            A list of port statuses.
-
-        """
+        """Get switch port statuses via the switch endpoint handler."""
         return await self.switch.get_device_switch_ports_statuses(serial)
 
     async def async_cycle_switch_ports(
@@ -345,18 +254,7 @@ class MerakiClient:
         serial: str,
         ports: list[str],
     ) -> dict[str, Any]:
-        """
-        Cycle a set of switch ports.
-
-        Args:
-            serial: The serial number of the switch.
-            ports: A list of port IDs to cycle.
-
-        Returns
-        -------
-            The API response.
-
-        """
+        """Cycle switch ports via the switch endpoint handler."""
         return cast(
             dict[str, Any], await self.switch.cycle_device_switch_ports(serial, ports)
         )
