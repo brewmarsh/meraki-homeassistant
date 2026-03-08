@@ -184,14 +184,40 @@ jobs:
         shell: bash
         run: |
           echo "Capturing Home Assistant logs..."
-          if [ -f "${{ env.HA_CONFIG_DIR }}/home-assistant.log" ]; then
+          # Priority check: standard locations, then fallback to API-captured logs
+          LOG_FILE=""
+          if [ -f "home-assistant.log" ]; then
+            LOG_FILE="home-assistant.log"
+          elif [ -f "./config/home-assistant.log" ]; then
+            LOG_FILE="./config/home-assistant.log"
+          elif [ -f "${{ env.HA_CONFIG_DIR }}/home-assistant.log" ]; then
+            LOG_FILE="${{ env.HA_CONFIG_DIR }}/home-assistant.log"
+          elif [ -f "full_ha_log.txt" ]; then
+            LOG_FILE="full_ha_log.txt"
+          fi
+
+          if [ -n "$LOG_FILE" ]; then
             {
               echo "ERROR_LOGS<<EOF"
-              tail -n 50 "${{ env.HA_CONFIG_DIR }}/home-assistant.log"
+              echo "--- Last 50 lines of $LOG_FILE ---"
+              tail -n 50 "$LOG_FILE"
               echo "EOF"
             } >> "$GITHUB_ENV"
           else
-            echo "ERROR_LOGS=Log file not found at ${{ env.HA_CONFIG_DIR }}/home-assistant.log" >> "$GITHUB_ENV"
+            # Final fallback: Attempt to capture recent stdout/stderr if the log file is missing.
+            # This is a best-effort to capture context from the runner's own execution.
+            {
+              echo "ERROR_LOGS<<EOF"
+              echo "--- LOG BACKUP (STDOUT/STDERR FALLBACK) ---"
+              echo "Primary log files missing. Capturing last 50 lines of available console output..."
+              # On some runners, we can try to peek at the system log or just provide a placeholder.
+              if command -v journalctl > /dev/null; then
+                sudo journalctl -n 50 --no-pager
+              else
+                echo "Console output capture not supported on this runner. Check the GitHub Actions 'Summary' or 'Raw Logs' for details."
+              fi
+              echo "EOF"
+            } >> "$GITHUB_ENV"
           fi
 
       - name: Create Issue on Failure
