@@ -4,7 +4,6 @@ import logging
 from typing import Any
 import voluptuous as vol
 from homeassistant import config_entries
-from homeassistant.const import CONF_API_KEY
 from homeassistant.core import callback
 from homeassistant.data_entry_flow import FlowResult
 from homeassistant.helpers import selector
@@ -13,17 +12,14 @@ from .const.config import (
     CONF_ENABLE_DEVICE_SENSORS,
     CONF_ENABLE_DEVICE_STATUS,
     CONF_ENABLE_PORT_SENSORS,
+    CONF_MERAKI_API_KEY,
+    CONF_MERAKI_ORG_ID,
 )
 from .const.integration import DOMAIN
 from .core.api.client import MerakiClient
+from .schemas import STEP_USER_DATA_SCHEMA
 
 _LOGGER = logging.getLogger(__name__)
-
-DATA_SCHEMA = vol.Schema({
-    vol.Required(CONF_API_KEY): selector.TextSelector(
-        selector.TextSelectorConfig(type=selector.TextSelectorType.PASSWORD)
-    )
-})
 
 class MerakiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     """Handle a config flow for Meraki."""
@@ -37,7 +33,11 @@ class MerakiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         if user_input is not None:
             try:
                 # Validation logic using the updated Client name
-                client = MerakiClient(self.hass, user_input[CONF_API_KEY])
+                client = MerakiClient(
+                    self.hass,
+                    user_input[CONF_MERAKI_API_KEY],
+                    user_input.get(CONF_MERAKI_ORG_ID),
+                )
                 await client.async_setup()
                 await client.get_organizations()
             except Exception:  # pylint: disable=broad-except
@@ -47,7 +47,7 @@ class MerakiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 return self.async_create_entry(title="Meraki", data=user_input)
 
         return self.async_show_form(
-            step_id="user", data_schema=DATA_SCHEMA, errors=errors
+            step_id="user", data_schema=STEP_USER_DATA_SCHEMA, errors=errors
         )
 
     @staticmethod

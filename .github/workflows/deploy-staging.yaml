@@ -135,7 +135,9 @@ jobs:
           echo "Extracting logs from Home Assistant API..."
           curl -sS -H "Authorization: Bearer $HA_TOKEN" \
                -H "Content-Type: application/json" \
-               "$HA_URL/api/error_log" > full_ha_log.txt || { echo "Failed to fetch logs from API"; exit 1; }
+               "$HA_URL/api/error_log" > "${{ env.HA_CONFIG_DIR }}/home-assistant.log" || { echo "Failed to fetch logs from API"; exit 1; }
+          sudo chmod 666 "${{ env.HA_CONFIG_DIR }}/home-assistant.log"
+          cp "${{ env.HA_CONFIG_DIR }}/home-assistant.log" full_ha_log.txt
 
           # Stage 1 & 2: Search for Tracebacks or specific Python errors mentioning meraki
           if grep -i -E "traceback|attributeerror|nameerror|typeerror" full_ha_log.txt | grep -i "meraki" > /dev/null; then
