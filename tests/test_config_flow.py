@@ -27,14 +27,15 @@ async def test_form(hass: HomeAssistant) -> None:
 
     with (
         patch(
-            "custom_components.meraki_ha.config_flow.MerakiClient",
-        ) as mock_client_class,
+            "custom_components.meraki_ha.config_flow.create_api_client",
+        ) as mock_create_client,
         patch(
             "custom_components.meraki_ha.async_setup_entry",
             return_value=True,
         ) as mock_setup_entry,
     ):
-        mock_client = mock_client_class.return_value
+        mock_client = MagicMock()
+        mock_create_client.return_value = mock_client
         async def mock_async_setup():
             pass
         mock_client.async_setup = mock_async_setup
@@ -67,7 +68,7 @@ async def test_form_cannot_connect(hass: HomeAssistant) -> None:
     )
 
     with patch(
-        "custom_components.meraki_ha.config_flow.MerakiClient",
+        "custom_components.meraki_ha.config_flow.create_api_client",
         side_effect=Exception,
     ):
         result2 = await hass.config_entries.flow.async_configure(

@@ -16,7 +16,7 @@ from .const.config import (
     CONF_MERAKI_ORG_ID,
 )
 from .const.integration import DOMAIN
-from .core.api.client import MerakiClient
+from .core.api import create_api_client
 from .schemas import STEP_USER_DATA_SCHEMA
 
 _LOGGER = logging.getLogger(__name__)
@@ -33,7 +33,7 @@ class MerakiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         if user_input is not None:
             try:
                 # Validation logic using the updated Client name
-                client = MerakiClient(
+                client = create_api_client(
                     self.hass,
                     user_input[CONF_MERAKI_API_KEY],
                     user_input.get(CONF_MERAKI_ORG_ID),
