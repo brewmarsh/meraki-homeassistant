@@ -428,7 +428,7 @@ class MerakiApiClientProtocol(Protocol):
         ...
 
     @property
-    def organization_id(self) -> str:
+    def organization_id(self) -> str | None:
         """Get the organization ID."""
         ...
 
