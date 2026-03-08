@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from homeassistant.core import HomeAssistant
 
-from .client import MerakiAPIClient
+from .client import MerakiClient
 from .endpoints.appliance import ApplianceEndpoints
 from .endpoints.camera import CameraEndpoints
 from .endpoints.devices import DevicesEndpoints
@@ -36,7 +36,7 @@ def create_api_client(
         The configured Meraki API client.
 
     """
-    client = MerakiAPIClient(hass, api_key, org_id, base_url)
+    client = MerakiClient(hass, api_key, org_id, base_url)
 
     # Initialize endpoint handlers
     client.appliance = ApplianceEndpoints(client, hass)

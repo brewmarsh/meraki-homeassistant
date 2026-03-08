@@ -67,7 +67,7 @@ async def validate_credentials(
 
     try:
         api_key = user_input[CONF_MERAKI_API_KEY]
-        org_id = user_input[CONF_MERAKI_ORG_ID]
+        org_id = user_input.get(CONF_MERAKI_ORG_ID)
         validation_result = await validate_meraki_credentials(
             hass,
             api_key,

@@ -32,7 +32,7 @@ class MerakiAuthentication:
     making a request to the Meraki API via the SDK.
     """
 
-    def __init__(self, hass: HomeAssistant, api_key: str, organization_id: str) -> None:
+    def __init__(self, hass: HomeAssistant, api_key: str, organization_id: str | None = None) -> None:
         """
         Initialize the Meraki Authentication class.
 
@@ -45,7 +45,7 @@ class MerakiAuthentication:
         """
         self.hass = hass
         self.api_key: str = api_key
-        self.organization_id: str = organization_id
+        self.organization_id: str | None = organization_id
 
     async def _async_get_authenticated_client(self) -> MerakiApiClientProtocol:
         """Initialize and setup the Meraki API client."""
@@ -108,6 +108,12 @@ class MerakiAuthentication:
         client = await self._async_get_authenticated_client()
 
         try:
+            if not self.organization_id:
+                organizations: list[dict[str, Any]] = await client.organization.get_organizations()
+                if not organizations:
+                    raise ConfigEntryAuthFailed("No organizations found for this API key.")
+                return {"valid": True, "organizations": organizations}
+
             organization: dict[str, Any] = await client.organization.get_organization()
 
             fetched_org_name = organization.get("name")
@@ -164,7 +170,7 @@ class MerakiAuthentication:
 async def validate_meraki_credentials(
     hass: HomeAssistant,
     api_key: str,
-    organization_id: str,
+    organization_id: str | None = None,
 ) -> dict[str, Any]:
     """
     Validate Meraki API credentials via MerakiAuthentication class (SDK version).

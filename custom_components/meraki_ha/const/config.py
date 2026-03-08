@@ -3,12 +3,11 @@
 from __future__ import annotations
 
 from typing import Final
+from homeassistant.const import CONF_API_KEY as CONF_MERAKI_API_KEY
 
 CONF_INTEGRATION_TITLE: Final = "Meraki"
 """Title for the integration."""
 
-CONF_MERAKI_API_KEY: Final = "meraki_api_key"
-"""Configuration key for the Meraki API key."""
 
 CONF_MERAKI_ORG_ID: Final = "meraki_org_id"
 """Configuration key for the Meraki organization ID."""

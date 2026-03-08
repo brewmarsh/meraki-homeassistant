@@ -36,7 +36,7 @@ from .protocol import (
 _LOGGER = logging.getLogger(__name__)
 
 
-class MerakiAPIClient:
+class MerakiClient:
     """
     Facade for the Meraki Dashboard API client.
 
@@ -59,7 +59,7 @@ class MerakiAPIClient:
         self,
         hass: HomeAssistant,
         api_key: str,
-        org_id: str,
+        org_id: str | None = None,
         base_url: str = "https://api.meraki.com/api/v1",
     ) -> None:
         """
@@ -223,7 +223,7 @@ class MerakiAPIClient:
         return key in self._disabled_features
 
     @property
-    def organization_id(self) -> str:
+    def organization_id(self) -> str | None:
         """Get the organization ID."""
         return self._org_id
 
@@ -264,6 +264,10 @@ class MerakiAPIClient:
 
         """
         return cast(dict[str, Any], await self.appliance.reboot_device(serial))
+
+    async def get_organizations(self) -> list[dict[str, Any]]:
+        """Get all organizations accessible by the API key."""
+        return await self.organization.get_organizations()
 
     async def async_get_switch_port_statuses(
         self,
