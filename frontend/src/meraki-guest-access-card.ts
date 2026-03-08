@@ -298,13 +298,12 @@ export class MerakiGuestAccessCard extends LitElement {
     this._success = null;
 
     try {
-      await this.hass.callService('meraki_ha', 'create_guest_key', {
+      await this.hass.callService('meraki_ha', 'generate_guest_access', {
         network_id: this._selectedNetwork,
-        ssid_number: parseInt(this._selectedSSID, 10),
-        duration_minutes: parseInt(this._selectedDuration, 10),
-        name: this._customName || undefined,
+        ssid: parseInt(this._selectedSSID, 10),
+        duration: parseInt(this._selectedDuration, 10),
+        guest_name: this._customName || 'Guest',
         passphrase: this._customPassphrase || undefined,
-        group_policy_id: this._selectedPolicy || undefined,
       });
 
       this._success = 'Guest access key created successfully!';
