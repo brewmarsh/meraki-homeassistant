@@ -25,6 +25,14 @@ from ...core.errors import (
     MerakiTrafficAnalysisError,
     MerakiVlansDisabledError,
 )
+from .endpoints.appliance import ApplianceEndpoints
+from .endpoints.camera import CameraEndpoints
+from .endpoints.devices import DevicesEndpoints
+from .endpoints.network import NetworkEndpoints
+from .endpoints.organization import OrganizationEndpoints
+from .endpoints.sensor import SensorEndpoints
+from .endpoints.switch import SwitchEndpoints
+from .endpoints.wireless import WirelessEndpoints
 from .protocol import (
     ApplianceEndpointsProtocol,
     CameraEndpointsProtocol,
@@ -93,6 +101,16 @@ class MerakiClient:
         # Set of disabled features to prevent repetitive API calls
         self._disabled_features: set[str] = set()
         self._enable_vpn_management = False
+
+        # Initialize endpoint handlers
+        self.organization = OrganizationEndpoints(self)
+        self.appliance = ApplianceEndpoints(self, self._hass)
+        self.camera = CameraEndpoints(self)
+        self.devices = DevicesEndpoints(self)
+        self.network = NetworkEndpoints(self)
+        self.sensor = SensorEndpoints(self)
+        self.switch = SwitchEndpoints(self)
+        self.wireless = WirelessEndpoints(self)
 
     @property
     def has_dashboard(self) -> bool:
