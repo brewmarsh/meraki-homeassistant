@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING, Any
 
 from custom_components.meraki_ha.const.device import DEFAULT_CAPS
 
-from...core.parsers.appliance import parse_appliance_data
+from ...core.parsers.appliance import parse_appliance_data
 from ...core.parsers.devices import parse_device_data
 from ...core.parsers.network import parse_network_data
 from ...core.parsers.sensors import parse_sensor_data
@@ -27,7 +27,7 @@ from .strategy_executor import (
 )
 
 if TYPE_CHECKING:
-    from ..api import MerakiApiClientProtocol as MerakiApiClientProtocol
+    from ..api import MerakiApiClientProtocol
     from ..models.device import MerakiDevice
 
 _LOGGER = logging.getLogger(__name__)
@@ -78,9 +78,6 @@ class DataFetchManager:
     async def _async_fetch_batch_data(self, fast_only: bool = False) -> dict[str, Any]:
         """Fetch the organization-wide data batch with short-lived caching."""
         current_time = time.time()
-        # If we have cached data and it's not expired, use it.
-        # But if we need slow data (fast_only=False) and cache only has fast data,
-        # we might need to refresh. For simplicity, we refresh if switch_ports missing.
         if (
             self._org_data_cache
             and current_time < self._org_data_cache_expiry
@@ -138,20 +135,29 @@ class DataFetchManager:
     def _distribute_networks(
         self, data: dict[str, Any], batch_data: dict[str, Any]
     ) -> None:
-        """Extract and instantiate networks from batch results."""
+        """Extract and instantiate networks with guaranteed organization_id propagation."""
         from ..models.network import MerakiNetwork
 
         networks_raw = batch_data.get("networks") or []
-        networks = []
+        
+        # Extract org_id from the batch data to ensure it's propagated to models
+        # This is critical for discovery handlers that filter by organization_id.
+        org_id = None
+        if org_dict := batch_data.get("organization"):
+            if isinstance(org_dict, dict):
+                org_id = org_dict.get("id")
+
+        processed_networks = []
         for n in networks_raw:
             if isinstance(n, dict):
-                # Ensure organization_id is propagated if missing from API
-                if not n.get("organizationId"):
-                    n["organizationId"] = self.client.organization_id
-                networks.append(MerakiNetwork.from_dict(n))
+                # Backfill organizationId if the API omitted it but we have it in context
+                if org_id and not n.get("organizationId"):
+                    n["organizationId"] = org_id
+                processed_networks.append(MerakiNetwork.from_dict(n))
             else:
-                networks.append(n)
-        data["networks"] = networks
+                processed_networks.append(n)
+
+        data["networks"] = processed_networks
 
     def _distribute_devices(
         self, data: dict[str, Any], batch_data: dict[str, Any]
@@ -186,7 +192,6 @@ class DataFetchManager:
         statuses = batch_data.get("statuses") or []
         parse_device_data(data["devices"], statuses)
 
-        # Unpack batch switch ports into detail_data format for strategies
         switch_ports = batch_data.get("switch_ports") or []
         for entry in switch_ports:
             if isinstance(entry, dict) and (serial := entry.get("serial")):
@@ -199,7 +204,6 @@ class DataFetchManager:
         if not model:
             return list(DEFAULT_CAPS)
 
-        # Iterate and match prefix (e.g. MV12W match MV12)
         for prefix, caps in DEVICE_CAPABILITIES.items():
             if model.startswith(prefix):
                 return list(caps)
@@ -238,10 +242,7 @@ class DataFetchManager:
         """Perform a lightweight orchestrated data fetch (Fast Poll)."""
         batch_data = await self._async_fetch_batch_data(fast_only=True)
         data = self._distribute_batch_data(batch_data)
-
-        # Still process base data to ensure models are instantiated
         self._process_data(data, current_data)
-
         return data
 
     async def get_sensor_data(
@@ -251,22 +252,16 @@ class DataFetchManager:
         batch_data = await self._async_fetch_batch_data(fast_only=False)
         data = self._distribute_batch_data(batch_data)
 
-        # Strategy tasks (async) - Heavy
         await self._build_strategy_tasks(data)
-
-        # Client data fetch (async) - Heavy
         await self._fetch_client_data(data)
-
-        # Orchestrated parsing
         self._process_data(data, current_data)
 
-        # Sensor parsing
         try:
             sensor_details = parse_sensor_data(
                 data["devices"], data.get("sensor_readings"), []
             )
             data.update(sensor_details)
-        except Exception as err:  # pylint: disable=broad-except
+        except Exception as err:
             _LOGGER.error("Failed to parse sensor data: %s", err, exc_info=True)
 
         return data
@@ -300,7 +295,7 @@ class DataFetchManager:
                 all_clients, data["devices"]
             )
             data["clients"] = all_clients
-        except Exception:  # pylint: disable=broad-except
+        except Exception:
             _LOGGER.error("Timeout during client data fetch")
             data["clients"] = {}
 
@@ -314,16 +309,11 @@ class DataFetchManager:
                 if d.serial:
                     previous_devices_map[d.serial] = d
 
-        # Strategy-based processing for individual devices
-        # Ensure strategies that expect 'clients' get 'clients_by_serial'
         if "clients_by_serial" in data:
             data["clients"] = data["clients_by_serial"]
         process_device_strategies(data, previous_devices_map, self.strategies)
-
-        # Strategy-based processing for networks
         process_network_strategies(data, current_data, self.strategies)
 
-        # Parse aggregate network data (VLANs, SSIDs, etc.)
         network_details = parse_network_data(
             data,
             data["networks"],
@@ -332,6 +322,5 @@ class DataFetchManager:
         )
         data.update(network_details)
 
-        # Parse appliance-specific data
         appliance_details = parse_appliance_data(data["devices"], data, current_data)
         data.update(appliance_details)

@@ -52,6 +52,15 @@ CONFIG_SCHEMA = vol.Schema(
     }
 )
 
+STEP_USER_DATA_SCHEMA = vol.Schema(
+    {
+        vol.Required(CONF_MERAKI_API_KEY): selector.TextSelector(
+            selector.TextSelectorConfig(type=selector.TextSelectorType.PASSWORD)
+        ),
+        vol.Required(CONF_MERAKI_ORG_ID): selector.TextSelector(),
+    }
+)
+
 OPTIONS_SCHEMA_GENERAL = vol.Schema(
     {
         vol.Required(

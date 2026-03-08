@@ -9,6 +9,7 @@ from custom_components.meraki_ha.const.config import (
     CONF_ENABLE_CAMERA_ENTITIES,
     CONF_ENABLE_DEVICE_STATUS,
     CONF_MERAKI_API_KEY,
+    CONF_MERAKI_ORG_ID,
 )
 from homeassistant import config_entries, setup
 from homeassistant.core import HomeAssistant
@@ -44,7 +45,8 @@ async def test_form(hass: HomeAssistant) -> None:
         result2 = await hass.config_entries.flow.async_configure(
             result["flow_id"],
             {
-                "api_key": "test-api-key",
+                CONF_MERAKI_API_KEY: "test-api-key",
+                CONF_MERAKI_ORG_ID: "test-org-id",
             },
         )
         await hass.async_block_till_done()
@@ -52,7 +54,8 @@ async def test_form(hass: HomeAssistant) -> None:
     assert result2["type"] == FlowResultType.CREATE_ENTRY
     assert result2["title"] == "Meraki"
     assert result2["data"] == {
-        "api_key": "test-api-key",
+        CONF_MERAKI_API_KEY: "test-api-key",
+        CONF_MERAKI_ORG_ID: "test-org-id",
     }
     assert len(mock_setup_entry.mock_calls) == 1
 
@@ -70,7 +73,8 @@ async def test_form_cannot_connect(hass: HomeAssistant) -> None:
         result2 = await hass.config_entries.flow.async_configure(
             result["flow_id"],
             {
-                "api_key": "test-api-key",
+                CONF_MERAKI_API_KEY: "test-api-key",
+                CONF_MERAKI_ORG_ID: "test-org-id",
             },
         )
 
