@@ -41,6 +41,7 @@ async def test_service_registration(hass):
     """Test service registration."""
     await async_setup_services(hass)
     assert hass.services.has_service(DOMAIN, "create_guest_key")
+    assert hass.services.has_service(DOMAIN, "generate_guest_access")
 
 
 @pytest.mark.asyncio
@@ -128,3 +129,30 @@ async def test_create_guest_key_service_safe_iteration(hass, mock_ipsk_manager, 
     )
 
     assert mock_ipsk_manager.create_guest_key.called
+
+
+@pytest.mark.asyncio
+async def test_generate_guest_access_service_success(hass, mock_ipsk_manager, mock_coordinator):
+    """Test successful creation of guest key via generate_guest_access service."""
+    await async_setup_services(hass)
+
+    service_data = {
+        "network_id": "N_12345",
+        "ssid_number": 2,
+        "duration_minutes": 120,
+        "name": "Alias Guest",
+    }
+
+    await hass.services.async_call(
+        DOMAIN, "generate_guest_access", service_data, blocking=True
+    )
+
+    mock_ipsk_manager.create_guest_key.assert_called_once_with(
+        config_entry_id="test_entry_id",
+        network_id="N_12345",
+        ssid_number="2",
+        duration_minutes=120,
+        name="Alias Guest",
+        passphrase=None,
+        group_policy_id=None,
+    )

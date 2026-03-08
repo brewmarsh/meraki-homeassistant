@@ -18,6 +18,7 @@ if TYPE_CHECKING:
 _LOGGER = logging.getLogger(__name__)
 
 SERVICE_CREATE_GUEST_KEY = "create_guest_key"
+SERVICE_GENERATE_GUEST_ACCESS = "generate_guest_access"
 
 SERVICE_CREATE_GUEST_KEY_SCHEMA = vol.Schema(
     {
@@ -81,6 +82,13 @@ async def async_setup_services(hass: HomeAssistant) -> None:
     hass.services.async_register(
         DOMAIN,
         SERVICE_CREATE_GUEST_KEY,
+        _async_create_guest_key,
+        schema=SERVICE_CREATE_GUEST_KEY_SCHEMA,
+    )
+
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_GENERATE_GUEST_ACCESS,
         _async_create_guest_key,
         schema=SERVICE_CREATE_GUEST_KEY_SCHEMA,
     )
