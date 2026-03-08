@@ -142,10 +142,16 @@ class DataFetchManager:
         from ..models.network import MerakiNetwork
 
         networks_raw = batch_data.get("networks") or []
-        data["networks"] = [
-            MerakiNetwork.from_dict(n) if isinstance(n, dict) else n
-            for n in networks_raw
-        ]
+        networks = []
+        for n in networks_raw:
+            if isinstance(n, dict):
+                # Ensure organization_id is propagated if missing from API
+                if not n.get("organizationId"):
+                    n["organizationId"] = self.client.organization_id
+                networks.append(MerakiNetwork.from_dict(n))
+            else:
+                networks.append(n)
+        data["networks"] = networks
 
     def _distribute_devices(
         self, data: dict[str, Any], batch_data: dict[str, Any]
