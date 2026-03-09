@@ -70,12 +70,27 @@ class MerakiMtSensor(MerakiSensor, RestoreSensor):
 
     def _get_value_from_legacy_device_attributes(self, key: str) -> Any | None:
         """Retrieve value from older MT device attributes."""
+        if isinstance(self._device, dict):
+            if key == "noise":
+                return self._maybe_get_value(self._device.get("ambientNoise"))
+            if key == "pm25":
+                val = self._maybe_get_value(self._device.get("pm25"))
+                if val is not None:
+                    return val
+                return self._maybe_get_value(self._device.get("pm2_5"))
+            if key == "door":
+                return self._maybe_get_value(self._device.get("doorOpen"))
+            return None
+
         if key == "noise":
-            return self._maybe_get_value(self._device.ambient_noise)
+            return self._maybe_get_value(getattr(self._device, "ambient_noise", UNDEFINED))
         if key == "pm25":
-            return self._maybe_get_value(self._device.pm25)
+            val = self._maybe_get_value(getattr(self._device, "pm25", UNDEFINED))
+            if val is not None:
+                return val
+            return self._maybe_get_value(getattr(self._device, "pm2_5", UNDEFINED))
         if key == "door":
-            return self._maybe_get_value(self._device.door_open)
+            return self._maybe_get_value(getattr(self._device, "door_open", UNDEFINED))
         return None
 
     def _get_metric_fallback(self, key: str, metric_data: dict[str, Any]) -> Any | None:
@@ -83,9 +98,17 @@ class MerakiMtSensor(MerakiSensor, RestoreSensor):
         if key == "voltage":
             return self._maybe_get_value(metric_data.get("draw"))
         if key == "energy":
-            return self._maybe_get_value(
-                metric_data.get("energyUsage")
-            ) or self._maybe_get_value(metric_data.get("apparentPower"))
+            for fallback_key in (
+                "energyUsage",
+                "apparentPower",
+                "energy",
+                "energyApparent",
+                "energy_kWh",
+            ):
+                val = self._maybe_get_value(metric_data.get(fallback_key))
+                if val is not None:
+                    return val
+            return None
         if key == "powerFactor":
             return self._maybe_get_value(metric_data.get("factor"))
         return None
@@ -126,7 +149,12 @@ class MerakiMtSensor(MerakiSensor, RestoreSensor):
         """Extract value if the reading metric matches the desired key."""
         metric = reading.get("metric")
         # Handle "realPower" which might be reported as "power"
-        if metric == key or (key == "realPower" and metric == "power"):
+        # and "pm25" which might be reported as "pm2_5"
+        if (
+            metric == key
+            or (key == "realPower" and metric == "power")
+            or (key == "pm25" and metric == "pm2_5")
+        ):
             metric_data = reading.get(metric)
             if isinstance(metric_data, dict):
                 return self._extract_value_from_metric_data(key, metric_data)
@@ -151,11 +179,36 @@ class MerakiMtSensor(MerakiSensor, RestoreSensor):
         return None
 
     def _get_value_from_generic_device_attributes(self, key: str) -> Any | None:
-        """Retrieve value from generic device attributes using getattr."""
+        """Retrieve value from generic device attributes."""
+        if isinstance(self._device, dict):
+            if key == "energy":
+                for fallback_key in ("energy", "energyApparent", "energy_kWh"):
+                    val = self._maybe_get_value(self._device.get(fallback_key))
+                    if val is not None:
+                        return val
+                return None
+            # Add other generic mappings if needed
+            attr_map_dict = {
+                "frequency": "frequency",
+                "powerFactor": "powerFactor",
+                "realPower": "realPower",
+                "voltage": "voltage",
+                "current": "current",
+            }
+            if attr_name := attr_map_dict.get(key):
+                return self._maybe_get_value(self._device.get(attr_name))
+            return None
+
+        if key == "energy":
+            for fallback_attr in ("energy", "energy_apparent", "energy_kwh"):
+                val = self._maybe_get_value(getattr(self._device, fallback_attr, UNDEFINED))
+                if val is not None:
+                    return val
+            return None
+
         attr_map: dict[str, str] = {
             "frequency": "frequency",
             "powerFactor": "power_factor",
-            "energy": "energy",
             "realPower": "real_power",
             "voltage": "voltage",
             "current": "current",

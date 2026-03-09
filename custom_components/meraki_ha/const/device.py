@@ -70,8 +70,8 @@ _GX_CAPS = [
 
 DEVICE_CAPABILITIES: Final[dict[str, list[str]]] = {
     "MT10": ["temperature", "humidity", "battery", "signal_strength"],
-    "MT11": ["temperature", "humidity", "battery", "signal_strength"],
-    "MT12": ["temperature", "humidity", "battery", "signal_strength", "water"],
+    "MT11": ["temperature", "battery", "signal_strength"],
+    "MT12": ["battery", "signal_strength", "water"],
     "MT14": [
         "pm25",
         "tvoc",
@@ -94,7 +94,7 @@ DEVICE_CAPABILITIES: Final[dict[str, list[str]]] = {
         "status",
         "physical_sensors",
     ],  # No Battery
-    "MT20": ["temperature", "humidity", "battery", "signal_strength", "door"],
+    "MT20": ["battery", "signal_strength", "door"],
     "MT30": ["button_press", "battery", "signal_strength"],
     "MT40": ["power_monitor", "remote_switch", "signal_strength"],
     # MX Family
