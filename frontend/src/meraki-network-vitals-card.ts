@@ -13,7 +13,6 @@ interface Config {
   name?: string;
 }
 
-@customElement('meraki-network-vitals-card')
 export class MerakiNetworkVitalsCard extends LitElement {
   @property({ attribute: false }) public hass!: HomeAssistant;
   @state() private _config?: Config;
@@ -131,7 +130,6 @@ export class MerakiNetworkVitalsCard extends LitElement {
   `;
 }
 
-@customElement('meraki-network-vitals-card-editor')
 export class MerakiNetworkVitalsCardEditor extends LitElement {
   @property({ attribute: false }) public hass?: HomeAssistant;
   @state() private _config?: Config;
@@ -203,6 +201,13 @@ export class MerakiNetworkVitalsCardEditor extends LitElement {
 }
 
 // Global Registration
+if (!customElements.get('meraki-network-vitals-card')) {
+  customElements.define('meraki-network-vitals-card', MerakiNetworkVitalsCard);
+}
+if (!customElements.get('meraki-network-vitals-card-editor')) {
+  customElements.define('meraki-network-vitals-card-editor', MerakiNetworkVitalsCardEditor);
+}
+
 (window as any).customCards = (window as any).customCards || [];
 if (!(window as any).customCards.some((c: any) => c.type === 'meraki-network-vitals-card')) {
   (window as any).customCards.push({

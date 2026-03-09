@@ -17,7 +17,6 @@ interface Config {
   config_entry_id?: string;
 }
 
-@customElement('meraki-guest-access-card')
 export class MerakiGuestAccessCard extends LitElement {
   @property({ attribute: false }) public hass!: HomeAssistant;
   @state() private _config?: Config;
@@ -217,6 +216,11 @@ declare global {
   interface HTMLElementTagNameMap {
     'meraki-guest-access-card': MerakiGuestAccessCard;
   }
+}
+
+// Register components
+if (!customElements.get('meraki-guest-access-card')) {
+  customElements.define('meraki-guest-access-card', MerakiGuestAccessCard);
 }
 
 // Register the card in the Home Assistant Lovelace UI picker
