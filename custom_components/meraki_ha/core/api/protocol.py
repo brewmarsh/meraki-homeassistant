@@ -228,7 +228,7 @@ class NetworkEndpointsProtocol(Protocol):
 
     async def register_webhook(
         self, webhook_url: str, secret: str, config_entry_id: str
-    ) -> None:
+    ) -> list[str]:
         """Register or update a webhook with the Meraki API."""
         ...
 
@@ -497,7 +497,7 @@ class MerakiApiClientProtocol(Protocol):
 
     async def register_webhook(
         self, webhook_url: str, secret: str, config_entry_id: str
-    ) -> None:
+    ) -> list[str]:
         """Register a webhook with the Meraki API."""
         ...
 

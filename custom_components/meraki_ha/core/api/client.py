@@ -226,9 +226,9 @@ class MerakiClient:
 
     async def register_webhook(
         self, webhook_url: str, secret: str, config_entry_id: str
-    ) -> None:
+    ) -> list[str]:
         """Register a webhook with the Meraki API."""
-        await self.network.register_webhook(webhook_url, secret, config_entry_id)
+        return await self.network.register_webhook(webhook_url, secret, config_entry_id)
 
     async def unregister_webhook(self, config_entry_id: str) -> None:
         """Unregister a webhook with the Meraki API."""
