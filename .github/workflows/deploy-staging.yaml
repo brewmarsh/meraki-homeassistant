@@ -237,6 +237,14 @@ jobs:
             exit 1
           fi
 
+      - name: Upload Full HA Log Artifact
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: home-assistant-debug-logs
+          path: full_ha_log.txt
+          retention-days: 3
+
       - name: Audit Entity States
         shell: bash
         run: |
