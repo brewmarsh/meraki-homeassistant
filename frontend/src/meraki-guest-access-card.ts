@@ -1,5 +1,5 @@
 import { LitElement, html, css, PropertyValues } from 'lit';
-import { customElement, property, state } from 'lit/decorators.js';
+import { property, state } from 'lit/decorators.js';
 import { HomeAssistant } from './types/ha';
 import './meraki-content-filter-card';
 import './meraki-wifi-qr-card';
@@ -15,7 +15,6 @@ interface Config {
   config_entry_id?: string;
 }
 
-@customElement('meraki-guest-access-card')
 export class MerakiGuestAccessCard extends LitElement {
   @property({ attribute: false }) public hass!: HomeAssistant;
   @state() private _config?: Config;
@@ -194,4 +193,24 @@ export class MerakiGuestAccessCard extends LitElement {
     .flex { display: flex; }
     .justify-center { justify-content: center; }
   `;
+}
+
+if (!customElements.get('meraki-guest-access-card')) {
+  customElements.define('meraki-guest-access-card', MerakiGuestAccessCard);
+}
+
+declare global {
+  const __VERSION__: string;
+}
+
+// Register the card in the Home Assistant Lovelace UI picker
+(window as any).customCards = (window as any).customCards || [];
+if (!(window as any).customCards.some((c: any) => c.type === 'meraki-guest-access-card')) {
+  (window as any).customCards.push({
+    type: "meraki-guest-access-card",
+    name: "Meraki Guest Access",
+    description: "Generate temporary Wi-Fi guest access keys.",
+    preview: true,
+    version: __VERSION__,
+  });
 }

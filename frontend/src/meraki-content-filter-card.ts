@@ -1,5 +1,5 @@
 import { LitElement, html, css, PropertyValues } from 'lit';
-import { customElement, property, state } from 'lit/decorators.js';
+import { property, state } from 'lit/decorators.js';
 import { HomeAssistant } from './types/ha';
 
 interface Config {
@@ -9,7 +9,6 @@ interface Config {
   [key: string]: any;
 }
 
-@customElement('meraki-content-filter-card')
 export class MerakiContentFilterCard extends LitElement {
   @property({ attribute: false }) public hass!: HomeAssistant;
   @state() private _config?: Config;
@@ -145,7 +144,6 @@ export class MerakiContentFilterCard extends LitElement {
   `;
 }
 
-@customElement('meraki-content-filter-card-editor')
 export class MerakiContentFilterCardEditor extends LitElement {
   @property({ attribute: false }) public hass!: HomeAssistant;
   @state() private _config?: Config;
@@ -227,6 +225,18 @@ export class MerakiContentFilterCardEditor extends LitElement {
   `;
 }
 
+if (!customElements.get('meraki-content-filter-card')) {
+  customElements.define('meraki-content-filter-card', MerakiContentFilterCard);
+}
+
+if (!customElements.get('meraki-content-filter-card-editor')) {
+  customElements.define('meraki-content-filter-card-editor', MerakiContentFilterCardEditor);
+}
+
+declare global {
+  const __VERSION__: string;
+}
+
 // Register the card in the Home Assistant Lovelace UI picker
 (window as any).customCards = (window as any).customCards || [];
 if (!(window as any).customCards.some((c: any) => c.type === 'meraki-content-filter-card')) {
@@ -235,5 +245,6 @@ if (!(window as any).customCards.some((c: any) => c.type === 'meraki-content-fil
     name: "Meraki Content Filter",
     description: "Control Meraki Content Filtering profiles.",
     preview: true,
+    version: __VERSION__,
   });
 }

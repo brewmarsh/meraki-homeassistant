@@ -1,5 +1,5 @@
 import { LitElement, html, css, PropertyValues } from 'lit';
-import { customElement, property, state } from 'lit/decorators.js';
+import { property, state } from 'lit/decorators.js';
 import { HomeAssistant } from './types/ha';
 
 interface Config {
@@ -11,7 +11,6 @@ interface Config {
   name?: string;
 }
 
-@customElement('meraki-network-vitals-card')
 export class MerakiNetworkVitalsCard extends LitElement {
   @property({ attribute: false }) public hass!: HomeAssistant;
   @state() private _config?: Config;
@@ -148,7 +147,6 @@ export class MerakiNetworkVitalsCard extends LitElement {
   `;
 }
 
-@customElement('meraki-network-vitals-card-editor')
 export class MerakiNetworkVitalsCardEditor extends LitElement {
   @property({ attribute: false }) public hass?: HomeAssistant;
   @state() private _config?: Config;
@@ -240,6 +238,18 @@ export class MerakiNetworkVitalsCardEditor extends LitElement {
   `;
 }
 
+if (!customElements.get('meraki-network-vitals-card')) {
+  customElements.define('meraki-network-vitals-card', MerakiNetworkVitalsCard);
+}
+
+if (!customElements.get('meraki-network-vitals-card-editor')) {
+  customElements.define('meraki-network-vitals-card-editor', MerakiNetworkVitalsCardEditor);
+}
+
+declare global {
+  const __VERSION__: string;
+}
+
 // Register the card in the Home Assistant Lovelace UI picker
 (window as any).customCards = (window as any).customCards || [];
 if (!(window as any).customCards.some((c: any) => c.type === 'meraki-network-vitals-card')) {
@@ -248,5 +258,6 @@ if (!(window as any).customCards.some((c: any) => c.type === 'meraki-network-vit
     name: "Meraki Network Vitals",
     description: "Compact horizontal header for Meraki network health and throughput.",
     preview: true,
+    version: __VERSION__,
   });
 }
