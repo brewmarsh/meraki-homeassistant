@@ -106,10 +106,13 @@ def mock_coordinator_with_mt_devices(mock_coordinator: MagicMock) -> MagicMock:
         device.status = "online"
         devices_objects.append(device)
 
+    # Populate sensor_readings from MT_DEVICES_DATA
+    sensor_readings = {d["serial"]: d.get("readings", []) for d in MT_DEVICES_DATA}
+
     mock_coordinator.data = {
         "devices": devices_objects,
         "devices_by_serial": {d.serial: d for d in devices_objects},
-        "sensor_readings": {}, # Initialize empty sensor_readings for defensive checks
+        "sensor_readings": sensor_readings, # Correctly populate sensor_readings
     }
     mock_coordinator.devices_by_serial = {d.serial: d for d in devices_objects}
 
@@ -414,6 +417,8 @@ async def test_availability(mock_coordinator_with_mt_devices: MagicMock) -> None
     mock_coordinator_with_mt_devices.devices_by_serial["mt10-1"] = (
         device_without_readings
     )
+    # Also update sensor_readings in coordinator data
+    mock_coordinator_with_mt_devices.data["sensor_readings"]["mt10-1"] = []
 
     # Mock get_device to return the updated device for subsequent fetches
     # by entities
