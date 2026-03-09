@@ -218,7 +218,16 @@ class MerakiMtSensor(MerakiSensor, RestoreSensor):
             return True
 
         readings = self._get_readings_list()
-        if readings is not None and self._is_metric_in_readings(readings):
+        is_in_readings = readings is not None and self._is_metric_in_readings(readings)
+        if is_in_readings:
             return True
+
+        _LOGGER.debug(
+            "MT Sensor %s unavailable: native_value=%s, is_in_readings=%s, device_status=%s",
+            self.unique_id,
+            self.native_value,
+            is_in_readings,
+            getattr(self._device, "status", "unknown"),
+        )
 
         return False

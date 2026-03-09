@@ -30,17 +30,24 @@ class MerakiEntity(CoordinatorEntity[T], Generic[T]):
         if data is present (even if seeded) to prevent 'unavailable' states during
         initial background synchronization of specialized coordinators.
         """
-        if self.coordinator.data:
+        is_avail = bool(self.coordinator.data)
+
+        # Log diagnostic information for debugging availability issues
+        if not is_avail:
             _LOGGER.debug(
-                "Entity %s checking coordinator data keys: %s",
+                "Entity %s reports unavailable: coordinator.data is %s",
                 self.unique_id,
-                (
-                    list(self.coordinator.data.keys())
-                    if isinstance(self.coordinator.data, dict)
-                    else "Not a dict"
-                ),
+                "None" if self.coordinator.data is None else "empty",
             )
-        return bool(self.coordinator.data)
+        elif isinstance(self.coordinator.data, dict):
+            # For O(1) coordinators, data is often a dict keyed by serial or ID
+            _LOGGER.debug(
+                "Entity %s availability check: data_keys=%s",
+                self.unique_id,
+                list(self.coordinator.data.keys()),
+            )
+
+        return is_avail
 
     @property
     def unique_id(self) -> str | None:
