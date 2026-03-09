@@ -51,6 +51,7 @@ export class MerakiNetworkVitalsCard extends LitElement {
     }
 
     const stateObj = this.hass.states[entityId];
+    console.log(`MERAKI CARD DIAGNOSTIC - Status Dot (${label}) Raw Entity State:`, stateObj);
     const state = stateObj ? stateObj.state.toLowerCase() : 'unknown';
     let colorVar = 'var(--disabled-text-color)';
 
@@ -79,8 +80,13 @@ export class MerakiNetworkVitalsCard extends LitElement {
     }
 
     const throughputEntity = this._config.throughput_entity;
-    const throughputState = throughputEntity && this.hass.states[throughputEntity]
-      ? this.hass.states[throughputEntity].state + ' ' + (this.hass.states[throughputEntity].attributes.unit_of_measurement || '')
+    if (throughputEntity && this.hass.states[throughputEntity]) {
+      console.log("MERAKI CARD DIAGNOSTIC - Throughput Raw Entity State:", this.hass.states[throughputEntity]);
+    }
+
+    const throughputStateObj = throughputEntity ? this.hass.states[throughputEntity] : undefined;
+    const throughputState = throughputStateObj
+      ? (throughputStateObj.state || '0') + ' ' + (throughputStateObj.attributes?.unit_of_measurement || '')
       : 'N/A';
 
     return html`

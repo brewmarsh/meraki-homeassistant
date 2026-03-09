@@ -57,6 +57,10 @@ export class MerakiContentFilterCard extends LitElement {
     const entityId = this._config?.entity || this._discoverEntity();
     const stateObj = entityId ? this.hass.states[entityId] : undefined;
 
+    if (stateObj) {
+      console.log("MERAKI CARD DIAGNOSTIC - Content Filter Raw Entity State:", stateObj);
+    }
+
     if (!entityId || !stateObj) {
       return html`
         <ha-card>
@@ -74,9 +78,9 @@ export class MerakiContentFilterCard extends LitElement {
       `;
     }
 
-    const currentProfile = stateObj.state;
-    const profiles = stateObj.attributes.options || ["None", "Security", "Family", "Strict"];
-    const friendlyName = this._config?.name || stateObj.attributes.friendly_name || "Content Filter";
+    const currentProfile = stateObj.state || 'Unknown';
+    const profiles = stateObj.attributes?.options || ["None", "Security", "Family", "Strict"];
+    const friendlyName = this._config?.name || stateObj.attributes?.friendly_name || "Content Filter";
 
     return html`
       <ha-card>
