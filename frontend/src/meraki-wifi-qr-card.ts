@@ -1,10 +1,12 @@
 import { LitElement, html, css, PropertyValues } from 'lit';
-import { property, state } from 'lit/decorators.js';
+import { customElement, property, state } from 'lit/decorators.js';
 import { HomeAssistant } from './types/ha';
 import { Network, SSID } from './types/meraki';
 import { WsCommand } from './types/websocket';
 import { safeCallWS } from './utils/api';
 import QRCode from 'qrcode';
+
+declare const __VERSION__: string;
 
 interface Config {
   type: string;
@@ -13,6 +15,7 @@ interface Config {
   name?: string;
 }
 
+@customElement('meraki-wifi-qr-card-editor')
 export class MerakiWifiQrCardEditor extends LitElement {
   @property({ attribute: false }) public hass!: HomeAssistant;
   @state() private _config?: Config;
@@ -59,9 +62,9 @@ export class MerakiWifiQrCardEditor extends LitElement {
   private _handleNetworkChange(ev: any) {
     ev.stopPropagation();
     const newNetworkId = ev.target.value;
-    if (newNetworkId !== this._selectedNetwork) {
+    // Defensive check: only update if we have a valid selection
+    if (newNetworkId !== undefined && newNetworkId !== this._selectedNetwork) {
       this._selectedNetwork = newNetworkId;
-      // Clear SSID on network change
       this._updateConfig('ssid', '');
     }
   }
@@ -79,32 +82,23 @@ export class MerakiWifiQrCardEditor extends LitElement {
     const target = ev.target;
     const field = target.configValue;
     if (!field) return;
-    if (this._config[field as keyof Config] === target.value) return;
     this._updateConfig(field as keyof Config, target.value);
   }
 
   private _updateConfig(field: keyof Config, value: string) {
     if (!this._config) return;
-    const newConfig = {
-      ...this._config,
-      [field]: value,
-    };
+    const newConfig = { ...this._config, [field]: value };
     this._config = newConfig;
-    this._dispatchEvent(newConfig);
-  }
-
-  private _dispatchEvent(config: Config) {
-    const event = new CustomEvent('config-changed', {
-      detail: { config },
+    
+    this.dispatchEvent(new CustomEvent('config-changed', {
+      detail: { config: newConfig },
       bubbles: true,
       composed: true,
-    });
-    this.dispatchEvent(event);
+    }));
   }
 
   protected render() {
     if (!this.hass || !this._config) return html``;
-
     const filteredSsids = (this._ssids || []).filter(s => s.networkId === this._selectedNetwork);
 
     return html`
@@ -112,7 +106,8 @@ export class MerakiWifiQrCardEditor extends LitElement {
         <ha-select
           label="Network (Optional - to populate SSID)"
           .value=${this._selectedNetwork}
-          @closed=${this._handleNetworkChange}
+          @selected=${this._handleNetworkChange}
+          @closed=${(e: Event) => e.stopPropagation()}
           fixedMenuPosition
           naturalMenuWidth
         >
@@ -124,7 +119,8 @@ export class MerakiWifiQrCardEditor extends LitElement {
           label="SSID"
           .value=${this._config?.ssid || ''}
           .disabled=${!this._selectedNetwork}
-          @closed=${this._handleSSIDChange}
+          @selected=${this._handleSSIDChange}
+          @closed=${(e: Event) => e.stopPropagation()}
           fixedMenuPosition
           naturalMenuWidth
         >
@@ -135,14 +131,14 @@ export class MerakiWifiQrCardEditor extends LitElement {
         <ha-textfield
           label="Password or Entity ID"
           .value=${this._config.password || ''}
-          configValue="password"
+          .configValue=${"password"}
           @input=${this._valueChanged}
         ></ha-textfield>
 
         <ha-textfield
           label="Card Title"
           .value=${this._config.name || ''}
-          configValue="name"
+          .configValue=${"name"}
           @input=${this._valueChanged}
         ></ha-textfield>
       </div>
@@ -150,18 +146,12 @@ export class MerakiWifiQrCardEditor extends LitElement {
   }
 
   static styles = css`
-    .card-config {
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-      padding: 16px;
-    }
-    ha-select, ha-textfield {
-      width: 100%;
-    }
+    .card-config { display: flex; flex-direction: column; gap: 16px; padding: 16px; }
+    ha-select, ha-textfield { width: 100%; }
   `;
 }
 
+@customElement('meraki-wifi-qr-card')
 export class MerakiWifiQrCard extends LitElement {
   @property({ attribute: false }) public hass!: HomeAssistant;
   @state() private _config?: Config;
@@ -188,23 +178,8 @@ export class MerakiWifiQrCard extends LitElement {
 
   protected updated(changedProperties: PropertyValues) {
     if (changedProperties.has('hass') || changedProperties.has('_config')) {
-      const oldSsid = changedProperties.has('hass') ? this._getValueFromHass(this._config?.ssid, changedProperties.get('hass')) : null;
-      const newSsid = this._getValue(this._config?.ssid);
-      const oldPass = changedProperties.has('hass') ? this._getValueFromHass(this._config?.password, changedProperties.get('hass')) : null;
-      const newPass = this._getValue(this._config?.password);
-
-      if (changedProperties.has('_config') || oldSsid !== newSsid || oldPass !== newPass) {
-        this._generateQR();
-      }
+      this._generateQR();
     }
-  }
-
-  private _getValueFromHass(value: string | undefined, hass: any): string {
-    if (!value || !hass) return value || '';
-    if (hass.states[value]) {
-      return hass.states[value].state;
-    }
-    return value;
   }
 
   private _getValue(value?: string): string {
@@ -218,15 +193,13 @@ export class MerakiWifiQrCard extends LitElement {
   private _generateWifiString(ssid: string, password?: string): string {
     const escapedSsid = ssid.replace(/([\\;,":])/g, '\\$1');
     const escapedPassword = password ? password.replace(/([\\;,":])/g, '\\$1') : '';
-    if (escapedPassword) {
-      return `WIFI:T:WPA;S:${escapedSsid};P:${escapedPassword};;`;
-    }
-    return `WIFI:T:nopass;S:${escapedSsid};P:;;`;
+    return escapedPassword 
+      ? `WIFI:T:WPA;S:${escapedSsid};P:${escapedPassword};;`
+      : `WIFI:T:nopass;S:${escapedSsid};P:;;`;
   }
 
   private async _generateQR() {
     if (!this._config) return;
-
     const ssid = this._getValue(this._config.ssid);
     const password = this._getValue(this._config.password);
 
@@ -235,15 +208,12 @@ export class MerakiWifiQrCard extends LitElement {
       return;
     }
 
-    const wifiString = this._generateWifiString(ssid, password);
     try {
+      const wifiString = this._generateWifiString(ssid, password);
       this._qrSvg = await QRCode.toString(wifiString, {
         type: 'svg',
         margin: 2,
-        color: {
-          dark: '#000000',
-          light: '#ffffff',
-        },
+        color: { dark: '#000000', light: '#ffffff' },
       });
     } catch (err) {
       console.error('Failed to generate QR code', err);
@@ -252,10 +222,7 @@ export class MerakiWifiQrCard extends LitElement {
   }
 
   protected render() {
-    if (!this._config || !this.hass) {
-      return html``;
-    }
-
+    if (!this._config || !this.hass) return html``;
     const ssid = this._getValue(this._config.ssid);
 
     return html`
@@ -265,64 +232,24 @@ export class MerakiWifiQrCard extends LitElement {
           <div class="qr-container" .innerHTML=${this._qrSvg}></div>
           ${this._getValue(this._config.password) ? html`<div class="password-display">Password: <code>${this._getValue(this._config.password)}</code></div>` : ''}
         </div>
+        <div class="version">v${__VERSION__}</div>
       </ha-card>
     `;
   }
 
   static styles = css`
-    :host {
-      display: block;
-    }
-    .card-content {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 16px;
-      gap: 16px;
-    }
-    .ssid-display {
-      font-size: 1.5em;
-      font-weight: bold;
-      color: var(--primary-text-color);
-      text-align: center;
-    }
-    .qr-container {
-      width: 200px;
-      height: 200px;
-      background: white;
-      padding: 8px;
-      border-radius: 8px;
-    }
-    .qr-container svg {
-      width: 100%;
-      height: 100%;
-    }
-    .password-display {
-      color: var(--secondary-text-color);
-      text-align: center;
-    }
-    code {
-      background: var(--secondary-background-color);
-      padding: 2px 4px;
-      border-radius: 4px;
-      font-family: monospace;
-    }
+    :host { display: block; }
+    .card-content { display: flex; flex-direction: column; align-items: center; padding: 16px; gap: 16px; }
+    .ssid-display { font-size: 1.5em; font-weight: bold; color: var(--primary-text-color); text-align: center; }
+    .qr-container { width: 200px; height: 200px; background: white; padding: 8px; border-radius: 8px; }
+    .qr-container svg { width: 100%; height: 100%; }
+    .password-display { color: var(--secondary-text-color); text-align: center; }
+    code { background: var(--secondary-background-color); padding: 2px 4px; border-radius: 4px; font-family: monospace; }
+    .version { font-size: 9px; color: var(--secondary-text-color); text-align: right; padding: 0 16px 8px; opacity: 0.4; }
   `;
 }
 
-if (!customElements.get('meraki-wifi-qr-card')) {
-  customElements.define('meraki-wifi-qr-card', MerakiWifiQrCard);
-}
-
-if (!customElements.get('meraki-wifi-qr-card-editor')) {
-  customElements.define('meraki-wifi-qr-card-editor', MerakiWifiQrCardEditor);
-}
-
-declare global {
-  const __VERSION__: string;
-}
-
-// Register the card in the Home Assistant Lovelace UI picker
+// Register the card
 (window as any).customCards = (window as any).customCards || [];
 if (!(window as any).customCards.some((c: any) => c.type === 'meraki-wifi-qr-card')) {
   (window as any).customCards.push({
@@ -330,6 +257,5 @@ if (!(window as any).customCards.some((c: any) => c.type === 'meraki-wifi-qr-car
     name: "Meraki Wi-Fi QR Card",
     description: "Display a scannable Wi-Fi QR code for guests.",
     preview: true,
-    version: __VERSION__,
   });
 }
