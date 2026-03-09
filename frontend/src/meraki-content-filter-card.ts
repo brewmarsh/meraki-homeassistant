@@ -21,8 +21,27 @@ export class MerakiContentFilterCard extends LitElement {
   }
 
   public setConfig(config: Config): void {
-    // If no entity is provided, we will attempt auto-discovery during render
+    if (!config) {
+      throw new Error('Invalid configuration');
+    }
+    // Priority: fix-content-filter-card-discovery branch
     this._config = { ...config };
+  }
+
+  private _discoverEntity(): string | undefined {
+    if (!this.hass) return undefined;
+
+    // Search for a select entity with 'content_filter' in unique_id or name
+    return Object.keys(this.hass.states).find((entityId) => {
+      if (!entityId.startsWith('select.')) return false;
+      const stateObj = this.hass.states[entityId];
+      const friendlyName = stateObj.attributes.friendly_name?.toLowerCase() || '';
+      return (
+        entityId.includes('content_filter') ||
+        friendlyName.includes('content filter') ||
+        entityId.includes('meraki')
+      );
+    });
   }
 
   public static getStubConfig(): Record<string, unknown> {
@@ -32,34 +51,24 @@ export class MerakiContentFilterCard extends LitElement {
     };
   }
 
-  /**
-   * Attempt to find a Meraki Content Filter entity if none is configured
-   */
-  private _getAutoDiscoveredEntity(): string | undefined {
-    if (!this.hass) return undefined;
-    
-    // Search for select entities belonging to the meraki_ha integration
-    return Object.keys(this.hass.states).find(eid => 
-      eid.startsWith('select.') && 
-      (eid.includes('content_filter') || eid.includes('meraki'))
-    );
-  }
-
   protected render() {
     if (!this.hass) return html``;
 
     // Use configured entity or fallback to auto-discovery
-    const entityId = this._config?.entity || this._getAutoDiscoveredEntity();
+    const entityId = this._config?.entity || this._discoverEntity();
     const stateObj = entityId ? this.hass.states[entityId] : undefined;
 
     if (!entityId || !stateObj) {
       return html`
         <ha-card>
           <div class="card-content">
-            <ha-alert alert-type="warning" title="Entity Required">
-              Please configure a Meraki Content Filter entity. 
-              If the integration was just added, it may take 60 seconds to appear.
-            </ha-alert>
+            <div class="meraki-warning">
+              <ha-icon icon="mdi:information"></ha-icon>
+              <div class="warning-content">
+                <strong>Integration Initializing</strong>
+                <p>The Meraki integration is still fetching data or no content filter entity was found. Please wait or check your configuration.</p>
+              </div>
+            </div>
           </div>
           <div class="version">v${__VERSION__}</div>
         </ha-card>
@@ -94,7 +103,7 @@ export class MerakiContentFilterCard extends LitElement {
   }
 
   private async _handleProfileSelect(entityId: string, profile: string): Promise<void> {
-    if (!this.hass) return;
+    if (!this.hass || !entityId) return;
 
     try {
       await this.hass.callService('select', 'select_option', {
@@ -108,7 +117,23 @@ export class MerakiContentFilterCard extends LitElement {
 
   static styles = css`
     :host { display: block; }
-    ha-card { height: 100%; display: flex; flex-direction: column; justify-content: space-between; }
+    ha-card {
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .meraki-warning {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 12px;
+      background-color: var(--warning-color);
+      color: var(--primary-text-color);
+      border-radius: 8px;
+    }
+    .warning-content strong { display: block; margin-bottom: 4px; }
+    .warning-content p { margin: 0; font-size: 0.9em; opacity: 0.9; }
     .card-header { padding: 16px 16px 0; font-size: 24px; line-height: 1.2; }
     .card-content { padding: 16px; }
     .current-profile { color: var(--secondary-text-color); font-size: 0.9em; margin-bottom: 16px; }
@@ -160,7 +185,8 @@ export class MerakiContentFilterCardEditor extends LitElement {
           .configValue=${"entity"}
           .includeDomains=${["select"]}
           @value-changed=${this._valueChanged}
-          label="Content Filter Entity"
+          allow-custom-entity
+          label="Entity (Optional - Auto-discovery will attempt to find a Meraki content filter)"
         ></ha-entity-picker>
         <ha-textfield
           label="Display Name (Optional)"
@@ -177,8 +203,6 @@ export class MerakiContentFilterCardEditor extends LitElement {
     const target = ev.target;
     const configValue = target.configValue;
     const newValue = ev.detail?.value ?? target.value;
-
-    if (this._config[configValue] === newValue) return;
 
     const newConfig = { ...this._config };
     if (!newValue) {

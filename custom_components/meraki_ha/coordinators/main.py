@@ -70,6 +70,16 @@ class MerakiMainCoordinator(MerakiBaseCoordinator[dict[str, Any]]):
             _LOGGER.warning("API call to get_all_data returned no data.")
             return self.last_successful_data
 
+        # Explicitly propagate organization_id to all networks
+        from ..core.models.network import MerakiNetwork
+        org_id = self.api.organization_id
+        if "networks" in data:
+            for network in data["networks"]:
+                if isinstance(network, MerakiNetwork):
+                    network.organization_id = org_id
+                elif isinstance(network, dict):
+                    network["organizationId"] = org_id
+
         # Process successful update
         (
             self.devices_by_serial,

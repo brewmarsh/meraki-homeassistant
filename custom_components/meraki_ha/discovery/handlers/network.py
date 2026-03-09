@@ -57,11 +57,16 @@ class NetworkHandler(BaseHandler):
         # Filter networks by organization ID to ensure we only discover
         # entities for the current organization.
         org_id = self._coordinator.api.organization_id
-        return [
-            n
-            for n in networks
-            if isinstance(n, MerakiNetwork) and n.organization_id == org_id
-        ]
+        from ...core.models.network import MerakiNetwork
+
+        filtered_networks = []
+        for n in networks:
+            if isinstance(n, MerakiNetwork) and n.organization_id == org_id:
+                filtered_networks.append(n)
+            elif isinstance(n, dict) and n.get("organizationId") == org_id:
+                filtered_networks.append(MerakiNetwork.from_dict(n))
+
+        return filtered_networks
 
     async def discover_entities(self) -> AsyncIterator[Entity]:
         """Discover network-level entities."""
