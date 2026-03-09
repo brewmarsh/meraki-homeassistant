@@ -64,7 +64,10 @@ class MerakiEntity(CoordinatorEntity[T], Generic[T]):
             else:
                 status = getattr(device, "status", "offline")
 
-            return status in ("online", "alerting", "dormant")
+            if status is None:
+                return False
+
+            return str(status).lower() in ("online", "alerting", "dormant")
 
         return True
 

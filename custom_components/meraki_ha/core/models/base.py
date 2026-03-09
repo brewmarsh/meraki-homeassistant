@@ -35,10 +35,10 @@ class MerakiBaseDevice:
 
     @property
     def is_online(self) -> bool:
-        """Return True if the device is online."""
+        """Return True if the device is online, alerting, or dormant."""
         if not self.status:
             return False
-        return str(self.status).lower() == "online"
+        return str(self.status).lower() in ("online", "alerting", "dormant")
 
     def base_to_dict(self) -> dict[str, Any]:
         """Convert base fields to dictionary."""
