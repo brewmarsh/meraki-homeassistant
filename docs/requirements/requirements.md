@@ -49,4 +49,9 @@ This document verifies the state of the codebase against the requirements for th
   - **[IN PROGRESS]** Implementation of diagnostic tracing in critical parsers to ensure visibility into data mapping during the batch distribution phase.
   - **[IN PROGRESS]** Implementation of targeted diagnostic logging within the `available` property of entities to debug regressions in device-level availability (MT sensors, MV IPs, Reboot buttons). Logs must capture serial numbers, coordinator data keys, and specific status fields to identify mapping issues.
 
-This verification confirms the need for the planned refactoring steps. The new requirements (R4, R5, R6, R7, R8, R9, R10, R11, R12) are now considered part of the standard for this integration.
+- **R13: Webhook Lifecycle Management:**
+  - **[IN PROGRESS]** Implementation of idempotent webhook registration to prevent exhausting the Meraki API limit (100 HTTP servers per network).
+  - **[IN PROGRESS]** Automated discovery and deletion of orphaned webhooks matching the Home Assistant name pattern or specific webhook URL.
+  - **[IN PROGRESS]** Reuse of existing webhooks when an exact match (name and URL) is found.
+
+This verification confirms the need for the planned refactoring steps. The new requirements (R4, R5, R6, R7, R8, R9, R10, R11, R12, R13) are now considered part of the standard for this integration.

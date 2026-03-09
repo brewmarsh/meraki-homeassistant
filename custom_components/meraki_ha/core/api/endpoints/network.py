@@ -112,26 +112,67 @@ class NetworkEndpoints:
     @handle_meraki_errors
     async def register_webhook(
         self, webhook_url: str, secret: str, config_entry_id: str
-    ) -> None:
+    ) -> list[str]:
         """Register or update a webhook with the Meraki API."""
         networks = await self._api_client.organization.get_organization_networks()
+        webhook_name = f"Home Assistant Webhook - {config_entry_id}"
+        webhook_ids = []
+
         for network in networks:
             network_id = network["id"]
-            webhook_name = f"Home Assistant Webhook - {config_entry_id}"
-
-            existing = await self.find_webhook_by_name_and_url(
-                network_id, webhook_name, webhook_url
+            # Always fetch existing webhooks directly using the dashboard API for fresh data
+            raw_webhooks = await self._api_client.run_sync(
+                self._api_client.dashboard.networks.getNetworkWebhooksHttpServers,
+                networkId=network_id,
             )
-            if existing:
-                await self.delete_webhook(network_id, existing["id"])
+            webhooks = validate_response(raw_webhooks)
+            if not isinstance(webhooks, list):
+                webhooks = []
 
-            await self._api_client.run_sync(
+            exact_match = None
+            for webhook in webhooks:
+                name_match = webhook.get("name") == webhook_name
+                url_match = webhook.get("url") == webhook_url
+
+                # Exact match found - we'll reuse this one
+                if name_match and url_match:
+                    exact_match = webhook
+                    continue
+
+                # Orphaned or conflicting webhook found
+                # Matching name but different URL OR matching URL but different name
+                if name_match or url_match:
+                    _LOGGER.info(
+                        "Deleting orphaned or conflicting webhook '%s' (ID: %s) in network %s",
+                        webhook.get("name"),
+                        webhook.get("id"),
+                        network_id,
+                    )
+                    await self.delete_webhook(network_id, webhook["id"])
+
+            if exact_match:
+                _LOGGER.debug(
+                    "Webhook '%s' already exists in network %s, skipping creation",
+                    webhook_name,
+                    network_id,
+                )
+                webhook_ids.append(exact_match["id"])
+                continue
+
+            _LOGGER.info(
+                "Registering new webhook '%s' for network %s", webhook_name, network_id
+            )
+            response = await self._api_client.run_sync(
                 self._api_client.dashboard.networks.createNetworkWebhooksHttpServer,
                 networkId=network_id,
                 url=webhook_url,
                 sharedSecret=secret,
                 name=webhook_name,
             )
+            if response and "id" in response:
+                webhook_ids.append(response["id"])
+
+        return webhook_ids
 
     async def unregister_webhook(self, config_entry_id: str) -> None:
         """Unregister a webhook from all networks."""
@@ -139,10 +180,16 @@ class NetworkEndpoints:
         networks = await self._api_client.organization.get_organization_networks()
         for network in networks:
             network_id = network["id"]
-            webhooks = await self.get_webhooks(network_id)
-            for webhook in webhooks:
-                if webhook.get("name") == webhook_name:
-                    await self.delete_webhook(network_id, webhook["id"])
+            # Fetch webhooks directly to ensure cleanup of all instances
+            raw_webhooks = await self._api_client.run_sync(
+                self._api_client.dashboard.networks.getNetworkWebhooksHttpServers,
+                networkId=network_id,
+            )
+            webhooks = validate_response(raw_webhooks)
+            if isinstance(webhooks, list):
+                for webhook in webhooks:
+                    if webhook.get("name") == webhook_name:
+                        await self.delete_webhook(network_id, webhook["id"])
 
     async def get_vlan_data(self, network_id: str) -> list[dict[str, Any]]:
         """
