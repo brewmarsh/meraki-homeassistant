@@ -19,5 +19,10 @@ type_map = {
     "types.Intent": types.Intent,
     "stream_types.Intent": stream_types.Intent,
 
+    "types.MerakiIntentResponse": types.MerakiIntentResponse,
+    "stream_types.MerakiIntentResponse": stream_types.MerakiIntentResponse,
+
+
+    "types.MerakiIntent": types.MerakiIntent,
 
 }

@@ -23,12 +23,19 @@ class StreamState(BaseModel, typing.Generic[StreamStateValueT]):
     value: StreamStateValueT
     state: typing_extensions.Literal["Pending", "Incomplete", "Complete"]
 # #########################################################################
-# Generated classes (1)
+# Generated classes (2)
 # #########################################################################
 
 class Intent(BaseModel):
     category: typing.Optional[str] = None
     confidence: typing.Optional[float] = None
+
+class MerakiIntentResponse(BaseModel):
+    intent: typing.Optional[types.MerakiIntent] = None
+    target_device: typing.Optional[str] = None
+    guest_name: typing.Optional[str] = None
+    duration_minutes: typing.Optional[int] = None
+    network_name: typing.Optional[str] = None
 
 # #########################################################################
 # Generated type aliases (0)
