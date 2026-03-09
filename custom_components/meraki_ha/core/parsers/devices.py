@@ -2,9 +2,12 @@
 
 from __future__ import annotations
 
+import logging
 from typing import Any
 
 from ...core.models.device import MerakiDevice
+
+_LOGGER = logging.getLogger(__name__)
 
 
 def parse_device_data(
@@ -40,10 +43,23 @@ def parse_device_data(
     for device in devices:
         serial = device.serial
         if serial in statuses_by_serial:
-            status_data = statuses_by_serial[serial]
-            for key, value in status_data.items():
+            status_dict = statuses_by_serial[serial]
+
+            _LOGGER.debug(
+                "Mapping status for %s: extracted_status='%s', raw_payload_keys=%s",
+                device.serial,
+                status_dict.get("status"),
+                list(status_dict.keys())
+            )
+
+            for key, value in status_dict.items():
                 # map key to snake_case if needed, otherwise use key as is
                 # (e.g. for 'status')
                 attr_name = key_map.get(key, key)
+
+                # Normalize status to lowercase for consistency
+                if attr_name == "status" and isinstance(value, str):
+                    value = value.lower()
+
                 if hasattr(device, attr_name):
                     setattr(device, attr_name, value)

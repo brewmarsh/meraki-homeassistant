@@ -91,7 +91,7 @@ class BaseMerakiEntity(CoordinatorEntity, Entity, ABC):
         # For device-based entities, check device status
         if self._serial:
             device = self.coordinator.get_device(self._serial)
-            return bool(device and device.status == "online")
+            return bool(device and device.is_online)
 
         # For network-based entities, check network status
         if self._network_id:

@@ -45,7 +45,8 @@ This document verifies the state of the codebase against the requirements for th
 - **R11: Centralized Logging (No File Dependency):**
   - **[VERIFIED]** Reset and staging scripts must not rely on deprecated Home Assistant file-based logging endpoints (e.g., `/api/error_log`). All troubleshooting data must be sourced from GitHub Actions WebSocket captures or CI logs to ensure compatibility with HA 2025.11+.
 
-- **R12: Diagnostic Availability Logging:**
+- **R12: Diagnostic Observability:**
+  - **[IN PROGRESS]** Implementation of diagnostic tracing in critical parsers to ensure visibility into data mapping during the batch distribution phase.
   - **[IN PROGRESS]** Implementation of targeted diagnostic logging within the `available` property of entities to debug regressions in device-level availability (MT sensors, MV IPs, Reboot buttons). Logs must capture serial numbers, coordinator data keys, and specific status fields to identify mapping issues.
 
 This verification confirms the need for the planned refactoring steps. The new requirements (R4, R5, R6, R7, R8, R9, R10, R11, R12) are now considered part of the standard for this integration.
