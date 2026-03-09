@@ -2,6 +2,9 @@ import { defineConfig } from 'vite';
 import { resolve } from 'path';
 
 export default defineConfig({
+  define: {
+    __VERSION__: JSON.stringify(new Date().toISOString()),
+  },
   build: {
     lib: {
       entry: resolve(__dirname, 'src/meraki-guest-access-card.ts'),

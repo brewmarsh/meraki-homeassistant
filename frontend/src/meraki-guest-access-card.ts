@@ -1,5 +1,7 @@
 import { LitElement, html, css, PropertyValues } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
+
+declare const __VERSION__: string;
 import { HomeAssistant } from './types/ha';
 import './meraki-content-filter-card';
 import './meraki-wifi-qr-card';
@@ -116,7 +118,14 @@ export class MerakiGuestAccessCard extends LitElement {
 
   protected render() {
     if (this._isLoading) {
-      return html`<ha-card .header="${this._config?.name || 'Meraki Guest Access'}"><div class="card-content flex justify-center p-8"><ha-circular-progress active></ha-circular-progress></div></ha-card>`;
+      return html`
+        <ha-card .header="${this._config?.name || 'Meraki Guest Access'}">
+          <div class="card-content flex justify-center p-8">
+            <ha-circular-progress active></ha-circular-progress>
+          </div>
+          <div class="version">Version: ${__VERSION__}</div>
+        </ha-card>
+      `;
     }
 
     const filteredSsids = (this._ssids || []).filter(s => s.networkId === this._selectedNetwork);
@@ -148,6 +157,7 @@ export class MerakiGuestAccessCard extends LitElement {
             </ha-button>
           </div>
         </div>
+        <div class="version">Version: ${__VERSION__}</div>
       </ha-card>
     `;
   }
@@ -193,5 +203,23 @@ export class MerakiGuestAccessCard extends LitElement {
     ha-select, ha-textfield, ha-button { width: 100%; }
     .flex { display: flex; }
     .justify-center { justify-content: center; }
+    .version {
+      font-size: 10px;
+      color: var(--secondary-text-color);
+      text-align: right;
+      padding: 0 16px 8px;
+      opacity: 0.5;
+    }
   `;
+}
+
+// Register the card in the Home Assistant Lovelace UI picker
+(window as any).customCards = (window as any).customCards || [];
+if (!(window as any).customCards.some((c: any) => c.type === 'meraki-guest-access-card')) {
+  (window as any).customCards.push({
+    type: "meraki-guest-access-card",
+    name: "Meraki Guest Access",
+    description: `Manage temporary guest WiFi access. Version: ${__VERSION__}`,
+    preview: true,
+  });
 }

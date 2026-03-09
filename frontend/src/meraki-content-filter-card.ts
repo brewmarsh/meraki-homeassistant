@@ -1,5 +1,7 @@
 import { LitElement, html, css, PropertyValues } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
+
+declare const __VERSION__: string;
 import { HomeAssistant } from './types/ha';
 
 interface Config {
@@ -72,6 +74,7 @@ export class MerakiContentFilterCard extends LitElement {
             `)}
           </div>
         </div>
+        <div class="version">Version: ${__VERSION__}</div>
       </ha-card>
     `;
   }
@@ -141,6 +144,13 @@ export class MerakiContentFilterCard extends LitElement {
     .profile-name {
       font-weight: bold;
       display: block;
+    }
+    .version {
+      font-size: 10px;
+      color: var(--secondary-text-color);
+      text-align: right;
+      padding: 0 16px 8px;
+      opacity: 0.5;
     }
   `;
 }
@@ -233,7 +243,7 @@ if (!(window as any).customCards.some((c: any) => c.type === 'meraki-content-fil
   (window as any).customCards.push({
     type: "meraki-content-filter-card",
     name: "Meraki Content Filter",
-    description: "Control Meraki Content Filtering profiles.",
+    description: `Control Meraki Content Filtering profiles. Version: ${__VERSION__}`,
     preview: true,
   });
 }

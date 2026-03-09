@@ -1,5 +1,7 @@
 import { LitElement, html, css, PropertyValues } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
+
+declare const __VERSION__: string;
 import { HomeAssistant } from './types/ha';
 
 interface Config {
@@ -96,6 +98,7 @@ export class MerakiNetworkVitalsCard extends LitElement {
             </div>
           </div>
         </div>
+        <div class="version">Version: ${__VERSION__}</div>
       </ha-card>
     `;
   }
@@ -144,6 +147,13 @@ export class MerakiNetworkVitalsCard extends LitElement {
     }
     ha-icon {
       --mdc-icon-size: 18px;
+    }
+    .version {
+      font-size: 10px;
+      color: var(--secondary-text-color);
+      text-align: right;
+      padding: 0 16px 8px;
+      opacity: 0.5;
     }
   `;
 }
@@ -246,7 +256,7 @@ if (!(window as any).customCards.some((c: any) => c.type === 'meraki-network-vit
   (window as any).customCards.push({
     type: "meraki-network-vitals-card",
     name: "Meraki Network Vitals",
-    description: "Compact horizontal header for Meraki network health and throughput.",
+    description: `Compact horizontal header for Meraki network health and throughput. Version: ${__VERSION__}`,
     preview: true,
   });
 }

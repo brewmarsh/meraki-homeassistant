@@ -1,5 +1,7 @@
 import { LitElement, html, css, PropertyValues } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
+
+declare const __VERSION__: string;
 import { HomeAssistant } from './types/ha';
 import { Network, SSID } from './types/meraki';
 import { WsCommand } from './types/websocket';
@@ -267,6 +269,7 @@ export class MerakiWifiQrCard extends LitElement {
           <div class="qr-container" .innerHTML=${this._qrSvg}></div>
           ${this._getValue(this._config.password) ? html`<div class="password-display">Password: <code>${this._getValue(this._config.password)}</code></div>` : ''}
         </div>
+        <div class="version">Version: ${__VERSION__}</div>
       </ha-card>
     `;
   }
@@ -309,6 +312,13 @@ export class MerakiWifiQrCard extends LitElement {
       border-radius: 4px;
       font-family: monospace;
     }
+    .version {
+      font-size: 10px;
+      color: var(--secondary-text-color);
+      text-align: right;
+      padding: 0 16px 8px;
+      opacity: 0.5;
+    }
   `;
 }
 
@@ -318,7 +328,7 @@ if (!(window as any).customCards.some((c: any) => c.type === 'meraki-wifi-qr-car
   (window as any).customCards.push({
     type: "meraki-wifi-qr-card",
     name: "Meraki Wi-Fi QR Card",
-    description: "Display a scannable Wi-Fi QR code for guests.",
+    description: `Display a scannable Wi-Fi QR code for guests. Version: ${__VERSION__}`,
     preview: true,
   });
 }
