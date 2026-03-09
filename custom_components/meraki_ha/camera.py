@@ -5,7 +5,10 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING, Any
 
-from custom_components.meraki_ha.const.config import CONF_ENABLE_CAMERA_ENTITIES
+from custom_components.meraki_ha.const.config import (
+    CONF_ENABLE_CAMERA_ENTITIES,
+    CONF_RTSP_STREAM_ENABLED,
+)
 from custom_components.meraki_ha.const.integration import DOMAIN
 from homeassistant.components.camera import Camera, CameraEntityFeature
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
@@ -114,7 +117,7 @@ class MerakiRTSPStreamCamera(MerakiEntity, Camera):
         await super().async_added_to_hass()
 
         if (
-            self.coordinator.config_entry.options.get(CONF_ENABLE_CAMERA_ENTITIES, True)
+            self.coordinator.config_entry.options.get(CONF_RTSP_STREAM_ENABLED, False)
             and not self.device_data.rtsp_url
         ):
             # Move the blocking API call to a background task to prevent Setup timeout

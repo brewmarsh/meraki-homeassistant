@@ -125,8 +125,8 @@ async def test_handle_meraki_errors_empty_response():
 
 def test_validate_response():
     """Test the validate_response function."""
-    with pytest.raises(MerakiConnectionError):
-        validate_response(None)
+    # None is now allowed, returns an empty dict
+    assert validate_response(None) == {}
 
     # Empty dicts are now allowed, but will log a warning
     assert validate_response({}) == {}

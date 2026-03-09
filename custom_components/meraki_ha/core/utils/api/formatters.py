@@ -39,11 +39,12 @@ def validate_response(response: Any) -> Any:
 
     Raises
     ------
-        MerakiConnectionError: If response is invalid or empty
+        MerakiConnectionError: If response is invalid
 
     """
     if response is None:
-        raise MerakiConnectionError("Empty response from API")
+        _LOGGER.warning("Empty response from API")
+        return {}
 
     if isinstance(response, dict):
         if not response:
