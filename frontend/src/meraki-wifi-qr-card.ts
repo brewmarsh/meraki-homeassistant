@@ -1,5 +1,5 @@
 import { LitElement, html, css, PropertyValues } from 'lit';
-import { customElement, property, state } from 'lit/decorators.js';
+import { property, state } from 'lit/decorators.js';
 import { HomeAssistant } from './types/ha';
 import { Network, SSID } from './types/meraki';
 import { WsCommand } from './types/websocket';
@@ -13,7 +13,6 @@ interface Config {
   name?: string;
 }
 
-@customElement('meraki-wifi-qr-card-editor')
 export class MerakiWifiQrCardEditor extends LitElement {
   @property({ attribute: false }) public hass!: HomeAssistant;
   @state() private _config?: Config;
@@ -163,7 +162,6 @@ export class MerakiWifiQrCardEditor extends LitElement {
   `;
 }
 
-@customElement('meraki-wifi-qr-card')
 export class MerakiWifiQrCard extends LitElement {
   @property({ attribute: false }) public hass!: HomeAssistant;
   @state() private _config?: Config;
@@ -312,6 +310,18 @@ export class MerakiWifiQrCard extends LitElement {
   `;
 }
 
+if (!customElements.get('meraki-wifi-qr-card')) {
+  customElements.define('meraki-wifi-qr-card', MerakiWifiQrCard);
+}
+
+if (!customElements.get('meraki-wifi-qr-card-editor')) {
+  customElements.define('meraki-wifi-qr-card-editor', MerakiWifiQrCardEditor);
+}
+
+declare global {
+  const __VERSION__: string;
+}
+
 // Register the card in the Home Assistant Lovelace UI picker
 (window as any).customCards = (window as any).customCards || [];
 if (!(window as any).customCards.some((c: any) => c.type === 'meraki-wifi-qr-card')) {
@@ -320,5 +330,6 @@ if (!(window as any).customCards.some((c: any) => c.type === 'meraki-wifi-qr-car
     name: "Meraki Wi-Fi QR Card",
     description: "Display a scannable Wi-Fi QR code for guests.",
     preview: true,
+    version: __VERSION__,
   });
 }
