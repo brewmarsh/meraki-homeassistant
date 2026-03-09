@@ -2,6 +2,7 @@
 
 import logging
 from abc import ABC
+from typing import Any
 
 from custom_components.meraki_ha.const.integration import DOMAIN, MANUFACTURER
 from homeassistant.config_entries import ConfigEntry
@@ -65,17 +66,31 @@ class BaseMerakiEntity(CoordinatorEntity, Entity, ABC):
         )
 
     @property
+    def device_data(self) -> Any | None:
+        """Get the updated device data from the God dictionary."""
+        if not self.coordinator.data or not self._serial:
+            return None
+        return self.coordinator.data.get("devices_by_serial", {}).get(self._serial)
+
+    @property
+    def network_data(self) -> Any | None:
+        """Get the updated network data from the God dictionary."""
+        if not self.coordinator.data or not self._network_id:
+            return None
+        return self.coordinator.data.get("networks_by_id", {}).get(self._network_id)
+
+    @property
     def device_info(self) -> DeviceInfo | None:
         """Get device info for this entity."""
         # Handle network-based entities
         if self._network_id and not self._serial:
-            network = self.coordinator.get_network(self._network_id)
+            network = self.network_data
             if network:
                 return resolve_device_info(network, self.coordinator.config_entry)
 
         # Handle device-based entities
         if self._serial:
-            device = self.coordinator.get_device(self._serial)
+            device = self.device_data
             if device:
                 return resolve_device_info(device, self.coordinator.config_entry)
 
@@ -90,12 +105,12 @@ class BaseMerakiEntity(CoordinatorEntity, Entity, ABC):
 
         # For device-based entities, check device status
         if self._serial:
-            device = self.coordinator.get_device(self._serial)
+            device = self.device_data
             return bool(device and device.is_online)
 
         # For network-based entities, check network status
         if self._network_id:
-            network = self.coordinator.get_network(self._network_id)
+            network = self.network_data
             return bool(network)
 
         return True
