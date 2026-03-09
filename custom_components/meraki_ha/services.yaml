@@ -43,7 +43,7 @@ create_guest_key:
 
 generate_guest_access:
   name: Generate Guest Access
-  description: Generates a temporary Identity PSK for a Meraki SSID (alias for create_guest_key).
+  description: UI-friendly alias for generating temporary guest access.
   fields:
     network_id:
       name: Network ID
@@ -51,7 +51,7 @@ generate_guest_access:
       required: true
       selector:
         text:
-    ssid_number:
+    ssid:
       name: SSID Number
       description: The SSID index (0-14) where the key will be created.
       required: true
@@ -59,7 +59,7 @@ generate_guest_access:
         number:
           min: 0
           max: 14
-    duration_minutes:
+    duration:
       name: Duration
       description: Duration in minutes before the key is auto-deleted.
       required: true
@@ -67,19 +67,14 @@ generate_guest_access:
         number:
           min: 1
           unit_of_measurement: minutes
-    name:
-      name: Name
-      description: Name for the key (e.g., "Guest-iPad").
-      default: Guest Key
+    guest_name:
+      name: Guest Name
+      description: Name for the guest (e.g., "John Doe").
+      default: Guest
       selector:
         text:
     passphrase:
       name: Passphrase
       description: If empty, Meraki will auto-generate a secure passphrase.
-      selector:
-        text:
-    group_policy_id:
-      name: Group Policy ID
-      description: The ID of an existing Meraki Group Policy to apply.
       selector:
         text:
