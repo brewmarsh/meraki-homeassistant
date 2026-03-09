@@ -192,7 +192,7 @@ jobs:
       - name: Full integration reset (Production Server)
         shell: bash
         run: |
-          if ! uv run --with aiohttp python3 tests/scripts/reset_integration.py 2>&1 | tee reset_output.txt; then
+          if ! uv run --with aiohttp python3 scripts/reset_integration.py 2>&1 | tee reset_output.txt; then
             echo "FAILED_STEP_NAME=Full integration reset (Production)" >> $GITHUB_ENV
             {
               echo "CI_ERROR_DETAILS<<EOF"
