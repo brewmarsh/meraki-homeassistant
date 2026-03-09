@@ -50,9 +50,10 @@ This document verifies the state of the codebase against the requirements for th
   - **[VERIFIED]** Established O(1) dictionary traversal as the project standard for entity data retrieval from the centralized coordinator. Temporary diagnostic logging in `available` properties and parsers has been removed following the stabilization of the 'God Module' data structure (nested under `devices_by_serial`, `networks_by_id`, and `sensor_readings`).
 
 - **R13: Webhook Lifecycle Management:**
-  - **[IN PROGRESS]** Implementation of idempotent webhook registration to prevent exhausting the Meraki API limit (100 HTTP servers per network).
-  - **[IN PROGRESS]** Automated discovery and deletion of orphaned webhooks matching the Home Assistant name pattern or specific webhook URL.
-  - **[IN PROGRESS]** Reuse of existing webhooks when an exact match (name and URL) is found.
+  - **[VERIFIED]** Implementation of idempotent webhook registration to prevent exhausting the Meraki API limit (100 HTTP servers per network).
+  - **[VERIFIED]** Automated discovery and deletion of orphaned webhooks matching the Home Assistant name pattern or specific webhook URL.
+  - **[VERIFIED]** Proactive self-healing routine for garbage collection of legacy webhooks.
+  - **[VERIFIED]** Reuse of existing webhooks when an exact match (name and URL) is found.
 
 - R14: Structured LLM Outputs (BAML):
   - **[VERIFIED]** BAML (BoundaryML) initialized as the project standard for structured LLM interactions.

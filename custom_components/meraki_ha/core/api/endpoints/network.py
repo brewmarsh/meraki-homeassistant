@@ -114,6 +114,8 @@ class NetworkEndpoints:
         self, webhook_url: str, secret: str, config_entry_id: str
     ) -> list[str]:
         """Register or update a webhook with the Meraki API."""
+        import asyncio
+
         networks = await self._api_client.organization.get_organization_networks()
         webhook_name = f"Home Assistant Webhook - {config_entry_id}"
         webhook_ids = []
@@ -130,26 +132,35 @@ class NetworkEndpoints:
                 webhooks = []
 
             exact_match = None
+            to_delete = []
+
+            # 1. Identify perfect match and garbage
             for webhook in webhooks:
                 name_match = webhook.get("name") == webhook_name
                 url_match = webhook.get("url") == webhook_url
 
-                # Exact match found - we'll reuse this one
+                # Perfect match found - we'll reuse this one
                 if name_match and url_match:
                     exact_match = webhook
-                    continue
+                # Proactive garbage collection: anything that looks like us but isn't a perfect match
+                elif "Home Assistant Webhook" in webhook.get(
+                    "name", ""
+                ) or webhook.get("url") == webhook_url:
+                    to_delete.append(webhook)
 
-                # Orphaned or conflicting webhook found
-                # Matching name but different URL OR matching URL but different name
-                if name_match or url_match:
-                    _LOGGER.info(
-                        "Deleting orphaned or conflicting webhook '%s' (ID: %s) in network %s",
-                        webhook.get("name"),
-                        webhook.get("id"),
-                        network_id,
-                    )
-                    await self.delete_webhook(network_id, webhook["id"])
+            # 2. Clean up garbage webhooks (Legacy/Orphaned/Conflicting)
+            for webhook in to_delete:
+                _LOGGER.info(
+                    "Deleting orphaned or conflicting webhook '%s' (ID: %s) in network %s",
+                    webhook.get("name"),
+                    webhook.get("id"),
+                    network_id,
+                )
+                await self.delete_webhook(network_id, webhook["id"])
+                # Sleep briefly to avoid 429 rate limits during cleanup
+                await asyncio.sleep(1)
 
+            # 3. Finalize registration
             if exact_match:
                 _LOGGER.debug(
                     "Webhook '%s' already exists in network %s, skipping creation",
