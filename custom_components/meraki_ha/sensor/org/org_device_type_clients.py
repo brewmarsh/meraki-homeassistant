@@ -40,13 +40,15 @@ class MerakiOrganizationDeviceTypeClientsSensor(CoordinatorEntity, SensorEntity)
     @property
     def device_info(self) -> DeviceInfo:
         """Return the device info."""
+        org_name = "Organization"
+        if self.coordinator.data:
+            org_data = self.coordinator.data.get("organization")
+            if isinstance(org_data, dict):
+                org_name = org_data.get("name", "Organization")
+
         return DeviceInfo(
             identifiers={(DOMAIN, self._org_id)},
-            name=standardize_device_name(
-                self.coordinator.data.get("organization", {}).get(
-                    "name", "Organization"
-                )
-            ),
+            name=standardize_device_name(org_name),
             manufacturer="Cisco Meraki",
         )
 
@@ -58,11 +60,15 @@ class MerakiOrganizationDeviceTypeClientsSensor(CoordinatorEntity, SensorEntity)
     @property
     def native_value(self) -> int:
         """Return the state of the sensor."""
-        if not self.coordinator.data or not self.coordinator.data.get("clients"):
+        if not self.coordinator.data:
+            return 0
+
+        clients = self.coordinator.data.get("clients")
+        if not isinstance(clients, list):
             return 0
 
         count = 0
-        for client in self.coordinator.data["clients"]:
+        for client in clients:
             if not isinstance(client, dict):
                 continue
             if client.get("deviceType") == self._device_type:

@@ -70,14 +70,20 @@ class BaseMerakiEntity(CoordinatorEntity, Entity, ABC):
         """Get the updated device data from the God dictionary."""
         if not self.coordinator.data or not self._serial:
             return None
-        return self.coordinator.data.get("devices_by_serial", {}).get(self._serial)
+        devices_map = self.coordinator.data.get("devices_by_serial")
+        if not isinstance(devices_map, dict):
+            return None
+        return devices_map.get(self._serial)
 
     @property
     def network_data(self) -> Any | None:
         """Get the updated network data from the God dictionary."""
         if not self.coordinator.data or not self._network_id:
             return None
-        return self.coordinator.data.get("networks_by_id", {}).get(self._network_id)
+        networks_map = self.coordinator.data.get("networks_by_id")
+        if not isinstance(networks_map, dict):
+            return None
+        return networks_map.get(self._network_id)
 
     @property
     def device_info(self) -> DeviceInfo | None:

@@ -38,7 +38,10 @@ class MerakiEntity(CoordinatorEntity[T], Generic[T]):
         """Get the updated device data from the God dictionary."""
         if not self.coordinator.data or not self._serial:
             return None
-        return self.coordinator.data.get("devices_by_serial", {}).get(self._serial)
+        devices_map = self.coordinator.data.get("devices_by_serial")
+        if not isinstance(devices_map, dict):
+            return None
+        return devices_map.get(self._serial)
 
     @property
     def available(self) -> bool:

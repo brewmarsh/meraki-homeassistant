@@ -199,7 +199,7 @@ class UniversalHandler(BaseDeviceHandler):
             yield self._instantiate_single_entity(cap, provider)
         except Exception as e:
             _LOGGER.error(
-                "Failed to instantiate entity for capability %s on %s: %s",
+                "Failed to instantiate entity for capability %s on %s (%s): %s",
                 cap,
                 self.device.serial,
                 self.device.model,
