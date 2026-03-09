@@ -7,17 +7,17 @@ import logging
 from homeassistant.components.button import ButtonEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.device_registry import DeviceInfo
-from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from ...coordinators import MerakiSensorCoordinator
 from ...core.api import MerakiApiClientProtocol
 from ...core.models.device import MerakiDevice
+from ...entity import MerakiEntity
 from ...helpers.device_info_helpers import resolve_device_info
 
 _LOGGER = logging.getLogger(__name__)
 
 
-class MerakiMt15RefreshDataButton(CoordinatorEntity, ButtonEntity):
+class MerakiMt15RefreshDataButton(MerakiEntity, ButtonEntity):
     """Representation of a Meraki MT15 refresh data button."""
 
     _attr_has_entity_name = True
@@ -57,6 +57,4 @@ class MerakiMt15RefreshDataButton(CoordinatorEntity, ButtonEntity):
     @property
     def available(self) -> bool:
         """Return if the entity is available."""
-        if self.coordinator.data is None:
-            return False
         return (self._device.model or "").startswith("MT15") and super().available

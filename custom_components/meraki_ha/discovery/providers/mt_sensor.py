@@ -6,6 +6,7 @@ import logging
 from typing import TYPE_CHECKING, Any
 
 from ...descriptions import (
+    MT_APPARENT_POWER_DESCRIPTION,
     MT_CURRENT_DESCRIPTION,
     MT_ENERGY_DESCRIPTION,
     MT_FREQUENCY_DESCRIPTION,
@@ -43,5 +44,6 @@ class MT40PowerMonitorProvider:
             MT_POWER_FACTOR_DESCRIPTION,
             MT_FREQUENCY_DESCRIPTION,
             MT_ENERGY_DESCRIPTION,
+            MT_APPARENT_POWER_DESCRIPTION,
         ]
         return [MerakiMtSensor(coordinator, device, desc) for desc in descriptions]

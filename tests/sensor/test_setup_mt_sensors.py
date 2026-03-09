@@ -109,7 +109,9 @@ def mock_coordinator_with_mt_devices(mock_coordinator: MagicMock) -> MagicMock:
     mock_coordinator.data = {
         "devices": devices_objects,
         "devices_by_serial": {d.serial: d for d in devices_objects},
-        "sensor_readings": {}, # Initialize empty sensor_readings for defensive checks
+        "sensor_readings": {
+            d.get("serial"): d.get("readings", []) for d in MT_DEVICES_DATA
+        },  # Populate sensor_readings for the MT sensors
     }
     mock_coordinator.devices_by_serial = {d.serial: d for d in devices_objects}
 
@@ -324,8 +326,8 @@ async def test_async_setup_mt12_sensors(
         mock_coordinator_with_mt_devices, mt12_device
     )
 
-    # MT12 is expected to have 4 entities (Signal Strength skipped)
-    assert len(entities) == 4
+    # MT12 is expected to have 2 entities (Signal Strength skipped, Temp/Hum deleted)
+    assert len(entities) == 2
 
     entities_by_key = _get_entities_map_by_key(entities)
 
@@ -358,8 +360,8 @@ async def test_async_setup_mt40_sensors(
         mock_coordinator_with_mt_devices, mt40_device
     )
 
-    # MT40 has 6 Power sensors + 1 Outlet switch + 0 Signal Strength = 7 entities
-    assert len(entities) == 7
+    # MT40 has 7 Power sensors + 1 Outlet switch + 0 Signal Strength = 8 entities
+    assert len(entities) == 8
 
     entities_by_key = _get_entities_map_by_key(entities)
 
@@ -414,6 +416,7 @@ async def test_availability(mock_coordinator_with_mt_devices: MagicMock) -> None
     mock_coordinator_with_mt_devices.devices_by_serial["mt10-1"] = (
         device_without_readings
     )
+    mock_coordinator_with_mt_devices.data["sensor_readings"]["mt10-1"] = []
 
     # Mock get_device to return the updated device for subsequent fetches
     # by entities

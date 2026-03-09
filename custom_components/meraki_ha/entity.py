@@ -55,7 +55,8 @@ class MerakiEntity(CoordinatorEntity[T], Generic[T]):
         # If we have a serial, check if the device is online in the O(1) data
         if self._serial:
             device = self.device_data
-            return device is not None and getattr(device, "status", "offline") == "online"
+            # Devices with status "alerting" or "dormant" should also be considered available.
+            return device is not None and getattr(device, "status", "offline") != "offline"
 
         return True
 
