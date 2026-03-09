@@ -152,9 +152,8 @@ async def async_register_webhook(
         entry: The config entry.
 
     """
-    webhook.async_register(hass, DOMAIN, "Meraki", webhook_id, async_handle_webhook)
-
     try:
+        webhook.async_register(hass, DOMAIN, "Meraki", webhook_id, async_handle_webhook)
         webhook_url, resolved_id = _resolve_registration_params(
             hass, webhook_id, entry, config_entry_id
         )

@@ -236,7 +236,13 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     else:
         secret = entry.data["webhook_secret"]
 
-    await async_register_webhook(hass, webhook_id, secret, api_client, entry=entry)
+    try:
+        await async_register_webhook(hass, webhook_id, secret, api_client, entry=entry)
+    except Exception as e:
+        _LOGGER.error(
+            "Failed to register webhook. Fast updates disabled, falling back to polling. Error: %s",
+            e,
+        )
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
