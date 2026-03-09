@@ -47,15 +47,24 @@ class MerakiEntity(CoordinatorEntity[T], Generic[T]):
     def available(self) -> bool:
         """Return if entity is available.
 
-        An entity is available if its coordinator has data and the device is online.
+        An entity is available if its coordinator has data and the device is not offline.
         """
         if not self.coordinator.data:
             return False
 
-        # If we have a serial, check if the device is online in the O(1) data
+        # If we have a serial, check if the device is online/alerting/dormant in the O(1) data
         if self._serial:
             device = self.device_data
-            return device is not None and getattr(device, "status", "offline") == "online"
+            if device is None:
+                return False
+
+            # Handle both object and dictionary-style data
+            if isinstance(device, dict):
+                status = device.get("status", "offline")
+            else:
+                status = getattr(device, "status", "offline")
+
+            return status in ("online", "alerting", "dormant")
 
         return True
 

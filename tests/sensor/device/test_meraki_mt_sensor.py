@@ -17,57 +17,62 @@ from custom_components.meraki_ha.types import MerakiDevice
 @pytest.fixture
 def mock_coordinator_mt_sensor(mock_coordinator: MagicMock) -> MagicMock:
     """Fixture for a mocked MerakiDataCoordinator with MT sensor data."""
+    device1 = MerakiDevice.from_dict(
+        {
+            "serial": "mt10-1",
+            "name": "MT10 Sensor",
+            "model": "MT10",
+            "productType": "sensor",
+            "status": "online",
+        }
+    )
+    device2 = MerakiDevice.from_dict(
+        {
+            "serial": "mt30-1",
+            "name": "MT30 Button",
+            "model": "MT30",
+            "productType": "sensor",
+            "status": "online",
+        }
+    )
+
     mock_coordinator.data = {
-        "devices": [
-            MerakiDevice.from_dict(
+        "devices": [device1, device2],
+        "devices_by_serial": {
+            "mt10-1": device1,
+            "mt30-1": device2,
+        },
+        "sensor_readings": {
+            "mt10-1": [
                 {
-                    "serial": "mt10-1",
-                    "name": "MT10 Sensor",
-                    "model": "MT10",
-                    "productType": "sensor",
-                    "readings": [
-                        {
-                            "metric": "temperature",
-                            "temperature": {"celsius": 25.5},
-                        },
-                        {
-                            "metric": "humidity",
-                            "humidity": {"relativePercentage": 50},
-                        },
-                        {
-                            "metric": "battery",
-                            "battery": {"percentage": 95},
-                        },
-                    ],
-                }
-            ),
-            MerakiDevice.from_dict(
+                    "metric": "temperature",
+                    "temperature": {"celsius": 25.5},
+                },
                 {
-                    "serial": "mt30-1",
-                    "name": "MT30 Button",
-                    "model": "MT30",
-                    "productType": "sensor",
-                    "readings": [
-                        {
-                            "metric": "battery",
-                            "battery": {"percentage": 88},
-                        },
-                        {
-                            "metric": "button",
-                            "button": {"pressType": "short"},
-                        },
-                    ],
-                }
-            ),
-        ]
+                    "metric": "humidity",
+                    "humidity": {"relativePercentage": 50},
+                },
+                {
+                    "metric": "battery",
+                    "battery": {"percentage": 95},
+                },
+            ],
+            "mt30-1": [
+                {
+                    "metric": "battery",
+                    "battery": {"percentage": 88},
+                },
+                {
+                    "metric": "button",
+                    "button": {"pressType": "short"},
+                },
+            ],
+        }
     }
 
     # Mock get_device to return the correct device
     def get_device(serial):
-        for d in mock_coordinator.data["devices"]:
-            if d.serial == serial:
-                return d
-        return None
+        return mock_coordinator.data["devices_by_serial"].get(serial)
 
     mock_coordinator.get_device.side_effect = get_device
     return mock_coordinator
