@@ -20,6 +20,7 @@ export default defineConfig({
     // Output directly to the integration's www folder for Home Assistant access
     outDir: resolve(__dirname, '../custom_components/meraki_ha/www'),
     emptyOutDir: false,
+    minify: true,
     rollupOptions: {
       output: {
         entryFileNames: 'meraki-card.js',

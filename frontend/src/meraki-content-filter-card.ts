@@ -11,7 +11,6 @@ interface Config {
   [key: string]: any;
 }
 
-@customElement('meraki-content-filter-card')
 export class MerakiContentFilterCard extends LitElement {
   @property({ attribute: false }) public hass!: HomeAssistant;
   @state() private _config?: Config;
@@ -140,7 +139,6 @@ export class MerakiContentFilterCard extends LitElement {
   `;
 }
 
-@customElement('meraki-content-filter-card-editor')
 export class MerakiContentFilterCardEditor extends LitElement {
   @property({ attribute: false }) public hass!: HomeAssistant;
   @state() private _config?: Config;
@@ -200,6 +198,13 @@ export class MerakiContentFilterCardEditor extends LitElement {
 }
 
 // Global Registration
+if (!customElements.get('meraki-content-filter-card')) {
+  customElements.define('meraki-content-filter-card', MerakiContentFilterCard);
+}
+if (!customElements.get('meraki-content-filter-card-editor')) {
+  customElements.define('meraki-content-filter-card-editor', MerakiContentFilterCardEditor);
+}
+
 (window as any).customCards = (window as any).customCards || [];
 if (!(window as any).customCards.some((c: any) => c.type === 'meraki-content-filter-card')) {
   (window as any).customCards.push({

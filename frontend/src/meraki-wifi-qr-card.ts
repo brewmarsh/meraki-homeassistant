@@ -15,7 +15,6 @@ interface Config {
   name?: string;
 }
 
-@customElement('meraki-wifi-qr-card-editor')
 export class MerakiWifiQrCardEditor extends LitElement {
   @property({ attribute: false }) public hass!: HomeAssistant;
   @state() private _config?: Config;
@@ -151,7 +150,6 @@ export class MerakiWifiQrCardEditor extends LitElement {
   `;
 }
 
-@customElement('meraki-wifi-qr-card')
 export class MerakiWifiQrCard extends LitElement {
   @property({ attribute: false }) public hass!: HomeAssistant;
   @state() private _config?: Config;
@@ -247,6 +245,14 @@ export class MerakiWifiQrCard extends LitElement {
     code { background: var(--secondary-background-color); padding: 2px 4px; border-radius: 4px; font-family: monospace; }
     .version { font-size: 9px; color: var(--secondary-text-color); text-align: right; padding: 0 16px 8px; opacity: 0.4; }
   `;
+}
+
+// Register components
+if (!customElements.get('meraki-wifi-qr-card')) {
+  customElements.define('meraki-wifi-qr-card', MerakiWifiQrCard);
+}
+if (!customElements.get('meraki-wifi-qr-card-editor')) {
+  customElements.define('meraki-wifi-qr-card-editor', MerakiWifiQrCardEditor);
 }
 
 // Register the card
