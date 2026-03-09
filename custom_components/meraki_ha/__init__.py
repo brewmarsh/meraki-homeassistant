@@ -36,6 +36,7 @@ from .core.repositories.camera_repository import CameraRepository
 from .core.repository import MerakiRepository
 from .discovery.service import DeviceDiscoveryService
 from .helpers.migrations import async_cleanup_ghost_devices, async_migrate_entities
+from .intent import async_setup_intents
 from .services import async_setup_services
 from .services.camera_service import CameraService
 from .services.device_control_service import DeviceControlService
@@ -77,6 +78,9 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
 
     # Set up services
     await async_setup_services(hass)
+
+    # Set up intents
+    await async_setup_intents(hass)
 
     return True
 
