@@ -134,10 +134,9 @@ class MerakiMtSensor(MerakiSensor, RestoreSensor):
 
     def _get_readings_list(self) -> list[dict[str, Any]] | None:
         """Return the device readings as a list if valid."""
-        readings = self._device.readings
-        if readings and isinstance(readings, list):
-            return readings
-        return None
+        if not self.coordinator.data or not self._serial:
+            return None
+        return self.coordinator.data.get("sensor_readings", {}).get(self._serial)
 
     def _get_value_from_readings_list(
         self, key: str, readings: list[dict[str, Any]]
@@ -186,9 +185,7 @@ class MerakiMtSensor(MerakiSensor, RestoreSensor):
     @callback
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
-        if self._device.serial and (
-            device := self.coordinator.get_device(self._device.serial)
-        ):
+        if device := self.device_data:
             self._device = device
             self._update_native_value()
 
@@ -218,16 +215,4 @@ class MerakiMtSensor(MerakiSensor, RestoreSensor):
             return True
 
         readings = self._get_readings_list()
-        is_in_readings = readings is not None and self._is_metric_in_readings(readings)
-        if is_in_readings:
-            return True
-
-        _LOGGER.debug(
-            "MT Sensor %s unavailable: native_value=%s, is_in_readings=%s, device_status=%s",
-            self.unique_id,
-            self.native_value,
-            is_in_readings,
-            getattr(self._device, "status", "unknown"),
-        )
-
-        return False
+        return readings is not None and self._is_metric_in_readings(readings)

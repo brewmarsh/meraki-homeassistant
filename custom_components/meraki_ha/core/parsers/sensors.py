@@ -171,4 +171,4 @@ def parse_sensor_data(
     for device in devices:
         _process_single_device(device, readings_map, battery_map)
 
-    return {}
+    return {"sensor_readings": readings_map}

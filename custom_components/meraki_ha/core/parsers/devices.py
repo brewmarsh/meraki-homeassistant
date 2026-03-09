@@ -45,13 +45,6 @@ def parse_device_data(
         if serial in statuses_by_serial:
             status_dict = statuses_by_serial[serial]
 
-            _LOGGER.debug(
-                "Mapping status for %s: extracted_status='%s', raw_payload_keys=%s",
-                device.serial,
-                status_dict.get("status"),
-                list(status_dict.keys())
-            )
-
             for key, value in status_dict.items():
                 # map key to snake_case if needed, otherwise use key as is
                 # (e.g. for 'status')

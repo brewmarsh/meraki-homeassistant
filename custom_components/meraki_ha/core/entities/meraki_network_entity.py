@@ -39,37 +39,28 @@ class MerakiNetworkEntity(BaseMerakiEntity):
         # for network-level entities
         self._attr_has_entity_name = False
 
-        # DEBUG: Keep this from 'fix' branch
-        _LOGGER.debug(
-            "Naming Debug - Entity: %s | Class: %s | has_entity_name: %s "
-            "| _attr_name: %s | Device Identifiers: %s",
-            self.entity_id if hasattr(self, "entity_id") else "New Entity",
-            self.__class__.__name__,
-            getattr(self, "_attr_has_entity_name", "Not Set"),
-            getattr(self, "_attr_name", "None"),
-            self.device_info.get("identifiers")
-            if self.device_info
-            else "NO DEVICE INFO",
-        )
-
     @property
     def device_info(self) -> DeviceInfo:
         """Return device info for the network."""
         # The network is required for this entity, and so is its ID.
-        if self._network is None:
+        network = self.network_data or self._network
+        if network is None:
             raise ValueError("Network cannot be None")
-        if self._network.id is None:
+        if network.id is None:
             raise ValueError("Network ID cannot be None")
 
+        # Handle MerakiNetwork objects or raw dicts
+        network_dict = network.to_dict() if hasattr(network, "to_dict") else network
+
         if info := resolve_device_info(
-            self._network.to_dict(), self.coordinator.config_entry
+            network_dict, self.coordinator.config_entry
         ):
             return info
 
         return DeviceInfo(
-            identifiers={(DOMAIN, self._network.id)},
+            identifiers={(DOMAIN, network.id)},
             name=standardize_device_name(
-                self._network.name or f"Network {self._network.id}"
+                network.name or f"Network {network.id}"
             ),
             manufacturer="Cisco Meraki",
             model="Meraki Network",

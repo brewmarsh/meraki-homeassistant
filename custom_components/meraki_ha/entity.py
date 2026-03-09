@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import logging
-from typing import TYPE_CHECKING, Generic, TypeVar
+from typing import TYPE_CHECKING, Any, Generic, TypeVar
 
 from homeassistant.components.binary_sensor import BinarySensorEntity
 from homeassistant.components.sensor import SensorEntity
@@ -23,31 +23,38 @@ class MerakiEntity(CoordinatorEntity[T], Generic[T]):
     _attr_has_entity_name = True
 
     @property
+    def _serial(self) -> str | None:
+        """Extract the serial number from various possible attributes."""
+        if hasattr(self, "_device") and hasattr(self._device, "serial"):
+            return self._device.serial
+        if hasattr(self, "_device_data") and hasattr(self._device_data, "serial"):
+            return self._device_data.serial
+        if hasattr(self, "_device_serial"):
+            return self._device_serial
+        return getattr(self, "serial", None)
+
+    @property
+    def device_data(self) -> Any | None:
+        """Get the updated device data from the God dictionary."""
+        if not self.coordinator.data or not self._serial:
+            return None
+        return self.coordinator.data.get("devices_by_serial", {}).get(self._serial)
+
+    @property
     def available(self) -> bool:
         """Return if entity is available.
 
-        An entity is available if its coordinator has data. We allow availability
-        if data is present (even if seeded) to prevent 'unavailable' states during
-        initial background synchronization of specialized coordinators.
+        An entity is available if its coordinator has data and the device is online.
         """
-        is_avail = bool(self.coordinator.data)
+        if not self.coordinator.data:
+            return False
 
-        # Log diagnostic information for debugging availability issues
-        if not is_avail:
-            _LOGGER.debug(
-                "Entity %s reports unavailable: coordinator.data is %s",
-                self.unique_id,
-                "None" if self.coordinator.data is None else "empty",
-            )
-        elif isinstance(self.coordinator.data, dict):
-            # For O(1) coordinators, data is often a dict keyed by serial or ID
-            _LOGGER.debug(
-                "Entity %s availability check: data_keys=%s",
-                self.unique_id,
-                list(self.coordinator.data.keys()),
-            )
+        # If we have a serial, check if the device is online in the O(1) data
+        if self._serial:
+            device = self.device_data
+            return device is not None and getattr(device, "status", "offline") == "online"
 
-        return is_avail
+        return True
 
     @property
     def unique_id(self) -> str | None:
