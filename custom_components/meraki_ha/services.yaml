@@ -43,7 +43,7 @@ create_guest_key:
 
 generate_guest_access:
   name: Generate Guest Access
-  description: Generates a temporary Identity PSK for a Meraki SSID for guest access.
+  description: UI-friendly alias for generating temporary guest access.
   fields:
     network_id:
       name: Network ID

@@ -5,16 +5,16 @@
         "title": "Meraki credentials",
         "description": "Enter your Meraki API key and organization ID.",
         "data": {
-          "meraki_api_key": "Meraki API key",
-          "meraki_org_id": "Meraki organization ID"
+          "api_key": "Meraki API key",
+          "organization_id": "Meraki organization ID"
         }
       },
       "reauth": {
         "title": "Re-authenticate Meraki",
         "description": "The API key for organization {org_id} is no longer valid. Please enter a new Meraki API key.",
         "data": {
-          "meraki_api_key": "Meraki API key",
-          "meraki_org_id": "Meraki organization ID"
+          "api_key": "Meraki API key",
+          "organization_id": "Meraki organization ID"
         }
       },
       "reconfigure": {

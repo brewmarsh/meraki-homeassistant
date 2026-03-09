@@ -5,16 +5,16 @@
         "title": "Informations d'identification Meraki",
         "description": "Entrez votre clé API Meraki et votre ID d'organisation.",
         "data": {
-          "meraki_api_key": "Clé API Meraki",
-          "meraki_org_id": "ID d'organisation Meraki"
+          "api_key": "Clé API Meraki",
+          "organization_id": "ID d'organisation Meraki"
         }
       },
       "reauth": {
         "title": "Réauthentifier Meraki",
         "description": "La clé API pour l'organisation {org_id} n'est plus valide. Veuillez entrer une nouvelle clé API Meraki.",
         "data": {
-          "meraki_api_key": "Clé API Meraki",
-          "meraki_org_id": "ID d'organisation Meraki"
+          "api_key": "Clé API Meraki",
+          "organization_id": "ID d'organisation Meraki"
         }
       },
       "reconfigure": {

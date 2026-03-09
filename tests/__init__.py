@@ -28,8 +28,8 @@ async def async_get_config_entry(
     """Create a mock config entry for testing."""
     if data is None:
         data = {
-            "meraki_api_key": MERAKI_TEST_API_KEY,
-            "meraki_org_id": MERAKI_TEST_ORG_ID,
+            "api_key": MERAKI_TEST_API_KEY,
+            "organization_id": MERAKI_TEST_ORG_ID,
         }
 
     config_entry = MockConfigEntry(

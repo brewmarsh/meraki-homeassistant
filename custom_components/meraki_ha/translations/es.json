@@ -5,16 +5,16 @@
         "title": "Credenciales de Meraki",
         "description": "Introduzca su clave de API de Meraki y su ID de organización.",
         "data": {
-          "meraki_api_key": "Clave de API de Meraki",
-          "meraki_org_id": "ID de organización de Meraki"
+          "api_key": "Clave de API de Meraki",
+          "organization_id": "ID de organización de Meraki"
         }
       },
       "reauth": {
         "title": "Reautenticar Meraki",
         "description": "La clave de API para la organización {org_id} ya no es válida. Por favor, introduzca una nueva clave de API de Meraki.",
         "data": {
-          "meraki_api_key": "Clave de API de Meraki",
-          "meraki_org_id": "ID de organización de Meraki"
+          "api_key": "Clave de API de Meraki",
+          "organization_id": "ID de organización de Meraki"
         }
       },
       "reconfigure": {

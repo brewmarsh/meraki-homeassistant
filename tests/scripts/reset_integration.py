@@ -230,8 +230,8 @@ def _build_form_payload(step_id: str, current_step: dict[str, Any]) -> dict[str,
     payload: dict[str, Any] = {}
     if step_id == "user":
         payload = {
-            "meraki_api_key": MERAKI_API_KEY, # <-- Add 'meraki_' prefix
-            "meraki_org_id": MERAKI_ORG_ID,   # <-- Add 'meraki_' prefix
+            "api_key": MERAKI_API_KEY,
+            "organization_id": MERAKI_ORG_ID,
         }
     else:
         # Generic handler for other steps - just take defaults

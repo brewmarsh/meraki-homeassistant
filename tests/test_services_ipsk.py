@@ -48,7 +48,8 @@ async def test_service_registration(hass):
 async def test_generate_guest_access_service_success(
     hass, mock_ipsk_manager, mock_coordinator
 ):
-    """Test successful creation of guest key via generate_guest_access service."""
+    """Test successful creation of guest key via UI-friendly alias service."""
+    # This test verifies the mapping from frontend-style keys to manager-style keys
     await async_setup_services(hass)
 
     service_data = {
@@ -63,10 +64,11 @@ async def test_generate_guest_access_service_success(
         DOMAIN, "generate_guest_access", service_data, blocking=True
     )
 
+    # Verify that 'ssid' maps to 'ssid_number' and 'guest_name' maps to 'name'
     mock_ipsk_manager.create_guest_key.assert_called_once_with(
         config_entry_id="test_entry_id",
         network_id="N_12345",
-        ssid_number="1",  # Coerced to string in the callback for the manager
+        ssid_number="1",  # Coerced to string
         duration_minutes=60,
         name="Service Guest",
         passphrase="secretpassword",
@@ -75,15 +77,16 @@ async def test_generate_guest_access_service_success(
 
 @pytest.mark.asyncio
 async def test_create_guest_key_service_success(hass, mock_ipsk_manager, mock_coordinator):
-    """Test successful creation of guest key via service."""
+    """Test successful creation of guest key via technical service."""
     await async_setup_services(hass)
 
     service_data = {
         "network_id": "N_12345",
         "ssid_number": 1,
         "duration_minutes": 60,
-        "name": "Service Guest",
+        "name": "Technical Guest",
         "passphrase": "secretpassword",
+        "group_policy_id": "GP_987",
     }
 
     await hass.services.async_call(
@@ -93,11 +96,11 @@ async def test_create_guest_key_service_success(hass, mock_ipsk_manager, mock_co
     mock_ipsk_manager.create_guest_key.assert_called_once_with(
         config_entry_id="test_entry_id",
         network_id="N_12345",
-        ssid_number="1",  # Coerced to string in the callback for the manager
+        ssid_number="1",
         duration_minutes=60,
-        name="Service Guest",
+        name="Technical Guest",
         passphrase="secretpassword",
-        group_policy_id=None,
+        group_policy_id="GP_987",
     )
 
 
@@ -121,7 +124,6 @@ async def test_create_guest_key_service_invalid_network(hass, mock_ipsk_manager,
 @pytest.mark.asyncio
 async def test_create_guest_key_service_no_manager(hass, mock_coordinator):
     """Test guest key creation when manager is missing."""
-    # Remove manager if it exists
     if "ipsk_manager" in hass.data[DOMAIN]:
         del hass.data[DOMAIN]["ipsk_manager"]
 
@@ -141,7 +143,7 @@ async def test_create_guest_key_service_no_manager(hass, mock_coordinator):
 @pytest.mark.asyncio
 async def test_create_guest_key_service_safe_iteration(hass, mock_ipsk_manager, mock_coordinator):
     """Test that service call doesn't crash if hass.data[DOMAIN] contains non-dict objects."""
-    # Add a non-dict object to hass.data[DOMAIN] to trigger potential crash
+    # Mimics presence of other managers/objects in the data dictionary
     hass.data[DOMAIN]["services_manager"] = MagicMock()
 
     await async_setup_services(hass)
@@ -152,7 +154,6 @@ async def test_create_guest_key_service_safe_iteration(hass, mock_ipsk_manager, 
         "duration_minutes": 60,
     }
 
-    # Should not raise AttributeError
     await hass.services.async_call(
         DOMAIN, "create_guest_key", service_data, blocking=True
     )

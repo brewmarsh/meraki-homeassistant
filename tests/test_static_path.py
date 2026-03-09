@@ -13,7 +13,7 @@ async def test_static_path_registration(hass: HomeAssistant) -> None:
     """Test that static path registration uses the new async method."""
     entry = MockConfigEntry(
         domain=DOMAIN,
-        data={"meraki_api_key": "fake_key", "meraki_org_id": "fake_org"},
+        data={"api_key": "fake_key", "organization_id": "fake_org"},
         entry_id="test_entry",
     )
     entry.add_to_hass(hass)
