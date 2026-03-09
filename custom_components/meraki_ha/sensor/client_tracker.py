@@ -52,9 +52,10 @@ class ClientTrackerDeviceSensor(CoordinatorEntity, SensorEntity):
 
     def _update_state(self) -> None:
         """Update the state of the sensor."""
-        clients = (
-            self.coordinator.data.get("clients") if self.coordinator.data else None
-        )
+        if not self.coordinator.data:
+            self._attr_native_value = 0
+            return
+        clients = self.coordinator.data.get("clients")
         if isinstance(clients, list):
             self._attr_native_value = len(clients)
         else:
@@ -98,9 +99,12 @@ class MerakiClientSensor(CoordinatorEntity, SensorEntity):
         """Update the state of the sensor."""
         is_online = False
         client_info = {}
-        clients = (
-            self.coordinator.data.get("clients") if self.coordinator.data else None
-        )
+        if not self.coordinator.data:
+            self._attr_native_value = "offline"
+            self._attr_extra_state_attributes = {}
+            self._attr_icon = "mdi:lan-disconnect"
+            return
+        clients = self.coordinator.data.get("clients")
         if isinstance(clients, list):
             for client in clients:
                 if not isinstance(client, dict):

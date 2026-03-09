@@ -136,7 +136,10 @@ class MerakiMtSensor(MerakiSensor, RestoreSensor):
         """Return the device readings as a list if valid."""
         if not self.coordinator.data or not self._serial:
             return None
-        return self.coordinator.data.get("sensor_readings", {}).get(self._serial)
+        readings_map = self.coordinator.data.get("sensor_readings")
+        if not isinstance(readings_map, dict):
+            return None
+        return readings_map.get(self._serial)
 
     def _get_value_from_readings_list(
         self, key: str, readings: list[dict[str, Any]]

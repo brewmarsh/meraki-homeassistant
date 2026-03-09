@@ -102,9 +102,15 @@ def mock_coordinator_with_mt_devices(mock_coordinator: MagicMock) -> MagicMock:
         device = MerakiDevice.from_dict(d)
         for reading in d.get("readings", []):
             _populate_device_reading(device, reading)
+        # Ensure status is online for availability tests
+        device.status = "online"
         devices_objects.append(device)
 
-    mock_coordinator.data = {"devices": devices_objects}
+    mock_coordinator.data = {
+        "devices": devices_objects,
+        "devices_by_serial": {d.serial: d for d in devices_objects},
+        "sensor_readings": {}, # Initialize empty sensor_readings for defensive checks
+    }
     mock_coordinator.devices_by_serial = {d.serial: d for d in devices_objects}
 
     def get_device(serial: str) -> MerakiDevice | None:
