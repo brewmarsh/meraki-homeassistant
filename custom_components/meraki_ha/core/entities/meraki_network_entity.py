@@ -35,6 +35,10 @@ class MerakiNetworkEntity(BaseMerakiEntity):
         # CRITICAL: Keep this from 'beta' branch
         self._network = network
 
+        # Set has_entity_name to False to allow custom prefixed naming as requested
+        # for network-level entities
+        self._attr_has_entity_name = False
+
         # DEBUG: Keep this from 'fix' branch
         _LOGGER.debug(
             "Naming Debug - Entity: %s | Class: %s | has_entity_name: %s "

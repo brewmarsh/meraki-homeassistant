@@ -27,8 +27,8 @@ class VlansListSensor(MerakiNetworkEntity, SensorEntity):
     ) -> None:
         """Initialize the sensor."""
         super().__init__(coordinator, config_entry, network_data)
-        self._attr_unique_id = f"{network_data.id}_vlans"
-        self._attr_name = "VLANs"
+        self._attr_unique_id = f"meraki-network-{network_data.id}-vlans-list"
+        self._attr_name = f"{network_data.name} VLANs"
         self._vlan_list: list[str] = []
         self._attr_native_value = 0
 

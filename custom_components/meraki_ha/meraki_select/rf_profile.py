@@ -41,6 +41,9 @@ class MerakiRFProfileSelect(CoordinatorEntity, SelectEntity):
         self._ssid_number = ssid_data["number"]
         self._ssid_name = ssid_data.get("name")
 
+        # Set has_entity_name to False to allow custom prefixed naming as requested
+        self._attr_has_entity_name = False
+
         self.entity_description = SelectEntityDescription(
             key=f"{self._network_id}ssid{self._ssid_number}_rf_profile",
             name="RF profile",
@@ -49,8 +52,8 @@ class MerakiRFProfileSelect(CoordinatorEntity, SelectEntity):
 
         network = coordinator.get_network(self._network_id)
         network_name = network.name if network else f"Network {self._network_id}"
-        self._attr_name = f"{network_name} SSID {self._ssid_name} RF profile"
-        self._attr_unique_id = f"{self._network_id}ssid{self._ssid_number}_rf_profile"
+        self._attr_name = f"{network_name} {self._ssid_name} RF Profile"
+        self._attr_unique_id = f"meraki-network-{self._network_id}-ssid-{self._ssid_number}-rf-profile"
         self._attr_options: list[str] = []
         self._update_internal_state()
 

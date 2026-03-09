@@ -33,8 +33,8 @@ class TrafficShapingSensor(MerakiNetworkEntity, SensorEntity):
             raise ValueError(f"Network {network_id} not found in coordinator data")
 
         super().__init__(coordinator, config_entry, network)
-        self._attr_unique_id = f"{network_id}-traffic-shaping"
-        self._attr_name = "Traffic Shaping"
+        self._attr_unique_id = f"meraki-network-{network_id}-traffic-shaping"
+        self._attr_name = f"{network.name} Traffic Shaping"
         self._attr_native_value = "Unknown"
 
     @callback

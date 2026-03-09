@@ -22,7 +22,7 @@ class MerakiVpnSelect(CoordinatorEntity, SelectEntity):
     """Representation of a Meraki VPN select entity."""
 
     entity_category = EntityCategory.CONFIG
-    _attr_has_entity_name = True
+    _attr_has_entity_name = False
 
     def __init__(
         self,
@@ -40,7 +40,7 @@ class MerakiVpnSelect(CoordinatorEntity, SelectEntity):
 
         self.entity_description = SelectEntityDescription(
             key=f"vpn_status_{self._network_id}",
-            name="VPN mode",
+            name=f"{network_data.name} VPN Mode",
             icon="mdi:vpn",
         )
 
