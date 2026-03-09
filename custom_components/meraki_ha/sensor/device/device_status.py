@@ -197,13 +197,4 @@ class MerakiDeviceStatusSensor(MerakiSensor):
 
         # Check if the specific device data is available
         device = self.coordinator.get_device(self._device_serial)
-        is_avail = device is not None
-
-        if not is_avail:
-            _LOGGER.debug(
-                "Device Status Sensor %s unavailable: device %s not found in coordinator lookup",
-                self.unique_id,
-                self._device_serial,
-            )
-
-        return is_avail
+        return device is not None
