@@ -1,5 +1,5 @@
 import { LitElement, html, css, PropertyValues } from 'lit';
-import { property, state } from 'lit/decorators.js';
+import { customElement, property, state } from 'lit/decorators.js';
 import { HomeAssistant } from './types/ha';
 import './meraki-content-filter-card';
 import './meraki-wifi-qr-card';
@@ -9,12 +9,15 @@ import { Network, SSID } from './types/meraki';
 import { WsCommand } from './types/websocket';
 import { safeCallWS } from './utils/api';
 
+declare const __VERSION__: string;
+
 interface Config {
   type: string;
   name?: string;
   config_entry_id?: string;
 }
 
+@customElement('meraki-guest-access-card')
 export class MerakiGuestAccessCard extends LitElement {
   @property({ attribute: false }) public hass!: HomeAssistant;
   @state() private _config?: Config;
@@ -115,7 +118,14 @@ export class MerakiGuestAccessCard extends LitElement {
 
   protected render() {
     if (this._isLoading) {
-      return html`<ha-card .header="${this._config?.name || 'Meraki Guest Access'}"><div class="card-content flex justify-center p-8"><ha-circular-progress active></ha-circular-progress></div></ha-card>`;
+      return html`
+        <ha-card .header="${this._config?.name || 'Meraki Guest Access'}">
+          <div class="card-content flex justify-center p-8">
+            <ha-circular-progress active></ha-circular-progress>
+          </div>
+          <div class="version">v${__VERSION__}</div>
+        </ha-card>
+      `;
     }
 
     const filteredSsids = (this._ssids || []).filter(s => s.networkId === this._selectedNetwork);
@@ -147,6 +157,7 @@ export class MerakiGuestAccessCard extends LitElement {
             </ha-button>
           </div>
         </div>
+        <div class="version">v${__VERSION__}</div>
       </ha-card>
     `;
   }
@@ -169,7 +180,6 @@ export class MerakiGuestAccessCard extends LitElement {
     this._success = null;
 
     try {
-      // Logic from 'beta' branch: Maps state correctly to unified backend schema
       await this.hass.callService('meraki_ha', 'generate_guest_access', {
         network_id: this._selectedNetwork,
         ssid_number: parseInt(this._selectedSsid, 10),
@@ -192,15 +202,20 @@ export class MerakiGuestAccessCard extends LitElement {
     ha-select, ha-textfield, ha-button { width: 100%; }
     .flex { display: flex; }
     .justify-center { justify-content: center; }
+    .version {
+      font-size: 10px;
+      color: var(--secondary-text-color);
+      text-align: right;
+      padding: 0 16px 8px;
+      opacity: 0.5;
+    }
   `;
 }
 
-if (!customElements.get('meraki-guest-access-card')) {
-  customElements.define('meraki-guest-access-card', MerakiGuestAccessCard);
-}
-
 declare global {
-  const __VERSION__: string;
+  interface HTMLElementTagNameMap {
+    'meraki-guest-access-card': MerakiGuestAccessCard;
+  }
 }
 
 // Register the card in the Home Assistant Lovelace UI picker
@@ -209,7 +224,7 @@ if (!(window as any).customCards.some((c: any) => c.type === 'meraki-guest-acces
   (window as any).customCards.push({
     type: "meraki-guest-access-card",
     name: "Meraki Guest Access",
-    description: "Generate temporary Wi-Fi guest access keys.",
+    description: `Manage temporary guest WiFi access. Version: ${__VERSION__}`,
     preview: true,
     version: __VERSION__,
   });

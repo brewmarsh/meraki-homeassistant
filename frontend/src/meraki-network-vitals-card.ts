@@ -1,6 +1,8 @@
-import { LitElement, html, css, PropertyValues } from 'lit';
-import { property, state } from 'lit/decorators.js';
+import { LitElement, html, css } from 'lit';
+import { customElement, property, state } from 'lit/decorators.js';
 import { HomeAssistant } from './types/ha';
+
+declare const __VERSION__: string;
 
 interface Config {
   type: string;
@@ -11,6 +13,7 @@ interface Config {
   name?: string;
 }
 
+@customElement('meraki-network-vitals-card')
 export class MerakiNetworkVitalsCard extends LitElement {
   @property({ attribute: false }) public hass!: HomeAssistant;
   @state() private _config?: Config;
@@ -62,6 +65,7 @@ export class MerakiNetworkVitalsCard extends LitElement {
 
     return html`
       <div class="status-item">
+        <ha-state-icon .hass=${this.hass} .stateObj=${stateObj} class="status-icon"></ha-state-icon>
         <svg height="12" width="12">
           <circle cx="6" cy="6" r="6" fill="${colorVar}" />
         </svg>
@@ -95,58 +99,39 @@ export class MerakiNetworkVitalsCard extends LitElement {
             </div>
           </div>
         </div>
+        <div class="version">v${__VERSION__}</div>
       </ha-card>
     `;
   }
 
   static styles = css`
-    :host {
-      display: block;
-    }
-    .card-content {
-      padding: 12px 16px;
-    }
+    :host { display: block; }
+    ha-card { height: 100%; display: flex; flex-direction: column; justify-content: center; }
+    .card-content { padding: 12px 16px; }
     .vitals-container {
       display: flex;
       justify-content: space-between;
       align-items: center;
       flex-wrap: wrap;
-      gap: 8px;
+      gap: 12px;
     }
-    .status-dots {
-      display: flex;
-      align-items: center;
-      flex-wrap: wrap;
-    }
-    .status-item {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      margin-right: 16px;
-    }
-    .status-label {
-      font-size: 14px;
-      font-weight: 500;
-      color: var(--primary-text-color);
-      white-space: nowrap;
-    }
-    .throughput-container {
-      display: flex;
-      align-items: center;
-      gap: 4px;
+    .status-dots { display: flex; align-items: center; flex-wrap: wrap; gap: 16px; }
+    .status-item { display: flex; align-items: center; gap: 8px; }
+    .status-icon { --mdc-icon-size: 16px; color: var(--secondary-text-color); }
+    .status-label { font-size: 14px; font-weight: 500; color: var(--primary-text-color); white-space: nowrap; }
+    .throughput-container { display: flex; align-items: center; gap: 4px; color: var(--secondary-text-color); }
+    .throughput-value { font-size: 14px; font-weight: 600; white-space: nowrap; }
+    .version {
+      font-size: 9px;
       color: var(--secondary-text-color);
-    }
-    .throughput-value {
-      font-size: 14px;
-      font-weight: 500;
-      white-space: nowrap;
-    }
-    ha-icon {
-      --mdc-icon-size: 18px;
+      text-align: right;
+      padding: 0 12px 4px;
+      opacity: 0.4;
     }
   `;
 }
 
+@customElement('meraki-network-vitals-card-editor')
 export class MerakiNetworkVitalsCardEditor extends LitElement {
   @property({ attribute: false }) public hass?: HomeAssistant;
   @state() private _config?: Config;
@@ -156,108 +141,74 @@ export class MerakiNetworkVitalsCardEditor extends LitElement {
   }
 
   protected render() {
-    if (!this.hass || !this._config) {
-      return html``;
-    }
+    if (!this.hass || !this._config) return html``;
 
     return html`
       <div class="card-config">
         <ha-textfield
-          label="Name (Optional)"
+          label="Custom Title"
           .value=${this._config.name || ""}
-          configValue="name"
+          .configValue=${"name"}
           @input=${this._valueChanged}
-          style="width: 100%; margin-bottom: 16px;"
         ></ha-textfield>
         <ha-entity-picker
-          label="Gateway Entity"
+          label="Gateway Status"
           .hass=${this.hass}
-          .value=${this._config.gateway_entity || ""}
-          configValue="gateway_entity"
+          .value=${this._config.gateway_entity}
+          .configValue=${"gateway_entity"}
           @value-changed=${this._valueChanged}
-          allow-custom-entity
-          style="width: 100%; margin-bottom: 16px; display: block;"
         ></ha-entity-picker>
         <ha-entity-picker
-          label="Switch Entity"
+          label="Switch Aggregation"
           .hass=${this.hass}
-          .value=${this._config.switch_entity || ""}
-          configValue="switch_entity"
+          .value=${this._config.switch_entity}
+          .configValue=${"switch_entity"}
           @value-changed=${this._valueChanged}
-          allow-custom-entity
-          style="width: 100%; margin-bottom: 16px; display: block;"
         ></ha-entity-picker>
         <ha-entity-picker
-          label="AP Entity"
+          label="AP Aggregation"
           .hass=${this.hass}
-          .value=${this._config.ap_entity || ""}
-          configValue="ap_entity"
+          .value=${this._config.ap_entity}
+          .configValue=${"ap_entity"}
           @value-changed=${this._valueChanged}
-          allow-custom-entity
-          style="width: 100%; margin-bottom: 16px; display: block;"
         ></ha-entity-picker>
         <ha-entity-picker
-          label="Throughput Entity"
+          label="Throughput Sensor"
           .hass=${this.hass}
-          .value=${this._config.throughput_entity || ""}
-          configValue="throughput_entity"
+          .value=${this._config.throughput_entity}
+          .configValue=${"throughput_entity"}
           @value-changed=${this._valueChanged}
-          allow-custom-entity
-          style="width: 100%; display: block;"
         ></ha-entity-picker>
       </div>
     `;
   }
 
   private _valueChanged(ev: any): void {
-    if (!this._config || !this.hass) return;
+    if (!this._config) return;
     const target = ev.target;
-    const configValue = target.value;
-    const configKey = target.configValue;
+    const configValue = target.configValue;
+    const newValue = ev.detail?.value ?? target.value;
 
-    if (this._config[configKey as keyof Config] === configValue) return;
-
-    const newConfig = {
-      ...this._config,
-      [configKey]: configValue,
-    };
-
-    const event = new CustomEvent("config-changed", {
+    const newConfig = { ...this._config, [configValue]: newValue };
+    this.dispatchEvent(new CustomEvent("config-changed", {
       detail: { config: newConfig },
       bubbles: true,
       composed: true,
-    });
-    this.dispatchEvent(event);
+    }));
   }
 
   static styles = css`
-    .card-config {
-      display: flex;
-      flex-direction: column;
-    }
+    ha-textfield, ha-entity-picker { display: block; margin-bottom: 16px; width: 100%; }
   `;
 }
 
-if (!customElements.get('meraki-network-vitals-card')) {
-  customElements.define('meraki-network-vitals-card', MerakiNetworkVitalsCard);
-}
-
-if (!customElements.get('meraki-network-vitals-card-editor')) {
-  customElements.define('meraki-network-vitals-card-editor', MerakiNetworkVitalsCardEditor);
-}
-
-declare global {
-  const __VERSION__: string;
-}
-
-// Register the card in the Home Assistant Lovelace UI picker
+// Global Registration
 (window as any).customCards = (window as any).customCards || [];
 if (!(window as any).customCards.some((c: any) => c.type === 'meraki-network-vitals-card')) {
   (window as any).customCards.push({
     type: "meraki-network-vitals-card",
     name: "Meraki Network Vitals",
-    description: "Compact horizontal header for Meraki network health and throughput.",
+    description: "Compact horizontal health header.",
     preview: true,
-    version: __VERSION__,
   });
 }
