@@ -10,6 +10,9 @@ on:
 jobs:
   smoke_test:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -63,39 +66,55 @@ jobs:
       - name: Run Smoke Test Probe
         id: probe
         run: |
-          echo "probe_output<<EOF" >> $GITHUB_OUTPUT
-          python scripts/smoke_test_probe.py >> $GITHUB_OUTPUT 2>&1
-          echo "EOF" >> $GITHUB_OUTPUT
+          set -o pipefail
+          if ! python scripts/smoke_test_probe.py 2>&1 | tee probe_output.txt; then
+            echo "FAILED_STEP_NAME=Run Smoke Test Probe" >> $GITHUB_ENV
+            {
+              echo "CI_ERROR_DETAILS<<EOF"
+              tail -n 20 probe_output.txt
+              echo "EOF"
+            } >> $GITHUB_ENV
+            exit 1
+          fi
         env:
           HA_URL: ws://${{ secrets.SMOKE_TEST_SERVER_IP }}:8123/api/websocket
           HA_TOKEN: ${{ secrets.HA_TEST_TOKEN }}
-        continue-on-error: true
 
       - name: Run Log Query
         id: logs
         run: |
-          echo "log_output<<EOF" >> $GITHUB_OUTPUT
-          python scripts/query_logs.py >> $GITHUB_OUTPUT 2>&1
-          echo "EOF" >> $GITHUB_OUTPUT
+          set -o pipefail
+          if ! python scripts/query_logs.py 2>&1 | tee query_logs_output.txt; then
+            echo "FAILED_STEP_NAME=Run Log Query" >> $GITHUB_ENV
+            {
+              echo "CI_ERROR_DETAILS<<EOF"
+              tail -n 20 query_logs_output.txt
+              echo "EOF"
+            } >> $GITHUB_ENV
+            exit 1
+          fi
         env:
           BETTER_STACK_API_TOKEN: ${{ secrets.BETTER_STACK_API_TOKEN }}
-        continue-on-error: true
 
       - name: Create GitHub Issue on Failure
-        if: steps.probe.outcome == 'failure' || steps.logs.outcome == 'failure'
-        run: |
-          gh issue create \
-            --title "Smoke Test Failure: ${{ inputs.branch_name }}" \
-            --body "Smoke test failed for branch: **${{ inputs.branch_name }}**
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            try {
+              const script = require('./scripts/generate_failure_issue.js');
+              await script({github, context});
+            } catch (e) {
+              const title = '🚨 Smoke Test Failure: ' + '${{ inputs.branch_name }}';
+              const failedStep = process.env.FAILED_STEP_NAME || 'Unknown Step';
+              const errorDetails = process.env.CI_ERROR_DETAILS || 'No details captured.';
+              const body = `### ❌ Failed Step: \`${failedStep}\`\n\n### 📋 Error Details\n\`\`\`text\n${errorDetails}\n\`\`\`\n\n[🔗 Run Details](${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId})`;
 
-            **Probe Output:**
-            \`\`\`
-            ${{ steps.probe.outputs.probe_output }}
-            \`\`\`
-
-            **Log Query Output:**
-            \`\`\`
-            ${{ steps.logs.outputs.log_output }}
-            \`\`\`"
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+              await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title: title,
+                body: body,
+                labels: ['bug', 'automated-ci', 'jules']
+              });
+            }

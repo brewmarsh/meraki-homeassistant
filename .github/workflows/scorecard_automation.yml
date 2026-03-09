@@ -4,9 +4,21 @@ on:
   push:
     branches:
       - beta
+    paths-ignore:
+      - 'docs/**'
+      - '**.md'
+      - '**.png'
+      - '**.jpg'
+      - '**.svg'
+      - '**.webp'
+      - 'AGENTS.md'
   schedule:
     - cron: '0 0 * * *'  # Daily at midnight
   workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   scorecard-remediation:

@@ -4,6 +4,18 @@ on:
   push:
     branches:
       - main
+    paths-ignore:
+      - 'docs/**'
+      - '**.md'
+      - '**.png'
+      - '**.jpg'
+      - '**.svg'
+      - '**.webp'
+      - 'AGENTS.md'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   safe-to-prod:

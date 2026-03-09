@@ -2,15 +2,31 @@ name: Agent readiness scorecard
 
 on:
   pull_request:
+    types: [opened, ready_for_review, labeled]
     branches:
       - beta
       - main
+    paths-ignore:
+      - 'docs/**'
+      - '**.md'
+      - '**.png'
+      - '**.jpg'
+      - '**.svg'
+      - '**.webp'
+      - 'AGENTS.md'
   workflow_dispatch:
   schedule:
     - cron: '0 2 * * *'
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 jobs:
   readiness-score:
+    if: >
+      github.event.action != 'labeled' ||
+      github.event.label.name == 'jules-audit'
     runs-on: ubuntu-latest
     permissions:
       contents: read

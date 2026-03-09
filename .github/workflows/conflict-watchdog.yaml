@@ -2,8 +2,28 @@ name: Conflict Watchdog & Auto-Solver
 on:
   push:
     branches: [beta]
+    paths-ignore:
+      - 'docs/**'
+      - '**.md'
+      - '**.png'
+      - '**.jpg'
+      - '**.svg'
+      - '**.webp'
+      - 'AGENTS.md'
   pull_request:
-    types: [synchronize, opened]
+    types: [opened, ready_for_review]
+    paths-ignore:
+      - 'docs/**'
+      - '**.md'
+      - '**.png'
+      - '**.jpg'
+      - '**.svg'
+      - '**.webp'
+      - 'AGENTS.md'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 jobs:
   auto-resolve:
