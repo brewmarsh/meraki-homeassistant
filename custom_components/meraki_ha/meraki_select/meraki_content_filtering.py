@@ -86,7 +86,10 @@ class MerakiContentFilteringSelect(MerakiEntity[MerakiMainCoordinator], SelectEn
         if not content_filtering:
             return None
 
-        blocked_categories = set(content_filtering.get("blockedUrlCategories", []))
+        blocked_categories = {
+            cat["id"] if isinstance(cat, dict) else cat
+            for cat in content_filtering.get("blockedUrlCategories", [])
+        }
 
         # Reverse map to find the best matching profile
         # We look for an exact match first

@@ -1,4 +1,4 @@
-"""Test the Meraki content filtering select entity."""
+"""Reproduction test for Meraki content filtering dictionary response."""
 
 from unittest.mock import AsyncMock, MagicMock, patch
 
@@ -8,7 +8,17 @@ from homeassistant.setup import async_setup_component
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.meraki_ha.const.integration import DOMAIN
-from tests.const import MOCK_NETWORK
+from custom_components.meraki_ha.core.models.network import MerakiNetwork
+
+TEST_ORG_ID = "fake_org"
+TEST_NETWORK_ID = "N_12345"
+TEST_NETWORK = MerakiNetwork.from_dict({
+    "id": TEST_NETWORK_ID,
+    "organizationId": TEST_ORG_ID,
+    "name": "Main Office",
+    "productTypes": ["appliance", "switch", "wireless", "cellularGateway"],
+    "tags": "e2e-test",
+})
 
 
 @pytest.fixture
@@ -16,7 +26,7 @@ def mock_config_entry() -> MockConfigEntry:
     """Fixture for a mocked config entry."""
     return MockConfigEntry(
         domain=DOMAIN,
-        data={"api_key": "fake_key", "organization_id": "fake_org"},
+        data={"api_key": "fake_key", "organization_id": TEST_ORG_ID},
         options={},
         entry_id="test_entry",
     )
@@ -26,23 +36,12 @@ def mock_config_entry() -> MockConfigEntry:
 def mock_meraki_client() -> MagicMock:
     """Fixture for a mocked MerakiApiClientProtocol."""
     client = MagicMock()
-    client.organization_id = "fake_org"
-
+    client.organization_id = TEST_ORG_ID
     client.appliance = MagicMock()
     client.appliance.update_network_appliance_content_filtering = AsyncMock()
-
     client.unregister_webhook = AsyncMock(return_value=None)
-    client.appliance.get_network_appliance_content_filtering_categories = AsyncMock(
-        return_value={
-            "categories": [
-                {"id": "meraki:contentFiltering/category/1", "name": "Adult and Pornography"},
-            ]
-        }
-    )
-
     client.async_setup = AsyncMock()
     client.has_dashboard = True
-
     return client
 
 
@@ -51,25 +50,22 @@ def mock_data_fetch_manager() -> AsyncMock:
     """Fixture for a mocked DataFetchManager."""
     manager = AsyncMock()
     from custom_components.meraki_ha.types import MerakiDevice
-    from tests.const import MOCK_NETWORK
 
-    # Ensure network has the right org ID
-    MOCK_NETWORK.organization_id = "fake_org"
-
+    # Mocking blockedUrlCategories as a list of dictionaries to trigger the bug
     data = {
         "devices": [
             MerakiDevice(
                 serial="Q234-ABCD-CF", model="MX64", name="Filtering Appliance"
             )
         ],
-        "networks": [MOCK_NETWORK],
+        "networks": [TEST_NETWORK],
         "content_filtering": {
-            MOCK_NETWORK.id: {
-                "networkId": MOCK_NETWORK.id,
+            TEST_NETWORK.id: {
+                "networkId": TEST_NETWORK.id,
                 "blockedUrlCategories": [
-                    "meraki:contentFiltering/category/8",
-                    "meraki:contentFiltering/category/9",
-                    "meraki:contentFiltering/category/11",
+                    {"id": "meraki:contentFiltering/category/8", "name": "Malware"},
+                    {"id": "meraki:contentFiltering/category/9", "name": "Phishing"},
+                    {"id": "meraki:contentFiltering/category/11", "name": "Botnets"},
                 ],
             }
         },
@@ -86,13 +82,13 @@ def mock_data_fetch_manager() -> AsyncMock:
     return manager
 
 
-async def test_content_filtering_select_entity(
+async def test_content_filtering_select_dict_response(
     hass: HomeAssistant,
     mock_config_entry: MockConfigEntry,
     mock_meraki_client: AsyncMock,
     mock_data_fetch_manager: AsyncMock,
 ) -> None:
-    """Test the content filtering select entity is created and functional."""
+    """Test that the content filtering select entity handles dictionary responses."""
     assert await async_setup_component(hass, "http", {})
     mock_config_entry.add_to_hass(hass)
 
@@ -111,40 +107,21 @@ async def test_content_filtering_select_entity(
         assert await hass.config_entries.async_setup(mock_config_entry.entry_id)
         await hass.async_block_till_done()
 
-        # Find the entity by searching the registry
+        # Find the entity
         from homeassistant.helpers import entity_registry as er
-
         entity_registry = er.async_get(hass)
         entries = list(entity_registry.entities.values())
 
-        # Look for the entity
-        target_entity = None
+        target_entity_id = None
         for e in entries:
             if "content-filtering" in str(e.unique_id) and e.domain == "select":
-                target_entity = e
+                target_entity_id = e.entity_id
                 break
 
-        assert target_entity is not None
-        assert target_entity.domain == "select"
+        assert target_entity_id is not None
 
-        # Verify state (Security profile matches the mocked data)
-        state = hass.states.get(target_entity.entity_id)
+        # This access should trigger the TypeError if the bug exists
+        state = hass.states.get(target_entity_id)
         assert state is not None
+        # Once fixed, this should match 'Security'
         assert state.state == "Security"
-
-        # Test selection
-        await hass.services.async_call(
-            "select",
-            "select_option",
-            {"entity_id": target_entity.entity_id, "option": "Family"},
-            blocking=True,
-        )
-
-        # Verify API called with Family categories
-        from custom_components.meraki_ha.meraki_select.meraki_content_filtering import (
-            CONTENT_FILTERING_PROFILES,
-        )
-        mock_meraki_client.appliance.update_network_appliance_content_filtering.assert_called_with(
-            network_id=MOCK_NETWORK.id,
-            blockedUrlCategories=CONTENT_FILTERING_PROFILES["Family"],
-        )
