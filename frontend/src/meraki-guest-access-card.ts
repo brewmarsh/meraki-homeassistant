@@ -1,7 +1,5 @@
 import { LitElement, html, css, PropertyValues } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
-
-declare const __VERSION__: string;
 import { HomeAssistant } from './types/ha';
 import './meraki-content-filter-card';
 import './meraki-wifi-qr-card';
@@ -10,6 +8,8 @@ import './meraki-guest-access-card-editor';
 import { Network, SSID } from './types/meraki';
 import { WsCommand } from './types/websocket';
 import { safeCallWS } from './utils/api';
+
+declare const __VERSION__: string;
 
 interface Config {
   type: string;
@@ -123,7 +123,7 @@ export class MerakiGuestAccessCard extends LitElement {
           <div class="card-content flex justify-center p-8">
             <ha-circular-progress active></ha-circular-progress>
           </div>
-          <div class="version">Version: ${__VERSION__}</div>
+          <div class="version">v${__VERSION__}</div>
         </ha-card>
       `;
     }
@@ -157,7 +157,7 @@ export class MerakiGuestAccessCard extends LitElement {
             </ha-button>
           </div>
         </div>
-        <div class="version">Version: ${__VERSION__}</div>
+        <div class="version">v${__VERSION__}</div>
       </ha-card>
     `;
   }
@@ -180,7 +180,6 @@ export class MerakiGuestAccessCard extends LitElement {
     this._success = null;
 
     try {
-      // Logic from 'beta' branch: Maps state correctly to unified backend schema
       await this.hass.callService('meraki_ha', 'generate_guest_access', {
         network_id: this._selectedNetwork,
         ssid_number: parseInt(this._selectedSsid, 10),
@@ -213,6 +212,12 @@ export class MerakiGuestAccessCard extends LitElement {
   `;
 }
 
+declare global {
+  interface HTMLElementTagNameMap {
+    'meraki-guest-access-card': MerakiGuestAccessCard;
+  }
+}
+
 // Register the card in the Home Assistant Lovelace UI picker
 (window as any).customCards = (window as any).customCards || [];
 if (!(window as any).customCards.some((c: any) => c.type === 'meraki-guest-access-card')) {
@@ -221,5 +226,6 @@ if (!(window as any).customCards.some((c: any) => c.type === 'meraki-guest-acces
     name: "Meraki Guest Access",
     description: `Manage temporary guest WiFi access. Version: ${__VERSION__}`,
     preview: true,
+    version: __VERSION__,
   });
 }

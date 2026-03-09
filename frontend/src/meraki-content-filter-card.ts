@@ -1,8 +1,8 @@
-import { LitElement, html, css, PropertyValues } from 'lit';
+import { LitElement, html, css } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
+import { HomeAssistant } from './types/ha';
 
 declare const __VERSION__: string;
-import { HomeAssistant } from './types/ha';
 
 interface Config {
   type: string;
@@ -21,10 +21,8 @@ export class MerakiContentFilterCard extends LitElement {
   }
 
   public setConfig(config: Config): void {
-    if (!config || !config.entity) {
-      throw new Error('Please define a Meraki content filter entity');
-    }
-    this._config = config;
+    // If no entity is provided, we will attempt auto-discovery during render
+    this._config = { ...config };
   }
 
   public static getStubConfig(): Record<string, unknown> {
@@ -34,27 +32,43 @@ export class MerakiContentFilterCard extends LitElement {
     };
   }
 
+  /**
+   * Attempt to find a Meraki Content Filter entity if none is configured
+   */
+  private _getAutoDiscoveredEntity(): string | undefined {
+    if (!this.hass) return undefined;
+    
+    // Search for select entities belonging to the meraki_ha integration
+    return Object.keys(this.hass.states).find(eid => 
+      eid.startsWith('select.') && 
+      (eid.includes('content_filter') || eid.includes('meraki'))
+    );
+  }
+
   protected render() {
-    if (!this._config || !this.hass) {
-      return html``;
-    }
+    if (!this.hass) return html``;
 
-    const entityId = this._config.entity;
-    const stateObj = this.hass.states[entityId];
+    // Use configured entity or fallback to auto-discovery
+    const entityId = this._config?.entity || this._getAutoDiscoveredEntity();
+    const stateObj = entityId ? this.hass.states[entityId] : undefined;
 
-    if (!stateObj) {
+    if (!entityId || !stateObj) {
       return html`
         <ha-card>
           <div class="card-content">
-            <ha-alert alert-type="error">Entity not found: ${entityId}</ha-alert>
+            <ha-alert alert-type="warning" title="Entity Required">
+              Please configure a Meraki Content Filter entity. 
+              If the integration was just added, it may take 60 seconds to appear.
+            </ha-alert>
           </div>
+          <div class="version">v${__VERSION__}</div>
         </ha-card>
       `;
     }
 
     const currentProfile = stateObj.state;
     const profiles = stateObj.attributes.options || ["None", "Security", "Family", "Strict"];
-    const friendlyName = this._config.name || stateObj.attributes.friendly_name || "Content Filter";
+    const friendlyName = this._config?.name || stateObj.attributes.friendly_name || "Content Filter";
 
     return html`
       <ha-card>
@@ -67,24 +81,24 @@ export class MerakiContentFilterCard extends LitElement {
             ${profiles.map((profile: string) => html`
               <div
                 class="profile-button ${currentProfile === profile ? 'active' : ''}"
-                @click="${() => this._handleProfileSelect(profile)}"
+                @click="${() => this._handleProfileSelect(entityId, profile)}"
               >
                 <span class="profile-name">${profile}</span>
               </div>
             `)}
           </div>
         </div>
-        <div class="version">Version: ${__VERSION__}</div>
+        <div class="version">v${__VERSION__}</div>
       </ha-card>
     `;
   }
 
-  private async _handleProfileSelect(profile: string): Promise<void> {
-    if (!this.hass || !this._config) return;
+  private async _handleProfileSelect(entityId: string, profile: string): Promise<void> {
+    if (!this.hass) return;
 
     try {
       await this.hass.callService('select', 'select_option', {
-        entity_id: this._config.entity,
+        entity_id: entityId,
         option: profile,
       });
     } catch (err: any) {
@@ -93,64 +107,35 @@ export class MerakiContentFilterCard extends LitElement {
   }
 
   static styles = css`
-    :host {
-      display: block;
-    }
-    ha-card {
-      height: 100%;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-    }
-    .card-header {
-      padding: 16px 16px 0;
-      font-size: 24px;
-      line-height: 1.2;
-    }
-    .card-content {
-      padding: 16px;
-    }
-    .current-profile {
-      color: var(--secondary-text-color);
-      font-size: 0.9em;
-      margin-bottom: 16px;
-    }
-    .profile-buttons {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-    }
+    :host { display: block; }
+    ha-card { height: 100%; display: flex; flex-direction: column; justify-content: space-between; }
+    .card-header { padding: 16px 16px 0; font-size: 24px; line-height: 1.2; }
+    .card-content { padding: 16px; }
+    .current-profile { color: var(--secondary-text-color); font-size: 0.9em; margin-bottom: 16px; }
+    .profile-buttons { display: flex; flex-wrap: wrap; gap: 8px; }
     .profile-button {
       flex: 1 1 calc(50% - 4px);
       border: 1px solid var(--divider-color);
       border-radius: 8px;
-      padding: 8px;
+      padding: 12px 8px;
       text-align: center;
       cursor: pointer;
       transition: all 0.2s ease-in-out;
       background-color: var(--card-background-color);
     }
-    .profile-button:hover {
-      background-color: var(--secondary-background-color);
-    }
+    .profile-button:hover { background-color: var(--secondary-background-color); }
     .profile-button.active {
       background-color: var(--primary-color);
       color: var(--text-primary-color);
       border-color: var(--primary-color);
     }
-    .profile-button.active .profile-name {
-       color: var(--text-primary-color);
-    }
-    .profile-name {
-      font-weight: bold;
-      display: block;
-    }
+    .profile-name { font-weight: bold; display: block; }
     .version {
-      font-size: 10px;
+      font-size: 9px;
       color: var(--secondary-text-color);
       text-align: right;
-      padding: 0 16px 8px;
-      opacity: 0.5;
+      padding: 4px 12px;
+      opacity: 0.4;
     }
   `;
 }
@@ -165,25 +150,22 @@ export class MerakiContentFilterCardEditor extends LitElement {
   }
 
   protected render() {
-    if (!this.hass || !this._config) {
-      return html``;
-    }
+    if (!this.hass || !this._config) return html``;
 
     return html`
       <div class="card-config">
         <ha-entity-picker
           .hass=${this.hass}
           .value=${this._config.entity}
-          configValue="entity"
+          .configValue=${"entity"}
           .includeDomains=${["select"]}
           @value-changed=${this._valueChanged}
-          allow-custom-entity
-          label="Entity (Required)"
+          label="Content Filter Entity"
         ></ha-entity-picker>
         <ha-textfield
-          label="Name (Optional)"
+          label="Display Name (Optional)"
           .value=${this._config.name || ""}
-          configValue="name"
+          .configValue=${"name"}
           @input=${this._valueChanged}
         ></ha-textfield>
       </div>
@@ -191,59 +173,39 @@ export class MerakiContentFilterCardEditor extends LitElement {
   }
 
   private _valueChanged(ev: any): void {
-    if (!this._config || !this.hass) {
-      return;
-    }
+    if (!this._config) return;
     const target = ev.target;
     const configValue = target.configValue;
+    const newValue = ev.detail?.value ?? target.value;
 
-    if (!configValue) {
-      return;
-    }
-
-    let newValue = target.value;
-    if (ev.detail && ev.detail.value !== undefined) {
-      newValue = ev.detail.value;
-    }
-
-    if (this._config[configValue] === newValue) {
-      return;
-    }
+    if (this._config[configValue] === newValue) return;
 
     const newConfig = { ...this._config };
-    if (newValue === "" || newValue === undefined) {
+    if (!newValue) {
       delete newConfig[configValue];
     } else {
       newConfig[configValue] = newValue;
     }
 
-    this._config = newConfig;
-
-    const event = new CustomEvent("config-changed", {
-      detail: { config: this._config },
+    this.dispatchEvent(new CustomEvent("config-changed", {
+      detail: { config: newConfig },
       bubbles: true,
       composed: true,
-    });
-    this.dispatchEvent(event);
+    }));
   }
 
   static styles = css`
-    .card-config ha-entity-picker,
-    .card-config ha-textfield {
-      display: block;
-      margin-bottom: 16px;
-      width: 100%;
-    }
+    ha-entity-picker, ha-textfield { display: block; margin-bottom: 16px; width: 100%; }
   `;
 }
 
-// Register the card in the Home Assistant Lovelace UI picker
+// Global Registration
 (window as any).customCards = (window as any).customCards || [];
 if (!(window as any).customCards.some((c: any) => c.type === 'meraki-content-filter-card')) {
   (window as any).customCards.push({
     type: "meraki-content-filter-card",
     name: "Meraki Content Filter",
-    description: `Control Meraki Content Filtering profiles. Version: ${__VERSION__}`,
+    description: "Control Meraki Content Filtering profiles.",
     preview: true,
   });
 }

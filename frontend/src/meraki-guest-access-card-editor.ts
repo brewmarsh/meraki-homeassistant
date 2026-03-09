@@ -1,5 +1,5 @@
 import { LitElement, html, css } from 'lit';
-import { customElement, property, state } from 'lit/decorators.js';
+import { property, state } from 'lit/decorators.js';
 import { HomeAssistant } from './types/ha';
 
 interface Config {
@@ -8,7 +8,6 @@ interface Config {
   config_entry_id?: string;
 }
 
-@customElement('meraki-guest-access-card-editor')
 export class MerakiGuestAccessCardEditor extends LitElement {
   @property({ attribute: false }) public hass?: HomeAssistant;
   @state() private _config?: Config;
@@ -73,4 +72,8 @@ export class MerakiGuestAccessCardEditor extends LitElement {
       flex-direction: column;
     }
   `;
+}
+
+if (!customElements.get('meraki-guest-access-card-editor')) {
+  customElements.define('meraki-guest-access-card-editor', MerakiGuestAccessCardEditor);
 }
