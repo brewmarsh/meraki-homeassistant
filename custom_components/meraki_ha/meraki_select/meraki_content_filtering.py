@@ -10,6 +10,7 @@ from homeassistant.exceptions import HomeAssistantError
 from ..coordinators import MerakiMainCoordinator
 from ..core.api import MerakiApiClientProtocol
 from ..core.models.network import MerakiNetwork
+from ..core.utils.data import ensure_list_of_strings
 from ..entity import MerakiEntity
 
 _LOGGER = logging.getLogger(__name__)
@@ -83,13 +84,15 @@ class MerakiContentFilteringSelect(MerakiEntity[MerakiMainCoordinator], SelectEn
         content_filtering = self.coordinator.data["content_filtering"].get(
             self._network_id
         )
-        if not content_filtering:
+        # Safety check: ensure content_filtering is a dictionary and not None
+        if not content_filtering or not isinstance(content_filtering, dict):
             return None
 
-        blocked_categories = {
-            cat["id"] if isinstance(cat, dict) else cat
-            for cat in content_filtering.get("blockedUrlCategories", [])
-        }
+        blocked_categories = set(
+            ensure_list_of_strings(
+                content_filtering.get("blockedUrlCategories", []), key_to_extract="id"
+            )
+        )
 
         # Reverse map to find the best matching profile
         # We look for an exact match first
