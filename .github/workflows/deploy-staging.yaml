@@ -25,7 +25,6 @@ jobs:
       issues: write
 
     env:
-      # Job-Level Environment Variables (Available to ALL steps)
       HA_CONFIG_DIR: '/ha_config'
       DESTINATION_PATH: '/ha_config/custom_components/meraki_ha'
       HA_URL: ${{ secrets.HA_STAGING_URL }}
@@ -117,13 +116,13 @@ jobs:
           set -o pipefail
           sudo tee ${{ env.HA_CONFIG_DIR }}/configuration.yaml <<EOF
           default_config:
+          system_log:
+            max_entries: 500
           logger:
             default: info
             logs:
               custom_components.meraki_ha: debug
           EOF
-          sudo touch ${{ env.HA_CONFIG_DIR }}/home-assistant.log
-          sudo chmod 666 ${{ env.HA_CONFIG_DIR }}/home-assistant.log
 
       - name: Install jq
         run: sudo apt-get update && sudo apt-get install -y jq
@@ -161,38 +160,81 @@ jobs:
           set -o pipefail
           sleep 90
 
-          echo "Attempting to fetch logs via HA API..."
-          if curl -sfS -H "Authorization: Bearer $HA_TOKEN" \
-               -H "Content-Type: application/json" \
-               "$HA_URL/api/error_log" > api_log_fetch.txt; then
-            echo "API log fetch successful. Updating dual-source: ${{ env.HA_CONFIG_DIR }}/home-assistant.log"
-            sudo cp api_log_fetch.txt "${{ env.HA_CONFIG_DIR }}/home-assistant.log"
-            cp api_log_fetch.txt full_ha_log.txt
-          else
-            echo "API log fetch failed. Falling back to physical log file..."
-            if [ -f "${{ env.HA_CONFIG_DIR }}/home-assistant.log" ]; then
-              sudo cat "${{ env.HA_CONFIG_DIR }}/home-assistant.log" > full_ha_log.txt
-            else
-              echo "::error::Log sources exhausted."
-              echo "FAILED_STEP_NAME=Audit logs for errors" >> "$GITHUB_ENV"
-              echo "CI_ERROR_DETAILS=Log file not found and API fetch failed." >> "$GITHUB_ENV"
-              exit 1
-            fi
+          echo "Fetching system logs via Home Assistant WebSocket API..."
+          cat << 'EOF' > fetch_logs.py
+          import asyncio
+          import aiohttp
+          import os
+          import sys
+
+          async def main():
+              url = os.environ.get("HA_URL", "").replace("http://", "ws://").replace("https://", "wss://") + "/api/websocket"
+              token = os.environ.get("HA_TOKEN", "")
+              
+              try:
+                  async with aiohttp.ClientSession() as session:
+                      async with session.ws_connect(url) as ws:
+                          await ws.receive_json() # auth_required
+                          await ws.send_json({"type": "auth", "access_token": token})
+                          auth_ok = await ws.receive_json()
+                          if auth_ok.get("type") != "auth_ok":
+                              print(f"WebSocket Auth Failed: {auth_ok}")
+                              sys.exit(1)
+                          
+                          # Query the system_log component
+                          await ws.send_json({"id": 1, "type": "system_log/list"})
+                          response = await ws.receive_json()
+                          
+                          if not response.get("success"):
+                              print("Failed to fetch system logs")
+                              sys.exit(1)
+                          
+                          logs = response.get("result", [])
+                          errors = []
+                          
+                          # Write the full structured log and filter for Meraki errors
+                          with open("full_ha_log.txt", "w") as full_log:
+                              for e in logs:
+                                  log_entry = f"[{e.get('level')}] {e.get('source')}\n{e.get('message')}\n"
+                                  if e.get("exception"):
+                                      log_entry += f"{e.get('exception')}\n"
+                                  log_entry += "-" * 40 + "\n"
+                                  
+                                  full_log.write(log_entry)
+                                  
+                                  if "meraki" in log_entry.lower() and e.get("level") in ("ERROR", "CRITICAL", "WARNING"):
+                                      errors.append(log_entry)
+                                      
+                          if errors:
+                              with open("meraki_errors.txt", "w") as f:
+                                  for e in errors:
+                                      f.write(e)
+                              print(f"Found {len(errors)} Meraki errors.")
+                          else:
+                              print("No Meraki errors found in the system log.")
+              except Exception as e:
+                  print(f"Error connecting to WebSocket API: {e}")
+                  sys.exit(1)
+
+          if __name__ == "__main__":
+              asyncio.run(main())
+          EOF
+          
+          # Execute the Python script using the existing uv environment
+          if ! uv run --with aiohttp python3 fetch_logs.py; then
+            echo "FAILED_STEP_NAME=Audit logs for errors" >> "$GITHUB_ENV"
+            echo "CI_ERROR_DETAILS=Failed to execute WebSocket log fetch script." >> "$GITHUB_ENV"
+            exit 1
           fi
-
-          sudo chmod 666 "${{ env.HA_CONFIG_DIR }}/home-assistant.log"
-
-          if grep -i -E "traceback|attributeerror|nameerror|typeerror" full_ha_log.txt | grep -i "meraki" > /dev/null; then
-            grep -A 30 -i -E "traceback|attributeerror|nameerror|typeerror" full_ha_log.txt > meraki_errors.txt
-            if [ -s meraki_errors.txt ]; then
-              echo "FAILED_STEP_NAME=Audit logs for errors" >> "$GITHUB_ENV"
-              {
-                echo "CI_ERROR_DETAILS<<EOF"
-                cat meraki_errors.txt
-                echo "EOF"
-              } >> "$GITHUB_ENV"
-              exit 1
-            fi
+          
+          if [ -s meraki_errors.txt ]; then
+            echo "FAILED_STEP_NAME=Audit logs for errors" >> "$GITHUB_ENV"
+            {
+              echo "CI_ERROR_DETAILS<<EOF"
+              cat meraki_errors.txt
+              echo "EOF"
+            } >> "$GITHUB_ENV"
+            exit 1
           fi
 
       - name: Audit Entity States
@@ -218,8 +260,6 @@ jobs:
         run: |
           set -o pipefail
           LOG_FILE=""
-          [ -f "home-assistant.log" ] && LOG_FILE="home-assistant.log"
-          [ -f "${{ env.HA_CONFIG_DIR }}/home-assistant.log" ] && LOG_FILE="${{ env.HA_CONFIG_DIR }}/home-assistant.log"
           [ -f "full_ha_log.txt" ] && LOG_FILE="full_ha_log.txt"
 
           if [ -n "$LOG_FILE" ]; then
