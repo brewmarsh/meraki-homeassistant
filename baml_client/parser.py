@@ -29,6 +29,12 @@ class LlmResponseParser:
         __result__ = self.__options.merge_options(baml_options).parse_response(function_name="ExtractIntent", llm_response=llm_response, mode="request")
         return typing.cast(types.Intent, __result__)
 
+    def RouteMerakiIntent(
+        self, llm_response: str, baml_options: BamlCallOptions = {},
+    ) -> types.MerakiIntentResponse:
+        __result__ = self.__options.merge_options(baml_options).parse_response(function_name="RouteMerakiIntent", llm_response=llm_response, mode="request")
+        return typing.cast(types.MerakiIntentResponse, __result__)
+
 
 
 class LlmStreamParser:
@@ -42,4 +48,10 @@ class LlmStreamParser:
     ) -> stream_types.Intent:
         __result__ = self.__options.merge_options(baml_options).parse_response(function_name="ExtractIntent", llm_response=llm_response, mode="stream")
         return typing.cast(stream_types.Intent, __result__)
+
+    def RouteMerakiIntent(
+        self, llm_response: str, baml_options: BamlCallOptions = {},
+    ) -> stream_types.MerakiIntentResponse:
+        __result__ = self.__options.merge_options(baml_options).parse_response(function_name="RouteMerakiIntent", llm_response=llm_response, mode="stream")
+        return typing.cast(stream_types.MerakiIntentResponse, __result__)
 

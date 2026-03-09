@@ -37,16 +37,30 @@ def get_checks(checks: typing.Dict[CheckName, Check]) -> typing.List[Check]:
 def all_succeeded(checks: typing.Dict[CheckName, Check]) -> bool:
     return all(check.status == "succeeded" for check in get_checks(checks))
 # #########################################################################
-# Generated enums (0)
+# Generated enums (1)
 # #########################################################################
 
+class MerakiIntent(str, Enum):
+    RebootDevice = "RebootDevice"
+    GenerateGuestAccess = "GenerateGuestAccess"
+    CycleSwitchPort = "CycleSwitchPort"
+    GetNetworkStatus = "GetNetworkStatus"
+    Unknown = "Unknown"
+
 # #########################################################################
-# Generated classes (1)
+# Generated classes (2)
 # #########################################################################
 
 class Intent(BaseModel):
     category: str
     confidence: float
+
+class MerakiIntentResponse(BaseModel):
+    intent: MerakiIntent
+    target_device: typing.Optional[str] = None
+    guest_name: typing.Optional[str] = None
+    duration_minutes: typing.Optional[int] = None
+    network_name: typing.Optional[str] = None
 
 # #########################################################################
 # Generated type aliases (0)
