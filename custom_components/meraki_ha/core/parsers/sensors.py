@@ -123,8 +123,6 @@ def _merge_battery_readings(
 def _process_reading(device: MerakiDevice, reading: dict[str, Any]) -> None:
     """Process a single reading for a device."""
     metric = reading.get("metric")
-    if metric == "power":
-        _LOGGER.debug("MT40 Power Reading Payload: %s", reading)
 
     if metric and metric in METRIC_HANDLERS:
         METRIC_HANDLERS[metric](device, reading)
