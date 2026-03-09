@@ -19,6 +19,7 @@ class MerakiBaseDevice:
     wan2_ip: str | None = None
     public_ip: str | None = None
     network_id: str | None = None
+    organization_id: str | None = None
     uplinks: list[dict[str, Any]] = field(default_factory=list)
     status: str | None = None
     firmware: str | None = None
@@ -49,6 +50,7 @@ class MerakiBaseDevice:
             "wan2Ip": self.wan2_ip,
             "publicIp": self.public_ip,
             "networkId": self.network_id,
+            "organizationId": self.organization_id,
             "status": self.status,
             "firmware": self.firmware,
             "productType": self.product_type,
@@ -76,6 +78,7 @@ class MerakiBaseDevice:
             "wan2_ip": data.get("wan2Ip"),
             "public_ip": data.get("publicIp"),
             "network_id": data.get("networkId"),
+            "organization_id": data.get("organizationId"),
             "status": data.get("status"),
             "firmware": data.get("firmware"),
             "product_type": data.get("productType"),
