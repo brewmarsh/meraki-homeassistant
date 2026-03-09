@@ -50,9 +50,9 @@ class MerakiRebootButton(MerakiEntity, ButtonEntity):
     @property
     def available(self) -> bool:
         """Return if entity is available."""
-        return super().available and self.device_data is not None
+        return super().available
 
     async def async_press(self) -> None:
         """Handle the button press."""
-        if self._device.serial:
-            await self._control_service.async_reboot(self._device.serial)
+        if serial := self._serial:
+            await self._control_service.async_reboot(serial)

@@ -10,8 +10,8 @@ from homeassistant.components.switch import SwitchEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import EntityCategory
 from homeassistant.core import callback
-from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
+from ..entity import MerakiEntity
 from ..coordinators import MerakiSwitchCoordinator
 from ..core.models.device import MerakiDevice
 from ..helpers.device_info_helpers import resolve_device_info
@@ -19,7 +19,7 @@ from ..helpers.device_info_helpers import resolve_device_info
 _LOGGER = logging.getLogger(__name__)
 
 
-class MerakiDeviceLEDSwitch(CoordinatorEntity, SwitchEntity):
+class MerakiDeviceLEDSwitch(MerakiEntity, SwitchEntity):
     """Switch for controlling Meraki device LEDs."""
 
     _attr_entity_category = EntityCategory.CONFIG
@@ -47,12 +47,6 @@ class MerakiDeviceLEDSwitch(CoordinatorEntity, SwitchEntity):
         )
         self._update_state()
 
-    def _get_current_device_data(self) -> MerakiDevice | None:
-        """Retrieve the latest data for this switch's device from the coordinator."""
-        if self._device_serial:
-            return self.coordinator.get_device(self._device_serial)
-        return None
-
     @callback
     def _update_state(self) -> None:
         """Update the state of the switch."""
@@ -60,9 +54,21 @@ class MerakiDeviceLEDSwitch(CoordinatorEntity, SwitchEntity):
         if self.unique_id and self.coordinator.is_pending(self.unique_id):
             return
 
-        device = self._get_current_device_data()
-        if device and device.management_interface:
-            self._attr_is_on = device.management_interface.get("ledLights", True)
+        device = self.device_data
+        # Handle both object and dictionary-style device data
+        management_interface = None
+        if device:
+            if isinstance(device, dict):
+                management_interface = device.get("management_interface")
+            else:
+                management_interface = getattr(device, "management_interface", None)
+
+        if management_interface:
+            # Handle both object and dictionary-style management_interface
+            if isinstance(management_interface, dict):
+                self._attr_is_on = management_interface.get("ledLights", True)
+            else:
+                self._attr_is_on = getattr(management_interface, "ledLights", True)
         else:
             self._attr_is_on = True  # Default to on
 
@@ -70,7 +76,7 @@ class MerakiDeviceLEDSwitch(CoordinatorEntity, SwitchEntity):
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
         self._update_state()
-        self.async_write_ha_state()
+        super()._handle_coordinator_update()
 
     async def async_turn_on(self, **kwargs: Any) -> None:
         """Turn the LEDs on."""
@@ -110,6 +116,4 @@ class MerakiDeviceLEDSwitch(CoordinatorEntity, SwitchEntity):
     @property
     def available(self) -> bool:
         """Return if entity is available."""
-        if self.coordinator.data is None:
-            return False
-        return super().available and self._get_current_device_data() is not None
+        return super().available
