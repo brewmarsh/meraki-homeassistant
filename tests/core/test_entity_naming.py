@@ -105,6 +105,6 @@ def test_network_status_naming(mock_coordinator):
     entity.coordinator = mock_coordinator
 
     # Supplemental entities keep a descriptive name
-    assert entity.name == "Uplink status"
+    assert entity.name == "Warehouse Uplink Status"
     # Refactor: Device name is now the Site Controller
     assert entity.device_info["name"] == "Site: Warehouse"
