@@ -59,4 +59,9 @@ This document verifies the state of the codebase against the requirements for th
   - **[VERIFIED]** `baml-py` added to dependencies.
   - **[VERIFIED]** `baml_src` configuration and generation logic established.
 
-This verification confirms the need for the planned refactoring steps. The new requirements (R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14) are now considered part of the standard for this integration.
+- R15: Native Assist Integration:
+  - **[IN PROGRESS]** Implementation of a custom Intent Handler to expose BAML-powered Natural Language Intent Routing to Home Assistant's native Assist conversation pipeline.
+  - **[IN PROGRESS]** Registration of `MerakiSmartCommand` intent.
+  - **[IN PROGRESS]** Mapping of BAML-parsed intents (Reboot, Guest Access, Status) to internal services.
+
+This verification confirms the need for the planned refactoring steps. The new requirements (R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R15) are now considered part of the standard for this integration.

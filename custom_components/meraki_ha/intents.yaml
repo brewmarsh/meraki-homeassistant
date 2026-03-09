@@ -1,0 +1,5 @@
+MerakiSmartCommand:
+  data:
+    sentences:
+      - "[can you] [please] {command}"
+      - "{command}"
