@@ -58,3 +58,6 @@ typing_tasks.json
 
 # Meraki custom card build artifacts
 custom_components/meraki_ha/www/*.js
+
+# BAML
+baml_client/

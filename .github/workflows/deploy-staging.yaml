@@ -136,6 +136,12 @@ jobs:
           python-version: '3.13'
           enable-cache: true
 
+      - name: Generate BAML Client
+        shell: bash
+        run: |
+          set -o pipefail
+          uv run baml-cli generate
+
       - name: Full integration reset (delete > restart > add)
         shell: bash
         run: |
