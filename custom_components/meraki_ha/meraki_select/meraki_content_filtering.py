@@ -6,12 +6,14 @@ from homeassistant.components.select import SelectEntity, SelectEntityDescriptio
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import callback
 from homeassistant.exceptions import HomeAssistantError
+from homeassistant.helpers.device_registry import DeviceInfo
 
 from ..coordinators import MerakiMainCoordinator
 from ..core.api import MerakiApiClientProtocol
 from ..core.models.network import MerakiNetwork
 from ..core.utils.data import ensure_list_of_strings
 from ..entity import MerakiEntity
+from ..helpers.device_info_helpers import resolve_device_info
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -50,7 +52,7 @@ CONTENT_FILTERING_PROFILES: dict[str, list[str]] = {
 class MerakiContentFilteringSelect(MerakiEntity[MerakiMainCoordinator], SelectEntity):
     """Representation of a Meraki Content Filtering select entity."""
 
-    _attr_has_entity_name = True
+    _attr_has_entity_name = False
 
     def __init__(
         self,
@@ -68,12 +70,21 @@ class MerakiContentFilteringSelect(MerakiEntity[MerakiMainCoordinator], SelectEn
 
         self.entity_description = SelectEntityDescription(
             key=f"content_filtering_{self._network_id}",
-            name="Content filtering profile",
+            name=f"{network_data.name} Content Filter",
             icon="mdi:web-filter",
         )
 
+        # Unique ID must include network_id to prevent collision and generic suffixes
         self._attr_unique_id = f"meraki-network-{self._network_id}-content-filtering-profile"
         self._attr_options = list(CONTENT_FILTERING_PROFILES.keys())
+
+    @property
+    def device_info(self) -> DeviceInfo | None:
+        """Return device information to link this entity to the network device."""
+        return resolve_device_info(
+            entity_data=self._network_data,
+            config_entry=self._config_entry,
+        )
 
     @property
     def current_option(self) -> str | None:

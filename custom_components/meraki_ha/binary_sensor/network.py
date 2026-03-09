@@ -44,7 +44,7 @@ class MerakiNetworkStatus(BinarySensorEntity):
     """Representation of a Meraki network status sensor."""
 
     _attr_device_class = BinarySensorDeviceClass.CONNECTIVITY
-    _attr_has_entity_name = True
+    _attr_has_entity_name = False
 
     def __init__(
         self,
@@ -57,8 +57,8 @@ class MerakiNetworkStatus(BinarySensorEntity):
 
         # Ensure network ID is available
         network_id = network.id or "unknown_network"
-        self._attr_unique_id = f"{network_id}-status"
-        self._attr_name = "Uplink status"
+        self._attr_unique_id = f"meraki-network-{network_id}-status"
+        self._attr_name = f"{network.name} Uplink Status"
 
     @property
     def device_info(self) -> DeviceInfo:
