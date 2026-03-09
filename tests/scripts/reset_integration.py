@@ -29,21 +29,6 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
-async def dump_error_log(session: aiohttp.ClientSession) -> None:
-    """Fetch and print the last few lines of the Home Assistant log."""
-    url = f"{HA_URL}/api/error_log"
-    try:
-        async with session.get(url) as resp:
-            if resp.status == 200:
-                text = await resp.text()
-                logger.error("--- Home Assistant Error Log (Last 20 lines) ---")
-                for line in text.splitlines()[-20:]:
-                    print(line)
-                logger.error("--- End of Log ---")
-    except Exception as e:
-        logger.error(f"Error fetching error log: {e}")
-
-
 async def _get_existing_entries(
     session: aiohttp.ClientSession,
 ) -> list[dict[str, Any]] | None:
@@ -201,7 +186,7 @@ async def _check_components_and_safe_mode(
             safe_mode_ok = _verify_safe_mode(data.get("safe_mode", False))
 
             if not components_ok or not safe_mode_ok:
-                await dump_error_log(session)
+                logger.error("Critical components missing or safe mode active. Check CI/WebSocket logs for details.")
                 return False
 
             return True
@@ -371,8 +356,7 @@ async def main() -> None:
         # Step 4: Add
         logger.info("--- Step 4: Add Integration ---")
         if not await add_integration(session):
-            logger.error("Failed to re-add integration.")
-            await dump_error_log(session)
+            logger.error("Failed to re-add integration. Refer to the GitHub Actions WebSocket log capture for details.")
             sys.exit(1)
 
         logger.info("✨ Meraki HA Reset Sequence Complete!")
