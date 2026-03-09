@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 from typing import TYPE_CHECKING, Generic, TypeVar
 
 from homeassistant.components.binary_sensor import BinarySensorEntity
@@ -12,6 +13,8 @@ if TYPE_CHECKING:
     from .coordinators.base import MerakiBaseCoordinator
 
 T = TypeVar("T", bound="MerakiBaseCoordinator")
+
+_LOGGER = logging.getLogger(__name__)
 
 
 class MerakiEntity(CoordinatorEntity[T], Generic[T]):
@@ -27,6 +30,16 @@ class MerakiEntity(CoordinatorEntity[T], Generic[T]):
         if data is present (even if seeded) to prevent 'unavailable' states during
         initial background synchronization of specialized coordinators.
         """
+        if self.coordinator.data:
+            _LOGGER.debug(
+                "Entity %s checking coordinator data keys: %s",
+                self.unique_id,
+                (
+                    list(self.coordinator.data.keys())
+                    if isinstance(self.coordinator.data, dict)
+                    else "Not a dict"
+                ),
+            )
         return bool(self.coordinator.data)
 
     @property

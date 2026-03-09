@@ -61,6 +61,26 @@ class NetworkHandler(BaseHandler):
 
         filtered_networks = []
         for n in networks:
+            n_id = n.id if isinstance(n, MerakiNetwork) else n.get("id")
+            n_org_id = (
+                n.organization_id if isinstance(n, MerakiNetwork) else n.get("organizationId")
+            )
+
+            if n_org_id is None:
+                _LOGGER.warning(
+                    "Network %s missing organization_id, allowing discovery fallback for %s",
+                    n_id,
+                    org_id,
+                )
+                if isinstance(n, MerakiNetwork):
+                    n.organization_id = org_id
+                    filtered_networks.append(n)
+                elif isinstance(n, dict):
+                    n_model = MerakiNetwork.from_dict(n)
+                    n_model.organization_id = org_id
+                    filtered_networks.append(n_model)
+                continue
+
             if isinstance(n, MerakiNetwork) and n.organization_id == org_id:
                 filtered_networks.append(n)
             elif isinstance(n, dict) and n.get("organizationId") == org_id:

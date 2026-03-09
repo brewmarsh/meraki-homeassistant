@@ -60,25 +60,28 @@ class MerakiMainCoordinator(MerakiBaseCoordinator[dict[str, Any]]):
             self.last_successful_data, timespan=timespan
         )
 
-        # Inject organization_id into MerakiNetwork objects if missing
-        if data and "networks" in data:
-            for network in data["networks"]:
-                if hasattr(network, "organization_id") and not network.organization_id:
-                    network.organization_id = self.api.organization_id
-
         if not data:
             _LOGGER.warning("API call to get_all_data returned no data.")
             return self.last_successful_data
 
-        # Explicitly propagate organization_id to all networks
+        # Explicitly propagate organization_id to all networks and devices
+        from ..core.models.device import MerakiDevice
         from ..core.models.network import MerakiNetwork
         org_id = self.api.organization_id
+
         if "networks" in data:
             for network in data["networks"]:
                 if isinstance(network, MerakiNetwork):
                     network.organization_id = org_id
                 elif isinstance(network, dict):
                     network["organizationId"] = org_id
+
+        if "devices" in data:
+            for device in data["devices"]:
+                if isinstance(device, MerakiDevice):
+                    device.organization_id = org_id
+                elif isinstance(device, dict):
+                    device["organizationId"] = org_id
 
         # Process successful update
         (
