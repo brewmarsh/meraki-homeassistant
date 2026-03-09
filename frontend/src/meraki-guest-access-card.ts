@@ -127,15 +127,15 @@ export class MerakiGuestAccessCard extends LitElement {
           ${this._success ? html`<ha-alert alert-type="success" dismissable @alert-dismissed-clicked="${() => (this._success = null)}">${this._success}</ha-alert>` : ''}
 
           <div class="form-container">
-            <ha-select label="Network" .value=${this._selectedNetwork} @closed=${this._handleNetworkChange}>
+            <ha-select label="Network" .value=${this._selectedNetwork} @selected=${this._handleNetworkChange}>
               ${(this._networks || []).map(n => html`<mwc-list-item value="${n.id}">${n.name}</mwc-list-item>`)}
             </ha-select>
 
-            <ha-select label="SSID" .value=${this._selectedSsid} .disabled=${!this._selectedNetwork} @closed=${this._handleSsidChange}>
+            <ha-select label="SSID" .value=${this._selectedSsid} .disabled=${!this._selectedNetwork} @selected=${this._handleSsidChange}>
               ${(filteredSsids || []).map(s => html`<mwc-list-item value="${String(s.number)}">${s.name} (SSID ${s.number})</mwc-list-item>`)}
             </ha-select>
 
-            <ha-select label="Duration" .value=${this._duration} @closed=${this._handleDurationChange}>
+            <ha-select label="Duration" .value=${this._duration} @selected=${this._handleDurationChange}>
               <mwc-list-item value="60">1 Hour</mwc-list-item>
               <mwc-list-item value="1440">24 Hours</mwc-list-item>
             </ha-select>
@@ -153,7 +153,8 @@ export class MerakiGuestAccessCard extends LitElement {
 
   private _handleNetworkChange(e: Event) {
     const target = e.target as any;
-    if (target.value === this._selectedNetwork) return;
+    console.log('Network Selected:', target.value);
+    if (this._selectedNetwork && target.value === this._selectedNetwork) return;
     this._selectedNetwork = target.value;
     this._fetchPolicies(target.value);
   }

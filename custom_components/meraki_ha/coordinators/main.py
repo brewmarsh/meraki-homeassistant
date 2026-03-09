@@ -60,6 +60,12 @@ class MerakiMainCoordinator(MerakiBaseCoordinator[dict[str, Any]]):
             self.last_successful_data, timespan=timespan
         )
 
+        # Inject organization_id into MerakiNetwork objects if missing
+        if data and "networks" in data:
+            for network in data["networks"]:
+                if hasattr(network, "organization_id") and not network.organization_id:
+                    network.organization_id = self.api.organization_id
+
         if not data:
             _LOGGER.warning("API call to get_all_data returned no data.")
             return self.last_successful_data
