@@ -35,32 +35,41 @@ class MerakiEntity(CoordinatorEntity[T], Generic[T]):
 
     @property
     def device_data(self) -> Any | None:
-        """Get the updated device data from the God dictionary."""
+        """Get the updated device data robustly from ANY coordinator structure."""
         if not self.coordinator.data or not self._serial:
             return None
-        devices_map = self.coordinator.data.get("devices_by_serial")
-        if not isinstance(devices_map, dict):
-            return None
-        return devices_map.get(self._serial)
+            
+        data = self.coordinator.data
+        
+        # Scenario 1: God Dictionary (contains "devices_by_serial")
+        if isinstance(data, dict) and "devices_by_serial" in data:
+            devices_map = data["devices_by_serial"]
+            if isinstance(devices_map, dict):
+                return devices_map.get(self._serial)
+                
+        # Scenario 2: Dict directly mapped by serial (common in sub-coordinators)
+        if isinstance(data, dict) and self._serial in data:
+            return data[self._serial]
+            
+        # Scenario 3: Flat list of devices (common in list-based coordinators)
+        if isinstance(data, list):
+            for d in data:
+                if getattr(d, "serial", None) == self._serial or (isinstance(d, dict) and d.get("serial") == self._serial):
+                    return d
+                    
+        return None
 
     @property
     def available(self) -> bool:
-        """Return if entity is available.
-
-        An entity is available if its coordinator has data and the device is not offline.
-        Devices in 'alerting' or 'dormant' states are considered available to ensure
-        sensor data remains visible during non-critical connectivity states.
-        """
+        """Return if entity is available."""
         if not self.coordinator.data:
             return False
 
-        # If we have a serial, check if the device is not offline in the O(1) data
         if self._serial:
             device = self.device_data
             if device is None:
                 return False
 
-            # Handle both object and dictionary-style data defensively
             if isinstance(device, dict):
                 status = device.get("status", "offline")
             else:
@@ -69,26 +78,19 @@ class MerakiEntity(CoordinatorEntity[T], Generic[T]):
             if status is None:
                 return False
 
-            # Normalize to lowercase and allow all non-offline states
             return str(status).lower() in ("online", "alerting", "dormant")
 
         return True
 
     @property
     def unique_id(self) -> str | None:
-        """Return a dynamic unique ID to prevent platform collisions.
-
-        This logic attempts to find a serial number or network/SSID identifier
-        across various internal naming schemes used in the integration.
-        """
+        """Return a dynamic unique ID to prevent platform collisions."""
         serial = self._serial
 
-        # Fallback to Virtual SSID identifier if physical serial is missing
         if not serial and hasattr(self, "_network_id") and hasattr(self, "_ssid_number"):
             serial = f"{self._network_id}ssid{self._ssid_number}"
 
         if serial:
-            # Prefer using the entity description key for unique granularity (e.g., 'serial_voltage')
             if (
                 hasattr(self, "entity_description")
                 and self.entity_description
@@ -96,10 +98,8 @@ class MerakiEntity(CoordinatorEntity[T], Generic[T]):
             ):
                 return f"{serial}_{self.entity_description.key}"
 
-            # Fallback to class name for non-described entities (e.g., 'serial_merakirtspstreamcamera')
             return f"{serial}_{self.__class__.__name__.lower()}"
 
-        # Final fallback to manually assigned _attr_unique_id
         return getattr(self, "_attr_unique_id", None)
 
 
