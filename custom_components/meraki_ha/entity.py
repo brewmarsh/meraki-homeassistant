@@ -63,11 +63,17 @@ class MerakiEntity(CoordinatorEntity[T], Generic[T]):
     def available(self) -> bool:
         """Return if entity is available."""
         if not self.coordinator.data:
+            _LOGGER.warning("[%s] Unavailable: coordinator.data is empty", self.name)
             return False
 
         if self._serial:
             device = self.device_data
             if device is None:
+                _LOGGER.warning(
+                    "[%s] Unavailable: device_data is None for serial %s",
+                    self.name,
+                    self._serial,
+                )
                 return False
 
             # Defensively check status
@@ -82,7 +88,14 @@ class MerakiEntity(CoordinatorEntity[T], Generic[T]):
                 return True
 
             # If status is present, ensure it's not explicitly offline
-            return str(status).lower() in ("online", "alerting", "dormant")
+            is_online = str(status).lower() in ("online", "alerting", "dormant")
+            if not is_online:
+                _LOGGER.warning(
+                    "[%s] Unavailable: status '%s' is explicitly offline",
+                    self.name,
+                    status,
+                )
+            return is_online
 
         return True
         
