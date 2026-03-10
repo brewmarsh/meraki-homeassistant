@@ -81,7 +81,12 @@ class MerakiSignalStrengthSensor(MerakiMtSensor):
     @property
     def native_value(self) -> float | None:
         """Return the state of the sensor."""
-        if self._device.model and self._device.model.startswith("MT"):
+        model_str = (
+            self._device.get("model", "")
+            if isinstance(self._device, dict)
+            else getattr(self._device, "model", "")
+        ) or ""
+        if model_str.startswith("MT"):
             return None
         return cast(float | None, self._attr_native_value)
 

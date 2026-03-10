@@ -63,4 +63,9 @@ class MerakiMt15RefreshDataButton(MerakiEntity, ButtonEntity):
         """Return if the entity is available."""
         # 1. Check if model is MT15
         # 2. Check base availability (which now includes online/alerting/dormant)
-        return (self._device.model or "").startswith("MT15") and super().available
+        model_str = (
+            self._device.get("model", "")
+            if isinstance(self._device, dict)
+            else getattr(self._device, "model", "")
+        ) or ""
+        return model_str.startswith("MT15") and super().available

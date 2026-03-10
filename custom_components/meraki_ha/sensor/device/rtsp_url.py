@@ -5,13 +5,12 @@ from __future__ import annotations
 import logging
 from typing import cast
 
+from custom_components.meraki_ha.const.integration import DOMAIN
 from homeassistant.components.sensor import SensorEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import EntityCategory
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
-
-from custom_components.meraki_ha.const.integration import DOMAIN
 
 from ...coordinators import MerakiMainCoordinator
 from ...core.models.device import MerakiDevice
@@ -50,7 +49,12 @@ class MerakiRtspUrlSensor(CoordinatorEntity, SensorEntity):
         self._attr_icon = "mdi:cctv"
 
         # Set availability based on model
-        if device_data.model and device_data.model.startswith("MV2"):
+        model_str = (
+            getattr(device_data, "model", "")
+            if not isinstance(device_data, dict)
+            else device_data.get("model", "")
+        )
+        if model_str and model_str.startswith("MV2"):
             self._attr_available = False
 
         # Set initial state
@@ -87,13 +91,18 @@ class MerakiRtspUrlSensor(CoordinatorEntity, SensorEntity):
         return DeviceInfo(
             identifiers={(DOMAIN, cast(str, self._device_data.serial))},
             name=format_device_name(self._device_data, self._config_entry.options),
-            model=self._device_data.model,
+            model=getattr(self._device_data, "model", None)
+            if not isinstance(self._device_data, dict)
+            else self._device_data.get("model"),
             manufacturer="Cisco Meraki",
         )
 
     @property
     def entity_registry_enabled_default(self) -> bool:
         """Return if the entity should be enabled by default."""
-        return not (
-            self._device_data.model and self._device_data.model.startswith("MV2")
+        model_str = (
+            getattr(self._device_data, "model", "")
+            if not isinstance(self._device_data, dict)
+            else self._device_data.get("model", "")
         )
+        return not (model_str and model_str.startswith("MV2"))

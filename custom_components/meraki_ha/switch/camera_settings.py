@@ -4,10 +4,9 @@ import dataclasses
 import logging
 from typing import Any, cast
 
+from custom_components.meraki_ha.coordinators import MerakiSwitchCoordinator
 from homeassistant.components.switch import SwitchEntity
 from homeassistant.helpers.device_registry import DeviceInfo
-
-from custom_components.meraki_ha.coordinators import MerakiSwitchCoordinator
 
 from ..core.api import MerakiApiClientProtocol
 from ..core.models.device import MerakiDevice
@@ -125,5 +124,7 @@ class MerakiCameraSettingSwitchBase(
             identifiers={("meraki_ha", cast(str, self._device_data.serial))},
             name=standardize_device_name(self._device_data.name),
             manufacturer="Cisco Meraki",
-            model=self._device_data.model,
+            model=getattr(self._device_data, "model", None)
+            if not isinstance(self._device_data, dict)
+            else self._device_data.get("model"),
         )

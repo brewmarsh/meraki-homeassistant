@@ -5,13 +5,12 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING, Any, cast
 
+from custom_components.meraki_ha.const.integration import DOMAIN
 from homeassistant.components.sensor import SensorEntity, SensorStateClass
 from homeassistant.const import UnitOfPower
 from homeassistant.core import callback
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
-
-from custom_components.meraki_ha.const.integration import DOMAIN
 
 from ...coordinators import MerakiMainCoordinator
 from ...core.utils.naming_utils import format_device_name
@@ -68,7 +67,9 @@ class MerakiPoeUsageSensor(
                 self._device,
                 self.coordinator.config_entry.options,
             ),
-            model=self._device.model,
+            model=getattr(self._device, "model", None)
+            if not isinstance(self._device, dict)
+            else self._device.get("model"),
             manufacturer="Cisco Meraki",
         )
 
