@@ -69,4 +69,9 @@ This document verifies the state of the codebase against the requirements for th
   - **[IN PROGRESS]** Implementation of defensive attribute access in custom Lovelace cards to prevent UI crashes following the backend 'God Module' refactor.
   - **[IN PROGRESS]** Injection of card-level diagnostic logging (`MERAKI CARD DIAGNOSTIC`) in `render()` methods to facilitate real-time debugging of entity state mapping.
 
-This verification confirms the need for the planned refactoring steps. The new requirements (R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R15, R16) are now considered part of the standard for this integration.
+- R17: Native Tap Actions in Vitals Card:
+  - **[VERIFIED]** Upgraded `meraki-network-vitals-card` to support native Home Assistant `tap_action` events.
+  - **[VERIFIED]** Gateway, Switch, and AP pills now support clickable actions, defaulting to `more-info`.
+  - **[VERIFIED]** Added configuration fields to the card editor for managing these tap actions.
+
+This verification confirms the need for the planned refactoring steps. The new requirements (R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R15, R16, R17) are now considered part of the standard for this integration.

@@ -11,6 +11,9 @@ interface Config {
   ap_entity?: string;
   throughput_entity?: string;
   name?: string;
+  gateway_tap_action?: any;
+  switch_tap_action?: any;
+  ap_tap_action?: any;
 }
 
 export class MerakiNetworkVitalsCard extends LitElement {
@@ -25,7 +28,12 @@ export class MerakiNetworkVitalsCard extends LitElement {
     if (!config) {
       throw new Error('Invalid configuration');
     }
-    this._config = config;
+    this._config = {
+      ...config,
+      gateway_tap_action: config.gateway_tap_action || { action: "more-info" },
+      switch_tap_action: config.switch_tap_action || { action: "more-info" },
+      ap_tap_action: config.ap_tap_action || { action: "more-info" },
+    };
   }
 
   public static getStubConfig(): Record<string, unknown> {
@@ -35,10 +43,36 @@ export class MerakiNetworkVitalsCard extends LitElement {
       ap_entity: '',
       throughput_entity: '',
       name: 'Meraki Network Vitals',
+      gateway_tap_action: { action: 'more-info' },
+      switch_tap_action: { action: 'more-info' },
+      ap_tap_action: { action: 'more-info' },
     };
   }
 
-  private _renderStatusDot(entityId: string | undefined, label: string) {
+  private _handleEntityClick(entityId: string | undefined, actionConfig: any) {
+    if (!entityId || !actionConfig) return;
+
+    if (actionConfig.action === 'navigate' && actionConfig.navigation_path) {
+      const event = new CustomEvent('navigate', {
+        detail: { path: actionConfig.navigation_path },
+        bubbles: true,
+        composed: true,
+      });
+      this.dispatchEvent(event);
+    } else {
+      // Default to more-info
+      const event = new CustomEvent('hass-more-info', {
+        detail: { entityId: entityId },
+        bubbles: true,
+        composed: true,
+      });
+      this.dispatchEvent(event);
+    }
+  }
+
+  private _renderStatusDot(entityId: string | undefined, label: string, actionConfig?: any) {
+    const isClickable = !!entityId && !!this.hass.states[entityId];
+
     if (!entityId || !this.hass.states[entityId]) {
       return html`
         <div class="status-item">
@@ -64,7 +98,12 @@ export class MerakiNetworkVitalsCard extends LitElement {
     }
 
     return html`
-      <div class="status-item">
+      <div
+        class="status-item ${isClickable ? 'clickable' : ''}"
+        @click="${() => isClickable ? this._handleEntityClick(entityId, actionConfig) : null}"
+        role="${isClickable ? 'button' : 'presentation'}"
+        tabindex="${isClickable ? '0' : '-1'}"
+      >
         <ha-state-icon .hass=${this.hass} .stateObj=${stateObj} class="status-icon"></ha-state-icon>
         <svg height="12" width="12">
           <circle cx="6" cy="6" r="6" fill="${colorVar}" />
@@ -94,9 +133,9 @@ export class MerakiNetworkVitalsCard extends LitElement {
         <div class="card-content">
           <div class="vitals-container">
             <div class="status-dots">
-              ${this._renderStatusDot(this._config.gateway_entity, 'Gateway')}
-              ${this._renderStatusDot(this._config.switch_entity, 'Switches')}
-              ${this._renderStatusDot(this._config.ap_entity, 'APs')}
+              ${this._renderStatusDot(this._config.gateway_entity, 'Gateway', this._config.gateway_tap_action)}
+              ${this._renderStatusDot(this._config.switch_entity, 'Switches', this._config.switch_tap_action)}
+              ${this._renderStatusDot(this._config.ap_entity, 'APs', this._config.ap_tap_action)}
             </div>
             <div class="throughput-container">
               <ha-icon icon="mdi:swap-vertical"></ha-icon>
@@ -122,6 +161,7 @@ export class MerakiNetworkVitalsCard extends LitElement {
     }
     .status-dots { display: flex; align-items: center; flex-wrap: wrap; gap: 16px; }
     .status-item { display: flex; align-items: center; gap: 8px; }
+    .status-item.clickable { cursor: pointer; }
     .status-icon { --mdc-icon-size: 16px; color: var(--secondary-text-color); }
     .status-label { font-size: 14px; font-weight: 500; color: var(--primary-text-color); white-space: nowrap; }
     .throughput-container { display: flex; align-items: center; gap: 4px; color: var(--secondary-text-color); }
@@ -183,15 +223,41 @@ export class MerakiNetworkVitalsCardEditor extends LitElement {
           .configValue=${"throughput_entity"}
           @value-changed=${this._valueChanged}
         ></ha-entity-picker>
+        <ha-textfield
+          label="Gateway Tap Action"
+          .value=${this._config.gateway_tap_action?.action || "more-info"}
+          .configValue=${"gateway_tap_action"}
+          @input=${this._valueChanged}
+        ></ha-textfield>
+        <ha-textfield
+          label="Switch Tap Action"
+          .value=${this._config.switch_tap_action?.action || "more-info"}
+          .configValue=${"switch_tap_action"}
+          @input=${this._valueChanged}
+        ></ha-textfield>
+        <ha-textfield
+          label="AP Tap Action"
+          .value=${this._config.ap_tap_action?.action || "more-info"}
+          .configValue=${"ap_tap_action"}
+          @input=${this._valueChanged}
+        ></ha-textfield>
       </div>
     `;
   }
 
   private _valueChanged(ev: any): void {
     if (!this._config) return;
-    const target = ev.target;
+    const target = ev.target as any;
     const configValue = target.configValue;
-    const newValue = ev.detail?.value ?? target.value;
+    let newValue = ev.detail?.value ?? target.value;
+
+    if (configValue && configValue.endsWith('_tap_action')) {
+      if (newValue.startsWith('/')) {
+        newValue = { action: 'navigate', navigation_path: newValue };
+      } else {
+        newValue = { action: newValue };
+      }
+    }
 
     const newConfig = { ...this._config, [configValue]: newValue };
     this.dispatchEvent(new CustomEvent("config-changed", {
