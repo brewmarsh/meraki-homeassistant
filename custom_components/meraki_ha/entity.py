@@ -36,28 +36,28 @@ class MerakiEntity(CoordinatorEntity[T], Generic[T]):
     @property
     def device_data(self) -> Any | None:
         """Get the updated device data robustly from ANY coordinator structure."""
+        # The ultimate fallback: always return our cached device if search fails!
+        fallback_device = getattr(self, "_device", None)
+
         if not self.coordinator.data or not self._serial:
-            return None
+            return fallback_device
             
         data = self.coordinator.data
         
-        # Scenario 1: God Dictionary (contains "devices_by_serial")
         if isinstance(data, dict) and "devices_by_serial" in data:
             devices_map = data["devices_by_serial"]
-            if isinstance(devices_map, dict):
+            if isinstance(devices_map, dict) and self._serial in devices_map:
                 return devices_map.get(self._serial)
                 
-        # Scenario 2: Dict directly mapped by serial (common in sub-coordinators)
         if isinstance(data, dict) and self._serial in data:
             return data[self._serial]
             
-        # Scenario 3: Flat list of devices
         if isinstance(data, list):
             for d in data:
                 if getattr(d, "serial", None) == self._serial or (isinstance(d, dict) and d.get("serial") == self._serial):
                     return d
                     
-        return None
+        return fallback_device
 
     @property
     def available(self) -> bool:
@@ -78,7 +78,6 @@ class MerakiEntity(CoordinatorEntity[T], Generic[T]):
             if status is None:
                 return False
 
-            # Allow alerting and dormant devices to remain available
             return str(status).lower() in ("online", "alerting", "dormant")
 
         return True
