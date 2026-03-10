@@ -82,10 +82,7 @@ class _MerakiPortSwitchBase(MerakiEntity, SwitchEntity, ABC):
     @property
     def available(self) -> bool:
         """Return True if entity is available."""
-        if self.coordinator.data is None:
-            return False
-        # Entity is available if the underlying Meraki device is online.
-        return self._device.status == "online"
+        return super().available
 
     @callback
     def _handle_coordinator_update(self) -> None:

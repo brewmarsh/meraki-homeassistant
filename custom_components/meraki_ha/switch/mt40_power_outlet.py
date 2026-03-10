@@ -143,6 +143,4 @@ class MerakiMt40PowerOutlet(
     @property
     def available(self) -> bool:
         """Return if the entity is available."""
-        if not super().available:
-            return False
-        return self._device_info.outlet_status is not None
+        return super().available and self._device_info.outlet_status is not None

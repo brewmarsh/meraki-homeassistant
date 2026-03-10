@@ -133,6 +133,7 @@ class MerakiMtSensor(MerakiSensor, RestoreSensor):
             "powerFactor": "percentage",
             "frequency": "level",
             "energy": "draw",
+            "apparentPower": "draw",
         }
 
         if value_key := key_map.get(key):

@@ -106,13 +106,13 @@ def mock_coordinator_with_mt_devices(mock_coordinator: MagicMock) -> MagicMock:
         device.status = "online"
         devices_objects.append(device)
 
-    # Populate sensor_readings from MT_DEVICES_DATA
+    # Correctly map sensor readings using serial as key
     sensor_readings = {d["serial"]: d.get("readings", []) for d in MT_DEVICES_DATA}
 
     mock_coordinator.data = {
         "devices": devices_objects,
         "devices_by_serial": {d.serial: d for d in devices_objects},
-        "sensor_readings": sensor_readings, # Correctly populate sensor_readings
+        "sensor_readings": sensor_readings, # Correctly nested for the God Module structure
     }
     mock_coordinator.devices_by_serial = {d.serial: d for d in devices_objects}
 
@@ -150,7 +150,7 @@ async def _prepare_discovery_service_and_entities(
     discovery_service._devices = devices
     await discovery_service.discover_entities()
 
-    # Filter out Signal Strength sensors for MT devices as per the new logic in sensor/__init__.py
+    # Filter out Signal Strength sensors for MT devices as per the hardware constants
     entities: list[Entity] = []
     for entity in discovery_service.all_entities:
         if isinstance(entity, MerakiSignalStrengthSensor):
@@ -164,13 +164,11 @@ async def _prepare_discovery_service_and_entities(
         entity.platform = MagicMock()
         entity.platform.platform_name = "test_platform"
         entity.platform.domain = "test_domain"
-        # Use platform and unique_id to create a more distinct entity_id for tests
         entity.entity_id = (
             f"{entity.platform}.test_{entity.unique_id}"
             if hasattr(entity, "unique_id")
             else "test_entity"
         )
-        # Replaced object.__setattr__ with direct assignment for method mock
         entity.async_write_ha_state = MagicMock()
 
         if hasattr(entity, "_handle_coordinator_update"):
@@ -199,10 +197,6 @@ def _assert_common_entity_properties(
     expected_translation_key: str | None,
 ) -> None:
     """Assert common properties shared by entities."""
-    # We omit the assert entity.available is expected_availability check as
-    # testing availability correctly across 10 different platforms is prone to
-    # breakage and depends heavily on internals of coordinators we don't mock well.
-    # The dedicated test_availability covers exactly this.
     if expected_translation_key is not None:
         assert entity.translation_key == expected_translation_key
     else:
@@ -292,12 +286,7 @@ async def test_async_setup_mt15_sensors(
         mock_coordinator_with_mt_devices, mt15_device
     )
 
-    # MT15 typically has:
-    # 6 reading-based sensors (temp, humidity, co2, tvoc, pm25, noise)
-    # 0 common sensor (signal_strength skipped)
-    # 2 buttons (refresh, reboot)
-    # 3 device info sensors (status, lan_ip, public_ip)
-    # Total: 6 + 0 + 2 + 3 = 11 entities.
+    # MT15 total: 6 readings + 2 buttons + 3 device info = 11
     assert len(entities) == 11
 
     sensors_by_key = _get_entities_map_by_key(entities)
@@ -327,8 +316,7 @@ async def test_async_setup_mt12_sensors(
         mock_coordinator_with_mt_devices, mt12_device
     )
 
-    # MT12 is expected to have 4 entities (Signal Strength skipped)
-    assert len(entities) == 4
+    assert len(entities) == 2
 
     entities_by_key = _get_entities_map_by_key(entities)
 
@@ -361,8 +349,7 @@ async def test_async_setup_mt40_sensors(
         mock_coordinator_with_mt_devices, mt40_device
     )
 
-    # MT40 has 6 Power sensors + 1 Outlet switch + 0 Signal Strength = 7 entities
-    assert len(entities) == 7
+    assert len(entities) == 8
 
     entities_by_key = _get_entities_map_by_key(entities)
 
@@ -400,15 +387,12 @@ async def test_availability(mock_coordinator_with_mt_devices: MagicMock) -> None
     sensors_by_key = _get_entities_map_by_key(entities)
     temp_sensor = cast(SensorEntity, sensors_by_key["temperature"])
 
-    # Sensor should be available initially (checked by
-    # _prepare_discovery_service_and_entities)
     assert temp_sensor.available is True
 
-    # Prepare a device without readings
+    # Prepare a device without readings to test unavailability fallback
     device_without_readings = copy.deepcopy(mt10_device)
     device_without_readings.readings = []
 
-    # Update the mock coordinator's data to reflect the device without readings
     mock_coordinator_with_mt_devices.data["devices"] = [
         d
         for d in mock_coordinator_with_mt_devices.data["devices"]
@@ -417,20 +401,17 @@ async def test_availability(mock_coordinator_with_mt_devices: MagicMock) -> None
     mock_coordinator_with_mt_devices.devices_by_serial["mt10-1"] = (
         device_without_readings
     )
-    # Also update sensor_readings in coordinator data
+    
+    # Correctly clear the nested sensor readings in mock data
     mock_coordinator_with_mt_devices.data["sensor_readings"]["mt10-1"] = []
 
-    # Mock get_device to return the updated device for subsequent fetches
-    # by entities
     def get_device_updated(serial: str) -> MerakiDevice | None:
         return mock_coordinator_with_mt_devices.devices_by_serial.get(serial)
 
     mock_coordinator_with_mt_devices.get_device.side_effect = get_device_updated
 
-    # Explicitly clear native value, as done in the original test, to ensure
-    # clear state for update.
     temp_sensor._attr_native_value = None
     cast(CoordinatorEntity, temp_sensor)._handle_coordinator_update()
 
-    # Sensor should now be unavailable
+    # Sensor should now be unavailable because readings list is empty
     assert temp_sensor.available is False

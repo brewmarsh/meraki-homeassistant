@@ -32,8 +32,15 @@ class MerakiMt15RefreshDataButton(MerakiEntity, ButtonEntity):
         self._device = device
         self._config_entry = config_entry
         self._meraki_client = meraki_client
-        self._attr_unique_id = f"{self._device.serial}-refresh"
+        self._serial = device.serial
+        self._attr_unique_id = f"{self._serial}-refresh"
         self._attr_name = "Refresh data"
+
+    @property
+    def device_data(self):
+        """Get the updated device data from the God dictionary."""
+        # This ensures the button uses the new O(1) traversal path
+        return self.coordinator.data.get("devices_by_serial", {}).get(self._serial)
 
     @property
     def unique_id(self) -> str | None:
@@ -47,19 +54,18 @@ class MerakiMt15RefreshDataButton(MerakiEntity, ButtonEntity):
 
     async def async_press(self) -> None:
         """Handle the button press."""
-        serial = self._device.serial
-        _LOGGER.info("MT15 refresh data button pressed for %s", serial)
+        _LOGGER.info("MT15 refresh data button pressed for %s", self._serial)
         try:
             await self._meraki_client.sensor.create_device_sensor_command(
-                serial=str(serial), operation="refreshData"
+                serial=str(self._serial), operation="refreshData"
             )
-            _LOGGER.debug("Successfully triggered refresh for MT15 sensor %s", serial)
+            _LOGGER.debug("Successfully triggered refresh for MT15 sensor %s", self._serial)
         except Exception as e:
-            _LOGGER.error("Error refreshing MT15 data for %s: %s", serial, e)
+            _LOGGER.error("Error refreshing MT15 data for %s: %s", self._serial, e)
 
     @property
     def available(self) -> bool:
         """Return if the entity is available."""
-        if not super().available:
-            return False
-        return (self._device.model or "").startswith("MT15")
+        # 1. Check if model is MT15
+        # 2. Check base availability (which now includes online/alerting/dormant)
+        return (self._device.model or "").startswith("MT15") and super().available
