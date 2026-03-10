@@ -3,9 +3,9 @@
 from unittest.mock import AsyncMock, patch
 
 import pytest
-from homeassistant.core import HomeAssistant
 
 from custom_components.meraki_ha.webhook import async_register_webhook
+from homeassistant.core import HomeAssistant
 
 
 @pytest.fixture
@@ -30,4 +30,5 @@ async def test_async_register_webhook_fault_tolerance(
         )
 
     assert mock_ha_register.called
-    # It should have caught the exception and logged it (we can't easily check logs here without more setup)
+    # It should have caught the exception and logged it
+    # (we can't easily check logs here without more setup)

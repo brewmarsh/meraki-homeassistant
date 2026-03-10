@@ -54,6 +54,7 @@ class MerakiMtSensor(MerakiSensor, RestoreSensor):
         return value if value is not UNDEFINED else None
 
     async def async_added_to_hass(self) -> None:
+        """Handle entity which will be added."""
         await super().async_added_to_hass()
         if (last_sensor_data := await self.async_get_last_sensor_data()) is not None:
             value = last_sensor_data.native_value
@@ -65,6 +66,7 @@ class MerakiMtSensor(MerakiSensor, RestoreSensor):
 
     @property
     def device_info(self) -> DeviceInfo | None:
+        """Return the device info."""
         return resolve_device_info(self._device, self.coordinator.config_entry)
 
     def _get_readings_list(self) -> list[dict[str, Any]] | None:
@@ -157,10 +159,12 @@ class MerakiMtSensor(MerakiSensor, RestoreSensor):
 
     @property
     def native_value(self) -> str | float | bool | None:
+        """Return the native value of the sensor."""
         return self._attr_native_value
 
     @property
     def available(self) -> bool:
+        """Return if entity is available."""
         if not super().available:
             return False
         if self.native_value is not None:

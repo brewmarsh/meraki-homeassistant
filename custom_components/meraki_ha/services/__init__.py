@@ -6,11 +6,11 @@ import logging
 from typing import TYPE_CHECKING
 
 import voluptuous as vol
+
+from custom_components.meraki_ha.const.integration import DOMAIN
 from homeassistant.core import HomeAssistant, ServiceCall
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers import config_validation as cv
-
-from custom_components.meraki_ha.const.integration import DOMAIN
 
 if TYPE_CHECKING:
     from .ipsk_manager import IPSKManager
@@ -117,7 +117,7 @@ async def async_setup_services(hass: HomeAssistant) -> None:
 
 
 def _find_config_entry_by_network(hass: HomeAssistant, network_id: str) -> str | None:
-    """Helper to find which config entry manages a specific network."""
+    """Find which config entry manages a specific network."""
     for entry_id, entry_data in hass.data[DOMAIN].items():
         if not isinstance(entry_data, dict):
             continue

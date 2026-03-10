@@ -4,10 +4,9 @@ import logging
 from dataclasses import asdict, is_dataclass
 from typing import Any
 
+from custom_components.meraki_ha.const.integration import DOMAIN
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.device_registry import DeviceEntryType, DeviceInfo
-
-from custom_components.meraki_ha.const.integration import DOMAIN
 
 from ..core.models.device import MerakiDevice
 from ..core.models.network import MerakiNetwork
@@ -93,7 +92,8 @@ def _resolve_physical_device_info(data: dict[str, Any]) -> DeviceInfo | None:
 
         # Identify Camera Logic: strictly enforce [Camera] prefix for all camera models
         is_camera = product_type.lower() == "camera" or model.startswith(("MV", "CS-"))
-        # Identify Sensor Logic: strictly enforce [Sensor] prefix for all MT sensor models
+        # Identify Sensor Logic: strictly enforce [Sensor] prefix for
+        # all MT sensor models
         is_sensor = product_type.lower() == "sensor" or model.startswith("MT")
 
         if is_camera:

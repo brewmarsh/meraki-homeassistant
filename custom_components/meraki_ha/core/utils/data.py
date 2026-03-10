@@ -10,7 +10,7 @@ def ensure_list_of_strings(
 
     If an element is a dictionary, extract the value of key_to_extract.
     If the element is already a string, keep it.
-    If the element is None or of another type, ignore it to maintain a clean string list.
+    If the element is None or of another type, ignore it to maintain a clean list.
     """
     if not data or not isinstance(data, list):
         return []

@@ -58,13 +58,13 @@ class _MerakiPortSwitchBase(MerakiEntity, SwitchEntity, ABC):
         port_id_str = self._get_port_identifier()
         if not port_id_str:
             _LOGGER.error(
-                "Failed to initialize %s entity: Port identifier is missing in data %s. "
+                "Failed to init %s entity: Port ID missing in data %s. "
                 "This entity might not function correctly.",
                 self.__class__.__name__,
                 port_data,
             )
-            # Ensure the key is always a string, even if identifier is missing.
-            # This entity might not be fully functional but prevents errors during setup.
+            # Ensure key is a string, even if identifier is missing.
+            # Entity might not be fully functional but prevents setup errors.
             port_id_str = "unknown"
 
         self.entity_description = SwitchEntityDescription(
@@ -122,7 +122,7 @@ class _MerakiPortSwitchBase(MerakiEntity, SwitchEntity, ABC):
                 return
 
         _LOGGER.warning(
-            "Port %s not found in updated data for device %s. It may have been removed or changed.",
+            "Port %s not found in data for %s. It may have been removed or changed.",
             current_port_id,
             self._device.serial,
         )
@@ -139,7 +139,7 @@ class _MerakiPortSwitchBase(MerakiEntity, SwitchEntity, ABC):
         self._attr_is_on = self._port.get("enabled", False)
 
     async def _toggle_port(self, enabled: bool) -> None:
-        """Execute a port enable/disable command with optimistic update and error handling."""
+        """Execute a port toggle command with optimistic update."""
         port_id = self._get_port_identifier()
         if not self._device.serial or not port_id:
             _LOGGER.error(
@@ -244,9 +244,9 @@ class MerakiAppliancePortSwitch(_MerakiPortSwitchBase):
         super().__init__(
             coordinator,
             device,
-            port.to_dict(),  # Pass dictionary representation to base
+            port.to_dict(),
             config_entry,
-            entity_key_prefix="port_switch",  # Keep consistent with switch port unique IDs
+            entity_key_prefix="port_switch",
         )
 
     def _get_device_ports(self) -> list[Any]:

@@ -135,7 +135,7 @@ class DataFetchManager:
     def _distribute_networks(
         self, data: dict[str, Any], batch_data: dict[str, Any]
     ) -> None:
-        """Extract and instantiate networks with guaranteed organization_id propagation."""
+        """Extract and instantiate networks with guaranteed org_id propagation."""
         from ..models.network import MerakiNetwork
 
         networks_raw = batch_data.get("networks") or []
@@ -150,7 +150,8 @@ class DataFetchManager:
         processed_networks = []
         for n in networks_raw:
             if isinstance(n, dict):
-                # Backfill organizationId if the API omitted it but we have it in context
+                # Backfill organizationId if the API omitted it but we
+                # have it in context
                 if org_id and not n.get("organizationId"):
                     n["organizationId"] = org_id
                 processed_networks.append(MerakiNetwork.from_dict(n))

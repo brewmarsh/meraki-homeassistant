@@ -17,6 +17,7 @@ from typing import Any, cast
 import braintrust
 import meraki
 from dotenv import load_dotenv
+
 from homeassistant.core import HomeAssistant
 
 from ...core.errors import (
@@ -95,7 +96,8 @@ class MerakiClient:
         self._disabled_features: set[str] = set()
         self._enable_vpn_management = False
 
-        # Action 2: Initialize endpoint handlers to prevent AttributeErrors in config flow
+        # Action 2: Initialize endpoint handlers to prevent AttributeErrors
+        # in config flow
         self.organization = OrganizationEndpoints(self)
         self.appliance = ApplianceEndpoints(self, self._hass)
         self.camera = CameraEndpoints(self)
@@ -239,7 +241,7 @@ class MerakiClient:
         return cast(dict[str, Any], await self.appliance.reboot_device(serial))
 
     async def get_organizations(self) -> list[dict[str, Any]]:
-        """Action 4: Fetch organizations using the composed handler."""
+        """Fetch organizations using the composed handler (Action 4)."""
         return await self.organization.get_organizations()
 
     async def async_get_switch_port_statuses(

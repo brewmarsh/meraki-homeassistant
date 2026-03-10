@@ -62,7 +62,7 @@ def process_single_result(key: str, result: Any, label: str) -> Any:
         for silent_msg in SILENT_ERRORS:
             if silent_msg in error_msg:
                 _LOGGER.debug(
-                    "Skipping %s: Configuration requirement not met in Meraki Dashboard.",
+                    "Skipping %s: Configuration requirement not met in Dashboard.",
                     key,
                 )
                 is_silent = True

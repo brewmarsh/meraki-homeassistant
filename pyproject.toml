@@ -46,6 +46,11 @@ ignore = ["D100", "D104", "D107", "D211", "D212"]
 [tool.ruff.lint.pydocstyle]
 convention = "numpy"
 
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["E501", "D101", "D102", "D103", "D401"]
+"scripts/*" = ["E501", "D101", "D102", "D103", "D401"]
+"verify_all_imports.py" = ["D103"]
+
 
 [tool.codespell]
 skip = "*/dist/*"

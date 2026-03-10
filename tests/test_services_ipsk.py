@@ -3,10 +3,10 @@
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
-from homeassistant.exceptions import HomeAssistantError
 
 from custom_components.meraki_ha.const.integration import DOMAIN
 from custom_components.meraki_ha.services import async_setup_services
+from homeassistant.exceptions import HomeAssistantError
 
 
 @pytest.fixture(autouse=True)
@@ -149,7 +149,7 @@ async def test_create_guest_key_service_no_manager(hass, mock_coordinator):
 async def test_create_guest_key_service_safe_iteration(
     hass, mock_ipsk_manager, mock_coordinator
 ):
-    """Test that service call doesn't crash if hass.data[DOMAIN] contains non-dict objects."""
+    """Test service call doesn't crash if hass.data[DOMAIN] has non-dict objects."""
     # Mimics presence of other managers/objects in the data dictionary
     hass.data[DOMAIN]["services_manager"] = MagicMock()
 

@@ -5,6 +5,8 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING, Any, Literal, cast
 
+from custom_components.meraki_ha.const.config import CONF_ENABLE_PORT_SENSORS
+from custom_components.meraki_ha.const.integration import DOMAIN
 from homeassistant.components.sensor import (
     SensorDeviceClass,
     SensorEntityDescription,
@@ -13,9 +15,6 @@ from homeassistant.components.sensor import (
 from homeassistant.const import PERCENTAGE, UnitOfTime
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers import entity_registry as er
-
-from custom_components.meraki_ha.const.config import CONF_ENABLE_PORT_SENSORS
-from custom_components.meraki_ha.const.integration import DOMAIN
 
 from ...sensor.device.appliance_uplink import MerakiApplianceUplinkSensor
 from ...sensor.uplink_performance import MerakiUplinkPerformanceSensor
@@ -42,7 +41,7 @@ def _get_uplink_data_by_interface(device: MerakiDevice) -> dict[str, dict[str, A
 
 
 def _get_entities_for_device(hass: Any, device_serial: str) -> list[er.RegistryEntry]:
-    """Helper to get all entities for a device."""
+    """Retrieve all entities for a device."""
     ent_reg = er.async_get(hass)
     dev_reg = dr.async_get(hass)
     device_entry = dev_reg.async_get_device(identifiers={(DOMAIN, device_serial)})

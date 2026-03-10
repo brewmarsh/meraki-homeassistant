@@ -5,14 +5,14 @@ from typing import Any, cast
 from unittest.mock import MagicMock
 
 import pytest
-from homeassistant.components.binary_sensor import BinarySensorEntity
-from homeassistant.components.sensor import SensorEntity
-from homeassistant.helpers.entity import Entity
-from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from custom_components.meraki_ha.discovery.entities import MerakiSignalStrengthSensor
 from custom_components.meraki_ha.discovery.service import DeviceDiscoveryService
 from custom_components.meraki_ha.types import MerakiDevice
+from homeassistant.components.binary_sensor import BinarySensorEntity
+from homeassistant.components.sensor import SensorEntity
+from homeassistant.helpers.entity import Entity
+from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 MT_DEVICES_DATA: list[dict[str, Any]] = [
     {
@@ -112,7 +112,8 @@ def mock_coordinator_with_mt_devices(mock_coordinator: MagicMock) -> MagicMock:
     mock_coordinator.data = {
         "devices": devices_objects,
         "devices_by_serial": {d.serial: d for d in devices_objects},
-        "sensor_readings": sensor_readings,  # Correctly nested for the God Module structure
+        # Correctly nested for the God Module structure
+        "sensor_readings": sensor_readings,
     }
     mock_coordinator.devices_by_serial = {d.serial: d for d in devices_objects}
 

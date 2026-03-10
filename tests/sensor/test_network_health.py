@@ -2,12 +2,13 @@
 
 from unittest.mock import MagicMock
 
-from homeassistant.core import HomeAssistant
-
 from custom_components.meraki_ha.sensor.network_health import MerakiNetworkHealthSensor
+from homeassistant.core import HomeAssistant
 
 
 class MockDevice:
+    """Mock Meraki device for testing."""
+
     def __init__(self, serial, network_id, model, status):
         self.serial = serial
         self.network_id = network_id

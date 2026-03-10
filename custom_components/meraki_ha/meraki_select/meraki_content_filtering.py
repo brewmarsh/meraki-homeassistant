@@ -127,7 +127,8 @@ class MerakiContentFilteringSelect(MerakiEntity[MerakiMainCoordinator], SelectEn
         categories = CONTENT_FILTERING_PROFILES[option]
 
         try:
-            await self._meraki_client.appliance.update_network_appliance_content_filtering(
+            appliance = self._meraki_client.appliance
+            await appliance.update_network_appliance_content_filtering(
                 network_id=self._network_id,
                 blockedUrlCategories=categories,
             )

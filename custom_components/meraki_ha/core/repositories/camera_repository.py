@@ -112,7 +112,8 @@ class CameraRepository:
             # If we get a non-supported URL, log it and return None
             if url:
                 _LOGGER.debug(
-                    "API returned a non-supported video URL, assuming no stream available: %s",
+                    "API returned a non-supported video URL, assuming no "
+                    "stream available: %s",
                     url,
                 )
             return None

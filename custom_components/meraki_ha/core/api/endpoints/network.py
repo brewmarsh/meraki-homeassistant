@@ -122,7 +122,8 @@ class NetworkEndpoints:
 
         for network in networks:
             network_id = network["id"]
-            # Always fetch existing webhooks directly using the dashboard API for fresh data
+            # Always fetch existing webhooks directly using the dashboard
+            # API for fresh data
             raw_webhooks = await self._api_client.run_sync(
                 self._api_client.dashboard.networks.getNetworkWebhooksHttpServers,
                 networkId=network_id,
@@ -142,7 +143,8 @@ class NetworkEndpoints:
                 # Perfect match found - we'll reuse this one
                 if name_match and url_match:
                     exact_match = webhook
-                # Proactive garbage collection: anything that looks like us but isn't a perfect match
+                # Proactive garbage collection: anything that looks like us
+                # but isn't a perfect match
                 elif (
                     "Home Assistant Webhook" in webhook.get("name", "")
                     or webhook.get("url") == webhook_url
@@ -152,7 +154,7 @@ class NetworkEndpoints:
             # 2. Clean up garbage webhooks (Legacy/Orphaned/Conflicting)
             for webhook in to_delete:
                 _LOGGER.info(
-                    "Deleting orphaned or conflicting webhook '%s' (ID: %s) in network %s",
+                    "Deleting orphaned/conflicting webhook '%s' (ID: %s) in network %s",
                     webhook.get("name"),
                     webhook.get("id"),
                     network_id,

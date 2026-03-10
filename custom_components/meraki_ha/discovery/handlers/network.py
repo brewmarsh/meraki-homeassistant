@@ -72,7 +72,7 @@ class NetworkHandler(BaseHandler):
 
             if n_org_id is None:
                 _LOGGER.warning(
-                    "Network %s missing organization_id, allowing discovery fallback for %s",
+                    "Network %s missing org_id, allowing discovery fallback for %s",
                     n_id,
                     org_id,
                 )
