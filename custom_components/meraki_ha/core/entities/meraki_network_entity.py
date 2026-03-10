@@ -6,7 +6,7 @@ import logging
 
 from custom_components.meraki_ha.const.integration import DOMAIN
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.helpers.entity import DeviceInfo
+from homeassistant.helpers.device_registry import DeviceInfo
 
 from ...coordinators import MerakiMainCoordinator
 from ...core.models.network import MerakiNetwork
@@ -52,16 +52,12 @@ class MerakiNetworkEntity(BaseMerakiEntity):
         # Handle MerakiNetwork objects or raw dicts
         network_dict = network.to_dict() if hasattr(network, "to_dict") else network
 
-        if info := resolve_device_info(
-            network_dict, self.coordinator.config_entry
-        ):
+        if info := resolve_device_info(network_dict, self.coordinator.config_entry):
             return info
 
         return DeviceInfo(
             identifiers={(DOMAIN, network.id)},
-            name=standardize_device_name(
-                network.name or f"Network {network.id}"
-            ),
+            name=standardize_device_name(network.name or f"Network {network.id}"),
             manufacturer="Cisco Meraki",
             model="Meraki Network",
         )

@@ -6,10 +6,10 @@ from typing import Any
 from custom_components.meraki_ha.const.integration import DOMAIN
 from homeassistant.components.select import SelectEntity, SelectEntityDescription
 from homeassistant.config_entries import ConfigEntry
+from homeassistant.const import EntityCategory
 from homeassistant.core import callback
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.device_registry import DeviceInfo
-from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from ..coordinators import MerakiMainCoordinator
@@ -53,7 +53,9 @@ class MerakiRFProfileSelect(CoordinatorEntity, SelectEntity):
         network = coordinator.get_network(self._network_id)
         network_name = network.name if network else f"Network {self._network_id}"
         self._attr_name = f"{network_name} {self._ssid_name} RF Profile"
-        self._attr_unique_id = f"meraki-network-{self._network_id}-ssid-{self._ssid_number}-rf-profile"
+        self._attr_unique_id = (
+            f"meraki-network-{self._network_id}-ssid-{self._ssid_number}-rf-profile"
+        )
         self._attr_options: list[str] = []
         self._update_internal_state()
 

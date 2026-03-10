@@ -13,9 +13,9 @@ from typing import TYPE_CHECKING
 from homeassistant.components.button import ButtonEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import callback
-from homeassistant.helpers.entity import DeviceInfo
+from homeassistant.helpers.device_registry import DeviceInfo
 
-from ..const.device import DEVICE_CAPABILITIES, DEFAULT_CAPS
+from ..const.device import DEFAULT_CAPS, DEVICE_CAPABILITIES
 from ..entity import MerakiEntity
 from ..helpers.device_info_helpers import resolve_device_info
 
@@ -52,7 +52,8 @@ class MerakiRebootButton(MerakiEntity, ButtonEntity):
     @property
     def available(self) -> bool:
         """Return if entity is available."""
-        # 1. Check parent availability (ensures coordinator has data AND device is not offline)
+        # 1. Check parent availability (ensures coordinator has data
+        # AND device is not offline)
         if not super().available:
             return False
 
@@ -60,8 +61,9 @@ class MerakiRebootButton(MerakiEntity, ButtonEntity):
         # Strip suffixes like "-8LP" or " HW" to get the base model (e.g., "MS120")
         model_str = self._device.model or ""
         model = model_str.split("-")[0].split(" ")[0]
-        
-        # Use DEFAULT_CAPS to assume basic network gear can reboot if model isn't hardcoded.
+
+        # Use DEFAULT_CAPS to assume basic network gear can reboot
+        # if model isn't hardcoded.
         capabilities = DEVICE_CAPABILITIES.get(model, DEFAULT_CAPS)
         return "reboot" in capabilities
 
