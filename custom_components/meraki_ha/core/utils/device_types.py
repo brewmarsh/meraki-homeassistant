@@ -18,6 +18,7 @@ from custom_components.meraki_ha.const.device_types import (
     VALID_DEVICE_TYPES,
     DeviceType,
 )
+
 from ._data import (
     DEVICE_PREFIX_MAPPINGS,
     DEVICE_TYPE_DESCRIPTIONS,

@@ -19,12 +19,17 @@ class MerakiClientCoordinator(MerakiBaseCoordinator[dict[str, Any]]):
         self.last_successful_data: dict[str, Any] = {}
         # Slow poll interval
         from datetime import timedelta
+
         self.update_interval = timedelta(seconds=600)
 
     async def _async_update_data(self) -> dict[str, Any]:
         """Fetch client data."""
         try:
-            timespan = int(self.update_interval.total_seconds()) if self.update_interval else 600
+            timespan = (
+                int(self.update_interval.total_seconds())
+                if self.update_interval
+                else 600
+            )
             data = await self.data_fetch_manager.get_sensor_data(
                 self.last_successful_data, timespan=timespan
             )

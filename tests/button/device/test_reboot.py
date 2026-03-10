@@ -27,7 +27,7 @@ def mock_device():
         model="MX67",
         mac="00:11:22:33:44:55",
         product_type="appliance",
-        status="online"
+        status="online",
     )
 
 
@@ -73,11 +73,7 @@ async def test_reboot_button_availability(
 ):
     """Test the button availability."""
     # Setup coordinator data for MerakiEntity availability
-    mock_coordinator.data = {
-        "devices_by_serial": {
-            "Q2XX-XXXX-XXXX": mock_device
-        }
-    }
+    mock_coordinator.data = {"devices_by_serial": {"Q2XX-XXXX-XXXX": mock_device}}
 
     button = MerakiRebootButton(
         mock_coordinator, mock_control_service, mock_device, mock_config_entry

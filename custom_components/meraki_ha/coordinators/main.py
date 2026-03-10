@@ -26,6 +26,7 @@ class MerakiMainCoordinator(MerakiBaseCoordinator[dict[str, Any]]):
         self.last_successful_data: dict[str, Any] = {}
         # Slow poll interval
         from datetime import timedelta
+
         self.update_interval = timedelta(seconds=600)
 
     async def _async_update_data(self) -> dict[str, Any]:
@@ -48,7 +49,9 @@ class MerakiMainCoordinator(MerakiBaseCoordinator[dict[str, Any]]):
             if "429" in str(err):
                 raise UpdateFailed(f"Meraki API rate limit: {err}") from err
 
-            data, _ = self.update_processor.process_failure(err, self.last_successful_data)
+            data, _ = self.update_processor.process_failure(
+                err, self.last_successful_data
+            )
             return data
 
     async def _execute_update_cycle(self) -> dict[str, Any]:
@@ -67,6 +70,7 @@ class MerakiMainCoordinator(MerakiBaseCoordinator[dict[str, Any]]):
         # Explicitly propagate organization_id to all networks and devices
         from ..core.models.device import MerakiDevice
         from ..core.models.network import MerakiNetwork
+
         org_id = self.api.organization_id
 
         if "networks" in data:

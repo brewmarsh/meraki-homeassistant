@@ -26,7 +26,9 @@ class MerakiDeviceCoordinator(MerakiBaseCoordinator[dict[str, Any]]):
     async def _async_update_data(self) -> dict[str, Any]:
         """Fetch fast-poll device data."""
         try:
-            data = await self.data_fetch_manager.get_device_data(self.last_successful_data)
+            data = await self.data_fetch_manager.get_device_data(
+                self.last_successful_data
+            )
 
             if data:
                 # Process success to update internal state (ssids, devices, networks)
@@ -53,5 +55,7 @@ class MerakiDeviceCoordinator(MerakiBaseCoordinator[dict[str, Any]]):
             if "429" in str(err):
                 raise UpdateFailed(f"Meraki API rate limit: {err}") from err
 
-            data, _ = self.update_processor.process_failure(err, self.last_successful_data)
+            data, _ = self.update_processor.process_failure(
+                err, self.last_successful_data
+            )
             return data

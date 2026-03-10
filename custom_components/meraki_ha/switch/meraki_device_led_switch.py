@@ -11,9 +11,9 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import EntityCategory
 from homeassistant.core import callback
 
-from ..entity import MerakiEntity
 from ..coordinators import MerakiSwitchCoordinator
 from ..core.models.device import MerakiDevice
+from ..entity import MerakiEntity
 from ..helpers.device_info_helpers import resolve_device_info
 
 _LOGGER = logging.getLogger(__name__)

@@ -3,14 +3,14 @@
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-from pytest_homeassistant_custom_component.common import MockConfigEntry
-
-from custom_components.meraki_ha.const.integration import DOMAIN
-from custom_components.meraki_ha.const.config import CONF_ENABLE_VPN_MANAGEMENT
-from custom_components.meraki_ha.types import MerakiVpn
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import entity_registry as er
 from homeassistant.setup import async_setup_component
+from pytest_homeassistant_custom_component.common import MockConfigEntry
+
+from custom_components.meraki_ha.const.config import CONF_ENABLE_VPN_MANAGEMENT
+from custom_components.meraki_ha.const.integration import DOMAIN
+from custom_components.meraki_ha.types import MerakiVpn
 from tests.const import MOCK_NETWORK
 
 
@@ -78,7 +78,7 @@ async def test_vpn_select_entity(
 
     with (
         patch(
-            "custom_components.meraki_ha.coordinators.base.ApiClient",
+            "custom_components.meraki_ha.core.api.factory.create_api_client",
             return_value=mock_meraki_client,
         ),
         patch(

@@ -112,7 +112,7 @@ def mock_coordinator_with_mt_devices(mock_coordinator: MagicMock) -> MagicMock:
     mock_coordinator.data = {
         "devices": devices_objects,
         "devices_by_serial": {d.serial: d for d in devices_objects},
-        "sensor_readings": sensor_readings, # Correctly nested for the God Module structure
+        "sensor_readings": sensor_readings,  # Correctly nested for the God Module structure
     }
     mock_coordinator.devices_by_serial = {d.serial: d for d in devices_objects}
 
@@ -401,7 +401,7 @@ async def test_availability(mock_coordinator_with_mt_devices: MagicMock) -> None
     mock_coordinator_with_mt_devices.devices_by_serial["mt10-1"] = (
         device_without_readings
     )
-    
+
     # Correctly clear the nested sensor readings in mock data
     mock_coordinator_with_mt_devices.data["sensor_readings"]["mt10-1"] = []
 

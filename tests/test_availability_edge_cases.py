@@ -1,8 +1,11 @@
 """Tests for Meraki availability edge cases."""
 
 from unittest.mock import MagicMock
+
 import pytest
+
 from custom_components.meraki_ha.entity import MerakiEntity
+
 
 @pytest.fixture
 def mock_coordinator_availability():
@@ -20,9 +23,9 @@ def mock_coordinator_availability():
     }
     return coordinator
 
+
 def test_meraki_entity_availability_statuses(mock_coordinator_availability):
     """Test that MerakiEntity reports available for correct statuses."""
-
     # Online
     entity_online = MerakiEntity(mock_coordinator_availability)
     entity_online._device_serial = "online_serial"
@@ -48,6 +51,7 @@ def test_meraki_entity_availability_statuses(mock_coordinator_availability):
     entity_unknown._device_serial = "unknown_serial"
     assert entity_unknown.available is False
 
+
 def test_meraki_entity_availability_no_data(mock_coordinator_availability):
     """Test availability when coordinator has no data."""
     mock_coordinator_availability.data = None
@@ -55,11 +59,13 @@ def test_meraki_entity_availability_no_data(mock_coordinator_availability):
     entity._device_serial = "online_serial"
     assert entity.available is False
 
+
 def test_meraki_entity_availability_missing_serial(mock_coordinator_availability):
     """Test availability when serial is not in coordinator data."""
     entity = MerakiEntity(mock_coordinator_availability)
     entity._device_serial = "missing_serial"
     assert entity.available is False
+
 
 def test_meraki_entity_availability_no_serial_attribute(mock_coordinator_availability):
     """Test availability when entity has no serial attribute (e.g. network entity)."""

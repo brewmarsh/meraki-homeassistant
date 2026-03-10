@@ -3,10 +3,11 @@
 import logging
 from typing import Any
 
-from custom_components.meraki_ha.const.config import CONF_ENABLE_FIREWALL_RULES
 from homeassistant.components.switch import SwitchEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
+
+from custom_components.meraki_ha.const.config import CONF_ENABLE_FIREWALL_RULES
 
 from ...coordinators import MerakiSwitchCoordinator
 from ...core.models.network import MerakiFirewallRule

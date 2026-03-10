@@ -30,9 +30,7 @@ def mock_coordinator(hass):
     coordinator = MagicMock()
     coordinator.networks_by_id = {"N_12345": MagicMock()}
 
-    hass.data[DOMAIN]["test_entry_id"] = {
-        "main_coordinator": coordinator
-    }
+    hass.data[DOMAIN]["test_entry_id"] = {"main_coordinator": coordinator}
     return coordinator
 
 
@@ -76,7 +74,9 @@ async def test_generate_guest_access_service_success(
 
 
 @pytest.mark.asyncio
-async def test_create_guest_key_service_success(hass, mock_ipsk_manager, mock_coordinator):
+async def test_create_guest_key_service_success(
+    hass, mock_ipsk_manager, mock_coordinator
+):
     """Test successful creation of guest key via technical service."""
     await async_setup_services(hass)
 
@@ -105,7 +105,9 @@ async def test_create_guest_key_service_success(hass, mock_ipsk_manager, mock_co
 
 
 @pytest.mark.asyncio
-async def test_create_guest_key_service_invalid_network(hass, mock_ipsk_manager, mock_coordinator):
+async def test_create_guest_key_service_invalid_network(
+    hass, mock_ipsk_manager, mock_coordinator
+):
     """Test guest key creation with invalid network ID."""
     await async_setup_services(hass)
 
@@ -115,7 +117,9 @@ async def test_create_guest_key_service_invalid_network(hass, mock_ipsk_manager,
         "duration_minutes": 60,
     }
 
-    with pytest.raises(HomeAssistantError, match="Network ID INVALID_NETWORK not found"):
+    with pytest.raises(
+        HomeAssistantError, match="Network ID INVALID_NETWORK not found"
+    ):
         await hass.services.async_call(
             DOMAIN, "create_guest_key", service_data, blocking=True
         )
@@ -140,8 +144,11 @@ async def test_create_guest_key_service_no_manager(hass, mock_coordinator):
             DOMAIN, "create_guest_key", service_data, blocking=True
         )
 
+
 @pytest.mark.asyncio
-async def test_create_guest_key_service_safe_iteration(hass, mock_ipsk_manager, mock_coordinator):
+async def test_create_guest_key_service_safe_iteration(
+    hass, mock_ipsk_manager, mock_coordinator
+):
     """Test that service call doesn't crash if hass.data[DOMAIN] contains non-dict objects."""
     # Mimics presence of other managers/objects in the data dictionary
     hass.data[DOMAIN]["services_manager"] = MagicMock()

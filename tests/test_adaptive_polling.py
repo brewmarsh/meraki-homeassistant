@@ -6,11 +6,11 @@ from unittest.mock import AsyncMock, patch
 import pytest
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from custom_components.meraki_ha.const.integration import DOMAIN
 from custom_components.meraki_ha.const.config import (
     CONF_MERAKI_API_KEY,
     CONF_MERAKI_ORG_ID,
 )
+from custom_components.meraki_ha.const.integration import DOMAIN
 
 # Resolved: Using the centralized coordinator path from the 2.3.0-beta.120 refactor
 from custom_components.meraki_ha.coordinators import (

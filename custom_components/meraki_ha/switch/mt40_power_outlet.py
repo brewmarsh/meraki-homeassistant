@@ -10,7 +10,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import callback
 from homeassistant.helpers.device_registry import DeviceInfo
 
-from ..coordinators import MerakiSensorCoordinator, MerakiSwitchCoordinator
+from ..coordinators import MerakiSensorCoordinator
 from ..core.api import MerakiApiClientProtocol
 from ..core.models.device import MerakiDevice
 from ..entity import MerakiEntity

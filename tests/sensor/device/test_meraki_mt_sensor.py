@@ -67,7 +67,7 @@ def mock_coordinator_mt_sensor(mock_coordinator: MagicMock) -> MagicMock:
                     "button": {"pressType": "short"},
                 },
             ],
-        }
+        },
     }
 
     # Mock get_device to return the correct device

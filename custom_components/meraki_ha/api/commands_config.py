@@ -5,6 +5,9 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any
 
 import voluptuous as vol
+from homeassistant.components import websocket_api
+from homeassistant.core import HomeAssistant, callback
+from homeassistant.loader import async_get_integration
 
 from custom_components.meraki_ha.const.integration import DOMAIN
 from custom_components.meraki_ha.const.websocket import (
@@ -14,9 +17,6 @@ from custom_components.meraki_ha.const.websocket import (
     WS_CMD_UPDATE_ENABLED_NETWORKS,
     WS_CMD_UPDATE_OPTIONS,
 )
-from homeassistant.components import websocket_api
-from homeassistant.core import HomeAssistant, callback
-from homeassistant.loader import async_get_integration
 
 from ..helpers.serialization import to_serializable
 from .utils import handle_ws_error

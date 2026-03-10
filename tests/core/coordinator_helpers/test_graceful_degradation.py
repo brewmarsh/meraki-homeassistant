@@ -66,9 +66,8 @@ async def test_async_gather_with_timeout_graceful_traffic_analysis(
         from custom_components.meraki_ha.core.coordinator_helpers.batch_utils import (
             async_gather_with_timeout,
         )
-        results = await async_gather_with_timeout(
-            tasks, label="Test Graceful"
-        )
+
+        results = await async_gather_with_timeout(tasks, label="Test Graceful")
 
     # Assert correct return type (SkipObject/Exception)
     assert isinstance(results["test_traffic"], MerakiTrafficAnalysisError)
@@ -98,9 +97,8 @@ async def test_async_gather_with_timeout_graceful_vlans(data_fetch_manager):
         from custom_components.meraki_ha.core.coordinator_helpers.batch_utils import (
             async_gather_with_timeout,
         )
-        results = await async_gather_with_timeout(
-            tasks, label="Test Graceful"
-        )
+
+        results = await async_gather_with_timeout(tasks, label="Test Graceful")
 
     # Assert correct return type
     assert isinstance(results["test_vlans"], MerakiVlansDisabledError)
@@ -132,9 +130,8 @@ async def test_async_gather_with_timeout_handles_wrapped_meraki_errors(
         from custom_components.meraki_ha.core.coordinator_helpers.batch_utils import (
             async_gather_with_timeout,
         )
-        results = await async_gather_with_timeout(
-            tasks, label="Test Wrapped"
-        )
+
+        results = await async_gather_with_timeout(tasks, label="Test Wrapped")
 
     assert isinstance(results["test_wrapped"], MerakiVlansDisabledError)
     mock_logger.debug.assert_any_call(
@@ -163,9 +160,8 @@ async def test_async_gather_with_timeout_true_failures_still_log_error(
         from custom_components.meraki_ha.core.coordinator_helpers.batch_utils import (
             async_gather_with_timeout,
         )
-        results = await async_gather_with_timeout(
-            tasks, label="Test Failure"
-        )
+
+        results = await async_gather_with_timeout(tasks, label="Test Failure")
 
     assert results["test_fail"] is None
     mock_logger.error.assert_called_once()

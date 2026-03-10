@@ -3,14 +3,6 @@
 from __future__ import annotations
 
 import pytest
-from pytest_homeassistant_custom_component.common import (
-    MockConfigEntry,
-    async_get_device_automations,
-    async_mock_service,
-)
-
-from custom_components.meraki_ha.const.integration import DOMAIN
-from custom_components.meraki_ha.const.webhooks import EVENT_MERAKI_WEBHOOK_ALERT
 from homeassistant.components import automation
 from homeassistant.components.device_automation import DeviceAutomationType
 from homeassistant.const import (
@@ -22,6 +14,14 @@ from homeassistant.const import (
 from homeassistant.core import HomeAssistant, ServiceCall
 from homeassistant.helpers import device_registry as dr
 from homeassistant.setup import async_setup_component
+from pytest_homeassistant_custom_component.common import (
+    MockConfigEntry,
+    async_get_device_automations,
+    async_mock_service,
+)
+
+from custom_components.meraki_ha.const.integration import DOMAIN
+from custom_components.meraki_ha.const.webhooks import EVENT_MERAKI_WEBHOOK_ALERT
 
 
 @pytest.fixture

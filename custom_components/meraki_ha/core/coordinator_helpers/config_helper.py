@@ -21,7 +21,7 @@ from custom_components.meraki_ha.const.config import (
     DEFAULT_ENABLE_TRAFFIC_SHAPING,
     DEFAULT_ENABLE_VPN_MANAGEMENT,
     DEFAULT_IGNORED_NETWORKS,
-    DEFAULT_SCAN_INTERVAL
+    DEFAULT_SCAN_INTERVAL,
 )
 
 

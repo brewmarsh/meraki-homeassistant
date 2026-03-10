@@ -25,7 +25,9 @@ def test_parse_appliance_data_success(caplog):
         }
     ]
 
-    parse_appliance_data(devices, {"appliance_uplink_statuses": appliance_uplink_statuses})
+    parse_appliance_data(
+        devices, {"appliance_uplink_statuses": appliance_uplink_statuses}
+    )
 
     # Verify the MX75 was updated
     assert devices[0].serial == "MX75-1"
@@ -48,7 +50,9 @@ def test_parse_appliance_data_no_serial(caplog):
     devices = [MerakiDevice(serial="MX75-1")]
     appliance_uplink_statuses = [{"uplinks": []}]  # No serial
 
-    parse_appliance_data(devices, {"appliance_uplink_statuses": appliance_uplink_statuses})
+    parse_appliance_data(
+        devices, {"appliance_uplink_statuses": appliance_uplink_statuses}
+    )
 
     assert len(devices[0].appliance_uplink_statuses) == 0
     assert "Parsing appliance data for 1 items" in caplog.text
@@ -64,7 +68,9 @@ def test_parse_appliance_data_no_match(caplog):
         {"serial": "MX75-1", "uplinks": [{"interface": "wan1"}]}
     ]
 
-    parse_appliance_data(devices, {"appliance_uplink_statuses": appliance_uplink_statuses})
+    parse_appliance_data(
+        devices, {"appliance_uplink_statuses": appliance_uplink_statuses}
+    )
 
     assert len(devices[0].appliance_uplink_statuses) == 0
     assert "Parsing appliance data for 1 items" in caplog.text
@@ -76,7 +82,9 @@ def test_parse_appliance_data_exception(caplog):
     devices = [MerakiDevice(serial="MX75-1")]
     appliance_uplink_statuses = Exception("API Error")
 
-    parse_appliance_data(devices, {"appliance_uplink_statuses": appliance_uplink_statuses})
+    parse_appliance_data(
+        devices, {"appliance_uplink_statuses": appliance_uplink_statuses}
+    )
 
     assert len(devices[0].appliance_uplink_statuses) == 0
     assert "Could not fetch appliance uplink statuses" in caplog.text

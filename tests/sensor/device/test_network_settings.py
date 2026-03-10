@@ -71,7 +71,9 @@ def mock_device_coordinator() -> MagicMock:
         lan_ip=None,
     )
 
-    coordinator.data: dict[str, list[MerakiDevice]] = {"devices": [device1, device2, device3, device4, device5]}
+    coordinator.data: dict[str, list[MerakiDevice]] = {
+        "devices": [device1, device2, device3, device4, device5]
+    }
 
     # Setup get_device return values
     def get_device(serial: str) -> MerakiDevice | None:
@@ -95,29 +97,41 @@ def test_lan_ip_sensor_logic(mock_device_coordinator: MagicMock) -> None:
 
     # 1. MR56 - should show its LAN IP
     device1 = mock_device_coordinator.data["devices"][0]
-    sensor1 = MerakiDeviceIPSensor(mock_device_coordinator, device1, config_entry, "lanIp")
+    sensor1 = MerakiDeviceIPSensor(
+        mock_device_coordinator, device1, config_entry, "lanIp"
+    )
     assert sensor1.native_value == "192.168.1.1"
 
     # 2. MX68 with None LAN IP - should show "Multiple (VLANs)" after fix
     device2 = mock_device_coordinator.data["devices"][1]
-    sensor2 = MerakiDeviceIPSensor(mock_device_coordinator, device2, config_entry, "lanIp")
+    sensor2 = MerakiDeviceIPSensor(
+        mock_device_coordinator, device2, config_entry, "lanIp"
+    )
     assert sensor2.native_value == "Multiple (VLANs)"
 
     # 3. Z3 with empty LAN IP - should show "Multiple (VLANs)" after fix
     device3 = mock_device_coordinator.data["devices"][2]
-    sensor3 = MerakiDeviceIPSensor(mock_device_coordinator, device3, config_entry, "lanIp")
+    sensor3 = MerakiDeviceIPSensor(
+        mock_device_coordinator, device3, config_entry, "lanIp"
+    )
     assert sensor3.native_value == "Multiple (VLANs)"
 
     # 4. MS120 with None LAN IP - should show None (Unknown)
     device4 = mock_device_coordinator.data["devices"][3]
-    sensor4 = MerakiDeviceIPSensor(mock_device_coordinator, device4, config_entry, "lanIp")
+    sensor4 = MerakiDeviceIPSensor(
+        mock_device_coordinator, device4, config_entry, "lanIp"
+    )
     assert sensor4.native_value is None
 
     # 5. MT11 - should show "N/A (Bluetooth)"
     device5 = mock_device_coordinator.data["devices"][4]
-    sensor5 = MerakiDeviceIPSensor(mock_device_coordinator, device5, config_entry, "lanIp")
+    sensor5 = MerakiDeviceIPSensor(
+        mock_device_coordinator, device5, config_entry, "lanIp"
+    )
     assert sensor5.native_value == "N/A (Bluetooth)"
 
     # 6. MT11 Public IP - should show "N/A (Bluetooth)"
-    sensor6 = MerakiDeviceIPSensor(mock_device_coordinator, device5, config_entry, "publicIp")
+    sensor6 = MerakiDeviceIPSensor(
+        mock_device_coordinator, device5, config_entry, "publicIp"
+    )
     assert sensor6.native_value == "N/A (Bluetooth)"

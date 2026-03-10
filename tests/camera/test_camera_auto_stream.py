@@ -67,7 +67,7 @@ async def test_camera_auto_enables_stream(
         # Using MagicMock for the task to prevent 'coroutine was never awaited'
         mock_task = MagicMock()
         with patch.object(
-                mock_config_entry, "async_create_background_task", return_value=mock_task
+            mock_config_entry, "async_create_background_task", return_value=mock_task
         ) as mock_create_task:
             await mock_camera.async_added_to_hass()
 
@@ -140,7 +140,7 @@ async def test_camera_does_not_auto_enable_if_option_disabled(
         # Act
         # Even if we don't expect a task, we should mock it to be safe
         with patch.object(
-                mock_config_entry, "async_create_background_task"
+            mock_config_entry, "async_create_background_task"
         ) as mock_create_task:
             await mock_camera.async_added_to_hass()
 

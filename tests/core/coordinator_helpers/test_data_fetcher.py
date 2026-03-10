@@ -32,7 +32,7 @@ async def test_get_sensor_data_includes_switch_ports(data_fetch_manager, mock_cl
         return_value={
             "networks": [],
             "devices": [switch_device_dict],
-            "switch_ports": [{"serial": "Q123", "portId": "1", "status": "Connected"}]
+            "switch_ports": [{"serial": "Q123", "portId": "1", "status": "Connected"}],
         }
     )
     data_fetch_manager.client_fetcher.async_fetch_network_clients = AsyncMock(
@@ -92,7 +92,10 @@ async def test_get_device_data_excludes_switch_ports(data_fetch_manager, mock_cl
 
     # Assert
     data_fetch_manager._async_fetch_batch_data.assert_called_with(fast_only=True)
-    assert not hasattr(result["devices"][0], "switch_ports") or not result["devices"][0].switch_ports
+    assert (
+        not hasattr(result["devices"][0], "switch_ports")
+        or not result["devices"][0].switch_ports
+    )
 
 
 @pytest.mark.asyncio
@@ -109,9 +112,8 @@ async def test_async_gather_with_timeout_batching(data_fetch_manager):
         from custom_components.meraki_ha.core.coordinator_helpers.batch_utils import (
             async_gather_with_timeout,
         )
-        results = await async_gather_with_timeout(
-            tasks, label="Test Batching"
-        )
+
+        results = await async_gather_with_timeout(tasks, label="Test Batching")
 
         assert len(results) == 12
         for i in range(12):

@@ -1,9 +1,10 @@
+import ast
 import os
 import sys
-import ast
+
 
 def check_file(filepath):
-    with open(filepath, 'r') as f:
+    with open(filepath) as f:
         try:
             ast.parse(f.read())
         except SyntaxError as e:
@@ -11,16 +12,17 @@ def check_file(filepath):
             return False
     return True
 
+
 all_ok = True
-for root, dirs, files in os.walk('custom_components/meraki_ha'):
+for root, _dirs, files in os.walk("custom_components/meraki_ha"):
     for file in files:
-        if file.endswith('.py'):
+        if file.endswith(".py"):
             if not check_file(os.path.join(root, file)):
                 all_ok = False
 
-for root, dirs, files in os.walk('tests'):
+for root, _dirs, files in os.walk("tests"):
     for file in files:
-        if file.endswith('.py'):
+        if file.endswith(".py"):
             if not check_file(os.path.join(root, file)):
                 all_ok = False
 

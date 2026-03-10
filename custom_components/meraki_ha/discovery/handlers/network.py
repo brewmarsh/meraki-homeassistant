@@ -14,8 +14,10 @@ from custom_components.meraki_ha.const.config import (
     CONF_ENABLE_VLAN_SENSORS,
     CONF_ENABLE_VPN_MANAGEMENT,
 )
+
 from ...sensor.network.network_clients import MerakiNetworkClientsSensor
 from ...sensor.network.traffic_shaping import TrafficShapingSensor
+from ...sensor.network_health import MerakiNetworkHealthSensor
 from ...types import MerakiNetwork
 from .base import BaseHandler
 
@@ -63,7 +65,9 @@ class NetworkHandler(BaseHandler):
         for n in networks:
             n_id = n.id if isinstance(n, MerakiNetwork) else n.get("id")
             n_org_id = (
-                n.organization_id if isinstance(n, MerakiNetwork) else n.get("organizationId")
+                n.organization_id
+                if isinstance(n, MerakiNetwork)
+                else n.get("organizationId")
             )
 
             if n_org_id is None:
@@ -104,6 +108,7 @@ class NetworkHandler(BaseHandler):
             self._discover_client_status_sensors,
             self._discover_traffic_shaping,
             self._discover_vlans,
+            self._discover_network_health_sensors,
         )
 
         for network in networks:
@@ -213,3 +218,17 @@ class NetworkHandler(BaseHandler):
                 network.id,
                 vlan,
             )
+
+    async def _discover_network_health_sensors(
+        self, network: MerakiNetwork
+    ) -> AsyncIterator[Entity]:
+        """Discover network health sensors."""
+        yield MerakiNetworkHealthSensor(
+            self._coordinator, self._config_entry, network, "MX", "Gateways"
+        )
+        yield MerakiNetworkHealthSensor(
+            self._coordinator, self._config_entry, network, "MS", "Switches"
+        )
+        yield MerakiNetworkHealthSensor(
+            self._coordinator, self._config_entry, network, "MR", "Access Points"
+        )

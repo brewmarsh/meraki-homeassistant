@@ -52,9 +52,23 @@ class MerakiRebootButton(MerakiEntity, ButtonEntity):
     @property
     def available(self) -> bool:
         """Return if entity is available."""
-        # 1. Check parent availability (ensures coordinator has data
-        # AND device is not offline)
-        if not super().available:
+        # 1. Check parent availability (ensures coordinator has data)
+        # We don't call super().available because we want reboot to work even if device is 'offline'
+        if not self.coordinator.data:
+            _LOGGER.warning("[%s] Unavailable: coordinator.data is empty", self.name)
+            return False
+
+        if not self._serial:
+            _LOGGER.warning("[%s] Unavailable: serial missing", self.name)
+            return False
+
+        device = self.device_data
+        if device is None:
+            _LOGGER.warning(
+                "[%s] Unavailable: device_data is None for serial %s",
+                self.name,
+                self._serial,
+            )
             return False
 
         # 2. Check static hardware capabilities based on device model
@@ -62,10 +76,16 @@ class MerakiRebootButton(MerakiEntity, ButtonEntity):
         model_str = self._device.model or ""
         model = model_str.split("-")[0].split(" ")[0]
 
-        # Use DEFAULT_CAPS to assume basic network gear can reboot
-        # if model isn't hardcoded.
+        # Use DEFAULT_CAPS to assume basic network gear can reboot if model isn't hardcoded.
         capabilities = DEVICE_CAPABILITIES.get(model, DEFAULT_CAPS)
-        return "reboot" in capabilities
+        has_reboot = "reboot" in capabilities
+        if not has_reboot:
+            _LOGGER.warning(
+                "[%s] Unavailable: reboot capability missing for model %s",
+                self.name,
+                model,
+            )
+        return has_reboot
 
     @callback
     def _handle_coordinator_update(self) -> None:

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 
 from ..binary_sensor.device.meraki_mt_binary_base import MerakiMtBinarySensor
 from ..descriptions import (

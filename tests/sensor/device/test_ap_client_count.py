@@ -16,12 +16,14 @@ def mock_coordinator():
     coordinator = MagicMock()
     coordinator.config_entry.options = {}
 
-    device = MerakiDevice.from_dict({
-        "serial": "test_serial",
-        "name": "Test AP",
-        "model": "MR52",
-        "productType": "wireless",
-    })
+    device = MerakiDevice.from_dict(
+        {
+            "serial": "test_serial",
+            "name": "Test AP",
+            "model": "MR52",
+            "productType": "wireless",
+        }
+    )
 
     coordinator.data = {
         "clients": [

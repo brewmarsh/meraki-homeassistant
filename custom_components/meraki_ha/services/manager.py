@@ -11,10 +11,10 @@ import logging
 from typing import TYPE_CHECKING
 
 import voluptuous as vol
-
-from custom_components.meraki_ha.const.integration import DOMAIN
 from homeassistant.core import HomeAssistant, ServiceCall
 from homeassistant.helpers import config_validation as cv
+
+from custom_components.meraki_ha.const.integration import DOMAIN
 
 if TYPE_CHECKING:
     from .camera_service import CameraService

@@ -55,7 +55,7 @@ def mock_device_coordinator() -> MagicMock:
 
     def get_device_side_effect(serial: str) -> MerakiDevice | None:
         """Side effect function for coordinator.get_device to simulate lookup."""
-        devices: List[MerakiDevice] = coordinator.data["devices"]
+        devices: list[MerakiDevice] = coordinator.data["devices"]
         for d in devices:
             if d.serial == serial:
                 return d

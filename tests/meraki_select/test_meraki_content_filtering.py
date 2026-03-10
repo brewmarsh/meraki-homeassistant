@@ -35,7 +35,10 @@ def mock_meraki_client() -> MagicMock:
     client.appliance.get_network_appliance_content_filtering_categories = AsyncMock(
         return_value={
             "categories": [
-                {"id": "meraki:contentFiltering/category/1", "name": "Adult and Pornography"},
+                {
+                    "id": "meraki:contentFiltering/category/1",
+                    "name": "Adult and Pornography",
+                },
             ]
         }
     )
@@ -144,6 +147,7 @@ async def test_content_filtering_select_entity(
         from custom_components.meraki_ha.meraki_select.meraki_content_filtering import (
             CONTENT_FILTERING_PROFILES,
         )
+
         mock_meraki_client.appliance.update_network_appliance_content_filtering.assert_called_with(
             network_id=MOCK_NETWORK.id,
             blockedUrlCategories=CONTENT_FILTERING_PROFILES["Family"],

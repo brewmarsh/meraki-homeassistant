@@ -56,7 +56,6 @@ class MerakiDeviceUplinkBaseSensor(MerakiEntity, SensorEntity):
         return None
 
 
-
 class MerakiDeviceIPSensor(MerakiDeviceUplinkBaseSensor):
     """Sensor for Meraki device IP address."""
 
@@ -86,8 +85,10 @@ class MerakiDeviceIPSensor(MerakiDeviceUplinkBaseSensor):
                 self._attr_native_value = "N/A (Bluetooth)"
                 return
             lan_ip = device.lan_ip
-            if (not lan_ip) and device.model and (
-                device.model.startswith("MX") or device.model.startswith("Z3")
+            if (
+                (not lan_ip)
+                and device.model
+                and (device.model.startswith("MX") or device.model.startswith("Z3"))
             ):
                 self._attr_native_value = "Multiple (VLANs)"
             else:

@@ -5,6 +5,8 @@ from __future__ import annotations
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
+from homeassistant.core import HomeAssistant
+from homeassistant.helpers.network import NoURLAvailableError
 
 from custom_components.meraki_ha.const.integration import DOMAIN
 from custom_components.meraki_ha.const.webhooks import EVENT_MERAKI_WEBHOOK_ALERT
@@ -13,8 +15,6 @@ from custom_components.meraki_ha.const.webhooks import EVENT_MERAKI_WEBHOOK_ALER
 from custom_components.meraki_ha.coordinators import MerakiMainCoordinator
 from custom_components.meraki_ha.types import MerakiDevice
 from custom_components.meraki_ha.webhook import async_handle_webhook, get_webhook_url
-from homeassistant.core import HomeAssistant
-from homeassistant.helpers.network import NoURLAvailableError
 
 
 @pytest.fixture

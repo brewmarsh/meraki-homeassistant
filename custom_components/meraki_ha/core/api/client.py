@@ -62,7 +62,7 @@ class MerakiClient:
 
     _disabled_features: set[str] = set()
     _enable_vpn_management: bool = False
-    
+
     # Type hints for endpoint protocols
     appliance: ApplianceEndpointsProtocol
     camera: CameraEndpointsProtocol

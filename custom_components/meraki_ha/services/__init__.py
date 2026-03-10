@@ -6,11 +6,11 @@ import logging
 from typing import TYPE_CHECKING
 
 import voluptuous as vol
-
-from custom_components.meraki_ha.const.integration import DOMAIN
 from homeassistant.core import HomeAssistant, ServiceCall
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers import config_validation as cv
+
+from custom_components.meraki_ha.const.integration import DOMAIN
 
 if TYPE_CHECKING:
     from .ipsk_manager import IPSKManager

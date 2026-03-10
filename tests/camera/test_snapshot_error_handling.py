@@ -36,7 +36,9 @@ async def test_camera_image_api_error(
     mock_camera.hass = hass
 
     # Mock generate_snapshot to raise an APIError (simulating Meraki 500)
-    mock_camera_service.generate_snapshot.side_effect = Exception("Meraki API Error 500")
+    mock_camera_service.generate_snapshot.side_effect = Exception(
+        "Meraki API Error 500"
+    )
 
     with patch("custom_components.meraki_ha.camera._LOGGER") as mock_logger:
         image = await mock_camera.async_camera_image()
@@ -54,17 +56,23 @@ async def test_camera_image_download_error(
 ) -> None:
     """Test that camera image returns None and logs warning on download error."""
     mock_camera.hass = hass
-    mock_camera_service.generate_snapshot.return_value = "https://meraki.com/snapshot.jpg"
+    mock_camera_service.generate_snapshot.return_value = (
+        "https://meraki.com/snapshot.jpg"
+    )
 
     with patch(
         "custom_components.meraki_ha.camera.async_get_clientsession",
     ) as mock_session:
         # Mock session.get to raise a ClientError
-        mock_session.return_value.get.side_effect = aiohttp.ClientError("Download failed")
+        mock_session.return_value.get.side_effect = aiohttp.ClientError(
+            "Download failed"
+        )
 
         with patch("custom_components.meraki_ha.camera._LOGGER") as mock_logger:
             image = await mock_camera.async_camera_image()
 
             assert image is None
             mock_logger.warning.assert_called_once()
-            assert "Failed to fetch camera snapshot" in mock_logger.warning.call_args[0][0]
+            assert (
+                "Failed to fetch camera snapshot" in mock_logger.warning.call_args[0][0]
+            )

@@ -11,11 +11,11 @@ from pytest_homeassistant_custom_component.typing import WebSocketGenerator
 
 from custom_components.meraki_ha.api.websocket import async_setup_websocket_api
 from custom_components.meraki_ha.const.api import DATA_CLIENT
-from custom_components.meraki_ha.const.integration import DOMAIN
 from custom_components.meraki_ha.const.config import (
     CONF_MERAKI_API_KEY,
-    CONF_MERAKI_ORG_ID
+    CONF_MERAKI_ORG_ID,
 )
+from custom_components.meraki_ha.const.integration import DOMAIN
 
 MOCK_DATA = {
     "org_name": "Test Org",

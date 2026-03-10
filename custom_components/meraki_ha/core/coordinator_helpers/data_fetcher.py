@@ -139,7 +139,7 @@ class DataFetchManager:
         from ..models.network import MerakiNetwork
 
         networks_raw = batch_data.get("networks") or []
-        
+
         # Extract org_id from the batch data to ensure it's propagated to models
         # This is critical for discovery handlers that filter by organization_id.
         org_id = None

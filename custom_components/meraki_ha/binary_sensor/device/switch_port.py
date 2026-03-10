@@ -61,7 +61,9 @@ class SwitchPortSensor(CoordinatorEntity, BinarySensorEntity):
             self._device = device
             switch_ports = getattr(device, "switch_ports", [])
             appliance_ports = getattr(device, "appliance_ports", [])
-            ports = (switch_ports if isinstance(switch_ports, list) else []) or (appliance_ports if isinstance(appliance_ports, list) else [])
+            ports = (switch_ports if isinstance(switch_ports, list) else []) or (
+                appliance_ports if isinstance(appliance_ports, list) else []
+            )
             for port_data in ports:
                 if port_data is None or isinstance(port_data, str):
                     continue

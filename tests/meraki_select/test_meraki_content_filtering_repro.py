@@ -12,13 +12,15 @@ from custom_components.meraki_ha.core.models.network import MerakiNetwork
 
 TEST_ORG_ID = "fake_org"
 TEST_NETWORK_ID = "N_12345"
-TEST_NETWORK = MerakiNetwork.from_dict({
-    "id": TEST_NETWORK_ID,
-    "organizationId": TEST_ORG_ID,
-    "name": "Main Office",
-    "productTypes": ["appliance", "switch", "wireless", "cellularGateway"],
-    "tags": "e2e-test",
-})
+TEST_NETWORK = MerakiNetwork.from_dict(
+    {
+        "id": TEST_NETWORK_ID,
+        "organizationId": TEST_ORG_ID,
+        "name": "Main Office",
+        "productTypes": ["appliance", "switch", "wireless", "cellularGateway"],
+        "tags": "e2e-test",
+    }
+)
 
 
 @pytest.fixture
@@ -109,6 +111,7 @@ async def test_content_filtering_select_dict_response(
 
         # Find the entity
         from homeassistant.helpers import entity_registry as er
+
         entity_registry = er.async_get(hass)
         entries = list(entity_registry.entities.values())
 

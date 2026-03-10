@@ -95,16 +95,23 @@ class MerakiMtSensor(MerakiSensor, RestoreSensor):
                 payload = reading.get(metric)
                 if isinstance(payload, dict):
                     for val_key in [
-                        "concentration", "celsius", "relativePercentage", 
-                        "percentage", "level", "draw", "kWh", 
-                        "present", "pressType", "factor"
+                        "concentration",
+                        "celsius",
+                        "relativePercentage",
+                        "percentage",
+                        "level",
+                        "draw",
+                        "kWh",
+                        "present",
+                        "pressType",
+                        "factor",
                     ]:
                         if val_key in payload:
                             return self._maybe_get_value(payload[val_key])
-                    
+
                     if "ambient" in payload and isinstance(payload["ambient"], dict):
                         return self._maybe_get_value(payload["ambient"].get("level"))
-                        
+
         return None
 
     def _update_native_value(self) -> None:
@@ -118,13 +125,25 @@ class MerakiMtSensor(MerakiSensor, RestoreSensor):
 
         target_key = self.entity_description.key
         fallback_keys = [
-            target_key, target_key.replace("_", ""), "energyApparent", 
-            "energy_kWh", "doorOpen", "door_open", "ambientNoise", "ambient_noise"
+            target_key,
+            target_key.replace("_", ""),
+            "energyApparent",
+            "energy_kWh",
+            "doorOpen",
+            "door_open",
+            "ambientNoise",
+            "ambient_noise",
         ]
-        
-        device_dict = self._device if isinstance(self._device, dict) else vars(self._device)
+
+        device_dict = (
+            self._device if isinstance(self._device, dict) else vars(self._device)
+        )
         for fk in fallback_keys:
-            val = self._maybe_get_value(device_dict.get(fk)) if isinstance(self._device, dict) else self._maybe_get_value(getattr(self._device, fk, UNDEFINED))
+            val = (
+                self._maybe_get_value(device_dict.get(fk))
+                if isinstance(self._device, dict)
+                else self._maybe_get_value(getattr(self._device, fk, UNDEFINED))
+            )
             if val is not None:
                 self._attr_native_value = val
                 return

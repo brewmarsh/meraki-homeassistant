@@ -52,9 +52,8 @@ async def test_async_gather_with_timeout_sanitization(data_fetch_manager):
         from custom_components.meraki_ha.core.coordinator_helpers.batch_utils import (
             async_gather_with_timeout,
         )
-        results = await async_gather_with_timeout(
-            tasks, label="Test Batch"
-        )
+
+        results = await async_gather_with_timeout(tasks, label="Test Batch")
 
     # Assert
     assert results["success"] == {"data": "ok"}
@@ -98,7 +97,7 @@ async def test_get_all_data_resilience_to_none(data_fetch_manager, mock_client):
         ),
         patch(
             "custom_components.meraki_ha.core.coordinator_helpers.data_fetcher.async_gather_with_timeout",
-            new_callable=AsyncMock
+            new_callable=AsyncMock,
         ) as mock_gather,
     ):
         # We need mock_gather to return a dict for the client_results call

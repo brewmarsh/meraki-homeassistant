@@ -6,8 +6,6 @@ import logging
 from collections.abc import AsyncIterator
 from typing import TYPE_CHECKING, Any
 
-from ...button.device.mt15_refresh_data import MerakiMt15RefreshDataButton
-from ...button.reboot import MerakiRebootButton
 from custom_components.meraki_ha.const.config import (
     CONF_ENABLE_CAMERA_ENTITIES,
     CONF_ENABLE_DEVICE_SENSORS,
@@ -19,6 +17,8 @@ from custom_components.meraki_ha.const.device import (
     DEVICE_CAPABILITIES,
 )
 
+from ...button.device.mt15_refresh_data import MerakiMt15RefreshDataButton
+from ...button.reboot import MerakiRebootButton
 from ...sensor.device.device_status import MerakiDeviceStatusSensor
 from ...sensor.device.poe_usage import MerakiPoeUsageSensor
 from ...switch.mt40_power_outlet import MerakiMt40PowerOutlet
@@ -52,7 +52,7 @@ if TYPE_CHECKING:
     from homeassistant.helpers.entity import Entity
 
     from ...coordinators import (
-        MerakiDeviceCoordinator, 
+        MerakiDeviceCoordinator,
         MerakiMainCoordinator,
         MerakiSensorCoordinator,
     )

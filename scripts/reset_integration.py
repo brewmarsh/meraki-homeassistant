@@ -186,7 +186,9 @@ async def _check_components_and_safe_mode(
             safe_mode_ok = _verify_safe_mode(data.get("safe_mode", False))
 
             if not components_ok or not safe_mode_ok:
-                logger.error("Critical components missing or safe mode active. Check CI/WebSocket logs for details.")
+                logger.error(
+                    "Critical components missing or safe mode active. Check CI/WebSocket logs for details."
+                )
                 return False
 
             return True
@@ -356,7 +358,9 @@ async def main() -> None:
         # Step 4: Add
         logger.info("--- Step 4: Add Integration ---")
         if not await add_integration(session):
-            logger.error("Failed to re-add integration. Refer to the GitHub Actions WebSocket log capture for details.")
+            logger.error(
+                "Failed to re-add integration. Refer to the GitHub Actions WebSocket log capture for details."
+            )
             sys.exit(1)
 
         logger.info("✨ Meraki HA Reset Sequence Complete!")

@@ -3,11 +3,12 @@
 import logging
 from typing import Any
 
-from custom_components.meraki_ha.const.integration import DOMAIN
 from homeassistant.components.switch import SwitchEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import callback
 from homeassistant.helpers.device_registry import DeviceInfo
+
+from custom_components.meraki_ha.const.integration import DOMAIN
 
 from ..coordinators import MerakiSwitchCoordinator
 from ..core.api import MerakiApiClientProtocol
@@ -205,7 +206,10 @@ class MerakiSSIDEnabledSwitch(MerakiSSIDBaseSwitch):
     def available(self) -> bool:
         """Return True even when disabled so you can toggle it back on."""
         # We skip MerakiSSIDBaseSwitch.available check for "enabled" as it checks if it's already enabled
-        if not super(MerakiSSIDBaseSwitch, self).available or not self.coordinator.last_update_success:
+        if (
+            not super(MerakiSSIDBaseSwitch, self).available
+            or not self.coordinator.last_update_success
+        ):
             return False
         return self._get_current_ssid_data() is not None
 

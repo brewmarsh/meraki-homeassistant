@@ -2,18 +2,18 @@
 
 from unittest.mock import MagicMock, patch
 
+from homeassistant.core import HomeAssistant
+from homeassistant.data_entry_flow import FlowResultType
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from custom_components.meraki_ha.const.integration import DOMAIN
 from custom_components.meraki_ha.const.config import (
     CONF_ENABLE_CAMERA_ENTITIES,
     CONF_ENABLE_DEVICE_STATUS,
     CONF_MERAKI_API_KEY,
     CONF_MERAKI_ORG_ID,
 )
+from custom_components.meraki_ha.const.integration import DOMAIN
 from homeassistant import config_entries, setup
-from homeassistant.core import HomeAssistant
-from homeassistant.data_entry_flow import FlowResultType
 
 
 async def test_form(hass: HomeAssistant) -> None:
@@ -36,11 +36,15 @@ async def test_form(hass: HomeAssistant) -> None:
     ):
         mock_client = MagicMock()
         mock_create_client.return_value = mock_client
+
         async def mock_async_setup():
             pass
+
         mock_client.async_setup = mock_async_setup
+
         async def mock_get_organizations():
             return [{"id": "test-org-id", "name": "Test Org"}]
+
         mock_client.get_organizations = mock_get_organizations
 
         result2 = await hass.config_entries.flow.async_configure(

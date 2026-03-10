@@ -4,9 +4,10 @@ from __future__ import annotations
 
 from typing import Any
 
-from custom_components.meraki_ha.const.integration import DOMAIN
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
+
+from custom_components.meraki_ha.const.integration import DOMAIN
 
 from ..coordinators import MerakiMainCoordinator
 

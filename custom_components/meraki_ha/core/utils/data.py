@@ -3,7 +3,9 @@
 from typing import Any
 
 
-def ensure_list_of_strings(data: list[Any] | None, key_to_extract: str = "name") -> list[str]:
+def ensure_list_of_strings(
+    data: list[Any] | None, key_to_extract: str = "name"
+) -> list[str]:
     """Ensure that the input data is a list of strings.
 
     If an element is a dictionary, extract the value of key_to_extract.

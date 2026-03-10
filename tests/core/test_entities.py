@@ -40,7 +40,12 @@ def mock_coordinator():
         time_zone="America/Los_Angeles",
     )
 
-    coordinator.data = {"devices": [device], "networks": [network]}
+    coordinator.data = {
+        "devices": [device],
+        "networks": [network],
+        "devices_by_serial": {device.serial: device},
+        "networks_by_id": {network.id: network},
+    }
 
     coordinator.get_device.return_value = device
     coordinator.get_network.return_value = network

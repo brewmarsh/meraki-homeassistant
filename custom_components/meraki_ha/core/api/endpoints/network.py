@@ -143,9 +143,10 @@ class NetworkEndpoints:
                 if name_match and url_match:
                     exact_match = webhook
                 # Proactive garbage collection: anything that looks like us but isn't a perfect match
-                elif "Home Assistant Webhook" in webhook.get(
-                    "name", ""
-                ) or webhook.get("url") == webhook_url:
+                elif (
+                    "Home Assistant Webhook" in webhook.get("name", "")
+                    or webhook.get("url") == webhook_url
+                ):
                     to_delete.append(webhook)
 
             # 2. Clean up garbage webhooks (Legacy/Orphaned/Conflicting)

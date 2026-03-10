@@ -119,7 +119,7 @@ async def test_get_all_data_client_timeout(data_fetch_manager, mock_client):
     # We also need detail batch to succeed (or return empty) so we reach client fetch.
     with patch(
         "custom_components.meraki_ha.core.coordinator_helpers.data_fetcher.async_gather_with_timeout",
-        side_effect=[{}, clean_exit_wait_for]
+        side_effect=[{}, clean_exit_wait_for],
     ):
         with patch(
             "custom_components.meraki_ha.core.coordinator_helpers.data_fetcher._LOGGER.error"

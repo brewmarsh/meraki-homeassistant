@@ -21,6 +21,7 @@ from .core.errors import (
 
 if TYPE_CHECKING:
     from meraki.exceptions import APIError as MerakiSDKAPIError
+
     from .core.api import MerakiApiClientProtocol
 
 
@@ -35,7 +36,9 @@ class MerakiAuthentication:
     making a request to the Meraki API via the SDK.
     """
 
-    def __init__(self, hass: HomeAssistant, api_key: str, organization_id: str | None = None) -> None:
+    def __init__(
+        self, hass: HomeAssistant, api_key: str, organization_id: str | None = None
+    ) -> None:
         """
         Initialize the Meraki Authentication class.
 
@@ -116,9 +119,13 @@ class MerakiAuthentication:
 
         try:
             if not self.organization_id:
-                organizations: list[dict[str, Any]] = await client.organization.get_organizations()
+                organizations: list[
+                    dict[str, Any]
+                ] = await client.organization.get_organizations()
                 if not organizations:
-                    raise ConfigEntryAuthFailed("No organizations found for this API key.")
+                    raise ConfigEntryAuthFailed(
+                        "No organizations found for this API key."
+                    )
                 return {"valid": True, "organizations": organizations}
 
             organization: dict[str, Any] = await client.organization.get_organization()

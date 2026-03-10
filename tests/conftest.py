@@ -5,9 +5,9 @@ from collections.abc import Generator
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
+from homeassistant.core import HomeAssistant
 
 from custom_components.meraki_ha.const.integration import DOMAIN
-from homeassistant.core import HomeAssistant
 from tests.const import (
     MOCK_ALL_DATA,
     MOCK_DEVICE_INIT,

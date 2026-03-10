@@ -2,11 +2,11 @@
 
 from unittest.mock import patch
 
+from homeassistant.components.http import StaticPathConfig
+from homeassistant.core import HomeAssistant
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.meraki_ha.const.integration import DOMAIN
-from homeassistant.components.http import StaticPathConfig
-from homeassistant.core import HomeAssistant
 
 
 async def test_static_path_registration(hass: HomeAssistant) -> None:
@@ -21,9 +21,11 @@ async def test_static_path_registration(hass: HomeAssistant) -> None:
     # Ensure frontend is in components to trigger the registration block
     hass.config.components.add("frontend")
 
-    with patch("custom_components.meraki_ha.create_api_client"), patch(
-        "custom_components.meraki_ha.coordinators.base.DataFetchManager"
-    ), patch("custom_components.meraki_ha.async_register_webhook", return_value=None):
+    with (
+        patch("custom_components.meraki_ha.create_api_client"),
+        patch("custom_components.meraki_ha.coordinators.base.DataFetchManager"),
+        patch("custom_components.meraki_ha.async_register_webhook", return_value=None),
+    ):
         await hass.config_entries.async_setup(entry.entry_id)
         await hass.async_block_till_done()
 

@@ -41,33 +41,41 @@ class MerakiEntity(CoordinatorEntity[T], Generic[T]):
 
         if not self.coordinator.data or not self._serial:
             return fallback_device
-            
+
         data = self.coordinator.data
-        
+
         if isinstance(data, dict) and "devices_by_serial" in data:
             devices_map = data["devices_by_serial"]
             if isinstance(devices_map, dict) and self._serial in devices_map:
                 return devices_map.get(self._serial)
-                
+
         if isinstance(data, dict) and self._serial in data:
             return data[self._serial]
-            
+
         if isinstance(data, list):
             for d in data:
-                if getattr(d, "serial", None) == self._serial or (isinstance(d, dict) and d.get("serial") == self._serial):
+                if getattr(d, "serial", None) == self._serial or (
+                    isinstance(d, dict) and d.get("serial") == self._serial
+                ):
                     return d
-                    
+
         return fallback_device
 
     @property
     def available(self) -> bool:
         """Return if entity is available."""
         if not self.coordinator.data:
+            _LOGGER.warning("[%s] Unavailable: coordinator.data is empty", self.name)
             return False
 
         if self._serial:
             device = self.device_data
             if device is None:
+                _LOGGER.warning(
+                    "[%s] Unavailable: device_data is None for serial %s",
+                    self.name,
+                    self._serial,
+                )
                 return False
 
             # Defensively check status
@@ -82,16 +90,27 @@ class MerakiEntity(CoordinatorEntity[T], Generic[T]):
                 return True
 
             # If status is present, ensure it's not explicitly offline
-            return str(status).lower() in ("online", "alerting", "dormant")
+            is_online = str(status).lower() in ("online", "alerting", "dormant")
+            if not is_online:
+                _LOGGER.warning(
+                    "[%s] Unavailable: status '%s' is explicitly offline",
+                    self.name,
+                    status,
+                )
+            return is_online
 
         return True
-        
+
     @property
     def unique_id(self) -> str | None:
         """Return a dynamic unique ID to prevent platform collisions."""
         serial = self._serial
 
-        if not serial and hasattr(self, "_network_id") and hasattr(self, "_ssid_number"):
+        if (
+            not serial
+            and hasattr(self, "_network_id")
+            and hasattr(self, "_ssid_number")
+        ):
             serial = f"{self._network_id}ssid{self._ssid_number}"
 
         if serial:

@@ -5,14 +5,14 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any
 
 import voluptuous as vol
+from homeassistant.components import websocket_api
+from homeassistant.core import HomeAssistant, callback
 
 from custom_components.meraki_ha.const.integration import DOMAIN
 from custom_components.meraki_ha.const.websocket import (
     WS_CMD_GET_CAMERA_SNAPSHOT,
     WS_CMD_GET_CAMERA_STREAM_URL,
 )
-from homeassistant.components import websocket_api
-from homeassistant.core import HomeAssistant, callback
 
 from .utils import handle_ws_error
 

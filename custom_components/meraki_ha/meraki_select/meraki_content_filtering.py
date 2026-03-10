@@ -75,7 +75,9 @@ class MerakiContentFilteringSelect(MerakiEntity[MerakiMainCoordinator], SelectEn
         )
 
         # Unique ID must include network_id to prevent collision and generic suffixes
-        self._attr_unique_id = f"meraki-network-{self._network_id}-content-filtering-profile"
+        self._attr_unique_id = (
+            f"meraki-network-{self._network_id}-content-filtering-profile"
+        )
         self._attr_options = list(CONTENT_FILTERING_PROFILES.keys())
 
     @property
@@ -89,7 +91,9 @@ class MerakiContentFilteringSelect(MerakiEntity[MerakiMainCoordinator], SelectEn
     @property
     def current_option(self) -> str | None:
         """Return the current selected option."""
-        if not self.coordinator.data or not self.coordinator.data.get("content_filtering"):
+        if not self.coordinator.data or not self.coordinator.data.get(
+            "content_filtering"
+        ):
             return None
 
         content_filtering = self.coordinator.data["content_filtering"].get(

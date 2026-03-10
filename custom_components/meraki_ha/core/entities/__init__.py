@@ -4,7 +4,6 @@ import logging
 from abc import ABC
 from typing import Any
 
-from custom_components.meraki_ha.const.integration import DOMAIN, MANUFACTURER
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity import Entity
@@ -12,7 +11,6 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from ...coordinators import MerakiMainCoordinator
 from ...helpers.device_info_helpers import resolve_device_info
-from ..utils.naming_utils import standardize_device_name
 
 _LOGGER = logging.getLogger(__name__)
 

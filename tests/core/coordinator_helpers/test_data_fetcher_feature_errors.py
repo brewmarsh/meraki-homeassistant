@@ -67,9 +67,8 @@ async def test_async_gather_with_timeout_intercepts_traffic_analysis_error(
         from custom_components.meraki_ha.core.coordinator_helpers.batch_utils import (
             async_gather_with_timeout,
         )
-        results = await async_gather_with_timeout(
-            tasks, label="Test Intercept"
-        )
+
+        results = await async_gather_with_timeout(tasks, label="Test Intercept")
 
     # Assert
     assert isinstance(results["test_key"], MerakiTrafficAnalysisError)
@@ -96,9 +95,8 @@ async def test_async_gather_with_timeout_intercepts_vlans_error(data_fetch_manag
         from custom_components.meraki_ha.core.coordinator_helpers.batch_utils import (
             async_gather_with_timeout,
         )
-        results = await async_gather_with_timeout(
-            tasks, label="Test Intercept"
-        )
+
+        results = await async_gather_with_timeout(tasks, label="Test Intercept")
 
     # Assert
     assert isinstance(results["test_key"], MerakiVlansDisabledError)
@@ -127,9 +125,8 @@ async def test_async_gather_with_timeout_fallback_to_error_for_other_400(
         from custom_components.meraki_ha.core.coordinator_helpers.batch_utils import (
             async_gather_with_timeout,
         )
-        results = await async_gather_with_timeout(
-            tasks, label="Test Fallback"
-        )
+
+        results = await async_gather_with_timeout(tasks, label="Test Fallback")
 
     # Assert
     assert results["test_key"] is None

@@ -43,7 +43,9 @@ class MerakiVLANStatusSensor(MerakiVLANEntity, SensorEntity):
 
         # Name: VLAN 10 (Staff) Subnet
         if vlan_name:
-            self._attr_name = f"{self._network.name} VLAN {vlan_id} ({vlan_name}) Subnet"
+            self._attr_name = (
+                f"{self._network.name} VLAN {vlan_id} ({vlan_name}) Subnet"
+            )
         else:
             self._attr_name = f"{self._network.name} VLAN {vlan_id} Subnet"
 
