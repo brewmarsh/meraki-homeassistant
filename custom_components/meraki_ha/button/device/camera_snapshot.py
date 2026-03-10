@@ -45,6 +45,11 @@ class MerakiSnapshotButton(MerakiEntity, ButtonEntity):
         """Return device information."""
         return resolve_device_info(self._device, self._config_entry)
 
+    @property
+    def available(self) -> bool:
+        """Return if entity is available."""
+        return super().available
+
     async def async_press(self) -> None:
         """Handle the button press."""
         serial = self._device.serial

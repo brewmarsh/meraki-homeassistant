@@ -65,4 +65,8 @@ This document verifies the state of the codebase against the requirements for th
   - **[IN PROGRESS]** Registration of `MerakiSmartCommand` intent.
   - **[IN PROGRESS]** Mapping of BAML-parsed intents (Reboot, Guest Access, Status) to internal services.
 
-This verification confirms the need for the planned refactoring steps. The new requirements (R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R15) are now considered part of the standard for this integration.
+- R16: Frontend Data Integrity:
+  - **[IN PROGRESS]** Implementation of defensive attribute access in custom Lovelace cards to prevent UI crashes following the backend 'God Module' refactor.
+  - **[IN PROGRESS]** Injection of card-level diagnostic logging (`MERAKI CARD DIAGNOSTIC`) in `render()` methods to facilitate real-time debugging of entity state mapping.
+
+This verification confirms the need for the planned refactoring steps. The new requirements (R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R15, R16) are now considered part of the standard for this integration.

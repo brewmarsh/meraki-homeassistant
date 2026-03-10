@@ -119,7 +119,7 @@ class MerakiSSIDBaseSwitch(MerakiEntity, SwitchEntity):
     @property
     def available(self) -> bool:
         """Return True if entity is available."""
-        if self.coordinator.data is None or not super().available:
+        if not super().available:
             return False
         ssid_data = self._get_current_ssid_data()
         return ssid_data is not None and ssid_data.get("enabled", False)
@@ -204,7 +204,8 @@ class MerakiSSIDEnabledSwitch(MerakiSSIDBaseSwitch):
     @property
     def available(self) -> bool:
         """Return True even when disabled so you can toggle it back on."""
-        if self.coordinator.data is None or not self.coordinator.last_update_success:
+        # We skip MerakiSSIDBaseSwitch.available check for "enabled" as it checks if it's already enabled
+        if not super(MerakiSSIDBaseSwitch, self).available or not self.coordinator.last_update_success:
             return False
         return self._get_current_ssid_data() is not None
 

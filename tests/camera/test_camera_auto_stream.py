@@ -6,7 +6,10 @@ import pytest
 from homeassistant.core import HomeAssistant
 
 from custom_components.meraki_ha.camera import MerakiRTSPStreamCamera
-from custom_components.meraki_ha.const.config import CONF_ENABLE_CAMERA_ENTITIES
+from custom_components.meraki_ha.const.config import (
+    CONF_ENABLE_CAMERA_ENTITIES,
+    CONF_RTSP_STREAM_ENABLED,
+)
 from tests.const import MOCK_CAMERA_DEVICE
 
 
@@ -53,7 +56,10 @@ async def test_camera_auto_enables_stream(
         mock_device_data.return_value = device_no_rtsp
 
         # Enable camera entities option
-        mock_config_entry.options = {CONF_ENABLE_CAMERA_ENTITIES: True}
+        mock_config_entry.options = {
+            CONF_ENABLE_CAMERA_ENTITIES: True,
+            CONF_RTSP_STREAM_ENABLED: True,
+        }
 
         # Act
         # In HA 2024.12+, async_create_background_task is the preferred way.
@@ -91,7 +97,10 @@ async def test_camera_does_not_auto_enable_if_already_streaming(
     # Arrange
     mock_camera.hass = hass
     # device_data already has rtsp_url from MOCK_CAMERA_DEVICE
-    mock_config_entry.options = {CONF_ENABLE_CAMERA_ENTITIES: True}
+    mock_config_entry.options = {
+        CONF_ENABLE_CAMERA_ENTITIES: True,
+        CONF_RTSP_STREAM_ENABLED: True,
+    }
 
     # Act
     await mock_camera.async_added_to_hass()
@@ -122,8 +131,11 @@ async def test_camera_does_not_auto_enable_if_option_disabled(
         device_no_rtsp = dataclasses.replace(MOCK_CAMERA_DEVICE, rtsp_url=None)
         mock_device_data.return_value = device_no_rtsp
 
-        # Disable camera entities option
-        mock_config_entry.options = {CONF_ENABLE_CAMERA_ENTITIES: False}
+        # Disable RTSP stream option
+        mock_config_entry.options = {
+            CONF_ENABLE_CAMERA_ENTITIES: True,
+            CONF_RTSP_STREAM_ENABLED: False,
+        }
 
         # Act
         # Even if we don't expect a task, we should mock it to be safe

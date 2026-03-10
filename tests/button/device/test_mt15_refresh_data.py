@@ -13,16 +13,17 @@ from custom_components.meraki_ha.types import MerakiDevice
 @pytest.fixture
 def mock_coordinator_mt15(mock_coordinator: MagicMock) -> MagicMock:
     """Fixture for a mocked MerakiMainCoordinator with MT15 data."""
+    device = MerakiDevice(
+        serial="mt15-1",
+        name="MT15 Sensor",
+        model="MT15",
+        product_type="sensor",
+        mac="00:11:22:33:44:55",
+        status="online",
+    )
     mock_coordinator.data = {
-        "devices": [
-            MerakiDevice(
-                serial="mt15-1",
-                name="MT15 Sensor",
-                model="MT15",
-                product_type="sensor",
-                mac="00:11:22:33:44:55",
-            ),
-        ]
+        "devices": [device],
+        "devices_by_serial": {"mt15-1": device},
     }
     mock_coordinator.last_update_success = True
     return mock_coordinator

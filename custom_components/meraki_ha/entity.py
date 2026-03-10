@@ -47,16 +47,30 @@ class MerakiEntity(CoordinatorEntity[T], Generic[T]):
     def available(self) -> bool:
         """Return if entity is available.
 
-        An entity is available if its coordinator has data and the device is online.
+        An entity is available if its coordinator has data and the device is not offline.
+        Devices in 'alerting' or 'dormant' states are considered available to ensure
+        sensor data remains visible during non-critical connectivity states.
         """
         if not self.coordinator.data:
             return False
 
-        # If we have a serial, check if the device is online in the O(1) data
+        # If we have a serial, check if the device is not offline in the O(1) data
         if self._serial:
             device = self.device_data
-            # Devices with status "alerting" or "dormant" should also be considered available.
-            return device is not None and getattr(device, "status", "offline") != "offline"
+            if device is None:
+                return False
+
+            # Handle both object and dictionary-style data defensively
+            if isinstance(device, dict):
+                status = device.get("status", "offline")
+            else:
+                status = getattr(device, "status", "offline")
+
+            if status is None:
+                return False
+
+            # Normalize to lowercase and allow all non-offline states
+            return str(status).lower() in ("online", "alerting", "dormant")
 
         return True
 
@@ -67,25 +81,14 @@ class MerakiEntity(CoordinatorEntity[T], Generic[T]):
         This logic attempts to find a serial number or network/SSID identifier
         across various internal naming schemes used in the integration.
         """
-        serial = None
+        serial = self._serial
 
-        # 1. Attempt to find a physical device serial
-        if hasattr(self, "_device") and hasattr(self._device, "serial"):
-            serial = self._device.serial
-        elif hasattr(self, "_device_data") and hasattr(self._device_data, "serial"):
-            serial = self._device_data.serial
-        elif hasattr(self, "_device_serial"):
-            serial = self._device_serial
-        elif hasattr(self, "_serial"):
-            serial = self._serial
-
-        # 2. Fallback to Virtual SSID identifier if physical serial is missing
-        elif hasattr(self, "_network_id") and hasattr(self, "_ssid_number"):
+        # Fallback to Virtual SSID identifier if physical serial is missing
+        if not serial and hasattr(self, "_network_id") and hasattr(self, "_ssid_number"):
             serial = f"{self._network_id}ssid{self._ssid_number}"
 
         if serial:
-            # Prefer using the entity description key for unique granularity
-            # (e.g., 'serial_voltage')
+            # Prefer using the entity description key for unique granularity (e.g., 'serial_voltage')
             if (
                 hasattr(self, "entity_description")
                 and self.entity_description
@@ -93,8 +96,7 @@ class MerakiEntity(CoordinatorEntity[T], Generic[T]):
             ):
                 return f"{serial}_{self.entity_description.key}"
 
-            # Fallback to class name for non-described entities
-            # (e.g., 'serial_merakirtspstreamcamera')
+            # Fallback to class name for non-described entities (e.g., 'serial_merakirtspstreamcamera')
             return f"{serial}_{self.__class__.__name__.lower()}"
 
         # Final fallback to manually assigned _attr_unique_id

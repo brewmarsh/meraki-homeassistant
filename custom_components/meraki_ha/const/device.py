@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Final
 
-# Device Attributes (examples, expand as needed)
+# Device Attributes
 ATTR_CONNECTED_CLIENTS: Final = "connected_clients"
 """Device attribute for connected clients."""
 ATTR_SSIDS: Final = "ssids"
@@ -42,6 +42,7 @@ _MR_CAPS = [
     "led_control",
     "wireless",
 ]
+
 _MS_CAPS = [
     "switch_ports",
     "poe_usage",
@@ -50,6 +51,7 @@ _MS_CAPS = [
     "status",
     "physical_sensors",
 ]
+
 _MV_CAPS = [
     "camera_stream",
     "storage_status",
@@ -58,6 +60,7 @@ _MV_CAPS = [
     "status",
     "physical_sensors",
 ]
+
 _GX_CAPS = [
     "uplinks",
     "performance",
@@ -68,6 +71,7 @@ _GX_CAPS = [
     "physical_sensors",
 ]
 
+# Strict Hardware Capability Matrix based on Meraki Datasheets
 DEVICE_CAPABILITIES: Final[dict[str, list[str]]] = {
     "MT10": ["temperature", "humidity", "battery", "signal_strength"],
     "MT11": ["temperature", "battery", "signal_strength"],
@@ -93,7 +97,7 @@ DEVICE_CAPABILITIES: Final[dict[str, list[str]]] = {
         "reboot",
         "status",
         "physical_sensors",
-    ],  # No Battery
+    ],  # Note: MT15 uses AC power/USB, typically no battery sensor
     "MT20": ["door", "battery", "signal_strength"],
     "MT30": ["button_press", "battery", "signal_strength"],
     "MT40": [
