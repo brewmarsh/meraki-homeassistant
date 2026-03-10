@@ -49,6 +49,38 @@ export class MerakiNetworkVitalsCard extends LitElement {
     };
   }
 
+  private _getGatewayEntity(): string {
+    if (this._config?.gateway_entity) return this._config.gateway_entity;
+    if (this.hass?.states) {
+      return Object.keys(this.hass.states).find(id => id.includes('aggregated_gateway') || id.includes('_mx_health')) || '';
+    }
+    return '';
+  }
+
+  private _getSwitchEntity(): string {
+    if (this._config?.switch_entity) return this._config.switch_entity;
+    if (this.hass?.states) {
+      return Object.keys(this.hass.states).find(id => id.includes('aggregated_switch') || id.includes('_ms_health')) || '';
+    }
+    return '';
+  }
+
+  private _getApEntity(): string {
+    if (this._config?.ap_entity) return this._config.ap_entity;
+    if (this.hass?.states) {
+      return Object.keys(this.hass.states).find(id => id.includes('aggregated_ap') || id.includes('_mr_health')) || '';
+    }
+    return '';
+  }
+
+  private _getThroughputEntity(): string {
+    if (this._config?.throughput_entity) return this._config.throughput_entity;
+    if (this.hass?.states) {
+      return Object.keys(this.hass.states).find(id => id.includes('throughput')) || '';
+    }
+    return '';
+  }
+
   private _handleEntityClick(entityId: string | undefined, actionConfig: any) {
     if (!entityId || !actionConfig) return;
 
@@ -118,7 +150,11 @@ export class MerakiNetworkVitalsCard extends LitElement {
       return html``;
     }
 
-    const throughputEntity = this._config.throughput_entity;
+    const gatewayEntity = this._getGatewayEntity();
+    const switchEntity = this._getSwitchEntity();
+    const apEntity = this._getApEntity();
+    const throughputEntity = this._getThroughputEntity();
+
     if (throughputEntity && this.hass.states[throughputEntity]) {
       console.log("MERAKI CARD DIAGNOSTIC - Throughput Raw Entity State:", this.hass.states[throughputEntity]);
     }
@@ -133,9 +169,9 @@ export class MerakiNetworkVitalsCard extends LitElement {
         <div class="card-content">
           <div class="vitals-container">
             <div class="status-dots">
-              ${this._renderStatusDot(this._config.gateway_entity, 'Gateway', this._config.gateway_tap_action)}
-              ${this._renderStatusDot(this._config.switch_entity, 'Switches', this._config.switch_tap_action)}
-              ${this._renderStatusDot(this._config.ap_entity, 'APs', this._config.ap_tap_action)}
+              ${this._renderStatusDot(gatewayEntity, 'Gateway', this._config.gateway_tap_action)}
+              ${this._renderStatusDot(switchEntity, 'Switches', this._config.switch_tap_action)}
+              ${this._renderStatusDot(apEntity, 'APs', this._config.ap_tap_action)}
             </div>
             <div class="throughput-container">
               <ha-icon icon="mdi:swap-vertical"></ha-icon>
