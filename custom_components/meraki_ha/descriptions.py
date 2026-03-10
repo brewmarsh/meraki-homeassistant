@@ -13,7 +13,7 @@ from homeassistant.const import (
     CONCENTRATION_MICROGRAMS_PER_CUBIC_METER,
     CONCENTRATION_PARTS_PER_MILLION,
     PERCENTAGE,
-    POWER_VOLT_AMPERE,
+    UnitOfApparentPower,
     UnitOfElectricCurrent,
     UnitOfElectricPotential,
     UnitOfEnergy,
@@ -52,7 +52,7 @@ MT_APPARENT_POWER_DESCRIPTION = SensorEntityDescription(
     name="Apparent Power",
     device_class=SensorDeviceClass.APPARENT_POWER,
     state_class=SensorStateClass.MEASUREMENT,
-    native_unit_of_measurement=POWER_VOLT_AMPERE,
+    native_unit_of_measurement=UnitOfApparentPower.VOLT_AMPERE,
 )
 
 
