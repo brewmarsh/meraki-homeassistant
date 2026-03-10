@@ -35,7 +35,9 @@ class VlansListSensor(MerakiNetworkEntity, SensorEntity):
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
         """Return the state attributes."""
-        return {"vlans": self._vlan_list}
+        attrs = super().extra_state_attributes
+        attrs["vlans"] = self._vlan_list
+        return attrs
 
     @callback
     def _handle_coordinator_update(self) -> None:

@@ -116,6 +116,15 @@ class MerakiSSIDDetailSensor(MerakiEntity, SensorEntity):
 
     def _update_state(self) -> None:
         """Update the sensor state from current data."""
+        network = self.coordinator.get_network(self._network_id)
+        self._attr_extra_state_attributes = {
+            "network_id": self._network_id,
+            "network_name": network.name if network else None,
+            "ssid_number": self._ssid_number,
+            "ssid_name": self._ssid_data.get("name"),
+            "enabled": self._ssid_data.get("enabled", False),
+            "auth_mode": self._ssid_data.get("authMode"),
+        }
 
 
 class MerakiSSIDWalledGardenSensor(MerakiSSIDDetailSensor):
@@ -129,12 +138,13 @@ class MerakiSSIDWalledGardenSensor(MerakiSSIDDetailSensor):
 
     def _update_state(self) -> None:
         """Update the sensor state from current data."""
+        super()._update_state()
         self._attr_native_value = (
             "enabled" if self._ssid_data.get("walledGardenEnabled") else "disabled"
         )
-        self._attr_extra_state_attributes = {
-            "ranges": self._ssid_data.get("walledGardenRanges", [])
-        }
+        self._attr_extra_state_attributes.update(
+            {"ranges": self._ssid_data.get("walledGardenRanges", [])}
+        )
 
 
 class MerakiSSIDTotalUploadLimitSensor(MerakiSSIDDetailSensor):
@@ -149,6 +159,7 @@ class MerakiSSIDTotalUploadLimitSensor(MerakiSSIDDetailSensor):
 
     def _update_state(self) -> None:
         """Update the sensor state from current data."""
+        super()._update_state()
         self._attr_native_value = self._ssid_data.get("perSsidBandwidthLimitUp")
 
 
@@ -164,6 +175,7 @@ class MerakiSSIDTotalDownloadLimitSensor(MerakiSSIDDetailSensor):
 
     def _update_state(self) -> None:
         """Update the sensor state from current data."""
+        super()._update_state()
         self._attr_native_value = self._ssid_data.get("perSsidBandwidthLimitDown")
 
 
@@ -178,6 +190,7 @@ class MerakiSSIDMandatoryDhcpSensor(MerakiSSIDDetailSensor):
 
     def _update_state(self) -> None:
         """Update the sensor state from current data."""
+        super()._update_state()
         self._attr_native_value = (
             "enabled" if self._ssid_data.get("mandatoryDhcpEnabled") else "disabled"
         )
@@ -195,6 +208,7 @@ class MerakiSSIDMinBitrate24GhzSensor(MerakiSSIDDetailSensor):
 
     def _update_state(self) -> None:
         """Update the sensor state from current data."""
+        super()._update_state()
         if self._rf_profile and self._rf_profile.get("twoFourGhzSettings"):
             self._attr_native_value = self._rf_profile["twoFourGhzSettings"].get(
                 "minBitrate"
@@ -215,6 +229,7 @@ class MerakiSSIDMinBitrate5GhzSensor(MerakiSSIDDetailSensor):
 
     def _update_state(self) -> None:
         """Update the sensor state from current data."""
+        super()._update_state()
         if self._rf_profile and self._rf_profile.get("fiveGhzSettings"):
             self._attr_native_value = self._rf_profile["fiveGhzSettings"].get(
                 "minBitrate"

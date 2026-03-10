@@ -94,6 +94,20 @@ class MerakiSSIDBaseSensor(MerakiEntity, SensorEntity):
         return None
 
     @property
+    def extra_state_attributes(self) -> dict[str, Any]:
+        """Return the state attributes for the SSID."""
+        ssid_data = self._get_current_ssid_data() or self._ssid_data_at_init
+        network = self.coordinator.get_network(self._network_id)
+        return {
+            "network_id": self._network_id,
+            "network_name": network.name if network else None,
+            "ssid_number": self._ssid_number,
+            "ssid_name": ssid_data.get("name") if ssid_data else None,
+            "enabled": ssid_data.get("enabled") if ssid_data else False,
+            "auth_mode": ssid_data.get("authMode") if ssid_data else None,
+        }
+
+    @property
     def available(self) -> bool:
         """Return True if entity is available."""
         if self.coordinator.data is None or not super().available:

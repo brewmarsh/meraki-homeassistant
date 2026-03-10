@@ -105,6 +105,7 @@ class MerakiNetworkHealthSensor(MerakiNetworkEntity, SensorEntity):
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
         """Provide detailed fractional attributes for Lovelace cards."""
+        base_attributes = super().extra_state_attributes
         devices = self._family_devices
 
         offline_devices = [
@@ -114,12 +115,15 @@ class MerakiNetworkHealthSensor(MerakiNetworkEntity, SensorEntity):
             not in ("online", "alerting", "dormant")
         ]
 
-        return {
-            "total_devices": len(devices),
-            "online_devices": len(devices) - len(offline_devices),
-            "offline_devices": offline_devices,
-            "hardware_family": self._family_name,
-        }
+        base_attributes.update(
+            {
+                "total_devices": len(devices),
+                "online_devices": len(devices) - len(offline_devices),
+                "offline_devices": offline_devices,
+                "hardware_family": self._family_name,
+            }
+        )
+        return base_attributes
 
     @property
     def available(self) -> bool:
