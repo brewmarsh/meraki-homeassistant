@@ -10,6 +10,8 @@ from homeassistant.helpers.device_registry import DeviceInfo
 from custom_components.meraki_ha.const.integration import DOMAIN
 
 from ...coordinators import MerakiMainCoordinator
+from typing import Any
+
 from ...core.models.network import MerakiNetwork
 from ...core.utils.naming_utils import standardize_device_name
 from ...helpers.device_info_helpers import resolve_device_info
@@ -39,6 +41,18 @@ class MerakiNetworkEntity(BaseMerakiEntity):
         # Set has_entity_name to False to allow custom prefixed naming as requested
         # for network-level entities
         self._attr_has_entity_name = False
+
+    @property
+    def extra_state_attributes(self) -> dict[str, Any]:
+        """Return the state attributes for the network."""
+        network = self.network_data or self._network
+        return {
+            "network_id": self._network_id,
+            "network_name": network.name if network else None,
+            "product_types": network.product_types
+            if network and hasattr(network, "product_types")
+            else [],
+        }
 
     @property
     def device_info(self) -> DeviceInfo:
