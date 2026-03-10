@@ -70,18 +70,22 @@ class MerakiEntity(CoordinatorEntity[T], Generic[T]):
             if device is None:
                 return False
 
+            # Defensively check status
             if isinstance(device, dict):
-                status = device.get("status", "offline")
+                status = device.get("status")
             else:
-                status = getattr(device, "status", "offline")
+                status = getattr(device, "status", None)
 
+            # FIX: If the coordinator data doesn't include a status field at all,
+            # we assume it's available since the data fetch itself succeeded.
             if status is None:
-                return False
+                return True
 
+            # If status is present, ensure it's not explicitly offline
             return str(status).lower() in ("online", "alerting", "dormant")
 
         return True
-
+        
     @property
     def unique_id(self) -> str | None:
         """Return a dynamic unique ID to prevent platform collisions."""
