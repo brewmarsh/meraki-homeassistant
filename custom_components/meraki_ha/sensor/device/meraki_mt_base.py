@@ -37,25 +37,13 @@ class MerakiMtSensor(MerakiSensor, RestoreSensor):
         self._device = device
         self.entity_description = entity_description
 
-        # We no longer set _attr_unique_id here as the @property below handles it.
         self._attr_has_entity_name = True
 
         if self.entity_description.name is not UNDEFINED:
             self._attr_name = cast(str | None, self.entity_description.name)
 
         self._attr_native_value = None
-        
-        # Translate HA entity key to Meraki Metric key immediately
-        self._meraki_metric_key = self._translate_ha_key(self.entity_description.key)
-        
         self._update_native_value()
-
-    def _translate_ha_key(self, ha_key: str) -> str:
-        """Translate a Home Assistant standard key to a Meraki API metric key."""
-        translations = {
-            "pm2_5": "pm25",
-        }
-        return translations.get(ha_key, ha_key)
 
     def _maybe_get_value(self, value: Any) -> Any | None:
         """Return the value if not UNDEFINED, else None."""
@@ -67,109 +55,15 @@ class MerakiMtSensor(MerakiSensor, RestoreSensor):
         if (last_sensor_data := await self.async_get_last_sensor_data()) is not None:
             value = last_sensor_data.native_value
             if value is not UNDEFINED:
-                # Type check and conversion for MyPy compatibility
                 if isinstance(value, (str, float, bool)):
                     self._attr_native_value = value
-                elif isinstance(value, int):  # Handle int->float conversion safely
+                elif isinstance(value, int):
                     self._attr_native_value = float(value)
-                # Ignore other types (e.g. datetime) that don't match our state type
 
     @property
     def device_info(self) -> DeviceInfo | None:
         """Return device information."""
         return resolve_device_info(self._device, self.coordinator.config_entry)
-
-    def _get_value_from_legacy_device_attributes(self, key: str) -> Any | None:
-        """Retrieve value from older MT device attributes."""
-        if isinstance(self._device, dict):
-            if key == "noise":
-                return self._maybe_get_value(self._device.get("ambientNoise"))
-            if key == "pm25":
-                val = self._maybe_get_value(self._device.get("pm25"))
-                if val is not None:
-                    return val
-                return self._maybe_get_value(self._device.get("pm2_5"))
-            if key == "door":
-                return self._maybe_get_value(self._device.get("doorOpen"))
-            return None
-
-        if key == "noise":
-            return self._maybe_get_value(getattr(self._device, "ambient_noise", UNDEFINED))
-        if key == "pm25":
-            val = self._maybe_get_value(getattr(self._device, "pm25", UNDEFINED))
-            if val is not None:
-                return val
-            return self._maybe_get_value(getattr(self._device, "pm2_5", UNDEFINED))
-        if key == "door":
-            return self._maybe_get_value(getattr(self._device, "door_open", UNDEFINED))
-        return None
-
-    def _get_metric_fallback(self, key: str, metric_data: dict[str, Any]) -> Any | None:
-        """Get fallback values for specific metrics if primary key is missing."""
-        if key == "voltage":
-            return self._maybe_get_value(metric_data.get("draw"))
-        if key == "energy":
-            for fallback_key in (
-                "kWh", # MT40 Energy is usually reported in kWh
-                "energyUsage",
-                "apparentPower",
-                "energy",
-                "energyApparent",
-                "energy_kWh",
-            ):
-                val = self._maybe_get_value(metric_data.get(fallback_key))
-                if val is not None:
-                    return val
-            return None
-        if key == "powerFactor":
-            return self._maybe_get_value(metric_data.get("factor"))
-        return None
-
-    def _extract_value_from_metric_data(
-        self, key: str, metric_data: dict[str, Any]
-    ) -> Any | None:
-        """Extract value from metric_data based on key and specific rules."""
-        key_map: dict[str, str] = {
-            "battery": "percentage",
-            "temperature": "celsius",
-            "humidity": "relativePercentage",
-            "tvoc": "concentration",
-            "co2": "concentration",
-            "pm25": "concentration",
-            "rssi": "level",
-            "water": "present",
-            "button": "pressType",
-            "realPower": "draw",
-            "current": "draw",
-            "voltage": "level",
-            "powerFactor": "percentage",
-            "frequency": "level",
-            "energy": "kWh", # CRITICAL FIX: MT40 Energy uses kWh
-            "apparentPower": "draw",
-        }
-
-        if value_key := key_map.get(key):
-            if (value := self._maybe_get_value(metric_data.get(value_key))) is not None:
-                return value
-            return self._get_metric_fallback(key, metric_data)
-
-        if key == "noise":
-            return self._maybe_get_value(metric_data.get("ambient", {}).get("level"))
-
-        return None
-
-    def _extract_from_reading(self, key: str, reading: dict[str, Any]) -> Any | None:
-        """Extract value if the reading metric matches the desired key."""
-        metric = reading.get("metric")
-        # Handle "realPower" which might be reported as "power"
-        if (
-            metric == key
-            or (key == "realPower" and metric == "power")
-        ):
-            metric_data = reading.get(metric)
-            if isinstance(metric_data, dict):
-                return self._extract_value_from_metric_data(key, metric_data)
-        return None
 
     def _get_readings_list(self) -> list[dict[str, Any]] | None:
         """Return the device readings as a list if valid."""
@@ -180,73 +74,80 @@ class MerakiMtSensor(MerakiSensor, RestoreSensor):
             return None
         return readings_map.get(self._serial)
 
-    def _get_value_from_readings_list(
-        self, key: str, readings: list[dict[str, Any]]
-    ) -> Any | None:
-        """Find a matching metric in readings and extract its value."""
+    def _fuzzy_match_metric(self, metric: str, target: str) -> bool:
+        """Perform a fuzzy match on metric keys to handle API variations (e.g. pm2_5 vs pm25)."""
+        if not metric or not target:
+            return False
+        m_clean = str(metric).lower().replace("_", "")
+        t_clean = str(target).lower().replace("_", "")
+        return m_clean == t_clean or (t_clean == "realpower" and m_clean == "power")
+
+    def _extract_from_readings_robustly(self) -> Any | None:
+        """Ultra-resilient data extraction that bypasses strict mapping."""
+        readings = self._get_readings_list()
+        if not readings:
+            return None
+
+        target_key = self.entity_description.key
+
         for reading in readings:
-            if value := self._extract_from_reading(key, reading):
-                return value
-        return None
-
-    def _get_value_from_generic_device_attributes(self, key: str) -> Any | None:
-        """Retrieve value from generic device attributes."""
-        if isinstance(self._device, dict):
-            if key == "energy":
-                for fallback_key in ("energy", "energyApparent", "energy_kWh"):
-                    val = self._maybe_get_value(self._device.get(fallback_key))
-                    if val is not None:
-                        return val
-                return None
-            # Add other generic mappings if needed
-            attr_map_dict = {
-                "frequency": "frequency",
-                "powerFactor": "powerFactor",
-                "realPower": "realPower",
-                "voltage": "voltage",
-                "current": "current",
-            }
-            if attr_name := attr_map_dict.get(key):
-                return self._maybe_get_value(self._device.get(attr_name))
-            return None
-
-        if key == "energy":
-            for fallback_attr in ("energy", "energy_apparent", "energy_kwh"):
-                val = self._maybe_get_value(getattr(self._device, fallback_attr, UNDEFINED))
-                if val is not None:
-                    return val
-            return None
-
-        attr_map: dict[str, str] = {
-            "frequency": "frequency",
-            "powerFactor": "power_factor",
-            "realPower": "real_power",
-            "voltage": "voltage",
-            "current": "current",
-        }
-        if attr_name := attr_map.get(key):
-            return self._maybe_get_value(getattr(self._device, attr_name, UNDEFINED))
+            metric = reading.get("metric")
+            if self._fuzzy_match_metric(metric, target_key):
+                # The payload is usually nested under the EXACT metric string
+                # e.g., {"metric": "pm25", "pm25": {"concentration": ...}}
+                payload = reading.get(metric)
+                if isinstance(payload, dict):
+                    # Check all known Meraki value keys. Whichever hits first is our value!
+                    for val_key in [
+                        "concentration", 
+                        "celsius", 
+                        "relativePercentage", 
+                        "percentage", 
+                        "level", 
+                        "draw", 
+                        "kWh", 
+                        "present", 
+                        "pressType", 
+                        "factor"
+                    ]:
+                        if val_key in payload:
+                            return self._maybe_get_value(payload[val_key])
+                    
+                    # Fallback for noise: noise -> ambient -> level
+                    if "ambient" in payload and isinstance(payload["ambient"], dict):
+                        return self._maybe_get_value(payload["ambient"].get("level"))
+                        
         return None
 
     def _update_native_value(self) -> None:
-        """Update the native value of the sensor by trying different data sources."""
+        """Update the native value of the sensor."""
         self._attr_native_value = None
 
-        # 1. Try values from legacy device attributes
-        if value := self._get_value_from_legacy_device_attributes(self._meraki_metric_key):
+        # 1. Try robust readings extraction first (Primary God Module Path)
+        if value := self._extract_from_readings_robustly():
             self._attr_native_value = value
             return
 
-        # 2. Try values from the 'readings' list if available
-        readings = self._get_readings_list()
-        if readings and (value := self._get_value_from_readings_list(self._meraki_metric_key, readings)):
-            self._attr_native_value = value
-            return
-
-        # 3. Fallback to generic device attributes
-        if value := self._get_value_from_generic_device_attributes(self._meraki_metric_key):
-            self._attr_native_value = value
-            return
+        # 2. Fallback to generic object attributes (e.g., pm2_5 or pm25 as direct properties)
+        target_key = self.entity_description.key
+        fallback_keys = [
+            target_key,
+            target_key.replace("_", ""),
+            "energyApparent",
+            "energy_kWh",
+            "doorOpen",
+            "door_open",
+            "ambientNoise",
+            "ambient_noise"
+        ]
+        
+        device_dict = self._device if isinstance(self._device, dict) else vars(self._device)
+        
+        for fk in fallback_keys:
+            val = self._maybe_get_value(device_dict.get(fk)) if isinstance(self._device, dict) else self._maybe_get_value(getattr(self._device, fk, UNDEFINED))
+            if val is not None:
+                self._attr_native_value = val
+                return
 
     @callback
     def _handle_coordinator_update(self) -> None:
@@ -255,7 +156,6 @@ class MerakiMtSensor(MerakiSensor, RestoreSensor):
             self._device = device
             self._update_native_value()
 
-        # Ensure we call the parent callback to write the state and handle upstream logic
         super()._handle_coordinator_update()
 
     @property
@@ -263,21 +163,9 @@ class MerakiMtSensor(MerakiSensor, RestoreSensor):
         """Return the state of the sensor."""
         return self._attr_native_value
 
-    def _is_metric_in_readings(self, readings: list[dict[str, Any]]) -> bool:
-        """Check if the sensor's metric exists in the given readings list."""
-        for reading in readings:
-            metric = reading.get("metric")
-            if (
-                metric == self._meraki_metric_key
-                or (self._meraki_metric_key == "realPower" and metric == "power")
-            ):
-                return True
-        return False
-
     @property
     def available(self) -> bool:
         """Return if the sensor is available."""
-        # Defer to the parent MerakiEntity logic which checks the coordinator state
         if not super().available:
             return False
 
@@ -285,4 +173,9 @@ class MerakiMtSensor(MerakiSensor, RestoreSensor):
             return True
 
         readings = self._get_readings_list()
-        return readings is not None and self._is_metric_in_readings(readings)
+        if readings:
+            target_key = self.entity_description.key
+            for reading in readings:
+                if self._fuzzy_match_metric(reading.get("metric"), target_key):
+                    return True
+        return False
