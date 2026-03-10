@@ -51,7 +51,7 @@ class MerakiEntity(CoordinatorEntity[T], Generic[T]):
         if isinstance(data, dict) and self._serial in data:
             return data[self._serial]
             
-        # Scenario 3: Flat list of devices (common in list-based coordinators)
+        # Scenario 3: Flat list of devices
         if isinstance(data, list):
             for d in data:
                 if getattr(d, "serial", None) == self._serial or (isinstance(d, dict) and d.get("serial") == self._serial):
@@ -78,6 +78,7 @@ class MerakiEntity(CoordinatorEntity[T], Generic[T]):
             if status is None:
                 return False
 
+            # Allow alerting and dormant devices to remain available
             return str(status).lower() in ("online", "alerting", "dormant")
 
         return True
