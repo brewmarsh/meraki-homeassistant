@@ -195,15 +195,37 @@ export class MerakiGuestAccessCard extends LitElement {
           ${this._success ? html`<ha-alert alert-type="success" dismissable @alert-dismissed-clicked="${() => (this._success = null)}">${this._success}</ha-alert>` : ''}
 
           <div class="form-container">
-            <ha-select label="Network" .value=${this._selectedNetwork} @selected=${this._handleNetworkChange}>
+            <ha-select
+              label="Network"
+              .value=${this._selectedNetwork}
+              @value-changed=${this._handleNetworkChange}
+              @closed=${(e: Event) => e.stopPropagation()}
+              fixedMenuPosition
+              naturalMenuWidth
+            >
               ${networks.map(n => html`<mwc-list-item value="${n.id}">${n.name}</mwc-list-item>`)}
             </ha-select>
 
-            <ha-select label="SSID" .value=${this._selectedSsid} .disabled=${!this._selectedNetwork} @selected=${this._handleSsidChange}>
+            <ha-select
+              label="SSID"
+              .value=${this._selectedSsid}
+              .disabled=${!this._selectedNetwork}
+              @value-changed=${this._handleSsidChange}
+              @closed=${(e: Event) => e.stopPropagation()}
+              fixedMenuPosition
+              naturalMenuWidth
+            >
               ${filteredSsids.map(s => html`<mwc-list-item value="${String(s.number)}">${s.name} (SSID ${s.number})</mwc-list-item>`)}
             </ha-select>
 
-            <ha-select label="Duration" .value=${this._duration} @selected=${this._handleDurationChange}>
+            <ha-select
+              label="Duration"
+              .value=${this._duration}
+              @value-changed=${this._handleDurationChange}
+              @closed=${(e: Event) => e.stopPropagation()}
+              fixedMenuPosition
+              naturalMenuWidth
+            >
               <mwc-list-item value="60">1 Hour</mwc-list-item>
               <mwc-list-item value="1440">24 Hours</mwc-list-item>
             </ha-select>
@@ -220,16 +242,16 @@ export class MerakiGuestAccessCard extends LitElement {
     `;
   }
 
-  private _handleNetworkChange(e: Event) {
-    const target = e.target as any;
-    console.log('Network Selected:', target.value);
-    if (this._selectedNetwork && target.value === this._selectedNetwork) return;
-    this._selectedNetwork = target.value;
-    this._fetchPolicies(target.value);
+  private _handleNetworkChange(e: any) {
+    const value = e.detail.value;
+    console.log('Network Selected:', value);
+    if (this._selectedNetwork && value === this._selectedNetwork) return;
+    this._selectedNetwork = value;
+    this._fetchPolicies(value);
   }
 
-  private _handleSsidChange(e: Event) { this._selectedSsid = (e.target as any).value; }
-  private _handleDurationChange(e: Event) { this._duration = (e.target as any).value; }
+  private _handleSsidChange(e: any) { this._selectedSsid = e.detail.value; }
+  private _handleDurationChange(e: any) { this._duration = e.detail.value; }
   private _handleGuestNameChange(e: Event) { this._guestName = (e.target as any).value; }
 
   private async _generateAccessKey() {

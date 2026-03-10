@@ -87,32 +87,33 @@ export class MerakiContentFilterCard extends LitElement {
     return html`
       <ha-card .header="${title}">
         <div class="card-content">
-          <div class="current-profile">
-            Current Profile: <strong>${currentProfile}</strong>
-          </div>
-          <div class="profile-buttons">
+          <ha-select
+            label="Content Filter Profile"
+            .value="${currentProfile}"
+            .disabled="${!entityId}"
+            @value-changed="${(ev: any) => this._handleFilterChange(ev, entityId)}"
+            @closed="${(e: Event) => e.stopPropagation()}"
+            fixedMenuPosition
+            naturalMenuWidth
+          >
             ${profiles.map((profile: string) => html`
-              <div
-                class="profile-button ${currentProfile === profile ? 'active' : ''}"
-                @click="${() => this._handleProfileSelect(entityId, profile)}"
-              >
-                <span class="profile-name">${profile}</span>
-              </div>
+              <mwc-list-item value="${profile}">${profile}</mwc-list-item>
             `)}
-          </div>
+          </ha-select>
         </div>
         <div class="version">v${__VERSION__}</div>
       </ha-card>
     `;
   }
 
-  private async _handleProfileSelect(entityId: string, profile: string): Promise<void> {
-    if (!this.hass || !entityId) return;
+  private async _handleFilterChange(ev: any, entityId: string): Promise<void> {
+    const selectedValue = ev.detail.value;
+    if (!this.hass || !entityId || !selectedValue) return;
 
     try {
       await this.hass.callService('select', 'select_option', {
         entity_id: entityId,
-        option: profile,
+        option: selectedValue,
       });
     } catch (err: any) {
       console.error("Failed to call select_option service:", err);
@@ -139,25 +140,7 @@ export class MerakiContentFilterCard extends LitElement {
     .warning-content strong { display: block; margin-bottom: 4px; }
     .warning-content p { margin: 0; font-size: 0.9em; opacity: 0.9; }
     .card-content { padding: 16px; }
-    .current-profile { color: var(--secondary-text-color); font-size: 0.9em; margin-bottom: 16px; }
-    .profile-buttons { display: flex; flex-wrap: wrap; gap: 8px; }
-    .profile-button {
-      flex: 1 1 calc(50% - 4px);
-      border: 1px solid var(--divider-color);
-      border-radius: 8px;
-      padding: 12px 8px;
-      text-align: center;
-      cursor: pointer;
-      transition: all 0.2s ease-in-out;
-      background-color: var(--card-background-color);
-    }
-    .profile-button:hover { background-color: var(--secondary-background-color); }
-    .profile-button.active {
-      background-color: var(--primary-color);
-      color: var(--text-primary-color);
-      border-color: var(--primary-color);
-    }
-    .profile-name { font-weight: bold; display: block; }
+    ha-select { width: 100%; }
     .version {
       font-size: 9px;
       color: var(--secondary-text-color);

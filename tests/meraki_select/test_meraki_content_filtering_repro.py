@@ -26,9 +26,14 @@ TEST_NETWORK = MerakiNetwork.from_dict(
 @pytest.fixture
 def mock_config_entry() -> MockConfigEntry:
     """Fixture for a mocked config entry."""
+    from custom_components.meraki_ha.const.config import (
+        CONF_MERAKI_API_KEY,
+        CONF_MERAKI_ORG_ID,
+    )
+
     return MockConfigEntry(
         domain=DOMAIN,
-        data={"api_key": "fake_key", "organization_id": TEST_ORG_ID},
+        data={CONF_MERAKI_API_KEY: "fake_key", CONF_MERAKI_ORG_ID: TEST_ORG_ID},
         options={},
         entry_id="test_entry",
     )

@@ -60,7 +60,7 @@ export class MerakiWifiQrCardEditor extends LitElement {
 
   private _handleNetworkChange(ev: any) {
     ev.stopPropagation();
-    const newNetworkId = ev.target.value;
+    const newNetworkId = ev.detail.value;
     // Defensive check: only update if we have a valid selection
     if (newNetworkId !== undefined && newNetworkId !== this._selectedNetwork) {
       this._selectedNetwork = newNetworkId;
@@ -70,7 +70,7 @@ export class MerakiWifiQrCardEditor extends LitElement {
 
   private _handleSSIDChange(ev: any) {
     ev.stopPropagation();
-    const newSsidName = ev.target.value;
+    const newSsidName = ev.detail.value;
     if (newSsidName && newSsidName !== this._config?.ssid) {
       this._updateConfig('ssid', newSsidName);
     }
@@ -105,7 +105,7 @@ export class MerakiWifiQrCardEditor extends LitElement {
         <ha-select
           label="Network (Optional - to populate SSID)"
           .value=${this._selectedNetwork}
-          @selected=${this._handleNetworkChange}
+          @value-changed=${this._handleNetworkChange}
           @closed=${(e: Event) => e.stopPropagation()}
           fixedMenuPosition
           naturalMenuWidth
@@ -118,7 +118,7 @@ export class MerakiWifiQrCardEditor extends LitElement {
           label="SSID"
           .value=${this._config?.ssid || ''}
           .disabled=${!this._selectedNetwork}
-          @selected=${this._handleSSIDChange}
+          @value-changed=${this._handleSSIDChange}
           @closed=${(e: Event) => e.stopPropagation()}
           fixedMenuPosition
           naturalMenuWidth
