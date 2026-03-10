@@ -8,18 +8,21 @@ against the Meraki Dashboard API using the Meraki SDK.
 from __future__ import annotations
 
 import logging
-from typing import Any, NoReturn
+from typing import TYPE_CHECKING, Any, NoReturn
 
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryAuthFailed
-from meraki.exceptions import APIError as MerakiSDKAPIError
 
-from .core.api import MerakiApiClientProtocol, create_api_client
 from .core.errors import (
     InvalidOrgID,  # Ensure this is imported for validation logic
     MerakiAuthenticationError,
     MerakiConnectionError,
 )
+
+if TYPE_CHECKING:
+    from meraki.exceptions import APIError as MerakiSDKAPIError
+    from .core.api import MerakiApiClientProtocol
+
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -49,6 +52,8 @@ class MerakiAuthentication:
 
     async def _async_get_authenticated_client(self) -> MerakiApiClientProtocol:
         """Initialize and setup the Meraki API client."""
+        from .core.api import create_api_client
+
         client = create_api_client(
             hass=self.hass,
             api_key=self.api_key,
@@ -105,6 +110,8 @@ class MerakiAuthentication:
             MerakiConnectionError: If there is a connection error.
 
         """
+        from meraki.exceptions import APIError as MerakiSDKAPIError
+
         client = await self._async_get_authenticated_client()
 
         try:
