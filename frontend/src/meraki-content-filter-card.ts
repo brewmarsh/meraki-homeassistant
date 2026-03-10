@@ -23,7 +23,6 @@ export class MerakiContentFilterCard extends LitElement {
     if (!config) {
       throw new Error('Invalid configuration');
     }
-    // Priority: fix-content-filter-card-discovery branch
     this._config = { ...config };
   }
 
@@ -46,24 +45,28 @@ export class MerakiContentFilterCard extends LitElement {
   public static getStubConfig(): Record<string, unknown> {
     return {
       entity: '',
-      name: 'Meraki Content Filter',
+      name: '',
     };
   }
 
   protected render() {
-    if (!this.hass) return html``;
+    if (!this.hass || !this._config) return html``;
 
     // Use configured entity or fallback to auto-discovery
-    const entityId = this._config?.entity || this._discoverEntity();
+    const entityId = this._config.entity || this._discoverEntity();
     const stateObj = entityId ? this.hass.states[entityId] : undefined;
 
     if (stateObj) {
       console.log("MERAKI CARD DIAGNOSTIC - Content Filter Raw Entity State:", stateObj);
     }
 
+    const titleStateObj = this._config.entity ? this.hass.states[this._config.entity] : undefined;
+    const titleFriendlyName = titleStateObj?.attributes?.friendly_name || "Meraki";
+    const title = this._config.name || (this._config.entity ? `${titleFriendlyName} Content Filter` : "Meraki Content Filter");
+
     if (!entityId || !stateObj) {
       return html`
-        <ha-card>
+        <ha-card .header="${title}">
           <div class="card-content">
             <div class="meraki-warning">
               <ha-icon icon="mdi:information"></ha-icon>
@@ -80,11 +83,9 @@ export class MerakiContentFilterCard extends LitElement {
 
     const currentProfile = stateObj.state || 'Unknown';
     const profiles = stateObj.attributes?.options || ["None", "Security", "Family", "Strict"];
-    const friendlyName = this._config?.name || stateObj.attributes?.friendly_name || "Content Filter";
 
     return html`
-      <ha-card>
-        <div class="card-header">${friendlyName}</div>
+      <ha-card .header="${title}">
         <div class="card-content">
           <div class="current-profile">
             Current Profile: <strong>${currentProfile}</strong>
@@ -137,7 +138,6 @@ export class MerakiContentFilterCard extends LitElement {
     }
     .warning-content strong { display: block; margin-bottom: 4px; }
     .warning-content p { margin: 0; font-size: 0.9em; opacity: 0.9; }
-    .card-header { padding: 16px 16px 0; font-size: 24px; line-height: 1.2; }
     .card-content { padding: 16px; }
     .current-profile { color: var(--secondary-text-color); font-size: 0.9em; margin-bottom: 16px; }
     .profile-buttons { display: flex; flex-wrap: wrap; gap: 8px; }
@@ -176,52 +176,54 @@ export class MerakiContentFilterCardEditor extends LitElement {
     this._config = config;
   }
 
+  private _schema = [
+    {
+      name: "entity",
+      selector: { entity: { domain: "select" } },
+    },
+    {
+      name: "name",
+      selector: { text: {} },
+    },
+  ];
+
   protected render() {
     if (!this.hass || !this._config) return html``;
 
     return html`
-      <div class="card-config">
-        <ha-entity-picker
+      <div class="editor-container">
+        <ha-form
           .hass=${this.hass}
-          .value=${this._config.entity}
-          .configValue=${"entity"}
-          .includeDomains=${["select"]}
+          .data=${this._config}
+          .schema=${this._schema}
+          .computeLabel=${this._computeLabel}
           @value-changed=${this._valueChanged}
-          allow-custom-entity
-          label="Entity (Optional - Auto-discovery will attempt to find a Meraki content filter)"
-        ></ha-entity-picker>
-        <ha-textfield
-          label="Display Name (Optional)"
-          .value=${this._config.name || ""}
-          .configValue=${"name"}
-          @input=${this._valueChanged}
-        ></ha-textfield>
+        ></ha-form>
       </div>
     `;
   }
 
-  private _valueChanged(ev: any): void {
+  private _computeLabel(schema: any): string {
+    if (schema.name === "entity") return "Entity (Optional)";
+    if (schema.name === "name") return "Display Name (Optional)";
+    return schema.name;
+  }
+
+  private _valueChanged(ev: CustomEvent): void {
     if (!this._config) return;
-    const target = ev.target;
-    const configValue = target.configValue;
-    const newValue = ev.detail?.value ?? target.value;
-
-    const newConfig = { ...this._config };
-    if (!newValue) {
-      delete newConfig[configValue];
-    } else {
-      newConfig[configValue] = newValue;
-    }
-
+    const config = { ...this._config, ...ev.detail.value };
     this.dispatchEvent(new CustomEvent("config-changed", {
-      detail: { config: newConfig },
+      detail: { config },
       bubbles: true,
       composed: true,
     }));
   }
 
   static styles = css`
-    ha-entity-picker, ha-textfield { display: block; margin-bottom: 16px; width: 100%; }
+    .editor-container {
+      display: block;
+      padding: 16px;
+    }
   `;
 }
 
