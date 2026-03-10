@@ -244,7 +244,7 @@ jobs:
           fi
 
       - name: Upload Full HA Log Artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         if: always()
         with:
           name: home-assistant-debug-logs
