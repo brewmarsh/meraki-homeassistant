@@ -32,15 +32,8 @@ class MerakiMt15RefreshDataButton(MerakiEntity, ButtonEntity):
         self._device = device
         self._config_entry = config_entry
         self._meraki_client = meraki_client
-        self._serial = device.serial
-        self._attr_unique_id = f"{self._serial}-refresh"
+        self._attr_unique_id = f"{device.serial}-refresh"
         self._attr_name = "Refresh data"
-
-    @property
-    def device_data(self):
-        """Get the updated device data from the God dictionary."""
-        # This ensures the button uses the new O(1) traversal path
-        return self.coordinator.data.get("devices_by_serial", {}).get(self._serial)
 
     @property
     def unique_id(self) -> str | None:
