@@ -55,32 +55,6 @@ class MerakiDeviceUplinkBaseSensor(MerakiEntity, SensorEntity):
                     return uplink
         return None
 
-    @property
-    def available(self) -> bool:
-        """Return if entity is available."""
-        if not super().available:
-            return False
-
-        if self._interface in ["lanIp", "publicIp"]:
-            device = self.coordinator.get_device(self._device_serial)
-            is_avail = device is not None
-            if not is_avail:
-                _LOGGER.debug(
-                    "IP Sensor %s unavailable: device %s not found in coordinator",
-                    self.unique_id,
-                    self._device_serial,
-                )
-            return is_avail
-
-        uplink_data = self._get_uplink_data()
-        is_avail = uplink_data is not None
-        if not is_avail:
-            _LOGGER.debug(
-                "IP Sensor %s unavailable: uplink data for %s not found",
-                self.unique_id,
-                self._interface,
-            )
-        return is_avail
 
 
 class MerakiDeviceIPSensor(MerakiDeviceUplinkBaseSensor):

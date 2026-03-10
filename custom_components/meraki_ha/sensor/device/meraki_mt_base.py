@@ -221,7 +221,12 @@ class MerakiMtSensor(MerakiSensor, RestoreSensor):
     def _update_native_value(self) -> None:
         """Update the native value of the sensor by trying different data sources."""
         self._attr_native_value = None
-        key = self.entity_description.key
+
+        # Explicit mapping of HA entity keys to Meraki API metric keys
+        HA_TO_MERAKI_KEY_MAP = {
+            "pm2_5": "pm25",
+        }
+        key = HA_TO_MERAKI_KEY_MAP.get(self.entity_description.key, self.entity_description.key)
 
         # 1. Try values from legacy device attributes
         if value := self._get_value_from_legacy_device_attributes(key):
@@ -256,8 +261,19 @@ class MerakiMtSensor(MerakiSensor, RestoreSensor):
 
     def _is_metric_in_readings(self, readings: list[dict[str, Any]]) -> bool:
         """Check if the sensor's metric exists in the given readings list."""
+        # Explicit mapping of HA entity keys to Meraki API metric keys
+        HA_TO_MERAKI_KEY_MAP = {
+            "pm2_5": "pm25",
+        }
+        key = HA_TO_MERAKI_KEY_MAP.get(self.entity_description.key, self.entity_description.key)
+
         for reading in readings:
-            if reading.get("metric") == self.entity_description.key:
+            metric = reading.get("metric")
+            if (
+                metric == key
+                or (key == "realPower" and metric == "power")
+                or (key == "pm25" and metric == "pm2_5")
+            ):
                 return True
         return False
 
