@@ -47,7 +47,8 @@ This document verifies the state of the codebase against the requirements for th
 
 - **R12: Diagnostic Observability:**
   - **[VERIFIED]** Implementation of diagnostic tracing in critical parsers to ensure visibility into data mapping during the batch distribution phase.
-  - **[VERIFIED]** Established O(1) dictionary traversal as the project standard for entity data retrieval from the centralized coordinator. Temporary diagnostic logging in `available` properties and parsers has been removed following the stabilization of the 'God Module' data structure (nested under `devices_by_serial`, `networks_by_id`, and `sensor_readings`).
+  - **[VERIFIED]** Established O(1) dictionary traversal as the project standard for entity data retrieval from the centralized coordinator.
+  - **[VERIFIED]** Persistent diagnostic logging implemented in the `available` property of `MerakiEntity` and overrides (e.g., `MerakiRebootButton`) to provide precise reasons (missing coordinator data, missing device data, offline status, missing capabilities) for entity unavailability.
 
 - **R13: Webhook Lifecycle Management:**
   - **[VERIFIED]** Implementation of idempotent webhook registration to prevent exhausting the Meraki API limit (100 HTTP servers per network).
