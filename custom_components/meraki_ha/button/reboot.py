@@ -15,7 +15,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import callback
 from homeassistant.helpers.entity import DeviceInfo
 
-from ..const.device import DEVICE_CAPABILITIES
+from ..const.device import DEVICE_CAPABILITIES, DEFAULT_CAPS
 from ..entity import MerakiEntity
 from ..helpers.device_info_helpers import resolve_device_info
 
@@ -52,16 +52,17 @@ class MerakiRebootButton(MerakiEntity, ButtonEntity):
     @property
     def available(self) -> bool:
         """Return if entity is available."""
-        # Check base availability (coordinator data presence)
-        if not self.coordinator.data or not self._serial:
+        # 1. Check parent availability (ensures coordinator has data AND device is not offline)
+        if not super().available:
             return False
 
-        if self.device_data is None:
-            return False
-
-        # Check static hardware capabilities based on device model
-        model = (self._device.model or "").split(" ")[0]  # Take first part of model name
-        capabilities = DEVICE_CAPABILITIES.get(model, [])
+        # 2. Check static hardware capabilities based on device model
+        # Strip suffixes like "-8LP" or " HW" to get the base model (e.g., "MS120")
+        model = (self._device.model or "").split("-")[0].split(" ")[0]
+        
+        # Use DEFAULT_CAPS to assume basic network gear can reboot if model isn't hardcoded.
+        # MT sensors are explicitly hardcoded and will correctly override this.
+        capabilities = DEVICE_CAPABILITIES.get(model, DEFAULT_CAPS)
         return "reboot" in capabilities
 
     @callback
