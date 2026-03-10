@@ -58,10 +58,10 @@ class MerakiRebootButton(MerakiEntity, ButtonEntity):
 
         # 2. Check static hardware capabilities based on device model
         # Strip suffixes like "-8LP" or " HW" to get the base model (e.g., "MS120")
-        model = (self._device.model or "").split("-")[0].split(" ")[0]
+        model_str = self._device.model or ""
+        model = model_str.split("-")[0].split(" ")[0]
         
         # Use DEFAULT_CAPS to assume basic network gear can reboot if model isn't hardcoded.
-        # MT sensors are explicitly hardcoded and will correctly override this.
         capabilities = DEVICE_CAPABILITIES.get(model, DEFAULT_CAPS)
         return "reboot" in capabilities
 
