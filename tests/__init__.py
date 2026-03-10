@@ -22,14 +22,16 @@ from custom_components.meraki_ha.const.integration import DOMAIN
 from .const import MERAKI_TEST_API_KEY, MERAKI_TEST_ORG_ID
 
 
+from custom_components.meraki_ha.const.config import CONF_MERAKI_API_KEY, CONF_MERAKI_ORG_ID
+
 async def async_get_config_entry(
     hass: HomeAssistant, data: dict[str, Any] | None = None
 ) -> MockConfigEntry:
     """Create a mock config entry for testing."""
     if data is None:
         data = {
-            "api_key": MERAKI_TEST_API_KEY,
-            "organization_id": MERAKI_TEST_ORG_ID,
+            CONF_MERAKI_API_KEY: MERAKI_TEST_API_KEY,
+            CONF_MERAKI_ORG_ID: MERAKI_TEST_ORG_ID,
         }
 
     config_entry = MockConfigEntry(
