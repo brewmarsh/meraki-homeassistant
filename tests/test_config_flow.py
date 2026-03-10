@@ -27,7 +27,7 @@ async def test_form(hass: HomeAssistant) -> None:
 
     with (
         patch(
-            "custom_components.meraki_ha.config_flow.create_api_client",
+            "custom_components.meraki_ha.core.api.create_api_client",
         ) as mock_create_client,
         patch(
             "custom_components.meraki_ha.async_setup_entry",
@@ -68,7 +68,7 @@ async def test_form_cannot_connect(hass: HomeAssistant) -> None:
     )
 
     with patch(
-        "custom_components.meraki_ha.config_flow.create_api_client",
+        "custom_components.meraki_ha.core.api.create_api_client",
         side_effect=Exception,
     ):
         result2 = await hass.config_entries.flow.async_configure(
