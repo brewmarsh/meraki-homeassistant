@@ -44,7 +44,18 @@ class MerakiMtSensor(MerakiSensor, RestoreSensor):
             self._attr_name = cast(str | None, self.entity_description.name)
 
         self._attr_native_value = None
+        
+        # Translate HA entity key to Meraki Metric key immediately
+        self._meraki_metric_key = self._translate_ha_key(self.entity_description.key)
+        
         self._update_native_value()
+
+    def _translate_ha_key(self, ha_key: str) -> str:
+        """Translate a Home Assistant standard key to a Meraki API metric key."""
+        translations = {
+            "pm2_5": "pm25",
+        }
+        return translations.get(ha_key, ha_key)
 
     def _maybe_get_value(self, value: Any) -> Any | None:
         """Return the value if not UNDEFINED, else None."""
@@ -99,6 +110,7 @@ class MerakiMtSensor(MerakiSensor, RestoreSensor):
             return self._maybe_get_value(metric_data.get("draw"))
         if key == "energy":
             for fallback_key in (
+                "kWh", # MT40 Energy is usually reported in kWh
                 "energyUsage",
                 "apparentPower",
                 "energy",
@@ -132,7 +144,7 @@ class MerakiMtSensor(MerakiSensor, RestoreSensor):
             "voltage": "level",
             "powerFactor": "percentage",
             "frequency": "level",
-            "energy": "draw",
+            "energy": "kWh", # CRITICAL FIX: MT40 Energy uses kWh
             "apparentPower": "draw",
         }
 
@@ -150,11 +162,9 @@ class MerakiMtSensor(MerakiSensor, RestoreSensor):
         """Extract value if the reading metric matches the desired key."""
         metric = reading.get("metric")
         # Handle "realPower" which might be reported as "power"
-        # and "pm25" which might be reported as "pm2_5"
         if (
             metric == key
             or (key == "realPower" and metric == "power")
-            or (key == "pm25" and metric == "pm2_5")
         ):
             metric_data = reading.get(metric)
             if isinstance(metric_data, dict):
@@ -222,25 +232,19 @@ class MerakiMtSensor(MerakiSensor, RestoreSensor):
         """Update the native value of the sensor by trying different data sources."""
         self._attr_native_value = None
 
-        # Explicit mapping of HA entity keys to Meraki API metric keys
-        HA_TO_MERAKI_KEY_MAP = {
-            "pm2_5": "pm25",
-        }
-        key = HA_TO_MERAKI_KEY_MAP.get(self.entity_description.key, self.entity_description.key)
-
         # 1. Try values from legacy device attributes
-        if value := self._get_value_from_legacy_device_attributes(key):
+        if value := self._get_value_from_legacy_device_attributes(self._meraki_metric_key):
             self._attr_native_value = value
             return
 
         # 2. Try values from the 'readings' list if available
         readings = self._get_readings_list()
-        if readings and (value := self._get_value_from_readings_list(key, readings)):
+        if readings and (value := self._get_value_from_readings_list(self._meraki_metric_key, readings)):
             self._attr_native_value = value
             return
 
         # 3. Fallback to generic device attributes
-        if value := self._get_value_from_generic_device_attributes(key):
+        if value := self._get_value_from_generic_device_attributes(self._meraki_metric_key):
             self._attr_native_value = value
             return
 
@@ -261,18 +265,11 @@ class MerakiMtSensor(MerakiSensor, RestoreSensor):
 
     def _is_metric_in_readings(self, readings: list[dict[str, Any]]) -> bool:
         """Check if the sensor's metric exists in the given readings list."""
-        # Explicit mapping of HA entity keys to Meraki API metric keys
-        HA_TO_MERAKI_KEY_MAP = {
-            "pm2_5": "pm25",
-        }
-        key = HA_TO_MERAKI_KEY_MAP.get(self.entity_description.key, self.entity_description.key)
-
         for reading in readings:
             metric = reading.get("metric")
             if (
-                metric == key
-                or (key == "realPower" and metric == "power")
-                or (key == "pm25" and metric == "pm2_5")
+                metric == self._meraki_metric_key
+                or (self._meraki_metric_key == "realPower" and metric == "power")
             ):
                 return True
         return False
