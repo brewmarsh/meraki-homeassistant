@@ -6,7 +6,7 @@ from typing import Final
 
 MERAKI_CONTENT_FILTERING_CATEGORIES: Final[list[dict[str, str]]] = [
     {
-        "id": "meraki:contentFiltering/category/1",
+        "id": "adult",
         "name": "Adult and Pornography",
         "description": "Sites featuring sexual content, nudity, or pornography.",
     },
@@ -16,7 +16,7 @@ MERAKI_CONTENT_FILTERING_CATEGORIES: Final[list[dict[str, str]]] = [
         "description": "Sites promoting illegal activities.",
     },
     {
-        "id": "meraki:contentFiltering/category/3",
+        "id": "gambling",
         "name": "Gambling",
         "description": "Online gambling sites.",
     },
@@ -41,12 +41,12 @@ MERAKI_CONTENT_FILTERING_CATEGORIES: Final[list[dict[str, str]]] = [
         "description": "Peer-to-peer file sharing sites and applications.",
     },
     {
-        "id": "meraki:contentFiltering/category/8",
+        "id": "malware_sites",
         "name": "Malware sites",
         "description": "Sites known to host or distribute malware.",
     },
     {
-        "id": "meraki:contentFiltering/category/9",
+        "id": "phishing",
         "name": "Phishing and other frauds",
         "description": "Sites engaged in phishing, scams, or other frauds.",
     },
@@ -61,7 +61,7 @@ MERAKI_CONTENT_FILTERING_CATEGORIES: Final[list[dict[str, str]]] = [
         "description": "Sites associated with botnet command and control servers.",
     },
     {
-        "id": "meraki:contentFiltering/category/12",
+        "id": "spam",
         "name": "Spam URLs",
         "description": "URLs frequently found in unsolicited email (spam).",
     },

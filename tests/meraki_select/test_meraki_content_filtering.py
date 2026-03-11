@@ -75,9 +75,9 @@ def mock_data_fetch_manager() -> AsyncMock:
             MOCK_NETWORK.id: {
                 "networkId": MOCK_NETWORK.id,
                 "blockedUrlCategories": [
-                    "meraki:contentFiltering/category/8",
-                    "meraki:contentFiltering/category/9",
-                    "meraki:contentFiltering/category/11",
+                    "malware_sites",
+                    "phishing",
+                    "spam",
                 ],
             }
         },
