@@ -35,7 +35,13 @@ def mock_meraki_client() -> MagicMock:
     client.appliance.get_network_appliance_content_filtering_categories = AsyncMock(
         return_value={
             "categories": [
-                {"id": "malware_sites", "name": "Malware Sites"},
+                {"id": "meraki:contentFiltering/category/1", "name": "Adult and Pornography"},
+                {"id": "meraki:contentFiltering/category/2", "name": "Nudity"},
+                {"id": "meraki:contentFiltering/category/8", "name": "Malware Sites"},
+                {"id": "meraki:contentFiltering/category/9", "name": "Phishing and Other Frauds"},
+                {"id": "meraki:contentFiltering/category/11", "name": "Bot Nets"},
+                {"id": "meraki:contentFiltering/category/12", "name": "Spyware and Adware"},
+                {"id": "meraki:contentFiltering/category/15", "name": "Proxy Avoidance and Anonymizers"},
             ]
         }
     )
@@ -67,9 +73,11 @@ def mock_data_fetch_manager() -> AsyncMock:
             MOCK_NETWORK.id: {
                 "networkId": MOCK_NETWORK.id,
                 "blockedUrlCategories": [
-                    {"id": "malware_sites"},
-                    {"id": "phishing"},
-                    {"id": "spam"},
+                    {"id": "meraki:contentFiltering/category/8"},
+                    {"id": "meraki:contentFiltering/category/9"},
+                    {"id": "meraki:contentFiltering/category/11"},
+                    {"id": "meraki:contentFiltering/category/12"},
+                    {"id": "meraki:contentFiltering/category/15"},
                 ],
             }
         },
@@ -140,8 +148,12 @@ async def test_content_filtering_select_entity(
             blocking=True,
         )
 
-        # Verify API called with Family categories
+        # Verify API called with Family categories (URN format)
         mock_meraki_client.appliance.update_network_appliance_content_filtering.assert_called_with(
             network_id=MOCK_NETWORK.id,
-            blockedUrlCategories=["adult", "gambling", "malware_sites"],
+            blockedUrlCategories=[
+                "meraki:contentFiltering/category/1",
+                "meraki:contentFiltering/category/2",
+                "meraki:contentFiltering/category/8",
+            ],
         )
