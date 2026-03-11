@@ -16,6 +16,10 @@ export class MerakiContentFilterCard extends LitElement {
   @property({ attribute: false }) public hass!: HomeAssistant;
   @state() private _config?: Config;
 
+  // New Optimistic UI States to fight cloud caching
+  @state() private _optimisticProfile: string | null = null;
+  @state() private _isUpdating: boolean = false;
+
   public static async getConfigElement() {
     return document.createElement("meraki-content-filter-card-editor");
   }
@@ -50,7 +54,6 @@ export class MerakiContentFilterCard extends LitElement {
   }
 
   protected render() {
-    // 1. Check if Integration is still booting
     if (!this.hass || !this._config) {
         return html`
           <ha-card .header="${this._config?.name || 'Meraki Content Filter'}">
@@ -69,7 +72,6 @@ export class MerakiContentFilterCard extends LitElement {
     const titleFriendlyName = titleStateObj?.attributes?.friendly_name || "Meraki";
     const title = this._config.name || (this._config.entity ? `${titleFriendlyName} Content Filter` : "Meraki Content Filter");
 
-    // 2. Check if the specific entity is missing
     if (!entityId || !stateObj) {
       return html`
         <ha-card .header="${title}">
@@ -84,19 +86,26 @@ export class MerakiContentFilterCard extends LitElement {
     const currentProfile = stateObj.state || 'Unknown';
     const profiles = stateObj.attributes?.options || ["None", "Security", "Family", "Strict"];
 
+    // Use the optimistic profile if an update is actively processing
+    const displayProfile = this._optimisticProfile || currentProfile;
+
     return html`
       <ha-card .header="${title}">
         <div class="card-content">
           <div class="button-grid">
             ${profiles.map((profile: string) => {
-              const isActive = currentProfile.toLowerCase() === profile.toLowerCase();
+              const isActive = displayProfile.toLowerCase() === profile.toLowerCase();
+              const isPendingThisButton = this._isUpdating && this._optimisticProfile === profile;
               
               return html`
                 <button
-                  class="filter-btn ${isActive ? 'active' : ''}"
+                  class="filter-btn ${isActive ? 'active' : ''} ${this._isUpdating && !isPendingThisButton ? 'disabled' : ''}"
+                  ?disabled=${this._isUpdating}
                   @click=${() => this._setFilterProfile(profile, entityId)}
                 >
-                  ${profile}
+                  ${isPendingThisButton 
+                    ? html`<ha-circular-progress active size="small"></ha-circular-progress> Saving...` 
+                    : profile}
                 </button>
               `;
             })}
@@ -108,15 +117,30 @@ export class MerakiContentFilterCard extends LitElement {
   }
 
   private async _setFilterProfile(profile: string, entityId: string): Promise<void> {
-    if (!this.hass || !entityId || !profile) return;
+    // Block spam clicks if an update is already happening
+    if (!this.hass || !entityId || !profile || this._isUpdating) return;
+
+    this._isUpdating = true;
+    this._optimisticProfile = profile;
 
     try {
       await this.hass.callService('select', 'select_option', {
         entity_id: entityId,
         option: profile,
       });
+
+      // Hold the optimistic state for 8 seconds to let the Meraki cloud cache clear 
+      // before allowing the real HA state to take over the UI again.
+      setTimeout(() => {
+        this._optimisticProfile = null;
+        this._isUpdating = false;
+      }, 8000);
+
     } catch (err: any) {
       console.error("Failed to call select_option service:", err);
+      // Revert immediately if the API actually threw an error
+      this._optimisticProfile = null; 
+      this._isUpdating = false;
     }
   }
 
@@ -137,7 +161,6 @@ export class MerakiContentFilterCard extends LitElement {
         gap: 8px;
       }
       
-      /* Standard HTML buttons bypass aggressive HA themes */
       .filter-btn {
         width: 100%;
         padding: 12px;
@@ -150,8 +173,12 @@ export class MerakiContentFilterCard extends LitElement {
         font-weight: 500;
         transition: all 0.2s ease;
         font-family: inherit;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
       }
-      .filter-btn:hover {
+      .filter-btn:hover:not(:disabled) {
         background: var(--secondary-background-color, rgba(255,255,255,0.05));
       }
       .filter-btn.active {
@@ -159,6 +186,15 @@ export class MerakiContentFilterCard extends LitElement {
         color: #ffffff;
         border-color: var(--success-color, #4caf50);
         font-weight: bold;
+      }
+      .filter-btn.disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+      
+      /* Style the circular progress to match the text color */
+      ha-circular-progress {
+        --mdc-theme-primary: currentColor;
       }
     `
   ];
