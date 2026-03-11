@@ -322,10 +322,8 @@ class WirelessEndpoints:
         # Prepare kwargs for the library call
         kwargs: dict[str, Any] = {
             "name": name,
+            "groupPolicyId": group_policy_id,
         }
-
-        if group_policy_id is not None:
-            kwargs["groupPolicyId"] = group_policy_id
 
         if passphrase:
             kwargs["passphrase"] = passphrase
