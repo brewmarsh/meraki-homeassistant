@@ -12,7 +12,7 @@ interface Config {
   type: string;
   ssid: string;
   networkId?: string;
-  password?: string;
+  password?: string; // Kept for legacy fallback, but removed from editor
   name?: string;
 }
 
@@ -57,10 +57,15 @@ export class MerakiWifiQrCardEditor extends LitElement {
   private _valueChanged(ev: CustomEvent): void {
     if (!this._config) return;
     
-    // ha-form passes the entire updated config object inside ev.detail.value
-    const newConfig = { ...this._config, ...ev.detail.value };
+    const formValues = ev.detail.value;
+    const newConfig = { ...this._config, ...formValues };
 
-    // Clean up empty strings so they don't clutter your raw YAML
+    // Automatically clear the SSID if the Network selection was changed
+    if (this._config.networkId !== formValues.networkId) {
+      newConfig.ssid = "";
+    }
+
+    // Clean up empty strings
     Object.keys(newConfig).forEach(key => {
       if (newConfig[key as keyof Config] === "") {
         delete newConfig[key as keyof Config];
@@ -74,11 +79,9 @@ export class MerakiWifiQrCardEditor extends LitElement {
     }));
   }
 
-  // Arrow function ensures 'this' context is preserved when called by ha-form
   private _computeLabel = (schema: any): string => {
     if (schema.name === "networkId") return "Network (Optional filter)";
     if (schema.name === "ssid") return "SSID (Required)";
-    if (schema.name === "password") return "Password or Entity ID (e.g. sensor.guest_pw)";
     if (schema.name === "name") return "Card Title (Optional)";
     return schema.name;
   }
@@ -86,7 +89,6 @@ export class MerakiWifiQrCardEditor extends LitElement {
   protected render() {
     if (!this.hass || !this._config) return html``;
 
-    // Build dynamic options for the dropdowns
     const networkOptions = [
       { value: "", label: "All Networks" },
       ...this._networks.map(n => ({ value: n.id, label: n.name }))
@@ -98,7 +100,7 @@ export class MerakiWifiQrCardEditor extends LitElement {
         
     const ssidOptions = filteredSsids.map(s => ({ value: s.name, label: `${s.name} (SSID ${s.number})` }));
 
-    // Define the schema for Home Assistant to automatically build the form
+    // The password field has been completely removed from the schema!
     const schema = [
       {
         name: "networkId",
@@ -107,10 +109,6 @@ export class MerakiWifiQrCardEditor extends LitElement {
       {
         name: "ssid",
         selector: { select: { options: ssidOptions, custom_value: true, mode: "dropdown" } }
-      },
-      {
-        name: "password",
-        selector: { text: {} }
       },
       {
         name: "name",
@@ -155,7 +153,6 @@ export class MerakiWifiQrCard extends LitElement {
   public static getStubConfig(): Record<string, unknown> {
     return {
       ssid: 'Guest WiFi',
-      password: 'password123',
       name: 'Wi-Fi Access',
     };
   }
@@ -174,6 +171,32 @@ export class MerakiWifiQrCard extends LitElement {
     return value;
   }
 
+  private _getPasswordForSsid(ssidName: string): string {
+    if (!this.hass || !ssidName) return '';
+
+    // Aggressively scan HA states to find the password attached to this specific SSID
+    for (const entityId in this.hass.states) {
+      const stateObj = this.hass.states[entityId];
+      const attrs = stateObj.attributes;
+
+      if (attrs.ssid_name === ssidName) {
+        // Option A: Password is an attribute on the SSID or Network entity
+        if (attrs.psk) return attrs.psk;
+        if (attrs.password) return attrs.password;
+        
+        // Option B: The entity itself is the dedicated password sensor
+        if (entityId.includes('password') || entityId.includes('psk')) {
+           if (stateObj.state && stateObj.state !== 'unknown' && stateObj.state !== 'unavailable') {
+               return stateObj.state;
+           }
+        }
+      }
+    }
+    
+    // Fallback: Use the legacy config password if it was saved prior to this update
+    return this._config?.password ? this._getValue(this._config.password) : '';
+  }
+
   private _generateWifiString(ssid: string, password?: string): string {
     const escapedSsid = ssid.replace(/([\\;,":])/g, '\\$1');
     const escapedPassword = password ? password.replace(/([\\;,":])/g, '\\$1') : '';
@@ -185,7 +208,7 @@ export class MerakiWifiQrCard extends LitElement {
   private async _generateQR() {
     if (!this._config) return;
     const ssid = this._getValue(this._config.ssid);
-    const password = this._getValue(this._config.password);
+    const password = this._getPasswordForSsid(ssid);
 
     if (!ssid) {
       this._qrSvg = '';
@@ -208,13 +231,14 @@ export class MerakiWifiQrCard extends LitElement {
   protected render() {
     if (!this._config || !this.hass) return html``;
     const ssid = this._getValue(this._config.ssid);
+    const password = this._getPasswordForSsid(ssid);
 
     return html`
       <ha-card .header=${this._config.name || 'Wi-Fi Access'}>
         <div class="card-content">
           <div class="ssid-display">${ssid}</div>
           <div class="qr-container" .innerHTML=${this._qrSvg}></div>
-          ${this._getValue(this._config.password) ? html`<div class="password-display">Password: <code>${this._getValue(this._config.password)}</code></div>` : ''}
+          ${password ? html`<div class="password-display">Password: <code>${password}</code></div>` : ''}
         </div>
         <div class="version">v${__VERSION__}</div>
       </ha-card>
