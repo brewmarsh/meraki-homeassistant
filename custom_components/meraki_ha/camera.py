@@ -44,15 +44,23 @@ async def async_setup_entry(
     camera_entities: list[MerakiRTSPStreamCamera] = []
 
     for device in devices:
-        if device.product_type == "camera":
-            _LOGGER.debug("Found camera device: %s", device.serial)
-            camera_entities.append(
-                MerakiRTSPStreamCamera(
-                    coordinator,
-                    device,
-                    camera_service,
-                    config_entry,
+        try:
+            if device.product_type == "camera":
+                _LOGGER.debug("Found camera device: %s", device.serial)
+                camera_entities.append(
+                    MerakiRTSPStreamCamera(
+                        coordinator,
+                        device,
+                        camera_service,
+                        config_entry,
+                    )
                 )
+        except Exception as err:
+            _LOGGER.error(
+                "Failed to initialize camera for Meraki device %s: %s",
+                getattr(device, "serial", "Unknown"),
+                err,
+                exc_info=True,
             )
 
     if camera_entities:

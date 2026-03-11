@@ -34,12 +34,21 @@ async def async_setup_entry(
 
     entities: list[EventEntity] = []
 
-    for device in coordinator.data["devices"]:
-        if device.product_type == "camera":
-            entities.append(
-                MerakiCameraMotionEvent(coordinator, device, camera_service, entry)
+    for device in coordinator.data.get("devices", []):
+        try:
+            if device.product_type == "camera":
+                entities.append(
+                    MerakiCameraMotionEvent(coordinator, device, camera_service, entry)
+                )
+            elif device.model == "MT30":
+                entities.append(MerakiMtButtonEvent(coordinator, device, entry))
+        except Exception as err:
+            _LOGGER.error(
+                "Failed to initialize event for Meraki device %s: %s",
+                getattr(device, "serial", "Unknown"),
+                err,
+                exc_info=True,
             )
-        elif device.model == "MT30":
-            entities.append(MerakiMtButtonEvent(coordinator, device, entry))
 
-    async_add_entities(entities)
+    if entities:
+        async_add_entities(entities)

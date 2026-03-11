@@ -42,29 +42,53 @@ class SwitchHandler(BaseHandler):
                 return
 
             for device in devices:
-                if not hasattr(device, "product_type"):
-                    continue
+                try:
+                    if not hasattr(device, "product_type"):
+                        continue
 
-                # Add Exclusion Logic
-                if device.product_type == "appliance" or (
-                    device.model
-                    and (device.model.startswith("MX") or device.model.startswith("Z3"))
-                ):
-                    _LOGGER.debug(
-                        "Skipping device %s in Switch Handler (Appliance Handler)",
-                        device.serial,
+                    # Add Exclusion Logic
+                    if device.product_type == "appliance" or (
+                        device.model
+                        and (
+                            device.model.startswith("MX") or device.model.startswith("Z3")
+                        )
+                    ):
+                        _LOGGER.debug(
+                            "Skipping device %s in Switch Handler (Appliance Handler)",
+                            device.serial,
+                        )
+                        continue
+
+                    if device.product_type == "switch":
+                        # Client Count per Switch
+                        try:
+                            yield MerakiSwitchClientCountSensor(
+                                self._coordinator, device, self._config_entry
+                            )
+                        except Exception as err:
+                            _LOGGER.error(
+                                "Failed to instantiate MerakiSwitchClientCountSensor for device %s: %s",
+                                device.serial,
+                                err,
+                            )
+
+                        # Switch Ports
+                        if self._config_entry.options.get(CONF_ENABLE_PORT_SENSORS, True):
+                            try:
+                                for entity in SwitchPortProvider.get_entities(
+                                    self._coordinator, device, self._config_entry
+                                ):
+                                    yield entity
+                            except Exception as err:
+                                _LOGGER.error(
+                                    "Failed to discover SwitchPort entities for device %s: %s",
+                                    device.serial,
+                                    err,
+                                )
+                except Exception as err:
+                    _LOGGER.error(
+                        "Failed to discover switch device entities for %s: %s",
+                        getattr(device, "serial", "Unknown"),
+                        err,
+                        exc_info=True,
                     )
-                    continue
-
-                if device.product_type == "switch":
-                    # Client Count per Switch
-                    yield MerakiSwitchClientCountSensor(
-                        self._coordinator, device, self._config_entry
-                    )
-
-                    # Switch Ports
-                    if self._config_entry.options.get(CONF_ENABLE_PORT_SENSORS, True):
-                        for entity in SwitchPortProvider.get_entities(
-                            self._coordinator, device, self._config_entry
-                        ):
-                            yield entity

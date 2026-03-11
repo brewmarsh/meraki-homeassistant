@@ -27,11 +27,13 @@ async def async_setup_entry(
     discovery_service = entry_data["discovery_service"]
 
     # Entities have already been discovered in __init__.py
-    select_entities = [
-        entity
-        for entity in discovery_service.all_entities
-        if isinstance(entity, SelectEntity)
-    ]
+    select_entities = []
+    for entity in discovery_service.all_entities:
+        try:
+            if isinstance(entity, SelectEntity):
+                select_entities.append(entity)
+        except Exception as err:
+            _LOGGER.error("Error processing discovered select entity: %s", err)
 
     if select_entities:
         _LOGGER.debug("Adding %d select entities", len(select_entities))

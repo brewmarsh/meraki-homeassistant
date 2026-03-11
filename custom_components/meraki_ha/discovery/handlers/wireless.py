@@ -70,18 +70,26 @@ class WirelessHandler(BaseHandler):
             return
 
         for device in devices:
-            if not hasattr(device, "product_type"):
-                continue
-            if device.product_type == "wireless":
-                # Client Count per AP
-                yield MerakiAPClientCountSensor(
-                    self._coordinator, device, self._config_entry
-                )
-                # LED Control
-                if device.management_interface:
-                    yield MerakiDeviceLEDSwitch(
+            try:
+                if not hasattr(device, "product_type"):
+                    continue
+                if device.product_type == "wireless":
+                    # Client Count per AP
+                    yield MerakiAPClientCountSensor(
                         self._coordinator, device, self._config_entry
                     )
+                    # LED Control
+                    if device.management_interface:
+                        yield MerakiDeviceLEDSwitch(
+                            self._coordinator, device, self._config_entry
+                        )
+            except Exception as err:
+                _LOGGER.error(
+                    "Failed to discover wireless device entities for %s: %s",
+                    getattr(device, "serial", "Unknown"),
+                    err,
+                    exc_info=True,
+                )
 
     async def _discover_ssid_entities(self) -> AsyncIterator[Entity]:
         """Discover entities for wireless SSIDs."""
@@ -99,53 +107,64 @@ class WirelessHandler(BaseHandler):
             return
 
         for ssid in ssids:
-            if (
-                not isinstance(ssid, dict)
-                or "networkId" not in ssid
-                or "number" not in ssid
-            ):
-                continue
+            try:
+                if (
+                    not isinstance(ssid, dict)
+                    or "networkId" not in ssid
+                    or "number" not in ssid
+                ):
+                    continue
 
-            rf_profile = self._get_rf_profile(ssid)
+                rf_profile = self._get_rf_profile(ssid)
 
-            yield MerakiSSIDEnabledSwitch(
-                self._coordinator,
-                self._meraki_client,
-                self._config_entry,
-                ssid,
-                rf_profile,
-            )
-            yield MerakiSSIDBroadcastSwitch(
-                self._coordinator,
-                self._meraki_client,
-                self._config_entry,
-                ssid,
-                rf_profile,
-            )
-            yield MerakiSSIDNameText(
-                self._coordinator,
-                self._meraki_client,
-                self._config_entry,
-                ssid,
-            )
-            yield MerakiSSIDClientCountSensor(
-                self._coordinator, self._config_entry, ssid
-            )
-
-            if ssid.get("ipAssignmentMode") == "NAT mode":
-                yield MerakiAdultContentFilteringSwitch(
+                yield MerakiSSIDEnabledSwitch(
                     self._coordinator,
+                    self._meraki_client,
+                    self._config_entry,
+                    ssid,
+                    rf_profile,
+                )
+                yield MerakiSSIDBroadcastSwitch(
+                    self._coordinator,
+                    self._meraki_client,
+                    self._config_entry,
+                    ssid,
+                    rf_profile,
+                )
+                yield MerakiSSIDNameText(
+                    self._coordinator,
+                    self._meraki_client,
                     self._config_entry,
                     ssid,
                 )
+                yield MerakiSSIDClientCountSensor(
+                    self._coordinator, self._config_entry, ssid
+                )
 
-            # RF Profile Select
-            yield MerakiRFProfileSelect(
-                self._coordinator,
-                self._meraki_client,
-                self._config_entry,
-                ssid,
-            )
+                if ssid.get("ipAssignmentMode") == "NAT mode":
+                    yield MerakiAdultContentFilteringSwitch(
+                        self._coordinator,
+                        self._config_entry,
+                        ssid,
+                    )
+
+                # RF Profile Select
+                yield MerakiRFProfileSelect(
+                    self._coordinator,
+                    self._meraki_client,
+                    self._config_entry,
+                    ssid,
+                )
+            except Exception as err:
+                _LOGGER.error(
+                    "Failed to discover SSID entities for SSID %s in network %s: %s",
+                    ssid.get("name", "Unknown") if isinstance(ssid, dict) else "Unknown",
+                    ssid.get("networkId", "Unknown")
+                    if isinstance(ssid, dict)
+                    else "Unknown",
+                    err,
+                    exc_info=True,
+                )
 
     def _get_rf_profile(self, ssid: dict[str, Any]) -> dict[str, Any] | None:
         """Find the RF profile for this SSID's network."""

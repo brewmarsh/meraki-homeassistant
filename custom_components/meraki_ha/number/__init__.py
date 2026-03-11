@@ -24,11 +24,18 @@ async def async_setup_entry(
         return False
     coordinator = hass.data[DOMAIN][config_entry.entry_id]["main_coordinator"]
 
-    number_entities = async_setup_numbers(hass, config_entry, coordinator)
+    try:
+        number_entities = async_setup_numbers(hass, config_entry, coordinator)
 
-    _LOGGER.debug("Found %d number entities", len(number_entities))
-    if number_entities:
-        async_add_entities(number_entities)
+        _LOGGER.debug("Found %d number entities", len(number_entities))
+        if number_entities:
+            async_add_entities(number_entities)
+    except Exception as err:
+        _LOGGER.error(
+            "Failed to set up Meraki number entities: %s",
+            err,
+            exc_info=True,
+        )
 
     return True
 
