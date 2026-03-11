@@ -17,20 +17,35 @@ from ..helpers.device_info_helpers import resolve_device_info
 
 _LOGGER = logging.getLogger(__name__)
 
-# Profiles mapped to exact Meraki category names
+# Profiles mapped to Meraki category IDs from const_data.py
+# Updated with 'C' prefixes for Cisco Talos integration (firmware MX17+)
 CONTENT_FILTERING_PROFILES: dict[str, list[str]] = {
     "None": [],
     "Security": [
-        "Malware Sites",
-        "Phishing and Other Frauds",
-        "Bot Nets",
-        "Spyware and Adware",
-        "Proxy Avoidance and Anonymizers",
+        "meraki:contentFiltering/category/C8",  # Malware sites
+        "meraki:contentFiltering/category/C9",  # Phishing and other frauds
+        "meraki:contentFiltering/category/C11",  # Botnets
     ],
     "Family": [
-        "Adult and Pornography",
-        "Nudity",
-        "Malware Sites",
+        "meraki:contentFiltering/category/C1",  # Adult and Pornography
+        "meraki:contentFiltering/category/C3",  # Gambling
+        "meraki:contentFiltering/category/C8",  # Malware sites
+        "meraki:contentFiltering/category/C9",  # Phishing and other frauds
+        "meraki:contentFiltering/category/C11",  # Botnets
+        "meraki:contentFiltering/category/C20",  # Nudity
+    ],
+    "Strict": [
+        "meraki:contentFiltering/category/C1",  # Adult and Pornography
+        "meraki:contentFiltering/category/C2",  # Illegal
+        "meraki:contentFiltering/category/C3",  # Gambling
+        "meraki:contentFiltering/category/C4",  # Hate and Racism
+        "meraki:contentFiltering/category/C5",  # Weapons
+        "meraki:contentFiltering/category/C6",  # Violence
+        "meraki:contentFiltering/category/C8",  # Malware sites
+        "meraki:contentFiltering/category/C9",  # Phishing and other frauds
+        "meraki:contentFiltering/category/C10",  # Key loggers and monitoring
+        "meraki:contentFiltering/category/C11",  # Botnets
+        "meraki:contentFiltering/category/C12",  # Spam URLs
     ],
 }
 
@@ -145,6 +160,7 @@ class MerakiContentFilteringSelect(MerakiEntity[MerakiMainCoordinator], SelectEn
             if set(categories) == blocked_category_names:
                 return profile
 
+        # Fallback to "None" if no match
         return None
 
     async def async_select_option(self, option: str) -> None:
