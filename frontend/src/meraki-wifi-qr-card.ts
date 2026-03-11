@@ -43,12 +43,10 @@ export class MerakiWifiQrCardEditor extends LitElement {
     const formValues = ev.detail.value;
     const newConfig = { ...this._config, ...formValues };
 
-    // Automatically clear the SSID if the Network selection was changed
     if (this._config.networkId !== formValues.networkId) {
       newConfig.ssid = "";
     }
 
-    // Clean up empty strings
     Object.keys(newConfig).forEach(key => {
       if (newConfig[key as keyof Config] === "") {
         delete newConfig[key as keyof Config];
@@ -99,6 +97,9 @@ export class MerakiWifiQrCard extends LitElement {
   @property({ attribute: false }) public hass!: HomeAssistant;
   @state() private _config?: Config;
   @state() private _qrSvg: string = '';
+  
+  // Bring the centralized data into the main card for ID mapping
+  @state() private _ssids: SSID[] = [];
 
   public static async getConfigElement() {
     return document.createElement("meraki-wifi-qr-card-editor");
@@ -116,6 +117,18 @@ export class MerakiWifiQrCard extends LitElement {
       ssid: '', 
       name: 'Wi-Fi Access',
     };
+  }
+
+  protected firstUpdated(changedProperties: PropertyValues) {
+    super.firstUpdated(changedProperties);
+    this._loadCentralizedData();
+  }
+
+  private async _loadCentralizedData() {
+    if (!this.hass) return;
+    const { ssids } = await MerakiDataProvider.fetchConfig(this.hass);
+    this._ssids = ssids;
+    this._generateQR();
   }
 
   protected updated(changedProperties: PropertyValues) {
@@ -142,23 +155,32 @@ export class MerakiWifiQrCard extends LitElement {
 
     if (!ssidName) return '';
 
-    // Pass 2: Strict match by attribute
-    for (const entityId in this.hass.states) {
-      const stateObj = this.hass.states[entityId];
-      const attrs = stateObj.attributes;
+    // Pass 2: Smart Auto-Discovery using Centralized Data Mapping
+    const targetNetwork = this._config?.networkId;
+    const ssidObj = this._ssids.find(s => 
+      s.name === ssidName && (!targetNetwork || s.networkId === targetNetwork)
+    );
 
-      if (attrs.ssid_name === ssidName || attrs.ssid === ssidName) {
-        if (attrs.psk) return String(attrs.psk);
-        if (attrs.password) return String(attrs.password);
+    if (ssidObj) {
+      for (const entityId in this.hass.states) {
+        const stateObj = this.hass.states[entityId];
+        const attrs = stateObj.attributes;
 
-        if ((entityId.includes('password') || entityId.includes('psk')) &&
-            stateObj.state && !['unknown', 'unavailable'].includes(stateObj.state)) {
-          return stateObj.state;
+        // Match the exact IDs from the Meraki Backend
+        if (attrs.network_id === ssidObj.networkId && attrs.ssid_number === ssidObj.number) {
+          if (attrs.psk) return String(attrs.psk);
+          if (attrs.password) return String(attrs.password);
+          
+          if (stateObj.state && !['unknown', 'unavailable'].includes(stateObj.state)) {
+              if (entityId.includes('password') || entityId.includes('psk')) {
+                  return stateObj.state;
+              }
+          }
         }
       }
     }
 
-    // Pass 3: Fuzzy search for a dedicated password sensor matching the SSID name
+    // Pass 3: Fuzzy search fallback
     const normalizedSsid = ssidName.toLowerCase().replace(/[^a-z0-9]/g, '_');
     for (const entityId in this.hass.states) {
       if (entityId.includes(normalizedSsid) && (entityId.includes('password') || entityId.includes('psk'))) {
@@ -252,7 +274,6 @@ if (!customElements.get('meraki-wifi-qr-card-editor')) {
   customElements.define('meraki-wifi-qr-card-editor', MerakiWifiQrCardEditor);
 }
 
-// Register the card
 (window as any).customCards = (window as any).customCards || [];
 if (!(window as any).customCards.some((c: any) => c.type === 'meraki-wifi-qr-card')) {
   (window as any).customCards.push({
