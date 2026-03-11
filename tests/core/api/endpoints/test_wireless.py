@@ -37,11 +37,14 @@ async def test_create_identity_psk(wireless, mock_client):
     assert result == {"id": "test_id"}
     mock_client.run_sync.assert_called_once()
     args, kwargs = mock_client.run_sync.call_args
-    assert kwargs["networkId"] == "net1"
-    assert kwargs["number"] == "0"
-    assert kwargs["name"] == "test"
-    assert kwargs["groupPolicyId"] == "123"
-    assert kwargs["passphrase"] == "pass"
+    assert args[0] == mock_client.dashboard.wireless._session.post
+    assert args[1]["operation"] == "createNetworkWirelessSsidIdentityPsk"
+    assert args[2] == "/networks/net1/wireless/ssids/0/identityPsks"
+    assert args[3] == {
+        "name": "test",
+        "groupPolicyId": "123",
+        "passphrase": "pass",
+    }
 
 
 async def test_create_identity_psk_no_group_policy(wireless, mock_client):
@@ -59,11 +62,13 @@ async def test_create_identity_psk_no_group_policy(wireless, mock_client):
     assert result == {"id": "test_id"}
     mock_client.run_sync.assert_called_once()
     args, kwargs = mock_client.run_sync.call_args
-    assert kwargs["networkId"] == "net1"
-    assert kwargs["number"] == "0"
-    assert kwargs["name"] == "test"
-    assert kwargs["groupPolicyId"] is None
-    assert kwargs["passphrase"] == "pass"
+    assert args[0] == mock_client.dashboard.wireless._session.post
+    assert args[1]["operation"] == "createNetworkWirelessSsidIdentityPsk"
+    assert args[2] == "/networks/net1/wireless/ssids/0/identityPsks"
+    assert args[3] == {
+        "name": "test",
+        "passphrase": "pass",
+    }
 
 
 async def test_delete_identity_psk(wireless, mock_client):

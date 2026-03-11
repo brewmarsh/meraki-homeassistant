@@ -319,28 +319,37 @@ class WirelessEndpoints:
         if self._api_client.dashboard is None:
             return {}
 
-        # Prepare kwargs for the library call
-        kwargs: dict[str, Any] = {
+        # Construct payload manually to avoid Python library's strict
+        # positional argument
+        payload: dict[str, Any] = {
             "name": name,
-            "groupPolicyId": group_policy_id,
         }
 
+        if group_policy_id is not None:
+            payload["groupPolicyId"] = group_policy_id
+
         if passphrase:
-            kwargs["passphrase"] = passphrase
+            payload["passphrase"] = passphrase
 
         _LOGGER.debug(
             "Calling createNetworkWirelessSsidIdentityPsk with networkId=%s, "
-            "number=%s, kwargs=%s",
+            "number=%s, payload=%s",
             network_id,
             number,
-            {k: v if k != "passphrase" else "***" for k, v in kwargs.items()},
+            {k: v if k != "passphrase" else "***" for k, v in payload.items()},
         )
 
+        metadata = {
+            "tags": ["wireless", "configure", "ssids", "identityPsks"],
+            "operation": "createNetworkWirelessSsidIdentityPsk",
+        }
+        resource = f"/networks/{network_id}/wireless/ssids/{number}/identityPsks"
+
         psk = await self._api_client.run_sync(
-            self._api_client.dashboard.wireless.createNetworkWirelessSsidIdentityPsk,
-            networkId=network_id,
-            number=number,
-            **kwargs,
+            self._api_client.dashboard.wireless._session.post,
+            metadata,
+            resource,
+            payload,
         )
         validated = validate_response(psk)
         if not isinstance(validated, dict):
