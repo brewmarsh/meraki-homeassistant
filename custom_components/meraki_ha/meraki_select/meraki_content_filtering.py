@@ -81,6 +81,36 @@ class MerakiContentFilteringSelect(MerakiEntity[MerakiMainCoordinator], SelectEn
         )
         self._attr_options = list(CONTENT_FILTERING_PROFILES.keys())
 
+        # Category mapping cache
+        self._category_id_to_name: dict[str, str] = {}
+        self._category_name_to_id: dict[str, str] = {}
+
+    async def async_added_to_hass(self) -> None:
+        """Fetch category mapping when added to Home Assistant."""
+        await super().async_added_to_hass()
+        await self._async_fetch_category_mapping()
+
+    async def _async_fetch_category_mapping(self) -> None:
+        """Fetch and cache Meraki content filtering categories."""
+        try:
+            response = await self._meraki_client.appliance.get_network_appliance_content_filtering_categories(
+                self._network_id
+            )
+            categories = response.get("categories", [])
+            self._category_id_to_name = {cat["id"]: cat["name"] for cat in categories}
+            self._category_name_to_id = {cat["name"]: cat["id"] for cat in categories}
+            _LOGGER.debug(
+                "Fetched %d content filtering categories for network %s",
+                len(categories),
+                self._network_id,
+            )
+        except Exception as e:
+            _LOGGER.warning(
+                "Failed to fetch content filtering categories for network %s: %s",
+                self._network_id,
+                e,
+            )
+
     @property
     def device_info(self) -> DeviceInfo | None:
         """Return device information to link this entity to the network device."""
@@ -104,16 +134,30 @@ class MerakiContentFilteringSelect(MerakiEntity[MerakiMainCoordinator], SelectEn
         if not content_filtering or not isinstance(content_filtering, dict):
             return None
 
-        blocked_categories = set(
-            ensure_list_of_strings(
-                content_filtering.get("blockedUrlCategories", []), key_to_extract="id"
-            )
+        raw_categories = ensure_list_of_strings(
+            content_filtering.get("blockedUrlCategories", []), key_to_extract="id"
         )
 
+        # Use fetched mapping to resolve IDs to names
+        blocked_category_names = set()
+        for cat_id in raw_categories:
+            if name := self._category_id_to_name.get(cat_id):
+                blocked_category_names.add(name)
+            elif name := self._category_id_to_name.get(
+                f"meraki:contentFiltering/category/{cat_id}"
+            ):
+                blocked_category_names.add(name)
+            else:
+                # If name not found, we can't accurately match profiles by name
+                _LOGGER.debug(
+                    "Category ID %s not found in mapping for network %s",
+                    cat_id,
+                    self._network_id,
+                )
+
         # Reverse map to find the best matching profile
-        # We look for an exact match first
         for profile, categories in CONTENT_FILTERING_PROFILES.items():
-            if set(categories) == blocked_categories:
+            if set(categories) == blocked_category_names:
                 return profile
 
         # Fallback to "None" if no match
@@ -124,13 +168,31 @@ class MerakiContentFilteringSelect(MerakiEntity[MerakiMainCoordinator], SelectEn
         if option not in CONTENT_FILTERING_PROFILES:
             raise ValueError(f"Invalid option: {option}")
 
-        categories = CONTENT_FILTERING_PROFILES[option]
+        # Ensure we have the latest mapping
+        await self._async_fetch_category_mapping()
+
+        desired_names = CONTENT_FILTERING_PROFILES[option]
+        api_ids = []
+        missing_names = []
+
+        for name in desired_names:
+            if cat_id := self._category_name_to_id.get(name):
+                api_ids.append(cat_id)
+            else:
+                missing_names.append(name)
+
+        if missing_names:
+            _LOGGER.warning(
+                "The following categories were not found on Meraki for network %s: %s",
+                self._network_id,
+                ", ".join(missing_names),
+            )
 
         try:
             appliance = self._meraki_client.appliance
             await appliance.update_network_appliance_content_filtering(
                 network_id=self._network_id,
-                blockedUrlCategories=categories,
+                blockedUrlCategories=api_ids,
             )
             await self.coordinator.async_request_refresh()
         except Exception as e:

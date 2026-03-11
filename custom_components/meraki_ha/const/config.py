@@ -7,7 +7,7 @@ from typing import Final
 CONF_INTEGRATION_TITLE: Final = "Meraki"
 """Title for the integration."""
 
-CONF_MERAKI_API_KEY: Final = "meraki_api_key"
+CONF_MERAKI_API_KEY: Final = "api_key"
 """Configuration key for the Meraki API key."""
 
 CONF_MERAKI_ORG_ID: Final = "organization_id"

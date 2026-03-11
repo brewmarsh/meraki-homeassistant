@@ -8,6 +8,7 @@ from homeassistant.setup import async_setup_component
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.meraki_ha.const.integration import DOMAIN
+from custom_components.meraki_ha.const.config import CONF_MERAKI_API_KEY, CONF_MERAKI_ORG_ID
 from tests.const import MOCK_NETWORK
 
 
@@ -16,7 +17,7 @@ def mock_config_entry() -> MockConfigEntry:
     """Fixture for a mocked config entry."""
     return MockConfigEntry(
         domain=DOMAIN,
-        data={"api_key": "fake_key", "organization_id": "fake_org"},
+        data={CONF_MERAKI_API_KEY: "fake_key", CONF_MERAKI_ORG_ID: "fake_org"},
         options={},
         entry_id="test_entry",
     )
@@ -26,24 +27,31 @@ def mock_config_entry() -> MockConfigEntry:
 def mock_meraki_client() -> MagicMock:
     """Fixture for a mocked MerakiApiClientProtocol."""
     client = MagicMock()
-    # Ensure network data is consistent
+    client.organization_id = "fake_org"
 
-    # Mock the appliance object (must be MagicMock for attribute access)
-    client.appliance = MagicMock()
-    client.appliance.update_network_appliance_content_filtering = AsyncMock()
-
-    client.unregister_webhook = AsyncMock(return_value=None)
-    # Mock the update method
+    # Mock the appliance object
     client.appliance = MagicMock()
     client.appliance.update_network_appliance_content_filtering = AsyncMock()
     client.appliance.get_network_appliance_content_filtering_categories = AsyncMock(
         return_value={
             "categories": [
-                {"id": "topSites", "name": "Top Sites"},
-                {"id": "fullList", "name": "Full List"},
+                {"id": "meraki:contentFiltering/category/1", "name": "Adult and Pornography"},
+                {"id": "meraki:contentFiltering/category/2", "name": "Nudity"},
+                {"id": "meraki:contentFiltering/category/8", "name": "Malware Sites"},
+                {"id": "meraki:contentFiltering/category/9", "name": "Phishing and Other Frauds"},
+                {"id": "meraki:contentFiltering/category/11", "name": "Bot Nets"},
+                {"id": "meraki:contentFiltering/category/12", "name": "Spyware and Adware"},
+                {"id": "meraki:contentFiltering/category/15", "name": "Proxy Avoidance and Anonymizers"},
             ]
         }
     )
+
+    client.organization = MagicMock()
+    client.organization.get_organization_networks = AsyncMock(return_value=[])
+
+    client.unregister_webhook = AsyncMock(return_value=None)
+    client.async_setup = AsyncMock()
+    client.has_dashboard = True
 
     return client
 
@@ -64,7 +72,13 @@ def mock_data_fetch_manager() -> AsyncMock:
         "content_filtering": {
             MOCK_NETWORK.id: {
                 "networkId": MOCK_NETWORK.id,
-                "urlCategoryListSize": "topSites",
+                "blockedUrlCategories": [
+                    {"id": "meraki:contentFiltering/category/8"},
+                    {"id": "meraki:contentFiltering/category/9"},
+                    {"id": "meraki:contentFiltering/category/11"},
+                    {"id": "meraki:contentFiltering/category/12"},
+                    {"id": "meraki:contentFiltering/category/15"},
+                ],
             }
         },
         "ssids": [],
@@ -92,7 +106,7 @@ async def test_content_filtering_select_entity(
 
     with (
         patch(
-            "custom_components.meraki_ha.core.api.factory.create_api_client",
+            "custom_components.meraki_ha.create_api_client",
             return_value=mock_meraki_client,
         ),
         patch(
@@ -100,6 +114,7 @@ async def test_content_filtering_select_entity(
             return_value=mock_data_fetch_manager,
         ),
         patch("custom_components.meraki_ha.async_register_webhook", return_value=None),
+        patch("homeassistant.components.camera.img_util.TurboJPEG", create=True),
     ):
         assert await hass.config_entries.async_setup(mock_config_entry.entry_id)
         await hass.async_block_till_done()
@@ -123,18 +138,22 @@ async def test_content_filtering_select_entity(
         # Verify state
         state = hass.states.get(target_entity.entity_id)
         assert state is not None
-        assert state.state == "topSites"
+        assert state.state == "Security"
 
         # Test selection
         await hass.services.async_call(
             "select",
             "select_option",
-            {"entity_id": target_entity.entity_id, "option": "fullList"},
+            {"entity_id": target_entity.entity_id, "option": "Family"},
             blocking=True,
         )
 
-        # Verify API called
+        # Verify API called with Family categories (URN format)
         mock_meraki_client.appliance.update_network_appliance_content_filtering.assert_called_with(
-            networkId=MOCK_NETWORK.id,
-            urlCategoryListSize="fullList",
+            network_id=MOCK_NETWORK.id,
+            blockedUrlCategories=[
+                "meraki:contentFiltering/category/1",
+                "meraki:contentFiltering/category/2",
+                "meraki:contentFiltering/category/8",
+            ],
         )

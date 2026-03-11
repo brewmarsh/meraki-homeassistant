@@ -213,22 +213,33 @@ async def _start_config_flow(session: aiohttp.ClientSession) -> dict[str, Any] |
 
 
 def _build_form_payload(step_id: str, current_step: dict[str, Any]) -> dict[str, Any]:
-    """Build the payload for submitting a form step."""
+    """Build the payload dynamically based on the step_id and schema requirements."""
     payload: dict[str, Any] = {}
+    
+    # 1. Fill explicitly based on known step progression
     if step_id == "user":
-        payload = {
-            "api_key": MERAKI_API_KEY,
-            "organization_id": MERAKI_ORG_ID,
-        }
-    else:
-        # Generic handler for other steps - just take defaults
-        for field in current_step.get("data_schema", []):
-            if "default" in field:
-                payload[field["name"]] = field["default"]
+        payload["api_key"] = MERAKI_API_KEY
+    elif step_id in ("select_org", "organization"):
+        payload["organization_id"] = MERAKI_ORG_ID
+        
+    # 2. Inspect the schema to dynamically catch fields and fill defaults
+    for field in current_step.get("data_schema", []):
+        field_name = field["name"]
+        
+        # Don't overwrite if we already set it above
+        if field_name not in payload:
+            # Catch-all in case the step_id is named something unexpected
+            if field_name == "api_key":
+                payload["api_key"] = MERAKI_API_KEY
+            elif field_name == "organization_id":
+                payload["organization_id"] = MERAKI_ORG_ID
+            elif "default" in field:
+                payload[field_name] = field["default"]
             else:
                 logger.warning(
-                    f"Required field '{field['name']}' has no default value."
+                    f"Required field '{field_name}' has no default value."
                 )
+                
     return payload
 
 
@@ -242,7 +253,7 @@ async def _handle_form_step(
     payload = _build_form_payload(step_id, current_step)
 
     submit_url = f"{HA_URL}/api/config/config_entries/flow/{flow_id}"
-    logger.info(f"POST {submit_url} for step {step_id} with payload: {payload}")
+    logger.info(f"POST {submit_url} for step {step_id} with payload keys: {list(payload.keys())}")
     async with session.post(submit_url, json=payload) as resp:
         if resp.status != 200:
             logger.error(f"Failed to submit step {step_id}: {resp.status}")
@@ -252,119 +263,4 @@ async def _handle_form_step(
 
 
 async def _handle_step_abort(current_step: dict[str, Any]) -> bool:
-    """Handle an aborted step in the configuration flow."""
-    reason = current_step.get("reason")
-    if reason == "already_configured":
-        logger.info("Integration is already configured.")
-        return True
-    logger.error(f"Flow aborted: {current_step}")
-    return False
-
-
-async def _handle_step_form(
-    session: aiohttp.ClientSession, current_step: dict[str, Any], flow_id: str
-) -> dict[str, Any] | None:
-    """Handle a form step and return the next step, or None if failed."""
-    next_step = await _handle_form_step(session, current_step, flow_id)
-    if next_step is None:
-        return None
-    return next_step
-
-
-async def _process_single_flow_step(
-    session: aiohttp.ClientSession, current_step: dict[str, Any], flow_id: str
-) -> tuple[bool, bool, dict[str, Any] | None]:
-    """Process a single step and return (is_done, success_status, next_step)."""
-    step_type = current_step.get("type")
-
-    if step_type == "create_entry":
-        logger.info("SUCCESS: Integration re-added via REST API.")
-        return True, True, None
-    if step_type == "abort":
-        return True, await _handle_step_abort(current_step), None
-    if step_type == "form":
-        next_step = await _handle_step_form(session, current_step, flow_id)
-        if next_step is None:
-            return True, False, None
-        return False, False, next_step
-
-    logger.error(f"FAILED: Unexpected response type: {step_type}")
-    logger.debug(f"Response: {current_step}")
-    return True, False, None
-
-
-async def _process_flow_steps(
-    session: aiohttp.ClientSession, initial_step: dict[str, Any], flow_id: str
-) -> bool:
-    """Process the steps of the configuration flow."""
-    current_step = initial_step
-    while True:
-        is_done, success, next_step = await _process_single_flow_step(
-            session, current_step, flow_id
-        )
-        if is_done:
-            return success
-        if next_step is not None:
-            current_step = next_step
-
-
-async def add_integration(session: aiohttp.ClientSession) -> bool:
-    """Re-add the Meraki integration using the config flow."""
-    flow_data = await _start_config_flow(session)
-    if not flow_data:
-        return False
-
-    flow_id = flow_data.get("flow_id")
-    if not flow_id:
-        logger.error("No flow_id returned from initial step.")
-        return False
-
-    return await _process_flow_steps(session, flow_data, flow_id)
-
-
-async def main() -> None:
-    """Run the reset sequence."""
-    if not HA_TOKEN or not MERAKI_API_KEY or not MERAKI_ORG_ID:
-        logger.error(
-            "Missing environment variables: HA_TOKEN, MERAKI_API_KEY, or MERAKI_ORG_ID"
-        )
-        sys.exit(1)
-
-    headers = {
-        "Authorization": f"Bearer {HA_TOKEN}",
-        "Content-Type": "application/json",
-    }
-
-    async with aiohttp.ClientSession(headers=headers) as session:
-        # Step 1: Verification
-        logger.info("--- Step 1: Pre-Reset Verification ---")
-        if not await _check_api_connection(session):
-            sys.exit(1)
-
-        if not await _check_components_and_safe_mode(session):
-            logger.warning("Continuing despite verification warnings...")
-
-        # Step 2: Delete
-        logger.info("--- Step 2: Delete Existing Entry ---")
-        if not await delete_existing_entries(session):
-            logger.error("Failed to delete existing entries.")
-            sys.exit(1)
-
-        # Step 3: Restart
-        logger.info("--- Step 3: Restart Home Assistant ---")
-        if not await restart_homeassistant(session):
-            sys.exit(1)
-
-        # Step 4: Add
-        logger.info("--- Step 4: Add Integration ---")
-        if not await add_integration(session):
-            logger.error(
-                "Failed to re-add integration. Refer to the GitHub Actions WebSocket log capture for details."
-            )
-            sys.exit(1)
-
-        logger.info("✨ Meraki HA Reset Sequence Complete!")
-
-
-if __name__ == "__main__":
-    asyncio.run(main())
+    """

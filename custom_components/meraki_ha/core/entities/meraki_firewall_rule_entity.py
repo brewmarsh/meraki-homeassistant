@@ -39,6 +39,7 @@ class MerakiFirewallRuleEntity(BaseMerakiEntity):
             config_entry=config_entry,
             network_id=network_id,
         )
+        self._config_entry = config_entry
         self._rule = rule
         self._rule_index = rule_index
         if self._network_id is None:

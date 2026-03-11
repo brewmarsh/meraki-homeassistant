@@ -87,17 +87,16 @@ export class MerakiContentFilterCard extends LitElement {
     return html`
       <ha-card .header="${title}">
         <div class="card-content">
-          <div class="current-profile">
-            Current Profile: <strong>${currentProfile}</strong>
-          </div>
-          <div class="profile-buttons">
+          <div class="button-grid">
             ${profiles.map((profile: string) => html`
-              <div
-                class="profile-button ${currentProfile === profile ? 'active' : ''}"
-                @click="${() => this._handleProfileSelect(entityId, profile)}"
+              <ha-button
+                ?raised=${currentProfile === profile}
+                ?outlined=${currentProfile !== profile}
+                class="${currentProfile === profile ? 'active' : ''}"
+                @click=${() => this._setFilterProfile(profile, entityId)}
               >
-                <span class="profile-name">${profile}</span>
-              </div>
+                ${profile}
+              </ha-button>
             `)}
           </div>
         </div>
@@ -106,8 +105,11 @@ export class MerakiContentFilterCard extends LitElement {
     `;
   }
 
-  private async _handleProfileSelect(entityId: string, profile: string): Promise<void> {
-    if (!this.hass || !entityId) return;
+  private async _setFilterProfile(profile: string, entityId: string): Promise<void> {
+    console.log("Clicked:", profile);
+    console.log("MERAKI CARD DIAGNOSTIC - Setting Filter Profile:", profile, "for entity:", entityId);
+
+    if (!this.hass || !entityId || !profile) return;
 
     try {
       await this.hass.callService('select', 'select_option', {
@@ -139,25 +141,20 @@ export class MerakiContentFilterCard extends LitElement {
     .warning-content strong { display: block; margin-bottom: 4px; }
     .warning-content p { margin: 0; font-size: 0.9em; opacity: 0.9; }
     .card-content { padding: 16px; }
-    .current-profile { color: var(--secondary-text-color); font-size: 0.9em; margin-bottom: 16px; }
-    .profile-buttons { display: flex; flex-wrap: wrap; gap: 8px; }
-    .profile-button {
-      flex: 1 1 calc(50% - 4px);
-      border: 1px solid var(--divider-color);
-      border-radius: 8px;
-      padding: 12px 8px;
-      text-align: center;
-      cursor: pointer;
-      transition: all 0.2s ease-in-out;
-      background-color: var(--card-background-color);
+    .button-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
     }
-    .profile-button:hover { background-color: var(--secondary-background-color); }
-    .profile-button.active {
-      background-color: var(--primary-color);
-      color: var(--text-primary-color);
-      border-color: var(--primary-color);
+    ha-button {
+      width: 100%;
+      --mdc-theme-primary: var(--primary-text-color);
     }
-    .profile-name { font-weight: bold; display: block; }
+    ha-button.active {
+      --mdc-theme-primary: var(--success-color, #4caf50);
+      --mdc-theme-on-primary: #ffffff;
+      font-weight: bold;
+    }
     .version {
       font-size: 9px;
       color: var(--secondary-text-color);

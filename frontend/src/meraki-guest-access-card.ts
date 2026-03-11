@@ -32,11 +32,10 @@ export class MerakiGuestAccessCard extends LitElement {
   @state() private _error: string | null = null;
   @state() private _success: string | null = null;
 
-  @state() private _networks: Network[] = [];
-  @state() private _ssids: SSID[] = [];
   @state() private _policies: any[] = [];
   @state() private _isLoading: boolean = true;
   @state() private _initDone: boolean = false;
+  @state() private _configEntryId: string = '';
 
   public static async getConfigElement() {
     return document.createElement("meraki-guest-access-card-editor");
@@ -49,64 +48,108 @@ export class MerakiGuestAccessCard extends LitElement {
     this._config = config;
   }
 
-  protected firstUpdated(changedProperties: PropertyValues) {
-    super.firstUpdated(changedProperties);
-    this._fetchInitialData();
-  }
-
   protected updated(changedProperties: PropertyValues) {
     super.updated(changedProperties);
     if (changedProperties.has('hass') && this.hass) {
-      if (!this._initDone && this.hass) {
-        this._fetchInitialData();
+      if (!this._initDone) {
+        this._initDone = true;
+        this._fetchConfigEntry();
       }
+
+      this._autoSelectAndLoad();
+
       if (this.hass.user?.name && !this._guestName) {
         this._guestName = this.hass.user.name;
       }
     }
   }
 
-  private async _fetchInitialData() {
-    this._initDone = true;
+  private async _fetchConfigEntry() {
     if (!this.hass) return;
-    this._isLoading = true;
     try {
       const configEntries = await this.hass.callWS<any[]>({
         type: 'config_entries/get',
         domain: 'meraki_ha',
       });
-
-      const entryId = this._config?.config_entry_id || (configEntries.length > 0 ? configEntries[0].entry_id : null);
-      if (!entryId) {
-        this._error = 'Meraki integration not found.';
-        return;
+      this._configEntryId = this._config?.config_entry_id || (configEntries.length > 0 ? configEntries[0].entry_id : '');
+      if (this._selectedNetwork) {
+        this._fetchPolicies(this._selectedNetwork);
       }
-
-      const data = await safeCallWS<any>(this.hass, {
-        type: WsCommand.GET_CONFIG,
-        config_entry_id: entryId,
-      });
-
-      this._networks = (Array.isArray(data.networks) ? data.networks : []).filter((n: any) => n.productTypes?.includes('wireless'));
-      this._ssids = Array.isArray(data.ssids) ? data.ssids : [];
-
-      if (this._networks.length > 0 && !this._selectedNetwork) {
-        this._selectedNetwork = this._networks[0].id;
-        await this._fetchPolicies(this._selectedNetwork, entryId);
-      }
-    } catch (err: any) {
-      this._error = `Failed to fetch Meraki data: ${err.message || err}`;
-    } finally {
-      this._isLoading = false;
+    } catch (err) {
+      console.error("Failed to fetch Meraki config entries", err);
     }
   }
 
-  private async _fetchPolicies(networkId: string, configEntryId?: string) {
+  private _autoSelectAndLoad() {
+    const networks = this._getNetworks();
+    if (networks.length > 0) {
+      if (!this._selectedNetwork) {
+        this._selectedNetwork = networks[0].id;
+        this._fetchPolicies(this._selectedNetwork);
+      }
+      this._isLoading = false;
+    } else {
+        if (this._isLoading && this._initDone) {
+            setTimeout(() => {
+                if (this._getNetworks().length === 0) {
+                    this._isLoading = false;
+                    this.requestUpdate();
+                }
+            }, 2000);
+        }
+    }
+  }
+
+  private _getNetworks(): Network[] {
+    if (!this.hass) return [];
+    const networks: Record<string, Network> = {};
+
+    Object.values(this.hass.states).forEach(state => {
+      const attrs = state.attributes;
+      if (attrs.network_id && attrs.network_name) {
+        const productTypes = attrs.product_types || [];
+        if (productTypes.includes('wireless')) {
+          networks[attrs.network_id] = {
+            id: attrs.network_id,
+            name: attrs.network_name,
+            productTypes: productTypes
+          };
+        }
+      }
+    });
+
+    return Object.values(networks);
+  }
+
+  private _getSsids(networkId: string): SSID[] {
+    if (!this.hass || !networkId) return [];
+    const ssids: Record<string, SSID> = {};
+
+    Object.values(this.hass.states).forEach(state => {
+      const attrs = state.attributes;
+      if (attrs.network_id === networkId && attrs.ssid_number !== undefined && attrs.ssid_name) {
+        ssids[attrs.ssid_number] = {
+          name: attrs.ssid_name,
+          number: attrs.ssid_number,
+          networkId: attrs.network_id,
+          enabled: attrs.enabled !== false,
+          authMode: attrs.auth_mode
+        };
+      }
+    });
+
+    return Object.values(ssids).sort((a, b) => a.number - b.number);
+  }
+
+  private async _fetchPolicies(networkId: string) {
     if (!this.hass) return;
+    const entryId = this._configEntryId || this._config?.config_entry_id;
+    if (!entryId) return;
+
     try {
       const policies = await safeCallWS<any[]>(this.hass, {
         type: WsCommand.TIMED_ACCESS_GET_POLICIES,
-        config_entry_id: configEntryId || this._config?.config_entry_id,
+        config_entry_id: entryId,
         network_id: networkId,
       });
       this._policies = Array.isArray(policies) ? policies : (policies as any)?.policies || [];
@@ -127,7 +170,19 @@ export class MerakiGuestAccessCard extends LitElement {
       `;
     }
 
-    const filteredSsids = (this._ssids || []).filter(s => s.networkId === this._selectedNetwork);
+    const networks = this._getNetworks();
+    const filteredSsids = this._getSsids(this._selectedNetwork);
+
+    if (networks.length === 0) {
+        return html`
+          <ha-card .header="${this._config?.name || 'Meraki Guest Access'}">
+            <div class="card-content">
+              <ha-alert alert-type="warning">No Meraki wireless networks found. Ensure the integration is configured and entities are enabled.</ha-alert>
+            </div>
+            <div class="version">v${__VERSION__}</div>
+          </ha-card>
+        `;
+    }
 
     return html`
       <ha-card .header="${this._config?.name || 'Meraki Guest Access'}">
@@ -136,15 +191,37 @@ export class MerakiGuestAccessCard extends LitElement {
           ${this._success ? html`<ha-alert alert-type="success" dismissable @alert-dismissed-clicked="${() => (this._success = null)}">${this._success}</ha-alert>` : ''}
 
           <div class="form-container">
-            <ha-select label="Network" .value=${this._selectedNetwork} @selected=${this._handleNetworkChange}>
-              ${(this._networks || []).map(n => html`<mwc-list-item value="${n.id}">${n.name}</mwc-list-item>`)}
+            <ha-select
+              label="Network"
+              .value=${this._selectedNetwork}
+              @selected=${(e: any) => this._handleDropdownChange("Network", e.target.value)}
+              @closed=${(e: Event) => e.stopPropagation()}
+              fixedMenuPosition
+              naturalMenuWidth
+            >
+              ${networks.map(n => html`<mwc-list-item value="${n.id}">${n.name}</mwc-list-item>`)}
             </ha-select>
 
-            <ha-select label="SSID" .value=${this._selectedSsid} .disabled=${!this._selectedNetwork} @selected=${this._handleSsidChange}>
-              ${(filteredSsids || []).map(s => html`<mwc-list-item value="${String(s.number)}">${s.name} (SSID ${s.number})</mwc-list-item>`)}
+            <ha-select
+              label="SSID"
+              .value=${this._selectedSsid}
+              .disabled=${!this._selectedNetwork}
+              @selected=${(e: any) => this._handleDropdownChange("SSID", e.target.value)}
+              @closed=${(e: Event) => e.stopPropagation()}
+              fixedMenuPosition
+              naturalMenuWidth
+            >
+              ${filteredSsids.map(s => html`<mwc-list-item value="${String(s.number)}">${s.name} (SSID ${s.number})</mwc-list-item>`)}
             </ha-select>
 
-            <ha-select label="Duration" .value=${this._duration} @selected=${this._handleDurationChange}>
+            <ha-select
+              label="Duration"
+              .value=${this._duration}
+              @selected=${(e: any) => this._handleDropdownChange("Duration", e.target.value)}
+              @closed=${(e: Event) => e.stopPropagation()}
+              fixedMenuPosition
+              naturalMenuWidth
+            >
               <mwc-list-item value="60">1 Hour</mwc-list-item>
               <mwc-list-item value="1440">24 Hours</mwc-list-item>
             </ha-select>
@@ -161,16 +238,26 @@ export class MerakiGuestAccessCard extends LitElement {
     `;
   }
 
-  private _handleNetworkChange(e: Event) {
-    const target = e.target as any;
-    console.log('Network Selected:', target.value);
-    if (this._selectedNetwork && target.value === this._selectedNetwork) return;
-    this._selectedNetwork = target.value;
-    this._fetchPolicies(target.value);
+  // Updated handler to accept the label and value explicitly
+  private _handleDropdownChange(label: string, value: string) {
+    if (!value) return; // Ignore blank selections
+
+    console.log(`MERAKI CARD DIAGNOSTIC - Dropdown changed: ${label} = ${value}`);
+    console.log("Clicked:", value);
+
+    if (label === "Network") {
+      if (this._selectedNetwork === value) return;
+      this._selectedNetwork = value;
+      this._fetchPolicies(value);
+      // Reset SSID when network changes to prevent invalid selections
+      this._selectedSsid = ""; 
+    } else if (label === "SSID") {
+      this._selectedSsid = value;
+    } else if (label === "Duration") {
+      this._duration = value;
+    }
   }
 
-  private _handleSsidChange(e: Event) { this._selectedSsid = (e.target as any).value; }
-  private _handleDurationChange(e: Event) { this._duration = (e.target as any).value; }
   private _handleGuestNameChange(e: Event) { this._guestName = (e.target as any).value; }
 
   private async _generateAccessKey() {
