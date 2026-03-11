@@ -198,7 +198,7 @@ export class MerakiGuestAccessCard extends LitElement {
             <ha-select
               label="Network"
               .value=${this._selectedNetwork}
-              @value-changed=${this._handleNetworkChange}
+              @change=${this._handleDropdownChange}
               @closed=${(e: Event) => e.stopPropagation()}
               fixedMenuPosition
               naturalMenuWidth
@@ -210,7 +210,7 @@ export class MerakiGuestAccessCard extends LitElement {
               label="SSID"
               .value=${this._selectedSsid}
               .disabled=${!this._selectedNetwork}
-              @value-changed=${this._handleSsidChange}
+              @change=${this._handleDropdownChange}
               @closed=${(e: Event) => e.stopPropagation()}
               fixedMenuPosition
               naturalMenuWidth
@@ -221,7 +221,7 @@ export class MerakiGuestAccessCard extends LitElement {
             <ha-select
               label="Duration"
               .value=${this._duration}
-              @value-changed=${this._handleDurationChange}
+              @change=${this._handleDropdownChange}
               @closed=${(e: Event) => e.stopPropagation()}
               fixedMenuPosition
               naturalMenuWidth
@@ -242,16 +242,25 @@ export class MerakiGuestAccessCard extends LitElement {
     `;
   }
 
-  private _handleNetworkChange(e: any) {
-    const value = e.detail.value;
-    console.log('Network Selected:', value);
-    if (this._selectedNetwork && value === this._selectedNetwork) return;
-    this._selectedNetwork = value;
-    this._fetchPolicies(value);
+  private _handleDropdownChange(ev: any) {
+    const target = ev.target;
+    const value = target.value;
+    const label = target.label;
+
+    console.log(`MERAKI CARD DIAGNOSTIC - Dropdown changed: ${label} = ${value}`);
+    console.log("Clicked:", value);
+
+    if (label === "Network") {
+      if (this._selectedNetwork === value) return;
+      this._selectedNetwork = value;
+      this._fetchPolicies(value);
+    } else if (label === "SSID") {
+      this._selectedSsid = value;
+    } else if (label === "Duration") {
+      this._duration = value;
+    }
   }
 
-  private _handleSsidChange(e: any) { this._selectedSsid = e.detail.value; }
-  private _handleDurationChange(e: any) { this._duration = e.detail.value; }
   private _handleGuestNameChange(e: Event) { this._guestName = (e.target as any).value; }
 
   private async _generateAccessKey() {
