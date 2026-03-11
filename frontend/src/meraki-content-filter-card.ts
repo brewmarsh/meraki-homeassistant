@@ -90,7 +90,8 @@ export class MerakiContentFilterCard extends LitElement {
           <div class="button-grid">
             ${profiles.map((profile: string) => html`
               <ha-button
-                unelevated
+                ?raised=${currentProfile === profile}
+                ?outlined=${currentProfile !== profile}
                 class="${currentProfile === profile ? 'active' : ''}"
                 @click=${() => this._setFilterProfile(profile, entityId)}
               >
@@ -141,18 +142,18 @@ export class MerakiContentFilterCard extends LitElement {
     .warning-content p { margin: 0; font-size: 0.9em; opacity: 0.9; }
     .card-content { padding: 16px; }
     .button-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
+      display: flex;
+      flex-direction: column;
       gap: 8px;
     }
     ha-button {
       width: 100%;
-      --mdc-theme-primary: var(--primary-color);
+      --mdc-theme-primary: var(--primary-text-color);
     }
     ha-button.active {
-      --mdc-theme-primary: var(--accent-color);
-      border: 2px solid var(--accent-color);
-      border-radius: 4px;
+      --mdc-theme-primary: var(--success-color, #4caf50);
+      --mdc-theme-on-primary: #ffffff;
+      font-weight: bold;
     }
     .version {
       font-size: 9px;
