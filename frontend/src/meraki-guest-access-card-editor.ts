@@ -27,7 +27,7 @@ export class MerakiGuestAccessCard extends LitElement {
     network: '',
     ssid: '',
     duration: '60',
-    guestName: ''
+    guestName: '',
   };
 
   @state() private _networks: Network[] = [];
@@ -39,7 +39,7 @@ export class MerakiGuestAccessCard extends LitElement {
   @state() private _configEntryId: string | null = null;
 
   public static async getConfigElement() {
-    return document.createElement("meraki-guest-access-card-editor");
+    return document.createElement('meraki-guest-access-card-editor');
   }
 
   public setConfig(config: Config): void {
@@ -54,7 +54,12 @@ export class MerakiGuestAccessCard extends LitElement {
 
   protected updated(changedProperties: PropertyValues) {
     super.updated(changedProperties);
-    if (changedProperties.has('hass') && this.hass && this.hass.user?.name && !this._formData.guestName) {
+    if (
+      changedProperties.has('hass') &&
+      this.hass &&
+      this.hass.user?.name &&
+      !this._formData.guestName
+    ) {
       this._formData = { ...this._formData, guestName: this.hass.user.name };
     }
   }
@@ -62,8 +67,10 @@ export class MerakiGuestAccessCard extends LitElement {
   private async _loadCentralizedData() {
     if (!this.hass) return;
     this._isLoading = true;
-    
-    const { networks, ssids, entryId } = await MerakiDataProvider.fetchConfig(this.hass);
+
+    const { networks, ssids, entryId } = await MerakiDataProvider.fetchConfig(
+      this.hass
+    );
     this._networks = networks;
     this._ssids = ssids;
     this._configEntryId = this._config?.config_entry_id || entryId;
@@ -71,14 +78,14 @@ export class MerakiGuestAccessCard extends LitElement {
     if (networks.length > 0 && !this._formData.network) {
       this._formData = { ...this._formData, network: networks[0].id };
     }
-    
+
     this._isLoading = false;
   }
 
   private _formValueChanged(ev: CustomEvent) {
     const newValues = ev.detail.value;
     const oldNetwork = this._formData.network;
-    
+
     this._formData = { ...this._formData, ...newValues };
 
     // Clear SSID if network changes
@@ -88,19 +95,19 @@ export class MerakiGuestAccessCard extends LitElement {
   }
 
   private _computeLabel = (schema: any): string => {
-    if (schema.name === "network") return "Network";
-    if (schema.name === "ssid") return "SSID";
-    if (schema.name === "duration") return "Duration";
-    if (schema.name === "guestName") return "Guest Name";
+    if (schema.name === 'network') return 'Network';
+    if (schema.name === 'ssid') return 'SSID';
+    if (schema.name === 'duration') return 'Duration';
+    if (schema.name === 'guestName') return 'Guest Name';
     return schema.name;
-  }
+  };
 
   protected render() {
     if (this._isLoading) {
       return html`
         <ha-card .header="${this._config?.name || 'Meraki Guest Access'}">
           <div class="card-content flex justify-center p-8">
-            ${renderLoading("Loading...")}
+            ${renderLoading('Loading...')}
           </div>
           <div class="version">v${__VERSION__}</div>
         </ha-card>
@@ -108,24 +115,50 @@ export class MerakiGuestAccessCard extends LitElement {
     }
 
     if (this._networks.length === 0) {
-        return html`
-          <ha-card .header="${this._config?.name || 'Meraki Guest Access'}">
-            <div class="card-content">
-              ${renderWarning("No Wireless Networks", "No Meraki wireless networks found. Ensure the integration is configured.")}
-            </div>
-            <div class="version">v${__VERSION__}</div>
-          </ha-card>
-        `;
+      return html`
+        <ha-card .header="${this._config?.name || 'Meraki Guest Access'}">
+          <div class="card-content">
+            ${renderWarning(
+              'No Wireless Networks',
+              'No Meraki wireless networks found. Ensure the integration is configured.'
+            )}
+          </div>
+          <div class="version">v${__VERSION__}</div>
+        </ha-card>
+      `;
     }
 
-    const networkOptions = MerakiDataProvider.getNetworkOptions(this._networks);
-    const ssidOptions = MerakiDataProvider.getSsidOptions(this._ssids, this._formData.network, 'number');
+    const networkOptions = MerakiDataProvider.getNetworkOptions(
+      this._networks
+    );
+    const ssidOptions = MerakiDataProvider.getSsidOptions(
+      this._ssids,
+      this._formData.network,
+      'number'
+    );
 
     const schema = [
-      { name: "network", selector: { select: { options: networkOptions, mode: "dropdown" } } },
-      { name: "ssid", selector: { select: { options: ssidOptions, mode: "dropdown" } } },
-      { name: "duration", selector: { select: { options: [{ value: "60", label: "1 Hour" }, { value: "1440", label: "24 Hours" }], mode: "dropdown" } } },
-      { name: "guestName", selector: { text: {} } }
+      {
+        name: 'network',
+        selector: { select: { options: networkOptions, mode: 'dropdown' } },
+      },
+      {
+        name: 'ssid',
+        selector: { select: { options: ssidOptions, mode: 'dropdown' } },
+      },
+      {
+        name: 'duration',
+        selector: {
+          select: {
+            options: [
+              { value: '60', label: '1 Hour' },
+              { value: '1440', label: '24 Hours' },
+            ],
+            mode: 'dropdown',
+          },
+        },
+      },
+      { name: 'guestName', selector: { text: {} } },
     ];
 
     const isFormValid = this._formData.network && this._formData.ssid;
@@ -133,8 +166,22 @@ export class MerakiGuestAccessCard extends LitElement {
     return html`
       <ha-card .header="${this._config?.name || 'Meraki Guest Access'}">
         <div class="card-content">
-          ${this._error ? html`<ha-alert alert-type="error" dismissable @alert-dismissed-clicked="${() => (this._error = null)}">${this._error}</ha-alert>` : ''}
-          ${this._success ? html`<ha-alert alert-type="success" dismissable @alert-dismissed-clicked="${() => (this._success = null)}">${this._success}</ha-alert>` : ''}
+          ${this._error
+            ? html`<ha-alert
+                alert-type="error"
+                dismissable
+                @alert-dismissed-clicked="${() => (this._error = null)}"
+                >${this._error}</ha-alert
+              >`
+            : ''}
+          ${this._success
+            ? html`<ha-alert
+                alert-type="success"
+                dismissable
+                @alert-dismissed-clicked="${() => (this._success = null)}"
+                >${this._success}</ha-alert
+              >`
+            : ''}
 
           <div class="form-container">
             <ha-form
@@ -145,8 +192,17 @@ export class MerakiGuestAccessCard extends LitElement {
               @value-changed=${this._formValueChanged}
             ></ha-form>
 
-            <ha-button raised .disabled=${this._creating || !isFormValid} @click=${this._generateAccessKey}>
-              ${this._creating ? html`<ha-circular-progress active size="small"></ha-circular-progress>` : 'Generate Access Key'}
+            <ha-button
+              raised
+              .disabled=${this._creating || !isFormValid}
+              @click=${this._generateAccessKey}
+            >
+              ${this._creating
+                ? html`<ha-circular-progress
+                    active
+                    size="small"
+                  ></ha-circular-progress>`
+                : 'Generate Access Key'}
             </ha-button>
           </div>
         </div>
@@ -166,16 +222,19 @@ export class MerakiGuestAccessCard extends LitElement {
       const payload: any = {
         network_id: this._formData.network,
         ssid: parseInt(this._formData.ssid, 10),
-        duration_minutes: parseInt(this._formData.duration, 10),
+        duration: parseInt(this._formData.duration, 10),
       };
 
       if (this._formData.guestName) {
-        payload.name = this._formData.guestName;
+        payload.guest_name = this._formData.guestName;
       }
 
-      await this.hass.callService('meraki_ha', 'generate_guest_access', payload);
+      await this.hass.callService(
+        'meraki_ha',
+        'generate_guest_access',
+        payload
+      );
       this._success = 'Guest access key created successfully!';
-      
     } catch (err: any) {
       this._error = `Failed to create guest key: ${err.message || err}`;
     } finally {
@@ -186,18 +245,47 @@ export class MerakiGuestAccessCard extends LitElement {
   static styles = [
     sharedStyles,
     css`
-      .form-container { display: flex; flex-direction: column; gap: 16px; }
-      ha-button { width: 100%; margin-top: 8px; }
-      .flex { display: flex; }
-      .justify-center { justify-content: center; }
-      .p-8 { padding: 32px; }
-    `
+      .form-container {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+      }
+      ha-button {
+        width: 100%;
+        margin-top: 8px;
+      }
+      .flex {
+        display: flex;
+      }
+      .justify-center {
+        justify-content: center;
+      }
+      .p-8 {
+        padding: 32px;
+      }
+    `,
   ];
 }
 
-declare global { interface HTMLElementTagNameMap { 'meraki-guest-access-card': MerakiGuestAccessCard; } }
-if (!customElements.get('meraki-guest-access-card')) { customElements.define('meraki-guest-access-card', MerakiGuestAccessCard); }
+declare global {
+  interface HTMLElementTagNameMap {
+    'meraki-guest-access-card': MerakiGuestAccessCard;
+  }
+}
+if (!customElements.get('meraki-guest-access-card')) {
+  customElements.define('meraki-guest-access-card', MerakiGuestAccessCard);
+}
 (window as any).customCards = (window as any).customCards || [];
-if (!(window as any).customCards.some((c: any) => c.type === 'meraki-guest-access-card')) {
-  (window as any).customCards.push({ type: "meraki-guest-access-card", name: "Meraki Guest Access", description: `Manage temporary guest WiFi access. Version: ${__VERSION__}`, preview: true, version: __VERSION__, });
+if (
+  !(window as any).customCards.some(
+    (c: any) => c.type === 'meraki-guest-access-card'
+  )
+) {
+  (window as any).customCards.push({
+    type: 'meraki-guest-access-card',
+    name: 'Meraki Guest Access',
+    description: `Manage temporary guest WiFi access. Version: ${__VERSION__}`,
+    preview: true,
+    version: __VERSION__,
+  });
 }
