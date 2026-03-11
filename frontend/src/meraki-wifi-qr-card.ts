@@ -12,7 +12,7 @@ interface Config {
   type: string;
   ssid: string;
   networkId?: string;
-  password?: string;
+  password?: string; // Kept for legacy fallback, but removed from editor
   name?: string;
 }
 
@@ -21,14 +21,9 @@ export class MerakiWifiQrCardEditor extends LitElement {
   @state() private _config?: Config;
   @state() private _networks: Network[] = [];
   @state() private _ssids: SSID[] = [];
-  @state() private _selectedNetwork: string = '';
-  @state() private _loading: boolean = false;
 
   public setConfig(config: Config): void {
     this._config = config;
-    if (config.networkId) {
-      this._selectedNetwork = config.networkId;
-    }
   }
 
   protected firstUpdated(changedProperties: PropertyValues) {
@@ -38,7 +33,6 @@ export class MerakiWifiQrCardEditor extends LitElement {
 
   private async _fetchInitialData() {
     if (!this.hass) return;
-    this._loading = true;
     try {
       const configEntries = await this.hass.callWS<any[]>({
         type: 'config_entries/get',
@@ -57,114 +51,86 @@ export class MerakiWifiQrCardEditor extends LitElement {
       this._ssids = Array.isArray(data.ssids) ? data.ssids : [];
     } catch (err: any) {
       console.error('Failed to fetch Meraki data:', err);
-    } finally {
-      this._loading = false;
     }
   }
 
-  private _handleNetworkChange(ev: any) {
-    ev.stopPropagation();
-    const newNetworkId = ev.target.value;
-    
-    // Defensive check: ignore empty dismissals
-    if (newNetworkId === undefined || newNetworkId === "") return;
-    
-    if (newNetworkId !== this._selectedNetwork) {
-      this._selectedNetwork = newNetworkId;
-      const newConfig = { ...this._config, networkId: newNetworkId, ssid: '' } as Config;
-      this._config = newConfig;
-      this._dispatchEvent('config-changed', { config: newConfig });
-    }
-  }
-
-  private _handleSSIDChange(ev: any) {
-    ev.stopPropagation();
-    const newSsidName = ev.target.value;
-    
-    if (newSsidName === undefined || newSsidName === "") return;
-
-    if (newSsidName !== this._config?.ssid) {
-      this._updateConfig('ssid', newSsidName);
-    }
-  }
-
-  private _valueChanged(ev: any) {
+  private _valueChanged(ev: CustomEvent): void {
     if (!this._config) return;
-    const target = ev.target;
-    const field = target.configValue;
-    if (!field) return;
-    this._updateConfig(field as keyof Config, target.value);
-  }
-
-  private _updateConfig(field: keyof Config, value: string) {
-    if (!this._config) return;
-    const newConfig = { ...this._config, [field]: value };
     
-    if (value === "" || value === undefined) {
-      delete newConfig[field];
+    const formValues = ev.detail.value;
+    const newConfig = { ...this._config, ...formValues };
+
+    // Automatically clear the SSID if the Network selection was changed
+    if (this._config.networkId !== formValues.networkId) {
+      newConfig.ssid = "";
     }
 
-    this._config = newConfig;
-    this._dispatchEvent('config-changed', { config: newConfig });
-  }
+    // Clean up empty strings
+    Object.keys(newConfig).forEach(key => {
+      if (newConfig[key as keyof Config] === "") {
+        delete newConfig[key as keyof Config];
+      }
+    });
 
-  private _dispatchEvent(type: string, detail: any) {
-    this.dispatchEvent(new CustomEvent(type, {
-      detail,
+    this.dispatchEvent(new CustomEvent("config-changed", {
+      detail: { config: newConfig },
       bubbles: true,
       composed: true,
     }));
   }
 
+  private _computeLabel = (schema: any): string => {
+    if (schema.name === "networkId") return "Network (Optional filter)";
+    if (schema.name === "ssid") return "SSID (Required)";
+    if (schema.name === "name") return "Card Title (Optional)";
+    return schema.name;
+  }
+
   protected render() {
     if (!this.hass || !this._config) return html``;
-    const filteredSsids = (this._ssids || []).filter(s => s.networkId === this._selectedNetwork);
+
+    const networkOptions = [
+      { value: "", label: "All Networks" },
+      ...this._networks.map(n => ({ value: n.id, label: n.name }))
+    ];
+    
+    const filteredSsids = this._config.networkId 
+        ? this._ssids.filter(s => s.networkId === this._config!.networkId) 
+        : this._ssids;
+        
+    const ssidOptions = filteredSsids.map(s => ({ value: s.name, label: `${s.name} (SSID ${s.number})` }));
+
+    // The password field has been completely removed from the schema!
+    const schema = [
+      {
+        name: "networkId",
+        selector: { select: { options: networkOptions, mode: "dropdown" } }
+      },
+      {
+        name: "ssid",
+        selector: { select: { options: ssidOptions, custom_value: true, mode: "dropdown" } }
+      },
+      {
+        name: "name",
+        selector: { text: {} }
+      }
+    ];
 
     return html`
-      <div class="card-config">
-        <ha-select
-          label="Network (Optional - to populate SSID)"
-          .value=${this._selectedNetwork}
-          @closed=${this._handleNetworkChange}
-          fixedMenuPosition
-          naturalMenuWidth
-        >
-          <mwc-list-item value="">Select a network</mwc-list-item>
-          ${(this._networks || []).map(n => html`<mwc-list-item value="${n.id}">${n.name}</mwc-list-item>`)}
-        </ha-select>
-
-        <ha-select
-          label="SSID"
-          .value=${this._config?.ssid || ''}
-          .disabled=${!this._selectedNetwork}
-          @closed=${this._handleSSIDChange}
-          fixedMenuPosition
-          naturalMenuWidth
-        >
-          <mwc-list-item value="">Select an SSID</mwc-list-item>
-          ${filteredSsids.map(s => html`<mwc-list-item value="${s.name}">${s.name}</mwc-list-item>`)}
-        </ha-select>
-
-        <ha-textfield
-          label="Password or Entity ID"
-          .value=${this._config.password || ''}
-          .configValue=${"password"}
-          @input=${this._valueChanged}
-        ></ha-textfield>
-
-        <ha-textfield
-          label="Card Title"
-          .value=${this._config.name || ''}
-          .configValue=${"name"}
-          @input=${this._valueChanged}
-        ></ha-textfield>
+      <div class="editor-container">
+        <ha-form
+          .hass=${this.hass}
+          .data=${this._config}
+          .schema=${schema}
+          .computeLabel=${this._computeLabel}
+          @value-changed=${this._valueChanged}
+        ></ha-form>
       </div>
     `;
   }
 
   static styles = css`
-    .card-config { display: flex; flex-direction: column; gap: 16px; padding: 16px; }
-    ha-select, ha-textfield { width: 100%; }
+    .editor-container { padding: 16px; }
   `;
 }
 
@@ -187,7 +153,6 @@ export class MerakiWifiQrCard extends LitElement {
   public static getStubConfig(): Record<string, unknown> {
     return {
       ssid: 'Guest WiFi',
-      password: 'password123',
       name: 'Wi-Fi Access',
     };
   }
@@ -206,6 +171,32 @@ export class MerakiWifiQrCard extends LitElement {
     return value;
   }
 
+  private _getPasswordForSsid(ssidName: string): string {
+    if (!this.hass || !ssidName) return '';
+
+    // Aggressively scan HA states to find the password attached to this specific SSID
+    for (const entityId in this.hass.states) {
+      const stateObj = this.hass.states[entityId];
+      const attrs = stateObj.attributes;
+
+      if (attrs.ssid_name === ssidName) {
+        // Option A: Password is an attribute on the SSID or Network entity
+        if (attrs.psk) return attrs.psk;
+        if (attrs.password) return attrs.password;
+        
+        // Option B: The entity itself is the dedicated password sensor
+        if (entityId.includes('password') || entityId.includes('psk')) {
+           if (stateObj.state && stateObj.state !== 'unknown' && stateObj.state !== 'unavailable') {
+               return stateObj.state;
+           }
+        }
+      }
+    }
+    
+    // Fallback: Use the legacy config password if it was saved prior to this update
+    return this._config?.password ? this._getValue(this._config.password) : '';
+  }
+
   private _generateWifiString(ssid: string, password?: string): string {
     const escapedSsid = ssid.replace(/([\\;,":])/g, '\\$1');
     const escapedPassword = password ? password.replace(/([\\;,":])/g, '\\$1') : '';
@@ -217,7 +208,7 @@ export class MerakiWifiQrCard extends LitElement {
   private async _generateQR() {
     if (!this._config) return;
     const ssid = this._getValue(this._config.ssid);
-    const password = this._getValue(this._config.password);
+    const password = this._getPasswordForSsid(ssid);
 
     if (!ssid) {
       this._qrSvg = '';
@@ -240,13 +231,14 @@ export class MerakiWifiQrCard extends LitElement {
   protected render() {
     if (!this._config || !this.hass) return html``;
     const ssid = this._getValue(this._config.ssid);
+    const password = this._getPasswordForSsid(ssid);
 
     return html`
       <ha-card .header=${this._config.name || 'Wi-Fi Access'}>
         <div class="card-content">
           <div class="ssid-display">${ssid}</div>
           <div class="qr-container" .innerHTML=${this._qrSvg}></div>
-          ${this._getValue(this._config.password) ? html`<div class="password-display">Password: <code>${this._getValue(this._config.password)}</code></div>` : ''}
+          ${password ? html`<div class="password-display">Password: <code>${password}</code></div>` : ''}
         </div>
         <div class="version">v${__VERSION__}</div>
       </ha-card>
