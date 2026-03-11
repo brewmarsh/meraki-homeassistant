@@ -11,6 +11,7 @@ declare const __VERSION__: string;
 interface Config {
   type: string;
   ssid: string;
+  networkId?: string;
   password?: string;
   name?: string;
 }
@@ -25,6 +26,9 @@ export class MerakiWifiQrCardEditor extends LitElement {
 
   public setConfig(config: Config): void {
     this._config = config;
+    if (config.networkId) {
+      this._selectedNetwork = config.networkId;
+    }
   }
 
   protected firstUpdated(changedProperties: PropertyValues) {
@@ -60,18 +64,20 @@ export class MerakiWifiQrCardEditor extends LitElement {
 
   private _handleNetworkChange(ev: any) {
     ev.stopPropagation();
-    const newNetworkId = ev.detail.value;
+    const newNetworkId = ev.target.value;
     // Defensive check: only update if we have a valid selection
     if (newNetworkId !== undefined && newNetworkId !== this._selectedNetwork) {
       this._selectedNetwork = newNetworkId;
-      this._updateConfig('ssid', '');
+      const newConfig = { ...this._config, networkId: newNetworkId, ssid: '' } as Config;
+      this._config = newConfig;
+      this._dispatchEvent('config-changed', { config: newConfig });
     }
   }
 
   private _handleSSIDChange(ev: any) {
     ev.stopPropagation();
-    const newSsidName = ev.detail.value;
-    if (newSsidName && newSsidName !== this._config?.ssid) {
+    const newSsidName = ev.target.value;
+    if (newSsidName !== this._config?.ssid) {
       this._updateConfig('ssid', newSsidName);
     }
   }
@@ -87,10 +93,18 @@ export class MerakiWifiQrCardEditor extends LitElement {
   private _updateConfig(field: keyof Config, value: string) {
     if (!this._config) return;
     const newConfig = { ...this._config, [field]: value };
-    this._config = newConfig;
     
-    this.dispatchEvent(new CustomEvent('config-changed', {
-      detail: { config: newConfig },
+    if (value === "" || value === undefined) {
+      delete newConfig[field];
+    }
+
+    this._config = newConfig;
+    this._dispatchEvent('config-changed', { config: newConfig });
+  }
+
+  private _dispatchEvent(type: string, detail: any) {
+    this.dispatchEvent(new CustomEvent(type, {
+      detail,
       bubbles: true,
       composed: true,
     }));
@@ -105,8 +119,7 @@ export class MerakiWifiQrCardEditor extends LitElement {
         <ha-select
           label="Network (Optional - to populate SSID)"
           .value=${this._selectedNetwork}
-          @value-changed=${this._handleNetworkChange}
-          @closed=${(e: Event) => e.stopPropagation()}
+          @closed=${this._handleNetworkChange}
           fixedMenuPosition
           naturalMenuWidth
         >
@@ -118,8 +131,7 @@ export class MerakiWifiQrCardEditor extends LitElement {
           label="SSID"
           .value=${this._config?.ssid || ''}
           .disabled=${!this._selectedNetwork}
-          @value-changed=${this._handleSSIDChange}
-          @closed=${(e: Event) => e.stopPropagation()}
+          @closed=${this._handleSSIDChange}
           fixedMenuPosition
           naturalMenuWidth
         >
