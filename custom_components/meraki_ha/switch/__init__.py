@@ -61,17 +61,23 @@ async def async_setup_entry(
 
     # Process discovery entities
     if discovery_entities:
-        async_add_unique_entities(discovery_entities)
+        try:
+            async_add_unique_entities(discovery_entities)
+        except Exception as err:
+            _LOGGER.error("Error adding unique discovery switch entities: %s", err)
 
     # Add other switches from setup helpers using the same deduplication logic
-    async_setup_switches(
-        hass,
-        config_entry,
-        coordinator,
-        meraki_client,
-        async_add_unique_entities,
-        added_entities=seen_ids,
-    )
+    try:
+        async_setup_switches(
+            hass,
+            config_entry,
+            coordinator,
+            meraki_client,
+            async_add_unique_entities,
+            added_entities=seen_ids,
+        )
+    except Exception as err:
+        _LOGGER.error("Failed to set up helper switch entities: %s", err, exc_info=True)
 
     if entities_to_add:
         async_add_entities(entities_to_add)

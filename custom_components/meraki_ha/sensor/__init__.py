@@ -31,29 +31,36 @@ async def async_setup_entry(
     # Entities have already been discovered in __init__.py
     sensor_entities = []
     for entity in discovery_service.all_entities:
-        if not isinstance(entity, SensorEntity):
-            continue
-
-        # Skip Signal Strength sensors for MT devices as they use BLE
-        if isinstance(entity, MerakiSignalStrengthSensor):
-            device = getattr(entity, "_device", None)
-            if device and device.model and device.model.startswith("MT"):
-                _LOGGER.debug(
-                    "Skipping Signal Strength sensor for BLE device %s", device.serial
-                )
+        try:
+            if not isinstance(entity, SensorEntity):
                 continue
 
-        sensor_entities.append(entity)
+            # Skip Signal Strength sensors for MT devices as they use BLE
+            if isinstance(entity, MerakiSignalStrengthSensor):
+                device = getattr(entity, "_device", None)
+                if device and device.model and device.model.startswith("MT"):
+                    _LOGGER.debug(
+                        "Skipping Signal Strength sensor for BLE device %s",
+                        device.serial,
+                    )
+                    continue
+
+            sensor_entities.append(entity)
+        except Exception as err:
+            _LOGGER.error("Error processing discovered sensor entity: %s", err)
 
     # Filter out organization sensors if disabled
     if not config_entry.options.get(CONF_ENABLE_ORG_SENSORS, True):
         _LOGGER.debug("Organization sensors are disabled.")
         filtered_entities = []
         for entity in sensor_entities:
-            if "MerakiOrganization" in entity.__class__.__name__:
-                _LOGGER.debug("Skipping organization sensor %s", entity.name)
-                continue
-            filtered_entities.append(entity)
+            try:
+                if "MerakiOrganization" in entity.__class__.__name__:
+                    _LOGGER.debug("Skipping organization sensor %s", entity.name)
+                    continue
+                filtered_entities.append(entity)
+            except Exception as err:
+                _LOGGER.error("Error filtering organization sensor: %s", err)
         sensor_entities = filtered_entities
 
     if sensor_entities:

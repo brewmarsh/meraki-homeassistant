@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import logging
 
 from homeassistant.components.binary_sensor import (
     BinarySensorDeviceClass,
@@ -20,6 +21,8 @@ from ..core.models.network import MerakiNetwork
 from ..core.utils.naming_utils import standardize_device_name
 from ..helpers.device_info_helpers import resolve_device_info
 
+_LOGGER = logging.getLogger(__name__)
+
 
 async def async_setup_entry(
     hass: HomeAssistant,
@@ -36,9 +39,19 @@ async def async_setup_entry(
         networks = await networks
 
     if networks:
-        async_add_entities(
-            [MerakiNetworkStatus(coordinator, network) for network in networks]
-        )
+        entities = []
+        for network in networks:
+            try:
+                entities.append(MerakiNetworkStatus(coordinator, network))
+            except Exception as err:
+                _LOGGER.error(
+                    "Failed to initialize network status sensor for %s: %s",
+                    network.id if hasattr(network, "id") else "Unknown",
+                    err,
+                    exc_info=True,
+                )
+        if entities:
+            async_add_entities(entities)
 
 
 class MerakiNetworkStatus(BinarySensorEntity):
