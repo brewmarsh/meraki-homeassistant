@@ -194,8 +194,7 @@ export class MerakiGuestAccessCard extends LitElement {
             <ha-select
               label="Network"
               .value=${this._selectedNetwork}
-              @selected=${(e: any) => this._handleDropdownChange("Network", e.target.value)}
-              @closed=${(e: Event) => e.stopPropagation()}
+              @closed=${(e: Event) => this._handleDropdownChange(e, "Network")}
               fixedMenuPosition
               naturalMenuWidth
             >
@@ -206,8 +205,7 @@ export class MerakiGuestAccessCard extends LitElement {
               label="SSID"
               .value=${this._selectedSsid}
               .disabled=${!this._selectedNetwork}
-              @selected=${(e: any) => this._handleDropdownChange("SSID", e.target.value)}
-              @closed=${(e: Event) => e.stopPropagation()}
+              @closed=${(e: Event) => this._handleDropdownChange(e, "SSID")}
               fixedMenuPosition
               naturalMenuWidth
             >
@@ -217,8 +215,7 @@ export class MerakiGuestAccessCard extends LitElement {
             <ha-select
               label="Duration"
               .value=${this._duration}
-              @selected=${(e: any) => this._handleDropdownChange("Duration", e.target.value)}
-              @closed=${(e: Event) => e.stopPropagation()}
+              @closed=${(e: Event) => this._handleDropdownChange(e, "Duration")}
               fixedMenuPosition
               naturalMenuWidth
             >
@@ -238,12 +235,14 @@ export class MerakiGuestAccessCard extends LitElement {
     `;
   }
 
-  // Updated handler to accept the label and value explicitly
-  private _handleDropdownChange(label: string, value: string) {
+  private _handleDropdownChange(ev: Event, label: string) {
+    ev.stopPropagation();
+    const target = ev.target as any;
+    const value = target.value;
+
     if (!value) return; // Ignore blank selections
 
     console.log(`MERAKI CARD DIAGNOSTIC - Dropdown changed: ${label} = ${value}`);
-    console.log("Clicked:", value);
 
     if (label === "Network") {
       if (this._selectedNetwork === value) return;
