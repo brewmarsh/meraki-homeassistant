@@ -1,6 +1,7 @@
 import { LitElement, html, css } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { HomeAssistant } from './types/ha';
+import { renderWarning, sharedStyles } from './shared-ui';
 
 declare const __VERSION__: string;
 
@@ -68,13 +69,7 @@ export class MerakiContentFilterCard extends LitElement {
       return html`
         <ha-card .header="${title}">
           <div class="card-content">
-            <div class="meraki-warning">
-              <ha-icon icon="mdi:information"></ha-icon>
-              <div class="warning-content">
-                <strong>Integration Initializing</strong>
-                <p>The Meraki integration is still fetching data or no content filter entity was found. Please wait or check your configuration.</p>
-              </div>
-            </div>
+            ${renderWarning("Integration Initializing", "The Meraki integration is still fetching data or no content filter entity was found. Please wait or check your configuration.")}
           </div>
           <div class="version">v${__VERSION__}</div>
         </ha-card>
@@ -121,48 +116,33 @@ export class MerakiContentFilterCard extends LitElement {
     }
   }
 
-  static styles = css`
-    :host { display: block; }
-    ha-card {
-      height: 100%;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-    }
-    .meraki-warning {
-      display: flex;
-      align-items: flex-start;
-      gap: 12px;
-      padding: 12px;
-      background-color: var(--warning-color);
-      color: var(--primary-text-color);
-      border-radius: 8px;
-    }
-    .warning-content strong { display: block; margin-bottom: 4px; }
-    .warning-content p { margin: 0; font-size: 0.9em; opacity: 0.9; }
-    .card-content { padding: 16px; }
-    .button-grid {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-    ha-button {
-      width: 100%;
-      --mdc-theme-primary: var(--primary-text-color);
-    }
-    ha-button.active {
-      --mdc-theme-primary: var(--success-color, #4caf50);
-      --mdc-theme-on-primary: #ffffff;
-      font-weight: bold;
-    }
-    .version {
-      font-size: 9px;
-      color: var(--secondary-text-color);
-      text-align: right;
-      padding: 4px 12px;
-      opacity: 0.4;
-    }
-  `;
+  static styles = [
+    sharedStyles,
+    css`
+      :host { display: block; }
+      ha-card {
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+      }
+      .card-content { padding: 16px; }
+      .button-grid {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+      ha-button {
+        width: 100%;
+        --mdc-theme-primary: var(--primary-text-color);
+      }
+      ha-button.active {
+        --mdc-theme-primary: var(--success-color, #4caf50);
+        --mdc-theme-on-primary: #ffffff;
+        font-weight: bold;
+      }
+    `
+  ];
 }
 
 export class MerakiContentFilterCardEditor extends LitElement {

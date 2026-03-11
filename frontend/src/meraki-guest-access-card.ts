@@ -1,6 +1,7 @@
 import { LitElement, html, css, PropertyValues } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { HomeAssistant } from './types/ha';
+import { renderWarning, renderLoading, sharedStyles } from './shared-ui';
 import './meraki-content-filter-card';
 import './meraki-wifi-qr-card';
 import './meraki-network-vitals-card';
@@ -162,8 +163,8 @@ export class MerakiGuestAccessCard extends LitElement {
     if (this._isLoading) {
       return html`
         <ha-card .header="${this._config?.name || 'Meraki Guest Access'}">
-          <div class="card-content flex justify-center p-8">
-            <ha-circular-progress active></ha-circular-progress>
+          <div class="card-content">
+            ${renderLoading("Loading...")}
           </div>
           <div class="version">v${__VERSION__}</div>
         </ha-card>
@@ -177,7 +178,7 @@ export class MerakiGuestAccessCard extends LitElement {
         return html`
           <ha-card .header="${this._config?.name || 'Meraki Guest Access'}">
             <div class="card-content">
-              <ha-alert alert-type="warning">No Meraki wireless networks found. Ensure the integration is configured and entities are enabled.</ha-alert>
+              ${renderWarning("No Wireless Networks", "No Meraki wireless networks found. Ensure the integration is configured and entities are enabled.")}
             </div>
             <div class="version">v${__VERSION__}</div>
           </ha-card>
@@ -283,19 +284,15 @@ export class MerakiGuestAccessCard extends LitElement {
     }
   }
 
-  static styles = css`
-    .form-container { display: flex; flex-direction: column; gap: 16px; }
-    ha-select, ha-textfield, ha-button { width: 100%; }
-    .flex { display: flex; }
-    .justify-center { justify-content: center; }
-    .version {
-      font-size: 10px;
-      color: var(--secondary-text-color);
-      text-align: right;
-      padding: 0 16px 8px;
-      opacity: 0.5;
-    }
-  `;
+  static styles = [
+    sharedStyles,
+    css`
+      .form-container { display: flex; flex-direction: column; gap: 16px; }
+      ha-select, ha-textfield, ha-button { width: 100%; }
+      .flex { display: flex; }
+      .justify-center { justify-content: center; }
+    `
+  ];
 }
 
 declare global {

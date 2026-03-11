@@ -1,6 +1,7 @@
 import { LitElement, html, css, PropertyValues } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { HomeAssistant } from './types/ha';
+import { renderWarning, sharedStyles } from './shared-ui';
 import { Network, SSID } from './types/meraki';
 import { WsCommand } from './types/websocket';
 import { safeCallWS } from './utils/api';
@@ -229,7 +230,15 @@ export class MerakiWifiQrCard extends LitElement {
   }
 
   protected render() {
-    if (!this._config || !this.hass) return html``;
+    if (!this._config || !this.hass) {
+      return html`
+        <ha-card .header=${this._config?.name || 'Wi-Fi Access'}>
+          <div class="card-content">
+            ${renderWarning("Initializing", "Waiting for Home Assistant data...")}
+          </div>
+        </ha-card>
+      `;
+    }
     const ssid = this._getValue(this._config.ssid);
     const password = this._getPasswordForSsid(ssid);
 
@@ -245,16 +254,18 @@ export class MerakiWifiQrCard extends LitElement {
     `;
   }
 
-  static styles = css`
-    :host { display: block; }
-    .card-content { display: flex; flex-direction: column; align-items: center; padding: 16px; gap: 16px; }
-    .ssid-display { font-size: 1.5em; font-weight: bold; color: var(--primary-text-color); text-align: center; }
-    .qr-container { width: 200px; height: 200px; background: white; padding: 8px; border-radius: 8px; }
-    .qr-container svg { width: 100%; height: 100%; }
-    .password-display { color: var(--secondary-text-color); text-align: center; }
-    code { background: var(--secondary-background-color); padding: 2px 4px; border-radius: 4px; font-family: monospace; }
-    .version { font-size: 9px; color: var(--secondary-text-color); text-align: right; padding: 0 16px 8px; opacity: 0.4; }
-  `;
+  static styles = [
+    sharedStyles,
+    css`
+      :host { display: block; }
+      .card-content { display: flex; flex-direction: column; align-items: center; padding: 16px; gap: 16px; }
+      .ssid-display { font-size: 1.5em; font-weight: bold; color: var(--primary-text-color); text-align: center; }
+      .qr-container { width: 200px; height: 200px; background: white; padding: 8px; border-radius: 8px; }
+      .qr-container svg { width: 100%; height: 100%; }
+      .password-display { color: var(--secondary-text-color); text-align: center; }
+      code { background: var(--secondary-background-color); padding: 2px 4px; border-radius: 4px; font-family: monospace; }
+    `
+  ];
 }
 
 // Register components
