@@ -75,4 +75,7 @@ This document verifies the state of the codebase against the requirements for th
   - **[VERIFIED]** Gateway, Switch, and AP pills now support clickable actions, defaulting to `more-info`.
   - **[VERIFIED]** Added configuration fields to the card editor for managing these tap actions.
 
-This verification confirms the need for the planned refactoring steps. The new requirements (R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R15, R16, R17) are now considered part of the standard for this integration.
+- **R18: Schema Consistency:**
+  - **[IN PROGRESS]** Implementation of configuration schema consistency to ensure alignment between constants, translation files, and automated testing scripts. This includes migrating legacy keys (e.g., `meraki_api_key`) to standardized keys (e.g., `api_key`).
+
+This verification confirms the need for the planned refactoring steps. The new requirements (R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R15, R16, R17, R18) are now considered part of the standard for this integration.

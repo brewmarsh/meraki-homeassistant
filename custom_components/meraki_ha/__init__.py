@@ -81,6 +81,22 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     return True
 
 
+async def async_migrate_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+    """Migrate old entry."""
+    _LOGGER.debug("Migrating from version %s", entry.version)
+
+    if entry.version == 1:
+        new_data = {**entry.data}
+        if "meraki_api_key" in new_data:
+            new_data["api_key"] = new_data.pop("meraki_api_key")
+
+        hass.config_entries.async_update_entry(entry, data=new_data, version=2)
+
+    _LOGGER.info("Migration to version %s successful", entry.version)
+
+    return True
+
+
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """
     Set up Meraki from a config entry.

@@ -28,13 +28,18 @@ _LOGGER = logging.getLogger(__name__)
 class MerakiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     """Handle a config flow for Meraki."""
 
-    VERSION = 1
+    VERSION = 2
 
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
     ) -> FlowResult:
         """Handle the initial step."""
         from .core.api import create_api_client
+        from .core.errors import (
+            InvalidOrgID,
+            MerakiAuthenticationError,
+            MerakiConnectionError,
+        )
         from .schemas import STEP_USER_DATA_SCHEMA
 
         errors: dict[str, str] = {}
@@ -48,6 +53,12 @@ class MerakiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 )
                 await client.async_setup()
                 await client.get_organizations()
+            except MerakiAuthenticationError:
+                errors["base"] = "invalid_auth"
+            except MerakiConnectionError:
+                errors["base"] = "cannot_connect"
+            except InvalidOrgID:
+                errors["base"] = "invalid_org_id"
             except Exception:  # pylint: disable=broad-except
                 _LOGGER.exception("Unexpected exception during config flow")
                 errors["base"] = "cannot_connect"

@@ -6,9 +6,10 @@ import re
 
 import homeassistant.helpers.config_validation as cv
 import voluptuous as vol
-from homeassistant.const import CONF_API_KEY, CONF_NAME
+from homeassistant.const import CONF_NAME
 
 from custom_components.meraki_ha.const.config import (
+    CONF_MERAKI_API_KEY,
     CONF_MERAKI_ORG_ID,
     CONF_SCAN_INTERVAL,
     DEFAULT_SCAN_INTERVAL,
@@ -65,7 +66,7 @@ def validate_org_id(value: str) -> str:
 # Main config schema
 CONFIG_SCHEMA = vol.Schema(
     {
-        vol.Required(CONF_API_KEY): validate_api_key,
+        vol.Required(CONF_MERAKI_API_KEY): validate_api_key,
         vol.Required(CONF_MERAKI_ORG_ID): validate_org_id,
         vol.Optional(CONF_NAME): cv.string,
         vol.Optional(CONF_SCAN_INTERVAL, default=DEFAULT_SCAN_INTERVAL): vol.All(
