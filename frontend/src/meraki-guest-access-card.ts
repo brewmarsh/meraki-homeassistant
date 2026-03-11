@@ -238,7 +238,7 @@ export class MerakiGuestAccessCard extends LitElement {
       const payload: any = {
         network_id: this._formData.network,
         ssid: parseInt(this._formData.ssid, 10),
-        duration_minutes: parseInt(this._formData.duration, 10),
+        duration: parseInt(this._formData.duration, 10), // Renamed from duration_minutes to duration
       };
 
       if (this._formData.guestName) {
