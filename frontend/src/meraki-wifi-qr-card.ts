@@ -65,8 +65,11 @@ export class MerakiWifiQrCardEditor extends LitElement {
   private _handleNetworkChange(ev: any) {
     ev.stopPropagation();
     const newNetworkId = ev.target.value;
-    // Defensive check: only update if we have a valid selection
-    if (newNetworkId !== undefined && newNetworkId !== this._selectedNetwork) {
+    
+    // Defensive check: ignore empty dismissals
+    if (newNetworkId === undefined || newNetworkId === "") return;
+    
+    if (newNetworkId !== this._selectedNetwork) {
       this._selectedNetwork = newNetworkId;
       const newConfig = { ...this._config, networkId: newNetworkId, ssid: '' } as Config;
       this._config = newConfig;
@@ -77,6 +80,9 @@ export class MerakiWifiQrCardEditor extends LitElement {
   private _handleSSIDChange(ev: any) {
     ev.stopPropagation();
     const newSsidName = ev.target.value;
+    
+    if (newSsidName === undefined || newSsidName === "") return;
+
     if (newSsidName !== this._config?.ssid) {
       this._updateConfig('ssid', newSsidName);
     }
