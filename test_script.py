@@ -18,7 +18,7 @@ def check():
 
     # Test Base Meraki Entity
     entity = MerakiEntity(coordinator)
-    entity._serial = "123"
+    entity._device_serial = "123"
     entity.name = "Test Entity"
 
     print(f"Base Entity Available (offline device): {entity.available}")
@@ -26,7 +26,7 @@ def check():
     # Test Reboot Button
     device_data = {"serial": "123", "status": "offline", "model": "MS120"}
     btn = MerakiRebootButton(coordinator, MagicMock(), device_data, MagicMock())
-    btn._serial = "123"
+    btn._device_serial = "123"
     btn.name = "Test Reboot Button"
     btn.coordinator = coordinator
     print(f"Reboot Button Available (offline device): {btn.available}")
