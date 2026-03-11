@@ -13,7 +13,7 @@ interface Config {
   type: string;
   ssid: string;
   networkId?: string;
-  password?: string; // Kept for legacy fallback, but removed from editor
+  password?: string; 
   name?: string;
 }
 
@@ -83,6 +83,7 @@ export class MerakiWifiQrCardEditor extends LitElement {
   private _computeLabel = (schema: any): string => {
     if (schema.name === "networkId") return "Network (Optional filter)";
     if (schema.name === "ssid") return "SSID (Required)";
+    if (schema.name === "password") return "Password (Optional override or Entity ID)";
     if (schema.name === "name") return "Card Title (Optional)";
     return schema.name;
   }
@@ -109,6 +110,10 @@ export class MerakiWifiQrCardEditor extends LitElement {
       {
         name: "ssid",
         selector: { select: { options: ssidOptions, custom_value: true, mode: "dropdown" } }
+      },
+      {
+        name: "password",
+        selector: { text: {} }
       },
       {
         name: "name",
@@ -152,7 +157,7 @@ export class MerakiWifiQrCard extends LitElement {
 
   public static getStubConfig(): Record<string, unknown> {
     return {
-      ssid: '', // Removed the dummy password to prevent it from saving
+      ssid: '', 
       name: 'Wi-Fi Access',
     };
   }
@@ -172,9 +177,16 @@ export class MerakiWifiQrCard extends LitElement {
   }
 
   private _getPasswordForSsid(ssidName: string): string {
-    if (!this.hass || !ssidName) return '';
+    if (!this.hass) return '';
 
-    // Pass 1: Strict match by attribute
+    // Pass 1: Manual Override - User typed a password or entity ID directly into the editor
+    if (this._config?.password && this._config.password !== 'password123') {
+        return this._getValue(this._config.password);
+    }
+
+    if (!ssidName) return '';
+
+    // Pass 2: Strict match by attribute
     for (const entityId in this.hass.states) {
       const stateObj = this.hass.states[entityId];
       const attrs = stateObj.attributes;
@@ -190,7 +202,7 @@ export class MerakiWifiQrCard extends LitElement {
       }
     }
 
-    // Pass 2: Fuzzy search for a dedicated password sensor matching the SSID name
+    // Pass 3: Fuzzy search for a dedicated password sensor matching the SSID name
     const normalizedSsid = ssidName.toLowerCase().replace(/[^a-z0-9]/g, '_');
     for (const entityId in this.hass.states) {
       if (entityId.includes(normalizedSsid) && (entityId.includes('password') || entityId.includes('psk'))) {
@@ -201,12 +213,7 @@ export class MerakiWifiQrCard extends LitElement {
       }
     }
 
-    // Pass 3: Legacy YAML config fallback (ignoring the old dummy stub)
-    if (this._config?.password && this._config.password !== 'password123') {
-        return this._getValue(this._config.password);
-    }
-
-    // Open network (No password)
+    // Open network (No password found)
     return '';
   }
 
@@ -242,7 +249,6 @@ export class MerakiWifiQrCard extends LitElement {
   }
 
   protected render() {
-    // If HA is still loading or config is missing, show the new shared warning banner
     if (!this._config || !this.hass) {
       return html`
         <ha-card .header=${this._config?.name || 'Wi-Fi Access'}>
@@ -269,7 +275,6 @@ export class MerakiWifiQrCard extends LitElement {
     `;
   }
 
-  // Combine shared styles with the specific card styles using an array
   static styles = [
     sharedStyles,
     css`
