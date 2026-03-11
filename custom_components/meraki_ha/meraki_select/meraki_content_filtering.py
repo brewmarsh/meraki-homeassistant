@@ -17,38 +17,40 @@ from ..helpers.device_info_helpers import resolve_device_info
 
 _LOGGER = logging.getLogger(__name__)
 
-# Profiles mapped to Meraki category IDs from const_data.py
-# Updated with 'C' prefixes for Cisco Talos integration (firmware MX17+)
-CONTENT_FILTERING_PROFILES: dict[str, list[str]] = {
+# Profiles mapped to generic, lowercase category names. 
+# We will dynamically resolve these to actual API IDs at runtime.
+CONTENT_FILTERING_PROFILE_TARGETS: dict[str, list[str]] = {
     "None": [],
     "Security": [
-        "meraki:contentFiltering/category/C8",  # Malware sites
-        "meraki:contentFiltering/category/C9",  # Phishing and other frauds
-        "meraki:contentFiltering/category/C11",  # Botnets
+        "malware sites",
+        "phishing and other frauds",
+        "bot nets",
+        "botnets",
     ],
     "Family": [
-        "meraki:contentFiltering/category/C1",  # Adult and Pornography
-        "meraki:contentFiltering/category/C3",  # Gambling
-        "meraki:contentFiltering/category/C8",  # Malware sites
-        "meraki:contentFiltering/category/C9",  # Phishing and other frauds
-        "meraki:contentFiltering/category/C11",  # Botnets
-        "meraki:contentFiltering/category/C20",  # Nudity
+        "adult and pornography",
+        "gambling",
+        "nudity",
+        "malware sites",
+        "phishing and other frauds",
+        "bot nets",
+        "botnets",
     ],
     "Strict": [
-        "meraki:contentFiltering/category/C1",  # Adult and Pornography
-        "meraki:contentFiltering/category/C2",  # Illegal
-        "meraki:contentFiltering/category/C3",  # Gambling
-        "meraki:contentFiltering/category/C4",  # Hate and Racism
-        "meraki:contentFiltering/category/C5",  # Weapons
-        "meraki:contentFiltering/category/C6",  # Violence
-        "meraki:contentFiltering/category/C8",  # Malware sites
-        "meraki:contentFiltering/category/C9",  # Phishing and other frauds
-        "meraki:contentFiltering/category/C10",  # Key loggers and monitoring
-        "meraki:contentFiltering/category/C11",  # Botnets
-        "meraki:contentFiltering/category/C12",  # Spam URLs
+        "adult and pornography",
+        "illegal",
+        "gambling",
+        "hate and racism",
+        "weapons",
+        "violence",
+        "keyloggers and monitoring",
+        "spam urls",
+        "malware sites",
+        "phishing and other frauds",
+        "bot nets",
+        "botnets",
     ],
 }
-
 
 class MerakiContentFilteringSelect(MerakiEntity[MerakiMainCoordinator], SelectEntity):
     """Representation of a Meraki Content Filtering select entity."""
@@ -75,41 +77,10 @@ class MerakiContentFilteringSelect(MerakiEntity[MerakiMainCoordinator], SelectEn
             icon="mdi:web-filter",
         )
 
-        # Unique ID must include network_id to prevent collision and generic suffixes
         self._attr_unique_id = (
             f"meraki-network-{self._network_id}-content-filtering-profile"
         )
-        self._attr_options = list(CONTENT_FILTERING_PROFILES.keys())
-
-        # Category mapping cache
-        self._category_id_to_name: dict[str, str] = {}
-        self._category_name_to_id: dict[str, str] = {}
-
-    async def async_added_to_hass(self) -> None:
-        """Fetch category mapping when added to Home Assistant."""
-        await super().async_added_to_hass()
-        await self._async_fetch_category_mapping()
-
-    async def _async_fetch_category_mapping(self) -> None:
-        """Fetch and cache Meraki content filtering categories."""
-        try:
-            response = await self._meraki_client.appliance.get_network_appliance_content_filtering_categories(
-                self._network_id
-            )
-            categories = response.get("categories", [])
-            self._category_id_to_name = {cat["id"]: cat["name"] for cat in categories}
-            self._category_name_to_id = {cat["name"]: cat["id"] for cat in categories}
-            _LOGGER.debug(
-                "Fetched %d content filtering categories for network %s",
-                len(categories),
-                self._network_id,
-            )
-        except Exception as e:
-            _LOGGER.warning(
-                "Failed to fetch content filtering categories for network %s: %s",
-                self._network_id,
-                e,
-            )
+        self._attr_options = list(CONTENT_FILTERING_PROFILE_TARGETS.keys())
 
     @property
     def device_info(self) -> DeviceInfo | None:
@@ -121,80 +92,65 @@ class MerakiContentFilteringSelect(MerakiEntity[MerakiMainCoordinator], SelectEn
 
     @property
     def current_option(self) -> str | None:
-        """Return the current selected option."""
-        if not self.coordinator.data or not self.coordinator.data.get(
-            "content_filtering"
-        ):
+        """Return the current selected option based on quantity of blocked categories."""
+        if not self.coordinator.data or not self.coordinator.data.get("content_filtering"):
             return None
 
-        content_filtering = self.coordinator.data["content_filtering"].get(
-            self._network_id
-        )
-        # Safety check: ensure content_filtering is a dictionary and not None
+        content_filtering = self.coordinator.data["content_filtering"].get(self._network_id)
         if not content_filtering or not isinstance(content_filtering, dict):
             return None
 
-        raw_categories = ensure_list_of_strings(
+        blocked_categories = ensure_list_of_strings(
             content_filtering.get("blockedUrlCategories", []), key_to_extract="id"
         )
-
-        # Use fetched mapping to resolve IDs to names
-        blocked_category_names = set()
-        for cat_id in raw_categories:
-            if name := self._category_id_to_name.get(cat_id):
-                blocked_category_names.add(name)
-            elif name := self._category_id_to_name.get(
-                f"meraki:contentFiltering/category/{cat_id}"
-            ):
-                blocked_category_names.add(name)
-            else:
-                # If name not found, we can't accurately match profiles by name
-                _LOGGER.debug(
-                    "Category ID %s not found in mapping for network %s",
-                    cat_id,
-                    self._network_id,
-                )
-
-        # Reverse map to find the best matching profile
-        for profile, categories in CONTENT_FILTERING_PROFILES.items():
-            if set(categories) == blocked_category_names:
-                return profile
-
-        # Fallback to "None" if no match
-        return None
+        
+        # Use a robust heuristic to map current state without needing synchronous API calls
+        count = len(blocked_categories)
+        if count == 0:
+            return "None"
+        elif count <= 4:
+            return "Security"
+        elif count <= 8:
+            return "Family"
+        else:
+            return "Strict"
 
     async def async_select_option(self, option: str) -> None:
-        """Change the selected option."""
-        if option not in CONTENT_FILTERING_PROFILES:
+        """Change the selected option by dynamically resolving valid category IDs."""
+        if option not in CONTENT_FILTERING_PROFILE_TARGETS:
             raise ValueError(f"Invalid option: {option}")
 
-        # Ensure we have the latest mapping
-        await self._async_fetch_category_mapping()
-
-        desired_names = CONTENT_FILTERING_PROFILES[option]
-        api_ids = []
-        missing_names = []
-
-        for name in desired_names:
-            if cat_id := self._category_name_to_id.get(name):
-                api_ids.append(cat_id)
-            else:
-                missing_names.append(name)
-
-        if missing_names:
-            _LOGGER.warning(
-                "The following categories were not found on Meraki for network %s: %s",
-                self._network_id,
-                ", ".join(missing_names),
-            )
+        target_names = CONTENT_FILTERING_PROFILE_TARGETS[option]
+        resolved_ids = set()
 
         try:
             appliance = self._meraki_client.appliance
+            
+            # If not 'None', dynamically fetch the master list of valid categories for this specific MX
+            if target_names:
+                resp = await appliance.get_network_appliance_content_filtering_categories(
+                    network_id=self._network_id
+                )
+                
+                # Handle both list and dict response formats from the Meraki library
+                valid_categories = resp if isinstance(resp, list) else resp.get("categories", [])
+                name_to_id = {cat["name"].lower(): cat["id"] for cat in valid_categories}
+                
+                # Match our target names against the live, valid API names (with fuzzy matching for spacing)
+                for target in target_names:
+                    for valid_name, valid_id in name_to_id.items():
+                        if target == valid_name or target.replace(" ", "") == valid_name.replace(" ", ""):
+                            resolved_ids.add(valid_id)
+            
+            final_blocked_ids = list(resolved_ids)
+
+            # Send the validated payload
             await appliance.update_network_appliance_content_filtering(
                 network_id=self._network_id,
-                blockedUrlCategories=api_ids,
+                blockedUrlCategories=final_blocked_ids,
             )
             await self.coordinator.async_request_refresh()
+            
         except Exception as e:
             _LOGGER.error(
                 "Failed to set content filtering profile to '%s' for network %s: %s",
