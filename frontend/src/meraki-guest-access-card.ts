@@ -8,8 +8,6 @@ import './meraki-wifi-qr-card';
 import './meraki-network-vitals-card';
 import './meraki-guest-access-card-editor';
 import { Network, SSID } from './types/meraki';
-import { WsCommand } from './types/websocket';
-import { safeCallWS } from './utils/api';
 
 declare const __VERSION__: string;
 
@@ -26,6 +24,7 @@ export class MerakiGuestAccessCard extends LitElement {
   @state() private _formData = {
     network: '',
     ssid: '',
+    passphrase: '',
     duration: '60',
     guestName: ''
   };
@@ -68,28 +67,101 @@ export class MerakiGuestAccessCard extends LitElement {
     this._ssids = ssids;
     this._configEntryId = this._config?.config_entry_id || entryId;
 
-    if (networks.length > 0 && !this._formData.network) {
-      this._formData = { ...this._formData, network: networks[0].id };
+    let initNetwork = this._formData.network;
+    let initSsid = this._formData.ssid;
+    let initPassphrase = this._formData.passphrase;
+
+    // 1. Auto-select the first network
+    if (networks.length > 0 && !initNetwork) {
+      initNetwork = networks[0].id;
     }
     
+    // 2. Auto-select the first SSID within that network
+    if (initNetwork && !initSsid) {
+      const availableSsids = ssids.filter(s => s.networkId === initNetwork);
+      if (availableSsids.length > 0) {
+        initSsid = String(availableSsids[0].number);
+      }
+    }
+
+    // 3. Auto-discover the passphrase for the selected SSID
+    if (initNetwork && initSsid && !initPassphrase) {
+      initPassphrase = this._getPasswordForSelectedSsid(initNetwork, initSsid);
+    }
+
+    this._formData = { ...this._formData, network: initNetwork, ssid: initSsid, passphrase: initPassphrase };
     this._isLoading = false;
+  }
+
+  private _getPasswordForSelectedSsid(networkId: string, ssidNumberStr: string): string {
+    if (!this.hass || !networkId || !ssidNumberStr) return '';
+    const ssidNum = parseInt(ssidNumberStr, 10);
+    let ssidName = '';
+
+    // Find the exact SSID name from our centralized array
+    const ssidObj = this._ssids.find(s => s.networkId === networkId && s.number === ssidNum);
+    if (ssidObj) {
+      ssidName = ssidObj.name;
+    }
+
+    // Pass 1: Strict match by Home Assistant attributes
+    for (const entityId in this.hass.states) {
+      const stateObj = this.hass.states[entityId];
+      const attrs = stateObj.attributes;
+
+      if (attrs.network_id === networkId && attrs.ssid_number === ssidNum) {
+        if (!ssidName) ssidName = attrs.ssid_name || attrs.ssid || ''; // Fallback name capture
+        if (attrs.psk) return String(attrs.psk);
+        if (attrs.password) return String(attrs.password);
+      }
+    }
+
+    // Pass 2: Fuzzy search for a dedicated password sensor
+    if (ssidName) {
+      const normalizedSsid = ssidName.toLowerCase().replace(/[^a-z0-9]/g, '_');
+      for (const entityId in this.hass.states) {
+        if (entityId.includes(normalizedSsid) && (entityId.includes('password') || entityId.includes('psk'))) {
+          const stateObj = this.hass.states[entityId];
+          if (stateObj.state && !['unknown', 'unavailable'].includes(stateObj.state)) {
+            return stateObj.state;
+          }
+        }
+      }
+    }
+
+    return '';
   }
 
   private _formValueChanged(ev: CustomEvent) {
     const newValues = ev.detail.value;
     const oldNetwork = this._formData.network;
+    const oldSsid = this._formData.ssid;
     
-    this._formData = { ...this._formData, ...newValues };
+    let updatedData = { ...this._formData, ...newValues };
 
-    // Clear SSID if network changes
-    if (this._formData.network !== oldNetwork) {
-      this._formData = { ...this._formData, ssid: '' };
+    // If the network changes, auto-select the new network's first SSID
+    if (updatedData.network !== oldNetwork) {
+      updatedData.ssid = '';
+      updatedData.passphrase = '';
+      
+      const availableSsids = this._ssids.filter(s => s.networkId === updatedData.network);
+      if (availableSsids.length > 0) {
+        updatedData.ssid = String(availableSsids[0].number);
+      }
     }
+
+    // If the SSID changed (manually or via cascade), aggressively fetch the password
+    if (updatedData.ssid && updatedData.ssid !== oldSsid) {
+      updatedData.passphrase = this._getPasswordForSelectedSsid(updatedData.network, updatedData.ssid);
+    }
+
+    this._formData = updatedData;
   }
 
   private _computeLabel = (schema: any): string => {
     if (schema.name === "network") return "Network";
     if (schema.name === "ssid") return "SSID";
+    if (schema.name === "passphrase") return "Passphrase / PSK (Auto-discovered)";
     if (schema.name === "duration") return "Duration";
     if (schema.name === "guestName") return "Guest Name";
     return schema.name;
@@ -118,13 +190,13 @@ export class MerakiGuestAccessCard extends LitElement {
         `;
     }
 
-    // Leverage the centralized data provider to build our schemas
     const networkOptions = MerakiDataProvider.getNetworkOptions(this._networks);
     const ssidOptions = MerakiDataProvider.getSsidOptions(this._ssids, this._formData.network, 'number');
 
     const schema = [
       { name: "network", selector: { select: { options: networkOptions, mode: "dropdown" } } },
       { name: "ssid", selector: { select: { options: ssidOptions, mode: "dropdown" } } },
+      { name: "passphrase", selector: { text: {} } },
       { name: "duration", selector: { select: { options: [{ value: "60", label: "1 Hour" }, { value: "1440", label: "24 Hours" }], mode: "dropdown" } } },
       { name: "guestName", selector: { text: {} } }
     ];
@@ -163,13 +235,23 @@ export class MerakiGuestAccessCard extends LitElement {
     this._success = null;
 
     try {
-      await this.hass.callService('meraki_ha', 'generate_guest_access', {
+      const payload: any = {
         network_id: this._formData.network,
-        ssid_number: parseInt(this._formData.ssid, 10),
+        ssid: parseInt(this._formData.ssid, 10),
         duration_minutes: parseInt(this._formData.duration, 10),
-        name: this._formData.guestName || undefined,
-      });
+      };
+
+      if (this._formData.guestName) {
+        payload.name = this._formData.guestName;
+      }
+      
+      if (this._formData.passphrase) {
+        payload.passphrase = this._formData.passphrase;
+      }
+
+      await this.hass.callService('meraki_ha', 'generate_guest_access', payload);
       this._success = 'Guest access key created successfully!';
+      
     } catch (err: any) {
       this._error = `Failed to create guest key: ${err.message || err}`;
     } finally {
