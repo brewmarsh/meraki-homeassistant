@@ -16,6 +16,6 @@ replace = '"version": "{new_version}"'
 search = '"version": "{current_version}"'
 replace = '"version": "{new_version}"'
 
-["bumpversion:file:custom_components/meraki_ha/www/package.json"]
+["bumpversion:file:frontend/package.json"]
 search = '"version": "{current_version}"'
 replace = '"version": "{new_version}"'

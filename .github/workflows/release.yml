@@ -48,10 +48,21 @@ jobs:
       - name: Run release script
         run: ./scripts/release.sh ${{ env.part }}
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Build Frontend
+        working-directory: frontend
+        run: |
+          npm ci
+          npm run build
+
       - name: Commit and push changes
         uses: stefanzweifel/git-auto-commit-action@v7
         with:
-          commit_message: "chore(release): version bump"
+          commit_message: 'chore(release): version bump'
           branch: ${{ github.ref_name }}
 
       - name: Get version

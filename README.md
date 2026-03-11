@@ -52,12 +52,14 @@ Welcome to the **Meraki Home Assistant Integration**! This project bridges the g
 - **Enhanced Meraki Panel:** A redesigned dedicated web interface for advanced features, real-time device monitoring, and event logs.
 - **Rich Sensor Data:** Creates a wide array of sensors for device status, client counts, data usage, firmware updates, PoE consumption, and uplink metrics (latency, jitter, packet loss).
 - **Camera Integration:** View live RTSP streams and MV Sense analytics from your Meraki cameras within Home Assistant.
+- **Custom Lovelace Cards:** Includes a `meraki-network-vitals-card` for a quick glance at your network health and throughput. **Note:** The Meraki API does not expose real-time bandwidth metrics, so the throughput component of this card relies on an external speedtest integration (e.g., `sensor.speedtest_download`).
 
 ## Automation examples 🚀
 
 The integration includes pre-built Blueprints to simplify common automations. These are automatically discovered by Home Assistant and can be found under **Settings > Automations & Scenes > Blueprints**.
 
 Available blueprints in `automation/meraki/`:
+
 - **Meraki Guest Wi-Fi Creator**: Automatically creates a temporary Guest Wi-Fi key (IPSK) when a trigger entity is activated.
 - **Scheduled Meraki Content Filter**: Automatically switch Meraki Content Filtering profiles based on a schedule.
 
