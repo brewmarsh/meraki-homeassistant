@@ -1,0 +1,38 @@
+
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <script type="module" src="/custom_components/meraki_ha/www/meraki-card.js"></script>
+        </head>
+        <body>
+            <div id="container"></div>
+            <script type="module">
+                const card = document.createElement('meraki-wifi-qr-card');
+                card.hass = {
+                    states: {},
+                    callWS: () => Promise.resolve([]),
+                    user: { name: 'Test User' }
+                };
+                card.setConfig({
+                    type: 'custom:meraki-wifi-qr-card',
+                    ssid: 'Test SSID',
+                    password: 'testpassword',
+                    name: 'Test Wi-Fi'
+                });
+                document.getElementById('container').appendChild(card);
+
+                const editor = document.createElement('meraki-wifi-qr-card-editor');
+                editor.hass = {
+                    states: {},
+                    callWS: () => Promise.resolve([])
+                };
+                editor.setConfig({
+                    type: 'custom:meraki-wifi-qr-card',
+                    ssid: 'Test SSID',
+                    password: 'testpassword',
+                    name: 'Test Wi-Fi'
+                });
+                document.getElementById('container').appendChild(editor);
+            </script>
+        </body>
+        </html>
