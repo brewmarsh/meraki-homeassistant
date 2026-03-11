@@ -89,11 +89,7 @@ export class MerakiGuestAccessCard extends LitElement {
       }
       this._isLoading = false;
     } else {
-        // If we have hass but still no networks, we might be in an empty state
-        // We'll give it a moment to load, but we shouldn't block rendering forever.
-        // If hass is fully loaded (initDone is true), we can stop loading after a bit.
         if (this._isLoading && this._initDone) {
-            // After 2 seconds of no networks, stop loading to show the "No networks" message
             setTimeout(() => {
                 if (this._getNetworks().length === 0) {
                     this._isLoading = false;
@@ -198,7 +194,7 @@ export class MerakiGuestAccessCard extends LitElement {
             <ha-select
               label="Network"
               .value=${this._selectedNetwork}
-              @change=${this._handleDropdownChange}
+              @selected=${(e: any) => this._handleDropdownChange("Network", e.target.value)}
               @closed=${(e: Event) => e.stopPropagation()}
               fixedMenuPosition
               naturalMenuWidth
@@ -210,7 +206,7 @@ export class MerakiGuestAccessCard extends LitElement {
               label="SSID"
               .value=${this._selectedSsid}
               .disabled=${!this._selectedNetwork}
-              @change=${this._handleDropdownChange}
+              @selected=${(e: any) => this._handleDropdownChange("SSID", e.target.value)}
               @closed=${(e: Event) => e.stopPropagation()}
               fixedMenuPosition
               naturalMenuWidth
@@ -221,7 +217,7 @@ export class MerakiGuestAccessCard extends LitElement {
             <ha-select
               label="Duration"
               .value=${this._duration}
-              @change=${this._handleDropdownChange}
+              @selected=${(e: any) => this._handleDropdownChange("Duration", e.target.value)}
               @closed=${(e: Event) => e.stopPropagation()}
               fixedMenuPosition
               naturalMenuWidth
@@ -242,10 +238,9 @@ export class MerakiGuestAccessCard extends LitElement {
     `;
   }
 
-  private _handleDropdownChange(ev: any) {
-    const target = ev.target;
-    const value = target.value;
-    const label = target.label;
+  // Updated handler to accept the label and value explicitly
+  private _handleDropdownChange(label: string, value: string) {
+    if (!value) return; // Ignore blank selections
 
     console.log(`MERAKI CARD DIAGNOSTIC - Dropdown changed: ${label} = ${value}`);
     console.log("Clicked:", value);
@@ -254,6 +249,8 @@ export class MerakiGuestAccessCard extends LitElement {
       if (this._selectedNetwork === value) return;
       this._selectedNetwork = value;
       this._fetchPolicies(value);
+      // Reset SSID when network changes to prevent invalid selections
+      this._selectedSsid = ""; 
     } else if (label === "SSID") {
       this._selectedSsid = value;
     } else if (label === "Duration") {
