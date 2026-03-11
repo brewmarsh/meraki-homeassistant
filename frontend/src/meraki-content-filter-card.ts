@@ -89,18 +89,15 @@ export class MerakiContentFilterCard extends LitElement {
         <div class="card-content">
           <div class="button-grid">
             ${profiles.map((profile: string) => {
-              // Case-insensitive match guarantees it highlights correctly on load
               const isActive = currentProfile.toLowerCase() === profile.toLowerCase();
               
               return html`
-                <ha-button
-                  ?unelevated=${isActive}
-                  ?outlined=${!isActive}
-                  class="${isActive ? 'active' : ''}"
+                <button
+                  class="filter-btn ${isActive ? 'active' : ''}"
                   @click=${() => this._setFilterProfile(profile, entityId)}
                 >
                   ${profile}
-                </ha-button>
+                </button>
               `;
             })}
           </div>
@@ -123,7 +120,6 @@ export class MerakiContentFilterCard extends LitElement {
     }
   }
 
-  // Combine the shared warning styles with our specific button grid styles
   static styles = [
     sharedStyles,
     css`
@@ -141,16 +137,27 @@ export class MerakiContentFilterCard extends LitElement {
         gap: 8px;
       }
       
-      /* Force inactive buttons to use standard text color to fight custom themes */
-      ha-button {
+      /* Standard HTML buttons bypass aggressive HA themes */
+      .filter-btn {
         width: 100%;
-        --mdc-theme-primary: var(--primary-text-color);
+        padding: 12px;
+        background: transparent;
+        color: var(--primary-text-color, #ffffff);
+        border: 1px solid var(--divider-color, #444444);
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 500;
+        transition: all 0.2s ease;
+        font-family: inherit;
       }
-      
-      /* Force the active button to pop with the success color */
-      ha-button.active {
-        --mdc-theme-primary: var(--success-color, #4caf50);
-        --mdc-theme-on-primary: #ffffff;
+      .filter-btn:hover {
+        background: var(--secondary-background-color, rgba(255,255,255,0.05));
+      }
+      .filter-btn.active {
+        background: var(--success-color, #4caf50);
+        color: #ffffff;
+        border-color: var(--success-color, #4caf50);
         font-weight: bold;
       }
     `
