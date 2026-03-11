@@ -21,14 +21,9 @@ export class MerakiWifiQrCardEditor extends LitElement {
   @state() private _config?: Config;
   @state() private _networks: Network[] = [];
   @state() private _ssids: SSID[] = [];
-  @state() private _selectedNetwork: string = '';
-  @state() private _loading: boolean = false;
 
   public setConfig(config: Config): void {
     this._config = config;
-    if (config.networkId) {
-      this._selectedNetwork = config.networkId;
-    }
   }
 
   protected firstUpdated(changedProperties: PropertyValues) {
@@ -38,7 +33,6 @@ export class MerakiWifiQrCardEditor extends LitElement {
 
   private async _fetchInitialData() {
     if (!this.hass) return;
-    this._loading = true;
     try {
       const configEntries = await this.hass.callWS<any[]>({
         type: 'config_entries/get',
@@ -57,114 +51,88 @@ export class MerakiWifiQrCardEditor extends LitElement {
       this._ssids = Array.isArray(data.ssids) ? data.ssids : [];
     } catch (err: any) {
       console.error('Failed to fetch Meraki data:', err);
-    } finally {
-      this._loading = false;
     }
   }
 
-  private _handleNetworkChange(ev: any) {
-    ev.stopPropagation();
-    const newNetworkId = ev.target.value;
-    
-    // Defensive check: ignore empty dismissals
-    if (newNetworkId === undefined || newNetworkId === "") return;
-    
-    if (newNetworkId !== this._selectedNetwork) {
-      this._selectedNetwork = newNetworkId;
-      const newConfig = { ...this._config, networkId: newNetworkId, ssid: '' } as Config;
-      this._config = newConfig;
-      this._dispatchEvent('config-changed', { config: newConfig });
-    }
-  }
-
-  private _handleSSIDChange(ev: any) {
-    ev.stopPropagation();
-    const newSsidName = ev.target.value;
-    
-    if (newSsidName === undefined || newSsidName === "") return;
-
-    if (newSsidName !== this._config?.ssid) {
-      this._updateConfig('ssid', newSsidName);
-    }
-  }
-
-  private _valueChanged(ev: any) {
+  private _valueChanged(ev: CustomEvent): void {
     if (!this._config) return;
-    const target = ev.target;
-    const field = target.configValue;
-    if (!field) return;
-    this._updateConfig(field as keyof Config, target.value);
-  }
-
-  private _updateConfig(field: keyof Config, value: string) {
-    if (!this._config) return;
-    const newConfig = { ...this._config, [field]: value };
     
-    if (value === "" || value === undefined) {
-      delete newConfig[field];
-    }
+    // ha-form passes the entire updated config object inside ev.detail.value
+    const newConfig = { ...this._config, ...ev.detail.value };
 
-    this._config = newConfig;
-    this._dispatchEvent('config-changed', { config: newConfig });
-  }
+    // Clean up empty strings so they don't clutter your raw YAML
+    Object.keys(newConfig).forEach(key => {
+      if (newConfig[key as keyof Config] === "") {
+        delete newConfig[key as keyof Config];
+      }
+    });
 
-  private _dispatchEvent(type: string, detail: any) {
-    this.dispatchEvent(new CustomEvent(type, {
-      detail,
+    this.dispatchEvent(new CustomEvent("config-changed", {
+      detail: { config: newConfig },
       bubbles: true,
       composed: true,
     }));
   }
 
+  // Arrow function ensures 'this' context is preserved when called by ha-form
+  private _computeLabel = (schema: any): string => {
+    if (schema.name === "networkId") return "Network (Optional filter)";
+    if (schema.name === "ssid") return "SSID (Required)";
+    if (schema.name === "password") return "Password or Entity ID (e.g. sensor.guest_pw)";
+    if (schema.name === "name") return "Card Title (Optional)";
+    return schema.name;
+  }
+
   protected render() {
     if (!this.hass || !this._config) return html``;
-    const filteredSsids = (this._ssids || []).filter(s => s.networkId === this._selectedNetwork);
+
+    // Build dynamic options for the dropdowns
+    const networkOptions = [
+      { value: "", label: "All Networks" },
+      ...this._networks.map(n => ({ value: n.id, label: n.name }))
+    ];
+    
+    const filteredSsids = this._config.networkId 
+        ? this._ssids.filter(s => s.networkId === this._config!.networkId) 
+        : this._ssids;
+        
+    const ssidOptions = filteredSsids.map(s => ({ value: s.name, label: `${s.name} (SSID ${s.number})` }));
+
+    // Define the schema for Home Assistant to automatically build the form
+    const schema = [
+      {
+        name: "networkId",
+        selector: { select: { options: networkOptions, mode: "dropdown" } }
+      },
+      {
+        name: "ssid",
+        selector: { select: { options: ssidOptions, custom_value: true, mode: "dropdown" } }
+      },
+      {
+        name: "password",
+        selector: { text: {} }
+      },
+      {
+        name: "name",
+        selector: { text: {} }
+      }
+    ];
 
     return html`
-      <div class="card-config">
-        <ha-select
-          label="Network (Optional - to populate SSID)"
-          .value=${this._selectedNetwork}
-          @closed=${this._handleNetworkChange}
-          fixedMenuPosition
-          naturalMenuWidth
-        >
-          <mwc-list-item value="">Select a network</mwc-list-item>
-          ${(this._networks || []).map(n => html`<mwc-list-item value="${n.id}">${n.name}</mwc-list-item>`)}
-        </ha-select>
-
-        <ha-select
-          label="SSID"
-          .value=${this._config?.ssid || ''}
-          .disabled=${!this._selectedNetwork}
-          @closed=${this._handleSSIDChange}
-          fixedMenuPosition
-          naturalMenuWidth
-        >
-          <mwc-list-item value="">Select an SSID</mwc-list-item>
-          ${filteredSsids.map(s => html`<mwc-list-item value="${s.name}">${s.name}</mwc-list-item>`)}
-        </ha-select>
-
-        <ha-textfield
-          label="Password or Entity ID"
-          .value=${this._config.password || ''}
-          .configValue=${"password"}
-          @input=${this._valueChanged}
-        ></ha-textfield>
-
-        <ha-textfield
-          label="Card Title"
-          .value=${this._config.name || ''}
-          .configValue=${"name"}
-          @input=${this._valueChanged}
-        ></ha-textfield>
+      <div class="editor-container">
+        <ha-form
+          .hass=${this.hass}
+          .data=${this._config}
+          .schema=${schema}
+          .computeLabel=${this._computeLabel}
+          @value-changed=${this._valueChanged}
+        ></ha-form>
       </div>
     `;
   }
 
   static styles = css`
-    .card-config { display: flex; flex-direction: column; gap: 16px; padding: 16px; }
-    ha-select, ha-textfield { width: 100%; }
+    .editor-container { padding: 16px; }
   `;
 }
 
