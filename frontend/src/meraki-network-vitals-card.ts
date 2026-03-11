@@ -155,14 +155,19 @@ export class MerakiNetworkVitalsCard extends LitElement {
     const apEntity = this._getApEntity();
     const throughputEntity = this._getThroughputEntity();
 
-    if (throughputEntity && this.hass.states[throughputEntity]) {
-      console.log("MERAKI CARD DIAGNOSTIC - Throughput Raw Entity State:", this.hass.states[throughputEntity]);
-    }
-
+    const gatewayStateObj = gatewayEntity ? this.hass.states[gatewayEntity] : undefined;
     const throughputStateObj = throughputEntity ? this.hass.states[throughputEntity] : undefined;
-    const throughputState = throughputStateObj
-      ? (throughputStateObj.state || '0') + ' ' + (throughputStateObj.attributes?.unit_of_measurement || '')
-      : 'N/A';
+
+    console.log("MERAKI CARD DIAGNOSTIC - Gateway State:", gatewayStateObj);
+    console.log("MERAKI CARD DIAGNOSTIC - Throughput Entity State:", throughputStateObj);
+
+    const throughputState = gatewayStateObj?.attributes?.uplink_performance?.throughput
+      ? `${gatewayStateObj.attributes.uplink_performance.throughput} Mbps`
+      : (throughputStateObj
+          ? `${throughputStateObj.state} ${throughputStateObj.attributes?.unit_of_measurement || ""}`.trim()
+          : "0 Mbps");
+
+    console.log("MERAKI CARD DIAGNOSTIC - Extracted Throughput:", throughputState);
 
     return html`
       <ha-card>
