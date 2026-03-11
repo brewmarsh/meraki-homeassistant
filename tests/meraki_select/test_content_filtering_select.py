@@ -8,6 +8,7 @@ from homeassistant.setup import async_setup_component
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.meraki_ha.const.integration import DOMAIN
+from custom_components.meraki_ha.const.config import CONF_MERAKI_API_KEY, CONF_MERAKI_ORG_ID
 from tests.const import MOCK_NETWORK
 
 
@@ -16,7 +17,7 @@ def mock_config_entry() -> MockConfigEntry:
     """Fixture for a mocked config entry."""
     return MockConfigEntry(
         domain=DOMAIN,
-        data={"api_key": "fake_key", "organization_id": "fake_org"},
+        data={CONF_MERAKI_API_KEY: "fake_key", CONF_MERAKI_ORG_ID: "fake_org"},
         options={},
         entry_id="test_entry",
     )
@@ -64,7 +65,11 @@ def mock_data_fetch_manager() -> AsyncMock:
         "content_filtering": {
             MOCK_NETWORK.id: {
                 "networkId": MOCK_NETWORK.id,
-                "urlCategoryListSize": "topSites",
+                "blockedUrlCategories": [
+                    {"id": "meraki:contentFiltering/category/8"},
+                    {"id": "meraki:contentFiltering/category/9"},
+                    {"id": "meraki:contentFiltering/category/11"},
+                ],
             }
         },
         "ssids": [],
@@ -123,18 +128,38 @@ async def test_content_filtering_select_entity(
         # Verify state
         state = hass.states.get(target_entity.entity_id)
         assert state is not None
-        assert state.state == "topSites"
+        assert state.state == "Security"
 
         # Test selection
-        await hass.services.async_call(
-            "select",
-            "select_option",
-            {"entity_id": target_entity.entity_id, "option": "fullList"},
-            blocking=True,
-        )
+        # We patch the ApplianceEndpoints methods because they are decorated and would call run_sync
+        # and we need to avoid triggering real API calls or errors
+        with patch.object(
+            mock_meraki_client.appliance,
+            "update_network_appliance_content_filtering",
+            AsyncMock(return_value={})
+        ) as mock_update:
+            # We need to bypass the coordinator refresh as it might trigger more API calls
+            with (
+                patch.object(mock_data_fetch_manager, "async_request_refresh", AsyncMock()),
+                patch("custom_components.meraki_ha.core.api.client.meraki.DashboardAPI", MagicMock()),
+                patch("custom_components.meraki_ha.core.api.client.braintrust", MagicMock()),
+            ):
+                await hass.services.async_call(
+                    "select",
+                    "select_option",
+                    {"entity_id": target_entity.entity_id, "option": "Family"},
+                    blocking=True,
+                )
 
-        # Verify API called
-        mock_meraki_client.appliance.update_network_appliance_content_filtering.assert_called_with(
-            networkId=MOCK_NETWORK.id,
-            urlCategoryListSize="fullList",
-        )
+            # Verify update method called with correct params
+            mock_update.assert_called_once()
+            call_args = mock_update.call_args
+            assert call_args.kwargs["network_id"] == MOCK_NETWORK.id
+            assert set(call_args.kwargs["blockedUrlCategories"]) == {
+                "meraki:contentFiltering/category/1",
+                "meraki:contentFiltering/category/3",
+                "meraki:contentFiltering/category/8",
+                "meraki:contentFiltering/category/9",
+                "meraki:contentFiltering/category/11",
+                "meraki:contentFiltering/category/20",
+            }

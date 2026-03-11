@@ -87,33 +87,33 @@ export class MerakiContentFilterCard extends LitElement {
     return html`
       <ha-card .header="${title}">
         <div class="card-content">
-          <ha-select
-            label="Content Filter Profile"
-            .value="${currentProfile}"
-            .disabled="${!entityId}"
-            @value-changed="${(ev: any) => this._handleFilterChange(ev, entityId)}"
-            @closed="${(e: Event) => e.stopPropagation()}"
-            fixedMenuPosition
-            naturalMenuWidth
-          >
+          <div class="button-grid">
             ${profiles.map((profile: string) => html`
-              <mwc-list-item value="${profile}">${profile}</mwc-list-item>
+              <ha-button
+                unelevated
+                class="${currentProfile === profile ? 'active' : ''}"
+                @click="${() => this._setFilterProfile(profile, entityId)}"
+              >
+                ${profile}
+              </ha-button>
             `)}
-          </ha-select>
+          </div>
         </div>
         <div class="version">v${__VERSION__}</div>
       </ha-card>
     `;
   }
 
-  private async _handleFilterChange(ev: any, entityId: string): Promise<void> {
-    const selectedValue = ev.detail.value;
-    if (!this.hass || !entityId || !selectedValue) return;
+  private async _setFilterProfile(profile: string, entityId: string): Promise<void> {
+    console.log("Clicked:", profile);
+    console.log("MERAKI CARD DIAGNOSTIC - Setting Filter Profile:", profile, "for entity:", entityId);
+
+    if (!this.hass || !entityId || !profile) return;
 
     try {
       await this.hass.callService('select', 'select_option', {
         entity_id: entityId,
-        option: selectedValue,
+        option: profile,
       });
     } catch (err: any) {
       console.error("Failed to call select_option service:", err);
@@ -140,7 +140,20 @@ export class MerakiContentFilterCard extends LitElement {
     .warning-content strong { display: block; margin-bottom: 4px; }
     .warning-content p { margin: 0; font-size: 0.9em; opacity: 0.9; }
     .card-content { padding: 16px; }
-    ha-select { width: 100%; }
+    .button-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+    ha-button {
+      width: 100%;
+      --mdc-theme-primary: var(--primary-color);
+    }
+    ha-button.active {
+      --mdc-theme-primary: var(--accent-color);
+      border: 2px solid var(--accent-color);
+      border-radius: 4px;
+    }
     .version {
       font-size: 9px;
       color: var(--secondary-text-color);
