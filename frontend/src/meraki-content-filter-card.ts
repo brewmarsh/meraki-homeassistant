@@ -30,7 +30,6 @@ export class MerakiContentFilterCard extends LitElement {
   private _discoverEntity(): string | undefined {
     if (!this.hass) return undefined;
 
-    // Search for a select entity with 'content_filter' in unique_id or name
     return Object.keys(this.hass.states).find((entityId) => {
       if (!entityId.startsWith('select.')) return false;
       const stateObj = this.hass.states[entityId];
@@ -51,25 +50,31 @@ export class MerakiContentFilterCard extends LitElement {
   }
 
   protected render() {
-    if (!this.hass || !this._config) return html``;
+    // 1. Check if Integration is still booting
+    if (!this.hass || !this._config) {
+        return html`
+          <ha-card .header="${this._config?.name || 'Meraki Content Filter'}">
+            <div class="card-content">
+              ${renderWarning("Integration Initializing", "Waiting for Home Assistant data...")}
+            </div>
+            <div class="version">v${__VERSION__}</div>
+          </ha-card>
+        `;
+    }
 
-    // Use configured entity or fallback to auto-discovery
     const entityId = this._config.entity || this._discoverEntity();
     const stateObj = entityId ? this.hass.states[entityId] : undefined;
-
-    if (stateObj) {
-      console.log("MERAKI CARD DIAGNOSTIC - Content Filter Raw Entity State:", stateObj);
-    }
 
     const titleStateObj = this._config.entity ? this.hass.states[this._config.entity] : undefined;
     const titleFriendlyName = titleStateObj?.attributes?.friendly_name || "Meraki";
     const title = this._config.name || (this._config.entity ? `${titleFriendlyName} Content Filter` : "Meraki Content Filter");
 
+    // 2. Check if the specific entity is missing
     if (!entityId || !stateObj) {
       return html`
         <ha-card .header="${title}">
           <div class="card-content">
-            ${renderWarning("Integration Initializing", "The Meraki integration is still fetching data or no content filter entity was found. Please wait or check your configuration.")}
+             ${renderWarning("Entity Missing", "No content filter entity was found. Please check your configuration.")}
           </div>
           <div class="version">v${__VERSION__}</div>
         </ha-card>
@@ -83,16 +88,21 @@ export class MerakiContentFilterCard extends LitElement {
       <ha-card .header="${title}">
         <div class="card-content">
           <div class="button-grid">
-            ${profiles.map((profile: string) => html`
-              <ha-button
-                ?raised=${currentProfile === profile}
-                ?outlined=${currentProfile !== profile}
-                class="${currentProfile === profile ? 'active' : ''}"
-                @click=${() => this._setFilterProfile(profile, entityId)}
-              >
-                ${profile}
-              </ha-button>
-            `)}
+            ${profiles.map((profile: string) => {
+              // Case-insensitive match guarantees it highlights correctly on load
+              const isActive = currentProfile.toLowerCase() === profile.toLowerCase();
+              
+              return html`
+                <ha-button
+                  ?unelevated=${isActive}
+                  ?outlined=${!isActive}
+                  class="${isActive ? 'active' : ''}"
+                  @click=${() => this._setFilterProfile(profile, entityId)}
+                >
+                  ${profile}
+                </ha-button>
+              `;
+            })}
           </div>
         </div>
         <div class="version">v${__VERSION__}</div>
@@ -101,9 +111,6 @@ export class MerakiContentFilterCard extends LitElement {
   }
 
   private async _setFilterProfile(profile: string, entityId: string): Promise<void> {
-    console.log("Clicked:", profile);
-    console.log("MERAKI CARD DIAGNOSTIC - Setting Filter Profile:", profile, "for entity:", entityId);
-
     if (!this.hass || !entityId || !profile) return;
 
     try {
@@ -116,6 +123,7 @@ export class MerakiContentFilterCard extends LitElement {
     }
   }
 
+  // Combine the shared warning styles with our specific button grid styles
   static styles = [
     sharedStyles,
     css`
@@ -132,10 +140,14 @@ export class MerakiContentFilterCard extends LitElement {
         flex-direction: column;
         gap: 8px;
       }
+      
+      /* Force inactive buttons to use standard text color to fight custom themes */
       ha-button {
         width: 100%;
         --mdc-theme-primary: var(--primary-text-color);
       }
+      
+      /* Force the active button to pop with the success color */
       ha-button.active {
         --mdc-theme-primary: var(--success-color, #4caf50);
         --mdc-theme-on-primary: #ffffff;
@@ -180,7 +192,7 @@ export class MerakiContentFilterCardEditor extends LitElement {
     `;
   }
 
-  private _computeLabel(schema: any): string {
+  private _computeLabel = (schema: any): string => {
     if (schema.name === "entity") return "Entity (Optional)";
     if (schema.name === "name") return "Display Name (Optional)";
     return schema.name;
@@ -197,10 +209,7 @@ export class MerakiContentFilterCardEditor extends LitElement {
   }
 
   static styles = css`
-    .editor-container {
-      display: block;
-      padding: 16px;
-    }
+    .editor-container { padding: 16px; }
   `;
 }
 
