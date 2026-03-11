@@ -2,9 +2,8 @@ import { LitElement, html, css, PropertyValues } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { HomeAssistant } from './types/ha';
 import { Network, SSID } from './types/meraki';
-import { WsCommand } from './types/websocket';
-import { safeCallWS } from './utils/api';
 import { renderWarning, sharedStyles } from './shared-ui';
+import { MerakiDataProvider } from './utils/meraki-data';
 import QRCode from 'qrcode';
 
 declare const __VERSION__: string;
@@ -29,35 +28,18 @@ export class MerakiWifiQrCardEditor extends LitElement {
 
   protected firstUpdated(changedProperties: PropertyValues) {
     super.firstUpdated(changedProperties);
-    this._fetchInitialData();
+    this._loadCentralizedData();
   }
 
-  private async _fetchInitialData() {
+  private async _loadCentralizedData() {
     if (!this.hass) return;
-    try {
-      const configEntries = await this.hass.callWS<any[]>({
-        type: 'config_entries/get',
-        domain: 'meraki_ha',
-      });
-
-      const entryId = configEntries.length > 0 ? configEntries[0].entry_id : null;
-      if (!entryId) return;
-
-      const data = await safeCallWS<any>(this.hass, {
-        type: WsCommand.GET_CONFIG,
-        config_entry_id: entryId,
-      });
-
-      this._networks = (Array.isArray(data.networks) ? data.networks : []).filter((n: any) => n.productTypes?.includes('wireless'));
-      this._ssids = Array.isArray(data.ssids) ? data.ssids : [];
-    } catch (err: any) {
-      console.error('Failed to fetch Meraki data:', err);
-    }
+    const { networks, ssids } = await MerakiDataProvider.fetchConfig(this.hass);
+    this._networks = networks;
+    this._ssids = ssids;
   }
 
   private _valueChanged(ev: CustomEvent): void {
     if (!this._config) return;
-    
     const formValues = ev.detail.value;
     const newConfig = { ...this._config, ...formValues };
 
@@ -73,11 +55,7 @@ export class MerakiWifiQrCardEditor extends LitElement {
       }
     });
 
-    this.dispatchEvent(new CustomEvent("config-changed", {
-      detail: { config: newConfig },
-      bubbles: true,
-      composed: true,
-    }));
+    this.dispatchEvent(new CustomEvent("config-changed", { detail: { config: newConfig }, bubbles: true, composed: true }));
   }
 
   private _computeLabel = (schema: any): string => {
@@ -91,34 +69,14 @@ export class MerakiWifiQrCardEditor extends LitElement {
   protected render() {
     if (!this.hass || !this._config) return html``;
 
-    const networkOptions = [
-      { value: "", label: "All Networks" },
-      ...this._networks.map(n => ({ value: n.id, label: n.name }))
-    ];
-    
-    const filteredSsids = this._config.networkId 
-        ? this._ssids.filter(s => s.networkId === this._config!.networkId) 
-        : this._ssids;
-        
-    const ssidOptions = filteredSsids.map(s => ({ value: s.name, label: `${s.name} (SSID ${s.number})` }));
+    const networkOptions = MerakiDataProvider.getNetworkOptions(this._networks, true);
+    const ssidOptions = MerakiDataProvider.getSsidOptions(this._ssids, this._config.networkId, 'name');
 
     const schema = [
-      {
-        name: "networkId",
-        selector: { select: { options: networkOptions, mode: "dropdown" } }
-      },
-      {
-        name: "ssid",
-        selector: { select: { options: ssidOptions, custom_value: true, mode: "dropdown" } }
-      },
-      {
-        name: "password",
-        selector: { text: {} }
-      },
-      {
-        name: "name",
-        selector: { text: {} }
-      }
+      { name: "networkId", selector: { select: { options: networkOptions, mode: "dropdown" } } },
+      { name: "ssid", selector: { select: { options: ssidOptions, custom_value: true, mode: "dropdown" } } },
+      { name: "password", selector: { text: {} } },
+      { name: "name", selector: { text: {} } }
     ];
 
     return html`
@@ -134,9 +92,7 @@ export class MerakiWifiQrCardEditor extends LitElement {
     `;
   }
 
-  static styles = css`
-    .editor-container { padding: 16px; }
-  `;
+  static styles = css`.editor-container { padding: 16px; }`;
 }
 
 export class MerakiWifiQrCard extends LitElement {
@@ -213,7 +169,6 @@ export class MerakiWifiQrCard extends LitElement {
       }
     }
 
-    // Open network (No password found)
     return '';
   }
 
