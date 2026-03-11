@@ -92,7 +92,7 @@ export class MerakiContentFilterCard extends LitElement {
               <ha-button
                 unelevated
                 class="${currentProfile === profile ? 'active' : ''}"
-                @click="${() => this._setFilterProfile(profile, entityId)}"
+                @click=${() => this._setFilterProfile(profile, entityId)}
               >
                 ${profile}
               </ha-button>
