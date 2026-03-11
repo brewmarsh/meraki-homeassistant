@@ -70,9 +70,9 @@ def mock_data_fetch_manager() -> AsyncMock:
             TEST_NETWORK.id: {
                 "networkId": TEST_NETWORK.id,
                 "blockedUrlCategories": [
-                    {"id": "meraki:contentFiltering/category/8", "name": "Malware"},
-                    {"id": "meraki:contentFiltering/category/9", "name": "Phishing"},
-                    {"id": "meraki:contentFiltering/category/11", "name": "Botnets"},
+                    {"id": "malware_sites", "name": "Malware"},
+                    {"id": "phishing", "name": "Phishing"},
+                    {"id": "spam", "name": "Spam"},
                 ],
             }
         },

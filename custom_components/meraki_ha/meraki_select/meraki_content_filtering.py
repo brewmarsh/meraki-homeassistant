@@ -17,35 +17,20 @@ from ..helpers.device_info_helpers import resolve_device_info
 
 _LOGGER = logging.getLogger(__name__)
 
-# Profiles mapped to Meraki category IDs from const_data.py
+# Profiles mapped to Meraki category slugs (Requirement: send slug format)
 CONTENT_FILTERING_PROFILES: dict[str, list[str]] = {
     "None": [],
     "Security": [
-        "meraki:contentFiltering/category/8",  # Malware sites
-        "meraki:contentFiltering/category/9",  # Phishing and other frauds
-        "meraki:contentFiltering/category/11",  # Botnets
+        "malware_sites",
+        "phishing",
+        "spam",
     ],
     "Family": [
-        "meraki:contentFiltering/category/1",  # Adult and Pornography
-        "meraki:contentFiltering/category/3",  # Gambling
-        "meraki:contentFiltering/category/8",  # Malware sites
-        "meraki:contentFiltering/category/9",  # Phishing and other frauds
-        "meraki:contentFiltering/category/11",  # Botnets
-        "meraki:contentFiltering/category/20",  # Nudity
+        "adult",
+        "gambling",
+        "malware_sites",
     ],
-    "Strict": [
-        "meraki:contentFiltering/category/1",  # Adult and Pornography
-        "meraki:contentFiltering/category/2",  # Illegal
-        "meraki:contentFiltering/category/3",  # Gambling
-        "meraki:contentFiltering/category/4",  # Hate and Racism
-        "meraki:contentFiltering/category/5",  # Weapons
-        "meraki:contentFiltering/category/6",  # Violence
-        "meraki:contentFiltering/category/8",  # Malware sites
-        "meraki:contentFiltering/category/9",  # Phishing and other frauds
-        "meraki:contentFiltering/category/10",  # Key loggers and monitoring
-        "meraki:contentFiltering/category/11",  # Botnets
-        "meraki:contentFiltering/category/12",  # Spam URLs
-    ],
+    # "Strict" profile temporarily disabled until all 20 category slugs are verified
 }
 
 
@@ -103,11 +88,33 @@ class MerakiContentFilteringSelect(MerakiEntity[MerakiMainCoordinator], SelectEn
         if not content_filtering or not isinstance(content_filtering, dict):
             return None
 
-        blocked_categories = set(
-            ensure_list_of_strings(
-                content_filtering.get("blockedUrlCategories", []), key_to_extract="id"
-            )
+        raw_categories = ensure_list_of_strings(
+            content_filtering.get("blockedUrlCategories", []), key_to_extract="id"
         )
+
+        # Normalize categories to slugs to match CONTENT_FILTERING_PROFILES
+        # API might return URNs like 'meraki:contentFiltering/category/1' or numeric IDs like '1'
+        # We also need a mapping from numeric ID to slug for complete normalization
+        id_to_slug = {
+            "1": "adult",
+            "3": "gambling",
+            "8": "malware_sites",
+            "9": "phishing",
+            "12": "spam",
+        }
+
+        blocked_categories = set()
+        for cat in raw_categories:
+            # Handle URN format: meraki:contentFiltering/category/X
+            if cat.startswith("meraki:contentFiltering/category/"):
+                cat_id = cat.split("/")[-1]
+                blocked_categories.add(id_to_slug.get(cat_id, cat))
+            # Handle numeric format: X
+            elif cat.isdigit():
+                blocked_categories.add(id_to_slug.get(cat, cat))
+            # Already a slug
+            else:
+                blocked_categories.add(cat)
 
         # Reverse map to find the best matching profile
         # We look for an exact match first

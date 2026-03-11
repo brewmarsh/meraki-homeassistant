@@ -27,24 +27,25 @@ def mock_config_entry() -> MockConfigEntry:
 def mock_meraki_client() -> MagicMock:
     """Fixture for a mocked MerakiApiClientProtocol."""
     client = MagicMock()
-    # Ensure network data is consistent
+    client.organization_id = "fake_org"
 
-    # Mock the appliance object (must be MagicMock for attribute access)
-    client.appliance = MagicMock()
-    client.appliance.update_network_appliance_content_filtering = AsyncMock()
-
-    client.unregister_webhook = AsyncMock(return_value=None)
-    # Mock the update method
+    # Mock the appliance object
     client.appliance = MagicMock()
     client.appliance.update_network_appliance_content_filtering = AsyncMock()
     client.appliance.get_network_appliance_content_filtering_categories = AsyncMock(
         return_value={
             "categories": [
-                {"id": "topSites", "name": "Top Sites"},
-                {"id": "fullList", "name": "Full List"},
+                {"id": "malware_sites", "name": "Malware Sites"},
             ]
         }
     )
+
+    client.organization = MagicMock()
+    client.organization.get_organization_networks = AsyncMock(return_value=[])
+
+    client.unregister_webhook = AsyncMock(return_value=None)
+    client.async_setup = AsyncMock()
+    client.has_dashboard = True
 
     return client
 
@@ -66,9 +67,9 @@ def mock_data_fetch_manager() -> AsyncMock:
             MOCK_NETWORK.id: {
                 "networkId": MOCK_NETWORK.id,
                 "blockedUrlCategories": [
-                    {"id": "meraki:contentFiltering/category/8"},
-                    {"id": "meraki:contentFiltering/category/9"},
-                    {"id": "meraki:contentFiltering/category/11"},
+                    {"id": "malware_sites"},
+                    {"id": "phishing"},
+                    {"id": "spam"},
                 ],
             }
         },
@@ -97,7 +98,7 @@ async def test_content_filtering_select_entity(
 
     with (
         patch(
-            "custom_components.meraki_ha.core.api.factory.create_api_client",
+            "custom_components.meraki_ha.create_api_client",
             return_value=mock_meraki_client,
         ),
         patch(
@@ -105,6 +106,7 @@ async def test_content_filtering_select_entity(
             return_value=mock_data_fetch_manager,
         ),
         patch("custom_components.meraki_ha.async_register_webhook", return_value=None),
+        patch("homeassistant.components.camera.img_util.TurboJPEG", create=True),
     ):
         assert await hass.config_entries.async_setup(mock_config_entry.entry_id)
         await hass.async_block_till_done()
@@ -131,35 +133,15 @@ async def test_content_filtering_select_entity(
         assert state.state == "Security"
 
         # Test selection
-        # We patch the ApplianceEndpoints methods because they are decorated and would call run_sync
-        # and we need to avoid triggering real API calls or errors
-        with patch.object(
-            mock_meraki_client.appliance,
-            "update_network_appliance_content_filtering",
-            AsyncMock(return_value={})
-        ) as mock_update:
-            # We need to bypass the coordinator refresh as it might trigger more API calls
-            with (
-                patch.object(mock_data_fetch_manager, "async_request_refresh", AsyncMock()),
-                patch("custom_components.meraki_ha.core.api.client.meraki.DashboardAPI", MagicMock()),
-                patch("custom_components.meraki_ha.core.api.client.braintrust", MagicMock()),
-            ):
-                await hass.services.async_call(
-                    "select",
-                    "select_option",
-                    {"entity_id": target_entity.entity_id, "option": "Family"},
-                    blocking=True,
-                )
+        await hass.services.async_call(
+            "select",
+            "select_option",
+            {"entity_id": target_entity.entity_id, "option": "Family"},
+            blocking=True,
+        )
 
-            # Verify update method called with correct params
-            mock_update.assert_called_once()
-            call_args = mock_update.call_args
-            assert call_args.kwargs["network_id"] == MOCK_NETWORK.id
-            assert set(call_args.kwargs["blockedUrlCategories"]) == {
-                "meraki:contentFiltering/category/1",
-                "meraki:contentFiltering/category/3",
-                "meraki:contentFiltering/category/8",
-                "meraki:contentFiltering/category/9",
-                "meraki:contentFiltering/category/11",
-                "meraki:contentFiltering/category/20",
-            }
+        # Verify API called with Family categories
+        mock_meraki_client.appliance.update_network_appliance_content_filtering.assert_called_with(
+            network_id=MOCK_NETWORK.id,
+            blockedUrlCategories=["adult", "gambling", "malware_sites"],
+        )
