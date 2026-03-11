@@ -1,7 +1,6 @@
 import { LitElement, html, css, PropertyValues } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { HomeAssistant } from './types/ha';
-import { renderWarning, sharedStyles } from './shared-ui';
 import { Network, SSID } from './types/meraki';
 import { WsCommand } from './types/websocket';
 import { safeCallWS } from './utils/api';
@@ -13,7 +12,7 @@ interface Config {
   type: string;
   ssid: string;
   networkId?: string;
-  password?: string; // Kept for legacy fallback, but removed from editor
+  password?: string;
   name?: string;
 }
 
@@ -101,7 +100,6 @@ export class MerakiWifiQrCardEditor extends LitElement {
         
     const ssidOptions = filteredSsids.map(s => ({ value: s.name, label: `${s.name} (SSID ${s.number})` }));
 
-    // The password field has been completely removed from the schema!
     const schema = [
       {
         name: "networkId",
@@ -146,14 +144,14 @@ export class MerakiWifiQrCard extends LitElement {
 
   public setConfig(config: Config): void {
     if (!config || !config.ssid) {
-      throw new Error('Please define an SSID');
+      throw new Error('Please select an SSID');
     }
     this._config = config;
   }
 
   public static getStubConfig(): Record<string, unknown> {
     return {
-      ssid: 'Guest WiFi',
+      ssid: '', // Removed the dummy password to prevent it from saving
       name: 'Wi-Fi Access',
     };
   }
@@ -175,27 +173,40 @@ export class MerakiWifiQrCard extends LitElement {
   private _getPasswordForSsid(ssidName: string): string {
     if (!this.hass || !ssidName) return '';
 
-    // Aggressively scan HA states to find the password attached to this specific SSID
+    // Pass 1: Strict match by attribute
     for (const entityId in this.hass.states) {
       const stateObj = this.hass.states[entityId];
       const attrs = stateObj.attributes;
 
-      if (attrs.ssid_name === ssidName) {
-        // Option A: Password is an attribute on the SSID or Network entity
-        if (attrs.psk) return attrs.psk;
-        if (attrs.password) return attrs.password;
-        
-        // Option B: The entity itself is the dedicated password sensor
-        if (entityId.includes('password') || entityId.includes('psk')) {
-           if (stateObj.state && stateObj.state !== 'unknown' && stateObj.state !== 'unavailable') {
-               return stateObj.state;
-           }
+      if (attrs.ssid_name === ssidName || attrs.ssid === ssidName) {
+        if (attrs.psk) return String(attrs.psk);
+        if (attrs.password) return String(attrs.password);
+
+        if ((entityId.includes('password') || entityId.includes('psk')) &&
+            stateObj.state && !['unknown', 'unavailable'].includes(stateObj.state)) {
+          return stateObj.state;
         }
       }
     }
-    
-    // Fallback: Use the legacy config password if it was saved prior to this update
-    return this._config?.password ? this._getValue(this._config.password) : '';
+
+    // Pass 2: Fuzzy search for a dedicated password sensor matching the SSID name
+    const normalizedSsid = ssidName.toLowerCase().replace(/[^a-z0-9]/g, '_');
+    for (const entityId in this.hass.states) {
+      if (entityId.includes(normalizedSsid) && (entityId.includes('password') || entityId.includes('psk'))) {
+        const stateObj = this.hass.states[entityId];
+        if (stateObj.state && !['unknown', 'unavailable'].includes(stateObj.state)) {
+          return stateObj.state;
+        }
+      }
+    }
+
+    // Pass 3: Legacy YAML config fallback (ignoring the old dummy stub)
+    if (this._config?.password && this._config.password !== 'password123') {
+        return this._getValue(this._config.password);
+    }
+
+    // Open network (No password)
+    return '';
   }
 
   private _generateWifiString(ssid: string, password?: string): string {
@@ -230,15 +241,7 @@ export class MerakiWifiQrCard extends LitElement {
   }
 
   protected render() {
-    if (!this._config || !this.hass) {
-      return html`
-        <ha-card .header=${this._config?.name || 'Wi-Fi Access'}>
-          <div class="card-content">
-            ${renderWarning("Initializing", "Waiting for Home Assistant data...")}
-          </div>
-        </ha-card>
-      `;
-    }
+    if (!this._config || !this.hass) return html``;
     const ssid = this._getValue(this._config.ssid);
     const password = this._getPasswordForSsid(ssid);
 
@@ -254,18 +257,16 @@ export class MerakiWifiQrCard extends LitElement {
     `;
   }
 
-  static styles = [
-    sharedStyles,
-    css`
-      :host { display: block; }
-      .card-content { display: flex; flex-direction: column; align-items: center; padding: 16px; gap: 16px; }
-      .ssid-display { font-size: 1.5em; font-weight: bold; color: var(--primary-text-color); text-align: center; }
-      .qr-container { width: 200px; height: 200px; background: white; padding: 8px; border-radius: 8px; }
-      .qr-container svg { width: 100%; height: 100%; }
-      .password-display { color: var(--secondary-text-color); text-align: center; }
-      code { background: var(--secondary-background-color); padding: 2px 4px; border-radius: 4px; font-family: monospace; }
-    `
-  ];
+  static styles = css`
+    :host { display: block; }
+    .card-content { display: flex; flex-direction: column; align-items: center; padding: 16px; gap: 16px; }
+    .ssid-display { font-size: 1.5em; font-weight: bold; color: var(--primary-text-color); text-align: center; }
+    .qr-container { width: 200px; height: 200px; background: white; padding: 8px; border-radius: 8px; }
+    .qr-container svg { width: 100%; height: 100%; }
+    .password-display { color: var(--secondary-text-color); text-align: center; }
+    code { background: var(--secondary-background-color); padding: 2px 4px; border-radius: 4px; font-family: monospace; }
+    .version { font-size: 9px; color: var(--secondary-text-color); text-align: right; padding: 0 16px 8px; opacity: 0.4; }
+  `;
 }
 
 // Register components
