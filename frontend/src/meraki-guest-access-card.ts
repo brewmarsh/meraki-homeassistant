@@ -22,12 +22,13 @@ export class MerakiGuestAccessCard extends LitElement {
   @property({ attribute: false }) public hass!: HomeAssistant;
   @state() private _config?: Config;
 
-  @state() private _selectedNetwork: string = '';
-  @state() private _selectedSsid: string = '';
-  @state() private _selectedPolicy: string = '';
-  @state() private _duration: string = '60';
-  @state() private _guestName: string = '';
-  @state() private _passphrase: string = '';
+  // Consolidate UI state into a single object for ha-form
+  @state() private _formData = {
+    network: '',
+    ssid: '',
+    duration: '60',
+    guestName: ''
+  };
 
   @state() private _creating: boolean = false;
   @state() private _error: string | null = null;
@@ -59,8 +60,9 @@ export class MerakiGuestAccessCard extends LitElement {
 
       this._autoSelectAndLoad();
 
-      if (this.hass.user?.name && !this._guestName) {
-        this._guestName = this.hass.user.name;
+      // Pre-fill the guest name with the current HA user if blank
+      if (this.hass.user?.name && !this._formData.guestName) {
+        this._formData = { ...this._formData, guestName: this.hass.user.name };
       }
     }
   }
@@ -73,8 +75,8 @@ export class MerakiGuestAccessCard extends LitElement {
         domain: 'meraki_ha',
       });
       this._configEntryId = this._config?.config_entry_id || (configEntries.length > 0 ? configEntries[0].entry_id : '');
-      if (this._selectedNetwork) {
-        this._fetchPolicies(this._selectedNetwork);
+      if (this._formData.network) {
+        this._fetchPolicies(this._formData.network);
       }
     } catch (err) {
       console.error("Failed to fetch Meraki config entries", err);
@@ -84,9 +86,9 @@ export class MerakiGuestAccessCard extends LitElement {
   private _autoSelectAndLoad() {
     const networks = this._getNetworks();
     if (networks.length > 0) {
-      if (!this._selectedNetwork) {
-        this._selectedNetwork = networks[0].id;
-        this._fetchPolicies(this._selectedNetwork);
+      if (!this._formData.network) {
+        this._formData = { ...this._formData, network: networks[0].id };
+        this._fetchPolicies(this._formData.network);
       }
       this._isLoading = false;
     } else {
@@ -159,11 +161,34 @@ export class MerakiGuestAccessCard extends LitElement {
     }
   }
 
+  private _formValueChanged(ev: CustomEvent) {
+    const newValues = ev.detail.value;
+    const oldNetwork = this._formData.network;
+    
+    this._formData = { ...this._formData, ...newValues };
+
+    // If the user changed the network dropdown, aggressively clear the SSID
+    if (this._formData.network !== oldNetwork) {
+      this._formData = { ...this._formData, ssid: '' };
+      if (this._formData.network) {
+        this._fetchPolicies(this._formData.network);
+      }
+    }
+  }
+
+  private _computeLabel = (schema: any): string => {
+    if (schema.name === "network") return "Network";
+    if (schema.name === "ssid") return "SSID";
+    if (schema.name === "duration") return "Duration";
+    if (schema.name === "guestName") return "Guest Name";
+    return schema.name;
+  }
+
   protected render() {
     if (this._isLoading) {
       return html`
         <ha-card .header="${this._config?.name || 'Meraki Guest Access'}">
-          <div class="card-content">
+          <div class="card-content flex justify-center p-8">
             ${renderLoading("Loading...")}
           </div>
           <div class="version">v${__VERSION__}</div>
@@ -172,8 +197,7 @@ export class MerakiGuestAccessCard extends LitElement {
     }
 
     const networks = this._getNetworks();
-    const filteredSsids = this._getSsids(this._selectedNetwork);
-
+    
     if (networks.length === 0) {
         return html`
           <ha-card .header="${this._config?.name || 'Meraki Guest Access'}">
@@ -185,6 +209,41 @@ export class MerakiGuestAccessCard extends LitElement {
         `;
     }
 
+    // Dynamically build the dropdown options
+    const networkOptions = networks.map(n => ({ value: n.id, label: n.name }));
+    const filteredSsids = this._getSsids(this._formData.network);
+    const ssidOptions = filteredSsids.map(s => ({ value: String(s.number), label: `${s.name} (SSID ${s.number})` }));
+
+    // Define the schema for ha-form
+    const schema = [
+      {
+        name: "network",
+        selector: { select: { options: networkOptions, mode: "dropdown" } }
+      },
+      {
+        name: "ssid",
+        selector: { select: { options: ssidOptions, mode: "dropdown" } }
+      },
+      {
+        name: "duration",
+        selector: { 
+          select: { 
+            options: [
+              { value: "60", label: "1 Hour" },
+              { value: "1440", label: "24 Hours" }
+            ], 
+            mode: "dropdown" 
+          } 
+        }
+      },
+      {
+        name: "guestName",
+        selector: { text: {} }
+      }
+    ];
+
+    const isFormValid = this._formData.network && this._formData.ssid;
+
     return html`
       <ha-card .header="${this._config?.name || 'Meraki Guest Access'}">
         <div class="card-content">
@@ -192,41 +251,19 @@ export class MerakiGuestAccessCard extends LitElement {
           ${this._success ? html`<ha-alert alert-type="success" dismissable @alert-dismissed-clicked="${() => (this._success = null)}">${this._success}</ha-alert>` : ''}
 
           <div class="form-container">
-            <ha-select
-              label="Network"
-              .value=${this._selectedNetwork}
-              @closed=${(e: Event) => this._handleDropdownChange(e, "Network")}
-              fixedMenuPosition
-              naturalMenuWidth
+            <ha-form
+              .hass=${this.hass}
+              .data=${this._formData}
+              .schema=${schema}
+              .computeLabel=${this._computeLabel}
+              @value-changed=${this._formValueChanged}
+            ></ha-form>
+
+            <ha-button 
+              raised 
+              .disabled=${this._creating || !isFormValid} 
+              @click=${this._generateAccessKey}
             >
-              ${networks.map(n => html`<mwc-list-item value="${n.id}">${n.name}</mwc-list-item>`)}
-            </ha-select>
-
-            <ha-select
-              label="SSID"
-              .value=${this._selectedSsid}
-              .disabled=${!this._selectedNetwork}
-              @closed=${(e: Event) => this._handleDropdownChange(e, "SSID")}
-              fixedMenuPosition
-              naturalMenuWidth
-            >
-              ${filteredSsids.map(s => html`<mwc-list-item value="${String(s.number)}">${s.name} (SSID ${s.number})</mwc-list-item>`)}
-            </ha-select>
-
-            <ha-select
-              label="Duration"
-              .value=${this._duration}
-              @closed=${(e: Event) => this._handleDropdownChange(e, "Duration")}
-              fixedMenuPosition
-              naturalMenuWidth
-            >
-              <mwc-list-item value="60">1 Hour</mwc-list-item>
-              <mwc-list-item value="1440">24 Hours</mwc-list-item>
-            </ha-select>
-
-            <ha-textfield label="Guest Name" .value=${this._guestName} @input=${this._handleGuestNameChange}></ha-textfield>
-
-            <ha-button raised .disabled=${this._creating || !this._selectedNetwork || !this._selectedSsid} @click=${this._generateAccessKey}>
               ${this._creating ? html`<ha-circular-progress active size="small"></ha-circular-progress>` : 'Generate Access Key'}
             </ha-button>
           </div>
@@ -236,44 +273,21 @@ export class MerakiGuestAccessCard extends LitElement {
     `;
   }
 
-  private _handleDropdownChange(ev: Event, label: string) {
-    ev.stopPropagation();
-    const target = ev.target as any;
-    const value = target.value;
-
-    if (!value) return; // Ignore blank selections
-
-    console.log(`MERAKI CARD DIAGNOSTIC - Dropdown changed: ${label} = ${value}`);
-
-    if (label === "Network") {
-      if (this._selectedNetwork === value) return;
-      this._selectedNetwork = value;
-      this._fetchPolicies(value);
-      // Reset SSID when network changes to prevent invalid selections
-      this._selectedSsid = ""; 
-    } else if (label === "SSID") {
-      this._selectedSsid = value;
-    } else if (label === "Duration") {
-      this._duration = value;
-    }
-  }
-
-  private _handleGuestNameChange(e: Event) { this._guestName = (e.target as any).value; }
-
   private async _generateAccessKey() {
-    if (!this._selectedNetwork || !this._selectedSsid) return;
+    if (!this._formData.network || !this._formData.ssid) return;
     this._creating = true;
     this._error = null;
     this._success = null;
 
     try {
       await this.hass.callService('meraki_ha', 'generate_guest_access', {
-        network_id: this._selectedNetwork,
-        ssid_number: parseInt(this._selectedSsid, 10),
-        duration_minutes: parseInt(this._duration, 10),
-        name: this._guestName || undefined,
-        passphrase: this._passphrase || undefined,
-        group_policy_id: this._selectedPolicy || undefined,
+        network_id: this._formData.network,
+        ssid_number: parseInt(this._formData.ssid, 10),
+        duration_minutes: parseInt(this._formData.duration, 10),
+        name: this._formData.guestName || undefined,
+        // Optional parameters not currently in UI but supported by the backend API
+        passphrase: undefined,
+        group_policy_id: undefined, 
       });
 
       this._success = 'Guest access key created successfully!';
@@ -288,9 +302,10 @@ export class MerakiGuestAccessCard extends LitElement {
     sharedStyles,
     css`
       .form-container { display: flex; flex-direction: column; gap: 16px; }
-      ha-select, ha-textfield, ha-button { width: 100%; }
+      ha-button { width: 100%; margin-top: 8px; }
       .flex { display: flex; }
       .justify-center { justify-content: center; }
+      .p-8 { padding: 32px; }
     `
   ];
 }
