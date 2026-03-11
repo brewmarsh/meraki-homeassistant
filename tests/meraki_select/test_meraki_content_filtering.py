@@ -149,11 +149,7 @@ async def test_content_filtering_select_entity(
         )
 
         # Verify API called with Family categories
-        from custom_components.meraki_ha.meraki_select.meraki_content_filtering import (
-            CONTENT_FILTERING_PROFILES,
-        )
-
         mock_meraki_client.appliance.update_network_appliance_content_filtering.assert_called_with(
             network_id=MOCK_NETWORK.id,
-            blockedUrlCategories=CONTENT_FILTERING_PROFILES["Family"],
+            blockedUrlCategories=["meraki:contentFiltering/category/1"],
         )
