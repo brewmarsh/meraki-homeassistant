@@ -176,6 +176,10 @@ class MerakiRTSPStreamCamera(MerakiEntity, Camera):
         self, width: int | None = None, height: int | None = None
     ) -> bytes | None:
         """Return a still image from the camera."""
+        if not self._device_serial:
+            _LOGGER.debug("Cannot fetch snapshot: Camera serial is missing.")
+            return None
+
         if self.device_data.status != "online":
             _LOGGER.debug("Skipping snapshot for offline camera: %s", self.name)
             return None
@@ -188,21 +192,32 @@ class MerakiRTSPStreamCamera(MerakiEntity, Camera):
 
             session = async_get_clientsession(self.hass)
             async with session.get(url) as response:
+                # Meraki API sometimes returns 500 HTML on transient failures
+                if response.status >= 500:
+                    _LOGGER.warning(
+                        "Meraki API returned %d for snapshot: %s",
+                        response.status,
+                        self.name,
+                    )
+                    return None
                 response.raise_for_status()
                 return await response.read()
         except Exception as err:
-            _LOGGER.warning("Failed to fetch camera snapshot: %s", err)
+            _LOGGER.warning("Failed to fetch camera snapshot for %s: %s", self.name, err)
             return None
 
     @property
     def is_streaming(self) -> bool:
         """Return True if the camera is streaming."""
-        if self.device_data.rtsp_url is None:
+        if not self._device_serial or self.device_data.rtsp_url is None:
             return False
         return True
 
     async def async_stream_source(self) -> str | None:
         """Return the source of the stream."""
+        if not self._device_serial:
+            _LOGGER.debug("Cannot fetch stream: Camera serial is missing.")
+            return None
         return await self._camera_service.get_video_stream_url(self._device_serial)
 
     @property
@@ -215,6 +230,9 @@ class MerakiRTSPStreamCamera(MerakiEntity, Camera):
 
     async def async_turn_on(self) -> None:
         """Turn on the camera stream."""
+        if not self._device_serial:
+            _LOGGER.warning("Cannot turn on stream: Camera serial is missing.")
+            return
         _LOGGER.debug("Turning on stream for camera %s", self._device_serial)
         await self._camera_service.async_set_rtsp_stream_enabled(
             self._device_serial, True
@@ -223,6 +241,9 @@ class MerakiRTSPStreamCamera(MerakiEntity, Camera):
 
     async def async_turn_off(self) -> None:
         """Turn off the camera stream."""
+        if not self._device_serial:
+            _LOGGER.warning("Cannot turn off stream: Camera serial is missing.")
+            return
         _LOGGER.debug("Turning off stream for camera %s", self._device_serial)
         await self._camera_service.async_set_rtsp_stream_enabled(
             self._device_serial, False
