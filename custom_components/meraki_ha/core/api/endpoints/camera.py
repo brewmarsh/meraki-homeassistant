@@ -37,6 +37,9 @@ class CameraEndpoints:
     @async_timed_cache()
     async def get_camera_sense_settings(self, serial: str) -> dict[str, Any]:
         """Get sense settings for a specific camera."""
+        if not serial:
+            _LOGGER.warning("get_camera_sense_settings: serial is required")
+            return {}
         settings = await self._api_client.run_sync(
             self._api_client.dashboard.camera.getDeviceCameraSense, serial=serial
         )
@@ -50,6 +53,9 @@ class CameraEndpoints:
     @async_timed_cache()
     async def get_camera_video_settings(self, serial: str) -> dict[str, Any]:
         """Get video settings for a specific camera."""
+        if not serial:
+            _LOGGER.warning("get_camera_video_settings: serial is required")
+            return {}
         settings = await self._api_client.run_sync(
             self._api_client.dashboard.camera.getDeviceCameraVideoSettings,
             serial=serial,
@@ -64,6 +70,9 @@ class CameraEndpoints:
     @async_timed_cache(timeout=30)
     async def get_device_camera_video_link(self, serial: str) -> dict[str, Any]:
         """Get video link for a specific camera."""
+        if not serial:
+            _LOGGER.warning("get_device_camera_video_link: serial is required")
+            return {}
         link = await self._api_client.run_sync(
             self._api_client.dashboard.camera.getDeviceCameraVideoLink, serial=serial
         )
@@ -78,6 +87,9 @@ class CameraEndpoints:
         self, serial: str, **kwargs: Any
     ) -> dict[str, Any]:
         """Update video settings for a specific camera."""
+        if not serial:
+            _LOGGER.warning("update_camera_video_settings: serial is required")
+            return {}
         # Map snake_case keys to camelCase keys for the Meraki API
         payload = {}
         mapping = {
@@ -106,6 +118,9 @@ class CameraEndpoints:
         self, serial: str, **kwargs: Any
     ) -> dict[str, Any]:
         """Update sense settings for a specific camera."""
+        if not serial:
+            _LOGGER.warning("update_camera_sense_settings: serial is required")
+            return {}
         # Map snake_case keys to camelCase keys for the Meraki API
         payload = {}
         mapping = {
@@ -137,6 +152,9 @@ class CameraEndpoints:
         self, serial: str, object_type: str = "person"
     ) -> list[dict[str, Any]]:
         """Get recent analytics for a specific camera."""
+        if not serial:
+            _LOGGER.warning("get_device_camera_analytics_recent: serial is required")
+            return []
         recent = await self._api_client.run_sync(
             self._api_client.dashboard.camera.getDeviceCameraAnalyticsRecent,
             serial=serial,
@@ -154,6 +172,9 @@ class CameraEndpoints:
         self, serial: str
     ) -> list[dict[str, Any]]:
         """Get analytics zones for a specific camera."""
+        if not serial:
+            _LOGGER.warning("get_device_camera_analytics_zones: serial is required")
+            return []
         zones = await self._api_client.run_sync(
             self._api_client.dashboard.camera.getDeviceCameraAnalyticsZones,
             serial=serial,
@@ -169,6 +190,9 @@ class CameraEndpoints:
         self, serial: str, **kwargs: Any
     ) -> dict[str, Any]:
         """Generate a snapshot of what the camera sees."""
+        if not serial:
+            _LOGGER.warning("generate_device_camera_snapshot: serial is required")
+            return {}
         snapshot = await self._api_client.run_sync(
             self._api_client.dashboard.camera.generateDeviceCameraSnapshot,
             serial=serial,

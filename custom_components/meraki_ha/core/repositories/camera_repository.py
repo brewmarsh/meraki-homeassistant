@@ -37,6 +37,10 @@ class CameraRepository:
         and other properties. For now, we'll assume all cameras support basic
         features, but this can be expanded later.
         """
+        if not serial:
+            _LOGGER.debug("Cannot fetch features: Serial is missing.")
+            return []
+
         # In the future, this could involve a call to get device details
         # and then a lookup based on the model.
         # For now, we'll hardcode some features for demonstration.
@@ -61,6 +65,10 @@ class CameraRepository:
         self, serial: str, object_type: str
     ) -> list[dict[str, Any]] | None:
         """Fetch object detection and motion data."""
+        if not serial:
+            _LOGGER.debug("Cannot fetch analytics: Serial is missing.")
+            return None
+
         try:
             recent = await self._api_client.camera.get_device_camera_analytics_recent(
                 serial, object_type
@@ -76,6 +84,10 @@ class CameraRepository:
 
         This method validates that the URL is a valid RTSP stream URL.
         """
+        if not serial:
+            _LOGGER.debug("Cannot fetch RTSP URL: Serial is missing.")
+            return None
+
         # MV2 cameras do not support historical viewing without cloud archive,
         # so we should not attempt to fetch a video link for them.
         try:
@@ -140,6 +152,10 @@ class CameraRepository:
 
     async def generate_snapshot(self, serial: str) -> str | None:
         """Generate a snapshot and return the URL."""
+        if not serial:
+            _LOGGER.debug("Cannot generate snapshot: Serial is missing.")
+            return None
+
         try:
             snapshot_data = (
                 await self._api_client.camera.generate_device_camera_snapshot(serial)
@@ -151,6 +167,10 @@ class CameraRepository:
 
     async def set_rtsp_stream_enabled(self, serial: str, enabled: bool) -> None:
         """Enable or disable RTSP stream for a camera."""
+        if not serial:
+            _LOGGER.debug("Cannot set RTSP stream: Serial is missing.")
+            return
+
         try:
             await self._api_client.camera.update_camera_video_settings(
                 serial, externalRtspEnabled=enabled
