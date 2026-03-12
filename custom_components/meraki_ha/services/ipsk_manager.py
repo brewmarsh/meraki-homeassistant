@@ -6,12 +6,11 @@ import logging
 from datetime import datetime, timedelta
 from typing import TYPE_CHECKING, TypedDict, cast
 
+from custom_components.meraki_ha.const.api import DATA_CLIENT
+from custom_components.meraki_ha.const.integration import DOMAIN
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers import event, storage
 from homeassistant.util import dt as dt_util
-
-from custom_components.meraki_ha.const.api import DATA_CLIENT
-from custom_components.meraki_ha.const.integration import DOMAIN
 
 if TYPE_CHECKING:
     from ..core.api import MerakiApiClientProtocol
@@ -69,6 +68,60 @@ class IPSKManager:
     async def _save(self) -> None:
         """Save current keys to storage."""
         await self.store.async_save({"keys": self.active_keys})
+
+    async def get_or_create_guest_policy(
+        self, config_entry_id: str, network_id: str
+    ) -> str | None:
+        """Find or create a 'Home Assistant Guest' Group Policy for the network."""
+        client = self._get_client(config_entry_id)
+        if not client:
+            _LOGGER.error("Cannot create guest policy: Client unavailable")
+            return None
+
+        policy_name = "Home Assistant Guest"
+
+        try:
+            # Check if it already exists
+            policies = await client.networks.get_group_policies(network_id)
+            for policy in policies:
+                if policy.get("name") == policy_name:
+                    return str(policy["groupPolicyId"])
+
+            # Create it if it doesn't exist
+            _LOGGER.info(
+                "Creating new group policy '%s' for network %s", policy_name, network_id
+            )
+
+            # Use raw post because python library might lack the endpoint or have
+            # strict kwargs
+            metadata = {
+                "tags": ["networks", "configure", "groupPolicies"],
+                "operation": "createNetworkGroupPolicy",
+            }
+            resource = f"/networks/{network_id}/groupPolicies"
+            payload = {
+                "name": policy_name,
+                "scheduling": {"enabled": False},
+                "bandwidth": {"settings": "network default"},
+            }
+
+            if client.dashboard is None:
+                return None
+
+            response = await client.run_sync(
+                client.dashboard.networks._session.post,
+                metadata,
+                resource,
+                payload,
+            )
+
+            if response and "groupPolicyId" in response:
+                return str(response["groupPolicyId"])
+
+        except Exception as err:
+            _LOGGER.error("Failed to get or create guest policy: %s", err)
+
+        return None
 
     async def create_guest_key(
         self,

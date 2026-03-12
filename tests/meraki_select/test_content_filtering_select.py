@@ -3,12 +3,15 @@
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-from homeassistant.core import HomeAssistant
-from homeassistant.setup import async_setup_component
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
+from custom_components.meraki_ha.const.config import (
+    CONF_MERAKI_API_KEY,
+    CONF_MERAKI_ORG_ID,
+)
 from custom_components.meraki_ha.const.integration import DOMAIN
-from custom_components.meraki_ha.const.config import CONF_MERAKI_API_KEY, CONF_MERAKI_ORG_ID
+from homeassistant.core import HomeAssistant
+from homeassistant.setup import async_setup_component
 from tests.const import MOCK_NETWORK
 
 
@@ -35,13 +38,25 @@ def mock_meraki_client() -> MagicMock:
     client.appliance.get_network_appliance_content_filtering_categories = AsyncMock(
         return_value={
             "categories": [
-                {"id": "meraki:contentFiltering/category/1", "name": "Adult and Pornography"},
+                {
+                    "id": "meraki:contentFiltering/category/1",
+                    "name": "Adult and Pornography",
+                },
                 {"id": "meraki:contentFiltering/category/2", "name": "Nudity"},
                 {"id": "meraki:contentFiltering/category/8", "name": "Malware Sites"},
-                {"id": "meraki:contentFiltering/category/9", "name": "Phishing and Other Frauds"},
+                {
+                    "id": "meraki:contentFiltering/category/9",
+                    "name": "Phishing and Other Frauds",
+                },
                 {"id": "meraki:contentFiltering/category/11", "name": "Bot Nets"},
-                {"id": "meraki:contentFiltering/category/12", "name": "Spyware and Adware"},
-                {"id": "meraki:contentFiltering/category/15", "name": "Proxy Avoidance and Anonymizers"},
+                {
+                    "id": "meraki:contentFiltering/category/12",
+                    "name": "Spyware and Adware",
+                },
+                {
+                    "id": "meraki:contentFiltering/category/15",
+                    "name": "Proxy Avoidance and Anonymizers",
+                },
             ]
         }
     )

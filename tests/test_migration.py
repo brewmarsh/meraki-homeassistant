@@ -1,7 +1,10 @@
 """Test migration for Meraki."""
-from homeassistant.core import HomeAssistant
-from custom_components.meraki_ha import async_migrate_entry
+
 from pytest_homeassistant_custom_component.common import MockConfigEntry
+
+from custom_components.meraki_ha import async_migrate_entry
+from homeassistant.core import HomeAssistant
+
 
 async def test_migration_v1_to_v2(hass: HomeAssistant):
     """Test migrating a config entry from version 1 to 2."""

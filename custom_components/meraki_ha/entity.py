@@ -25,19 +25,32 @@ class MerakiEntity(CoordinatorEntity[T], Generic[T]):
     @property
     def _serial(self) -> str | None:
         """Extract the serial number from various possible attributes."""
-        if hasattr(self, "_device") and hasattr(self._device, "serial"):
-            return self._device.serial
-        if hasattr(self, "_device_data") and hasattr(self._device_data, "serial"):
-            return self._device_data.serial
+        for attr in ("_device", "_device_data"):
+            if hasattr(self, attr):
+                val = getattr(self, attr)
+                if isinstance(val, dict) and "serial" in val:
+                    return val.get("serial")
+                if hasattr(val, "serial"):
+                    return val.serial
+
         if hasattr(self, "_device_serial"):
             return self._device_serial
+
         return getattr(self, "serial", None)
 
     @property
     def device_data(self) -> Any | None:
         """Get the updated device data robustly from ANY coordinator structure."""
+        # First, try to use the coordinator's built-in get_device method
+        if hasattr(self.coordinator, "get_device") and self._serial:
+            device = self.coordinator.get_device(self._serial)
+            if device:
+                return device
+
         # The ultimate fallback: always return our cached device if search fails!
         fallback_device = getattr(self, "_device", None)
+        if fallback_device is None:
+            fallback_device = getattr(self, "_device_data", None)
 
         if not self.coordinator.data or not self._serial:
             return fallback_device

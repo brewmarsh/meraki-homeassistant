@@ -25,6 +25,10 @@ class WirelessFetchStrategy(BaseFetchStrategy):
         tasks.update(
             self.client.wireless.get_network_detail_tasks(network_id, product_types)
         )
+        if "wireless" in product_types or "appliance" in product_types:
+            tasks[f"group_policies_{network_id}"] = self.client.run_with_semaphore(
+                self.client.networks.get_group_policies(network_id)
+            )
 
     def build_device_tasks(
         self,

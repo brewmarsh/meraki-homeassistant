@@ -40,6 +40,7 @@ GUEST_ACCESS_SCHEMA = vol.Schema(
         vol.Required("duration"): cv.positive_int,
         vol.Optional("guest_name", default="Guest"): cv.string,
         vol.Optional("passphrase"): cv.string,
+        vol.Optional("group_policy"): cv.string,
     }
 )
 
@@ -81,6 +82,7 @@ async def async_setup_services(hass: HomeAssistant) -> None:
         duration = call.data["duration"]
         guest_name = call.data["guest_name"]
         passphrase = call.data.get("passphrase")
+        group_policy = call.data.get("group_policy")
 
         ipsk_manager: IPSKManager | None = hass.data[DOMAIN].get("ipsk_manager")
         if not ipsk_manager:
@@ -90,6 +92,12 @@ async def async_setup_services(hass: HomeAssistant) -> None:
         if not config_entry_id:
             raise HomeAssistantError(f"Network ID {network_id} not found")
 
+        # Handle automatic group policy creation
+        if group_policy == "CREATE":
+            group_policy = await ipsk_manager.get_or_create_guest_policy(
+                config_entry_id, network_id
+            )
+
         # Map frontend parameters to the underlying IPSK manager method
         await ipsk_manager.create_guest_key(
             config_entry_id=config_entry_id,
@@ -98,6 +106,7 @@ async def async_setup_services(hass: HomeAssistant) -> None:
             duration_minutes=duration,
             name=guest_name,
             passphrase=passphrase,
+            group_policy_id=group_policy,
         )
 
     # Register both service entry points

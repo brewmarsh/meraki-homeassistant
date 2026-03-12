@@ -17,7 +17,7 @@ from ..helpers.device_info_helpers import resolve_device_info
 
 _LOGGER = logging.getLogger(__name__)
 
-# Profiles mapped to generic, lowercase category names. 
+# Profiles mapped to generic, lowercase category names.
 # We will dynamically resolve these to actual API IDs at runtime.
 CONTENT_FILTERING_PROFILE_TARGETS: dict[str, list[str]] = {
     "None": [],
@@ -51,6 +51,7 @@ CONTENT_FILTERING_PROFILE_TARGETS: dict[str, list[str]] = {
         "botnets",
     ],
 }
+
 
 class MerakiContentFilteringSelect(MerakiEntity[MerakiMainCoordinator], SelectEntity):
     """Representation of a Meraki Content Filtering select entity."""
@@ -92,19 +93,23 @@ class MerakiContentFilteringSelect(MerakiEntity[MerakiMainCoordinator], SelectEn
 
     @property
     def current_option(self) -> str | None:
-        """Return the current selected option based on quantity of blocked categories."""
-        if not self.coordinator.data or not self.coordinator.data.get("content_filtering"):
+        """Return the current selected option based on blocked categories."""
+        if not self.coordinator.data or not self.coordinator.data.get(
+            "content_filtering"
+        ):
             return None
 
-        content_filtering = self.coordinator.data["content_filtering"].get(self._network_id)
+        content_filtering = self.coordinator.data["content_filtering"].get(
+            self._network_id
+        )
         if not content_filtering or not isinstance(content_filtering, dict):
             return None
 
         blocked_categories = ensure_list_of_strings(
             content_filtering.get("blockedUrlCategories", []), key_to_extract="id"
         )
-        
-        # Use a robust heuristic to map current state without needing synchronous API calls
+
+        # Use a robust heuristic to map current state without synchronous API calls
         count = len(blocked_categories)
         if count == 0:
             return "None"
@@ -125,23 +130,31 @@ class MerakiContentFilteringSelect(MerakiEntity[MerakiMainCoordinator], SelectEn
 
         try:
             appliance = self._meraki_client.appliance
-            
-            # If not 'None', dynamically fetch the master list of valid categories for this specific MX
+
+            # If not 'None', fetch master list of valid categories for MX
             if target_names:
-                resp = await appliance.get_network_appliance_content_filtering_categories(
-                    network_id=self._network_id
+                resp = (
+                    await appliance.get_network_appliance_content_filtering_categories(
+                        network_id=self._network_id
+                    )
                 )
-                
+
                 # Handle both list and dict response formats from the Meraki library
-                valid_categories = resp if isinstance(resp, list) else resp.get("categories", [])
-                name_to_id = {cat["name"].lower(): cat["id"] for cat in valid_categories}
-                
-                # Match our target names against the live, valid API names (with fuzzy matching for spacing)
+                valid_categories = (
+                    resp if isinstance(resp, list) else resp.get("categories", [])
+                )
+                name_to_id = {
+                    cat["name"].lower(): cat["id"] for cat in valid_categories
+                }
+
+                # Match target names against valid API names (fuzzy matching for spaces)
                 for target in target_names:
                     for valid_name, valid_id in name_to_id.items():
-                        if target == valid_name or target.replace(" ", "") == valid_name.replace(" ", ""):
+                        if target == valid_name or target.replace(
+                            " ", ""
+                        ) == valid_name.replace(" ", ""):
                             resolved_ids.add(valid_id)
-            
+
             final_blocked_ids = list(resolved_ids)
 
             # Send the validated payload
@@ -150,7 +163,7 @@ class MerakiContentFilteringSelect(MerakiEntity[MerakiMainCoordinator], SelectEn
                 blockedUrlCategories=final_blocked_ids,
             )
             await self.coordinator.async_request_refresh()
-            
+
         except Exception as e:
             _LOGGER.error(
                 "Failed to set content filtering profile to '%s' for network %s: %s",

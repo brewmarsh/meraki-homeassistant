@@ -55,6 +55,19 @@ def _update_rf_profiles(
     processed_data["rf_profiles"].update(rf_profiles)
 
 
+def _update_group_policies(
+    processed_data: dict[str, Any], new_data: dict[str, Any]
+) -> None:
+    """Update group policies in processed data."""
+    group_policies = new_data.get("group_policies")
+    if not isinstance(group_policies, dict):
+        return
+
+    if "group_policies" not in processed_data:
+        processed_data["group_policies"] = {}
+    processed_data["group_policies"].update(group_policies)
+
+
 def update_processed_wireless_data(
     processed_data: dict[str, Any], new_data: dict[str, Any]
 ) -> None:
@@ -62,6 +75,7 @@ def update_processed_wireless_data(
     _update_ssids(processed_data, new_data)
     _update_wireless_settings(processed_data, new_data)
     _update_rf_profiles(processed_data, new_data)
+    _update_group_policies(processed_data, new_data)
 
 
 def parse_wireless_data(
@@ -86,6 +100,7 @@ def parse_wireless_data(
     ssids: list[dict[str, Any]] = []
     wireless_settings: dict[str, list[dict[str, Any]]] = {}
     rf_profiles: dict[str, list[dict[str, Any]]] = {}
+    group_policies: dict[str, list[dict[str, Any]]] = {}
     client_counts = _calculate_client_counts(clients)
 
     for network in networks:
@@ -104,10 +119,15 @@ def parse_wireless_data(
             network_id, detail_data, previous_data
         )
 
+        group_policies[network_id] = _process_network_group_policies(
+            network_id, detail_data, previous_data
+        )
+
     return {
         "ssids": ssids,
         "wireless_settings": wireless_settings,
         "rf_profiles": rf_profiles,
+        "group_policies": group_policies,
     }
 
 
@@ -216,11 +236,38 @@ def _process_network_rf_profiles(
 ) -> list[dict[str, Any]]:
     """Process RF Profiles for a single network."""
     network_rf_profiles_key = f"rf_profiles_{network_id}"
-    network_rf_profiles = detail_data.get(network_rf_profiles_key)
+    detail_data.get(network_rf_profiles_key)
 
-    if isinstance(network_rf_profiles, list):
-        return network_rf_profiles
 
-    return _fallback_network_rf_profiles(
-        network_id, network_rf_profiles_key, previous_data
+def _fallback_network_group_policies(
+    network_id: str,
+    network_group_policies_key: str,
+    previous_data: dict[str, Any],
+) -> list[dict[str, Any]]:
+    """Get fallback Group Policies from previous data."""
+    if not previous_data:
+        return []
+
+    if "group_policies" in previous_data:
+        return previous_data["group_policies"].get(network_id, [])
+    if network_group_policies_key in previous_data:
+        return previous_data.get(network_group_policies_key, [])
+
+    return []
+
+
+def _process_network_group_policies(
+    network_id: str,
+    detail_data: dict[str, Any],
+    previous_data: dict[str, Any],
+) -> list[dict[str, Any]]:
+    """Process Group Policies for a single network."""
+    network_group_policies_key = f"group_policies_{network_id}"
+    network_group_policies = detail_data.get(network_group_policies_key)
+
+    if isinstance(network_group_policies, list):
+        return network_group_policies
+
+    return _fallback_network_group_policies(
+        network_id, network_group_policies_key, previous_data
     )

@@ -14,15 +14,17 @@ except ImportError:
 
 from typing import Any
 
-from homeassistant.core import HomeAssistant
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
+from custom_components.meraki_ha.const.config import (
+    CONF_MERAKI_API_KEY,
+    CONF_MERAKI_ORG_ID,
+)
 from custom_components.meraki_ha.const.integration import DOMAIN
+from homeassistant.core import HomeAssistant
 
 from .const import MERAKI_TEST_API_KEY, MERAKI_TEST_ORG_ID
 
-
-from custom_components.meraki_ha.const.config import CONF_MERAKI_API_KEY, CONF_MERAKI_ORG_ID
 
 async def async_get_config_entry(
     hass: HomeAssistant, data: dict[str, Any] | None = None

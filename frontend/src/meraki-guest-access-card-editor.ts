@@ -2,7 +2,7 @@ import { LitElement, html, css, PropertyValues } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { HomeAssistant } from './types/ha';
 import { renderWarning, renderLoading, sharedStyles } from './shared-ui';
-import { MerakiDataProvider } from './utils/meraki-data';
+import { MerakiDataProvider, GroupPolicy } from './utils/meraki-data';
 import './meraki-content-filter-card';
 import './meraki-wifi-qr-card';
 import './meraki-network-vitals-card';
@@ -28,10 +28,12 @@ export class MerakiGuestAccessCard extends LitElement {
     ssid: '',
     duration: '60',
     guestName: '',
+    groupPolicy: 'NONE',
   };
 
   @state() private _networks: Network[] = [];
   @state() private _ssids: SSID[] = [];
+  @state() private _groupPolicies: GroupPolicy[] = [];
   @state() private _creating: boolean = false;
   @state() private _error: string | null = null;
   @state() private _success: string | null = null;
@@ -68,11 +70,11 @@ export class MerakiGuestAccessCard extends LitElement {
     if (!this.hass) return;
     this._isLoading = true;
 
-    const { networks, ssids, entryId } = await MerakiDataProvider.fetchConfig(
-      this.hass
-    );
+    const { networks, ssids, groupPolicies, entryId } =
+      await MerakiDataProvider.fetchConfig(this.hass);
     this._networks = networks;
     this._ssids = ssids;
+    this._groupPolicies = groupPolicies || [];
     this._configEntryId = this._config?.config_entry_id || entryId;
 
     if (networks.length > 0 && !this._formData.network) {
@@ -90,7 +92,7 @@ export class MerakiGuestAccessCard extends LitElement {
 
     // Clear SSID if network changes
     if (this._formData.network !== oldNetwork) {
-      this._formData = { ...this._formData, ssid: '' };
+      this._formData = { ...this._formData, ssid: '', groupPolicy: 'NONE' };
     }
   }
 
@@ -99,6 +101,7 @@ export class MerakiGuestAccessCard extends LitElement {
     if (schema.name === 'ssid') return 'SSID';
     if (schema.name === 'duration') return 'Duration';
     if (schema.name === 'guestName') return 'Guest Name';
+    if (schema.name === 'groupPolicy') return 'Group Policy';
     return schema.name;
   };
 
@@ -136,6 +139,10 @@ export class MerakiGuestAccessCard extends LitElement {
       this._formData.network,
       'number'
     );
+    const groupPolicyOptions = MerakiDataProvider.getGroupPolicyOptions(
+      this._groupPolicies,
+      this._formData.network
+    );
 
     const schema = [
       {
@@ -145,6 +152,12 @@ export class MerakiGuestAccessCard extends LitElement {
       {
         name: 'ssid',
         selector: { select: { options: ssidOptions, mode: 'dropdown' } },
+      },
+      {
+        name: 'groupPolicy',
+        selector: {
+          select: { options: groupPolicyOptions, mode: 'dropdown' },
+        },
       },
       {
         name: 'duration',
@@ -227,6 +240,13 @@ export class MerakiGuestAccessCard extends LitElement {
 
       if (this._formData.guestName) {
         payload.guest_name = this._formData.guestName;
+      }
+
+      if (
+        this._formData.groupPolicy &&
+        this._formData.groupPolicy !== 'NONE'
+      ) {
+        payload.group_policy = this._formData.groupPolicy;
       }
 
       await this.hass.callService(

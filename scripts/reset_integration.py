@@ -215,17 +215,17 @@ async def _start_config_flow(session: aiohttp.ClientSession) -> dict[str, Any] |
 def _build_form_payload(step_id: str, current_step: dict[str, Any]) -> dict[str, Any]:
     """Build the payload dynamically based on the step_id and schema requirements."""
     payload: dict[str, Any] = {}
-    
+
     # 1. Fill explicitly based on known step progression
     if step_id == "user":
         payload["api_key"] = MERAKI_API_KEY
     elif step_id in ("select_org", "organization"):
         payload["organization_id"] = MERAKI_ORG_ID
-        
+
     # 2. Inspect the schema to dynamically catch fields and fill defaults
     for field in current_step.get("data_schema", []):
         field_name = field["name"]
-        
+
         # Don't overwrite if we already set it above
         if field_name not in payload:
             # Catch-all in case the step_id is named something unexpected
@@ -236,10 +236,8 @@ def _build_form_payload(step_id: str, current_step: dict[str, Any]) -> dict[str,
             elif "default" in field:
                 payload[field_name] = field["default"]
             else:
-                logger.warning(
-                    f"Required field '{field_name}' has no default value."
-                )
-                
+                logger.warning(f"Required field '{field_name}' has no default value.")
+
     return payload
 
 
@@ -253,7 +251,9 @@ async def _handle_form_step(
     payload = _build_form_payload(step_id, current_step)
 
     submit_url = f"{HA_URL}/api/config/config_entries/flow/{flow_id}"
-    logger.info(f"POST {submit_url} for step {step_id} with payload keys: {list(payload.keys())}")
+    logger.info(
+        f"POST {submit_url} for step {step_id} with payload keys: {list(payload.keys())}"
+    )
     async with session.post(submit_url, json=payload) as resp:
         if resp.status != 200:
             logger.error(f"Failed to submit step {step_id}: {resp.status}")
