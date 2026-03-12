@@ -108,7 +108,20 @@ class _MerakiPortSwitchBase(MerakiEntity, SwitchEntity, ABC):
             )
             return
 
-        for port_data in self._get_device_ports():
+        device_ports = self._get_device_ports()
+        if not isinstance(device_ports, list):
+            _LOGGER.warning(
+                "Ports data for device %s is not a list: %s",
+                self._device.serial,
+                type(device_ports),
+            )
+            return
+
+        for port_data in device_ports:
+            # Defensive check for None items in the list
+            if port_data is None:
+                continue
+
             port_dict = (
                 port_data if isinstance(port_data, dict) else port_data.to_dict()
             )
@@ -129,6 +142,8 @@ class _MerakiPortSwitchBase(MerakiEntity, SwitchEntity, ABC):
 
     def _get_port_identifier(self) -> str | None:
         """Get the primary identifier for the port."""
+        if self._port is None:
+            return None
         return _get_port_identifier_from_data(self._port)
 
     def _update_internal_state(self) -> None:
@@ -136,7 +151,9 @@ class _MerakiPortSwitchBase(MerakiEntity, SwitchEntity, ABC):
         # If there is a command in flight, don't let the poller overwrite the state yet
         if self.unique_id and self.coordinator.is_pending(self.unique_id):
             return
-        self._attr_is_on = self._port.get("enabled", False)
+        self._attr_is_on = (
+            self._port.get("enabled", False) if self._port is not None else False
+        )
 
     async def _toggle_port(self, enabled: bool) -> None:
         """Execute a port toggle command with optimistic update."""
