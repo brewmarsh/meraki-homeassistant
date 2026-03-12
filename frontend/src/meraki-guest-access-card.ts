@@ -8,6 +8,8 @@ import './meraki-wifi-qr-card';
 import './meraki-network-vitals-card';
 import './meraki-guest-access-card-editor';
 import { Network, SSID } from './types/meraki';
+import { WsCommand } from './types/websocket';
+import { safeCallWS } from './utils/api';
 
 declare const __VERSION__: string;
 
@@ -25,12 +27,15 @@ export class MerakiGuestAccessCard extends LitElement {
     network: '',
     ssid: '',
     passphrase: '',
-    duration: '60', // Default to 1 Hour
+    policy: '', // Added Policy field
+    duration: '60',
     guestName: ''
   };
 
   @state() private _networks: Network[] = [];
   @state() private _ssids: SSID[] = [];
+  @state() private _policies: any[] = []; // Restored Policies array
+  
   @state() private _creating: boolean = false;
   @state() private _error: string | null = null;
   @state() private _success: string | null = null;
@@ -87,7 +92,36 @@ export class MerakiGuestAccessCard extends LitElement {
     }
 
     this._formData = { ...this._formData, network: initNetwork, ssid: initSsid, passphrase: initPassphrase };
+    
+    // Fetch the policies for the newly initialized network
+    if (initNetwork) {
+      await this._fetchPolicies(initNetwork);
+    }
+
     this._isLoading = false;
+  }
+
+  private async _fetchPolicies(networkId: string) {
+    if (!this.hass || !networkId || !this._configEntryId) return;
+
+    try {
+      const response = await safeCallWS<any>(this.hass, {
+        type: WsCommand.TIMED_ACCESS_GET_POLICIES,
+        config_entry_id: this._configEntryId,
+        network_id: networkId,
+      });
+      
+      this._policies = Array.isArray(response) ? response : response?.policies || [];
+      
+      // Auto-select the first policy if one isn't already selected
+      if (this._policies.length > 0 && !this._formData.policy) {
+        const firstPolicyId = String(this._policies[0].groupPolicyId || this._policies[0].id);
+        this._formData = { ...this._formData, policy: firstPolicyId };
+      }
+    } catch (err) {
+      console.error("Failed to fetch Meraki policies:", err);
+      this._policies = [];
+    }
   }
 
   private _getPasswordForSelectedSsid(networkId: string, ssidNumberStr: string): string {
@@ -136,11 +170,15 @@ export class MerakiGuestAccessCard extends LitElement {
     if (updatedData.network !== oldNetwork) {
       updatedData.ssid = '';
       updatedData.passphrase = '';
+      updatedData.policy = ''; // Clear the policy since the network changed
       
       const availableSsids = this._ssids.filter(s => s.networkId === updatedData.network);
       if (availableSsids.length > 0) {
         updatedData.ssid = String(availableSsids[0].number);
       }
+
+      // Fetch new policies for the newly selected network
+      this._fetchPolicies(updatedData.network);
     }
 
     if (updatedData.ssid && updatedData.ssid !== oldSsid) {
@@ -153,6 +191,7 @@ export class MerakiGuestAccessCard extends LitElement {
   private _computeLabel = (schema: any): string => {
     if (schema.name === "network") return "Network";
     if (schema.name === "ssid") return "SSID";
+    if (schema.name === "policy") return "Group Policy (Required)";
     if (schema.name === "passphrase") return "Passphrase / PSK (Auto-discovered)";
     if (schema.name === "duration") return "Duration";
     if (schema.name === "guestName") return "Guest Name";
@@ -184,10 +223,13 @@ export class MerakiGuestAccessCard extends LitElement {
 
     const networkOptions = MerakiDataProvider.getNetworkOptions(this._networks);
     const ssidOptions = MerakiDataProvider.getSsidOptions(this._ssids, this._formData.network, 'number');
+    const policyOptions = this._policies.map(p => ({ value: String(p.groupPolicyId || p.id), label: p.name }));
 
     const schema = [
       { name: "network", selector: { select: { options: networkOptions, mode: "dropdown" } } },
       { name: "ssid", selector: { select: { options: ssidOptions, mode: "dropdown" } } },
+      // Only show the policy dropdown if policies successfully loaded for this network
+      ...(policyOptions.length > 0 ? [{ name: "policy", selector: { select: { options: policyOptions, mode: "dropdown" } } }] : []),
       { name: "passphrase", selector: { text: {} } },
       { name: "duration", selector: { select: { 
           options: [
@@ -205,7 +247,7 @@ export class MerakiGuestAccessCard extends LitElement {
       { name: "guestName", selector: { text: {} } }
     ];
 
-    const isFormValid = this._formData.network && this._formData.ssid;
+    const isFormValid = this._formData.network && this._formData.ssid && this._formData.policy;
 
     return html`
       <ha-card .header="${this._config?.name || 'Meraki Guest Access'}">
@@ -233,7 +275,7 @@ export class MerakiGuestAccessCard extends LitElement {
   }
 
   private async _generateAccessKey() {
-    if (!this._formData.network || !this._formData.ssid) return;
+    if (!this._formData.network || !this._formData.ssid || !this._formData.policy) return;
     this._creating = true;
     this._error = null;
     this._success = null;
@@ -243,6 +285,7 @@ export class MerakiGuestAccessCard extends LitElement {
         network_id: this._formData.network,
         ssid: parseInt(this._formData.ssid, 10),
         duration: parseInt(this._formData.duration, 10), 
+        group_policy_id: this._formData.policy, // Injects the required Meraki API parameter
       };
 
       if (this._formData.guestName) {
