@@ -70,10 +70,15 @@ class MerakiAppliancePortSensor(CoordinatorEntity, SensorEntity):
             self._device = device
             appliance_ports = getattr(device, "appliance_ports", [])
             if not isinstance(appliance_ports, list):
+                _LOGGER.debug(
+                    "No appliance ports found for device %s during update",
+                    self._device.serial,
+                )
                 return
 
             for port in appliance_ports:
-                if not hasattr(port, "number"):
+                # Defensive check: ensure port and its number attribute exist
+                if port is None or getattr(port, "number", None) is None:
                     continue
                 if port.number == self._port.number:
                     self._port = port
@@ -84,7 +89,11 @@ class MerakiAppliancePortSensor(CoordinatorEntity, SensorEntity):
     def native_value(self) -> str:
         """Return the state of the sensor."""
         # Strictly return "connected" or "disconnected"
-        if self._port.status and self._port.status.lower() == "connected":
+        if (
+            self._port
+            and self._port.status
+            and self._port.status.lower() == "connected"
+        ):
             return "connected"
         return "disconnected"
 

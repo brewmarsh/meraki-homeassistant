@@ -74,7 +74,8 @@ class AppliancePortBinarySensor(CoordinatorEntity, BinarySensorEntity):
                 return
 
             for port in appliance_ports:
-                if not hasattr(port, "number"):
+                # Defensive check: ensure port and its number attribute exist
+                if port is None or getattr(port, "number", None) is None:
                     continue
                 if port.number == self._port.number:
                     self._port = port
@@ -84,7 +85,7 @@ class AppliancePortBinarySensor(CoordinatorEntity, BinarySensorEntity):
     @property
     def is_on(self) -> bool:
         """Return true if the binary sensor is on."""
-        if not self._port.enabled:
+        if not self._port or not getattr(self._port, "enabled", False):
             return False
         return (
             self._port.status is not None and self._port.status.lower() == "connected"
