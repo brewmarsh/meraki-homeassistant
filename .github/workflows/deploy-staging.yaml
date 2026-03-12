@@ -50,26 +50,13 @@ jobs:
         working-directory: frontend
         run: npm ci
         
-      - name: Install frontend dependencies
-        working-directory: frontend
-        run: npm ci
-
-      # --- ADD THIS NEW STEP ---
       - name: Bump version for cache-busting
         working-directory: frontend
         shell: bash
         run: |
-          # Bumps version to something like: 1.0.0-beta.42
           npm version prerelease --preid=beta.${{ github.run_number }} --no-git-tag-version
           echo "Stamped frontend with beta run number: ${{ github.run_number }}"
-      # -------------------------
 
-      - name: Build frontend
-        working-directory: frontend
-        shell: bash
-        run: |
-          set -o pipefail
-          if ! npm run build 2>&1 | tee build_output.txt; then
       - name: Build frontend
         working-directory: frontend
         shell: bash
