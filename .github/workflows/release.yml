@@ -49,7 +49,7 @@ jobs:
         run: ./scripts/release.sh ${{ env.part }}
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: '20'
 

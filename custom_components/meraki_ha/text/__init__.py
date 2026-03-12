@@ -32,10 +32,19 @@ async def async_setup_entry(
         if asyncio.iscoroutine(ssids):
             ssids = await ssids
 
-        text_entities = [
-            MerakiSSIDNameText(coordinator, meraki_client, config_entry, ssid)
-            for ssid in ssids
-        ]
+        text_entities = []
+        for ssid in ssids:
+            try:
+                text_entities.append(
+                    MerakiSSIDNameText(coordinator, meraki_client, config_entry, ssid)
+                )
+            except Exception as err:
+                _LOGGER.error(
+                    "Failed to initialize text entity for SSID %s: %s",
+                    ssid.get("name") if isinstance(ssid, dict) else "Unknown",
+                    err,
+                    exc_info=True,
+                )
 
         if text_entities:
             async_add_entities(text_entities)

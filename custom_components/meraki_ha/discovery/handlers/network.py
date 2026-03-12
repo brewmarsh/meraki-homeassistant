@@ -113,8 +113,17 @@ class NetworkHandler(BaseHandler):
 
         for network in networks:
             for generator in generators:
-                async for entity in generator(network):
-                    yield entity
+                try:
+                    async for entity in generator(network):
+                        yield entity
+                except Exception as err:
+                    _LOGGER.error(
+                        "Failed to discover network entities for %s using %s: %s",
+                        network.id if hasattr(network, "id") else "Unknown",
+                        generator.__name__,
+                        err,
+                        exc_info=True,
+                    )
 
     async def _discover_select_entities(
         self, network: MerakiNetwork
@@ -125,30 +134,52 @@ class NetworkHandler(BaseHandler):
         )
         from ...meraki_select.vpn import MerakiVpnSelect
 
-        yield MerakiContentFilteringSelect(
-            self._coordinator,
-            self._coordinator.api,
-            self._config_entry,
-            network,
-        )
-        if self._config_entry.options.get(CONF_ENABLE_VPN_MANAGEMENT):
-            yield MerakiVpnSelect(
+        try:
+            yield MerakiContentFilteringSelect(
                 self._coordinator,
                 self._coordinator.api,
                 self._config_entry,
                 network,
             )
+        except Exception as err:
+            _LOGGER.error(
+                "Failed to instantiate MerakiContentFilteringSelect for network %s: %s",
+                network.id,
+                err,
+            )
+
+        if self._config_entry.options.get(CONF_ENABLE_VPN_MANAGEMENT):
+            try:
+                yield MerakiVpnSelect(
+                    self._coordinator,
+                    self._coordinator.api,
+                    self._config_entry,
+                    network,
+                )
+            except Exception as err:
+                _LOGGER.error(
+                    "Failed to instantiate MerakiVpnSelect for network %s: %s",
+                    network.id,
+                    err,
+                )
 
     async def _discover_network_clients(
         self, network: MerakiNetwork
     ) -> AsyncIterator[Entity]:
         """Discover network clients sensor."""
-        yield MerakiNetworkClientsSensor(
-            coordinator=self._coordinator,
-            config_entry=self._config_entry,
-            network_data=network,
-            network_control_service=self._network_control_service,
-        )
+        try:
+            yield MerakiNetworkClientsSensor(
+                coordinator=self._coordinator,
+                config_entry=self._config_entry,
+                network_data=network,
+                network_control_service=self._network_control_service,
+            )
+        except Exception as err:
+            _LOGGER.error(
+                "Failed to instantiate MerakiNetworkClientsSensor for network %s: %s",
+                network.id,
+                err,
+            )
 
     async def _discover_client_status_sensors(
         self, network: MerakiNetwork
@@ -167,11 +198,19 @@ class NetworkHandler(BaseHandler):
             lambda c: isinstance(c, dict) and c.get("networkId") == network.id,
             clients,
         ):
-            yield MerakiClientStatusSensor(
-                self._coordinator,
-                client,
-                self._config_entry,
-            )
+            try:
+                yield MerakiClientStatusSensor(
+                    self._coordinator,
+                    client,
+                    self._config_entry,
+                )
+            except Exception as err:
+                _LOGGER.error(
+                    "Failed to instantiate MerakiClientStatusSensor for client %s in network %s: %s",
+                    client.get("mac", "Unknown"),
+                    network.id,
+                    err,
+                )
 
     async def _discover_traffic_shaping(
         self, network: MerakiNetwork
@@ -181,11 +220,18 @@ class NetworkHandler(BaseHandler):
         if not is_enabled or network.id is None:
             return
 
-        yield TrafficShapingSensor(
-            self._coordinator,
-            self._config_entry,
-            network.id,
-        )
+        try:
+            yield TrafficShapingSensor(
+                self._coordinator,
+                self._config_entry,
+                network.id,
+            )
+        except Exception as err:
+            _LOGGER.error(
+                "Failed to instantiate TrafficShapingSensor for network %s: %s",
+                network.id,
+                err,
+            )
 
     async def _discover_vlans(self, network: MerakiNetwork) -> AsyncIterator[Entity]:
         """Discover VLAN sensors."""
@@ -207,28 +253,50 @@ class NetworkHandler(BaseHandler):
         from ...sensor.network.vlan import MerakiVLANStatusSensor
         from ...sensor.network.vlans_list import VlansListSensor
 
-        yield VlansListSensor(self._coordinator, self._config_entry, network)
+        try:
+            yield VlansListSensor(self._coordinator, self._config_entry, network)
+        except Exception as err:
+            _LOGGER.error(
+                "Failed to instantiate VlansListSensor for network %s: %s",
+                network.id,
+                err,
+            )
 
         for vlan in vlans:
             if not vlan:
                 continue
-            yield MerakiVLANStatusSensor(
-                self._coordinator,
-                self._config_entry,
-                network.id,
-                vlan,
-            )
+            try:
+                yield MerakiVLANStatusSensor(
+                    self._coordinator,
+                    self._config_entry,
+                    network.id,
+                    vlan,
+                )
+            except Exception as err:
+                _LOGGER.error(
+                    "Failed to instantiate MerakiVLANStatusSensor for VLAN %s in network %s: %s",
+                    vlan.get("id") if isinstance(vlan, dict) else "Unknown",
+                    network.id,
+                    err,
+                )
 
     async def _discover_network_health_sensors(
         self, network: MerakiNetwork
     ) -> AsyncIterator[Entity]:
         """Discover network health sensors."""
-        yield MerakiNetworkHealthSensor(
-            self._coordinator, self._config_entry, network, "MX", "Gateways"
-        )
-        yield MerakiNetworkHealthSensor(
-            self._coordinator, self._config_entry, network, "MS", "Switches"
-        )
-        yield MerakiNetworkHealthSensor(
-            self._coordinator, self._config_entry, network, "MR", "Access Points"
-        )
+        for device_type, label in [
+            ("MX", "Gateways"),
+            ("MS", "Switches"),
+            ("MR", "Access Points"),
+        ]:
+            try:
+                yield MerakiNetworkHealthSensor(
+                    self._coordinator, self._config_entry, network, device_type, label
+                )
+            except Exception as err:
+                _LOGGER.error(
+                    "Failed to instantiate MerakiNetworkHealthSensor (%s) for network %s: %s",
+                    device_type,
+                    network.id,
+                    err,
+                )

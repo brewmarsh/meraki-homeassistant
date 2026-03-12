@@ -36,11 +36,30 @@ class AppliancePortProvider:
             return []
 
         entities: list[Entity] = []
-        if device.appliance_ports:
-            for port in device.appliance_ports:
+        if not device.appliance_ports:
+            return entities
+
+        for port in device.appliance_ports:
+            try:
+                # Basic validation: ensure port has a number
+                if port.number is None:
+                    _LOGGER.warning(
+                        "Skipping appliance port on device %s: missing port number",
+                        device.serial,
+                    )
+                    continue
+
                 entities.append(MerakiAppliancePortSensor(coordinator, device, port))
                 entities.append(AppliancePortBinarySensor(coordinator, device, port))
                 entities.append(
                     MerakiAppliancePortSwitch(coordinator, device, port, config_entry)
+                )
+            except Exception as err:
+                _LOGGER.error(
+                    "Failed to initialize appliance port %s on device %s: %s",
+                    getattr(port, "number", "unknown"),
+                    device.serial,
+                    err,
+                    exc_info=True,
                 )
         return entities

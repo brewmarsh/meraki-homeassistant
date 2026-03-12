@@ -95,24 +95,36 @@ class DeviceDiscoveryService:
         all_entities: list[Entity] = []
 
         # Discover network-level entities
-        async for entity in self._discover_network_entities():
-            all_entities.append(entity)
+        try:
+            async for entity in self._discover_network_entities():
+                all_entities.append(entity)
+        except Exception as err:
+            _LOGGER.error("Failed to discover network-level entities: %s", err, exc_info=True)
 
         # Discover device-level entities
-        async for entity in self._discover_device_entities():
-            all_entities.append(entity)
+        try:
+            async for entity in self._discover_device_entities():
+                all_entities.append(entity)
+        except Exception as err:
+            _LOGGER.error("Failed to discover device-level entities: %s", err, exc_info=True)
 
         # Create Wireless handler for devices and virtual SSID devices
-        wireless_handler = WirelessHandler(
-            self._wireless_coordinator, self._config_entry, self._meraki_client
-        )
-        async for entity in wireless_handler.discover_entities():
-            all_entities.append(entity)
+        try:
+            wireless_handler = WirelessHandler(
+                self._wireless_coordinator, self._config_entry, self._meraki_client
+            )
+            async for entity in wireless_handler.discover_entities():
+                all_entities.append(entity)
+        except Exception as err:
+            _LOGGER.error("Failed to discover wireless entities: %s", err, exc_info=True)
 
         # Create Switch handler for switch devices
-        switch_handler = SwitchHandler(self._switch_coordinator, self._config_entry)
-        async for entity in switch_handler.discover_entities():
-            all_entities.append(entity)
+        try:
+            switch_handler = SwitchHandler(self._switch_coordinator, self._config_entry)
+            async for entity in switch_handler.discover_entities():
+                all_entities.append(entity)
+        except Exception as err:
+            _LOGGER.error("Failed to discover switch entities: %s", err, exc_info=True)
 
         _LOGGER.info("Entity discovery complete. Found %d entities.", len(all_entities))
         self.all_entities = all_entities
@@ -136,25 +148,33 @@ class DeviceDiscoveryService:
         _LOGGER.debug("Starting entity discovery for %d devices", len(self._devices))
 
         for device in self._devices:
-            if not device.model:
-                _LOGGER.warning("Device %s has no model, skipping", device.serial)
-                continue
+            try:
+                if not device.model:
+                    _LOGGER.warning("Device %s has no model, skipping", device.serial)
+                    continue
 
-            coordinator = self._get_coordinator_for_device(device)
+                coordinator = self._get_coordinator_for_device(device)
 
-            handler = UniversalHandler(
-                coordinator,
-                device,
-                self._config_entry,
-                self._camera_service,
-                self._control_service,
-                self._network_control_service,
-                status_coordinator=self._device_coordinator,
-                sensor_coordinator=self._sensor_coordinator,
-            )
+                handler = UniversalHandler(
+                    coordinator,
+                    device,
+                    self._config_entry,
+                    self._camera_service,
+                    self._control_service,
+                    self._network_control_service,
+                    status_coordinator=self._device_coordinator,
+                    sensor_coordinator=self._sensor_coordinator,
+                )
 
-            async for entity in handler.discover_entities():
-                yield entity
+                async for entity in handler.discover_entities():
+                    yield entity
+            except Exception as err:
+                _LOGGER.error(
+                    "Unexpected error during entity discovery for device %s: %s",
+                    device.serial if hasattr(device, "serial") else "Unknown",
+                    err,
+                    exc_info=True,
+                )
 
     def _get_coordinator_for_device(self, device: MerakiDevice):
         """Select coordinator based on product type."""

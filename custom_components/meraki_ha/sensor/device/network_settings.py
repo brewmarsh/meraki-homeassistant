@@ -55,6 +55,25 @@ class MerakiDeviceUplinkBaseSensor(MerakiEntity, SensorEntity):
                     return uplink
         return None
 
+    def _truncate_value(self, value: str | None) -> str | None:
+        """Abbreviate long IPv6 addresses for UI display."""
+        if not value:
+            return value
+
+        def truncate_ip(ip: str) -> str:
+            """Truncate a single IP if it is a long IPv6 address."""
+            if ":" in ip:
+                blocks = ip.split(":")
+                if len(blocks) > 4:
+                    return f"{blocks[0]}:{blocks[1]}...{blocks[-2]}:{blocks[-1]}"
+            return ip
+
+        # Handle comma-separated lists (e.g., DNS)
+        if "," in value:
+            return ", ".join(truncate_ip(v.strip()) for v in value.split(","))
+
+        return truncate_ip(value)
+
 
 class MerakiDeviceIPSensor(MerakiDeviceUplinkBaseSensor):
     """Sensor for Meraki device IP address."""
@@ -69,20 +88,32 @@ class MerakiDeviceIPSensor(MerakiDeviceUplinkBaseSensor):
     ) -> None:
         """Initialize the sensor."""
         super().__init__(coordinator, device_data, config_entry, interface)
+
+        # Clean up interface name for display (e.g., lanIp -> LAN, publicIp -> Public)
+        display_interface = interface.replace("Ip", "").replace("IP", "")
+        if not display_interface: # for "ip" or "IP" interfaces
+             display_interface = "IP"
+        else:
+             display_interface = display_interface.upper()
+
         self.entity_description = SensorEntityDescription(
             key=f"{interface}_ip",
-            name=name or f"{interface.upper()} IP",
+            name=name or f"{display_interface} IP",
             icon="mdi:ip-network",
         )
+        self._attr_name = cast(str | None, self.entity_description.name)
         self._update_state()
 
     @callback
     def _update_state(self) -> None:
         """Update the sensor state."""
         device = self.coordinator.get_device(self._device_serial)
+        ip_value: str | None = None
+
         if self._interface == "lanIp" and device:
             if device.model and device.model.startswith("MT"):
                 self._attr_native_value = "N/A (Bluetooth)"
+                self._attr_extra_state_attributes = {}
                 return
             lan_ip = device.lan_ip
             if (
@@ -91,21 +122,24 @@ class MerakiDeviceIPSensor(MerakiDeviceUplinkBaseSensor):
                 and (device.model.startswith("MX") or device.model.startswith("Z3"))
             ):
                 self._attr_native_value = "Multiple (VLANs)"
-            else:
-                self._attr_native_value = lan_ip
-            return
-        if self._interface == "publicIp" and device:
+                self._attr_extra_state_attributes = {}
+                return
+            ip_value = lan_ip
+        elif self._interface == "publicIp" and device:
             if device.model and device.model.startswith("MT"):
                 self._attr_native_value = "N/A (Bluetooth)"
-            else:
-                self._attr_native_value = device.public_ip
-            return
-
-        uplink_data = self._get_uplink_data()
-        if uplink_data:
-            self._attr_native_value = uplink_data.get("ip")
+                self._attr_extra_state_attributes = {}
+                return
+            ip_value = device.public_ip
         else:
-            self._attr_native_value = None
+            uplink_data = self._get_uplink_data()
+            if uplink_data:
+                ip_value = uplink_data.get("ip")
+
+        self._attr_native_value = self._truncate_value(ip_value)
+        self._attr_extra_state_attributes = {
+            "full_ip_address": ip_value or "Unknown"
+        }
 
     @callback
     def _handle_coordinator_update(self) -> None:
@@ -127,21 +161,29 @@ class MerakiDeviceGatewaySensor(MerakiDeviceUplinkBaseSensor):
     ) -> None:
         """Initialize the sensor."""
         super().__init__(coordinator, device_data, config_entry, interface)
+
+        display_interface = interface.replace("Ip", "").replace("IP", "").upper()
+
         self.entity_description = SensorEntityDescription(
             key=f"{interface}_gateway",
-            name=name or f"{interface.upper()} Gateway",
+            name=name or f"{display_interface} Gateway",
             icon="mdi:gateway",
         )
+        self._attr_name = cast(str | None, self.entity_description.name)
         self._update_state()
 
     @callback
     def _update_state(self) -> None:
         """Update the sensor state."""
         uplink_data = self._get_uplink_data()
+        gateway_value = None
         if uplink_data:
-            self._attr_native_value = uplink_data.get("gateway")
-        else:
-            self._attr_native_value = None
+            gateway_value = uplink_data.get("gateway")
+
+        self._attr_native_value = self._truncate_value(gateway_value)
+        self._attr_extra_state_attributes = {
+            "full_gateway_address": gateway_value or "Unknown"
+        }
 
     @callback
     def _handle_coordinator_update(self) -> None:
@@ -163,25 +205,33 @@ class MerakiDeviceDNSSensor(MerakiDeviceUplinkBaseSensor):
     ) -> None:
         """Initialize the sensor."""
         super().__init__(coordinator, device_data, config_entry, interface)
+
+        display_interface = interface.replace("Ip", "").replace("IP", "").upper()
+
         self.entity_description = SensorEntityDescription(
             key=f"{interface}_dns",
-            name=name or f"{interface.upper()} DNS",
+            name=name or f"{display_interface} DNS",
             icon="mdi:dns",
         )
+        self._attr_name = cast(str | None, self.entity_description.name)
         self._update_state()
 
     @callback
     def _update_state(self) -> None:
         """Update the sensor state."""
         uplink_data = self._get_uplink_data()
+        dns_value = None
         if uplink_data:
             dns_servers = uplink_data.get("dns")
             if isinstance(dns_servers, list):
-                self._attr_native_value = cast(StateType, ", ".join(dns_servers))
+                dns_value = ", ".join(dns_servers)
             else:
-                self._attr_native_value = cast(StateType, dns_servers)
-        else:
-            self._attr_native_value = None
+                dns_value = dns_servers
+
+        self._attr_native_value = cast(StateType, self._truncate_value(dns_value))
+        self._attr_extra_state_attributes = {
+            "full_dns_servers": dns_value or "Unknown"
+        }
 
     @callback
     def _handle_coordinator_update(self) -> None:
