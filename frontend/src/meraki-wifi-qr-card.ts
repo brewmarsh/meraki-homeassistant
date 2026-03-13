@@ -21,6 +21,8 @@ export class MerakiWifiQrCardEditor extends LitElement {
   @state() private _config?: Config;
   @state() private _networks: Network[] = [];
   @state() private _ssids: SSID[] = [];
+  @state() private _isLoading: boolean = true;
+  @state() private _loadingMessage: string = "Connecting...";
 
   public setConfig(config: Config): void {
     this._config = config;
@@ -33,7 +35,15 @@ export class MerakiWifiQrCardEditor extends LitElement {
 
   private async _loadCentralizedData() {
     if (!this.hass) return;
-    const { networks, ssids } = await MerakiDataProvider.fetchConfig(this.hass);
+
+    const { networks, ssids } = await MerakiDataProvider.pollConfig(
+      this.hass,
+      (msg, isLoading) => {
+        this._loadingMessage = msg;
+        this._isLoading = isLoading;
+      }
+    );
+
     this._networks = networks;
     this._ssids = ssids;
   }
@@ -67,6 +77,17 @@ export class MerakiWifiQrCardEditor extends LitElement {
   protected render() {
     if (!this.hass || !this._config) return html``;
 
+    if (this._isLoading) {
+      return html`
+        <div class="editor-container">
+          <ha-circular-progress active></ha-circular-progress>
+          <div style="margin-top: 16px; color: var(--secondary-text-color);">
+            ${this._loadingMessage}
+          </div>
+        </div>
+      `;
+    }
+
     const networkOptions = MerakiDataProvider.getNetworkOptions(this._networks, true);
     const ssidOptions = MerakiDataProvider.getSsidOptions(this._ssids, this._config.networkId, 'name');
 
@@ -97,6 +118,8 @@ export class MerakiWifiQrCard extends LitElement {
   @property({ attribute: false }) public hass!: HomeAssistant;
   @state() private _config?: Config;
   @state() private _qrSvg: string = '';
+  @state() private _isLoading: boolean = true;
+  @state() private _loadingMessage: string = "Connecting...";
   
   // Bring the centralized data into the main card for ID mapping
   @state() private _ssids: SSID[] = [];
@@ -126,7 +149,15 @@ export class MerakiWifiQrCard extends LitElement {
 
   private async _loadCentralizedData() {
     if (!this.hass) return;
-    const { ssids } = await MerakiDataProvider.fetchConfig(this.hass);
+
+    const { ssids } = await MerakiDataProvider.pollConfig(
+      this.hass,
+      (msg, isLoading) => {
+        this._loadingMessage = msg;
+        this._isLoading = isLoading;
+      }
+    );
+
     this._ssids = ssids;
     this._generateQR();
   }
@@ -226,11 +257,16 @@ export class MerakiWifiQrCard extends LitElement {
   }
 
   protected render() {
-    if (!this._config || !this.hass) {
+    if (!this._config || !this.hass) return html``;
+
+    if (this._isLoading) {
       return html`
         <ha-card .header=${this._config?.name || 'Wi-Fi Access'}>
-          <div class="card-content">
-            ${renderWarning("Integration Initializing", "Waiting for Home Assistant data...")}
+          <div class="card-content" style="text-align: center; padding: 32px;">
+            <ha-circular-progress active></ha-circular-progress>
+            <div style="margin-top: 16px; color: var(--secondary-text-color);">
+              ${this._loadingMessage}
+            </div>
           </div>
           <div class="version">v${__VERSION__}</div>
         </ha-card>

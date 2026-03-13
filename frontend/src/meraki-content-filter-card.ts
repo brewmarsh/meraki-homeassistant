@@ -1,7 +1,8 @@
-import { LitElement, html, css } from 'lit';
+import { LitElement, html, css, PropertyValues } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { HomeAssistant } from './types/ha';
 import { renderWarning, sharedStyles } from './shared-ui';
+import { MerakiDataProvider } from './utils/meraki-data';
 
 declare const __VERSION__: string;
 
@@ -19,6 +20,8 @@ export class MerakiContentFilterCard extends LitElement {
   // New Optimistic UI States to fight cloud caching
   @state() private _optimisticProfile: string | null = null;
   @state() private _isUpdating: boolean = false;
+  @state() private _isLoading: boolean = true;
+  @state() private _loadingMessage: string = "Connecting...";
 
   public static async getConfigElement() {
     return document.createElement("meraki-content-filter-card-editor");
@@ -29,6 +32,23 @@ export class MerakiContentFilterCard extends LitElement {
       throw new Error('Invalid configuration');
     }
     this._config = { ...config };
+  }
+
+  protected firstUpdated(changedProperties: PropertyValues) {
+    super.firstUpdated(changedProperties);
+    this._loadCentralizedData();
+  }
+
+  private async _loadCentralizedData() {
+    if (!this.hass) return;
+
+    await MerakiDataProvider.pollConfig(
+      this.hass,
+      (msg, isLoading) => {
+        this._loadingMessage = msg;
+        this._isLoading = isLoading;
+      }
+    );
   }
 
   private _discoverEntity(): string | undefined {
@@ -54,15 +74,20 @@ export class MerakiContentFilterCard extends LitElement {
   }
 
   protected render() {
-    if (!this.hass || !this._config) {
-        return html`
-          <ha-card .header="${this._config?.name || 'Meraki Content Filter'}">
-            <div class="card-content">
-              ${renderWarning("Integration Initializing", "Waiting for Home Assistant data...")}
+    if (!this.hass || !this._config) return html``;
+
+    if (this._isLoading) {
+      return html`
+        <ha-card .header="${this._config?.name || 'Meraki Content Filter'}">
+          <div class="card-content" style="text-align: center; padding: 32px;">
+            <ha-circular-progress active></ha-circular-progress>
+            <div style="margin-top: 16px; color: var(--secondary-text-color);">
+              ${this._loadingMessage}
             </div>
-            <div class="version">v${__VERSION__}</div>
-          </ha-card>
-        `;
+          </div>
+          <div class="version">v${__VERSION__}</div>
+        </ha-card>
+      `;
     }
 
     const entityId = this._config.entity || this._discoverEntity();
