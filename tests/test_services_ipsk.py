@@ -20,6 +20,7 @@ def mock_ipsk_manager(hass):
     """Mock IPSK Manager."""
     manager = MagicMock()
     manager.create_guest_key = AsyncMock()
+    manager.get_or_create_guest_policy = AsyncMock(return_value="GP_MOCK")
     hass.data[DOMAIN]["ipsk_manager"] = manager
     return manager
 
@@ -70,6 +71,7 @@ async def test_generate_guest_access_service_success(
         duration_minutes=60,
         name="Service Guest",
         passphrase="secretpassword",
+        group_policy_id="GP_MOCK",
     )
 
 

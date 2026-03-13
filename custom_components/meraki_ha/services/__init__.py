@@ -65,6 +65,16 @@ async def async_setup_services(hass: HomeAssistant) -> None:
         if not config_entry_id:
             raise HomeAssistantError(f"Network ID {network_id} not found")
 
+        if not group_policy_id or group_policy_id == "CREATE":
+            group_policy_id = await ipsk_manager.get_or_create_guest_policy(
+                config_entry_id, network_id
+            )
+
+        if not group_policy_id:
+            raise HomeAssistantError(
+                "A Group Policy ID is required but could not be determined or created."
+            )
+
         await ipsk_manager.create_guest_key(
             config_entry_id=config_entry_id,
             network_id=network_id,
@@ -93,9 +103,14 @@ async def async_setup_services(hass: HomeAssistant) -> None:
             raise HomeAssistantError(f"Network ID {network_id} not found")
 
         # Handle automatic group policy creation
-        if group_policy == "CREATE":
+        if not group_policy or group_policy == "CREATE":
             group_policy = await ipsk_manager.get_or_create_guest_policy(
                 config_entry_id, network_id
+            )
+
+        if not group_policy:
+            raise HomeAssistantError(
+                "A Group Policy ID is required but could not be determined or created."
             )
 
         # Map frontend parameters to the underlying IPSK manager method
