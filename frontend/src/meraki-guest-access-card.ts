@@ -40,6 +40,7 @@ export class MerakiGuestAccessCard extends LitElement {
   @state() private _error: string | null = null;
   @state() private _success: string | null = null;
   @state() private _isLoading: boolean = true;
+  @state() private _loadingMessage: string = "Connecting...";
   @state() private _configEntryId: string | null = null;
 
   public static async getConfigElement() {
@@ -70,10 +71,13 @@ export class MerakiGuestAccessCard extends LitElement {
 
   private async _loadCentralizedData() {
     if (!this.hass) return;
-    this._isLoading = true;
 
-    const { networks, ssids, entryId } = await MerakiDataProvider.fetchConfig(
-      this.hass
+    const { networks, ssids, entryId } = await MerakiDataProvider.pollConfig(
+      this.hass,
+      (msg, isLoading) => {
+        this._loadingMessage = msg;
+        this._isLoading = isLoading;
+      }
     );
     this._networks = networks;
     this._ssids = ssids;
@@ -236,7 +240,7 @@ export class MerakiGuestAccessCard extends LitElement {
       return html`
         <ha-card .header="${this._config?.name || 'Meraki Guest Access'}">
           <div class="card-content flex justify-center p-8">
-            ${renderLoading('Loading...')}
+            ${renderLoading(this._loadingMessage)}
           </div>
           <div class="version">v${__VERSION__}</div>
         </ha-card>

@@ -1,6 +1,7 @@
-import { LitElement, html, css } from 'lit';
+import { LitElement, html, css, PropertyValues } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { HomeAssistant } from './types/ha';
+import { MerakiDataProvider } from './utils/meraki-data';
 
 declare const __VERSION__: string;
 
@@ -19,6 +20,8 @@ interface Config {
 export class MerakiNetworkVitalsCard extends LitElement {
   @property({ attribute: false }) public hass!: HomeAssistant;
   @state() private _config?: Config;
+  @state() private _isLoading: boolean = true;
+  @state() private _loadingMessage: string = "Connecting...";
 
   public static async getConfigElement() {
     return document.createElement('meraki-network-vitals-card-editor');
@@ -34,6 +37,23 @@ export class MerakiNetworkVitalsCard extends LitElement {
       switch_tap_action: config.switch_tap_action || { action: 'more-info' },
       ap_tap_action: config.ap_tap_action || { action: 'more-info' },
     };
+  }
+
+  protected firstUpdated(changedProperties: PropertyValues) {
+    super.firstUpdated(changedProperties);
+    this._loadCentralizedData();
+  }
+
+  private async _loadCentralizedData() {
+    if (!this.hass) return;
+
+    await MerakiDataProvider.pollConfig(
+      this.hass,
+      (msg, isLoading) => {
+        this._loadingMessage = msg;
+        this._isLoading = isLoading;
+      }
+    );
   }
 
   public static getStubConfig(): Record<string, unknown> {
@@ -134,6 +154,20 @@ export class MerakiNetworkVitalsCard extends LitElement {
   protected render() {
     if (!this._config || !this.hass) {
       return html``;
+    }
+
+    if (this._isLoading) {
+      return html`
+        <ha-card>
+          <div class="card-content" style="text-align: center; padding: 16px;">
+            <ha-circular-progress active size="small"></ha-circular-progress>
+            <div style="margin-top: 8px; font-size: 12px; color: var(--secondary-text-color);">
+              ${this._loadingMessage}
+            </div>
+          </div>
+          <div class="version">v${__VERSION__}</div>
+        </ha-card>
+      `;
     }
 
     const throughputEntity = this._config.throughput_entity;
