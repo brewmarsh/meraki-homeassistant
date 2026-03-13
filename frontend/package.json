@@ -1,7 +1,7 @@
 {
   "name": "meraki-ha-frontend",
   "private": true,
-  "version": "2.3.0-beta.545",
+  "version": "2.3.0-beta.546",
   "type": "module",
   "scripts": {
     "build": "vite build"
