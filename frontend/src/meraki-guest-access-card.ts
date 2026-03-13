@@ -40,7 +40,7 @@ export class MerakiGuestAccessCard extends LitElement {
   @state() private _error: string | null = null;
   @state() private _success: string | null = null;
   @state() private _isLoading: boolean = true;
-  @state() private _loadingMessage: string = "Connecting...";
+  @state() private _loadingMessage: string = "Connecting to Meraki...";
   @state() private _configEntryId: string | null = null;
 
   public static async getConfigElement() {
@@ -72,20 +72,28 @@ export class MerakiGuestAccessCard extends LitElement {
   private async _loadCentralizedData() {
     if (!this.hass) return;
 
-    const { networks, ssids, entryId } = await MerakiDataProvider.pollConfig(
+    const { networks, ssids, groupPolicies, entryId } = await MerakiDataProvider.pollConfig(
       this.hass,
       (msg, isLoading) => {
         this._loadingMessage = msg;
         this._isLoading = isLoading;
       }
     );
+
+    if (networks.length === 0) {
+      this._isLoading = false;
+      return; // Polling failed after max retries
+    }
+
     this._networks = networks;
     this._ssids = ssids;
+    this._policies = groupPolicies;
     this._configEntryId = this._config?.config_entry_id || entryId;
 
     let initNetwork = this._formData.network;
     let initSsid = this._formData.ssid;
     let initPassphrase = this._formData.passphrase;
+    let initPolicy = this._formData.policy;
 
     if (networks.length > 0 && !initNetwork) {
       initNetwork = networks[0].id;
@@ -102,46 +110,23 @@ export class MerakiGuestAccessCard extends LitElement {
       initPassphrase = this._getPasswordForSelectedSsid(initNetwork, initSsid);
     }
 
+    // Auto-select the first available policy if none is selected
+    if (initNetwork && !initPolicy) {
+      const networkPolicies = this._policies.filter(p => p.networkId === initNetwork);
+      if (networkPolicies.length > 0) {
+        initPolicy = String(networkPolicies[0].groupPolicyId || networkPolicies[0].id);
+      }
+    }
+
     this._formData = {
       ...this._formData,
       network: initNetwork,
       ssid: initSsid,
       passphrase: initPassphrase,
+      policy: initPolicy,
     };
 
-    // Fetch the policies for the newly initialized network
-    if (initNetwork) {
-      await this._fetchPolicies(initNetwork);
-    }
-
     this._isLoading = false;
-  }
-
-  private async _fetchPolicies(networkId: string) {
-    if (!this.hass || !networkId || !this._configEntryId) return;
-
-    try {
-      const response = await safeCallWS<any>(this.hass, {
-        type: WsCommand.TIMED_ACCESS_GET_POLICIES,
-        config_entry_id: this._configEntryId,
-        network_id: networkId,
-      });
-
-      this._policies = Array.isArray(response)
-        ? response
-        : response?.policies || [];
-
-      // Auto-select the first policy if one isn't already selected
-      if (this._policies.length > 0 && !this._formData.policy) {
-        const firstPolicyId = String(
-          this._policies[0].groupPolicyId || this._policies[0].id
-        );
-        this._formData = { ...this._formData, policy: firstPolicyId };
-      }
-    } catch (err) {
-      console.error('Failed to fetch Meraki policies:', err);
-      this._policies = [];
-    }
   }
 
   private _getPasswordForSelectedSsid(
@@ -210,8 +195,11 @@ export class MerakiGuestAccessCard extends LitElement {
         updatedData.ssid = String(availableSsids[0].number);
       }
 
-      // Fetch new policies for the newly selected network
-      this._fetchPolicies(updatedData.network);
+      // Auto-select the first available policy for the new network
+      const networkPolicies = this._policies.filter(p => p.networkId === updatedData.network);
+      if (networkPolicies.length > 0) {
+        updatedData.policy = String(networkPolicies[0].groupPolicyId || networkPolicies[0].id);
+      }
     }
 
     if (updatedData.ssid && updatedData.ssid !== oldSsid) {
@@ -236,11 +224,23 @@ export class MerakiGuestAccessCard extends LitElement {
   };
 
   protected render() {
+    // [MERAKI CARD DIAGNOSTIC]
+    console.debug('Meraki Guest Access Card Render State:', {
+      isLoading: this._isLoading,
+      networks: this._networks.length,
+      ssids: this._ssids.length,
+      policies: this._policies.length,
+      formData: this._formData
+    });
+
     if (this._isLoading) {
       return html`
         <ha-card .header="${this._config?.name || 'Meraki Guest Access'}">
-          <div class="card-content flex justify-center p-8">
-            ${renderLoading(this._loadingMessage)}
+          <div class="card-content" style="display: flex; flex-direction: column; align-items: center; padding: 32px;">
+            <ha-circular-progress active></ha-circular-progress>
+            <div style="margin-top: 16px; color: var(--secondary-text-color); text-align: center;">
+              ${this._loadingMessage}
+            </div>
           </div>
           <div class="version">v${__VERSION__}</div>
         </ha-card>
@@ -269,10 +269,12 @@ export class MerakiGuestAccessCard extends LitElement {
       this._formData.network,
       'number'
     );
-    const policyOptions = this._policies.map((p) => ({
-      value: String(p.groupPolicyId || p.id),
-      label: p.name,
-    }));
+    const policyOptions = this._policies
+      .filter((p) => p.networkId === this._formData.network)
+      .map((p) => ({
+        value: String(p.groupPolicyId || p.id),
+        label: p.name,
+      }));
 
     const schema = [
       {
