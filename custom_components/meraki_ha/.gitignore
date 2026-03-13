@@ -1,2 +1,5 @@
 __pycache__/
-web_ui/node_modules/
+www/node_modules/
+package-lock.json
+.package-lock.json
+package.json
