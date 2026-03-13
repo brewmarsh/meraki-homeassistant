@@ -17,7 +17,7 @@ export class MerakiDataProvider {
   static async fetchConfig(hass: HomeAssistant) {
     try {
       const configEntries = await hass.callWS<any[]>({
-        type: 'config_entries/get',
+        type: 'config/config_entries/get', // Fixed endpoint path
         domain: 'meraki_ha',
       });
 
@@ -58,6 +58,44 @@ export class MerakiDataProvider {
       console.error('Failed to fetch Meraki data via WS:', err);
       return { networks: [], ssids: [], groupPolicies: [], entryId: null };
     }
+  }
+
+  /**
+   * Intelligently polls the backend until the API backoffs clear and data is populated.
+   * @param hass The Home Assistant instance
+   * @param onStatusUpdate Callback fired whenever the loading state or message changes
+   * @param maxRetries Maximum number of polling attempts (default: 12 attempts / ~1 minute)
+   * @param delayMs Delay between attempts in milliseconds (default: 5000ms)
+   */
+  static async pollConfig(
+    hass: HomeAssistant,
+    onStatusUpdate: (message: string, isLoading: boolean) => void,
+    maxRetries: number = 12,
+    delayMs: number = 5000
+  ): Promise<{ networks: Network[], ssids: SSID[], groupPolicies: GroupPolicy[], entryId: string | null }> {
+    
+    for (let i = 0; i < maxRetries; i++) {
+      try {
+        const data = await this.fetchConfig(hass);
+        
+        // If networks are found, the integration is fully booted
+        if (data.networks.length > 0) {
+          onStatusUpdate("", false); 
+          return data;
+        }
+        
+        onStatusUpdate(`Waiting for integration to sync... (Attempt ${i + 1}/${maxRetries})`, true);
+      } catch (err) {
+        onStatusUpdate(`Error connecting to backend. Retrying... (Attempt ${i + 1}/${maxRetries})`, true);
+      }
+
+      // Wait before the next poll
+      await new Promise(resolve => setTimeout(resolve, delayMs));
+    }
+
+    // Exhausted all retries
+    onStatusUpdate("Integration failed to initialize after 1 minute. Please check backend logs.", false);
+    return { networks: [], ssids: [], groupPolicies: [], entryId: null };
   }
 
   /**
