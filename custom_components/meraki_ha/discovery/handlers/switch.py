@@ -50,7 +50,8 @@ class SwitchHandler(BaseHandler):
                     if device.product_type == "appliance" or (
                         device.model
                         and (
-                            device.model.startswith("MX") or device.model.startswith("Z3")
+                            device.model.startswith("MX")
+                            or device.model.startswith("Z3")
                         )
                     ):
                         _LOGGER.debug(
@@ -67,13 +68,17 @@ class SwitchHandler(BaseHandler):
                             )
                         except Exception as err:
                             _LOGGER.error(
-                                "Failed to instantiate MerakiSwitchClientCountSensor for device %s: %s",
+                                "Failed to instantiate MerakiSwitchClientCountSensor "
+                                "for device %s: %s",
                                 device.serial,
                                 err,
                             )
 
                         # Switch Ports
-                        if self._config_entry.options.get(CONF_ENABLE_PORT_SENSORS, True):
+                        enable_port_sensors = self._config_entry.options.get(
+                            CONF_ENABLE_PORT_SENSORS, True
+                        )
+                        if enable_port_sensors:
                             try:
                                 for entity in SwitchPortProvider.get_entities(
                                     self._coordinator, device, self._config_entry
@@ -81,7 +86,8 @@ class SwitchHandler(BaseHandler):
                                     yield entity
                             except Exception as err:
                                 _LOGGER.error(
-                                    "Failed to discover SwitchPort entities for device %s: %s",
+                                    "Failed to discover SwitchPort entities "
+                                    "for device %s: %s",
                                     device.serial,
                                     err,
                                 )

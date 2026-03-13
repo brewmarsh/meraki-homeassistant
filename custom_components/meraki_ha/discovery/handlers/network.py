@@ -206,7 +206,8 @@ class NetworkHandler(BaseHandler):
                 )
             except Exception as err:
                 _LOGGER.error(
-                    "Failed to instantiate MerakiClientStatusSensor for client %s in network %s: %s",
+                    "Failed to instantiate MerakiClientStatusSensor for client "
+                    "%s in network %s: %s",
                     client.get("mac", "Unknown"),
                     network.id,
                     err,
@@ -274,7 +275,8 @@ class NetworkHandler(BaseHandler):
                 )
             except Exception as err:
                 _LOGGER.error(
-                    "Failed to instantiate MerakiVLANStatusSensor for VLAN %s in network %s: %s",
+                    "Failed to instantiate MerakiVLANStatusSensor for VLAN "
+                    "%s in network %s: %s",
                     vlan.get("id") if isinstance(vlan, dict) else "Unknown",
                     network.id,
                     err,
@@ -295,7 +297,8 @@ class NetworkHandler(BaseHandler):
                 )
             except Exception as err:
                 _LOGGER.error(
-                    "Failed to instantiate MerakiNetworkHealthSensor (%s) for network %s: %s",
+                    "Failed to instantiate MerakiNetworkHealthSensor (%s) "
+                    "for network %s: %s",
                     device_type,
                     network.id,
                     err,

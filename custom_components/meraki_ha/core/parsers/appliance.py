@@ -94,7 +94,8 @@ def parse_appliance_ports(
                     appliance_ports.append(MerakiAppliancePort.from_dict(port))
                 except Exception as e:
                     _LOGGER.error(
-                        "Failed to parse appliance port data for device %s: %s. Data: %s",
+                        "Failed to parse appliance port data for device %s: "
+                        "%s. Data: %s",
                         serial,
                         e,
                         port,

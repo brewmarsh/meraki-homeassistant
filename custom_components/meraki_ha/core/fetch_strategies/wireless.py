@@ -27,7 +27,7 @@ class WirelessFetchStrategy(BaseFetchStrategy):
         )
         if "wireless" in product_types or "appliance" in product_types:
             tasks[f"group_policies_{network_id}"] = self.client.run_with_semaphore(
-                self.client.networks.get_group_policies(network_id)
+                self.client.network.get_group_policies(network_id)
             )
 
     def build_device_tasks(

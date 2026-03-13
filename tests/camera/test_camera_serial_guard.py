@@ -3,12 +3,11 @@
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-import aiohttp
-from homeassistant.core import HomeAssistant
-from homeassistant.components.camera import CameraEntityFeature
 
 from custom_components.meraki_ha.camera import MerakiRTSPStreamCamera
 from custom_components.meraki_ha.core.models.device import MerakiDevice
+from homeassistant.components.camera import CameraEntityFeature
+from homeassistant.core import HomeAssistant
 
 
 @pytest.fixture
@@ -61,7 +60,9 @@ async def test_camera_image_no_serial(
         image = await mock_camera.async_camera_image()
 
         assert image is None
-        mock_logger.debug.assert_called_with("Cannot fetch snapshot: Camera serial is missing.")
+        mock_logger.debug.assert_called_with(
+            "Cannot fetch snapshot: Camera serial is missing."
+        )
 
 
 @pytest.mark.asyncio
@@ -72,7 +73,9 @@ async def test_camera_image_500_error(
 ) -> None:
     """Test that camera image returns None and logs warning on 500 error."""
     mock_camera.hass = hass
-    mock_camera_service.generate_snapshot.return_value = "https://meraki.com/snapshot.jpg"
+    mock_camera_service.generate_snapshot.return_value = (
+        "https://meraki.com/snapshot.jpg"
+    )
 
     # Mock the aiohttp response to return a 500 status
     mock_response = MagicMock()
@@ -83,7 +86,9 @@ async def test_camera_image_500_error(
     mock_context_manager.__aenter__ = AsyncMock(return_value=mock_response)
     mock_context_manager.__aexit__ = AsyncMock(return_value=None)
 
-    with patch("custom_components.meraki_ha.camera.async_get_clientsession") as mock_session:
+    with patch(
+        "custom_components.meraki_ha.camera.async_get_clientsession"
+    ) as mock_session:
         mock_session.return_value.get.return_value = mock_context_manager
 
         with patch("custom_components.meraki_ha.camera._LOGGER") as mock_logger:
@@ -112,4 +117,6 @@ async def test_camera_stream_source_no_serial(
         source = await mock_camera.async_stream_source()
 
         assert source is None
-        mock_logger.debug.assert_called_with("Cannot fetch stream: Camera serial is missing.")
+        mock_logger.debug.assert_called_with(
+            "Cannot fetch stream: Camera serial is missing."
+        )

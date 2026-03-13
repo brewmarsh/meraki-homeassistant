@@ -99,14 +99,18 @@ class DeviceDiscoveryService:
             async for entity in self._discover_network_entities():
                 all_entities.append(entity)
         except Exception as err:
-            _LOGGER.error("Failed to discover network-level entities: %s", err, exc_info=True)
+            _LOGGER.error(
+                "Failed to discover network-level entities: %s", err, exc_info=True
+            )
 
         # Discover device-level entities
         try:
             async for entity in self._discover_device_entities():
                 all_entities.append(entity)
         except Exception as err:
-            _LOGGER.error("Failed to discover device-level entities: %s", err, exc_info=True)
+            _LOGGER.error(
+                "Failed to discover device-level entities: %s", err, exc_info=True
+            )
 
         # Create Wireless handler for devices and virtual SSID devices
         try:
@@ -116,7 +120,9 @@ class DeviceDiscoveryService:
             async for entity in wireless_handler.discover_entities():
                 all_entities.append(entity)
         except Exception as err:
-            _LOGGER.error("Failed to discover wireless entities: %s", err, exc_info=True)
+            _LOGGER.error(
+                "Failed to discover wireless entities: %s", err, exc_info=True
+            )
 
         # Create Switch handler for switch devices
         try:

@@ -156,12 +156,18 @@ class WirelessHandler(BaseHandler):
                     ssid,
                 )
             except Exception as err:
-                _LOGGER.error(
-                    "Failed to discover SSID entities for SSID %s in network %s: %s",
-                    ssid.get("name", "Unknown") if isinstance(ssid, dict) else "Unknown",
+                ssid_name = (
+                    ssid.get("name", "Unknown") if isinstance(ssid, dict) else "Unknown"
+                )
+                ssid_network_id = (
                     ssid.get("networkId", "Unknown")
                     if isinstance(ssid, dict)
-                    else "Unknown",
+                    else "Unknown"
+                )
+                _LOGGER.error(
+                    "Failed to discover SSID entities for SSID %s in network %s: %s",
+                    ssid_name,
+                    ssid_network_id,
                     err,
                     exc_info=True,
                 )

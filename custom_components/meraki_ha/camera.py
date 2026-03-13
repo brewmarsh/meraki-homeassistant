@@ -5,13 +5,12 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING, Any
 
-from homeassistant.components.camera import Camera, CameraEntityFeature
-from homeassistant.helpers.aiohttp_client import async_get_clientsession
-
 from custom_components.meraki_ha.const.config import (
     CONF_RTSP_STREAM_ENABLED,
 )
 from custom_components.meraki_ha.const.integration import DOMAIN
+from homeassistant.components.camera import Camera, CameraEntityFeature
+from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
 from .entity import MerakiEntity
 from .helpers.device_info_helpers import resolve_device_info
@@ -203,7 +202,9 @@ class MerakiRTSPStreamCamera(MerakiEntity, Camera):
                 response.raise_for_status()
                 return await response.read()
         except Exception as err:
-            _LOGGER.warning("Failed to fetch camera snapshot for %s: %s", self.name, err)
+            _LOGGER.warning(
+                "Failed to fetch camera snapshot for %s: %s", self.name, err
+            )
             return None
 
     @property
