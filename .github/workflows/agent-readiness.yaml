@@ -67,6 +67,6 @@ jobs:
       - name: Post comment to PR
         if: always() && github.event_name == 'pull_request'
         continue-on-error: true
-        uses: marocchino/sticky-pull-request-comment@v2
+        uses: marocchino/sticky-pull-request-comment@v3
         with:
           path: readiness_report.md
