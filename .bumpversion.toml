@@ -1,5 +1,5 @@
 [tool.bumpversion]
-current_version = "2.3.0-beta.690"
+current_version = "2.3.0-beta.691"
 commit = false
 tag = false
 parse = "(?P<major>\\d+)\\.(?P<minor>\\d+)\\.(?P<patch>\\d+)(?:-(?P<release>[a-z]+)\\.(?P<build>\\d+))?"
