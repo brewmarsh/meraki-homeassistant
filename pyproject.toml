@@ -1,6 +1,6 @@
 [project]
 name = "meraki_ha"
-version = "2.3.0-beta.120"
+version = "2.3.0-beta.1734"
 dependencies = [
     "baml-py>=0.219.0",
     "tree-sitter>=0.25.2",
