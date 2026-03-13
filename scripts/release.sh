@@ -81,10 +81,10 @@ echo "Successfully synced ${BUMP_CONFIG_FILE}"
 BUMP_PART=""
 case "${PART}" in
   beta)
-    BUMP_PART="patch"
+    BUMP_PART="build"
     ;;
   patch)
-    BUMP_PART="patch"
+    BUMP_PART="release"
     ;;
   *)
     error_exit "Invalid part '${PART}'. Must be 'beta' or 'patch'."

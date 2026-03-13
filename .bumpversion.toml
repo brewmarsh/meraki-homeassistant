@@ -1,4 +1,4 @@
-[bumpversion]
+[tool.bumpversion]
 current_version = "2.3.0-beta.120"
 commit = false
 tag = false
@@ -8,14 +8,24 @@ serialize = [
 	"{major}.{minor}.{patch}"
 ]
 
-["bumpversion:file:custom_components/meraki_ha/manifest.json"]
-search = '"version": "{current_version}"'
-replace = '"version": "{new_version}"'
+[tool.bumpversion.parts.release]
+optional_value = "gamma"
+values = ["beta", "gamma"]
 
-["bumpversion:file:package.json"]
-search = '"version": "{current_version}"'
-replace = '"version": "{new_version}"'
+[tool.bumpversion.parts.build]
+first_value = "1"
 
-["bumpversion:file:frontend/package.json"]
-search = '"version": "{current_version}"'
-replace = '"version": "{new_version}"'
+[[tool.bumpversion.files]]
+filename = "custom_components/meraki_ha/manifest.json"
+search = "\"version\": \"{current_version}\""
+replace = "\"version\": \"{new_version}\""
+
+[[tool.bumpversion.files]]
+filename = "package.json"
+search = "\"version\": \"{current_version}\""
+replace = "\"version\": \"{new_version}\""
+
+[[tool.bumpversion.files]]
+filename = "frontend/package.json"
+search = "\"version\": \"{current_version}\""
+replace = "\"version\": \"{new_version}\""
