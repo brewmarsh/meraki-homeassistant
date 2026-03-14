@@ -8,7 +8,6 @@ from typing import TYPE_CHECKING, Any
 
 from custom_components.meraki_ha.const.device import DEFAULT_CAPS
 
-from ...core.parsers.appliance import parse_appliance_data
 from ...core.parsers.devices import parse_device_data
 from ...core.parsers.network import parse_network_data
 from ...core.parsers.sensors import parse_sensor_data
@@ -323,5 +322,4 @@ class DataFetchManager:
         )
         data.update(network_details)
 
-        appliance_details = parse_appliance_data(data["devices"], data, current_data)
-        data.update(appliance_details)
+        return data

@@ -182,24 +182,22 @@ class UpdateProcessor:
 
         update_device_registry_info(self.hass, devices)
 
-        # Return lookup tables
-        data.update(
-            {
-                "devices": devices,
-                "networks": list(networks_by_id.values()),
-                "devices_by_serial": devices_by_serial,
-                "networks_by_id": networks_by_id,
-                "ssids_by_network_and_number": ssids_by_network_and_number,
-            }
-        )
+        # Process appliance-specific data mappings
+        self._process_appliance_data(data, devices)
 
-        return {
+        # Return lookup tables
+        result = {
             "devices": devices,
             "networks": list(networks_by_id.values()),
             "devices_by_serial": devices_by_serial,
             "networks_by_id": networks_by_id,
             "ssids_by_network_and_number": ssids_by_network_and_number,
+            "clients": data.get("clients", []),
+            "clients_by_serial": data.get("clients_by_serial", {}),
         }
+        data.update(result)
+
+        return result
 
     async def _normalize_devices(
         self, data: dict[str, Any]
@@ -209,9 +207,28 @@ class UpdateProcessor:
         if asyncio.iscoroutine(devices_raw):
             devices_raw = await devices_raw
 
-        devices = [
-            MerakiDevice.from_dict(d) if isinstance(d, dict) else d for d in devices_raw
-        ]
+        devices = []
+        for d in devices_raw:
+            if isinstance(d, dict):
+                device = MerakiDevice.from_dict(d)
+                # Ensure appliance_ports are preserved if present in the dict.
+                # The model's from_dict handles "appliancePorts" but we are explicit
+                # here in case it's missing after transformations.
+                if "appliancePorts" in d:
+                    from ..models.appliance import MerakiAppliancePort
+
+                    device.appliance_ports = [
+                        MerakiAppliancePort.from_dict(p) for p in d["appliancePorts"]
+                    ]
+
+                # Also handle switch ports for completeness
+                if "portsStatuses" in d:
+                    device.switch_ports = d["portsStatuses"]
+
+                devices.append(device)
+            else:
+                devices.append(d)
+
         devices_by_serial = {d.serial: d for d in devices if d.serial}
         data["devices"] = devices
         return devices, devices_by_serial
@@ -245,6 +262,15 @@ class UpdateProcessor:
             for s in ssids_raw
             if s.get("networkId") and s.get("number") is not None
         }
+
+    def _process_appliance_data(
+        self, data: dict[str, Any], devices: list[MerakiDevice]
+    ) -> None:
+        """Map appliance-specific data fields back to device objects."""
+        from ..parsers.appliance import parse_appliance_data
+
+        # This will populate appliance_uplink_statuses and uplinks
+        parse_appliance_data(devices, data)
 
     def process_failure(
         self, err: Exception, last_successful_data: dict[str, Any]
