@@ -41,6 +41,7 @@ GUEST_ACCESS_SCHEMA = vol.Schema(
         vol.Optional("guest_name", default="Guest"): cv.string,
         vol.Optional("passphrase"): cv.string,
         vol.Optional("group_policy"): cv.string,
+        vol.Optional("group_policy_id"): cv.string,
     }
 )
 
@@ -92,7 +93,7 @@ async def async_setup_services(hass: HomeAssistant) -> None:
         duration = call.data["duration"]
         guest_name = call.data["guest_name"]
         passphrase = call.data.get("passphrase")
-        group_policy = call.data.get("group_policy")
+        group_policy = call.data.get("group_policy") or call.data.get("group_policy_id")
 
         ipsk_manager: IPSKManager | None = hass.data[DOMAIN].get("ipsk_manager")
         if not ipsk_manager:

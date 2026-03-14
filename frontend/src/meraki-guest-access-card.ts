@@ -40,7 +40,7 @@ export class MerakiGuestAccessCard extends LitElement {
   @state() private _error: string | null = null;
   @state() private _success: string | null = null;
   @state() private _isLoading: boolean = true;
-  @state() private _loadingMessage: string = "Connecting to Meraki...";
+  @state() private _loadingMessage: string = 'Connecting to Meraki...';
   @state() private _configEntryId: string | null = null;
 
   public static async getConfigElement() {
@@ -72,13 +72,11 @@ export class MerakiGuestAccessCard extends LitElement {
   private async _loadCentralizedData() {
     if (!this.hass) return;
 
-    const { networks, ssids, groupPolicies, entryId } = await MerakiDataProvider.pollConfig(
-      this.hass,
-      (msg, isLoading) => {
+    const { networks, ssids, groupPolicies, entryId } =
+      await MerakiDataProvider.pollConfig(this.hass, (msg, isLoading) => {
         this._loadingMessage = msg;
         this._isLoading = isLoading;
-      }
-    );
+      });
 
     if (networks.length === 0) {
       this._isLoading = false;
@@ -112,9 +110,13 @@ export class MerakiGuestAccessCard extends LitElement {
 
     // Auto-select the first available policy if none is selected
     if (initNetwork && !initPolicy) {
-      const networkPolicies = this._policies.filter(p => p.networkId === initNetwork);
+      const networkPolicies = this._policies.filter(
+        (p) => p.networkId === initNetwork
+      );
       if (networkPolicies.length > 0) {
-        initPolicy = String(networkPolicies[0].groupPolicyId || networkPolicies[0].id);
+        initPolicy = String(
+          networkPolicies[0].groupPolicyId || networkPolicies[0].id
+        );
       }
     }
 
@@ -196,9 +198,13 @@ export class MerakiGuestAccessCard extends LitElement {
       }
 
       // Auto-select the first available policy for the new network
-      const networkPolicies = this._policies.filter(p => p.networkId === updatedData.network);
+      const networkPolicies = this._policies.filter(
+        (p) => p.networkId === updatedData.network
+      );
       if (networkPolicies.length > 0) {
-        updatedData.policy = String(networkPolicies[0].groupPolicyId || networkPolicies[0].id);
+        updatedData.policy = String(
+          networkPolicies[0].groupPolicyId || networkPolicies[0].id
+        );
       }
     }
 
@@ -230,7 +236,7 @@ export class MerakiGuestAccessCard extends LitElement {
       networks: this._networks.length,
       ssids: this._ssids.length,
       policies: this._policies.length,
-      formData: this._formData
+      formData: this._formData,
     });
 
     if (this._isLoading) {
@@ -375,11 +381,18 @@ export class MerakiGuestAccessCard extends LitElement {
         network_id: this._formData.network,
         ssid: parseInt(this._formData.ssid, 10),
         duration: parseInt(this._formData.duration, 10),
-        group_policy_id: this._formData.policy, // Injects the required Meraki API parameter
       };
 
+      if (
+        this._formData.policy &&
+        this._formData.policy !== 'NONE' &&
+        this._formData.policy !== 'CREATE'
+      ) {
+        payload.group_policy = this._formData.policy;
+      }
+
       if (this._formData.guestName) {
-        payload.name = this._formData.guestName;
+        payload.guest_name = this._formData.guestName;
       }
 
       if (this._formData.passphrase) {

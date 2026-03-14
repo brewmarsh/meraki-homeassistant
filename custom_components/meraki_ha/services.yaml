@@ -78,3 +78,8 @@ generate_guest_access:
       description: If empty, Meraki will auto-generate a secure passphrase.
       selector:
         text:
+    group_policy:
+      name: Group Policy ID
+      description: The ID of an existing Meraki Group Policy to apply.
+      selector:
+        text:
