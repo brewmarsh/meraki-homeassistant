@@ -17,7 +17,7 @@ export class MerakiDataProvider {
   static async fetchConfig(hass: HomeAssistant) {
     try {
       const configEntries = await hass.callWS<any[]>({
-        type: 'config/config_entries/get', // Fixed endpoint path
+        type: 'config_entries/get',
         domain: 'meraki_ha',
       });
 
@@ -72,29 +72,42 @@ export class MerakiDataProvider {
     onStatusUpdate: (message: string, isLoading: boolean) => void,
     maxRetries: number = 12,
     delayMs: number = 5000
-  ): Promise<{ networks: Network[], ssids: SSID[], groupPolicies: GroupPolicy[], entryId: string | null }> {
-    
+  ): Promise<{
+    networks: Network[];
+    ssids: SSID[];
+    groupPolicies: GroupPolicy[];
+    entryId: string | null;
+  }> {
     for (let i = 0; i < maxRetries; i++) {
       try {
         const data = await this.fetchConfig(hass);
-        
+
         // If networks are found, the integration is fully booted
         if (data.networks.length > 0) {
-          onStatusUpdate("", false); 
+          onStatusUpdate('', false);
           return data;
         }
-        
-        onStatusUpdate(`Waiting for integration to sync... (Attempt ${i + 1}/${maxRetries})`, true);
+
+        onStatusUpdate(
+          `Waiting for integration to sync... (Attempt ${i + 1}/${maxRetries})`,
+          true
+        );
       } catch (err) {
-        onStatusUpdate(`Error connecting to backend. Retrying... (Attempt ${i + 1}/${maxRetries})`, true);
+        onStatusUpdate(
+          `Error connecting to backend. Retrying... (Attempt ${i + 1}/${maxRetries})`,
+          true
+        );
       }
 
       // Wait before the next poll
-      await new Promise(resolve => setTimeout(resolve, delayMs));
+      await new Promise((resolve) => setTimeout(resolve, delayMs));
     }
 
     // Exhausted all retries
-    onStatusUpdate("Integration failed to initialize after 1 minute. Please check backend logs.", false);
+    onStatusUpdate(
+      'Integration failed to initialize after 1 minute. Please check backend logs.',
+      false
+    );
     return { networks: [], ssids: [], groupPolicies: [], entryId: null };
   }
 

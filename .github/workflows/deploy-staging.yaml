@@ -49,7 +49,7 @@ jobs:
       - name: Install frontend dependencies
         working-directory: frontend
         run: npm ci
-        
+
       - name: Bump version for cache-busting
         working-directory: frontend
         shell: bash
@@ -169,21 +169,22 @@ jobs:
         env:
           HA_URL: ${{ secrets.HA_STAGING_URL }}
           HA_TOKEN: ${{ secrets.HA_STAGING_TOKEN }}
+          HA_CONFIG_DIR: ${{ env.HA_CONFIG_DIR }}
         run: |
           set -o pipefail
           sleep 90
 
-          echo "Fetching system logs via Home Assistant WebSocket API..."
+          echo "Fetching logs for audit..."
           cat << 'EOF' > fetch_logs.py
           import asyncio
           import aiohttp
           import os
           import sys
+          from pathlib import Path
 
-          async def main():
+          async def fetch_via_websocket():
               url = os.environ.get("HA_URL", "").replace("http://", "ws://").replace("https://", "wss://") + "/api/websocket"
               token = os.environ.get("HA_TOKEN", "")
-              
               try:
                   async with aiohttp.ClientSession() as session:
                       async with session.ws_connect(url) as ws:
@@ -192,54 +193,95 @@ jobs:
                           auth_ok = await ws.receive_json()
                           if auth_ok.get("type") != "auth_ok":
                               print(f"WebSocket Auth Failed: {auth_ok}")
-                              sys.exit(1)
-                          
+                              return None
+
                           # Query the system_log component
                           await ws.send_json({"id": 1, "type": "system_log/list"})
                           response = await ws.receive_json()
-                          
+
                           if not response.get("success"):
                               print("Failed to fetch system logs")
-                              sys.exit(1)
-                          
+                              return None
+
                           logs = response.get("result", [])
-                          errors = []
-                          
-                          # Write the full structured log and filter for Meraki errors
-                          with open("full_ha_log.txt", "w") as full_log:
-                              for e in logs:
-                                  log_entry = f"[{e.get('level')}] {e.get('source')}\n{e.get('message')}\n"
-                                  if e.get("exception"):
-                                      log_entry += f"{e.get('exception')}\n"
-                                  log_entry += "-" * 40 + "\n"
-                                  
-                                  full_log.write(log_entry)
-                                  
-                                  if "meraki" in log_entry.lower() and e.get("level") in ("ERROR", "CRITICAL", "WARNING"):
-                                      errors.append(log_entry)
-                                      
-                          if errors:
-                              with open("meraki_errors.txt", "w") as f:
-                                  for e in errors:
-                                      f.write(e)
-                              print(f"Found {len(errors)} Meraki errors.")
-                          else:
-                              print("No Meraki errors found in the system log.")
+                          logs_text = ""
+                          for e in logs:
+                              log_entry = f"[{e.get('level')}] {e.get('source')}\n{e.get('message')}\n"
+                              if e.get("exception"):
+                                  log_entry += f"{e.get('exception')}\n"
+                              log_entry += "-" * 40 + "\n"
+                              logs_text += log_entry
+                          return logs_text
               except Exception as e:
-                  print(f"Error connecting to WebSocket API: {e}")
-                  sys.exit(1)
+                  print(f"WebSocket connection error: {e}")
+                  return None
+
+          async def main():
+              ha_config_dir = os.environ.get("HA_CONFIG_DIR", "/ha_config")
+              log_path = Path(ha_config_dir) / "home-assistant.log"
+
+              logs_content = ""
+              source = "Filesystem"
+
+              if log_path.exists():
+                  print(f"Reading logs from {log_path}...")
+                  try:
+                      # Read with sudo if needed via shell, but here we try direct read first
+                      # If direct read fails, we might need to handle it.
+                      logs_content = log_path.read_text(errors="replace")
+                  except Exception as e:
+                      print(f"Failed to read log file directly: {e}. Trying via sudo...")
+                      import subprocess
+                      try:
+                          logs_content = subprocess.check_output(["sudo", "cat", str(log_path)], text=True, errors="replace")
+                      except Exception as sudo_e:
+                          print(f"Failed to read via sudo: {sudo_e}")
+                          source = "WebSocket fallback"
+              else:
+                  print(f"Log file {log_path} not found. Falling back to WebSocket...")
+                  source = "WebSocket"
+
+              if not logs_content:
+                  logs_content = await fetch_via_websocket()
+                  if not logs_content:
+                      print("Failed to fetch logs from both filesystem and WebSocket.")
+                      sys.exit(1)
+                  source = "WebSocket"
+
+              with open("full_ha_log.txt", "w") as full_log:
+                  full_log.write(logs_content)
+
+              # Audit for Meraki errors
+              errors = []
+              # We look for "meraki" and common error/warning indicators
+              # HA logs typically look like: 2024-03-14 12:00:00 ERROR (MainThread) [source] message
+              for line in logs_content.splitlines():
+                  if "meraki" in line.lower() and any(level in line.upper() for level in ("ERROR", "CRITICAL", "WARNING")):
+                      # Exclude common false positives if any
+                      if "Received unknown command: config/config_entries/get" in line:
+                          # We actually WANT to catch this as an error now that we know about it
+                          pass
+                      errors.append(line)
+
+              if errors:
+                  with open("meraki_errors.txt", "w") as f:
+                      for e in errors:
+                          f.write(e + "\n")
+                  print(f"Found {len(errors)} Meraki errors in {source} logs.")
+              else:
+                  print(f"No Meraki errors found in the {source} logs.")
 
           if __name__ == "__main__":
               asyncio.run(main())
           EOF
-          
-          # Execute the Python script using the existing uv environment
+
+          # Execute the Python script
           if ! uv run --with aiohttp python3 fetch_logs.py; then
             echo "FAILED_STEP_NAME=Audit logs for errors" >> "$GITHUB_ENV"
-            echo "CI_ERROR_DETAILS=Failed to execute WebSocket log fetch script." >> "$GITHUB_ENV"
+            echo "CI_ERROR_DETAILS=Failed to execute log fetch/audit script." >> "$GITHUB_ENV"
             exit 1
           fi
-          
+
           if [ -s meraki_errors.txt ]; then
             echo "FAILED_STEP_NAME=Audit logs for errors" >> "$GITHUB_ENV"
             {
@@ -281,7 +323,12 @@ jobs:
         run: |
           set -o pipefail
           LOG_FILE=""
-          [ -f "full_ha_log.txt" ] && LOG_FILE="full_ha_log.txt"
+          if [ -f "full_ha_log.txt" ]; then
+            LOG_FILE="full_ha_log.txt"
+          elif [ -f "${{ env.HA_CONFIG_DIR }}/home-assistant.log" ]; then
+            sudo cp "${{ env.HA_CONFIG_DIR }}/home-assistant.log" ./full_ha_log_failure.txt
+            LOG_FILE="./full_ha_log_failure.txt"
+          fi
 
           if [ -n "$LOG_FILE" ]; then
             {
@@ -317,7 +364,7 @@ jobs:
 
             const errorLogs = process.env.ERROR_LOGS ? `### 📋 Home Assistant Logs\n\`\`\`text\n${process.env.ERROR_LOGS}\n\`\`\`\n\n` : '';
             const body = `### ❌ Failed Step: \`${failedStep}\`\n\n### 📋 Error Details\n\`\`\`text\n${errorDetails}\n\`\`\`\n\n${errorLogs}[🔗 Run Details](${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId})`;
-            
+
             await github.rest.issues.create({
               owner: context.repo.owner,
               repo: context.repo.repo,
