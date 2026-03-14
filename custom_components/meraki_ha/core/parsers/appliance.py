@@ -68,6 +68,20 @@ def parse_appliance_data(
                 device.uplinks = uplinks
                 break
 
+    # Also parse appliance ports if available
+    ports_by_serial = {}
+    for key, value in detail_data.items():
+        if key.startswith("appliance_ports_") and isinstance(value, list):
+            # We need to map these to serials.
+            # Strategy stores them by network_id, but we need to match devices.
+            network_id = key.replace("appliance_ports_", "")
+            for device in devices:
+                if device.network_id == network_id:
+                    ports_by_serial[device.serial] = value
+
+    if ports_by_serial:
+        parse_appliance_ports(devices, ports_by_serial)
+
     return {}
 
 

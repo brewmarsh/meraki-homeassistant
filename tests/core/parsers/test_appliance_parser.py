@@ -2,8 +2,22 @@
 
 import logging
 
-from custom_components.meraki_ha.core.parsers.appliance import parse_appliance_data
-from custom_components.meraki_ha.types import MerakiDevice
+# Mock homeassistant before imports if necessary
+import sys
+from unittest.mock import MagicMock
+
+sys.modules["homeassistant"] = MagicMock()
+sys.modules["homeassistant.const"] = MagicMock()
+sys.modules["homeassistant.core"] = MagicMock()
+sys.modules["homeassistant.helpers"] = MagicMock()
+sys.modules["homeassistant.helpers.update_coordinator"] = MagicMock()
+sys.modules["pytest_homeassistant_custom_component"] = MagicMock()
+sys.modules["pytest_homeassistant_custom_component.common"] = MagicMock()
+
+from custom_components.meraki_ha.core.parsers.appliance import (  # noqa: E402
+    parse_appliance_data,
+)
+from custom_components.meraki_ha.types import MerakiDevice  # noqa: E402
 
 
 def test_parse_appliance_data_success(caplog):
@@ -110,3 +124,28 @@ def test_parse_appliance_data_fallback(caplog):
     assert len(devices[0].appliance_uplink_statuses) == 1
     assert devices[0].appliance_uplink_statuses[0]["interface"] == "wan1"
     assert "Matched uplink data for MX75-1" in caplog.text
+
+
+def test_parse_appliance_data_with_ports():
+    """Test parsing of appliance port data via parse_appliance_data."""
+    devices = [
+        MerakiDevice(serial="MX67-1", network_id="N_1"),
+    ]
+
+    detail_data = {
+        "appliance_uplink_statuses": [{"serial": "MX67-1", "uplinks": []}],
+        "appliance_ports_N_1": [
+            {"number": 1, "enabled": True, "status": "Connected"},
+            {"number": 2, "enabled": False, "status": "Disconnected"},
+        ],
+    }
+
+    parse_appliance_data(devices, detail_data)
+
+    assert len(devices[0].appliance_ports) == 2
+    assert devices[0].appliance_ports[0].number == 1
+    assert devices[0].appliance_ports[0].enabled is True
+    assert devices[0].appliance_ports[0].status == "Connected"
+    assert devices[0].appliance_ports[1].number == 2
+    assert devices[0].appliance_ports[1].enabled is False
+    assert devices[0].appliance_ports[1].status == "Disconnected"
