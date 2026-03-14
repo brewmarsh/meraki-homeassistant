@@ -2,7 +2,7 @@ import { LitElement, html, css, PropertyValues } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { HomeAssistant } from './types/ha';
 import { Network, SSID } from './types/meraki';
-import { renderWarning, sharedStyles } from './shared-ui';
+import { renderWarning, renderLoadingState, sharedStyles } from './shared-ui';
 import { MerakiDataProvider } from './utils/meraki-data';
 import QRCode from 'qrcode';
 
@@ -260,17 +260,11 @@ export class MerakiWifiQrCard extends LitElement {
     if (!this._config || !this.hass) return html``;
 
     if (this._isLoading) {
-      return html`
-        <ha-card .header=${this._config?.name || 'Wi-Fi Access'}>
-          <div class="card-content" style="text-align: center; padding: 32px;">
-            <ha-circular-progress active></ha-circular-progress>
-            <div style="margin-top: 16px; color: var(--secondary-text-color);">
-              ${this._loadingMessage}
-            </div>
-          </div>
-          <div class="version">v${__VERSION__}</div>
-        </ha-card>
-      `;
+      return renderLoadingState(
+        this._config?.name || 'Wi-Fi Access',
+        this._loadingMessage,
+        __VERSION__
+      );
     }
 
     const ssid = this._getValue(this._config.ssid);

@@ -83,4 +83,10 @@ This document verifies the state of the codebase against the requirements for th
   - **[VERIFIED]** Ensured full IP addresses are preserved in `extra_state_attributes` for diagnostic access.
   - **[VERIFIED]** Fixed bug where sensor names were incorrectly set to the IP value; names are now static and correctly formatted (e.g., "LAN IP", "Public IP", "WAN1 Gateway").
 
-This verification confirms the need for the planned refactoring steps. The new requirements (R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R15, R16, R17, R18, R19) are now considered part of the standard for this integration.
+- **R20: Unified High-Contrast Loading States:**
+  - **[VERIFIED]** Extracted loading UI into a shared `renderLoadingState` function in `shared-ui.ts`.
+  - **[VERIFIED]** Fixed CSS contrast for light and dark modes in `status-card` (warning and loading states) using high-contrast text colors and Home Assistant CSS variables.
+  - **[VERIFIED]** Unified all custom cards (`meraki-guest-access-card`, `meraki-wifi-qr-card`, `meraki-content-filter-card`, `meraki-network-vitals-card`) to use the new centralized loading UI.
+  - **[VERIFIED]** Fixed a regression in `meraki-guest-access-card-editor.ts` that caused the guest access card to skip its polling countdown due to a class naming conflict.
+
+This verification confirms the need for the planned refactoring steps. The new requirements (R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R15, R16, R17, R18, R19, R20) are now considered part of the standard for this integration.
