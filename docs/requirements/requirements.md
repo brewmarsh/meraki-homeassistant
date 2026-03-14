@@ -32,7 +32,7 @@ This document verifies the state of the codebase against the requirements for th
   - **[VERIFIED]** Implementation of visual configuration editors for Meraki custom cards to replace YAML-only editing and improve user experience with native Home Assistant entity pickers. Fixed a bug where entity pickers were not displaying due to incorrect Lit property bindings.
 
 - **R8: Native Loading States:**
-  - **[VERIFIED]** Implementation of native loading states in the `meraki-guest-access-card` to provide visual feedback during asynchronous data fetching.
+  - **[VERIFIED]** Implementation of native loading states in the `meraki-guest-access-card` using `MerakiDataProvider.pollConfig` to provide graceful visual feedback during asynchronous data fetching and backend synchronization.
 
 - **R9: Correct Dropdown Selection:**
   - **[VERIFIED]** All `<ha-select>` components must use `<mwc-list-item>` as children with attribute binding (`value="${...}"`) instead of property binding (`.value="${...}"`) to ensure correct event registration and selection in the Home Assistant UI.
@@ -67,8 +67,8 @@ This document verifies the state of the codebase against the requirements for th
   - **[IN PROGRESS]** Mapping of BAML-parsed intents (Reboot, Guest Access, Status) to internal services.
 
 - R16: Frontend Data Integrity:
-  - **[IN PROGRESS]** Implementation of defensive attribute access in custom Lovelace cards to prevent UI crashes following the backend 'God Module' refactor.
-  - **[IN PROGRESS]** Injection of card-level diagnostic logging (`MERAKI CARD DIAGNOSTIC`) in `render()` methods to facilitate real-time debugging of entity state mapping.
+  - **[VERIFIED]** Implementation of defensive attribute access in the `meraki-guest-access-card` to prevent UI crashes.
+  - **[VERIFIED]** Injection of card-level diagnostic logging (`MERAKI CARD DIAGNOSTIC`) in the `render()` method of `meraki-guest-access-card` to facilitate real-time debugging.
 
 - R17: Native Tap Actions in Vitals Card:
   - **[VERIFIED]** Upgraded `meraki-network-vitals-card` to support native Home Assistant `tap_action` events.
