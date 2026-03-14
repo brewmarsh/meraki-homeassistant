@@ -1,7 +1,7 @@
 import { LitElement, html, css, PropertyValues } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { HomeAssistant } from './types/ha';
-import { renderWarning, renderLoading, sharedStyles } from './shared-ui';
+import { renderWarning, renderLoadingState, sharedStyles } from './shared-ui';
 import { MerakiDataProvider } from './utils/meraki-data';
 import './meraki-content-filter-card';
 import './meraki-wifi-qr-card';
@@ -234,31 +234,19 @@ export class MerakiGuestAccessCard extends LitElement {
     });
 
     if (this._isLoading) {
-      return html`
-        <ha-card .header="${this._config?.name || 'Meraki Guest Access'}">
-          <div class="card-content" style="display: flex; flex-direction: column; align-items: center; padding: 32px;">
-            <ha-circular-progress active></ha-circular-progress>
-            <div style="margin-top: 16px; color: var(--secondary-text-color); text-align: center;">
-              ${this._loadingMessage}
-            </div>
-          </div>
-          <div class="version">v${__VERSION__}</div>
-        </ha-card>
-      `;
+      return renderLoadingState(
+        this._config?.name || 'Meraki Guest Access',
+        this._loadingMessage,
+        __VERSION__
+      );
     }
 
     if (this._networks.length === 0) {
-      return html`
-        <ha-card .header="${this._config?.name || 'Meraki Guest Access'}">
-          <div class="card-content">
-            ${renderWarning(
-              'No Wireless Networks',
-              'No Meraki wireless networks found. Ensure the integration is configured.'
-            )}
-          </div>
-          <div class="version">v${__VERSION__}</div>
-        </ha-card>
-      `;
+      return renderWarning(
+        'No Wireless Networks',
+        'No Meraki wireless networks found. Ensure the integration is configured.',
+        __VERSION__
+      );
     }
 
     const networkOptions = MerakiDataProvider.getNetworkOptions(

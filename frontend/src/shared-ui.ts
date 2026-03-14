@@ -1,13 +1,25 @@
 import { html, css } from 'lit';
 
-export const renderWarning = (title: string, message: string) => html`
-  <div class="meraki-warning">
-    <ha-icon icon="mdi:information"></ha-icon>
-    <div class="warning-content">
-      <strong>${title}</strong>
-      <p>${message}</p>
+export const renderWarning = (title: string, message: string, version?: string) => html`
+  <ha-card class="status-card warning">
+    <div class="card-content flex-col align-center p-8">
+      <ha-icon icon="mdi:alert-circle" style="--mdc-icon-size: 48px; margin-bottom: 16px;"></ha-icon>
+      <h1 class="status-title">${title}</h1>
+      <div class="status-message mt-4">${message}</div>
     </div>
-  </div>
+    ${version ? html`<div class="version">v${version}</div>` : ''}
+  </ha-card>
+`;
+
+export const renderLoadingState = (title: string, message: string, version: string) => html`
+  <ha-card class="status-card loading">
+    <div class="card-content flex-col align-center p-8">
+      <h1 class="status-title">${title}</h1>
+      <ha-circular-progress active></ha-circular-progress>
+      <div class="status-message mt-4">${message}</div>
+    </div>
+    <div class="version">v${version}</div>
+  </ha-card>
 `;
 
 export const renderLoading = (title: string) => html`
@@ -18,6 +30,63 @@ export const renderLoading = (title: string) => html`
 `;
 
 export const sharedStyles = css`
+  ha-card.status-card {
+    --ha-card-background: var(--warning-color, #ffeb3b);
+    background-color: var(--warning-color, #ffeb3b) !important;
+    border-radius: 12px;
+    overflow: hidden;
+  }
+  ha-card.status-card.loading {
+    --ha-card-background: var(--info-color, #2196f3);
+    background-color: var(--info-color, #2196f3) !important;
+  }
+  ha-card.status-card.warning {
+    --ha-card-background: var(--warning-color, #ffeb3b);
+    background-color: var(--warning-color, #ffeb3b) !important;
+  }
+
+  /* Force high-contrast dark text on bright colored backgrounds in light mode */
+  .status-card .status-title,
+  .status-card .status-message {
+    color: #111111 !important;
+    text-align: center;
+  }
+
+  .status-card .status-title {
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: bold;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    ha-card.status-card.warning {
+      --ha-card-background: rgba(255, 193, 7, 0.2);
+      background-color: rgba(255, 193, 7, 0.2) !important;
+    }
+    ha-card.status-card.loading {
+      --ha-card-background: rgba(33, 150, 243, 0.2);
+      background-color: rgba(33, 150, 243, 0.2) !important;
+    }
+    .status-card .status-title,
+    .status-card .status-message {
+      color: var(--primary-text-color) !important;
+    }
+  }
+
+  .flex-col { display: flex; flex-direction: column; }
+  .align-center { align-items: center; }
+  .p-8 { padding: 32px; }
+  .mt-4 { margin-top: 16px; }
+
+  .version {
+    font-size: 9px;
+    color: var(--secondary-text-color);
+    text-align: right;
+    padding: 4px 12px;
+    opacity: 0.4;
+  }
+
+  /* Legacy styles for backward compatibility during transition */
   .meraki-warning {
     display: flex;
     align-items: flex-start;
@@ -27,15 +96,6 @@ export const sharedStyles = css`
     color: var(--primary-text-color);
     border-radius: 8px;
   }
-  .warning-content strong {
-    display: block;
-    margin-bottom: 4px;
-  }
-  .warning-content p {
-    margin: 0;
-    font-size: 0.9em;
-    opacity: 0.9;
-  }
   .meraki-loading {
     display: flex;
     flex-direction: column;
@@ -43,12 +103,5 @@ export const sharedStyles = css`
     justify-content: center;
     padding: 24px;
     gap: 12px;
-  }
-  .version {
-    font-size: 9px;
-    color: var(--secondary-text-color);
-    text-align: right;
-    padding: 4px 12px;
-    opacity: 0.4;
   }
 `;

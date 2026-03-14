@@ -1,6 +1,7 @@
 import { LitElement, html, css, PropertyValues } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { HomeAssistant } from './types/ha';
+import { renderLoadingState, sharedStyles } from './shared-ui';
 import { MerakiDataProvider } from './utils/meraki-data';
 
 declare const __VERSION__: string;
@@ -157,17 +158,11 @@ export class MerakiNetworkVitalsCard extends LitElement {
     }
 
     if (this._isLoading) {
-      return html`
-        <ha-card>
-          <div class="card-content" style="text-align: center; padding: 16px;">
-            <ha-circular-progress active size="small"></ha-circular-progress>
-            <div style="margin-top: 8px; font-size: 12px; color: var(--secondary-text-color);">
-              ${this._loadingMessage}
-            </div>
-          </div>
-          <div class="version">v${__VERSION__}</div>
-        </ha-card>
-      `;
+      return renderLoadingState(
+        this._config?.name || 'Meraki Network Vitals',
+        this._loadingMessage,
+        __VERSION__
+      );
     }
 
     const throughputEntity = this._config.throughput_entity;
@@ -219,69 +214,72 @@ export class MerakiNetworkVitalsCard extends LitElement {
     `;
   }
 
-  static styles = css`
-    :host {
-      display: block;
-    }
-    ha-card {
-      height: 100%;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-    }
-    .card-content {
-      padding: 12px 16px;
-    }
-    .vitals-container {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 12px;
-    }
-    .status-dots {
-      display: flex;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 16px;
-    }
-    .status-item {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    .status-item.clickable {
-      cursor: pointer;
-    }
-    .status-icon {
-      --mdc-icon-size: 16px;
-      color: var(--secondary-text-color);
-    }
-    .status-label {
-      font-size: 14px;
-      font-weight: 500;
-      color: var(--primary-text-color);
-      white-space: nowrap;
-    }
-    .throughput-container {
-      display: flex;
-      align-items: center;
-      gap: 4px;
-      color: var(--secondary-text-color);
-    }
-    .throughput-value {
-      font-size: 14px;
-      font-weight: 600;
-      white-space: nowrap;
-    }
-    .version {
-      font-size: 9px;
-      color: var(--secondary-text-color);
-      text-align: right;
-      padding: 0 12px 4px;
-      opacity: 0.4;
-    }
-  `;
+  static styles = [
+    sharedStyles,
+    css`
+      :host {
+        display: block;
+      }
+      ha-card {
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+      }
+      .card-content {
+        padding: 12px 16px;
+      }
+      .vitals-container {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 12px;
+      }
+      .status-dots {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 16px;
+      }
+      .status-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .status-item.clickable {
+        cursor: pointer;
+      }
+      .status-icon {
+        --mdc-icon-size: 16px;
+        color: var(--secondary-text-color);
+      }
+      .status-label {
+        font-size: 14px;
+        font-weight: 500;
+        color: var(--primary-text-color);
+        white-space: nowrap;
+      }
+      .throughput-container {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        color: var(--secondary-text-color);
+      }
+      .throughput-value {
+        font-size: 14px;
+        font-weight: 600;
+        white-space: nowrap;
+      }
+      .version {
+        font-size: 9px;
+        color: var(--secondary-text-color);
+        text-align: right;
+        padding: 0 12px 4px;
+        opacity: 0.4;
+      }
+    `
+  ];
 }
 
 export class MerakiNetworkVitalsCardEditor extends LitElement {

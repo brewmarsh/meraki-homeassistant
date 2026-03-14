@@ -1,7 +1,7 @@
 import { LitElement, html, css, PropertyValues } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { HomeAssistant } from './types/ha';
-import { renderWarning, sharedStyles } from './shared-ui';
+import { renderWarning, renderLoadingState, sharedStyles } from './shared-ui';
 import { MerakiDataProvider } from './utils/meraki-data';
 
 declare const __VERSION__: string;
@@ -77,17 +77,11 @@ export class MerakiContentFilterCard extends LitElement {
     if (!this.hass || !this._config) return html``;
 
     if (this._isLoading) {
-      return html`
-        <ha-card .header="${this._config?.name || 'Meraki Content Filter'}">
-          <div class="card-content" style="text-align: center; padding: 32px;">
-            <ha-circular-progress active></ha-circular-progress>
-            <div style="margin-top: 16px; color: var(--secondary-text-color);">
-              ${this._loadingMessage}
-            </div>
-          </div>
-          <div class="version">v${__VERSION__}</div>
-        </ha-card>
-      `;
+      return renderLoadingState(
+        this._config?.name || 'Meraki Content Filter',
+        this._loadingMessage,
+        __VERSION__
+      );
     }
 
     const entityId = this._config.entity || this._discoverEntity();
@@ -98,14 +92,11 @@ export class MerakiContentFilterCard extends LitElement {
     const title = this._config.name || (this._config.entity ? `${titleFriendlyName} Content Filter` : "Meraki Content Filter");
 
     if (!entityId || !stateObj) {
-      return html`
-        <ha-card .header="${title}">
-          <div class="card-content">
-             ${renderWarning("Entity Missing", "No content filter entity was found. Please check your configuration.")}
-          </div>
-          <div class="version">v${__VERSION__}</div>
-        </ha-card>
-      `;
+      return renderWarning(
+        "Entity Missing",
+        "No content filter entity was found. Please check your configuration.",
+        __VERSION__
+      );
     }
 
     const currentProfile = stateObj.state || 'Unknown';
