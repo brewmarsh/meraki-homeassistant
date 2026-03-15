@@ -1,5 +1,6 @@
 import { LitElement, html, css, PropertyValues } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
+import QRCode from 'qrcode';
 import { HomeAssistant } from './types/ha';
 import { renderWarning, renderLoadingState, sharedStyles } from './shared-ui';
 import { MerakiDataProvider } from './utils/meraki-data';
@@ -39,6 +40,7 @@ export class MerakiGuestAccessCard extends LitElement {
   @state() private _creating: boolean = false;
   @state() private _error: string | null = null;
   @state() private _success: string | null = null;
+  @state() private _qrSvg: string = '';
   @state() private _isLoading: boolean = true;
   @state() private _loadingMessage: string = 'Connecting to Meraki...';
   @state() private _configEntryId: string | null = null;
@@ -106,6 +108,9 @@ export class MerakiGuestAccessCard extends LitElement {
 
     if (initNetwork && initSsid && !initPassphrase) {
       initPassphrase = this._getPasswordForSelectedSsid(initNetwork, initSsid);
+      if (!initPassphrase) {
+        initPassphrase = this._generateSecurePassword();
+      }
     }
 
     // Auto-select the first available policy if none is selected
@@ -178,6 +183,16 @@ export class MerakiGuestAccessCard extends LitElement {
     return '';
   }
 
+  private _generateSecurePassword(length: number = 12): string {
+    const charset =
+      'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    let retVal = '';
+    for (let i = 0, n = charset.length; i < length; ++i) {
+      retVal += charset.charAt(Math.floor(Math.random() * n));
+    }
+    return retVal;
+  }
+
   private _formValueChanged(ev: CustomEvent) {
     const newValues = ev.detail.value;
     const oldNetwork = this._formData.network;
@@ -213,6 +228,9 @@ export class MerakiGuestAccessCard extends LitElement {
         updatedData.network,
         updatedData.ssid
       );
+      if (!updatedData.passphrase) {
+        updatedData.passphrase = this._generateSecurePassword();
+      }
     }
 
     this._formData = updatedData;
@@ -317,6 +335,49 @@ export class MerakiGuestAccessCard extends LitElement {
     const isFormValid =
       this._formData.network && this._formData.ssid && this._formData.policy;
 
+    if (this._success && this._qrSvg) {
+      const selectedNetwork = this._networks.find(
+        (n) => n.id === this._formData.network
+      );
+      const ssidNum = parseInt(this._formData.ssid, 10);
+      const selectedSsid = this._ssids.find(
+        (s) =>
+          s.networkId === this._formData.network && s.number === ssidNum
+      );
+
+      return html`
+        <ha-card .header="${this._config?.name || 'Share Access'}">
+          <div class="card-content success-ui">
+            <ha-alert alert-type="success">${this._success}</ha-alert>
+
+            <div class="qr-container" .innerHTML="${this._qrSvg}"></div>
+
+            <div class="credentials-block">
+              <div class="credential-item">
+                <span class="label">Network:</span>
+                <span class="value"
+                  >${selectedNetwork?.name || 'Unknown'}</span
+                >
+              </div>
+              <div class="credential-item">
+                <span class="label">SSID:</span>
+                <span class="value">${selectedSsid?.name || 'Unknown'}</span>
+              </div>
+              <div class="credential-item">
+                <span class="label">Password:</span>
+                <code class="copyable-code">${this._formData.passphrase}</code>
+              </div>
+            </div>
+
+            <ha-button raised @click=${this._resetForm}>
+              Create Another
+            </ha-button>
+          </div>
+          <div class="version">v${__VERSION__}</div>
+        </ha-card>
+      `;
+    }
+
     return html`
       <ha-card .header="${this._config?.name || 'Meraki Guest Access'}">
         <div class="card-content">
@@ -326,14 +387,6 @@ export class MerakiGuestAccessCard extends LitElement {
                 dismissable
                 @alert-dismissed-clicked="${() => (this._error = null)}"
                 >${this._error}</ha-alert
-              >`
-            : ''}
-          ${this._success
-            ? html`<ha-alert
-                alert-type="success"
-                dismissable
-                @alert-dismissed-clicked="${() => (this._success = null)}"
-                >${this._success}</ha-alert
               >`
             : ''}
 
@@ -365,6 +418,17 @@ export class MerakiGuestAccessCard extends LitElement {
     `;
   }
 
+  private _escapeWifi(str: string): string {
+    return str.replace(/([\\;,:])/g, '\\$1');
+  }
+
+  private _resetForm() {
+    this._success = null;
+    this._error = null;
+    this._qrSvg = '';
+    this._loadCentralizedData();
+  }
+
   private async _generateAccessKey() {
     if (
       !this._formData.network ||
@@ -375,6 +439,7 @@ export class MerakiGuestAccessCard extends LitElement {
     this._creating = true;
     this._error = null;
     this._success = null;
+    this._qrSvg = '';
 
     try {
       const payload: any = {
@@ -404,6 +469,28 @@ export class MerakiGuestAccessCard extends LitElement {
         'generate_guest_access',
         payload
       );
+
+      const ssidNum = parseInt(this._formData.ssid, 10);
+      const ssidObj = this._ssids.find(
+        (s) =>
+          s.networkId === this._formData.network && s.number === ssidNum
+      );
+      const ssidName = ssidObj ? ssidObj.name : 'Guest WiFi';
+      const password = this._formData.passphrase;
+
+      const escapedSsid = this._escapeWifi(ssidName);
+      const escapedPass = this._escapeWifi(password);
+      const qrString = `WIFI:T:WPA;S:${escapedSsid};P:${escapedPass};;`;
+
+      this._qrSvg = await QRCode.toString(qrString, {
+        type: 'svg',
+        margin: 1,
+        color: {
+          dark: '#000000',
+          light: '#ffffff',
+        },
+      });
+
       this._success = 'Guest access key created successfully!';
     } catch (err: any) {
       this._error = `Failed to create guest key: ${err.message || err}`;
@@ -432,6 +519,57 @@ export class MerakiGuestAccessCard extends LitElement {
       }
       .p-8 {
         padding: 32px;
+      }
+      .success-ui {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 16px;
+        padding-bottom: 16px;
+      }
+      .qr-container {
+        background: white;
+        padding: 16px;
+        border-radius: 12px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: 200px;
+        height: 200px;
+        box-shadow: var(--ha-card-box-shadow, 0 2px 2px 0 rgba(0, 0, 0, 0.14));
+      }
+      .qr-container svg {
+        width: 100%;
+        height: 100%;
+      }
+      .credentials-block {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        background: var(--secondary-background-color);
+        padding: 16px;
+        border-radius: 8px;
+      }
+      .credential-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .credential-item .label {
+        font-weight: bold;
+        color: var(--secondary-text-color);
+      }
+      .copyable-code {
+        background: var(--card-background-color);
+        padding: 4px 8px;
+        border-radius: 4px;
+        border: 1px solid var(--divider-color);
+        font-family: var(--code-font-family, monospace);
+        user-select: all;
+      }
+      ha-alert {
+        width: 100%;
       }
     `,
   ];
