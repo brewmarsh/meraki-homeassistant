@@ -284,8 +284,8 @@ X.elementStyles = [], X.shadowRootOptions = { mode: "open" }, X[dt("elementPrope
  * Copyright 2017 Google LLC
  * SPDX-License-Identifier: BSD-3-Clause
  */
-const ht = globalThis, _e = (n) => n, St = ht.trustedTypes, ye = St ? St.createPolicy("lit-html", { createHTML: (n) => n }) : void 0, Te = "$lit$", j = `lit$${Math.random().toFixed(9).slice(2)}$`, Ne = "?" + j, as = `<${Ne}>`, Q = document, ft = () => Q.createComment(""), gt = (n) => n === null || typeof n != "object" && typeof n != "function", Xt = Array.isArray, cs = (n) => Xt(n) || typeof (n == null ? void 0 : n[Symbol.iterator]) == "function", Ut = `[
-\f\r]`, lt = /<(?:(!--|\/[^a-zA-Z])|(\/?[a-zA-Z][^>\s]*)|(\/?$))/g, we = /-->/g, ve = />/g, W = RegExp(`>|${Ut}(?:([^\\s"'>=/]+)(${Ut}*=${Ut}*(?:[^
+const ht = globalThis, _e = (n) => n, St = ht.trustedTypes, ye = St ? St.createPolicy("lit-html", { createHTML: (n) => n }) : void 0, Te = "$lit$", j = `lit$${Math.random().toFixed(9).slice(2)}$`, Ne = "?" + j, as = `<${Ne}>`, Q = document, ft = () => Q.createComment(""), gt = (n) => n === null || typeof n != "object" && typeof n != "function", Xt = Array.isArray, cs = (n) => Xt(n) || typeof (n == null ? void 0 : n[Symbol.iterator]) == "function", Ut = `[ 	
+\f\r]`, lt = /<(?:(!--|\/[^a-zA-Z])|(\/?[a-zA-Z][^>\s]*)|(\/?$))/g, we = /-->/g, ve = />/g, W = RegExp(`>|${Ut}(?:([^\\s"'>=/]+)(${Ut}*=${Ut}*(?:[^ 	
 \f\r"'\`<>=]|("|')|))|$)`, "g"), be = /'/g, Ee = /"/g, Ie = /^(?:script|style|textarea|title)$/i, ls = (n) => (t, ...e) => ({ _$litType$: n, strings: t, values: e }), b = ls(1), tt = Symbol.for("lit-noChange"), $ = Symbol.for("lit-nothing"), Ae = /* @__PURE__ */ new WeakMap(), J = Q.createTreeWalker(Q, 129);
 function Me(n, t) {
   if (!Xt(n) || !n.hasOwnProperty("raw")) throw Error("invalid template strings array");
@@ -2295,14 +2295,14 @@ const re = class re extends N {
       return Dt(
         ((l = this._config) == null ? void 0 : l.name) || "Meraki Content Filter",
         this._loadingMessage,
-        "2.3.0-beta.3504"
+        "2.3.0-beta.3505"
       );
     const t = this._config.entity || this._discoverEntity(), e = t ? this.hass.states[t] : void 0, i = this._config.entity ? this.hass.states[this._config.entity] : void 0, s = ((d = i == null ? void 0 : i.attributes) == null ? void 0 : d.friendly_name) || "Meraki", r = this._config.name || (this._config.entity ? `${s} Content Filter` : "Meraki Content Filter");
     if (!t || !e)
       return Je(
         "Entity Missing",
         "No content filter entity was found. Please check your configuration.",
-        "2.3.0-beta.3504"
+        "2.3.0-beta.3505"
       );
     const o = e.state || "Unknown", c = ((h = e.attributes) == null ? void 0 : h.options) || ["None", "Security", "Family", "Strict"], a = this._optimisticProfile || o;
     return b`
@@ -2323,7 +2323,7 @@ const re = class re extends N {
     })}
           </div>
         </div>
-        <div class="version">v${"2.3.0-beta.3504"}</div>
+        <div class="version">v${"2.3.0-beta.3505"}</div>
       </ha-card>
     `;
   }
@@ -2359,7 +2359,7 @@ re.styles = [
         flex-direction: column;
         gap: 8px;
       }
-
+      
       .filter-btn {
         width: 100%;
         padding: 12px;
@@ -2390,7 +2390,7 @@ re.styles = [
         opacity: 0.5;
         cursor: not-allowed;
       }
-
+      
       /* Style the circular progress to match the text color */
       ha-circular-progress {
         --mdc-theme-primary: currentColor;
@@ -2650,7 +2650,7 @@ const ce = class ce extends N {
       return Dt(
         ((i = this._config) == null ? void 0 : i.name) || "Wi-Fi Access",
         this._loadingMessage,
-        "2.3.0-beta.3504"
+        "2.3.0-beta.3505"
       );
     const t = this._getValue(this._config.ssid), e = this._getPasswordForSsid(t);
     return b`
@@ -2660,7 +2660,7 @@ const ce = class ce extends N {
           <div class="qr-container" .innerHTML=${this._qrSvg}></div>
           ${e ? b`<div class="password-display">Password: <code>${e}</code></div>` : ""}
         </div>
-        <div class="version">v${"2.3.0-beta.3504"}</div>
+        <div class="version">v${"2.3.0-beta.3505"}</div>
       </ha-card>
     `;
   }
@@ -2813,7 +2813,7 @@ const le = class le extends N {
       return Dt(
         ((s = this._config) == null ? void 0 : s.name) || "Meraki Network Vitals",
         this._loadingMessage,
-        "2.3.0-beta.3504"
+        "2.3.0-beta.3505"
       );
     const t = this._config.throughput_entity;
     t && this.hass.states[t] && console.log(
@@ -2848,7 +2848,7 @@ const le = class le extends N {
             </div>
           </div>
         </div>
-        <div class="version">v${"2.3.0-beta.3504"}</div>
+        <div class="version">v${"2.3.0-beta.3505"}</div>
       </ha-card>
     `;
   }
@@ -3220,13 +3220,13 @@ const ue = class ue extends N {
       return Dt(
         ((o = this._config) == null ? void 0 : o.name) || "Meraki Guest Access",
         this._loadingMessage,
-        "2.3.0-beta.3504"
+        "2.3.0-beta.3505"
       );
     if (this._networks.length === 0)
       return Je(
         "No Wireless Networks",
         "No Meraki wireless networks found. Ensure the integration is configured.",
-        "2.3.0-beta.3504"
+        "2.3.0-beta.3505"
       );
     const t = L.getNetworkOptions(
       this._networks
@@ -3312,7 +3312,7 @@ const ue = class ue extends N {
               Create Another
             </ha-button>
           </div>
-          <div class="version">v${"2.3.0-beta.3504"}</div>
+          <div class="version">v${"2.3.0-beta.3505"}</div>
         </ha-card>
       `;
     }
@@ -3347,7 +3347,7 @@ const ue = class ue extends N {
             </ha-button>
           </div>
         </div>
-        <div class="version">v${"2.3.0-beta.3504"}</div>
+        <div class="version">v${"2.3.0-beta.3505"}</div>
       </ha-card>
     `;
   }
@@ -3511,9 +3511,9 @@ window.customCards.some(
 ) || window.customCards.push({
   type: "meraki-guest-access-card",
   name: "Meraki Guest Access",
-  description: "Manage temporary guest WiFi access. Version: 2.3.0-beta.3504",
+  description: "Manage temporary guest WiFi access. Version: 2.3.0-beta.3505",
   preview: !0,
-  version: "2.3.0-beta.3504"
+  version: "2.3.0-beta.3505"
 });
 export {
   k as MerakiGuestAccessCard
