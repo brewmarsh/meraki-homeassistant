@@ -2448,14 +2448,14 @@ const oe = class oe extends M {
       return Mt(
         ((l = this._config) == null ? void 0 : l.name) || "Meraki Content Filter",
         this._loadingMessage,
-        "2.3.0-beta.3514"
+        "2.3.0-beta.3515"
       );
     const t = this._config.entity || this._discoverEntity(), e = t ? this.hass.states[t] : void 0, s = this._config.entity ? this.hass.states[this._config.entity] : void 0, i = ((d = s == null ? void 0 : s.attributes) == null ? void 0 : d.friendly_name) || "Meraki", r = this._config.name || (this._config.entity ? `${i} Content Filter` : "Meraki Content Filter");
     if (!t || !e)
       return De(
         "Entity Missing",
         "No content filter entity was found. Please check your configuration.",
-        "2.3.0-beta.3514"
+        "2.3.0-beta.3515"
       );
     const o = e.state || "Unknown", a = ((h = e.attributes) == null ? void 0 : h.options) || ["None", "Security", "Family", "Strict"], c = this._optimisticProfile || o;
     return b`
@@ -2476,7 +2476,7 @@ const oe = class oe extends M {
     })}
           </div>
         </div>
-        <div class="version">v${"2.3.0-beta.3514"}</div>
+        <div class="version">v${"2.3.0-beta.3515"}</div>
       </ha-card>
     `;
   }
@@ -2766,7 +2766,7 @@ const le = class le extends M {
       return Mt(
         ((s = this._config) == null ? void 0 : s.name) || "Wi-Fi Access",
         this._loadingMessage,
-        "2.3.0-beta.3514"
+        "2.3.0-beta.3515"
       );
     const t = T.getValue(this.hass, this._config.ssid), e = T.getPasswordForSsid(
       this.hass,
@@ -2782,7 +2782,7 @@ const le = class le extends M {
           <div class="qr-container" style="width: 200px; height: 200px;" .innerHTML=${this._qrSvg}></div>
           ${e ? b`<div class="password-display">Password: <code class="copyable-code">${e}</code></div>` : ""}
         </div>
-        <div class="version">v${"2.3.0-beta.3514"}</div>
+        <div class="version">v${"2.3.0-beta.3515"}</div>
       </ha-card>
     `;
   }
@@ -2932,7 +2932,7 @@ const de = class de extends M {
       return Mt(
         ((i = this._config) == null ? void 0 : i.name) || "Meraki Network Vitals",
         this._loadingMessage,
-        "2.3.0-beta.3514"
+        "2.3.0-beta.3515"
       );
     const t = this._config.throughput_entity;
     t && this.hass.states[t] && console.log(
@@ -2967,7 +2967,7 @@ const de = class de extends M {
             </div>
           </div>
         </div>
-        <div class="version">v${"2.3.0-beta.3514"}</div>
+        <div class="version">v${"2.3.0-beta.3515"}</div>
       </ha-card>
     `;
   }
@@ -3299,13 +3299,13 @@ const fe = class fe extends M {
       return Mt(
         ((o = this._config) == null ? void 0 : o.name) || "Meraki Guest Access",
         this._loadingMessage,
-        "2.3.0-beta.3514"
+        "2.3.0-beta.3515"
       );
     if (this._networks.length === 0)
       return De(
         "No Wireless Networks",
         "No Meraki wireless networks found. Ensure the integration is configured.",
-        "2.3.0-beta.3514"
+        "2.3.0-beta.3515"
       );
     const t = L.getNetworkOptions(
       this._networks
@@ -3390,7 +3390,7 @@ const fe = class fe extends M {
               Create Another
             </ha-button>
           </div>
-          <div class="version">v${"2.3.0-beta.3514"}</div>
+          <div class="version">v${"2.3.0-beta.3515"}</div>
         </ha-card>
       `;
     }
@@ -3425,7 +3425,7 @@ const fe = class fe extends M {
             </ha-button>
           </div>
         </div>
-        <div class="version">v${"2.3.0-beta.3514"}</div>
+        <div class="version">v${"2.3.0-beta.3515"}</div>
       </ha-card>
     `;
   }
@@ -3551,9 +3551,9 @@ window.customCards.some(
 ) || window.customCards.push({
   type: "meraki-guest-access-card",
   name: "Meraki Guest Access",
-  description: "Manage temporary guest WiFi access. Version: 2.3.0-beta.3514",
+  description: "Manage temporary guest WiFi access. Version: 2.3.0-beta.3515",
   preview: !0,
-  version: "2.3.0-beta.3514"
+  version: "2.3.0-beta.3515"
 });
 export {
   k as MerakiGuestAccessCard
