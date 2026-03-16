@@ -329,5 +329,5 @@ async def update_listener(hass: HomeAssistant, entry: ConfigEntry) -> None:
         entry: The config entry.
 
     """
-    await async_unload_entry(hass, entry)
-    await async_setup_entry(hass, entry)
+    _LOGGER.info("Options updated, reloading integration...")
+    await hass.config_entries.async_reload(entry.entry_id)

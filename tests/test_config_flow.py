@@ -102,13 +102,33 @@ async def test_options_flow(hass: HomeAssistant) -> None:
     assert result["step_id"] == "init"
 
     # Save Settings
-    result_save = await hass.config_entries.options.async_configure(
-        result["flow_id"],
-        user_input={
-            CONF_ENABLE_DEVICE_STATUS: True,
-            "enable_device_sensors": True,
-            "enable_port_sensors": False,
-            CONF_ENABLE_CAMERA_ENTITIES: True,
-        },
-    )
+    with patch(
+        "homeassistant.config_entries.ConfigEntries.async_reload",
+        return_value=None,
+    ) as mock_reload:
+        result_save = await hass.config_entries.options.async_configure(
+            result["flow_id"],
+            user_input={
+                CONF_ENABLE_DEVICE_STATUS: True,
+                "enable_device_sensors": True,
+                "enable_port_sensors": False,
+                CONF_ENABLE_CAMERA_ENTITIES: True,
+            },
+        )
+        await hass.async_block_till_done()
+
     assert result_save["type"] == FlowResultType.CREATE_ENTRY
+
+
+async def test_update_listener(hass: HomeAssistant) -> None:
+    """Test the update listener."""
+    entry = MockConfigEntry(domain=DOMAIN, entry_id="test_entry_id")
+    with patch(
+        "homeassistant.config_entries.ConfigEntries.async_reload",
+        return_value=None,
+    ) as mock_reload:
+        from custom_components.meraki_ha import update_listener
+
+        await update_listener(hass, entry)
+
+    mock_reload.assert_called_once_with(entry.entry_id)
