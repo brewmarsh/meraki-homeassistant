@@ -45,7 +45,7 @@ const Xe = (n) => new Ne(typeof n == "string" ? n : n + "", void 0, Zt), F = (n,
  * Copyright 2017 Google LLC
  * SPDX-License-Identifier: BSD-3-Clause
  */
-const { is: ei, defineProperty: ii, getOwnPropertyDescriptor: si, getOwnPropertyNames: ni, getOwnPropertySymbols: ri, getPrototypeOf: oi } = Object, K = globalThis, me = K.trustedTypes, ai = me ? me.emptyScript : "", Ut = K.reactiveElementPolyfillSupport, dt = (n, t) => n, St = { toAttribute(n, t) {
+const { is: ei, defineProperty: ii, getOwnPropertyDescriptor: si, getOwnPropertyNames: ni, getOwnPropertySymbols: ri, getPrototypeOf: oi } = Object, G = globalThis, me = G.trustedTypes, ai = me ? me.emptyScript : "", Ut = G.reactiveElementPolyfillSupport, dt = (n, t) => n, St = { toAttribute(n, t) {
   switch (t) {
     case Boolean:
       n = n ? ai : null;
@@ -74,7 +74,7 @@ const { is: ei, defineProperty: ii, getOwnPropertyDescriptor: si, getOwnProperty
   }
   return e;
 } }, Xt = (n, t) => !ei(n, t), _e = { attribute: !0, type: String, converter: St, reflect: !1, useDefault: !1, hasChanged: Xt };
-Symbol.metadata ?? (Symbol.metadata = Symbol("metadata")), K.litPropertyMetadata ?? (K.litPropertyMetadata = /* @__PURE__ */ new WeakMap());
+Symbol.metadata ?? (Symbol.metadata = Symbol("metadata")), G.litPropertyMetadata ?? (G.litPropertyMetadata = /* @__PURE__ */ new WeakMap());
 let tt = class extends HTMLElement {
   static addInitializer(t) {
     this._$Ei(), (this.l ?? (this.l = [])).push(t);
@@ -278,15 +278,15 @@ let tt = class extends HTMLElement {
   firstUpdated(t) {
   }
 };
-tt.elementStyles = [], tt.shadowRootOptions = { mode: "open" }, tt[dt("elementProperties")] = /* @__PURE__ */ new Map(), tt[dt("finalized")] = /* @__PURE__ */ new Map(), Ut == null || Ut({ ReactiveElement: tt }), (K.reactiveElementVersions ?? (K.reactiveElementVersions = [])).push("2.1.2");
+tt.elementStyles = [], tt.shadowRootOptions = { mode: "open" }, tt[dt("elementProperties")] = /* @__PURE__ */ new Map(), tt[dt("finalized")] = /* @__PURE__ */ new Map(), Ut == null || Ut({ ReactiveElement: tt }), (G.reactiveElementVersions ?? (G.reactiveElementVersions = [])).push("2.1.2");
 /**
  * @license
  * Copyright 2017 Google LLC
  * SPDX-License-Identifier: BSD-3-Clause
  */
-const ht = globalThis, ye = (n) => n, kt = ht.trustedTypes, we = kt ? kt.createPolicy("lit-html", { createHTML: (n) => n }) : void 0, Te = "$lit$", j = `lit$${Math.random().toFixed(9).slice(2)}$`, Ie = "?" + j, ci = `<${Ie}>`, Z = document, ft = () => Z.createComment(""), gt = (n) => n === null || typeof n != "object" && typeof n != "function", te = Array.isArray, li = (n) => te(n) || typeof (n == null ? void 0 : n[Symbol.iterator]) == "function", Ot = `[ 	
+const ht = globalThis, ye = (n) => n, kt = ht.trustedTypes, we = kt ? kt.createPolicy("lit-html", { createHTML: (n) => n }) : void 0, Te = "$lit$", j = `lit$${Math.random().toFixed(9).slice(2)}$`, Me = "?" + j, ci = `<${Me}>`, Z = document, ft = () => Z.createComment(""), gt = (n) => n === null || typeof n != "object" && typeof n != "function", te = Array.isArray, li = (n) => te(n) || typeof (n == null ? void 0 : n[Symbol.iterator]) == "function", Ot = `[ 	
 \f\r]`, lt = /<(?:(!--|\/[^a-zA-Z])|(\/?[a-zA-Z][^>\s]*)|(\/?$))/g, ve = /-->/g, be = />/g, J = RegExp(`>|${Ot}(?:([^\\s"'>=/]+)(${Ot}*=${Ot}*(?:[^ 	
-\f\r"'\`<>=]|("|')|))|$)`, "g"), Ee = /'/g, Ae = /"/g, Me = /^(?:script|style|textarea|title)$/i, di = (n) => (t, ...e) => ({ _$litType$: n, strings: t, values: e }), b = di(1), et = Symbol.for("lit-noChange"), $ = Symbol.for("lit-nothing"), Ce = /* @__PURE__ */ new WeakMap(), Y = Z.createTreeWalker(Z, 129);
+\f\r"'\`<>=]|("|')|))|$)`, "g"), Ee = /'/g, Ae = /"/g, Ie = /^(?:script|style|textarea|title)$/i, di = (n) => (t, ...e) => ({ _$litType$: n, strings: t, values: e }), b = di(1), et = Symbol.for("lit-noChange"), $ = Symbol.for("lit-nothing"), Ce = /* @__PURE__ */ new WeakMap(), Y = Z.createTreeWalker(Z, 129);
 function xe(n, t) {
   if (!te(n) || !n.hasOwnProperty("raw")) throw Error("invalid template strings array");
   return we !== void 0 ? we.createHTML(t) : t;
@@ -297,7 +297,7 @@ const hi = (n, t) => {
   for (let a = 0; a < e; a++) {
     const c = n[a];
     let l, d, h = -1, u = 0;
-    for (; u < c.length && (o.lastIndex = u, d = o.exec(c), d !== null); ) u = o.lastIndex, o === lt ? d[1] === "!--" ? o = ve : d[1] !== void 0 ? o = be : d[2] !== void 0 ? (Me.test(d[2]) && (i = RegExp("</" + d[2], "g")), o = J) : d[3] !== void 0 && (o = J) : o === J ? d[0] === ">" ? (o = i ?? lt, h = -1) : d[1] === void 0 ? h = -2 : (h = o.lastIndex - d[2].length, l = d[1], o = d[3] === void 0 ? J : d[3] === '"' ? Ae : Ee) : o === Ae || o === Ee ? o = J : o === ve || o === be ? o = lt : (o = J, i = void 0);
+    for (; u < c.length && (o.lastIndex = u, d = o.exec(c), d !== null); ) u = o.lastIndex, o === lt ? d[1] === "!--" ? o = ve : d[1] !== void 0 ? o = be : d[2] !== void 0 ? (Ie.test(d[2]) && (i = RegExp("</" + d[2], "g")), o = J) : d[3] !== void 0 && (o = J) : o === J ? d[0] === ">" ? (o = i ?? lt, h = -1) : d[1] === void 0 ? h = -2 : (h = o.lastIndex - d[2].length, l = d[1], o = d[3] === void 0 ? J : d[3] === '"' ? Ae : Ee) : o === Ae || o === Ee ? o = J : o === ve || o === be ? o = lt : (o = J, i = void 0);
     const f = o === J && n[a + 1].startsWith("/>") ? " " : "";
     r += o === lt ? c + ci : h >= 0 ? (s.push(l), c.slice(0, h) + Te + c.slice(h) + j + f) : c + j + (h === -2 ? a : f);
   }
@@ -319,7 +319,7 @@ class pt {
           const u = d[o++], f = i.getAttribute(h).split(j), g = /([.?@])?(.*)/.exec(u);
           c.push({ type: 1, index: r, name: g[2], strings: f, ctor: g[1] === "." ? fi : g[1] === "?" ? gi : g[1] === "@" ? pi : Tt }), i.removeAttribute(h);
         } else h.startsWith(j) && (c.push({ type: 6, index: r }), i.removeAttribute(h));
-        if (Me.test(i.tagName)) {
+        if (Ie.test(i.tagName)) {
           const h = i.textContent.split(j), u = h.length - 1;
           if (u > 0) {
             i.textContent = kt ? kt.emptyScript : "";
@@ -327,7 +327,7 @@ class pt {
             i.append(h[u], ft());
           }
         }
-      } else if (i.nodeType === 8) if (i.data === Ie) c.push({ type: 2, index: r });
+      } else if (i.nodeType === 8) if (i.data === Me) c.push({ type: 2, index: r });
       else {
         let h = -1;
         for (; (h = i.data.indexOf(j, h + 1)) !== -1; ) c.push({ type: 7, index: r }), h += j.length - 1;
@@ -521,7 +521,7 @@ const _i = (n, t, e) => {
  * SPDX-License-Identifier: BSD-3-Clause
  */
 const Q = globalThis;
-class I extends tt {
+class M extends tt {
   constructor() {
     super(...arguments), this.renderOptions = { host: this }, this._$Do = void 0;
   }
@@ -547,9 +547,9 @@ class I extends tt {
   }
 }
 var Pe;
-I._$litElement$ = !0, I.finalized = !0, (Pe = Q.litElementHydrateSupport) == null || Pe.call(Q, { LitElement: I });
+M._$litElement$ = !0, M.finalized = !0, (Pe = Q.litElementHydrateSupport) == null || Pe.call(Q, { LitElement: M });
 const Ft = Q.litElementPolyfillSupport;
-Ft == null || Ft({ LitElement: I });
+Ft == null || Ft({ LitElement: M });
 (Q.litElementVersions ?? (Q.litElementVersions = [])).push("4.2.2");
 /**
  * @license
@@ -600,7 +600,7 @@ const De = (n, t, e) => b`
     </div>
     ${b`<div class="version">v${e}</div>`}
   </ha-card>
-`, It = (n, t, e) => b`
+`, Mt = (n, t, e) => b`
   <ha-card class="status-card loading">
     <div class="card-content flex-col align-center p-8">
       <h1 class="status-title">${n}</h1>
@@ -609,7 +609,7 @@ const De = (n, t, e) => b`
     </div>
     <div class="version">v${e}</div>
   </ha-card>
-`, Mt = F`
+`, It = F`
   ha-card.status-card {
     --ha-card-background: var(--warning-color, #ffeb3b);
     background-color: var(--warning-color, #ffeb3b) !important;
@@ -1514,7 +1514,7 @@ ie.prototype.encode = function(t) {
   }
   return s;
 };
-var Si = ie, Ve = {}, G = {}, se = {};
+var Si = ie, Ve = {}, K = {}, se = {};
 se.isValid = function(t) {
   return !isNaN(t) && t >= 1 && t <= 40;
 };
@@ -1529,7 +1529,7 @@ B.BYTE_KANJI = new RegExp("[^A-Z0-9 $%*+\\-./:]+", "g");
 B.BYTE = new RegExp(Pi, "g");
 B.NUMERIC = new RegExp(je, "g");
 B.ALPHANUMERIC = new RegExp(ki, "g");
-const Ni = new RegExp("^" + mt + "$"), Ti = new RegExp("^" + je + "$"), Ii = new RegExp("^[A-Z0-9 $%*+\\-./:]+$");
+const Ni = new RegExp("^" + mt + "$"), Ti = new RegExp("^" + je + "$"), Mi = new RegExp("^[A-Z0-9 $%*+\\-./:]+$");
 B.testKanji = function(t) {
   return Ni.test(t);
 };
@@ -1537,7 +1537,7 @@ B.testNumeric = function(t) {
   return Ti.test(t);
 };
 B.testAlphanumeric = function(t) {
-  return Ii.test(t);
+  return Mi.test(t);
 };
 (function(n) {
   const t = se, e = B;
@@ -1597,9 +1597,9 @@ B.testAlphanumeric = function(t) {
       return o;
     }
   };
-})(G);
+})(K);
 (function(n) {
-  const t = P, e = Dt, s = xt, i = G, r = se, o = 7973, a = t.getBCHDigit(o);
+  const t = P, e = Dt, s = xt, i = K, r = se, o = 7973, a = t.getBCHDigit(o);
   function c(u, f, g) {
     for (let y = 1; y <= 40; y++)
       if (f <= n.getCapacity(y, g, u))
@@ -1662,16 +1662,16 @@ B.testAlphanumeric = function(t) {
   };
 })(Ve);
 var qe = {};
-const Gt = P, Ke = 1335, Mi = 21522, Se = Gt.getBCHDigit(Ke);
+const Kt = P, Ge = 1335, Ii = 21522, Se = Kt.getBCHDigit(Ge);
 qe.getEncodedBits = function(t, e) {
   const s = t.bit << 3 | e;
   let i = s << 10;
-  for (; Gt.getBCHDigit(i) - Se >= 0; )
-    i ^= Ke << Gt.getBCHDigit(i) - Se;
-  return (s << 10 | i) ^ Mi;
+  for (; Kt.getBCHDigit(i) - Se >= 0; )
+    i ^= Ge << Kt.getBCHDigit(i) - Se;
+  return (s << 10 | i) ^ Ii;
 };
-var Ge = {};
-const xi = G;
+var Ke = {};
+const xi = K;
 function st(n) {
   this.mode = xi.NUMERIC, this.data = n.toString();
 }
@@ -1692,7 +1692,7 @@ st.prototype.write = function(t) {
   r > 0 && (s = this.data.substr(e), i = parseInt(s, 10), t.put(i, r * 3 + 1));
 };
 var Di = st;
-const Bi = G, zt = [
+const Bi = K, zt = [
   "0",
   "1",
   "2",
@@ -1760,7 +1760,7 @@ nt.prototype.write = function(t) {
   this.data.length % 2 && t.put(zt.indexOf(this.data[e]), 6);
 };
 var Ri = nt;
-const Li = G;
+const Li = K;
 function rt(n) {
   this.mode = Li.BYTE, typeof n == "string" ? this.data = new TextEncoder().encode(n) : this.data = new Uint8Array(n);
 }
@@ -1778,7 +1778,7 @@ rt.prototype.write = function(n) {
     n.put(this.data[t], 8);
 };
 var Ui = rt;
-const Oi = G, Hi = P;
+const Oi = K, Hi = P;
 function ot(n) {
   this.mode = Oi.KANJI, this.data = n;
 }
@@ -1875,7 +1875,7 @@ var Fi = ot, We = { exports: {} };
 })(We);
 var zi = We.exports;
 (function(n) {
-  const t = G, e = Di, s = Ri, i = Ui, r = Fi, o = B, a = P, c = zi;
+  const t = K, e = Di, s = Ri, i = Ui, r = Fi, o = B, a = P, c = zi;
   function l(_) {
     return unescape(encodeURIComponent(_)).length;
   }
@@ -2004,10 +2004,10 @@ var zi = We.exports;
       h(w, a.isKanjiModeEnabled())
     );
   };
-})(Ge);
-const Rt = P, Vt = xt, Vi = Ai, ji = Ci, qi = Ue, Ki = Oe, Wt = He, Jt = Dt, Gi = Si, Nt = Ve, Wi = qe, Ji = G, jt = Ge;
+})(Ke);
+const Rt = P, Vt = xt, Vi = Ai, ji = Ci, qi = Ue, Gi = Oe, Wt = He, Jt = Dt, Ki = Si, Nt = Ve, Wi = qe, Ji = K, jt = Ke;
 function Yi(n, t) {
-  const e = n.size, s = Ki.getPositions(t);
+  const e = n.size, s = Gi.getPositions(t);
   for (let i = 0; i < s.length; i++) {
     const r = s[i][0], o = s[i][1];
     for (let a = -1; a <= 7; a++)
@@ -2075,7 +2075,7 @@ function es(n, t, e) {
   return is(s, n, t);
 }
 function is(n, t, e) {
-  const s = Rt.getSymbolTotalCodewords(t), i = Jt.getTotalCodewordsCount(t, e), r = s - i, o = Jt.getBlocksCount(t, e), a = s % o, c = o - a, l = Math.floor(s / o), d = Math.floor(r / o), h = d + 1, u = l - d, f = new Gi(u);
+  const s = Rt.getSymbolTotalCodewords(t), i = Jt.getTotalCodewordsCount(t, e), r = s - i, o = Jt.getBlocksCount(t, e), a = s % o, c = o - a, l = Math.floor(s / o), d = Math.floor(r / o), h = d + 1, u = l - d, f = new Ki(u);
   let g = 0;
   const y = new Array(o), S = new Array(o);
   let _ = 0;
@@ -2219,7 +2219,7 @@ function ke(n, t) {
   const e = n.a / 255, s = t + '="' + n.hex + '"';
   return e < 1 ? s + " " + t + '-opacity="' + e.toFixed(2).slice(1) + '"' : s;
 }
-function Kt(n, t, e) {
+function Gt(n, t, e) {
   let s = n + t;
   return typeof e < "u" && (s += " " + e), s;
 }
@@ -2227,7 +2227,7 @@ function rs(n, t, e) {
   let s = "", i = 0, r = !1, o = 0;
   for (let a = 0; a < n.length; a++) {
     const c = Math.floor(a % t), l = Math.floor(a / t);
-    !c && !r && (r = !0), n[a] ? (o++, a > 0 && c > 0 && n[a - 1] || (s += r ? Kt("M", c + e, 0.5 + l + e) : Kt("m", i, 0), i = 0, r = !1), c + 1 < t && n[a + 1] || (s += Kt("h", o), o = 0)) : i++;
+    !c && !r && (r = !0), n[a] ? (o++, a > 0 && c > 0 && n[a - 1] || (s += r ? Gt("M", c + e, 0.5 + l + e) : Gt("m", i, 0), i = 0, r = !1), c + 1 < t && n[a + 1] || (s += Gt("h", o), o = 0)) : i++;
   }
   return s;
 }
@@ -2403,7 +2403,7 @@ var cs = Object.defineProperty, W = (n, t, e, s) => {
     (o = n[r]) && (i = o(t, e, i) || i);
   return i && cs(t, e, i), i;
 };
-const oe = class oe extends I {
+const oe = class oe extends M {
   constructor() {
     super(...arguments), this._optimisticProfile = null, this._isUpdating = !1, this._isLoading = !0, this._loadingMessage = "Connecting...";
   }
@@ -2445,17 +2445,17 @@ const oe = class oe extends I {
     var l, d, h;
     if (!this.hass || !this._config) return b``;
     if (this._isLoading)
-      return It(
+      return Mt(
         ((l = this._config) == null ? void 0 : l.name) || "Meraki Content Filter",
         this._loadingMessage,
-        "2.3.0-beta.3507"
+        "2.3.0-beta.3508"
       );
     const t = this._config.entity || this._discoverEntity(), e = t ? this.hass.states[t] : void 0, s = this._config.entity ? this.hass.states[this._config.entity] : void 0, i = ((d = s == null ? void 0 : s.attributes) == null ? void 0 : d.friendly_name) || "Meraki", r = this._config.name || (this._config.entity ? `${i} Content Filter` : "Meraki Content Filter");
     if (!t || !e)
       return De(
         "Entity Missing",
         "No content filter entity was found. Please check your configuration.",
-        "2.3.0-beta.3507"
+        "2.3.0-beta.3508"
       );
     const o = e.state || "Unknown", a = ((h = e.attributes) == null ? void 0 : h.options) || ["None", "Security", "Family", "Strict"], c = this._optimisticProfile || o;
     return b`
@@ -2476,7 +2476,7 @@ const oe = class oe extends I {
     })}
           </div>
         </div>
-        <div class="version">v${"2.3.0-beta.3507"}</div>
+        <div class="version">v${"2.3.0-beta.3508"}</div>
       </ha-card>
     `;
   }
@@ -2497,7 +2497,7 @@ const oe = class oe extends I {
   }
 };
 oe.styles = [
-  Mt,
+  It,
   F`
       :host { display: block; }
       ha-card {
@@ -2569,7 +2569,7 @@ W([
 W([
   v()
 ], U.prototype, "_loadingMessage");
-const ae = class ae extends I {
+const ae = class ae extends M {
   constructor() {
     super(...arguments), this._schema = [
       {
@@ -2627,12 +2627,12 @@ window.customCards.some((n) => n.type === "meraki-content-filter-card") || windo
   description: "Control Meraki Content Filtering profiles.",
   preview: !0
 });
-var ls = Object.defineProperty, M = (n, t, e, s) => {
+var ls = Object.defineProperty, I = (n, t, e, s) => {
   for (var i = void 0, r = n.length - 1, o; r >= 0; r--)
     (o = n[r]) && (i = o(t, e, i) || i);
   return i && ls(t, e, i), i;
 };
-const ce = class ce extends I {
+const ce = class ce extends M {
   constructor() {
     super(...arguments), this._networks = [], this._ssids = [], this._isLoading = !0, this._loadingMessage = "Connecting...", this._computeLabel = (t) => t.name === "networkId" ? "Network (Optional filter)" : t.name === "ssid" ? "SSID (Required)" : t.name === "password" ? "Password (Optional override or Entity ID)" : t.name === "name" ? "Card Title (Optional)" : t.name;
   }
@@ -2691,25 +2691,25 @@ const ce = class ce extends I {
 };
 ce.styles = F`.editor-container { padding: 16px; }`;
 let O = ce;
-M([
+I([
   z({ attribute: !1 })
 ], O.prototype, "hass");
-M([
+I([
   v()
 ], O.prototype, "_config");
-M([
+I([
   v()
 ], O.prototype, "_networks");
-M([
+I([
   v()
 ], O.prototype, "_ssids");
-M([
+I([
   v()
 ], O.prototype, "_isLoading");
-M([
+I([
   v()
 ], O.prototype, "_loadingMessage");
-const le = class le extends I {
+const le = class le extends M {
   constructor() {
     super(...arguments), this._qrSvg = "", this._isLoading = !0, this._loadingMessage = "Connecting...", this._ssids = [];
   }
@@ -2763,10 +2763,10 @@ const le = class le extends I {
     var s;
     if (!this._config || !this.hass) return b``;
     if (this._isLoading)
-      return It(
+      return Mt(
         ((s = this._config) == null ? void 0 : s.name) || "Wi-Fi Access",
         this._loadingMessage,
-        "2.3.0-beta.3507"
+        "2.3.0-beta.3508"
       );
     const t = T.getValue(this.hass, this._config.ssid), e = T.getPasswordForSsid(
       this.hass,
@@ -2782,13 +2782,13 @@ const le = class le extends I {
           <div class="qr-container" style="width: 200px; height: 200px;" .innerHTML=${this._qrSvg}></div>
           ${e ? b`<div class="password-display">Password: <code class="copyable-code">${e}</code></div>` : ""}
         </div>
-        <div class="version">v${"2.3.0-beta.3507"}</div>
+        <div class="version">v${"2.3.0-beta.3508"}</div>
       </ha-card>
     `;
   }
 };
 le.styles = [
-  Mt,
+  It,
   F`
       :host { display: block; }
       .card-content { padding: 16px; gap: 16px; }
@@ -2797,22 +2797,22 @@ le.styles = [
     `
 ];
 let H = le;
-M([
+I([
   z({ attribute: !1 })
 ], H.prototype, "hass");
-M([
+I([
   v()
 ], H.prototype, "_config");
-M([
+I([
   v()
 ], H.prototype, "_qrSvg");
-M([
+I([
   v()
 ], H.prototype, "_isLoading");
-M([
+I([
   v()
 ], H.prototype, "_loadingMessage");
-M([
+I([
   v()
 ], H.prototype, "_ssids");
 customElements.get("meraki-wifi-qr-card") || customElements.define("meraki-wifi-qr-card", H);
@@ -2829,7 +2829,7 @@ var ds = Object.defineProperty, at = (n, t, e, s) => {
     (o = n[r]) && (i = o(t, e, i) || i);
   return i && ds(t, e, i), i;
 };
-const de = class de extends I {
+const de = class de extends M {
   constructor() {
     super(...arguments), this._isLoading = !0, this._loadingMessage = "Connecting...";
   }
@@ -2929,10 +2929,10 @@ const de = class de extends I {
     if (!this._config || !this.hass)
       return b``;
     if (this._isLoading)
-      return It(
+      return Mt(
         ((i = this._config) == null ? void 0 : i.name) || "Meraki Network Vitals",
         this._loadingMessage,
-        "2.3.0-beta.3507"
+        "2.3.0-beta.3508"
       );
     const t = this._config.throughput_entity;
     t && this.hass.states[t] && console.log(
@@ -2967,13 +2967,13 @@ const de = class de extends I {
             </div>
           </div>
         </div>
-        <div class="version">v${"2.3.0-beta.3507"}</div>
+        <div class="version">v${"2.3.0-beta.3508"}</div>
       </ha-card>
     `;
   }
 };
 de.styles = [
-  Mt,
+  It,
   F`
       :host {
         display: block;
@@ -3044,7 +3044,7 @@ at([
 at([
   v()
 ], X.prototype, "_loadingMessage");
-const he = class he extends I {
+const he = class he extends M {
   setConfig(t) {
     this._config = t;
   }
@@ -3157,7 +3157,7 @@ var hs = Object.defineProperty, Ze = (n, t, e, s) => {
     (o = n[r]) && (i = o(t, e, i) || i);
   return i && hs(t, e, i), i;
 };
-const ue = class ue extends I {
+const ue = class ue extends M {
   constructor() {
     super(...arguments), this._computeLabel = (t) => t.name === "name" ? "Title (Optional)" : t.name === "config_entry_id" ? "Config Entry ID (Optional override)" : t.name;
   }
@@ -3208,7 +3208,7 @@ var us = Object.defineProperty, N = (n, t, e, s) => {
     (o = n[r]) && (i = o(t, e, i) || i);
   return i && us(t, e, i), i;
 };
-const fe = class fe extends I {
+const fe = class fe extends M {
   constructor() {
     super(...arguments), this._formData = {
       network: "",
@@ -3231,7 +3231,12 @@ const fe = class fe extends I {
   }
   updated(t) {
     var e;
-    super.updated(t), t.has("hass") && this.hass && ((e = this.hass.user) != null && e.name) && !this._formData.guestName && (this._formData = { ...this._formData, guestName: this.hass.user.name });
+    super.updated(t), t.has("hass") && this.hass && ((e = this.hass.user) != null && e.name) && !this._formData.guestName && (this._formData = { ...this._formData, guestName: this._generateUniqueGuestName() });
+  }
+  _generateUniqueGuestName() {
+    var s, i;
+    const t = ((i = (s = this.hass) == null ? void 0 : s.user) == null ? void 0 : i.name) || "Home Assistant", e = Math.floor(Math.random() * 1e4).toString().padStart(4, "0");
+    return `${t} - Guest ${e}`;
   }
   async _loadCentralizedData() {
     var l;
@@ -3291,16 +3296,16 @@ const fe = class fe extends I {
   render() {
     var o, a, c;
     if (this._isLoading)
-      return It(
+      return Mt(
         ((o = this._config) == null ? void 0 : o.name) || "Meraki Guest Access",
         this._loadingMessage,
-        "2.3.0-beta.3507"
+        "2.3.0-beta.3508"
       );
     if (this._networks.length === 0)
       return De(
         "No Wireless Networks",
         "No Meraki wireless networks found. Ensure the integration is configured.",
-        "2.3.0-beta.3507"
+        "2.3.0-beta.3508"
       );
     const t = L.getNetworkOptions(
       this._networks
@@ -3385,7 +3390,7 @@ const fe = class fe extends I {
               Create Another
             </ha-button>
           </div>
-          <div class="version">v${"2.3.0-beta.3507"}</div>
+          <div class="version">v${"2.3.0-beta.3508"}</div>
         </ha-card>
       `;
     }
@@ -3420,12 +3425,16 @@ const fe = class fe extends I {
             </ha-button>
           </div>
         </div>
-        <div class="version">v${"2.3.0-beta.3507"}</div>
+        <div class="version">v${"2.3.0-beta.3508"}</div>
       </ha-card>
     `;
   }
   _resetForm() {
-    this._success = null, this._error = null, this._qrSvg = "", this._loadCentralizedData();
+    this._success = null, this._error = null, this._qrSvg = "", this._formData = {
+      ...this._formData,
+      guestName: this._generateUniqueGuestName(),
+      passphrase: ""
+    }, this._loadCentralizedData();
   }
   async _generateAccessKey() {
     if (!(!this._formData.network || !this._formData.ssid || !this._formData.policy)) {
@@ -3454,7 +3463,7 @@ const fe = class fe extends I {
   }
 };
 fe.styles = [
-  Mt,
+  It,
   F`
       .form-container {
         display: flex;
@@ -3542,9 +3551,9 @@ window.customCards.some(
 ) || window.customCards.push({
   type: "meraki-guest-access-card",
   name: "Meraki Guest Access",
-  description: "Manage temporary guest WiFi access. Version: 2.3.0-beta.3507",
+  description: "Manage temporary guest WiFi access. Version: 2.3.0-beta.3508",
   preview: !0,
-  version: "2.3.0-beta.3507"
+  version: "2.3.0-beta.3508"
 });
 export {
   k as MerakiGuestAccessCard
