@@ -45,7 +45,7 @@ const Ze = (n) => new Pe(typeof n == "string" ? n : n + "", void 0, Qt), F = (n,
  * Copyright 2017 Google LLC
  * SPDX-License-Identifier: BSD-3-Clause
  */
-const { is: ts, defineProperty: es, getOwnPropertyDescriptor: ss, getOwnPropertyNames: is, getOwnPropertySymbols: ns, getPrototypeOf: rs } = Object, q = globalThis, pe = q.trustedTypes, os = pe ? pe.emptyScript : "", Rt = q.reactiveElementPolyfillSupport, dt = (n, t) => n, $t = { toAttribute(n, t) {
+const { is: ts, defineProperty: es, getOwnPropertyDescriptor: ss, getOwnPropertyNames: is, getOwnPropertySymbols: ns, getPrototypeOf: rs } = Object, q = globalThis, pe = q.trustedTypes, os = pe ? pe.emptyScript : "", Lt = q.reactiveElementPolyfillSupport, dt = (n, t) => n, $t = { toAttribute(n, t) {
   switch (t) {
     case Boolean:
       n = n ? os : null;
@@ -278,13 +278,13 @@ let X = class extends HTMLElement {
   firstUpdated(t) {
   }
 };
-X.elementStyles = [], X.shadowRootOptions = { mode: "open" }, X[dt("elementProperties")] = /* @__PURE__ */ new Map(), X[dt("finalized")] = /* @__PURE__ */ new Map(), Rt == null || Rt({ ReactiveElement: X }), (q.reactiveElementVersions ?? (q.reactiveElementVersions = [])).push("2.1.2");
+X.elementStyles = [], X.shadowRootOptions = { mode: "open" }, X[dt("elementProperties")] = /* @__PURE__ */ new Map(), X[dt("finalized")] = /* @__PURE__ */ new Map(), Lt == null || Lt({ ReactiveElement: X }), (q.reactiveElementVersions ?? (q.reactiveElementVersions = [])).push("2.1.2");
 /**
  * @license
  * Copyright 2017 Google LLC
  * SPDX-License-Identifier: BSD-3-Clause
  */
-const ht = globalThis, _e = (n) => n, St = ht.trustedTypes, ye = St ? St.createPolicy("lit-html", { createHTML: (n) => n }) : void 0, Te = "$lit$", j = `lit$${Math.random().toFixed(9).slice(2)}$`, Ne = "?" + j, as = `<${Ne}>`, Q = document, ft = () => Q.createComment(""), gt = (n) => n === null || typeof n != "object" && typeof n != "function", Xt = Array.isArray, cs = (n) => Xt(n) || typeof (n == null ? void 0 : n[Symbol.iterator]) == "function", Ut = `[ 	
+const ht = globalThis, _e = (n) => n, St = ht.trustedTypes, ye = St ? St.createPolicy("lit-html", { createHTML: (n) => n }) : void 0, Ne = "$lit$", j = `lit$${Math.random().toFixed(9).slice(2)}$`, Te = "?" + j, as = `<${Te}>`, Q = document, ft = () => Q.createComment(""), gt = (n) => n === null || typeof n != "object" && typeof n != "function", Xt = Array.isArray, cs = (n) => Xt(n) || typeof (n == null ? void 0 : n[Symbol.iterator]) == "function", Ut = `[ 	
 \f\r]`, lt = /<(?:(!--|\/[^a-zA-Z])|(\/?[a-zA-Z][^>\s]*)|(\/?$))/g, we = /-->/g, ve = />/g, W = RegExp(`>|${Ut}(?:([^\\s"'>=/]+)(${Ut}*=${Ut}*(?:[^ 	
 \f\r"'\`<>=]|("|')|))|$)`, "g"), be = /'/g, Ee = /"/g, Ie = /^(?:script|style|textarea|title)$/i, ls = (n) => (t, ...e) => ({ _$litType$: n, strings: t, values: e }), b = ls(1), tt = Symbol.for("lit-noChange"), $ = Symbol.for("lit-nothing"), Ae = /* @__PURE__ */ new WeakMap(), J = Q.createTreeWalker(Q, 129);
 function Me(n, t) {
@@ -299,7 +299,7 @@ const ds = (n, t) => {
     let l, d, h = -1, u = 0;
     for (; u < a.length && (o.lastIndex = u, d = o.exec(a), d !== null); ) u = o.lastIndex, o === lt ? d[1] === "!--" ? o = we : d[1] !== void 0 ? o = ve : d[2] !== void 0 ? (Ie.test(d[2]) && (s = RegExp("</" + d[2], "g")), o = W) : d[3] !== void 0 && (o = W) : o === W ? d[0] === ">" ? (o = s ?? lt, h = -1) : d[1] === void 0 ? h = -2 : (h = o.lastIndex - d[2].length, l = d[1], o = d[3] === void 0 ? W : d[3] === '"' ? Ee : be) : o === Ee || o === be ? o = W : o === we || o === ve ? o = lt : (o = W, s = void 0);
     const f = o === W && n[c + 1].startsWith("/>") ? " " : "";
-    r += o === lt ? a + as : h >= 0 ? (i.push(l), a.slice(0, h) + Te + a.slice(h) + j + f) : a + j + (h === -2 ? c : f);
+    r += o === lt ? a + as : h >= 0 ? (i.push(l), a.slice(0, h) + Ne + a.slice(h) + j + f) : a + j + (h === -2 ? c : f);
   }
   return [Me(n, r + (n[e] || "<?>") + (t === 2 ? "</svg>" : t === 3 ? "</math>" : "")), i];
 };
@@ -315,9 +315,9 @@ class pt {
     }
     for (; (s = J.nextNode()) !== null && a.length < c; ) {
       if (s.nodeType === 1) {
-        if (s.hasAttributes()) for (const h of s.getAttributeNames()) if (h.endsWith(Te)) {
+        if (s.hasAttributes()) for (const h of s.getAttributeNames()) if (h.endsWith(Ne)) {
           const u = d[o++], f = s.getAttribute(h).split(j), g = /([.?@])?(.*)/.exec(u);
-          a.push({ type: 1, index: r, name: g[2], strings: f, ctor: g[1] === "." ? us : g[1] === "?" ? fs : g[1] === "@" ? gs : Tt }), s.removeAttribute(h);
+          a.push({ type: 1, index: r, name: g[2], strings: f, ctor: g[1] === "." ? us : g[1] === "?" ? fs : g[1] === "@" ? gs : Nt }), s.removeAttribute(h);
         } else h.startsWith(j) && (a.push({ type: 6, index: r }), s.removeAttribute(h));
         if (Ie.test(s.tagName)) {
           const h = s.textContent.split(j), u = h.length - 1;
@@ -327,7 +327,7 @@ class pt {
             s.append(h[u], ft());
           }
         }
-      } else if (s.nodeType === 8) if (s.data === Ne) a.push({ type: 2, index: r });
+      } else if (s.nodeType === 8) if (s.data === Te) a.push({ type: 2, index: r });
       else {
         let h = -1;
         for (; (h = s.data.indexOf(j, h + 1)) !== -1; ) a.push({ type: 7, index: r }), h += j.length - 1;
@@ -438,7 +438,7 @@ class vt {
     this._$AM === void 0 && (this._$Cv = t, (e = this._$AP) == null || e.call(this, t));
   }
 }
-class Tt {
+class Nt {
   get tagName() {
     return this.element.tagName;
   }
@@ -463,7 +463,7 @@ class Tt {
     t === $ ? this.element.removeAttribute(this.name) : this.element.setAttribute(this.name, t ?? "");
   }
 }
-class us extends Tt {
+class us extends Nt {
   constructor() {
     super(...arguments), this.type = 3;
   }
@@ -471,7 +471,7 @@ class us extends Tt {
     this.element[this.name] = t === $ ? void 0 : t;
   }
 }
-class fs extends Tt {
+class fs extends Nt {
   constructor() {
     super(...arguments), this.type = 4;
   }
@@ -479,7 +479,7 @@ class fs extends Tt {
     this.element.toggleAttribute(this.name, !!t && t !== $);
   }
 }
-class gs extends Tt {
+class gs extends Nt {
   constructor(t, e, i, s, r) {
     super(t, e, i, s, r), this.type = 5;
   }
@@ -521,7 +521,7 @@ const ms = (n, t, e) => {
  * SPDX-License-Identifier: BSD-3-Clause
  */
 const Y = globalThis;
-class N extends X {
+class T extends X {
   constructor() {
     super(...arguments), this.renderOptions = { host: this }, this._$Do = void 0;
   }
@@ -547,9 +547,9 @@ class N extends X {
   }
 }
 var ke;
-N._$litElement$ = !0, N.finalized = !0, (ke = Y.litElementHydrateSupport) == null || ke.call(Y, { LitElement: N });
+T._$litElement$ = !0, T.finalized = !0, (ke = Y.litElementHydrateSupport) == null || ke.call(Y, { LitElement: T });
 const Ft = Y.litElementPolyfillSupport;
-Ft == null || Ft({ LitElement: N });
+Ft == null || Ft({ LitElement: T });
 (Y.litElementVersions ?? (Y.litElementVersions = [])).push("4.2.2");
 /**
  * @license
@@ -577,7 +577,7 @@ const _s = { attribute: !0, type: String, converter: $t, reflect: !1, hasChanged
   }
   throw Error("Unsupported decorator location: " + i);
 };
-function H(n) {
+function z(n) {
   return (t, e) => typeof e == "object" ? ys(n, t, e) : ((i, s, r) => {
     const o = s.hasOwnProperty(r);
     return s.constructor.createProperty(r, i), o ? Object.getOwnPropertyDescriptor(s, r) : void 0;
@@ -589,7 +589,7 @@ function H(n) {
  * SPDX-License-Identifier: BSD-3-Clause
  */
 function v(n) {
-  return H({ ...n, state: !0, attribute: !1 });
+  return z({ ...n, state: !0, attribute: !1 });
 }
 var ot = {}, ws = function() {
   return typeof Promise == "function" && Promise.prototype && Promise.prototype.then;
@@ -664,7 +664,7 @@ P.isKanjiModeEnabled = function() {
 P.toSJIS = function(t) {
   return te(t);
 };
-var Nt = {};
+var Tt = {};
 (function(n) {
   n.L = { bit: 1 }, n.M = { bit: 0 }, n.Q = { bit: 3 }, n.H = { bit: 2 };
   function t(e) {
@@ -698,7 +698,7 @@ var Nt = {};
       return s;
     }
   };
-})(Nt);
+})(Tt);
 function De() {
   this.buffer = [], this.length = 0;
 }
@@ -757,9 +757,9 @@ var Es = bt, Be = {};
     return s;
   };
 })(Be);
-var Le = {};
+var Re = {};
 const As = P.getSymbolSize, Ce = 7;
-Le.getPositions = function(t) {
+Re.getPositions = function(t) {
   const e = As(t);
   return [
     // top-left
@@ -770,7 +770,7 @@ Le.getPositions = function(t) {
     [0, e - Ce]
   ];
 };
-var Re = {};
+var Le = {};
 (function(n) {
   n.Patterns = {
     PATTERN000: 0,
@@ -865,9 +865,9 @@ var Re = {};
     }
     return c;
   };
-})(Re);
+})(Le);
 var It = {};
-const V = Nt, Et = [
+const V = Tt, Et = [
   // L  M  Q  H
   1,
   1,
@@ -1289,7 +1289,7 @@ se.isValid = function(t) {
   return !isNaN(t) && t >= 1 && t <= 40;
 };
 var D = {};
-const He = "[0-9]+", $s = "[A-Z $%*+\\-./:]+";
+const ze = "[0-9]+", $s = "[A-Z $%*+\\-./:]+";
 let mt = "(?:[u3000-u303F]|[u3040-u309F]|[u30A0-u30FF]|[uFF00-uFFEF]|[u4E00-u9FAF]|[u2605-u2606]|[u2190-u2195]|u203B|[u2010u2015u2018u2019u2025u2026u201Cu201Du2225u2260]|[u0391-u0451]|[u00A7u00A8u00B1u00B4u00D7u00F7])+";
 mt = mt.replace(/u/g, "\\u");
 const Ss = "(?:(?![A-Z0-9 $%*+\\-./:]|" + mt + `)(?:.|[\r
@@ -1297,9 +1297,9 @@ const Ss = "(?:(?![A-Z0-9 $%*+\\-./:]|" + mt + `)(?:.|[\r
 D.KANJI = new RegExp(mt, "g");
 D.BYTE_KANJI = new RegExp("[^A-Z0-9 $%*+\\-./:]+", "g");
 D.BYTE = new RegExp(Ss, "g");
-D.NUMERIC = new RegExp(He, "g");
+D.NUMERIC = new RegExp(ze, "g");
 D.ALPHANUMERIC = new RegExp($s, "g");
-const ks = new RegExp("^" + mt + "$"), Ps = new RegExp("^" + He + "$"), Ts = new RegExp("^[A-Z0-9 $%*+\\-./:]+$");
+const ks = new RegExp("^" + mt + "$"), Ps = new RegExp("^" + ze + "$"), Ns = new RegExp("^[A-Z0-9 $%*+\\-./:]+$");
 D.testKanji = function(t) {
   return ks.test(t);
 };
@@ -1307,7 +1307,7 @@ D.testNumeric = function(t) {
   return Ps.test(t);
 };
 D.testAlphanumeric = function(t) {
-  return Ts.test(t);
+  return Ns.test(t);
 };
 (function(n) {
   const t = se, e = D;
@@ -1369,7 +1369,7 @@ D.testAlphanumeric = function(t) {
   };
 })(K);
 (function(n) {
-  const t = P, e = It, i = Nt, s = K, r = se, o = 7973, c = t.getBCHDigit(o);
+  const t = P, e = It, i = Tt, s = K, r = se, o = 7973, c = t.getBCHDigit(o);
   function a(u, f, g) {
     for (let y = 1; y <= 40; y++)
       if (f <= n.getCapacity(y, g, u))
@@ -1431,14 +1431,14 @@ D.testAlphanumeric = function(t) {
     return f << 12 | g;
   };
 })(Fe);
-var ze = {};
-const Kt = P, je = 1335, Ns = 21522, $e = Kt.getBCHDigit(je);
-ze.getEncodedBits = function(t, e) {
+var He = {};
+const Kt = P, je = 1335, Ts = 21522, $e = Kt.getBCHDigit(je);
+He.getEncodedBits = function(t, e) {
   const i = t.bit << 3 | e;
   let s = i << 10;
   for (; Kt.getBCHDigit(s) - $e >= 0; )
     s ^= je << Kt.getBCHDigit(s) - $e;
-  return (i << 10 | s) ^ Ns;
+  return (i << 10 | s) ^ Ts;
 };
 var Ve = {};
 const Is = K;
@@ -1462,7 +1462,7 @@ st.prototype.write = function(t) {
   r > 0 && (i = this.data.substr(e), s = parseInt(i, 10), t.put(s, r * 3 + 1));
 };
 var Ms = st;
-const xs = K, Ht = [
+const xs = K, zt = [
   "0",
   "1",
   "2",
@@ -1524,10 +1524,10 @@ it.prototype.getBitsLength = function() {
 it.prototype.write = function(t) {
   let e;
   for (e = 0; e + 2 <= this.data.length; e += 2) {
-    let i = Ht.indexOf(this.data[e]) * 45;
-    i += Ht.indexOf(this.data[e + 1]), t.put(i, 11);
+    let i = zt.indexOf(this.data[e]) * 45;
+    i += zt.indexOf(this.data[e + 1]), t.put(i, 11);
   }
-  this.data.length % 2 && t.put(Ht.indexOf(this.data[e]), 6);
+  this.data.length % 2 && t.put(zt.indexOf(this.data[e]), 6);
 };
 var Ds = it;
 const Bs = K;
@@ -1547,10 +1547,10 @@ nt.prototype.write = function(n) {
   for (let t = 0, e = this.data.length; t < e; t++)
     n.put(this.data[t], 8);
 };
-var Ls = nt;
-const Rs = K, Us = P;
+var Rs = nt;
+const Ls = K, Us = P;
 function rt(n) {
-  this.mode = Rs.KANJI, this.data = n;
+  this.mode = Ls.KANJI, this.data = n;
 }
 rt.getBitsLength = function(t) {
   return t * 13;
@@ -1645,7 +1645,7 @@ var Os = rt, qe = { exports: {} };
 })(qe);
 var Fs = qe.exports;
 (function(n) {
-  const t = K, e = Ms, i = Ds, s = Ls, r = Os, o = D, c = P, a = Fs;
+  const t = K, e = Ms, i = Ds, s = Rs, r = Os, o = D, c = P, a = Fs;
   function l(_) {
     return unescape(encodeURIComponent(_)).length;
   }
@@ -1729,11 +1729,11 @@ var Fs = qe.exports;
     let E = ["start"];
     for (let A = 0; A < _.length; A++) {
       const C = _[A], M = [];
-      for (let z = 0; z < C.length; z++) {
-        const x = C[z], ct = "" + A + z;
+      for (let H = 0; H < C.length; H++) {
+        const x = C[H], ct = "" + A + H;
         M.push(ct), m[ct] = { node: x, lastCount: 0 }, p[ct] = {};
-        for (let Lt = 0; Lt < E.length; Lt++) {
-          const B = E[Lt];
+        for (let Rt = 0; Rt < E.length; Rt++) {
+          const B = E[Rt];
           m[B] && m[B].node.mode === x.mode ? (p[B][ct] = u(m[B].lastCount + x.length, x.mode) - u(m[B].lastCount, x.mode), m[B].lastCount += x.length) : (m[B] && (m[B].lastCount = x.length), p[B][ct] = u(x.length, x.mode) + 4 + t.getCharCountIndicator(x.mode, w));
         }
       }
@@ -1766,8 +1766,8 @@ var Fs = qe.exports;
     }, []);
   }, n.fromString = function(w, m) {
     const p = h(w, c.isKanjiModeEnabled()), E = g(p), A = y(E, m), C = a.find_path(A.map, "start", "end"), M = [];
-    for (let z = 1; z < C.length - 1; z++)
-      M.push(A.table[C[z]].node);
+    for (let H = 1; H < C.length - 1; H++)
+      M.push(A.table[C[H]].node);
     return n.fromArray(f(M));
   }, n.rawSplit = function(w) {
     return n.fromArray(
@@ -1775,7 +1775,7 @@ var Fs = qe.exports;
     );
   };
 })(Ve);
-const xt = P, zt = Nt, Hs = bs, zs = Es, js = Be, Vs = Le, Gt = Re, Wt = It, qs = Cs, Pt = Fe, Ks = ze, Gs = K, jt = Ve;
+const xt = P, Ht = Tt, zs = bs, Hs = Es, js = Be, Vs = Re, Gt = Le, Wt = It, qs = Cs, Pt = Fe, Ks = He, Gs = K, jt = Ve;
 function Ws(n, t) {
   const e = n.size, i = Vs.getPositions(t);
   for (let s = 0; s < i.length; s++) {
@@ -1832,7 +1832,7 @@ function Zs(n, t) {
     }
 }
 function Xs(n, t, e) {
-  const i = new Hs();
+  const i = new zs();
   e.forEach(function(a) {
     i.put(a.mode.bit, 4), i.put(a.getLength(), Gs.getCharCountIndicator(a.mode, n)), a.write(i);
   });
@@ -1889,7 +1889,7 @@ The chosen QR Code version cannot contain this amount of data.
 Minimum version required to store current data is: ` + r + `.
 `
     );
-  const o = Xs(t, e, s), c = xt.getSymbolSize(t), a = new zs(c);
+  const o = Xs(t, e, s), c = xt.getSymbolSize(t), a = new Hs(c);
   return Ws(a, t), Js(a), Ys(a, t), Vt(a, e, 0), t >= 7 && Qs(a, t), Zs(a, o), isNaN(i) && (i = Gt.getBestMask(
     a,
     Vt.bind(null, a, e)
@@ -1904,8 +1904,8 @@ Minimum version required to store current data is: ` + r + `.
 xe.create = function(t, e) {
   if (typeof t > "u" || t === "")
     throw new Error("No input text");
-  let i = zt.M, s, r;
-  return typeof e < "u" && (i = zt.from(e.errorCorrectionLevel, zt.M), s = Pt.from(e.version), r = Gt.from(e.maskPattern), e.toSJISFunc && xt.setToSJISFunction(e.toSJISFunc)), ei(t, s, i, r);
+  let i = Ht.M, s, r;
+  return typeof e < "u" && (i = Ht.from(e.errorCorrectionLevel, Ht.M), s = Pt.from(e.version), r = Gt.from(e.maskPattern), e.toSJISFunc && xt.setToSJISFunction(e.toSJISFunc)), ei(t, s, i, r);
 };
 var Ke = {}, ie = {};
 (function(n) {
@@ -2148,7 +2148,7 @@ const oi = async (n, t) => {
     throw console.error(`Meraki HA: WebSocket error [${t.type}]:`, e), e;
   }
 };
-class L {
+class R {
   /**
    * Fetches wireless networks, SSIDs, and group policies directly from the integration's backend cache.
    */
@@ -2250,7 +2250,7 @@ var ai = Object.defineProperty, G = (n, t, e, i) => {
     (o = n[r]) && (s = o(t, e, s) || s);
   return s && ai(t, e, s), s;
 };
-const re = class re extends N {
+const re = class re extends T {
   constructor() {
     super(...arguments), this._optimisticProfile = null, this._isUpdating = !1, this._isLoading = !0, this._loadingMessage = "Connecting...";
   }
@@ -2266,7 +2266,7 @@ const re = class re extends N {
     super.firstUpdated(t), this._loadCentralizedData();
   }
   async _loadCentralizedData() {
-    this.hass && await L.pollConfig(
+    this.hass && await R.pollConfig(
       this.hass,
       (t, e) => {
         this._loadingMessage = t, this._isLoading = e;
@@ -2295,14 +2295,14 @@ const re = class re extends N {
       return Dt(
         ((l = this._config) == null ? void 0 : l.name) || "Meraki Content Filter",
         this._loadingMessage,
-        "2.3.0-beta.3505"
+        "2.3.0-beta.3506"
       );
     const t = this._config.entity || this._discoverEntity(), e = t ? this.hass.states[t] : void 0, i = this._config.entity ? this.hass.states[this._config.entity] : void 0, s = ((d = i == null ? void 0 : i.attributes) == null ? void 0 : d.friendly_name) || "Meraki", r = this._config.name || (this._config.entity ? `${s} Content Filter` : "Meraki Content Filter");
     if (!t || !e)
       return Je(
         "Entity Missing",
         "No content filter entity was found. Please check your configuration.",
-        "2.3.0-beta.3505"
+        "2.3.0-beta.3506"
       );
     const o = e.state || "Unknown", c = ((h = e.attributes) == null ? void 0 : h.options) || ["None", "Security", "Family", "Strict"], a = this._optimisticProfile || o;
     return b`
@@ -2323,7 +2323,7 @@ const re = class re extends N {
     })}
           </div>
         </div>
-        <div class="version">v${"2.3.0-beta.3505"}</div>
+        <div class="version">v${"2.3.0-beta.3506"}</div>
       </ha-card>
     `;
   }
@@ -2397,26 +2397,26 @@ re.styles = [
       }
     `
 ];
-let R = re;
+let L = re;
 G([
-  H({ attribute: !1 })
-], R.prototype, "hass");
-G([
-  v()
-], R.prototype, "_config");
+  z({ attribute: !1 })
+], L.prototype, "hass");
 G([
   v()
-], R.prototype, "_optimisticProfile");
+], L.prototype, "_config");
 G([
   v()
-], R.prototype, "_isUpdating");
+], L.prototype, "_optimisticProfile");
 G([
   v()
-], R.prototype, "_isLoading");
+], L.prototype, "_isUpdating");
 G([
   v()
-], R.prototype, "_loadingMessage");
-const oe = class oe extends N {
+], L.prototype, "_isLoading");
+G([
+  v()
+], L.prototype, "_loadingMessage");
+const oe = class oe extends T {
   constructor() {
     super(...arguments), this._schema = [
       {
@@ -2460,12 +2460,12 @@ oe.styles = F`
   `;
 let _t = oe;
 G([
-  H({ attribute: !1 })
+  z({ attribute: !1 })
 ], _t.prototype, "hass");
 G([
   v()
 ], _t.prototype, "_config");
-customElements.get("meraki-content-filter-card") || customElements.define("meraki-content-filter-card", R);
+customElements.get("meraki-content-filter-card") || customElements.define("meraki-content-filter-card", L);
 customElements.get("meraki-content-filter-card-editor") || customElements.define("meraki-content-filter-card-editor", _t);
 window.customCards = window.customCards || [];
 window.customCards.some((n) => n.type === "meraki-content-filter-card") || window.customCards.push({
@@ -2479,7 +2479,7 @@ var ci = Object.defineProperty, I = (n, t, e, i) => {
     (o = n[r]) && (s = o(t, e, s) || s);
   return s && ci(t, e, s), s;
 };
-const ae = class ae extends N {
+const ae = class ae extends T {
   constructor() {
     super(...arguments), this._networks = [], this._ssids = [], this._isLoading = !0, this._loadingMessage = "Connecting...", this._computeLabel = (t) => t.name === "networkId" ? "Network (Optional filter)" : t.name === "ssid" ? "SSID (Required)" : t.name === "password" ? "Password (Optional override or Entity ID)" : t.name === "name" ? "Card Title (Optional)" : t.name;
   }
@@ -2491,7 +2491,7 @@ const ae = class ae extends N {
   }
   async _loadCentralizedData() {
     if (!this.hass) return;
-    const { networks: t, ssids: e } = await L.pollConfig(
+    const { networks: t, ssids: e } = await R.pollConfig(
       this.hass,
       (i, s) => {
         this._loadingMessage = i, this._isLoading = s;
@@ -2517,7 +2517,7 @@ const ae = class ae extends N {
           </div>
         </div>
       `;
-    const t = L.getNetworkOptions(this._networks, !0), e = L.getSsidOptions(this._ssids, this._config.networkId, "name"), i = [
+    const t = R.getNetworkOptions(this._networks, !0), e = R.getSsidOptions(this._ssids, this._config.networkId, "name"), i = [
       { name: "networkId", selector: { select: { options: t, mode: "dropdown" } } },
       { name: "ssid", selector: { select: { options: e, custom_value: !0, mode: "dropdown" } } },
       { name: "password", selector: { text: {} } },
@@ -2539,7 +2539,7 @@ const ae = class ae extends N {
 ae.styles = F`.editor-container { padding: 16px; }`;
 let U = ae;
 I([
-  H({ attribute: !1 })
+  z({ attribute: !1 })
 ], U.prototype, "hass");
 I([
   v()
@@ -2556,7 +2556,7 @@ I([
 I([
   v()
 ], U.prototype, "_loadingMessage");
-const ce = class ce extends N {
+const ce = class ce extends T {
   constructor() {
     super(...arguments), this._qrSvg = "", this._isLoading = !0, this._loadingMessage = "Connecting...", this._ssids = [];
   }
@@ -2579,7 +2579,7 @@ const ce = class ce extends N {
   }
   async _loadCentralizedData() {
     if (!this.hass) return;
-    const { ssids: t } = await L.pollConfig(
+    const { ssids: t } = await R.pollConfig(
       this.hass,
       (e, i) => {
         this._loadingMessage = e, this._isLoading = i;
@@ -2650,7 +2650,7 @@ const ce = class ce extends N {
       return Dt(
         ((i = this._config) == null ? void 0 : i.name) || "Wi-Fi Access",
         this._loadingMessage,
-        "2.3.0-beta.3505"
+        "2.3.0-beta.3506"
       );
     const t = this._getValue(this._config.ssid), e = this._getPasswordForSsid(t);
     return b`
@@ -2660,7 +2660,7 @@ const ce = class ce extends N {
           <div class="qr-container" .innerHTML=${this._qrSvg}></div>
           ${e ? b`<div class="password-display">Password: <code>${e}</code></div>` : ""}
         </div>
-        <div class="version">v${"2.3.0-beta.3505"}</div>
+        <div class="version">v${"2.3.0-beta.3506"}</div>
       </ha-card>
     `;
   }
@@ -2679,7 +2679,7 @@ ce.styles = [
 ];
 let O = ce;
 I([
-  H({ attribute: !1 })
+  z({ attribute: !1 })
 ], O.prototype, "hass");
 I([
   v()
@@ -2710,7 +2710,7 @@ var li = Object.defineProperty, at = (n, t, e, i) => {
     (o = n[r]) && (s = o(t, e, s) || s);
   return s && li(t, e, s), s;
 };
-const le = class le extends N {
+const le = class le extends T {
   constructor() {
     super(...arguments), this._isLoading = !0, this._loadingMessage = "Connecting...";
   }
@@ -2731,7 +2731,7 @@ const le = class le extends N {
     super.firstUpdated(t), this._loadCentralizedData();
   }
   async _loadCentralizedData() {
-    this.hass && await L.pollConfig(
+    this.hass && await R.pollConfig(
       this.hass,
       (t, e) => {
         this._loadingMessage = t, this._isLoading = e;
@@ -2813,7 +2813,7 @@ const le = class le extends N {
       return Dt(
         ((s = this._config) == null ? void 0 : s.name) || "Meraki Network Vitals",
         this._loadingMessage,
-        "2.3.0-beta.3505"
+        "2.3.0-beta.3506"
       );
     const t = this._config.throughput_entity;
     t && this.hass.states[t] && console.log(
@@ -2848,7 +2848,7 @@ const le = class le extends N {
             </div>
           </div>
         </div>
-        <div class="version">v${"2.3.0-beta.3505"}</div>
+        <div class="version">v${"2.3.0-beta.3506"}</div>
       </ha-card>
     `;
   }
@@ -2921,7 +2921,7 @@ le.styles = [
 ];
 let Z = le;
 at([
-  H({ attribute: !1 })
+  z({ attribute: !1 })
 ], Z.prototype, "hass");
 at([
   v()
@@ -2932,7 +2932,7 @@ at([
 at([
   v()
 ], Z.prototype, "_loadingMessage");
-const de = class de extends N {
+const de = class de extends T {
   setConfig(t) {
     this._config = t;
   }
@@ -3021,7 +3021,7 @@ de.styles = F`
   `;
 let yt = de;
 at([
-  H({ attribute: !1 })
+  z({ attribute: !1 })
 ], yt.prototype, "hass");
 at([
   v()
@@ -3045,7 +3045,7 @@ var di = Object.defineProperty, Qe = (n, t, e, i) => {
     (o = n[r]) && (s = o(t, e, s) || s);
   return s && di(t, e, s), s;
 };
-const he = class he extends N {
+const he = class he extends T {
   constructor() {
     super(...arguments), this._computeLabel = (t) => t.name === "name" ? "Title (Optional)" : t.name === "config_entry_id" ? "Config Entry ID (Optional override)" : t.name;
   }
@@ -3085,25 +3085,24 @@ he.styles = F`
   `;
 let wt = he;
 Qe([
-  H({ attribute: !1 })
+  z({ attribute: !1 })
 ], wt.prototype, "hass");
 Qe([
   v()
 ], wt.prototype, "_config");
 customElements.get("meraki-guest-access-card-editor") || customElements.define("meraki-guest-access-card-editor", wt);
-var hi = Object.defineProperty, T = (n, t, e, i) => {
+var hi = Object.defineProperty, N = (n, t, e, i) => {
   for (var s = void 0, r = n.length - 1, o; r >= 0; r--)
     (o = n[r]) && (s = o(t, e, s) || s);
   return s && hi(t, e, s), s;
 };
-const ue = class ue extends N {
+const ue = class ue extends T {
   constructor() {
     super(...arguments), this._formData = {
       network: "",
       ssid: "",
       passphrase: "",
       policy: "",
-      // Added Policy field
       duration: "60",
       guestName: ""
     }, this._networks = [], this._ssids = [], this._policies = [], this._creating = !1, this._error = null, this._success = null, this._qrSvg = "", this._isLoading = !0, this._loadingMessage = "Connecting to Meraki...", this._configEntryId = null, this._computeLabel = (t) => t.name === "network" ? "Network" : t.name === "ssid" ? "SSID" : t.name === "policy" ? "Group Policy (Required)" : t.name === "passphrase" ? "Passphrase / PSK (Auto-discovered)" : t.name === "duration" ? "Duration" : t.name === "guestName" ? "Guest Name" : t.name;
@@ -3125,7 +3124,7 @@ const ue = class ue extends N {
   async _loadCentralizedData() {
     var l;
     if (!this.hass) return;
-    const { networks: t, ssids: e, groupPolicies: i, entryId: s } = await L.pollConfig(this.hass, (d, h) => {
+    const { networks: t, ssids: e, groupPolicies: i, entryId: s } = await R.pollConfig(this.hass, (d, h) => {
       this._loadingMessage = d, this._isLoading = h;
     });
     if (t.length === 0) {
@@ -3138,7 +3137,7 @@ const ue = class ue extends N {
       const d = e.filter((h) => h.networkId === r);
       d.length > 0 && (o = String(d[0].number));
     }
-    if (r && o && !c && (c = this._getPasswordForSelectedSsid(r, o), c || (c = this._generateSecurePassword())), r && !a) {
+    if (r && o && !c && (c = this._getPasswordForSelectedSsid(r, o), c || (c = this._generateNaturalPassword())), r && !a) {
       const d = this._policies.filter(
         (h) => h.networkId === r
       );
@@ -3180,57 +3179,49 @@ const ue = class ue extends N {
     }
     return "";
   }
-  _generateSecurePassword(t = 12) {
-    const e = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-    let i = "";
-    for (let s = 0, r = e.length; s < t; ++s)
-      i += e.charAt(Math.floor(Math.random() * r));
-    return i;
+  _generateNaturalPassword() {
+    const t = ["hot", "cold", "fast", "slow", "red", "blue", "green", "tall", "short", "loud", "quiet", "happy", "brave", "calm", "cool", "smart", "bright", "clear", "warm", "wild", "free", "solid", "swift", "dark", "light"], e = ["butter", "potato", "apple", "tiger", "lion", "bear", "hawk", "tree", "river", "mountain", "ocean", "breeze", "cloud", "star", "moon", "forest", "stone", "water", "fire", "wood", "metal", "glass", "sky", "earth", "sun"], i = (s) => s[Math.floor(Math.random() * s.length)];
+    return `${i(t)}-${i(e)}-${Math.floor(Math.random() * 1e3)}`;
   }
   _formValueChanged(t) {
-    const e = t.detail.value, i = this._formData.network, s = this._formData.ssid;
-    let r = { ...this._formData, ...e };
-    if (r.network !== i) {
-      r.ssid = "", r.passphrase = "", r.policy = "";
-      const o = this._ssids.filter(
-        (a) => a.networkId === r.network
+    const e = t.detail.value, i = this._formData.network;
+    this._formData.ssid;
+    let s = { ...this._formData, ...e };
+    if (s.network !== i) {
+      s.ssid = "", s.passphrase = "", s.policy = "";
+      const r = this._ssids.filter(
+        (c) => c.networkId === s.network
       );
-      o.length > 0 && (r.ssid = String(o[0].number));
-      const c = this._policies.filter(
-        (a) => a.networkId === r.network
+      r.length > 0 && (s.ssid = String(r[0].number));
+      const o = this._policies.filter(
+        (c) => c.networkId === s.network
       );
-      c.length > 0 && (r.policy = String(
-        c[0].groupPolicyId || c[0].id
+      o.length > 0 && (s.policy = String(
+        o[0].groupPolicyId || o[0].id
       ));
     }
-    r.ssid && r.ssid !== s && (r.passphrase = this._getPasswordForSelectedSsid(
-      r.network,
-      r.ssid
-    ), r.passphrase || (r.passphrase = this._generateSecurePassword())), this._formData = r;
+    !s.passphrase && s.network && s.ssid && (s.passphrase = this._getPasswordForSelectedSsid(
+      s.network,
+      s.ssid
+    ) || this._generateNaturalPassword()), this._formData = s;
   }
   render() {
     var o, c, a;
-    if (console.debug("Meraki Guest Access Card Render State:", {
-      isLoading: this._isLoading,
-      networks: this._networks.length,
-      ssids: this._ssids.length,
-      policies: this._policies.length,
-      formData: this._formData
-    }), this._isLoading)
+    if (this._isLoading)
       return Dt(
         ((o = this._config) == null ? void 0 : o.name) || "Meraki Guest Access",
         this._loadingMessage,
-        "2.3.0-beta.3505"
+        "2.3.0-beta.3506"
       );
     if (this._networks.length === 0)
       return Je(
         "No Wireless Networks",
         "No Meraki wireless networks found. Ensure the integration is configured.",
-        "2.3.0-beta.3505"
+        "2.3.0-beta.3506"
       );
-    const t = L.getNetworkOptions(
+    const t = R.getNetworkOptions(
       this._networks
-    ), e = L.getSsidOptions(
+    ), e = R.getSsidOptions(
       this._ssids,
       this._formData.network,
       "number"
@@ -3246,7 +3237,6 @@ const ue = class ue extends N {
         name: "ssid",
         selector: { select: { options: e, mode: "dropdown" } }
       },
-      // Only show the policy dropdown if policies successfully loaded for this network
       ...i.length > 0 ? [
         {
           name: "policy",
@@ -3312,7 +3302,7 @@ const ue = class ue extends N {
               Create Another
             </ha-button>
           </div>
-          <div class="version">v${"2.3.0-beta.3505"}</div>
+          <div class="version">v${"2.3.0-beta.3506"}</div>
         </ha-card>
       `;
     }
@@ -3347,7 +3337,7 @@ const ue = class ue extends N {
             </ha-button>
           </div>
         </div>
-        <div class="version">v${"2.3.0-beta.3505"}</div>
+        <div class="version">v${"2.3.0-beta.3506"}</div>
       </ha-card>
     `;
   }
@@ -3371,17 +3361,22 @@ const ue = class ue extends N {
           "generate_guest_access",
           t
         );
-        const e = parseInt(this._formData.ssid, 10), i = this._ssids.find(
-          (l) => l.networkId === this._formData.network && l.number === e
-        ), s = i ? i.name : "Guest WiFi", r = this._formData.passphrase, o = this._escapeWifi(s), c = this._escapeWifi(r), a = `WIFI:T:WPA;S:${o};P:${c};;`;
-        this._qrSvg = await ot.toString(a, {
-          type: "svg",
-          margin: 1,
-          color: {
-            dark: "#000000",
-            light: "#ffffff"
-          }
-        }), this._success = "Guest access key created successfully!";
+        try {
+          const e = parseInt(this._formData.ssid, 10), i = this._ssids.find(
+            (l) => l.networkId === this._formData.network && l.number === e
+          ), s = i ? i.name : "Guest WiFi", r = this._formData.passphrase, o = this._escapeWifi(s), c = this._escapeWifi(r), a = `WIFI:T:WPA;S:${o};P:${c};;`;
+          this._qrSvg = await ot.toString(a, {
+            type: "svg",
+            margin: 1,
+            color: {
+              dark: "#000000",
+              light: "#ffffff"
+            }
+          });
+        } catch (e) {
+          console.warn("Failed to generate QR code SVG:", e), this._qrSvg = '<div style="text-align:center; padding: 24px;">QR Code Unavailable</div>';
+        }
+        this._success = "Guest access key created successfully!";
       } catch (t) {
         this._error = `Failed to create guest key: ${t.message || t}`;
       } finally {
@@ -3465,43 +3460,43 @@ ue.styles = [
     `
 ];
 let k = ue;
-T([
-  H({ attribute: !1 })
+N([
+  z({ attribute: !1 })
 ], k.prototype, "hass");
-T([
+N([
   v()
 ], k.prototype, "_config");
-T([
+N([
   v()
 ], k.prototype, "_formData");
-T([
+N([
   v()
 ], k.prototype, "_networks");
-T([
+N([
   v()
 ], k.prototype, "_ssids");
-T([
+N([
   v()
 ], k.prototype, "_policies");
-T([
+N([
   v()
 ], k.prototype, "_creating");
-T([
+N([
   v()
 ], k.prototype, "_error");
-T([
+N([
   v()
 ], k.prototype, "_success");
-T([
+N([
   v()
 ], k.prototype, "_qrSvg");
-T([
+N([
   v()
 ], k.prototype, "_isLoading");
-T([
+N([
   v()
 ], k.prototype, "_loadingMessage");
-T([
+N([
   v()
 ], k.prototype, "_configEntryId");
 customElements.get("meraki-guest-access-card") || customElements.define("meraki-guest-access-card", k);
@@ -3511,9 +3506,9 @@ window.customCards.some(
 ) || window.customCards.push({
   type: "meraki-guest-access-card",
   name: "Meraki Guest Access",
-  description: "Manage temporary guest WiFi access. Version: 2.3.0-beta.3505",
+  description: "Manage temporary guest WiFi access. Version: 2.3.0-beta.3506",
   preview: !0,
-  version: "2.3.0-beta.3505"
+  version: "2.3.0-beta.3506"
 });
 export {
   k as MerakiGuestAccessCard
