@@ -1,16 +1,14 @@
 import { LitElement, html, css, PropertyValues } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
-import QRCode from 'qrcode';
 import { HomeAssistant } from './types/ha';
 import { renderWarning, renderLoadingState, sharedStyles } from './shared-ui';
 import { MerakiDataProvider } from './utils/meraki-data';
+import { WifiHelpers } from './utils/wifi-helpers';
 import './meraki-content-filter-card';
 import './meraki-wifi-qr-card';
 import './meraki-network-vitals-card';
 import './meraki-guest-access-card-editor';
 import { Network, SSID } from './types/meraki';
-import { WsCommand } from './types/websocket';
-import { safeCallWS } from './utils/api';
 
 declare const __VERSION__: string;
 
@@ -107,9 +105,9 @@ export class MerakiGuestAccessCard extends LitElement {
     }
 
     if (initNetwork && initSsid && !initPassphrase) {
-      initPassphrase = this._getPasswordForSelectedSsid(initNetwork, initSsid);
+      initPassphrase = WifiHelpers.getPasswordForSsid(this.hass, this._ssids, initSsid, initNetwork);
       if (!initPassphrase) {
-        initPassphrase = this._generateNaturalPassword();
+        initPassphrase = WifiHelpers.generateNaturalPassword();
       }
     }
 
@@ -135,65 +133,9 @@ export class MerakiGuestAccessCard extends LitElement {
     this._isLoading = false;
   }
 
-  private _getPasswordForSelectedSsid(
-    networkId: string,
-    ssidNumberStr: string
-  ): string {
-    if (!this.hass || !networkId || !ssidNumberStr) return '';
-    const ssidNum = parseInt(ssidNumberStr, 10);
-    let ssidName = '';
-
-    const ssidObj = this._ssids.find(
-      (s) => s.networkId === networkId && s.number === ssidNum
-    );
-    if (ssidObj) {
-      ssidName = ssidObj.name;
-    }
-
-    for (const entityId in this.hass.states) {
-      const stateObj = this.hass.states[entityId];
-      const attrs = stateObj.attributes;
-
-      if (attrs.network_id === networkId && attrs.ssid_number === ssidNum) {
-        if (!ssidName) ssidName = attrs.ssid_name || attrs.ssid || '';
-        if (attrs.psk) return String(attrs.psk);
-        if (attrs.password) return String(attrs.password);
-      }
-    }
-
-    if (ssidName) {
-      const normalizedSsid = ssidName.toLowerCase().replace(/[^a-z0-9]/g, '_');
-      for (const entityId in this.hass.states) {
-        if (
-          entityId.includes(normalizedSsid) &&
-          (entityId.includes('password') || entityId.includes('psk'))
-        ) {
-          const stateObj = this.hass.states[entityId];
-          if (
-            stateObj.state &&
-            !['unknown', 'unavailable'].includes(stateObj.state)
-          ) {
-            return stateObj.state;
-          }
-        }
-      }
-    }
-
-    return '';
-  }
-
-  private _generateNaturalPassword(): string {
-    const adjs = ['hot', 'cold', 'fast', 'slow', 'red', 'blue', 'green', 'tall', 'short', 'loud', 'quiet', 'happy', 'brave', 'calm', 'cool', 'smart', 'bright', 'clear', 'warm', 'wild', 'free', 'solid', 'swift', 'dark', 'light'];
-    const nouns = ['butter', 'potato', 'apple', 'tiger', 'lion', 'bear', 'hawk', 'tree', 'river', 'mountain', 'ocean', 'breeze', 'cloud', 'star', 'moon', 'forest', 'stone', 'water', 'fire', 'wood', 'metal', 'glass', 'sky', 'earth', 'sun'];
-    
-    const pick = (arr: string[]) => arr[Math.floor(Math.random() * arr.length)];
-    return `${pick(adjs)}-${pick(nouns)}-${Math.floor(Math.random() * 1000)}`;
-  }
-
   private _formValueChanged(ev: CustomEvent) {
     const newValues = ev.detail.value;
     const oldNetwork = this._formData.network;
-    const oldSsid = this._formData.ssid;
 
     let updatedData = { ...this._formData, ...newValues };
 
@@ -221,10 +163,12 @@ export class MerakiGuestAccessCard extends LitElement {
 
     // Force secure password generation if it gets cleared out by ha-form initialization
     if (!updatedData.passphrase && updatedData.network && updatedData.ssid) {
-      updatedData.passphrase = this._getPasswordForSelectedSsid(
-        updatedData.network,
-        updatedData.ssid
-      ) || this._generateNaturalPassword();
+      updatedData.passphrase = WifiHelpers.getPasswordForSsid(
+        this.hass,
+        this._ssids,
+        updatedData.ssid,
+        updatedData.network
+      ) || WifiHelpers.generateNaturalPassword();
     }
 
     this._formData = updatedData;
@@ -334,7 +278,7 @@ export class MerakiGuestAccessCard extends LitElement {
           <div class="card-content success-ui">
             <ha-alert alert-type="success">${this._success}</ha-alert>
 
-            <div class="qr-container" .innerHTML="${this._qrSvg}"></div>
+            <div class="qr-container" style="width: 200px; height: 200px;" .innerHTML="${this._qrSvg}"></div>
 
             <div class="credentials-block">
               <div class="credential-item">
@@ -402,10 +346,6 @@ export class MerakiGuestAccessCard extends LitElement {
     `;
   }
 
-  private _escapeWifi(str: string): string {
-    return str.replace(/([\\;,:])/g, '\\$1');
-  }
-
   private _resetForm() {
     this._success = null;
     this._error = null;
@@ -454,33 +394,16 @@ export class MerakiGuestAccessCard extends LitElement {
         payload
       );
 
-      // Wrap QR generation in a try/catch so a failure doesn't swallow the success message
-      try {
-        const ssidNum = parseInt(this._formData.ssid, 10);
-        const ssidObj = this._ssids.find(
-          (s) =>
-            s.networkId === this._formData.network && s.number === ssidNum
-        );
-        const ssidName = ssidObj ? ssidObj.name : 'Guest WiFi';
-        const password = this._formData.passphrase;
+      const ssidNum = parseInt(this._formData.ssid, 10);
+      const ssidObj = this._ssids.find(
+        (s) =>
+          s.networkId === this._formData.network && s.number === ssidNum
+      );
+      const ssidName = ssidObj ? ssidObj.name : 'Guest WiFi';
+      const password = this._formData.passphrase;
 
-        const escapedSsid = this._escapeWifi(ssidName);
-        const escapedPass = this._escapeWifi(password);
-        const qrString = `WIFI:T:WPA;S:${escapedSsid};P:${escapedPass};;`;
-
-        this._qrSvg = await QRCode.toString(qrString, {
-          type: 'svg',
-          margin: 1,
-          color: {
-            dark: '#000000',
-            light: '#ffffff',
-          },
-        });
-      } catch (qrErr) {
-        console.warn("Failed to generate QR code SVG:", qrErr);
-        // Fallback to text-only success state if SVG fails
-        this._qrSvg = '<div style="text-align:center; padding: 24px;">QR Code Unavailable</div>';
-      }
+      const qrString = WifiHelpers.generateWifiQrString(ssidName, password);
+      this._qrSvg = await WifiHelpers.generateQrSvg(qrString);
 
       this._success = 'Guest access key created successfully!';
     } catch (err: any) {
@@ -502,36 +425,12 @@ export class MerakiGuestAccessCard extends LitElement {
         width: 100%;
         margin-top: 8px;
       }
-      .flex {
-        display: flex;
-      }
-      .justify-center {
-        justify-content: center;
-      }
-      .p-8 {
-        padding: 32px;
-      }
       .success-ui {
         display: flex;
         flex-direction: column;
         align-items: center;
         gap: 16px;
         padding-bottom: 16px;
-      }
-      .qr-container {
-        background: white;
-        padding: 16px;
-        border-radius: 12px;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        width: 200px;
-        height: 200px;
-        box-shadow: var(--ha-card-box-shadow, 0 2px 2px 0 rgba(0, 0, 0, 0.14));
-      }
-      .qr-container svg {
-        width: 100%;
-        height: 100%;
       }
       .credentials-block {
         width: 100%;
@@ -550,14 +449,6 @@ export class MerakiGuestAccessCard extends LitElement {
       .credential-item .label {
         font-weight: bold;
         color: var(--secondary-text-color);
-      }
-      .copyable-code {
-        background: var(--card-background-color);
-        padding: 4px 8px;
-        border-radius: 4px;
-        border: 1px solid var(--divider-color);
-        font-family: var(--code-font-family, monospace);
-        user-select: all;
       }
       ha-alert {
         width: 100%;

@@ -271,13 +271,6 @@ export class MerakiNetworkVitalsCard extends LitElement {
         font-weight: 600;
         white-space: nowrap;
       }
-      .version {
-        font-size: 9px;
-        color: var(--secondary-text-color);
-        text-align: right;
-        padding: 0 12px 4px;
-        opacity: 0.4;
-      }
     `
   ];
 }

@@ -74,9 +74,34 @@ export const sharedStyles = css`
   }
 
   .flex-col { display: flex; flex-direction: column; }
+  .flex-col-center { display: flex; flex-direction: column; align-items: center; justify-content: center; }
   .align-center { align-items: center; }
   .p-8 { padding: 32px; }
   .mt-4 { margin-top: 16px; }
+
+  .qr-container {
+    background: white;
+    padding: 16px;
+    border-radius: 12px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-shadow: var(--ha-card-box-shadow, 0 2px 2px 0 rgba(0, 0, 0, 0.14));
+  }
+
+  .qr-container svg {
+    width: 100%;
+    height: 100%;
+  }
+
+  .copyable-code {
+    background: var(--card-background-color);
+    padding: 4px 8px;
+    border-radius: 4px;
+    border: 1px solid var(--divider-color);
+    font-family: var(--code-font-family, monospace);
+    user-select: all;
+  }
 
   .version {
     font-size: 9px;
