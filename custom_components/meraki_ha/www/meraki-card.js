@@ -284,8 +284,8 @@ tt.elementStyles = [], tt.shadowRootOptions = { mode: "open" }, tt[dt("elementPr
  * Copyright 2017 Google LLC
  * SPDX-License-Identifier: BSD-3-Clause
  */
-const ht = globalThis, ye = (n) => n, kt = ht.trustedTypes, we = kt ? kt.createPolicy("lit-html", { createHTML: (n) => n }) : void 0, Te = "$lit$", j = `lit$${Math.random().toFixed(9).slice(2)}$`, Ie = "?" + j, ci = `<${Ie}>`, Z = document, ft = () => Z.createComment(""), gt = (n) => n === null || typeof n != "object" && typeof n != "function", te = Array.isArray, li = (n) => te(n) || typeof (n == null ? void 0 : n[Symbol.iterator]) == "function", Ot = `[
-\f\r]`, lt = /<(?:(!--|\/[^a-zA-Z])|(\/?[a-zA-Z][^>\s]*)|(\/?$))/g, ve = /-->/g, be = />/g, J = RegExp(`>|${Ot}(?:([^\\s"'>=/]+)(${Ot}*=${Ot}*(?:[^
+const ht = globalThis, ye = (n) => n, kt = ht.trustedTypes, we = kt ? kt.createPolicy("lit-html", { createHTML: (n) => n }) : void 0, Te = "$lit$", j = `lit$${Math.random().toFixed(9).slice(2)}$`, Ie = "?" + j, ci = `<${Ie}>`, Z = document, ft = () => Z.createComment(""), gt = (n) => n === null || typeof n != "object" && typeof n != "function", te = Array.isArray, li = (n) => te(n) || typeof (n == null ? void 0 : n[Symbol.iterator]) == "function", Ot = `[ 	
+\f\r]`, lt = /<(?:(!--|\/[^a-zA-Z])|(\/?[a-zA-Z][^>\s]*)|(\/?$))/g, ve = /-->/g, be = />/g, J = RegExp(`>|${Ot}(?:([^\\s"'>=/]+)(${Ot}*=${Ot}*(?:[^ 	
 \f\r"'\`<>=]|("|')|))|$)`, "g"), Ee = /'/g, Ae = /"/g, Me = /^(?:script|style|textarea|title)$/i, di = (n) => (t, ...e) => ({ _$litType$: n, strings: t, values: e }), b = di(1), et = Symbol.for("lit-noChange"), $ = Symbol.for("lit-nothing"), Ce = /* @__PURE__ */ new WeakMap(), Y = Z.createTreeWalker(Z, 129);
 function xe(n, t) {
   if (!te(n) || !n.hasOwnProperty("raw")) throw Error("invalid template strings array");
@@ -2448,14 +2448,14 @@ const oe = class oe extends I {
       return It(
         ((l = this._config) == null ? void 0 : l.name) || "Meraki Content Filter",
         this._loadingMessage,
-        "2.3.0-beta.3506"
+        "2.3.0-beta.3507"
       );
     const t = this._config.entity || this._discoverEntity(), e = t ? this.hass.states[t] : void 0, s = this._config.entity ? this.hass.states[this._config.entity] : void 0, i = ((d = s == null ? void 0 : s.attributes) == null ? void 0 : d.friendly_name) || "Meraki", r = this._config.name || (this._config.entity ? `${i} Content Filter` : "Meraki Content Filter");
     if (!t || !e)
       return De(
         "Entity Missing",
         "No content filter entity was found. Please check your configuration.",
-        "2.3.0-beta.3506"
+        "2.3.0-beta.3507"
       );
     const o = e.state || "Unknown", a = ((h = e.attributes) == null ? void 0 : h.options) || ["None", "Security", "Family", "Strict"], c = this._optimisticProfile || o;
     return b`
@@ -2476,7 +2476,7 @@ const oe = class oe extends I {
     })}
           </div>
         </div>
-        <div class="version">v${"2.3.0-beta.3506"}</div>
+        <div class="version">v${"2.3.0-beta.3507"}</div>
       </ha-card>
     `;
   }
@@ -2766,7 +2766,7 @@ const le = class le extends I {
       return It(
         ((s = this._config) == null ? void 0 : s.name) || "Wi-Fi Access",
         this._loadingMessage,
-        "2.3.0-beta.3506"
+        "2.3.0-beta.3507"
       );
     const t = T.getValue(this.hass, this._config.ssid), e = T.getPasswordForSsid(
       this.hass,
@@ -2782,7 +2782,7 @@ const le = class le extends I {
           <div class="qr-container" style="width: 200px; height: 200px;" .innerHTML=${this._qrSvg}></div>
           ${e ? b`<div class="password-display">Password: <code class="copyable-code">${e}</code></div>` : ""}
         </div>
-        <div class="version">v${"2.3.0-beta.3506"}</div>
+        <div class="version">v${"2.3.0-beta.3507"}</div>
       </ha-card>
     `;
   }
@@ -2932,7 +2932,7 @@ const de = class de extends I {
       return It(
         ((i = this._config) == null ? void 0 : i.name) || "Meraki Network Vitals",
         this._loadingMessage,
-        "2.3.0-beta.3506"
+        "2.3.0-beta.3507"
       );
     const t = this._config.throughput_entity;
     t && this.hass.states[t] && console.log(
@@ -2967,7 +2967,7 @@ const de = class de extends I {
             </div>
           </div>
         </div>
-        <div class="version">v${"2.3.0-beta.3506"}</div>
+        <div class="version">v${"2.3.0-beta.3507"}</div>
       </ha-card>
     `;
   }
@@ -3294,13 +3294,13 @@ const fe = class fe extends I {
       return It(
         ((o = this._config) == null ? void 0 : o.name) || "Meraki Guest Access",
         this._loadingMessage,
-        "2.3.0-beta.3506"
+        "2.3.0-beta.3507"
       );
     if (this._networks.length === 0)
       return De(
         "No Wireless Networks",
         "No Meraki wireless networks found. Ensure the integration is configured.",
-        "2.3.0-beta.3506"
+        "2.3.0-beta.3507"
       );
     const t = L.getNetworkOptions(
       this._networks
@@ -3385,7 +3385,7 @@ const fe = class fe extends I {
               Create Another
             </ha-button>
           </div>
-          <div class="version">v${"2.3.0-beta.3506"}</div>
+          <div class="version">v${"2.3.0-beta.3507"}</div>
         </ha-card>
       `;
     }
@@ -3420,7 +3420,7 @@ const fe = class fe extends I {
             </ha-button>
           </div>
         </div>
-        <div class="version">v${"2.3.0-beta.3506"}</div>
+        <div class="version">v${"2.3.0-beta.3507"}</div>
       </ha-card>
     `;
   }
@@ -3542,9 +3542,9 @@ window.customCards.some(
 ) || window.customCards.push({
   type: "meraki-guest-access-card",
   name: "Meraki Guest Access",
-  description: "Manage temporary guest WiFi access. Version: 2.3.0-beta.3506",
+  description: "Manage temporary guest WiFi access. Version: 2.3.0-beta.3507",
   preview: !0,
-  version: "2.3.0-beta.3506"
+  version: "2.3.0-beta.3507"
 });
 export {
   k as MerakiGuestAccessCard
