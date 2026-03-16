@@ -15,16 +15,6 @@ from .base import BaseFetchStrategy
 class WirelessFetchStrategy(BaseFetchStrategy):
     """Strategy for fetching wireless data."""
 
-    def __init__(
-        self,
-        client: Any,
-        disabled_features: set[str],
-        static_data: dict[str, Any] | None = None,
-    ) -> None:
-        """Initialize wireless strategy."""
-        super().__init__(client, disabled_features)
-        self.static_data = static_data if static_data is not None else {}
-
     def build_network_tasks(
         self,
         network_id: str,
@@ -33,16 +23,12 @@ class WirelessFetchStrategy(BaseFetchStrategy):
     ) -> None:
         """Add wireless specific network tasks."""
         tasks.update(
-            self.client.wireless.get_network_detail_tasks(
-                network_id, product_types, static_data=self.static_data
-            )
+            self.client.wireless.get_network_detail_tasks(network_id, product_types)
         )
         if "wireless" in product_types or "appliance" in product_types:
-            # Check if group policies are already in static_data
-            if f"group_policies_{network_id}" not in self.static_data:
-                tasks[f"group_policies_{network_id}"] = self.client.run_with_semaphore(
-                    self.client.network.get_group_policies(network_id)
-                )
+            tasks[f"group_policies_{network_id}"] = self.client.run_with_semaphore(
+                self.client.network.get_group_policies(network_id)
+            )
 
     def build_device_tasks(
         self,

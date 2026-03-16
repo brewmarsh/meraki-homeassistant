@@ -5,7 +5,6 @@ from __future__ import annotations
 import logging
 import secrets
 import string
-from typing import Any
 
 from custom_components.meraki_ha.const.config import (
     CONF_MERAKI_API_KEY,
@@ -139,34 +138,15 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     )
     await api_client.async_setup()
 
-    # Shared static data for all coordinators to avoid redundant API calls
-    static_data: dict[str, Any] = {}
-
     # Initialize specialized coordinators
-    main_coordinator = MerakiMainCoordinator(
-        hass, entry, api_client, static_data=static_data
-    )
-    device_coordinator = MerakiDeviceCoordinator(
-        hass, entry, api_client, static_data=static_data
-    )
-    switch_coordinator = MerakiSwitchCoordinator(
-        hass, entry, api_client, static_data=static_data
-    )
-    camera_coordinator = MerakiCameraCoordinator(
-        hass, entry, api_client, static_data=static_data
-    )
-    sensor_coordinator = MerakiSensorCoordinator(
-        hass, entry, api_client, static_data=static_data
-    )
-    wireless_coordinator = MerakiWirelessCoordinator(
-        hass, entry, api_client, static_data=static_data
-    )
-    appliance_coordinator = MerakiApplianceCoordinator(
-        hass, entry, api_client, static_data=static_data
-    )
-    client_coordinator = MerakiClientCoordinator(
-        hass, entry, api_client, static_data=static_data
-    )
+    main_coordinator = MerakiMainCoordinator(hass, entry, api_client)
+    device_coordinator = MerakiDeviceCoordinator(hass, entry, api_client)
+    switch_coordinator = MerakiSwitchCoordinator(hass, entry, api_client)
+    camera_coordinator = MerakiCameraCoordinator(hass, entry, api_client)
+    sensor_coordinator = MerakiSensorCoordinator(hass, entry, api_client)
+    wireless_coordinator = MerakiWirelessCoordinator(hass, entry, api_client)
+    appliance_coordinator = MerakiApplianceCoordinator(hass, entry, api_client)
+    client_coordinator = MerakiClientCoordinator(hass, entry, api_client)
 
     # 1. Block setup until the basic device skeleton is loaded (Tier 1)
     # This is strictly required to populate the Device Registry promptly.
@@ -192,14 +172,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         coord.ssids_by_network_and_number = (
             device_coordinator.ssids_by_network_and_number
         )
-
-    # Perform static initialization (RF Profiles, Group Policies, Sensor Relationships)
-    # once at startup using the discovered devices and networks.
-    # This avoids redundant API calls in the 30s polling loop.
-    _LOGGER.info(
-        "Starting static initialization for Meraki coordinator %s", entry.title
-    )
-    await main_coordinator.async_initialize()
 
     # 2. Start heavy fetching for other coordinators in the background.
     # This prevents blocking the Home Assistant UI and avoids setup timeouts.

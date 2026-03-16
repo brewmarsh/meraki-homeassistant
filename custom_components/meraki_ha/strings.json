@@ -82,19 +82,6 @@
           "sensors": "Sensor configuration",
           "cameras": "Camera settings",
           "advanced": "Advanced configuration"
-        "title": "Cisco Meraki Configuration",
-        "description": "Customize which features are enabled for your network.",
-        "data": {
-          "enable_device_status": "Enable Device Status",
-          "enable_device_sensors": "Enable Environmental Sensors",
-          "enable_port_sensors": "Enable Switch Port Sensors",
-          "enable_camera_entities": "Enable Camera Entities"
-        },
-        "data_description": {
-          "enable_device_status": "Track the online/offline state of your networking hardware.",
-          "enable_device_sensors": "Create entities for temperature, humidity, and air quality metrics.",
-          "enable_port_sensors": "Create status and traffic entities for individual switch ports.",
-          "enable_camera_entities": "Create RTSP stream entities for your security cameras."
         }
       },
       "general": {

@@ -6,10 +6,11 @@ import logging
 from datetime import timedelta
 from typing import Any, Generic, TypeVar
 
-from custom_components.meraki_ha.const.integration import DOMAIN
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
+
+from custom_components.meraki_ha.const.integration import DOMAIN
 
 from ..core.api import MerakiApiClientProtocol as ApiClient
 from ..core.coordinator_helpers.config_helper import (
@@ -35,7 +36,6 @@ class MerakiBaseCoordinator(DataUpdateCoordinator[T], Generic[T]):
     devices_by_serial: dict[str, MerakiDevice]
     networks_by_id: dict[str, MerakiNetwork]
     ssids_by_network_and_number: dict[tuple[str, int], dict[str, Any]]
-    static_data: dict[str, Any]
 
     def __init__(
         self,
@@ -43,13 +43,11 @@ class MerakiBaseCoordinator(DataUpdateCoordinator[T], Generic[T]):
         entry: ConfigEntry,
         api_client: ApiClient,
         name: str = DOMAIN,
-        static_data: dict[str, Any] | None = None,
     ) -> None:
         """Initialize the base coordinator."""
         self.config = get_coordinator_config(entry)
 
         self.api = api_client
-        self.static_data = static_data if static_data is not None else {}
 
         self.data_fetch_manager = DataFetchManager(
             client=self.api,
@@ -57,7 +55,6 @@ class MerakiBaseCoordinator(DataUpdateCoordinator[T], Generic[T]):
             enable_firewall_rules=self.config.enable_firewall,
             enable_traffic_shaping=self.config.enable_traffic,
             enable_camera_sense=self.config.enable_camera_sense,
-            static_data=self.static_data,
         )
 
         self.pending_update_manager = PendingUpdateManager()
@@ -121,10 +118,3 @@ class MerakiBaseCoordinator(DataUpdateCoordinator[T], Generic[T]):
                 self.name,
                 self.update_interval,
             )
-
-    async def async_initialize(self) -> None:
-        """Initialize static data for the coordinator."""
-        _LOGGER.debug("Initializing static data for coordinator %s", self.name)
-        await self.data_fetch_manager.async_initialize(
-            self.devices_by_serial, self.networks_by_id
-        )
