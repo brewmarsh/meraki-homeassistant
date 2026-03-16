@@ -31,6 +31,9 @@ CONF_RTSP_STREAM_ENABLED: Final = "rtsp_stream_enabled"
 CONF_ENABLE_DEVICE_TRACKER: Final = "enable_device_tracker"
 """Configuration key for enabling device tracker."""
 
+DEFAULT_ENABLE_DEVICE_TRACKER: Final = True
+"""Default value for enabling device tracker."""
+
 CONF_ENABLE_VLAN_MANAGEMENT: Final = "enable_vlan_management"
 """Configuration key for enabling vlan management."""
 
