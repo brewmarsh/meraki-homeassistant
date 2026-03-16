@@ -98,26 +98,58 @@ async def test_options_flow(hass: HomeAssistant) -> None:
 
     result = await hass.config_entries.options.async_init(entry.entry_id)
 
-    assert result["type"] == FlowResultType.FORM
+    assert result["type"] == FlowResultType.MENU
     assert result["step_id"] == "init"
 
-    # Save Settings
+    # Test General Settings Step
+    result_general = await hass.config_entries.options.async_configure(
+        result["flow_id"],
+        user_input={"next_step_id": "general"},
+    )
+    assert result_general["type"] == FlowResultType.FORM
+    assert result_general["step_id"] == "general"
+
+    # Save General Settings
     with patch(
         "homeassistant.config_entries.ConfigEntries.async_reload",
         return_value=None,
     ) as mock_reload:
         result_save = await hass.config_entries.options.async_configure(
-            result["flow_id"],
+            result_general["flow_id"],
             user_input={
-                CONF_ENABLE_DEVICE_STATUS: True,
-                "enable_device_sensors": True,
-                "enable_port_sensors": False,
-                CONF_ENABLE_CAMERA_ENTITIES: True,
+                "scan_interval": "300",
+                "enable_device_tracker": True,
             },
         )
         await hass.async_block_till_done()
 
     assert result_save["type"] == FlowResultType.CREATE_ENTRY
+    assert entry.options["scan_interval"] == "300"
+    assert entry.options["enable_device_tracker"] is True
+
+    # Test Sensors Step (verifying merge)
+    result = await hass.config_entries.options.async_init(entry.entry_id)
+    result_sensors = await hass.config_entries.options.async_configure(
+        result["flow_id"],
+        user_input={"next_step_id": "sensors"},
+    )
+    assert result_sensors["type"] == FlowResultType.FORM
+
+    with patch(
+        "homeassistant.config_entries.ConfigEntries.async_reload",
+        return_value=None,
+    ) as mock_reload:
+        result_save = await hass.config_entries.options.async_configure(
+            result_sensors["flow_id"],
+            user_input={
+                CONF_ENABLE_DEVICE_STATUS: False,
+            },
+        )
+        await hass.async_block_till_done()
+
+    assert result_save["type"] == FlowResultType.CREATE_ENTRY
+    assert entry.options["scan_interval"] == "300"  # Preserved
+    assert entry.options[CONF_ENABLE_DEVICE_STATUS] is False  # Updated
 
 
 async def test_update_listener(hass: HomeAssistant) -> None:
