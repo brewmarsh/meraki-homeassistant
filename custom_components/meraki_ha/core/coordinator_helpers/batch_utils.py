@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import time
 from typing import Any
 
 from ...core.errors import (
@@ -22,14 +23,10 @@ SILENT_ERRORS = [
 
 
 async def execute_batches(tasks: dict[str, Any], label: str) -> list[Any]:
-    """Execute tasks in batches with cooldown."""
+    """Execute tasks in batches with dynamic cooldown bypass for cached data."""
     task_items = list(tasks.items())
     all_results = []
     for i in range(0, len(task_items), BATCH_SIZE):
-        if i > 0:
-            _LOGGER.debug("Cooling down for 1s between %s batches...", label)
-            await asyncio.sleep(1)
-
         chunk = dict(task_items[i : i + BATCH_SIZE])
         _LOGGER.debug(
             "Executing %s batch: items %d to %d",
@@ -37,8 +34,30 @@ async def execute_batches(tasks: dict[str, Any], label: str) -> list[Any]:
             i + 1,
             min(i + BATCH_SIZE, len(task_items)),
         )
+
+        # Action 2 & 3: Measure execution time to detect local cache hits
+        start_time = time.perf_counter()
         chunk_results = await asyncio.gather(*chunk.values(), return_exceptions=True)
+        elapsed = time.perf_counter() - start_time
+
         all_results.extend(chunk_results)
+
+        # Action 4: If there are more items, determine if we need to sleep
+        if i + BATCH_SIZE < len(task_items):
+            if elapsed < 0.2:  # 200ms heuristic for local memory cache
+                _LOGGER.debug(
+                    "%s batch executed in %.3fs (likely cached). Skipping cooldown.",
+                    label,
+                    elapsed,
+                )
+            else:
+                _LOGGER.debug(
+                    "%s batch executed in %.3fs. Cooling down for 1s...",
+                    label,
+                    elapsed,
+                )
+                await asyncio.sleep(1)
+
     return all_results
 
 
