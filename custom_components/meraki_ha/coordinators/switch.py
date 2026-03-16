@@ -13,9 +13,13 @@ _LOGGER = logging.getLogger(__name__)
 class MerakiSwitchCoordinator(MerakiBaseCoordinator[dict[str, Any]]):
     """A coordinator for Meraki switch data."""
 
-    def __init__(self, hass, entry, api_client) -> None:
+    def __init__(
+        self, hass, entry, api_client, static_data: dict[str, Any] | None = None
+    ) -> None:
         """Initialize the switch coordinator."""
-        super().__init__(hass, entry, api_client, name="switch")
+        super().__init__(
+            hass, entry, api_client, name="switch", static_data=static_data
+        )
         self.last_successful_data: dict[str, Any] = {}
         # Slow poll interval
         from datetime import timedelta
