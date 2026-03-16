@@ -156,8 +156,9 @@ class MerakiClient:
             }
         )
 
-        self.request_count += 1
         async with self._semaphore:
+            # Strictly count actual network I/O
+            self.request_count += 1
             try:
                 loop = asyncio.get_event_loop()
                 result = await loop.run_in_executor(
