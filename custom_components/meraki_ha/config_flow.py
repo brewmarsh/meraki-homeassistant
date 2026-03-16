@@ -63,7 +63,7 @@ class MerakiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 _LOGGER.exception("Unexpected exception during config flow")
                 errors["base"] = "cannot_connect"
             else:
-                return self.async_create_entry(title="Meraki", data=user_input)
+                return self.async_create_entry(title="Cisco Meraki", data=user_input)
 
         return self.async_show_form(
             step_id="user", data_schema=STEP_USER_DATA_SCHEMA, errors=errors

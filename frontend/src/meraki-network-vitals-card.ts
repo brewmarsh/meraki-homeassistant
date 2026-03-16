@@ -63,7 +63,7 @@ export class MerakiNetworkVitalsCard extends LitElement {
       switch_entity: '',
       ap_entity: '',
       throughput_entity: 'sensor.speedtest_download',
-      name: 'Meraki Network Vitals',
+      name: 'Cisco Meraki Network Vitals',
       gateway_tap_action: { action: 'more-info' },
       switch_tap_action: { action: 'more-info' },
       ap_tap_action: { action: 'more-info' },
@@ -159,7 +159,7 @@ export class MerakiNetworkVitalsCard extends LitElement {
 
     if (this._isLoading) {
       return renderLoadingState(
-        this._config?.name || 'Meraki Network Vitals',
+        this._config?.name || 'Cisco Meraki Network Vitals',
         this._loadingMessage,
         __VERSION__
       );
@@ -397,7 +397,7 @@ if (
 ) {
   (window as any).customCards.push({
     type: 'meraki-network-vitals-card',
-    name: 'Meraki Network Vitals',
+    name: 'Cisco Meraki Network Vitals',
     description: 'Compact horizontal health header.',
     preview: true,
   });

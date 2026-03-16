@@ -2,24 +2,24 @@
   "config": {
     "step": {
       "user": {
-        "title": "Meraki credentials",
-        "description": "Enter your Meraki API key and organization ID.",
+        "title": "Cisco Meraki credentials",
+        "description": "Enter your Cisco Meraki API key and organization ID.",
         "data": {
-          "api_key": "Meraki API key",
-          "organization_id": "Meraki organization ID"
+          "api_key": "Cisco Meraki API key",
+          "organization_id": "Cisco Meraki organization ID"
         }
       },
       "reauth": {
-        "title": "Re-authenticate Meraki",
-        "description": "The API key for organization {org_id} is no longer valid. Please enter a new Meraki API key.",
+        "title": "Re-authenticate Cisco Meraki",
+        "description": "The API key for organization {org_id} is no longer valid. Please enter a new Cisco Meraki API key.",
         "data": {
-          "api_key": "Meraki API key",
-          "organization_id": "Meraki organization ID"
+          "api_key": "Cisco Meraki API key",
+          "organization_id": "Cisco Meraki organization ID"
         }
       },
       "reconfigure": {
-        "title": "Reconfigure Meraki",
-        "description": "Update your Meraki configuration.",
+        "title": "Reconfigure Cisco Meraki",
+        "description": "Update your Cisco Meraki configuration.",
         "data": {
           "scan_interval": "Update frequency",
           "enable_device_tracker": "Enable client tracker",
@@ -40,35 +40,35 @@
           "enable_camera_sense": "Enable camera sense"
         },
         "data_description": {
-          "scan_interval": "Frequency of data updates from the Meraki API.",
-          "enable_device_tracker": "Track devices connected to your Meraki networks.",
+          "scan_interval": "Frequency of data updates from the Cisco Meraki API.",
+          "enable_device_tracker": "Track devices connected to your Cisco Meraki networks.",
           "enable_vlan_management": "Allow management of VLANs through switches.",
           "enable_device_status": "Create binary sensors for device online/offline status.",
           "enable_org_sensors": "Create sensors for organization-wide metrics.",
-          "enable_camera_entities": "Create entities for Meraki cameras.",
+          "enable_camera_entities": "Create entities for Cisco Meraki cameras.",
           "enable_device_sensors": "Create sensors for device-specific metrics.",
           "enable_network_sensors": "Create sensors for network-specific metrics.",
           "enable_vlan_sensors": "Create sensors for VLAN metrics.",
           "enable_port_sensors": "Create sensors for switch port metrics.",
           "enable_ssid_sensors": "Create sensors for SSID metrics.",
           "enable_client_status_sensors": "Create sensors for client online/offline status.",
-          "enabled_networks": "Select which Meraki networks to include in Home Assistant.",
+          "enabled_networks": "Select which Cisco Meraki networks to include in Home Assistant.",
           "enable_firewall_rules": "Enables management of Layer 3 firewall rules.",
           "enable_traffic_shaping": "Allows you to view and set bandwidth limits per SSID.",
           "enable_vpn_management": "Exposes switches to toggle site-to-site VPN settings.",
-          "enable_camera_sense": "Enable Meraki MV Sense analytics entities."
+          "enable_camera_sense": "Enable Cisco Meraki MV Sense analytics entities."
         }
       }
     },
     "error": {
       "invalid_auth": "Invalid API key",
       "invalid_org_id": "The organization ID is incorrect or not accessible with the provided API key",
-      "cannot_connect": "Cannot connect to Meraki API",
+      "cannot_connect": "Cannot connect to Cisco Meraki API",
       "unknown": "An unknown error occurred"
     },
     "abort": {
       "reauth_successful": "Re-authentication successful",
-      "already_configured": "This Meraki organization is already configured",
+      "already_configured": "This Cisco Meraki organization is already configured",
       "reconfigure_successful": "Reconfiguration successful",
       "unknown_entry": "Unknown config entry"
     }
@@ -76,33 +76,26 @@
   "options": {
     "step": {
       "init": {
-        "title": "Cisco Meraki Configuration",
-        "description": "Customize which features are enabled for your network.",
-        "data": {
-          "enable_device_status": "Enable Device Status",
-          "enable_device_sensors": "Enable Environmental Sensors",
-          "enable_port_sensors": "Enable Switch Port Sensors",
-          "enable_camera_entities": "Enable Camera Entities"
-        },
-        "data_description": {
-          "enable_device_status": "Track the online/offline state of your networking hardware.",
-          "enable_device_sensors": "Create entities for temperature, humidity, and air quality metrics.",
-          "enable_port_sensors": "Create status and traffic entities for individual switch ports.",
-          "enable_camera_entities": "Create RTSP stream entities for your security cameras."
+        "title": "Cisco Meraki options",
+        "menu_options": {
+          "general": "General settings",
+          "sensors": "Sensor configuration",
+          "cameras": "Camera settings",
+          "advanced": "Advanced configuration"
         }
       },
       "general": {
         "title": "General settings",
-        "description": "Configure general settings for the Meraki integration.",
+        "description": "Configure general settings for the Cisco Meraki integration.",
         "data": {
           "scan_interval": "Update frequency",
           "enabled_networks": "Enabled networks",
           "enable_device_tracker": "Enable client tracker"
         },
         "data_description": {
-          "scan_interval": "Frequency of data updates from the Meraki API.",
-          "enabled_networks": "Select which Meraki networks to include in Home Assistant.",
-          "enable_device_tracker": "Track devices connected to your Meraki networks."
+          "scan_interval": "Frequency of data updates from the Cisco Meraki API.",
+          "enabled_networks": "Select which Cisco Meraki networks to include in Home Assistant.",
+          "enable_device_tracker": "Track devices connected to your Cisco Meraki networks."
         }
       },
       "sensors": {
@@ -131,14 +124,14 @@
       },
       "cameras": {
         "title": "Camera settings",
-        "description": "Configure Meraki camera integration.",
+        "description": "Configure Cisco Meraki camera integration.",
         "data": {
           "enable_camera_entities": "Enable camera entities",
           "enable_camera_sense": "Enable camera sense"
         },
         "data_description": {
-          "enable_camera_entities": "Create entities for Meraki cameras.",
-          "enable_camera_sense": "Enable Meraki MV Sense analytics entities."
+          "enable_camera_entities": "Create entities for Cisco Meraki cameras.",
+          "enable_camera_sense": "Enable Cisco Meraki MV Sense analytics entities."
         }
       },
       "advanced": {
@@ -249,9 +242,6 @@
       },
       "meraki_camera_rtsp_switch": {
         "name": "RTSP server"
-      },
-      "switch_port_enabled": {
-        "name": "Port {port_id} enabled"
       }
     },
     "text": {
@@ -270,7 +260,7 @@
   },
   "device_automation": {
     "trigger_type": {
-      "meraki_alert": "Received Meraki alert"
+      "meraki_alert": "Received Cisco Meraki alert"
     }
   }
 }

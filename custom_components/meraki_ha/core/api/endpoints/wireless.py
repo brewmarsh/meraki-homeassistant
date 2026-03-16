@@ -204,7 +204,6 @@ class WirelessEndpoints:
         self,
         network_id: str,
         product_types: list[str],
-        static_data: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         """
         Get tasks to fetch detailed data for a network.
@@ -213,7 +212,6 @@ class WirelessEndpoints:
         ----
             network_id: The ID of the network.
             product_types: The product types of the network.
-            static_data: Optional pre-fetched static data.
 
         Returns
         -------
@@ -225,13 +223,9 @@ class WirelessEndpoints:
             tasks[f"ssids_{network_id}"] = self._api_client.run_with_semaphore(
                 self.get_network_ssids(network_id),
             )
-            # Only fetch RF profiles if not already in static_data
-            if not static_data or f"rf_profiles_{network_id}" not in static_data:
-                tasks[f"rf_profiles_{network_id}"] = (
-                    self._api_client.run_with_semaphore(
-                        self.get_network_wireless_rf_profiles(network_id),
-                    )
-                )
+            tasks[f"rf_profiles_{network_id}"] = self._api_client.run_with_semaphore(
+                self.get_network_wireless_rf_profiles(network_id),
+            )
         return tasks
 
     def _process_network_ssids(

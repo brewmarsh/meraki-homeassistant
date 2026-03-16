@@ -13,13 +13,9 @@ _LOGGER = logging.getLogger(__name__)
 class MerakiWirelessCoordinator(MerakiBaseCoordinator[dict[str, Any]]):
     """A coordinator for Meraki wireless data."""
 
-    def __init__(
-        self, hass, entry, api_client, static_data: dict[str, Any] | None = None
-    ) -> None:
+    def __init__(self, hass, entry, api_client) -> None:
         """Initialize the wireless coordinator."""
-        super().__init__(
-            hass, entry, api_client, name="wireless", static_data=static_data
-        )
+        super().__init__(hass, entry, api_client, name="wireless")
         self.last_successful_data: dict[str, Any] = {}
         # Slow poll interval
         from datetime import timedelta

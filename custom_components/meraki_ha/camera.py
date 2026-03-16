@@ -34,7 +34,7 @@ async def async_setup_entry(
     config_entry: ConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
-    """Set up Meraki camera entities from a config entry."""
+    """Set up Cisco Meraki camera entities from a config entry."""
     entry_data = hass.data[DOMAIN][config_entry.entry_id]
     coordinator: MerakiCameraCoordinator = entry_data["camera_coordinator"]
     camera_service: CameraService = entry_data["camera_service"]
@@ -56,7 +56,7 @@ async def async_setup_entry(
                 )
         except Exception as err:
             _LOGGER.error(
-                "Failed to initialize camera for Meraki device %s: %s",
+                "Failed to initialize camera for Cisco Meraki device %s: %s",
                 getattr(device, "serial", "Unknown"),
                 err,
                 exc_info=True,
@@ -69,7 +69,7 @@ async def async_setup_entry(
 
 class MerakiRTSPStreamCamera(MerakiEntity, Camera):
     """
-    Representation of a Meraki RTSP stream camera.
+    Representation of a Cisco Meraki RTSP stream camera.
 
     This entity is state-driven by the central MerakiCameraCoordinator.
     """
@@ -194,7 +194,7 @@ class MerakiRTSPStreamCamera(MerakiEntity, Camera):
                 # Meraki API sometimes returns 500 HTML on transient failures
                 if response.status >= 500:
                     _LOGGER.warning(
-                        "Meraki API returned %d for snapshot: %s",
+                        "Cisco Meraki API returned %d for snapshot: %s",
                         response.status,
                         self.name,
                     )

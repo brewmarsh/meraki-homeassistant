@@ -16,16 +16,6 @@ _LOGGER = logging.getLogger(__name__)
 class SensorFetchStrategy(BaseFetchStrategy):
     """Strategy for fetching sensor data."""
 
-    def __init__(
-        self,
-        client: Any,
-        disabled_features: set[str],
-        static_data: dict[str, Any] | None = None,
-    ) -> None:
-        """Initialize sensor strategy."""
-        super().__init__(client, disabled_features)
-        self.static_data = static_data if static_data is not None else {}
-
     def build_device_tasks(
         self,
         device: MerakiDevice,
@@ -40,15 +30,11 @@ class SensorFetchStrategy(BaseFetchStrategy):
         if (
             "battery" in capabilities or "temperature" in capabilities
         ) and device.serial:
-            # Check if relationships are already in static_data
-            if f"sensor_relationships_{device.serial}" not in self.static_data:
-                tasks[f"sensor_relationships_{device.serial}"] = (
-                    self.client.run_with_semaphore(
-                        self.client.sensor.get_device_sensor_relationships(
-                            device.serial
-                        ),
-                    )
+            tasks[f"sensor_relationships_{device.serial}"] = (
+                self.client.run_with_semaphore(
+                    self.client.sensor.get_device_sensor_relationships(device.serial),
                 )
+            )
 
     def process_device_details(
         self,

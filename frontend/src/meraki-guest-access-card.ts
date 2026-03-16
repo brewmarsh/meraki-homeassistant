@@ -194,7 +194,7 @@ export class MerakiGuestAccessCard extends LitElement {
   protected render() {
     if (this._isLoading) {
       return renderLoadingState(
-        this._config?.name || 'Meraki Guest Access',
+        this._config?.name || 'Cisco Meraki Guest Access',
         this._loadingMessage,
         __VERSION__
       );
@@ -203,7 +203,7 @@ export class MerakiGuestAccessCard extends LitElement {
     if (this._networks.length === 0) {
       return renderWarning(
         'No Wireless Networks',
-        'No Meraki wireless networks found. Ensure the integration is configured.',
+        'No Cisco Meraki wireless networks found. Ensure the integration is configured.',
         __VERSION__
       );
     }
@@ -313,7 +313,7 @@ export class MerakiGuestAccessCard extends LitElement {
     }
 
     return html`
-      <ha-card .header="${this._config?.name || 'Meraki Guest Access'}">
+      <ha-card .header="${this._config?.name || 'Cisco Meraki Guest Access'}">
         <div class="card-content">
           ${this._error
             ? html`<ha-alert
@@ -485,7 +485,7 @@ if (
 ) {
   (window as any).customCards.push({
     type: 'meraki-guest-access-card',
-    name: 'Meraki Guest Access',
+    name: 'Cisco Meraki Guest Access',
     description: `Manage temporary guest WiFi access. Version: ${__VERSION__}`,
     preview: true,
     version: __VERSION__,
