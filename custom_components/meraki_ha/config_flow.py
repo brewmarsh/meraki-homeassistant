@@ -8,15 +8,10 @@ from typing import Any
 import voluptuous as vol
 from homeassistant.core import callback
 from homeassistant.data_entry_flow import FlowResult
-from homeassistant.helpers import selector
 
 from homeassistant import config_entries
 
 from .const.config import (
-    CONF_ENABLE_CAMERA_ENTITIES,
-    CONF_ENABLE_DEVICE_SENSORS,
-    CONF_ENABLE_DEVICE_STATUS,
-    CONF_ENABLE_PORT_SENSORS,
     CONF_MERAKI_API_KEY,
     CONF_MERAKI_ORG_ID,
 )
@@ -102,13 +97,11 @@ class MerakiOptionsFlowHandler(config_entries.OptionsFlow):
                 title="", data=self.config_entry.options | user_input
             )
 
-        from .schemas import OPTIONS_SCHEMA_GENERAL
+        from .schemas import get_options_schema_general
 
         return self.async_show_form(
             step_id="general",
-            data_schema=self.add_suggested_values_to_schema(
-                OPTIONS_SCHEMA_GENERAL, self.config_entry.options
-            ),
+            data_schema=get_options_schema_general(self.config_entry.options),
         )
 
     async def async_step_sensors(
@@ -120,13 +113,11 @@ class MerakiOptionsFlowHandler(config_entries.OptionsFlow):
                 title="", data=self.config_entry.options | user_input
             )
 
-        from .schemas import OPTIONS_SCHEMA_SENSORS
+        from .schemas import get_options_schema_sensors
 
         return self.async_show_form(
             step_id="sensors",
-            data_schema=self.add_suggested_values_to_schema(
-                OPTIONS_SCHEMA_SENSORS, self.config_entry.options
-            ),
+            data_schema=get_options_schema_sensors(self.config_entry.options),
         )
 
     async def async_step_cameras(
@@ -138,13 +129,11 @@ class MerakiOptionsFlowHandler(config_entries.OptionsFlow):
                 title="", data=self.config_entry.options | user_input
             )
 
-        from .schemas import OPTIONS_SCHEMA_CAMERAS
+        from .schemas import get_options_schema_cameras
 
         return self.async_show_form(
             step_id="cameras",
-            data_schema=self.add_suggested_values_to_schema(
-                OPTIONS_SCHEMA_CAMERAS, self.config_entry.options
-            ),
+            data_schema=get_options_schema_cameras(self.config_entry.options),
         )
 
     async def async_step_advanced(
@@ -156,11 +145,9 @@ class MerakiOptionsFlowHandler(config_entries.OptionsFlow):
                 title="", data=self.config_entry.options | user_input
             )
 
-        from .schemas import OPTIONS_SCHEMA_ADVANCED
+        from .schemas import get_options_schema_advanced
 
         return self.async_show_form(
             step_id="advanced",
-            data_schema=self.add_suggested_values_to_schema(
-                OPTIONS_SCHEMA_ADVANCED, self.config_entry.options
-            ),
+            data_schema=get_options_schema_advanced(self.config_entry.options),
         )
