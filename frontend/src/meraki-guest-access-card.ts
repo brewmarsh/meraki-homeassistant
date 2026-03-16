@@ -65,8 +65,14 @@ export class MerakiGuestAccessCard extends LitElement {
       this.hass.user?.name &&
       !this._formData.guestName
     ) {
-      this._formData = { ...this._formData, guestName: this.hass.user.name };
+      this._formData = { ...this._formData, guestName: this._generateUniqueGuestName() };
     }
+  }
+
+  private _generateUniqueGuestName(): string {
+    const baseName = this.hass?.user?.name || 'Home Assistant';
+    const randomSuffix = Math.floor(Math.random() * 10000).toString().padStart(4, '0');
+    return `${baseName} - Guest ${randomSuffix}`;
   }
 
   private async _loadCentralizedData() {
@@ -350,6 +356,12 @@ export class MerakiGuestAccessCard extends LitElement {
     this._success = null;
     this._error = null;
     this._qrSvg = '';
+    // Proactively generate a fresh name and clear the password so a new one is forced
+    this._formData = {
+      ...this._formData,
+      guestName: this._generateUniqueGuestName(),
+      passphrase: ''
+    };
     this._loadCentralizedData();
   }
 
