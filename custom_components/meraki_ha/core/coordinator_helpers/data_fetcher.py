@@ -107,7 +107,9 @@ class DataFetchManager:
                     self.client.sensor.get_organization_sensor_readings_latest()
                 )
 
-            return await async_gather_with_timeout(tasks, label="Batch fetch")
+            return await async_gather_with_timeout(
+                tasks, label="Batch fetch", client=self.client
+            )
 
         return await self.client.run_with_cache(
             cache_key, _do_fetch, ttl=self._cache_ttl
@@ -222,7 +224,7 @@ class DataFetchManager:
 
         if tasks:
             results = await async_gather_with_timeout(
-                tasks, timeout=45, label="Detail batch"
+                tasks, timeout=45, label="Detail batch", client=self.client
             )
             data.update(results)
 
@@ -275,7 +277,7 @@ class DataFetchManager:
         }
         try:
             client_results = await async_gather_with_timeout(
-                tasks, timeout=30, label="Client batch"
+                tasks, timeout=30, label="Client batch", client=self.client
             )
             all_clients: list[dict[str, Any]] = []
             for result in client_results.values():

@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import asyncio
 import logging
-import time
 from typing import Any
 
 from ...core.errors import (
@@ -22,8 +21,10 @@ SILENT_ERRORS = [
 ]
 
 
-async def execute_batches(tasks: dict[str, Any], label: str) -> list[Any]:
-    """Execute tasks in batches with dynamic cooldown bypass for cached data."""
+async def execute_batches(
+    tasks: dict[str, Any], label: str, client: Any = None
+) -> list[Any]:
+    """Execute tasks in batches with deterministic cooldown bypass for cached data."""
     task_items = list(tasks.items())
     all_results = []
     for i in range(0, len(task_items), BATCH_SIZE):
@@ -35,26 +36,24 @@ async def execute_batches(tasks: dict[str, Any], label: str) -> list[Any]:
             min(i + BATCH_SIZE, len(task_items)),
         )
 
-        # Action 2 & 3: Measure execution time to detect local cache hits
-        start_time = time.perf_counter()
+        # Action 3: Record start request count for deterministic cache detection
+        start_request_count = getattr(client, "request_count", 0) if client else 0
         chunk_results = await asyncio.gather(*chunk.values(), return_exceptions=True)
-        elapsed = time.perf_counter() - start_time
+        current_request_count = getattr(client, "request_count", 0) if client else 0
 
         all_results.extend(chunk_results)
 
-        # Action 4: If there are more items, determine if we need to sleep
+        # Action 4: Deterministic check - did any HTTP requests actually happen?
         if i + BATCH_SIZE < len(task_items):
-            if elapsed < 0.2:  # 200ms heuristic for local memory cache
+            if client and current_request_count == start_request_count:
                 _LOGGER.debug(
-                    "%s batch executed in %.3fs (likely cached). Skipping cooldown.",
+                    "%s batch served entirely from cache. Skipping cooldown.",
                     label,
-                    elapsed,
                 )
             else:
                 _LOGGER.debug(
-                    "%s batch executed in %.3fs. Cooling down for 1s...",
+                    "%s batch hit the Meraki API. Cooling down for 1s...",
                     label,
-                    elapsed,
                 )
                 await asyncio.sleep(1)
 
@@ -128,7 +127,10 @@ def handle_batch_exceptions(tasks: dict[str, Any], label: str) -> None:
 
 
 async def async_gather_with_timeout(
-    tasks: dict[str, Any], timeout: int = 25, label: str = "Tasks"
+    tasks: dict[str, Any],
+    timeout: int = 25,
+    label: str = "Tasks",
+    client: Any = None,
 ) -> dict[str, Any]:
     """Gather tasks with timeout, batching, and smart error transformation."""
     if not tasks:
@@ -139,7 +141,9 @@ async def async_gather_with_timeout(
     )
 
     try:
-        results = await asyncio.wait_for(execute_batches(tasks, label), timeout=timeout)
+        results = await asyncio.wait_for(
+            execute_batches(tasks, label, client=client), timeout=timeout
+        )
         return process_batch_results(tasks, results, label)
 
     except asyncio.TimeoutError:

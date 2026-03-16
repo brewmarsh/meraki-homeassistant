@@ -96,6 +96,9 @@ class MerakiClient:
         # Shared cache for preventing thundering herd
         self.api_cache = MerakiApiCache()
 
+        # Request counter for deterministic cache hit detection
+        self.request_count = 0
+
         # Set of disabled features to prevent repetitive API calls
         self._disabled_features: set[str] = set()
         self._enable_vpn_management = False
@@ -153,6 +156,7 @@ class MerakiClient:
             }
         )
 
+        self.request_count += 1
         async with self._semaphore:
             try:
                 loop = asyncio.get_event_loop()
