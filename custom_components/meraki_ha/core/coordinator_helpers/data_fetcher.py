@@ -27,6 +27,7 @@ from .strategy_executor import (
 if TYPE_CHECKING:
     from ..api import MerakiApiClientProtocol
     from ..models.device import MerakiDevice
+    from ..models.network import MerakiNetwork
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -41,6 +42,7 @@ class DataFetchManager:
         enable_firewall_rules: bool = False,
         enable_traffic_shaping: bool = False,
         enable_camera_sense: bool = False,
+        static_data: dict[str, Any] | None = None,
     ) -> None:
         """Initialize the data fetch manager."""
         self.client = client
@@ -50,6 +52,7 @@ class DataFetchManager:
         self.enable_camera_sense = enable_camera_sense
         self._disabled_features: set[str] = set()
         self.client_fetcher = ClientFetcher(client)
+        self.static_data = static_data if static_data is not None else {}
 
         # Instance-based cache for organization-wide data
         self._org_data_cache: dict[str, Any] = {}
@@ -64,14 +67,58 @@ class DataFetchManager:
             enable_firewall_rules=self.enable_firewall_rules,
             enable_traffic_shaping=self.enable_traffic_shaping,
         )
-        self.wireless_strategy = WirelessFetchStrategy(client, self._disabled_features)
+        self.wireless_strategy = WirelessFetchStrategy(
+            client, self._disabled_features, static_data=self.static_data
+        )
         self.switch_strategy = SwitchFetchStrategy(client, self._disabled_features)
         self.camera_strategy = CameraFetchStrategy(
             client,
             self._disabled_features,
             enable_camera_sense=self.enable_camera_sense,
         )
-        self.sensor_strategy = SensorFetchStrategy(client, self._disabled_features)
+        self.sensor_strategy = SensorFetchStrategy(
+            client, self._disabled_features, static_data=self.static_data
+        )
+
+    async def async_initialize(
+        self,
+        devices_by_serial: dict[str, MerakiDevice],
+        networks_by_id: dict[str, MerakiNetwork],
+    ) -> None:
+        """Fetch static data once at startup."""
+        _LOGGER.debug("Fetching static Meraki data (RF Profiles, Group Policies, etc.)")
+
+        tasks: dict[str, Any] = {}
+
+        # 1. RF Profiles and Group Policies for each network
+        for network_id, network in networks_by_id.items():
+            product_types = network.product_types or []
+            if "wireless" in product_types or "appliance" in product_types:
+                tasks[f"group_policies_{network_id}"] = self.client.run_with_semaphore(
+                    self.client.network.get_group_policies(network_id)
+                )
+            if "wireless" in product_types:
+                tasks[f"rf_profiles_{network_id}"] = self.client.run_with_semaphore(
+                    self.client.wireless.get_network_wireless_rf_profiles(network_id)
+                )
+
+        # 2. Sensor relationships for each sensor device
+        for serial, device in devices_by_serial.items():
+            if device.product_type == "sensor":
+                tasks[f"sensor_relationships_{serial}"] = (
+                    self.client.run_with_semaphore(
+                        self.client.sensor.get_device_sensor_relationships(serial)
+                    )
+                )
+
+        if tasks:
+            results = await async_gather_with_timeout(
+                tasks, timeout=60, label="Static initialization", client=self.client
+            )
+            self.static_data.update(results)
+            _LOGGER.debug(
+                "Static initialization complete. Cached %d items.", len(results)
+            )
 
     async def _async_fetch_batch_data(self, fast_only: bool = False) -> dict[str, Any]:
         """Fetch the organization-wide data batch with short-lived caching."""
@@ -216,6 +263,10 @@ class DataFetchManager:
 
     async def _build_strategy_tasks(self, data: dict[str, Any]) -> None:
         """Build and execute detailed data fetching tasks."""
+        # Inject static data into current update data so strategies can see it
+        # and parsers can use it.
+        data.update(self.static_data)
+
         tasks: dict[str, Any] = {}
         collect_network_tasks(data, tasks, self.strategies)
         collect_device_tasks(
