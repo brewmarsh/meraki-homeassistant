@@ -18,7 +18,7 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class MerakiEntity(CoordinatorEntity[T], Generic[T]):
-    """Base Meraki entity."""
+    """Base Cisco Meraki entity."""
 
     _attr_has_entity_name = True
 
@@ -140,8 +140,8 @@ class MerakiEntity(CoordinatorEntity[T], Generic[T]):
 
 
 class MerakiSensor(MerakiEntity[T], SensorEntity, Generic[T]):
-    """Base Meraki sensor entity."""
+    """Base Cisco Meraki sensor entity."""
 
 
 class MerakiBinarySensor(MerakiEntity[T], BinarySensorEntity, Generic[T]):
-    """Base Meraki binary sensor entity."""
+    """Base Cisco Meraki binary sensor entity."""

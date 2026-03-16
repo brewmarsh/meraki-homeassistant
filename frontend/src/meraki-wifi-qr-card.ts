@@ -243,7 +243,7 @@ if (!customElements.get('meraki-wifi-qr-card-editor')) {
 if (!(window as any).customCards.some((c: any) => c.type === 'meraki-wifi-qr-card')) {
   (window as any).customCards.push({
     type: "meraki-wifi-qr-card",
-    name: "Meraki Wi-Fi QR Card",
+    name: "Cisco Meraki Wi-Fi QR Card",
     description: "Display a scannable Wi-Fi QR code for guests.",
     preview: true,
   });

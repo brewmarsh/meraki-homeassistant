@@ -78,7 +78,7 @@ export class MerakiContentFilterCard extends LitElement {
 
     if (this._isLoading) {
       return renderLoadingState(
-        this._config?.name || 'Meraki Content Filter',
+        this._config?.name || 'Cisco Meraki Content Filter',
         this._loadingMessage,
         __VERSION__
       );
@@ -88,8 +88,8 @@ export class MerakiContentFilterCard extends LitElement {
     const stateObj = entityId ? this.hass.states[entityId] : undefined;
 
     const titleStateObj = this._config.entity ? this.hass.states[this._config.entity] : undefined;
-    const titleFriendlyName = titleStateObj?.attributes?.friendly_name || "Meraki";
-    const title = this._config.name || (this._config.entity ? `${titleFriendlyName} Content Filter` : "Meraki Content Filter");
+    const titleFriendlyName = titleStateObj?.attributes?.friendly_name || "Cisco Meraki";
+    const title = this._config.name || (this._config.entity ? `${titleFriendlyName} Content Filter` : "Cisco Meraki Content Filter");
 
     if (!entityId || !stateObj) {
       return renderWarning(
@@ -284,8 +284,8 @@ if (!customElements.get('meraki-content-filter-card-editor')) {
 if (!(window as any).customCards.some((c: any) => c.type === 'meraki-content-filter-card')) {
   (window as any).customCards.push({
     type: "meraki-content-filter-card",
-    name: "Meraki Content Filter",
-    description: "Control Meraki Content Filtering profiles.",
+    name: "Cisco Meraki Content Filter",
+    description: "Control Cisco Meraki Content Filtering profiles.",
     preview: true,
   });
 }

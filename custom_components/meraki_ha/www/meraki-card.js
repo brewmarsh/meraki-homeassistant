@@ -286,7 +286,7 @@ tt.elementStyles = [], tt.shadowRootOptions = { mode: "open" }, tt[dt("elementPr
  */
 const ht = globalThis, ye = (n) => n, kt = ht.trustedTypes, we = kt ? kt.createPolicy("lit-html", { createHTML: (n) => n }) : void 0, Te = "$lit$", j = `lit$${Math.random().toFixed(9).slice(2)}$`, Me = "?" + j, ci = `<${Me}>`, Z = document, ft = () => Z.createComment(""), gt = (n) => n === null || typeof n != "object" && typeof n != "function", te = Array.isArray, li = (n) => te(n) || typeof (n == null ? void 0 : n[Symbol.iterator]) == "function", Ot = `[ 	
 \f\r]`, lt = /<(?:(!--|\/[^a-zA-Z])|(\/?[a-zA-Z][^>\s]*)|(\/?$))/g, ve = /-->/g, be = />/g, J = RegExp(`>|${Ot}(?:([^\\s"'>=/]+)(${Ot}*=${Ot}*(?:[^ 	
-\f\r"'\`<>=]|("|')|))|$)`, "g"), Ee = /'/g, Ae = /"/g, Ie = /^(?:script|style|textarea|title)$/i, di = (n) => (t, ...e) => ({ _$litType$: n, strings: t, values: e }), b = di(1), et = Symbol.for("lit-noChange"), $ = Symbol.for("lit-nothing"), Ce = /* @__PURE__ */ new WeakMap(), Y = Z.createTreeWalker(Z, 129);
+\f\r"'\`<>=]|("|')|))|$)`, "g"), Ee = /'/g, Ce = /"/g, Ie = /^(?:script|style|textarea|title)$/i, di = (n) => (t, ...e) => ({ _$litType$: n, strings: t, values: e }), b = di(1), et = Symbol.for("lit-noChange"), $ = Symbol.for("lit-nothing"), Ae = /* @__PURE__ */ new WeakMap(), Y = Z.createTreeWalker(Z, 129);
 function xe(n, t) {
   if (!te(n) || !n.hasOwnProperty("raw")) throw Error("invalid template strings array");
   return we !== void 0 ? we.createHTML(t) : t;
@@ -297,7 +297,7 @@ const hi = (n, t) => {
   for (let a = 0; a < e; a++) {
     const c = n[a];
     let l, d, h = -1, u = 0;
-    for (; u < c.length && (o.lastIndex = u, d = o.exec(c), d !== null); ) u = o.lastIndex, o === lt ? d[1] === "!--" ? o = ve : d[1] !== void 0 ? o = be : d[2] !== void 0 ? (Ie.test(d[2]) && (i = RegExp("</" + d[2], "g")), o = J) : d[3] !== void 0 && (o = J) : o === J ? d[0] === ">" ? (o = i ?? lt, h = -1) : d[1] === void 0 ? h = -2 : (h = o.lastIndex - d[2].length, l = d[1], o = d[3] === void 0 ? J : d[3] === '"' ? Ae : Ee) : o === Ae || o === Ee ? o = J : o === ve || o === be ? o = lt : (o = J, i = void 0);
+    for (; u < c.length && (o.lastIndex = u, d = o.exec(c), d !== null); ) u = o.lastIndex, o === lt ? d[1] === "!--" ? o = ve : d[1] !== void 0 ? o = be : d[2] !== void 0 ? (Ie.test(d[2]) && (i = RegExp("</" + d[2], "g")), o = J) : d[3] !== void 0 && (o = J) : o === J ? d[0] === ">" ? (o = i ?? lt, h = -1) : d[1] === void 0 ? h = -2 : (h = o.lastIndex - d[2].length, l = d[1], o = d[3] === void 0 ? J : d[3] === '"' ? Ce : Ee) : o === Ce || o === Ee ? o = J : o === ve || o === be ? o = lt : (o = J, i = void 0);
     const f = o === J && n[a + 1].startsWith("/>") ? " " : "";
     r += o === lt ? c + ci : h >= 0 ? (s.push(l), c.slice(0, h) + Te + c.slice(h) + j + f) : c + j + (h === -2 ? a : f);
   }
@@ -416,8 +416,8 @@ class vt {
     }
   }
   _$AC(t) {
-    let e = Ce.get(t.strings);
-    return e === void 0 && Ce.set(t.strings, e = new pt(t)), e;
+    let e = Ae.get(t.strings);
+    return e === void 0 && Ae.set(t.strings, e = new pt(t)), e;
   }
   k(t) {
     te(this._$AH) || (this._$AH = [], this._$AR());
@@ -721,7 +721,7 @@ const vi = async (n, t) => {
       return await n.connection.sendMessagePromise(t);
     throw new Error("Home Assistant WebSocket communication methods not found.");
   } catch (e) {
-    throw console.error(`Meraki HA: WebSocket error [${t.type}]:`, e), e;
+    throw console.error(`Cisco Meraki HA: WebSocket error [${t.type}]:`, e), e;
   }
 };
 class L {
@@ -949,7 +949,7 @@ Le.prototype = {
     this.buffer.length <= t && this.buffer.push(0), n && (this.buffer[t] |= 128 >>> this.length % 8), this.length++;
   }
 };
-var Ai = Le;
+var Ci = Le;
 function Et(n) {
   if (!n || n < 1)
     throw new Error("BitMatrix size must be defined and greater than 0");
@@ -968,7 +968,7 @@ Et.prototype.xor = function(n, t, e) {
 Et.prototype.isReserved = function(n, t) {
   return this.reservedBit[n * this.size + t];
 };
-var Ci = Et, Ue = {};
+var Ai = Et, Ue = {};
 (function(n) {
   const t = P.getSymbolSize;
   n.getRowColCoords = function(s) {
@@ -1097,7 +1097,7 @@ var He = {};
   };
 })(He);
 var Dt = {};
-const q = xt, At = [
+const q = xt, Ct = [
   // L  M  Q  H
   1,
   1,
@@ -1259,7 +1259,7 @@ const q = xt, At = [
   49,
   68,
   81
-], Ct = [
+], At = [
   // L  M  Q  H
   7,
   10,
@@ -1425,20 +1425,6 @@ const q = xt, At = [
 Dt.getBlocksCount = function(t, e) {
   switch (e) {
     case q.L:
-      return At[(t - 1) * 4 + 0];
-    case q.M:
-      return At[(t - 1) * 4 + 1];
-    case q.Q:
-      return At[(t - 1) * 4 + 2];
-    case q.H:
-      return At[(t - 1) * 4 + 3];
-    default:
-      return;
-  }
-};
-Dt.getTotalCodewordsCount = function(t, e) {
-  switch (e) {
-    case q.L:
       return Ct[(t - 1) * 4 + 0];
     case q.M:
       return Ct[(t - 1) * 4 + 1];
@@ -1446,6 +1432,20 @@ Dt.getTotalCodewordsCount = function(t, e) {
       return Ct[(t - 1) * 4 + 2];
     case q.H:
       return Ct[(t - 1) * 4 + 3];
+    default:
+      return;
+  }
+};
+Dt.getTotalCodewordsCount = function(t, e) {
+  switch (e) {
+    case q.L:
+      return At[(t - 1) * 4 + 0];
+    case q.M:
+      return At[(t - 1) * 4 + 1];
+    case q.Q:
+      return At[(t - 1) * 4 + 2];
+    case q.H:
+      return At[(t - 1) * 4 + 3];
     default:
       return;
   }
@@ -1894,13 +1894,13 @@ var zi = We.exports;
   function h(_) {
     const w = d(o.NUMERIC, t.NUMERIC, _), m = d(o.ALPHANUMERIC, t.ALPHANUMERIC, _);
     let p, E;
-    return a.isKanjiModeEnabled() ? (p = d(o.BYTE, t.BYTE, _), E = d(o.KANJI, t.KANJI, _)) : (p = d(o.BYTE_KANJI, t.BYTE, _), E = []), w.concat(m, p, E).sort(function(C, x) {
-      return C.index - x.index;
-    }).map(function(C) {
+    return a.isKanjiModeEnabled() ? (p = d(o.BYTE, t.BYTE, _), E = d(o.KANJI, t.KANJI, _)) : (p = d(o.BYTE_KANJI, t.BYTE, _), E = []), w.concat(m, p, E).sort(function(A, x) {
+      return A.index - x.index;
+    }).map(function(A) {
       return {
-        data: C.data,
-        mode: C.mode,
-        length: C.length
+        data: A.data,
+        mode: A.mode,
+        length: A.length
       };
     });
   }
@@ -1957,10 +1957,10 @@ var zi = We.exports;
   function y(_, w) {
     const m = {}, p = { start: {} };
     let E = ["start"];
-    for (let A = 0; A < _.length; A++) {
-      const C = _[A], x = [];
-      for (let V = 0; V < C.length; V++) {
-        const D = C[V], ct = "" + A + V;
+    for (let C = 0; C < _.length; C++) {
+      const A = _[C], x = [];
+      for (let V = 0; V < A.length; V++) {
+        const D = A[V], ct = "" + C + V;
         x.push(ct), m[ct] = { node: D, lastCount: 0 }, p[ct] = {};
         for (let Lt = 0; Lt < E.length; Lt++) {
           const R = E[Lt];
@@ -1969,8 +1969,8 @@ var zi = We.exports;
       }
       E = x;
     }
-    for (let A = 0; A < E.length; A++)
-      p[E[A]].end = 0;
+    for (let C = 0; C < E.length; C++)
+      p[E[C]].end = 0;
     return { map: p, table: m };
   }
   function S(_, w) {
@@ -1995,9 +1995,9 @@ var zi = We.exports;
       return typeof p == "string" ? m.push(S(p, null)) : p.data && m.push(S(p.data, p.mode)), m;
     }, []);
   }, n.fromString = function(w, m) {
-    const p = h(w, a.isKanjiModeEnabled()), E = g(p), A = y(E, m), C = c.find_path(A.map, "start", "end"), x = [];
-    for (let V = 1; V < C.length - 1; V++)
-      x.push(A.table[C[V]].node);
+    const p = h(w, a.isKanjiModeEnabled()), E = g(p), C = y(E, m), A = c.find_path(C.map, "start", "end"), x = [];
+    for (let V = 1; V < A.length - 1; V++)
+      x.push(C.table[A[V]].node);
     return n.fromArray(f(x));
   }, n.rawSplit = function(w) {
     return n.fromArray(
@@ -2005,7 +2005,7 @@ var zi = We.exports;
     );
   };
 })(Ke);
-const Rt = P, Vt = xt, Vi = Ai, ji = Ci, qi = Ue, Gi = Oe, Wt = He, Jt = Dt, Ki = Si, Nt = Ve, Wi = qe, Ji = K, jt = Ke;
+const Rt = P, Vt = xt, Vi = Ci, ji = Ai, qi = Ue, Gi = Oe, Wt = He, Jt = Dt, Ki = Si, Nt = Ve, Wi = qe, Ji = K, jt = Ke;
 function Yi(n, t) {
   const e = n.size, s = Gi.getPositions(t);
   for (let i = 0; i < s.length; i++) {
@@ -2080,18 +2080,18 @@ function is(n, t, e) {
   const y = new Array(o), S = new Array(o);
   let _ = 0;
   const w = new Uint8Array(n.buffer);
-  for (let C = 0; C < o; C++) {
-    const x = C < c ? d : h;
-    y[C] = w.slice(g, g + x), S[C] = f.encode(y[C]), g += x, _ = Math.max(_, x);
+  for (let A = 0; A < o; A++) {
+    const x = A < c ? d : h;
+    y[A] = w.slice(g, g + x), S[A] = f.encode(y[A]), g += x, _ = Math.max(_, x);
   }
   const m = new Uint8Array(s);
-  let p = 0, E, A;
+  let p = 0, E, C;
   for (E = 0; E < _; E++)
-    for (A = 0; A < o; A++)
-      E < y[A].length && (m[p++] = y[A][E]);
+    for (C = 0; C < o; C++)
+      E < y[C].length && (m[p++] = y[C][E]);
   for (E = 0; E < u; E++)
-    for (A = 0; A < o; A++)
-      m[p++] = S[A][E];
+    for (C = 0; C < o; C++)
+      m[p++] = S[C][E];
   return m;
 }
 function ss(n, t, e, s) {
@@ -2446,11 +2446,11 @@ const oe = class oe extends M {
     if (!this.hass || !this._config) return b``;
     if (this._isLoading)
       return Mt(
-        ((l = this._config) == null ? void 0 : l.name) || "Meraki Content Filter",
+        ((l = this._config) == null ? void 0 : l.name) || "Cisco Meraki Content Filter",
         this._loadingMessage,
         "2.3.0-beta.3515"
       );
-    const t = this._config.entity || this._discoverEntity(), e = t ? this.hass.states[t] : void 0, s = this._config.entity ? this.hass.states[this._config.entity] : void 0, i = ((d = s == null ? void 0 : s.attributes) == null ? void 0 : d.friendly_name) || "Meraki", r = this._config.name || (this._config.entity ? `${i} Content Filter` : "Meraki Content Filter");
+    const t = this._config.entity || this._discoverEntity(), e = t ? this.hass.states[t] : void 0, s = this._config.entity ? this.hass.states[this._config.entity] : void 0, i = ((d = s == null ? void 0 : s.attributes) == null ? void 0 : d.friendly_name) || "Cisco Meraki", r = this._config.name || (this._config.entity ? `${i} Content Filter` : "Cisco Meraki Content Filter");
     if (!t || !e)
       return De(
         "Entity Missing",
@@ -2623,8 +2623,8 @@ customElements.get("meraki-content-filter-card-editor") || customElements.define
 window.customCards = window.customCards || [];
 window.customCards.some((n) => n.type === "meraki-content-filter-card") || window.customCards.push({
   type: "meraki-content-filter-card",
-  name: "Meraki Content Filter",
-  description: "Control Meraki Content Filtering profiles.",
+  name: "Cisco Meraki Content Filter",
+  description: "Control Cisco Meraki Content Filtering profiles.",
   preview: !0
 });
 var ls = Object.defineProperty, I = (n, t, e, s) => {
@@ -2820,7 +2820,7 @@ customElements.get("meraki-wifi-qr-card-editor") || customElements.define("merak
 window.customCards = window.customCards || [];
 window.customCards.some((n) => n.type === "meraki-wifi-qr-card") || window.customCards.push({
   type: "meraki-wifi-qr-card",
-  name: "Meraki Wi-Fi QR Card",
+  name: "Cisco Meraki Wi-Fi QR Card",
   description: "Display a scannable Wi-Fi QR code for guests.",
   preview: !0
 });
@@ -2863,7 +2863,7 @@ const de = class de extends M {
       switch_entity: "",
       ap_entity: "",
       throughput_entity: "sensor.speedtest_download",
-      name: "Meraki Network Vitals",
+      name: "Cisco Meraki Network Vitals",
       gateway_tap_action: { action: "more-info" },
       switch_tap_action: { action: "more-info" },
       ap_tap_action: { action: "more-info" }
@@ -2930,7 +2930,7 @@ const de = class de extends M {
       return b``;
     if (this._isLoading)
       return Mt(
-        ((i = this._config) == null ? void 0 : i.name) || "Meraki Network Vitals",
+        ((i = this._config) == null ? void 0 : i.name) || "Cisco Meraki Network Vitals",
         this._loadingMessage,
         "2.3.0-beta.3515"
       );
@@ -3148,7 +3148,7 @@ window.customCards.some(
   (n) => n.type === "meraki-network-vitals-card"
 ) || window.customCards.push({
   type: "meraki-network-vitals-card",
-  name: "Meraki Network Vitals",
+  name: "Cisco Meraki Network Vitals",
   description: "Compact horizontal health header.",
   preview: !0
 });
@@ -3297,14 +3297,14 @@ const fe = class fe extends M {
     var o, a, c;
     if (this._isLoading)
       return Mt(
-        ((o = this._config) == null ? void 0 : o.name) || "Meraki Guest Access",
+        ((o = this._config) == null ? void 0 : o.name) || "Cisco Meraki Guest Access",
         this._loadingMessage,
         "2.3.0-beta.3515"
       );
     if (this._networks.length === 0)
       return De(
         "No Wireless Networks",
-        "No Meraki wireless networks found. Ensure the integration is configured.",
+        "No Cisco Meraki wireless networks found. Ensure the integration is configured.",
         "2.3.0-beta.3515"
       );
     const t = L.getNetworkOptions(
@@ -3395,7 +3395,7 @@ const fe = class fe extends M {
       `;
     }
     return b`
-      <ha-card .header="${((c = this._config) == null ? void 0 : c.name) || "Meraki Guest Access"}">
+      <ha-card .header="${((c = this._config) == null ? void 0 : c.name) || "Cisco Meraki Guest Access"}">
         <div class="card-content">
           ${this._error ? b`<ha-alert
                 alert-type="error"
@@ -3550,7 +3550,7 @@ window.customCards.some(
   (n) => n.type === "meraki-guest-access-card"
 ) || window.customCards.push({
   type: "meraki-guest-access-card",
-  name: "Meraki Guest Access",
+  name: "Cisco Meraki Guest Access",
   description: "Manage temporary guest WiFi access. Version: 2.3.0-beta.3515",
   preview: !0,
   version: "2.3.0-beta.3515"

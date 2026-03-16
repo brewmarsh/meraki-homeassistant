@@ -57,7 +57,7 @@ async def test_form(hass: HomeAssistant) -> None:
         await hass.async_block_till_done()
 
     assert result2["type"] == FlowResultType.CREATE_ENTRY
-    assert result2["title"] == "Meraki"
+    assert result2["title"] == "Cisco Meraki"
     assert result2["data"] == {
         CONF_MERAKI_API_KEY: "test-api-key",
         CONF_MERAKI_ORG_ID: "test-org-id",

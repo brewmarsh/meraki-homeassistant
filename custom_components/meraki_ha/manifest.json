@@ -1,6 +1,6 @@
 {
   "domain": "meraki_ha",
-  "name": "Meraki for Home Assistant",
+  "name": "Cisco Meraki for Home Assistant",
   "after_dependencies": [
     "webrtc",
     "frontend"

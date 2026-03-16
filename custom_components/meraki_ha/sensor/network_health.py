@@ -17,7 +17,7 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class MerakiNetworkHealthSensor(MerakiNetworkEntity, SensorEntity):
-    """Sensor to aggregate health of a specific Meraki device family (MX, MS, MR)."""
+    """Sensor to aggregate health of a specific Cisco Meraki device family (MX, MS, MR)."""
 
     def __init__(
         self,
