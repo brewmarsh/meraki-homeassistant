@@ -76,7 +76,7 @@
   "options": {
     "step": {
       "init": {
-        "title": "Cisco Meraki options",
+        "title": "Cisco Meraki",
         "menu_options": {
           "general": "General settings",
           "sensors": "Sensor configuration",
