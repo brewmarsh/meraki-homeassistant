@@ -1,5 +1,6 @@
 """A custom caching decorator for async methods."""
 
+import asyncio
 import time
 from collections.abc import Awaitable, Callable
 from functools import wraps
@@ -19,6 +20,7 @@ def async_timed_cache(
     Decorate to cache the result of an async method on an instance.
 
     The cache is stored on the instance itself and has a timeout.
+    Includes thundering herd protection to share in-flight requests.
 
     Args:
         timeout: The cache timeout in seconds.
@@ -41,6 +43,8 @@ def async_timed_cache(
                 self._cache_storage = {}
             if not hasattr(self, "_cache_last_update"):
                 self._cache_last_update = {}
+            if not hasattr(self, "_cache_in_flight"):
+                self._cache_in_flight = {}
 
             # Create a unique key for the function call
             key_parts = [func.__name__]
@@ -56,11 +60,23 @@ def async_timed_cache(
                 if time.time() - last_update < timeout:
                     return self._cache_storage[cache_key]
 
+            # Thundering herd protection: await in-flight request if present
+            if cache_key in self._cache_in_flight:
+                return await self._cache_in_flight[cache_key]
+
             # If not, call the original function and cache the result
-            result = await func(self, *args, **kwargs)
-            self._cache_storage[cache_key] = result
-            self._cache_last_update[cache_key] = time.time()
-            return result
+            async def _fetch() -> T:
+                try:
+                    result = await func(self, *args, **kwargs)
+                    self._cache_storage[cache_key] = result
+                    self._cache_last_update[cache_key] = time.time()
+                    return result
+                finally:
+                    self._cache_in_flight.pop(cache_key, None)
+
+            task = asyncio.create_task(_fetch())
+            self._cache_in_flight[cache_key] = task
+            return await task
 
         return wrapper
 

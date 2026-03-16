@@ -5,6 +5,8 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING, Any
 
+from custom_components.meraki_ha.core.api.cache import async_timed_cache
+
 if TYPE_CHECKING:
     from ..protocol import MerakiApiClientProtocol
 
@@ -50,6 +52,7 @@ class SensorEndpoints:
             operation=operation,
         )
 
+    @async_timed_cache(timeout=60)
     async def get_organization_sensor_readings_latest_for_serials(
         self,
         serials: list[str],
@@ -83,6 +86,7 @@ class SensorEndpoints:
             total_pages="all",
         )
 
+    @async_timed_cache(timeout=60)
     async def get_organization_sensor_readings_latest(
         self,
     ) -> list[dict[str, Any]]:
