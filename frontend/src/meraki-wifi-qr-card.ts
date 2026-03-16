@@ -4,7 +4,7 @@ import { HomeAssistant } from './types/ha';
 import { Network, SSID } from './types/meraki';
 import { renderWarning, renderLoadingState, sharedStyles } from './shared-ui';
 import { MerakiDataProvider } from './utils/meraki-data';
-import QRCode from 'qrcode';
+import { WifiHelpers } from './utils/wifi-helpers';
 
 declare const __VERSION__: string;
 
@@ -168,92 +168,24 @@ export class MerakiWifiQrCard extends LitElement {
     }
   }
 
-  private _getValue(value?: string): string {
-    if (!value || !this.hass) return value || '';
-    if (this.hass.states[value]) {
-      return this.hass.states[value].state;
-    }
-    return value;
-  }
-
-  private _getPasswordForSsid(ssidName: string): string {
-    if (!this.hass) return '';
-
-    // Pass 1: Manual Override - User typed a password or entity ID directly into the editor
-    if (this._config?.password && this._config.password !== 'password123') {
-        return this._getValue(this._config.password);
-    }
-
-    if (!ssidName) return '';
-
-    // Pass 2: Smart Auto-Discovery using Centralized Data Mapping
-    const targetNetwork = this._config?.networkId;
-    const ssidObj = this._ssids.find(s => 
-      s.name === ssidName && (!targetNetwork || s.networkId === targetNetwork)
-    );
-
-    if (ssidObj) {
-      for (const entityId in this.hass.states) {
-        const stateObj = this.hass.states[entityId];
-        const attrs = stateObj.attributes;
-
-        // Match the exact IDs from the Meraki Backend
-        if (attrs.network_id === ssidObj.networkId && attrs.ssid_number === ssidObj.number) {
-          if (attrs.psk) return String(attrs.psk);
-          if (attrs.password) return String(attrs.password);
-          
-          if (stateObj.state && !['unknown', 'unavailable'].includes(stateObj.state)) {
-              if (entityId.includes('password') || entityId.includes('psk')) {
-                  return stateObj.state;
-              }
-          }
-        }
-      }
-    }
-
-    // Pass 3: Fuzzy search fallback
-    const normalizedSsid = ssidName.toLowerCase().replace(/[^a-z0-9]/g, '_');
-    for (const entityId in this.hass.states) {
-      if (entityId.includes(normalizedSsid) && (entityId.includes('password') || entityId.includes('psk'))) {
-        const stateObj = this.hass.states[entityId];
-        if (stateObj.state && !['unknown', 'unavailable'].includes(stateObj.state)) {
-          return stateObj.state;
-        }
-      }
-    }
-
-    return '';
-  }
-
-  private _generateWifiString(ssid: string, password?: string): string {
-    const escapedSsid = ssid.replace(/([\\;,":])/g, '\\$1');
-    const escapedPassword = password ? password.replace(/([\\;,":])/g, '\\$1') : '';
-    return escapedPassword 
-      ? `WIFI:T:WPA;S:${escapedSsid};P:${escapedPassword};;`
-      : `WIFI:T:nopass;S:${escapedSsid};P:;;`;
-  }
-
   private async _generateQR() {
     if (!this._config) return;
-    const ssid = this._getValue(this._config.ssid);
-    const password = this._getPasswordForSsid(ssid);
+    const ssid = WifiHelpers.getValue(this.hass, this._config.ssid);
+    const password = WifiHelpers.getPasswordForSsid(
+      this.hass,
+      this._ssids,
+      ssid,
+      this._config.networkId,
+      this._config.password
+    );
 
     if (!ssid) {
       this._qrSvg = '';
       return;
     }
 
-    try {
-      const wifiString = this._generateWifiString(ssid, password);
-      this._qrSvg = await QRCode.toString(wifiString, {
-        type: 'svg',
-        margin: 2,
-        color: { dark: '#000000', light: '#ffffff' },
-      });
-    } catch (err) {
-      console.error('Failed to generate QR code', err);
-      this._qrSvg = '';
-    }
+    const wifiString = WifiHelpers.generateWifiQrString(ssid, password);
+    this._qrSvg = await WifiHelpers.generateQrSvg(wifiString, 2);
   }
 
   protected render() {
@@ -267,15 +199,21 @@ export class MerakiWifiQrCard extends LitElement {
       );
     }
 
-    const ssid = this._getValue(this._config.ssid);
-    const password = this._getPasswordForSsid(ssid);
+    const ssid = WifiHelpers.getValue(this.hass, this._config.ssid);
+    const password = WifiHelpers.getPasswordForSsid(
+        this.hass,
+        this._ssids,
+        ssid,
+        this._config.networkId,
+        this._config.password
+      );
 
     return html`
       <ha-card .header=${this._config.name || 'Wi-Fi Access'}>
-        <div class="card-content">
+        <div class="card-content flex-col-center">
           <div class="ssid-display">${ssid}</div>
-          <div class="qr-container" .innerHTML=${this._qrSvg}></div>
-          ${password ? html`<div class="password-display">Password: <code>${password}</code></div>` : ''}
+          <div class="qr-container" style="width: 200px; height: 200px;" .innerHTML=${this._qrSvg}></div>
+          ${password ? html`<div class="password-display">Password: <code class="copyable-code">${password}</code></div>` : ''}
         </div>
         <div class="version">v${__VERSION__}</div>
       </ha-card>
@@ -286,12 +224,9 @@ export class MerakiWifiQrCard extends LitElement {
     sharedStyles,
     css`
       :host { display: block; }
-      .card-content { display: flex; flex-direction: column; align-items: center; padding: 16px; gap: 16px; }
+      .card-content { padding: 16px; gap: 16px; }
       .ssid-display { font-size: 1.5em; font-weight: bold; color: var(--primary-text-color); text-align: center; }
-      .qr-container { width: 200px; height: 200px; background: white; padding: 8px; border-radius: 8px; }
-      .qr-container svg { width: 100%; height: 100%; }
       .password-display { color: var(--secondary-text-color); text-align: center; }
-      code { background: var(--secondary-background-color); padding: 2px 4px; border-radius: 4px; font-family: monospace; }
     `
   ];
 }
