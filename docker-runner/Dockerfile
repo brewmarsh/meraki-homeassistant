@@ -3,7 +3,6 @@ FROM ubuntu:24.04
 
 # Define the official runner version (Check GitHub releases for latest)
 ARG RUNNER_VERSION="2.329.0"
-ARG RUNNER_ARCH="x64"
 
 # Install all necessary dependencies, including sudo for the final execution step
 RUN apt-get update && \
@@ -35,8 +34,17 @@ RUN echo "runner ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/runner && \
 # Set the working directory for the runner download and execution
 WORKDIR /home/runner/actions-runner
 
-# Download and extract the official GitHub Actions Runner
-RUN FILENAME="actions-runner-linux-${RUNNER_ARCH}-${RUNNER_VERSION}.tar.gz" && \
+# DYNAMIC ARCHITECTURE DETECTION
+# Automatically downloads the correct binary whether the container is running on x64 or ARM64
+RUN ARCH=$(uname -m) && \
+    if [ "$ARCH" = "x86_64" ]; then \
+        RUNNER_ARCH="x64"; \
+    elif [ "$ARCH" = "aarch64" ] || [ "$ARCH" = "arm64" ]; then \
+        RUNNER_ARCH="arm64"; \
+    else \
+        echo "Unsupported architecture: $ARCH" && exit 1; \
+    fi && \
+    FILENAME="actions-runner-linux-${RUNNER_ARCH}-${RUNNER_VERSION}.tar.gz" && \
     RUNNER_URL="https://github.com/actions/runner/releases/download/v${RUNNER_VERSION}/${FILENAME}" && \
     echo "Downloading runner from: ${RUNNER_URL}" && \
     curl -o "$FILENAME" -L "$RUNNER_URL" && \
