@@ -76,8 +76,8 @@ async def test_api_silencing_traffic():
     result = await endpoint.get_traffic("N_123")
 
     assert result == []
-    client.mark_feature_disabled.assert_called_once_with("traffic", "N_123")
-    assert "traffic_N_123" in client._disabled_features
+    client.mark_feature_disabled.assert_called_once_with("get_traffic", "N_123")
+    assert "get_traffic_N_123" in client._disabled_features
 
 
 @pytest.mark.asyncio
@@ -96,5 +96,5 @@ async def test_api_silencing_vlans():
     result = await endpoint.get_vlans("N_123")
 
     assert result == []
-    client.mark_feature_disabled.assert_called_once_with("vlans", "N_123")
-    assert "vlans_N_123" in client._disabled_features
+    client.mark_feature_disabled.assert_called_once_with("get_vlans", "N_123")
+    assert "get_vlans_N_123" in client._disabled_features

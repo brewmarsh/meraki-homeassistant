@@ -109,6 +109,7 @@
 | The integration should handle API errors, network issues, and other exceptions gracefully.  | Included |
 | Logging should be used for debugging and error reporting.                                   | Included |
 | The integration must implement an adaptive back-off algorithm when 429 errors are detected. | Included |
+| The integration must implement granular, endpoint-specific API blacklisting to prevent failures in one feature from inadvertently disabling unrelated functionality. | Included |
 
 ### Data Coordination
 

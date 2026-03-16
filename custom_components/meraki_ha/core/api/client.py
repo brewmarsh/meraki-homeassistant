@@ -149,6 +149,17 @@ class MerakiClient:
         if not serial and args and isinstance(args[0], str):
             serial = args[0]
 
+        # Extract network_id for endpoint-specific blacklisting
+        network_id = kwargs.get("networkId") or kwargs.get("network_id")
+        if not network_id and args and isinstance(args[0], str) and args[0].startswith(("N_", "L_")):
+            network_id = args[0]
+
+        # Action 3: Pre-flight check for blacklisted endpoints
+        endpoint = func.__name__
+        if self.is_feature_disabled(endpoint, network_id):
+            _LOGGER.debug("Skipping blacklisted endpoint: %s", endpoint)
+            return []
+
         braintrust.current_span().log(
             metadata={
                 "organization_id": org_id,
@@ -178,6 +189,19 @@ class MerakiClient:
                 )
 
                 error_msg = str(e)
+                status_code = getattr(e, "status", None)
+
+                # Action 2: Endpoint-specific blacklisting for 400 errors
+                if status_code == 400 and (
+                    "not enabled" in error_msg.lower()
+                    or "must be enabled" in error_msg.lower()
+                ):
+                    _LOGGER.warning(
+                        "Endpoint unsupported, adding to blacklist: %s", endpoint
+                    )
+                    self.mark_feature_disabled(endpoint, network_id)
+                    return []
+
                 if (
                     "Traffic Analysis with Hostname Visibility" in error_msg
                     or "VLANs are not enabled" in error_msg
