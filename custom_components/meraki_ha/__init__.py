@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import logging
 import secrets
 import string
@@ -173,20 +174,18 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             device_coordinator.ssids_by_network_and_number
         )
 
-    # 2. Start heavy fetching for other coordinators in the background.
-    # This prevents blocking the Home Assistant UI and avoids setup timeouts.
-    for coord, name in [
-        (main_coordinator, "meraki_main_init"),
-        (switch_coordinator, "meraki_switch_init"),
-        (camera_coordinator, "meraki_camera_init"),
-        (sensor_coordinator, "meraki_sensor_init"),
-        (wireless_coordinator, "meraki_wireless_init"),
-        (appliance_coordinator, "meraki_appliance_init"),
-        (client_coordinator, "meraki_client_init"),
-    ]:
-        entry.async_create_background_task(
-            hass, coord.async_request_refresh(), name=name
-        )
+    # 2. Block until heavy fetching for all specialized coordinators completes.
+    # This guarantees that all required data is present before entity discovery runs,
+    # preventing race conditions that lead to missing entities (like switch ports).
+    await asyncio.gather(
+        main_coordinator.async_config_entry_first_refresh(),
+        switch_coordinator.async_config_entry_first_refresh(),
+        camera_coordinator.async_config_entry_first_refresh(),
+        sensor_coordinator.async_config_entry_first_refresh(),
+        wireless_coordinator.async_config_entry_first_refresh(),
+        appliance_coordinator.async_config_entry_first_refresh(),
+        client_coordinator.async_config_entry_first_refresh(),
+    )
 
     repo = MerakiRepository(api_client)
     device_control_service = DeviceControlService(repo)
@@ -229,8 +228,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         "discovery_service": discovery_service,
     }
 
-    await discovery_service.discover_entities()
-
     # Set up services
     services_manager = ServicesManager(
         hass,
@@ -261,6 +258,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             e,
         )
 
+    # 3. Run discovery ONLY when data is present and services are initialized
+    await discovery_service.discover_entities()
+
+    # 4. Finally, forward to platforms (sensor, switch, etc.)
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
     entry.async_on_unload(entry.add_update_listener(update_listener))
