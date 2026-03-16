@@ -76,7 +76,8 @@ This document verifies the state of the codebase against the requirements for th
   - **[VERIFIED]** Added configuration fields to the card editor for managing these tap actions.
 
 - **R18: Schema Consistency:**
-  - **[IN PROGRESS]** Implementation of configuration schema consistency to ensure alignment between constants, translation files, and automated testing scripts. This includes migrating legacy keys (e.g., `meraki_api_key`) to standardized keys (e.g., `api_key`).
+  - **[VERIFIED]** Implementation of configuration schema consistency to ensure alignment between constants, translation files, and automated testing scripts. This includes migrating legacy keys (e.g., `meraki_api_key`) to standardized keys (e.g., `api_key`).
+  - **[VERIFIED]** Standardized options flow translations in `strings.json` and `en.json` with friendly names and descriptions.
 
 - **R19: UI Data Integrity (IPv6 Truncation):**
   - **[VERIFIED]** Implemented IPv6 truncation for display in Meraki IP, Gateway, and DNS sensors to prevent UI overflow.
