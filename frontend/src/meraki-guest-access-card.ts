@@ -28,14 +28,14 @@ export class MerakiGuestAccessCard extends LitElement {
     network: '',
     ssid: '',
     passphrase: '',
-    policy: '', // Added Policy field
+    policy: '',
     duration: '60',
     guestName: '',
   };
 
   @state() private _networks: Network[] = [];
   @state() private _ssids: SSID[] = [];
-  @state() private _policies: any[] = []; // Restored Policies array
+  @state() private _policies: any[] = [];
 
   @state() private _creating: boolean = false;
   @state() private _error: string | null = null;
@@ -82,7 +82,7 @@ export class MerakiGuestAccessCard extends LitElement {
 
     if (networks.length === 0) {
       this._isLoading = false;
-      return; // Polling failed after max retries
+      return; 
     }
 
     this._networks = networks;
@@ -109,11 +109,10 @@ export class MerakiGuestAccessCard extends LitElement {
     if (initNetwork && initSsid && !initPassphrase) {
       initPassphrase = this._getPasswordForSelectedSsid(initNetwork, initSsid);
       if (!initPassphrase) {
-        initPassphrase = this._generateSecurePassword();
+        initPassphrase = this._generateNaturalPassword();
       }
     }
 
-    // Auto-select the first available policy if none is selected
     if (initNetwork && !initPolicy) {
       const networkPolicies = this._policies.filter(
         (p) => p.networkId === initNetwork
@@ -183,14 +182,12 @@ export class MerakiGuestAccessCard extends LitElement {
     return '';
   }
 
-  private _generateSecurePassword(length: number = 12): string {
-    const charset =
-      'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-    let retVal = '';
-    for (let i = 0, n = charset.length; i < length; ++i) {
-      retVal += charset.charAt(Math.floor(Math.random() * n));
-    }
-    return retVal;
+  private _generateNaturalPassword(): string {
+    const adjs = ['hot', 'cold', 'fast', 'slow', 'red', 'blue', 'green', 'tall', 'short', 'loud', 'quiet', 'happy', 'brave', 'calm', 'cool', 'smart', 'bright', 'clear', 'warm', 'wild', 'free', 'solid', 'swift', 'dark', 'light'];
+    const nouns = ['butter', 'potato', 'apple', 'tiger', 'lion', 'bear', 'hawk', 'tree', 'river', 'mountain', 'ocean', 'breeze', 'cloud', 'star', 'moon', 'forest', 'stone', 'water', 'fire', 'wood', 'metal', 'glass', 'sky', 'earth', 'sun'];
+    
+    const pick = (arr: string[]) => arr[Math.floor(Math.random() * arr.length)];
+    return `${pick(adjs)}-${pick(nouns)}-${Math.floor(Math.random() * 1000)}`;
   }
 
   private _formValueChanged(ev: CustomEvent) {
@@ -203,7 +200,7 @@ export class MerakiGuestAccessCard extends LitElement {
     if (updatedData.network !== oldNetwork) {
       updatedData.ssid = '';
       updatedData.passphrase = '';
-      updatedData.policy = ''; // Clear the policy since the network changed
+      updatedData.policy = ''; 
 
       const availableSsids = this._ssids.filter(
         (s) => s.networkId === updatedData.network
@@ -212,7 +209,6 @@ export class MerakiGuestAccessCard extends LitElement {
         updatedData.ssid = String(availableSsids[0].number);
       }
 
-      // Auto-select the first available policy for the new network
       const networkPolicies = this._policies.filter(
         (p) => p.networkId === updatedData.network
       );
@@ -223,14 +219,12 @@ export class MerakiGuestAccessCard extends LitElement {
       }
     }
 
-    if (updatedData.ssid && updatedData.ssid !== oldSsid) {
+    // Force secure password generation if it gets cleared out by ha-form initialization
+    if (!updatedData.passphrase && updatedData.network && updatedData.ssid) {
       updatedData.passphrase = this._getPasswordForSelectedSsid(
         updatedData.network,
         updatedData.ssid
-      );
-      if (!updatedData.passphrase) {
-        updatedData.passphrase = this._generateSecurePassword();
-      }
+      ) || this._generateNaturalPassword();
     }
 
     this._formData = updatedData;
@@ -248,15 +242,6 @@ export class MerakiGuestAccessCard extends LitElement {
   };
 
   protected render() {
-    // [MERAKI CARD DIAGNOSTIC]
-    console.debug('Meraki Guest Access Card Render State:', {
-      isLoading: this._isLoading,
-      networks: this._networks.length,
-      ssids: this._ssids.length,
-      policies: this._policies.length,
-      formData: this._formData,
-    });
-
     if (this._isLoading) {
       return renderLoadingState(
         this._config?.name || 'Meraki Guest Access',
@@ -297,7 +282,6 @@ export class MerakiGuestAccessCard extends LitElement {
         name: 'ssid',
         selector: { select: { options: ssidOptions, mode: 'dropdown' } },
       },
-      // Only show the policy dropdown if policies successfully loaded for this network
       ...(policyOptions.length > 0
         ? [
             {
@@ -470,26 +454,33 @@ export class MerakiGuestAccessCard extends LitElement {
         payload
       );
 
-      const ssidNum = parseInt(this._formData.ssid, 10);
-      const ssidObj = this._ssids.find(
-        (s) =>
-          s.networkId === this._formData.network && s.number === ssidNum
-      );
-      const ssidName = ssidObj ? ssidObj.name : 'Guest WiFi';
-      const password = this._formData.passphrase;
+      // Wrap QR generation in a try/catch so a failure doesn't swallow the success message
+      try {
+        const ssidNum = parseInt(this._formData.ssid, 10);
+        const ssidObj = this._ssids.find(
+          (s) =>
+            s.networkId === this._formData.network && s.number === ssidNum
+        );
+        const ssidName = ssidObj ? ssidObj.name : 'Guest WiFi';
+        const password = this._formData.passphrase;
 
-      const escapedSsid = this._escapeWifi(ssidName);
-      const escapedPass = this._escapeWifi(password);
-      const qrString = `WIFI:T:WPA;S:${escapedSsid};P:${escapedPass};;`;
+        const escapedSsid = this._escapeWifi(ssidName);
+        const escapedPass = this._escapeWifi(password);
+        const qrString = `WIFI:T:WPA;S:${escapedSsid};P:${escapedPass};;`;
 
-      this._qrSvg = await QRCode.toString(qrString, {
-        type: 'svg',
-        margin: 1,
-        color: {
-          dark: '#000000',
-          light: '#ffffff',
-        },
-      });
+        this._qrSvg = await QRCode.toString(qrString, {
+          type: 'svg',
+          margin: 1,
+          color: {
+            dark: '#000000',
+            light: '#ffffff',
+          },
+        });
+      } catch (qrErr) {
+        console.warn("Failed to generate QR code SVG:", qrErr);
+        // Fallback to text-only success state if SVG fails
+        this._qrSvg = '<div style="text-align:center; padding: 24px;">QR Code Unavailable</div>';
+      }
 
       this._success = 'Guest access key created successfully!';
     } catch (err: any) {
