@@ -44,6 +44,7 @@ from .protocol import (
     SwitchEndpointsProtocol,
     WirelessEndpointsProtocol,
 )
+from .shared_cache import MerakiApiCache
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -91,6 +92,9 @@ class MerakiClient:
 
         # Semaphore to limit concurrent API calls
         self._semaphore = asyncio.Semaphore(2)
+
+        # Shared cache for preventing thundering herd
+        self.api_cache = MerakiApiCache()
 
         # Set of disabled features to prevent repetitive API calls
         self._disabled_features: set[str] = set()
@@ -203,6 +207,12 @@ class MerakiClient:
     async def run_with_semaphore(self, coro: Awaitable[Any]) -> Any:
         """Run an awaitable with the rate limiter."""
         return await coro
+
+    async def run_with_cache(
+        self, key: str, fetch_coro: Any, ttl: int | None = None
+    ) -> Any:
+        """Run an awaitable with the shared cache and lock."""
+        return await self.api_cache.async_get_or_fetch(key, fetch_coro, ttl)
 
     def mark_feature_disabled(
         self, feature: str, network_id: str | None = None

@@ -41,17 +41,24 @@ class ClientFetcher:
         -------
             A list of clients.
         """
-        client_tasks = [
-            self._client.run_with_semaphore(
-                self._client.network.get_network_clients(
-                    network.id,
-                    perPage=1000,
-                    total_pages="all",
-                ),
-            )
-            for network in networks
-        ]
+
+        async def _fetch_for_network(network: MerakiNetwork) -> list[dict[str, Any]]:
+            cache_key = f"network_clients_{network.id}"
+
+            async def _do_fetch():
+                return await self._client.run_with_semaphore(
+                    self._client.network.get_network_clients(
+                        network.id,
+                        perPage=1000,
+                        total_pages="all",
+                    ),
+                )
+
+            return await self._client.run_with_cache(cache_key, _do_fetch, ttl=60)
+
+        client_tasks = [_fetch_for_network(network) for network in networks]
         clients_results = await asyncio.gather(*client_tasks, return_exceptions=True)
+
         clients: list[dict[str, Any]] = []
         for i, network in enumerate(networks):
             result = clients_results[i]
@@ -78,15 +85,27 @@ class ClientFetcher:
         -------
             A dictionary of clients by device serial.
         """
-        client_tasks = {
-            device.serial: self._client.run_with_semaphore(
-                self._client.devices.get_device_clients(device.serial),
-            )
+
+        async def _fetch_for_device(serial: str) -> list[dict[str, Any]]:
+            cache_key = f"device_clients_{serial}"
+
+            async def _do_fetch():
+                return await self._client.run_with_semaphore(
+                    self._client.devices.get_device_clients(serial),
+                )
+
+            return await self._client.run_with_cache(cache_key, _do_fetch, ttl=60)
+
+        device_serials = [
+            device.serial
             for device in devices
             if device.serial
             and device.product_type
             in ("wireless", "appliance", "switch", "cellularGateway")
-        }
+        ]
+
+        client_tasks = {serial: _fetch_for_device(serial) for serial in device_serials}
+
         results = await asyncio.gather(*client_tasks.values(), return_exceptions=True)
         clients_by_serial: dict[str, list[dict[str, Any]]] = {}
         for i, serial in enumerate(client_tasks.keys()):

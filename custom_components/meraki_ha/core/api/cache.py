@@ -1,4 +1,6 @@
-"""A custom caching decorator for async methods."""
+"""A custom caching decorator for async methods with lock-backed protection."""
+
+from __future__ import annotations
 
 import asyncio
 import time
@@ -19,8 +21,8 @@ def async_timed_cache(
     """
     Decorate to cache the result of an async method on an instance.
 
-    The cache is stored on the instance itself and has a timeout.
-    Includes thundering herd protection to share in-flight requests.
+    The cache is shared via the api_client if available, providing
+    thundering herd protection with asyncio.Lock.
 
     Args:
         timeout: The cache timeout in seconds.
@@ -39,13 +41,6 @@ def async_timed_cache(
         @wraps(func)
         async def wrapper(self: Any, *args: P.args, **kwargs: P.kwargs) -> T:
             """Wrap the original function."""
-            if not hasattr(self, "_cache_storage"):
-                self._cache_storage = {}
-            if not hasattr(self, "_cache_last_update"):
-                self._cache_last_update = {}
-            if not hasattr(self, "_cache_in_flight"):
-                self._cache_in_flight = {}
-
             # Create a unique key for the function call
             key_parts = [func.__name__]
             if args:
@@ -53,6 +48,23 @@ def async_timed_cache(
             if kwargs:
                 key_parts.extend(f"{k}={v}" for k, v in sorted(kwargs.items()))
             cache_key = ":".join(key_parts)
+
+            # If the instance has an api_client with a cache, use it
+            # Action 3 & 4: Use the lock-backed shared cache
+            api_client = getattr(self, "_api_client", None)
+            if api_client and hasattr(api_client, "run_with_cache"):
+                return await api_client.run_with_cache(
+                    cache_key, lambda: func(self, *args, **kwargs), ttl=timeout
+                )
+
+            # Fallback to instance-based legacy caching with thundering herd protection
+            # but using task-sharing logic if api_client is not available
+            if not hasattr(self, "_cache_storage"):
+                self._cache_storage = {}
+            if not hasattr(self, "_cache_last_update"):
+                self._cache_last_update = {}
+            if not hasattr(self, "_cache_in_flight"):
+                self._cache_in_flight = {}
 
             # Check if a valid cache entry exists
             if cache_key in self._cache_storage:
