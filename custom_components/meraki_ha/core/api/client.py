@@ -48,6 +48,19 @@ from .shared_cache import MerakiApiCache
 
 _LOGGER = logging.getLogger(__name__)
 
+FRIENDLY_FEATURE_NAMES = {
+    "getNetworkTraffic": "Network traffic analysis",
+    "getNetworkApplianceVlans": "VLAN tracking",
+    "getNetworkAppliancePorts": "Appliance port tracking",
+    "getNetworkApplianceTraffic": "Appliance traffic analysis",
+    "getNetworkApplianceFirewallL3FirewallRules": "L3 firewall rules",
+    "getNetworkApplianceL7FirewallRules": "L7 firewall rules",
+    "getNetworkApplianceContentFiltering": "Content filtering",
+    "getNetworkApplianceVpnSiteToSiteVpn": "Site-to-site VPN",
+    "getNetworkEvents": "Network events",
+    "getDeviceCameraAnalyticsRecent": "Camera analytics",
+}
+
 # Initialize Braintrust for observability
 load_dotenv()
 if os.getenv("BRAINTRUST_API_KEY"):
@@ -196,8 +209,13 @@ class MerakiClient:
                     "not enabled" in error_msg.lower()
                     or "must be enabled" in error_msg.lower()
                 ):
+                    feature_name = FRIENDLY_FEATURE_NAMES.get(endpoint, endpoint)
                     _LOGGER.warning(
-                        "Endpoint unsupported, adding to blacklist: %s", endpoint
+                        "%s is not enabled for network %s and will not be checked until the integration restarts. "
+                        "To add %s support, enable it on the Cisco Meraki dashboard.",
+                        feature_name.capitalize(),
+                        network_id or "Unknown",
+                        feature_name.lower(),
                     )
                     self.mark_feature_disabled(endpoint, network_id)
                     return []
