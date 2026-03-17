@@ -122,6 +122,7 @@ DEVICE_CAPABILITIES: Final[dict[str, list[str]]] = {
     "MS120": _MS_CAPS,
     "MS225": _MS_CAPS,
     "MS250": _MS_CAPS,
+    "GS": _MS_CAPS,
     # MV Family
     "MV12": _MV_CAPS,
     "MV22": _MV_CAPS,

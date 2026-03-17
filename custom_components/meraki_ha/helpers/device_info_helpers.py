@@ -95,11 +95,16 @@ def _resolve_physical_device_info(data: dict[str, Any]) -> DeviceInfo | None:
         # Identify Sensor Logic: strictly enforce [Sensor] prefix for
         # all MT sensor models
         is_sensor = product_type.lower() == "sensor" or model.startswith("MT")
+        # Identify Switch Logic: strictly enforce [Switch] prefix for
+        # both MS and GS models
+        is_switch = product_type.lower() == "switch" or model.startswith(("MS", "GS"))
 
         if is_camera:
             prefix = "Camera"
         elif is_sensor:
             prefix = "Sensor"
+        elif is_switch:
+            prefix = "Switch"
         else:
             prefix = DEVICE_TYPE_MAPPING.get(product_type, "Device")
 

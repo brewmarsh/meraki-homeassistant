@@ -47,7 +47,7 @@ def get_filtered_schema(
 
         if "camera" in p_type.lower() or (model and model.startswith("MV")):
             has_cameras = True
-        if "switch" in p_type.lower() or (model and model.startswith("MS")):
+        if "switch" in p_type.lower() or (model and model.startswith(("MS", "GS"))):
             has_switches = True
 
     filtered_schema_dict = {}

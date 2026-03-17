@@ -68,7 +68,13 @@ class MerakiNetworkHealthSensor(MerakiNetworkEntity, SensorEntity):
             d
             for d in devices
             if getattr(d, "network_id", None) == self._network_id
-            and (getattr(d, "model", "") or "").startswith(self._family_prefix)
+            and (
+                (getattr(d, "model", "") or "").startswith(self._family_prefix)
+                or (
+                    self._family_prefix == "MS"
+                    and (getattr(d, "model", "") or "").startswith("GS")
+                )
+            )
         ]
 
     @callback
