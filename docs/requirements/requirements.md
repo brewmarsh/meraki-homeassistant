@@ -76,8 +76,7 @@ This document verifies the state of the codebase against the requirements for th
   - **[VERIFIED]** Added configuration fields to the card editor for managing these tap actions.
 
 - **R18: Schema Consistency:**
-  - **[VERIFIED]** Implementation of configuration schema consistency to ensure alignment between constants, translation files, and automated testing scripts. This includes migrating legacy keys (e.g., `meraki_api_key`) to standardized keys (e.g., `api_key`).
-  - **[VERIFIED]** Standardized options flow translations in `strings.json` and `en.json` with friendly names and descriptions.
+  - **[IN PROGRESS]** Implementation of configuration schema consistency to ensure alignment between constants, translation files, and automated testing scripts. This includes migrating legacy keys (e.g., `meraki_api_key`) to standardized keys (e.g., `api_key`).
 
 - **R19: UI Data Integrity (IPv6 Truncation):**
   - **[VERIFIED]** Implemented IPv6 truncation for display in Meraki IP, Gateway, and DNS sensors to prevent UI overflow.
@@ -90,4 +89,11 @@ This document verifies the state of the codebase against the requirements for th
   - **[VERIFIED]** Unified all custom cards (`meraki-guest-access-card`, `meraki-wifi-qr-card`, `meraki-content-filter-card`, `meraki-network-vitals-card`) to use the new centralized loading UI.
   - **[VERIFIED]** Fixed a regression in `meraki-guest-access-card-editor.ts` that caused the guest access card to skip its polling countdown due to a class naming conflict.
 
-This verification confirms the need for the planned refactoring steps. The new requirements (R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R15, R16, R17, R18, R19, R20) are now considered part of the standard for this integration.
+- **R21: Safe Configuration Reloading:**
+  - **[VERIFIED]** Fixed `update_listener` in `__init__.py` to use Home Assistant's native `async_reload` method instead of manually calling setup/unload sequences. This prevents `ConfigEntryError` and ensures a safe teardown and rebuild of the integration during options updates.
+  - **[VERIFIED]** Added unit tests in `tests/test_config_flow.py` to ensure the reload mechanism is correctly triggered upon configuration changes.
+
+- **R22: Guaranteed Initialization Order:**
+  - **[VERIFIED]** Implementation of guaranteed initialization order to prevent race conditions during entity discovery. All specialized coordinators must complete their initial data refresh before the discovery service is invoked.
+
+This verification confirms the need for the planned refactoring steps. The new requirements (R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R15, R16, R17, R18, R19, R20, R21, R22) are now considered part of the standard for this integration.

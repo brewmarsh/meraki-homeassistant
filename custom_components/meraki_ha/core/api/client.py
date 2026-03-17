@@ -62,6 +62,7 @@ class MerakiClient:
     the underlying API session and asynchronous execution.
     """
 
+    _disabled_features: set[str] = set()
     _enable_vpn_management: bool = False
 
     # Type hints for endpoint protocols
@@ -144,23 +145,20 @@ class MerakiClient:
     ) -> Any:
         """Run a synchronous function in a thread pool with rate limiting."""
         org_id = kwargs.get("organizationId") or self.organization_id
-        network_id = kwargs.get("networkId") or kwargs.get("network_id")
         serial = kwargs.get("serial") or kwargs.get("deviceSerial")
-
-        # Action 3: Pre-flight check
-        # Extract a stable feature key from the SDK method name
-        feature_name = getattr(func, "__name__", str(func))
-        if self.is_feature_disabled(feature_name, network_id):
-            _LOGGER.debug(
-                "Pre-flight blocked: %s is disabled on network %s. Short-circuiting.",
-                feature_name,
-                network_id,
-            )
-            # Safe default for plural/list endpoints
-            return []
-
         if not serial and args and isinstance(args[0], str):
             serial = args[0]
+
+        # Extract network_id for endpoint-specific blacklisting
+        network_id = kwargs.get("networkId") or kwargs.get("network_id")
+        if not network_id and args and isinstance(args[0], str) and args[0].startswith(("N_", "L_")):
+            network_id = args[0]
+
+        # Action 3: Pre-flight check for blacklisted endpoints
+        endpoint = func.__name__
+        if self.is_feature_disabled(endpoint, network_id):
+            _LOGGER.debug("Skipping blacklisted endpoint: %s", endpoint)
+            return []
 
         braintrust.current_span().log(
             metadata={
@@ -191,24 +189,29 @@ class MerakiClient:
                 )
 
                 error_msg = str(e)
+                status_code = getattr(e, "status", None)
+
+                # Action 2: Endpoint-specific blacklisting for 400 errors
+                if status_code == 400 and (
+                    "not enabled" in error_msg.lower()
+                    or "must be enabled" in error_msg.lower()
+                ):
+                    _LOGGER.warning(
+                        "Endpoint unsupported, adding to blacklist: %s", endpoint
+                    )
+                    self.mark_feature_disabled(endpoint, network_id)
+                    return []
+
                 if (
                     "Traffic Analysis with Hostname Visibility" in error_msg
                     or "VLANs are not enabled" in error_msg
                 ):
-                    _LOGGER.warning(
-                        "Meraki feature %s disabled on network %s. Marking as such.",
-                        feature_name,
-                        network_id,
-                    )
-                    # Action 2: Mark feature as disabled for future polling cycles
-                    self.mark_feature_disabled(feature_name, network_id)
-
+                    _LOGGER.debug("Meraki API Informational Error: %s", e)
                     if "Traffic Analysis" in error_msg:
                         raise MerakiTrafficAnalysisError(error_msg) from e
                     if "VLANs" in error_msg:
                         raise MerakiVlansDisabledError(error_msg) from e
                     raise MerakiInformationalError(error_msg) from e
-
                 _LOGGER.warning("Meraki API Error encountered: %s", e)
                 raise ApiClientCommunicationError(
                     f"Error communicating with Meraki API: {e}"

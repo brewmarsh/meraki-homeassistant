@@ -46,7 +46,6 @@ def handle_feature_disabled(
 ) -> Any:
     """Handle disabled features by marking them in the client & returning safe value."""
     error_msg = str(err)
-    is_traffic_analysis = "Traffic Analysis with Hostname Visibility" in error_msg
 
     _LOGGER.debug("Meraki feature disabled (skipping): %s", error_msg)
 
@@ -58,12 +57,18 @@ def handle_feature_disabled(
         network_id = kwargs.get("networkId") or kwargs.get("network_id")
         if not network_id and len(args) > 1:
             # network_id is typically the first argument after 'self'
-            network_id = args[1]
+            # Check if it's a serial or network_id
+            arg_val = args[1]
+            if isinstance(arg_val, str) and (
+                arg_val.startswith(("N_", "L_"))
+                or (not arg_val.startswith("M") and len(arg_val) > 12)
+            ):
+                network_id = arg_val
 
-        if network_id and isinstance(network_id, str):
-            feature = "traffic" if is_traffic_analysis else "vlans"
-            if hasattr(client, "mark_feature_disabled"):
-                client.mark_feature_disabled(feature, network_id)
+        # Action 2: Use the exact endpoint name as the feature key
+        feature = func.__name__
+        if hasattr(client, "mark_feature_disabled"):
+            client.mark_feature_disabled(feature, network_id)
 
     return get_safe_return_value(func, error_msg)
 

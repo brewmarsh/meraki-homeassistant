@@ -18,7 +18,7 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class MerakiSSIDBaseSwitch(MerakiEntity, SwitchEntity):
-    """Base class for Meraki SSID Switches."""
+    """Base class for Cisco Meraki SSID Switches."""
 
     def __init__(
         self,
@@ -177,7 +177,7 @@ class MerakiSSIDBaseSwitch(MerakiEntity, SwitchEntity):
 
 
 class MerakiSSIDEnabledSwitch(MerakiSSIDBaseSwitch):
-    """Switch to control the enabled/disabled state of a Meraki SSID."""
+    """Switch to control the enabled/disabled state of a Cisco Meraki SSID."""
 
     def __init__(
         self,
@@ -215,7 +215,7 @@ class MerakiSSIDEnabledSwitch(MerakiSSIDBaseSwitch):
 
 
 class MerakiSSIDBroadcastSwitch(MerakiSSIDBaseSwitch):
-    """Switch to control the broadcast (visible/hidden) state of a Meraki SSID."""
+    """Switch to control the broadcast (visible/hidden) state of a Cisco Meraki SSID."""
 
     def __init__(
         self,

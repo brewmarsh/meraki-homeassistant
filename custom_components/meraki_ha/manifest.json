@@ -1,6 +1,6 @@
 {
   "domain": "meraki_ha",
-  "name": "Meraki for Home Assistant",
+  "name": "Cisco Meraki",
   "after_dependencies": [
     "webrtc",
     "frontend"
@@ -48,5 +48,5 @@
     "urllib3>=1.26.5",
     "webrtc-models==0.3.0"
   ],
-  "version": "2.3.0-beta.3517"
+  "version": "2.3.0-beta.3521"
 }

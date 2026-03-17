@@ -13,7 +13,7 @@ export const safeCallWS = async <T>(hass: HomeAssistant, msg: any): Promise<T> =
     }
     throw new Error("Home Assistant WebSocket communication methods not found.");
   } catch (err) {
-    console.error(`Meraki HA: WebSocket error [${msg.type}]:`, err);
+    console.error(`Cisco Meraki HA: WebSocket error [${msg.type}]:`, err);
     throw err;
   }
 };

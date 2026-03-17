@@ -8,15 +8,10 @@ from typing import Any
 import voluptuous as vol
 from homeassistant.core import callback
 from homeassistant.data_entry_flow import FlowResult
-from homeassistant.helpers import selector
 
 from homeassistant import config_entries
 
 from .const.config import (
-    CONF_ENABLE_CAMERA_ENTITIES,
-    CONF_ENABLE_DEVICE_SENSORS,
-    CONF_ENABLE_DEVICE_STATUS,
-    CONF_ENABLE_PORT_SENSORS,
     CONF_MERAKI_API_KEY,
     CONF_MERAKI_ORG_ID,
 )
@@ -63,7 +58,7 @@ class MerakiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 _LOGGER.exception("Unexpected exception during config flow")
                 errors["base"] = "cannot_connect"
             else:
-                return self.async_create_entry(title="Meraki", data=user_input)
+                return self.async_create_entry(title="Cisco Meraki", data=user_input)
 
         return self.async_show_form(
             step_id="user", data_schema=STEP_USER_DATA_SCHEMA, errors=errors
@@ -83,43 +78,76 @@ class MerakiOptionsFlowHandler(config_entries.OptionsFlow):
 
     def __init__(self, config_entry: config_entries.ConfigEntry) -> None:
         """Initialize options flow."""
-        # The base class automatically exposes self.config_entry, so no assignment is needed here.
 
     async def async_step_init(
         self, user_input: dict[str, Any] | None = None
     ) -> FlowResult:
         """Manage the options."""
+        return self.async_show_menu(
+            step_id="init",
+            menu_options=["general", "sensors", "cameras", "advanced"],
+        )
+
+    async def async_step_general(
+        self, user_input: dict[str, Any] | None = None
+    ) -> FlowResult:
+        """Handle general settings."""
         if user_input is not None:
-            return self.async_create_entry(title="", data=user_input)
+            return self.async_create_entry(
+                title="", data=self.config_entry.options | user_input
+            )
+
+        from .schemas import get_options_schema_general
 
         return self.async_show_form(
-            step_id="init",
-            data_schema=vol.Schema(
-                {
-                    vol.Optional(
-                        CONF_ENABLE_DEVICE_STATUS,
-                        default=self.config_entry.options.get(
-                            CONF_ENABLE_DEVICE_STATUS, True
-                        ),
-                    ): selector.BooleanSelector(),
-                    vol.Optional(
-                        CONF_ENABLE_DEVICE_SENSORS,
-                        default=self.config_entry.options.get(
-                            CONF_ENABLE_DEVICE_SENSORS, True
-                        ),
-                    ): selector.BooleanSelector(),
-                    vol.Optional(
-                        CONF_ENABLE_PORT_SENSORS,
-                        default=self.config_entry.options.get(
-                            CONF_ENABLE_PORT_SENSORS, False
-                        ),
-                    ): selector.BooleanSelector(),
-                    vol.Optional(
-                        CONF_ENABLE_CAMERA_ENTITIES,
-                        default=self.config_entry.options.get(
-                            CONF_ENABLE_CAMERA_ENTITIES, True
-                        ),
-                    ): selector.BooleanSelector(),
-                }
-            ),
+            step_id="general",
+            data_schema=get_options_schema_general(self.config_entry.options),
+        )
+
+    async def async_step_sensors(
+        self, user_input: dict[str, Any] | None = None
+    ) -> FlowResult:
+        """Handle sensor settings."""
+        if user_input is not None:
+            return self.async_create_entry(
+                title="", data=self.config_entry.options | user_input
+            )
+
+        from .schemas import get_options_schema_sensors
+
+        return self.async_show_form(
+            step_id="sensors",
+            data_schema=get_options_schema_sensors(self.config_entry.options),
+        )
+
+    async def async_step_cameras(
+        self, user_input: dict[str, Any] | None = None
+    ) -> FlowResult:
+        """Handle camera settings."""
+        if user_input is not None:
+            return self.async_create_entry(
+                title="", data=self.config_entry.options | user_input
+            )
+
+        from .schemas import get_options_schema_cameras
+
+        return self.async_show_form(
+            step_id="cameras",
+            data_schema=get_options_schema_cameras(self.config_entry.options),
+        )
+
+    async def async_step_advanced(
+        self, user_input: dict[str, Any] | None = None
+    ) -> FlowResult:
+        """Handle advanced settings."""
+        if user_input is not None:
+            return self.async_create_entry(
+                title="", data=self.config_entry.options | user_input
+            )
+
+        from .schemas import get_options_schema_advanced
+
+        return self.async_show_form(
+            step_id="advanced",
+            data_schema=get_options_schema_advanced(self.config_entry.options),
         )
