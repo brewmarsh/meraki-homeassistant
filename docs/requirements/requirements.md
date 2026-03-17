@@ -96,4 +96,8 @@ This document verifies the state of the codebase against the requirements for th
 - **R22: Guaranteed Initialization Order:**
   - **[VERIFIED]** Implementation of guaranteed initialization order to prevent race conditions during entity discovery. All specialized coordinators must complete their initial data refresh before the discovery service is invoked.
 
-This verification confirms the need for the planned refactoring steps. The new requirements (R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R15, R16, R17, R18, R19, R20, R21, R22) are now considered part of the standard for this integration.
+- **R23: User-Friendly Logging:**
+  - [VERIFIED] Translation of raw Meraki API endpoint names (e.g., `getNetworkTraffic`) into user-friendly, actionable warning messages in `MerakiClient.run_sync`.
+  - [VERIFIED] Warning logs now include the affected network ID and specific instructions on how to enable the feature via the Cisco Meraki dashboard.
+
+This verification confirms the need for the planned refactoring steps. The new requirements (R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R15, R16, R17, R18, R19, R20, R21, R22, R23) are now considered part of the standard for this integration.
