@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING, Any, Generic, TypeVar
 
 from homeassistant.components.binary_sensor import BinarySensorEntity
 from homeassistant.components.sensor import SensorEntity
+from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 if TYPE_CHECKING:
@@ -21,6 +22,18 @@ class MerakiEntity(CoordinatorEntity[T], Generic[T]):
     """Base Cisco Meraki entity."""
 
     _attr_has_entity_name = True
+
+    @property
+    def device_info(self) -> DeviceInfo | None:
+        """Return consistent device information across all platforms."""
+        from .helpers.device_info_helpers import resolve_device_info
+
+        device_data = self.device_data
+        if device_data:
+            return resolve_device_info(
+                device_data, self.coordinator.config_entry
+            )
+        return getattr(self, "_attr_device_info", None)
 
     @property
     def _serial(self) -> str | None:

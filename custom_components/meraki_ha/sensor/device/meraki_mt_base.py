@@ -64,10 +64,6 @@ class MerakiMtSensor(MerakiSensor, RestoreSensor):
                 elif isinstance(value, int):
                     self._attr_native_value = float(value)
 
-    @property
-    def device_info(self) -> DeviceInfo | None:
-        """Return the device info."""
-        return resolve_device_info(self._device, self.coordinator.config_entry)
 
     def _get_readings_list(self) -> list[dict[str, Any]] | None:
         if not self.coordinator.data or not self._serial:

@@ -83,37 +83,20 @@ def _resolve_network_info(data: dict[str, Any]) -> DeviceInfo | None:
     return None
 
 
-def _resolve_physical_device_info(data: dict[str, Any]) -> DeviceInfo | None:
+def _resolve_physical_device_info(
+    data: dict[str, Any], config_entry: ConfigEntry
+) -> DeviceInfo | None:
     """Resolve DeviceInfo for a physical device."""
     device_serial = data.get("serial")
     if device_serial:
-        product_type = str(data.get("productType") or data.get("product_type") or "")
         model = str(data.get("model") or "Unknown")
 
-        # Identify Camera Logic: strictly enforce [Camera] prefix for all camera models
-        is_camera = product_type.lower() == "camera" or model.startswith(("MV", "CS-"))
-        # Identify Sensor Logic: strictly enforce [Sensor] prefix for
-        # all MT sensor models
-        is_sensor = product_type.lower() == "sensor" or model.startswith("MT")
-
-        if is_camera:
-            prefix = "Camera"
-        elif is_sensor:
-            prefix = "Sensor"
-        else:
-            prefix = DEVICE_TYPE_MAPPING.get(product_type, "Device")
-
-        raw_name = data.get("name") or device_serial
-        full_prefix = f"[{prefix}] "
-
-        if raw_name and str(raw_name).startswith(full_prefix):
-            name = raw_name
-        else:
-            name = f"{full_prefix}{raw_name}"
+        # Use the centralized format_device_name to ensure consistency
+        name = format_device_name(data, config_entry.options)
 
         return DeviceInfo(
             identifiers={(DOMAIN, device_serial)},
-            name=standardize_device_name(name),
+            name=name,
             manufacturer="Cisco Meraki",
             model=model,
             sw_version=str(data.get("firmware") or ""),
@@ -163,7 +146,7 @@ def resolve_device_info(
     if info := _resolve_network_info(entity_data):
         return info
 
-    if info := _resolve_physical_device_info(entity_data):
+    if info := _resolve_physical_device_info(entity_data, config_entry):
         return info
 
     # This may happen temporarily during startup or if a device type is unknown

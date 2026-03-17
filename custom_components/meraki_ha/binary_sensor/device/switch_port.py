@@ -12,12 +12,12 @@ from homeassistant.core import callback
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from ...const.integration import DOMAIN
 from ...coordinators import MerakiSwitchCoordinator
 from ...core.models.device import MerakiDevice
+from ...entity import MerakiBinarySensor
 
 
-class SwitchPortSensor(CoordinatorEntity, BinarySensorEntity):
+class SwitchPortSensor(MerakiBinarySensor):
     """Representation of a Meraki switch port sensor."""
 
     coordinator: MerakiSwitchCoordinator
@@ -48,26 +48,6 @@ class SwitchPortSensor(CoordinatorEntity, BinarySensorEntity):
         self._attr_name = f"Port {port_id}"
         self._last_state = None
 
-    @property
-    def device_info(self) -> DeviceInfo:
-        """Return the device info linking this port to its parent hardware."""
-        from ...core.utils.naming_utils import format_device_name
-
-        # Action 3: Robust lookup for correct parent linkage
-        device = self.coordinator.get_device(self._device_serial) or self._device
-
-        return DeviceInfo(
-            identifiers={(DOMAIN, self._device_serial)},
-            name=format_device_name(
-                device,
-                self.coordinator.config_entry.options
-                if self.coordinator.config_entry
-                else {},
-            ),
-            manufacturer="Cisco Meraki",
-            model=getattr(device, "model", "Unknown"),
-            sw_version=getattr(device, "firmware", ""),
-        )
 
     @callback
     def _handle_coordinator_update(self) -> None:

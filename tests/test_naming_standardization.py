@@ -14,7 +14,7 @@ def test_standardize_device_name():
 
 def test_format_device_name():
     config = {"options": {}}
-    # MT devices (sensors) now get a [Sensor] prefix, which is exempted from the Meraki prefix
+    # MT devices (sensors) now get a [Sensor] prefix
     device = {
         "name": "Kitchen MT14",
         "model": "MT14",
@@ -22,6 +22,33 @@ def test_format_device_name():
         "productType": "sensor",
     }
     assert format_device_name(device, config) == "[Sensor] Kitchen MT14"
+
+    # MS devices (switches) get a [Switch] prefix
+    switch_device = {
+        "name": "Office Switch",
+        "model": "MS120-8LP",
+        "serial": "Q2XX-YYYY-YYYY",
+        "productType": "switch",
+    }
+    assert format_device_name(switch_device, config) == "[Switch] Office Switch"
+
+    # MR devices (wireless) get a [Wireless] prefix
+    wireless_device = {
+        "name": "Living Room AP",
+        "model": "MR33",
+        "serial": "Q2XX-ZZZZ-ZZZZ",
+        "productType": "wireless",
+    }
+    assert format_device_name(wireless_device, config) == "[Wireless] Living Room AP"
+
+    # MX devices (appliance) get a [Appliance] prefix
+    appliance_device = {
+        "name": "Home Gateway",
+        "model": "MX64",
+        "serial": "Q2XX-WWWW-WWWW",
+        "productType": "appliance",
+    }
+    assert format_device_name(appliance_device, config) == "[Appliance] Home Gateway"
 
     device_no_name = {
         "name": None,

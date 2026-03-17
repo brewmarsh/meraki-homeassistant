@@ -44,10 +44,6 @@ class MerakiRebootButton(MerakiEntity, ButtonEntity):
         self._config_entry = config_entry
         self._attr_name = "Reboot"
 
-    @property
-    def device_info(self) -> DeviceInfo | None:
-        """Return the device info."""
-        return resolve_device_info(self._device, self._config_entry)
 
     @property
     def available(self) -> bool:

@@ -46,10 +46,6 @@ class MerakiAPClientCountSensor(MerakiSensor):
             name="Client Count",
         )
 
-        self._attr_device_info = resolve_device_info(
-            entity_data=asdict(device_data),
-            config_entry=self._config_entry,
-        )
         self._update_state()
 
     def _get_current_device_data(self) -> MerakiDevice | None:

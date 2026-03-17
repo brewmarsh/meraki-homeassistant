@@ -37,10 +37,36 @@ def format_device_name(device: dict[str, Any] | Any, config: Mapping[str, Any]) 
         else:
             name = f"{model} {device.get('serial')}"
 
-    # Enforce [Sensor] prefix for MT devices
-    if product_type == "sensor" or model.startswith("MT"):
-        if not str(name).startswith("[Sensor]"):
-            name = f"[Sensor] {name}"
+    # Prefix mapping
+    prefix_map = {
+        "sensor": "Sensor",
+        "camera": "Camera",
+        "switch": "Switch",
+        "wireless": "Wireless",
+        "appliance": "Appliance",
+        "cellularGateway": "Gateway",
+    }
+
+    # Determine prefix
+    prefix = prefix_map.get(product_type)
+    if not prefix:
+        if model.startswith("MT"):
+            prefix = "Sensor"
+        elif model.startswith(("MV", "CS-")):
+            prefix = "Camera"
+        elif model.startswith("MS"):
+            prefix = "Switch"
+        elif model.startswith("MR"):
+            prefix = "Wireless"
+        elif model.startswith("MX"):
+            prefix = "Appliance"
+        elif model.startswith("MG"):
+            prefix = "Gateway"
+
+    if prefix:
+        full_prefix = f"[{prefix}] "
+        if not str(name).startswith(full_prefix):
+            name = f"{full_prefix}{name}"
 
     return standardize_device_name(name)
 

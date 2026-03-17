@@ -114,11 +114,6 @@ class MerakiRTSPStreamCamera(MerakiEntity, Camera):
         """Return the device data from the coordinator."""
         return self.coordinator.get_device(self._device_serial) or MerakiDevice()
 
-    @property
-    def device_info(self) -> DeviceInfo | None:
-        """Return device information."""
-        return resolve_device_info(self.device_data, self.coordinator.config_entry)
-
     async def async_added_to_hass(self) -> None:
         """Handle when entity is added to hass."""
         await super().async_added_to_hass()

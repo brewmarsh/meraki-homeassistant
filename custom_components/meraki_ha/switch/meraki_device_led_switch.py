@@ -41,10 +41,6 @@ class MerakiDeviceLEDSwitch(MerakiEntity, SwitchEntity):
         self._attr_unique_id = f"{self._device_serial}_led_control"
         self._attr_name = "LED Control"
 
-        self._attr_device_info = resolve_device_info(
-            entity_data=asdict(device_data),
-            config_entry=self._config_entry,
-        )
         self._update_state()
 
     @callback

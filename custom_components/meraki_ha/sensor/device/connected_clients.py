@@ -44,10 +44,6 @@ class MerakiDeviceConnectedClientsSensor(MerakiSensor):
             name="Connected Clients",
         )
 
-        self._attr_device_info = resolve_device_info(
-            entity_data=asdict(device_data),
-            config_entry=self.coordinator.config_entry,
-        )
         self._update_state()
 
     def _get_current_device_data(self) -> MerakiDevice | None:

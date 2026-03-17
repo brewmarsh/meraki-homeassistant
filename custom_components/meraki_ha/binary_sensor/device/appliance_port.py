@@ -4,24 +4,22 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
-from custom_components.meraki_ha.const.integration import DOMAIN
 from homeassistant.components.binary_sensor import (
     BinarySensorDeviceClass,
     BinarySensorEntity,
 )
 from homeassistant.core import callback
-from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from ...core.models import MerakiAppliancePort
 from ...core.models.device import MerakiDevice
-from ...core.utils.naming_utils import format_device_name
+from ...entity import MerakiBinarySensor
 
 if TYPE_CHECKING:
     from ...coordinators import MerakiApplianceCoordinator
 
 
-class AppliancePortBinarySensor(CoordinatorEntity, BinarySensorEntity):
+class AppliancePortBinarySensor(MerakiBinarySensor):
     """Representation of a Meraki appliance port binary sensor."""
 
     coordinator: MerakiApplianceCoordinator
@@ -44,23 +42,6 @@ class AppliancePortBinarySensor(CoordinatorEntity, BinarySensorEntity):
         self._attr_name = f"Port {self._port.number}"
         self._last_state = None
 
-    @property
-    def device_info(self) -> DeviceInfo:
-        """Return device information."""
-        # Action 3: Robust lookup for correct parent linkage
-        device = self.coordinator.get_device(self._device_serial) or self._device
-
-        return DeviceInfo(
-            identifiers={(DOMAIN, self._device_serial)},
-            name=format_device_name(
-                device,
-                self.coordinator.config_entry.options
-                if self.coordinator.config_entry
-                else {},
-            ),
-            model=getattr(device, "model", "Unknown"),
-            manufacturer="Cisco Meraki",
-        )
 
     @callback
     def _handle_coordinator_update(self) -> None:
