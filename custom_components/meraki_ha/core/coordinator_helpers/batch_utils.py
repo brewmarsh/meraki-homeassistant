@@ -128,7 +128,7 @@ def handle_batch_exceptions(tasks: dict[str, Any], label: str) -> None:
 
 async def async_gather_with_timeout(
     tasks: dict[str, Any],
-    timeout: int = 25,
+    timeout: int = 120,
     label: str = "Tasks",
     client: Any = None,
 ) -> dict[str, Any]:

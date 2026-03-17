@@ -15,9 +15,9 @@ from homeassistant.core import callback
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
+from ...const.integration import DOMAIN
 from ...coordinators import MerakiSwitchCoordinator
 from ...core.models import MerakiSwitchDevice
-from ...helpers.device_info_helpers import resolve_device_info
 
 
 class MerakiSwitchPoESensor(CoordinatorEntity, SensorEntity):
@@ -40,6 +40,7 @@ class MerakiSwitchPoESensor(CoordinatorEntity, SensorEntity):
         """Initialize the sensor."""
         super().__init__(coordinator)
         self._device = device
+        self._device_serial = str(device.serial)
         self._port = port
         self._config_entry = config_entry
 
@@ -47,11 +48,28 @@ class MerakiSwitchPoESensor(CoordinatorEntity, SensorEntity):
         port_id = self._port.get("portId") or self._port.get("number")
         self._attr_unique_id = f"{self._device.serial}_port_{port_id}_poe"
         self._attr_name = f"Port {port_id} PoE"
+        self._last_state = None
 
     @property
-    def device_info(self) -> DeviceInfo | None:
-        """Return the device info."""
-        return resolve_device_info(self._device, self._config_entry)
+    def device_info(self) -> DeviceInfo:
+        """Return the device info linking this port to its parent hardware."""
+        from ...core.utils.naming_utils import format_device_name
+
+        # Action 3: Robust lookup for correct parent linkage
+        device = self.coordinator.get_device(self._device_serial) or self._device
+
+        return DeviceInfo(
+            identifiers={(DOMAIN, self._device_serial)},
+            name=format_device_name(
+                device,
+                self.coordinator.config_entry.options
+                if self.coordinator.config_entry
+                else {},
+            ),
+            manufacturer="Cisco Meraki",
+            model=getattr(device, "model", "Unknown"),
+            sw_version=getattr(device, "firmware", ""),
+        )
 
     @property
     def available(self) -> bool:
@@ -62,7 +80,7 @@ class MerakiSwitchPoESensor(CoordinatorEntity, SensorEntity):
 
     @callback
     def _handle_coordinator_update(self) -> None:
-        """Handle updated data from the coordinator."""
+        """Handle updated data from the coordinator, deduplicating unchanged states."""
         if self.coordinator.data is None:
             return
         devices = self.coordinator.data.get("devices", [])
@@ -72,7 +90,7 @@ class MerakiSwitchPoESensor(CoordinatorEntity, SensorEntity):
         for device in devices:
             if not hasattr(device, "serial"):
                 continue
-            if device.serial == self._device.serial:
+            if device.serial == self._device_serial:
                 self._device = device
                 switch_ports = getattr(self._device, "switch_ports", [])
                 if not isinstance(switch_ports, list):
@@ -86,7 +104,12 @@ class MerakiSwitchPoESensor(CoordinatorEntity, SensorEntity):
                         self._port = port
                         break
                 break
-        self.async_write_ha_state()
+
+        # Action 2: Only trigger an expensive UI write if the status actually changed
+        current_state = self.native_value
+        if self._last_state != current_state:
+            self._last_state = current_state
+            self.async_write_ha_state()
 
     @property
     def native_value(self) -> float | None:

@@ -16,9 +16,21 @@ _LOGGER = logging.getLogger(__name__)
 class MerakiDeviceCoordinator(MerakiBaseCoordinator[dict[str, Any]]):
     """A coordinator for fast-poll Meraki device status data."""
 
-    def __init__(self, hass, entry, api_client) -> None:
+    def __init__(
+        self,
+        hass,
+        entry,
+        api_client,
+        static_data: dict[str, Any] | None = None,
+    ) -> None:
         """Initialize the device coordinator."""
-        super().__init__(hass, entry, api_client, name="device")
+        super().__init__(
+            hass,
+            entry,
+            api_client,
+            name="device",
+            static_data=static_data,
+        )
         self.last_successful_data: dict[str, Any] = {}
         # Fast poll interval
         self.update_interval = timedelta(seconds=60)

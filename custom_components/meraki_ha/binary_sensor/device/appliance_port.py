@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, cast
+from typing import TYPE_CHECKING, Any
 
 from custom_components.meraki_ha.const.integration import DOMAIN
 from homeassistant.components.binary_sensor import (
@@ -38,32 +38,33 @@ class AppliancePortBinarySensor(CoordinatorEntity, BinarySensorEntity):
         """Initialize the sensor."""
         super().__init__(coordinator)
         self._device = device
+        self._device_serial = str(device.serial)
         self._port = port
         self._attr_unique_id = f"{device.serial}_port_{self._port.number}_connectivity"
         self._attr_name = f"Port {self._port.number}"
+        self._last_state = None
 
     @property
     def device_info(self) -> DeviceInfo:
         """Return device information."""
-        if self.coordinator.config_entry:
-            format_device_name(self._device, self.coordinator.config_entry.options)
+        # Action 3: Robust lookup for correct parent linkage
+        device = self.coordinator.get_device(self._device_serial) or self._device
+
         return DeviceInfo(
-            identifiers={(DOMAIN, cast(str, self._device.serial))},
+            identifiers={(DOMAIN, self._device_serial)},
             name=format_device_name(
-                self._device,
+                device,
                 self.coordinator.config_entry.options
                 if self.coordinator.config_entry
                 else {},
             ),
-            model=getattr(self._device, "model", None)
-            if not isinstance(self._device, dict)
-            else self._device.get("model"),
+            model=getattr(device, "model", "Unknown"),
             manufacturer="Cisco Meraki",
         )
 
     @callback
     def _handle_coordinator_update(self) -> None:
-        """Handle updated data from the coordinator."""
+        """Handle updated data from the coordinator, deduplicating unchanged states."""
         if not self._device.serial:
             return
         device = self.coordinator.get_device(self._device.serial)
@@ -79,7 +80,12 @@ class AppliancePortBinarySensor(CoordinatorEntity, BinarySensorEntity):
                     continue
                 if port.number == self._port.number:
                     self._port = port
-                    self.async_write_ha_state()
+
+                    # Only trigger an expensive UI write if the status actually changed
+                    current_state = self.is_on
+                    if self._last_state != current_state:
+                        self._last_state = current_state
+                        self.async_write_ha_state()
                     return
 
     @property

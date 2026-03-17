@@ -46,29 +46,34 @@ class MerakiSwitchPortBaseSensor(CoordinatorEntity, SensorEntity, ABC):
         """Initialize the base sensor."""
         super().__init__(coordinator)
         self._device = device
+        self._device_serial = str(device.serial)
         self._port = port
         self._config_entry = config_entry
 
         port_id = self._get_port_id_from_data(port)
         self._attr_unique_id = f"{self._device.serial}_port_{port_id}{unique_id_suffix}"
         self._attr_name = f"Port {port_id}{name_suffix}"
+        self._last_state = None
 
     @property
     def device_info(self) -> DeviceInfo:
         """Return the device info linking this port to its parent hardware."""
         from ...core.utils.naming_utils import format_device_name
 
+        # Action 3: Robust lookup for correct parent linkage
+        device = self.coordinator.get_device(self._device_serial) or self._device
+
         return DeviceInfo(
-            identifiers={(DOMAIN, str(self._device.serial))},
+            identifiers={(DOMAIN, self._device_serial)},
             name=format_device_name(
-                self._device,
+                device,
                 self.coordinator.config_entry.options
                 if self.coordinator.config_entry
                 else {},
             ),
             manufacturer="Cisco Meraki",
-            model=getattr(self._device, "model", "Unknown"),
-            sw_version=getattr(self._device, "firmware", ""),
+            model=getattr(device, "model", "Unknown"),
+            sw_version=getattr(device, "firmware", ""),
         )
 
     @property
@@ -81,14 +86,20 @@ class MerakiSwitchPortBaseSensor(CoordinatorEntity, SensorEntity, ABC):
 
     @callback
     def _handle_coordinator_update(self) -> None:
-        """Handle updated data from the coordinator."""
+        """Handle updated data from the coordinator, deduplicating unchanged states."""
         if self.coordinator.data is None:
             return
         updated_device, updated_port = self._find_updated_device_and_port()
         if updated_device and updated_port:
             self._device = updated_device
             self._port = updated_port
-            self.async_write_ha_state()
+
+            # Action 2: Only trigger an expensive UI write if
+            # the port status actually changed
+            current_state = self.native_value
+            if self._last_state != current_state:
+                self._last_state = current_state
+                self.async_write_ha_state()
         else:
             current_port_id = self._get_port_id_from_data(self._port)
             _LOGGER.debug(

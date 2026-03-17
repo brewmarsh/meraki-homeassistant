@@ -34,6 +34,7 @@ class SwitchPortSensor(CoordinatorEntity, BinarySensorEntity):
         """Initialize the sensor."""
         super().__init__(coordinator)
         self._device = device
+        self._device_serial = str(device.serial)
         if hasattr(port, "to_dict"):
             self._port = port.to_dict()
         else:
@@ -45,28 +46,32 @@ class SwitchPortSensor(CoordinatorEntity, BinarySensorEntity):
         # Legacy Unique ID format to prevent breaking changes
         self._attr_unique_id = f"{device.serial}_{port_id}"
         self._attr_name = f"Port {port_id}"
+        self._last_state = None
 
     @property
     def device_info(self) -> DeviceInfo:
         """Return the device info linking this port to its parent hardware."""
         from ...core.utils.naming_utils import format_device_name
 
+        # Action 3: Robust lookup for correct parent linkage
+        device = self.coordinator.get_device(self._device_serial) or self._device
+
         return DeviceInfo(
-            identifiers={(DOMAIN, str(self._device.serial))},
+            identifiers={(DOMAIN, self._device_serial)},
             name=format_device_name(
-                self._device,
+                device,
                 self.coordinator.config_entry.options
                 if self.coordinator.config_entry
                 else {},
             ),
             manufacturer="Cisco Meraki",
-            model=getattr(self._device, "model", "Unknown"),
-            sw_version=getattr(self._device, "firmware", ""),
+            model=getattr(device, "model", "Unknown"),
+            sw_version=getattr(device, "firmware", ""),
         )
 
     @callback
     def _handle_coordinator_update(self) -> None:
-        """Handle updated data from the coordinator."""
+        """Handle updated data from the coordinator, deduplicating unchanged states."""
         if not self._device.serial:
             return
         device = self.coordinator.get_device(self._device.serial)
@@ -88,7 +93,13 @@ class SwitchPortSensor(CoordinatorEntity, BinarySensorEntity):
                 port_id = self._port.get("portId") or self._port.get("number")
                 if port.get("portId") == port_id or port.get("number") == port_id:
                     self._port = port
-                    self.async_write_ha_state()
+
+                    # Action 2: Only trigger an expensive UI write if
+                    # the port status actually changed
+                    current_state = self.is_on
+                    if self._last_state != current_state:
+                        self._last_state = current_state
+                        self.async_write_ha_state()
                     return
 
     @property

@@ -52,6 +52,7 @@ class _MerakiPortSwitchBase(MerakiEntity, SwitchEntity, ABC):
         """Initialize the base Meraki Port toggle entity."""
         super().__init__(coordinator)
         self._device = device
+        self._device_serial = str(device.serial)
         self._port = port_data
         self._config_entry = config_entry
 
@@ -72,6 +73,7 @@ class _MerakiPortSwitchBase(MerakiEntity, SwitchEntity, ABC):
             translation_key="switch_port_enabled",
             translation_placeholders={"port_id": port_id_str},
         )
+        self._last_state = None
         self._update_internal_state()
 
     @property
@@ -79,17 +81,20 @@ class _MerakiPortSwitchBase(MerakiEntity, SwitchEntity, ABC):
         """Return the device info linking this port to its parent hardware."""
         from ..core.utils.naming_utils import format_device_name
 
+        # Robust lookup: Always prefer latest data from coordinator
+        device = self.coordinator.get_device(self._device_serial) or self._device
+
         return DeviceInfo(
-            identifiers={(DOMAIN, str(self._device.serial))},
+            identifiers={(DOMAIN, self._device_serial)},
             name=format_device_name(
-                self._device,
+                device,
                 self.coordinator.config_entry.options
                 if self.coordinator.config_entry
                 else {},
             ),
             manufacturer="Cisco Meraki",
-            model=getattr(self._device, "model", "Unknown"),
-            sw_version=getattr(self._device, "firmware", ""),
+            model=getattr(device, "model", "Unknown"),
+            sw_version=getattr(device, "firmware", ""),
         )
 
     @property
@@ -99,12 +104,18 @@ class _MerakiPortSwitchBase(MerakiEntity, SwitchEntity, ABC):
 
     @callback
     def _handle_coordinator_update(self) -> None:
-        """Handle updated data from the coordinator."""
+        """Handle updated data from the coordinator, deduplicating unchanged states."""
         if self.coordinator.data is None:
             return
         self._refresh_port_data_from_coordinator()
         self._update_internal_state()
-        self.async_write_ha_state()
+
+        # Action 2: Only trigger an expensive UI write if
+        # the port status actually changed
+        current_state = self.is_on
+        if self._last_state != current_state:
+            self._last_state = current_state
+            self.async_write_ha_state()
 
     def _refresh_port_data_from_coordinator(self) -> None:
         """Refresh port data from the coordinator."""
