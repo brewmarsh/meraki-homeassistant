@@ -11,11 +11,11 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import callback
 from homeassistant.helpers.device_registry import DeviceInfo
 
+from ..const.integration import DOMAIN
 from ..coordinators import MerakiSwitchCoordinator
 from ..core.models import MerakiAppliancePort
 from ..core.models.device import MerakiDevice
 from ..entity import MerakiEntity
-from ..helpers.device_info_helpers import resolve_device_info
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -75,9 +75,22 @@ class _MerakiPortSwitchBase(MerakiEntity, SwitchEntity, ABC):
         self._update_internal_state()
 
     @property
-    def device_info(self) -> DeviceInfo | None:
-        """Return the device info."""
-        return resolve_device_info(self._device, self._config_entry)
+    def device_info(self) -> DeviceInfo:
+        """Return the device info linking this port to its parent hardware."""
+        from ..core.utils.naming_utils import format_device_name
+
+        return DeviceInfo(
+            identifiers={(DOMAIN, str(self._device.serial))},
+            name=format_device_name(
+                self._device,
+                self.coordinator.config_entry.options
+                if self.coordinator.config_entry
+                else {},
+            ),
+            manufacturer="Cisco Meraki",
+            model=getattr(self._device, "model", "Unknown"),
+            sw_version=getattr(self._device, "firmware", ""),
+        )
 
     @property
     def available(self) -> bool:
