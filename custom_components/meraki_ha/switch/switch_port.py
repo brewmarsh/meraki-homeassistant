@@ -11,7 +11,6 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import callback
 
 from ..coordinators import MerakiSwitchCoordinator
-from ..core.models import MerakiAppliancePort
 from ..core.models.device import MerakiDevice
 from ..entity import MerakiEntity
 
@@ -256,14 +255,14 @@ class MerakiAppliancePortSwitch(_MerakiPortSwitchBase):
         self,
         coordinator: MerakiSwitchCoordinator,
         device: MerakiDevice,
-        port: MerakiAppliancePort,
+        port: dict[str, Any],
         config_entry: ConfigEntry,
     ) -> None:
         """Initialize the Meraki Appliance Port toggle entity."""
         super().__init__(
             coordinator,
             device,
-            port.to_dict(),
+            port,
             config_entry,
             entity_key_prefix="port_switch",
         )

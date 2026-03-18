@@ -40,6 +40,54 @@ class AppliancePortProvider:
             return []
 
         entities: list[Entity] = []
+
+        # Use the normalized ports dictionary if available
+        if hasattr(device, "ports") and isinstance(device.ports, dict) and device.ports:
+            for port_id, port_dict in device.ports.items():
+                try:
+                    # 1. Binary sensor for link status
+                    entities.append(SwitchPortSensor(coordinator, device, port_dict))
+
+                    # 2. General port sensors (State)
+                    entities.append(
+                        MerakiSwitchPortSensor(
+                            coordinator, device, port_dict, config_entry
+                        )
+                    )
+
+                    # 3. Add Power/Energy sensors if port supports power data
+                    if (
+                        port_dict.get("powerUsageInWh") is not None
+                        or port_dict.get("powerUsage") is not None
+                    ):
+                        entities.append(
+                            MerakiSwitchPortPowerSensor(
+                                coordinator, device, port_dict, config_entry
+                            )
+                        )
+                        entities.append(
+                            MerakiSwitchPortEnergySensor(
+                                coordinator, device, port_dict, config_entry
+                            )
+                        )
+
+                    # 4. Control entities (Toggles)
+                    entities.append(
+                        MerakiAppliancePortSwitch(
+                            coordinator, device, port_dict, config_entry
+                        )
+                    )
+                except Exception as err:
+                    _LOGGER.error(
+                        "Failed to initialize appliance port %s on device %s: %s",
+                        port_id,
+                        device.serial,
+                        err,
+                        exc_info=True,
+                    )
+            return entities
+
+        # Fallback to appliance_ports list
         if not device.appliance_ports:
             return entities
 
@@ -64,7 +112,6 @@ class AppliancePortProvider:
                 entities.append(
                     MerakiSwitchPortSensor(coordinator, device, port_dict, config_entry)
                 )
-
                 # 3. Add Power/Energy sensors only if port supports/reports power data
                 if (
                     port_dict.get("powerUsageInWh") is not None

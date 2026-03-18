@@ -102,9 +102,18 @@ def parse_appliance_ports(
     for device in devices:
         serial: str | None = device.serial
         if serial and (ports_data := ports_by_serial.get(serial)):
+            # Normalize list of MX ports into dictionary keyed by number/interface
+            device.ports = {
+                str(port.get("number", port.get("interface", "unknown"))): port
+                for port in ports_data
+            }
+
             appliance_ports = []
             for port in ports_data:
                 try:
+                    # Also capture interface as a fallback for the dataclass if needed
+                    if "number" not in port and "interface" in port:
+                        port["number"] = port["interface"]
                     appliance_ports.append(MerakiAppliancePort.from_dict(port))
                 except Exception as e:
                     _LOGGER.error(

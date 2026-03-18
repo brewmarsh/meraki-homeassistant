@@ -208,10 +208,13 @@ class MerakiSwitchPortSensor(MerakiSwitchPortBaseSensor):
         """Return the state attributes."""
         port_id = self._get_port_id_from_data(self._port)
         return {
+            "name": self._port.get("name"),
             "enabled": self._port.get("enabled"),
             "speed": self._port.get("speed"),
             "duplex": self._port.get("duplex"),
             "vlan": self._port.get("vlan"),
+            "type": self._port.get("type"),
+            "poe_enabled": self._port.get("poeEnabled"),
             "port_id": port_id,
             "mac": self._device.mac,  # MAC is a device-level attribute
         }

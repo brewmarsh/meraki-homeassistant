@@ -6,11 +6,8 @@ from typing import Any
 
 from homeassistant.components.binary_sensor import (
     BinarySensorDeviceClass,
-    BinarySensorEntity,
 )
 from homeassistant.core import callback
-from homeassistant.helpers.device_registry import DeviceInfo
-from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from ...coordinators import MerakiSwitchCoordinator
 from ...core.models.device import MerakiDevice
@@ -47,7 +44,6 @@ class SwitchPortSensor(MerakiBinarySensor):
         self._attr_unique_id = f"{device.serial}_{port_id}"
         self._attr_name = f"Port {port_id}"
         self._last_state = None
-
 
     @callback
     def _handle_coordinator_update(self) -> None:
@@ -96,9 +92,12 @@ class SwitchPortSensor(MerakiBinarySensor):
         """Return the state attributes."""
         port_id = self._port.get("portId") or self._port.get("number")
         return {
+            "name": self._port.get("name"),
             "port_id": port_id,
             "speed": self._port.get("speed"),
             "duplex": self._port.get("duplex"),
             "vlan": self._port.get("vlan"),
+            "type": self._port.get("type"),
+            "poe_enabled": self._port.get("poeEnabled"),
             "enabled": self._port.get("enabled"),
         }
