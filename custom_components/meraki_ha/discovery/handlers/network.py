@@ -41,10 +41,12 @@ class NetworkHandler(BaseHandler):
         coordinator: MerakiSwitchCoordinator,
         config_entry: ConfigEntry,
         network_control_service: NetworkControlService,
+        client_coordinator=None,
     ) -> None:
         """Initialize the NetworkHandler."""
         super().__init__(coordinator, config_entry)
         self._network_control_service = network_control_service
+        self._client_coordinator = client_coordinator or coordinator
 
     def _get_networks(self) -> list[MerakiNetwork]:
         """Get the list of networks if network sensors are enabled."""
@@ -169,7 +171,7 @@ class NetworkHandler(BaseHandler):
         """Discover network clients sensor."""
         try:
             yield MerakiNetworkClientsSensor(
-                coordinator=self._coordinator,
+                coordinator=self._client_coordinator,
                 config_entry=self._config_entry,
                 network_data=network,
                 network_control_service=self._network_control_service,

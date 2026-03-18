@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import logging
-from dataclasses import asdict
 from typing import TYPE_CHECKING
 
 from homeassistant.components.sensor import (
@@ -15,7 +14,6 @@ from homeassistant.core import callback
 
 from ...coordinators import MerakiMainCoordinator
 from ...entity import MerakiSensor
-from ...helpers.device_info_helpers import resolve_device_info
 
 if TYPE_CHECKING:
     from ...core.models.device import MerakiDevice
@@ -57,15 +55,18 @@ class MerakiAPClientCountSensor(MerakiSensor):
     @callback
     def _update_state(self) -> None:
         """Update the native value of the sensor based on coordinator data."""
-        # Dynamic filtering of the coordinator's cached client list
-        # as requested in the task requirements.
-        clients = self.coordinator.data.get("clients") or []
-        self._attr_native_value = sum(
-            1
-            for client in clients
-            if isinstance(client, dict)
-            and client.get("recentDeviceSerial") == self._device_serial
-        )
+        if not self.coordinator.data:
+            self._attr_native_value = 0
+            return
+
+        clients_by_serial = self.coordinator.data.get("clients_by_serial", {})
+        device_clients = clients_by_serial.get(self._device_serial)
+
+        if device_clients is None:
+            self._attr_native_value = 0
+            return
+
+        self._attr_native_value = len(device_clients)
 
     @callback
     def _handle_coordinator_update(self) -> None:

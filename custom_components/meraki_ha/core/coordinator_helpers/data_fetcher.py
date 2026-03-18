@@ -348,8 +348,6 @@ class DataFetchManager:
                 if d.serial:
                     previous_devices_map[d.serial] = d
 
-        if "clients_by_serial" in data:
-            data["clients"] = data["clients_by_serial"]
         process_device_strategies(data, previous_devices_map, self.strategies)
         process_network_strategies(data, current_data, self.strategies)
 

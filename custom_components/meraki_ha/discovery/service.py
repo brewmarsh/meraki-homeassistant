@@ -115,7 +115,10 @@ class DeviceDiscoveryService:
         # Create Wireless handler for devices and virtual SSID devices
         try:
             wireless_handler = WirelessHandler(
-                self._wireless_coordinator, self._config_entry, self._meraki_client
+                self._wireless_coordinator,
+                self._config_entry,
+                self._meraki_client,
+                self._client_coordinator,
             )
             async for entity in wireless_handler.discover_entities():
                 all_entities.append(entity)
@@ -126,7 +129,11 @@ class DeviceDiscoveryService:
 
         # Create Switch handler for switch devices
         try:
-            switch_handler = SwitchHandler(self._switch_coordinator, self._config_entry)
+            switch_handler = SwitchHandler(
+                self._switch_coordinator,
+                self._config_entry,
+                self._client_coordinator,
+            )
             async for entity in switch_handler.discover_entities():
                 all_entities.append(entity)
         except Exception as err:
@@ -143,6 +150,7 @@ class DeviceDiscoveryService:
                 self._main_coordinator,
                 self._config_entry,
                 self._network_control_service,
+                self._client_coordinator,
             )
             async for entity in network_handler.discover_entities():
                 yield entity

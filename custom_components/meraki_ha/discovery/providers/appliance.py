@@ -7,8 +7,12 @@ from typing import TYPE_CHECKING, Any
 
 from custom_components.meraki_ha.const.config import CONF_ENABLE_PORT_SENSORS
 
-from ...binary_sensor.device.appliance_port import AppliancePortBinarySensor
-from ...sensor.device.appliance_port import MerakiAppliancePortSensor
+from ...binary_sensor.device.switch_port import SwitchPortSensor
+from ...sensor.device.switch_port import (
+    MerakiSwitchPortEnergySensor,
+    MerakiSwitchPortPowerSensor,
+    MerakiSwitchPortSensor,
+)
 from ...switch.switch_port import MerakiAppliancePortSwitch
 
 if TYPE_CHECKING:
@@ -39,25 +43,54 @@ class AppliancePortProvider:
         if not device.appliance_ports:
             return entities
 
-        for port in device.appliance_ports:
+        for port_obj in device.appliance_ports:
             try:
                 # Basic validation: ensure port has a number
-                if port.number is None:
+                if getattr(port_obj, "number", None) is None:
                     _LOGGER.warning(
                         "Skipping appliance port on device %s: missing port number",
                         device.serial,
                     )
                     continue
 
-                entities.append(MerakiAppliancePortSensor(coordinator, device, port))
-                entities.append(AppliancePortBinarySensor(coordinator, device, port))
+                port_dict = (
+                    port_obj.to_dict() if hasattr(port_obj, "to_dict") else port_obj
+                )
+
+                # 1. Binary sensor for link status
+                entities.append(SwitchPortSensor(coordinator, device, port_dict))
+
+                # 2. General port sensors (State)
                 entities.append(
-                    MerakiAppliancePortSwitch(coordinator, device, port, config_entry)
+                    MerakiSwitchPortSensor(coordinator, device, port_dict, config_entry)
+                )
+
+                # 3. Add Power/Energy sensors only if port supports/reports power data
+                if (
+                    port_dict.get("powerUsageInWh") is not None
+                    or port_dict.get("powerUsage") is not None
+                ):
+                    entities.append(
+                        MerakiSwitchPortPowerSensor(
+                            coordinator, device, port_dict, config_entry
+                        )
+                    )
+                    entities.append(
+                        MerakiSwitchPortEnergySensor(
+                            coordinator, device, port_dict, config_entry
+                        )
+                    )
+
+                # 4. Control entities (Toggles)
+                entities.append(
+                    MerakiAppliancePortSwitch(
+                        coordinator, device, port_obj, config_entry
+                    )
                 )
             except Exception as err:
                 _LOGGER.error(
                     "Failed to initialize appliance port %s on device %s: %s",
-                    getattr(port, "number", "unknown"),
+                    getattr(port_obj, "number", "unknown"),
                     device.serial,
                     err,
                     exc_info=True,

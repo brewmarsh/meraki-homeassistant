@@ -4,11 +4,10 @@ from __future__ import annotations
 
 import logging
 
+from custom_components.meraki_ha.const.integration import DOMAIN
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
-
-from custom_components.meraki_ha.const.integration import DOMAIN
 
 from ...core.utils.device_types import (
     DEVICE_TYPE_APPLIANCE,
@@ -26,6 +25,9 @@ async def async_setup_entry(
 ) -> None:
     """Set up sensors based on a config entry."""
     coordinator = hass.data[DOMAIN][config_entry.entry_id]["main_coordinator"]
+    client_coordinator = hass.data[DOMAIN][config_entry.entry_id].get(
+        "client_coordinator", coordinator
+    )
 
     # List to collect all entities
     entities = []
@@ -48,7 +50,7 @@ async def async_setup_entry(
 
                 entities.extend(
                     [
-                        MerakiConnectedClientsSensor(coordinator, device_serial),
+                        MerakiConnectedClientsSensor(client_coordinator, device_serial),
                         MerakiRadioSettingsSensor(coordinator, device_serial),
                     ]
                 )

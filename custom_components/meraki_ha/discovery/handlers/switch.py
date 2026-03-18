@@ -30,6 +30,16 @@ _LOGGER = logging.getLogger(__name__)
 class SwitchHandler(BaseHandler):
     """Handler for Meraki switch devices."""
 
+    def __init__(
+        self,
+        coordinator,
+        config_entry,
+        client_coordinator=None,
+    ) -> None:
+        """Initialize the SwitchHandler."""
+        super().__init__(coordinator, config_entry)
+        self._client_coordinator = client_coordinator or coordinator
+
     async def discover_entities(self) -> AsyncIterator[Entity]:
         """Discover entities for switch devices."""
         if not self._coordinator.data:
@@ -64,7 +74,7 @@ class SwitchHandler(BaseHandler):
                         # Client Count per Switch
                         try:
                             yield MerakiSwitchClientCountSensor(
-                                self._coordinator, device, self._config_entry
+                                self._client_coordinator, device, self._config_entry
                             )
                         except Exception as err:
                             _LOGGER.error(

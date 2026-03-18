@@ -8,14 +8,11 @@ from typing import Any
 
 from homeassistant.components.sensor import (
     SensorDeviceClass,
-    SensorEntity,
     SensorStateClass,
 )
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import EntityCategory, UnitOfEnergy, UnitOfPower
 from homeassistant.core import callback
-from homeassistant.helpers.device_registry import DeviceInfo
-from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from ...coordinators import MerakiSwitchCoordinator
 from ...core.models.device import MerakiDevice
@@ -54,7 +51,6 @@ class MerakiSwitchPortBaseSensor(MerakiSensor, ABC):
         self._attr_unique_id = f"{self._device.serial}_port_{port_id}{unique_id_suffix}"
         self._attr_name = f"Port {port_id}{name_suffix}"
         self._last_state = None
-
 
     @property
     def available(self) -> bool:
@@ -121,10 +117,23 @@ class MerakiSwitchPortBaseSensor(MerakiSensor, ABC):
                 continue
             if device.serial == self._device.serial:
                 switch_ports = getattr(device, "switch_ports", [])
-                if not isinstance(switch_ports, list):
+                appliance_ports = getattr(device, "appliance_ports", [])
+
+                ports = []
+                if isinstance(switch_ports, list):
+                    ports.extend(switch_ports)
+                if isinstance(appliance_ports, list):
+                    ports.extend(appliance_ports)
+
+                if not ports:
                     return device, None
 
-                for port in switch_ports:
+                for port_data in ports:
+                    port = (
+                        port_data.to_dict()
+                        if hasattr(port_data, "to_dict")
+                        else port_data
+                    )
                     if not isinstance(port, dict):
                         continue
                     port_id_candidate = self._get_port_id_from_data(port)
@@ -185,6 +194,14 @@ class MerakiSwitchPortSensor(MerakiSwitchPortBaseSensor):
     def native_value(self) -> str | None:
         """Return the state of the sensor (port status)."""
         return self._port.get("status")
+
+    @property
+    def icon(self) -> str | None:
+        """Return the icon based on connection status."""
+        status = self.native_value
+        if status and status.lower() == "connected":
+            return "mdi:ethernet"
+        return "mdi:ethernet-cable-off"
 
     @property
     def extra_state_attributes(self) -> dict[str, Any]:

@@ -42,10 +42,12 @@ class WirelessHandler(BaseHandler):
         coordinator: MerakiSwitchCoordinator,
         config_entry: ConfigEntry,
         meraki_client: MerakiApiClientProtocol,
+        client_coordinator=None,
     ) -> None:
         """Initialize the WirelessHandler."""
         super().__init__(coordinator, config_entry)
         self._meraki_client = meraki_client
+        self._client_coordinator = client_coordinator or coordinator
 
     async def discover_entities(self) -> AsyncIterator[Entity]:
         """Discover entities for wireless devices and SSIDs."""
@@ -76,7 +78,7 @@ class WirelessHandler(BaseHandler):
                 if device.product_type == "wireless":
                     # Client Count per AP
                     yield MerakiAPClientCountSensor(
-                        self._coordinator, device, self._config_entry
+                        self._client_coordinator, device, self._config_entry
                     )
                     # LED Control
                     if device.management_interface:
@@ -138,7 +140,7 @@ class WirelessHandler(BaseHandler):
                     ssid,
                 )
                 yield MerakiSSIDClientCountSensor(
-                    self._coordinator, self._config_entry, ssid
+                    self._client_coordinator, self._config_entry, ssid
                 )
 
                 if ssid.get("ipAssignmentMode") == "NAT mode":
