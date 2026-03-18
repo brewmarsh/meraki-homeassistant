@@ -5,15 +5,13 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING, Any, cast
 
-from custom_components.meraki_ha.const.integration import DOMAIN
 from homeassistant.components.sensor import SensorEntity, SensorStateClass
 from homeassistant.const import UnitOfPower
 from homeassistant.core import callback
-from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from ...coordinators import MerakiMainCoordinator
-from ...core.utils.naming_utils import format_device_name
+from ...entity import MerakiSensor
 
 if TYPE_CHECKING:
     from ...core.models.device import MerakiDevice
@@ -21,10 +19,7 @@ if TYPE_CHECKING:
 _LOGGER = logging.getLogger(__name__)
 
 
-class MerakiPoeUsageSensor(
-    CoordinatorEntity,
-    SensorEntity,
-):
+class MerakiPoeUsageSensor(MerakiSensor):
     """
     Representation of a Meraki switch PoE usage sensor.
 
@@ -58,20 +53,6 @@ class MerakiPoeUsageSensor(
         self._attr_unique_id = f"{device.serial}_poe_usage"
         self._attr_name = "PoE Usage"
 
-    @property
-    def device_info(self) -> DeviceInfo:
-        """Return device information."""
-        return DeviceInfo(
-            identifiers={(DOMAIN, cast(str, self._device.serial))},
-            name=format_device_name(
-                self._device,
-                self.coordinator.config_entry.options,
-            ),
-            model=getattr(self._device, "model", None)
-            if not isinstance(self._device, dict)
-            else self._device.get("model"),
-            manufacturer="Cisco Meraki",
-        )
 
     @callback
     def _handle_coordinator_update(self) -> None:

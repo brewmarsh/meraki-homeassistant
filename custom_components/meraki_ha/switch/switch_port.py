@@ -76,26 +76,6 @@ class _MerakiPortSwitchBase(MerakiEntity, SwitchEntity, ABC):
         self._last_state = None
         self._update_internal_state()
 
-    @property
-    def device_info(self) -> DeviceInfo:
-        """Return the device info linking this port to its parent hardware."""
-        from ..core.utils.naming_utils import format_device_name
-
-        # Robust lookup: Always prefer latest data from coordinator
-        device = self.coordinator.get_device(self._device_serial) or self._device
-
-        return DeviceInfo(
-            identifiers={(DOMAIN, self._device_serial)},
-            name=format_device_name(
-                device,
-                self.coordinator.config_entry.options
-                if self.coordinator.config_entry
-                else {},
-            ),
-            manufacturer="Cisco Meraki",
-            model=getattr(device, "model", "Unknown"),
-            sw_version=getattr(device, "firmware", ""),
-        )
 
     @property
     def available(self) -> bool:

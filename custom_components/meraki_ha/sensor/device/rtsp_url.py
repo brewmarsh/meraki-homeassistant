@@ -5,22 +5,20 @@ from __future__ import annotations
 import logging
 from typing import cast
 
-from custom_components.meraki_ha.const.integration import DOMAIN
 from homeassistant.components.sensor import SensorEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import EntityCategory
-from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from ...coordinators import MerakiMainCoordinator
 from ...core.models.device import MerakiDevice
-from ...core.utils.naming_utils import format_device_name
 from ...core.utils.network_utils import construct_rtsp_url
+from ...entity import MerakiSensor
 
 _LOGGER = logging.getLogger(__name__)
 
 
-class MerakiRtspUrlSensor(CoordinatorEntity, SensorEntity):
+class MerakiRtspUrlSensor(MerakiSensor):
     """
     Representation of an RTSP URL sensor.
 
@@ -85,17 +83,6 @@ class MerakiRtspUrlSensor(CoordinatorEntity, SensorEntity):
 
         self._attr_native_value = "Not available"
 
-    @property
-    def device_info(self) -> DeviceInfo:
-        """Return device information."""
-        return DeviceInfo(
-            identifiers={(DOMAIN, cast(str, self._device_data.serial))},
-            name=format_device_name(self._device_data, self._config_entry.options),
-            model=getattr(self._device_data, "model", None)
-            if not isinstance(self._device_data, dict)
-            else self._device_data.get("model"),
-            manufacturer="Cisco Meraki",
-        )
 
     @property
     def entity_registry_enabled_default(self) -> bool:
