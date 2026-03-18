@@ -106,4 +106,9 @@ This document verifies the state of the codebase against the requirements for th
   - **[VERIFIED]** Naming conventions consistently apply the `[Switch]` prefix to all GS and MS models.
   - **[VERIFIED]** Configuration schema correctly detects switches when only GS models are present in the organization.
 
+- **R25: Globally Unique Port IDs:**
+  - **[VERIFIED]** All port-related entities (sensors, binary sensors, switches) incorporate the specific port identifier into their `unique_id` using the mandatory format: `f"{serial}_port_{port_id}_{entity_description.key}"`.
+  - **[VERIFIED]** Refactored `MerakiEntity.unique_id` to prioritize `self._attr_unique_id` if set, ensuring manual assignments in `__init__` are respected.
+  - **[VERIFIED]** Fixed `unique_id` collisions that were causing entity registration failures in the Home Assistant registry.
+
 This verification confirms the need for the planned refactoring steps. The new requirements (R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R15, R16, R17, R18, R19, R20, R21, R22, R23, R24) are now considered part of the standard for this integration.
