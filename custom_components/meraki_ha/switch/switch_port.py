@@ -9,9 +9,7 @@ from typing import Any
 from homeassistant.components.switch import SwitchEntity, SwitchEntityDescription
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import callback
-from homeassistant.helpers.device_registry import DeviceInfo
 
-from ..const.integration import DOMAIN
 from ..coordinators import MerakiSwitchCoordinator
 from ..core.models import MerakiAppliancePort
 from ..core.models.device import MerakiDevice
@@ -70,12 +68,12 @@ class _MerakiPortSwitchBase(MerakiEntity, SwitchEntity, ABC):
 
         self.entity_description = SwitchEntityDescription(
             key=f"{entity_key_prefix}_{port_id_str}",
+            name=f"Port {port_id_str}",
             translation_key="switch_port_enabled",
             translation_placeholders={"port_id": port_id_str},
         )
         self._last_state = None
         self._update_internal_state()
-
 
     @property
     def available(self) -> bool:

@@ -2,13 +2,13 @@
 
 import logging
 
+from custom_components.meraki_ha.const.config import CONF_ENABLE_PORT_SENSORS
+from custom_components.meraki_ha.const.integration import DOMAIN
+from custom_components.meraki_ha.const.platform import PLATFORM_SWITCH
 from homeassistant.components.switch import SwitchEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
-
-from custom_components.meraki_ha.const.integration import DOMAIN
-from custom_components.meraki_ha.const.platform import PLATFORM_SWITCH
 
 from .setup_helpers import async_setup_switches
 
@@ -34,13 +34,22 @@ async def async_setup_entry(
     from ..discovery.service import DeviceDiscoveryService
 
     discovery_service: DeviceDiscoveryService = entry_data["discovery_service"]
+    enable_ports = config_entry.options.get(CONF_ENABLE_PORT_SENSORS, False)
 
     # Add entities from discovery service
-    discovery_entities = [
-        entity
-        for entity in discovery_service.all_entities
-        if isinstance(entity, SwitchEntity)
-    ]
+    discovery_entities = []
+    for entity in discovery_service.all_entities:
+        if not isinstance(entity, SwitchEntity):
+            continue
+
+        # Filter port-related switches
+        if not enable_ports:
+            class_name = entity.__class__.__name__
+            if "Port" in class_name or "PoE" in class_name:
+                _LOGGER.debug("Skipping port-related switch %s", entity.name)
+                continue
+
+        discovery_entities.append(entity)
 
     seen_ids: set[str] = set()
     entities_to_add: list[SwitchEntity] = []

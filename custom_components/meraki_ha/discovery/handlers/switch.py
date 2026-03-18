@@ -76,7 +76,7 @@ class SwitchHandler(BaseHandler):
 
                         # Switch Ports
                         enable_port_sensors = self._config_entry.options.get(
-                            CONF_ENABLE_PORT_SENSORS, True
+                            CONF_ENABLE_PORT_SENSORS, False
                         )
                         if enable_port_sensors:
                             try:

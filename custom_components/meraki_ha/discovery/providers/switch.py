@@ -38,7 +38,7 @@ class SwitchPortProvider:
         **kwargs: Any,
     ) -> list[Entity]:
         """Get entities for all ports on a switch."""
-        if not config_entry.options.get(CONF_ENABLE_PORT_SENSORS, True):
+        if not config_entry.options.get(CONF_ENABLE_PORT_SENSORS, False):
             return []
 
         entities: list[Entity] = []

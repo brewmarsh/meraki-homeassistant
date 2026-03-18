@@ -2,12 +2,12 @@
 
 import logging
 
+from custom_components.meraki_ha.const.config import CONF_ENABLE_PORT_SENSORS
+from custom_components.meraki_ha.const.integration import DOMAIN
 from homeassistant.components.binary_sensor import BinarySensorEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
-
-from custom_components.meraki_ha.const.integration import DOMAIN
 
 from .network import async_setup_entry as async_setup_network_entry
 
@@ -27,13 +27,22 @@ async def async_setup_entry(
 
     entry_data = hass.data[DOMAIN][config_entry.entry_id]
     discovery_service: DeviceDiscoveryService = entry_data["discovery_service"]
+    enable_ports = config_entry.options.get(CONF_ENABLE_PORT_SENSORS, False)
 
     # Entities have already been discovered in __init__.py
-    binary_sensor_entities = [
-        entity
-        for entity in discovery_service.all_entities
-        if isinstance(entity, BinarySensorEntity)
-    ]
+    binary_sensor_entities = []
+    for entity in discovery_service.all_entities:
+        if not isinstance(entity, BinarySensorEntity):
+            continue
+
+        # Filter port-related binary sensors
+        if not enable_ports:
+            class_name = entity.__class__.__name__
+            if "Port" in class_name or "PoE" in class_name:
+                _LOGGER.debug("Skipping port-related binary sensor %s", entity.name)
+                continue
+
+        binary_sensor_entities.append(entity)
 
     if binary_sensor_entities:
         async_add_entities(binary_sensor_entities)

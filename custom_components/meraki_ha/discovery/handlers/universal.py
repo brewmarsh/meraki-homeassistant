@@ -11,6 +11,10 @@ from custom_components.meraki_ha.const.config import (
     CONF_ENABLE_DEVICE_SENSORS,
     CONF_ENABLE_DEVICE_STATUS,
     CONF_ENABLE_PORT_SENSORS,
+    DEFAULT_ENABLE_CAMERA_ENTITIES,
+    DEFAULT_ENABLE_DEVICE_SENSORS,
+    DEFAULT_ENABLE_DEVICE_STATUS,
+    DEFAULT_ENABLE_PORT_SENSORS,
 )
 from custom_components.meraki_ha.const.device import (
     DEFAULT_CAPS,
@@ -184,7 +188,17 @@ class UniversalHandler(BaseDeviceHandler):
         option_key = self.CAP_TO_OPTION.get(cap)
         if not option_key:
             return True
-        return bool(self._config_entry.options.get(option_key, True))
+
+        # Default to correct constant based on option key
+        default_map = {
+            CONF_ENABLE_DEVICE_SENSORS: DEFAULT_ENABLE_DEVICE_SENSORS,
+            CONF_ENABLE_PORT_SENSORS: DEFAULT_ENABLE_PORT_SENSORS,
+            CONF_ENABLE_CAMERA_ENTITIES: DEFAULT_ENABLE_CAMERA_ENTITIES,
+            CONF_ENABLE_DEVICE_STATUS: DEFAULT_ENABLE_DEVICE_STATUS,
+        }
+        default_val = default_map.get(option_key, True)
+
+        return bool(self._config_entry.options.get(option_key, default_val))
 
     async def _instantiate_entities(
         self, cap: str, provider: type | Any

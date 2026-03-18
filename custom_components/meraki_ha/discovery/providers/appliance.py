@@ -32,7 +32,7 @@ class AppliancePortProvider:
         **kwargs: Any,
     ) -> list[Entity]:
         """Get entities for the appliance ports."""
-        if not config_entry.options.get(CONF_ENABLE_PORT_SENSORS, True):
+        if not config_entry.options.get(CONF_ENABLE_PORT_SENSORS, False):
             return []
 
         entities: list[Entity] = []

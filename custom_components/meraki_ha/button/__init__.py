@@ -2,13 +2,13 @@
 
 import logging
 
+from custom_components.meraki_ha.const.config import CONF_ENABLE_PORT_SENSORS
+from custom_components.meraki_ha.const.integration import DOMAIN
+from custom_components.meraki_ha.const.platform import PLATFORM_BUTTON
 from homeassistant.components.button import ButtonEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
-
-from custom_components.meraki_ha.const.integration import DOMAIN
-from custom_components.meraki_ha.const.platform import PLATFORM_BUTTON
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -27,13 +27,23 @@ async def async_setup_entry(
     from ..discovery.service import DeviceDiscoveryService
 
     discovery_service: DeviceDiscoveryService = entry_data["discovery_service"]
+    enable_ports = config_entry.options.get(CONF_ENABLE_PORT_SENSORS, False)
 
     # Entities have already been discovered in __init__.py
-    button_entities = [
-        entity
-        for entity in discovery_service.all_entities
-        if isinstance(entity, ButtonEntity)
-    ]
+    button_entities = []
+    for entity in discovery_service.all_entities:
+        if not isinstance(entity, ButtonEntity):
+            continue
+
+        # Filter port-related buttons
+        if not enable_ports:
+            # Check class name or other identifiers for port-related buttons
+            class_name = entity.__class__.__name__
+            if "Port" in class_name or "PoE" in class_name:
+                _LOGGER.debug("Skipping port-related button %s", entity.name)
+                continue
+
+        button_entities.append(entity)
 
     if button_entities:
         async_add_entities(button_entities)

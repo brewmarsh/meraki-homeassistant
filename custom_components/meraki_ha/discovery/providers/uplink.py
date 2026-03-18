@@ -122,7 +122,7 @@ def _create_performance_entities(
 
 def _should_skip_entities(config_entry: ConfigEntry, device: MerakiDevice) -> bool:
     """Check if sensor creation should be skipped."""
-    if not config_entry.options.get(CONF_ENABLE_PORT_SENSORS, True):
+    if not config_entry.options.get(CONF_ENABLE_PORT_SENSORS, False):
         return True
     return not bool(device.serial)
 
