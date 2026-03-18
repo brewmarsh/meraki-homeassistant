@@ -20,8 +20,6 @@ _LOGGER = logging.getLogger(__name__)
 class MerakiVLANDHCPSwitch(MerakiVLANEntity, SwitchEntity):
     """Representation of a Meraki VLAN's DHCP handling switch."""
 
-    _attr_name = "DHCP"
-
     def __init__(
         self,
         coordinator: MerakiSwitchCoordinator,
@@ -36,10 +34,28 @@ class MerakiVLANDHCPSwitch(MerakiVLANEntity, SwitchEntity):
         vlan_id = self._vlan.id
         if not vlan_id:
             raise ValueError("VLAN ID should not be None here")
+
+        # Dynamically include the VLAN context in the name
+        self._attr_name = f"{vlan.name} (VLAN {vlan_id}) DHCP"
+        # Set has_entity_name to False to use the full custom name
+        self._attr_has_entity_name = False
+
         self._attr_unique_id = get_vlan_entity_id(
             self._network_id, vlan_id, "dhcp_handling"
         )
         self._update_internal_state()
+
+    @property
+    def extra_state_attributes(self) -> dict[str, Any]:
+        """Return the state attributes for the VLAN DHCP switch."""
+        attrs = super().extra_state_attributes
+        attrs.update(
+            {
+                "subnet": self._vlan.subnet,
+                "gateway": self._vlan.appliance_ip,
+            }
+        )
+        return attrs
 
     def _update_internal_state(self) -> None:
         """Update the internal state of the switch."""

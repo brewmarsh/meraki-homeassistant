@@ -69,8 +69,59 @@ def test_vlan_dhcp_switch_creation(
 
     assert isinstance(switch, MerakiVLANDHCPSwitch)
     assert switch.unique_id == "meraki_vlan_net1_1_dhcp_handling"
-    # assert switch.name == "DHCP" # Can't check name without platform
+    assert switch.name == "VLAN 1 (VLAN 1) DHCP"
     assert switch.is_on is True
+
+    # Check extra state attributes
+    attrs = switch.extra_state_attributes
+    assert attrs["network_id"] == "net1"
+    assert attrs["subnet"] is None  # Not set in fixture
+    assert attrs["gateway"] is None  # Not set in fixture
+
+
+def test_vlan_dhcp_switch_attributes(
+    mock_coordinator: MagicMock,
+    mock_config_entry_with_vlan_management: MagicMock,
+    mock_meraki_client: MagicMock,
+) -> None:
+    """Test the extra state attributes of the VLAN DHCP switch."""
+    vlan = MerakiVlan(
+        id="20",
+        name="Guest",
+        subnet="192.168.20.0/24",
+        appliance_ip="192.168.20.1",
+        dhcp_handling="Run a DHCP server",
+    )
+    network = MerakiNetwork(id="net1", name="Network 1")
+    mock_coordinator.data = {
+        "vlans": {"net1": [vlan]},
+        "networks": [network],
+    }
+
+    def get_network(network_id):
+        if network_id == "net1":
+            return network
+        return None
+
+    mock_coordinator.get_network = MagicMock(side_effect=get_network)
+
+    hass = MagicMock()
+    entities = []
+    async_setup_switches(
+        hass,
+        mock_config_entry_with_vlan_management,
+        mock_coordinator,
+        mock_meraki_client,
+        entities.extend,
+    )
+
+    assert len(entities) == 1
+    switch = entities[0]
+
+    assert switch.name == "Guest (VLAN 20) DHCP"
+    attrs = switch.extra_state_attributes
+    assert attrs["subnet"] == "192.168.20.0/24"
+    assert attrs["gateway"] == "192.168.20.1"
 
 
 def test_vlan_dhcp_switch_off_state(
