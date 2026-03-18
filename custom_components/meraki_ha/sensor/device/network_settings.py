@@ -41,11 +41,6 @@ class MerakiDeviceUplinkBaseSensor(MerakiEntity, SensorEntity):
         self._config_entry = config_entry
         self._interface = interface
 
-        self._attr_device_info = resolve_device_info(
-            entity_data=asdict(device_data),
-            config_entry=self._config_entry,
-        )
-
     def _get_uplink_data(self) -> dict[str, Any] | None:
         """Retrieve the latest uplink data from the coordinator."""
         device = self.coordinator.get_device(self._device_serial)

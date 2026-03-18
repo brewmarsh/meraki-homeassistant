@@ -39,10 +39,6 @@ class MerakiPoECycleButton(MerakiEntity, ButtonEntity):
             icon="mdi:restart",
         )
 
-    @property
-    def device_info(self) -> DeviceInfo | None:
-        """Return the device info."""
-        return resolve_device_info(self._device, self._config_entry)
 
     async def async_press(self) -> None:
         """Handle the button press."""

@@ -40,10 +40,6 @@ class MerakiSnapshotButton(MerakiEntity, ButtonEntity):
         self._attr_has_entity_name = True
         self._attr_name = "Snapshot"
 
-    @property
-    def device_info(self) -> DeviceInfo | None:
-        """Return device information."""
-        return resolve_device_info(self._device, self._config_entry)
 
     @property
     def available(self) -> bool:

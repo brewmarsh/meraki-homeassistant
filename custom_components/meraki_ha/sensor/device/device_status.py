@@ -65,10 +65,6 @@ class MerakiDeviceStatusSensor(MerakiSensor):
         super().__init__(coordinator)
         self._device_serial: str = cast(str, device_data.serial)  # Serial is mandatory
 
-        # Set device info for linking to HA device registry
-        # This uses the initial device_data for static info.
-        self._attr_device_info = resolve_device_info(device_data, config_entry)
-
         # _attr_name is not explicitly set
         self.entity_description = SensorEntityDescription(
             key="device_status",

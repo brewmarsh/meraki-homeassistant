@@ -15,12 +15,12 @@ from homeassistant.core import callback
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from ...const.integration import DOMAIN
 from ...coordinators import MerakiSwitchCoordinator
 from ...core.models import MerakiSwitchDevice
+from ...entity import MerakiSensor
 
 
-class MerakiSwitchPoESensor(CoordinatorEntity, SensorEntity):
+class MerakiSwitchPoESensor(MerakiSensor):
     """Representation of a Meraki switch port PoE sensor."""
 
     coordinator: MerakiSwitchCoordinator
@@ -50,26 +50,6 @@ class MerakiSwitchPoESensor(CoordinatorEntity, SensorEntity):
         self._attr_name = f"Port {port_id} PoE"
         self._last_state = None
 
-    @property
-    def device_info(self) -> DeviceInfo:
-        """Return the device info linking this port to its parent hardware."""
-        from ...core.utils.naming_utils import format_device_name
-
-        # Action 3: Robust lookup for correct parent linkage
-        device = self.coordinator.get_device(self._device_serial) or self._device
-
-        return DeviceInfo(
-            identifiers={(DOMAIN, self._device_serial)},
-            name=format_device_name(
-                device,
-                self.coordinator.config_entry.options
-                if self.coordinator.config_entry
-                else {},
-            ),
-            manufacturer="Cisco Meraki",
-            model=getattr(device, "model", "Unknown"),
-            sw_version=getattr(device, "firmware", ""),
-        )
 
     @property
     def available(self) -> bool:

@@ -40,10 +40,6 @@ class MerakiMt15RefreshDataButton(MerakiEntity, ButtonEntity):
         """Return the unique ID."""
         return self._attr_unique_id
 
-    @property
-    def device_info(self) -> DeviceInfo | None:
-        """Return device information."""
-        return resolve_device_info(self._device, self._config_entry)
 
     async def async_press(self) -> None:
         """Handle the button press."""

@@ -35,12 +35,6 @@ class MerakiMtBinarySensor(MerakiBinarySensor):
         if self.entity_description.name is not UNDEFINED:
             self._attr_name = cast(str | None, self.entity_description.name)
 
-    @property
-    def device_info(self) -> DeviceInfo | None:
-        """Return device information."""
-        if not self.coordinator.config_entry:
-            return None
-        return resolve_device_info(self._device, self.coordinator.config_entry)
 
     @callback
     def _handle_coordinator_update(self) -> None:

@@ -13,8 +13,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.device_registry import DeviceInfo
 
 from ...coordinators import MerakiCameraCoordinator
-from ...entity import MerakiEntity
-from ...helpers.device_info_helpers import resolve_device_info
+from ...entity import MerakiBinarySensor
 
 if TYPE_CHECKING:
     from ...core.models.device import MerakiDevice
@@ -24,7 +23,7 @@ if TYPE_CHECKING:
 _LOGGER = logging.getLogger(__name__)
 
 
-class MerakiMotionSensor(MerakiEntity, BinarySensorEntity):
+class MerakiMotionSensor(MerakiBinarySensor):
     """Representation of a motion sensor."""
 
     _attr_device_class = BinarySensorDeviceClass.MOTION
@@ -39,16 +38,13 @@ class MerakiMotionSensor(MerakiEntity, BinarySensorEntity):
         """Initialize the sensor."""
         super().__init__(coordinator)
         self._device = device
+        self._device_serial = device.serial
         self._camera_service = camera_service
         self._config_entry = config_entry
         self._attr_unique_id = f"{device.serial}-motion"
         self._attr_name = "Motion"
         self._motion_events: list[dict[str, Any]] = []
 
-    @property
-    def device_info(self) -> DeviceInfo | None:
-        """Return device information."""
-        return resolve_device_info(self._device, self._config_entry)
 
     @property
     def is_on(self) -> bool:

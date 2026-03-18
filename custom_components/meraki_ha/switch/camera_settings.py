@@ -117,14 +117,3 @@ class MerakiCameraSettingSwitchBase(
         """Update the setting via the Meraki API."""
         raise NotImplementedError
 
-    @property
-    def device_info(self) -> DeviceInfo:
-        """Return device information."""
-        return DeviceInfo(
-            identifiers={("meraki_ha", cast(str, self._device_data.serial))},
-            name=standardize_device_name(self._device_data.name),
-            manufacturer="Cisco Meraki",
-            model=getattr(self._device_data, "model", None)
-            if not isinstance(self._device_data, dict)
-            else self._device_data.get("model"),
-        )

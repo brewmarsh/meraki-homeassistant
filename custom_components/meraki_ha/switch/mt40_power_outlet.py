@@ -14,7 +14,6 @@ from ..coordinators import MerakiSensorCoordinator
 from ..core.api import MerakiApiClientProtocol
 from ..core.models.device import MerakiDevice
 from ..entity import MerakiEntity
-from ..helpers.device_info_helpers import resolve_device_info
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -60,10 +59,6 @@ class MerakiMt40PowerOutlet(
         self._attr_name = "Outlet"
         self._attr_is_on: bool | None = None
 
-    @property
-    def device_info(self) -> DeviceInfo | None:
-        """Return device information."""
-        return resolve_device_info(self._device_info, self._config_entry)
 
     @callback
     def _handle_coordinator_update(self) -> None:
