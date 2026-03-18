@@ -17,6 +17,8 @@ def mock_coordinator_with_vlan_data(mock_coordinator: MagicMock) -> MagicMock:
     vlan1 = MerakiVlan(
         id="1",
         name="VLAN 1",
+        subnet="192.168.1.0/24",
+        appliance_ip="192.168.1.1",
         dhcp_handling="Run a DHCP server",
     )
     network = MerakiNetwork(id="net1", name="Network 1")
@@ -69,8 +71,15 @@ def test_vlan_dhcp_switch_creation(
 
     assert isinstance(switch, MerakiVLANDHCPSwitch)
     assert switch.unique_id == "meraki_vlan_net1_1_dhcp_handling"
-    # assert switch.name == "DHCP" # Can't check name without platform
+    assert switch.name == "VLAN 1 DHCP"
     assert switch.is_on is True
+
+    # Check extra_state_attributes
+    attrs = switch.extra_state_attributes
+    assert attrs["vlan_id"] == "1"
+    assert attrs["vlan_name"] == "VLAN 1"
+    assert attrs["subnet"] == "192.168.1.0/24"
+    assert attrs["gateway"] == "192.168.1.1"
 
 
 def test_vlan_dhcp_switch_off_state(
