@@ -52,9 +52,9 @@ class VlansListSensor(MerakiNetworkEntity, SensorEntity):
             return
 
         self._vlan_list = [
-            getattr(vlan, "name", None) or f"VLAN {vlan.id}"
+            vlan.get("name") or f"VLAN {vlan.get('id')}"
             for vlan in vlans
-            if vlan and hasattr(vlan, "id")
+            if isinstance(vlan, dict) and "id" in vlan
         ]
         self._attr_native_value = len(self._vlan_list)
         self.async_write_ha_state()
