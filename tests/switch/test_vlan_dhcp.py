@@ -17,6 +17,8 @@ def mock_coordinator_with_vlan_data(mock_coordinator: MagicMock) -> MagicMock:
     vlan1 = MerakiVlan(
         id="1",
         name="VLAN 1",
+        subnet="192.168.1.0/24",
+        appliance_ip="192.168.1.1",
         dhcp_handling="Run a DHCP server",
     )
     network = MerakiNetwork(id="net1", name="Network 1")
@@ -69,14 +71,17 @@ def test_vlan_dhcp_switch_creation(
 
     assert isinstance(switch, MerakiVLANDHCPSwitch)
     assert switch.unique_id == "meraki_vlan_net1_1_dhcp_handling"
+    
+    # RESOLVED: Asserting the descriptive name from beta
     assert switch.name == "VLAN 1 (VLAN 1) DHCP"
     assert switch.is_on is True
 
-    # Check extra state attributes
+    # Check extra_state_attributes (Retained from feat branch)
     attrs = switch.extra_state_attributes
-    assert attrs["network_id"] == "net1"
-    assert attrs["subnet"] is None  # Not set in fixture
-    assert attrs["gateway"] is None  # Not set in fixture
+    assert attrs["vlan_id"] == "1"
+    assert attrs["vlan_name"] == "VLAN 1"
+    assert attrs["subnet"] == "192.168.1.0/24"
+    assert attrs["gateway"] == "192.168.1.1"
 
 
 def test_vlan_dhcp_switch_attributes(
@@ -104,6 +109,7 @@ def test_vlan_dhcp_switch_attributes(
         return None
 
     mock_coordinator.get_network = MagicMock(side_effect=get_network)
+    mock_coordinator.is_pending.return_value = False
 
     hass = MagicMock()
     entities = []
@@ -130,7 +136,7 @@ def test_vlan_dhcp_switch_off_state(
     mock_meraki_client: MagicMock,
 ) -> None:
     """Test the off state of the VLAN DHCP switch."""
-    # Modify the object
+    # Modify the object state to reflect DHCP disabled
     mock_coordinator_with_vlan_data.data["vlans"]["net1"][
         0
     ].dhcp_handling = "Do not respond to DHCP requests"
@@ -148,7 +154,7 @@ def test_vlan_dhcp_switch_off_state(
     assert len(entities) == 1
     switch = entities[0]
 
-    assert switch.is_on is False  # type: ignore[attr-defined]
+    assert switch.is_on is False
 
 
 def test_vlan_dhcp_switch_creation_disabled(

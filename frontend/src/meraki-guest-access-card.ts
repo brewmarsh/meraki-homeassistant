@@ -7,6 +7,7 @@ import { WifiHelpers } from './utils/wifi-helpers';
 import './meraki-content-filter-card';
 import './meraki-wifi-qr-card';
 import './meraki-network-vitals-card';
+import './meraki-vlan-card';
 import './meraki-guest-access-card-editor';
 import { Network, SSID } from './types/meraki';
 

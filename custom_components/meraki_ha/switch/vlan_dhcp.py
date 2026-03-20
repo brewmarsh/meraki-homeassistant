@@ -8,6 +8,7 @@ from typing import Any
 from homeassistant.components.switch import SwitchEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import callback
+from homeassistant.helpers.entity import EntityCategory
 
 from ..coordinators import MerakiSwitchCoordinator
 from ..core.entities.meraki_vlan_entity import MerakiVLANEntity
@@ -35,10 +36,12 @@ class MerakiVLANDHCPSwitch(MerakiVLANEntity, SwitchEntity):
         if not vlan_id:
             raise ValueError("VLAN ID should not be None here")
 
-        # Dynamically include the VLAN context in the name
+        # RESOLVED: Use the more descriptive name from beta
         self._attr_name = f"{vlan.name} (VLAN {vlan_id}) DHCP"
+        
         # Set has_entity_name to False to use the full custom name
         self._attr_has_entity_name = False
+        self._attr_entity_category = EntityCategory.CONFIG
 
         self._attr_unique_id = get_vlan_entity_id(
             self._network_id, vlan_id, "dhcp_handling"
@@ -49,8 +52,11 @@ class MerakiVLANDHCPSwitch(MerakiVLANEntity, SwitchEntity):
     def extra_state_attributes(self) -> dict[str, Any]:
         """Return the state attributes for the VLAN DHCP switch."""
         attrs = super().extra_state_attributes
+        # RESOLVED: Retain extended attributes from the feature branch
         attrs.update(
             {
+                "vlan_id": self._vlan.id,
+                "vlan_name": self._vlan.name,
                 "subnet": self._vlan.subnet,
                 "gateway": self._vlan.appliance_ip,
             }
