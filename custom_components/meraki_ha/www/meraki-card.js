@@ -284,8 +284,8 @@ et.elementStyles = [], et.shadowRootOptions = { mode: "open" }, et[ut("elementPr
  * Copyright 2017 Google LLC
  * SPDX-License-Identifier: BSD-3-Clause
  */
-const ft = globalThis, $e = (n) => n, Tt = ft.trustedTypes, Ae = Tt ? Tt.createPolicy("lit-html", { createHTML: (n) => n }) : void 0, Be = "$lit$", j = `lit$${Math.random().toFixed(9).slice(2)}$`, Re = "?" + j, fs = `<${Re}>`, Z = document, pt = () => Z.createComment(""), mt = (n) => n === null || typeof n != "object" && typeof n != "function", ie = Array.isArray, gs = (n) => ie(n) || typeof (n == null ? void 0 : n[Symbol.iterator]) == "function", Ft = `[
-\f\r]`, ht = /<(?:(!--|\/[^a-zA-Z])|(\/?[a-zA-Z][^>\s]*)|(\/?$))/g, ke = /-->/g, Se = />/g, J = RegExp(`>|${Ft}(?:([^\\s"'>=/]+)(${Ft}*=${Ft}*(?:[^
+const ft = globalThis, $e = (n) => n, Tt = ft.trustedTypes, Ae = Tt ? Tt.createPolicy("lit-html", { createHTML: (n) => n }) : void 0, Be = "$lit$", j = `lit$${Math.random().toFixed(9).slice(2)}$`, Re = "?" + j, fs = `<${Re}>`, Z = document, pt = () => Z.createComment(""), mt = (n) => n === null || typeof n != "object" && typeof n != "function", ie = Array.isArray, gs = (n) => ie(n) || typeof (n == null ? void 0 : n[Symbol.iterator]) == "function", Ft = `[ 	
+\f\r]`, ht = /<(?:(!--|\/[^a-zA-Z])|(\/?[a-zA-Z][^>\s]*)|(\/?$))/g, ke = /-->/g, Se = />/g, J = RegExp(`>|${Ft}(?:([^\\s"'>=/]+)(${Ft}*=${Ft}*(?:[^ 	
 \f\r"'\`<>=]|("|')|))|$)`, "g"), Pe = /'/g, Ne = /"/g, Ue = /^(?:script|style|textarea|title)$/i, ps = (n) => (t, ...e) => ({ _$litType$: n, strings: t, values: e }), b = ps(1), st = Symbol.for("lit-noChange"), A = Symbol.for("lit-nothing"), xe = /* @__PURE__ */ new WeakMap(), Y = Z.createTreeWalker(Z, 129);
 function Oe(n, t) {
   if (!ie(n) || !n.hasOwnProperty("raw")) throw Error("invalid template strings array");
@@ -2448,14 +2448,14 @@ const de = class de extends P {
       return $t(
         ((l = this._config) == null ? void 0 : l.name) || "Cisco Meraki Content Filter",
         this._loadingMessage,
-        "2.3.0-beta.3533"
+        "2.3.0-beta.3534"
       );
     const t = this._config.entity || this._discoverEntity(), e = t ? this.hass.states[t] : void 0, i = this._config.entity ? this.hass.states[this._config.entity] : void 0, s = ((d = i == null ? void 0 : i.attributes) == null ? void 0 : d.friendly_name) || "Cisco Meraki", r = this._config.name || (this._config.entity ? `${s} Content Filter` : "Cisco Meraki Content Filter");
     if (!t || !e)
       return ne(
         "Entity Missing",
         "No content filter entity was found. Please check your configuration.",
-        "2.3.0-beta.3533"
+        "2.3.0-beta.3534"
       );
     const o = e.state || "Unknown", a = ((h = e.attributes) == null ? void 0 : h.options) || ["None", "Security", "Family", "Strict"], c = this._optimisticProfile || o;
     return b`
@@ -2476,7 +2476,7 @@ const de = class de extends P {
     })}
           </div>
         </div>
-        <div class="version">v${"2.3.0-beta.3533"}</div>
+        <div class="version">v${"2.3.0-beta.3534"}</div>
       </ha-card>
     `;
   }
@@ -2766,7 +2766,7 @@ const fe = class fe extends P {
       return $t(
         ((i = this._config) == null ? void 0 : i.name) || "Wi-Fi Access",
         this._loadingMessage,
-        "2.3.0-beta.3533"
+        "2.3.0-beta.3534"
       );
     const t = M.getValue(this.hass, this._config.ssid), e = M.getPasswordForSsid(
       this.hass,
@@ -2782,7 +2782,7 @@ const fe = class fe extends P {
           <div class="qr-container" style="width: 200px; height: 200px;" .innerHTML=${this._qrSvg}></div>
           ${e ? b`<div class="password-display">Password: <code class="copyable-code">${e}</code></div>` : ""}
         </div>
-        <div class="version">v${"2.3.0-beta.3533"}</div>
+        <div class="version">v${"2.3.0-beta.3534"}</div>
       </ha-card>
     `;
   }
@@ -2932,7 +2932,7 @@ const ge = class ge extends P {
       return $t(
         ((s = this._config) == null ? void 0 : s.name) || "Cisco Meraki Network Vitals",
         this._loadingMessage,
-        "2.3.0-beta.3533"
+        "2.3.0-beta.3534"
       );
     const t = this._config.throughput_entity;
     t && this.hass.states[t] && console.log(
@@ -2967,7 +2967,7 @@ const ge = class ge extends P {
             </div>
           </div>
         </div>
-        <div class="version">v${"2.3.0-beta.3533"}</div>
+        <div class="version">v${"2.3.0-beta.3534"}</div>
       </ha-card>
     `;
   }
@@ -3209,13 +3209,13 @@ const me = class me extends P {
       return $t(
         ((e = this._config) == null ? void 0 : e.name) || "Cisco Meraki VLANs",
         this._loadingMessage,
-        "2.3.0-beta.3530"
+        "2.3.0-beta.3534"
       );
     const t = this._getVlanEntities();
     return t.length === 0 ? ne(
       "No VLANs Found",
       "No Meraki VLAN DHCP switches were found. Ensure VLAN management is enabled in the integration options.",
-      "2.3.0-beta.3530"
+      "2.3.0-beta.3534"
     ) : b`
       <ha-card .header="${this._config.name || "Cisco Meraki VLANs"}">
         <div class="card-content">
@@ -3244,7 +3244,7 @@ const me = class me extends P {
             `)}
           </div>
         </div>
-        <div class="version">v${"2.3.0-beta.3530"}</div>
+        <div class="version">v${"2.3.0-beta.3534"}</div>
       </ha-card>
     `;
   }
@@ -3531,13 +3531,13 @@ const we = class we extends P {
       return $t(
         ((o = this._config) == null ? void 0 : o.name) || "Cisco Meraki Guest Access",
         this._loadingMessage,
-        "2.3.0-beta.3533"
+        "2.3.0-beta.3534"
       );
     if (this._networks.length === 0)
       return ne(
         "No Wireless Networks",
         "No Cisco Meraki wireless networks found. Ensure the integration is configured.",
-        "2.3.0-beta.3533"
+        "2.3.0-beta.3534"
       );
     const t = R.getNetworkOptions(
       this._networks
@@ -3622,7 +3622,7 @@ const we = class we extends P {
               Create Another
             </ha-button>
           </div>
-          <div class="version">v${"2.3.0-beta.3533"}</div>
+          <div class="version">v${"2.3.0-beta.3534"}</div>
         </ha-card>
       `;
     }
@@ -3657,7 +3657,7 @@ const we = class we extends P {
             </ha-button>
           </div>
         </div>
-        <div class="version">v${"2.3.0-beta.3533"}</div>
+        <div class="version">v${"2.3.0-beta.3534"}</div>
       </ha-card>
     `;
   }
@@ -3783,9 +3783,9 @@ window.customCards.some(
 ) || window.customCards.push({
   type: "meraki-guest-access-card",
   name: "Cisco Meraki Guest Access",
-  description: "Manage temporary guest WiFi access. Version: 2.3.0-beta.3533",
+  description: "Manage temporary guest WiFi access. Version: 2.3.0-beta.3534",
   preview: !0,
-  version: "2.3.0-beta.3533"
+  version: "2.3.0-beta.3534"
 });
 export {
   S as MerakiGuestAccessCard
