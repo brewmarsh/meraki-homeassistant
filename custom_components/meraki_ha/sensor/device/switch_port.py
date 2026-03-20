@@ -37,7 +37,7 @@ class MerakiSwitchPortBaseSensor(MerakiSensor, ABC):
         device: MerakiDevice,
         port: dict[str, Any],
         config_entry: ConfigEntry,
-        unique_id_suffix: str,
+        sensor_type: str,
         name_suffix: str,
     ) -> None:
         """Initialize the base sensor."""
@@ -48,7 +48,7 @@ class MerakiSwitchPortBaseSensor(MerakiSensor, ABC):
         self._config_entry = config_entry
 
         port_id = self._get_port_id_from_data(port)
-        self._attr_unique_id = f"{self._device.serial}_port_{port_id}{unique_id_suffix}"
+        self._attr_unique_id = f"{self._device.serial}_port_{port_id}_{sensor_type}"
         self._attr_name = f"Port {port_id}{name_suffix}"
         self._last_state = None
 
@@ -186,7 +186,7 @@ class MerakiSwitchPortSensor(MerakiSwitchPortBaseSensor):
             device,
             port,
             config_entry,
-            unique_id_suffix="",
+            sensor_type="status",
             name_suffix=" status",
         )
 
@@ -241,7 +241,7 @@ class MerakiSwitchPortPowerSensor(MerakiSwitchPortBaseSensor):
             device,
             port,
             config_entry,
-            unique_id_suffix="_power",
+            sensor_type="power",
             name_suffix=" power",
         )
 
@@ -278,7 +278,7 @@ class MerakiSwitchPortEnergySensor(MerakiSwitchPortBaseSensor):
             device,
             port,
             config_entry,
-            unique_id_suffix="_energy",
+            sensor_type="energy",
             name_suffix=" energy",
         )
 

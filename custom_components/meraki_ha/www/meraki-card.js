@@ -2448,14 +2448,14 @@ const de = class de extends P {
       return $t(
         ((l = this._config) == null ? void 0 : l.name) || "Cisco Meraki Content Filter",
         this._loadingMessage,
-        "2.3.0-beta.3530"
+        "2.3.0-beta.3533"
       );
     const t = this._config.entity || this._discoverEntity(), e = t ? this.hass.states[t] : void 0, i = this._config.entity ? this.hass.states[this._config.entity] : void 0, s = ((d = i == null ? void 0 : i.attributes) == null ? void 0 : d.friendly_name) || "Cisco Meraki", r = this._config.name || (this._config.entity ? `${s} Content Filter` : "Cisco Meraki Content Filter");
     if (!t || !e)
       return ne(
         "Entity Missing",
         "No content filter entity was found. Please check your configuration.",
-        "2.3.0-beta.3530"
+        "2.3.0-beta.3533"
       );
     const o = e.state || "Unknown", a = ((h = e.attributes) == null ? void 0 : h.options) || ["None", "Security", "Family", "Strict"], c = this._optimisticProfile || o;
     return b`
@@ -2476,7 +2476,7 @@ const de = class de extends P {
     })}
           </div>
         </div>
-        <div class="version">v${"2.3.0-beta.3530"}</div>
+        <div class="version">v${"2.3.0-beta.3533"}</div>
       </ha-card>
     `;
   }
@@ -2766,7 +2766,7 @@ const fe = class fe extends P {
       return $t(
         ((i = this._config) == null ? void 0 : i.name) || "Wi-Fi Access",
         this._loadingMessage,
-        "2.3.0-beta.3530"
+        "2.3.0-beta.3533"
       );
     const t = M.getValue(this.hass, this._config.ssid), e = M.getPasswordForSsid(
       this.hass,
@@ -2782,7 +2782,7 @@ const fe = class fe extends P {
           <div class="qr-container" style="width: 200px; height: 200px;" .innerHTML=${this._qrSvg}></div>
           ${e ? b`<div class="password-display">Password: <code class="copyable-code">${e}</code></div>` : ""}
         </div>
-        <div class="version">v${"2.3.0-beta.3530"}</div>
+        <div class="version">v${"2.3.0-beta.3533"}</div>
       </ha-card>
     `;
   }
@@ -2932,7 +2932,7 @@ const ge = class ge extends P {
       return $t(
         ((s = this._config) == null ? void 0 : s.name) || "Cisco Meraki Network Vitals",
         this._loadingMessage,
-        "2.3.0-beta.3530"
+        "2.3.0-beta.3533"
       );
     const t = this._config.throughput_entity;
     t && this.hass.states[t] && console.log(
@@ -2967,7 +2967,7 @@ const ge = class ge extends P {
             </div>
           </div>
         </div>
-        <div class="version">v${"2.3.0-beta.3530"}</div>
+        <div class="version">v${"2.3.0-beta.3533"}</div>
       </ha-card>
     `;
   }
@@ -3531,13 +3531,13 @@ const we = class we extends P {
       return $t(
         ((o = this._config) == null ? void 0 : o.name) || "Cisco Meraki Guest Access",
         this._loadingMessage,
-        "2.3.0-beta.3530"
+        "2.3.0-beta.3533"
       );
     if (this._networks.length === 0)
       return ne(
         "No Wireless Networks",
         "No Cisco Meraki wireless networks found. Ensure the integration is configured.",
-        "2.3.0-beta.3530"
+        "2.3.0-beta.3533"
       );
     const t = R.getNetworkOptions(
       this._networks
@@ -3622,7 +3622,7 @@ const we = class we extends P {
               Create Another
             </ha-button>
           </div>
-          <div class="version">v${"2.3.0-beta.3530"}</div>
+          <div class="version">v${"2.3.0-beta.3533"}</div>
         </ha-card>
       `;
     }
@@ -3657,7 +3657,7 @@ const we = class we extends P {
             </ha-button>
           </div>
         </div>
-        <div class="version">v${"2.3.0-beta.3530"}</div>
+        <div class="version">v${"2.3.0-beta.3533"}</div>
       </ha-card>
     `;
   }
@@ -3783,9 +3783,9 @@ window.customCards.some(
 ) || window.customCards.push({
   type: "meraki-guest-access-card",
   name: "Cisco Meraki Guest Access",
-  description: "Manage temporary guest WiFi access. Version: 2.3.0-beta.3530",
+  description: "Manage temporary guest WiFi access. Version: 2.3.0-beta.3533",
   preview: !0,
-  version: "2.3.0-beta.3530"
+  version: "2.3.0-beta.3533"
 });
 export {
   S as MerakiGuestAccessCard

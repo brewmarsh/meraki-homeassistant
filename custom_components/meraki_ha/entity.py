@@ -30,9 +30,7 @@ class MerakiEntity(CoordinatorEntity[T], Generic[T]):
 
         device_data = self.device_data
         if device_data:
-            return resolve_device_info(
-                device_data, self.coordinator.config_entry
-            )
+            return resolve_device_info(device_data, self.coordinator.config_entry)
         return getattr(self, "_attr_device_info", None)
 
     @property
@@ -130,6 +128,9 @@ class MerakiEntity(CoordinatorEntity[T], Generic[T]):
     @property
     def unique_id(self) -> str | None:
         """Return a dynamic unique ID to prevent platform collisions."""
+        if hasattr(self, "_attr_unique_id") and self._attr_unique_id is not None:
+            return self._attr_unique_id
+
         serial = self._serial
 
         if (
@@ -149,7 +150,7 @@ class MerakiEntity(CoordinatorEntity[T], Generic[T]):
 
             return f"{serial}_{self.__class__.__name__.lower()}"
 
-        return getattr(self, "_attr_unique_id", None)
+        return None
 
 
 class MerakiSensor(MerakiEntity[T], SensorEntity, Generic[T]):
