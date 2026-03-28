@@ -11,10 +11,26 @@ Configuration is provided via environment variables:
 """
 
 import os
+import re
 import sys
 from datetime import datetime, timedelta, timezone
 
 import requests  # type: ignore
+
+# Action 1: Define a list of IGNORE_PATTERNS (regex)
+IGNORE_REGEX = [
+    re.compile(r"entity_registry is logging too frequently", re.I),
+    re.compile(
+        r"(Network traffic analysis|Vlan tracking|Appliance port tracking) is not enabled",
+        re.I,
+    ),
+    re.compile(r"Meraki API Informational Error.*Status 400", re.I),
+]
+
+
+def is_actual_failure(message: str) -> bool:
+    """Check if the log message represents an actual failure."""
+    return not any(pattern.search(message) for pattern in IGNORE_REGEX)
 
 
 def main():
@@ -50,13 +66,25 @@ def main():
         sys.exit(1)
 
     logs = response.json().get("data", [])
-    if logs:
-        print(f"Found {len(logs)} error logs in the last 5 minutes:", file=sys.stderr)
-        for log in logs:
+
+    # Action 2: Filter logs based on IGNORE_PATTERNS
+    actual_errors = []
+    for log in logs:
+        # Better Stack logs usually have a 'message' field
+        message = log.get("message", "")
+        if is_actual_failure(message):
+            actual_errors.append(log)
+
+    if actual_errors:
+        print(
+            f"Found {len(actual_errors)} actual error logs in the last 5 minutes:",
+            file=sys.stderr,
+        )
+        for log in actual_errors:
             print(log, file=sys.stderr)
         sys.exit(1)
 
-    print("No error logs found for meraki_ha in the last 5 minutes.")
+    print("No actual error logs found for meraki_ha in the last 5 minutes.")
     sys.exit(0)
 
 
