@@ -95,7 +95,7 @@ class MerakiRTSPStreamCamera(MerakiEntity, Camera):
 
         # Setting name to None with has_entity_name=True makes this the "Main" entity
         self._attr_name = None
-        self._attr_model = self.device_data.model
+        self._attr_model = self.device_data.model if self.device_data else None
 
         _LOGGER.debug(
             "Naming Debug - Entity: %s | Class: %s | has_entity_name: %s "
@@ -110,9 +110,9 @@ class MerakiRTSPStreamCamera(MerakiEntity, Camera):
         )
 
     @property
-    def device_data(self) -> MerakiDevice:
+    def device_data(self) -> MerakiDevice | None:
         """Return the device data from the coordinator."""
-        return self.coordinator.get_device(self._device_serial) or MerakiDevice()
+        return self.coordinator.get_device(self._device_serial)
 
     async def async_added_to_hass(self) -> None:
         """Handle when entity is added to hass."""
@@ -120,6 +120,7 @@ class MerakiRTSPStreamCamera(MerakiEntity, Camera):
 
         if (
             self.coordinator.config_entry.options.get(CONF_RTSP_STREAM_ENABLED, False)
+            and self.device_data
             and not self.device_data.rtsp_url
         ):
             # Move the blocking API call to a background task to prevent Setup timeout
@@ -150,7 +151,8 @@ class MerakiRTSPStreamCamera(MerakiEntity, Camera):
                     url,
                 )
                 # Update the device data model directly so the UI can use it
-                self.device_data.rtsp_url = url
+                if self.device_data:
+                    self.device_data.rtsp_url = url
                 self.async_write_ha_state()
             else:
                 _LOGGER.debug(
@@ -174,7 +176,7 @@ class MerakiRTSPStreamCamera(MerakiEntity, Camera):
             _LOGGER.debug("Cannot fetch snapshot: Camera serial is missing.")
             return None
 
-        if self.device_data.status != "online":
+        if not self.device_data or self.device_data.status != "online":
             _LOGGER.debug("Skipping snapshot for offline camera: %s", self.name)
             return None
 
@@ -205,7 +207,11 @@ class MerakiRTSPStreamCamera(MerakiEntity, Camera):
     @property
     def is_streaming(self) -> bool:
         """Return True if the camera is streaming."""
-        if not self._device_serial or self.device_data.rtsp_url is None:
+        if (
+            not self._device_serial
+            or not self.device_data
+            or self.device_data.rtsp_url is None
+        ):
             return False
         return True
 
@@ -220,7 +226,7 @@ class MerakiRTSPStreamCamera(MerakiEntity, Camera):
     def extra_state_attributes(self) -> dict[str, Any]:
         """Return the state attributes."""
         attrs = {}
-        if rtsp_url := self.device_data.rtsp_url:
+        if self.device_data and (rtsp_url := self.device_data.rtsp_url):
             attrs["rtsp_url"] = rtsp_url
         return attrs
 
