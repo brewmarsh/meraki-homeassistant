@@ -5,17 +5,17 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING, cast
 
-from homeassistant.components.sensor import SensorEntity, SensorEntityDescription
+from homeassistant.components.sensor import SensorEntityDescription
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import EntityCategory
 from homeassistant.core import callback
 from homeassistant.helpers.device_registry import DeviceInfo
-from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from custom_components.meraki_ha.const.integration import DOMAIN
 
 from ...coordinators import MerakiCameraCoordinator
 from ...core.utils.naming_utils import format_device_name
+from ...entity import MerakiSensor
 
 if TYPE_CHECKING:
     from ...core.models.device import MerakiDevice
@@ -23,7 +23,7 @@ if TYPE_CHECKING:
 _LOGGER = logging.getLogger(__name__)
 
 
-class MerakiCameraAudioDetectionSensor(CoordinatorEntity, SensorEntity):
+class MerakiCameraAudioDetectionSensor(MerakiSensor):
     """Representation of a Meraki Camera Audio Detection Status sensor."""
 
     coordinator: MerakiCameraCoordinator

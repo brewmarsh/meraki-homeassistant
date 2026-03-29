@@ -5,17 +5,16 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING, Any
 
-from homeassistant.components.sensor import SensorEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import EntityCategory
 from homeassistant.core import callback
 from homeassistant.helpers.device_registry import DeviceInfo
-from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from custom_components.meraki_ha.const.integration import DOMAIN
 
 from ...coordinators import MerakiMainCoordinator
 from ...core.utils.naming_utils import standardize_device_name
+from ...entity import MerakiSensor
 
 if TYPE_CHECKING:
     from ...core.models import MerakiApplianceDevice
@@ -23,7 +22,7 @@ if TYPE_CHECKING:
 _LOGGER = logging.getLogger(__name__)
 
 
-class MerakiApplianceUplinkSensor(CoordinatorEntity, SensorEntity):
+class MerakiApplianceUplinkSensor(MerakiSensor):
     """Representation of a Meraki appliance uplink sensor."""
 
     coordinator: MerakiMainCoordinator
