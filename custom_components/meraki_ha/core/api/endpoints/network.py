@@ -60,6 +60,23 @@ class NetworkEndpoints:
         )
 
     @handle_meraki_errors
+    async def create_group_policy(
+        self, network_id: str, name: str, **kwargs: Any
+    ) -> dict[str, Any]:
+        """Create a group policy for a network."""
+        policy = await self._api_client.run_sync(
+            self._api_client.dashboard.networks.createNetworkGroupPolicy,
+            networkId=network_id,
+            name=name,
+            **kwargs,
+        )
+        validated = validate_response(policy)
+        if not isinstance(validated, dict):
+            _LOGGER.warning("create_group_policy did not return a dict")
+            return {}
+        return validated
+
+    @handle_meraki_errors
     @async_timed_cache(timeout=60)
     async def get_network_traffic(
         self, network_id: str, device_type: str

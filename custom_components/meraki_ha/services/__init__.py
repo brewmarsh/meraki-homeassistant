@@ -67,14 +67,15 @@ async def async_setup_services(hass: HomeAssistant) -> None:
             raise ServiceValidationError(f"Network ID {network_id} not found")
 
         # Handle policy logic
-        if group_policy_id == "NONE":
-            # Explicitly no policy
-            pass
-        elif not group_policy_id or group_policy_id == "CREATE":
-            group_policy_id = await ipsk_manager.get_or_create_guest_policy(
+        policy_id_to_use = group_policy_id
+        if policy_id_to_use == "NONE":
+            # Explicitly no policy assignment
+            policy_id_to_use = "NONE"
+        elif not policy_id_to_use or policy_id_to_use == "CREATE":
+            policy_id_to_use = await ipsk_manager.get_or_create_guest_policy(
                 config_entry_id, network_id
             )
-            if not group_policy_id:
+            if not policy_id_to_use:
                 raise ServiceValidationError(
                     "A Group Policy ID is required but could not be determined or created."
                 )
@@ -86,7 +87,7 @@ async def async_setup_services(hass: HomeAssistant) -> None:
             duration_minutes=duration_minutes,
             name=name,
             passphrase=passphrase,
-            group_policy_id=group_policy_id,
+            group_policy_id=policy_id_to_use,
         )
 
     async def _async_generate_guest_access(call: ServiceCall) -> None:
@@ -107,14 +108,15 @@ async def async_setup_services(hass: HomeAssistant) -> None:
             raise ServiceValidationError(f"Network ID {network_id} not found")
 
         # Handle policy logic
-        if group_policy == "NONE":
-            # Explicitly no policy
-            pass
-        elif not group_policy or group_policy == "CREATE":
-            group_policy = await ipsk_manager.get_or_create_guest_policy(
+        policy_id_to_use = group_policy
+        if policy_id_to_use == "NONE":
+            # Explicitly no policy assignment
+            policy_id_to_use = "NONE"
+        elif not policy_id_to_use or policy_id_to_use == "CREATE":
+            policy_id_to_use = await ipsk_manager.get_or_create_guest_policy(
                 config_entry_id, network_id
             )
-            if not group_policy:
+            if not policy_id_to_use:
                 raise ServiceValidationError(
                     "A Group Policy ID is required but could not be determined or created."
                 )
@@ -127,7 +129,7 @@ async def async_setup_services(hass: HomeAssistant) -> None:
             duration_minutes=duration,
             name=guest_name,
             passphrase=passphrase,
-            group_policy_id=group_policy,
+            group_policy_id=policy_id_to_use,
         )
 
     # Register both service entry points

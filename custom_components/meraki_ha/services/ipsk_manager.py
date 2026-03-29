@@ -84,7 +84,10 @@ class IPSKManager:
             # Check if it already exists
             policies = await client.network.get_group_policies(network_id)
             for policy in policies:
-                if policy.get("name") == policy_name:
+                if (
+                    policy.get("name")
+                    and policy["name"].strip().lower() == policy_name.lower()
+                ):
                     return str(policy["groupPolicyId"])
 
             # Create it if it doesn't exist
@@ -92,31 +95,31 @@ class IPSKManager:
                 "Creating new group policy '%s' for network %s", policy_name, network_id
             )
 
-            # Use raw post because python library might lack the endpoint or have
-            # strict kwargs
-            metadata = {
-                "tags": ["networks", "configure", "groupPolicies"],
-                "operation": "createNetworkGroupPolicy",
-            }
-            resource = f"/networks/{network_id}/groupPolicies"
-            payload = {
-                "name": policy_name,
-                "scheduling": {"enabled": False},
-                "bandwidth": {"settings": "network default"},
-            }
+            try:
+                response = await client.network.create_group_policy(
+                    network_id=network_id,
+                    name=policy_name,
+                    scheduling={"enabled": False},
+                    bandwidth={"settings": "network default"},
+                )
 
-            if client.dashboard is None:
-                return None
-
-            response = await client.run_sync(
-                client.dashboard.networks._session.post,
-                metadata,
-                resource,
-                payload,
-            )
-
-            if response and "groupPolicyId" in response:
-                return str(response["groupPolicyId"])
+                if response and "groupPolicyId" in response:
+                    return str(response["groupPolicyId"])
+            except Exception as create_err:
+                _LOGGER.debug(
+                    "Creation failed for policy '%s', performing fallback lookup: %s",
+                    policy_name,
+                    create_err,
+                )
+                # Fallback: One last check in case it was created by another process
+                policies = await client.network.get_group_policies(network_id)
+                for policy in policies:
+                    if (
+                        policy.get("name")
+                        and policy["name"].strip().lower() == policy_name.lower()
+                    ):
+                        return str(policy["groupPolicyId"])
+                raise create_err
 
         except Exception as err:
             _LOGGER.error("Failed to get or create guest policy: %s", err)
