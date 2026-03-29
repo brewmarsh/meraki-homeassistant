@@ -33,6 +33,53 @@ def manager(hass):
 
 
 @pytest.mark.asyncio
+async def test_create_guest_key_none_policy(hass, mock_meraki_client, manager):
+    """Test creating a guest key with NONE policy."""
+    await manager.async_setup()
+
+    client = mock_meraki_client
+    client.network = MagicMock()
+    client.network.get_group_policies = AsyncMock(return_value=[])
+
+    key = await manager.create_guest_key(
+        config_entry_id="test_entry_id",
+        network_id="N_12345",
+        ssid_number="1",
+        duration_minutes=60,
+        name="Guest User",
+        group_policy_id="NONE",
+    )
+
+    assert key["identity_psk_id"] == "mock_ipsk_id"
+    # Verify that NONE is converted to None when calling the SDK
+    mock_meraki_client.wireless.create_identity_psk.assert_called_once_with(
+        "N_12345", "1", "Guest User", None, None
+    )
+    manager.async_unload()
+
+
+@pytest.mark.asyncio
+async def test_get_or_create_guest_policy_fix_check(hass, mock_meraki_client, manager):
+    """Test get_or_create_guest_policy uses the correct client attribute."""
+    await manager.async_setup()
+
+    client = mock_meraki_client
+    client.network = MagicMock()
+    client.network.get_group_policies = AsyncMock(return_value=[])
+    client.dashboard = MagicMock()
+    client.dashboard.networks._session.post = AsyncMock(
+        return_value={"groupPolicyId": "NEW_GP"}
+    )
+    client.run_sync = AsyncMock(return_value={"groupPolicyId": "NEW_GP"})
+
+    policy_id = await manager.get_or_create_guest_policy("test_entry_id", "N_12345")
+
+    assert policy_id == "NEW_GP"
+    client.network.get_group_policies.assert_called_once_with("N_12345")
+    manager.async_unload()
+
+
+@pytest.mark.asyncio
 async def test_create_guest_key(hass, mock_meraki_client, manager):
     """Test creating a guest key."""
     await manager.async_setup()
