@@ -82,7 +82,7 @@ class IPSKManager:
 
         try:
             # Check if it already exists
-            policies = await client.networks.get_group_policies(network_id)
+            policies = await client.network.get_group_policies(network_id)
             for policy in policies:
                 if policy.get("name") == policy_name:
                     return str(policy["groupPolicyId"])
@@ -140,11 +140,16 @@ class IPSKManager:
                 f"Meraki client not found for config entry {config_entry_id}"
             )
 
+        # Handle "NONE" policy fallback
+        effective_policy_id = group_policy_id
+        if effective_policy_id == "NONE":
+            effective_policy_id = None
+
         result = await client.wireless.create_identity_psk(
             network_id,
             ssid_number,
             name,
-            group_policy_id,
+            effective_policy_id,
             passphrase,
         )
 
