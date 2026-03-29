@@ -126,6 +126,8 @@ export class MerakiGuestAccessCard extends LitElement {
         initPolicy = String(
           networkPolicies[0].groupPolicyId || networkPolicies[0].id
         );
+      } else {
+        initPolicy = 'NONE';
       }
     }
 
@@ -165,6 +167,8 @@ export class MerakiGuestAccessCard extends LitElement {
         updatedData.policy = String(
           networkPolicies[0].groupPolicyId || networkPolicies[0].id
         );
+      } else {
+        updatedData.policy = 'NONE';
       }
     }
 
@@ -217,12 +221,17 @@ export class MerakiGuestAccessCard extends LitElement {
       this._formData.network,
       'number'
     );
-    const policyOptions = this._policies
-      .filter((p) => p.networkId === this._formData.network)
-      .map((p) => ({
-        value: String(p.groupPolicyId || p.id),
-        label: p.name,
-      }));
+    const networkPolicies = this._policies.filter(
+      (p) => p.networkId === this._formData.network
+    );
+    const policyOptions = networkPolicies.map((p) => ({
+      value: String(p.groupPolicyId || p.id),
+      label: p.name,
+    }));
+
+    if (policyOptions.length === 0) {
+      policyOptions.push({ value: 'NONE', label: 'Network Default' });
+    }
 
     const schema = [
       {
@@ -233,16 +242,12 @@ export class MerakiGuestAccessCard extends LitElement {
         name: 'ssid',
         selector: { select: { options: ssidOptions, mode: 'dropdown' } },
       },
-      ...(policyOptions.length > 0
-        ? [
-            {
-              name: 'policy',
-              selector: {
-                select: { options: policyOptions, mode: 'dropdown' },
-              },
-            },
-          ]
-        : []),
+      {
+        name: 'policy',
+        selector: {
+          select: { options: policyOptions, mode: 'dropdown' },
+        },
+      },
       { name: 'passphrase', selector: { text: {} } },
       {
         name: 'duration',
