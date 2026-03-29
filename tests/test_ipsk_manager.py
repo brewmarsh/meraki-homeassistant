@@ -66,16 +66,15 @@ async def test_get_or_create_guest_policy_fix_check(hass, mock_meraki_client, ma
     client = mock_meraki_client
     client.network = MagicMock()
     client.network.get_group_policies = AsyncMock(return_value=[])
-    client.dashboard = MagicMock()
-    client.dashboard.networks._session.post = AsyncMock(
+    client.network.create_group_policy = AsyncMock(
         return_value={"groupPolicyId": "NEW_GP"}
     )
-    client.run_sync = AsyncMock(return_value={"groupPolicyId": "NEW_GP"})
 
     policy_id = await manager.get_or_create_guest_policy("test_entry_id", "N_12345")
 
     assert policy_id == "NEW_GP"
     client.network.get_group_policies.assert_called_once_with("N_12345")
+    client.network.create_group_policy.assert_called_once()
     manager.async_unload()
 
 

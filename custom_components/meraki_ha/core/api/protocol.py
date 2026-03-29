@@ -244,6 +244,12 @@ class NetworkEndpointsProtocol(Protocol):
         """Get group policies for a network."""
         ...
 
+    async def create_group_policy(
+        self, network_id: str, name: str, **kwargs: Any
+    ) -> dict[str, Any]:
+        """Create a group policy for a network."""
+        ...
+
     async def get_network_events(
         self, network_id: str, **kwargs: Any
     ) -> dict[str, Any]:
