@@ -2,7 +2,8 @@
 set -e
 
 # --- Configuration ---
-DOCKER_IMAGE="meraki-ha-runner:latest"
+# Action 1: Updated to the correct repository image
+DOCKER_IMAGE="80m1/meraki-runner:latest"
 
 # Action 4: Unified COMMON_MOUNTS ensuring preserved socket access
 # Mount the docker socket for DinD and the HA config directory
@@ -18,15 +19,19 @@ deploy_runner() {
     # Ensure any existing container with the same name is removed
     docker rm -f "$name" 2>/dev/null || true
 
-    # Action 1: Launch container with --group-add and common mounts
+    # Action 3: Launch container with --group-add and DOCKER_GID
+    # This is the "Silver Bullet" for socket permission issues.
+    local docker_gid=$(stat -c '%g' /var/run/docker.sock)
+
     docker run -d \
         --name "$name" \
         --restart always \
-        --group-add $(stat -c '%g' /var/run/docker.sock) \
+        --group-add "$docker_gid" \
         $COMMON_MOUNTS \
         -e RUNNER_TOKEN="$token" \
         -e RUNNER_REPO="$repo" \
         -e RUNNER_NAME="$name" \
+        -e DOCKER_GID="$docker_gid" \
         "$DOCKER_IMAGE"
 
     # Action 2: Pre-launch Validation

@@ -3,6 +3,13 @@ set -e
 
 # --- Cleaned-Up entrypoint.sh ---
 
+# Action 2: Dynamic GID Mapping
+# Match the container's docker group to the host's socket GID to avoid permission errors.
+if [ -n "$DOCKER_GID" ]; then
+    echo "--- Adjusting internal docker group GID to $DOCKER_GID ---"
+    groupmod -g "$DOCKER_GID" docker || true
+fi
+
 # Check for required environment variables
 # Note: We rely on the parent shell/environment to have set GITHUB_PAT.
 if [ -z "$RUNNER_TOKEN" ]; then
