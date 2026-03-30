@@ -45,7 +45,7 @@ const ni = (n) => new Le(typeof n == "string" ? n : n + "", void 0, ee), D = (n,
  * Copyright 2017 Google LLC
  * SPDX-License-Identifier: BSD-3-Clause
  */
-const { is: oi, defineProperty: ai, getOwnPropertyDescriptor: ci, getOwnPropertyNames: li, getOwnPropertySymbols: di, getPrototypeOf: hi } = Object, G = globalThis, Ee = G.trustedTypes, ui = Ee ? Ee.emptyScript : "", zt = G.reactiveElementPolyfillSupport, ut = (n, t) => n, Tt = { toAttribute(n, t) {
+const { is: oi, defineProperty: ai, getOwnPropertyDescriptor: ci, getOwnPropertyNames: li, getOwnPropertySymbols: di, getPrototypeOf: hi } = Object, K = globalThis, Ee = K.trustedTypes, ui = Ee ? Ee.emptyScript : "", zt = K.reactiveElementPolyfillSupport, ut = (n, t) => n, It = { toAttribute(n, t) {
   switch (t) {
     case Boolean:
       n = n ? ui : null;
@@ -73,8 +73,8 @@ const { is: oi, defineProperty: ai, getOwnPropertyDescriptor: ci, getOwnProperty
       }
   }
   return e;
-} }, ie = (n, t) => !oi(n, t), Ce = { attribute: !0, type: String, converter: Tt, reflect: !1, useDefault: !1, hasChanged: ie };
-Symbol.metadata ?? (Symbol.metadata = Symbol("metadata")), G.litPropertyMetadata ?? (G.litPropertyMetadata = /* @__PURE__ */ new WeakMap());
+} }, ie = (n, t) => !oi(n, t), Ce = { attribute: !0, type: String, converter: It, reflect: !1, useDefault: !1, hasChanged: ie };
+Symbol.metadata ?? (Symbol.metadata = Symbol("metadata")), K.litPropertyMetadata ?? (K.litPropertyMetadata = /* @__PURE__ */ new WeakMap());
 let et = class extends HTMLElement {
   static addInitializer(t) {
     this._$Ei(), (this.l ?? (this.l = [])).push(t);
@@ -184,7 +184,7 @@ let et = class extends HTMLElement {
     var r;
     const s = this.constructor.elementProperties.get(t), i = this.constructor._$Eu(t, s);
     if (i !== void 0 && s.reflect === !0) {
-      const o = (((r = s.converter) == null ? void 0 : r.toAttribute) !== void 0 ? s.converter : Tt).toAttribute(e, s.type);
+      const o = (((r = s.converter) == null ? void 0 : r.toAttribute) !== void 0 ? s.converter : It).toAttribute(e, s.type);
       this._$Em = t, o == null ? this.removeAttribute(i) : this.setAttribute(i, o), this._$Em = null;
     }
   }
@@ -192,7 +192,7 @@ let et = class extends HTMLElement {
     var r, o;
     const s = this.constructor, i = s._$Eh.get(t);
     if (i !== void 0 && this._$Em !== i) {
-      const a = s.getPropertyOptions(i), c = typeof a.converter == "function" ? { fromAttribute: a.converter } : ((r = a.converter) == null ? void 0 : r.fromAttribute) !== void 0 ? a.converter : Tt;
+      const a = s.getPropertyOptions(i), c = typeof a.converter == "function" ? { fromAttribute: a.converter } : ((r = a.converter) == null ? void 0 : r.fromAttribute) !== void 0 ? a.converter : It;
       this._$Em = i;
       const d = c.fromAttribute(e, a.type);
       this[i] = d ?? ((o = this._$Ej) == null ? void 0 : o.get(i)) ?? d, this._$Em = null;
@@ -278,15 +278,15 @@ let et = class extends HTMLElement {
   firstUpdated(t) {
   }
 };
-et.elementStyles = [], et.shadowRootOptions = { mode: "open" }, et[ut("elementProperties")] = /* @__PURE__ */ new Map(), et[ut("finalized")] = /* @__PURE__ */ new Map(), zt == null || zt({ ReactiveElement: et }), (G.reactiveElementVersions ?? (G.reactiveElementVersions = [])).push("2.1.2");
+et.elementStyles = [], et.shadowRootOptions = { mode: "open" }, et[ut("elementProperties")] = /* @__PURE__ */ new Map(), et[ut("finalized")] = /* @__PURE__ */ new Map(), zt == null || zt({ ReactiveElement: et }), (K.reactiveElementVersions ?? (K.reactiveElementVersions = [])).push("2.1.2");
 /**
  * @license
  * Copyright 2017 Google LLC
  * SPDX-License-Identifier: BSD-3-Clause
  */
-const ft = globalThis, $e = (n) => n, Mt = ft.trustedTypes, Ae = Mt ? Mt.createPolicy("lit-html", { createHTML: (n) => n }) : void 0, Be = "$lit$", j = `lit$${Math.random().toFixed(9).slice(2)}$`, Re = "?" + j, fi = `<${Re}>`, Z = document, pt = () => Z.createComment(""), mt = (n) => n === null || typeof n != "object" && typeof n != "function", se = Array.isArray, gi = (n) => se(n) || typeof (n == null ? void 0 : n[Symbol.iterator]) == "function", Ft = `[
+const ft = globalThis, $e = (n) => n, Tt = ft.trustedTypes, Ae = Tt ? Tt.createPolicy("lit-html", { createHTML: (n) => n }) : void 0, Be = "$lit$", j = `lit$${Math.random().toFixed(9).slice(2)}$`, Re = "?" + j, fi = `<${Re}>`, Z = document, pt = () => Z.createComment(""), mt = (n) => n === null || typeof n != "object" && typeof n != "function", se = Array.isArray, gi = (n) => se(n) || typeof (n == null ? void 0 : n[Symbol.iterator]) == "function", Ft = `[ 	
 \f\r]`, ht = /<(?:(!--|\/[^a-zA-Z])|(\/?[a-zA-Z][^>\s]*)|(\/?$))/g, ke = /-->/g, Se = />/g, J = RegExp(`>|${Ft}(?:([^\\s"'>=/]+)(${Ft}*=${Ft}*(?:[^ 	
-\f\r"'\`<>=]|("|')|))|$)`, "g"), Pe = /'/g, Ne = /"/g, Ue = /^(?:script|style|textarea|title)$/i, pi = (n) => (t, ...e) => ({ _$litType$: n, strings: t, values: e }), b = pi(1), it = Symbol.for("lit-noChange"), A = Symbol.for("lit-nothing"), xe = /* @__PURE__ */ new WeakMap(), Y = Z.createTreeWalker(Z, 129);
+\f\r"'\`<>=]|("|')|))|$)`, "g"), Pe = /'/g, Ne = /"/g, Ue = /^(?:script|style|textarea|title)$/i, pi = (n) => (t, ...e) => ({ _$litType$: n, strings: t, values: e }), b = pi(1), it = Symbol.for("lit-noChange"), k = Symbol.for("lit-nothing"), xe = /* @__PURE__ */ new WeakMap(), Y = Z.createTreeWalker(Z, 129);
 function Oe(n, t) {
   if (!se(n) || !n.hasOwnProperty("raw")) throw Error("invalid template strings array");
   return Ae !== void 0 ? Ae.createHTML(t) : t;
@@ -317,12 +317,12 @@ class _t {
       if (i.nodeType === 1) {
         if (i.hasAttributes()) for (const h of i.getAttributeNames()) if (h.endsWith(Be)) {
           const u = l[o++], f = i.getAttribute(h).split(j), g = /([.?@])?(.*)/.exec(u);
-          c.push({ type: 1, index: r, name: g[2], strings: f, ctor: g[1] === "." ? yi : g[1] === "?" ? wi : g[1] === "@" ? vi : Lt }), i.removeAttribute(h);
+          c.push({ type: 1, index: r, name: g[2], strings: f, ctor: g[1] === "." ? wi : g[1] === "?" ? yi : g[1] === "@" ? vi : Lt }), i.removeAttribute(h);
         } else h.startsWith(j) && (c.push({ type: 6, index: r }), i.removeAttribute(h));
         if (Ue.test(i.tagName)) {
           const h = i.textContent.split(j), u = h.length - 1;
           if (u > 0) {
-            i.textContent = Mt ? Mt.emptyScript : "";
+            i.textContent = Tt ? Tt.emptyScript : "";
             for (let f = 0; f < u; f++) i.append(h[f], pt()), Y.nextNode(), c.push({ type: 2, index: ++r });
             i.append(h[u], pt());
           }
@@ -381,7 +381,7 @@ class Ct {
     return ((t = this._$AM) == null ? void 0 : t._$AU) ?? this._$Cv;
   }
   constructor(t, e, s, i) {
-    this.type = 2, this._$AH = A, this._$AN = void 0, this._$AA = t, this._$AB = e, this._$AM = s, this.options = i, this._$Cv = (i == null ? void 0 : i.isConnected) ?? !0;
+    this.type = 2, this._$AH = k, this._$AN = void 0, this._$AA = t, this._$AB = e, this._$AM = s, this.options = i, this._$Cv = (i == null ? void 0 : i.isConnected) ?? !0;
   }
   get parentNode() {
     let t = this._$AA.parentNode;
@@ -395,7 +395,7 @@ class Ct {
     return this._$AB;
   }
   _$AI(t, e = this) {
-    t = st(this, t, e), mt(t) ? t === A || t == null || t === "" ? (this._$AH !== A && this._$AR(), this._$AH = A) : t !== this._$AH && t !== it && this._(t) : t._$litType$ !== void 0 ? this.$(t) : t.nodeType !== void 0 ? this.T(t) : gi(t) ? this.k(t) : this._(t);
+    t = st(this, t, e), mt(t) ? t === k || t == null || t === "" ? (this._$AH !== k && this._$AR(), this._$AH = k) : t !== this._$AH && t !== it && this._(t) : t._$litType$ !== void 0 ? this.$(t) : t.nodeType !== void 0 ? this.T(t) : gi(t) ? this.k(t) : this._(t);
   }
   O(t) {
     return this._$AA.parentNode.insertBefore(t, this._$AB);
@@ -404,7 +404,7 @@ class Ct {
     this._$AH !== t && (this._$AR(), this._$AH = this.O(t));
   }
   _(t) {
-    this._$AH !== A && mt(this._$AH) ? this._$AA.nextSibling.data = t : this.T(Z.createTextNode(t)), this._$AH = t;
+    this._$AH !== k && mt(this._$AH) ? this._$AA.nextSibling.data = t : this.T(Z.createTextNode(t)), this._$AH = t;
   }
   $(t) {
     var r;
@@ -446,7 +446,7 @@ class Lt {
     return this._$AM._$AU;
   }
   constructor(t, e, s, i, r) {
-    this.type = 1, this._$AH = A, this._$AN = void 0, this.element = t, this.name = e, this._$AM = i, this.options = r, s.length > 2 || s[0] !== "" || s[1] !== "" ? (this._$AH = Array(s.length - 1).fill(new String()), this.strings = s) : this._$AH = A;
+    this.type = 1, this._$AH = k, this._$AN = void 0, this.element = t, this.name = e, this._$AM = i, this.options = r, s.length > 2 || s[0] !== "" || s[1] !== "" ? (this._$AH = Array(s.length - 1).fill(new String()), this.strings = s) : this._$AH = k;
   }
   _$AI(t, e = this, s, i) {
     const r = this.strings;
@@ -455,28 +455,28 @@ class Lt {
     else {
       const a = t;
       let c, d;
-      for (t = r[0], c = 0; c < r.length - 1; c++) d = st(this, a[s + c], e, c), d === it && (d = this._$AH[c]), o || (o = !mt(d) || d !== this._$AH[c]), d === A ? t = A : t !== A && (t += (d ?? "") + r[c + 1]), this._$AH[c] = d;
+      for (t = r[0], c = 0; c < r.length - 1; c++) d = st(this, a[s + c], e, c), d === it && (d = this._$AH[c]), o || (o = !mt(d) || d !== this._$AH[c]), d === k ? t = k : t !== k && (t += (d ?? "") + r[c + 1]), this._$AH[c] = d;
     }
     o && !i && this.j(t);
   }
   j(t) {
-    t === A ? this.element.removeAttribute(this.name) : this.element.setAttribute(this.name, t ?? "");
-  }
-}
-class yi extends Lt {
-  constructor() {
-    super(...arguments), this.type = 3;
-  }
-  j(t) {
-    this.element[this.name] = t === A ? void 0 : t;
+    t === k ? this.element.removeAttribute(this.name) : this.element.setAttribute(this.name, t ?? "");
   }
 }
 class wi extends Lt {
   constructor() {
+    super(...arguments), this.type = 3;
+  }
+  j(t) {
+    this.element[this.name] = t === k ? void 0 : t;
+  }
+}
+class yi extends Lt {
+  constructor() {
     super(...arguments), this.type = 4;
   }
   j(t) {
-    this.element.toggleAttribute(this.name, !!t && t !== A);
+    this.element.toggleAttribute(this.name, !!t && t !== k);
   }
 }
 class vi extends Lt {
@@ -484,8 +484,8 @@ class vi extends Lt {
     super(t, e, s, i, r), this.type = 5;
   }
   _$AI(t, e = this) {
-    if ((t = st(this, t, e, 0) ?? A) === it) return;
-    const s = this._$AH, i = t === A && s !== A || t.capture !== s.capture || t.once !== s.once || t.passive !== s.passive, r = t !== A && (s === A || i);
+    if ((t = st(this, t, e, 0) ?? k) === it) return;
+    const s = this._$AH, i = t === k && s !== k || t.capture !== s.capture || t.once !== s.once || t.passive !== s.passive, r = t !== k && (s === k || i);
     i && this.element.removeEventListener(this.name, this, s), r && this.element.addEventListener(this.name, this, t), this._$AH = t;
   }
   handleEvent(t) {
@@ -556,7 +556,7 @@ jt == null || jt({ LitElement: N });
  * Copyright 2017 Google LLC
  * SPDX-License-Identifier: BSD-3-Clause
  */
-const Ci = { attribute: !0, type: String, converter: Tt, reflect: !1, hasChanged: ie }, $i = (n = Ci, t, e) => {
+const Ci = { attribute: !0, type: String, converter: It, reflect: !1, hasChanged: ie }, $i = (n = Ci, t, e) => {
   const { kind: s, metadata: i } = e;
   let r = globalThis.litPropertyMetadata.get(i);
   if (r === void 0 && globalThis.litPropertyMetadata.set(i, r = /* @__PURE__ */ new Map()), s === "setter" && ((n = Object.create(n)).wrapped = !0), r.set(e.name, n), s === "accessor") {
@@ -588,7 +588,7 @@ function L(n) {
  * Copyright 2017 Google LLC
  * SPDX-License-Identifier: BSD-3-Clause
  */
-function y(n) {
+function w(n) {
   return L({ ...n, state: !0, attribute: !1 });
 }
 const ne = (n, t, e) => b`
@@ -988,16 +988,16 @@ var Ni = St, Ve = {};
   };
 })(Ve);
 var je = {};
-const xi = x.getSymbolSize, Te = 7;
+const xi = x.getSymbolSize, Ie = 7;
 je.getPositions = function(t) {
   const e = xi(t);
   return [
     // top-left
     [0, 0],
     // top-right
-    [e - Te, 0],
+    [e - Ie, 0],
     // bottom-left
-    [0, e - Te]
+    [0, e - Ie]
   ];
 };
 var qe = {};
@@ -1450,24 +1450,24 @@ Rt.getTotalCodewordsCount = function(t, e) {
       return;
   }
 };
-var Ge = {}, Ut = {};
-const gt = new Uint8Array(512), It = new Uint8Array(256);
+var Ke = {}, Ut = {};
+const gt = new Uint8Array(512), Mt = new Uint8Array(256);
 (function() {
   let t = 1;
   for (let e = 0; e < 255; e++)
-    gt[e] = t, It[t] = e, t <<= 1, t & 256 && (t ^= 285);
+    gt[e] = t, Mt[t] = e, t <<= 1, t & 256 && (t ^= 285);
   for (let e = 255; e < 512; e++)
     gt[e] = gt[e - 255];
 })();
 Ut.log = function(t) {
   if (t < 1) throw new Error("log(" + t + ")");
-  return It[t];
+  return Mt[t];
 };
 Ut.exp = function(t) {
   return gt[t];
 };
 Ut.mul = function(t, e) {
-  return t === 0 || e === 0 ? 0 : gt[It[t] + It[e]];
+  return t === 0 || e === 0 ? 0 : gt[Mt[t] + Mt[e]];
 };
 (function(n) {
   const t = Ut;
@@ -1494,42 +1494,42 @@ Ut.mul = function(t, e) {
       i = n.mul(i, new Uint8Array([1, t.exp(r)]));
     return i;
   };
-})(Ge);
-const Ke = Ge;
+})(Ke);
+const Ge = Ke;
 function oe(n) {
   this.genPoly = void 0, this.degree = n, this.degree && this.initialize(this.degree);
 }
 oe.prototype.initialize = function(t) {
-  this.degree = t, this.genPoly = Ke.generateECPolynomial(this.degree);
+  this.degree = t, this.genPoly = Ge.generateECPolynomial(this.degree);
 };
 oe.prototype.encode = function(t) {
   if (!this.genPoly)
     throw new Error("Encoder not initialized");
   const e = new Uint8Array(t.length + this.degree);
   e.set(t);
-  const s = Ke.mod(e, this.genPoly), i = this.degree - s.length;
+  const s = Ge.mod(e, this.genPoly), i = this.degree - s.length;
   if (i > 0) {
     const r = new Uint8Array(this.degree);
     return r.set(s, i), r;
   }
   return s;
 };
-var Ti = oe, We = {}, K = {}, ae = {};
+var Ii = oe, We = {}, G = {}, ae = {};
 ae.isValid = function(t) {
   return !isNaN(t) && t >= 1 && t <= 40;
 };
 var U = {};
-const Je = "[0-9]+", Mi = "[A-Z $%*+\\-./:]+";
-let yt = "(?:[u3000-u303F]|[u3040-u309F]|[u30A0-u30FF]|[uFF00-uFFEF]|[u4E00-u9FAF]|[u2605-u2606]|[u2190-u2195]|u203B|[u2010u2015u2018u2019u2025u2026u201Cu201Du2225u2260]|[u0391-u0451]|[u00A7u00A8u00B1u00B4u00D7u00F7])+";
-yt = yt.replace(/u/g, "\\u");
-const Ii = "(?:(?![A-Z0-9 $%*+\\-./:]|" + yt + `)(?:.|[\r
+const Je = "[0-9]+", Ti = "[A-Z $%*+\\-./:]+";
+let wt = "(?:[u3000-u303F]|[u3040-u309F]|[u30A0-u30FF]|[uFF00-uFFEF]|[u4E00-u9FAF]|[u2605-u2606]|[u2190-u2195]|u203B|[u2010u2015u2018u2019u2025u2026u201Cu201Du2225u2260]|[u0391-u0451]|[u00A7u00A8u00B1u00B4u00D7u00F7])+";
+wt = wt.replace(/u/g, "\\u");
+const Mi = "(?:(?![A-Z0-9 $%*+\\-./:]|" + wt + `)(?:.|[\r
 ]))+`;
-U.KANJI = new RegExp(yt, "g");
+U.KANJI = new RegExp(wt, "g");
 U.BYTE_KANJI = new RegExp("[^A-Z0-9 $%*+\\-./:]+", "g");
-U.BYTE = new RegExp(Ii, "g");
+U.BYTE = new RegExp(Mi, "g");
 U.NUMERIC = new RegExp(Je, "g");
-U.ALPHANUMERIC = new RegExp(Mi, "g");
-const Di = new RegExp("^" + yt + "$"), Li = new RegExp("^" + Je + "$"), Bi = new RegExp("^[A-Z0-9 $%*+\\-./:]+$");
+U.ALPHANUMERIC = new RegExp(Ti, "g");
+const Di = new RegExp("^" + wt + "$"), Li = new RegExp("^" + Je + "$"), Bi = new RegExp("^[A-Z0-9 $%*+\\-./:]+$");
 U.testKanji = function(t) {
   return Di.test(t);
 };
@@ -1597,22 +1597,22 @@ U.testAlphanumeric = function(t) {
       return o;
     }
   };
-})(K);
+})(G);
 (function(n) {
-  const t = x, e = Rt, s = Bt, i = K, r = ae, o = 7973, a = t.getBCHDigit(o);
+  const t = x, e = Rt, s = Bt, i = G, r = ae, o = 7973, a = t.getBCHDigit(o);
   function c(u, f, g) {
-    for (let w = 1; w <= 40; w++)
-      if (f <= n.getCapacity(w, g, u))
-        return w;
+    for (let y = 1; y <= 40; y++)
+      if (f <= n.getCapacity(y, g, u))
+        return y;
   }
   function d(u, f) {
     return i.getCharCountIndicator(u, f) + 4;
   }
   function l(u, f) {
     let g = 0;
-    return u.forEach(function(w) {
-      const S = d(w.mode, f);
-      g += S + w.getBitsLength();
+    return u.forEach(function(y) {
+      const $ = d(y.mode, f);
+      g += $ + y.getBitsLength();
     }), g;
   }
   function h(u, f) {
@@ -1622,36 +1622,36 @@ U.testAlphanumeric = function(t) {
   }
   n.from = function(f, g) {
     return r.isValid(f) ? parseInt(f, 10) : g;
-  }, n.getCapacity = function(f, g, w) {
+  }, n.getCapacity = function(f, g, y) {
     if (!r.isValid(f))
       throw new Error("Invalid QR Code version");
-    typeof w > "u" && (w = i.BYTE);
-    const S = t.getSymbolTotalCodewords(f), _ = e.getTotalCodewordsCount(f, g), v = (S - _) * 8;
-    if (w === i.MIXED) return v;
-    const m = v - d(w, f);
-    switch (w) {
+    typeof y > "u" && (y = i.BYTE);
+    const $ = t.getSymbolTotalCodewords(f), p = e.getTotalCodewordsCount(f, g), v = ($ - p) * 8;
+    if (y === i.MIXED) return v;
+    const _ = v - d(y, f);
+    switch (y) {
       case i.NUMERIC:
-        return Math.floor(m / 10 * 3);
+        return Math.floor(_ / 10 * 3);
       case i.ALPHANUMERIC:
-        return Math.floor(m / 11 * 2);
+        return Math.floor(_ / 11 * 2);
       case i.KANJI:
-        return Math.floor(m / 13);
+        return Math.floor(_ / 13);
       case i.BYTE:
       default:
-        return Math.floor(m / 8);
+        return Math.floor(_ / 8);
     }
   }, n.getBestVersionForData = function(f, g) {
-    let w;
-    const S = s.from(g, s.M);
+    let y;
+    const $ = s.from(g, s.M);
     if (Array.isArray(f)) {
       if (f.length > 1)
-        return h(f, S);
+        return h(f, $);
       if (f.length === 0)
         return 1;
-      w = f[0];
+      y = f[0];
     } else
-      w = f;
-    return c(w.mode, w.getLength(), S);
+      y = f;
+    return c(y.mode, y.getLength(), $);
   }, n.getEncodedBits = function(f) {
     if (!r.isValid(f) || f < 7)
       throw new Error("Invalid QR Code version");
@@ -1662,16 +1662,16 @@ U.testAlphanumeric = function(t) {
   };
 })(We);
 var Ye = {};
-const Yt = x, Qe = 1335, Ri = 21522, Me = Yt.getBCHDigit(Qe);
+const Yt = x, Qe = 1335, Ri = 21522, Te = Yt.getBCHDigit(Qe);
 Ye.getEncodedBits = function(t, e) {
   const s = t.bit << 3 | e;
   let i = s << 10;
-  for (; Yt.getBCHDigit(i) - Me >= 0; )
-    i ^= Qe << Yt.getBCHDigit(i) - Me;
+  for (; Yt.getBCHDigit(i) - Te >= 0; )
+    i ^= Qe << Yt.getBCHDigit(i) - Te;
   return (s << 10 | i) ^ Ri;
 };
 var Ze = {};
-const Ui = K;
+const Ui = G;
 function nt(n) {
   this.mode = Ui.NUMERIC, this.data = n.toString();
 }
@@ -1692,7 +1692,7 @@ nt.prototype.write = function(t) {
   r > 0 && (s = this.data.substr(e), i = parseInt(s, 10), t.put(i, r * 3 + 1));
 };
 var Oi = nt;
-const Hi = K, qt = [
+const Hi = G, qt = [
   "0",
   "1",
   "2",
@@ -1760,7 +1760,7 @@ rt.prototype.write = function(t) {
   this.data.length % 2 && t.put(qt.indexOf(this.data[e]), 6);
 };
 var zi = rt;
-const Fi = K;
+const Fi = G;
 function ot(n) {
   this.mode = Fi.BYTE, typeof n == "string" ? this.data = new TextEncoder().encode(n) : this.data = new Uint8Array(n);
 }
@@ -1778,7 +1778,7 @@ ot.prototype.write = function(n) {
     n.put(this.data[t], 8);
 };
 var Vi = ot;
-const ji = K, qi = x;
+const ji = G, qi = x;
 function at(n) {
   this.mode = ji.KANJI, this.data = n;
 }
@@ -1807,7 +1807,7 @@ Make sure your charset is UTF-8`
     e = (e >>> 8 & 255) * 192 + (e & 255), n.put(e, 13);
   }
 };
-var Gi = at, Xe = { exports: {} };
+var Ki = at, Xe = { exports: {} };
 (function(n) {
   var t = {
     single_source_shortest_paths: function(e, s, i) {
@@ -1815,14 +1815,14 @@ var Gi = at, Xe = { exports: {} };
       o[s] = 0;
       var a = t.PriorityQueue.make();
       a.push(s, 0);
-      for (var c, d, l, h, u, f, g, w, S; !a.empty(); ) {
+      for (var c, d, l, h, u, f, g, y, $; !a.empty(); ) {
         c = a.pop(), d = c.value, h = c.cost, u = e[d] || {};
         for (l in u)
-          u.hasOwnProperty(l) && (f = u[l], g = h + f, w = o[l], S = typeof o[l] > "u", (S || w > g) && (o[l] = g, a.push(l, g), r[l] = d));
+          u.hasOwnProperty(l) && (f = u[l], g = h + f, y = o[l], $ = typeof o[l] > "u", ($ || y > g) && (o[l] = g, a.push(l, g), r[l] = d));
       }
       if (typeof i < "u" && typeof o[i] > "u") {
-        var _ = ["Could not find a path from ", s, " to ", i, "."].join("");
-        throw new Error(_);
+        var p = ["Could not find a path from ", s, " to ", i, "."].join("");
+        throw new Error(p);
       }
       return r;
     },
@@ -1873,139 +1873,139 @@ var Gi = at, Xe = { exports: {} };
   };
   n.exports = t;
 })(Xe);
-var Ki = Xe.exports;
+var Gi = Xe.exports;
 (function(n) {
-  const t = K, e = Oi, s = zi, i = Vi, r = Gi, o = U, a = x, c = Ki;
-  function d(_) {
-    return unescape(encodeURIComponent(_)).length;
+  const t = G, e = Oi, s = zi, i = Vi, r = Ki, o = U, a = x, c = Gi;
+  function d(p) {
+    return unescape(encodeURIComponent(p)).length;
   }
-  function l(_, v, m) {
-    const p = [];
+  function l(p, v, _) {
+    const m = [];
     let E;
-    for (; (E = _.exec(m)) !== null; )
-      p.push({
+    for (; (E = p.exec(_)) !== null; )
+      m.push({
         data: E[0],
         index: E.index,
         mode: v,
         length: E[0].length
       });
-    return p;
+    return m;
   }
-  function h(_) {
-    const v = l(o.NUMERIC, t.NUMERIC, _), m = l(o.ALPHANUMERIC, t.ALPHANUMERIC, _);
-    let p, E;
-    return a.isKanjiModeEnabled() ? (p = l(o.BYTE, t.BYTE, _), E = l(o.KANJI, t.KANJI, _)) : (p = l(o.BYTE_KANJI, t.BYTE, _), E = []), v.concat(m, p, E).sort(function($, I) {
-      return $.index - I.index;
-    }).map(function($) {
+  function h(p) {
+    const v = l(o.NUMERIC, t.NUMERIC, p), _ = l(o.ALPHANUMERIC, t.ALPHANUMERIC, p);
+    let m, E;
+    return a.isKanjiModeEnabled() ? (m = l(o.BYTE, t.BYTE, p), E = l(o.KANJI, t.KANJI, p)) : (m = l(o.BYTE_KANJI, t.BYTE, p), E = []), v.concat(_, m, E).sort(function(A, M) {
+      return A.index - M.index;
+    }).map(function(A) {
       return {
-        data: $.data,
-        mode: $.mode,
-        length: $.length
+        data: A.data,
+        mode: A.mode,
+        length: A.length
       };
     });
   }
-  function u(_, v) {
+  function u(p, v) {
     switch (v) {
       case t.NUMERIC:
-        return e.getBitsLength(_);
+        return e.getBitsLength(p);
       case t.ALPHANUMERIC:
-        return s.getBitsLength(_);
+        return s.getBitsLength(p);
       case t.KANJI:
-        return r.getBitsLength(_);
+        return r.getBitsLength(p);
       case t.BYTE:
-        return i.getBitsLength(_);
+        return i.getBitsLength(p);
     }
   }
-  function f(_) {
-    return _.reduce(function(v, m) {
-      const p = v.length - 1 >= 0 ? v[v.length - 1] : null;
-      return p && p.mode === m.mode ? (v[v.length - 1].data += m.data, v) : (v.push(m), v);
+  function f(p) {
+    return p.reduce(function(v, _) {
+      const m = v.length - 1 >= 0 ? v[v.length - 1] : null;
+      return m && m.mode === _.mode ? (v[v.length - 1].data += _.data, v) : (v.push(_), v);
     }, []);
   }
-  function g(_) {
+  function g(p) {
     const v = [];
-    for (let m = 0; m < _.length; m++) {
-      const p = _[m];
-      switch (p.mode) {
+    for (let _ = 0; _ < p.length; _++) {
+      const m = p[_];
+      switch (m.mode) {
         case t.NUMERIC:
           v.push([
-            p,
-            { data: p.data, mode: t.ALPHANUMERIC, length: p.length },
-            { data: p.data, mode: t.BYTE, length: p.length }
+            m,
+            { data: m.data, mode: t.ALPHANUMERIC, length: m.length },
+            { data: m.data, mode: t.BYTE, length: m.length }
           ]);
           break;
         case t.ALPHANUMERIC:
           v.push([
-            p,
-            { data: p.data, mode: t.BYTE, length: p.length }
+            m,
+            { data: m.data, mode: t.BYTE, length: m.length }
           ]);
           break;
         case t.KANJI:
           v.push([
-            p,
-            { data: p.data, mode: t.BYTE, length: d(p.data) }
+            m,
+            { data: m.data, mode: t.BYTE, length: d(m.data) }
           ]);
           break;
         case t.BYTE:
           v.push([
-            { data: p.data, mode: t.BYTE, length: d(p.data) }
+            { data: m.data, mode: t.BYTE, length: d(m.data) }
           ]);
       }
     }
     return v;
   }
-  function w(_, v) {
-    const m = {}, p = { start: {} };
+  function y(p, v) {
+    const _ = {}, m = { start: {} };
     let E = ["start"];
-    for (let C = 0; C < _.length; C++) {
-      const $ = _[C], I = [];
-      for (let V = 0; V < $.length; V++) {
-        const B = $[V], dt = "" + C + V;
-        I.push(dt), m[dt] = { node: B, lastCount: 0 }, p[dt] = {};
+    for (let C = 0; C < p.length; C++) {
+      const A = p[C], M = [];
+      for (let V = 0; V < A.length; V++) {
+        const B = A[V], dt = "" + C + V;
+        M.push(dt), _[dt] = { node: B, lastCount: 0 }, m[dt] = {};
         for (let Ht = 0; Ht < E.length; Ht++) {
           const O = E[Ht];
-          m[O] && m[O].node.mode === B.mode ? (p[O][dt] = u(m[O].lastCount + B.length, B.mode) - u(m[O].lastCount, B.mode), m[O].lastCount += B.length) : (m[O] && (m[O].lastCount = B.length), p[O][dt] = u(B.length, B.mode) + 4 + t.getCharCountIndicator(B.mode, v));
+          _[O] && _[O].node.mode === B.mode ? (m[O][dt] = u(_[O].lastCount + B.length, B.mode) - u(_[O].lastCount, B.mode), _[O].lastCount += B.length) : (_[O] && (_[O].lastCount = B.length), m[O][dt] = u(B.length, B.mode) + 4 + t.getCharCountIndicator(B.mode, v));
         }
       }
-      E = I;
+      E = M;
     }
     for (let C = 0; C < E.length; C++)
-      p[E[C]].end = 0;
-    return { map: p, table: m };
+      m[E[C]].end = 0;
+    return { map: m, table: _ };
   }
-  function S(_, v) {
-    let m;
-    const p = t.getBestModeForData(_);
-    if (m = t.from(v, p), m !== t.BYTE && m.bit < p.bit)
-      throw new Error('"' + _ + '" cannot be encoded with mode ' + t.toString(m) + `.
- Suggested mode is: ` + t.toString(p));
-    switch (m === t.KANJI && !a.isKanjiModeEnabled() && (m = t.BYTE), m) {
+  function $(p, v) {
+    let _;
+    const m = t.getBestModeForData(p);
+    if (_ = t.from(v, m), _ !== t.BYTE && _.bit < m.bit)
+      throw new Error('"' + p + '" cannot be encoded with mode ' + t.toString(_) + `.
+ Suggested mode is: ` + t.toString(m));
+    switch (_ === t.KANJI && !a.isKanjiModeEnabled() && (_ = t.BYTE), _) {
       case t.NUMERIC:
-        return new e(_);
+        return new e(p);
       case t.ALPHANUMERIC:
-        return new s(_);
+        return new s(p);
       case t.KANJI:
-        return new r(_);
+        return new r(p);
       case t.BYTE:
-        return new i(_);
+        return new i(p);
     }
   }
   n.fromArray = function(v) {
-    return v.reduce(function(m, p) {
-      return typeof p == "string" ? m.push(S(p, null)) : p.data && m.push(S(p.data, p.mode)), m;
+    return v.reduce(function(_, m) {
+      return typeof m == "string" ? _.push($(m, null)) : m.data && _.push($(m.data, m.mode)), _;
     }, []);
-  }, n.fromString = function(v, m) {
-    const p = h(v, a.isKanjiModeEnabled()), E = g(p), C = w(E, m), $ = c.find_path(C.map, "start", "end"), I = [];
-    for (let V = 1; V < $.length - 1; V++)
-      I.push(C.table[$[V]].node);
-    return n.fromArray(f(I));
+  }, n.fromString = function(v, _) {
+    const m = h(v, a.isKanjiModeEnabled()), E = g(m), C = y(E, _), A = c.find_path(C.map, "start", "end"), M = [];
+    for (let V = 1; V < A.length - 1; V++)
+      M.push(C.table[A[V]].node);
+    return n.fromArray(f(M));
   }, n.rawSplit = function(v) {
     return n.fromArray(
       h(v, a.isKanjiModeEnabled())
     );
   };
 })(Ze);
-const Ot = x, Gt = Bt, Wi = Pi, Ji = Ni, Yi = Ve, Qi = je, Qt = qe, Zt = Rt, Zi = Ti, Dt = We, Xi = Ye, ts = K, Kt = Ze;
+const Ot = x, Kt = Bt, Wi = Pi, Ji = Ni, Yi = Ve, Qi = je, Qt = qe, Zt = Rt, Zi = Ii, Dt = We, Xi = Ye, ts = G, Gt = Ze;
 function es(n, t) {
   const e = n.size, s = Qi.getPositions(t);
   for (let i = 0; i < s.length; i++) {
@@ -2077,34 +2077,34 @@ function os(n, t, e) {
 function as(n, t, e) {
   const s = Ot.getSymbolTotalCodewords(t), i = Zt.getTotalCodewordsCount(t, e), r = s - i, o = Zt.getBlocksCount(t, e), a = s % o, c = o - a, d = Math.floor(s / o), l = Math.floor(r / o), h = l + 1, u = d - l, f = new Zi(u);
   let g = 0;
-  const w = new Array(o), S = new Array(o);
-  let _ = 0;
+  const y = new Array(o), $ = new Array(o);
+  let p = 0;
   const v = new Uint8Array(n.buffer);
-  for (let $ = 0; $ < o; $++) {
-    const I = $ < c ? l : h;
-    w[$] = v.slice(g, g + I), S[$] = f.encode(w[$]), g += I, _ = Math.max(_, I);
+  for (let A = 0; A < o; A++) {
+    const M = A < c ? l : h;
+    y[A] = v.slice(g, g + M), $[A] = f.encode(y[A]), g += M, p = Math.max(p, M);
   }
-  const m = new Uint8Array(s);
-  let p = 0, E, C;
-  for (E = 0; E < _; E++)
+  const _ = new Uint8Array(s);
+  let m = 0, E, C;
+  for (E = 0; E < p; E++)
     for (C = 0; C < o; C++)
-      E < w[C].length && (m[p++] = w[C][E]);
+      E < y[C].length && (_[m++] = y[C][E]);
   for (E = 0; E < u; E++)
     for (C = 0; C < o; C++)
-      m[p++] = S[C][E];
-  return m;
+      _[m++] = $[C][E];
+  return _;
 }
 function cs(n, t, e, s) {
   let i;
   if (Array.isArray(n))
-    i = Kt.fromArray(n);
+    i = Gt.fromArray(n);
   else if (typeof n == "string") {
     let d = t;
     if (!d) {
-      const l = Kt.rawSplit(n);
+      const l = Gt.rawSplit(n);
       d = Dt.getBestVersionForData(l, e);
     }
-    i = Kt.fromString(n, d || 40);
+    i = Gt.fromString(n, d || 40);
   } else
     throw new Error("Invalid data");
   const r = Dt.getBestVersionForData(i, e);
@@ -2134,8 +2134,8 @@ Minimum version required to store current data is: ` + r + `.
 ze.create = function(t, e) {
   if (typeof t > "u" || t === "")
     throw new Error("No input text");
-  let s = Gt.M, i, r;
-  return typeof e < "u" && (s = Gt.from(e.errorCorrectionLevel, Gt.M), i = Dt.from(e.version), r = Qt.from(e.maskPattern), e.toSJISFunc && Ot.setToSJISFunction(e.toSJISFunc)), cs(t, i, s, r);
+  let s = Kt.M, i, r;
+  return typeof e < "u" && (s = Kt.from(e.errorCorrectionLevel, Kt.M), i = Dt.from(e.version), r = Qt.from(e.maskPattern), e.toSJISFunc && Ot.setToSJISFunction(e.toSJISFunc)), cs(t, i, s, r);
 };
 var ti = {}, ce = {};
 (function(n) {
@@ -2180,12 +2180,12 @@ var ti = {}, ce = {};
     const o = i.modules.size, a = i.modules.data, c = n.getScale(o, r), d = Math.floor((o + r.margin * 2) * c), l = r.margin * c, h = [r.color.light, r.color.dark];
     for (let u = 0; u < d; u++)
       for (let f = 0; f < d; f++) {
-        let g = (u * d + f) * 4, w = r.color.light;
+        let g = (u * d + f) * 4, y = r.color.light;
         if (u >= l && f >= l && u < d - l && f < d - l) {
-          const S = Math.floor((u - l) / c), _ = Math.floor((f - l) / c);
-          w = h[a[S * o + _] ? 1 : 0];
+          const $ = Math.floor((u - l) / c), p = Math.floor((f - l) / c);
+          y = h[a[$ * o + p] ? 1 : 0];
         }
-        s[g++] = w.r, s[g++] = w.g, s[g++] = w.b, s[g] = w.a;
+        s[g++] = y.r, s[g++] = y.g, s[g++] = y.b, s[g] = y.a;
       }
   };
 })(ce);
@@ -2215,7 +2215,7 @@ var ti = {}, ce = {};
 })(ti);
 var ei = {};
 const ls = ce;
-function Ie(n, t) {
+function Me(n, t) {
   const e = n.a / 255, s = t + '="' + n.hex + '"';
   return e < 1 ? s + " " + t + '-opacity="' + e.toFixed(2).slice(1) + '"' : s;
 }
@@ -2232,7 +2232,7 @@ function ds(n, t, e) {
   return s;
 }
 ei.render = function(t, e, s) {
-  const i = ls.getOptions(e), r = t.modules.size, o = t.modules.data, a = r + i.margin * 2, c = i.color.light.a ? "<path " + Ie(i.color.light, "fill") + ' d="M0 0h' + a + "v" + a + 'H0z"/>' : "", d = "<path " + Ie(i.color.dark, "stroke") + ' d="' + ds(o, r, i.margin) + '"/>', l = 'viewBox="0 0 ' + a + " " + a + '"', u = '<svg xmlns="http://www.w3.org/2000/svg" ' + (i.width ? 'width="' + i.width + '" height="' + i.width + '" ' : "") + l + ' shape-rendering="crispEdges">' + c + d + `</svg>
+  const i = ls.getOptions(e), r = t.modules.size, o = t.modules.data, a = r + i.margin * 2, c = i.color.light.a ? "<path " + Me(i.color.light, "fill") + ' d="M0 0h' + a + "v" + a + 'H0z"/>' : "", d = "<path " + Me(i.color.dark, "stroke") + ' d="' + ds(o, r, i.margin) + '"/>', l = 'viewBox="0 0 ' + a + " " + a + '"', u = '<svg xmlns="http://www.w3.org/2000/svg" ' + (i.width ? 'width="' + i.width + '" height="' + i.width + '" ' : "") + l + ' shape-rendering="crispEdges">' + c + d + `</svg>
 `;
   return typeof s == "function" && s(null, u), u;
 };
@@ -2270,7 +2270,7 @@ kt.toDataURL = le.bind(null, ii.renderToDataURL);
 kt.toString = le.bind(null, function(n, t, e) {
   return us.render(n, e);
 });
-class T {
+class I {
   /**
    * Resolves a value that might be an entity ID or a raw string.
    */
@@ -2555,19 +2555,19 @@ W([
   L({ attribute: !1 })
 ], H.prototype, "hass");
 W([
-  y()
+  w()
 ], H.prototype, "_config");
 W([
-  y()
+  w()
 ], H.prototype, "_optimisticProfile");
 W([
-  y()
+  w()
 ], H.prototype, "_isUpdating");
 W([
-  y()
+  w()
 ], H.prototype, "_isLoading");
 W([
-  y()
+  w()
 ], H.prototype, "_loadingMessage");
 const he = class he extends N {
   constructor() {
@@ -2611,15 +2611,15 @@ const he = class he extends N {
 he.styles = D`
     .editor-container { padding: 16px; }
   `;
-let wt = he;
+let yt = he;
 W([
   L({ attribute: !1 })
-], wt.prototype, "hass");
+], yt.prototype, "hass");
 W([
-  y()
-], wt.prototype, "_config");
+  w()
+], yt.prototype, "_config");
 customElements.get("meraki-content-filter-card") || customElements.define("meraki-content-filter-card", H);
-customElements.get("meraki-content-filter-card-editor") || customElements.define("meraki-content-filter-card-editor", wt);
+customElements.get("meraki-content-filter-card-editor") || customElements.define("meraki-content-filter-card-editor", yt);
 window.customCards = window.customCards || [];
 window.customCards.some((n) => n.type === "meraki-content-filter-card") || window.customCards.push({
   type: "meraki-content-filter-card",
@@ -2627,7 +2627,7 @@ window.customCards.some((n) => n.type === "meraki-content-filter-card") || windo
   description: "Control Cisco Meraki Content Filtering profiles.",
   preview: !0
 });
-var gs = Object.defineProperty, M = (n, t, e, s) => {
+var gs = Object.defineProperty, T = (n, t, e, s) => {
   for (var i = void 0, r = n.length - 1, o; r >= 0; r--)
     (o = n[r]) && (i = o(t, e, i) || i);
   return i && gs(t, e, i), i;
@@ -2691,23 +2691,23 @@ const ue = class ue extends N {
 };
 ue.styles = D`.editor-container { padding: 16px; }`;
 let z = ue;
-M([
+T([
   L({ attribute: !1 })
 ], z.prototype, "hass");
-M([
-  y()
+T([
+  w()
 ], z.prototype, "_config");
-M([
-  y()
+T([
+  w()
 ], z.prototype, "_networks");
-M([
-  y()
+T([
+  w()
 ], z.prototype, "_ssids");
-M([
-  y()
+T([
+  w()
 ], z.prototype, "_isLoading");
-M([
-  y()
+T([
+  w()
 ], z.prototype, "_loadingMessage");
 const fe = class fe extends N {
   constructor() {
@@ -2745,7 +2745,7 @@ const fe = class fe extends N {
   }
   async _generateQR() {
     if (!this._config) return;
-    const t = T.getValue(this.hass, this._config.ssid), e = T.getPasswordForSsid(
+    const t = I.getValue(this.hass, this._config.ssid), e = I.getPasswordForSsid(
       this.hass,
       this._ssids,
       t,
@@ -2756,8 +2756,8 @@ const fe = class fe extends N {
       this._qrSvg = "";
       return;
     }
-    const s = T.generateWifiQrString(t, e);
-    this._qrSvg = await T.generateQrSvg(s, 2);
+    const s = I.generateWifiQrString(t, e);
+    this._qrSvg = await I.generateQrSvg(s, 2);
   }
   render() {
     var s;
@@ -2768,7 +2768,7 @@ const fe = class fe extends N {
         this._loadingMessage,
         "2.3.0-beta.3538"
       );
-    const t = T.getValue(this.hass, this._config.ssid), e = T.getPasswordForSsid(
+    const t = I.getValue(this.hass, this._config.ssid), e = I.getPasswordForSsid(
       this.hass,
       this._ssids,
       t,
@@ -2797,23 +2797,23 @@ fe.styles = [
     `
 ];
 let F = fe;
-M([
+T([
   L({ attribute: !1 })
 ], F.prototype, "hass");
-M([
-  y()
+T([
+  w()
 ], F.prototype, "_config");
-M([
-  y()
+T([
+  w()
 ], F.prototype, "_qrSvg");
-M([
-  y()
+T([
+  w()
 ], F.prototype, "_isLoading");
-M([
-  y()
+T([
+  w()
 ], F.prototype, "_loadingMessage");
-M([
-  y()
+T([
+  w()
 ], F.prototype, "_ssids");
 customElements.get("meraki-wifi-qr-card") || customElements.define("meraki-wifi-qr-card", F);
 customElements.get("meraki-wifi-qr-card-editor") || customElements.define("meraki-wifi-qr-card-editor", z);
@@ -3036,13 +3036,13 @@ ct([
   L({ attribute: !1 })
 ], X.prototype, "hass");
 ct([
-  y()
+  w()
 ], X.prototype, "_config");
 ct([
-  y()
+  w()
 ], X.prototype, "_isLoading");
 ct([
-  y()
+  w()
 ], X.prototype, "_loadingMessage");
 const pe = class pe extends N {
   setConfig(t) {
@@ -3136,7 +3136,7 @@ ct([
   L({ attribute: !1 })
 ], vt.prototype, "hass");
 ct([
-  y()
+  w()
 ], vt.prototype, "_config");
 customElements.get("meraki-network-vitals-card") || customElements.define("meraki-network-vitals-card", X);
 customElements.get("meraki-network-vitals-card-editor") || customElements.define(
@@ -3322,13 +3322,13 @@ lt([
   L({ attribute: !1 })
 ], tt.prototype, "hass");
 lt([
-  y()
+  w()
 ], tt.prototype, "_config");
 lt([
-  y()
+  w()
 ], tt.prototype, "_isLoading");
 lt([
-  y()
+  w()
 ], tt.prototype, "_loadingMessage");
 const _e = class _e extends N {
   constructor() {
@@ -3373,7 +3373,7 @@ lt([
   L({ attribute: !1 })
 ], bt.prototype, "hass");
 lt([
-  y()
+  w()
 ], bt.prototype, "_config");
 customElements.get("meraki-vlan-card") || customElements.define("meraki-vlan-card", tt);
 customElements.get("meraki-vlan-card-editor") || customElements.define("meraki-vlan-card-editor", bt);
@@ -3389,7 +3389,7 @@ var _s = Object.defineProperty, si = (n, t, e, s) => {
     (o = n[r]) && (i = o(t, e, i) || i);
   return i && _s(t, e, i), i;
 };
-const ye = class ye extends N {
+const we = class we extends N {
   constructor() {
     super(...arguments), this._computeLabel = (t) => t.name === "name" ? "Title (Optional)" : t.name === "config_entry_id" ? "Config Entry ID (Optional override)" : t.name;
   }
@@ -3424,23 +3424,23 @@ const ye = class ye extends N {
     }));
   }
 };
-ye.styles = D`
+we.styles = D`
     .editor-container { padding: 16px; }
   `;
-let Et = ye;
+let Et = we;
 si([
   L({ attribute: !1 })
 ], Et.prototype, "hass");
 si([
-  y()
+  w()
 ], Et.prototype, "_config");
 customElements.get("meraki-guest-access-card-editor") || customElements.define("meraki-guest-access-card-editor", Et);
-var ys = Object.defineProperty, P = (n, t, e, s) => {
+var ws = Object.defineProperty, P = (n, t, e, s) => {
   for (var i = void 0, r = n.length - 1, o; r >= 0; r--)
     (o = n[r]) && (i = o(t, e, i) || i);
-  return i && ys(t, e, i), i;
+  return i && ws(t, e, i), i;
 };
-const we = class we extends N {
+const ye = class ye extends N {
   constructor() {
     super(...arguments), this._formData = {
       network: "",
@@ -3466,7 +3466,10 @@ const we = class we extends N {
   }
   updated(t) {
     var e;
-    super.updated(t), t.has("hass") && this.hass && ((e = this.hass.user) != null && e.name) && !this._formData.guestName && (this._formData = { ...this._formData, guestName: this._generateUniqueGuestName() });
+    super.updated(t), t.has("hass") && this.hass && ((e = this.hass.user) != null && e.name) && !this._formData.guestName && (this._formData = {
+      ...this._formData,
+      guestName: this._generateUniqueGuestName()
+    });
   }
   _generateUniqueGuestName() {
     var s, i;
@@ -3489,7 +3492,12 @@ const we = class we extends N {
       const l = e.filter((h) => h.networkId === r);
       l.length > 0 && (o = String(l[0].number));
     }
-    if (r && o && !a && (a = T.getPasswordForSsid(this.hass, this._ssids, o, r), a || (a = T.generateNaturalPassword())), r && !c) {
+    if (r && o && !a && (a = I.getPasswordForSsid(
+      this.hass,
+      this._ssids,
+      o,
+      r
+    ), a || (a = I.generateNaturalPassword())), r && !c) {
       const l = this._policies.filter(
         (h) => h.networkId === r
       );
@@ -3521,12 +3529,12 @@ const we = class we extends N {
         o[0].groupPolicyId || o[0].id
       ) : i.policy = "NONE";
     }
-    !i.passphrase && i.network && i.ssid && (i.passphrase = T.getPasswordForSsid(
+    !i.passphrase && i.network && i.ssid && (i.passphrase = I.getPasswordForSsid(
       this.hass,
       this._ssids,
       i.ssid,
       i.network
-    ) || T.generateNaturalPassword()), this._formData = i;
+    ) || I.generateNaturalPassword()), this._formData = i;
   }
   _startProvisioningTimer() {
     this._stopProvisioningTimer(), this._provisioning = !0, this._countdown = 30, this._timerInterval = setInterval(() => {
@@ -3537,10 +3545,10 @@ const we = class we extends N {
     this._timerInterval && (clearInterval(this._timerInterval), this._timerInterval = void 0), this._provisioning = !1;
   }
   render() {
-    var a, c, d;
+    var h, u, f;
     if (this._isLoading)
       return $t(
-        ((a = this._config) == null ? void 0 : a.name) || "Cisco Meraki Guest Access",
+        ((h = this._config) == null ? void 0 : h.name) || "Cisco Meraki Guest Access",
         this._loadingMessage,
         "2.3.0-beta.3538"
       );
@@ -3557,10 +3565,10 @@ const we = class we extends N {
       this._formData.network,
       "number"
     ), i = this._policies.filter(
-      (l) => l.networkId === this._formData.network
-    ).map((l) => ({
-      value: String(l.groupPolicyId || l.id),
-      label: l.name
+      (g) => g.networkId === this._formData.network
+    ).map((g) => ({
+      value: String(g.groupPolicyId || g.id),
+      label: g.name
     }));
     i.length === 0 && i.push({ value: "NONE", label: "Network Default" });
     const r = [
@@ -3600,23 +3608,31 @@ const we = class we extends N {
         }
       },
       { name: "guestName", selector: { text: {} } }
-    ], o = this._formData.network && this._formData.ssid && this._formData.policy;
+    ], o = this._formData.network && this._formData.ssid && this._formData.policy, a = parseInt(this._formData.ssid, 10), c = this._ssids.find(
+      (g) => g.networkId === this._formData.network && g.number === a
+    ), d = (c == null ? void 0 : c.authMode) === "ipsk-without-radius", l = c && !d;
     if (this._success && this._qrSvg) {
-      const l = this._networks.find(
-        (f) => f.id === this._formData.network
-      ), h = parseInt(this._formData.ssid, 10), u = this._ssids.find(
-        (f) => f.networkId === this._formData.network && f.number === h
+      const g = this._networks.find(
+        (p) => p.id === this._formData.network
+      ), y = parseInt(this._formData.ssid, 10), $ = this._ssids.find(
+        (p) => p.networkId === this._formData.network && p.number === y
       );
       return b`
-        <ha-card .header="${((c = this._config) == null ? void 0 : c.name) || "Share Access"}">
+        <ha-card .header="${((u = this._config) == null ? void 0 : u.name) || "Share Access"}">
           <div class="card-content success-ui">
             <ha-alert alert-type="success">${this._success}</ha-alert>
 
             ${this._provisioning ? b`
                   <div class="provisioning-ui">
-                    <ha-circular-progress active size="large"></ha-circular-progress>
+                    <ha-circular-progress
+                      active
+                      size="large"
+                    ></ha-circular-progress>
                     <p>Syncing to Meraki Access Points...</p>
-                    <p class="timer">Please wait ${this._countdown}s for the password to activate.</p>
+                    <p class="timer">
+                      Please wait ${this._countdown}s for the password to
+                      activate.
+                    </p>
                   </div>
                 ` : b`
                   <div
@@ -3629,13 +3645,13 @@ const we = class we extends N {
                     <div class="credential-item">
                       <span class="label">Network:</span>
                       <span class="value"
-                        >${(l == null ? void 0 : l.name) || "Unknown"}</span
+                        >${(g == null ? void 0 : g.name) || "Unknown"}</span
                       >
                     </div>
                     <div class="credential-item">
                       <span class="label">SSID:</span>
                       <span class="value"
-                        >${(u == null ? void 0 : u.name) || "Unknown"}</span
+                        >${($ == null ? void 0 : $.name) || "Unknown"}</span
                       >
                     </div>
                     <div class="credential-item">
@@ -3656,7 +3672,7 @@ const we = class we extends N {
       `;
     }
     return b`
-      <ha-card .header="${((d = this._config) == null ? void 0 : d.name) || "Cisco Meraki Guest Access"}">
+      <ha-card .header="${((f = this._config) == null ? void 0 : f.name) || "Cisco Meraki Guest Access"}">
         <div class="card-content">
           ${this._error ? b`<ha-alert
                 alert-type="error"
@@ -3666,6 +3682,19 @@ const we = class we extends N {
               >` : ""}
 
           <div class="form-container">
+            ${l ? b`
+                  <ha-alert
+                    alert-type="warning"
+                    title="SSID Configuration Required"
+                  >
+                    The selected SSID "${c.name}" is not
+                    configured for Identity PSK. Please change the security
+                    mode to "Identity PSK without RADIUS" in your Meraki
+                    Dashboard. See the integration README to learn how to do
+                    this safely without dropping existing devices.
+                  </ha-alert>
+                ` : ""}
+
             <ha-form
               .hass=${this.hass}
               .data=${this._formData}
@@ -3676,7 +3705,7 @@ const we = class we extends N {
 
             <ha-button
               raised
-              .disabled=${this._creating || !o}
+              .disabled=${this._creating || !o || l}
               @click=${this._generateAccessKey}
             >
               ${this._creating ? b`<ha-circular-progress
@@ -3713,8 +3742,8 @@ const we = class we extends N {
         );
         const e = parseInt(this._formData.ssid, 10), s = this._ssids.find(
           (a) => a.networkId === this._formData.network && a.number === e
-        ), i = s ? s.name : "Guest WiFi", r = this._formData.passphrase, o = T.generateWifiQrString(i, r);
-        this._qrSvg = await T.generateQrSvg(o), this._success = "Guest access key created successfully!", this._startProvisioningTimer();
+        ), i = s ? s.name : "Guest WiFi", r = this._formData.passphrase, o = I.generateWifiQrString(i, r);
+        this._qrSvg = await I.generateQrSvg(o), this._success = "Guest access key created successfully!", this._startProvisioningTimer();
       } catch (t) {
         this._error = `Failed to create guest key: ${t.message || t}`;
       } finally {
@@ -3723,7 +3752,7 @@ const we = class we extends N {
     }
   }
 };
-we.styles = [
+ye.styles = [
   At,
   D`
       .form-container {
@@ -3778,53 +3807,53 @@ we.styles = [
       }
     `
 ];
-let k = we;
+let S = ye;
 P([
   L({ attribute: !1 })
-], k.prototype, "hass");
+], S.prototype, "hass");
 P([
-  y()
-], k.prototype, "_config");
+  w()
+], S.prototype, "_config");
 P([
-  y()
-], k.prototype, "_formData");
+  w()
+], S.prototype, "_formData");
 P([
-  y()
-], k.prototype, "_networks");
+  w()
+], S.prototype, "_networks");
 P([
-  y()
-], k.prototype, "_ssids");
+  w()
+], S.prototype, "_ssids");
 P([
-  y()
-], k.prototype, "_policies");
+  w()
+], S.prototype, "_policies");
 P([
-  y()
-], k.prototype, "_creating");
+  w()
+], S.prototype, "_creating");
 P([
-  y()
-], k.prototype, "_error");
+  w()
+], S.prototype, "_error");
 P([
-  y()
-], k.prototype, "_success");
+  w()
+], S.prototype, "_success");
 P([
-  y()
-], k.prototype, "_qrSvg");
+  w()
+], S.prototype, "_qrSvg");
 P([
-  y()
-], k.prototype, "_isLoading");
+  w()
+], S.prototype, "_isLoading");
 P([
-  y()
-], k.prototype, "_loadingMessage");
+  w()
+], S.prototype, "_loadingMessage");
 P([
-  y()
-], k.prototype, "_configEntryId");
+  w()
+], S.prototype, "_configEntryId");
 P([
-  y()
-], k.prototype, "_provisioning");
+  w()
+], S.prototype, "_provisioning");
 P([
-  y()
-], k.prototype, "_countdown");
-customElements.get("meraki-guest-access-card") || customElements.define("meraki-guest-access-card", k);
+  w()
+], S.prototype, "_countdown");
+customElements.get("meraki-guest-access-card") || customElements.define("meraki-guest-access-card", S);
 window.customCards = window.customCards || [];
 window.customCards.some(
   (n) => n.type === "meraki-guest-access-card"
@@ -3836,5 +3865,5 @@ window.customCards.some(
   version: "2.3.0-beta.3538"
 });
 export {
-  k as MerakiGuestAccessCard
+  S as MerakiGuestAccessCard
 };
