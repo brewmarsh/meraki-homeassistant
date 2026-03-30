@@ -17,7 +17,7 @@ from datetime import datetime, timedelta, timezone
 
 import requests  # type: ignore
 
-# Action 1: Define a list of IGNORE_PATTERNS (regex)
+# IGNORE_REGEX defines the list of regexes for log lines that should be ignored during CI/CD auditing.
 IGNORE_REGEX = [
     re.compile(r"entity_registry is logging too frequently", re.I),
     re.compile(
@@ -30,6 +30,10 @@ IGNORE_REGEX = [
 
 def is_actual_failure(message: str) -> bool:
     """Check if the log message represents an actual failure."""
+    # Ignore all errors or warnings not related to the meraki_ha integration
+    if "meraki" not in message.lower():
+        return False
+
     return not any(pattern.search(message) for pattern in IGNORE_REGEX)
 
 
@@ -67,7 +71,6 @@ def main():
 
     logs = response.json().get("data", [])
 
-    # Action 2: Filter logs based on IGNORE_PATTERNS
     actual_errors = []
     for log in logs:
         # Better Stack logs usually have a 'message' field
