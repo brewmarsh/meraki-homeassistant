@@ -334,6 +334,18 @@ jobs:
             exit 1
           fi
 
+      - name: Install Node.js dependencies (Root)
+        run: npm ci
+
+      - name: Install Playwright Browsers
+        run: npx playwright install --with-deps
+
+      - name: Run Playwright UI Tests
+        run: npx playwright test
+        env:
+          BASE_URL: ${{ secrets.HA_STAGING_URL }}
+          HA_TOKEN: ${{ secrets.HA_STAGING_TOKEN }}
+
       - name: Capture HA Logs on Failure
         if: failure()
         shell: bash
