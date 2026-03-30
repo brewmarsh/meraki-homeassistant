@@ -6,7 +6,9 @@ import logging
 from typing import TYPE_CHECKING, Any, Generic, TypeVar
 
 from homeassistant.components.binary_sensor import BinarySensorEntity
+from homeassistant.components.select import SelectEntity
 from homeassistant.components.sensor import SensorEntity
+from homeassistant.components.switch import SwitchEntity
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
@@ -159,3 +161,11 @@ class MerakiSensor(MerakiEntity[T], SensorEntity, Generic[T]):
 
 class MerakiBinarySensor(MerakiEntity[T], BinarySensorEntity, Generic[T]):
     """Base Cisco Meraki binary sensor entity."""
+
+
+class MerakiSelect(MerakiEntity[T], SelectEntity, Generic[T]):
+    """Base Cisco Meraki select entity."""
+
+
+class MerakiSwitch(MerakiEntity[T], SwitchEntity, Generic[T]):
+    """Base Cisco Meraki switch entity."""

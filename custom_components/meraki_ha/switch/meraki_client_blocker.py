@@ -3,24 +3,21 @@
 import logging
 from typing import Any
 
-from homeassistant.components.switch import SwitchEntity, SwitchEntityDescription
+from homeassistant.components.switch import SwitchEntityDescription
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import EntityCategory
 from homeassistant.core import callback
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.device_registry import DeviceInfo
-from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from ..core.coordinators.ssid_firewall_coordinator import SsidFirewallCoordinator
+from ..entity import MerakiSwitch
 from ..helpers.device_info_helpers import resolve_device_info
 
 _LOGGER = logging.getLogger(__name__)
 
 
-class MerakiClientBlockerSwitch(
-    CoordinatorEntity,
-    SwitchEntity,
-):
+class MerakiClientBlockerSwitch(MerakiSwitch):
     """Representation of a Meraki Client Blocker switch entity."""
 
     entity_category = EntityCategory.CONFIG

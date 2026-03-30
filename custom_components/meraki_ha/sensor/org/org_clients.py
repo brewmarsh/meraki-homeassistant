@@ -4,23 +4,20 @@ from __future__ import annotations
 
 import logging
 
-from homeassistant.components.sensor import SensorEntity, SensorStateClass
+from homeassistant.components.sensor import SensorStateClass
 from homeassistant.core import callback
 from homeassistant.helpers.device_registry import DeviceInfo
-from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from custom_components.meraki_ha.const.integration import DOMAIN
 
 from ...coordinators import MerakiMainCoordinator
 from ...core.utils.naming_utils import standardize_device_name
+from ...entity import MerakiSensor
 
 _LOGGER = logging.getLogger(__name__)
 
 
-class MerakiOrganizationSSIDClientsSensor(
-    CoordinatorEntity,
-    SensorEntity,
-):
+class MerakiOrganizationSSIDClientsSensor(MerakiSensor):
     """Representation of a Meraki Organization SSID Clients sensor."""
 
     _attr_state_class = SensorStateClass.MEASUREMENT
@@ -74,10 +71,7 @@ class MerakiOrganizationSSIDClientsSensor(
         )
 
 
-class MerakiOrganizationWirelessClientsSensor(
-    CoordinatorEntity,
-    SensorEntity,
-):
+class MerakiOrganizationWirelessClientsSensor(MerakiSensor):
     """Representation of a Meraki Organization Wireless Clients sensor."""
 
     _attr_state_class = SensorStateClass.MEASUREMENT
@@ -130,10 +124,7 @@ class MerakiOrganizationWirelessClientsSensor(
         )
 
 
-class MerakiOrganizationApplianceClientsSensor(
-    CoordinatorEntity,
-    SensorEntity,
-):
+class MerakiOrganizationApplianceClientsSensor(MerakiSensor):
     """Representation of a Meraki Organization Appliance Clients sensor."""
 
     _attr_state_class = SensorStateClass.MEASUREMENT
