@@ -53,9 +53,24 @@ jobs:
           # Fallback to 'main' if not in a PR
           TARGET_BRANCH="origin/${{ github.base_ref || 'main' }}"
           echo "Running agent scorecard against $TARGET_BRANCH..."
-          # Create an initial report in case the tool fails
+
+          # Create an initial report in case the tool fails or no changes
           echo "Agent scorecard run failed or produced no output." > readiness_report.md
-          agent-score score custom_components/meraki_ha --diff --diff-base $TARGET_BRANCH --report readiness_report.md
+
+          # Use dedicated diff command (0.91.0+) or fallback to score --limit-to
+          if agent-score diff --help > /dev/null 2>&1; then
+            agent-score diff custom_components/meraki_ha --base $TARGET_BRANCH --report readiness_report.md
+          else
+            # Fallback for environments where 'diff' subcommand is not yet present
+            CHANGED_FILES=$(git diff --name-only $TARGET_BRANCH -- custom_components/meraki_ha | tr '\n' ',' | sed 's/,$//')
+            if [ -n "$CHANGED_FILES" ]; then
+              agent-score score custom_components/meraki_ha --limit-to "$CHANGED_FILES" --report readiness_report.md
+            else
+              echo "No files to score in custom_components/meraki_ha."
+              echo "### Agent Readiness Scorecard" > readiness_report.md
+              echo "No files were modified in the target directory. Score: 100.0" >> readiness_report.md
+            fi
+          fi
 
       - name: Upload readiness report
         if: always()
