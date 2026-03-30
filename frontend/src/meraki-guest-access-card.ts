@@ -75,13 +75,18 @@ export class MerakiGuestAccessCard extends LitElement {
       this.hass.user?.name &&
       !this._formData.guestName
     ) {
-      this._formData = { ...this._formData, guestName: this._generateUniqueGuestName() };
+      this._formData = {
+        ...this._formData,
+        guestName: this._generateUniqueGuestName(),
+      };
     }
   }
 
   private _generateUniqueGuestName(): string {
     const baseName = this.hass?.user?.name || 'Home Assistant';
-    const randomSuffix = Math.floor(Math.random() * 10000).toString().padStart(4, '0');
+    const randomSuffix = Math.floor(Math.random() * 10000)
+      .toString()
+      .padStart(4, '0');
     return `${baseName} - Guest ${randomSuffix}`;
   }
 
@@ -96,7 +101,7 @@ export class MerakiGuestAccessCard extends LitElement {
 
     if (networks.length === 0) {
       this._isLoading = false;
-      return; 
+      return;
     }
 
     this._networks = networks;
@@ -121,7 +126,12 @@ export class MerakiGuestAccessCard extends LitElement {
     }
 
     if (initNetwork && initSsid && !initPassphrase) {
-      initPassphrase = WifiHelpers.getPasswordForSsid(this.hass, this._ssids, initSsid, initNetwork);
+      initPassphrase = WifiHelpers.getPasswordForSsid(
+        this.hass,
+        this._ssids,
+        initSsid,
+        initNetwork
+      );
       if (!initPassphrase) {
         initPassphrase = WifiHelpers.generateNaturalPassword();
       }
@@ -160,7 +170,7 @@ export class MerakiGuestAccessCard extends LitElement {
     if (updatedData.network !== oldNetwork) {
       updatedData.ssid = '';
       updatedData.passphrase = '';
-      updatedData.policy = ''; 
+      updatedData.policy = '';
 
       const availableSsids = this._ssids.filter(
         (s) => s.networkId === updatedData.network
@@ -183,12 +193,13 @@ export class MerakiGuestAccessCard extends LitElement {
 
     // Force secure password generation if it gets cleared out by ha-form initialization
     if (!updatedData.passphrase && updatedData.network && updatedData.ssid) {
-      updatedData.passphrase = WifiHelpers.getPasswordForSsid(
-        this.hass,
-        this._ssids,
-        updatedData.ssid,
-        updatedData.network
-      ) || WifiHelpers.generateNaturalPassword();
+      updatedData.passphrase =
+        WifiHelpers.getPasswordForSsid(
+          this.hass,
+          this._ssids,
+          updatedData.ssid,
+          updatedData.network
+        ) || WifiHelpers.generateNaturalPassword();
     }
 
     this._formData = updatedData;
@@ -305,14 +316,20 @@ export class MerakiGuestAccessCard extends LitElement {
     const isFormValid =
       this._formData.network && this._formData.ssid && this._formData.policy;
 
+    const ssidNum = parseInt(this._formData.ssid, 10);
+    const selectedSsidData = this._ssids.find(
+      (s) => s.networkId === this._formData.network && s.number === ssidNum
+    );
+    const isIpskEnabled = selectedSsidData?.authMode === 'ipsk-without-radius';
+    const showIpskWarning = selectedSsidData && !isIpskEnabled;
+
     if (this._success && this._qrSvg) {
       const selectedNetwork = this._networks.find(
         (n) => n.id === this._formData.network
       );
       const ssidNum = parseInt(this._formData.ssid, 10);
       const selectedSsid = this._ssids.find(
-        (s) =>
-          s.networkId === this._formData.network && s.number === ssidNum
+        (s) => s.networkId === this._formData.network && s.number === ssidNum
       );
 
       return html`
@@ -323,9 +340,15 @@ export class MerakiGuestAccessCard extends LitElement {
             ${this._provisioning
               ? html`
                   <div class="provisioning-ui">
-                    <ha-circular-progress active size="large"></ha-circular-progress>
+                    <ha-circular-progress
+                      active
+                      size="large"
+                    ></ha-circular-progress>
                     <p>Syncing to Meraki Access Points...</p>
-                    <p class="timer">Please wait ${this._countdown}s for the password to activate.</p>
+                    <p class="timer">
+                      Please wait ${this._countdown}s for the password to
+                      activate.
+                    </p>
                   </div>
                 `
               : html`
@@ -379,6 +402,21 @@ export class MerakiGuestAccessCard extends LitElement {
             : ''}
 
           <div class="form-container">
+            ${showIpskWarning
+              ? html`
+                  <ha-alert
+                    alert-type="warning"
+                    title="SSID Configuration Required"
+                  >
+                    The selected SSID "${selectedSsidData.name}" is not
+                    configured for Identity PSK. Please change the security
+                    mode to "Identity PSK without RADIUS" in your Meraki
+                    Dashboard. See the integration README to learn how to do
+                    this safely without dropping existing devices.
+                  </ha-alert>
+                `
+              : ''}
+
             <ha-form
               .hass=${this.hass}
               .data=${this._formData}
@@ -389,7 +427,7 @@ export class MerakiGuestAccessCard extends LitElement {
 
             <ha-button
               raised
-              .disabled=${this._creating || !isFormValid}
+              .disabled=${this._creating || !isFormValid || showIpskWarning}
               @click=${this._generateAccessKey}
             >
               ${this._creating
@@ -415,7 +453,7 @@ export class MerakiGuestAccessCard extends LitElement {
     this._formData = {
       ...this._formData,
       guestName: this._generateUniqueGuestName(),
-      passphrase: ''
+      passphrase: '',
     };
     this._loadCentralizedData();
   }
@@ -463,8 +501,7 @@ export class MerakiGuestAccessCard extends LitElement {
 
       const ssidNum = parseInt(this._formData.ssid, 10);
       const ssidObj = this._ssids.find(
-        (s) =>
-          s.networkId === this._formData.network && s.number === ssidNum
+        (s) => s.networkId === this._formData.network && s.number === ssidNum
       );
       const ssidName = ssidObj ? ssidObj.name : 'Guest WiFi';
       const password = this._formData.passphrase;

@@ -9,4 +9,5 @@ export interface SSID {
   number: number;
   enabled: boolean;
   networkId: string;
+  authMode?: string;
 }

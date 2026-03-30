@@ -54,6 +54,25 @@ Welcome to the **Cisco Meraki Home Assistant Integration**! This project bridges
 - **Camera Integration:** View live RTSP streams and MV Sense analytics from your Cisco Meraki cameras within Home Assistant.
 - **Custom Lovelace Cards:** Includes a `meraki-network-vitals-card` for a quick glance at your network health and throughput. **Note:** The Cisco Meraki API does not expose real-time bandwidth metrics, so the throughput component of this card relies on an external speedtest integration (e.g., `sensor.speedtest_download`).
 
+## Enabling Identity PSK (Crucial Step)
+
+To use the **Guest Access** feature, your target SSID must be configured to support multiple passwords. By default, most SSIDs use a single "Pre-shared key" (PSK), which does not allow Home Assistant to generate unique, temporary keys for guests.
+
+Follow these steps to enable **Identity PSK (IPSK)** safely:
+
+1.  Log in to your **Meraki Dashboard**.
+2.  Navigate to **Wireless > Configure > Access control**.
+3.  Select the **SSID** you want to use for guest access.
+4.  Under **Security**, change the setting to **Identity PSK without RADIUS**.
+5.  **CRITICAL (Don't skip!):** To ensure your existing devices do not lose their connection, you must re-add your current Wi-Fi password as an Identity PSK:
+    - Scroll down to the **Identity PSK** section.
+    - Click **Add an Identity PSK**.
+    - **Name:** Enter "Default Password" or similar.
+    - **Passphrase:** Enter your **current** Wi-Fi password exactly as it is now.
+    - **Group policy:** Select "None" (or your preferred default policy).
+    - Click **Save Changes**.
+6.  Once saved, Home Assistant will now be able to dynamically add and remove new guest keys to this SSID without affecting your existing devices.
+
 ## Automation examples 🚀
 
 The integration includes pre-built Blueprints to simplify common automations. These are automatically discovered by Home Assistant and can be found under **Settings > Automations & Scenes > Blueprints**.

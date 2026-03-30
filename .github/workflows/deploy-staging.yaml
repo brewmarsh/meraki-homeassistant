@@ -212,10 +212,9 @@ jobs:
           # IGNORE_REGEX defines the list of regexes for log lines that should be ignored during CI/CD auditing.
           IGNORE_REGEX = [
               re.compile(r"entity_registry is logging too frequently", re.I),
-              re.compile(
-                  r"(Network traffic analysis|Vlan tracking|Appliance port tracking) is not enabled",
-                  re.I,
-              ),
+              re.compile(r"Network traffic analysis is not enabled for network", re.I),
+              re.compile(r"Appliance port tracking is not enabled for network", re.I),
+              re.compile(r"Vlan tracking is not enabled for network", re.I),
               re.compile(r"Meraki API Informational Error.*Status 400", re.I),
           ]
 
@@ -293,13 +292,18 @@ jobs:
               # We look for "meraki" and common error/warning indicators
               # HA logs typically look like: 2024-03-14 12:00:00 ERROR (MainThread) [source] message
               for line in logs_content.splitlines():
-                  if "meraki" in line.lower() and any(
-                      level in line.upper() for level in ("ERROR", "CRITICAL", "WARNING")
-                  ):
-                      # Filter logs based on IGNORE_REGEX
-                      if any(pattern.search(line) for pattern in IGNORE_REGEX):
-                          continue
+                  line_upper = line.upper()
+                  is_issue_level = any(level in line_upper for level in ("ERROR", "CRITICAL", "WARNING"))
 
+                  if not is_issue_level:
+                      continue
+
+                  # Check against IGNORE_REGEX first to skip acceptable warnings regardless of "meraki" keyword
+                  if any(pattern.search(line) for pattern in IGNORE_REGEX):
+                      continue
+
+                  # Only fail on Meraki-related issues
+                  if "meraki" in line.lower():
                       # Exclude common false positives if any
                       if "Received unknown command: config/config_entries/get" in line:
                           # We actually WANT to catch this as an error now that we know about it
