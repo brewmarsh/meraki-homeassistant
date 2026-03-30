@@ -20,6 +20,7 @@ RUN apt-get update && \
     unzip \
     wget \
     rsync \
+    docker.io \
     # Clean up APT cache
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
