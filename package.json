@@ -8,6 +8,7 @@
     "postversion": "node scripts/sync-version.js"
   },
   "devDependencies": {
+    "@playwright/test": "^1.40.0",
     "conventional-changelog-cli": "^4.1.0"
   },
   "engines": {

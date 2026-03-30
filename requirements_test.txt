@@ -16,6 +16,7 @@ playwright==1.57.0
 protobuf==4.25.8
 psutil-home-assistant==0.0.1
 py==1.11.0
+pytest
 pytest-cov
 pytest-homeassistant-custom-component==0.13.195
 pytest-mock==3.12.0
