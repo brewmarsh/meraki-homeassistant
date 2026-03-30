@@ -17,6 +17,7 @@ MANIFEST_FILE="custom_components/meraki_ha/manifest.json"
 BUMP_CONFIG_FILE=".bumpversion.toml"
 ROOT_PACKAGE_FILE="package.json"
 FRONTEND_PACKAGE_FILE="frontend/package.json"
+FRONTEND_LOCK_FILE="frontend/package-lock.json"
 
 # --- Functions ---
 function error_exit() {
@@ -82,15 +83,19 @@ jq --arg version "${VERSION}" '.version = $version' "${ROOT_PACKAGE_FILE}" > "${
 echo "Syncing version in ${FRONTEND_PACKAGE_FILE} to ${VERSION}..."
 jq --arg version "${VERSION}" '.version = $version' "${FRONTEND_PACKAGE_FILE}" > "${FRONTEND_PACKAGE_FILE}.tmp" && mv "${FRONTEND_PACKAGE_FILE}.tmp" "${FRONTEND_PACKAGE_FILE}"
 
-# 5. Force-synchronize version in .bumpversion.toml
+# 5. Sync Frontend Lock File
+echo "Syncing ${FRONTEND_LOCK_FILE}..."
+(cd frontend && npm install --package-lock-only)
+
+# 6. Force-synchronize version in .bumpversion.toml
 echo "Syncing version in ${BUMP_CONFIG_FILE} to ${VERSION}..."
 sed "s/^current_version = .*/current_version = \"${VERSION}\"/" "${BUMP_CONFIG_FILE}" > "${BUMP_CONFIG_FILE}.tmp" && mv "${BUMP_CONFIG_FILE}.tmp" "${BUMP_CONFIG_FILE}"
 
-# 6. Stage the synced changes
+# 7. Stage the synced changes
 echo "Staging synchronized version changes..."
-git add "${MANIFEST_FILE}" "${ROOT_PACKAGE_FILE}" "${FRONTEND_PACKAGE_FILE}" "${BUMP_CONFIG_FILE}"
+git add "${MANIFEST_FILE}" "${ROOT_PACKAGE_FILE}" "${FRONTEND_PACKAGE_FILE}" "${FRONTEND_LOCK_FILE}" "${BUMP_CONFIG_FILE}"
 
-# 7. Determine which part to bump
+# 8. Determine which part to bump
 BUMP_PART=""
 case "${PART}" in
   beta)
@@ -104,10 +109,8 @@ case "${PART}" in
     ;;
 esac
 
-# 8. Run bump-my-version
+# 9. Run bump-my-version
 echo "Running bump-my-version to bump the '${BUMP_PART}' part..."
-# Now we can use --allow-dirty because we explicitly staged the sync,
-# or we can commit them first if the workflow expects a clean state.
-# For now, let's keep --allow-dirty since we just staged the sync.
+# Using --allow-dirty because we have modified the files and staged them.
 bump-my-version bump "${BUMP_PART}" --current-version "${VERSION}" --allow-dirty
 echo "Version bump successful. New version has been written to files."
