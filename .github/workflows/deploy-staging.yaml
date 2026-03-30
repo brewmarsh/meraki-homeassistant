@@ -39,6 +39,11 @@ jobs:
           clean: true
           fetch-depth: 0
 
+      - name: HACS Action
+        uses: hacs/action@main
+        with:
+          category: integration
+
       - name: Setup Node.js
         uses: actions/setup-node@v6
         with:
@@ -49,6 +54,12 @@ jobs:
       - name: Install frontend dependencies
         working-directory: frontend
         run: npm ci
+
+      - name: Frontend Strict Type Check & Linting
+        working-directory: frontend
+        run: |
+          npx tsc --noEmit
+          npx eslint src/ --ext .ts
 
       - name: Bump version for cache-busting
         working-directory: frontend
@@ -148,6 +159,21 @@ jobs:
         run: |
           set -o pipefail
           uv run baml-cli generate
+
+      - name: Run Pytest with Coverage Gate
+        run: |
+          uv run --with pytest-homeassistant-custom-component --with pytest-cov pytest tests/ \
+            --cov=custom_components/meraki_ha \
+            --cov-report=term-missing \
+            --cov-fail-under=80
+
+      - name: Pre-boot Configuration Check
+        shell: bash
+        run: |
+          set -o pipefail
+          # Use the configuration.yaml written in the previous step
+          # We need to make sure 'homeassistant' package is available
+          uv run --with homeassistant hass --script check_config -c ${{ env.HA_CONFIG_DIR }}
 
       - name: Full integration reset (delete > restart > add)
         shell: bash
