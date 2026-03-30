@@ -6,10 +6,8 @@ from typing import TYPE_CHECKING, Any
 
 from homeassistant.components.binary_sensor import (
     BinarySensorDeviceClass,
-    BinarySensorEntity,
 )
 from homeassistant.core import callback
-from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from ...core.models import MerakiAppliancePort
 from ...core.models.device import MerakiDevice
@@ -38,10 +36,11 @@ class AppliancePortBinarySensor(MerakiBinarySensor):
         self._device = device
         self._device_serial = str(device.serial)
         self._port = port
-        self._attr_unique_id = f"{device.serial}_port_{self._port.number}_connectivity"
+        self._attr_unique_id = (
+            f"{device.serial}_appliance_port_{self._port.number}_connectivity"
+        )
         self._attr_name = f"Port {self._port.number}"
         self._last_state = None
-
 
     @callback
     def _handle_coordinator_update(self) -> None:

@@ -46,12 +46,20 @@ class AppliancePortProvider:
             for port_id, port_dict in device.ports.items():
                 try:
                     # 1. Binary sensor for link status
-                    entities.append(SwitchPortSensor(coordinator, device, port_dict))
+                    entities.append(
+                        SwitchPortSensor(
+                            coordinator, device, port_dict, port_prefix="appliance_port"
+                        )
+                    )
 
                     # 2. General port sensors (State)
                     entities.append(
                         MerakiSwitchPortSensor(
-                            coordinator, device, port_dict, config_entry
+                            coordinator,
+                            device,
+                            port_dict,
+                            config_entry,
+                            port_prefix="appliance_port",
                         )
                     )
 
@@ -62,12 +70,20 @@ class AppliancePortProvider:
                     ):
                         entities.append(
                             MerakiSwitchPortPowerSensor(
-                                coordinator, device, port_dict, config_entry
+                                coordinator,
+                                device,
+                                port_dict,
+                                config_entry,
+                                port_prefix="appliance_port",
                             )
                         )
                         entities.append(
                             MerakiSwitchPortEnergySensor(
-                                coordinator, device, port_dict, config_entry
+                                coordinator,
+                                device,
+                                port_dict,
+                                config_entry,
+                                port_prefix="appliance_port",
                             )
                         )
 
@@ -106,11 +122,21 @@ class AppliancePortProvider:
                 )
 
                 # 1. Binary sensor for link status
-                entities.append(SwitchPortSensor(coordinator, device, port_dict))
+                entities.append(
+                    SwitchPortSensor(
+                        coordinator, device, port_dict, port_prefix="appliance_port"
+                    )
+                )
 
                 # 2. General port sensors (State)
                 entities.append(
-                    MerakiSwitchPortSensor(coordinator, device, port_dict, config_entry)
+                    MerakiSwitchPortSensor(
+                        coordinator,
+                        device,
+                        port_dict,
+                        config_entry,
+                        port_prefix="appliance_port",
+                    )
                 )
                 # 3. Add Power/Energy sensors only if port supports/reports power data
                 if (
@@ -119,12 +145,20 @@ class AppliancePortProvider:
                 ):
                     entities.append(
                         MerakiSwitchPortPowerSensor(
-                            coordinator, device, port_dict, config_entry
+                            coordinator,
+                            device,
+                            port_dict,
+                            config_entry,
+                            port_prefix="appliance_port",
                         )
                     )
                     entities.append(
                         MerakiSwitchPortEnergySensor(
-                            coordinator, device, port_dict, config_entry
+                            coordinator,
+                            device,
+                            port_dict,
+                            config_entry,
+                            port_prefix="appliance_port",
                         )
                     )
 

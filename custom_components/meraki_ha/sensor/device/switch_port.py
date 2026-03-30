@@ -39,6 +39,7 @@ class MerakiSwitchPortBaseSensor(MerakiSensor, ABC):
         config_entry: ConfigEntry,
         sensor_type: str,
         name_suffix: str,
+        port_prefix: str = "port",
     ) -> None:
         """Initialize the base sensor."""
         super().__init__(coordinator)
@@ -48,7 +49,9 @@ class MerakiSwitchPortBaseSensor(MerakiSensor, ABC):
         self._config_entry = config_entry
 
         port_id = self._get_port_id_from_data(port)
-        self._attr_unique_id = f"{self._device.serial}_port_{port_id}_{sensor_type}"
+        self._attr_unique_id = (
+            f"{self._device.serial}_{port_prefix}_{port_id}_{sensor_type}"
+        )
         self._attr_name = f"Port {port_id}{name_suffix}"
         self._last_state = None
 
@@ -179,6 +182,7 @@ class MerakiSwitchPortSensor(MerakiSwitchPortBaseSensor):
         device: MerakiDevice,
         port: dict[str, Any],
         config_entry: ConfigEntry,
+        port_prefix: str = "port",
     ) -> None:
         """Initialize the sensor."""
         super().__init__(
@@ -188,6 +192,7 @@ class MerakiSwitchPortSensor(MerakiSwitchPortBaseSensor):
             config_entry,
             sensor_type="status",
             name_suffix=" status",
+            port_prefix=port_prefix,
         )
 
     @property
@@ -234,6 +239,7 @@ class MerakiSwitchPortPowerSensor(MerakiSwitchPortBaseSensor):
         device: MerakiDevice,
         port: dict[str, Any],
         config_entry: ConfigEntry,
+        port_prefix: str = "port",
     ) -> None:
         """Initialize the sensor."""
         super().__init__(
@@ -243,6 +249,7 @@ class MerakiSwitchPortPowerSensor(MerakiSwitchPortBaseSensor):
             config_entry,
             sensor_type="power",
             name_suffix=" power",
+            port_prefix=port_prefix,
         )
 
     @property
@@ -271,6 +278,7 @@ class MerakiSwitchPortEnergySensor(MerakiSwitchPortBaseSensor):
         device: MerakiDevice,
         port: dict[str, Any],
         config_entry: ConfigEntry,
+        port_prefix: str = "port",
     ) -> None:
         """Initialize the sensor."""
         super().__init__(
@@ -280,6 +288,7 @@ class MerakiSwitchPortEnergySensor(MerakiSwitchPortBaseSensor):
             config_entry,
             sensor_type="energy",
             name_suffix=" energy",
+            port_prefix=port_prefix,
         )
 
     @property

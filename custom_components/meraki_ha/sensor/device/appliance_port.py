@@ -39,7 +39,9 @@ class MerakiAppliancePortSensor(CoordinatorEntity, SensorEntity):
         self._device_serial = str(device.serial)
         self._port = port
         self._attr_has_entity_name = True
-        self._attr_unique_id = f"{device.serial}_port_{self._port.number}"
+        self._attr_unique_id = (
+            f"{device.serial}_appliance_port_{self._port.number}_status"
+        )
         self._attr_name = f"Port {self._port.number}"
         self._last_state = None
 

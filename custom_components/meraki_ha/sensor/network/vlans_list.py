@@ -7,7 +7,6 @@ from typing import Any
 from homeassistant.components.sensor import SensorEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import EntityCategory
-from homeassistant.core import callback
 
 from ...coordinators import MerakiMainCoordinator
 from ...core.entities.meraki_network_entity import MerakiNetworkEntity
@@ -29,32 +28,37 @@ class VlansListSensor(MerakiNetworkEntity, SensorEntity):
         super().__init__(coordinator, config_entry, network_data)
         self._attr_unique_id = f"meraki-network-{network_data.id}-vlans-list"
         self._attr_name = f"{network_data.name} VLANs"
-        self._vlan_list: list[str] = []
-        self._attr_native_value = 0
 
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
         """Return the state attributes."""
         attrs = super().extra_state_attributes
-        attrs["vlans"] = self._vlan_list
+        vlan_list = []
+        if self._network:
+            vlans_data = self.coordinator.data.get("vlans", {})
+            if isinstance(vlans_data, dict):
+                vlans = vlans_data.get(self._network.id, [])
+                if isinstance(vlans, list):
+                    for vlan in vlans:
+                        if isinstance(vlan, dict) and "id" in vlan:
+                            vlan_list.append(
+                                vlan.get("name") or f"VLAN {vlan.get('id')}"
+                            )
+                        elif hasattr(vlan, "id"):
+                            name = getattr(vlan, "name", None) or f"VLAN {vlan.id}"
+                            vlan_list.append(name)
+        attrs["vlans"] = vlan_list
         return attrs
 
-    @callback
-    def _handle_coordinator_update(self) -> None:
-        """Handle updated data from the coordinator."""
+    @property
+    def native_value(self) -> int:
+        """Return the number of VLANs."""
         if not self._network:
-            return
+            return 0
         vlans_data = self.coordinator.data.get("vlans", {})
         if not isinstance(vlans_data, dict):
-            return
+            return 0
         vlans = vlans_data.get(self._network.id, [])
         if not isinstance(vlans, list):
-            return
-
-        self._vlan_list = [
-            vlan.get("name") or f"VLAN {vlan.get('id')}"
-            for vlan in vlans
-            if isinstance(vlan, dict) and "id" in vlan
-        ]
-        self._attr_native_value = len(self._vlan_list)
-        self.async_write_ha_state()
+            return 0
+        return len(vlans)

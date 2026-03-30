@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+import time
 from typing import TYPE_CHECKING, Any
 
 from custom_components.meraki_ha.const.config import (
@@ -13,12 +14,10 @@ from homeassistant.components.camera import Camera, CameraEntityFeature
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
 from .entity import MerakiEntity
-from .helpers.device_info_helpers import resolve_device_info
 
 if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
     from homeassistant.core import HomeAssistant
-    from homeassistant.helpers.device_registry import DeviceInfo
     from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
     from ..coordinators import MerakiCameraCoordinator
@@ -96,6 +95,10 @@ class MerakiRTSPStreamCamera(MerakiEntity, Camera):
         # Setting name to None with has_entity_name=True makes this the "Main" entity
         self._attr_name = None
         self._attr_model = self.device_data.model
+
+        # Snapshot cache
+        self._last_image: bytes | None = None
+        self._last_image_time: float = 0.0
 
         _LOGGER.debug(
             "Naming Debug - Entity: %s | Class: %s | has_entity_name: %s "
@@ -178,29 +181,35 @@ class MerakiRTSPStreamCamera(MerakiEntity, Camera):
             _LOGGER.debug("Skipping snapshot for offline camera: %s", self.name)
             return None
 
+        # Throttle snapshot requests to once every 30 seconds
+        now = time.time()
+        if self._last_image and (now - self._last_image_time) < 30.0:
+            return self._last_image
+
         try:
             url = await self._camera_service.generate_snapshot(self._device_serial)
             if not url:
                 _LOGGER.debug("Failed to get snapshot URL for %s", self.name)
-                return None
+                return self._last_image
 
             session = async_get_clientsession(self.hass)
             async with session.get(url) as response:
                 # Meraki API sometimes returns 500 HTML on transient failures
                 if response.status >= 500:
-                    _LOGGER.warning(
+                    _LOGGER.debug(
                         "Cisco Meraki API returned %d for snapshot: %s",
                         response.status,
                         self.name,
                     )
-                    return None
+                    return self._last_image
                 response.raise_for_status()
-                return await response.read()
+                image_bytes = await response.read()
+                self._last_image = image_bytes
+                self._last_image_time = now
+                return image_bytes
         except Exception as err:
-            _LOGGER.warning(
-                "Failed to fetch camera snapshot for %s: %s", self.name, err
-            )
-            return None
+            _LOGGER.debug("Failed to fetch camera snapshot for %s: %s", self.name, err)
+            return self._last_image
 
     @property
     def is_streaming(self) -> bool:
@@ -209,12 +218,18 @@ class MerakiRTSPStreamCamera(MerakiEntity, Camera):
             return False
         return True
 
-    async def async_stream_source(self) -> str | None:
+    async def stream_source(self) -> str | None:
         """Return the source of the stream."""
         if not self._device_serial:
             _LOGGER.debug("Cannot fetch stream: Camera serial is missing.")
             return None
-        return await self._camera_service.get_video_stream_url(self._device_serial)
+        try:
+            return await self._camera_service.get_video_stream_url(self._device_serial)
+        except Exception as err:
+            _LOGGER.debug(
+                "Failed to fetch camera stream source for %s: %s", self.name, err
+            )
+            return None
 
     @property
     def extra_state_attributes(self) -> dict[str, Any]:

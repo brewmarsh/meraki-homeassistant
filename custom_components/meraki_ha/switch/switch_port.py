@@ -45,6 +45,7 @@ class _MerakiPortSwitchBase(MerakiEntity, SwitchEntity, ABC):
         port_data: dict[str, Any],  # Raw dictionary representation of the port
         config_entry: ConfigEntry,
         sensor_type: str,
+        port_prefix: str = "port",
     ) -> None:
         """Initialize the base Meraki Port toggle entity."""
         super().__init__(coordinator)
@@ -65,7 +66,9 @@ class _MerakiPortSwitchBase(MerakiEntity, SwitchEntity, ABC):
             # Entity might not be fully functional but prevents setup errors.
             port_id_str = "unknown"
 
-        self._attr_unique_id = f"{device.serial}_port_{port_id_str}_{sensor_type}"
+        self._attr_unique_id = (
+            f"{device.serial}_{port_prefix}_{port_id_str}_{sensor_type}"
+        )
 
         self.entity_description = SwitchEntityDescription(
             key=f"{sensor_type}_{port_id_str}",
@@ -267,6 +270,7 @@ class MerakiAppliancePortSwitch(_MerakiPortSwitchBase):
             port,
             config_entry,
             sensor_type="switch",
+            port_prefix="appliance_port",
         )
 
     def _get_device_ports(self) -> list[Any]:

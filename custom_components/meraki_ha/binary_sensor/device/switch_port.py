@@ -27,6 +27,7 @@ class SwitchPortSensor(MerakiBinarySensor):
         coordinator: MerakiSwitchCoordinator,
         device: MerakiDevice,
         port: dict[str, Any] | Any,
+        port_prefix: str = "port",
     ) -> None:
         """Initialize the sensor."""
         super().__init__(coordinator)
@@ -40,8 +41,8 @@ class SwitchPortSensor(MerakiBinarySensor):
         # MX appliances use 'number', MS switches use 'portId'
         port_id = self._port.get("portId") or self._port.get("number")
 
-        # Legacy Unique ID format to prevent breaking changes
-        self._attr_unique_id = f"{device.serial}_{port_id}"
+        # Use prefix to prevent collisions between different port types
+        self._attr_unique_id = f"{device.serial}_{port_prefix}_{port_id}_connectivity"
         self._attr_name = f"Port {port_id}"
         self._last_state = None
 
