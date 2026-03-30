@@ -59,7 +59,9 @@ jobs:
 
           # Use dedicated diff command (0.91.0+) or fallback to score --limit-to
           if agent-score diff --help > /dev/null 2>&1; then
-            agent-score diff custom_components/meraki_ha --base $TARGET_BRANCH --report readiness_report.md
+            # Fix: Ensure correct diff syntax for agent-score 0.91.0+
+            # Use '.' to score the entire directory compared to base branch
+            agent-score diff . --base $TARGET_BRANCH --report readiness_report.md
           else
             # Fallback for environments where 'diff' subcommand is not yet present
             CHANGED_FILES=$(git diff --name-only $TARGET_BRANCH -- custom_components/meraki_ha | tr '\n' ',' | sed 's/,$//')
