@@ -2,23 +2,23 @@
 
 import logging
 
-from homeassistant.components.select import SelectEntity, SelectEntityDescription
+from homeassistant.components.select import SelectEntityDescription
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import EntityCategory
 from homeassistant.core import callback
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.device_registry import DeviceInfo
-from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from ..coordinators import MerakiMainCoordinator
 from ..core.api import MerakiApiClientProtocol
 from ..core.models.network import MerakiNetwork, MerakiVpn
+from ..entity import MerakiSelect
 from ..helpers.device_info_helpers import resolve_device_info
 
 _LOGGER = logging.getLogger(__name__)
 
 
-class MerakiVpnSelect(CoordinatorEntity, SelectEntity):
+class MerakiVpnSelect(MerakiSelect):
     """Representation of a Meraki VPN select entity."""
 
     entity_category = EntityCategory.CONFIG

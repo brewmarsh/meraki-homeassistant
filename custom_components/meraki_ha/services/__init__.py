@@ -9,7 +9,7 @@ import voluptuous as vol
 
 from custom_components.meraki_ha.const.integration import DOMAIN
 from homeassistant.core import HomeAssistant, ServiceCall
-from homeassistant.exceptions import HomeAssistantError
+from homeassistant.exceptions import HomeAssistantError, ServiceValidationError
 from homeassistant.helpers import config_validation as cv
 
 if TYPE_CHECKING:
@@ -60,21 +60,25 @@ async def async_setup_services(hass: HomeAssistant) -> None:
 
         ipsk_manager: IPSKManager | None = hass.data[DOMAIN].get("ipsk_manager")
         if not ipsk_manager:
-            raise HomeAssistantError("IPSK Manager not initialized")
+            raise ServiceValidationError("IPSK Manager not initialized")
 
         config_entry_id = _find_config_entry_by_network(hass, network_id)
         if not config_entry_id:
-            raise HomeAssistantError(f"Network ID {network_id} not found")
+            raise ServiceValidationError(f"Network ID {network_id} not found")
 
-        if not group_policy_id or group_policy_id == "CREATE":
-            group_policy_id = await ipsk_manager.get_or_create_guest_policy(
+        # Handle policy logic
+        policy_id_to_use = group_policy_id
+        if policy_id_to_use == "NONE":
+            # Explicitly no policy assignment
+            policy_id_to_use = "NONE"
+        elif not policy_id_to_use or policy_id_to_use == "CREATE":
+            policy_id_to_use = await ipsk_manager.get_or_create_guest_policy(
                 config_entry_id, network_id
             )
-
-        if not group_policy_id:
-            raise HomeAssistantError(
-                "A Group Policy ID is required but could not be determined or created."
-            )
+            if not policy_id_to_use:
+                raise ServiceValidationError(
+                    "A Group Policy ID is required but could not be determined or created."
+                )
 
         await ipsk_manager.create_guest_key(
             config_entry_id=config_entry_id,
@@ -83,7 +87,7 @@ async def async_setup_services(hass: HomeAssistant) -> None:
             duration_minutes=duration_minutes,
             name=name,
             passphrase=passphrase,
-            group_policy_id=group_policy_id,
+            group_policy_id=policy_id_to_use,
         )
 
     async def _async_generate_guest_access(call: ServiceCall) -> None:
@@ -97,22 +101,25 @@ async def async_setup_services(hass: HomeAssistant) -> None:
 
         ipsk_manager: IPSKManager | None = hass.data[DOMAIN].get("ipsk_manager")
         if not ipsk_manager:
-            raise HomeAssistantError("IPSK Manager not initialized")
+            raise ServiceValidationError("IPSK Manager not initialized")
 
         config_entry_id = _find_config_entry_by_network(hass, network_id)
         if not config_entry_id:
-            raise HomeAssistantError(f"Network ID {network_id} not found")
+            raise ServiceValidationError(f"Network ID {network_id} not found")
 
-        # Handle automatic group policy creation
-        if not group_policy or group_policy == "CREATE":
-            group_policy = await ipsk_manager.get_or_create_guest_policy(
+        # Handle policy logic
+        policy_id_to_use = group_policy
+        if policy_id_to_use == "NONE":
+            # Explicitly no policy assignment
+            policy_id_to_use = "NONE"
+        elif not policy_id_to_use or policy_id_to_use == "CREATE":
+            policy_id_to_use = await ipsk_manager.get_or_create_guest_policy(
                 config_entry_id, network_id
             )
-
-        if not group_policy:
-            raise HomeAssistantError(
-                "A Group Policy ID is required but could not be determined or created."
-            )
+            if not policy_id_to_use:
+                raise ServiceValidationError(
+                    "A Group Policy ID is required but could not be determined or created."
+                )
 
         # Map frontend parameters to the underlying IPSK manager method
         await ipsk_manager.create_guest_key(
@@ -122,7 +129,7 @@ async def async_setup_services(hass: HomeAssistant) -> None:
             duration_minutes=duration,
             name=guest_name,
             passphrase=passphrase,
-            group_policy_id=group_policy,
+            group_policy_id=policy_id_to_use,
         )
 
     # Register both service entry points

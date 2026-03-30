@@ -6,21 +6,20 @@ import logging
 from typing import Any
 
 from custom_components.meraki_ha.const.integration import DOMAIN
-from homeassistant.components.sensor import SensorEntity
 from homeassistant.const import EntityCategory
 from homeassistant.core import callback
 from homeassistant.helpers.device_registry import DeviceInfo
-from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from ...coordinators import MerakiMainCoordinator
 from ...core.models import MerakiAppliancePort
 from ...core.models.device import MerakiDevice
 from ...core.utils.naming_utils import format_device_name
+from ...entity import MerakiSensor
 
 _LOGGER = logging.getLogger(__name__)
 
 
-class MerakiAppliancePortSensor(CoordinatorEntity, SensorEntity):
+class MerakiAppliancePortSensor(MerakiSensor):
     """Representation of a Meraki appliance port sensor."""
 
     coordinator: MerakiMainCoordinator

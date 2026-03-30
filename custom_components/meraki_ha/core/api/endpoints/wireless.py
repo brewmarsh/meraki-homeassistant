@@ -345,17 +345,11 @@ class WirelessEndpoints:
             {k: v if k != "passphrase" else "***" for k, v in payload.items()},
         )
 
-        metadata = {
-            "tags": ["wireless", "configure", "ssids", "identityPsks"],
-            "operation": "createNetworkWirelessSsidIdentityPsk",
-        }
-        resource = f"/networks/{network_id}/wireless/ssids/{number}/identityPsks"
-
         psk = await self._api_client.run_sync(
-            self._api_client.dashboard.wireless._session.post,
-            metadata,
-            resource,
-            payload,
+            self._api_client.dashboard.wireless.createNetworkWirelessSsidIdentityPsk,
+            networkId=network_id,
+            number=number,
+            **payload,
         )
         validated = validate_response(psk)
         if not isinstance(validated, dict):

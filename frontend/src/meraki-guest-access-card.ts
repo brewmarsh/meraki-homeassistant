@@ -7,6 +7,7 @@ import { WifiHelpers } from './utils/wifi-helpers';
 import './meraki-content-filter-card';
 import './meraki-wifi-qr-card';
 import './meraki-network-vitals-card';
+import './meraki-vlan-card';
 import './meraki-guest-access-card-editor';
 import { Network, SSID } from './types/meraki';
 
@@ -42,6 +43,10 @@ export class MerakiGuestAccessCard extends LitElement {
   @state() private _isLoading: boolean = true;
   @state() private _loadingMessage: string = 'Connecting to Meraki...';
   @state() private _configEntryId: string | null = null;
+  @state() private _provisioning: boolean = false;
+  @state() private _countdown: number = 30;
+
+  private _timerInterval?: any;
 
   public static async getConfigElement() {
     return document.createElement('meraki-guest-access-card-editor');
@@ -55,6 +60,11 @@ export class MerakiGuestAccessCard extends LitElement {
   protected firstUpdated(changedProperties: PropertyValues) {
     super.firstUpdated(changedProperties);
     this._loadCentralizedData();
+  }
+
+  public disconnectedCallback() {
+    super.disconnectedCallback();
+    this._stopProvisioningTimer();
   }
 
   protected updated(changedProperties: PropertyValues) {
@@ -125,6 +135,8 @@ export class MerakiGuestAccessCard extends LitElement {
         initPolicy = String(
           networkPolicies[0].groupPolicyId || networkPolicies[0].id
         );
+      } else {
+        initPolicy = 'NONE';
       }
     }
 
@@ -164,6 +176,8 @@ export class MerakiGuestAccessCard extends LitElement {
         updatedData.policy = String(
           networkPolicies[0].groupPolicyId || networkPolicies[0].id
         );
+      } else {
+        updatedData.policy = 'NONE';
       }
     }
 
@@ -178,6 +192,27 @@ export class MerakiGuestAccessCard extends LitElement {
     }
 
     this._formData = updatedData;
+  }
+
+  private _startProvisioningTimer() {
+    this._stopProvisioningTimer();
+    this._provisioning = true;
+    this._countdown = 30;
+
+    this._timerInterval = setInterval(() => {
+      this._countdown -= 1;
+      if (this._countdown <= 0) {
+        this._stopProvisioningTimer();
+      }
+    }, 1000);
+  }
+
+  private _stopProvisioningTimer() {
+    if (this._timerInterval) {
+      clearInterval(this._timerInterval);
+      this._timerInterval = undefined;
+    }
+    this._provisioning = false;
   }
 
   private _computeLabel = (schema: any): string => {
@@ -216,12 +251,17 @@ export class MerakiGuestAccessCard extends LitElement {
       this._formData.network,
       'number'
     );
-    const policyOptions = this._policies
-      .filter((p) => p.networkId === this._formData.network)
-      .map((p) => ({
-        value: String(p.groupPolicyId || p.id),
-        label: p.name,
-      }));
+    const networkPolicies = this._policies.filter(
+      (p) => p.networkId === this._formData.network
+    );
+    const policyOptions = networkPolicies.map((p) => ({
+      value: String(p.groupPolicyId || p.id),
+      label: p.name,
+    }));
+
+    if (policyOptions.length === 0) {
+      policyOptions.push({ value: 'NONE', label: 'Network Default' });
+    }
 
     const schema = [
       {
@@ -232,16 +272,12 @@ export class MerakiGuestAccessCard extends LitElement {
         name: 'ssid',
         selector: { select: { options: ssidOptions, mode: 'dropdown' } },
       },
-      ...(policyOptions.length > 0
-        ? [
-            {
-              name: 'policy',
-              selector: {
-                select: { options: policyOptions, mode: 'dropdown' },
-              },
-            },
-          ]
-        : []),
+      {
+        name: 'policy',
+        selector: {
+          select: { options: policyOptions, mode: 'dropdown' },
+        },
+      },
       { name: 'passphrase', selector: { text: {} } },
       {
         name: 'duration',
@@ -284,24 +320,42 @@ export class MerakiGuestAccessCard extends LitElement {
           <div class="card-content success-ui">
             <ha-alert alert-type="success">${this._success}</ha-alert>
 
-            <div class="qr-container" style="width: 200px; height: 200px;" .innerHTML="${this._qrSvg}"></div>
+            ${this._provisioning
+              ? html`
+                  <div class="provisioning-ui">
+                    <ha-circular-progress active size="large"></ha-circular-progress>
+                    <p>Syncing to Meraki Access Points...</p>
+                    <p class="timer">Please wait ${this._countdown}s for the password to activate.</p>
+                  </div>
+                `
+              : html`
+                  <div
+                    class="qr-container"
+                    style="width: 200px; height: 200px;"
+                    .innerHTML="${this._qrSvg}"
+                  ></div>
 
-            <div class="credentials-block">
-              <div class="credential-item">
-                <span class="label">Network:</span>
-                <span class="value"
-                  >${selectedNetwork?.name || 'Unknown'}</span
-                >
-              </div>
-              <div class="credential-item">
-                <span class="label">SSID:</span>
-                <span class="value">${selectedSsid?.name || 'Unknown'}</span>
-              </div>
-              <div class="credential-item">
-                <span class="label">Password:</span>
-                <code class="copyable-code">${this._formData.passphrase}</code>
-              </div>
-            </div>
+                  <div class="credentials-block">
+                    <div class="credential-item">
+                      <span class="label">Network:</span>
+                      <span class="value"
+                        >${selectedNetwork?.name || 'Unknown'}</span
+                      >
+                    </div>
+                    <div class="credential-item">
+                      <span class="label">SSID:</span>
+                      <span class="value"
+                        >${selectedSsid?.name || 'Unknown'}</span
+                      >
+                    </div>
+                    <div class="credential-item">
+                      <span class="label">Password:</span>
+                      <code class="copyable-code"
+                        >${this._formData.passphrase}</code
+                      >
+                    </div>
+                  </div>
+                `}
 
             <ha-button raised @click=${this._resetForm}>
               Create Another
@@ -353,6 +407,7 @@ export class MerakiGuestAccessCard extends LitElement {
   }
 
   private _resetForm() {
+    this._stopProvisioningTimer();
     this._success = null;
     this._error = null;
     this._qrSvg = '';
@@ -418,6 +473,7 @@ export class MerakiGuestAccessCard extends LitElement {
       this._qrSvg = await WifiHelpers.generateQrSvg(qrString);
 
       this._success = 'Guest access key created successfully!';
+      this._startProvisioningTimer();
     } catch (err: any) {
       this._error = `Failed to create guest key: ${err.message || err}`;
     } finally {
@@ -464,6 +520,19 @@ export class MerakiGuestAccessCard extends LitElement {
       }
       ha-alert {
         width: 100%;
+      }
+      .provisioning-ui {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 24px;
+        text-align: center;
+        gap: 8px;
+      }
+      .timer {
+        font-weight: bold;
+        color: var(--primary-color);
       }
     `,
   ];

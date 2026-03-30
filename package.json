@@ -1,6 +1,6 @@
 {
   "name": "meraki-homeassistant",
-  "version": "2.3.0-beta.3531",
+  "version": "2.3.0-beta.3537",
   "description": "Meraki Home Assistant Integration",
   "scripts": {
     "changelog": "conventional-changelog -p angular -i CHANGELOG.md -s",
@@ -8,6 +8,7 @@
     "postversion": "node scripts/sync-version.js"
   },
   "devDependencies": {
+    "@playwright/test": "^1.40.0",
     "conventional-changelog-cli": "^4.1.0"
   },
   "engines": {

@@ -179,8 +179,19 @@ jobs:
           import asyncio
           import aiohttp
           import os
+          import re
           import sys
           from pathlib import Path
+
+          # Action 1: Define a list of IGNORE_PATTERNS (regex)
+          IGNORE_REGEX = [
+              re.compile(r"entity_registry is logging too frequently", re.I),
+              re.compile(
+                  r"(Network traffic analysis|Vlan tracking|Appliance port tracking) is not enabled",
+                  re.I,
+              ),
+              re.compile(r"Meraki API Informational Error.*Status 400", re.I),
+          ]
 
           async def fetch_via_websocket():
               url = os.environ.get("HA_URL", "").replace("http://", "ws://").replace("https://", "wss://") + "/api/websocket"
@@ -256,7 +267,13 @@ jobs:
               # We look for "meraki" and common error/warning indicators
               # HA logs typically look like: 2024-03-14 12:00:00 ERROR (MainThread) [source] message
               for line in logs_content.splitlines():
-                  if "meraki" in line.lower() and any(level in line.upper() for level in ("ERROR", "CRITICAL", "WARNING")):
+                  if "meraki" in line.lower() and any(
+                      level in line.upper() for level in ("ERROR", "CRITICAL", "WARNING")
+                  ):
+                      # Action 2: Filter logs based on IGNORE_PATTERNS
+                      if any(pattern.search(line) for pattern in IGNORE_REGEX):
+                          continue
+
                       # Exclude common false positives if any
                       if "Received unknown command: config/config_entries/get" in line:
                           # We actually WANT to catch this as an error now that we know about it

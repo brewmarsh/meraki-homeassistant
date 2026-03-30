@@ -3,23 +3,23 @@
 import logging
 from typing import Any
 
-from homeassistant.components.sensor import SensorEntity, SensorEntityDescription
+from homeassistant.components.sensor import SensorEntityDescription
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import callback
 from homeassistant.helpers.device_registry import DeviceInfo
-from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from custom_components.meraki_ha.const.integration import DOMAIN
 
 from ..coordinators import MerakiMainCoordinator
 from ..core.utils.naming_utils import standardize_device_name
+from ..entity import MerakiSensor
 
 _LOGGER = logging.getLogger(__name__)
 
 CLIENT_TRACKER_DEVICE_ID = "client_tracker"
 
 
-class ClientTrackerDeviceSensor(CoordinatorEntity, SensorEntity):
+class ClientTrackerDeviceSensor(MerakiSensor):
     """A sensor representing the Client Tracker device itself."""
 
     _attr_has_entity_name = True
@@ -63,7 +63,7 @@ class ClientTrackerDeviceSensor(CoordinatorEntity, SensorEntity):
             self._attr_native_value = 0
 
 
-class MerakiClientSensor(CoordinatorEntity, SensorEntity):
+class MerakiClientSensor(MerakiSensor):
     """Representation of a Meraki client as a sensor."""
 
     _attr_has_entity_name = True
