@@ -6,6 +6,12 @@ set -e
 IMAGE_NAME="80m1/meraki-runner"
 RUNNER_REPO="brewmarsh/meraki-homeassistant"
 
+# Action 3: Print image digest after pull for verification
+echo "Pulling latest runner image: $IMAGE_NAME..."
+docker pull "$IMAGE_NAME"
+DIGEST=$(docker inspect --format='{{index .RepoDigests 0}}' "$IMAGE_NAME" 2>/dev/null || echo "Unknown")
+echo "Current Image Digest: $DIGEST"
+
 function deploy_runner() {
     local name=$1
     local token=$2
