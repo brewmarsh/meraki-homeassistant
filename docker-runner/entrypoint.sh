@@ -3,7 +3,7 @@ set -e
 
 # --- Cleaned-Up entrypoint.sh ---
 
-# Sync internal docker group GID with the host socket GID
+# Action 4 & 5: Sync internal docker group GID with the host socket GID
 DOCKER_SOCKET_GID=$(stat -c '%g' /var/run/docker.sock 2>/dev/null)
 if [ -n "$DOCKER_SOCKET_GID" ]; then
     echo "--- Syncing internal docker group GID to $DOCKER_SOCKET_GID ---"
@@ -15,7 +15,7 @@ if [ -n "$DOCKER_SOCKET_GID" ]; then
     fi
 fi
 
-# Action 4: Proactively apply a "Doctor" check to verify Docker CLI
+# Proactively apply a "Doctor" check to verify Docker CLI
 echo "--- Doctor Check ---"
 if command -v docker >/dev/null 2>&1; then
     docker --version
@@ -62,7 +62,7 @@ echo "--- Starting Runner ---"
 which docker
 docker --version
 
-# Action 3: Use exec to launch the runner process as PID 1
+# Action 4: Use exec to launch the runner process as PID 1
 # Use -E to preserve environment variables
 cd /home/runner/actions-runner
 exec sudo -E -u runner ./run.sh

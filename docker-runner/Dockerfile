@@ -23,17 +23,22 @@ RUN apt-get update && \
     wget \
     rsync \
     jq \
-    && install -m 0755 -d /etc/apt/keyrings \
-    && curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg \
-    && chmod a+r /etc/apt/keyrings/docker.gpg \
-    && echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | \
-    tee /etc/apt/sources.list.d/docker.list > /dev/null \
-    && apt-get update \
-    && apt-get install -y docker-ce-cli libltdl7 \
-    # Action 1: Verify docker binary location and create universal symlink
-    && (which docker || find / -name docker) \
-    && ln -sf $(which docker) /usr/local/bin/docker \
+    # Clean up APT cache
     && apt-get clean && rm -rf /var/lib/apt/lists/*
+
+# Action 1 & 2: Install Docker CLI using modern "Noble" compliant logic
+RUN install -m 0755 -d /etc/apt/keyrings && \
+    curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc && \
+    chmod a+r /etc/apt/keyrings/docker.asc && \
+    echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu noble stable" | \
+    tee /etc/apt/sources.list.d/docker.list > /dev/null && \
+    apt-get update && \
+    apt-get install -y docker-ce-cli libltdl7 iptables && \
+    # Ensure binary visibility across all shell types
+    ln -sf $(which docker) /usr/local/bin/docker && \
+    # Action 3: Verification Gate - Fail build if Docker is missing
+    docker --version || (echo "Docker CLI failed to install" && exit 1) && \
+    apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # CRITICAL: Create the dedicated 'runner' user, as the GitHub Actions Runner software
 # must NOT run as root for security reasons.
