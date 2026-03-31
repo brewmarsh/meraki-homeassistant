@@ -3,15 +3,31 @@ set -e
 
 # --- Cleaned-Up entrypoint.sh ---
 
+# Action 4: Proactively apply a "Doctor" check to verify Docker CLI
+echo "--- Doctor Check ---"
+if command -v docker >/dev/null 2>&1; then
+    docker --version
+else
+    echo "WARNING: Docker CLI not found in PATH"
+fi
+
 # Action 2: Dynamic GID Mapping
-# Match the container's docker group to the host's socket GID to avoid permission errors.
-if [ -n "$DOCKER_GID" ]; then
-    echo "--- Adjusting internal docker group GID to $DOCKER_GID ---"
-    groupmod -g "$DOCKER_GID" docker || true
+# Sync host/container GIDs for the docker socket
+DOCKER_SOCKET=/var/run/docker.sock
+if [ -S "$DOCKER_SOCKET" ]; then
+    DOCKER_GID=$(stat -c '%g' "$DOCKER_SOCKET")
+    echo "Detected Docker GID from host: $DOCKER_GID"
+    
+    # Try to adjust the internal 'docker' group to match the host GID
+    if getent group docker >/dev/null; then
+        groupmod -g "$DOCKER_GID" docker || true
+    else
+        groupadd -g "$DOCKER_GID" docker-host
+        usermod -aG docker-host runner
+    fi
 fi
 
 # Check for required environment variables
-# Note: We rely on the parent shell/environment to have set GITHUB_PAT.
 if [ -z "$RUNNER_TOKEN" ]; then
     echo "FATAL: RUNNER_TOKEN environment variable must be set."
     exit 1
