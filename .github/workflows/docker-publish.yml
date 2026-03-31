@@ -34,9 +34,14 @@ jobs:
         with:
           images: 80m1/meraki-runner
           tags: |
+            # Tag as 'latest' on main
             type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
+            # Tag as 'beta' on beta
             type=raw,value=beta,enable=${{ github.ref == 'refs/heads/beta' }}
-            type=sha,format=long
+            # Tag with SHA on main
+            type=raw,value=${{ github.sha }},enable=${{ github.ref == 'refs/heads/main' }}
+            # Tag with 'beta-SHA' on beta
+            type=raw,value=beta-${{ github.sha }},enable=${{ github.ref == 'refs/heads/beta' }}
 
       - name: Build and push
         uses: docker/build-push-action@v6
