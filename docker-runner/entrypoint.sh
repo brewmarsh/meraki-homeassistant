@@ -3,28 +3,24 @@ set -e
 
 # --- Cleaned-Up entrypoint.sh ---
 
+# Sync internal docker group GID with the host socket GID
+DOCKER_SOCKET_GID=$(stat -c '%g' /var/run/docker.sock 2>/dev/null)
+if [ -n "$DOCKER_SOCKET_GID" ]; then
+    echo "--- Syncing internal docker group GID to $DOCKER_SOCKET_GID ---"
+    if getent group docker >/dev/null; then
+        groupmod -g "$DOCKER_SOCKET_GID" docker || true
+    else
+        groupadd -g "$DOCKER_SOCKET_GID" docker
+        usermod -aG docker runner
+    fi
+fi
+
 # Action 4: Proactively apply a "Doctor" check to verify Docker CLI
 echo "--- Doctor Check ---"
 if command -v docker >/dev/null 2>&1; then
     docker --version
 else
     echo "WARNING: Docker CLI not found in PATH"
-fi
-
-# Action 2: Dynamic GID Mapping
-# Sync host/container GIDs for the docker socket
-DOCKER_SOCKET=/var/run/docker.sock
-if [ -S "$DOCKER_SOCKET" ]; then
-    DOCKER_GID=$(stat -c '%g' "$DOCKER_SOCKET")
-    echo "Detected Docker GID from host: $DOCKER_GID"
-    
-    # Try to adjust the internal 'docker' group to match the host GID
-    if getent group docker >/dev/null; then
-        groupmod -g "$DOCKER_GID" docker || true
-    else
-        groupadd -g "$DOCKER_GID" docker-host
-        usermod -aG docker-host runner
-    fi
 fi
 
 # Check for required environment variables
