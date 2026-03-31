@@ -16,6 +16,7 @@ RUN apt-get update && \
     libkrb5-3 \
     libssl-dev \
     procps \
+    coreutils \
     sudo \
     tar \
     unzip \
@@ -29,7 +30,9 @@ RUN apt-get update && \
     tee /etc/apt/sources.list.d/docker.list > /dev/null \
     && apt-get update \
     && apt-get install -y docker-ce-cli libltdl7 \
-    && ln -s /usr/bin/docker /usr/local/bin/docker \
+    # Action 1: Verify docker binary location and create universal symlink
+    && (which docker || find / -name docker) \
+    && ln -sf $(which docker) /usr/local/bin/docker \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # CRITICAL: Create the dedicated 'runner' user, as the GitHub Actions Runner software

@@ -58,5 +58,11 @@ echo "--- Configuring Runner ---"
 sudo -u runner /home/runner/actions-runner/config.sh "${CONFIG_ARGS[@]}"
 
 echo "--- Starting Runner ---"
-# FIX: Execute run.sh using sudo to switch to the non-root 'runner' user
-exec sudo -u runner /home/runner/actions-runner/run.sh
+# Action 4: Startup diagnostic
+which docker
+docker --version
+
+# Action 3: Use exec to launch the runner process as PID 1
+# Use -E to preserve environment variables
+cd /home/runner/actions-runner
+exec sudo -E -u runner ./run.sh
