@@ -1,9 +1,10 @@
 #!/bin/bash
 set -e
 
-# --- Cleaned-Up entrypoint.sh ---
+# --- Meraki Runner Entrypoint ---
 
-# Action 4 & 5: Sync internal docker group GID with the host socket GID
+# Action: Sync internal docker group GID with the host socket GID
+# This ensures the 'runner' user has permission to use the mounted docker socket.
 DOCKER_SOCKET_GID=$(stat -c '%g' /var/run/docker.sock 2>/dev/null)
 if [ -n "$DOCKER_SOCKET_GID" ]; then
     echo "--- Syncing internal docker group GID to $DOCKER_SOCKET_GID ---"
@@ -15,7 +16,7 @@ if [ -n "$DOCKER_SOCKET_GID" ]; then
     fi
 fi
 
-# Proactively apply a "Doctor" check to verify Docker CLI
+# Diagnostic: Verify Docker CLI availability
 echo "--- Doctor Check ---"
 if command -v docker >/dev/null 2>&1; then
     docker --version
@@ -32,6 +33,12 @@ if [ -z "$RUNNER_REPO" ]; then
     echo "FATAL: RUNNER_REPO environment variable must be set (e.g., brewmarsh/meraki-homeassistant)."
     exit 1
 fi
+
+# ACTION: Cleanup any existing runner configuration to ensure ephemeral behavior.
+# If /home/runner/actions-runner is mounted to a persistent volume,
+# we must clear the old state before config.sh can run successfully.
+echo "--- Cleaning up stale runner state ---"
+sudo -u runner rm -f /home/runner/actions-runner/.runner /home/runner/actions-runner/.credentials /home/runner/actions-runner/.credentials_rsaparams
 
 # Define the configuration arguments
 CONFIG_ARGS=()
@@ -51,18 +58,20 @@ fi
 
 # Standard flags for non-interactive Docker deployment
 CONFIG_ARGS+=(--unattended) # Skips confirmation prompts
-CONFIG_ARGS+=(--replace)    # Replaces any existing runner with the same name
+
+# Action 3: Append the --replace flag to forcefully overwrite existing registrations.
+CONFIG_ARGS+=(--replace)
 
 echo "--- Configuring Runner ---"
-# FIX: Execute config.sh using sudo to switch to the non-root 'runner' user
+# Execute config.sh using sudo to switch to the non-root 'runner' user
 sudo -u runner /home/runner/actions-runner/config.sh "${CONFIG_ARGS[@]}"
 
 echo "--- Starting Runner ---"
-# Action 4: Startup diagnostic
+# Startup diagnostic
 which docker
 docker --version
 
-# Action 4: Use exec to launch the runner process as PID 1
-# Use -E to preserve environment variables
+# Action: Use exec to launch the runner process as PID 1
+# This ensures correct signal handling and allows 'docker exec' to work reliably.
 cd /home/runner/actions-runner
 exec sudo -E -u runner ./run.sh
