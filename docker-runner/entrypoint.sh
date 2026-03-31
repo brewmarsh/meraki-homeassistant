@@ -35,11 +35,9 @@ if [ -z "$RUNNER_REPO" ]; then
 fi
 
 # ACTION: Cleanup any existing runner configuration to ensure ephemeral behavior.
-# If /home/runner/actions-runner is mounted to a persistent volume,
-# we must clear the old state before config.sh can run successfully.
 # EXPLICIT: Set HOME=/home/runner to prevent sudo from leaking /root
 echo "--- Cleaning up stale runner state ---"
-sudo -u runner env HOME=/home/runner rm -f /home/runner/actions-runner/.runner /home/runner/actions-runner/.credentials /home/runner/actions-runner/.credentials_rsaparams
+sudo -E -u runner env HOME=/home/runner rm -f /home/runner/actions-runner/.runner /home/runner/actions-runner/.credentials /home/runner/actions-runner/.credentials_rsaparams
 
 # Define the configuration arguments
 CONFIG_ARGS=()
@@ -59,14 +57,15 @@ fi
 
 # Standard flags for non-interactive Docker deployment
 CONFIG_ARGS+=(--unattended) # Skips confirmation prompts
+CONFIG_ARGS+=(--replace)    # Forcefully overwrite existing registrations
 
-# Action 3: Append the --replace flag to forcefully overwrite existing registrations.
-CONFIG_ARGS+=(--replace)
+# Navigate to the runner directory
+cd /home/runner/actions-runner
 
 echo "--- Configuring Runner ---"
-# EXPLICIT: Set HOME=/home/runner to prevent sudo from leaking /root
+# EXPLICIT: Set HOME=/home/runner to prevent sudo -E from leaking /root
 # Execute config.sh using sudo to switch to the non-root 'runner' user
-sudo -u runner env HOME=/home/runner /home/runner/actions-runner/config.sh "${CONFIG_ARGS[@]}"
+sudo -E -u runner env HOME=/home/runner ./config.sh "${CONFIG_ARGS[@]}"
 
 echo "--- Starting Runner ---"
 # Startup diagnostic
@@ -76,5 +75,5 @@ docker --version
 # Action: Use exec to launch the runner process as PID 1
 # This ensures correct signal handling and allows 'docker exec' to work reliably.
 # EXPLICIT: Set HOME=/home/runner to prevent sudo -E from leaking /root
-cd /home/runner/actions-runner
+echo "Handing off to GitHub Runner..."
 exec sudo -E -u runner env HOME=/home/runner ./run.sh
