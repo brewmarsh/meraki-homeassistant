@@ -1,5 +1,5 @@
 import { LitElement, html, css, PropertyValues } from 'lit';
-import { customElement, property, state } from 'lit/decorators.js';
+import { property, state } from 'lit/decorators.js';
 import { HomeAssistant } from './types/ha';
 import { renderLoadingState, sharedStyles } from './shared-ui';
 import { MerakiDataProvider } from './utils/meraki-data';
@@ -22,7 +22,7 @@ export class MerakiNetworkVitalsCard extends LitElement {
   @property({ attribute: false }) public hass!: HomeAssistant;
   @state() private _config?: Config;
   @state() private _isLoading: boolean = true;
-  @state() private _loadingMessage: string = "Connecting...";
+  @state() private _loadingMessage: string = 'Connecting...';
 
   public static async getConfigElement() {
     return document.createElement('meraki-network-vitals-card-editor');
@@ -48,13 +48,10 @@ export class MerakiNetworkVitalsCard extends LitElement {
   private async _loadCentralizedData() {
     if (!this.hass) return;
 
-    await MerakiDataProvider.pollConfig(
-      this.hass,
-      (msg, isLoading) => {
-        this._loadingMessage = msg;
-        this._isLoading = isLoading;
-      }
-    );
+    await MerakiDataProvider.pollConfig(this.hass, (msg, isLoading) => {
+      this._loadingMessage = msg;
+      this._isLoading = isLoading;
+    });
   }
 
   public static getStubConfig(): Record<string, unknown> {
@@ -271,7 +268,7 @@ export class MerakiNetworkVitalsCard extends LitElement {
         font-weight: 600;
         white-space: nowrap;
       }
-    `
+    `,
   ];
 }
 

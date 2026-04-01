@@ -1,5 +1,5 @@
 import { LitElement, html, css, PropertyValues } from 'lit';
-import { customElement, property, state } from 'lit/decorators.js';
+import { property, state } from 'lit/decorators.js';
 import { HomeAssistant } from './types/ha';
 import { renderWarning, renderLoadingState, sharedStyles } from './shared-ui';
 import { MerakiDataProvider } from './utils/meraki-data';
@@ -9,7 +9,7 @@ import './meraki-wifi-qr-card';
 import './meraki-network-vitals-card';
 import './meraki-vlan-card';
 import './meraki-guest-access-card-editor';
-import { Network, SSID } from './types/meraki';
+import { Network, SSID, GroupPolicy } from './types/meraki';
 
 declare const __VERSION__: string;
 
@@ -34,7 +34,7 @@ export class MerakiGuestAccessCard extends LitElement {
 
   @state() private _networks: Network[] = [];
   @state() private _ssids: SSID[] = [];
-  @state() private _policies: any[] = [];
+  @state() private _policies: GroupPolicy[] = [];
 
   @state() private _creating: boolean = false;
   @state() private _error: string | null = null;
@@ -46,7 +46,7 @@ export class MerakiGuestAccessCard extends LitElement {
   @state() private _provisioning: boolean = false;
   @state() private _countdown: number = 30;
 
-  private _timerInterval?: any;
+  private _timerInterval?: number;
 
   public static async getConfigElement() {
     return document.createElement('meraki-guest-access-card-editor');
@@ -106,7 +106,7 @@ export class MerakiGuestAccessCard extends LitElement {
 
     this._networks = networks;
     this._ssids = ssids;
-    this._policies = groupPolicies;
+    this._policies = groupPolicies || [];
     this._configEntryId = this._config?.config_entry_id || entryId;
 
     let initNetwork = this._formData.network;
@@ -143,7 +143,7 @@ export class MerakiGuestAccessCard extends LitElement {
       );
       if (networkPolicies.length > 0) {
         initPolicy = String(
-          networkPolicies[0].groupPolicyId || networkPolicies[0].id
+          networkPolicies[0].groupPolicyId || (networkPolicies[0] as any).id
         );
       } else {
         initPolicy = 'NONE';
@@ -165,7 +165,7 @@ export class MerakiGuestAccessCard extends LitElement {
     const newValues = ev.detail.value;
     const oldNetwork = this._formData.network;
 
-    let updatedData = { ...this._formData, ...newValues };
+    const updatedData = { ...this._formData, ...newValues };
 
     if (updatedData.network !== oldNetwork) {
       updatedData.ssid = '';
@@ -184,7 +184,7 @@ export class MerakiGuestAccessCard extends LitElement {
       );
       if (networkPolicies.length > 0) {
         updatedData.policy = String(
-          networkPolicies[0].groupPolicyId || networkPolicies[0].id
+          networkPolicies[0].groupPolicyId || (networkPolicies[0] as any).id
         );
       } else {
         updatedData.policy = 'NONE';
@@ -210,7 +210,7 @@ export class MerakiGuestAccessCard extends LitElement {
     this._provisioning = true;
     this._countdown = 30;
 
-    this._timerInterval = setInterval(() => {
+    this._timerInterval = window.setInterval(() => {
       this._countdown -= 1;
       if (this._countdown <= 0) {
         this._stopProvisioningTimer();
@@ -226,7 +226,7 @@ export class MerakiGuestAccessCard extends LitElement {
     this._provisioning = false;
   }
 
-  private _computeLabel = (schema: any): string => {
+  private _computeLabel = (schema: { name: string }): string => {
     if (schema.name === 'network') return 'Network';
     if (schema.name === 'ssid') return 'SSID';
     if (schema.name === 'policy') return 'Group Policy (Required)';
@@ -266,7 +266,7 @@ export class MerakiGuestAccessCard extends LitElement {
       (p) => p.networkId === this._formData.network
     );
     const policyOptions = networkPolicies.map((p) => ({
-      value: String(p.groupPolicyId || p.id),
+      value: String(p.groupPolicyId || (p as any).id),
       label: p.name,
     }));
 
@@ -471,7 +471,7 @@ export class MerakiGuestAccessCard extends LitElement {
     this._qrSvg = '';
 
     try {
-      const payload: any = {
+      const payload: Record<string, unknown> = {
         network_id: this._formData.network,
         ssid: parseInt(this._formData.ssid, 10),
         duration: parseInt(this._formData.duration, 10),
@@ -511,8 +511,8 @@ export class MerakiGuestAccessCard extends LitElement {
 
       this._success = 'Guest access key created successfully!';
       this._startProvisioningTimer();
-    } catch (err: any) {
-      this._error = `Failed to create guest key: ${err.message || err}`;
+    } catch (err: unknown) {
+      this._error = `Failed to create guest key: ${err instanceof Error ? err.message : err}`;
     } finally {
       this._creating = false;
     }

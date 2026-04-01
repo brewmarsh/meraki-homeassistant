@@ -1,5 +1,5 @@
 import { LitElement, html, css, PropertyValues } from 'lit';
-import { customElement, property, state } from 'lit/decorators.js';
+import { property, state } from 'lit/decorators.js';
 import { HomeAssistant } from './types/ha';
 import { renderWarning, renderLoadingState, sharedStyles } from './shared-ui';
 import { MerakiDataProvider } from './utils/meraki-data';
@@ -10,7 +10,7 @@ interface Config {
   type: string;
   entity: string;
   name?: string;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 export class MerakiContentFilterCard extends LitElement {
@@ -21,10 +21,10 @@ export class MerakiContentFilterCard extends LitElement {
   @state() private _optimisticProfile: string | null = null;
   @state() private _isUpdating: boolean = false;
   @state() private _isLoading: boolean = true;
-  @state() private _loadingMessage: string = "Connecting...";
+  @state() private _loadingMessage: string = 'Connecting...';
 
   public static async getConfigElement() {
-    return document.createElement("meraki-content-filter-card-editor");
+    return document.createElement('meraki-content-filter-card-editor');
   }
 
   public setConfig(config: Config): void {
@@ -42,13 +42,10 @@ export class MerakiContentFilterCard extends LitElement {
   private async _loadCentralizedData() {
     if (!this.hass) return;
 
-    await MerakiDataProvider.pollConfig(
-      this.hass,
-      (msg, isLoading) => {
-        this._loadingMessage = msg;
-        this._isLoading = isLoading;
-      }
-    );
+    await MerakiDataProvider.pollConfig(this.hass, (msg, isLoading) => {
+      this._loadingMessage = msg;
+      this._isLoading = isLoading;
+    });
   }
 
   private _discoverEntity(): string | undefined {
@@ -57,7 +54,8 @@ export class MerakiContentFilterCard extends LitElement {
     return Object.keys(this.hass.states).find((entityId) => {
       if (!entityId.startsWith('select.')) return false;
       const stateObj = this.hass.states[entityId];
-      const friendlyName = stateObj.attributes.friendly_name?.toLowerCase() || '';
+      const friendlyName =
+        stateObj.attributes.friendly_name?.toLowerCase() || '';
       return (
         entityId.includes('content_filter') ||
         friendlyName.includes('content filter') ||
@@ -87,20 +85,32 @@ export class MerakiContentFilterCard extends LitElement {
     const entityId = this._config.entity || this._discoverEntity();
     const stateObj = entityId ? this.hass.states[entityId] : undefined;
 
-    const titleStateObj = this._config.entity ? this.hass.states[this._config.entity] : undefined;
-    const titleFriendlyName = titleStateObj?.attributes?.friendly_name || "Cisco Meraki";
-    const title = this._config.name || (this._config.entity ? `${titleFriendlyName} Content Filter` : "Cisco Meraki Content Filter");
+    const titleStateObj = this._config.entity
+      ? this.hass.states[this._config.entity]
+      : undefined;
+    const titleFriendlyName =
+      titleStateObj?.attributes?.friendly_name || 'Cisco Meraki';
+    const title =
+      this._config.name ||
+      (this._config.entity
+        ? `${titleFriendlyName} Content Filter`
+        : 'Cisco Meraki Content Filter');
 
     if (!entityId || !stateObj) {
       return renderWarning(
-        "Entity Missing",
-        "No content filter entity was found. Please check your configuration.",
+        'Entity Missing',
+        'No content filter entity was found. Please check your configuration.',
         __VERSION__
       );
     }
 
     const currentProfile = stateObj.state || 'Unknown';
-    const profiles = stateObj.attributes?.options || ["None", "Security", "Family", "Strict"];
+    const profiles = (stateObj.attributes?.options as string[]) || [
+      'None',
+      'Security',
+      'Family',
+      'Strict',
+    ];
 
     // Use the optimistic profile if an update is actively processing
     const displayProfile = this._optimisticProfile || currentProfile;
@@ -110,17 +120,26 @@ export class MerakiContentFilterCard extends LitElement {
         <div class="card-content">
           <div class="button-grid">
             ${profiles.map((profile: string) => {
-              const isActive = displayProfile.toLowerCase() === profile.toLowerCase();
-              const isPendingThisButton = this._isUpdating && this._optimisticProfile === profile;
-              
+              const isActive =
+                displayProfile.toLowerCase() === profile.toLowerCase();
+              const isPendingThisButton =
+                this._isUpdating && this._optimisticProfile === profile;
+
               return html`
                 <button
-                  class="filter-btn ${isActive ? 'active' : ''} ${this._isUpdating && !isPendingThisButton ? 'disabled' : ''}"
+                  class="filter-btn ${isActive ? 'active' : ''} ${this
+                    ._isUpdating && !isPendingThisButton
+                    ? 'disabled'
+                    : ''}"
                   ?disabled=${this._isUpdating}
                   @click=${() => this._setFilterProfile(profile, entityId)}
                 >
-                  ${isPendingThisButton 
-                    ? html`<ha-circular-progress active size="small"></ha-circular-progress> Saving...` 
+                  ${isPendingThisButton
+                    ? html`<ha-circular-progress
+                          active
+                          size="small"
+                        ></ha-circular-progress>
+                        Saving...`
                     : profile}
                 </button>
               `;
@@ -132,7 +151,10 @@ export class MerakiContentFilterCard extends LitElement {
     `;
   }
 
-  private async _setFilterProfile(profile: string, entityId: string): Promise<void> {
+  private async _setFilterProfile(
+    profile: string,
+    entityId: string
+  ): Promise<void> {
     // Block spam clicks if an update is already happening
     if (!this.hass || !entityId || !profile || this._isUpdating) return;
 
@@ -145,17 +167,16 @@ export class MerakiContentFilterCard extends LitElement {
         option: profile,
       });
 
-      // Hold the optimistic state for 8 seconds to let the Meraki cloud cache clear 
+      // Hold the optimistic state for 8 seconds to let the Meraki cloud cache clear
       // before allowing the real HA state to take over the UI again.
-      setTimeout(() => {
+      window.setTimeout(() => {
         this._optimisticProfile = null;
         this._isUpdating = false;
       }, 8000);
-
-    } catch (err: any) {
-      console.error("Failed to call select_option service:", err);
+    } catch (err: unknown) {
+      console.error('Failed to call select_option service:', err);
       // Revert immediately if the API actually threw an error
-      this._optimisticProfile = null; 
+      this._optimisticProfile = null;
       this._isUpdating = false;
     }
   }
@@ -163,20 +184,24 @@ export class MerakiContentFilterCard extends LitElement {
   static styles = [
     sharedStyles,
     css`
-      :host { display: block; }
+      :host {
+        display: block;
+      }
       ha-card {
         height: 100%;
         display: flex;
         flex-direction: column;
         justify-content: space-between;
       }
-      .card-content { padding: 16px; }
+      .card-content {
+        padding: 16px;
+      }
       .button-grid {
         display: flex;
         flex-direction: column;
         gap: 8px;
       }
-      
+
       .filter-btn {
         width: 100%;
         padding: 12px;
@@ -195,7 +220,10 @@ export class MerakiContentFilterCard extends LitElement {
         gap: 8px;
       }
       .filter-btn:hover:not(:disabled) {
-        background: var(--secondary-background-color, rgba(255,255,255,0.05));
+        background: var(
+          --secondary-background-color,
+          rgba(255, 255, 255, 0.05)
+        );
       }
       .filter-btn.active {
         background: var(--success-color, #4caf50);
@@ -207,12 +235,12 @@ export class MerakiContentFilterCard extends LitElement {
         opacity: 0.5;
         cursor: not-allowed;
       }
-      
+
       /* Style the circular progress to match the text color */
       ha-circular-progress {
         --mdc-theme-primary: currentColor;
       }
-    `
+    `,
   ];
 }
 
@@ -226,11 +254,11 @@ export class MerakiContentFilterCardEditor extends LitElement {
 
   private _schema = [
     {
-      name: "entity",
-      selector: { entity: { domain: "select" } },
+      name: 'entity',
+      selector: { entity: { domain: 'select' } },
     },
     {
-      name: "name",
+      name: 'name',
       selector: { text: {} },
     },
   ];
@@ -251,24 +279,28 @@ export class MerakiContentFilterCardEditor extends LitElement {
     `;
   }
 
-  private _computeLabel = (schema: any): string => {
-    if (schema.name === "entity") return "Entity (Optional)";
-    if (schema.name === "name") return "Display Name (Optional)";
+  private _computeLabel = (schema: { name: string }): string => {
+    if (schema.name === 'entity') return 'Entity (Optional)';
+    if (schema.name === 'name') return 'Display Name (Optional)';
     return schema.name;
-  }
+  };
 
   private _valueChanged(ev: CustomEvent): void {
     if (!this._config) return;
     const config = { ...this._config, ...ev.detail.value };
-    this.dispatchEvent(new CustomEvent("config-changed", {
-      detail: { config },
-      bubbles: true,
-      composed: true,
-    }));
+    this.dispatchEvent(
+      new CustomEvent('config-changed', {
+        detail: { config },
+        bubbles: true,
+        composed: true,
+      })
+    );
   }
 
   static styles = css`
-    .editor-container { padding: 16px; }
+    .editor-container {
+      padding: 16px;
+    }
   `;
 }
 
@@ -277,15 +309,22 @@ if (!customElements.get('meraki-content-filter-card')) {
   customElements.define('meraki-content-filter-card', MerakiContentFilterCard);
 }
 if (!customElements.get('meraki-content-filter-card-editor')) {
-  customElements.define('meraki-content-filter-card-editor', MerakiContentFilterCardEditor);
+  customElements.define(
+    'meraki-content-filter-card-editor',
+    MerakiContentFilterCardEditor
+  );
 }
 
 (window as any).customCards = (window as any).customCards || [];
-if (!(window as any).customCards.some((c: any) => c.type === 'meraki-content-filter-card')) {
+if (
+  !(window as any).customCards.some(
+    (c: any) => c.type === 'meraki-content-filter-card'
+  )
+) {
   (window as any).customCards.push({
-    type: "meraki-content-filter-card",
-    name: "Cisco Meraki Content Filter",
-    description: "Control Cisco Meraki Content Filtering profiles.",
+    type: 'meraki-content-filter-card',
+    name: 'Cisco Meraki Content Filter',
+    description: 'Control Cisco Meraki Content Filtering profiles.',
     preview: true,
   });
 }

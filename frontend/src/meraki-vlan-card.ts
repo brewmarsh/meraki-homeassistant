@@ -1,5 +1,5 @@
 import { LitElement, html, css, PropertyValues } from 'lit';
-import { customElement, property, state } from 'lit/decorators.js';
+import { property, state } from 'lit/decorators.js';
 import { HomeAssistant } from './types/ha';
 import { renderWarning, renderLoadingState, sharedStyles } from './shared-ui';
 import { MerakiDataProvider } from './utils/meraki-data';
@@ -9,17 +9,17 @@ declare const __VERSION__: string;
 interface Config {
   type: string;
   name?: string;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 export class MerakiVlanCard extends LitElement {
   @property({ attribute: false }) public hass!: HomeAssistant;
   @state() private _config?: Config;
   @state() private _isLoading: boolean = true;
-  @state() private _loadingMessage: string = "Connecting...";
+  @state() private _loadingMessage: string = 'Connecting...';
 
   public static async getConfigElement() {
-    return document.createElement("meraki-vlan-card-editor");
+    return document.createElement('meraki-vlan-card-editor');
   }
 
   public setConfig(config: Config): void {
@@ -37,13 +37,10 @@ export class MerakiVlanCard extends LitElement {
   private async _loadCentralizedData() {
     if (!this.hass) return;
 
-    await MerakiDataProvider.pollConfig(
-      this.hass,
-      (msg, isLoading) => {
-        this._loadingMessage = msg;
-        this._isLoading = isLoading;
-      }
-    );
+    await MerakiDataProvider.pollConfig(this.hass, (msg, isLoading) => {
+      this._loadingMessage = msg;
+      this._isLoading = isLoading;
+    });
   }
 
   public static getStubConfig(): Record<string, unknown> {
@@ -59,13 +56,19 @@ export class MerakiVlanCard extends LitElement {
       .filter((entityId) => {
         if (!entityId.startsWith('switch.')) return false;
         const stateObj = this.hass.states[entityId];
-        return stateObj.attributes.vlan_id !== undefined && stateObj.attributes.subnet !== undefined;
+        return (
+          stateObj.attributes.vlan_id !== undefined &&
+          stateObj.attributes.subnet !== undefined
+        );
       })
       .map((entityId) => {
         const stateObj = this.hass.states[entityId];
         return {
           entity_id: entityId,
-          name: stateObj.attributes.vlan_name || stateObj.attributes.friendly_name?.replace(' DHCP', '') || 'Unknown VLAN',
+          name:
+            stateObj.attributes.vlan_name ||
+            stateObj.attributes.friendly_name?.replace(' DHCP', '') ||
+            'Unknown VLAN',
           subnet: stateObj.attributes.subnet,
           gateway: stateObj.attributes.gateway,
           state: stateObj.state,
@@ -89,8 +92,8 @@ export class MerakiVlanCard extends LitElement {
 
     if (vlanEntities.length === 0) {
       return renderWarning(
-        "No VLANs Found",
-        "No Meraki VLAN DHCP switches were found. Ensure VLAN management is enabled in the integration options.",
+        'No VLANs Found',
+        'No Meraki VLAN DHCP switches were found. Ensure VLAN management is enabled in the integration options.',
         __VERSION__
       );
     }
@@ -104,23 +107,25 @@ export class MerakiVlanCard extends LitElement {
               <div class="col-network">Subnet / Gateway</div>
               <div class="col-dhcp">DHCP</div>
             </div>
-            ${vlanEntities.map((vlan) => html`
-              <div class="table-row">
-                <div class="col-vlan">
-                  <span class="vlan-name">${vlan.name}</span>
+            ${vlanEntities.map(
+              (vlan) => html`
+                <div class="table-row">
+                  <div class="col-vlan">
+                    <span class="vlan-name">${vlan.name}</span>
+                  </div>
+                  <div class="col-network">
+                    <div class="subnet">${vlan.subnet}</div>
+                    <div class="gateway">${vlan.gateway}</div>
+                  </div>
+                  <div class="col-dhcp">
+                    <ha-switch
+                      .checked=${vlan.state === 'on'}
+                      @change=${() => this._toggleDhcp(vlan.entity_id)}
+                    ></ha-switch>
+                  </div>
                 </div>
-                <div class="col-network">
-                  <div class="subnet">${vlan.subnet}</div>
-                  <div class="gateway">${vlan.gateway}</div>
-                </div>
-                <div class="col-dhcp">
-                  <ha-switch
-                    .checked=${vlan.state === 'on'}
-                    @change=${() => this._toggleDhcp(vlan.entity_id)}
-                  ></ha-switch>
-                </div>
-              </div>
-            `)}
+              `
+            )}
           </div>
         </div>
         <div class="version">v${__VERSION__}</div>
@@ -135,15 +140,19 @@ export class MerakiVlanCard extends LitElement {
         entity_id: entityId,
       });
     } catch (err) {
-      console.error("Failed to toggle DHCP switch:", err);
+      console.error('Failed to toggle DHCP switch:', err);
     }
   }
 
   static styles = [
     sharedStyles,
     css`
-      :host { display: block; }
-      .card-content { padding: 0 16px 16px 16px; }
+      :host {
+        display: block;
+      }
+      .card-content {
+        padding: 0 16px 16px 16px;
+      }
 
       .vlan-table {
         display: flex;
@@ -172,9 +181,19 @@ export class MerakiVlanCard extends LitElement {
         border-bottom: none;
       }
 
-      .col-vlan { flex: 2; display: flex; align-items: center; }
-      .col-network { flex: 3; }
-      .col-dhcp { flex: 1; display: flex; justify-content: flex-end; }
+      .col-vlan {
+        flex: 2;
+        display: flex;
+        align-items: center;
+      }
+      .col-network {
+        flex: 3;
+      }
+      .col-dhcp {
+        flex: 1;
+        display: flex;
+        justify-content: flex-end;
+      }
 
       .vlan-name {
         font-weight: 500;
@@ -195,7 +214,7 @@ export class MerakiVlanCard extends LitElement {
         --switch-checked-button-color: var(--success-color, #4caf50);
         --switch-checked-track-color: var(--success-color, #4caf50);
       }
-    `
+    `,
   ];
 }
 
@@ -209,7 +228,7 @@ export class MerakiVlanCardEditor extends LitElement {
 
   private _schema = [
     {
-      name: "name",
+      name: 'name',
       selector: { text: {} },
     },
   ];
@@ -230,23 +249,27 @@ export class MerakiVlanCardEditor extends LitElement {
     `;
   }
 
-  private _computeLabel = (schema: any): string => {
-    if (schema.name === "name") return "Display Name (Optional)";
+  private _computeLabel = (schema: { name: string }): string => {
+    if (schema.name === 'name') return 'Display Name (Optional)';
     return schema.name;
-  }
+  };
 
   private _valueChanged(ev: CustomEvent): void {
     if (!this._config) return;
     const config = { ...this._config, ...ev.detail.value };
-    this.dispatchEvent(new CustomEvent("config-changed", {
-      detail: { config },
-      bubbles: true,
-      composed: true,
-    }));
+    this.dispatchEvent(
+      new CustomEvent('config-changed', {
+        detail: { config },
+        bubbles: true,
+        composed: true,
+      })
+    );
   }
 
   static styles = css`
-    .editor-container { padding: 16px; }
+    .editor-container {
+      padding: 16px;
+    }
   `;
 }
 
@@ -259,11 +282,13 @@ if (!customElements.get('meraki-vlan-card-editor')) {
 }
 
 (window as any).customCards = (window as any).customCards || [];
-if (!(window as any).customCards.some((c: any) => c.type === 'meraki-vlan-card')) {
+if (
+  !(window as any).customCards.some((c: any) => c.type === 'meraki-vlan-card')
+) {
   (window as any).customCards.push({
-    type: "meraki-vlan-card",
-    name: "Cisco Meraki VLAN Card",
-    description: "Overview and management of configured VLANs.",
+    type: 'meraki-vlan-card',
+    name: 'Cisco Meraki VLAN Card',
+    description: 'Overview and management of configured VLANs.',
     preview: true,
   });
 }
