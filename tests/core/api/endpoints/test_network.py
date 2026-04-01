@@ -3,6 +3,7 @@
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
+from meraki.exceptions import APIError
 
 from custom_components.meraki_ha.core.api.endpoints.network import NetworkEndpoints
 
@@ -27,6 +28,7 @@ def network(mock_client):
     return NetworkEndpoints(mock_client)
 
 
+@pytest.mark.asyncio
 async def test_get_group_policies(network, mock_client):
     """Test get_group_policies."""
     mock_data = [{"groupPolicyId": "gp1"}]
@@ -38,6 +40,21 @@ async def test_get_group_policies(network, mock_client):
     mock_client.run_sync.assert_called_once()
     args, kwargs = mock_client.run_sync.call_args
     assert kwargs["networkId"] == "net1"
+
+
+@pytest.mark.asyncio
+async def test_get_group_policies_failure(network, mock_client):
+    """Test get_group_policies failure handling."""
+    metadata = {"tags": ["test"], "operation": "test_op"}
+    response = MagicMock()
+    response.status_code = 400
+    response.json.return_value = {"errors": ["Bad Request"]}
+
+    mock_client.run_sync.side_effect = APIError(metadata, response)
+
+    result = await network.get_group_policies("net1")
+
+    assert result == []
 
 
 @pytest.mark.asyncio
@@ -62,6 +79,21 @@ async def test_get_network_events_filters_none(network, mock_client):
         assert value is not None, f"Found None value for key: {key}"
     # Specifically check that productType is not in kwargs
     assert "productType" not in kwargs
+
+
+@pytest.mark.asyncio
+async def test_get_network_events_failure(network, mock_client):
+    """Test get_network_events failure handling."""
+    metadata = {"tags": ["test"], "operation": "test_op"}
+    response = MagicMock()
+    response.status_code = 500
+    response.json.return_value = {"errors": ["Internal Server Error"]}
+
+    mock_client.run_sync.side_effect = APIError(metadata, response)
+
+    result = await network.get_network_events("N_123")
+
+    assert result == {}
 
 
 @pytest.mark.asyncio

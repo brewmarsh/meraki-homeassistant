@@ -3,6 +3,7 @@
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
+from meraki.exceptions import APIError
 
 from custom_components.meraki_ha.core.api.endpoints.network import NetworkEndpoints
 from custom_components.meraki_ha.core.errors import MerakiVlansDisabledError
@@ -93,3 +94,24 @@ async def test_get_vlan_data_vlan_disabled_graceful_fail(
     mock_client.run_sync.assert_called_with(
         mock_client.dashboard.appliance.getNetworkApplianceVlans, networkId=network_id
     )
+
+
+@pytest.mark.asyncio
+async def test_get_vlan_data_api_error_graceful_fail(network_endpoints, mock_client):
+    """Test get_vlan_data returns empty list when API error occurs."""
+    network_id = "net123"
+    mock_client.organization.get_organization_networks.return_value = [
+        {"id": network_id, "productTypes": ["appliance"]}
+    ]
+
+    metadata = {"tags": ["test"], "operation": "test_op"}
+    response = MagicMock()
+    response.status_code = 400
+    response.json.return_value = {"errors": ["Some API Error"]}
+
+    # Use real APIError
+    mock_client.run_sync.side_effect = APIError(metadata, response)
+
+    result = await network_endpoints.get_vlan_data(network_id)
+
+    assert result == []

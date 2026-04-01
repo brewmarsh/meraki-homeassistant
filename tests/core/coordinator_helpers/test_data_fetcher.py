@@ -52,11 +52,9 @@ async def test_get_sensor_data_includes_switch_ports(data_fetch_manager, mock_cl
 
     with (
         patch(
-            "custom_components.meraki_ha.core.coordinator_helpers.data_fetcher.parse_appliance_data"
+            "custom_components.meraki_ha.core.parsers.appliance.parse_appliance_data"
         ),
-        patch(
-            "custom_components.meraki_ha.core.coordinator_helpers.data_fetcher.parse_sensor_data"
-        ),
+        patch("custom_components.meraki_ha.core.parsers.sensor.parse_sensor_data"),
     ):
         # Act
         result = await data_fetch_manager.get_sensor_data()
@@ -81,11 +79,9 @@ async def test_get_device_data_excludes_switch_ports(data_fetch_manager, mock_cl
 
     with (
         patch(
-            "custom_components.meraki_ha.core.coordinator_helpers.data_fetcher.parse_appliance_data"
+            "custom_components.meraki_ha.core.parsers.appliance.parse_appliance_data"
         ),
-        patch(
-            "custom_components.meraki_ha.core.coordinator_helpers.data_fetcher.parse_sensor_data"
-        ),
+        patch("custom_components.meraki_ha.core.parsers.sensor.parse_sensor_data"),
     ):
         # Act
         result = await data_fetch_manager.get_device_data()

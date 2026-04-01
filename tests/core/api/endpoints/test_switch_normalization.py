@@ -3,6 +3,7 @@
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
+from meraki.exceptions import APIError
 
 from custom_components.meraki_ha.core.api.endpoints.organization import (
     OrganizationEndpoints,
@@ -47,6 +48,23 @@ async def test_get_organization_switch_switch_ports_normalization(
 
 
 @pytest.mark.asyncio
+async def test_get_organization_switch_switch_ports_failure(
+    organization_endpoints, mock_client
+):
+    """Test that API error returns [] for organization switch ports statuses."""
+    metadata = {"tags": ["test"], "operation": "test_op"}
+    response = MagicMock()
+    response.status_code = 400
+    response.json.return_value = {"errors": ["Bad Request"]}
+
+    mock_client.run_sync.side_effect = APIError(metadata, response)
+
+    result = await organization_endpoints.get_organization_switch_ports_statuses()
+
+    assert result == []
+
+
+@pytest.mark.asyncio
 async def test_get_device_switch_switch_ports_normalization(
     switch_endpoints, mock_client
 ):
@@ -61,6 +79,21 @@ async def test_get_device_switch_switch_ports_normalization(
 
 
 @pytest.mark.asyncio
+async def test_get_device_switch_switch_ports_failure(switch_endpoints, mock_client):
+    """Test that API error returns [] for device switch ports statuses."""
+    metadata = {"tags": ["test"], "operation": "test_op"}
+    response = MagicMock()
+    response.status_code = 500
+    response.json.return_value = {"errors": ["Internal Server Error"]}
+
+    mock_client.run_sync.side_effect = APIError(metadata, response)
+
+    result = await switch_endpoints.get_device_switch_ports_statuses("serial123")
+
+    assert result == []
+
+
+@pytest.mark.asyncio
 async def test_get_switch_ports_normalization(switch_endpoints, mock_client):
     """Test that {} is normalized to [] for get_switch_ports."""
     # Mock API returning empty dict
@@ -70,3 +103,18 @@ async def test_get_switch_ports_normalization(switch_endpoints, mock_client):
 
     assert result == []
     mock_client.run_sync.assert_called_once()
+
+
+@pytest.mark.asyncio
+async def test_get_switch_ports_failure(switch_endpoints, mock_client):
+    """Test that API error returns [] for get_switch_ports."""
+    metadata = {"tags": ["test"], "operation": "test_op"}
+    response = MagicMock()
+    response.status_code = 400
+    response.json.return_value = {"errors": ["Bad Request"]}
+
+    mock_client.run_sync.side_effect = APIError(metadata, response)
+
+    result = await switch_endpoints.get_switch_ports("serial123")
+
+    assert result == []
