@@ -24,6 +24,8 @@ RUN apt-get update && \
     rsync \
     jq \
     build-essential \
+    libturbojpeg0 \
+    libturbojpeg-dev \
     # Clean up APT cache
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
