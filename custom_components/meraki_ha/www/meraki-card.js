@@ -2419,12 +2419,9 @@ const de = class de extends N {
     super.firstUpdated(t), this._loadCentralizedData();
   }
   async _loadCentralizedData() {
-    this.hass && await R.pollConfig(
-      this.hass,
-      (t, e) => {
-        this._loadingMessage = t, this._isLoading = e;
-      }
-    );
+    this.hass && await R.pollConfig(this.hass, (t, e) => {
+      this._loadingMessage = t, this._isLoading = e;
+    });
   }
   _discoverEntity() {
     if (this.hass)
@@ -2448,16 +2445,21 @@ const de = class de extends N {
       return $t(
         ((d = this._config) == null ? void 0 : d.name) || "Cisco Meraki Content Filter",
         this._loadingMessage,
-        "2.3.0-beta.3558"
+        "2.3.0-beta.3559"
       );
     const t = this._config.entity || this._discoverEntity(), e = t ? this.hass.states[t] : void 0, s = this._config.entity ? this.hass.states[this._config.entity] : void 0, i = ((l = s == null ? void 0 : s.attributes) == null ? void 0 : l.friendly_name) || "Cisco Meraki", r = this._config.name || (this._config.entity ? `${i} Content Filter` : "Cisco Meraki Content Filter");
     if (!t || !e)
       return ne(
         "Entity Missing",
         "No content filter entity was found. Please check your configuration.",
-        "2.3.0-beta.3558"
+        "2.3.0-beta.3559"
       );
-    const o = e.state || "Unknown", a = ((h = e.attributes) == null ? void 0 : h.options) || ["None", "Security", "Family", "Strict"], c = this._optimisticProfile || o;
+    const o = e.state || "Unknown", a = ((h = e.attributes) == null ? void 0 : h.options) || [
+      "None",
+      "Security",
+      "Family",
+      "Strict"
+    ], c = this._optimisticProfile || o;
     return b`
       <ha-card .header="${r}">
         <div class="card-content">
@@ -2470,13 +2472,17 @@ const de = class de extends N {
                   ?disabled=${this._isUpdating}
                   @click=${() => this._setFilterProfile(u, t)}
                 >
-                  ${g ? b`<ha-circular-progress active size="small"></ha-circular-progress> Saving...` : u}
+                  ${g ? b`<ha-circular-progress
+                          active
+                          size="small"
+                        ></ha-circular-progress>
+                        Saving...` : u}
                 </button>
               `;
     })}
           </div>
         </div>
-        <div class="version">v${"2.3.0-beta.3558"}</div>
+        <div class="version">v${"2.3.0-beta.3559"}</div>
       </ha-card>
     `;
   }
@@ -2487,7 +2493,7 @@ const de = class de extends N {
         await this.hass.callService("select", "select_option", {
           entity_id: e,
           option: t
-        }), setTimeout(() => {
+        }), window.setTimeout(() => {
           this._optimisticProfile = null, this._isUpdating = !1;
         }, 8e3);
       } catch (s) {
@@ -2499,20 +2505,24 @@ const de = class de extends N {
 de.styles = [
   At,
   D`
-      :host { display: block; }
+      :host {
+        display: block;
+      }
       ha-card {
         height: 100%;
         display: flex;
         flex-direction: column;
         justify-content: space-between;
       }
-      .card-content { padding: 16px; }
+      .card-content {
+        padding: 16px;
+      }
       .button-grid {
         display: flex;
         flex-direction: column;
         gap: 8px;
       }
-      
+
       .filter-btn {
         width: 100%;
         padding: 12px;
@@ -2531,7 +2541,10 @@ de.styles = [
         gap: 8px;
       }
       .filter-btn:hover:not(:disabled) {
-        background: var(--secondary-background-color, rgba(255,255,255,0.05));
+        background: var(
+          --secondary-background-color,
+          rgba(255, 255, 255, 0.05)
+        );
       }
       .filter-btn.active {
         background: var(--success-color, #4caf50);
@@ -2543,7 +2556,7 @@ de.styles = [
         opacity: 0.5;
         cursor: not-allowed;
       }
-      
+
       /* Style the circular progress to match the text color */
       ha-circular-progress {
         --mdc-theme-primary: currentColor;
@@ -2601,15 +2614,19 @@ const he = class he extends N {
   _valueChanged(t) {
     if (!this._config) return;
     const e = { ...this._config, ...t.detail.value };
-    this.dispatchEvent(new CustomEvent("config-changed", {
-      detail: { config: e },
-      bubbles: !0,
-      composed: !0
-    }));
+    this.dispatchEvent(
+      new CustomEvent("config-changed", {
+        detail: { config: e },
+        bubbles: !0,
+        composed: !0
+      })
+    );
   }
 };
 he.styles = D`
-    .editor-container { padding: 16px; }
+    .editor-container {
+      padding: 16px;
+    }
   `;
 let yt = he;
 W([
@@ -2619,9 +2636,14 @@ W([
   w()
 ], yt.prototype, "_config");
 customElements.get("meraki-content-filter-card") || customElements.define("meraki-content-filter-card", H);
-customElements.get("meraki-content-filter-card-editor") || customElements.define("meraki-content-filter-card-editor", yt);
+customElements.get("meraki-content-filter-card-editor") || customElements.define(
+  "meraki-content-filter-card-editor",
+  yt
+);
 window.customCards = window.customCards || [];
-window.customCards.some((n) => n.type === "meraki-content-filter-card") || window.customCards.push({
+window.customCards.some(
+  (n) => n.type === "meraki-content-filter-card"
+) || window.customCards.push({
   type: "meraki-content-filter-card",
   name: "Cisco Meraki Content Filter",
   description: "Control Cisco Meraki Content Filtering profiles.",
@@ -2657,7 +2679,13 @@ const ue = class ue extends N {
     const e = t.detail.value, s = { ...this._config, ...e };
     this._config.networkId !== e.networkId && (s.ssid = ""), Object.keys(s).forEach((i) => {
       s[i] === "" && delete s[i];
-    }), this.dispatchEvent(new CustomEvent("config-changed", { detail: { config: s }, bubbles: !0, composed: !0 }));
+    }), this.dispatchEvent(
+      new CustomEvent("config-changed", {
+        detail: { config: s },
+        bubbles: !0,
+        composed: !0
+      })
+    );
   }
   render() {
     if (!this.hass || !this._config) return b``;
@@ -2670,9 +2698,28 @@ const ue = class ue extends N {
           </div>
         </div>
       `;
-    const t = R.getNetworkOptions(this._networks, !0), e = R.getSsidOptions(this._ssids, this._config.networkId, "name"), s = [
-      { name: "networkId", selector: { select: { options: t, mode: "dropdown" } } },
-      { name: "ssid", selector: { select: { options: e, custom_value: !0, mode: "dropdown" } } },
+    const t = R.getNetworkOptions(
+      this._networks,
+      !0
+    ), e = R.getSsidOptions(
+      this._ssids,
+      this._config.networkId,
+      "name"
+    ), s = [
+      {
+        name: "networkId",
+        selector: { select: { options: t, mode: "dropdown" } }
+      },
+      {
+        name: "ssid",
+        selector: {
+          select: {
+            options: e,
+            custom_value: !0,
+            mode: "dropdown"
+          }
+        }
+      },
       { name: "password", selector: { text: {} } },
       { name: "name", selector: { text: {} } }
     ];
@@ -2689,7 +2736,11 @@ const ue = class ue extends N {
     `;
   }
 };
-ue.styles = D`.editor-container { padding: 16px; }`;
+ue.styles = D`
+    .editor-container {
+      padding: 16px;
+    }
+  `;
 let z = ue;
 T([
   L({ attribute: !1 })
@@ -2766,7 +2817,7 @@ const fe = class fe extends N {
       return $t(
         ((s = this._config) == null ? void 0 : s.name) || "Wi-Fi Access",
         this._loadingMessage,
-        "2.3.0-beta.3558"
+        "2.3.0-beta.3559"
       );
     const t = I.getValue(this.hass, this._config.ssid), e = I.getPasswordForSsid(
       this.hass,
@@ -2779,10 +2830,16 @@ const fe = class fe extends N {
       <ha-card .header=${this._config.name || "Wi-Fi Access"}>
         <div class="card-content flex-col-center">
           <div class="ssid-display">${t}</div>
-          <div class="qr-container" style="width: 200px; height: 200px;" .innerHTML=${this._qrSvg}></div>
-          ${e ? b`<div class="password-display">Password: <code class="copyable-code">${e}</code></div>` : ""}
+          <div
+            class="qr-container"
+            style="width: 200px; height: 200px;"
+            .innerHTML=${this._qrSvg}
+          ></div>
+          ${e ? b`<div class="password-display">
+                Password: <code class="copyable-code">${e}</code>
+              </div>` : ""}
         </div>
-        <div class="version">v${"2.3.0-beta.3558"}</div>
+        <div class="version">v${"2.3.0-beta.3559"}</div>
       </ha-card>
     `;
   }
@@ -2790,10 +2847,23 @@ const fe = class fe extends N {
 fe.styles = [
   At,
   D`
-      :host { display: block; }
-      .card-content { padding: 16px; gap: 16px; }
-      .ssid-display { font-size: 1.5em; font-weight: bold; color: var(--primary-text-color); text-align: center; }
-      .password-display { color: var(--secondary-text-color); text-align: center; }
+      :host {
+        display: block;
+      }
+      .card-content {
+        padding: 16px;
+        gap: 16px;
+      }
+      .ssid-display {
+        font-size: 1.5em;
+        font-weight: bold;
+        color: var(--primary-text-color);
+        text-align: center;
+      }
+      .password-display {
+        color: var(--secondary-text-color);
+        text-align: center;
+      }
     `
 ];
 let F = fe;
@@ -2818,7 +2888,9 @@ T([
 customElements.get("meraki-wifi-qr-card") || customElements.define("meraki-wifi-qr-card", F);
 customElements.get("meraki-wifi-qr-card-editor") || customElements.define("meraki-wifi-qr-card-editor", z);
 window.customCards = window.customCards || [];
-window.customCards.some((n) => n.type === "meraki-wifi-qr-card") || window.customCards.push({
+window.customCards.some(
+  (n) => n.type === "meraki-wifi-qr-card"
+) || window.customCards.push({
   type: "meraki-wifi-qr-card",
   name: "Cisco Meraki Wi-Fi QR Card",
   description: "Display a scannable Wi-Fi QR code for guests.",
@@ -2850,12 +2922,9 @@ const ge = class ge extends N {
     super.firstUpdated(t), this._loadCentralizedData();
   }
   async _loadCentralizedData() {
-    this.hass && await R.pollConfig(
-      this.hass,
-      (t, e) => {
-        this._loadingMessage = t, this._isLoading = e;
-      }
-    );
+    this.hass && await R.pollConfig(this.hass, (t, e) => {
+      this._loadingMessage = t, this._isLoading = e;
+    });
   }
   static getStubConfig() {
     return {
@@ -2932,7 +3001,7 @@ const ge = class ge extends N {
       return $t(
         ((i = this._config) == null ? void 0 : i.name) || "Cisco Meraki Network Vitals",
         this._loadingMessage,
-        "2.3.0-beta.3558"
+        "2.3.0-beta.3559"
       );
     const t = this._config.throughput_entity;
     t && this.hass.states[t] && console.log(
@@ -2967,7 +3036,7 @@ const ge = class ge extends N {
             </div>
           </div>
         </div>
-        <div class="version">v${"2.3.0-beta.3558"}</div>
+        <div class="version">v${"2.3.0-beta.3559"}</div>
       </ha-card>
     `;
   }
@@ -3173,12 +3242,9 @@ const me = class me extends N {
     super.firstUpdated(t), this._loadCentralizedData();
   }
   async _loadCentralizedData() {
-    this.hass && await R.pollConfig(
-      this.hass,
-      (t, e) => {
-        this._loadingMessage = t, this._isLoading = e;
-      }
-    );
+    this.hass && await R.pollConfig(this.hass, (t, e) => {
+      this._loadingMessage = t, this._isLoading = e;
+    });
   }
   static getStubConfig() {
     return {
@@ -3209,13 +3275,13 @@ const me = class me extends N {
       return $t(
         ((e = this._config) == null ? void 0 : e.name) || "Cisco Meraki VLANs",
         this._loadingMessage,
-        "2.3.0-beta.3558"
+        "2.3.0-beta.3559"
       );
     const t = this._getVlanEntities();
     return t.length === 0 ? ne(
       "No VLANs Found",
       "No Meraki VLAN DHCP switches were found. Ensure VLAN management is enabled in the integration options.",
-      "2.3.0-beta.3558"
+      "2.3.0-beta.3559"
     ) : b`
       <ha-card .header="${this._config.name || "Cisco Meraki VLANs"}">
         <div class="card-content">
@@ -3225,26 +3291,28 @@ const me = class me extends N {
               <div class="col-network">Subnet / Gateway</div>
               <div class="col-dhcp">DHCP</div>
             </div>
-            ${t.map((s) => b`
-              <div class="table-row">
-                <div class="col-vlan">
-                  <span class="vlan-name">${s.name}</span>
+            ${t.map(
+      (s) => b`
+                <div class="table-row">
+                  <div class="col-vlan">
+                    <span class="vlan-name">${s.name}</span>
+                  </div>
+                  <div class="col-network">
+                    <div class="subnet">${s.subnet}</div>
+                    <div class="gateway">${s.gateway}</div>
+                  </div>
+                  <div class="col-dhcp">
+                    <ha-switch
+                      .checked=${s.state === "on"}
+                      @change=${() => this._toggleDhcp(s.entity_id)}
+                    ></ha-switch>
+                  </div>
                 </div>
-                <div class="col-network">
-                  <div class="subnet">${s.subnet}</div>
-                  <div class="gateway">${s.gateway}</div>
-                </div>
-                <div class="col-dhcp">
-                  <ha-switch
-                    .checked=${s.state === "on"}
-                    @change=${() => this._toggleDhcp(s.entity_id)}
-                  ></ha-switch>
-                </div>
-              </div>
-            `)}
+              `
+    )}
           </div>
         </div>
-        <div class="version">v${"2.3.0-beta.3558"}</div>
+        <div class="version">v${"2.3.0-beta.3559"}</div>
       </ha-card>
     `;
   }
@@ -3262,8 +3330,12 @@ const me = class me extends N {
 me.styles = [
   At,
   D`
-      :host { display: block; }
-      .card-content { padding: 0 16px 16px 16px; }
+      :host {
+        display: block;
+      }
+      .card-content {
+        padding: 0 16px 16px 16px;
+      }
 
       .vlan-table {
         display: flex;
@@ -3292,9 +3364,19 @@ me.styles = [
         border-bottom: none;
       }
 
-      .col-vlan { flex: 2; display: flex; align-items: center; }
-      .col-network { flex: 3; }
-      .col-dhcp { flex: 1; display: flex; justify-content: flex-end; }
+      .col-vlan {
+        flex: 2;
+        display: flex;
+        align-items: center;
+      }
+      .col-network {
+        flex: 3;
+      }
+      .col-dhcp {
+        flex: 1;
+        display: flex;
+        justify-content: flex-end;
+      }
 
       .vlan-name {
         font-weight: 500;
@@ -3358,15 +3440,19 @@ const _e = class _e extends N {
   _valueChanged(t) {
     if (!this._config) return;
     const e = { ...this._config, ...t.detail.value };
-    this.dispatchEvent(new CustomEvent("config-changed", {
-      detail: { config: e },
-      bubbles: !0,
-      composed: !0
-    }));
+    this.dispatchEvent(
+      new CustomEvent("config-changed", {
+        detail: { config: e },
+        bubbles: !0,
+        composed: !0
+      })
+    );
   }
 };
 _e.styles = D`
-    .editor-container { padding: 16px; }
+    .editor-container {
+      padding: 16px;
+    }
   `;
 let bt = _e;
 lt([
@@ -3417,15 +3503,19 @@ const we = class we extends N {
   _valueChanged(t) {
     if (!this._config) return;
     const e = { ...this._config, ...t.detail.value };
-    this.dispatchEvent(new CustomEvent("config-changed", {
-      detail: { config: e },
-      bubbles: !0,
-      composed: !0
-    }));
+    this.dispatchEvent(
+      new CustomEvent("config-changed", {
+        detail: { config: e },
+        bubbles: !0,
+        composed: !0
+      })
+    );
   }
 };
 we.styles = D`
-    .editor-container { padding: 16px; }
+    .editor-container {
+      padding: 16px;
+    }
   `;
 let Et = we;
 si([
@@ -3434,7 +3524,10 @@ si([
 si([
   w()
 ], Et.prototype, "_config");
-customElements.get("meraki-guest-access-card-editor") || customElements.define("meraki-guest-access-card-editor", Et);
+customElements.get("meraki-guest-access-card-editor") || customElements.define(
+  "meraki-guest-access-card-editor",
+  Et
+);
 var ws = Object.defineProperty, P = (n, t, e, s) => {
   for (var i = void 0, r = n.length - 1, o; r >= 0; r--)
     (o = n[r]) && (i = o(t, e, i) || i);
@@ -3486,7 +3579,7 @@ const ye = class ye extends N {
       this._isLoading = !1;
       return;
     }
-    this._networks = t, this._ssids = e, this._policies = s, this._configEntryId = ((d = this._config) == null ? void 0 : d.config_entry_id) || i;
+    this._networks = t, this._ssids = e, this._policies = s || [], this._configEntryId = ((d = this._config) == null ? void 0 : d.config_entry_id) || i;
     let r = this._formData.network, o = this._formData.ssid, a = this._formData.passphrase, c = this._formData.policy;
     if (t.length > 0 && !r && (r = t[0].id), r && !o) {
       const l = e.filter((h) => h.networkId === r);
@@ -3514,8 +3607,7 @@ const ye = class ye extends N {
     }, this._isLoading = !1;
   }
   _formValueChanged(t) {
-    const e = t.detail.value, s = this._formData.network;
-    let i = { ...this._formData, ...e };
+    const e = t.detail.value, s = this._formData.network, i = { ...this._formData, ...e };
     if (i.network !== s) {
       i.ssid = "", i.passphrase = "", i.policy = "";
       const r = this._ssids.filter(
@@ -3537,7 +3629,7 @@ const ye = class ye extends N {
     ) || I.generateNaturalPassword()), this._formData = i;
   }
   _startProvisioningTimer() {
-    this._stopProvisioningTimer(), this._provisioning = !0, this._countdown = 30, this._timerInterval = setInterval(() => {
+    this._stopProvisioningTimer(), this._provisioning = !0, this._countdown = 30, this._timerInterval = window.setInterval(() => {
       this._countdown -= 1, this._countdown <= 0 && this._stopProvisioningTimer();
     }, 1e3);
   }
@@ -3550,13 +3642,13 @@ const ye = class ye extends N {
       return $t(
         ((h = this._config) == null ? void 0 : h.name) || "Cisco Meraki Guest Access",
         this._loadingMessage,
-        "2.3.0-beta.3558"
+        "2.3.0-beta.3559"
       );
     if (this._networks.length === 0)
       return ne(
         "No Wireless Networks",
         "No Cisco Meraki wireless networks found. Ensure the integration is configured.",
-        "2.3.0-beta.3558"
+        "2.3.0-beta.3559"
       );
     const t = R.getNetworkOptions(
       this._networks
@@ -3667,7 +3759,7 @@ const ye = class ye extends N {
               Create Another
             </ha-button>
           </div>
-          <div class="version">v${"2.3.0-beta.3558"}</div>
+          <div class="version">v${"2.3.0-beta.3559"}</div>
         </ha-card>
       `;
     }
@@ -3715,7 +3807,7 @@ const ye = class ye extends N {
             </ha-button>
           </div>
         </div>
-        <div class="version">v${"2.3.0-beta.3558"}</div>
+        <div class="version">v${"2.3.0-beta.3559"}</div>
       </ha-card>
     `;
   }
@@ -3745,7 +3837,7 @@ const ye = class ye extends N {
         ), i = s ? s.name : "Guest WiFi", r = this._formData.passphrase, o = I.generateWifiQrString(i, r);
         this._qrSvg = await I.generateQrSvg(o), this._success = "Guest access key created successfully!", this._startProvisioningTimer();
       } catch (t) {
-        this._error = `Failed to create guest key: ${t.message || t}`;
+        this._error = `Failed to create guest key: ${t instanceof Error ? t.message : t}`;
       } finally {
         this._creating = !1;
       }
@@ -3860,9 +3952,9 @@ window.customCards.some(
 ) || window.customCards.push({
   type: "meraki-guest-access-card",
   name: "Cisco Meraki Guest Access",
-  description: "Manage temporary guest WiFi access. Version: 2.3.0-beta.3558",
+  description: "Manage temporary guest WiFi access. Version: 2.3.0-beta.3559",
   preview: !0,
-  version: "2.3.0-beta.3558"
+  version: "2.3.0-beta.3559"
 });
 export {
   S as MerakiGuestAccessCard
