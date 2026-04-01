@@ -11,3 +11,9 @@ export interface SSID {
   networkId: string;
   authMode?: string;
 }
+
+export interface GroupPolicy {
+  networkId: string;
+  groupPolicyId: string;
+  name: string;
+}
