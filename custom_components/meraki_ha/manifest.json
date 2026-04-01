@@ -39,7 +39,7 @@
     "aiodns>=4.0.0",
     "aiofiles>=24.1.0",
     "aiohttp>=3.11.11",
-    "braintrust",
+    "braintrust>=0.12.0",
     "diskcache==5.6.3",
     "meraki==1.54.0",
     "orjson>=3.9.0",

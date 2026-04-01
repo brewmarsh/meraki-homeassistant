@@ -30,6 +30,7 @@ bluetooth-data-tools
 boolean.py==5.0
 boto3
 botocore
+braintrust>=0.12.0
 btsocket
 build==1.3.0
 CacheControl
