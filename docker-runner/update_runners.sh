@@ -32,6 +32,7 @@ deploy_runner() {
         -e RUNNER_REPO="$repo" \
         -e RUNNER_NAME="$name" \
         -e DOCKER_GID="$docker_gid" \
+        -e HOME=/home/runner \
         "$DOCKER_IMAGE"
 
     # Action 2: Pre-launch Validation
