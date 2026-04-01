@@ -23,8 +23,15 @@ RUN apt-get update && \
     wget \
     rsync \
     jq \
+    build-essential \
     # Clean up APT cache
     && apt-get clean && rm -rf /var/lib/apt/lists/*
+
+# Action: Install Node.js 20 LTS from NodeSource
+# This is required for frontend build steps (npm install, vite build, etc.)
+RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && \
+    apt-get install -y nodejs && \
+    apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Action 1 & 2: Install Docker CLI using modern "Noble" compliant logic
 RUN install -m 0755 -d /etc/apt/keyrings && \
