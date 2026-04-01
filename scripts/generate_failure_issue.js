@@ -17,7 +17,11 @@ module.exports = async ({ github, context }) => {
   const errorLogs = process.env.ERROR_LOGS || '';
 
   // Special handling for HA_USERNAME error
-  if (errorDetails.includes('HA_USERNAME and HA_PASSWORD environment variables must be set')) {
+  if (
+    errorDetails.includes(
+      'HA_USERNAME and HA_PASSWORD environment variables must be set'
+    )
+  ) {
     errorDetails =
       '❌ **Missing Credentials:** Playwright tests failed because `HA_USERNAME` and `HA_PASSWORD` are not set in the environment.\n\n' +
       'Please ensure these secrets are correctly configured in the repository settings and passed to the workflow.';
@@ -69,6 +73,6 @@ module.exports = async ({ github, context }) => {
     repo: context.repo.repo,
     title: title,
     body: body,
-    labels: ['bug', 'automated-ci', 'jules'],
+    labels: ['bug', 'automated-ci', 'jules', 'ci-failure'],
   });
 };

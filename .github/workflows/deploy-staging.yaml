@@ -74,9 +74,18 @@ jobs:
 
       - name: Frontend Strict Type Check & Linting
         working-directory: frontend
+        shell: bash
         run: |
-          npx tsc --noEmit
-          npx eslint src/ --ext .ts
+          set -o pipefail
+          if ! (npx tsc --noEmit && npx eslint src/ --ext .ts) 2>&1 | tee frontend_lint_output.txt; then
+            echo "FAILED_STEP_NAME=Frontend Strict Type Check & Linting" >> $GITHUB_ENV
+            {
+              echo "CI_ERROR_DETAILS<<EOF"
+              tail -n 20 frontend_lint_output.txt
+              echo "EOF"
+            } >> $GITHUB_ENV
+            exit 1
+          fi
 
       - name: Bump version for cache-busting
         working-directory: frontend
@@ -178,11 +187,21 @@ jobs:
           uv run baml-cli generate
 
       - name: Run Pytest with Coverage Gate
+        shell: bash
         run: |
-          uv run --with pytest-homeassistant-custom-component --with pytest-cov pytest tests/ \
+          set -o pipefail
+          if ! uv run --with pytest-homeassistant-custom-component --with pytest-cov pytest tests/ \
             --cov=custom_components/meraki_ha \
             --cov-report=term-missing \
-            --cov-fail-under=80
+            --cov-fail-under=80 2>&1 | tee pytest_output.txt; then
+            echo "FAILED_STEP_NAME=Run Pytest with Coverage Gate" >> $GITHUB_ENV
+            {
+              echo "CI_ERROR_DETAILS<<EOF"
+              tail -n 20 pytest_output.txt
+              echo "EOF"
+            } >> $GITHUB_ENV
+            exit 1
+          fi
 
       - name: Pre-boot Configuration Check
         shell: bash
@@ -190,7 +209,15 @@ jobs:
           set -o pipefail
           # Use the configuration.yaml written in the previous step
           # We need to make sure 'homeassistant' package is available
-          uv run --with homeassistant hass --script check_config -c ${{ env.HA_CONFIG_DIR }}
+          if ! uv run --with homeassistant hass --script check_config -c ${{ env.HA_CONFIG_DIR }} 2>&1 | tee config_check_output.txt; then
+            echo "FAILED_STEP_NAME=Pre-boot Configuration Check" >> $GITHUB_ENV
+            {
+              echo "CI_ERROR_DETAILS<<EOF"
+              tail -n 20 config_check_output.txt
+              echo "EOF"
+            } >> $GITHUB_ENV
+            exit 1
+          fi
 
       - name: Full integration reset (delete > restart > add)
         shell: bash
@@ -388,7 +415,18 @@ jobs:
         run: npx playwright install --with-deps
 
       - name: Run Playwright UI Tests
-        run: npx playwright test
+        shell: bash
+        run: |
+          set -o pipefail
+          if ! npx playwright test 2>&1 | tee playwright_output.txt; then
+            echo "FAILED_STEP_NAME=Run Playwright UI Tests" >> $GITHUB_ENV
+            {
+              echo "CI_ERROR_DETAILS<<EOF"
+              tail -n 20 playwright_output.txt
+              echo "EOF"
+            } >> $GITHUB_ENV
+            exit 1
+          fi
         env:
           BASE_URL: ${{ secrets.HA_STAGING_URL }}
           HA_TOKEN: ${{ secrets.HA_STAGING_TOKEN }}
@@ -420,31 +458,21 @@ jobs:
         uses: actions/github-script@v8
         with:
           script: |
-            const fs = require('fs');
-            const title = '🚨 Staging Smoke Test Failed';
-            const failedStep = process.env.FAILED_STEP_NAME || 'Unknown Step';
-            let errorDetails = process.env.CI_ERROR_DETAILS || 'No details captured.';
+            try {
+              const script = require('./scripts/generate_failure_issue.js');
+              await script({github, context});
+            } catch (e) {
+              console.error('Failed to run centralized issue script:', e);
+              const title = '🚨 Staging Smoke Test Failed';
+              const failedStep = process.env.FAILED_STEP_NAME || 'Unknown Step';
+              const errorDetails = process.env.CI_ERROR_DETAILS || 'No details captured.';
+              const body = `### ❌ Failed Step: \`${failedStep}\`\n\n### 📋 Error Details\n\`\`\`text\n${errorDetails}\n\`\`\`\n\n[🔗 View full failing run details](${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId})`;
 
-            if (fs.existsSync('meraki_errors.txt')) {
-                const merakiErrors = fs.readFileSync('meraki_errors.txt', 'utf8');
-                if (merakiErrors && merakiErrors.trim()) { errorDetails = merakiErrors; }
+              await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title: title,
+                body: body,
+                labels: ['bug', 'automated-ci', 'jules']
+              });
             }
-
-            const { data: issues } = await github.rest.issues.listForRepo({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              state: 'open',
-            });
-
-            if (issues.find(issue => issue.title === title)) return;
-
-            const errorLogs = process.env.ERROR_LOGS ? `### 📋 Home Assistant Logs\n\`\`\`text\n${process.env.ERROR_LOGS}\n\`\`\`\n\n` : '';
-            const body = `### ❌ Failed Step: \`${failedStep}\`\n\n### 📋 Error Details\n\`\`\`text\n${errorDetails}\n\`\`\`\n\n${errorLogs}[🔗 Run Details](${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId})`;
-
-            await github.rest.issues.create({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              title: title,
-              body: body,
-              labels: ['bug', 'automated-ci', 'jules']
-            });
