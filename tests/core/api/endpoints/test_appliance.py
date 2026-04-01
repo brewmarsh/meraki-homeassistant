@@ -3,6 +3,7 @@
 from unittest.mock import MagicMock, patch
 
 import pytest
+from meraki.exceptions import APIError
 
 # Resolved: Using the centralized coordinator path from the 2.3.0-beta.120 refactor
 from custom_components.meraki_ha.coordinators import MerakiMainCoordinator
@@ -62,6 +63,24 @@ async def test_get_network_vlans(appliance_endpoints, mock_dashboard):
 
 
 @pytest.mark.asyncio
+async def test_get_network_vlans_failure(appliance_endpoints, mock_dashboard):
+    """Test get_network_vlans failure handling."""
+    metadata = {"tags": ["test"], "operation": "test_op"}
+    response = MagicMock()
+    response.status_code = 400
+    response.json.return_value = {"errors": ["VLANs are not enabled for this network"]}
+
+    # Use real APIError instead of a Mock
+    mock_dashboard.appliance.getNetworkApplianceVlans.side_effect = APIError(
+        metadata, response
+    )
+
+    # This should be handled gracefully by the decorator and return []
+    result = await appliance_endpoints.get_network_vlans(MOCK_NETWORK.id)
+    assert result == []
+
+
+@pytest.mark.asyncio
 async def test_update_network_vlan(appliance_endpoints, mock_dashboard):
     """Test update_network_vlan."""
     mock_dashboard.appliance.updateNetworkApplianceVlan = MagicMock(return_value={})
@@ -81,6 +100,23 @@ async def test_get_l3_firewall_rules(appliance_endpoints, mock_dashboard):
     mock_dashboard.appliance.getNetworkApplianceFirewallL3FirewallRules.assert_called_once_with(
         networkId=MOCK_NETWORK.id
     )
+
+
+@pytest.mark.asyncio
+async def test_get_l3_firewall_rules_failure(appliance_endpoints, mock_dashboard):
+    """Test get_l3_firewall_rules failure handling."""
+    metadata = {"tags": ["test"], "operation": "test_op"}
+    response = MagicMock()
+    response.status_code = 500
+    response.json.return_value = {"errors": ["Internal Server Error"]}
+
+    mock_dashboard.appliance.getNetworkApplianceFirewallL3FirewallRules.side_effect = (
+        APIError(metadata, response)
+    )
+
+    # This should be handled by the decorator and return {}
+    result = await appliance_endpoints.get_l3_firewall_rules(MOCK_NETWORK.id)
+    assert result == {}
 
 
 @pytest.mark.asyncio

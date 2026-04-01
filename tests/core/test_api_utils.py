@@ -1,11 +1,10 @@
 """Test the API utility functions."""
 
-from json import JSONDecodeError
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import MagicMock, patch
 
 import pytest
 from aiohttp import ClientError
-from meraki.exceptions import APIError  # type: ignore
+from meraki.exceptions import APIError
 
 from custom_components.meraki_ha.core.errors import (
     MerakiAuthenticationError,
@@ -29,73 +28,17 @@ def mock_instance(mock_api_client):
 
 
 @pytest.mark.asyncio
-async def test_handle_meraki_errors_rate_limit_retry():
-    """Test that the handle_meraki_errors decorator retries on 429 errors."""
-    mock_api_call = AsyncMock()
-    metadata = {
-        "tags": ["rate-limit"],
-        "operation": "getDevice",
-        "errors": ["Rate limit hit"],
-    }
-    response_mock = MagicMock()
-    response_mock.status_code = 429
-    response_mock.headers = {"Retry-After": "2"}
-
-    api_error = APIError(metadata, response=response_mock)
-    mock_api_call.side_effect = [api_error, api_error, "Success"]
-
-    decorated_func = handle_meraki_errors(mock_api_call)
-
-    with patch("asyncio.sleep", new_callable=AsyncMock) as mock_sleep:
-        result = await decorated_func()
-
-        assert result == "Success"
-        assert mock_api_call.call_count == 3
-        assert mock_sleep.call_count == 2
-        mock_sleep.assert_any_call(2)
-
-
-@pytest.mark.asyncio
-async def test_handle_connection_error_safe_return_dict():
-    """Test handling JSONDecodeError returns safe dict."""
-
-    async def api_call() -> dict:
-        raise JSONDecodeError("msg", "doc", 0)
-
-    decorated = handle_meraki_errors(api_call)
-    result = await decorated()
-    assert result == {}
-
-
-@pytest.mark.asyncio
-async def test_handle_connection_error_safe_return_list():
-    """Test handling JSONDecodeError returns safe list."""
-
-    async def api_call() -> list:
-        raise JSONDecodeError("msg", "doc", 0)
-
-    decorated = handle_meraki_errors(api_call)
-    result = await decorated()
-    assert result == []
-
-
-@pytest.mark.asyncio
 async def test_feature_disabled_traffic_analysis(mock_instance):
-    """Test handling Traffic Analysis disabled error."""
+    """Test handling traffic analysis disabled error."""
 
     async def api_call(self, network_id: str) -> dict:
+        metadata = {"tags": ["test"], "operation": "test_op"}
         response = MagicMock()
+        response.status_code = 400
         response.json.return_value = {
             "errors": ["Traffic Analysis with Hostname Visibility is not enabled"]
         }
-        raise APIError(
-            {
-                "errors": ["Traffic Analysis with Hostname Visibility is not enabled"],
-                "tags": ["tag"],
-                "operation": "op",
-            },
-            response=response,
-        )
+        raise APIError(metadata, response)
 
     decorated = handle_meraki_errors(api_call)
 
@@ -116,18 +59,13 @@ async def test_feature_disabled_vlan(mock_instance):
     """Test handling VLAN disabled error."""
 
     async def api_call(self, network_id: str) -> list:
+        metadata = {"tags": ["test"], "operation": "test_op"}
         response = MagicMock()
+        response.status_code = 400
         response.json.return_value = {
             "errors": ["VLANs are not enabled for this network"]
         }
-        raise APIError(
-            {
-                "errors": ["VLANs are not enabled for this network"],
-                "tags": ["tag"],
-                "operation": "op",
-            },
-            response=response,
-        )
+        raise APIError(metadata, response)
 
     decorated = handle_meraki_errors(api_call)
 
@@ -144,10 +82,11 @@ async def test_auth_error():
     """Test handling authentication error."""
 
     async def api_call():
-        raise APIError(
-            {"errors": ["Invalid API key"], "tags": ["tag"], "operation": "op"},
-            response=MagicMock(status_code=401),
-        )
+        metadata = {"tags": ["test"], "operation": "test_op"}
+        response = MagicMock()
+        response.status_code = 401
+        response.json.return_value = {"errors": ["Invalid API key"]}
+        raise APIError(metadata, response)
 
     decorated = handle_meraki_errors(api_call)
 

@@ -164,11 +164,16 @@ class MerakiClient:
 
         # Extract network_id for endpoint-specific blacklisting
         network_id = kwargs.get("networkId") or kwargs.get("network_id")
-        if not network_id and args and isinstance(args[0], str) and args[0].startswith(("N_", "L_")):
+        if (
+            not network_id
+            and args
+            and isinstance(args[0], str)
+            and args[0].startswith(("N_", "L_"))
+        ):
             network_id = args[0]
 
         # Action 3: Pre-flight check for blacklisted endpoints
-        endpoint = func.__name__
+        endpoint = getattr(func, "__name__", "mocked_endpoint")
         if self.is_feature_disabled(endpoint, network_id):
             _LOGGER.debug("Skipping blacklisted endpoint: %s", endpoint)
             return []
@@ -211,8 +216,9 @@ class MerakiClient:
                 ):
                     feature_name = FRIENDLY_FEATURE_NAMES.get(endpoint, endpoint)
                     _LOGGER.warning(
-                        "%s is not enabled for network %s and will not be checked until the integration restarts. "
-                        "To add %s support, enable it on the Cisco Meraki dashboard.",
+                        "%s is not enabled for network %s and will not be checked "
+                        "until the integration restarts. To add %s support, enable "
+                        "it on the Cisco Meraki dashboard.",
                         feature_name.capitalize(),
                         network_id or "Unknown",
                         feature_name.lower(),
