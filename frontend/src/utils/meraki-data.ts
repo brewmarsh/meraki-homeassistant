@@ -1,14 +1,8 @@
 // src/utils/meraki-data.ts
 import { HomeAssistant } from '../types/ha';
-import { Network, SSID } from '../types/meraki';
+import { Network, SSID, GroupPolicy } from '../types/meraki';
 import { WsCommand } from '../types/websocket';
 import { safeCallWS } from './api';
-
-export interface GroupPolicy {
-  networkId: string;
-  groupPolicyId: string;
-  name: string;
-}
 
 export class MerakiDataProvider {
   /**
