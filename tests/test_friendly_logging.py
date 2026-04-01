@@ -1,18 +1,15 @@
 """Test user-friendly logging in MerakiClient."""
 
-import pytest
 from unittest.mock import MagicMock, patch
-import meraki
-from custom_components.meraki_ha.core.api.client import MerakiClient, FRIENDLY_FEATURE_NAMES
 
-class FakeAPIError(meraki.APIError):
-    def __init__(self, message, status, headers=None):
-        self.message = message
-        self.status = status
-        self.response = MagicMock()
-        self.response.headers = headers or {}
-    def __str__(self):
-        return self.message
+import pytest
+from meraki.exceptions import APIError
+
+from custom_components.meraki_ha.core.api.client import (
+    FRIENDLY_FEATURE_NAMES,
+    MerakiClient,
+)
+
 
 @pytest.mark.asyncio
 async def test_run_sync_friendly_logging(hass):
@@ -24,17 +21,20 @@ async def test_run_sync_friendly_logging(hass):
     mock_func = MagicMock()
     mock_func.__name__ = "getNetworkTraffic"
 
-    # Create a fake APIError
-    error = FakeAPIError(
-        "Traffic analysis is not enabled for this network",
-        400,
-        {"X-Cisco-Meraki-API-Request-Id": "req_id"}
-    )
+    # Create a real APIError
+    metadata = {"tags": ["test"], "operation": "getNetworkTraffic"}
+    response = MagicMock()
+    response.status_code = 400
+    response.json.return_value = {
+        "errors": ["Traffic analysis is not enabled for this network"]
+    }
+    response.headers = {"X-Cisco-Meraki-API-Request-Id": "req_id"}
+    error = APIError(metadata, response)
 
     # Use patch to mock loop.run_in_executor
-    with patch("asyncio.get_event_loop") as mock_loop, \
-         patch("custom_components.meraki_ha.core.api.client._LOGGER") as mock_logger:
-
+    with patch("asyncio.get_event_loop") as mock_loop, patch(
+        "custom_components.meraki_ha.core.api.client._LOGGER"
+    ) as mock_logger:
         mock_loop.return_value.run_in_executor.side_effect = error
 
         # We need to provide a networkId to trigger the logging properly
@@ -51,8 +51,9 @@ async def test_run_sync_friendly_logging(hass):
             "To add %s support, enable it on the Cisco Meraki dashboard.",
             friendly_name.capitalize(),
             "N_123",
-            friendly_name.lower()
+            friendly_name.lower(),
         )
+
 
 @pytest.mark.asyncio
 async def test_run_sync_fallback_logging(hass):
@@ -64,15 +65,17 @@ async def test_run_sync_fallback_logging(hass):
     mock_func = MagicMock()
     mock_func.__name__ = "unknownEndpoint"
 
-    # Create a fake APIError
-    error = FakeAPIError(
-        "this feature must be enabled",
-        400
-    )
+    # Create a real APIError
+    metadata = {"tags": ["test"], "operation": "unknownEndpoint"}
+    response = MagicMock()
+    response.status_code = 400
+    response.json.return_value = {"errors": ["this feature must be enabled"]}
+    response.headers = {}
+    error = APIError(metadata, response)
 
-    with patch("asyncio.get_event_loop") as mock_loop, \
-         patch("custom_components.meraki_ha.core.api.client._LOGGER") as mock_logger:
-
+    with patch("asyncio.get_event_loop") as mock_loop, patch(
+        "custom_components.meraki_ha.core.api.client._LOGGER"
+    ) as mock_logger:
         mock_loop.return_value.run_in_executor.side_effect = error
 
         result = await client.run_sync(mock_func, networkId="N_456")
@@ -82,7 +85,7 @@ async def test_run_sync_fallback_logging(hass):
         mock_logger.warning.assert_any_call(
             "%s is not enabled for network %s and will not be checked until the integration restarts. "
             "To add %s support, enable it on the Cisco Meraki dashboard.",
-            "Unknownendpoint", # capitalize() makes only first letter uppercase
+            "Unknownendpoint",  # capitalize() makes only first letter uppercase
             "N_456",
-            "unknownendpoint"
+            "unknownendpoint",
         )

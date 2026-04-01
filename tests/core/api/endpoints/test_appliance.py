@@ -93,8 +93,9 @@ async def test_update_network_vlan(appliance_endpoints, mock_dashboard):
 @pytest.mark.asyncio
 async def test_get_l3_firewall_rules(appliance_endpoints, mock_dashboard):
     """Test get_l3_firewall_rules."""
+    # Action 5: Return [] instead of {}
     mock_dashboard.appliance.getNetworkApplianceFirewallL3FirewallRules = MagicMock(
-        return_value={}
+        return_value=[]
     )
     await appliance_endpoints.get_l3_firewall_rules(MOCK_NETWORK.id)
     mock_dashboard.appliance.getNetworkApplianceFirewallL3FirewallRules.assert_called_once_with(
@@ -114,9 +115,9 @@ async def test_get_l3_firewall_rules_failure(appliance_endpoints, mock_dashboard
         APIError(metadata, response)
     )
 
-    # This should be handled by the decorator and return {}
+    # This should be handled by the decorator and return []
     result = await appliance_endpoints.get_l3_firewall_rules(MOCK_NETWORK.id)
-    assert result == {}
+    assert result == []
 
 
 @pytest.mark.asyncio

@@ -3,13 +3,13 @@
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
-from homeassistant.config_entries import ConfigEntry
-from homeassistant.core import HomeAssistant
 
 from custom_components.meraki_ha.button.device.poe_cycle import (
     MerakiPoECycleButton,
 )
 from custom_components.meraki_ha.core.models.device import MerakiDevice
+from homeassistant.config_entries import ConfigEntry
+from homeassistant.core import HomeAssistant
 
 
 @pytest.fixture
@@ -54,6 +54,9 @@ async def test_button_initialization(
     mock_config_entry: ConfigEntry,
 ):
     """Test the button initialization."""
+    # Ensure the coordinator returns the device when asked
+    mock_coordinator.get_device.return_value = mock_device
+
     assert mock_device.switch_ports is not None
     port_info = mock_device.switch_ports[0]
     button = MerakiPoECycleButton(
@@ -76,6 +79,9 @@ async def test_button_press(
     mock_config_entry: ConfigEntry,
 ):
     """Test the button press action."""
+    # Ensure the coordinator returns the device when asked
+    mock_coordinator.get_device.return_value = mock_device
+
     assert mock_device.switch_ports is not None
     port_info = mock_device.switch_ports[0]
     button = MerakiPoECycleButton(
