@@ -95,12 +95,12 @@ async def test_camera_image_500_error(
             image = await mock_camera.async_camera_image()
 
             assert image is None
-            mock_logger.warning.assert_called()
-            # Verify the warning contains the status code and camera name
-            # When using _LOGGER.warning("msg %d", arg), the call args will be ("msg %d", arg)
-            warning_call = mock_logger.warning.call_args
-            assert "Meraki API returned %d" in warning_call[0][0]
-            assert warning_call[0][1] == 500
+            mock_logger.debug.assert_called()
+            # Verify the debug contains the status code and camera name
+            # When using _LOGGER.debug("msg %d", arg), the call args will be ("msg %d", arg)
+            debug_call = mock_logger.debug.call_args
+            assert "Cisco Meraki API returned %d" in debug_call[0][0]
+            assert debug_call[0][1] == 500
 
 
 @pytest.mark.asyncio
@@ -114,7 +114,7 @@ async def test_camera_stream_source_no_serial(
     mock_camera._device_serial = None
 
     with patch("custom_components.meraki_ha.camera._LOGGER") as mock_logger:
-        source = await mock_camera.async_stream_source()
+        source = await mock_camera.stream_source()
 
         assert source is None
         mock_logger.debug.assert_called_with(
