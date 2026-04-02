@@ -23,6 +23,7 @@ class DummyEndpoint:
         metadata = {"tags": ["test"], "operation": "getNetworkTraffic"}
         response = MagicMock()
         response.status_code = 400
+        response.reason = "Bad Request"
         response.json.return_value = {
             "errors": ["Traffic Analysis with Hostname Visibility must be enabled"]
         }
@@ -34,6 +35,7 @@ class DummyEndpoint:
         metadata = {"tags": ["test"], "operation": "getNetworkApplianceVlans"}
         response = MagicMock()
         response.status_code = 400
+        response.reason = "Bad Request"
         response.json.return_value = {
             "errors": ["VLANs are not enabled for this network"]
         }
@@ -54,7 +56,7 @@ async def test_api_silencing_traffic():
 
     endpoint = DummyEndpoint(client)
 
-    result = await endpoint.get_traffic("N_123")
+    result = await endpoint.get_traffic(network_id="N_123")
 
     assert result == []
     client.mark_feature_disabled.assert_called_once_with("get_traffic", "N_123")
@@ -74,7 +76,7 @@ async def test_api_silencing_vlans():
 
     endpoint = DummyEndpoint(client)
 
-    result = await endpoint.get_vlans("N_123")
+    result = await endpoint.get_vlans(network_id="N_123")
 
     assert result == []
     client.mark_feature_disabled.assert_called_once_with("get_vlans", "N_123")

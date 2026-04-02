@@ -35,6 +35,7 @@ async def test_feature_disabled_traffic_analysis(mock_instance):
         metadata = {"tags": ["test"], "operation": "test_op"}
         response = MagicMock()
         response.status_code = 400
+        response.reason = "Bad Request"
         response.json.return_value = {
             "errors": ["Traffic Analysis with Hostname Visibility is not enabled"]
         }
@@ -45,11 +46,12 @@ async def test_feature_disabled_traffic_analysis(mock_instance):
     with patch(
         "custom_components.meraki_ha.core.utils.api.handlers._LOGGER"
     ) as mock_logger:
-        result = await decorated(mock_instance, "net-123")
+        result = await decorated(mock_instance, network_id="net-123")
 
         assert result == {}
+        # The decorator uses func.__name__ as the feature key
         mock_instance._api_client.mark_feature_disabled.assert_called_with(
-            "traffic", "net-123"
+            "api_call", "net-123"
         )
         mock_logger.debug.assert_called()
 
@@ -62,6 +64,8 @@ async def test_feature_disabled_vlan(mock_instance):
         metadata = {"tags": ["test"], "operation": "test_op"}
         response = MagicMock()
         response.status_code = 400
+        response.reason = "Bad Request"
+        # Use the exact message checked in _is_feature_disabled_msg
         response.json.return_value = {
             "errors": ["VLANs are not enabled for this network"]
         }
@@ -69,11 +73,12 @@ async def test_feature_disabled_vlan(mock_instance):
 
     decorated = handle_meraki_errors(api_call)
 
-    result = await decorated(mock_instance, "net-123")
+    result = await decorated(mock_instance, network_id="net-123")
 
     assert result == []
+    # The decorator uses func.__name__ as the feature key
     mock_instance._api_client.mark_feature_disabled.assert_called_with(
-        "vlans", "net-123"
+        "api_call", "net-123"
     )
 
 
@@ -85,6 +90,7 @@ async def test_auth_error():
         metadata = {"tags": ["test"], "operation": "test_op"}
         response = MagicMock()
         response.status_code = 401
+        response.reason = "Unauthorized"
         response.json.return_value = {"errors": ["Invalid API key"]}
         raise APIError(metadata, response)
 
