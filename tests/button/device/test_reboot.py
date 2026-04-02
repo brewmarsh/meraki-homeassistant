@@ -3,11 +3,11 @@
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
-from homeassistant.config_entries import ConfigEntry
-from homeassistant.core import HomeAssistant
 
 from custom_components.meraki_ha.button.reboot import MerakiRebootButton
 from custom_components.meraki_ha.core.models.device import MerakiDevice
+from homeassistant.config_entries import ConfigEntry
+from homeassistant.core import HomeAssistant
 
 
 @pytest.fixture
@@ -15,6 +15,7 @@ def mock_coordinator():
     """Mock the Meraki Data Coordinator."""
     coordinator = MagicMock()
     coordinator.data = {}
+    coordinator.devices_by_serial = {}
     return coordinator
 
 
@@ -72,8 +73,9 @@ async def test_reboot_button_availability(
     mock_config_entry: ConfigEntry,
 ):
     """Test the button availability."""
-    # Setup coordinator data for MerakiEntity availability
-    mock_coordinator.data = {"devices_by_serial": {"Q2XX-XXXX-XXXX": mock_device}}
+    # Action 4: Setup coordinator data for MerakiEntity availability
+    mock_coordinator.devices_by_serial = {"Q2XX-XXXX-XXXX": mock_device}
+    mock_coordinator.data = {"devices": [mock_device]}
 
     button = MerakiRebootButton(
         mock_coordinator, mock_control_service, mock_device, mock_config_entry

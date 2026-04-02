@@ -21,10 +21,11 @@ def mock_coordinator_mt15(mock_coordinator: MagicMock) -> MagicMock:
         mac="00:11:22:33:44:55",
         status="online",
     )
+    # Ensure both data structures used by MerakiEntity availability are set
     mock_coordinator.data = {
         "devices": [device],
-        "devices_by_serial": {"mt15-1": device},
     }
+    mock_coordinator.devices_by_serial = {"mt15-1": device}
     mock_coordinator.last_update_success = True
     return mock_coordinator
 
@@ -43,7 +44,7 @@ def test_mt15_button_creation(
     mock_meraki_client: MagicMock,
 ):
     """Test the creation of the MT15 refresh data button."""
-    device_info = mock_coordinator_mt15.data["devices"][0]
+    device_info = mock_coordinator_mt15.devices_by_serial["mt15-1"]
     button = MerakiMt15RefreshDataButton(
         mock_coordinator_mt15, device_info, mock_config_entry, mock_meraki_client
     )
@@ -60,7 +61,7 @@ async def test_mt15_button_press(
     mock_meraki_client: MagicMock,
 ):
     """Test pressing the MT15 refresh data button."""
-    device_info = mock_coordinator_mt15.data["devices"][0]
+    device_info = mock_coordinator_mt15.devices_by_serial["mt15-1"]
     button = MerakiMt15RefreshDataButton(
         mock_coordinator_mt15, device_info, mock_config_entry, mock_meraki_client
     )

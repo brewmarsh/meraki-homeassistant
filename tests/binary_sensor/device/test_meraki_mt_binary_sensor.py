@@ -23,6 +23,7 @@ def mock_coordinator_mt_binary(mock_coordinator: MagicMock) -> MagicMock:
             "name": "MT20 Sensor",
             "model": "MT20",
             "productType": "sensor",
+            "status": "online",
             "readings": [
                 {
                     "metric": "door",
@@ -39,6 +40,7 @@ def mock_coordinator_mt_binary(mock_coordinator: MagicMock) -> MagicMock:
             "name": "MT12 Sensor",
             "model": "MT12",
             "productType": "sensor",
+            "status": "online",
             "readings": [
                 {
                     "metric": "water",
@@ -51,6 +53,7 @@ def mock_coordinator_mt_binary(mock_coordinator: MagicMock) -> MagicMock:
             "name": "MT12 Sensor Dry",
             "model": "MT12",
             "productType": "sensor",
+            "status": "online",
             "readings": [
                 {
                     "metric": "water",
@@ -59,8 +62,11 @@ def mock_coordinator_mt_binary(mock_coordinator: MagicMock) -> MagicMock:
             ],
         },
     ]
-    mock_coordinator.data = {d["serial"]: MerakiDevice.from_dict(d) for d in devices}
-    mock_coordinator.devices_by_serial = mock_coordinator.data
+    # Ensure coordinator data has devices for availability check
+    mock_coordinator.data = {"devices": [MerakiDevice.from_dict(d) for d in devices]}
+    mock_coordinator.devices_by_serial = {
+        d.serial: d for d in mock_coordinator.data["devices"]
+    }
     return mock_coordinator
 
 
@@ -68,7 +74,7 @@ def test_mt20_open_sensor(
     mock_coordinator_mt_binary: MagicMock,
 ):
     """Test the MT20 open/close sensor when the door is open."""
-    device_info = mock_coordinator_mt_binary.data["mt20-1"]
+    device_info = mock_coordinator_mt_binary.devices_by_serial["mt20-1"]
     sensor = MerakiMtBinarySensor(
         mock_coordinator_mt_binary, device_info, MT_DOOR_DESCRIPTION
     )
@@ -83,7 +89,7 @@ def test_mt12_water_sensor(
     mock_coordinator_mt_binary: MagicMock,
 ):
     """Test the MT12 water sensor when water is present."""
-    device_info = mock_coordinator_mt_binary.data["mt12-1"]
+    device_info = mock_coordinator_mt_binary.devices_by_serial["mt12-1"]
     sensor = MerakiMtBinarySensor(
         mock_coordinator_mt_binary, device_info, MT_WATER_DESCRIPTION
     )
@@ -98,7 +104,7 @@ def test_mt12_dry_sensor(
     mock_coordinator_mt_binary: MagicMock,
 ):
     """Test the MT12 water sensor when it is dry."""
-    device_info = mock_coordinator_mt_binary.data["mt12-2"]
+    device_info = mock_coordinator_mt_binary.devices_by_serial["mt12-2"]
     sensor = MerakiMtBinarySensor(
         mock_coordinator_mt_binary, device_info, MT_WATER_DESCRIPTION
     )
@@ -113,7 +119,7 @@ def test_sensor_availability(
     mock_coordinator_mt_binary: MagicMock,
 ):
     """Test sensor availability."""
-    device_info = mock_coordinator_mt_binary.data["mt20-1"]
+    device_info = mock_coordinator_mt_binary.devices_by_serial["mt20-1"]
 
     # Test unavailable when serial not in coordinator data
     sensor = MerakiMtBinarySensor(
@@ -121,6 +127,7 @@ def test_sensor_availability(
         device_info,
         MT_DOOR_DESCRIPTION,
     )
-    mock_coordinator_mt_binary.data = {}
+
+    # Action 4: Correctly wipe data to test unavailability
     mock_coordinator_mt_binary.devices_by_serial = {}
     assert sensor.available is False
