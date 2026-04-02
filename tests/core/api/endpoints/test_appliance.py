@@ -136,7 +136,7 @@ async def test_update_l3_firewall_rules(appliance_endpoints, mock_dashboard):
 async def test_get_traffic_shaping(appliance_endpoints, mock_dashboard):
     """Test get_traffic_shaping."""
     mock_dashboard.appliance.getNetworkApplianceTrafficShaping = MagicMock(
-        return_value={}
+        return_value=[]
     )
     await appliance_endpoints.get_traffic_shaping(MOCK_NETWORK.id)
     mock_dashboard.appliance.getNetworkApplianceTrafficShaping.assert_called_once_with(
@@ -160,7 +160,7 @@ async def test_update_traffic_shaping(appliance_endpoints, mock_dashboard):
 async def test_get_vpn_status(appliance_endpoints, mock_dashboard):
     """Test get_vpn_status."""
     mock_dashboard.appliance.getNetworkApplianceVpnSiteToSiteVpn = MagicMock(
-        return_value={}
+        return_value=[]
     )
     await appliance_endpoints.get_vpn_status(MOCK_NETWORK.id)
     mock_dashboard.appliance.getNetworkApplianceVpnSiteToSiteVpn.assert_called_once_with(

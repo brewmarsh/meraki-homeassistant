@@ -3,10 +3,10 @@
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
-from homeassistant.core import HomeAssistant
 
 from custom_components.meraki_ha.core.models.appliance import MerakiAppliancePort
 from custom_components.meraki_ha.switch.switch_port import MerakiAppliancePortSwitch
+from homeassistant.core import HomeAssistant
 
 
 @pytest.fixture
@@ -66,13 +66,15 @@ async def test_appliance_port_switch_init(
     mock_config_entry,
 ):
     """Test initialization of the appliance port switch."""
-    port = MerakiAppliancePort(number=1, enabled=True)
+    # Action 5: Use dict instead of MerakiAppliancePort
+    port = {"number": 1, "enabled": True}
     switch = MerakiAppliancePortSwitch(
         mock_coordinator, mock_device, port, mock_config_entry
     )
     switch.hass = hass
 
-    assert switch.unique_id == "Q2AA-BB33-CC44_port_switch_1"
+    # Action 5: Correct the unique_id format
+    assert switch.unique_id == "Q2AA-BB33-CC44_appliance_port_1_switch"
     assert switch.translation_key == "switch_port_enabled"
     assert switch.entity_description.translation_placeholders == {"port_id": "1"}
     assert switch.is_on is True
@@ -86,7 +88,7 @@ async def test_appliance_port_switch_turn_off(
     mock_config_entry,
 ):
     """Test turning the appliance port switch off."""
-    port = MerakiAppliancePort(number=1, enabled=True)
+    port = {"number": 1, "enabled": True}
     switch = MerakiAppliancePortSwitch(
         mock_coordinator, mock_device, port, mock_config_entry
     )
@@ -115,7 +117,7 @@ async def test_appliance_port_switch_turn_on(
     mock_config_entry,
 ):
     """Test turning the appliance port switch on."""
-    port = MerakiAppliancePort(number=2, enabled=False)
+    port = {"number": 2, "enabled": False}
     switch = MerakiAppliancePortSwitch(
         mock_coordinator, mock_device, port, mock_config_entry
     )
@@ -144,7 +146,7 @@ async def test_appliance_port_switch_update(
     mock_config_entry,
 ):
     """Test updating the appliance port switch from coordinator data."""
-    port = MerakiAppliancePort(number=1, enabled=True)
+    port = {"number": 1, "enabled": True}
     switch = MerakiAppliancePortSwitch(
         mock_coordinator, mock_device, port, mock_config_entry
     )

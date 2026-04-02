@@ -3,9 +3,9 @@
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
-from homeassistant.core import HomeAssistant
 
 from custom_components.meraki_ha.switch.switch_port import MerakiSwitchPortToggle
+from homeassistant.core import HomeAssistant
 
 
 @pytest.fixture
@@ -71,7 +71,7 @@ async def test_switch_port_init(
     )
     switch.hass = hass
 
-    assert switch.unique_id == "Q2AA-BB33-CC44_port_switch_1"
+    assert switch.unique_id == "Q2AA-BB33-CC44_port_1_switch"
     assert switch.translation_key == "switch_port_enabled"
     assert switch.entity_description.translation_placeholders == {"port_id": "1"}
     assert switch.is_on is True

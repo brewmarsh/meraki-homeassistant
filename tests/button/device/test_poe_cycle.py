@@ -54,8 +54,9 @@ async def test_button_initialization(
     mock_config_entry: ConfigEntry,
 ):
     """Test the button initialization."""
-    # Ensure the coordinator returns the device when asked
+    # Action 6: Ensure the coordinator returns the device and config entry correctly
     mock_coordinator.get_device.return_value = mock_device
+    mock_coordinator.config_entry = mock_config_entry
 
     assert mock_device.switch_ports is not None
     port_info = mock_device.switch_ports[0]
