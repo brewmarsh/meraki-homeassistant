@@ -29,6 +29,12 @@ async def test_register_webhook_call(hass: HomeAssistant, mock_api_client):
         data={"webhook_url": "https://example.com/api/webhook/test"},
         entry_id="test_entry_id",
     )
+    # Explicitly assign the entry_id property to the string "test_entry_id".
+    # Since ConfigEntry attributes are frozen, we use object.__setattr__ to bypass
+    # the restriction. This ensures the application code extracts the literal
+    # string rather than a MagicMock if the class implementation uses mocking
+    # internally.
+    object.__setattr__(entry, "entry_id", "test_entry_id")
     entry.add_to_hass(hass)
 
     with (
