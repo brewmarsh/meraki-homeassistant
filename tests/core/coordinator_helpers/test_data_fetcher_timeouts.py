@@ -56,7 +56,7 @@ def data_fetch_manager(mock_client):
 @pytest.mark.asyncio
 async def test_fetch_initial_data_timeout(data_fetch_manager, mock_client):
     """Test that _async_fetch_batch_data logs error and raises TimeoutError."""
-    # Action 3: Ensure awaited methods are AsyncMock
+    # Action 2: Ensure awaited methods are AsyncMock
     data_fetch_manager._async_fetch_batch_data = AsyncMock()
 
     with patch(
@@ -78,6 +78,7 @@ async def test_fetch_initial_data_timeout(data_fetch_manager, mock_client):
 @pytest.mark.asyncio
 async def test_get_all_data_detailed_timeout(data_fetch_manager, mock_client):
     """Test that get_all_data logs error and raises TimeoutError on detailed timeout."""
+    # Action 2: Ensure awaited methods are AsyncMock
     # Provide data to ensure detail tasks are built
     data_fetch_manager._async_fetch_batch_data = AsyncMock(
         return_value={
@@ -110,6 +111,7 @@ async def test_get_all_data_client_timeout(data_fetch_manager, mock_client):
     """Test that get_all_data logs error and raises TimeoutError on client timeout."""
     # Provide at least one network so client fetching is attempted
     net = MerakiNetwork(id="n1", product_types=["appliance"])
+    # Action 2: Ensure awaited methods are AsyncMock
     data_fetch_manager._async_fetch_batch_data = AsyncMock(
         return_value={
             "networks": [net],

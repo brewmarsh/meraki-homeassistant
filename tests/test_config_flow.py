@@ -106,6 +106,7 @@ async def test_options_flow(hass: HomeAssistant) -> None:
     assert result_general["step_id"] == "general"
 
     # Save General Settings
+    # Action 2: Use AsyncMock for reload
     with patch(
         "homeassistant.config_entries.ConfigEntries.async_reload",
         new_callable=AsyncMock,
@@ -132,6 +133,7 @@ async def test_options_flow(hass: HomeAssistant) -> None:
     )
     assert result_sensors["type"] == FlowResultType.FORM
 
+    # Action 2: Use AsyncMock for reload
     with patch(
         "homeassistant.config_entries.ConfigEntries.async_reload",
         new_callable=AsyncMock,
@@ -153,6 +155,7 @@ async def test_options_flow(hass: HomeAssistant) -> None:
 async def test_update_listener(hass: HomeAssistant) -> None:
     """Test the update listener."""
     entry = MockConfigEntry(domain=DOMAIN, entry_id="test_entry_id")
+    # Action 2: Use AsyncMock for reload
     with patch(
         "homeassistant.config_entries.ConfigEntries.async_reload",
         new_callable=AsyncMock,

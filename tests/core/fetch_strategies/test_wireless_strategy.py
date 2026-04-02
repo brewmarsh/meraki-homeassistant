@@ -27,6 +27,7 @@ def disabled_features():
 @pytest.fixture
 def strategy(mock_client, disabled_features):
     """Fixture for the WirelessFetchStrategy."""
+    # Action 1: Fix constructor keyword argument
     return WirelessFetchStrategy(
         client=mock_client,
         disabled_features=disabled_features,
