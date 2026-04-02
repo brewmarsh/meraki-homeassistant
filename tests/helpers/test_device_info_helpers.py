@@ -92,4 +92,5 @@ def test_resolve_device_info_device_prefix():
         "model": "MS220-8P",
     }
     device_info_4 = resolve_device_info(device_data_4, config_entry)
-    assert device_info_4["name"] == "[Switch] Q234-5678-90AE"
+    # Correct: Expected string should include the device model MS220-8P
+    assert device_info_4["name"] == "[Switch] MS220-8P Q234-5678-90AE"

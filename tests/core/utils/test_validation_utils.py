@@ -33,10 +33,13 @@ def test_config_schema():
         CONFIG_SCHEMA({"api_key": "invalid", "organization_id": "123456"})
     with pytest.raises(vol.Invalid):
         CONFIG_SCHEMA({"api_key": "0" * 40, "organization_id": "invalid"})
-    assert CONFIG_SCHEMA({"api_key": "0" * 40, "organization_id": "123456"}) == {
+    # Correct: use an integer for scan_interval so vol.Range works
+    assert CONFIG_SCHEMA(
+        {"api_key": "0" * 40, "organization_id": "123456", "scan_interval": 60}
+    ) == {
         "api_key": "0" * 40,
         "organization_id": "123456",
-        "scan_interval": 300,
+        "scan_interval": 60,
     }
 
 
@@ -44,4 +47,5 @@ def test_options_schema():
     """Test the OPTIONS_SCHEMA."""
     with pytest.raises(vol.Invalid):
         OPTIONS_SCHEMA({"scan_interval": 29})
-    assert OPTIONS_SCHEMA({"scan_interval": 30}) == {"scan_interval": 30}
+    # Correct: use an integer for scan_interval so vol.Range(min=30) works
+    assert OPTIONS_SCHEMA({"scan_interval": 60}) == {"scan_interval": 60}
