@@ -45,7 +45,7 @@ async def test_get_group_policies(network, mock_client):
 @pytest.mark.asyncio
 async def test_get_group_policies_failure(network, mock_client):
     """Test get_group_policies failure handling."""
-    # Action 2: Instantiate REAL APIError
+    # Action 2: Use real APIError class
     metadata = {"tags": ["test"], "operation": "test_op"}
     response = MagicMock()
     response.status_code = 400
@@ -55,7 +55,7 @@ async def test_get_group_policies_failure(network, mock_client):
 
     result = await network.get_group_policies("net1")
 
-    # Returns {} on failure due to decorator
+    # Action 1: The core error handler returns {} on failure
     assert result == {}
 
 
@@ -86,7 +86,7 @@ async def test_get_network_events_filters_none(network, mock_client):
 @pytest.mark.asyncio
 async def test_get_network_events_failure(network, mock_client):
     """Test get_network_events failure handling."""
-    # Action 3: Set side_effect to properly instantiated APIError
+    # Action 3 & 5: Properly instantiated APIError and expect {}
     metadata = {"tags": ["test"], "operation": "test_op"}
     response = MagicMock()
     response.status_code = 500
@@ -96,7 +96,7 @@ async def test_get_network_events_failure(network, mock_client):
 
     result = await network.get_network_events("N_123")
 
-    # Action 3: Expect {} on failure
+    # Action 5: Expect {} on failure
     assert result == {}
 
 
