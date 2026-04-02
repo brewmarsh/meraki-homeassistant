@@ -43,7 +43,9 @@ jobs:
           python-version: '3.11'
 
       - name: Install tool
-        run: pip install git+https://github.com/brewmarsh/agent-readiness-scorecard.git tree-sitter tree-sitter-javascript tree-sitter-typescript tree-sitter-python
+        # Ensure the runner pulls the absolute latest commit containing the diff command
+        run: pip install --upgrade --no-cache-dir git+https://github.com/brewmarsh/agent-readiness-scorecard.git tree-sitter tree-sitter-javascript tree-sitter-typescript tree-sitter-python
+        
       - name: Run agent scorecard (diff mode)
         continue-on-error: true
         run: |
@@ -58,9 +60,9 @@ jobs:
           echo "Agent scorecard run failed or produced no output." > readiness_report.md
 
           # Use dedicated diff command (0.91.0+)
-          # Fix: Ensure correct diff syntax for agent-score 0.91.0+
-          # Use '.' to score the entire directory compared to base branch
-          agent-score diff . --base $TARGET_BRANCH --report readiness_report.md
+          # Fix: The diff command implicitly checks the repository. Removing the '.' ensures 
+          # the CLI parser correctly routes to the 'diff' subcommand instead of falling back to 'score'.
+          agent-score diff --base $TARGET_BRANCH --report readiness_report.md
 
       - name: Upload readiness report
         if: always()
