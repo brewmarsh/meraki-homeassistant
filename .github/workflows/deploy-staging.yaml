@@ -190,7 +190,7 @@ jobs:
         shell: bash
         run: |
           set -o pipefail
-          if ! uv run --with pytest-homeassistant-custom-component --with pytest-cov --with PyTurboJPEG pytest tests/ \
+          if ! uv run --with pytest-homeassistant-custom-component --with pytest-cov --with PyTurboJPEG --with "meraki==1.54.0" pytest tests/ \
             --cov=custom_components/meraki_ha \
             --cov-report=term-missing \
             --cov-fail-under=80 2>&1 | tee pytest_output.txt; then

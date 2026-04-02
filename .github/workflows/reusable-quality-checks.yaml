@@ -80,7 +80,7 @@ jobs:
         run: uv pip install --system -r requirements_dev.txt
 
       - name: Install HA Custom Component
-        run: uv pip install --system "pytest-homeassistant-custom-component>=0.13.205" "pytest>=8.3.4" PyTurboJPEG==1.7.5
+        run: uv pip install --system "pytest-homeassistant-custom-component>=0.13.205" "pytest>=8.3.4" PyTurboJPEG==1.7.5 "meraki==1.54.0"
 
       - name: Force Clean DNS Stack
         run: |
@@ -123,7 +123,7 @@ jobs:
         run: uv pip install --system -r requirements_dev.txt
 
       - name: Install HA Custom Component
-        run: uv pip install --system "pytest-homeassistant-custom-component>=0.13.205" "pytest>=8.3.4" PyTurboJPEG==1.7.5
+        run: uv pip install --system "pytest-homeassistant-custom-component>=0.13.205" "pytest>=8.3.4" PyTurboJPEG==1.7.5 "meraki==1.54.0"
 
       - name: Force Clean DNS Stack
         run: |
@@ -191,7 +191,7 @@ jobs:
         run: uv pip install --system -r requirements_dev.txt
 
       - name: Install HA Custom Component
-        run: uv pip install --system "pytest-homeassistant-custom-component>=0.13.205" "pytest>=8.3.4" PyTurboJPEG==1.7.5
+        run: uv pip install --system "pytest-homeassistant-custom-component>=0.13.205" "pytest>=8.3.4" PyTurboJPEG==1.7.5 "meraki==1.54.0"
 
       - name: Force Clean DNS Stack
         run: |
