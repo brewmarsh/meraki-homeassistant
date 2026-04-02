@@ -104,14 +104,15 @@ async def test_get_vlan_data_api_error_graceful_fail(network_endpoints, mock_cli
         {"id": network_id, "productTypes": ["appliance"]}
     ]
 
+    # Action 2: Use real APIError class
     metadata = {"tags": ["test"], "operation": "test_op"}
     response = MagicMock()
     response.status_code = 400
     response.json.return_value = {"errors": ["Some API Error"]}
 
-    # Use real APIError
     mock_client.run_sync.side_effect = APIError(metadata, response)
 
     result = await network_endpoints.get_vlan_data(network_id)
 
-    assert result == []
+    # Action 1: The core error handler returns {} on failure
+    assert result == {}

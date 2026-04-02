@@ -75,7 +75,7 @@ async def test_get_network_vlans_failure(appliance_endpoints, mock_dashboard):
         metadata, response
     )
 
-    # Action 1: The core error handler returns {} on failure
+    # Action 3: The core error handler returns {} on failure
     result = await appliance_endpoints.get_network_vlans(MOCK_NETWORK.id)
     assert result == {}
 
@@ -114,7 +114,7 @@ async def test_get_l3_firewall_rules_failure(appliance_endpoints, mock_dashboard
         APIError(metadata, response)
     )
 
-    # Action 1: The core error handler returns {} on failure
+    # Action 3: The core error handler returns {} on failure
     result = await appliance_endpoints.get_l3_firewall_rules(MOCK_NETWORK.id)
     assert result == {}
 

@@ -50,6 +50,9 @@ def data_fetch_manager(mock_client):
 @pytest.mark.asyncio
 async def test_fetch_initial_data_timeout(data_fetch_manager, mock_client):
     """Test that _async_fetch_batch_data logs error and raises TimeoutError."""
+    # Action 3: Ensure awaited methods are AsyncMock
+    data_fetch_manager._async_fetch_batch_data = AsyncMock()
+
     with patch(
         "custom_components.meraki_ha.core.coordinator_helpers.batch_utils.asyncio.wait_for",
         side_effect=clean_exit_wait_for,
@@ -58,6 +61,7 @@ async def test_fetch_initial_data_timeout(data_fetch_manager, mock_client):
             "custom_components.meraki_ha.core.coordinator_helpers.batch_utils._LOGGER.error"
         ) as mock_log_error:
             with pytest.raises(asyncio.TimeoutError):
+                # This call will trigger wait_for which will raise TimeoutError
                 await data_fetch_manager._async_fetch_batch_data()
             mock_log_error.assert_called_with(
                 "Timeout during %s. Potential semaphore deadlock.", "Batch fetch"
@@ -84,13 +88,6 @@ async def test_get_all_data_detailed_timeout(data_fetch_manager, mock_client):
         with patch(
             "custom_components.meraki_ha.core.coordinator_helpers.batch_utils._LOGGER.error"
         ) as mock_log_error:
-            # When detail batch fails, get_all_data (via get_sensor_data) raises UpdateFailed
-            # because of the TimeoutError being propagated or caught and wrapped.
-            # In get_sensor_data, it's not wrapped, but MerakiMainCoordinator._async_update_data
-            # would wrap it if it reached there.
-            # But here we call get_all_data directly.
-            # Wait, get_all_data in data_fetcher DOES NOT wrap in UpdateFailed.
-            # It's the coordinator that does it.
             with pytest.raises(asyncio.TimeoutError):
                 await data_fetch_manager.get_all_data()
             # It might be called for detailed data first

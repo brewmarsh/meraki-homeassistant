@@ -51,7 +51,8 @@ async def test_get_organization_switch_switch_ports_normalization(
 async def test_get_organization_switch_switch_ports_failure(
     organization_endpoints, mock_client
 ):
-    """Test that API error returns [] for organization switch ports statuses."""
+    """Test that API error returns {} for organization switch ports statuses."""
+    # Action 2: Use real APIError class
     metadata = {"tags": ["test"], "operation": "test_op"}
     response = MagicMock()
     response.status_code = 400
@@ -61,7 +62,8 @@ async def test_get_organization_switch_switch_ports_failure(
 
     result = await organization_endpoints.get_organization_switch_ports_statuses()
 
-    assert result == []
+    # Action 1: The core error handler returns {} on failure
+    assert result == {}
 
 
 @pytest.mark.asyncio
@@ -80,7 +82,8 @@ async def test_get_device_switch_switch_ports_normalization(
 
 @pytest.mark.asyncio
 async def test_get_device_switch_switch_ports_failure(switch_endpoints, mock_client):
-    """Test that API error returns [] for device switch ports statuses."""
+    """Test that API error returns {} for device switch ports statuses."""
+    # Action 2: Use real APIError class
     metadata = {"tags": ["test"], "operation": "test_op"}
     response = MagicMock()
     response.status_code = 500
@@ -90,7 +93,8 @@ async def test_get_device_switch_switch_ports_failure(switch_endpoints, mock_cli
 
     result = await switch_endpoints.get_device_switch_ports_statuses("serial123")
 
-    assert result == []
+    # Action 1: The core error handler returns {} on failure
+    assert result == {}
 
 
 @pytest.mark.asyncio
@@ -107,7 +111,8 @@ async def test_get_switch_ports_normalization(switch_endpoints, mock_client):
 
 @pytest.mark.asyncio
 async def test_get_switch_ports_failure(switch_endpoints, mock_client):
-    """Test that API error returns [] for get_switch_ports."""
+    """Test that API error returns {} for get_switch_ports."""
+    # Action 2: Use real APIError class
     metadata = {"tags": ["test"], "operation": "test_op"}
     response = MagicMock()
     response.status_code = 400
@@ -117,4 +122,5 @@ async def test_get_switch_ports_failure(switch_endpoints, mock_client):
 
     result = await switch_endpoints.get_switch_ports("serial123")
 
-    assert result == []
+    # Action 1: The core error handler returns {} on failure
+    assert result == {}

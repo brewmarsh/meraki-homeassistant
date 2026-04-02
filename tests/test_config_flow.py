@@ -30,6 +30,7 @@ async def test_form(hass: HomeAssistant) -> None:
         ) as mock_create_client,
         patch(
             "custom_components.meraki_ha.async_setup_entry",
+            new_callable=AsyncMock,
             return_value=True,
         ) as mock_setup_entry,
     ):
@@ -66,8 +67,6 @@ async def test_form_cannot_connect(hass: HomeAssistant) -> None:
         DOMAIN, context={"source": config_entries.SOURCE_USER}
     )
 
-    # Action 1: Replace with AsyncMock if needed, though here side_effect=Exception works for the sync factory
-    # but we should ensure the flow handler itself uses AsyncMock if it awaits something.
     with patch(
         "custom_components.meraki_ha.core.api.create_api_client",
         side_effect=Exception,
@@ -107,7 +106,6 @@ async def test_options_flow(hass: HomeAssistant) -> None:
     assert result_general["step_id"] == "general"
 
     # Save General Settings
-    # Action 1: ConfigEntries.async_reload is awaited
     with patch(
         "homeassistant.config_entries.ConfigEntries.async_reload",
         new_callable=AsyncMock,
@@ -134,7 +132,6 @@ async def test_options_flow(hass: HomeAssistant) -> None:
     )
     assert result_sensors["type"] == FlowResultType.FORM
 
-    # Action 1: ConfigEntries.async_reload is awaited
     with patch(
         "homeassistant.config_entries.ConfigEntries.async_reload",
         new_callable=AsyncMock,
@@ -156,7 +153,6 @@ async def test_options_flow(hass: HomeAssistant) -> None:
 async def test_update_listener(hass: HomeAssistant) -> None:
     """Test the update listener."""
     entry = MockConfigEntry(domain=DOMAIN, entry_id="test_entry_id")
-    # Action 1: ConfigEntries.async_reload is awaited
     with patch(
         "homeassistant.config_entries.ConfigEntries.async_reload",
         new_callable=AsyncMock,
