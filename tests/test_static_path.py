@@ -14,7 +14,7 @@ async def test_static_path_registration(hass: HomeAssistant) -> None:
     entry = MockConfigEntry(
         domain=DOMAIN,
         data={"api_key": "fake_key", "organization_id": "fake_org"},
-        entry_id="test_entry",
+        entry_id="test_entry_id",
     )
     entry.add_to_hass(hass)
 

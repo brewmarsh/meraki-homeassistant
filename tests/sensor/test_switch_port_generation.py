@@ -1,6 +1,6 @@
 """Test that switch ports are generated and linked to the parent device."""
 
-from unittest.mock import patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 from pytest_homeassistant_custom_component.common import MockConfigEntry
@@ -32,6 +32,7 @@ async def test_switch_port_generation_and_linkage(
             CONF_MERAKI_ORG_ID: "test_org",
         },
         options={"enable_port_sensors": True},
+        entry_id="test_entry_id",
     )
     entry.add_to_hass(hass)
 
@@ -76,10 +77,49 @@ async def test_switch_port_generation_and_linkage(
         "l7_firewall_rules": {"rules": []},
     }
 
-    # Patch the _async_update_data to return our mocked switch
-    with patch(
-        "custom_components.meraki_ha.coordinators.MerakiMainCoordinator._async_update_data",
-        return_value=mock_all_data,
+    # Patch the _async_update_data of all coordinators to return our mocked switch
+    # This ensures that discovery service sees the switch and its ports.
+    with (
+        patch(
+            "custom_components.meraki_ha.coordinators.MerakiDeviceCoordinator._async_update_data",
+            new_callable=AsyncMock,
+            return_value=mock_all_data,
+        ),
+        patch(
+            "custom_components.meraki_ha.coordinators.MerakiMainCoordinator._async_update_data",
+            new_callable=AsyncMock,
+            return_value=mock_all_data,
+        ),
+        patch(
+            "custom_components.meraki_ha.coordinators.MerakiSwitchCoordinator._async_update_data",
+            new_callable=AsyncMock,
+            return_value=mock_all_data,
+        ),
+        patch(
+            "custom_components.meraki_ha.coordinators.MerakiCameraCoordinator._async_update_data",
+            new_callable=AsyncMock,
+            return_value=mock_all_data,
+        ),
+        patch(
+            "custom_components.meraki_ha.coordinators.MerakiSensorCoordinator._async_update_data",
+            new_callable=AsyncMock,
+            return_value=mock_all_data,
+        ),
+        patch(
+            "custom_components.meraki_ha.coordinators.MerakiWirelessCoordinator._async_update_data",
+            new_callable=AsyncMock,
+            return_value=mock_all_data,
+        ),
+        patch(
+            "custom_components.meraki_ha.coordinators.MerakiApplianceCoordinator._async_update_data",
+            new_callable=AsyncMock,
+            return_value=mock_all_data,
+        ),
+        patch(
+            "custom_components.meraki_ha.coordinators.MerakiClientCoordinator._async_update_data",
+            new_callable=AsyncMock,
+            return_value=mock_all_data,
+        ),
     ):
         # Setup the integration
         await hass.config_entries.async_setup(entry.entry_id)
@@ -94,8 +134,9 @@ async def test_switch_port_generation_and_linkage(
     assert len(port_entities) > 0, "No switch port entities were generated"
 
     # Check that at least the specific status entities are registered
-    port_1_status = "sensor.test_switch_port_1_status"
-    port_2_status = "sensor.test_switch_port_2_status"
+    # Updated to match the naming convention seen in logs
+    port_1_status = "sensor.switch_test_switch_port_1_status"
+    port_2_status = "sensor.switch_test_switch_port_2_status"
 
     assert entity_registry.async_is_registered(port_1_status)
     assert entity_registry.async_is_registered(port_2_status)

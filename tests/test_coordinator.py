@@ -43,6 +43,7 @@ def coordinator(hass, mock_api_client, mock_data_fetch_manager):
         domain=DOMAIN,
         data={CONF_MERAKI_API_KEY: "test-key", CONF_MERAKI_ORG_ID: "test-org"},
         options={},
+        entry_id="test_entry_id",
     )
     entry.add_to_hass(hass)
     # Patched to reflect the new internal module structure for base components
