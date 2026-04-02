@@ -31,6 +31,9 @@ def mock_meraki_client() -> MagicMock:
     """Fixture for a mocked MerakiApiClientProtocol."""
     client = MagicMock()
     client.organization_id = "fake_org"
+    client.async_setup = AsyncMock()
+    client.has_dashboard = True
+    client.unregister_webhook = AsyncMock()
 
     # Mock the appliance object
     client.appliance = MagicMock()
@@ -64,9 +67,8 @@ def mock_meraki_client() -> MagicMock:
     client.organization = MagicMock()
     client.organization.get_organization_networks = AsyncMock(return_value=[])
 
-    client.unregister_webhook = AsyncMock(return_value=None)
-    client.async_setup = AsyncMock()
-    client.has_dashboard = True
+    client.network = MagicMock()
+    client.network.unregister_webhook = AsyncMock()
 
     return client
 
@@ -80,7 +82,7 @@ def mock_data_fetch_manager() -> AsyncMock:
     mock_data = {
         "devices": [
             MerakiDevice(
-                serial="Q234-ABCD-CF", model="MX64", name="Filtering Appliance"
+                serial="Q234-ABCD-CF", model="MX6", name="Filtering Appliance"
             )
         ],
         "networks": [MOCK_NETWORK],
@@ -149,26 +151,33 @@ async def test_content_filtering_select_entity(
 
         assert target_entity is not None
         assert target_entity.domain == "select"
+        assert target_entity.unique_id == f"meraki-network-{MOCK_NETWORK.id}-content-filtering-profile"
 
         # Verify state
         state = hass.states.get(target_entity.entity_id)
         assert state is not None
-        assert state.state == "Security"
+        # 5 categories -> Family
+        assert state.state == "Family"
+        assert state.attributes["options"] == ["None", "Security", "Family", "Strict"]
 
         # Test selection
         await hass.services.async_call(
             "select",
             "select_option",
-            {"entity_id": target_entity.entity_id, "option": "Family"},
+            {"entity_id": target_entity.entity_id, "option": "Security"},
             blocking=True,
         )
 
-        # Verify API called with Family categories (URN format)
+        # Verify API called with Security categories
         mock_meraki_client.appliance.update_network_appliance_content_filtering.assert_called_with(
             network_id=MOCK_NETWORK.id,
             blockedUrlCategories=[
-                "meraki:contentFiltering/category/1",
-                "meraki:contentFiltering/category/2",
                 "meraki:contentFiltering/category/8",
+                "meraki:contentFiltering/category/9",
+                "meraki:contentFiltering/category/11",
             ],
         )
+
+        # Ensure integration unloads while mocks are still active
+        assert await hass.config_entries.async_unload(mock_config_entry.entry_id)
+        await hass.async_block_till_done()

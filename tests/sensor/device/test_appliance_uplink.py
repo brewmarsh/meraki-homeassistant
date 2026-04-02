@@ -1,23 +1,25 @@
 """Tests for the Meraki appliance uplink sensor."""
 
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, AsyncMock
 
 import pytest
 
 from custom_components.meraki_ha.discovery.service import DeviceDiscoveryService
+from custom_components.meraki_ha.sensor.device.appliance_uplink import MerakiApplianceUplinkSensor
 from custom_components.meraki_ha.types import MerakiDevice
 
 
 @pytest.fixture
-def mock_coordinator():
+def mock_coordinator(hass):
     """Fixture for a mocked MerakiMainCoordinator."""
     coordinator = MagicMock()
+    coordinator.hass = hass
     coordinator.config_entry.options = {"enable_port_sensors": True}
     mock_device_data = MerakiDevice.from_dict(
         {
             "serial": "dev1",
             "name": "Test Appliance",
-            "model": "MX64",
+            "model": "MX6",
             "productType": "appliance",
             "networkId": "net1",
             "mac": "00:11:22:33:44:55",
@@ -38,6 +40,11 @@ def mock_coordinator():
                     "status": "ready",
                     "ip": "9.10.11.12",
                 },
+            ],
+            "uplinks": [
+                {"interface": "wan1"},
+                {"interface": "wan2"},
+                {"interface": "cellular"},
             ],
         }
     )
@@ -73,23 +80,25 @@ def mock_coordinator():
     return coordinator
 
 
-async def test_appliance_uplink_sensor_creation(mock_coordinator):
+async def test_appliance_uplink_sensor_creation(hass, mock_coordinator):
     """Test that appliance uplink sensors are created correctly."""
     config_entry = MagicMock()
+    config_entry.options = {"enable_port_sensors": True}
     meraki_client = MagicMock()
+    meraki_client.organization_id = "fake_org"
     camera_service = MagicMock()
     control_service = MagicMock()
     network_control_service = MagicMock()
 
     discovery_service = DeviceDiscoveryService(
-        MagicMock(),  # main_coordinator
+        mock_coordinator,  # main_coordinator
         mock_coordinator,  # device_coordinator
-        MagicMock(),  # switch_coordinator
-        MagicMock(),  # camera_coordinator
-        MagicMock(),  # sensor_coordinator
-        MagicMock(),  # wireless_coordinator
+        mock_coordinator,  # switch_coordinator
+        mock_coordinator,  # camera_coordinator
+        mock_coordinator,  # sensor_coordinator
+        mock_coordinator,  # wireless_coordinator
         mock_coordinator,  # appliance_coordinator
-        MagicMock(),  # client_coordinator
+        mock_coordinator,  # client_coordinator
         config_entry,
         meraki_client,
         camera_service,
@@ -99,8 +108,8 @@ async def test_appliance_uplink_sensor_creation(mock_coordinator):
     await discovery_service.discover_entities()
     sensors = discovery_service.all_entities
 
-    # Filter for just the uplink sensors
-    uplink_sensors = [s for s in sensors if "Uplink" in s.__class__.__name__]
+    # Filter for just the status sensors
+    uplink_sensors = [s for s in sensors if isinstance(s, MerakiApplianceUplinkSensor)]
 
     # We expect 3 sensors, one for each uplink interface
     assert len(uplink_sensors) == 3

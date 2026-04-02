@@ -72,7 +72,7 @@ def test_appliance_port_sensor(mock_device_coordinator):
 
     # Test connected port
     sensor1 = MerakiAppliancePortSensor(mock_device_coordinator, device, port1)
-    assert sensor1.unique_id == "dev1_port_1"
+    assert sensor1.unique_id == "dev1_appliance_port_1_status"  # Action 2: Updated unique ID
     assert sensor1.name == "Port 1"
     assert sensor1.native_value == "connected"
     assert sensor1.extra_state_attributes["link_speed"] == "1000 Mbps"
@@ -83,7 +83,7 @@ def test_appliance_port_sensor(mock_device_coordinator):
 
     # Test disconnected port
     sensor2 = MerakiAppliancePortSensor(mock_device_coordinator, device, port2)
-    assert sensor2.unique_id == "dev1_port_2"
+    assert sensor2.unique_id == "dev1_appliance_port_2_status"  # Action 2: Updated unique ID
     assert sensor2.name == "Port 2"
     assert sensor2.native_value == "disconnected"
     assert sensor2.extra_state_attributes["link_speed"] is None
@@ -92,7 +92,7 @@ def test_appliance_port_sensor(mock_device_coordinator):
 
     # Test disabled port
     sensor3 = MerakiAppliancePortSensor(mock_device_coordinator, device, port3)
-    assert sensor3.unique_id == "dev1_port_3"
+    assert sensor3.unique_id == "dev1_appliance_port_3_status"  # Action 2: Updated unique ID
     assert sensor3.name == "Port 3"
     assert sensor3.native_value == "disconnected"
     assert sensor3.extra_state_attributes["enabled"] is False

@@ -25,13 +25,20 @@ def mock_coordinator():
         }
     )
 
+    client1 = {"recentDeviceSerial": "test_serial", "mac": "mac1"}
+    client2 = {"recentDeviceSerial": "test_serial", "mac": "mac2"}
+
     coordinator.data = {
         "clients": [
-            {"recentDeviceSerial": "test_serial"},
+            client1,
             "invalid_client_string",  # This should no longer cause the AttributeError
-            {"recentDeviceSerial": "other_serial"},
-            {"recentDeviceSerial": "test_serial"},
-        ]
+            {"recentDeviceSerial": "other_serial", "mac": "mac3"},
+            client2,
+        ],
+        "clients_by_serial": {
+            "test_serial": [client1, client2],
+            "other_serial": [{"recentDeviceSerial": "other_serial", "mac": "mac3"}],
+        },
     }
 
     coordinator.get_device.return_value = device
@@ -50,7 +57,7 @@ def test_ap_client_count_sensor_no_attribute_error(mock_coordinator):
     # This should no longer raise AttributeError
     sensor._update_state()
 
-    # Expected value is 2 (two clients with 'test_serial')
+    # Expected value is 2 (two clients with 'test_serial') - Action 4: aligns with mock dictionary
     assert sensor.native_value == 2
 
 
@@ -58,6 +65,7 @@ def test_ap_client_count_sensor_empty_clients(mock_coordinator):
     """Test the sensor with empty clients list."""
     coordinator, device = mock_coordinator
     coordinator.data["clients"] = []
+    coordinator.data["clients_by_serial"] = {}
     config_entry = coordinator.config_entry
 
     sensor = MerakiAPClientCountSensor(coordinator, device, config_entry)
