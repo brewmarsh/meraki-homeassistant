@@ -32,7 +32,7 @@ async def test_camera_image_api_error(
     mock_camera: MerakiRTSPStreamCamera,
     mock_camera_service: AsyncMock,
 ) -> None:
-    """Test that camera image returns None and logs warning on API error."""
+    """Test that camera image returns None and logs debug on API error."""
     mock_camera.hass = hass
 
     # Mock generate_snapshot to raise an APIError (simulating Meraki 500)
@@ -44,8 +44,8 @@ async def test_camera_image_api_error(
         image = await mock_camera.async_camera_image()
 
         assert image is None
-        mock_logger.warning.assert_called_once()
-        assert "Failed to fetch camera snapshot" in mock_logger.warning.call_args[0][0]
+        mock_logger.debug.assert_called_once()
+        assert "Failed to fetch camera snapshot" in mock_logger.debug.call_args[0][0]
 
 
 @pytest.mark.asyncio
@@ -54,7 +54,7 @@ async def test_camera_image_download_error(
     mock_camera: MerakiRTSPStreamCamera,
     mock_camera_service: AsyncMock,
 ) -> None:
-    """Test that camera image returns None and logs warning on download error."""
+    """Test that camera image returns None and logs debug on download error."""
     mock_camera.hass = hass
     mock_camera_service.generate_snapshot.return_value = (
         "https://meraki.com/snapshot.jpg"
@@ -72,7 +72,7 @@ async def test_camera_image_download_error(
             image = await mock_camera.async_camera_image()
 
             assert image is None
-            mock_logger.warning.assert_called_once()
+            mock_logger.debug.assert_called_once()
             assert (
-                "Failed to fetch camera snapshot" in mock_logger.warning.call_args[0][0]
+                "Failed to fetch camera snapshot" in mock_logger.debug.call_args[0][0]
             )

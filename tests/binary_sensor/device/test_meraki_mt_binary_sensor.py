@@ -17,7 +17,7 @@ from custom_components.meraki_ha.types import MerakiDevice
 @pytest.fixture
 def mock_coordinator_mt_binary(mock_coordinator: MagicMock) -> MagicMock:
     """Fixture for a mocked MerakiDataCoordinator with MT binary data."""
-    devices = [
+    devices_data = [
         {
             "serial": "mt20-1",
             "name": "MT20 Sensor",
@@ -63,10 +63,21 @@ def mock_coordinator_mt_binary(mock_coordinator: MagicMock) -> MagicMock:
         },
     ]
     # Ensure coordinator data has devices for availability check
-    mock_coordinator.data = {"devices": [MerakiDevice.from_dict(d) for d in devices]}
-    mock_coordinator.devices_by_serial = {
-        d.serial: d for d in mock_coordinator.data["devices"]
+    mock_coordinator.data = {
+        "devices": [MerakiDevice.from_dict(d) for d in devices_data],
+        "devices_by_serial": {d["serial"]: MerakiDevice.from_dict(d) for d in devices_data},
     }
+    # Double ensure 'status' is explicitly 'online' in the mock objects
+    for dev in mock_coordinator.data["devices_by_serial"].values():
+        dev.status = "online"
+
+    mock_coordinator.devices_by_serial = mock_coordinator.data["devices_by_serial"]
+
+    # Mock get_device to return devices from the mapping
+    mock_coordinator.get_device.side_effect = (
+        lambda s: mock_coordinator.devices_by_serial.get(s)
+    )
+
     return mock_coordinator
 
 
@@ -128,6 +139,7 @@ def test_sensor_availability(
         MT_DOOR_DESCRIPTION,
     )
 
-    # Action 4: Correctly wipe data to test unavailability
+    # Correctly wipe data to test unavailability
+    mock_coordinator_mt_binary.data = None
     mock_coordinator_mt_binary.devices_by_serial = {}
     assert sensor.available is False
