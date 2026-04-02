@@ -56,6 +56,8 @@ async def test_async_gather_with_timeout_graceful_traffic_analysis(
 
     tasks = {"test_traffic": traffic_error_coro()}
 
+    import asyncio
+
     with patch(
         "custom_components.meraki_ha.core.coordinator_helpers.batch_utils._LOGGER"
     ) as mock_logger:
@@ -64,6 +66,11 @@ async def test_async_gather_with_timeout_graceful_traffic_analysis(
         )
 
         results = await async_gather_with_timeout(tasks, label="Test Graceful")
+
+    # Clean up unawaited coroutines
+    for task in tasks.values():
+        if asyncio.iscoroutine(task):
+            task.close()
 
     # Assert correct return type
     assert results["test_traffic"] is None

@@ -54,13 +54,26 @@ def test_build_network_tasks_skips_disabled(strategy, disabled_features):
     # Patch async methods to avoid unawaited coroutine warnings
     with (
         patch.object(
-            strategy.device_helper, "get_appliance_ports", return_value=[]
+            strategy.device_helper,
+            "get_appliance_ports",
+            new_callable=MagicMock,
+            return_value=[],
         ),
         patch.object(
-            strategy.uplink_helper, "get_uplink_performance", return_value=[]
+            strategy.uplink_helper,
+            "get_uplink_performance",
+            new_callable=MagicMock,
+            return_value=[],
         ),
     ):
         strategy.build_network_tasks(network_id, tasks)
+
+    import asyncio
+
+    # Clean up unawaited coroutines
+    for task in tasks.values():
+        if asyncio.iscoroutine(task):
+            task.close()
 
     assert f"traffic_{network_id}" not in tasks
     assert f"vlans_{network_id}" not in tasks
@@ -75,13 +88,26 @@ def test_build_network_tasks_includes_enabled(strategy, disabled_features):
     # Patch async methods to avoid unawaited coroutine warnings
     with (
         patch.object(
-            strategy.device_helper, "get_appliance_ports", return_value=[]
+            strategy.device_helper,
+            "get_appliance_ports",
+            new_callable=MagicMock,
+            return_value=[],
         ),
         patch.object(
-            strategy.uplink_helper, "get_uplink_performance", return_value=[]
+            strategy.uplink_helper,
+            "get_uplink_performance",
+            new_callable=MagicMock,
+            return_value=[],
         ),
     ):
         strategy.build_network_tasks(network_id, tasks)
+
+    import asyncio
+
+    # Clean up unawaited coroutines
+    for task in tasks.values():
+        if asyncio.iscoroutine(task):
+            task.close()
 
     assert f"traffic_{network_id}" in tasks
     assert f"vlans_{network_id}" in tasks
@@ -109,15 +135,24 @@ def test_build_network_tasks_respects_feature_flags(mock_client, disabled_featur
         patch.object(
             strategy_enabled.device_helper,
             "get_appliance_ports",
+            new_callable=MagicMock,
             return_value=[],
         ),
         patch.object(
             strategy_enabled.uplink_helper,
             "get_uplink_performance",
+            new_callable=MagicMock,
             return_value=[],
         ),
     ):
         strategy_enabled.build_network_tasks(network_id, tasks)
+
+    import asyncio
+
+    # Clean up unawaited coroutines
+    for task in tasks.values():
+        if asyncio.iscoroutine(task):
+            task.close()
 
     assert f"vpn_status_{network_id}" in tasks
     assert f"l3_firewall_rules_{network_id}" in tasks
@@ -138,15 +173,22 @@ def test_build_network_tasks_respects_feature_flags(mock_client, disabled_featur
         patch.object(
             strategy_disabled.device_helper,
             "get_appliance_ports",
+            new_callable=MagicMock,
             return_value=[],
         ),
         patch.object(
             strategy_disabled.uplink_helper,
             "get_uplink_performance",
+            new_callable=MagicMock,
             return_value=[],
         ),
     ):
         strategy_disabled.build_network_tasks(network_id, tasks)
+
+    # Clean up unawaited coroutines
+    for task in tasks.values():
+        if asyncio.iscoroutine(task):
+            task.close()
 
     assert f"vpn_status_{network_id}" not in tasks
     assert f"l3_firewall_rules_{network_id}" not in tasks
@@ -217,7 +259,11 @@ def test_process_device_details_ports(strategy):
         ]
     }
 
-    strategy.process_device_details(mock_device, detail_data, None)
+    # Patch uplink_helper to avoid unawaited coroutine warnings
+    with patch.object(
+        strategy.uplink_helper, "get_uplink_performance", new_callable=MagicMock
+    ):
+        strategy.process_device_details(mock_device, detail_data, None)
 
     assert len(mock_device.appliance_ports) == 2
     assert mock_device.appliance_ports[0].number == 1
