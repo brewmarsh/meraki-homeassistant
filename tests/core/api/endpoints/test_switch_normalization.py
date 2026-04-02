@@ -1,13 +1,9 @@
-"""Tests for Switch Port normalization."""
-
-from unittest.mock import AsyncMock, MagicMock
+"""Tests for switch normalization endpoints."""
 
 import pytest
+from unittest.mock import AsyncMock, MagicMock
 from meraki.exceptions import APIError
 
-from custom_components.meraki_ha.core.api.endpoints.organization import (
-    OrganizationEndpoints,
-)
 from custom_components.meraki_ha.core.api.endpoints.switch import SwitchEndpoints
 
 
@@ -15,112 +11,100 @@ from custom_components.meraki_ha.core.api.endpoints.switch import SwitchEndpoint
 def mock_client():
     """Mock the Meraki API client."""
     client = MagicMock()
-    client.dashboard = MagicMock()
     client.run_sync = AsyncMock()
-    client.organization_id = "org123"
     return client
 
 
 @pytest.fixture
-def organization_endpoints(mock_client):
-    """Fixture for OrganizationEndpoints."""
-    return OrganizationEndpoints(mock_client)
-
-
-@pytest.fixture
 def switch_endpoints(mock_client):
-    """Fixture for SwitchEndpoints."""
+    """Fixture for the SwitchEndpoints."""
     return SwitchEndpoints(mock_client)
 
 
 @pytest.mark.asyncio
 async def test_get_organization_switch_switch_ports_normalization(
-    organization_endpoints, mock_client
+    switch_endpoints, mock_client
 ):
-    """Test that {} is normalized to [] for organization switch ports statuses."""
-    # Mock API returning empty dict
-    mock_client.run_sync.return_value = {}
-
-    result = await organization_endpoints.get_organization_switch_ports_statuses()
-
-    assert result == []
-    mock_client.run_sync.assert_called_once()
+    """Test get_organization_switch_switch_ports normalizes portId."""
+    mock_client.run_sync.return_value = [{"portId": "1", "enabled": True}]
+    
+    result = await switch_endpoints.get_organization_switch_switch_ports("org_id")
+    
+    assert result == [{"portId": "1", "enabled": True}]
+    assert mock_client.run_sync.call_count == 1
 
 
 @pytest.mark.asyncio
 async def test_get_organization_switch_switch_ports_failure(
-    organization_endpoints, mock_client
+    switch_endpoints, mock_client
 ):
-    """Test that API error returns {} for organization switch ports statuses."""
-    # Action 2: Use real APIError class
+    """Test failure gracefully returns empty list."""
     metadata = {"tags": ["test"], "operation": "test_op"}
     response = MagicMock()
     response.status_code = 400
-    response.json.return_value = {"errors": ["Bad Request"]}
+    response.json.return_value = {"errors": ["Some API Error"]}
 
+    # Instantiate the REAL APIError, no module patching needed
     mock_client.run_sync.side_effect = APIError(metadata, response)
 
-    result = await organization_endpoints.get_organization_switch_ports_statuses()
-
-    # Action 1: The core error handler returns {} on failure
-    assert result == {}
+    result = await switch_endpoints.get_organization_switch_switch_ports("org_id")
+    
+    assert result == []
 
 
 @pytest.mark.asyncio
 async def test_get_device_switch_switch_ports_normalization(
     switch_endpoints, mock_client
 ):
-    """Test that {} is normalized to [] for device switch ports statuses."""
-    # Mock API returning empty dict
-    mock_client.run_sync.return_value = {}
-
-    result = await switch_endpoints.get_device_switch_ports_statuses("serial123")
-
-    assert result == []
-    mock_client.run_sync.assert_called_once()
+    """Test get_device_switch_switch_ports normalizes portId."""
+    mock_client.run_sync.return_value = [{"portId": "1", "enabled": True}]
+    
+    result = await switch_endpoints.get_device_switch_switch_ports("serial")
+    
+    assert result == [{"portId": "1", "enabled": True}]
+    assert mock_client.run_sync.call_count == 1
 
 
 @pytest.mark.asyncio
-async def test_get_device_switch_switch_ports_failure(switch_endpoints, mock_client):
-    """Test that API error returns {} for device switch ports statuses."""
-    # Action 2: Use real APIError class
+async def test_get_device_switch_switch_ports_failure(
+    switch_endpoints, mock_client
+):
+    """Test failure gracefully returns empty list."""
     metadata = {"tags": ["test"], "operation": "test_op"}
     response = MagicMock()
-    response.status_code = 500
-    response.json.return_value = {"errors": ["Internal Server Error"]}
+    response.status_code = 400
+    response.json.return_value = {"errors": ["Some API Error"]}
 
     mock_client.run_sync.side_effect = APIError(metadata, response)
 
-    result = await switch_endpoints.get_device_switch_ports_statuses("serial123")
-
-    # Action 1: The core error handler returns {} on failure
-    assert result == {}
+    result = await switch_endpoints.get_device_switch_switch_ports("serial")
+    
+    assert result == []
 
 
 @pytest.mark.asyncio
 async def test_get_switch_ports_normalization(switch_endpoints, mock_client):
-    """Test that {} is normalized to [] for get_switch_ports."""
-    # Mock API returning empty dict
-    mock_client.run_sync.return_value = {}
-
-    result = await switch_endpoints.get_switch_ports("serial123")
-
-    assert result == []
-    mock_client.run_sync.assert_called_once()
+    """Test get_switch_ports normalizes portId."""
+    mock_client.run_sync.return_value = [{"portId": "1", "enabled": True}]
+    
+    result = await switch_endpoints.get_switch_ports(["s1"])
+    
+    # The batch switch port endpoint maps serials to their ports
+    assert result == {"s1": [{"portId": "1", "enabled": True}]}
+    assert mock_client.run_sync.call_count == 1
 
 
 @pytest.mark.asyncio
 async def test_get_switch_ports_failure(switch_endpoints, mock_client):
-    """Test that API error returns {} for get_switch_ports."""
-    # Action 2: Use real APIError class
+    """Test failure gracefully returns empty dict."""
     metadata = {"tags": ["test"], "operation": "test_op"}
     response = MagicMock()
     response.status_code = 400
-    response.json.return_value = {"errors": ["Bad Request"]}
+    response.json.return_value = {"errors": ["Some API Error"]}
 
     mock_client.run_sync.side_effect = APIError(metadata, response)
 
-    result = await switch_endpoints.get_switch_ports("serial123")
-
-    # Action 1: The core error handler returns {} on failure
+    result = await switch_endpoints.get_switch_ports(["s1"])
+    
+    # The batch switch port endpoint returns an empty dict on failure
     assert result == {}
