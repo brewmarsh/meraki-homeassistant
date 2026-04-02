@@ -23,6 +23,7 @@ async def test_options_flow_defaults(hass: HomeAssistant) -> None:
         domain=DOMAIN,
         data={CONF_MERAKI_API_KEY: "test-api-key"},
         options=options,
+        entry_id="test_entry_id",
     )
     entry.add_to_hass(hass)
 

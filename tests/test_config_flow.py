@@ -89,6 +89,7 @@ async def test_options_flow(hass: HomeAssistant) -> None:
         domain=DOMAIN,
         data={CONF_MERAKI_API_KEY: "test-api-key"},
         options={},
+        entry_id="test_entry_id",
     )
     entry.add_to_hass(hass)
 
@@ -155,6 +156,7 @@ async def test_options_flow(hass: HomeAssistant) -> None:
 async def test_update_listener(hass: HomeAssistant) -> None:
     """Test the update listener."""
     entry = MockConfigEntry(domain=DOMAIN, entry_id="test_entry_id")
+    entry.add_to_hass(hass)
     # Action 2: Use AsyncMock for reload
     with patch(
         "homeassistant.config_entries.ConfigEntries.async_reload",
