@@ -29,7 +29,7 @@ def strategy(mock_client, disabled_features):
     """Fixture for the WirelessFetchStrategy."""
     return WirelessFetchStrategy(
         client=mock_client,
-        _disabled_features=disabled_features,
+        disabled_features=disabled_features,
     )
 
 
@@ -43,7 +43,7 @@ def test_build_network_tasks(strategy, mock_client):
     strategy.build_network_tasks(network_id, product_types, tasks)
 
     mock_client.wireless.get_network_detail_tasks.assert_called_once_with(
-        network_id, product_types
+        network_id, product_types, static_data={}
     )
     assert "task1" in tasks
 
