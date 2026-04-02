@@ -24,8 +24,10 @@ def mock_coordinator_mt15(mock_coordinator: MagicMock) -> MagicMock:
     # Ensure both data structures used by MerakiEntity availability are set
     mock_coordinator.data = {
         "devices": [device],
+        "devices_by_serial": {"mt15-1": device},
     }
     mock_coordinator.devices_by_serial = {"mt15-1": device}
+    mock_coordinator.get_device.return_value = device
     mock_coordinator.last_update_success = True
     return mock_coordinator
 

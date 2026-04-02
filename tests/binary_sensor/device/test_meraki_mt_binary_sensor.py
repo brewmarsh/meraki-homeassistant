@@ -129,5 +129,5 @@ def test_sensor_availability(
     )
 
     # Action 4: Correctly wipe data to test unavailability
-    mock_coordinator_mt_binary.devices_by_serial = {}
+    mock_coordinator_mt_binary.data = None
     assert sensor.available is False

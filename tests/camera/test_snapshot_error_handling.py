@@ -44,8 +44,8 @@ async def test_camera_image_api_error(
         image = await mock_camera.async_camera_image()
 
         assert image is None
-        mock_logger.warning.assert_called_once()
-        assert "Failed to fetch camera snapshot" in mock_logger.warning.call_args[0][0]
+        mock_logger.debug.assert_called_once()
+        assert "Failed to fetch camera snapshot" in mock_logger.debug.call_args[0][0]
 
 
 @pytest.mark.asyncio
@@ -72,7 +72,7 @@ async def test_camera_image_download_error(
             image = await mock_camera.async_camera_image()
 
             assert image is None
-            mock_logger.warning.assert_called_once()
+            mock_logger.debug.assert_called_once()
             assert (
-                "Failed to fetch camera snapshot" in mock_logger.warning.call_args[0][0]
+                "Failed to fetch camera snapshot" in mock_logger.debug.call_args[0][0]
             )
