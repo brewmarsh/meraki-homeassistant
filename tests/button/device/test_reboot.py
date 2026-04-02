@@ -16,6 +16,10 @@ def mock_coordinator():
     coordinator = MagicMock()
     coordinator.data = {}
     coordinator.devices_by_serial = {}
+    # Mock get_device to return devices from the mapping
+    coordinator.get_device.side_effect = (
+        lambda s: coordinator.devices_by_serial.get(s)
+    )
     return coordinator
 
 
@@ -57,6 +61,13 @@ async def test_reboot_button_initialization(
     mock_config_entry: ConfigEntry,
 ):
     """Test the button initialization."""
+    # Ensure device is available for initialization if checks are performed
+    mock_coordinator.devices_by_serial = {mock_device.serial: mock_device}
+    mock_coordinator.data = {
+        "devices": [mock_device],
+        "devices_by_serial": mock_coordinator.devices_by_serial,
+    }
+
     button = MerakiRebootButton(
         mock_coordinator, mock_control_service, mock_device, mock_config_entry
     )
@@ -73,9 +84,12 @@ async def test_reboot_button_availability(
     mock_config_entry: ConfigEntry,
 ):
     """Test the button availability."""
-    # Action 4: Setup coordinator data for MerakiEntity availability
+    # Setup coordinator data for MerakiEntity availability
     mock_coordinator.devices_by_serial = {"Q2XX-XXXX-XXXX": mock_device}
-    mock_coordinator.data = {"devices": [mock_device]}
+    mock_coordinator.data = {
+        "devices": [mock_device],
+        "devices_by_serial": mock_coordinator.devices_by_serial,
+    }
 
     button = MerakiRebootButton(
         mock_coordinator, mock_control_service, mock_device, mock_config_entry
@@ -107,6 +121,13 @@ async def test_reboot_button_press(
     mock_config_entry: ConfigEntry,
 ):
     """Test the button press action."""
+    # Ensure device is available for serial lookup
+    mock_coordinator.devices_by_serial = {mock_device.serial: mock_device}
+    mock_coordinator.data = {
+        "devices": [mock_device],
+        "devices_by_serial": mock_coordinator.devices_by_serial,
+    }
+
     button = MerakiRebootButton(
         mock_coordinator, mock_control_service, mock_device, mock_config_entry
     )
