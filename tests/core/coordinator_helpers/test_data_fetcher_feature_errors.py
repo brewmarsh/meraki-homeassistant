@@ -8,10 +8,6 @@ import pytest
 from custom_components.meraki_ha.core.coordinator_helpers.data_fetcher import (
     DataFetchManager,
 )
-from custom_components.meraki_ha.core.errors import (
-    MerakiTrafficAnalysisError,
-    MerakiVlansDisabledError,
-)
 
 
 class MockAPIError(meraki.APIError):
@@ -71,9 +67,9 @@ async def test_async_gather_with_timeout_intercepts_traffic_analysis_error(
         results = await async_gather_with_timeout(tasks, label="Test Intercept")
 
     # Assert
-    assert isinstance(results["test_key"], MerakiTrafficAnalysisError)
+    assert results["test_key"] is None
     mock_logger.debug.assert_any_call(
-        "Skipping %s: Configuration requirement not met in Meraki Dashboard.",
+        "Skipping %s: Configuration requirement not met in Dashboard.",
         "test_key",
     )
     # Ensure NO error was logged
@@ -99,9 +95,9 @@ async def test_async_gather_with_timeout_intercepts_vlans_error(data_fetch_manag
         results = await async_gather_with_timeout(tasks, label="Test Intercept")
 
     # Assert
-    assert isinstance(results["test_key"], MerakiVlansDisabledError)
+    assert results["test_key"] is None
     mock_logger.debug.assert_any_call(
-        "Skipping %s: Configuration requirement not met in Meraki Dashboard.",
+        "Skipping %s: Configuration requirement not met in Dashboard.",
         "test_key",
     )
     # Ensure NO error was logged

@@ -8,10 +8,6 @@ import pytest
 from custom_components.meraki_ha.core.coordinator_helpers.data_fetcher import (
     DataFetchManager,
 )
-from custom_components.meraki_ha.core.errors import (
-    MerakiTrafficAnalysisError,
-    MerakiVlansDisabledError,
-)
 
 
 class MockAPIError(meraki.APIError):
@@ -69,12 +65,12 @@ async def test_async_gather_with_timeout_graceful_traffic_analysis(
 
         results = await async_gather_with_timeout(tasks, label="Test Graceful")
 
-    # Assert correct return type (SkipObject/Exception)
-    assert isinstance(results["test_traffic"], MerakiTrafficAnalysisError)
+    # Assert correct return type
+    assert results["test_traffic"] is None
 
     # Assert correct log message and level
     mock_logger.debug.assert_any_call(
-        "Skipping %s: Configuration requirement not met in Meraki Dashboard.",
+        "Skipping %s: Configuration requirement not met in Dashboard.",
         "test_traffic",
     )
     # Ensure NO error was logged
@@ -101,11 +97,11 @@ async def test_async_gather_with_timeout_graceful_vlans(data_fetch_manager):
         results = await async_gather_with_timeout(tasks, label="Test Graceful")
 
     # Assert correct return type
-    assert isinstance(results["test_vlans"], MerakiVlansDisabledError)
+    assert results["test_vlans"] is None
 
     # Assert correct log message and level
     mock_logger.debug.assert_any_call(
-        "Skipping %s: Configuration requirement not met in Meraki Dashboard.",
+        "Skipping %s: Configuration requirement not met in Dashboard.",
         "test_vlans",
     )
     # Ensure NO error was logged
@@ -133,9 +129,9 @@ async def test_async_gather_with_timeout_handles_wrapped_meraki_errors(
 
         results = await async_gather_with_timeout(tasks, label="Test Wrapped")
 
-    assert isinstance(results["test_wrapped"], MerakiVlansDisabledError)
+    assert results["test_wrapped"] is None
     mock_logger.debug.assert_any_call(
-        "Skipping %s: Configuration requirement not met in Meraki Dashboard.",
+        "Skipping %s: Configuration requirement not met in Dashboard.",
         "test_wrapped",
     )
     mock_logger.error.assert_not_called()
