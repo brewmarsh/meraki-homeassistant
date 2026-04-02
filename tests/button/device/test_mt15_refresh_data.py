@@ -26,6 +26,7 @@ def mock_coordinator_mt15(mock_coordinator: MagicMock) -> MagicMock:
         "devices": [device],
     }
     mock_coordinator.devices_by_serial = {"mt15-1": device}
+    mock_coordinator.get_device.side_effect = lambda x: mock_coordinator.devices_by_serial.get(x)
     mock_coordinator.last_update_success = True
     return mock_coordinator
 

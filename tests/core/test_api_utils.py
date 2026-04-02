@@ -45,11 +45,11 @@ async def test_feature_disabled_traffic_analysis(mock_instance):
     with patch(
         "custom_components.meraki_ha.core.utils.api.handlers._LOGGER"
     ) as mock_logger:
-        result = await decorated(mock_instance, "net-123")
+        result = await decorated(mock_instance, "N_123")
 
         assert result == {}
         mock_instance._api_client.mark_feature_disabled.assert_called_with(
-            "traffic", "net-123"
+            "api_call", "N_123"
         )
         mock_logger.debug.assert_called()
 
@@ -69,11 +69,11 @@ async def test_feature_disabled_vlan(mock_instance):
 
     decorated = handle_meraki_errors(api_call)
 
-    result = await decorated(mock_instance, "net-123")
+    result = await decorated(mock_instance, "N_123")
 
     assert result == []
     mock_instance._api_client.mark_feature_disabled.assert_called_with(
-        "vlans", "net-123"
+        "api_call", "N_123"
     )
 
 

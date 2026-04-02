@@ -75,6 +75,7 @@ async def test_reboot_button_availability(
     """Test the button availability."""
     # Action 4: Setup coordinator data for MerakiEntity availability
     mock_coordinator.devices_by_serial = {"Q2XX-XXXX-XXXX": mock_device}
+    mock_coordinator.get_device.side_effect = lambda x: mock_coordinator.devices_by_serial.get(x)
     mock_coordinator.data = {"devices": [mock_device]}
 
     button = MerakiRebootButton(

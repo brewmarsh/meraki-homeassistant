@@ -11,6 +11,7 @@ from custom_components.meraki_ha.core.api.endpoints.network import NetworkEndpoi
 @pytest.fixture
 def mock_client():
     """Mock the Meraki API client."""
+    from unittest.mock import AsyncMock
     client = MagicMock()
     client.dashboard = MagicMock()
     client.run_sync = AsyncMock()
@@ -19,6 +20,11 @@ def mock_client():
         return await coro
 
     client.run_with_semaphore = AsyncMock(side_effect=mock_run_with_semaphore)
+
+    async def mock_run_with_cache(key, func, ttl=None):
+        return await func()
+    client.run_with_cache = AsyncMock(side_effect=mock_run_with_cache)
+
     return client
 
 
@@ -53,10 +59,9 @@ async def test_get_group_policies_failure(network, mock_client):
 
     mock_client.run_sync.side_effect = APIError(metadata, response)
 
-    result = await network.get_group_policies("net1")
-
-    # Returns {} on failure due to decorator
-    assert result == {}
+    from custom_components.meraki_ha.core.errors import MerakiConnectionError
+    with pytest.raises(MerakiConnectionError):
+        await network.get_group_policies("net1")
 
 
 @pytest.mark.asyncio
@@ -94,10 +99,10 @@ async def test_get_network_events_failure(network, mock_client):
 
     mock_client.run_sync.side_effect = APIError(metadata, response)
 
-    result = await network.get_network_events("N_123")
-
-    # Action 3: Expect {} on failure
-    assert result == {}
+    # APIError 500 bubbles up as MerakiConnectionError
+    from custom_components.meraki_ha.core.errors import MerakiConnectionError
+    with pytest.raises(MerakiConnectionError):
+        await network.get_network_events("N_123")
 
 
 @pytest.mark.asyncio
