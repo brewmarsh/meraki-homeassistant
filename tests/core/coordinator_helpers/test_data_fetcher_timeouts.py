@@ -31,6 +31,12 @@ def mock_client():
     client._disabled_features = set()
     client.has_dashboard = True
 
+    # Ensure run_with_cache is an AsyncMock and works
+    async def mock_run_with_cache(cache_key, func, ttl=None):
+        return await func()
+
+    client.run_with_cache = AsyncMock(side_effect=mock_run_with_cache)
+
     async def run_with_semaphore_side_effect(coro):
         """Side effect to return a completed future and close input coroutine."""
         if asyncio.iscoroutine(coro):
@@ -52,6 +58,7 @@ async def test_fetch_initial_data_timeout(data_fetch_manager, mock_client):
     """Test that _async_fetch_batch_data logs error and raises TimeoutError."""
     with patch(
         "custom_components.meraki_ha.core.coordinator_helpers.batch_utils.asyncio.wait_for",
+        new_callable=AsyncMock,
         side_effect=clean_exit_wait_for,
     ):
         with patch(
@@ -79,6 +86,7 @@ async def test_get_all_data_detailed_timeout(data_fetch_manager, mock_client):
 
     with patch(
         "custom_components.meraki_ha.core.coordinator_helpers.batch_utils.asyncio.wait_for",
+        new_callable=AsyncMock,
         side_effect=clean_exit_wait_for,
     ):
         with patch(
@@ -117,6 +125,7 @@ async def test_get_all_data_client_timeout(data_fetch_manager, mock_client):
     # We also need detail batch to succeed (or return empty) so we reach client fetch.
     with patch(
         "custom_components.meraki_ha.core.coordinator_helpers.data_fetcher.async_gather_with_timeout",
+        new_callable=AsyncMock,
         side_effect=[{}, clean_exit_wait_for],
     ):
         with patch(

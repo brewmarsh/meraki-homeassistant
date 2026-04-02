@@ -30,6 +30,7 @@ async def test_form(hass: HomeAssistant) -> None:
         ) as mock_create_client,
         patch(
             "custom_components.meraki_ha.async_setup_entry",
+            new_callable=AsyncMock,
             return_value=True,
         ) as mock_setup_entry,
     ):
