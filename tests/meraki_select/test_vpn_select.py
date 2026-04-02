@@ -29,13 +29,23 @@ def mock_config_entry() -> MockConfigEntry:
 def mock_meraki_client() -> MagicMock:
     """Fixture for a mocked MerakiApiClientProtocol."""
     client = MagicMock()
+    client.organization_id = "fake_org"
+    client.async_setup = AsyncMock()
+    client.has_dashboard = True
+    client.unregister_webhook = AsyncMock()
+
     # Mock the appliance object (must be MagicMock for attribute access)
     client.appliance = MagicMock()
     client.appliance.update_vpn_status = AsyncMock()
-    client.unregister_webhook = AsyncMock(return_value=None)
     client.appliance.get_network_appliance_content_filtering_categories = AsyncMock(
         return_value={"categories": []}
     )
+
+    client.organization = MagicMock()
+    client.organization.get_organization_networks = AsyncMock(return_value=[])
+
+    client.network = MagicMock()
+    client.network.unregister_webhook = AsyncMock()
 
     return client
 
@@ -48,7 +58,7 @@ def mock_data_fetch_manager() -> AsyncMock:
     manager = AsyncMock()
     mock_data = {
         "devices": [
-            MerakiDevice(serial="Q234-ABCD-VPN", model="MX64", name="VPN Appliance")
+            MerakiDevice(serial="Q234-ABCD-VPN", model="MX6", name="VPN Appliance")
         ],
         "networks": [MOCK_NETWORK],
         "vpn_status": {MOCK_NETWORK.id: MerakiVpn(mode="spoke", hubs=[], subnets=[])},
@@ -102,11 +112,13 @@ async def test_vpn_select_entity(
                 break
 
         assert target_entity is not None
+        assert target_entity.unique_id == f"meraki-network-{MOCK_NETWORK.id}-vpn"
 
         # Verify state
         state = hass.states.get(target_entity.entity_id)
         assert state is not None
         assert state.state == "spoke"
+        assert state.attributes["options"] == ["none", "spoke", "hub"]
 
         # Test selection
         await hass.services.async_call(
@@ -121,3 +133,7 @@ async def test_vpn_select_entity(
             network_id=MOCK_NETWORK.id,
             mode="hub",
         )
+
+        # Ensure integration unloads while mocks are still active
+        assert await hass.config_entries.async_unload(mock_config_entry.entry_id)
+        await hass.async_block_till_done()

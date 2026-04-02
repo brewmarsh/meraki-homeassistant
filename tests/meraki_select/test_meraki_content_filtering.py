@@ -32,11 +32,12 @@ def mock_meraki_client() -> MagicMock:
     """Fixture for a mocked MerakiApiClientProtocol."""
     client = MagicMock()
     client.organization_id = "fake_org"
+    client.async_setup = AsyncMock()
+    client.has_dashboard = True
+    client.unregister_webhook = AsyncMock()
 
     client.appliance = MagicMock()
     client.appliance.update_network_appliance_content_filtering = AsyncMock()
-
-    client.unregister_webhook = AsyncMock(return_value=None)
     client.appliance.get_network_appliance_content_filtering_categories = AsyncMock(
         return_value={
             "categories": [
@@ -48,8 +49,11 @@ def mock_meraki_client() -> MagicMock:
         }
     )
 
-    client.async_setup = AsyncMock()
-    client.has_dashboard = True
+    client.organization = MagicMock()
+    client.organization.get_organization_networks = AsyncMock(return_value=[])
+
+    client.network = MagicMock()
+    client.network.unregister_webhook = AsyncMock()
 
     return client
 
@@ -67,7 +71,7 @@ def mock_data_fetch_manager() -> AsyncMock:
     data = {
         "devices": [
             MerakiDevice(
-                serial="Q234-ABCD-CF", model="MX64", name="Filtering Appliance"
+                serial="Q234-ABCD-CF", model="MX6", name="Filtering Appliance"
             )
         ],
         "networks": [MOCK_NETWORK],
@@ -134,11 +138,14 @@ async def test_content_filtering_select_entity(
 
         assert target_entity is not None
         assert target_entity.domain == "select"
+        assert target_entity.unique_id == f"meraki-network-{MOCK_NETWORK.id}-content-filtering-profile"
 
         # Verify state (Security profile matches the mocked data)
         state = hass.states.get(target_entity.entity_id)
         assert state is not None
+        # 3 categories -> Security
         assert state.state == "Security"
+        assert state.attributes["options"] == ["None", "Security", "Family", "Strict"]
 
         # Test selection
         await hass.services.async_call(
@@ -153,3 +160,7 @@ async def test_content_filtering_select_entity(
             network_id=MOCK_NETWORK.id,
             blockedUrlCategories=["meraki:contentFiltering/category/1"],
         )
+
+        # Ensure integration unloads while mocks are still active
+        assert await hass.config_entries.async_unload(mock_config_entry.entry_id)
+        await hass.async_block_till_done()

@@ -44,11 +44,22 @@ def mock_meraki_client() -> MagicMock:
     """Fixture for a mocked MerakiApiClientProtocol."""
     client = MagicMock()
     client.organization_id = TEST_ORG_ID
-    client.appliance = MagicMock()
-    client.appliance.update_network_appliance_content_filtering = AsyncMock()
-    client.unregister_webhook = AsyncMock(return_value=None)
     client.async_setup = AsyncMock()
     client.has_dashboard = True
+    client.unregister_webhook = AsyncMock()
+
+    client.appliance = MagicMock()
+    client.appliance.update_network_appliance_content_filtering = AsyncMock()
+    client.appliance.get_network_appliance_content_filtering_categories = AsyncMock(
+        return_value={"categories": []}
+    )
+
+    client.organization = MagicMock()
+    client.organization.get_organization_networks = AsyncMock(return_value=[])
+
+    client.network = MagicMock()
+    client.network.unregister_webhook = AsyncMock()
+
     return client
 
 
@@ -62,7 +73,7 @@ def mock_data_fetch_manager() -> AsyncMock:
     data = {
         "devices": [
             MerakiDevice(
-                serial="Q234-ABCD-CF", model="MX64", name="Filtering Appliance"
+                serial="Q234-ABCD-CF", model="MX6", name="Filtering Appliance"
             )
         ],
         "networks": [TEST_NETWORK],
@@ -120,16 +131,22 @@ async def test_content_filtering_select_dict_response(
         entity_registry = er.async_get(hass)
         entries = list(entity_registry.entities.values())
 
-        target_entity_id = None
+        target_entity = None
         for e in entries:
             if "content-filtering" in str(e.unique_id) and e.domain == "select":
-                target_entity_id = e.entity_id
+                target_entity = e
                 break
 
-        assert target_entity_id is not None
+        assert target_entity is not None
+        assert target_entity.unique_id == f"meraki-network-{TEST_NETWORK_ID}-content-filtering-profile"
 
         # This access should trigger the TypeError if the bug exists
-        state = hass.states.get(target_entity_id)
+        state = hass.states.get(target_entity.entity_id)
         assert state is not None
-        # Once fixed, this should match 'Security'
+        # 3 categories -> Security
         assert state.state == "Security"
+        assert state.attributes["options"] == ["None", "Security", "Family", "Strict"]
+
+        # Ensure integration unloads while mocks are still active
+        assert await hass.config_entries.async_unload(mock_config_entry.entry_id)
+        await hass.async_block_till_done()

@@ -28,13 +28,25 @@ def mock_config_entry() -> MockConfigEntry:
 def mock_meraki_client() -> MagicMock:
     """Fixture for a mocked MerakiApiClientProtocol."""
     client = MagicMock()
+    client.organization_id = "fake_org"
+    client.async_setup = AsyncMock()
+    client.has_dashboard = True
+    client.unregister_webhook = AsyncMock()
+
     # Mock the wireless object
     client.wireless = MagicMock()
     client.wireless.update_network_wireless_ssid = AsyncMock()
-    client.unregister_webhook = AsyncMock(return_value=None)
+
+    client.appliance = MagicMock()
     client.appliance.get_network_appliance_content_filtering_categories = AsyncMock(
         return_value={"categories": []}
     )
+
+    client.organization = MagicMock()
+    client.organization.get_organization_networks = AsyncMock(return_value=[])
+
+    client.network = MagicMock()
+    client.network.unregister_webhook = AsyncMock()
 
     return client
 
@@ -43,32 +55,39 @@ def mock_meraki_client() -> MagicMock:
 def mock_data_fetch_manager() -> AsyncMock:
     """Fixture for a mocked DataFetchManager."""
     manager = AsyncMock()
-    manager.get_all_data = AsyncMock(
-        return_value={
-            "devices": [],
-            "networks": [MOCK_NETWORK],
-            "ssids": [
-                {
-                    "networkId": MOCK_NETWORK.id,
-                    "number": 1,
-                    "name": "Test SSID",
-                    "rfProfileId": "p1",
-                }
-            ],
-            "rf_profiles": {
-                MOCK_NETWORK.id: [
-                    {"id": "p1", "name": "Profile 1"},
-                    {"id": "p2", "name": "Profile 2"},
-                ]
-            },
-            "vpn_status": {},
-            "clients": [],
-            "vlans": {},
-            "appliance_uplink_statuses": [],
-            "appliance_traffic": {},
-            "content_filtering": {},
-        }
-    )
+    from custom_components.meraki_ha.types import MerakiDevice
+
+    mock_data = {
+        "devices": [
+            MerakiDevice(
+                serial="Q234-ABCD-RF", model="MR36", name="Wireless AP"
+            )
+        ],
+        "networks": [MOCK_NETWORK],
+        "ssids": [
+            {
+                "networkId": MOCK_NETWORK.id,
+                "number": 1,
+                "name": "Test SSID",
+                "rfProfileId": "p1",
+            }
+        ],
+        "rf_profiles": {
+            MOCK_NETWORK.id: [
+                {"id": "p1", "name": "Profile 1"},
+                {"id": "p2", "name": "Profile 2"},
+            ]
+        },
+        "vpn_status": {},
+        "clients": [],
+        "vlans": {},
+        "appliance_uplink_statuses": [],
+        "appliance_traffic": {},
+        "content_filtering": {},
+    }
+    manager.get_all_data = AsyncMock(return_value=mock_data)
+    manager.get_device_data = AsyncMock(return_value=mock_data)
+    manager.get_sensor_data = AsyncMock(return_value=mock_data)
     return manager
 
 
@@ -84,7 +103,7 @@ async def test_rf_profile_select_entity(
 
     with (
         patch(
-            "custom_components.meraki_ha.coordinators.base.ApiClient",
+            "custom_components.meraki_ha.create_api_client",
             return_value=mock_meraki_client,
         ),
         patch(
@@ -98,11 +117,12 @@ async def test_rf_profile_select_entity(
 
         # Find the entity by searching the registry
         entity_registry = er.async_get(hass)
-        entity_id = entity_registry.async_get_entity_id(
-            "select", DOMAIN, f"{MOCK_NETWORK.id}ssid1_rf_profile"
-        )
+        unique_id = f"meraki-network-{MOCK_NETWORK.id}-ssid-1-rf-profile"
+        entity_id = entity_registry.async_get_entity_id("select", DOMAIN, unique_id)
 
         assert entity_id is not None
+        entry = entity_registry.async_get(entity_id)
+        assert entry.unique_id == unique_id
 
         # Verify state
         state = hass.states.get(entity_id)
@@ -141,3 +161,7 @@ async def test_rf_profile_select_entity(
             number=1,
             rfProfileId=None,
         )
+
+        # Ensure integration unloads while mocks are still active
+        assert await hass.config_entries.async_unload(mock_config_entry.entry_id)
+        await hass.async_block_till_done()

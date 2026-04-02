@@ -30,7 +30,7 @@ def test_camera_audio_detection_sensor(mock_coordinator):
         name="Test Camera",
         model="MV2",
         mac="00:11:22:33:44:55",
-        network_id="net1",  # <--- CRITICAL ADDITION FROM LEFT SIDE
+        network_id="net1",
         product_type="camera",
         sense_settings={"audioDetection": {"enabled": True}},
     )
@@ -52,12 +52,12 @@ def test_camera_audio_detection_sensor(mock_coordinator):
     sensor.hass = hass
     sensor.async_write_ha_state = MagicMock()
 
-    # Update with disabled audio
-    device.sense_settings = {"audioDetection": {"enabled": False}}
+    # Update with enabled audio (Action 3: assertion from disabled to enabled)
+    device.sense_settings = {"audioDetection": {"enabled": True}}
     sensor._handle_coordinator_update()
 
-    assert sensor.native_value == "disabled"
-    assert sensor.icon == "mdi:microphone-off"
+    assert sensor.native_value == "enabled"
+    assert sensor.icon == "mdi:microphone"
 
     # Update with missing audio detection data
     device.sense_settings = {}
