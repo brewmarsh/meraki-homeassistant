@@ -1,19 +1,18 @@
 """Test the Meraki HA config flow."""
 
-from unittest.mock import MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
-from homeassistant.core import HomeAssistant
-from homeassistant.data_entry_flow import FlowResultType
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.meraki_ha.const.config import (
-    CONF_ENABLE_CAMERA_ENTITIES,
     CONF_ENABLE_DEVICE_STATUS,
     CONF_MERAKI_API_KEY,
     CONF_MERAKI_ORG_ID,
 )
 from custom_components.meraki_ha.const.integration import DOMAIN
 from homeassistant import config_entries, setup
+from homeassistant.core import HomeAssistant
+from homeassistant.data_entry_flow import FlowResultType
 
 
 async def test_form(hass: HomeAssistant) -> None:
@@ -37,15 +36,10 @@ async def test_form(hass: HomeAssistant) -> None:
         mock_client = MagicMock()
         mock_create_client.return_value = mock_client
 
-        async def mock_async_setup():
-            pass
-
-        mock_client.async_setup = mock_async_setup
-
-        async def mock_get_organizations():
-            return [{"id": "test-org-id", "name": "Test Org"}]
-
-        mock_client.get_organizations = mock_get_organizations
+        mock_client.async_setup = AsyncMock()
+        mock_client.get_organizations = AsyncMock(
+            return_value=[{"id": "test-org-id", "name": "Test Org"}]
+        )
 
         result2 = await hass.config_entries.flow.async_configure(
             result["flow_id"],
@@ -67,6 +61,7 @@ async def test_form(hass: HomeAssistant) -> None:
 
 async def test_form_cannot_connect(hass: HomeAssistant) -> None:
     """Test we handle cannot connect error."""
+    result = await setup.async_setup_component(hass, "persistent_notification", {})
     result = await hass.config_entries.flow.async_init(
         DOMAIN, context={"source": config_entries.SOURCE_USER}
     )
@@ -113,7 +108,7 @@ async def test_options_flow(hass: HomeAssistant) -> None:
     with patch(
         "homeassistant.config_entries.ConfigEntries.async_reload",
         return_value=None,
-    ) as mock_reload:
+    ):
         result_save = await hass.config_entries.options.async_configure(
             result_general["flow_id"],
             user_input={
@@ -138,7 +133,7 @@ async def test_options_flow(hass: HomeAssistant) -> None:
     with patch(
         "homeassistant.config_entries.ConfigEntries.async_reload",
         return_value=None,
-    ) as mock_reload:
+    ):
         result_save = await hass.config_entries.options.async_configure(
             result_sensors["flow_id"],
             user_input={

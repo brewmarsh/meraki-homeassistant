@@ -90,11 +90,9 @@ async def test_get_all_data_resilience_to_none(data_fetch_manager, mock_client):
     # Act
     with (
         patch(
-            "custom_components.meraki_ha.core.coordinator_helpers.data_fetcher.parse_appliance_data"
+            "custom_components.meraki_ha.core.parsers.appliance.parse_appliance_data"
         ),
-        patch(
-            "custom_components.meraki_ha.core.coordinator_helpers.data_fetcher.parse_sensor_data"
-        ),
+        patch("custom_components.meraki_ha.core.parsers.sensors.parse_sensor_data"),
         patch(
             "custom_components.meraki_ha.core.coordinator_helpers.data_fetcher.async_gather_with_timeout",
             new_callable=AsyncMock,

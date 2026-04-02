@@ -1,10 +1,9 @@
 """Tests for the API utils."""
 
-from unittest.mock import AsyncMock, call, patch
+from unittest.mock import AsyncMock, MagicMock, call, patch
 
 import pytest
 from aiohttp import ClientError
-from homeassistant.helpers.update_coordinator import UpdateFailed
 from meraki.exceptions import APIError
 
 from custom_components.meraki_ha.core.errors import (
@@ -17,6 +16,7 @@ from custom_components.meraki_ha.core.utils.api_utils import (
     handle_meraki_errors,
     validate_response,
 )
+from homeassistant.helpers.update_coordinator import UpdateFailed
 
 
 @handle_meraki_errors
@@ -25,55 +25,37 @@ async def dummy_api_call():
     return {"status": "ok"}
 
 
-class MockResponse:
-    """Mock response for APIError."""
-
-    def __init__(self, status_code, reason, json_data, headers=None):
-        """Initialize the mock response."""
-        self.status_code = status_code
-        self.reason = reason
-        self._json_data = json_data
-        self.headers = headers or {}
-
-    def json(self):
-        """Return the json data."""
-        return self._json_data
+def create_api_error(status_code, errors):
+    """Helper to create a real APIError."""
+    metadata = {"tags": ["test"], "operation": "test"}
+    response = MagicMock()
+    response.status_code = status_code
+    response.json.return_value = {"errors": errors}
+    return APIError(metadata, response)
 
 
 @handle_meraki_errors
 async def dummy_api_call_auth_error():
     """Call a dummy API that raises an auth error."""
-    raise APIError(
-        {"tags": ["test"], "operation": "test"},
-        MockResponse(401, "Unauthorized", {"errors": ["invalid api key"]}),
-    )
+    raise create_api_error(401, ["invalid api key"])
 
 
 @handle_meraki_errors
 async def dummy_api_call_device_error():
     """Call a dummy API that raises a device error."""
-    raise APIError(
-        {"tags": ["test"], "operation": "test"},
-        MockResponse(500, "Internal Server Error", {"errors": ["device not found"]}),
-    )
+    raise create_api_error(500, ["device not found"])
 
 
 @handle_meraki_errors
 async def dummy_api_call_network_error():
     """Call a dummy API that raises a network error."""
-    raise APIError(
-        {"tags": ["test"], "operation": "test"},
-        MockResponse(500, "Internal Server Error", {"errors": ["network not found"]}),
-    )
+    raise create_api_error(500, ["network not found"])
 
 
 @handle_meraki_errors
 async def dummy_api_call_rate_limit_error():
     """Call a dummy API that raises a rate limit error."""
-    raise APIError(
-        {"tags": ["test"], "operation": "test"},
-        MockResponse(429, "Too Many Requests", {"errors": ["rate limit exceeded"]}),
-    )
+    raise create_api_error(429, ["rate limit exceeded"])
 
 
 @handle_meraki_errors
@@ -148,12 +130,7 @@ async def test_handle_meraki_errors_rate_limit_backoff():
         nonlocal call_count
         call_count += 1
         if call_count == 1:
-            raise APIError(
-                {"tags": ["test"], "operation": "test"},
-                MockResponse(
-                    429, "Too Many Requests", {"errors": ["rate limit exceeded"]}
-                ),
-            )
+            raise create_api_error(429, ["rate limit exceeded"])
         return {"status": "ok"}
 
     with patch("asyncio.sleep", new_callable=AsyncMock) as mock_sleep:
@@ -173,15 +150,12 @@ async def test_handle_meraki_errors_rate_limit_retry_after():
         nonlocal call_count
         call_count += 1
         if call_count == 1:
-            raise APIError(
-                {"tags": ["test"], "operation": "test"},
-                MockResponse(
-                    429,
-                    "Too Many Requests",
-                    {"errors": ["rate limit exceeded"]},
-                    headers={"Retry-After": "10"},
-                ),
-            )
+            metadata = {"tags": ["test"], "operation": "test"}
+            response = MagicMock()
+            response.status_code = 429
+            response.json.return_value = {"errors": ["rate limit exceeded"]}
+            response.headers = {"Retry-After": "10"}
+            raise APIError(metadata, response)
         return {"status": "ok"}
 
     with patch("asyncio.sleep", new_callable=AsyncMock) as mock_sleep:
@@ -197,10 +171,7 @@ async def test_handle_meraki_errors_rate_limit_max_retries():
 
     @handle_meraki_errors
     async def dummy_api_call_always_429():
-        raise APIError(
-            {"tags": ["test"], "operation": "test"},
-            MockResponse(429, "Too Many Requests", {"errors": ["rate limit exceeded"]}),
-        )
+        raise create_api_error(429, ["rate limit exceeded"])
 
     with patch("asyncio.sleep", new_callable=AsyncMock) as mock_sleep:
         with pytest.raises(UpdateFailed) as excinfo:

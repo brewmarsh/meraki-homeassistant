@@ -31,15 +31,13 @@ def mock_client():
     client._disabled_features = set()
     client.has_dashboard = True
 
-    def run_with_semaphore_side_effect(coro):
+    async def run_with_semaphore_side_effect(coro):
         """Side effect to return a completed future and close input coroutine."""
         if asyncio.iscoroutine(coro):
             coro.close()
-        f = asyncio.Future()
-        f.set_result({})
-        return f
+        return {}
 
-    client.run_with_semaphore = MagicMock(side_effect=run_with_semaphore_side_effect)
+    client.run_with_semaphore = AsyncMock(side_effect=run_with_semaphore_side_effect)
     return client
 
 

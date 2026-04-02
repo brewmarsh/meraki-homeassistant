@@ -11,19 +11,6 @@ from custom_components.meraki_ha.core.api import (
 from custom_components.meraki_ha.core.utils.api_utils import handle_meraki_errors
 
 
-class MockResponse:
-    """Mock response for APIError."""
-
-    def __init__(self, status_code, reason, json_data):
-        self.status_code = status_code
-        self.reason = reason
-        self._json_data = json_data
-
-    def json(self):
-        """Return the JSON data."""
-        return self._json_data
-
-
 class DummyEndpoint:
     """Dummy endpoint class for testing handle_meraki_errors."""
 
@@ -33,30 +20,24 @@ class DummyEndpoint:
     @handle_meraki_errors
     async def get_traffic(self, network_id: str) -> list:
         """Mock traffic analysis call."""
-        raise APIError(
-            {"tags": ["test"], "operation": "test"},
-            MockResponse(
-                400,
-                "Bad Request",
-                {
-                    "errors": [
-                        "Traffic Analysis with Hostname Visibility must be enabled"
-                    ]
-                },
-            ),
-        )
+        metadata = {"tags": ["test"], "operation": "getNetworkTraffic"}
+        response = MagicMock()
+        response.status_code = 400
+        response.json.return_value = {
+            "errors": ["Traffic Analysis with Hostname Visibility must be enabled"]
+        }
+        raise APIError(metadata, response)
 
     @handle_meraki_errors
     async def get_vlans(self, network_id: str) -> list:
         """Mock VLANs call."""
-        raise APIError(
-            {"tags": ["test"], "operation": "test"},
-            MockResponse(
-                400,
-                "Bad Request",
-                {"errors": ["VLANs are not enabled for this network"]},
-            ),
-        )
+        metadata = {"tags": ["test"], "operation": "getNetworkApplianceVlans"}
+        response = MagicMock()
+        response.status_code = 400
+        response.json.return_value = {
+            "errors": ["VLANs are not enabled for this network"]
+        }
+        raise APIError(metadata, response)
 
 
 @pytest.mark.asyncio
