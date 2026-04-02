@@ -20,8 +20,8 @@ from custom_components.meraki_ha.core.models.device import MerakiDevice
 def mock_client():
     """Fixture for a mock Meraki API client."""
     client = MagicMock()
-    # Mock run_with_semaphore to just return the coroutine/call
-    client.run_with_semaphore.side_effect = lambda x: x
+    # Mock run_with_semaphore to just return a static value
+    client.run_with_semaphore.return_value = {}
     return client
 
 
@@ -54,10 +54,10 @@ def test_build_network_tasks_skips_disabled(strategy, disabled_features):
     # Patch async methods to avoid unawaited coroutine warnings
     with (
         patch.object(
-            strategy.device_helper, "get_appliance_ports", return_value=MagicMock()
+            strategy.device_helper, "get_appliance_ports", return_value=[]
         ),
         patch.object(
-            strategy.uplink_helper, "get_uplink_performance", return_value=MagicMock()
+            strategy.uplink_helper, "get_uplink_performance", return_value=[]
         ),
     ):
         strategy.build_network_tasks(network_id, tasks)
@@ -75,10 +75,10 @@ def test_build_network_tasks_includes_enabled(strategy, disabled_features):
     # Patch async methods to avoid unawaited coroutine warnings
     with (
         patch.object(
-            strategy.device_helper, "get_appliance_ports", return_value=MagicMock()
+            strategy.device_helper, "get_appliance_ports", return_value=[]
         ),
         patch.object(
-            strategy.uplink_helper, "get_uplink_performance", return_value=MagicMock()
+            strategy.uplink_helper, "get_uplink_performance", return_value=[]
         ),
     ):
         strategy.build_network_tasks(network_id, tasks)
@@ -109,12 +109,12 @@ def test_build_network_tasks_respects_feature_flags(mock_client, disabled_featur
         patch.object(
             strategy_enabled.device_helper,
             "get_appliance_ports",
-            return_value=MagicMock(),
+            return_value=[],
         ),
         patch.object(
             strategy_enabled.uplink_helper,
             "get_uplink_performance",
-            return_value=MagicMock(),
+            return_value=[],
         ),
     ):
         strategy_enabled.build_network_tasks(network_id, tasks)
@@ -138,12 +138,12 @@ def test_build_network_tasks_respects_feature_flags(mock_client, disabled_featur
         patch.object(
             strategy_disabled.device_helper,
             "get_appliance_ports",
-            return_value=MagicMock(),
+            return_value=[],
         ),
         patch.object(
             strategy_disabled.uplink_helper,
             "get_uplink_performance",
-            return_value=MagicMock(),
+            return_value=[],
         ),
     ):
         strategy_disabled.build_network_tasks(network_id, tasks)

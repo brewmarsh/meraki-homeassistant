@@ -66,7 +66,7 @@ def handle_fetch_exception(
     """Handle and transform fetch exceptions for smart updates."""
     if isinstance(exception, (MerakiTrafficAnalysisError, MerakiVlansDisabledError)):
         _LOGGER.debug("Feature disabled for %s during %s: %s", key, label, exception)
-        return exception
+        return None
 
     _LOGGER.error("Error fetching %s during %s: %s", key, label, exception)
     return None
@@ -87,11 +87,7 @@ def process_single_result(key: str, result: Any, label: str) -> Any:
                 break
 
         if is_silent:
-            if "Traffic Analysis" in error_msg:
-                return MerakiTrafficAnalysisError(error_msg)
-            if "VLANs" in error_msg:
-                return MerakiVlansDisabledError(error_msg)
-            return []
+            return None
 
         return handle_fetch_exception(result, key, label)
 
