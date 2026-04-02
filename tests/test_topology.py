@@ -33,4 +33,4 @@ async def test_network_device_creation(
     )
     assert device is not None
     # Refactor: New name format for Virtual Controller
-    assert device.name == "[Network] Site A"
+    assert device.name == "Site: Site A"
