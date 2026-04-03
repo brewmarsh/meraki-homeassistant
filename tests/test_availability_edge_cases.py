@@ -11,16 +11,19 @@ from custom_components.meraki_ha.entity import MerakiEntity
 def mock_coordinator_availability():
     """Fixture for a mocked coordinator with specific device status."""
     coordinator = MagicMock()
-    coordinator.data = {
-        "devices_by_serial": {
-            "online_serial": {"serial": "online_serial", "status": "online"},
-            "alerting_serial": {"serial": "alerting_serial", "status": "alerting"},
-            "dormant_serial": {"serial": "dormant_serial", "status": "dormant"},
-            "offline_serial": {"serial": "offline_serial", "status": "offline"},
-            "unknown_serial": {"serial": "unknown_serial", "status": "something_else"},
-            "dict_online": {"serial": "dict_online", "status": "online"},
-        }
+    devices_by_serial = {
+        "online_serial": {"serial": "online_serial", "status": "online"},
+        "alerting_serial": {"serial": "alerting_serial", "status": "alerting"},
+        "dormant_serial": {"serial": "dormant_serial", "status": "dormant"},
+        "offline_serial": {"serial": "offline_serial", "status": "offline"},
+        "unknown_serial": {"serial": "unknown_serial", "status": "something_else"},
+        "dict_online": {"serial": "dict_online", "status": "online"},
     }
+    coordinator.data = {
+        "devices_by_serial": devices_by_serial
+    }
+    # Action 5: Add get_device method to mock coordinator
+    coordinator.get_device.side_effect = lambda x: devices_by_serial.get(x)
     return coordinator
 
 

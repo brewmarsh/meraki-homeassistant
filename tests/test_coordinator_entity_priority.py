@@ -2,8 +2,6 @@
 
 from unittest.mock import MagicMock, patch
 
-from homeassistant.helpers import entity_registry as er
-
 from custom_components.meraki_ha.core.coordinator_helpers.update_processor import (
     update_device_registry_info,
 )
@@ -32,8 +30,8 @@ async def test_update_device_registry_info_picks_camera(hass):
     mock_er = MagicMock()
 
     # Create mock entities
-    # Entity 1: Sensor (e.g. timestamp) - should NOT be picked
-    entity_sensor = MagicMock(spec=er.RegistryEntry)
+    # Action 6: Remove spec=er.RegistryEntry to avoid InvalidSpec errors
+    entity_sensor = MagicMock()
     entity_sensor.entity_id = "sensor.test_camera_last_reported"
     entity_sensor.name = "Test Camera Last Reported"
     entity_sensor.original_name = "Test Camera Last Reported"
@@ -42,7 +40,7 @@ async def test_update_device_registry_info_picks_camera(hass):
     entity_sensor.unique_id = "Q234-ABCD-5678_last_reported"
 
     # Entity 2: Camera - SHOULD be picked
-    entity_camera = MagicMock(spec=er.RegistryEntry)
+    entity_camera = MagicMock()
     entity_camera.entity_id = "camera.test_camera"
     entity_camera.name = "Test Camera"
     entity_camera.original_name = "Test Camera"

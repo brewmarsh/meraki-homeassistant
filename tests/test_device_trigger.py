@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from unittest.mock import AsyncMock, MagicMock
 import pytest
 from pytest_homeassistant_custom_component.common import (
     MockConfigEntry,
@@ -43,7 +44,8 @@ async def test_get_triggers(
     enable_custom_integrations: None,
 ) -> None:
     """Test we get the expected triggers from a Meraki device."""
-    config_entry = MockConfigEntry(domain=DOMAIN, data={})
+    # Action 2: Ensure MockConfigEntry has explicit entry_id
+    config_entry = MockConfigEntry(domain=DOMAIN, data={}, entry_id="test_entry_id")
     config_entry.add_to_hass(hass)
     device_entry = device_reg.async_get_or_create(
         config_entry_id=config_entry.entry_id,
@@ -75,7 +77,8 @@ async def test_fire_trigger_device_alert(
     service_calls: list[ServiceCall],
 ) -> None:
     """Test for device alert triggers firing."""
-    config_entry = MockConfigEntry(domain=DOMAIN, data={})
+    # Action 2: Ensure MockConfigEntry has explicit entry_id
+    config_entry = MockConfigEntry(domain=DOMAIN, data={}, entry_id="test_entry_id")
     config_entry.add_to_hass(hass)
     device_entry = device_reg.async_get_or_create(
         config_entry_id=config_entry.entry_id,
@@ -138,7 +141,8 @@ async def test_fire_trigger_network_alert(
     service_calls: list[ServiceCall],
 ) -> None:
     """Test for network alert triggers firing."""
-    config_entry = MockConfigEntry(domain=DOMAIN, data={})
+    # Action 2: Ensure MockConfigEntry has explicit entry_id
+    config_entry = MockConfigEntry(domain=DOMAIN, data={}, entry_id="test_entry_id")
     config_entry.add_to_hass(hass)
     # Create a network device
     network_id = "N_12345"
