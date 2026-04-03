@@ -18,6 +18,9 @@ def mock_coordinator():
     coordinator.config_entry = MagicMock()
     coordinator.config_entry.options = {}
 
+    # Mock organization ID
+    coordinator.api.organization_id = "org1"
+
     # Create a mock network
     mock_network = MerakiNetwork(
         id="net1",
@@ -81,7 +84,7 @@ async def test_vlans_list_sensor_creation_enabled(mock_coordinator):
     assert len(vl_sensors) == 1
 
     sensor = vl_sensors[0]
-    assert sensor.unique_id == "net1_vlans"
+    assert sensor.unique_id == "meraki-network-net1-vlans-list"
     # assert sensor.name == "VLANs" # Cannot access name without platform
     assert sensor.entity_category == EntityCategory.DIAGNOSTIC
 

@@ -16,9 +16,17 @@ async def test_meraki_wan1_connectivity_sensor(
 ) -> None:
     """Test the Meraki WAN1 connectivity sensor."""
     coordinator = MagicMock()
-    online_device = MerakiDevice.from_dict(
-        {**MOCK_DEVICE.__dict__, "status": "online", "wan1Ip": "1.2.3.4"}
+    # Align WAN Connectivity Mocks: Use to_dict() and include structured uplinks
+    online_device_dict = MOCK_DEVICE.to_dict()
+    online_device_dict.update(
+        {
+            "status": "online",
+            "wan1Ip": "1.2.3.4",
+            "uplinks": [{"interface": "wan1", "status": "active"}],
+        }
     )
+    online_device = MerakiDevice.from_dict(online_device_dict)
+
     coordinator.get_device.return_value = online_device
     config_entry = MagicMock()
     config_entry.options = {}

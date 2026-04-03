@@ -19,6 +19,7 @@ def mock_coordinator():
     coordinator.config_entry.options = {}
 
     # Mock API for content filtering check (required by NetworkHandler)
+    coordinator.api.organization_id = "org1"
     coordinator.api.appliance.get_network_appliance_content_filtering_categories = (
         MagicMock(return_value={"categories": []})
     )
@@ -92,7 +93,7 @@ async def test_vlan_sensor_creation(mock_coordinator):
     assert sensor.unique_id == "meraki_vlan_net1_1_status"
 
     # Name from MerakiVLANStatusSensor
-    assert sensor.name == "VLAN 1 (VLAN 1) Subnet"
+    assert sensor.name == "Test Network VLAN 1 (VLAN 1) Subnet"
 
     # Native value is subnet
     assert sensor.native_value == "192.168.1.0/24"
