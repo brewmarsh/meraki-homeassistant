@@ -1,5 +1,6 @@
 """Tests for the Data Fetch Manager graceful feature degradation."""
 
+import asyncio
 from unittest.mock import MagicMock, patch
 
 import meraki
@@ -56,8 +57,6 @@ async def test_async_gather_with_timeout_graceful_traffic_analysis(
 
     tasks = {"test_traffic": traffic_error_coro()}
 
-    import asyncio
-
     with patch(
         "custom_components.meraki_ha.core.coordinator_helpers.batch_utils._LOGGER"
     ) as mock_logger:
@@ -103,6 +102,11 @@ async def test_async_gather_with_timeout_graceful_vlans(data_fetch_manager):
 
         results = await async_gather_with_timeout(tasks, label="Test Graceful")
 
+    # Clean up unawaited coroutines
+    for task in tasks.values():
+        if asyncio.iscoroutine(task):
+            task.close()
+
     # Assert correct return type
     assert results["test_vlans"] is None
 
@@ -136,6 +140,11 @@ async def test_async_gather_with_timeout_handles_wrapped_meraki_errors(
 
         results = await async_gather_with_timeout(tasks, label="Test Wrapped")
 
+    # Clean up unawaited coroutines
+    for task in tasks.values():
+        if asyncio.iscoroutine(task):
+            task.close()
+
     assert results["test_wrapped"] is None
     mock_logger.debug.assert_any_call(
         "Skipping %s: Configuration requirement not met in Dashboard.",
@@ -165,6 +174,11 @@ async def test_async_gather_with_timeout_true_failures_still_log_error(
         )
 
         results = await async_gather_with_timeout(tasks, label="Test Failure")
+
+    # Clean up unawaited coroutines
+    for task in tasks.values():
+        if asyncio.iscoroutine(task):
+            task.close()
 
     assert results["test_fail"] is None
     mock_logger.error.assert_called_once()
