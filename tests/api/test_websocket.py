@@ -6,7 +6,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 from homeassistant.core import HomeAssistant
-from pytest_homeassistant_custom_component.common import MockConfigEntry, mock_component
+from pytest_homeassistant_custom_component.common import MockConfigEntry
 from pytest_homeassistant_custom_component.typing import WebSocketGenerator
 
 from custom_components.meraki_ha.api.websocket import async_setup_websocket_api
@@ -31,6 +31,18 @@ def bypass_platform_setup() -> Generator[None, None, None]:
 
 
 @pytest.fixture(autouse=True)
+def mock_http(hass: HomeAssistant) -> None:
+    """Override global fixture to avoid mocking http."""
+    pass
+
+
+@pytest.fixture(autouse=True)
+def mock_frontend(hass: HomeAssistant) -> None:
+    """Override global fixture to avoid mocking frontend."""
+    pass
+
+
+@pytest.fixture(autouse=True)
 def verify_cleanup() -> Generator[None, None, None]:
     """Override verify_cleanup to avoid spurious thread errors."""
     yield
@@ -41,9 +53,6 @@ async def setup_integration(
     hass: HomeAssistant,
 ) -> AsyncGenerator[MockConfigEntry, None]:
     """Set up the Meraki integration."""
-    mock_component(hass, "frontend")
-    mock_component(hass, "panel_custom")
-
     config_entry = MockConfigEntry(
         domain=DOMAIN,
         entry_id="test_entry",
