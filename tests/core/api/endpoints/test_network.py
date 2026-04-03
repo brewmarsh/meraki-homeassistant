@@ -6,6 +6,7 @@ import pytest
 from meraki.exceptions import APIError
 
 from custom_components.meraki_ha.core.api.endpoints.network import NetworkEndpoints
+from custom_components.meraki_ha.core.errors import MerakiConnectionError
 
 
 @pytest.fixture
@@ -57,10 +58,9 @@ async def test_get_group_policies_failure(network, mock_client):
 
     mock_client.run_sync.side_effect = APIError(metadata, response)
 
-    result = await network.get_group_policies("net1")
-
-    # Action 1: The core error handler returns {} on failure
-    assert result == {}
+    # Action 2: Expected raises MerakiConnectionError
+    with pytest.raises(MerakiConnectionError):
+        await network.get_group_policies("net1")
 
 
 @pytest.mark.asyncio
@@ -98,10 +98,9 @@ async def test_get_network_events_failure(network, mock_client):
 
     mock_client.run_sync.side_effect = APIError(metadata, response)
 
-    result = await network.get_network_events("N_123")
-
-    # Action 1: The core error handler returns {} on failure
-    assert result == {}
+    # Action 2: Expected raises MerakiConnectionError
+    with pytest.raises(MerakiConnectionError):
+        await network.get_network_events("N_123")
 
 
 @pytest.mark.asyncio

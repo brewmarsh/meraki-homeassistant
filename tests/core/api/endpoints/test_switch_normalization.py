@@ -6,6 +6,7 @@ import pytest
 from meraki.exceptions import APIError
 
 from custom_components.meraki_ha.core.api.endpoints.switch import SwitchEndpoints
+from custom_components.meraki_ha.core.errors import MerakiConnectionError
 
 
 @pytest.fixture
@@ -51,10 +52,9 @@ async def test_get_device_switch_ports_statuses_failure(switch_endpoints, mock_c
 
     mock_client.run_sync.side_effect = APIError(metadata, response)
 
-    result = await switch_endpoints.get_device_switch_ports_statuses("serial")
-
-    # Action 1: The core error handler returns {} on failure
-    assert result == {}
+    # Action 2: Expected raises MerakiConnectionError
+    with pytest.raises(MerakiConnectionError):
+        await switch_endpoints.get_device_switch_ports_statuses("serial")
 
 
 @pytest.mark.asyncio
@@ -79,7 +79,6 @@ async def test_get_switch_ports_failure(switch_endpoints, mock_client):
 
     mock_client.run_sync.side_effect = APIError(metadata, response)
 
-    result = await switch_endpoints.get_switch_ports("s1")
-
-    # Action 1: The core error handler returns {} on failure
-    assert result == {}
+    # Action 2: Expected raises MerakiConnectionError
+    with pytest.raises(MerakiConnectionError):
+        await switch_endpoints.get_switch_ports("s1")
