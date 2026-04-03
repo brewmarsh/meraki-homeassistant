@@ -59,9 +59,9 @@ def test_vlans_list_sensor(mock_coordinator):
         mock_coordinator, mock_coordinator.config_entry, network_data
     )
 
-    assert sensor.unique_id == "net1_vlans"
+    assert sensor.unique_id == "meraki-network-net1-vlans-list"
     assert sensor.entity_category == EntityCategory.DIAGNOSTIC
-    assert sensor.name == "VLANs"
+    assert sensor.name == "Test Network VLANs"
 
     # Mock hass/async_write_ha_state
     sensor.hass = hass

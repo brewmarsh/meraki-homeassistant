@@ -19,6 +19,7 @@ def mock_coordinator():
 
     # Mock the API client
     coordinator.api = MagicMock()
+    coordinator.api.organization_id = "org1"
     coordinator.api.appliance = MagicMock()
     coordinator.api.appliance.get_network_appliance_content_filtering_categories = (
         AsyncMock(return_value={"categories": []})
@@ -73,8 +74,8 @@ async def test_traffic_shaping_sensor_creation_enabled(mock_coordinator):
     assert len(ts_sensors) == 1
 
     sensor = ts_sensors[0]
-    assert sensor.unique_id == "net1-traffic-shaping"
-    assert sensor.name == "Traffic Shaping"
+    assert sensor.unique_id == "meraki-network-net1-traffic-shaping"
+    assert sensor.name == "Test Network Traffic Shaping"
     assert sensor.entity_category == EntityCategory.DIAGNOSTIC
 
     # Mock hass for the sensor
