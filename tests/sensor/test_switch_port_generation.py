@@ -1,6 +1,6 @@
 """Test that switch ports are generated and linked to the parent device."""
 
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, patch
 
 import pytest
 from pytest_homeassistant_custom_component.common import MockConfigEntry
@@ -9,7 +9,6 @@ from custom_components.meraki_ha.const.config import (
     CONF_MERAKI_API_KEY,
     CONF_MERAKI_ORG_ID,
 )
-from custom_components.meraki_ha.const.integration import DOMAIN
 from custom_components.meraki_ha.types import MerakiDevice
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import device_registry as dr
@@ -26,7 +25,7 @@ async def test_switch_port_generation_and_linkage(
     """Test that switch ports are generated and linked to the parent device."""
     # Mock entry with ports enabled
     entry = MockConfigEntry(
-        domain=DOMAIN,
+        domain="meraki_ha",
         data={
             CONF_MERAKI_API_KEY: "test_key",
             CONF_MERAKI_ORG_ID: "test_org",
@@ -155,4 +154,4 @@ async def test_switch_port_generation_and_linkage(
         ), f"Device {registry_entry.device_id} not found in registry"
 
         # In Meraki_HA, typically the device identifiers includes the domain and serial
-        assert (DOMAIN, "Q2KX-ACU9-ZAVN") in device_entry.identifiers
+        assert ("meraki_ha", "Q2KX-ACU9-ZAVN") in device_entry.identifiers
