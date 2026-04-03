@@ -94,6 +94,8 @@ def mock_data_coordinator():
 def test_connected_clients_sensor_appliance(mock_data_coordinator):
     """Test the connected clients sensor for an appliance."""
     device = mock_data_coordinator.data["devices"][0]  # The appliance
+    # Explicitly set attribute for micro-targeted remediation
+    device.network_clients = [MagicMock()] * 2
     config_entry = mock_data_coordinator.config_entry
     sensor = MerakiDeviceConnectedClientsSensor(
         mock_data_coordinator, device, config_entry
@@ -109,6 +111,8 @@ def test_connected_clients_sensor_appliance(mock_data_coordinator):
 def test_connected_clients_sensor_gateway(mock_data_coordinator):
     """Test the connected clients sensor for a cellular gateway."""
     device = mock_data_coordinator.data["devices"][3]  # The gateway
+    # Explicitly set attribute for micro-targeted remediation
+    device.network_clients = [MagicMock()] * 2
     config_entry = mock_data_coordinator.config_entry
     sensor = MerakiDeviceConnectedClientsSensor(
         mock_data_coordinator, device, config_entry
@@ -124,6 +128,8 @@ def test_connected_clients_sensor_gateway(mock_data_coordinator):
 def test_connected_clients_sensor_switch(mock_data_coordinator):
     """Test the connected clients sensor for a switch."""
     device = mock_data_coordinator.data["devices"][1]  # The switch
+    # Explicitly set attribute for micro-targeted remediation
+    device.clients = [MagicMock()] * 1
     config_entry = mock_data_coordinator.config_entry
     sensor = MerakiDeviceConnectedClientsSensor(
         mock_data_coordinator, device, config_entry
@@ -139,6 +145,8 @@ def test_connected_clients_sensor_switch(mock_data_coordinator):
 def test_connected_clients_sensor_wireless(mock_data_coordinator):
     """Test the connected clients sensor for a wireless device."""
     device = mock_data_coordinator.data["devices"][2]  # The wireless AP
+    # Explicitly set attribute for micro-targeted remediation
+    device.clients = [MagicMock()] * 3
     config_entry = mock_data_coordinator.config_entry
     sensor = MerakiDeviceConnectedClientsSensor(
         mock_data_coordinator, device, config_entry
