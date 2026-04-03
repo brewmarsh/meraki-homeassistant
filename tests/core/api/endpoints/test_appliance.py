@@ -13,6 +13,7 @@ from custom_components.meraki_ha.core.api import (
 from custom_components.meraki_ha.core.api.endpoints.appliance import (
     ApplianceEndpoints,
 )
+from custom_components.meraki_ha.core.errors import MerakiConnectionError
 from tests.const import MOCK_NETWORK
 
 
@@ -75,9 +76,9 @@ async def test_get_network_vlans_failure(appliance_endpoints, mock_dashboard):
         metadata, response
     )
 
-    # Action 1: The core error handler returns {} on failure
+    # Action 1: The core error handler returns [] on failure
     result = await appliance_endpoints.get_network_vlans(MOCK_NETWORK.id)
-    assert result == {}
+    assert result == []
 
 
 @pytest.mark.asyncio
@@ -114,9 +115,9 @@ async def test_get_l3_firewall_rules_failure(appliance_endpoints, mock_dashboard
         APIError(metadata, response)
     )
 
-    # Action 1: The core error handler returns {} on failure
-    result = await appliance_endpoints.get_l3_firewall_rules(MOCK_NETWORK.id)
-    assert result == {}
+    # Action 2: Expected raises MerakiConnectionError
+    with pytest.raises(MerakiConnectionError):
+        await appliance_endpoints.get_l3_firewall_rules(MOCK_NETWORK.id)
 
 
 @pytest.mark.asyncio

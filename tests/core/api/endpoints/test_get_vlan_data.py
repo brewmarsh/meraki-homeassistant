@@ -114,5 +114,5 @@ async def test_get_vlan_data_api_error_graceful_fail(network_endpoints, mock_cli
 
     result = await network_endpoints.get_vlan_data(network_id)
 
-    # Action 1: The core error handler returns {} on failure
-    assert result == {}
+    # Action 1: The core error handler returns [] on failure
+    assert result == []
