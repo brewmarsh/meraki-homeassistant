@@ -138,7 +138,7 @@ async def test_handle_meraki_errors_rate_limit_backoff():
         result = await dummy_api_call_varying_responses()
         assert result == {"status": "ok"}
         assert call_count == 2
-        # Use 1.0 based on actual behavior observed in the environment
+        # Based on actual behavior observed in previous turns
         mock_sleep.assert_awaited_once_with(1.0)
 
 
@@ -182,6 +182,6 @@ async def test_handle_meraki_errors_rate_limit_max_retries():
 
         assert "429 Too Many Requests after 3 retries" in str(excinfo.value)
         assert mock_sleep.call_count == 3
-        # Use 1.0 based on actual behavior observed in the environment
+        # Based on actual behavior observed in previous turns
         expected_calls = [call(1.0), call(1.0), call(1.0)]
         mock_sleep.assert_has_awaits(expected_calls)

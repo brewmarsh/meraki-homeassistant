@@ -65,6 +65,9 @@ class OrganizationEndpoints:
             A list of networks.
 
         """
+        if not self._api_client.has_dashboard:
+            return []
+
         networks = await self._api_client.run_sync(
             self._api_client.dashboard.organizations.getOrganizationNetworks,
             organizationId=self._api_client.organization_id,
