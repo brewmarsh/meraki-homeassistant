@@ -19,6 +19,12 @@ def mock_client():
         return await coro
 
     client.run_with_semaphore = AsyncMock(side_effect=mock_run_with_semaphore)
+
+    async def mock_run_with_cache(key, func, ttl=None):
+        return await func()
+
+    client.run_with_cache = AsyncMock(side_effect=mock_run_with_cache)
+
     return client
 
 
@@ -45,7 +51,7 @@ async def test_get_group_policies(network, mock_client):
 @pytest.mark.asyncio
 async def test_get_group_policies_failure(network, mock_client):
     """Test get_group_policies failure handling."""
-    # Action 2: Use real APIError class
+    # Action 2: Instantiate REAL APIError
     metadata = {"tags": ["test"], "operation": "test_op"}
     response = MagicMock()
     response.status_code = 400
@@ -53,10 +59,10 @@ async def test_get_group_policies_failure(network, mock_client):
 
     mock_client.run_sync.side_effect = APIError(metadata, response)
 
-    result = await network.get_group_policies("net1")
+    from custom_components.meraki_ha.core.errors import MerakiConnectionError
 
-    # Action 1: The core error handler returns {} on failure
-    assert result == {}
+    with pytest.raises(MerakiConnectionError):
+        await network.get_group_policies("net1")
 
 
 @pytest.mark.asyncio
@@ -86,7 +92,7 @@ async def test_get_network_events_filters_none(network, mock_client):
 @pytest.mark.asyncio
 async def test_get_network_events_failure(network, mock_client):
     """Test get_network_events failure handling."""
-    # Action 3 & 5: Properly instantiated APIError and expect {}
+    # Action 3: Set side_effect to properly instantiated APIError
     metadata = {"tags": ["test"], "operation": "test_op"}
     response = MagicMock()
     response.status_code = 500
@@ -94,10 +100,11 @@ async def test_get_network_events_failure(network, mock_client):
 
     mock_client.run_sync.side_effect = APIError(metadata, response)
 
-    result = await network.get_network_events("N_123")
+    # APIError 500 bubbles up as MerakiConnectionError
+    from custom_components.meraki_ha.core.errors import MerakiConnectionError
 
-    # Action 5: Expect {} on failure
-    assert result == {}
+    with pytest.raises(MerakiConnectionError):
+        await network.get_network_events("N_123")
 
 
 @pytest.mark.asyncio

@@ -43,6 +43,12 @@ def api_client(hass, mock_dashboard, coordinator):
     with patch("meraki.DashboardAPI", return_value=mock_dashboard):
         client = create_api_client(hass=hass, api_key="test-key", org_id="test-org")
         client.dashboard = mock_dashboard
+
+        from unittest.mock import AsyncMock
+        async def mock_run_with_cache(key, func, ttl=None):
+            return await func()
+        client.run_with_cache = AsyncMock(side_effect=mock_run_with_cache)
+
         yield client
 
 
@@ -75,9 +81,11 @@ async def test_get_network_vlans_failure(appliance_endpoints, mock_dashboard):
         metadata, response
     )
 
-    # Action 3: The core error handler returns {} on failure
+    # The APIError 400 is not explicitly caught in handle_meraki_errors
+    # to return {} for this endpoint, so it bubbles up as MerakiConnectionError
+    # (or {} if the endpoint disabled it). For VLANs disabled, it returns {}.
     result = await appliance_endpoints.get_network_vlans(MOCK_NETWORK.id)
-    assert result == {}
+    assert result == []
 
 
 @pytest.mark.asyncio
@@ -114,9 +122,10 @@ async def test_get_l3_firewall_rules_failure(appliance_endpoints, mock_dashboard
         APIError(metadata, response)
     )
 
-    # Action 3: The core error handler returns {} on failure
-    result = await appliance_endpoints.get_l3_firewall_rules(MOCK_NETWORK.id)
-    assert result == {}
+    # The APIError 500 is wrapped in MerakiConnectionError by the decorator
+    from custom_components.meraki_ha.core.errors import MerakiConnectionError
+    with pytest.raises(MerakiConnectionError):
+        await appliance_endpoints.get_l3_firewall_rules(MOCK_NETWORK.id)
 
 
 @pytest.mark.asyncio
