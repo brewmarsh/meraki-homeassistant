@@ -34,7 +34,8 @@ async def test_form(hass: HomeAssistant) -> None:
             return_value=True,
         ) as mock_setup_entry,
     ):
-        mock_client = MagicMock()
+        # Action 1: Use AsyncMock for the client
+        mock_client = AsyncMock()
         mock_create_client.return_value = mock_client
 
         mock_client.async_setup = AsyncMock()
@@ -62,7 +63,7 @@ async def test_form(hass: HomeAssistant) -> None:
 
 async def test_form_cannot_connect(hass: HomeAssistant) -> None:
     """Test we handle cannot connect error."""
-    result = await setup.async_setup_component(hass, "persistent_notification", {})
+    await setup.async_setup_component(hass, "persistent_notification", {})
     result = await hass.config_entries.flow.async_init(
         DOMAIN, context={"source": config_entries.SOURCE_USER}
     )
@@ -85,6 +86,7 @@ async def test_form_cannot_connect(hass: HomeAssistant) -> None:
 
 async def test_options_flow(hass: HomeAssistant) -> None:
     """Test the new options flow."""
+    # Action 2: Ensure MockConfigEntry has explicit entry_id and is added to hass
     entry = MockConfigEntry(
         domain=DOMAIN,
         data={CONF_MERAKI_API_KEY: "test-api-key"},
@@ -107,7 +109,7 @@ async def test_options_flow(hass: HomeAssistant) -> None:
     assert result_general["step_id"] == "general"
 
     # Save General Settings
-    # Action 2: Use AsyncMock for reload
+    # Action 1: Use AsyncMock for reload
     with patch(
         "homeassistant.config_entries.ConfigEntries.async_reload",
         new_callable=AsyncMock,
@@ -134,7 +136,7 @@ async def test_options_flow(hass: HomeAssistant) -> None:
     )
     assert result_sensors["type"] == FlowResultType.FORM
 
-    # Action 2: Use AsyncMock for reload
+    # Action 1: Use AsyncMock for reload
     with patch(
         "homeassistant.config_entries.ConfigEntries.async_reload",
         new_callable=AsyncMock,
@@ -155,9 +157,10 @@ async def test_options_flow(hass: HomeAssistant) -> None:
 
 async def test_update_listener(hass: HomeAssistant) -> None:
     """Test the update listener."""
+    # Action 2: Ensure MockConfigEntry has explicit entry_id and is added to hass
     entry = MockConfigEntry(domain=DOMAIN, entry_id="test_entry_id")
     entry.add_to_hass(hass)
-    # Action 2: Use AsyncMock for reload
+    # Action 1: Use AsyncMock for reload
     with patch(
         "homeassistant.config_entries.ConfigEntries.async_reload",
         new_callable=AsyncMock,

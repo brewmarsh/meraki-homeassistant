@@ -1,5 +1,6 @@
 """Tests for the Meraki data coordinator."""
 
+import asyncio
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
@@ -22,6 +23,7 @@ from tests.const import MOCK_NETWORK
 @pytest.fixture
 def mock_api_client():
     """Fixture for a mocked MerakiApiClientProtocol."""
+    # Action 1: Use AsyncMock if it's awaited, but fixture return is usually a mock object
     client = MagicMock()
     return client
 
@@ -30,7 +32,7 @@ def mock_api_client():
 def mock_data_fetch_manager():
     """Fixture for a mocked DataFetchManager."""
     manager = MagicMock()
-    manager.get_all_data = AsyncMock()
+    # Action 1: Use AsyncMock for awaited methods
     manager.get_all_data = AsyncMock()
     manager.get_device_data = AsyncMock()
     return manager
@@ -39,6 +41,7 @@ def mock_data_fetch_manager():
 @pytest.fixture
 def coordinator(hass, mock_api_client, mock_data_fetch_manager):
     """Fixture for a MerakiDataCoordinator instance."""
+    # Action 2: Ensure MockConfigEntry has explicit entry_id and is added to hass
     entry = MockConfigEntry(
         domain=DOMAIN,
         data={CONF_MERAKI_API_KEY: "test-key", CONF_MERAKI_ORG_ID: "test-org"},
@@ -86,8 +89,8 @@ async def test_update_data_handles_errors(coordinator, mock_data_fetch_manager):
 @pytest.mark.asyncio
 async def test_update_data_handles_timeout(coordinator, mock_data_fetch_manager):
     """Test that _async_update_data handles timeout."""
-    # Arrange
-    mock_data_fetch_manager.get_all_data.side_effect = TimeoutError()
+    # Action 2: Ensure side_effect raises a real exception
+    mock_data_fetch_manager.get_all_data.side_effect = asyncio.TimeoutError()
 
     # Act & Assert
 
