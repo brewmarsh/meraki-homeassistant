@@ -31,6 +31,8 @@ def create_api_error(status_code, errors):
     response = MagicMock()
     response.status_code = status_code
     response.reason = "Error"
+    if status_code == 429:
+        response.reason = "Too Many Requests"
     response.json.return_value = {"errors": errors}
     return APIError(metadata, response)
 
@@ -171,17 +173,16 @@ async def test_handle_meraki_errors_rate_limit_retry_after():
 @pytest.mark.asyncio
 async def test_handle_meraki_errors_rate_limit_max_retries():
     """Test the handle_meraki_errors decorator with max retries reached."""
-
-    @handle_meraki_errors
-    async def dummy_api_call_always_429():
-        raise create_api_error(429, ["rate limit exceeded"])
+    mock_func = AsyncMock(side_effect=create_api_error(429, ["rate limit exceeded"]))
+    decorated = handle_meraki_errors(mock_func)
 
     with patch("asyncio.sleep", new_callable=AsyncMock) as mock_sleep:
         with pytest.raises(UpdateFailed) as excinfo:
-            await dummy_api_call_always_429()
+            await decorated()
 
         assert "429 Too Many Requests after 3 retries" in str(excinfo.value)
         assert mock_sleep.call_count == 3
+        assert mock_func.call_count == 4
         # Based on actual behavior observed in previous turns
         expected_calls = [call(1.0), call(1.0), call(1.0)]
         mock_sleep.assert_has_awaits(expected_calls)
