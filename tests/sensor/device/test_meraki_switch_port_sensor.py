@@ -100,7 +100,7 @@ def test_meraki_switch_port_sensor_init(mock_coordinator_and_device):
 
     sensor = MerakiSwitchPortSensor(coordinator, device, port, config_entry)
 
-    assert sensor.unique_id == "Q234-ABCD-5678_port_1"
+    assert sensor.unique_id == "Q234-ABCD-5678_port_1_status"
     assert sensor.name == "Port 1 status"
     assert sensor.native_value == "Connected"
 
