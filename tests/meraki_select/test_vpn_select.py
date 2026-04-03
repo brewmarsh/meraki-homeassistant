@@ -46,6 +46,16 @@ def mock_meraki_client() -> MagicMock:
 
     client.network = MagicMock()
     client.network.unregister_webhook = AsyncMock()
+    client.unregister_webhook = AsyncMock()
+
+    async def mock_run_with_semaphore(coro):
+        return await coro
+
+    async def mock_run_with_cache(cache_key, func, ttl=None):
+        return await func()
+
+    client.run_with_semaphore = AsyncMock(side_effect=mock_run_with_semaphore)
+    client.run_with_cache = AsyncMock(side_effect=mock_run_with_cache)
 
     return client
 
@@ -127,6 +137,8 @@ async def test_vpn_select_entity(
             {"entity_id": target_entity.entity_id, "option": "hub"},
             blocking=True,
         )
+
+        await hass.async_block_till_done()
 
         # Verify API called
         mock_meraki_client.appliance.update_vpn_status.assert_called_with(

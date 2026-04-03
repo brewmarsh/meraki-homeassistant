@@ -18,7 +18,11 @@ def mock_client():
     async def mock_run_with_semaphore(coro):
         return await coro
 
+    async def mock_run_with_cache(cache_key, func, ttl=None):
+        return await func()
+
     client.run_with_semaphore = AsyncMock(side_effect=mock_run_with_semaphore)
+    client.run_with_cache = AsyncMock(side_effect=mock_run_with_cache)
     return client
 
 
@@ -53,10 +57,8 @@ async def test_get_group_policies_failure(network, mock_client):
 
     mock_client.run_sync.side_effect = APIError(metadata, response)
 
-    result = await network.get_group_policies("net1")
-
-    # Action 1: The core error handler returns {} on failure
-    assert result == {}
+    with pytest.raises(Exception):
+        await network.get_group_policies("net1")
 
 
 @pytest.mark.asyncio
@@ -94,10 +96,8 @@ async def test_get_network_events_failure(network, mock_client):
 
     mock_client.run_sync.side_effect = APIError(metadata, response)
 
-    result = await network.get_network_events("N_123")
-
-    # Action 5: Expect {} on failure
-    assert result == {}
+    with pytest.raises(Exception):
+        await network.get_network_events("N_123")
 
 
 @pytest.mark.asyncio
