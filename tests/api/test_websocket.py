@@ -25,24 +25,6 @@ MOCK_DATA = {
 
 
 @pytest.fixture(autouse=True)
-def bypass_platform_setup() -> Generator[None, None, None]:
-    """Override global fixture to allow component setup."""
-    yield
-
-
-@pytest.fixture(autouse=True)
-def mock_http(hass: HomeAssistant) -> None:
-    """Override global fixture to avoid mocking http."""
-    pass
-
-
-@pytest.fixture(autouse=True)
-def mock_frontend(hass: HomeAssistant) -> None:
-    """Override global fixture to avoid mocking frontend."""
-    pass
-
-
-@pytest.fixture(autouse=True)
 def verify_cleanup() -> Generator[None, None, None]:
     """Override verify_cleanup to avoid spurious thread errors."""
     yield
@@ -63,6 +45,9 @@ async def setup_integration(
 
     with (
         patch(
+            "custom_components.meraki_ha.create_api_client",
+        ) as mock_create_client,
+        patch(
             "custom_components.meraki_ha.coordinators.main.MerakiMainCoordinator._async_update_data",
             return_value=MOCK_DATA,
         ),
@@ -79,6 +64,10 @@ async def setup_integration(
             new_callable=AsyncMock,
         ) as mock_get_snapshot,
     ):
+        mock_client = MagicMock()
+        mock_client.async_setup = AsyncMock()
+        mock_create_client.return_value = mock_client
+
         await hass.config_entries.async_setup(config_entry.entry_id)
         await hass.async_block_till_done()
 
