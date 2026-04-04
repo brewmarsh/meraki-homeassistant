@@ -173,7 +173,16 @@ async def test_handle_meraki_errors_rate_limit_retry_after():
 @pytest.mark.asyncio
 async def test_handle_meraki_errors_rate_limit_max_retries():
     """Test the handle_meraki_errors decorator with max retries reached."""
-    mock_func = AsyncMock(side_effect=create_api_error(429, ["rate limit exceeded"]))
+    # Action 1: Instantiate real APIError with required metadata and response
+    mock_response = MagicMock()
+    mock_response.status_code = 429
+    mock_response.reason = "Too Many Requests"
+    mock_response.json.return_value = {"errors": ["rate limit exceeded"]}
+    mock_func = AsyncMock(
+        side_effect=APIError(
+            metadata={"tags": ["t"], "operation": "op"}, response=mock_response
+        )
+    )
     decorated = handle_meraki_errors(mock_func)
 
     with patch("asyncio.sleep", new_callable=AsyncMock) as mock_sleep:

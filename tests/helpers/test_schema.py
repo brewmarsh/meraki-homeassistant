@@ -35,9 +35,8 @@ def test_populate_schema_defaults():
             assert key.default() == "new_value"
 
         if key.schema == CONF_IGNORED_NETWORKS:
-            # Action 3: Correct the isinstance check with a valid Python type tuple
-            # ensuring compatibility if selector.SelectSelector were a mock or instance.
-            assert isinstance(value, (selector.SelectSelector, object))
+            # Action 3: Correct the isinstance check with a valid Python type
+            assert isinstance(value, selector.SelectSelector)
             assert value.config["options"] == network_options
 
 
