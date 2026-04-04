@@ -51,18 +51,11 @@ def mock_device_coordinator() -> MagicMock:
     )
 
     # Mimic the coordinator's data structure
-    coordinator.data = {"devices": [device1, device2]}
-
-    def get_device_side_effect(serial: str) -> MerakiDevice | None:
-        """Side effect function for coordinator.get_device to simulate lookup."""
-        devices: list[MerakiDevice] = coordinator.data["devices"]
-        for d in devices:
-            if d.serial == serial:
-                return d
-        return None
+    coordinator.devices_by_serial = {"dev1": device1, "dev2": device2}
+    coordinator.data = {"devices_by_serial": coordinator.devices_by_serial}
 
     # Assign the side effect to the mock's get_device method
-    coordinator.get_device.side_effect = get_device_side_effect
+    coordinator.get_device.side_effect = lambda serial: coordinator.devices_by_serial.get(serial)
 
     return coordinator
 
@@ -70,8 +63,8 @@ def mock_device_coordinator() -> MagicMock:
 def test_firmware_status_sensor(mock_device_coordinator: MagicMock) -> None:
     """Test the firmware status sensor functionality."""
     # Retrieve mock devices from the coordinator's data
-    device1: MerakiDevice = mock_device_coordinator.data["devices"][0]
-    device2: MerakiDevice = mock_device_coordinator.data["devices"][1]
+    device1: MerakiDevice = mock_device_coordinator.devices_by_serial["dev1"]
+    device2: MerakiDevice = mock_device_coordinator.devices_by_serial["dev2"]
 
     # Mock a Home Assistant ConfigEntry
     config_entry: MagicMock = MagicMock()
@@ -83,7 +76,7 @@ def test_firmware_status_sensor(mock_device_coordinator: MagicMock) -> None:
     )
     assert sensor1.unique_id == "dev1_firmware_status"
     assert sensor1.name == "Firmware Status"
-    assert sensor1.state == "update_available"
+    assert sensor1.native_value == "update_available"
     assert sensor1.extra_state_attributes["latest_available_firmware_version"] == "27.1"
 
     # Test sensor for device2 (up to date)
@@ -92,6 +85,6 @@ def test_firmware_status_sensor(mock_device_coordinator: MagicMock) -> None:
     )
     assert sensor2.unique_id == "dev2_firmware_status"
     assert sensor2.name == "Firmware Status"
-    assert sensor2.state == "up_to_date"
+    assert sensor2.native_value == "up_to_date"
     # Ensure the "latest_available_firmware_version" attribute is not present when no update is available.
     assert "latest_available_firmware_version" not in sensor2.extra_state_attributes
