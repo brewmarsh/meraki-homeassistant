@@ -17,35 +17,16 @@ from custom_components.meraki_ha.const.config import (
 )
 from custom_components.meraki_ha.const.integration import DOMAIN
 
+@pytest.fixture(autouse=True)
+def verify_cleanup() -> Generator[None, None, None]:
+    """Override verify_cleanup to avoid spurious thread errors."""
+    yield
+
 MOCK_DATA = {
     "org_name": "Test Org",
     "networks": [{"id": "N_123", "name": "Test Network"}],
     "devices": [],
 }
-
-
-@pytest.fixture(autouse=True)
-def bypass_platform_setup() -> Generator[None, None, None]:
-    """Override global fixture to allow component setup."""
-    yield
-
-
-@pytest.fixture(autouse=True)
-def mock_http(hass: HomeAssistant) -> None:
-    """Override global fixture to avoid mocking http."""
-    pass
-
-
-@pytest.fixture(autouse=True)
-def mock_frontend(hass: HomeAssistant) -> None:
-    """Override global fixture to avoid mocking frontend."""
-    pass
-
-
-@pytest.fixture(autouse=True)
-def verify_cleanup() -> Generator[None, None, None]:
-    """Override verify_cleanup to avoid spurious thread errors."""
-    yield
 
 
 @pytest.fixture

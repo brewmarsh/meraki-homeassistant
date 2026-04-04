@@ -2,18 +2,6 @@
 
 import logging
 
-# Mock homeassistant before imports if necessary
-import sys
-from unittest.mock import MagicMock
-
-sys.modules["homeassistant"] = MagicMock()
-sys.modules["homeassistant.const"] = MagicMock()
-sys.modules["homeassistant.core"] = MagicMock()
-sys.modules["homeassistant.helpers"] = MagicMock()
-sys.modules["homeassistant.helpers.update_coordinator"] = MagicMock()
-sys.modules["pytest_homeassistant_custom_component"] = MagicMock()
-sys.modules["pytest_homeassistant_custom_component.common"] = MagicMock()
-
 from custom_components.meraki_ha.core.parsers.appliance import (  # noqa: E402
     parse_appliance_data,
 )

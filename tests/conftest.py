@@ -36,7 +36,7 @@ def mock_aiortc():
         sys.modules["aiortc.contrib.media"] = MagicMock()
 
 
-@pytest.fixture(autouse=True)
+@pytest.fixture
 def mock_http(hass):
     """Mock the http component."""
     hass.http = MagicMock()
@@ -45,7 +45,7 @@ def mock_http(hass):
     hass.http.async_register_static_paths = AsyncMock()
 
 
-@pytest.fixture(autouse=True)
+@pytest.fixture
 def mock_frontend(hass):
     """Mock the frontend component."""
     hass.data["frontend_extra_module_url"] = set()
@@ -65,7 +65,7 @@ def auto_enable_custom_integrations(
     yield
 
 
-@pytest.fixture(autouse=True)
+@pytest.fixture
 def bypass_platform_setup() -> Generator[None, None, None]:
     """Bypass platform setup to avoid hass_frontend dependency."""
     with patch("homeassistant.setup.async_setup_component", return_value=True):

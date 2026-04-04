@@ -18,7 +18,7 @@ def mock_api_client():
 
 @pytest.mark.asyncio
 async def test_async_register_webhook_fault_tolerance(
-    hass: HomeAssistant, mock_api_client
+    hass: HomeAssistant, mock_api_client, mock_http
 ):
     """Test that async_register_webhook does not raise exceptions."""
     mock_api_client.register_webhook.side_effect = Exception("API Error")
