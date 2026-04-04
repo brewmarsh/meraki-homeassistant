@@ -14,6 +14,7 @@ from custom_components.meraki_ha.types import MerakiDevice
 def mock_data_coordinator():
     """Fixture for a mocked MerakiMainCoordinator."""
     coordinator = MagicMock()
+    coordinator.config_entry = MagicMock()
     coordinator.config_entry.options = {}
     coordinator.data = {
         "devices": [
@@ -24,6 +25,7 @@ def mock_data_coordinator():
                     "model": "MX64",
                     "productType": "appliance",
                     "networkId": "net1",
+                    "status": "online",
                 }
             ),
             MerakiDevice.from_dict(
@@ -33,6 +35,7 @@ def mock_data_coordinator():
                     "model": "MS220",
                     "productType": "switch",
                     "networkId": "net1",
+                    "status": "online",
                 }
             ),
             MerakiDevice.from_dict(
@@ -42,6 +45,7 @@ def mock_data_coordinator():
                     "model": "MR52",
                     "productType": "wireless",
                     "networkId": "net1",
+                    "status": "online",
                 }
             ),
             MerakiDevice.from_dict(
@@ -51,11 +55,12 @@ def mock_data_coordinator():
                     "model": "GX20",
                     "productType": "cellularGateway",
                     "networkId": "net1",
+                    "status": "online",
                 }
             ),
         ],
         "clients": [
-            # Client 1: Online, on net1
+            # Client 1: Online, on net1 (total 2 online for net1)
             {"networkId": "net1", "status": "Online"},
             # Client 2: Online, on net1
             {"networkId": "net1", "status": "Online"},
@@ -65,20 +70,17 @@ def mock_data_coordinator():
             {"networkId": "net2", "status": "Online"},
         ],
         "clients_by_serial": {
-            # This data is now only used for switch and wireless
+            # Switch client count: 1
             "dev_switch": [
                 {"id": "client_w1"},
             ],
+            # Wireless client count: 3
             "dev_wireless": [
                 {"id": "client_ap1"},
                 {"id": "client_ap2"},
                 {"id": "client_ap3"},
             ],
         },
-        "networks": [
-            {"id": "net1", "name": "Network 1"},
-            {"id": "net2", "name": "Network 2"},
-        ],
     }
 
     def get_device(serial):
@@ -93,9 +95,7 @@ def mock_data_coordinator():
 
 def test_connected_clients_sensor_appliance(mock_data_coordinator):
     """Test the connected clients sensor for an appliance."""
-    device = mock_data_coordinator.data["devices"][0]  # The appliance
-    # Explicitly set attribute for micro-targeted remediation
-    device.network_clients = [MagicMock()] * 2
+    device = mock_data_coordinator.get_device("dev_appliance")
     config_entry = mock_data_coordinator.config_entry
     sensor = MerakiDeviceConnectedClientsSensor(
         mock_data_coordinator, device, config_entry
@@ -110,9 +110,7 @@ def test_connected_clients_sensor_appliance(mock_data_coordinator):
 
 def test_connected_clients_sensor_gateway(mock_data_coordinator):
     """Test the connected clients sensor for a cellular gateway."""
-    device = mock_data_coordinator.data["devices"][3]  # The gateway
-    # Explicitly set attribute for micro-targeted remediation
-    device.network_clients = [MagicMock()] * 2
+    device = mock_data_coordinator.get_device("dev_gateway")
     config_entry = mock_data_coordinator.config_entry
     sensor = MerakiDeviceConnectedClientsSensor(
         mock_data_coordinator, device, config_entry
@@ -127,9 +125,7 @@ def test_connected_clients_sensor_gateway(mock_data_coordinator):
 
 def test_connected_clients_sensor_switch(mock_data_coordinator):
     """Test the connected clients sensor for a switch."""
-    device = mock_data_coordinator.data["devices"][1]  # The switch
-    # Explicitly set attribute for micro-targeted remediation
-    device.clients = [MagicMock()] * 1
+    device = mock_data_coordinator.get_device("dev_switch")
     config_entry = mock_data_coordinator.config_entry
     sensor = MerakiDeviceConnectedClientsSensor(
         mock_data_coordinator, device, config_entry
@@ -144,9 +140,7 @@ def test_connected_clients_sensor_switch(mock_data_coordinator):
 
 def test_connected_clients_sensor_wireless(mock_data_coordinator):
     """Test the connected clients sensor for a wireless device."""
-    device = mock_data_coordinator.data["devices"][2]  # The wireless AP
-    # Explicitly set attribute for micro-targeted remediation
-    device.clients = [MagicMock()] * 3
+    device = mock_data_coordinator.get_device("dev_wireless")
     config_entry = mock_data_coordinator.config_entry
     sensor = MerakiDeviceConnectedClientsSensor(
         mock_data_coordinator, device, config_entry

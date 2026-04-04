@@ -17,6 +17,8 @@ def mock_coordinator():
     coordinator = MagicMock()
     coordinator.config_entry = MagicMock()
     coordinator.config_entry.options = {}
+    # Ensure data is truthy for availability check
+    coordinator.data = {"status": "online"}
     return coordinator
 
 
@@ -34,6 +36,8 @@ def test_camera_audio_detection_sensor(mock_coordinator):
         product_type="camera",
         sense_settings={"audioDetection": {"enabled": True}},
     )
+    # Ensure device is online for availability
+    device.status = "online"
 
     mock_coordinator.get_device.return_value = device
 
@@ -60,8 +64,15 @@ def test_camera_audio_detection_sensor(mock_coordinator):
     assert sensor.icon == "mdi:microphone"
 
     # Update with missing audio detection data
-    device.sense_settings = {}
+    # To ensure it lacks the audio detection data as per remediation requirement
+    device.sense_settings = {"some_other_key": "some_value"}
     sensor._handle_coordinator_update()
 
+    assert sensor.native_value is None
+    assert sensor.icon == "mdi:microphone-question"
+
+    # Also test with sense_settings being None
+    device.sense_settings = None
+    sensor._handle_coordinator_update()
     assert sensor.native_value is None
     assert sensor.icon == "mdi:microphone-question"
