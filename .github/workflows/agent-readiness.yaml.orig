@@ -45,7 +45,7 @@ jobs:
       - name: Install tool
         # Ensure the runner pulls the absolute latest commit containing the diff command
         run: pip install --upgrade --no-cache-dir git+https://github.com/brewmarsh/agent-readiness-scorecard.git tree-sitter tree-sitter-javascript tree-sitter-typescript tree-sitter-python
-        
+
       - name: Run agent scorecard (diff mode)
         continue-on-error: true
         run: |
@@ -61,15 +61,13 @@ jobs:
 
           # Replicate diff mode by identifying changed files and using --limit-to
           # Ensure we only analyze Python files that still exist
-          mapfile -t CHANGED_FILES < <(git diff --name-only --diff-filter=d "$TARGET_BRANCH" | grep '\.py$' || true)
+          CHANGED_FILES=$(git diff --name-only --diff-filter=d $TARGET_BRANCH | grep '\.py$' || true)
 
-          if [ ${#CHANGED_FILES[@]} -gt 0 ]; then
-            LIMIT_ARGS=()
-            for file in "${CHANGED_FILES[@]}"; do
-              LIMIT_ARGS+=("--limit-to" "$file")
-            done
-            echo "Analyzing changed files: ${CHANGED_FILES[*]}"
-            agent-score score "${LIMIT_ARGS[@]}" --report readiness_report.md
+          if [ -n "$CHANGED_FILES" ]; then
+            # Convert list of files to --limit-to arguments
+            LIMIT_ARGS=$(echo "$CHANGED_FILES" | sed 's/^/--limit-to /' | tr '\n' ' ')
+            echo "Analyzing changed files: $CHANGED_FILES"
+            agent-score score $LIMIT_ARGS --report readiness_report.md
           else
             echo "No Python files changed. Skipping scorecard."
             echo "No Python files changed in this PR." > readiness_report.md
