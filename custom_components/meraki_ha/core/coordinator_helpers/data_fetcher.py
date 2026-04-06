@@ -41,6 +41,7 @@ class DataFetchManager:
         enable_vpn_management: bool = False,
         enable_firewall_rules: bool = False,
         enable_traffic_shaping: bool = False,
+        enable_port_sensors: bool = False,
         enable_camera_sense: bool = False,
         static_data: dict[str, Any] | None = None,
     ) -> None:
@@ -49,6 +50,7 @@ class DataFetchManager:
         self.enable_vpn_management = enable_vpn_management
         self.enable_firewall_rules = enable_firewall_rules
         self.enable_traffic_shaping = enable_traffic_shaping
+        self.enable_port_sensors = enable_port_sensors
         self.enable_camera_sense = enable_camera_sense
         self._disabled_features: set[str] = set()
         self.client_fetcher = ClientFetcher(client)
@@ -66,6 +68,7 @@ class DataFetchManager:
             enable_vpn_management=self.enable_vpn_management,
             enable_firewall_rules=self.enable_firewall_rules,
             enable_traffic_shaping=self.enable_traffic_shaping,
+            enable_port_sensors=self.enable_port_sensors,
         )
         self.wireless_strategy = WirelessFetchStrategy(
             client, self._disabled_features, static_data=self.static_data

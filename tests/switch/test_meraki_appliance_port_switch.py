@@ -54,7 +54,7 @@ def mock_device():
 def mock_config_entry():
     """Mock a ConfigEntry."""
     entry = MagicMock()
-    entry.options = {}
+    entry.options = {"enable_port_sensors": True}
     return entry
 
 

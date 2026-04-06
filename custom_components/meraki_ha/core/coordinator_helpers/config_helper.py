@@ -10,6 +10,7 @@ from homeassistant.config_entries import ConfigEntry
 from custom_components.meraki_ha.const.config import (
     CONF_ENABLE_CAMERA_SENSE,
     CONF_ENABLE_FIREWALL_RULES,
+    CONF_ENABLE_PORT_SENSORS,
     CONF_ENABLE_TRAFFIC_SHAPING,
     CONF_ENABLE_VPN_MANAGEMENT,
     CONF_IGNORED_NETWORKS,
@@ -18,6 +19,7 @@ from custom_components.meraki_ha.const.config import (
     CONF_SCAN_INTERVAL,
     DEFAULT_ENABLE_CAMERA_SENSE,
     DEFAULT_ENABLE_FIREWALL_RULES,
+    DEFAULT_ENABLE_PORT_SENSORS,
     DEFAULT_ENABLE_TRAFFIC_SHAPING,
     DEFAULT_ENABLE_VPN_MANAGEMENT,
     DEFAULT_IGNORED_NETWORKS,
@@ -34,6 +36,7 @@ class CoordinatorConfig:
     enable_vpn: bool
     enable_firewall: bool
     enable_traffic: bool
+    enable_port_sensors: bool
     enable_camera_sense: bool
     scan_interval: int
     update_interval: timedelta
@@ -63,6 +66,10 @@ def get_coordinator_config(entry: ConfigEntry) -> CoordinatorConfig:
         CONF_ENABLE_CAMERA_SENSE,
         entry.data.get(CONF_ENABLE_CAMERA_SENSE, DEFAULT_ENABLE_CAMERA_SENSE),
     )
+    enable_port_sensors: bool = entry.options.get(
+        CONF_ENABLE_PORT_SENSORS,
+        entry.data.get(CONF_ENABLE_PORT_SENSORS, DEFAULT_ENABLE_PORT_SENSORS),
+    )
     ignored_networks: list[str] = entry.options.get(
         CONF_IGNORED_NETWORKS,
         DEFAULT_IGNORED_NETWORKS,
@@ -85,6 +92,7 @@ def get_coordinator_config(entry: ConfigEntry) -> CoordinatorConfig:
         enable_vpn=enable_vpn,
         enable_firewall=enable_firewall,
         enable_traffic=enable_traffic,
+        enable_port_sensors=enable_port_sensors,
         enable_camera_sense=enable_camera_sense,
         scan_interval=scan_interval,
         update_interval=update_interval,

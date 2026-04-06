@@ -40,6 +40,7 @@ def strategy(mock_client, disabled_features):
         enable_vpn_management=False,
         enable_firewall_rules=False,
         enable_traffic_shaping=False,
+        enable_port_sensors=True,
     )
 
 
@@ -114,6 +115,83 @@ def test_build_network_tasks_includes_enabled(strategy, disabled_features):
     # Verify always-on tasks
     assert f"appliance_ports_{network_id}" in tasks
     assert f"content_filtering_{network_id}" in tasks
+
+
+def test_build_network_tasks_respects_port_toggle(mock_client, disabled_features):
+    """Test that build_network_tasks respects the port sensors toggle."""
+    network_id = "net1"
+
+    # Ports disabled
+    strategy_disabled = ApplianceFetchStrategy(
+        client=mock_client,
+        _disabled_features=disabled_features,
+        enable_vpn_management=False,
+        enable_firewall_rules=False,
+        enable_traffic_shaping=False,
+        enable_port_sensors=False,
+    )
+    tasks = {}
+
+    # Patch async methods to avoid unawaited coroutine warnings
+    with (
+        patch.object(
+            strategy_disabled.device_helper,
+            "get_appliance_ports",
+            new_callable=MagicMock,
+            return_value=[],
+        ),
+        patch.object(
+            strategy_disabled.uplink_helper,
+            "get_uplink_performance",
+            new_callable=MagicMock,
+            return_value=[],
+        ),
+    ):
+        strategy_disabled.build_network_tasks(network_id, tasks)
+
+    import asyncio
+
+    # Clean up unawaited coroutines
+    for task in tasks.values():
+        if asyncio.iscoroutine(task):
+            task.close()
+
+    assert f"appliance_ports_{network_id}" not in tasks
+
+    # Ports enabled
+    strategy_enabled = ApplianceFetchStrategy(
+        client=mock_client,
+        _disabled_features=disabled_features,
+        enable_vpn_management=False,
+        enable_firewall_rules=False,
+        enable_traffic_shaping=False,
+        enable_port_sensors=True,
+    )
+    tasks = {}
+
+    # Patch async methods to avoid unawaited coroutine warnings
+    with (
+        patch.object(
+            strategy_enabled.device_helper,
+            "get_appliance_ports",
+            new_callable=MagicMock,
+            return_value=[],
+        ),
+        patch.object(
+            strategy_enabled.uplink_helper,
+            "get_uplink_performance",
+            new_callable=MagicMock,
+            return_value=[],
+        ),
+    ):
+        strategy_enabled.build_network_tasks(network_id, tasks)
+
+    # Clean up unawaited coroutines
+    for task in tasks.values():
+        if asyncio.iscoroutine(task):
+            task.close()
+
+    assert f"appliance_ports_{network_id}" in tasks
 
 
 def test_build_network_tasks_respects_feature_flags(mock_client, disabled_features):
