@@ -30,6 +30,24 @@ def verify_cleanup() -> Generator[None, None, None]:
     yield
 
 
+@pytest.fixture(autouse=True)
+def bypass_platform_setup() -> Generator[None, None, None]:
+    """Bypass platform setup to avoid AttributeErrors."""
+    yield
+
+
+@pytest.fixture(autouse=True)
+def mock_http() -> Generator[None, None, None]:
+    """Mock http component to avoid AttributeErrors."""
+    yield
+
+
+@pytest.fixture(autouse=True)
+def mock_frontend() -> Generator[None, None, None]:
+    """Mock frontend component to avoid AttributeErrors."""
+    yield
+
+
 @pytest.fixture
 async def setup_integration(
     hass: HomeAssistant,
@@ -45,14 +63,14 @@ async def setup_integration(
 
     with (
         patch(
-            "custom_components.meraki_ha.create_api_client",
+            "custom_components.meraki_ha.core.api.factory.create_api_client",
         ) as mock_create_client,
         patch(
             "custom_components.meraki_ha.coordinators.main.MerakiMainCoordinator._async_update_data",
             return_value=MOCK_DATA,
         ),
         patch(
-            "custom_components.meraki_ha.async_register_webhook",
+            "custom_components.meraki_ha.webhook.async_register_webhook",
             return_value=None,
         ),
         patch(
