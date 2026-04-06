@@ -85,6 +85,7 @@ async def ws_client(
     hass_ws_client: WebSocketGenerator,
 ) -> Any:
     """Fixture to setup and return a websocket client."""
+    # Ensure no toxic mocks block websocket_api or homeassistant.components
     async_setup_websocket_api(hass)
     return await hass_ws_client(hass)
 
