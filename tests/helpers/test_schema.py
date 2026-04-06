@@ -1,10 +1,10 @@
 """Test the schema helpers."""
 
 import voluptuous as vol
-from homeassistant.helpers import selector
 
 from custom_components.meraki_ha.const.config import CONF_IGNORED_NETWORKS
 from custom_components.meraki_ha.helpers.schema import populate_schema_defaults
+from homeassistant.helpers import selector
 
 
 def test_populate_schema_defaults():
@@ -35,7 +35,7 @@ def test_populate_schema_defaults():
             assert key.default() == "new_value"
 
         if key.schema == CONF_IGNORED_NETWORKS:
-            # Action 3: Correct the isinstance check with a valid Python type
+            # Action 2: Ensure selector.SelectSelector is the real class type
             assert isinstance(value, selector.SelectSelector)
             assert value.config["options"] == network_options
 

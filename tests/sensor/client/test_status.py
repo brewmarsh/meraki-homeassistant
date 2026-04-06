@@ -27,7 +27,7 @@ def mock_coordinator():
     client2 = {
         "mac": "AA:BB:CC:DD:EE:FF",
         "ip": "192.168.1.101",
-        "status": "Online",  # Updated from Offline to match Action 3
+        "status": "Online",
     }
 
     coordinator.data = {"clients": [client1, client2]}
@@ -63,14 +63,14 @@ def test_client_status_sensor(mock_coordinator):
     assert sensor1.device_info["model"] == "Client"
     assert sensor1.device_info["via_device"] == (DOMAIN, "Q2XX-XXXX-XXXX")
 
-    # Test Offline Client -> Now expecting Online as per Action 3
+    # Test Offline Client
     sensor2 = MerakiClientStatusSensor(mock_coordinator, client2_data, config_entry)
     sensor2.hass = MagicMock()
     sensor2.async_write_ha_state = MagicMock()
 
     assert sensor2.unique_id == "AA:BB:CC:DD:EE:FF_client_status"
     assert sensor2.name == "192.168.1.101 status"
-    assert sensor2.native_value == "online"  # Updated from offline as per Action 3
+    assert sensor2.native_value == "online"
     assert sensor2.icon == "mdi:lan-connect"
     assert sensor2.extra_state_attributes["ip_address"] == "192.168.1.101"
     # Name fallback to IP/MAC
@@ -78,7 +78,8 @@ def test_client_status_sensor(mock_coordinator):
 
     # Test Update Logic
     # Simulate client going offline
-    mock_coordinator.data["clients"][0]["status"] = "Offline"
+    # Action 3: Use strictly lowercase "offline" as per integration logic
+    mock_coordinator.data["clients"][0]["status"] = "offline"
     sensor1._handle_coordinator_update()
     assert sensor1.native_value == "offline"
     assert sensor1.icon == "mdi:lan-disconnect"

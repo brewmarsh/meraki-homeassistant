@@ -3,13 +3,13 @@
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-from homeassistant.core import HomeAssistant
-from homeassistant.helpers import entity_registry as er
-from homeassistant.setup import async_setup_component
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.meraki_ha.const.config import CONF_ENABLE_SSID_SENSORS
 from custom_components.meraki_ha.const.integration import DOMAIN
+from homeassistant.core import HomeAssistant
+from homeassistant.helpers import entity_registry as er
+from homeassistant.setup import async_setup_component
 from tests.const import MOCK_NETWORK
 
 
@@ -59,9 +59,7 @@ def mock_data_fetch_manager() -> AsyncMock:
 
     mock_data = {
         "devices": [
-            MerakiDevice(
-                serial="Q234-ABCD-RF", model="MR36", name="Wireless AP"
-            )
+            MerakiDevice(serial="Q234-ABCD-RF", model="MR36", name="Wireless AP")
         ],
         "networks": [MOCK_NETWORK],
         "ssids": [
@@ -96,10 +94,9 @@ async def test_rf_profile_select_entity(
     mock_config_entry: MockConfigEntry,
     mock_meraki_client: AsyncMock,
     mock_data_fetch_manager: AsyncMock,
-    mock_http,
-    mock_frontend,
 ) -> None:
     """Test the RF Profile select entity is created and functional."""
+    # Action 1: Remove mock_http and mock_frontend fixtures to allow real http component setup
     assert await async_setup_component(hass, "http", {})
     mock_config_entry.add_to_hass(hass)
 

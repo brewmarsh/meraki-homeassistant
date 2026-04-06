@@ -3,12 +3,12 @@
 from unittest.mock import MagicMock
 
 import pytest
-from homeassistant.const import EntityCategory
 
 from custom_components.meraki_ha.sensor.device.camera_audio_detection import (
     MerakiCameraAudioDetectionSensor,
 )
 from custom_components.meraki_ha.types import MerakiDevice
+from homeassistant.const import EntityCategory
 
 
 @pytest.fixture
@@ -56,7 +56,7 @@ def test_camera_audio_detection_sensor(mock_coordinator):
     sensor.hass = hass
     sensor.async_write_ha_state = MagicMock()
 
-    # Update with enabled audio (Action 3: assertion from disabled to enabled)
+    # Update with enabled audio
     device.sense_settings = {"audioDetection": {"enabled": True}}
     sensor._handle_coordinator_update()
 
@@ -64,8 +64,8 @@ def test_camera_audio_detection_sensor(mock_coordinator):
     assert sensor.icon == "mdi:microphone"
 
     # Update with missing audio detection data
-    # To ensure it lacks the audio detection data as per remediation requirement
-    device.sense_settings = {"some_other_key": "some_value"}
+    # Action 4: Clear the dictionary entirely to properly simulate removal of audio detection
+    device.sense_settings = {}
     sensor._handle_coordinator_update()
 
     assert sensor.native_value is None

@@ -3,12 +3,12 @@
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-from homeassistant.core import HomeAssistant
-from homeassistant.setup import async_setup_component
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.meraki_ha.const.integration import DOMAIN
 from custom_components.meraki_ha.core.models.network import MerakiNetwork
+from homeassistant.core import HomeAssistant
+from homeassistant.setup import async_setup_component
 
 TEST_ORG_ID = "fake_org"
 TEST_NETWORK_ID = "N_12345"
@@ -72,9 +72,7 @@ def mock_data_fetch_manager() -> AsyncMock:
     # Mocking blockedUrlCategories as a list of dictionaries to trigger the bug
     data = {
         "devices": [
-            MerakiDevice(
-                serial="Q234-ABCD-CF", model="MX6", name="Filtering Appliance"
-            )
+            MerakiDevice(serial="Q234-ABCD-CF", model="MX6", name="Filtering Appliance")
         ],
         "networks": [TEST_NETWORK],
         "content_filtering": {
@@ -105,10 +103,9 @@ async def test_content_filtering_select_dict_response(
     mock_config_entry: MockConfigEntry,
     mock_meraki_client: AsyncMock,
     mock_data_fetch_manager: AsyncMock,
-    mock_http,
-    mock_frontend,
 ) -> None:
     """Test that the content filtering select entity handles dictionary responses."""
+    # Action 1: Remove mock_http and mock_frontend fixtures to allow real http component setup
     assert await async_setup_component(hass, "http", {})
     mock_config_entry.add_to_hass(hass)
 
@@ -140,7 +137,10 @@ async def test_content_filtering_select_dict_response(
                 break
 
         assert target_entity is not None
-        assert target_entity.unique_id == f"meraki-network-{TEST_NETWORK_ID}-content-filtering-profile"
+        assert (
+            target_entity.unique_id
+            == f"meraki-network-{TEST_NETWORK_ID}-content-filtering-profile"
+        )
 
         # This access should trigger the TypeError if the bug exists
         state = hass.states.get(target_entity.entity_id)

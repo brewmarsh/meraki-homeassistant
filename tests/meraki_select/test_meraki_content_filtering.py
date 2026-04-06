@@ -3,11 +3,11 @@
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-from homeassistant.core import HomeAssistant
-from homeassistant.setup import async_setup_component
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.meraki_ha.const.integration import DOMAIN
+from homeassistant.core import HomeAssistant
+from homeassistant.setup import async_setup_component
 from tests.const import MOCK_NETWORK
 
 
@@ -70,9 +70,7 @@ def mock_data_fetch_manager() -> AsyncMock:
 
     data = {
         "devices": [
-            MerakiDevice(
-                serial="Q234-ABCD-CF", model="MX6", name="Filtering Appliance"
-            )
+            MerakiDevice(serial="Q234-ABCD-CF", model="MX6", name="Filtering Appliance")
         ],
         "networks": [MOCK_NETWORK],
         "content_filtering": {
@@ -103,10 +101,9 @@ async def test_content_filtering_select_entity(
     mock_config_entry: MockConfigEntry,
     mock_meraki_client: AsyncMock,
     mock_data_fetch_manager: AsyncMock,
-    mock_http,
-    mock_frontend,
 ) -> None:
     """Test the content filtering select entity is created and functional."""
+    # Action 1: Remove mock_http and mock_frontend fixtures to allow real http component setup
     assert await async_setup_component(hass, "http", {})
     mock_config_entry.add_to_hass(hass)
 
@@ -140,7 +137,10 @@ async def test_content_filtering_select_entity(
 
         assert target_entity is not None
         assert target_entity.domain == "select"
-        assert target_entity.unique_id == f"meraki-network-{MOCK_NETWORK.id}-content-filtering-profile"
+        assert (
+            target_entity.unique_id
+            == f"meraki-network-{MOCK_NETWORK.id}-content-filtering-profile"
+        )
 
         # Verify state (Security profile matches the mocked data)
         state = hass.states.get(target_entity.entity_id)
