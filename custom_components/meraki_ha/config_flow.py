@@ -16,12 +16,15 @@ from .const.config import (
     CONF_MERAKI_ORG_ID,
 )
 from .const.integration import DOMAIN
+from .reauth_flow import async_step_reauth
 
 _LOGGER = logging.getLogger(__name__)
 
 
 class MerakiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     """Handle a config flow for Meraki."""
+
+    async_step_reauth = async_step_reauth
 
     VERSION = 2
 
