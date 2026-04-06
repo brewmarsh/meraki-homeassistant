@@ -109,6 +109,10 @@ async def test_content_filtering_select_entity(
 
     with (
         patch(
+            "custom_components.meraki_ha.core.api.create_api_client",
+            return_value=mock_meraki_client,
+        ),
+        patch(
             "custom_components.meraki_ha.create_api_client",
             return_value=mock_meraki_client,
         ),

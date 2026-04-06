@@ -66,7 +66,7 @@ async def test_async_gather_with_timeout_graceful_traffic_analysis(
 
         results = await async_gather_with_timeout(tasks, label="Test Graceful")
 
-    # Clean up unawaited coroutines
+    # Action 2: Ensure any remaining coroutines are closed if not awaited
     for task in tasks.values():
         if asyncio.iscoroutine(task):
             task.close()
@@ -102,7 +102,7 @@ async def test_async_gather_with_timeout_graceful_vlans(data_fetch_manager):
 
         results = await async_gather_with_timeout(tasks, label="Test Graceful")
 
-    # Clean up unawaited coroutines
+    # Action 2: Ensure any remaining coroutines are closed if not awaited
     for task in tasks.values():
         if asyncio.iscoroutine(task):
             task.close()
@@ -140,7 +140,7 @@ async def test_async_gather_with_timeout_handles_wrapped_meraki_errors(
 
         results = await async_gather_with_timeout(tasks, label="Test Wrapped")
 
-    # Clean up unawaited coroutines
+    # Action 2: Ensure any remaining coroutines are closed if not awaited
     for task in tasks.values():
         if asyncio.iscoroutine(task):
             task.close()
@@ -175,7 +175,7 @@ async def test_async_gather_with_timeout_true_failures_still_log_error(
 
         results = await async_gather_with_timeout(tasks, label="Test Failure")
 
-    # Clean up unawaited coroutines
+    # Action 2: Ensure any remaining coroutines are closed if not awaited
     for task in tasks.values():
         if asyncio.iscoroutine(task):
             task.close()

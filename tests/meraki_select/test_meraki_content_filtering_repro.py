@@ -115,6 +115,10 @@ async def test_content_filtering_select_dict_response(
             return_value=mock_meraki_client,
         ),
         patch(
+            "custom_components.meraki_ha.create_api_client",
+            return_value=mock_meraki_client,
+        ),
+        patch(
             "custom_components.meraki_ha.coordinators.base.DataFetchManager",
             return_value=mock_data_fetch_manager,
         ),

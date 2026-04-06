@@ -2,14 +2,16 @@
 
 from unittest.mock import AsyncMock, MagicMock, patch
 
-from homeassistant.components.http import StaticPathConfig
-from homeassistant.core import HomeAssistant
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.meraki_ha.const.integration import DOMAIN
+from homeassistant.components.http import StaticPathConfig
+from homeassistant.core import HomeAssistant
 
 
-async def test_static_path_registration(hass: HomeAssistant, mock_http, mock_frontend) -> None:
+async def test_static_path_registration(
+    hass: HomeAssistant, mock_http, mock_frontend
+) -> None:
     """Test that static path registration uses the new async method."""
     entry = MockConfigEntry(
         domain=DOMAIN,
@@ -20,6 +22,9 @@ async def test_static_path_registration(hass: HomeAssistant, mock_http, mock_fro
 
     # Ensure frontend is in components to trigger the registration block
     hass.config.components.add("frontend")
+
+    # Action 1: Mock the method on the instance before the integration uses it
+    hass.http.async_register_static_paths = MagicMock()
 
     mock_api_client = MagicMock()
     mock_api_client.async_setup = AsyncMock()

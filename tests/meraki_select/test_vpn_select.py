@@ -97,9 +97,16 @@ async def test_vpn_select_entity(
     assert await async_setup_component(hass, "http", {})
     mock_config_entry.add_to_hass(hass)
 
+    # Action 2: Provide an explicit AsyncMock for the nested network call
+    mock_meraki_client.appliance.update_vpn_status = AsyncMock()
+
     with (
         patch(
-            "custom_components.meraki_ha.core.api.factory.create_api_client",
+            "custom_components.meraki_ha.__init__.create_api_client",
+            return_value=mock_meraki_client,
+        ),
+        patch(
+            "custom_components.meraki_ha.create_api_client",
             return_value=mock_meraki_client,
         ),
         patch(
