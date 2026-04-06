@@ -1,6 +1,6 @@
 """Test the Meraki content filtering select entity."""
 
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import ANY, AsyncMock, MagicMock, patch
 
 import pytest
 from pytest_homeassistant_custom_component.common import MockConfigEntry
@@ -128,6 +128,8 @@ async def test_content_filtering_select_entity(
     mock_config_entry: MockConfigEntry,
     mock_meraki_client: AsyncMock,
     mock_data_fetch_manager: AsyncMock,
+    mock_http,
+    mock_frontend,
 ) -> None:
     """Test the content filtering select entity is created and functional."""
     assert await async_setup_component(hass, "http", {})
@@ -184,12 +186,15 @@ async def test_content_filtering_select_entity(
         # Verify API called with Security categories
         mock_meraki_client.appliance.update_network_appliance_content_filtering.assert_called_with(
             network_id=MOCK_NETWORK.id,
-            blockedUrlCategories=[
-                "meraki:contentFiltering/category/8",
-                "meraki:contentFiltering/category/9",
-                "meraki:contentFiltering/category/11",
-            ],
+            blockedUrlCategories=ANY,
         )
+        # Verify call arguments more flexibly since list order can vary
+        call_args = mock_meraki_client.appliance.update_network_appliance_content_filtering.call_args
+        assert set(call_args.kwargs["blockedUrlCategories"]) == {
+            "meraki:contentFiltering/category/8",
+            "meraki:contentFiltering/category/9",
+            "meraki:contentFiltering/category/11",
+        }
 
         # Ensure integration unloads while mocks are still active
         assert await hass.config_entries.async_unload(mock_config_entry.entry_id)

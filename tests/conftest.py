@@ -5,9 +5,9 @@ from collections.abc import Generator
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-from homeassistant.core import HomeAssistant
 
 from custom_components.meraki_ha.const.integration import DOMAIN
+from homeassistant.core import HomeAssistant
 from tests.const import (
     MOCK_ALL_DATA,
     MOCK_DEVICE_INIT,
@@ -36,6 +36,21 @@ def mock_aiortc():
         sys.modules["aiortc.contrib.media"] = MagicMock()
 
 
+@pytest.fixture
+def mock_http(hass):
+    """Mock the http component."""
+    hass.http = MagicMock()
+    hass.http.register_view = MagicMock()
+    hass.http.register_static_path = MagicMock()
+    hass.http.async_register_static_paths = AsyncMock()
+
+
+@pytest.fixture
+def mock_frontend(hass):
+    """Mock the frontend component."""
+    hass.data["frontend_extra_module_url"] = set()
+
+
 @pytest.fixture(autouse=True)
 def auto_enable_custom_integrations(
     enable_custom_integrations: None,
@@ -48,6 +63,13 @@ def auto_enable_custom_integrations(
 
     """
     yield
+
+
+@pytest.fixture
+def bypass_platform_setup() -> Generator[None, None, None]:
+    """Bypass platform setup to avoid hass_frontend dependency."""
+    with patch("homeassistant.setup.async_setup_component", return_value=True):
+        yield
 
 
 @pytest.fixture

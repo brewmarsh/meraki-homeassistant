@@ -105,6 +105,8 @@ async def test_content_filtering_select_dict_response(
     mock_config_entry: MockConfigEntry,
     mock_meraki_client: AsyncMock,
     mock_data_fetch_manager: AsyncMock,
+    mock_http,
+    mock_frontend,
 ) -> None:
     """Test that the content filtering select entity handles dictionary responses."""
     assert await async_setup_component(hass, "http", {})

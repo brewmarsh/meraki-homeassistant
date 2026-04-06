@@ -91,6 +91,8 @@ async def test_vpn_select_entity(
     mock_config_entry: MockConfigEntry,
     mock_meraki_client: AsyncMock,
     mock_data_fetch_manager: AsyncMock,
+    mock_http,
+    mock_frontend,
 ) -> None:
     """Test the VPN select entity is created and functional."""
     assert await async_setup_component(hass, "http", {})

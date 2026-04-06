@@ -5,7 +5,6 @@ from typing import Any
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-from homeassistant.core import HomeAssistant
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 from pytest_homeassistant_custom_component.typing import WebSocketGenerator
 
@@ -16,18 +15,20 @@ from custom_components.meraki_ha.const.config import (
     CONF_MERAKI_ORG_ID,
 )
 from custom_components.meraki_ha.const.integration import DOMAIN
-
-MOCK_DATA = {
-    "org_name": "Test Org",
-    "networks": [{"id": "N_123", "name": "Test Network"}],
-    "devices": [],
-}
+from homeassistant.core import HomeAssistant
 
 
 @pytest.fixture(autouse=True)
 def verify_cleanup() -> Generator[None, None, None]:
     """Override verify_cleanup to avoid spurious thread errors."""
     yield
+
+
+MOCK_DATA = {
+    "org_name": "Test Org",
+    "networks": [{"id": "N_123", "name": "Test Network"}],
+    "devices": [],
+}
 
 
 @pytest.fixture
@@ -196,6 +197,7 @@ async def test_update_options(
 async def test_update_enabled_networks(
     hass: HomeAssistant,
     ws_client: Any,
+    setup_integration: Any,
 ) -> None:
     """Test updating enabled networks."""
     config_entry = MockConfigEntry(
