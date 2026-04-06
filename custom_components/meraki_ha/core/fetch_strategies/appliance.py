@@ -27,12 +27,14 @@ class ApplianceFetchStrategy(BaseFetchStrategy):
         enable_vpn_management: bool,
         enable_firewall_rules: bool,
         enable_traffic_shaping: bool,
+        enable_port_sensors: bool = False,
     ) -> None:
         """Initialize the appliance fetch strategy."""
         super().__init__(client, _disabled_features)
         self.enable_vpn_management = enable_vpn_management
         self.enable_firewall_rules = enable_firewall_rules
         self.enable_traffic_shaping = enable_traffic_shaping
+        self.enable_port_sensors = enable_port_sensors
 
         self.traffic_helper = ApplianceTrafficHelper(self._disabled_features)
         self.uplink_helper = ApplianceUplinkHelper(self.client)
@@ -81,9 +83,10 @@ class ApplianceFetchStrategy(BaseFetchStrategy):
         self, network_id: str, tasks: dict[str, Any]
     ) -> None:
         """Add standard appliance tasks."""
-        tasks[f"appliance_ports_{network_id}"] = self.client.run_with_semaphore(
-            self.device_helper.get_appliance_ports(network_id),
-        )
+        if self.enable_port_sensors:
+            tasks[f"appliance_ports_{network_id}"] = self.client.run_with_semaphore(
+                self.device_helper.get_appliance_ports(network_id),
+            )
         tasks[f"content_filtering_{network_id}"] = self.client.run_with_semaphore(
             self.client.appliance.get_network_appliance_content_filtering(
                 network_id,

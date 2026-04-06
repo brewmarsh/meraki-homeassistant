@@ -56,6 +56,7 @@ class MerakiBaseCoordinator(DataUpdateCoordinator[T], Generic[T]):
             enable_vpn_management=self.config.enable_vpn,
             enable_firewall_rules=self.config.enable_firewall,
             enable_traffic_shaping=self.config.enable_traffic,
+            enable_port_sensors=self.config.enable_port_sensors,
             enable_camera_sense=self.config.enable_camera_sense,
             static_data=self.static_data,
         )

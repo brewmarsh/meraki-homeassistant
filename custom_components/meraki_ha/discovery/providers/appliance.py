@@ -7,11 +7,12 @@ from typing import TYPE_CHECKING, Any
 
 from custom_components.meraki_ha.const.config import CONF_ENABLE_PORT_SENSORS
 
-from ...binary_sensor.device.switch_port import SwitchPortSensor
+from ...core.models.appliance import MerakiAppliancePort
+from ...binary_sensor.device.appliance_port import AppliancePortBinarySensor
+from ...sensor.device.appliance_port import MerakiAppliancePortSensor
 from ...sensor.device.switch_port import (
     MerakiSwitchPortEnergySensor,
     MerakiSwitchPortPowerSensor,
-    MerakiSwitchPortSensor,
 )
 from ...switch.switch_port import MerakiAppliancePortSwitch
 
@@ -45,22 +46,16 @@ class AppliancePortProvider:
         if hasattr(device, "ports") and isinstance(device.ports, dict) and device.ports:
             for port_id, port_dict in device.ports.items():
                 try:
+                    port_obj = MerakiAppliancePort.from_dict(port_dict)
+
                     # 1. Binary sensor for link status
                     entities.append(
-                        SwitchPortSensor(
-                            coordinator, device, port_dict, port_prefix="appliance_port"
-                        )
+                        AppliancePortBinarySensor(coordinator, device, port_obj)
                     )
 
                     # 2. General port sensors (State)
                     entities.append(
-                        MerakiSwitchPortSensor(
-                            coordinator,
-                            device,
-                            port_dict,
-                            config_entry,
-                            port_prefix="appliance_port",
-                        )
+                        MerakiAppliancePortSensor(coordinator, device, port_obj)
                     )
 
                     # 3. Add Power/Energy sensors if port supports power data
@@ -123,20 +118,12 @@ class AppliancePortProvider:
 
                 # 1. Binary sensor for link status
                 entities.append(
-                    SwitchPortSensor(
-                        coordinator, device, port_dict, port_prefix="appliance_port"
-                    )
+                    AppliancePortBinarySensor(coordinator, device, port_obj)
                 )
 
                 # 2. General port sensors (State)
                 entities.append(
-                    MerakiSwitchPortSensor(
-                        coordinator,
-                        device,
-                        port_dict,
-                        config_entry,
-                        port_prefix="appliance_port",
-                    )
+                    MerakiAppliancePortSensor(coordinator, device, port_obj)
                 )
                 # 3. Add Power/Energy sensors only if port supports/reports power data
                 if (
@@ -165,7 +152,7 @@ class AppliancePortProvider:
                 # 4. Control entities (Toggles)
                 entities.append(
                     MerakiAppliancePortSwitch(
-                        coordinator, device, port_obj, config_entry
+                        coordinator, device, port_dict, config_entry
                     )
                 )
             except Exception as err:

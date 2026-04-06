@@ -183,7 +183,7 @@ class UpdateProcessor:
         update_device_registry_info(self.hass, devices)
 
         # Process appliance-specific data mappings
-        self._process_appliance_data(data, devices)
+        self._process_appliance_data(data, devices, previous_data)
 
         # Return lookup tables
         result = {
@@ -264,13 +264,16 @@ class UpdateProcessor:
         }
 
     def _process_appliance_data(
-        self, data: dict[str, Any], devices: list[MerakiDevice]
+        self,
+        data: dict[str, Any],
+        devices: list[MerakiDevice],
+        previous_data: dict[str, Any] | None = None,
     ) -> None:
         """Map appliance-specific data fields back to device objects."""
         from ..parsers.appliance import parse_appliance_data
 
-        # This will populate appliance_uplink_statuses and uplinks
-        parse_appliance_data(devices, data)
+        # This will populate appliance_uplink_statuses, ports and uplinks
+        parse_appliance_data(devices, data, previous_data)
 
     def process_failure(
         self, err: Exception, last_successful_data: dict[str, Any]

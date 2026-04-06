@@ -58,7 +58,7 @@ def mock_device_coordinator():
     coordinator.get_device.return_value = device
 
     # Mock config entry options
-    coordinator.config_entry.options = {}
+    coordinator.config_entry.options = {"enable_port_sensors": True}
 
     return coordinator
 

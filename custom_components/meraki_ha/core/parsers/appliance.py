@@ -79,6 +79,15 @@ def parse_appliance_data(
                 if device.network_id == network_id:
                     ports_by_serial[device.serial] = value
 
+    if not ports_by_serial and previous_data:
+        # Fallback to previous data for ports
+        for device in devices:
+            if prev_dev := previous_data.get("devices_by_serial", {}).get(device.serial):
+                if hasattr(prev_dev, "ports") and prev_dev.ports:
+                    device.ports = prev_dev.ports
+                if hasattr(prev_dev, "appliance_ports") and prev_dev.appliance_ports:
+                    device.appliance_ports = prev_dev.appliance_ports
+
     if ports_by_serial:
         parse_appliance_ports(devices, ports_by_serial)
 
