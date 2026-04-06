@@ -173,7 +173,7 @@ async def test_handle_meraki_errors_rate_limit_retry_after():
 @pytest.mark.asyncio
 async def test_handle_meraki_errors_rate_limit_max_retries():
     """Test the handle_meraki_errors decorator with max retries reached."""
-    # Action 1: Instantiate real APIError with required metadata and response
+    # Ensure APIError is the real class and not a mock
     mock_response = MagicMock()
     mock_response.status_code = 429
     mock_response.reason = "Too Many Requests"
