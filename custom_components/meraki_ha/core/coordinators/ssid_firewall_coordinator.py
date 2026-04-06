@@ -1,0 +1,2 @@
+class SsidFirewallCoordinator:
+    pass
