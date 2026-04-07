@@ -1,5 +1,5 @@
 module.exports = async ({ github, context }) => {
-  const title = '🚨 Staging Smoke Test Failed';
+  const title = '🚨 Staging Tests Failed';
   const { data: issues } = await github.rest.issues.listForRepo({
     owner: context.repo.owner,
     repo: context.repo.repo,

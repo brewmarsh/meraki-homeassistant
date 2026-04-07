@@ -53,7 +53,7 @@ The dashboard will implement a three-tier priority grid:
 1. **Phase 1 (Backend):** Implement version-checking logic in `__init__.py` and the new WebSocket command.
 2. **Phase 2 (Frontend):** Convert existing views into **Lit 3.x** components with grid support.
 3. **Phase 3 (Configuration):** Draft the default `ui-lovelace.yaml` Sections layout.
-4. **Phase 4 (Validation):** Deploy to the **Smoke Test Server** and verify:
+4. **Phase 4 (Validation):** Deploy to the **Staging Test Server** and verify:
 
 - Version "2.0.0-beta.69" is displayed via WebSocket.
 - The dashboard scales and flows correctly on the 2026.1 mobile view.

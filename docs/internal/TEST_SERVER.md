@@ -35,15 +35,15 @@ Jules will generate and deploy a `fluent-bit.conf` to the test server. This conf
 
 #### **Phase 3: The Multi-Vector Audit**
 
-1. **State Audit:** `scripts/smoke_test_probe.py` connects via WebSockets to verify that the `meraki_ha` domain is loaded and entities are not `unavailable`.
-2. **Log Audit:** A new script `scripts/check_better_stack.py` queries the Better Stack API for any `ERROR` level logs containing "meraki_ha" that occurred in the 5 minutes post-deployment.
+1. **State Audit:** `scripts/staging_test_probe.py` connects via WebSockets to verify that the `meraki_ha` domain is loaded and entities are not `unavailable`.
+2. **Log Audit:** A new script `scripts/query_logs.py` queries the Better Stack API for any `ERROR` level logs containing "meraki_ha" that occurred in the 5 minutes post-deployment.
 
 #### **Phase 4: Autonomous Bug Reporting**
 
 If either audit fails:
 
 - Jules extracts the **Traceback** and **Entity State** data.
-- Jules creates a GitHub issue titled **"Smoke Test Failure: [Commit ID]"**.
+- Jules creates a GitHub issue titled **"Staging Test Failure: [Commit ID]"**.
 - The issue description serves as the "Fix It" prompt for the next Healer cycle.
 
 ---

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Reset the Meraki HA integration by deleting and re-adding it via REST API.
 
-This script is used in staging to ensure a clean state for smoke testing.
+This script is used in staging to ensure a clean state for staging testing.
 It uses the Home Assistant REST API to delete any existing Meraki entries,
 restarts Home Assistant, and then adds a new entry with the correct credentials.
 """

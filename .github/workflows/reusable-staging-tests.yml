@@ -1,4 +1,4 @@
-name: Reusable Smoke Test
+name: Reusable Staging Tests
 
 on:
   workflow_call:
@@ -8,7 +8,7 @@ on:
         type: string
 
 jobs:
-  smoke_test:
+  staging_test:
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -63,12 +63,12 @@ jobs:
           python -m pip install --upgrade pip
           pip install homeassistant-ws requests
 
-      - name: Run Smoke Test Probe
+      - name: Run Staging Test Probe
         id: probe
         run: |
           set -o pipefail
-          if ! python scripts/smoke_test_probe.py 2>&1 | tee probe_output.txt; then
-            echo "FAILED_STEP_NAME=Run Smoke Test Probe" >> $GITHUB_ENV
+          if ! python scripts/staging_test_probe.py 2>&1 | tee probe_output.txt; then
+            echo "FAILED_STEP_NAME=Run Staging Test Probe" >> $GITHUB_ENV
             {
               echo "CI_ERROR_DETAILS<<EOF"
               tail -n 20 probe_output.txt
@@ -105,7 +105,7 @@ jobs:
               const script = require('./scripts/generate_failure_issue.js');
               await script({github, context});
             } catch (e) {
-              const title = '🚨 Smoke Test Failure: ' + '${{ inputs.branch_name }}';
+              const title = '🚨 Staging Test Failure: ' + '${{ inputs.branch_name }}';
               const failedStep = process.env.FAILED_STEP_NAME || 'Unknown Step';
               const errorDetails = process.env.CI_ERROR_DETAILS || 'No details captured.';
               const body = `### ❌ Failed Step: \`${failedStep}\`\n\n### 📋 Error Details\n\`\`\`text\n${errorDetails}\n\`\`\`\n\n[🔗 Run Details](${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId})`;

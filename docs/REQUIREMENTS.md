@@ -104,11 +104,11 @@
 
 ### Error Handling
 
-| Requirement                                                                                 | Status   |
-| :------------------------------------------------------------------------------------------ | :------- |
-| The integration should handle API errors, network issues, and other exceptions gracefully.  | Included |
-| Logging should be used for debugging and error reporting.                                   | Included |
-| The integration must implement an adaptive back-off algorithm when 429 errors are detected. | Included |
+| Requirement                                                                                                                                                          | Status   |
+| :------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :------- |
+| The integration should handle API errors, network issues, and other exceptions gracefully.                                                                           | Included |
+| Logging should be used for debugging and error reporting.                                                                                                            | Included |
+| The integration must implement an adaptive back-off algorithm when 429 errors are detected.                                                                          | Included |
 | The integration must implement granular, endpoint-specific API blacklisting to prevent failures in one feature from inadvertently disabling unrelated functionality. | Included |
 
 ### Data Coordination
@@ -144,12 +144,12 @@
 
 ### Testing & Hardening
 
-| Requirement                                                                                                                                                                                          | Status   |
-| :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :------- |
-| The integration uses a non-blocking setup sequence where only Tier 1 data (basic device skeleton) is awaited during `async_setup_entry`. Heavy sensor data is fetched in the background.             | Included |
-| Automated smoke tests must include a 90-second wait after integration initialization to allow the Meraki background coordinators to complete their initial data fetch before auditing logs or state. | Included |
-| Staging smoke tests must audit entity states via the Home Assistant Template API to ensure no Meraki entities are in an 'unavailable' or 'unknown' state before passing.                             | Included |
-| **Source-Only Development:** JavaScript build artifacts (.js) are decoupled from the Git repository. CI/CD pipelines generate artifacts from `frontend/` source during deployment.                | Included |
+| Requirement                                                                                                                                                                                            | Status   |
+| :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :------- |
+| The integration uses a non-blocking setup sequence where only Tier 1 data (basic device skeleton) is awaited during `async_setup_entry`. Heavy sensor data is fetched in the background.               | Included |
+| Automated staging tests must include a 90-second wait after integration initialization to allow the Meraki background coordinators to complete their initial data fetch before auditing logs or state. | Included |
+| Staging tests must audit entity states via the Home Assistant Template API to ensure no Meraki entities are in an 'unavailable' or 'unknown' state before passing.                                     | Included |
+| **Source-Only Development:** JavaScript build artifacts (.js) are decoupled from the Git repository. CI/CD pipelines generate artifacts from `frontend/` source during deployment.                     | Included |
 
 \*\*Frontend Development (DEPRECATED - Removed in v2.3.0)
 

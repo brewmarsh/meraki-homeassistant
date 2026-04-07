@@ -24,7 +24,7 @@ For a more isolated and consistent testing environment, you can use the provided
     ```
     This will start a local Home Assistant instance with your local version of the Meraki integration mounted.
 3.  **Build Frontend (Lovelace Cards):**
-    The project uses TypeScript for custom Lovelace cards. Build artifacts are *not* tracked in Git.
+    The project uses TypeScript for custom Lovelace cards. Build artifacts are _not_ tracked in Git.
     ```bash
     cd frontend
     npm install
@@ -73,24 +73,26 @@ Before submitting, you **must** run all quality checks. These are also enforced 
 
 This project uses GitHub Actions for continuous integration and deployment.
 
-### 3.1. Staging Smoke Tests
+### 3.1. Staging Tests
 
-The staging deployment workflow (`deploy-staging.yaml`) runs automated smoke tests on the `beta` branch. These tests include:
+The staging deployment workflow (`staging-tests.yml`) runs automated tests on the `beta` branch. These tests include:
+
 - Auditing Home Assistant logs for Meraki-related Python errors or tracebacks.
 - Verifying that all Meraki entities are available and not in an `unknown` or `unavailable` state.
 
-If any of these checks fail, the workflow will automatically create a GitHub Issue titled `🚨 Staging Smoke Test Failed` (if one doesn't already exist) to track the regression.
+If any of these checks fail, the workflow will automatically create a GitHub Issue titled `🚨 Staging Tests Failed` (if one doesn't already exist) to track the regression.
 
 ### 3.2. AI-Driven Regression Triage
 
 To accelerate resolution, the staging workflow includes rich error details (e.g., Python tracebacks or lists of unavailable entities) directly in the GitHub Issue.
 
 Automated issues are tagged with the `jules` label. This label acts as a trigger for the external AI processor, which automatically:
+
 1.  Analyzes the provided error details.
 2.  Correlates the failure with recent code changes.
 3.  Suggests a fix or performs auto-triage to the appropriate subsystem.
 
-> **Note:** The `deploy-staging.yaml` workflow requires explicit `permissions` for the `GITHUB_TOKEN` to function correctly. Specifically, it needs `contents: read` for repository access and `issues: write` to create failure reports.
+> **Note:** The `staging-tests.yml` workflow requires explicit `permissions` for the `GITHUB_TOKEN` to function correctly. Specifically, it needs `contents: read` for repository access and `issues: write` to create failure reports.
 
 ## 4. Core Architectural Principles
 

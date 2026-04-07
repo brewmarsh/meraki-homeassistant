@@ -19,11 +19,12 @@ import requests  # type: ignore
 
 # IGNORE_REGEX defines the list of regexes for log lines that should be ignored during CI/CD auditing.
 IGNORE_REGEX = [
-    re.compile(r"entity_registry is logging too frequently", re.I),
     re.compile(
-        r"(Network traffic analysis|Vlan tracking|Appliance port tracking) is not enabled",
-        re.I,
+        r"homeassistant\.helpers\.entity_registry is logging too frequently", re.I
     ),
+    re.compile(r"Network traffic analysis is not enabled for network", re.I),
+    re.compile(r"Vlan tracking is not enabled for network", re.I),
+    re.compile(r"Appliance port tracking is not enabled", re.I),
     re.compile(r"Meraki API Informational Error.*Status 400", re.I),
 ]
 

@@ -23,7 +23,7 @@ from homeassistant_ws import HomeAssistantClient
 
 
 async def main():
-    """Perform the smoke test."""
+    """Perform the staging test."""
     ha_url = os.environ.get("HA_URL")
     ha_token = os.environ.get("HA_TOKEN")
 
