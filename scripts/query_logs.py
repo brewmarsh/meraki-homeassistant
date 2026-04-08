@@ -26,6 +26,7 @@ IGNORE_REGEX = [
     re.compile(r"Vlan tracking is not enabled for network", re.I),
     re.compile(r"Appliance port tracking is not enabled", re.I),
     re.compile(r"Meraki API Informational Error.*Status 400", re.I),
+    re.compile(r"custom_components/meraki_ha/core/api/client\.py.*218", re.I),
 ]
 
 
