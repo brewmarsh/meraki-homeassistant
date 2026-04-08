@@ -4,13 +4,25 @@ import { Network, SSID, GroupPolicy } from '../types/meraki';
 import { WsCommand } from '../types/websocket';
 import { safeCallWS } from './api';
 
+interface ConfigEntry {
+  entry_id: string;
+  domain: string;
+  title: string;
+}
+
+interface MerakiConfigResponse {
+  networks?: Network[];
+  ssids?: SSID[];
+  group_policies?: Record<string, GroupPolicy[]>;
+}
+
 export class MerakiDataProvider {
   /**
    * Fetches wireless networks, SSIDs, and group policies directly from the integration's backend cache.
    */
   static async fetchConfig(hass: HomeAssistant) {
     try {
-      const configEntries = await hass.callWS<any[]>({
+      const configEntries = await hass.callWS<ConfigEntry[]>({
         type: 'config_entries/get',
         domain: 'meraki_ha',
       });
@@ -20,14 +32,14 @@ export class MerakiDataProvider {
       if (!entryId)
         return { networks: [], ssids: [], groupPolicies: [], entryId: null };
 
-      const data = await safeCallWS<any>(hass, {
+      const data = await safeCallWS<MerakiConfigResponse>(hass, {
         type: WsCommand.GET_CONFIG,
         config_entry_id: entryId,
       });
 
       const networks: Network[] = (
         Array.isArray(data.networks) ? data.networks : []
-      ).filter((n: any) => n.productTypes?.includes('wireless'));
+      ).filter((n: Network) => n.productTypes?.includes('wireless'));
       const ssids: SSID[] = Array.isArray(data.ssids) ? data.ssids : [];
 
       const groupPolicies: GroupPolicy[] = [];
@@ -36,7 +48,7 @@ export class MerakiDataProvider {
           data.group_policies
         )) {
           if (Array.isArray(policies)) {
-            policies.forEach((p: any) => {
+            policies.forEach((p: GroupPolicy) => {
               groupPolicies.push({
                 networkId,
                 groupPolicyId: String(p.groupPolicyId),

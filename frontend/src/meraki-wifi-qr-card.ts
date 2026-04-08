@@ -5,6 +5,7 @@ import { Network, SSID } from './types/meraki';
 import { renderLoadingState, sharedStyles } from './shared-ui';
 import { MerakiDataProvider } from './utils/meraki-data';
 import { WifiHelpers } from './utils/wifi-helpers';
+import { CustomCard } from './types/custom-card';
 
 declare const __VERSION__: string;
 
@@ -290,13 +291,11 @@ if (!customElements.get('meraki-wifi-qr-card-editor')) {
   customElements.define('meraki-wifi-qr-card-editor', MerakiWifiQrCardEditor);
 }
 
-(window as any).customCards = (window as any).customCards || [];
+window.customCards = window.customCards || [];
 if (
-  !(window as any).customCards.some(
-    (c: any) => c.type === 'meraki-wifi-qr-card'
-  )
+  !window.customCards.some((c: CustomCard) => c.type === 'meraki-wifi-qr-card')
 ) {
-  (window as any).customCards.push({
+  window.customCards.push({
     type: 'meraki-wifi-qr-card',
     name: 'Cisco Meraki Wi-Fi QR Card',
     description: 'Display a scannable Wi-Fi QR code for guests.',

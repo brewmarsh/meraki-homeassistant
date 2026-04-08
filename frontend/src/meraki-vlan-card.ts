@@ -3,6 +3,7 @@ import { property, state } from 'lit/decorators.js';
 import { HomeAssistant } from './types/ha';
 import { renderWarning, renderLoadingState, sharedStyles } from './shared-ui';
 import { MerakiDataProvider } from './utils/meraki-data';
+import { CustomCard } from './types/custom-card';
 
 declare const __VERSION__: string;
 
@@ -281,11 +282,11 @@ if (!customElements.get('meraki-vlan-card-editor')) {
   customElements.define('meraki-vlan-card-editor', MerakiVlanCardEditor);
 }
 
-(window as any).customCards = (window as any).customCards || [];
+window.customCards = window.customCards || [];
 if (
-  !(window as any).customCards.some((c: any) => c.type === 'meraki-vlan-card')
+  !window.customCards.some((c: CustomCard) => c.type === 'meraki-vlan-card')
 ) {
-  (window as any).customCards.push({
+  window.customCards.push({
     type: 'meraki-vlan-card',
     name: 'Cisco Meraki VLAN Card',
     description: 'Overview and management of configured VLANs.',

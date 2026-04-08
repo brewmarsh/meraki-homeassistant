@@ -16,4 +16,5 @@ export interface GroupPolicy {
   networkId: string;
   groupPolicyId: string;
   name: string;
+  id?: string;
 }

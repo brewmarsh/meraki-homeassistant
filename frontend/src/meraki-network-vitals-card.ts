@@ -3,8 +3,14 @@ import { property, state } from 'lit/decorators.js';
 import { HomeAssistant } from './types/ha';
 import { renderLoadingState, sharedStyles } from './shared-ui';
 import { MerakiDataProvider } from './utils/meraki-data';
+import { CustomCard } from './types/custom-card';
 
 declare const __VERSION__: string;
+
+interface TapAction {
+  action: string;
+  navigation_path?: string;
+}
 
 interface Config {
   type: string;
@@ -13,9 +19,9 @@ interface Config {
   ap_entity?: string;
   throughput_entity?: string;
   name?: string;
-  gateway_tap_action?: any;
-  switch_tap_action?: any;
-  ap_tap_action?: any;
+  gateway_tap_action?: TapAction;
+  switch_tap_action?: TapAction;
+  ap_tap_action?: TapAction;
 }
 
 export class MerakiNetworkVitalsCard extends LitElement {
@@ -67,7 +73,10 @@ export class MerakiNetworkVitalsCard extends LitElement {
     };
   }
 
-  private _handleEntityClick(entityId: string | undefined, actionConfig: any) {
+  private _handleEntityClick(
+    entityId: string | undefined,
+    actionConfig: TapAction | undefined
+  ) {
     if (!entityId || !actionConfig) return;
 
     if (actionConfig.action === 'navigate' && actionConfig.navigation_path) {
@@ -91,7 +100,7 @@ export class MerakiNetworkVitalsCard extends LitElement {
   private _renderStatusDot(
     entityId: string | undefined,
     label: string,
-    actionConfig?: any
+    actionConfig?: TapAction
   ) {
     const isClickable = !!entityId && !!this.hass.states[entityId];
 
@@ -341,13 +350,18 @@ export class MerakiNetworkVitalsCardEditor extends LitElement {
     `;
   }
 
-  private _valueChanged(ev: any): void {
+  private _valueChanged(ev: CustomEvent): void {
     if (!this._config) return;
-    const target = ev.target as any;
+    const target = ev.target as HTMLInputElement & { configValue: string };
     const configValue = target.configValue;
-    let newValue = ev.detail?.value ?? target.value;
+    let newValue: string | TapAction =
+      (ev.detail as any)?.value ?? target.value;
 
-    if (configValue && configValue.endsWith('_tap_action')) {
+    if (
+      configValue &&
+      configValue.endsWith('_tap_action') &&
+      typeof newValue === 'string'
+    ) {
       if (newValue.startsWith('/')) {
         newValue = { action: 'navigate', navigation_path: newValue };
       } else {
@@ -386,13 +400,13 @@ if (!customElements.get('meraki-network-vitals-card-editor')) {
   );
 }
 
-(window as any).customCards = (window as any).customCards || [];
+window.customCards = window.customCards || [];
 if (
-  !(window as any).customCards.some(
-    (c: any) => c.type === 'meraki-network-vitals-card'
+  !window.customCards.some(
+    (c: CustomCard) => c.type === 'meraki-network-vitals-card'
   )
 ) {
-  (window as any).customCards.push({
+  window.customCards.push({
     type: 'meraki-network-vitals-card',
     name: 'Cisco Meraki Network Vitals',
     description: 'Compact horizontal health header.',

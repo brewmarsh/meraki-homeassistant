@@ -3,6 +3,7 @@ import { property, state } from 'lit/decorators.js';
 import { HomeAssistant } from './types/ha';
 import { renderWarning, renderLoadingState, sharedStyles } from './shared-ui';
 import { MerakiDataProvider } from './utils/meraki-data';
+import { CustomCard } from './types/custom-card';
 
 declare const __VERSION__: string;
 
@@ -315,13 +316,13 @@ if (!customElements.get('meraki-content-filter-card-editor')) {
   );
 }
 
-(window as any).customCards = (window as any).customCards || [];
+window.customCards = window.customCards || [];
 if (
-  !(window as any).customCards.some(
-    (c: any) => c.type === 'meraki-content-filter-card'
+  !window.customCards.some(
+    (c: CustomCard) => c.type === 'meraki-content-filter-card'
   )
 ) {
-  (window as any).customCards.push({
+  window.customCards.push({
     type: 'meraki-content-filter-card',
     name: 'Cisco Meraki Content Filter',
     description: 'Control Cisco Meraki Content Filtering profiles.',

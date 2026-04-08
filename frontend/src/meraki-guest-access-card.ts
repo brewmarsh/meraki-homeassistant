@@ -10,6 +10,7 @@ import './meraki-network-vitals-card';
 import './meraki-vlan-card';
 import './meraki-guest-access-card-editor';
 import { Network, SSID, GroupPolicy } from './types/meraki';
+import { CustomCard } from './types/custom-card';
 
 declare const __VERSION__: string;
 
@@ -143,7 +144,7 @@ export class MerakiGuestAccessCard extends LitElement {
       );
       if (networkPolicies.length > 0) {
         initPolicy = String(
-          networkPolicies[0].groupPolicyId || (networkPolicies[0] as any).id
+          networkPolicies[0].groupPolicyId || networkPolicies[0].id
         );
       } else {
         initPolicy = 'NONE';
@@ -184,7 +185,7 @@ export class MerakiGuestAccessCard extends LitElement {
       );
       if (networkPolicies.length > 0) {
         updatedData.policy = String(
-          networkPolicies[0].groupPolicyId || (networkPolicies[0] as any).id
+          networkPolicies[0].groupPolicyId || networkPolicies[0].id
         );
       } else {
         updatedData.policy = 'NONE';
@@ -266,7 +267,7 @@ export class MerakiGuestAccessCard extends LitElement {
       (p) => p.networkId === this._formData.network
     );
     const policyOptions = networkPolicies.map((p) => ({
-      value: String(p.groupPolicyId || (p as any).id),
+      value: String(p.groupPolicyId || p.id),
       label: p.name,
     }));
 
@@ -583,13 +584,13 @@ declare global {
 if (!customElements.get('meraki-guest-access-card')) {
   customElements.define('meraki-guest-access-card', MerakiGuestAccessCard);
 }
-(window as any).customCards = (window as any).customCards || [];
+window.customCards = window.customCards || [];
 if (
-  !(window as any).customCards.some(
-    (c: any) => c.type === 'meraki-guest-access-card'
+  !window.customCards.some(
+    (c: CustomCard) => c.type === 'meraki-guest-access-card'
   )
 ) {
-  (window as any).customCards.push({
+  window.customCards.push({
     type: 'meraki-guest-access-card',
     name: 'Cisco Meraki Guest Access',
     description: `Manage temporary guest WiFi access. Version: ${__VERSION__}`,
