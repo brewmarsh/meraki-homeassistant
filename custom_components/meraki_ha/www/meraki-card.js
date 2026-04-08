@@ -284,12 +284,12 @@ et.elementStyles = [], et.shadowRootOptions = { mode: "open" }, et[ut("elementPr
  * Copyright 2017 Google LLC
  * SPDX-License-Identifier: BSD-3-Clause
  */
-const ft = globalThis, $e = (n) => n, Tt = ft.trustedTypes, Ae = Tt ? Tt.createPolicy("lit-html", { createHTML: (n) => n }) : void 0, Be = "$lit$", j = `lit$${Math.random().toFixed(9).slice(2)}$`, Re = "?" + j, fi = `<${Re}>`, Z = document, pt = () => Z.createComment(""), mt = (n) => n === null || typeof n != "object" && typeof n != "function", se = Array.isArray, gi = (n) => se(n) || typeof (n == null ? void 0 : n[Symbol.iterator]) == "function", Ft = `[ 	
+const ft = globalThis, Ae = (n) => n, Tt = ft.trustedTypes, $e = Tt ? Tt.createPolicy("lit-html", { createHTML: (n) => n }) : void 0, Be = "$lit$", j = `lit$${Math.random().toFixed(9).slice(2)}$`, Re = "?" + j, fi = `<${Re}>`, Z = document, pt = () => Z.createComment(""), mt = (n) => n === null || typeof n != "object" && typeof n != "function", se = Array.isArray, gi = (n) => se(n) || typeof (n == null ? void 0 : n[Symbol.iterator]) == "function", Ft = `[ 	
 \f\r]`, ht = /<(?:(!--|\/[^a-zA-Z])|(\/?[a-zA-Z][^>\s]*)|(\/?$))/g, ke = /-->/g, Se = />/g, J = RegExp(`>|${Ft}(?:([^\\s"'>=/]+)(${Ft}*=${Ft}*(?:[^ 	
 \f\r"'\`<>=]|("|')|))|$)`, "g"), Pe = /'/g, Ne = /"/g, Ue = /^(?:script|style|textarea|title)$/i, pi = (n) => (t, ...e) => ({ _$litType$: n, strings: t, values: e }), b = pi(1), it = Symbol.for("lit-noChange"), k = Symbol.for("lit-nothing"), xe = /* @__PURE__ */ new WeakMap(), Y = Z.createTreeWalker(Z, 129);
 function Oe(n, t) {
   if (!se(n) || !n.hasOwnProperty("raw")) throw Error("invalid template strings array");
-  return Ae !== void 0 ? Ae.createHTML(t) : t;
+  return $e !== void 0 ? $e.createHTML(t) : t;
 }
 const mi = (n, t) => {
   const e = n.length - 1, s = [];
@@ -317,7 +317,7 @@ class _t {
       if (i.nodeType === 1) {
         if (i.hasAttributes()) for (const h of i.getAttributeNames()) if (h.endsWith(Be)) {
           const u = l[o++], f = i.getAttribute(h).split(j), g = /([.?@])?(.*)/.exec(u);
-          c.push({ type: 1, index: r, name: g[2], strings: f, ctor: g[1] === "." ? wi : g[1] === "?" ? yi : g[1] === "@" ? vi : Lt }), i.removeAttribute(h);
+          c.push({ type: 1, index: r, name: g[2], strings: f, ctor: g[1] === "." ? yi : g[1] === "?" ? wi : g[1] === "@" ? vi : Lt }), i.removeAttribute(h);
         } else h.startsWith(j) && (c.push({ type: 6, index: r }), i.removeAttribute(h));
         if (Ue.test(i.tagName)) {
           const h = i.textContent.split(j), u = h.length - 1;
@@ -429,8 +429,8 @@ class Ct {
   _$AR(t = this._$AA.nextSibling, e) {
     var s;
     for ((s = this._$AP) == null ? void 0 : s.call(this, !1, !0, e); t !== this._$AB; ) {
-      const i = $e(t).nextSibling;
-      $e(t).remove(), t = i;
+      const i = Ae(t).nextSibling;
+      Ae(t).remove(), t = i;
     }
   }
   setConnected(t) {
@@ -463,7 +463,7 @@ class Lt {
     t === k ? this.element.removeAttribute(this.name) : this.element.setAttribute(this.name, t ?? "");
   }
 }
-class wi extends Lt {
+class yi extends Lt {
   constructor() {
     super(...arguments), this.type = 3;
   }
@@ -471,7 +471,7 @@ class wi extends Lt {
     this.element[this.name] = t === k ? void 0 : t;
   }
 }
-class yi extends Lt {
+class wi extends Lt {
   constructor() {
     super(...arguments), this.type = 4;
   }
@@ -556,7 +556,7 @@ jt == null || jt({ LitElement: N });
  * Copyright 2017 Google LLC
  * SPDX-License-Identifier: BSD-3-Clause
  */
-const Ci = { attribute: !0, type: String, converter: It, reflect: !1, hasChanged: ie }, $i = (n = Ci, t, e) => {
+const Ci = { attribute: !0, type: String, converter: It, reflect: !1, hasChanged: ie }, Ai = (n = Ci, t, e) => {
   const { kind: s, metadata: i } = e;
   let r = globalThis.litPropertyMetadata.get(i);
   if (r === void 0 && globalThis.litPropertyMetadata.set(i, r = /* @__PURE__ */ new Map()), s === "setter" && ((n = Object.create(n)).wrapped = !0), r.set(e.name, n), s === "accessor") {
@@ -578,7 +578,7 @@ const Ci = { attribute: !0, type: String, converter: It, reflect: !1, hasChanged
   throw Error("Unsupported decorator location: " + s);
 };
 function L(n) {
-  return (t, e) => typeof e == "object" ? $i(n, t, e) : ((s, i, r) => {
+  return (t, e) => typeof e == "object" ? Ai(n, t, e) : ((s, i, r) => {
     const o = i.hasOwnProperty(r);
     return i.constructor.createProperty(r, s), o ? Object.getOwnPropertyDescriptor(i, r) : void 0;
   })(n, t, e);
@@ -600,7 +600,7 @@ const ne = (n, t, e) => b`
     </div>
     ${b`<div class="version">v${e}</div>`}
   </ha-card>
-`, $t = (n, t, e) => b`
+`, At = (n, t, e) => b`
   <ha-card class="status-card loading">
     <div class="card-content flex-col align-center p-8">
       <h1 class="status-title">${n}</h1>
@@ -609,7 +609,7 @@ const ne = (n, t, e) => b`
     </div>
     <div class="version">v${e}</div>
   </ha-card>
-`, At = D`
+`, $t = D`
   ha-card.status-card {
     --ha-card-background: var(--warning-color, #ffeb3b);
     background-color: var(--warning-color, #ffeb3b) !important;
@@ -711,7 +711,7 @@ const ne = (n, t, e) => b`
   }
 `;
 var He = /* @__PURE__ */ ((n) => (n.GET_CONFIG = "meraki_ha/get_config", n.SUBSCRIBE_MERAKI_DATA = "meraki_ha/subscribe_meraki_data", n.GET_CAMERA_STREAM_URL = "meraki_ha/get_camera_stream_url", n.GET_CAMERA_SNAPSHOT = "meraki_ha/get_camera_snapshot", n.GET_VERSION = "meraki_ha/get_version", n.GET_NETWORK_EVENTS = "meraki_ha/get_network_events", n.UPDATE_ENABLED_NETWORKS = "meraki_ha/update_enabled_networks", n.CREATE_GUEST_KEY = "meraki_ha/ipsk/create", n.GET_GUEST_KEYS = "meraki_ha/ipsk/get", n.REVOKE_GUEST_KEY = "meraki_ha/ipsk/revoke", n.TIMED_ACCESS_GET_POLICIES = "meraki_ha/timed_access/get_policies", n))(He || {});
-const Ai = async (n, t) => {
+const $i = async (n, t) => {
   if (!n)
     throw new Error("Home Assistant object is not available.");
   try {
@@ -738,7 +738,7 @@ class R {
       }), s = e.length > 0 ? e[0].entry_id : null;
       if (!s)
         return { networks: [], ssids: [], groupPolicies: [], entryId: null };
-      const i = await Ai(t, {
+      const i = await $i(t, {
         type: He.GET_CONFIG,
         config_entry_id: s
       }), r = (Array.isArray(i.networks) ? i.networks : []).filter((c) => {
@@ -1522,16 +1522,16 @@ ae.isValid = function(t) {
 };
 var U = {};
 const Je = "[0-9]+", Ti = "[A-Z $%*+\\-./:]+";
-let wt = "(?:[u3000-u303F]|[u3040-u309F]|[u30A0-u30FF]|[uFF00-uFFEF]|[u4E00-u9FAF]|[u2605-u2606]|[u2190-u2195]|u203B|[u2010u2015u2018u2019u2025u2026u201Cu201Du2225u2260]|[u0391-u0451]|[u00A7u00A8u00B1u00B4u00D7u00F7])+";
-wt = wt.replace(/u/g, "\\u");
-const Mi = "(?:(?![A-Z0-9 $%*+\\-./:]|" + wt + `)(?:.|[\r
+let yt = "(?:[u3000-u303F]|[u3040-u309F]|[u30A0-u30FF]|[uFF00-uFFEF]|[u4E00-u9FAF]|[u2605-u2606]|[u2190-u2195]|u203B|[u2010u2015u2018u2019u2025u2026u201Cu201Du2225u2260]|[u0391-u0451]|[u00A7u00A8u00B1u00B4u00D7u00F7])+";
+yt = yt.replace(/u/g, "\\u");
+const Mi = "(?:(?![A-Z0-9 $%*+\\-./:]|" + yt + `)(?:.|[\r
 ]))+`;
-U.KANJI = new RegExp(wt, "g");
+U.KANJI = new RegExp(yt, "g");
 U.BYTE_KANJI = new RegExp("[^A-Z0-9 $%*+\\-./:]+", "g");
 U.BYTE = new RegExp(Mi, "g");
 U.NUMERIC = new RegExp(Je, "g");
 U.ALPHANUMERIC = new RegExp(Ti, "g");
-const Di = new RegExp("^" + wt + "$"), Li = new RegExp("^" + Je + "$"), Bi = new RegExp("^[A-Z0-9 $%*+\\-./:]+$");
+const Di = new RegExp("^" + yt + "$"), Li = new RegExp("^" + Je + "$"), Bi = new RegExp("^[A-Z0-9 $%*+\\-./:]+$");
 U.testKanji = function(t) {
   return Di.test(t);
 };
@@ -1613,8 +1613,8 @@ U.testAlphanumeric = function(t) {
   function l(u, f) {
     let g = 0;
     return u.forEach(function(y) {
-      const $ = d(y.mode, f);
-      g += $ + y.getBitsLength();
+      const A = d(y.mode, f);
+      g += A + y.getBitsLength();
     }), g;
   }
   function h(u, f) {
@@ -1628,7 +1628,7 @@ U.testAlphanumeric = function(t) {
     if (!r.isValid(f))
       throw new Error("Invalid QR Code version");
     typeof y > "u" && (y = i.BYTE);
-    const $ = t.getSymbolTotalCodewords(f), p = e.getTotalCodewordsCount(f, g), v = ($ - p) * 8;
+    const A = t.getSymbolTotalCodewords(f), p = e.getTotalCodewordsCount(f, g), v = (A - p) * 8;
     if (y === i.MIXED) return v;
     const _ = v - d(y, f);
     switch (y) {
@@ -1644,16 +1644,16 @@ U.testAlphanumeric = function(t) {
     }
   }, n.getBestVersionForData = function(f, g) {
     let y;
-    const $ = s.from(g, s.M);
+    const A = s.from(g, s.M);
     if (Array.isArray(f)) {
       if (f.length > 1)
-        return h(f, $);
+        return h(f, A);
       if (f.length === 0)
         return 1;
       y = f[0];
     } else
       y = f;
-    return c(y.mode, y.getLength(), $);
+    return c(y.mode, y.getLength(), A);
   }, n.getEncodedBits = function(f) {
     if (!r.isValid(f) || f < 7)
       throw new Error("Invalid QR Code version");
@@ -1817,10 +1817,10 @@ var Ki = at, Xe = { exports: {} };
       o[s] = 0;
       var a = t.PriorityQueue.make();
       a.push(s, 0);
-      for (var c, d, l, h, u, f, g, y, $; !a.empty(); ) {
+      for (var c, d, l, h, u, f, g, y, A; !a.empty(); ) {
         c = a.pop(), d = c.value, h = c.cost, u = e[d] || {};
         for (l in u)
-          u.hasOwnProperty(l) && (f = u[l], g = h + f, y = o[l], $ = typeof o[l] > "u", ($ || y > g) && (o[l] = g, a.push(l, g), r[l] = d));
+          u.hasOwnProperty(l) && (f = u[l], g = h + f, y = o[l], A = typeof o[l] > "u", (A || y > g) && (o[l] = g, a.push(l, g), r[l] = d));
       }
       if (typeof i < "u" && typeof o[i] > "u") {
         var p = ["Could not find a path from ", s, " to ", i, "."].join("");
@@ -1896,13 +1896,13 @@ var Gi = Xe.exports;
   function h(p) {
     const v = l(o.NUMERIC, t.NUMERIC, p), _ = l(o.ALPHANUMERIC, t.ALPHANUMERIC, p);
     let m, E;
-    return a.isKanjiModeEnabled() ? (m = l(o.BYTE, t.BYTE, p), E = l(o.KANJI, t.KANJI, p)) : (m = l(o.BYTE_KANJI, t.BYTE, p), E = []), v.concat(_, m, E).sort(function(A, M) {
-      return A.index - M.index;
-    }).map(function(A) {
+    return a.isKanjiModeEnabled() ? (m = l(o.BYTE, t.BYTE, p), E = l(o.KANJI, t.KANJI, p)) : (m = l(o.BYTE_KANJI, t.BYTE, p), E = []), v.concat(_, m, E).sort(function($, M) {
+      return $.index - M.index;
+    }).map(function($) {
       return {
-        data: A.data,
-        mode: A.mode,
-        length: A.length
+        data: $.data,
+        mode: $.mode,
+        length: $.length
       };
     });
   }
@@ -1960,9 +1960,9 @@ var Gi = Xe.exports;
     const _ = {}, m = { start: {} };
     let E = ["start"];
     for (let C = 0; C < p.length; C++) {
-      const A = p[C], M = [];
-      for (let V = 0; V < A.length; V++) {
-        const B = A[V], dt = "" + C + V;
+      const $ = p[C], M = [];
+      for (let V = 0; V < $.length; V++) {
+        const B = $[V], dt = "" + C + V;
         M.push(dt), _[dt] = { node: B, lastCount: 0 }, m[dt] = {};
         for (let Ht = 0; Ht < E.length; Ht++) {
           const O = E[Ht];
@@ -1975,7 +1975,7 @@ var Gi = Xe.exports;
       m[E[C]].end = 0;
     return { map: m, table: _ };
   }
-  function $(p, v) {
+  function A(p, v) {
     let _;
     const m = t.getBestModeForData(p);
     if (_ = t.from(v, m), _ !== t.BYTE && _.bit < m.bit)
@@ -1994,12 +1994,12 @@ var Gi = Xe.exports;
   }
   n.fromArray = function(v) {
     return v.reduce(function(_, m) {
-      return typeof m == "string" ? _.push($(m, null)) : m.data && _.push($(m.data, m.mode)), _;
+      return typeof m == "string" ? _.push(A(m, null)) : m.data && _.push(A(m.data, m.mode)), _;
     }, []);
   }, n.fromString = function(v, _) {
-    const m = h(v, a.isKanjiModeEnabled()), E = g(m), C = y(E, _), A = c.find_path(C.map, "start", "end"), M = [];
-    for (let V = 1; V < A.length - 1; V++)
-      M.push(C.table[A[V]].node);
+    const m = h(v, a.isKanjiModeEnabled()), E = g(m), C = y(E, _), $ = c.find_path(C.map, "start", "end"), M = [];
+    for (let V = 1; V < $.length - 1; V++)
+      M.push(C.table[$[V]].node);
     return n.fromArray(f(M));
   }, n.rawSplit = function(v) {
     return n.fromArray(
@@ -2079,12 +2079,12 @@ function os(n, t, e) {
 function as(n, t, e) {
   const s = Ot.getSymbolTotalCodewords(t), i = Zt.getTotalCodewordsCount(t, e), r = s - i, o = Zt.getBlocksCount(t, e), a = s % o, c = o - a, d = Math.floor(s / o), l = Math.floor(r / o), h = l + 1, u = d - l, f = new Zi(u);
   let g = 0;
-  const y = new Array(o), $ = new Array(o);
+  const y = new Array(o), A = new Array(o);
   let p = 0;
   const v = new Uint8Array(n.buffer);
-  for (let A = 0; A < o; A++) {
-    const M = A < c ? l : h;
-    y[A] = v.slice(g, g + M), $[A] = f.encode(y[A]), g += M, p = Math.max(p, M);
+  for (let $ = 0; $ < o; $++) {
+    const M = $ < c ? l : h;
+    y[$] = v.slice(g, g + M), A[$] = f.encode(y[$]), g += M, p = Math.max(p, M);
   }
   const _ = new Uint8Array(s);
   let m = 0, E, C;
@@ -2093,7 +2093,7 @@ function as(n, t, e) {
       E < y[C].length && (_[m++] = y[C][E]);
   for (E = 0; E < u; E++)
     for (C = 0; C < o; C++)
-      _[m++] = $[C][E];
+      _[m++] = A[C][E];
   return _;
 }
 function cs(n, t, e, s) {
@@ -2184,8 +2184,8 @@ var ti = {}, ce = {};
       for (let f = 0; f < d; f++) {
         let g = (u * d + f) * 4, y = r.color.light;
         if (u >= l && f >= l && u < d - l && f < d - l) {
-          const $ = Math.floor((u - l) / c), p = Math.floor((f - l) / c);
-          y = h[a[$ * o + p] ? 1 : 0];
+          const A = Math.floor((u - l) / c), p = Math.floor((f - l) / c);
+          y = h[a[A * o + p] ? 1 : 0];
         }
         s[g++] = y.r, s[g++] = y.g, s[g++] = y.b, s[g] = y.a;
       }
@@ -2428,10 +2428,9 @@ const de = class de extends N {
   _discoverEntity() {
     if (this.hass)
       return Object.keys(this.hass.states).find((t) => {
-        var i;
         if (!t.startsWith("select.")) return !1;
-        const s = ((i = this.hass.states[t].attributes.friendly_name) == null ? void 0 : i.toLowerCase()) || "";
-        return t.includes("content_filter") || s.includes("content filter") || t.includes("meraki");
+        const s = this.hass.states[t].attributes.friendly_name, i = typeof s == "string" ? s.toLowerCase() : "";
+        return t.includes("content_filter") || i.includes("content filter") || t.includes("meraki");
       });
   }
   static getStubConfig() {
@@ -2441,50 +2440,50 @@ const de = class de extends N {
     };
   }
   render() {
-    var d, l, h;
+    var l, h, u;
     if (!this.hass || !this._config) return b``;
     if (this._isLoading)
-      return $t(
-        ((d = this._config) == null ? void 0 : d.name) || "Cisco Meraki Content Filter",
+      return At(
+        ((l = this._config) == null ? void 0 : l.name) || "Cisco Meraki Content Filter",
         this._loadingMessage,
-        "2.3.0-beta.3621"
+        "2.3.0-beta.3622"
       );
-    const t = this._config.entity || this._discoverEntity(), e = t ? this.hass.states[t] : void 0, s = this._config.entity ? this.hass.states[this._config.entity] : void 0, i = ((l = s == null ? void 0 : s.attributes) == null ? void 0 : l.friendly_name) || "Cisco Meraki", r = this._config.name || (this._config.entity ? `${i} Content Filter` : "Cisco Meraki Content Filter");
+    const t = this._config.entity || this._discoverEntity(), e = t ? this.hass.states[t] : void 0, s = this._config.entity ? this.hass.states[this._config.entity] : void 0, i = (h = s == null ? void 0 : s.attributes) == null ? void 0 : h.friendly_name, r = typeof i == "string" ? i : "Cisco Meraki", o = this._config.name || (this._config.entity ? `${r} Content Filter` : "Cisco Meraki Content Filter");
     if (!t || !e)
       return ne(
         "Entity Missing",
         "No content filter entity was found. Please check your configuration.",
-        "2.3.0-beta.3621"
+        "2.3.0-beta.3622"
       );
-    const o = e.state || "Unknown", a = ((h = e.attributes) == null ? void 0 : h.options) || [
+    const a = e.state || "Unknown", c = ((u = e.attributes) == null ? void 0 : u.options) || [
       "None",
       "Security",
       "Family",
       "Strict"
-    ], c = this._optimisticProfile || o;
+    ], d = this._optimisticProfile || a;
     return b`
-      <ha-card .header="${r}">
+      <ha-card .header="${o}">
         <div class="card-content">
           <div class="button-grid">
-            ${a.map((u) => {
-      const f = c.toLowerCase() === u.toLowerCase(), g = this._isUpdating && this._optimisticProfile === u;
+            ${c.map((f) => {
+      const g = d.toLowerCase() === f.toLowerCase(), y = this._isUpdating && this._optimisticProfile === f;
       return b`
                 <button
-                  class="filter-btn ${f ? "active" : ""} ${this._isUpdating && !g ? "disabled" : ""}"
+                  class="filter-btn ${g ? "active" : ""} ${this._isUpdating && !y ? "disabled" : ""}"
                   ?disabled=${this._isUpdating}
-                  @click=${() => this._setFilterProfile(u, t)}
+                  @click=${() => this._setFilterProfile(f, t)}
                 >
-                  ${g ? b`<ha-circular-progress
+                  ${y ? b`<ha-circular-progress
                           active
                           size="small"
                         ></ha-circular-progress>
-                        Saving...` : u}
+                        Saving...` : f}
                 </button>
               `;
     })}
           </div>
         </div>
-        <div class="version">v${"2.3.0-beta.3621"}</div>
+        <div class="version">v${"2.3.0-beta.3622"}</div>
       </ha-card>
     `;
   }
@@ -2505,7 +2504,7 @@ const de = class de extends N {
   }
 };
 de.styles = [
-  At,
+  $t,
   D`
       :host {
         display: block;
@@ -2630,17 +2629,17 @@ he.styles = D`
       padding: 16px;
     }
   `;
-let yt = he;
+let wt = he;
 W([
   L({ attribute: !1 })
-], yt.prototype, "hass");
+], wt.prototype, "hass");
 W([
   w()
-], yt.prototype, "_config");
+], wt.prototype, "_config");
 customElements.get("meraki-content-filter-card") || customElements.define("meraki-content-filter-card", H);
 customElements.get("meraki-content-filter-card-editor") || customElements.define(
   "meraki-content-filter-card-editor",
-  yt
+  wt
 );
 window.customCards = window.customCards || [];
 window.customCards.some(
@@ -2816,10 +2815,10 @@ const fe = class fe extends N {
     var s;
     if (!this._config || !this.hass) return b``;
     if (this._isLoading)
-      return $t(
+      return At(
         ((s = this._config) == null ? void 0 : s.name) || "Wi-Fi Access",
         this._loadingMessage,
-        "2.3.0-beta.3621"
+        "2.3.0-beta.3622"
       );
     const t = I.getValue(this.hass, this._config.ssid), e = I.getPasswordForSsid(
       this.hass,
@@ -2841,13 +2840,13 @@ const fe = class fe extends N {
                 Password: <code class="copyable-code">${e}</code>
               </div>` : ""}
         </div>
-        <div class="version">v${"2.3.0-beta.3621"}</div>
+        <div class="version">v${"2.3.0-beta.3622"}</div>
       </ha-card>
     `;
   }
 };
 fe.styles = [
-  At,
+  $t,
   D`
       :host {
         display: block;
@@ -2998,10 +2997,10 @@ const ge = class ge extends N {
     if (!this._config || !this.hass)
       return b``;
     if (this._isLoading)
-      return $t(
+      return At(
         ((i = this._config) == null ? void 0 : i.name) || "Cisco Meraki Network Vitals",
         this._loadingMessage,
-        "2.3.0-beta.3621"
+        "2.3.0-beta.3622"
       );
     const t = this._config.throughput_entity;
     t && this.hass.states[t] && console.log(
@@ -3036,13 +3035,13 @@ const ge = class ge extends N {
             </div>
           </div>
         </div>
-        <div class="version">v${"2.3.0-beta.3621"}</div>
+        <div class="version">v${"2.3.0-beta.3622"}</div>
       </ha-card>
     `;
   }
 };
 ge.styles = [
-  At,
+  $t,
   D`
       :host {
         display: block;
@@ -3257,11 +3256,11 @@ const me = class me extends N {
       const e = this.hass.states[t];
       return e.attributes.vlan_id !== void 0 && e.attributes.subnet !== void 0;
     }).map((t) => {
-      var s;
-      const e = this.hass.states[t];
-      return {
+      const e = this.hass.states[t], s = e.attributes.vlan_name, i = e.attributes.friendly_name;
+      let r = "Unknown VLAN";
+      return typeof s == "string" ? r = s : typeof i == "string" && (r = i.replace(" DHCP", "")), {
         entity_id: t,
-        name: e.attributes.vlan_name || ((s = e.attributes.friendly_name) == null ? void 0 : s.replace(" DHCP", "")) || "Unknown VLAN",
+        name: r,
         subnet: e.attributes.subnet,
         gateway: e.attributes.gateway,
         state: e.state
@@ -3272,16 +3271,16 @@ const me = class me extends N {
     var e;
     if (!this.hass || !this._config) return b``;
     if (this._isLoading)
-      return $t(
+      return At(
         ((e = this._config) == null ? void 0 : e.name) || "Cisco Meraki VLANs",
         this._loadingMessage,
-        "2.3.0-beta.3621"
+        "2.3.0-beta.3622"
       );
     const t = this._getVlanEntities();
     return t.length === 0 ? ne(
       "No VLANs Found",
       "No Meraki VLAN DHCP switches were found. Ensure VLAN management is enabled in the integration options.",
-      "2.3.0-beta.3621"
+      "2.3.0-beta.3622"
     ) : b`
       <ha-card .header="${this._config.name || "Cisco Meraki VLANs"}">
         <div class="card-content">
@@ -3312,7 +3311,7 @@ const me = class me extends N {
     )}
           </div>
         </div>
-        <div class="version">v${"2.3.0-beta.3621"}</div>
+        <div class="version">v${"2.3.0-beta.3622"}</div>
       </ha-card>
     `;
   }
@@ -3328,7 +3327,7 @@ const me = class me extends N {
   }
 };
 me.styles = [
-  At,
+  $t,
   D`
       :host {
         display: block;
@@ -3475,7 +3474,7 @@ var _s = Object.defineProperty, si = (n, t, e, s) => {
     (o = n[r]) && (i = o(t, e, i) || i);
   return i && _s(t, e, i), i;
 };
-const we = class we extends N {
+const ye = class ye extends N {
   constructor() {
     super(...arguments), this._computeLabel = (t) => t.name === "name" ? "Title (Optional)" : t.name === "config_entry_id" ? "Config Entry ID (Optional override)" : t.name;
   }
@@ -3512,12 +3511,12 @@ const we = class we extends N {
     );
   }
 };
-we.styles = D`
+ye.styles = D`
     .editor-container {
       padding: 16px;
     }
   `;
-let Et = we;
+let Et = ye;
 si([
   L({ attribute: !1 })
 ], Et.prototype, "hass");
@@ -3528,12 +3527,12 @@ customElements.get("meraki-guest-access-card-editor") || customElements.define(
   "meraki-guest-access-card-editor",
   Et
 );
-var ws = Object.defineProperty, P = (n, t, e, s) => {
+var ys = Object.defineProperty, P = (n, t, e, s) => {
   for (var i = void 0, r = n.length - 1, o; r >= 0; r--)
     (o = n[r]) && (i = o(t, e, i) || i);
-  return i && ws(t, e, i), i;
+  return i && ys(t, e, i), i;
 };
-const ye = class ye extends N {
+const we = class we extends N {
   constructor() {
     super(...arguments), this._formData = {
       network: "",
@@ -3639,16 +3638,16 @@ const ye = class ye extends N {
   render() {
     var h, u, f;
     if (this._isLoading)
-      return $t(
+      return At(
         ((h = this._config) == null ? void 0 : h.name) || "Cisco Meraki Guest Access",
         this._loadingMessage,
-        "2.3.0-beta.3621"
+        "2.3.0-beta.3622"
       );
     if (this._networks.length === 0)
       return ne(
         "No Wireless Networks",
         "No Cisco Meraki wireless networks found. Ensure the integration is configured.",
-        "2.3.0-beta.3621"
+        "2.3.0-beta.3622"
       );
     const t = R.getNetworkOptions(
       this._networks
@@ -3706,7 +3705,7 @@ const ye = class ye extends N {
     if (this._success && this._qrSvg) {
       const g = this._networks.find(
         (p) => p.id === this._formData.network
-      ), y = parseInt(this._formData.ssid, 10), $ = this._ssids.find(
+      ), y = parseInt(this._formData.ssid, 10), A = this._ssids.find(
         (p) => p.networkId === this._formData.network && p.number === y
       );
       return b`
@@ -3743,7 +3742,7 @@ const ye = class ye extends N {
                     <div class="credential-item">
                       <span class="label">SSID:</span>
                       <span class="value"
-                        >${($ == null ? void 0 : $.name) || "Unknown"}</span
+                        >${(A == null ? void 0 : A.name) || "Unknown"}</span
                       >
                     </div>
                     <div class="credential-item">
@@ -3759,7 +3758,7 @@ const ye = class ye extends N {
               Create Another
             </ha-button>
           </div>
-          <div class="version">v${"2.3.0-beta.3621"}</div>
+          <div class="version">v${"2.3.0-beta.3622"}</div>
         </ha-card>
       `;
     }
@@ -3807,7 +3806,7 @@ const ye = class ye extends N {
             </ha-button>
           </div>
         </div>
-        <div class="version">v${"2.3.0-beta.3621"}</div>
+        <div class="version">v${"2.3.0-beta.3622"}</div>
       </ha-card>
     `;
   }
@@ -3844,8 +3843,8 @@ const ye = class ye extends N {
     }
   }
 };
-ye.styles = [
-  At,
+we.styles = [
+  $t,
   D`
       .form-container {
         display: flex;
@@ -3899,7 +3898,7 @@ ye.styles = [
       }
     `
 ];
-let S = ye;
+let S = we;
 P([
   L({ attribute: !1 })
 ], S.prototype, "hass");
@@ -3952,9 +3951,9 @@ window.customCards.some(
 ) || window.customCards.push({
   type: "meraki-guest-access-card",
   name: "Cisco Meraki Guest Access",
-  description: "Manage temporary guest WiFi access. Version: 2.3.0-beta.3621",
+  description: "Manage temporary guest WiFi access. Version: 2.3.0-beta.3622",
   preview: !0,
-  version: "2.3.0-beta.3621"
+  version: "2.3.0-beta.3622"
 });
 export {
   S as MerakiGuestAccessCard
