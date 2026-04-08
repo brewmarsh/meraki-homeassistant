@@ -64,12 +64,19 @@ export class MerakiVlanCard extends LitElement {
       })
       .map((entityId) => {
         const stateObj = this.hass.states[entityId];
+        const vlanNameAttr = stateObj.attributes.vlan_name;
+        const friendlyNameAttr = stateObj.attributes.friendly_name;
+
+        let name = 'Unknown VLAN';
+        if (typeof vlanNameAttr === 'string') {
+          name = vlanNameAttr;
+        } else if (typeof friendlyNameAttr === 'string') {
+          name = friendlyNameAttr.replace(' DHCP', '');
+        }
+
         return {
           entity_id: entityId,
-          name:
-            stateObj.attributes.vlan_name ||
-            stateObj.attributes.friendly_name?.replace(' DHCP', '') ||
-            'Unknown VLAN',
+          name: name,
           subnet: stateObj.attributes.subnet,
           gateway: stateObj.attributes.gateway,
           state: stateObj.state,

@@ -55,8 +55,11 @@ export class MerakiContentFilterCard extends LitElement {
     return Object.keys(this.hass.states).find((entityId) => {
       if (!entityId.startsWith('select.')) return false;
       const stateObj = this.hass.states[entityId];
+      const friendlyNameAttr = stateObj.attributes.friendly_name;
       const friendlyName =
-        stateObj.attributes.friendly_name?.toLowerCase() || '';
+        typeof friendlyNameAttr === 'string'
+          ? friendlyNameAttr.toLowerCase()
+          : '';
       return (
         entityId.includes('content_filter') ||
         friendlyName.includes('content filter') ||
@@ -89,8 +92,11 @@ export class MerakiContentFilterCard extends LitElement {
     const titleStateObj = this._config.entity
       ? this.hass.states[this._config.entity]
       : undefined;
+    const titleFriendlyNameAttr = titleStateObj?.attributes?.friendly_name;
     const titleFriendlyName =
-      titleStateObj?.attributes?.friendly_name || 'Cisco Meraki';
+      typeof titleFriendlyNameAttr === 'string'
+        ? titleFriendlyNameAttr
+        : 'Cisco Meraki';
     const title =
       this._config.name ||
       (this._config.entity
