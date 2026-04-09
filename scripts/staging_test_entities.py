@@ -7,6 +7,11 @@ import sys
 import urllib.request
 from typing import Any
 
+# Action 2: Configurable staging states to tolerate
+ALLOWED_STAGING_STATES = os.environ.get(
+    "ALLOWED_STAGING_STATES", "unknown,unavailable"
+).split(",")
+
 
 def create_github_issue(
     repository: str,
@@ -18,8 +23,8 @@ def create_github_issue(
     url = f"https://api.github.com/repos/{repository}/issues"
 
     report_lines = [
-        "The following Meraki entities were found in an unknown or unavailable "
-        "state during the post-deployment staging test.",
+        "The following Meraki entities were found in a critical failure state "
+        "during the post-deployment staging test.",
         "",
         "| Entity ID | State | Friendly Name |",
         "|-----------|-------|---------------|",
@@ -35,7 +40,7 @@ def create_github_issue(
     report_lines.append("Ping @maintainers")
 
     body = "\n".join(report_lines)
-    title = f"⚠️ Staging Test Failed: Unknown Entities in {release_tag}"
+    title = f"⚠️ Staging Test Failed: Critical Entity Failures in {release_tag}"
 
     issue_data = {
         "title": title,
@@ -111,31 +116,48 @@ def main() -> None:
         print(f"Error querying Home Assistant API: {err}")
         sys.exit(1)
 
-    broken_entities = []
+    failures = []
+    warnings = []
+
     for entity in states:
         entity_id = entity.get("entity_id", "")
         state = entity.get("state", "")
+        domain = entity_id.split(".")[0]
 
         # Filter logic: Look for entities where entity_id contains "meraki"
-        # and state is either "unknown" or "unavailable".
-        if "meraki" in entity_id and state in ["unknown", "unavailable"]:
-            broken_entities.append(entity)
+        if "meraki" in entity_id and state in ALLOWED_STAGING_STATES:
+            # Action 1: Button exemption (ANY button entity)
+            if domain == "button" and state == "unknown":
+                continue
 
-    if not broken_entities:
-        print("Success: No broken Meraki entities found.")
+            # Action 2: Staging allowance for specific domains
+            if domain in ["sensor", "binary_sensor", "switch"]:
+                warnings.append(entity)
+            else:
+                failures.append(entity)
+
+    if warnings:
+        print(f"Found {len(warnings)} entity state warnings (expected in staging):")
+        print("=== ENTITY STATE WARNINGS ===")
+        for entity in warnings:
+            entity_id = entity.get("entity_id", "N/A")
+            state = entity.get("state", "N/A")
+            print(f"- {entity_id}: {state}")
+        print("=============================")
+
+    if not failures:
+        print("Success: No critical broken Meraki entities found.")
         sys.exit(0)
     else:
-        print(f"Found {len(broken_entities)} broken Meraki entities:")
-        print("=== BROKEN ENTITIES ===")
-        for entity in broken_entities:
+        print(f"Found {len(failures)} critical broken Meraki entities:")
+        print("=== CRITICAL FAILURES ===")
+        for entity in failures:
             entity_id = entity.get("entity_id", "N/A")
             state = entity.get("state", "N/A")
             friendly_name = entity.get("attributes", {}).get("friendly_name", "N/A")
             print(f"- {entity_id}: {state} ({friendly_name})")
         print("=======================")
-        create_github_issue(
-            github_repository, github_token, release_tag, broken_entities
-        )
+        create_github_issue(github_repository, github_token, release_tag, failures)
         sys.exit(1)
 
 

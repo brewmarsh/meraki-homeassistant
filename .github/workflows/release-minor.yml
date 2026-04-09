@@ -1,0 +1,112 @@
+name: Release Minor Version
+
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Dry Run (check version logic without pushing changes)'
+        required: true
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+  pull-requests: read
+
+jobs:
+  promote-beta-to-main:
+    name: Minor Release Automation
+    # Restrict execution to the beta branch
+    if: github.ref == 'refs/heads/beta'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Fetch all history for merging
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Configure Git Credentials
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Bump Minor Version in Manifest
+        id: versioning
+        run: |
+          MANIFEST="custom_components/meraki_ha/manifest.json"
+
+          if [ ! -f "$MANIFEST" ]; then
+            echo "::error::manifest.json not found at $MANIFEST"
+            exit 1
+          fi
+
+          # Extract current version
+          CURRENT_VERSION=$(jq -r '.version' "$MANIFEST")
+          echo "Detected current version: $CURRENT_VERSION"
+
+          # Increment minor version (e.g., 2.1.4 -> 2.2.0)
+          IFS='.' read -r major minor patch <<< "$CURRENT_VERSION"
+          NEW_VERSION="${major}.$((minor + 1)).0"
+          TAG_NAME="v${NEW_VERSION}"
+
+          echo "Target version: $NEW_VERSION"
+
+          # Update manifest.json
+          jq ".version = \"$NEW_VERSION\"" "$MANIFEST" > tmp.json && mv tmp.json "$MANIFEST"
+
+          # Store for later steps
+          echo "NEW_VERSION=$NEW_VERSION" >> $GITHUB_ENV
+          echo "TAG_NAME=$TAG_NAME" >> $GITHUB_ENV
+
+      - name: Update Changelog
+        run: |
+          DATE=$(date +'%Y-%m-%d')
+          ENTRY="## [${{ env.NEW_VERSION }}] - ${DATE}\n\n### Minor Release\n- Promoted changes from beta branch.\n- See release notes for full details.\n"
+
+          if [ -f "CHANGELOG.md" ]; then
+            # Prepend to existing file
+            echo -e "${ENTRY}\n$(cat CHANGELOG.md)" > CHANGELOG.md
+          else
+            # Create new file
+            echo -e "# Changelog\n\n${ENTRY}" > CHANGELOG.md
+          fi
+          git add CHANGELOG.md
+
+      - name: Commit and Push to Beta
+        if: ${{ github.event.inputs.dry_run == 'false' }}
+        run: |
+          git add custom_components/meraki_ha/manifest.json
+          git commit -m "chore(release): bump version to ${{ env.NEW_VERSION }}"
+          git push origin beta
+
+      - name: Merge Beta into Main
+        if: ${{ github.event.inputs.dry_run == 'false' }}
+        run: |
+          # Ensure local main exists and is up to date
+          git fetch origin main:main
+          git checkout main
+
+          # Perform merge from beta
+          git merge beta --no-ff -m "Merge branch 'beta' into main for release ${{ env.TAG_NAME }}"
+
+          # Push the updated main branch
+          git push origin main
+
+      - name: Create and Push Tag
+        if: ${{ github.event.inputs.dry_run == 'false' }}
+        run: |
+          git tag ${{ env.TAG_NAME }}
+          git push origin ${{ env.TAG_NAME }}
+
+      - name: Create GitHub Release
+        if: ${{ github.event.inputs.dry_run == 'false' }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create ${{ env.TAG_NAME }} \
+            --target main \
+            --title "Release ${{ env.TAG_NAME }}" \
+            --generate-notes \
+            --notes-start-tag $(git tag --sort=-v:refname | sed -n '2p')
