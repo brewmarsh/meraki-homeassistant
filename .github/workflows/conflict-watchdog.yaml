@@ -32,7 +32,7 @@ jobs:
       pull-requests: write
     steps:
       - name: Detect and Summon Jules
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         with:
           script: |
             const { data: pullRequests } = await github.rest.pulls.list({
