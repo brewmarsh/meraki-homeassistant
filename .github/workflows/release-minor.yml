@@ -1,21 +1,35 @@
+# ==============================================================================
+# RELEASE PREPARATION WORKFLOW (Minor Version)
+# ==============================================================================
+# This workflow prepares a new minor release by:
+# 1. Incrementing the version in manifest.json (e.g., 2.4.5 -> 2.5.0).
+# 2. Updating the CHANGELOG.md with a placeholder entry.
+# 3. Opening a Pull Request from beta into main.
+#
+# INSTRUCTIONS FOR DEVELOPER:
+# 1. Review and merge the generated Pull Request.
+# 2. Once merged, manually create a Git Tag and GitHub Release from the UI
+#    (or use the 'gh release create' command locally).
+# ==============================================================================
+
 name: Release Minor Version
 
 on:
   workflow_dispatch:
     inputs:
       dry_run:
-        description: 'Dry Run (check version logic without pushing changes)'
+        description: 'Dry Run (process version but do not create PR)'
         required: true
         type: boolean
         default: false
 
 permissions:
   contents: write
-  pull-requests: read
+  pull-requests: write
 
 jobs:
-  promote-beta-to-main:
-    name: Minor Release Automation
+  prepare-release:
+    name: Prepare Minor Release
     # Restrict execution to the beta branch
     if: github.ref == 'refs/heads/beta'
     runs-on: ubuntu-latest
@@ -24,13 +38,8 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0 # Fetch all history for merging
+          fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Configure Git Credentials
-        run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
 
       - name: Bump Minor Version in Manifest
         id: versioning
@@ -46,10 +55,9 @@ jobs:
           CURRENT_VERSION=$(jq -r '.version' "$MANIFEST")
           echo "Detected current version: $CURRENT_VERSION"
 
-          # Increment minor version (e.g., 2.1.4 -> 2.2.0)
+          # Increment minor version (e.g., 2.4.x -> 2.5.0)
           IFS='.' read -r major minor patch <<< "$CURRENT_VERSION"
           NEW_VERSION="${major}.$((minor + 1)).0"
-          TAG_NAME="v${NEW_VERSION}"
 
           echo "Target version: $NEW_VERSION"
 
@@ -58,12 +66,11 @@ jobs:
 
           # Store for later steps
           echo "NEW_VERSION=$NEW_VERSION" >> $GITHUB_ENV
-          echo "TAG_NAME=$TAG_NAME" >> $GITHUB_ENV
 
       - name: Update Changelog
         run: |
           DATE=$(date +'%Y-%m-%d')
-          ENTRY="## [${{ env.NEW_VERSION }}] - ${DATE}\n\n### Minor Release\n- Promoted changes from beta branch.\n- See release notes for full details.\n"
+          ENTRY="## [${{ env.NEW_VERSION }}] - ${DATE}\n\n### Minor Release\n- Promoted changes from beta branch.\n- Full details available in the GitHub Release notes.\n"
 
           if [ -f "CHANGELOG.md" ]; then
             # Prepend to existing file
@@ -72,41 +79,32 @@ jobs:
             # Create new file
             echo -e "# Changelog\n\n${ENTRY}" > CHANGELOG.md
           fi
-          git add CHANGELOG.md
 
-      - name: Commit and Push to Beta
+      - name: Create Release Pull Request
         if: ${{ github.event.inputs.dry_run == 'false' }}
-        run: |
-          git add custom_components/meraki_ha/manifest.json
-          git commit -m "chore(release): bump version to ${{ env.NEW_VERSION }}"
-          git push origin beta
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: 'chore(release): bump version to ${{ env.NEW_VERSION }}'
+          committer: 'github-actions[bot] <github-actions[bot]@users.noreply.github.com>'
+          author: 'github-actions[bot] <github-actions[bot]@users.noreply.github.com>'
+          title: 'chore(release): Release v${{ env.NEW_VERSION }}'
+          body: |
+            ## 🚀 Automated Release Preparation
 
-      - name: Merge Beta into Main
-        if: ${{ github.event.inputs.dry_run == 'false' }}
-        run: |
-          # Ensure local main exists and is up to date
-          git fetch origin main:main
-          git checkout main
+            This PR was automatically generated to prepare for the **v${{ env.NEW_VERSION }}** minor release.
 
-          # Perform merge from beta
-          git merge beta --no-ff -m "Merge branch 'beta' into main for release ${{ env.TAG_NAME }}"
+            ### 📝 Changes included:
+            - Updated `manifest.json` version to `${{ env.NEW_VERSION }}`.
+            - Added placeholder entry in `CHANGELOG.md`.
 
-          # Push the updated main branch
-          git push origin main
+            ### 🛠 Next Steps:
+            1. **Review** the changes in this PR.
+            2. **Merge** this PR into `main`.
+            3. **Create a Tag and Release** (v${{ env.NEW_VERSION }}) on GitHub once merged.
 
-      - name: Create and Push Tag
-        if: ${{ github.event.inputs.dry_run == 'false' }}
-        run: |
-          git tag ${{ env.TAG_NAME }}
-          git push origin ${{ env.TAG_NAME }}
-
-      - name: Create GitHub Release
-        if: ${{ github.event.inputs.dry_run == 'false' }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          gh release create ${{ env.TAG_NAME }} \
-            --target main \
-            --title "Release ${{ env.TAG_NAME }}" \
-            --generate-notes \
-            --notes-start-tag $(git tag --sort=-v:refname | sed -n '2p')
+            *Generated by GitHub Actions.*
+          branch: 'release/v${{ env.NEW_VERSION }}'
+          base: 'main'
+          labels: 'release, automated-pr'
+          delete-branch: true
