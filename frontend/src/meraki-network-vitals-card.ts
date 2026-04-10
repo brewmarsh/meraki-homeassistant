@@ -355,7 +355,7 @@ export class MerakiNetworkVitalsCardEditor extends LitElement {
     const target = ev.target as HTMLInputElement & { configValue: string };
     const configValue = target.configValue;
     let newValue: string | TapAction =
-      (ev.detail as any)?.value ?? target.value;
+      (ev.detail as { value?: string | TapAction })?.value ?? target.value;
 
     if (
       configValue &&

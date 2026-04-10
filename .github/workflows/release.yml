@@ -21,7 +21,8 @@ jobs:
         uses: actions/checkout@v4
         with:
           token: ${{ secrets.PAT_TOKEN }}
-          fetch-depth: 0 # Required for git describe to work
+          fetch-depth: 0 # CRITICAL: Prevents diverged branch errors when committing back
+          ref: ${{ github.ref }} # Ensure we are on the exact branch
 
       - name: Set up Python
         uses: actions/setup-python@v6
@@ -64,6 +65,8 @@ jobs:
         with:
           commit_message: 'chore(release): version bump [skip ci]'
           branch: ${{ github.ref_name }}
+          # CORRECT: Updated to .toml and explicitly included all bumped files
+          file_pattern: 'custom_components/meraki_ha/manifest.json package.json frontend/package.json frontend/package-lock.json .bumpversion.toml package-lock.json'
 
       - name: Get version
         id: get_version
