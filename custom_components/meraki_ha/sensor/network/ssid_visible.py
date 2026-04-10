@@ -6,23 +6,24 @@ from homeassistant.components.sensor import SensorEntityDescription
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import EntityCategory
 
-from ...meraki_data_coordinator import MerakiDataCoordinator
+from ...coordinators import MerakiMainCoordinator
 from .base import MerakiSSIDBaseSensor
 
 
 class MerakiSSIDVisibleSensor(MerakiSSIDBaseSensor):
     """Representation of a Meraki SSID Visibility sensor."""
 
+    _attr_has_entity_name = True
     _attr_entity_category = EntityCategory.DIAGNOSTIC
     entity_description = SensorEntityDescription(
         key="visible",
-        name="Visible",
+        name=None,
         icon="mdi:eye",
     )
 
     def __init__(
         self,
-        coordinator: MerakiDataCoordinator,
+        coordinator: MerakiMainCoordinator,
         config_entry: ConfigEntry,
         ssid_data: dict[str, Any],
     ) -> None:

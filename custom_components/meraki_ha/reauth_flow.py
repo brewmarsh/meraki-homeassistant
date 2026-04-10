@@ -7,11 +7,15 @@ from typing import TYPE_CHECKING, Any
 
 import aiohttp
 import voluptuous as vol
-from homeassistant import data_entry_flow
 from homeassistant.exceptions import ConfigEntryAuthFailed
 
+from custom_components.meraki_ha.const.config import (
+    CONF_MERAKI_API_KEY,
+    CONF_MERAKI_ORG_ID,
+)
+from homeassistant import config_entries
+
 from .authentication import validate_meraki_credentials
-from .const import CONF_MERAKI_API_KEY, CONF_MERAKI_ORG_ID
 
 if TYPE_CHECKING:
     from .config_flow import MerakiConfigFlow
@@ -23,7 +27,7 @@ _LOGGER = logging.getLogger(__name__)
 async def async_step_reauth(
     self: MerakiConfigFlow,
     user_input: dict[str, Any] | None = None,
-) -> data_entry_flow.FlowResult:
+) -> config_entries.ConfigFlowResult:
     """
     Handle reauthentication for the Meraki integration.
 
@@ -87,7 +91,10 @@ async def async_step_reauth(
             {
                 vol.Required(CONF_MERAKI_API_KEY): str,
                 vol.Required(CONF_MERAKI_ORG_ID, default=org_id): str,
-            },
+            }
         ),
         errors=errors,
+        description_placeholders={
+            "org_id": org_id,
+        },
     )

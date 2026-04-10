@@ -2,14 +2,19 @@
 
 from __future__ import annotations
 
-from unittest.mock import AsyncMock, MagicMock
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers.network import NoURLAvailableError
 
-from custom_components.meraki_ha.const import DOMAIN
-from custom_components.meraki_ha.meraki_data_coordinator import MerakiDataCoordinator
-from custom_components.meraki_ha.webhook import async_handle_webhook
+from custom_components.meraki_ha.const.integration import DOMAIN
+from custom_components.meraki_ha.const.webhooks import EVENT_MERAKI_WEBHOOK_ALERT
+
+# Resolved: Using the centralized coordinator path from the 2.3.0-beta.120 refactor
+from custom_components.meraki_ha.coordinators import MerakiMainCoordinator
+from custom_components.meraki_ha.types import MerakiDevice
+from custom_components.meraki_ha.webhook import async_handle_webhook, get_webhook_url
 
 
 @pytest.fixture
@@ -27,14 +32,23 @@ def mock_hass_with_webhook_data(hass: HomeAssistant) -> HomeAssistant:
 
     """
     config_entry = MagicMock()
-    coordinator = MerakiDataCoordinator(
+    api_client = MagicMock()
+    coordinator = MerakiMainCoordinator(
         hass,
-        api_client=MagicMock(),
-        scan_interval=300,
         entry=config_entry,
+        api_client=api_client,
     )
+
+    device = MerakiDevice(
+        serial="Q234-ABCD-5678",
+        status="online",
+        name="Test Device",
+        model="MR33",
+        mac="00:11:22:33:44:55",
+    )
+
     coordinator.data = {
-        "devices": [{"serial": "Q234-ABCD-5678", "status": "online"}],
+        "devices": [device],
         "clients": [],
     }
     hass.data[DOMAIN] = {
@@ -73,7 +87,7 @@ async def test_handle_webhook_device_down(
     await async_handle_webhook(mock_hass_with_webhook_data, webhook_id, request)
 
     # Assert
-    assert coordinator.data["devices"][0]["status"] == "offline"
+    assert coordinator.data["devices"][0].status == "offline"
     coordinator.async_update_listeners.assert_called_once()
 
 
@@ -104,7 +118,7 @@ async def test_handle_webhook_invalid_secret(
     await async_handle_webhook(mock_hass_with_webhook_data, webhook_id, request)
 
     # Assert
-    assert coordinator.data["devices"][0]["status"] == "online"  # Should not change
+    assert coordinator.data["devices"][0].status == "online"  # Should not change
     coordinator.async_update_listeners.assert_not_called()
 
 
@@ -135,3 +149,65 @@ async def test_handle_webhook_unknown_alert(
 
     # Assert
     coordinator.async_update_listeners.assert_not_called()
+
+
+@pytest.mark.asyncio
+async def test_handle_webhook_fires_event(
+    mock_hass_with_webhook_data: HomeAssistant,
+) -> None:
+    """Test that a valid webhook fires an event."""
+    # Arrange
+    webhook_id = "test_webhook_id"
+    request = AsyncMock()
+    data = {
+        "sharedSecret": "test_secret",
+        "alertType": "Any alert",
+        "deviceSerial": "Q234-ABCD-5678",
+    }
+    request.json.return_value = data
+
+    events = []
+
+    def event_listener(event):
+        events.append(event)
+
+    mock_hass_with_webhook_data.bus.async_listen(
+        EVENT_MERAKI_WEBHOOK_ALERT, event_listener
+    )
+
+    # Act
+    await async_handle_webhook(mock_hass_with_webhook_data, webhook_id, request)
+    await mock_hass_with_webhook_data.async_block_till_done()
+
+    # Assert
+    assert len(events) == 1
+    assert events[0].data == data
+
+
+def test_get_webhook_url_fallback(hass: HomeAssistant) -> None:
+    """Test get_webhook_url fallback logic."""
+    with patch(
+        "custom_components.meraki_ha.webhook.get_url",
+        side_effect=[NoURLAvailableError, "https://internal-url"],
+    ):
+        url = get_webhook_url(hass, "test_webhook_id")
+        assert url == "https://internal-url/api/webhook/test_webhook_id"
+
+    with patch(
+        "custom_components.meraki_ha.webhook.get_url",
+        side_effect=[NoURLAvailableError, NoURLAvailableError],
+    ):
+        url = get_webhook_url(hass, "test_webhook_id")
+        assert url is None
+
+
+def test_get_webhook_url_non_https_logs_warning(hass: HomeAssistant, caplog) -> None:
+    """Test that a non-HTTPS URL logs a warning and returns None."""
+    with patch(
+        "custom_components.meraki_ha.webhook.get_url",
+        return_value="http://example.com",
+    ):
+        url = get_webhook_url(hass, "test_webhook_id")
+
+    assert url is None
+    assert "Meraki webhooks require HTTPS" in caplog.text

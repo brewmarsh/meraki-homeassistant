@@ -1,7 +1,5 @@
-"""Select platform for Meraki HA."""
+"""Select platform for Meraki integration."""
 
 from __future__ import annotations
 
-from .meraki_select import async_setup_entry
-
-__all__ = ["async_setup_entry"]
+from .meraki_select import async_setup_entry  # noqa: F401

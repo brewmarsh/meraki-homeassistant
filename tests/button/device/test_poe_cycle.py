@@ -1,0 +1,96 @@
+"""Test the Meraki PoE cycle button."""
+
+from unittest.mock import AsyncMock, MagicMock
+
+import pytest
+
+from custom_components.meraki_ha.button.device.poe_cycle import (
+    MerakiPoECycleButton,
+)
+from custom_components.meraki_ha.core.models.device import MerakiDevice
+from homeassistant.config_entries import ConfigEntry
+from homeassistant.core import HomeAssistant
+
+
+@pytest.fixture
+def mock_coordinator():
+    """Mock the Meraki Data Coordinator."""
+    coordinator = MagicMock()
+    coordinator.api = MagicMock()
+    coordinator.api.switch = MagicMock()
+    coordinator.api.switch.cycle_device_switch_ports = AsyncMock()
+    return coordinator
+
+
+@pytest.fixture
+def mock_device():
+    """Mock a MerakiDevice."""
+    return MerakiDevice(
+        serial="Q2XX-XXXX-XXXX",
+        name="Test Switch",
+        model="MS120-8",
+        mac="00:11:22:33:44:55",
+        product_type="switch",
+        switch_ports=[
+            {"portId": "1", "enabled": True, "status": "Connected"},
+            {"portId": "2", "enabled": True, "status": "Disconnected"},
+        ],
+    )
+
+
+@pytest.fixture
+def mock_config_entry():
+    """Mock a ConfigEntry."""
+    entry = MagicMock(spec=ConfigEntry)
+    entry.entry_id = "test_entry_id"
+    entry.options = {}
+    return entry
+
+
+async def test_button_initialization(
+    hass: HomeAssistant,
+    mock_coordinator: MagicMock,
+    mock_device: MerakiDevice,
+    mock_config_entry: ConfigEntry,
+):
+    """Test the button initialization."""
+    # Action 6: Ensure the coordinator returns the device and config entry correctly
+    mock_coordinator.get_device.return_value = mock_device
+    mock_coordinator.config_entry = mock_config_entry
+
+    assert mock_device.switch_ports is not None
+    port_info = mock_device.switch_ports[0]
+    button = MerakiPoECycleButton(
+        mock_coordinator, mock_device, port_info, mock_config_entry
+    )
+
+    assert button.name == "Port 1 cycle"
+    # MerakiEntity unique_id: {serial}_{entity_description.key}
+    assert button.unique_id == "Q2XX-XXXX-XXXX_port_cycle_1"
+    assert button.icon == "mdi:restart"
+    device_info = button.device_info
+    assert device_info is not None
+    assert device_info["identifiers"] == {("meraki_ha", "Q2XX-XXXX-XXXX")}
+
+
+async def test_button_press(
+    hass: HomeAssistant,
+    mock_coordinator: MagicMock,
+    mock_device: MerakiDevice,
+    mock_config_entry: ConfigEntry,
+):
+    """Test the button press action."""
+    # Ensure the coordinator returns the device when asked
+    mock_coordinator.get_device.return_value = mock_device
+
+    assert mock_device.switch_ports is not None
+    port_info = mock_device.switch_ports[0]
+    button = MerakiPoECycleButton(
+        mock_coordinator, mock_device, port_info, mock_config_entry
+    )
+
+    await button.async_press()
+
+    mock_coordinator.api.switch.cycle_device_switch_ports.assert_called_once_with(
+        serial="Q2XX-XXXX-XXXX", ports=["1"]
+    )

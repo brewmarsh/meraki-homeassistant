@@ -1,49 +1,81 @@
 """Utility functions for naming Meraki devices and entities."""
 
+import dataclasses
 import logging
 from collections.abc import Mapping
-from typing import Any
+from typing import Any, cast
 
 _LOGGER = logging.getLogger(__name__)
 
 
-def format_device_name(device: dict[str, Any], config: Mapping[str, Any]) -> str:
-    """Format the device name based on the user's preference."""
-    name = device.get("name")
+def standardize_device_name(name: str | None) -> str:
+    """Standardize device name with Meraki prefix."""
     if not name:
-        if device.get("productType") == "ssid":
-            name = f"SSID {device.get('number')}"
+        return "Meraki Device"
+    name_str = str(name)
+    if (
+        name_str.lower().startswith("meraki")
+        or name_str.startswith("[")
+        or name_str.startswith("Site: ")
+    ):
+        return name_str
+    return f"Meraki {name_str}"
+
+
+def format_device_name(device: dict[str, Any] | Any, config: Mapping[str, Any]) -> str:
+    """Format the device name based on the user's preference."""
+    if dataclasses.is_dataclass(type(device)):
+        device = dataclasses.asdict(cast(Any, device))
+
+    name = device.get("name")
+    model = str(device.get("model") or "")
+    product_type = str(device.get("productType") or device.get("product_type") or "")
+
+    if not name:
+        if product_type == "ssid":
+            name = f"[SSID {device.get('number')}]"
         else:
-            name = f"Meraki {device.get('model', 'Device')} {device.get('serial')}"
+            name = f"{model} {device.get('serial')}"
 
-    # Default to prefix if not specified
-    name_format = config.get("device_name_format", "prefix")
+    # Prefix mapping
+    prefix_map = {
+        "sensor": "Sensor",
+        "camera": "Camera",
+        "switch": "Switch",
+        "wireless": "Wireless",
+        "appliance": "Appliance",
+        "cellularGateway": "Gateway",
+    }
 
-    if name_format == "omit":
-        return name
+    # Determine prefix
+    prefix = prefix_map.get(product_type)
+    if not prefix:
+        if model.startswith("MT"):
+            prefix = "Sensor"
+        elif model.startswith(("MV", "CS-")):
+            prefix = "Camera"
+        elif model.startswith("MS"):
+            prefix = "Switch"
+        elif model.startswith("MR"):
+            prefix = "Wireless"
+        elif model.startswith("MX"):
+            prefix = "Appliance"
+        elif model.startswith("MG"):
+            prefix = "Gateway"
 
-    product_type = device.get("productType")
-    if not product_type and "productTypes" in device:
-        product_type = "network"
+    if prefix:
+        full_prefix = f"[{prefix}] "
+        if not str(name).startswith(full_prefix):
+            name = f"{full_prefix}{name}"
 
-    if not product_type:
-        product_type = "device"  # default to device
+    return standardize_device_name(name)
 
-    if product_type == "network":
-        product_type_str = "Network"
-    elif product_type == "organization":
-        product_type_str = "Organization"
-    elif product_type == "switch":
-        product_type_str = "Switch"
-    elif product_type == "appliance":
-        product_type_str = "Appliance"
-    elif product_type == "camera":
-        product_type_str = "Camera"
-    elif product_type == "ssid":
-        product_type_str = "SSID"
-    elif product_type == "vlan":
-        product_type_str = "VLAN"
-    else:
-        product_type_str = product_type.capitalize()
 
-    return f"[{product_type_str}] {name}"
+def format_entity_name(
+    device: dict[str, Any] | Any, config: Mapping[str, Any], entity_name: str | None
+) -> str:
+    """Format an entity name by combining the device name and entity-specific name."""
+    device_name = format_device_name(device, config)
+    if entity_name and entity_name.strip():
+        return f"{device_name} {entity_name.strip()}"
+    return device_name

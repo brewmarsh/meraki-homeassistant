@@ -1,0 +1,120 @@
+name: Reusable Staging Tests
+
+on:
+  workflow_call:
+    inputs:
+      branch_name:
+        required: true
+        type: string
+
+jobs:
+  staging_test:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Deploy to Test Server
+        uses: appleboy/ssh-action@v1.2.5
+        with:
+          host: ${{ secrets.SMOKE_TEST_SERVER_IP }}
+          username: ${{ secrets.SMOKE_TEST_SSH_USERNAME }}
+          key: ${{ secrets.SMOKE_TEST_SSH_KEY }}
+          script: |
+            rsync -avz --delete \
+              --exclude='.git/' \
+              --exclude='*.pyc' \
+              --exclude='__pycache__/' \
+              ${{ github.workspace }}/custom_components/meraki_ha/ \
+              /config/custom_components/meraki_ha/
+
+      - name: Restart Home Assistant
+        uses: appleboy/ssh-action@v1.2.5
+        with:
+          host: ${{ secrets.SMOKE_TEST_SERVER_IP }}
+          username: ${{ secrets.SMOKE_TEST_SSH_USERNAME }}
+          key: ${{ secrets.SMOKE_TEST_SSH_KEY }}
+          script: |
+            hass-cli service call homeassistant.restart
+
+      - name: Wait for Home Assistant to be ready
+        run: |
+          echo "Waiting for Home Assistant to restart..."
+          for i in {1..30}; do
+            if curl -s "http://${{ secrets.SMOKE_TEST_SERVER_IP }}:8123/api/" > /dev/null; then
+              echo "Home Assistant is ready."
+              exit 0
+            fi
+            sleep 10
+          done
+          echo "Home Assistant did not become ready in time."
+          exit 1
+
+      - name: Wait for initial Meraki data fetch
+        run: |
+          echo "Waiting 90 seconds for coordinators to fetch cloud data..."
+          sleep 90
+
+      - name: Install Python Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install homeassistant-ws requests
+
+      - name: Run Staging Test Probe
+        id: probe
+        run: |
+          set -o pipefail
+          if ! python scripts/staging_test_probe.py 2>&1 | tee probe_output.txt; then
+            echo "FAILED_STEP_NAME=Run Staging Test Probe" >> $GITHUB_ENV
+            {
+              echo "CI_ERROR_DETAILS<<EOF"
+              tail -n 20 probe_output.txt
+              echo "EOF"
+            } >> $GITHUB_ENV
+            exit 1
+          fi
+        env:
+          HA_URL: ws://${{ secrets.SMOKE_TEST_SERVER_IP }}:8123/api/websocket
+          HA_TOKEN: ${{ secrets.HA_TEST_TOKEN }}
+
+      - name: Run Log Query
+        id: logs
+        run: |
+          set -o pipefail
+          if ! python scripts/query_logs.py 2>&1 | tee query_logs_output.txt; then
+            echo "FAILED_STEP_NAME=Run Log Query" >> $GITHUB_ENV
+            {
+              echo "CI_ERROR_DETAILS<<EOF"
+              tail -n 20 query_logs_output.txt
+              echo "EOF"
+            } >> $GITHUB_ENV
+            exit 1
+          fi
+        env:
+          BETTER_STACK_API_TOKEN: ${{ secrets.BETTER_STACK_API_TOKEN }}
+
+      - name: Create GitHub Issue on Failure
+        if: failure()
+        uses: actions/github-script@v9
+        with:
+          script: |
+            try {
+              const script = require('./scripts/generate_failure_issue.js');
+              await script({github, context});
+            } catch (e) {
+              const title = '🚨 Staging Test Failure: ' + '${{ inputs.branch_name }}';
+              const failedStep = process.env.FAILED_STEP_NAME || 'Unknown Step';
+              const errorDetails = process.env.CI_ERROR_DETAILS || 'No details captured.';
+              const body = `### ❌ Failed Step: \`${failedStep}\`\n\n### 📋 Error Details\n\`\`\`text\n${errorDetails}\n\`\`\`\n\n[🔗 Run Details](${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId})`;
+
+              await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title: title,
+                body: body,
+                labels: ['bug', 'automated-ci', 'jules']
+              });
+            }

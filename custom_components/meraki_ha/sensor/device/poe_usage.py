@@ -3,26 +3,23 @@
 from __future__ import annotations
 
 import logging
-from typing import Any
+from typing import TYPE_CHECKING, Any, cast
 
 from homeassistant.components.sensor import SensorEntity, SensorStateClass
 from homeassistant.const import UnitOfPower
 from homeassistant.core import callback
-from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from ...const import DOMAIN
-from ...core.utils.naming_utils import format_device_name
-from ...helpers.entity_helpers import format_entity_name
-from ...meraki_data_coordinator import MerakiDataCoordinator
+from ...coordinators import MerakiMainCoordinator
+from ...entity import MerakiSensor
+
+if TYPE_CHECKING:
+    from ...core.models.device import MerakiDevice
 
 _LOGGER = logging.getLogger(__name__)
 
 
-class MerakiPoeUsageSensor(
-    CoordinatorEntity,
-    SensorEntity,
-):
+class MerakiPoeUsageSensor(MerakiSensor):
     """
     Representation of a Meraki switch PoE usage sensor.
 
@@ -30,14 +27,16 @@ class MerakiPoeUsageSensor(
     in watts. The attributes provide a breakdown of PoE usage per port.
     """
 
+    coordinator: MerakiMainCoordinator
+
     _attr_state_class = SensorStateClass.MEASUREMENT
     _attr_native_unit_of_measurement = UnitOfPower.WATT
     _attr_icon = "mdi:power-plug"
 
     def __init__(
         self,
-        coordinator: MerakiDataCoordinator,
-        device: dict[str, Any],
+        coordinator: MerakiMainCoordinator,
+        device: MerakiDevice,
     ) -> None:
         """
         Initialize the sensor.
@@ -50,46 +49,31 @@ class MerakiPoeUsageSensor(
         """
         super().__init__(coordinator)
         self._device = device
-        self._attr_unique_id = f"{self._device['serial']}_poe_usage"
-        self._attr_name = format_entity_name(self._device["name"], "PoE Usage")
+        self._attr_has_entity_name = True
+        self._attr_unique_id = f"{device.serial}_poe_usage"
+        self._attr_name = "PoE Usage"
 
-    @property
-    def device_info(self) -> DeviceInfo:
-        """Return device information."""
-        return DeviceInfo(
-            identifiers={(DOMAIN, self._device["serial"])},
-            name=format_device_name(
-                self._device,
-                self.coordinator.config_entry.options,
-            ),
-            model=self._device["model"],
-            manufacturer="Cisco Meraki",
-        )
 
     @callback
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
-        device = next(
-            (
-                d
-                for d in self.coordinator.data.get("devices", [])
-                if d["serial"] == self._device["serial"]
-            ),
-            None,
-        )
-        if device:
-            self._device = device
-            self.async_write_ha_state()
+        if self._device.serial:
+            device = self.coordinator.get_device(self._device.serial)
+            if device:
+                self._device = device
+                self.async_write_ha_state()
 
     @property
     def native_value(self) -> float | None:
         """Return the state of the sensor."""
-        ports_statuses = self._device.get("ports_statuses")
+        ports_statuses = self._device.switch_ports
         if not isinstance(ports_statuses, list):
             return None
 
         total_poe_usage_wh = sum(
-            port.get("powerUsageInWh", 0) or 0 for port in ports_statuses
+            port.get("powerUsageInWh", 0) or 0
+            for port in ports_statuses
+            if isinstance(port, dict)
         )
 
         # The API returns power usage in Wh over the last day.
@@ -101,11 +85,12 @@ class MerakiPoeUsageSensor(
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
         """Return the state attributes."""
-        ports_statuses = self._device.get("ports_statuses")
+        ports_statuses = self._device.switch_ports
         if not isinstance(ports_statuses, list):
             return {}
 
         return {
             f"port_{port['portId']}_power_usage_wh": port.get("powerUsageInWh")
             for port in ports_statuses
+            if isinstance(port, dict) and "portId" in port
         }

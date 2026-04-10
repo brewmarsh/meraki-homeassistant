@@ -1,50 +1,53 @@
 # Contributing to Meraki Home Assistant
 
-Thank you for your interest in contributing to this integration!
+Thank you for your interest in contributing to this integration! We welcome all contributions, from bug reports to new features.
 
 This document provides project-specific rules, architectural patterns, and guidelines that are essential for successful development. **Please read this file _after_ reading the main `AGENTS.md` file** in this repository.
 
-## 1. Core Architectural Principles
+### Reporting Bugs
 
-These are the most important patterns to understand before writing any code. Failure to follow them will re-introduce known, high-impact bugs.
+If you find a bug, please [open an issue](https://github.com/brewmarsh/meraki-homeassistant/issues) on our GitHub repository. Please include the following information in your bug report:
 
-### Pattern 1: The "Optimistic UI with Cooldown" (for Configuration Entities)
+- A clear and concise description of the bug.
+- Steps to reproduce the bug.
+- The version of the integration you are using.
+- Any relevant logs from Home Assistant.
 
-This is the **most critical pattern** in this codebase for all entities that modify configuration (e.g., `switch`, `select`, `text`).
+### Proposing New Features
 
 - **Problem:** The Meraki Cloud API has a significant **provisioning delay**. When you send a `PUT` request (e.g., to disable an SSID), the API returns a `200 OK` immediately. However, the change can take several minutes to actually apply. During this time, any `GET` request will return the _old, stale data_.
 - **Bug:** This delay causes the Home Assistant UI to "flicker." The user toggles a switch, the UI updates, the integration refreshes, the API returns the _old_ state, and the UI toggle reverts to its original, incorrect position.
 - **Solution:** We **must** use an optimistic state with a timed cooldown.
 
-The required logic is as follows:
+### Submitting Pull Requests
 
-1.  **Optimistic State Update:** The entity's action method (e.g., `async_turn_on`) **must** immediately update its own state and tell Home Assistant to write this state to the UI.
+1. **Optimistic State Update:** The entity's action method (e.g., `async_turn_on`) **must** immediately update its own state and tell Home Assistant to write this state to the UI.
 
-    ```python
-    # Example from a switch
-    self._attr_is_on = True
-    self.async_write_ha_state()
-    ```
+   ```python
+   # Example from a switch
+   self._attr_is_on = True
+   self.async_write_ha_state()
+   ```
 
-2.  **Fire-and-Forget API Call:** The method should then make the API call to Meraki without waiting for a response to be confirmed by a refresh.
+2. **Fire-and-Forget API Call:** The method should then make the API call to Meraki without waiting for a response to be confirmed by a refresh.
 
-3.  **Register a Cooldown:** After making the API call, the entity **must** register a "pending update" with the central `MerakiDataCoordinator`. This acts as a cooldown period (default 150 seconds).
+3. **Register a Cooldown:** After making the API call, the entity **must** register a "pending update" with the central `MerakiDataCoordinator`. This acts as a cooldown period (default 150 seconds).
 
-    ```python
-    # Example
-    self.coordinator.register_pending_update(self.unique_id)
-    ```
+   ```python
+   # Example
+   self.coordinator.register_pending_update(self.unique_id)
+   ```
 
-4.  **Ignore Coordinator Updates:** The entity's state update method (`_update_internal_state`) **must** check if it is in a cooldown period before processing new data. If it is, it must `return` and do nothing.
+4. **Ignore Coordinator Updates:** The entity's state update method (`_update_internal_state`) **must** check if it is in a cooldown period before processing new data. If it is, it must `return` and do nothing.
 
-    ```python
-    # Example
-    def _update_internal_state(self) -> None:
-        if self.coordinator.is_pending(self.unique_id):
-            return  # Ignore update, optimistic state is in control
+   ```python
+   # Example
+   def _update_internal_state(self) -> None:
+       if self.coordinator.is_pending(self.unique_id):
+           return  # Ignore update, optimistic state is in control
 
-        # ... rest of the update logic ...
-    ```
+       # ... rest of the update logic ...
+   ```
 
 **Do not attempt to "fix" this by forcing an immediate refresh after an action.** This will not work and will re-introduce the original bug.
 
@@ -61,22 +64,27 @@ The required logic is as follows:
 Follow these rules to ensure consistency with Home Assistant's design patterns and this integration's helpers.
 
 - **Device & Entity Helpers:**
+
   - **Device Info:** **Do not** create `DeviceInfo` objects manually. Always use the `resolve_device_info` helper in `custom_components/meraki_ha/helpers/device_info_helpers.py`.
   - **Device Name:** Use the `format_device_name` utility for the `name` field within `DeviceInfo`.
   - **Entity Name:** Use the `format_entity_name` helper for the entity's own name (`_attr_name`).
 
 - **Handling Disabled Features:**
+
   - When an API call fails because a feature (like Traffic Analysis or VLANs) is disabled in the Meraki Dashboard, the corresponding entity should not become `unknown`.
   - Instead, its state **must** be set to `Disabled`, and an attribute should be added to explain the reason.
 
 - **Testing New Entities:**
+
   - A useful pattern for testing new, dynamically created sensors is to call `async_setup_sensors` (or the equivalent setup helper) with mock coordinator data.
   - You can then inspect the list of entities returned by the helper to validate their properties. This is often more effective than testing the sensor class in isolation.
 
 - **Constants:**
+
   - All constants (domain names, default values, keys) **must** be defined in `custom_components/meraki_ha/const.py`. Do not use magic strings in entity or coordinator code.
 
 - **Configuration Validation:**
+
   - All configuration data (from `configuration.yaml` or UI config flows) **must** be validated using `voluptuous` schemas.
 
 - **API Documentation:**
@@ -90,10 +98,12 @@ Follow these rules to ensure consistency with Home Assistant's design patterns a
 The self-hosted web interface is a React application located in `custom_components/meraki_ha/web_ui/`.
 
 - **Source vs. Build:**
+
   - The human-readable source code is in the `src/` directory.
   - The code actually served to the browser is the compiled/optimized output in the `dist/` directory.
 
 - **Agent Build Simulation:**
+
   - As an agent, you **cannot** run the `npm run build` command.
   - If you make changes to any files in the `src/` directory, you **must** manually update the corresponding file in `dist/` to reflect your changes.
   - The most important file to keep updated for E2E tests is `dist/assets/index.js`. You may need to write a simplified, non-JSX version of the React logic in this file to ensure tests pass.
@@ -111,49 +121,49 @@ The self-hosted web interface is a React application located in `custom_componen
 
 This project uses [Poetry](https://python-poetry.org/) for dependency management.
 
-1.  Install dependencies:
-    ```bash
-    poetry install
-    ```
-2.  Activate the virtual environment:
-    ```bash
-    poetry shell
-    ```
+1. Install dependencies:
+   ```bash
+   poetry install
+   ```
+2. Activate the virtual environment:
+   ```bash
+   poetry shell
+   ```
 
 ### Running Quality Checks
 
 Before submitting, you **must** run all quality checks. These are also enforced by pre-commit hooks.
 
-1.  **Linting & Formatting (Ruff):**
+1. **Linting & Formatting (Ruff):**
 
-    ```bash
-    poetry run ruff check --fix .
-    poetry run ruff format .
-    ```
+   ```bash
+   poetry run ruff check --fix .
+   poetry run ruff format .
+   ```
 
-2.  **Type Checking (mypy):**
+2. **Type Checking (mypy):**
 
-    ```bash
-    poetry run mypy .
-    ```
+   ```bash
+   poetry run mypy .
+   ```
 
-3.  **Security Analysis (bandit):**
+3. **Security Analysis (bandit):**
 
-    ```bash
-    poetry run bandit -r custom_components/meraki_ha/
-    ```
+   ```bash
+   poetry run bandit -r custom_components/meraki_ha/
+   ```
 
-4.  **Run Tests (pytest):**
+4. **Run Tests (pytest):**
 
-    ```bash
-    poetry run pytest
-    ```
+   ```bash
+   poetry run pytest
+   ```
 
-5.  **Home Assistant Validation (hassfest):**
-    This ensures the integration's manifest and structure are valid.
-    ```bash
-    poetry run python -m script.hassfest
-    ```
+5. **Home Assistant Validation (hassfest):**
+   This ensures the integration's manifest and structure are valid.
+   ```bash
+   poetry run python -m script.hassfest
+   ```
 
 ### Debugging
 
@@ -227,3 +237,54 @@ Please describe the tests that you ran to verify your changes. Provide instructi
 - [ ] I have added tests that prove my fix is effective or that my feature works
 - [ ] New and existing unit tests pass locally with my changes
 - [ ] Any dependent changes have been merged and published in downstream modules
+
+## Code Quality & Agent Readiness
+
+To ensure the Meraki Home Assistant integration remains maintainable by both humans and AI agents, we enforce strict "Agent Readiness" standards. These standards optimize for Agent Cognitive Load (ACL), type safety, and modularity.
+
+### Core standards
+
+- **Agent Cognitive Load (ACL):** Complex code confuses AI agents and humans alike. All functions MUST maintain an ACL score of **<= 10**.
+- **Function Constraints:**
+  - **Length:** No single function should exceed **50 lines of code**.
+  - **Nesting:** Nesting depth must not exceed **2 levels** (e.g., one `if` inside a `for` loop is fine; an `if` inside an `if` inside a `for` is too complex).
+  - **Modularization:** Complex logic must be extracted into private helper methods or specialized service classes.
+- **File Bloat:** Files should be kept under **300 lines** where possible. Group logic by domain and utilize `utils.py` or separate service files for heavy processing.
+- **Type Safety:** We require a strict **>90%** type safety index across the repository. All new functions and methods must have explicit Python type hints for all arguments and return values.
+- **CI/CD Enforcement:** Every Pull Request is automatically scanned by the **Agent Readiness Scorecard** workflow. PRs will fail if ACL exceeds thresholds or type safety drops.
+
+### Good vs. bad code examples
+
+#### ❌ Bad: Bloated, untyped, and high nesting
+```python
+def process_data(data):
+    result = []
+    for item in data:
+        if item.get("enabled"):
+            if "metrics" in item:
+                for metric in item["metrics"]:
+                    if metric["value"] > 10:
+                        # ... complex logic ...
+                        # ... many lines of code ...
+                        result.append(metric)
+    return result
+```
+
+#### ✅ Good: Small, typed, and shallow nesting
+```python
+def process_metrics(metrics: list[dict]) -> list[dict]:
+    """Extract metrics that exceed the threshold."""
+    return [m for m in metrics if m.get("value", 0) > 10]
+
+def process_data(data: list[dict]) -> list[dict]:
+    """Process enabled items and their metrics."""
+    result = []
+    for item in data:
+        if not item.get("enabled") or "metrics" not in item:
+            continue
+
+        valid_metrics = process_metrics(item["metrics"])
+        result.extend(valid_metrics)
+
+    return result
+```

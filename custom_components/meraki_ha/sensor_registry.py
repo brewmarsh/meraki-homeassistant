@@ -4,6 +4,10 @@ from __future__ import annotations
 
 from homeassistant.helpers.entity import Entity
 
+from .sensor.device.camera_analytics import (
+    MerakiPersonCountSensor,
+    MerakiVehicleCountSensor,
+)
 from .sensor.device.camera_audio_detection import MerakiCameraAudioDetectionSensor
 from .sensor.device.camera_sense_status import MerakiCameraSenseStatusSensor
 from .sensor.device.connected_clients import MerakiDeviceConnectedClientsSensor
@@ -20,6 +24,10 @@ SensorClassList = list[type[Entity]]
 SENSORS_COORD_DEV: dict[str, SensorClassList] = {
     "switch": [
         MerakiPoeUsageSensor,
+    ],
+    "camera": [
+        MerakiPersonCountSensor,
+        MerakiVehicleCountSensor,
     ],
 }
 

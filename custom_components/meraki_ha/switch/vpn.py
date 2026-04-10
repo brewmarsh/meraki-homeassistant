@@ -7,11 +7,12 @@ from typing import Any
 
 from homeassistant.components.switch import SwitchEntity
 from homeassistant.config_entries import ConfigEntry
+from homeassistant.const import EntityCategory
 from homeassistant.core import callback
 
+from ..coordinators import MerakiSwitchCoordinator
 from ..core.entities.meraki_network_entity import MerakiNetworkEntity
-from ..meraki_data_coordinator import MerakiDataCoordinator
-from ..types import MerakiNetwork
+from ..core.models.network import MerakiNetwork
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -19,9 +20,12 @@ _LOGGER = logging.getLogger(__name__)
 class MerakiVPNSwitch(MerakiNetworkEntity, SwitchEntity):
     """Representation of a Meraki Site-to-Site VPN switch."""
 
+    _attr_entity_category = EntityCategory.CONFIG
+    coordinator: MerakiSwitchCoordinator
+
     def __init__(
         self,
-        coordinator: MerakiDataCoordinator,
+        coordinator: MerakiSwitchCoordinator,
         config_entry: ConfigEntry,
         network: MerakiNetwork,
     ) -> None:
@@ -43,16 +47,18 @@ class MerakiVPNSwitch(MerakiNetworkEntity, SwitchEntity):
 
     def _update_internal_state(self) -> None:
         """Update the internal state of the switch."""
-        if self.coordinator.is_pending(self.unique_id):
+        if self.unique_id and self.coordinator.is_pending(self.unique_id):
             _LOGGER.debug(
                 "Not updating state for %s because a pending update is registered",
                 self.unique_id,
             )
             return
-        if self._network_id in self.coordinator.data.get("vpn_status", {}):
+        if self._network_id and self._network_id in self.coordinator.data.get(
+            "vpn_status", {}
+        ):
             vpn_status = self.coordinator.data["vpn_status"][self._network_id]
             if vpn_status:
-                self._attr_is_on = vpn_status.get("mode") != "disabled"
+                self._attr_is_on = vpn_status.mode != "none"
 
     @callback
     def _handle_coordinator_update(self) -> None:
@@ -71,11 +77,12 @@ class MerakiVPNSwitch(MerakiNetworkEntity, SwitchEntity):
         """
         self._attr_is_on = True
         self.async_write_ha_state()
-        self.coordinator.register_pending_update(self.unique_id)
+        if self.unique_id:
+            self.coordinator.register_pending_update(self.unique_id)
         if self._network_id:
             await self.coordinator.api.appliance.update_vpn_status(
                 network_id=self._network_id,
-                mode="hub",
+                mode="spoke",
             )
 
     async def async_turn_off(self, **kwargs: Any) -> None:
@@ -89,9 +96,10 @@ class MerakiVPNSwitch(MerakiNetworkEntity, SwitchEntity):
         """
         self._attr_is_on = False
         self.async_write_ha_state()
-        self.coordinator.register_pending_update(self.unique_id)
+        if self.unique_id:
+            self.coordinator.register_pending_update(self.unique_id)
         if self._network_id:
             await self.coordinator.api.appliance.update_vpn_status(
                 network_id=self._network_id,
-                mode="disabled",
+                mode="none",
             )

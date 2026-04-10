@@ -3,58 +3,65 @@
 from __future__ import annotations
 
 import logging
-from typing import Any
 
 from homeassistant.components.button import ButtonEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.device_registry import DeviceInfo
-from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from ...core.api.client import MerakiAPIClient
+from ...coordinators import MerakiSensorCoordinator
+from ...core.api import MerakiApiClientProtocol
+from ...core.models.device import MerakiDevice
+from ...entity import MerakiEntity
 from ...helpers.device_info_helpers import resolve_device_info
-from ...meraki_data_coordinator import MerakiDataCoordinator
 
 _LOGGER = logging.getLogger(__name__)
 
 
-class MerakiMt15RefreshDataButton(CoordinatorEntity, ButtonEntity):
+class MerakiMt15RefreshDataButton(MerakiEntity, ButtonEntity):
     """Representation of a Meraki MT15 refresh data button."""
 
     def __init__(
         self,
-        coordinator: MerakiDataCoordinator,
-        device_info: dict[str, Any],
+        coordinator: MerakiSensorCoordinator,
+        device: MerakiDevice,
         config_entry: ConfigEntry,
-        meraki_client: MerakiAPIClient,
+        meraki_client: MerakiApiClientProtocol,
     ) -> None:
         """Initialize the button."""
         super().__init__(coordinator)
-        self._device_info = device_info
+        self._device = device
         self._config_entry = config_entry
         self._meraki_client = meraki_client
-        self._attr_unique_id = f"{self._device_info['serial']}-refresh"
-        self._attr_name = f"{self._device_info['name']} Refresh Data"
+        self._attr_unique_id = f"{device.serial}-refresh"
+        self._attr_name = "Refresh data"
 
     @property
-    def device_info(self) -> DeviceInfo | None:
-        """Return device information."""
-        return resolve_device_info(self._device_info, self._config_entry)
+    def unique_id(self) -> str | None:
+        """Return the unique ID."""
+        return self._attr_unique_id
+
 
     async def async_press(self) -> None:
         """Handle the button press."""
-        serial = self._device_info["serial"]
-        _LOGGER.info("MT15 refresh data button pressed for %s", serial)
+        _LOGGER.info("MT15 refresh data button pressed for %s", self._serial)
         try:
             await self._meraki_client.sensor.create_device_sensor_command(
-                serial=serial, operation="refreshData"
+                serial=str(self._serial), operation="refreshData"
             )
-            _LOGGER.debug("Successfully triggered refresh for MT15 sensor %s", serial)
+            _LOGGER.debug(
+                "Successfully triggered refresh for MT15 sensor %s", self._serial
+            )
         except Exception as e:
-            _LOGGER.error("Error refreshing MT15 data for %s: %s", serial, e)
+            _LOGGER.error("Error refreshing MT15 data for %s: %s", self._serial, e)
 
     @property
     def available(self) -> bool:
         """Return if the entity is available."""
-        return (
-            self._device_info.get("model", "").startswith("MT15") and super().available
-        )
+        # 1. Check if model is MT15
+        # 2. Check base availability (which now includes online/alerting/dormant)
+        model_str = (
+            self._device.get("model", "")
+            if isinstance(self._device, dict)
+            else getattr(self._device, "model", "")
+        ) or ""
+        return model_str.startswith("MT15") and super().available

@@ -11,7 +11,7 @@ The agent's primary objective is to refactor the **Meraki MR** and **GR** compon
 
 ---
 
-### Integration Plan
+## Integration Plan
 
 The refactoring and **integration** will be executed in a phased, step-by-step approach to minimize disruption and ensure a smooth transition to the new architecture.
 

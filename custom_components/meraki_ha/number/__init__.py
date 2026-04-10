@@ -6,7 +6,9 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from ..const import DOMAIN, PLATFORM_NUMBER
+from custom_components.meraki_ha.const.integration import DOMAIN
+from custom_components.meraki_ha.const.platform import PLATFORM_NUMBER
+
 from .setup_helpers import async_setup_numbers
 
 _LOGGER = logging.getLogger(__name__)
@@ -20,13 +22,20 @@ async def async_setup_entry(
     """Set up Meraki number entities from a config entry."""
     if config_entry.entry_id not in hass.data[DOMAIN]:
         return False
-    coordinator = hass.data[DOMAIN][config_entry.entry_id]["coordinator"]
+    coordinator = hass.data[DOMAIN][config_entry.entry_id]["main_coordinator"]
 
-    number_entities = async_setup_numbers(hass, config_entry, coordinator)
+    try:
+        number_entities = async_setup_numbers(hass, config_entry, coordinator)
 
-    _LOGGER.debug("Found %d number entities", len(number_entities))
-    if number_entities:
-        async_add_entities(number_entities)
+        _LOGGER.debug("Found %d number entities", len(number_entities))
+        if number_entities:
+            async_add_entities(number_entities)
+    except Exception as err:
+        _LOGGER.error(
+            "Failed to set up Meraki number entities: %s",
+            err,
+            exc_info=True,
+        )
 
     return True
 

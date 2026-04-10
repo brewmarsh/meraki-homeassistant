@@ -4,32 +4,37 @@ from __future__ import annotations
 
 from homeassistant.components.sensor import SensorEntity
 from homeassistant.config_entries import ConfigEntry
+from homeassistant.const import EntityCategory
 from homeassistant.core import callback
 
+from ...coordinators import MerakiMainCoordinator
 from ...core.entities.meraki_network_entity import MerakiNetworkEntity
-from ...meraki_data_coordinator import MerakiDataCoordinator
-from ...types import MerakiNetwork
+from ...core.models.network import MerakiNetwork
 
 
 class TrafficShapingSensor(MerakiNetworkEntity, SensorEntity):
     """Representation of a sensor that shows traffic shaping settings."""
 
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
+    _attr_entity_registry_enabled_default = False
+
     def __init__(
         self,
-        coordinator: MerakiDataCoordinator,
+        coordinator: MerakiMainCoordinator,
         config_entry: ConfigEntry,
         network_id: str,
     ) -> None:
         """Initialize the sensor."""
         network: MerakiNetwork | None = next(
-            (net for net in coordinator.data["networks"] if net["id"] == network_id),
+            (net for net in coordinator.data["networks"] if net.id == network_id),
             None,
         )
-        assert network is not None
+        if network is None:
+            raise ValueError(f"Network {network_id} not found in coordinator data")
 
         super().__init__(coordinator, config_entry, network)
-        self._attr_unique_id = f"{network_id}-traffic-shaping"
-        self._attr_name = "Traffic Shaping"
+        self._attr_unique_id = f"meraki-network-{network_id}-traffic-shaping"
+        self._attr_name = f"{network.name} Traffic Shaping"
         self._attr_native_value = "Unknown"
 
     @callback

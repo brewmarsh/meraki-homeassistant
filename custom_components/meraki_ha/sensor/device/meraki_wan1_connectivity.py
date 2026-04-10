@@ -3,18 +3,21 @@
 from __future__ import annotations
 
 import logging
-from typing import Any
+from typing import TYPE_CHECKING, cast
 
-from homeassistant.components.sensor import SensorEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import EntityCategory
 from homeassistant.core import callback
 from homeassistant.helpers.device_registry import DeviceInfo
-from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from ...const import DOMAIN
+from custom_components.meraki_ha.const.integration import DOMAIN
+
+from ...coordinators import MerakiMainCoordinator
 from ...core.utils.naming_utils import format_device_name
-from ...meraki_data_coordinator import MerakiDataCoordinator
+from ...entity import MerakiSensor
+
+if TYPE_CHECKING:
+    from ...core.models.device import MerakiDevice
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -22,11 +25,10 @@ STATE_CONNECTED = "Connected"
 STATE_DISCONNECTED = "Disconnected"
 
 
-class MerakiWAN1ConnectivitySensor(
-    CoordinatorEntity,
-    SensorEntity,
-):
+class MerakiWAN1ConnectivitySensor(MerakiSensor):
     """Representation of a Meraki WAN1 Connectivity Sensor."""
+
+    coordinator: MerakiMainCoordinator
 
     _attr_icon = "mdi:wan"
     _attr_has_entity_name = True
@@ -35,8 +37,8 @@ class MerakiWAN1ConnectivitySensor(
 
     def __init__(
         self,
-        coordinator: MerakiDataCoordinator,
-        device_data: dict[str, Any],
+        coordinator: MerakiMainCoordinator,
+        device_data: MerakiDevice,
         config_entry: ConfigEntry,
     ) -> None:
         """
@@ -50,31 +52,23 @@ class MerakiWAN1ConnectivitySensor(
 
         """
         super().__init__(coordinator)
-        self._device_serial: str = device_data["serial"]
+        self._device_serial: str = cast(str, device_data.serial)
         self._config_entry = config_entry
         self._attr_unique_id = f"{self._device_serial}_wan1_connectivity"
         self._attr_name = "WAN 1 Connectivity"
 
         self._attr_device_info = DeviceInfo(
             identifiers={(DOMAIN, self._device_serial)},
+            # format_device_name already calls standardize_device_name
             name=format_device_name(device_data, self._config_entry.options),
-            model=device_data.get("model"),
-            manufacturer="Meraki",
+            model=device_data.model,
+            manufacturer="Cisco Meraki",
         )
         self._update_state()
 
-    def _get_current_device_data(self) -> dict[str, Any] | None:
+    def _get_current_device_data(self) -> MerakiDevice | None:
         """Retrieve the latest data for this sensor's device from the coordinator."""
-        if self.coordinator.data and self.coordinator.data.get("devices"):
-            return next(
-                (
-                    device
-                    for device in self.coordinator.data["devices"]
-                    if device.get("serial") == self._device_serial
-                ),
-                None,
-            )
-        return None
+        return self.coordinator.get_device(self._device_serial)
 
     @callback
     def _update_state(self) -> None:
@@ -86,8 +80,8 @@ class MerakiWAN1ConnectivitySensor(
             self._attr_extra_state_attributes = {}
             return
 
-        wan1_ip = current_device_data.get("wan1Ip")
-        device_status = str(current_device_data.get("status", "")).lower()
+        wan1_ip = current_device_data.wan1_ip
+        device_status = str(current_device_data.status or "").lower()
 
         if wan1_ip and device_status == "online":
             self._attr_native_value = STATE_CONNECTED
@@ -107,4 +101,6 @@ class MerakiWAN1ConnectivitySensor(
     @property
     def available(self) -> bool:
         """Return if entity is available."""
+        if self.coordinator.data is None:
+            return False
         return super().available and self._get_current_device_data() is not None

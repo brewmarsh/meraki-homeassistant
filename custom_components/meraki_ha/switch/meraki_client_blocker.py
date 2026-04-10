@@ -3,24 +3,21 @@
 import logging
 from typing import Any
 
-from homeassistant.components.switch import SwitchEntity, SwitchEntityDescription
+from homeassistant.components.switch import SwitchEntityDescription
 from homeassistant.config_entries import ConfigEntry
+from homeassistant.const import EntityCategory
 from homeassistant.core import callback
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.device_registry import DeviceInfo
-from homeassistant.helpers.entity import EntityCategory
-from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from ..core.coordinators.ssid_firewall_coordinator import SsidFirewallCoordinator
+from ..entity import MerakiSwitch
 from ..helpers.device_info_helpers import resolve_device_info
 
 _LOGGER = logging.getLogger(__name__)
 
 
-class MerakiClientBlockerSwitch(
-    CoordinatorEntity,
-    SwitchEntity,
-):
+class MerakiClientBlockerSwitch(MerakiSwitch):
     """Representation of a Meraki Client Blocker switch entity."""
 
     entity_category = EntityCategory.CONFIG
@@ -48,6 +45,8 @@ class MerakiClientBlockerSwitch(
         self._attr_unique_id = f"meraki-client-{self._client_mac}-blocker"
         self._update_internal_state()
 
+    coordinator: SsidFirewallCoordinator
+
     @property
     def device_info(self) -> DeviceInfo | None:
         """Return device information to link this entity to the client device."""
@@ -59,11 +58,13 @@ class MerakiClientBlockerSwitch(
     @property
     def available(self) -> bool:
         """Return True if entity is available."""
-        return super().available and self.coordinator.data is not None
+        return self.coordinator.data is not None and super().available
 
     @callback
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
+        if self.coordinator.data is None:
+            return
         self._update_internal_state()
         self.async_write_ha_state()
 

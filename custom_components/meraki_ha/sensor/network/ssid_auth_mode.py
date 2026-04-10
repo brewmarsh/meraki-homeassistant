@@ -6,23 +6,24 @@ from homeassistant.components.sensor import SensorEntityDescription
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import EntityCategory
 
-from ...meraki_data_coordinator import MerakiDataCoordinator
+from ...coordinators import MerakiMainCoordinator
 from .base import MerakiSSIDBaseSensor
 
 
 class MerakiSSIDAuthModeSensor(MerakiSSIDBaseSensor):
     """Representation of a Meraki SSID Auth Mode sensor."""
 
+    _attr_has_entity_name = True
     _attr_entity_category = EntityCategory.DIAGNOSTIC
     entity_description = SensorEntityDescription(
         key="auth_mode",
-        name="Auth Mode",
+        name=None,
         icon="mdi:lock",
     )
 
     def __init__(
         self,
-        coordinator: MerakiDataCoordinator,
+        coordinator: MerakiMainCoordinator,
         config_entry: ConfigEntry,
         ssid_data: dict[str, Any],
     ) -> None:

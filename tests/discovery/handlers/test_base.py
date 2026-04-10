@@ -37,4 +37,5 @@ async def test_base_handler_discover_entities_raises_not_implemented(
         # The abstract method should raise NotImplementedError
         BaseDeviceHandler.discover_entities.__isabstractmethod__ = False  # type: ignore[attr-defined]
         with pytest.raises(NotImplementedError):
-            await handler.discover_entities()
+            # Calling it directly should raise as it's not a generator yet
+            handler.discover_entities()

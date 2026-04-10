@@ -1,83 +1,127 @@
 """Sensor for Meraki appliance port status."""
 
+from __future__ import annotations
+
 import logging
 from typing import Any
 
-from homeassistant.components.sensor import SensorEntity
+from custom_components.meraki_ha.const.integration import DOMAIN
 from homeassistant.const import EntityCategory
 from homeassistant.core import callback
 from homeassistant.helpers.device_registry import DeviceInfo
-from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from ...const import DOMAIN
+from ...coordinators import MerakiMainCoordinator
+from ...core.models import MerakiAppliancePort
+from ...core.models.device import MerakiDevice
 from ...core.utils.naming_utils import format_device_name
-from ...helpers.entity_helpers import format_entity_name
-from ...meraki_data_coordinator import MerakiDataCoordinator
+from ...entity import MerakiSensor
 
 _LOGGER = logging.getLogger(__name__)
 
 
-class MerakiAppliancePortSensor(CoordinatorEntity, SensorEntity):
+class MerakiAppliancePortSensor(MerakiSensor):
     """Representation of a Meraki appliance port sensor."""
+
+    coordinator: MerakiMainCoordinator
 
     _attr_entity_category = EntityCategory.DIAGNOSTIC
 
     def __init__(
         self,
-        coordinator: MerakiDataCoordinator,
-        device: dict[str, Any],
-        port: dict[str, Any],
+        coordinator: MerakiMainCoordinator,
+        device: MerakiDevice,
+        port: MerakiAppliancePort,
     ) -> None:
         """Initialize the sensor."""
         super().__init__(coordinator)
         self._device = device
+        self._device_serial = str(device.serial)
         self._port = port
-        self._attr_unique_id = f"{self._device['serial']}_port_{self._port['number']}"
-        self._attr_name = format_entity_name(
-            self._device["name"],
-            f"Port {self._port['number']}",
+        self._attr_has_entity_name = True
+        self._attr_unique_id = (
+            f"{device.serial}_appliance_port_{self._port.number}_status"
         )
-        self._attr_icon = "mdi:ethernet-port"
+        self._attr_name = f"Port {self._port.number}"
+        self._last_state = None
 
     @property
     def device_info(self) -> DeviceInfo:
         """Return device information."""
+        # Action 3: Robust lookup for correct parent linkage
+        device = self.coordinator.get_device(self._device_serial) or self._device
+
         return DeviceInfo(
-            identifiers={(DOMAIN, self._device["serial"])},
+            identifiers={(DOMAIN, self._device_serial)},
             name=format_device_name(
-                self._device, self.coordinator.config_entry.options
+                device,
+                self.coordinator.config_entry.options
+                if self.coordinator.config_entry
+                else {},
             ),
-            model=self._device["model"],
+            model=getattr(device, "model", "Unknown"),
             manufacturer="Cisco Meraki",
         )
 
     @callback
     def _handle_coordinator_update(self) -> None:
-        """Handle updated data from the coordinator."""
-        for device in self.coordinator.data.get("devices", []):
-            if device["serial"] == self._device["serial"]:
-                for port in device.get("ports", []):
-                    if port["number"] == self._port["number"]:
-                        self._port = port
+        """Handle updated data from the coordinator, deduplicating unchanged states."""
+        if not self._device.serial:
+            return
+        device = self.coordinator.get_device(self._device.serial)
+        if device:
+            self._device = device
+            appliance_ports = getattr(device, "appliance_ports", [])
+            if not isinstance(appliance_ports, list):
+                _LOGGER.debug(
+                    "No appliance ports found for device %s during update",
+                    self._device.serial,
+                )
+                return
+
+            for port in appliance_ports:
+                # Defensive check: ensure port and its number attribute exist
+                if port is None or getattr(port, "number", None) is None:
+                    continue
+                if port.number == self._port.number:
+                    self._port = port
+
+                    # Only trigger an expensive UI write if the status actually changed
+                    current_state = self.native_value
+                    if self._last_state != current_state:
+                        self._last_state = current_state
                         self.async_write_ha_state()
-                        return
+                    return
 
     @property
     def native_value(self) -> str:
         """Return the state of the sensor."""
-        if not self._port.get("enabled"):
-            return "disabled"
-        if self._port.get("status") == "connected":
+        # Strictly return "connected" or "disconnected"
+        if (
+            self._port
+            and self._port.status
+            and self._port.status.lower() == "connected"
+        ):
             return "connected"
         return "disconnected"
+
+    @property
+    def icon(self) -> str:
+        """Return the icon of the sensor."""
+        return (
+            "mdi:ethernet"
+            if self.native_value == "connected"
+            else "mdi:ethernet-cable-off"
+        )
 
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
         """Return the state attributes."""
         return {
-            "port_number": self._port.get("number"),
-            "link_speed": self._port.get("speed"),
-            "vlan": self._port.get("vlan"),
-            "type": self._port.get("type"),
-            "access_policy": self._port.get("accessPolicy"),
+            "port_number": self._port.number,
+            "link_speed": self._port.speed,
+            "vlan": self._port.vlan,
+            "type": self._port.type,
+            "access_policy": self._port.access_policy,
+            "enabled": self._port.enabled,
+            "icon_color": "green" if self.native_value == "connected" else "grey",
         }

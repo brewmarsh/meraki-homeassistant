@@ -2,26 +2,26 @@
 
 from __future__ import annotations
 
-import asyncio
 import logging
+import time
 from typing import TYPE_CHECKING, Any
 
-import aiohttp
+from .core.models.device import MerakiDevice
+from custom_components.meraki_ha.const.config import (
+    CONF_RTSP_STREAM_ENABLED,
+)
+from custom_components.meraki_ha.const.integration import DOMAIN
 from homeassistant.components.camera import Camera, CameraEntityFeature
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
-from homeassistant.helpers.device_registry import DeviceInfo
-from homeassistant.helpers.update_coordinator import CoordinatorEntity
-
-from .const import DOMAIN
-from .core.utils.naming_utils import format_device_name
-from .helpers.entity_helpers import format_entity_name
+from .entity import MerakiEntity
 
 if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
     from homeassistant.core import HomeAssistant
     from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-    from .meraki_data_coordinator import MerakiDataCoordinator
+    from ..coordinators import MerakiCameraCoordinator
+    from .core.models.device import MerakiDevice
     from .services.camera_service import CameraService
 
 
@@ -33,146 +33,223 @@ async def async_setup_entry(
     config_entry: ConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
-    """Set up Meraki camera entities from a config entry."""
+    """Set up Cisco Meraki camera entities from a config entry."""
     entry_data = hass.data[DOMAIN][config_entry.entry_id]
-    discovered_entities = entry_data.get("entities", [])
+    coordinator: MerakiCameraCoordinator = entry_data["camera_coordinator"]
+    camera_service: CameraService = entry_data["camera_service"]
 
-    camera_entities = [e for e in discovered_entities if isinstance(e, MerakiCamera)]
+    devices: list[MerakiDevice] = list(coordinator.devices_by_serial.values())
+    camera_entities: list[MerakiRTSPStreamCamera] = []
+
+    for device in devices:
+        try:
+            if device.product_type == "camera":
+                _LOGGER.debug("Found camera device: %s", device.serial)
+                camera_entities.append(
+                    MerakiRTSPStreamCamera(
+                        coordinator,
+                        device,
+                        camera_service,
+                        config_entry,
+                    )
+                )
+        except Exception as err:
+            _LOGGER.error(
+                "Failed to initialize camera for Cisco Meraki device %s: %s",
+                getattr(device, "serial", "Unknown"),
+                err,
+                exc_info=True,
+            )
 
     if camera_entities:
         _LOGGER.debug("Adding %d camera entities", len(camera_entities))
-        chunk_size = 50
-        for i in range(0, len(camera_entities), chunk_size):
-            chunk = camera_entities[i : i + chunk_size]
-            async_add_entities(chunk)
-            if len(camera_entities) > chunk_size:
-                await asyncio.sleep(1)
+        async_add_entities(camera_entities)
 
 
-class MerakiCamera(CoordinatorEntity, Camera):
+class MerakiRTSPStreamCamera(MerakiEntity, Camera):
     """
-    Representation of a Meraki camera.
+    Representation of a Cisco Meraki RTSP stream camera.
 
-    This entity is state-driven by the central MerakiDataCoordinator.
+    This entity is state-driven by the central MerakiCameraCoordinator.
     """
 
     _attr_brand = "Cisco Meraki"
+    _attr_has_entity_name = True
+    _attr_supported_features = CameraEntityFeature.STREAM
+
+    coordinator: MerakiCameraCoordinator
 
     def __init__(
         self,
-        coordinator: MerakiDataCoordinator,
-        config_entry: ConfigEntry,
-        device: dict[str, Any],
+        coordinator: MerakiCameraCoordinator,
+        device: MerakiDevice,
         camera_service: CameraService,
+        config_entry: ConfigEntry,
     ) -> None:
         """Initialize the camera."""
         super().__init__(coordinator)
         Camera.__init__(self)
-        self._config_entry = config_entry
-        self._device_serial = device["serial"]
+        self._device_serial = device.serial or ""
         self._camera_service = camera_service
-        self._attr_unique_id = f"{self._device_serial}-camera"
-        self._attr_name = format_entity_name(
-            format_device_name(self.device_data, self.coordinator.config_entry.options),
-            "",
+
+        # Setting name to None with has_entity_name=True makes this the "Main" entity
+        self._attr_name = None
+        self._attr_model = self.device_data.model if self.device_data else None
+
+        # Snapshot cache
+        self._last_image: bytes | None = None
+        self._last_image_time: float = 0.0
+
+        _LOGGER.debug(
+            "Naming Debug - Entity: %s | Class: %s | has_entity_name: %s "
+            "| _attr_name: %s | Device Identifiers: %s",
+            self.entity_id if hasattr(self, "entity_id") else "New Entity",
+            self.__class__.__name__,
+            getattr(self, "_attr_has_entity_name", "Not Set"),
+            getattr(self, "_attr_name", "None"),
+            self.device_info.get("identifiers")
+            if self.device_info
+            else "NO DEVICE INFO",
         )
-        self._attr_model = self.device_data.get("model")
 
     @property
-    def device_data(self) -> dict[str, Any]:
+    def device_data(self) -> MerakiDevice | None:
         """Return the device data from the coordinator."""
-        return self.coordinator.get_device(self._device_serial) or {}
+        return self.coordinator.get_device(self._device_serial)
 
-    @property
-    def device_info(self) -> DeviceInfo:
-        """Return device information."""
-        return DeviceInfo(
-            identifiers={(DOMAIN, self._device_serial)},
-            name=format_device_name(
-                self.device_data, self.coordinator.config_entry.options
-            ),
-            model=self.device_data.get("model"),
-            manufacturer="Cisco Meraki",
-        )
+    async def async_added_to_hass(self) -> None:
+        """Handle when entity is added to hass."""
+        await super().async_added_to_hass()
+
+        if (
+            self.coordinator.config_entry.options.get(CONF_RTSP_STREAM_ENABLED, False)
+            and self.device_data
+            and not self.device_data.rtsp_url
+        ):
+            # Move the blocking API call to a background task to prevent Setup timeout
+            self.coordinator.config_entry.async_create_background_task(
+                self.hass,
+                self._async_enable_rtsp(),
+                f"meraki_ha_enable_rtsp_{self._device_serial}",
+            )
+
+    async def _async_enable_rtsp(self) -> None:
+        """Enable RTSP stream in the background."""
+        try:
+            _LOGGER.debug(
+                "RTSP stream is missing, enabling for camera %s in background",
+                self._device_serial,
+            )
+            # 1. Enable RTSP
+            await self._camera_service.async_set_rtsp_stream_enabled(
+                self._device_serial, True
+            )
+
+            # 2. Fetch the URL immediately
+            url = await self._camera_service.get_video_stream_url(self._device_serial)
+            if url:
+                _LOGGER.debug(
+                    "Successfully enabled and retrieved RTSP URL for %s: %s",
+                    self._device_serial,
+                    url,
+                )
+                # Update the device data model directly so the UI can use it
+                if self.device_data:
+                    self.device_data.rtsp_url = url
+                self.async_write_ha_state()
+            else:
+                _LOGGER.debug(
+                    "RTSP enabled for %s, but URL not yet available. "
+                    "It will be picked up on the next coordinator refresh.",
+                    self._device_serial,
+                )
+
+        except Exception as e:
+            _LOGGER.warning(
+                "Could not enable RTSP stream for %s in background: %s",
+                self._device_serial,
+                e,
+            )
 
     async def async_camera_image(
         self, width: int | None = None, height: int | None = None
     ) -> bytes | None:
         """Return a still image from the camera."""
-        if self.device_data.get("status") != "online":
+        if not self._device_serial:
+            _LOGGER.debug("Cannot fetch snapshot: Camera serial is missing.")
+            return None
+
+        if not self.device_data or self.device_data.status != "online":
             _LOGGER.debug("Skipping snapshot for offline camera: %s", self.name)
             return None
 
-        url = await self._camera_service.generate_snapshot(self._device_serial)
-        if not url:
-            msg = f"Failed to get snapshot URL for {self.name}"
-            _LOGGER.error(msg)
-            self.coordinator.add_status_message(self._device_serial, msg)
-            return None
+        # Throttle snapshot requests to once every 30 seconds
+        now = time.time()
+        if self._last_image and (now - self._last_image_time) < 30.0:
+            return self._last_image
 
         try:
+            url = await self._camera_service.generate_snapshot(self._device_serial)
+            if not url:
+                _LOGGER.debug("Failed to get snapshot URL for %s", self.name)
+                return self._last_image
+
             session = async_get_clientsession(self.hass)
             async with session.get(url) as response:
+                # Meraki API sometimes returns 500 HTML on transient failures
+                if response.status >= 500:
+                    _LOGGER.debug(
+                        "Cisco Meraki API returned %d for snapshot: %s",
+                        response.status,
+                        self.name,
+                    )
+                    return self._last_image
                 response.raise_for_status()
-                return await response.read()
-        except aiohttp.ClientError as e:
-            msg = f"Error fetching snapshot for {self.name}: {e}"
-            _LOGGER.error(msg)
-            self.coordinator.add_status_message(self._device_serial, msg)
-            return None
+                image_bytes = await response.read()
+                self._last_image = image_bytes
+                self._last_image_time = now
+                return image_bytes
+        except Exception as err:
+            _LOGGER.debug("Failed to fetch camera snapshot for %s: %s", self.name, err)
+            return self._last_image
+
+    @property
+    def is_streaming(self) -> bool:
+        """Return True if the camera is streaming."""
+        if (
+            not self._device_serial
+            or not self.device_data
+            or self.device_data.rtsp_url is None
+        ):
+            return False
+        return True
 
     async def stream_source(self) -> str | None:
-        """Return the source of the stream, if enabled."""
-        if self.is_streaming:
-            return self.device_data.get("rtsp_url")
-        return None
+        """Return the source of the stream."""
+        if not self._device_serial:
+            _LOGGER.debug("Cannot fetch stream: Camera serial is missing.")
+            return None
+        try:
+            return await self._camera_service.get_video_stream_url(self._device_serial)
+        except Exception as err:
+            _LOGGER.debug(
+                "Failed to fetch camera stream source for %s: %s", self.name, err
+            )
+            return None
 
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
         """Return the state attributes."""
         attrs = {}
-        video_settings = self.device_data.get("video_settings", {})
-        if not video_settings.get("rtspServerEnabled", False):
-            attrs["stream_status"] = "Disabled in Meraki Dashboard"
-            self.coordinator.add_status_message(
-                self._device_serial, "RTSP stream is disabled in the Meraki dashboard."
-            )
-        elif not self.device_data.get("rtsp_url"):
-            attrs["stream_status"] = (
-                "Stream URL not available. This may be because the camera does not"
-                " support cloud archival."
-            )
-            self.coordinator.add_status_message(
-                self._device_serial,
-                "RTSP stream URL is not available. The camera might not support cloud"
-                " archival.",
-            )
-        else:
-            attrs["stream_status"] = "Enabled"
+        if self.device_data and (rtsp_url := self.device_data.rtsp_url):
+            attrs["rtsp_url"] = rtsp_url
         return attrs
-
-    @property
-    def supported_features(self) -> CameraEntityFeature:
-        """Return supported features."""
-        return CameraEntityFeature.STREAM
-
-    @property
-    def is_streaming(self) -> bool:
-        """
-        Return true if the camera is streaming.
-
-        This requires both the rtspServerEnabled setting to be true and a
-        valid rtsp:// URL to be available.
-        """
-        video_settings = self.device_data.get("video_settings", {})
-        if not video_settings.get("rtspServerEnabled", False):
-            return False
-
-        url = self.device_data.get("rtsp_url")
-        return url is not None and isinstance(url, str) and url.startswith("rtsp://")
 
     async def async_turn_on(self) -> None:
         """Turn on the camera stream."""
+        if not self._device_serial:
+            _LOGGER.warning("Cannot turn on stream: Camera serial is missing.")
+            return
         _LOGGER.debug("Turning on stream for camera %s", self._device_serial)
         await self._camera_service.async_set_rtsp_stream_enabled(
             self._device_serial, True
@@ -181,6 +258,9 @@ class MerakiCamera(CoordinatorEntity, Camera):
 
     async def async_turn_off(self) -> None:
         """Turn off the camera stream."""
+        if not self._device_serial:
+            _LOGGER.warning("Cannot turn off stream: Camera serial is missing.")
+            return
         _LOGGER.debug("Turning off stream for camera %s", self._device_serial)
         await self._camera_service.async_set_rtsp_stream_enabled(
             self._device_serial, False

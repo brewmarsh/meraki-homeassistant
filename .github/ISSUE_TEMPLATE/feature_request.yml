@@ -1,0 +1,30 @@
+name: '💡 Feature Request'
+description: Suggest a new feature or Meraki entity for the integration.
+title: '[Feature]: '
+labels: ['type: feature', 'status: discussion']
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Have an idea for a new Meraki sensor or switch? Let us know!
+        Note: If approved, Jules will be assigned to build this.
+  - type: textarea
+    id: concept
+    attributes:
+      label: What is the feature?
+      description: Describe the specific Meraki metric or control you want to add.
+      placeholder: 'e.g., I want to see PoE consumption per port on MS switches.'
+    validations:
+      required: true
+  - type: textarea
+    id: value
+    attributes:
+      label: Why is this useful?
+      description: How does this improve your Home Assistant experience?
+  - type: checkboxes
+    id: dashboard
+    attributes:
+      label: 2026.1 Dashboard Compatibility
+      options:
+        - label: This feature should support the new 2026.1 Dashboard cards.
+          required: false

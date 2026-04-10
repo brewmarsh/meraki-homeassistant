@@ -1,19 +1,113 @@
 """Helper functions for creating Home Assistant DeviceInfo objects."""
 
 import logging
+from dataclasses import asdict, is_dataclass
 from typing import Any
 
+from custom_components.meraki_ha.const.integration import DOMAIN
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.helpers.device_registry import DeviceInfo
+from homeassistant.helpers.device_registry import DeviceEntryType, DeviceInfo
 
-from ..const import DOMAIN
-from ..core.utils.naming_utils import format_device_name
+from ..core.models.device import MerakiDevice
+from ..core.models.network import MerakiNetwork
+from ..core.utils.naming_utils import standardize_device_name, format_device_name
 
 _LOGGER = logging.getLogger(__name__)
 
+DEVICE_TYPE_MAPPING = {
+    "sensor": "Sensor",
+    "camera": "Camera",
+    "switch": "Switch",
+    "wireless": "Wireless",
+    "appliance": "Appliance",
+    "security": "Appliance",
+    "cellularGateway": "Gateway",
+}
+
+
+def _resolve_ssid_info(data: dict[str, Any]) -> DeviceInfo | None:
+    """Resolve DeviceInfo for an SSID (Virtual Controller)."""
+    network_id = data.get("networkId")
+    if network_id:
+        # Refactor: SSID entities are now attached to the Virtual Controller
+        # (Network Device). We return only the identifier, letting the
+        # MerakiNetworkEntity populate details.
+        return DeviceInfo(
+            identifiers={(DOMAIN, f"network_{network_id}")},
+        )
+    return None
+
+
+def _resolve_client_info(data: dict[str, Any]) -> DeviceInfo | None:
+    """Resolve DeviceInfo for a client device."""
+    client_mac = data.get("mac")
+    parent_serial = data.get("recentDeviceSerial")
+    if client_mac and parent_serial:
+        return DeviceInfo(
+            identifiers={(DOMAIN, client_mac)},
+            name=standardize_device_name(str(data.get("description") or client_mac)),
+            manufacturer="Cisco Meraki",
+            via_device=(DOMAIN, parent_serial),
+        )
+    return None
+
+
+def _resolve_network_info(data: dict[str, Any]) -> DeviceInfo | None:
+    """Resolve DeviceInfo for a network device (Virtual Controller)."""
+    network_id = data.get("id")
+    is_network = ("productTypes" in data or "product_types" in data) and not data.get(
+        "serial"
+    )
+    if is_network and network_id:
+        # Special case: if model is already "Network", return it (tests rely on this)
+        model = data.get("model") or "Network Controller Service"
+
+        # Refactor: Virtual Controller Pattern
+        raw_net_name = data.get("name") or "Unknown Network"
+
+        # Design Doc: Name format "Site: {name}"
+        # Check if already prefixed to avoid double prefix
+        if str(raw_net_name).startswith("Site: "):
+            name = raw_net_name
+        else:
+            name = f"Site: {raw_net_name}"
+
+        return DeviceInfo(
+            identifiers={(DOMAIN, f"network_{network_id}")},
+            name=standardize_device_name(name),
+            manufacturer="Cisco Meraki",
+            model=model,
+            entry_type=DeviceEntryType.SERVICE,
+            configuration_url=f"https://dashboard.meraki.com/gen/n/{network_id}/manage/nodes",
+        )
+    return None
+
+
+def _resolve_physical_device_info(
+    data: dict[str, Any], config_entry: ConfigEntry
+) -> DeviceInfo | None:
+    """Resolve DeviceInfo for a physical device."""
+    device_serial = data.get("serial")
+    if device_serial:
+        model = str(data.get("model") or "Unknown")
+
+        # Optimization: Use the centralized format_device_name. 
+        # Note: Ensure naming_utils.format_device_name includes the GS logic:
+        # is_switch = product_type == "switch" or model.startswith(("MS", "GS"))
+        name = format_device_name(data, config_entry.options)
+
+        return DeviceInfo(
+            identifiers={(DOMAIN, device_serial)},
+            name=name,
+            manufacturer="Cisco Meraki",
+            model=model,
+            sw_version=str(data.get("firmware") or ""),
+        )
+    return None
+
 
 def resolve_device_info(
-    entity_data: dict[str, Any],
+    entity_data: MerakiDevice | MerakiNetwork | dict[str, Any],
     config_entry: ConfigEntry,
     ssid_data: dict[str, Any] | None = None,
 ) -> DeviceInfo | None:
@@ -25,86 +119,38 @@ def resolve_device_info(
     Assistant device registry.
     """
     # Determine the effective data to use for device resolution.
-    # If ssid_data is explicitly passed, it takes precedence for SSID devices.
-    # Otherwise, check if the entity_data itself represents an SSID.
     effective_data = entity_data
-    is_ssid = "number" in effective_data and "networkId" in effective_data
+    is_ssid = False
+    
+    if is_dataclass(effective_data):
+        is_ssid = hasattr(effective_data, "number") and hasattr(
+            effective_data, "networkId"
+        )
+    else:
+        is_ssid = "number" in effective_data and "networkId" in effective_data
+
     if ssid_data:
         is_ssid = True
         effective_data = ssid_data
 
-    # Create device info for an SSID
+    # Convert dataclasses to dicts for consistent access below
+    if is_dataclass(entity_data) and not isinstance(entity_data, type):
+        entity_data = asdict(entity_data)
+    if is_dataclass(effective_data) and not isinstance(effective_data, type):
+        effective_data = asdict(effective_data)
+
+    # Resolve using specialized helpers
     if is_ssid:
-        network_id = effective_data.get("networkId")
-        ssid_number = effective_data.get("number")
-        if network_id:
-            identifier = (DOMAIN, f"{network_id}_{ssid_number}")
-            device_data_for_naming = {**effective_data, "productType": "ssid"}
-            formatted_name = format_device_name(
-                device=device_data_for_naming,
-                config=config_entry.options,
-            )
-            return DeviceInfo(
-                identifiers={identifier},
-                name=formatted_name,
-                model="Wireless SSID",
-                manufacturer="Cisco Meraki",
-            )
+        return _resolve_ssid_info(effective_data)
 
-    # Handle client devices, which are linked to a physical device
-    client_mac = entity_data.get("mac")
-    parent_serial = entity_data.get("recentDeviceSerial")
-    if client_mac and parent_serial:
-        return DeviceInfo(
-            identifiers={(DOMAIN, client_mac)},
-            name=str(entity_data.get("description") or client_mac),
-            manufacturer=str(entity_data.get("manufacturer") or "Unknown"),
-            via_device=(DOMAIN, parent_serial),
-        )
+    if info := _resolve_client_info(entity_data):
+        return info
 
-    # Handle network devices
-    network_id = entity_data.get("id")
-    is_network = "productTypes" in entity_data and not entity_data.get("serial")
-    if is_network and network_id:
-        device_data_for_naming = {**entity_data, "productType": "network"}
-        formatted_name = format_device_name(
-            device=device_data_for_naming,
-            config=config_entry.options,
-        )
-        return DeviceInfo(
-            identifiers={(DOMAIN, f"network_{network_id}")},
-            name=formatted_name,
-            manufacturer="Cisco Meraki",
-            model="Network",
-        )
+    if info := _resolve_network_info(entity_data):
+        return info
 
-    if is_network and network_id:
-        device_data_for_naming = {**entity_data, "productType": "network"}
-        formatted_name = format_device_name(
-            device=device_data_for_naming,
-            config=config_entry.options,
-        )
-        return DeviceInfo(
-            identifiers={(DOMAIN, f"network_{network_id}")},
-            name=formatted_name,
-            manufacturer="Cisco Meraki",
-            model="Network",
-        )
-
-    # Fallback to creating device info for a physical device
-    device_serial = entity_data.get("serial")
-    if device_serial:
-        formatted_name = format_device_name(
-            device=entity_data,
-            config=config_entry.options,
-        )
-        return DeviceInfo(
-            identifiers={(DOMAIN, device_serial)},
-            name=str(formatted_name),
-            manufacturer="Cisco Meraki",
-            model=str(entity_data.get("model") or "Unknown"),
-            sw_version=str(entity_data.get("firmware") or ""),
-        )
+    if info := _resolve_physical_device_info(entity_data, config_entry):
+        return info
 
     # This may happen temporarily during startup or if a device type is unknown
     _LOGGER.debug("Could not resolve device info for entity data: %s", entity_data)

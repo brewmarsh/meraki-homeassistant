@@ -3,50 +3,42 @@
 from __future__ import annotations
 
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.helpers.entity import DeviceInfo
 
-from ...core.utils.naming_utils import format_device_name
-from ...meraki_data_coordinator import MerakiDataCoordinator
-from ...types import MerakiVlan
-from . import BaseMerakiEntity
+from ...coordinators import MerakiMainCoordinator
+from ..models.network import MerakiVlan
+from .meraki_network_entity import MerakiNetworkEntity
 
 
-class MerakiVLANEntity(BaseMerakiEntity):
+class MerakiVLANEntity(MerakiNetworkEntity):
     """Representation of a Meraki VLAN."""
+
+    _attr_has_entity_name = True
+    _attr_name: str | None = None
 
     def __init__(
         self,
-        coordinator: MerakiDataCoordinator,
+        coordinator: MerakiMainCoordinator,
         config_entry: ConfigEntry,
         network_id: str,
         vlan: MerakiVlan,
     ) -> None:
         """Initialize the VLAN entity."""
+        network = coordinator.get_network(network_id)
+        if network is None:
+            raise ValueError(f"Network {network_id} not found for VLAN entity")
+
+        # Set attributes needed for logic
+        self._vlan = vlan
+        self._vlan_id = vlan.id
+        self._vlan_name = vlan.name
+        self._vlan_data = vlan
+
         super().__init__(
             coordinator=coordinator,
             config_entry=config_entry,
-            network_id=network_id,
-        )
-        self._vlan = vlan
-        if self._network_id is None:
-            raise ValueError("Network ID cannot be None for a VLAN entity")
-        vlan_device_data = {**vlan, "productType": "vlan"}
-        formatted_name = format_device_name(
-            device=vlan_device_data,
-            config=self._config_entry.options,
+            network=network,
         )
 
-        self._attr_device_info = DeviceInfo(
-            identifiers={
-                (self._config_entry.domain, f"vlan_{network_id}_{vlan['id']}")
-            },
-            name=formatted_name,
-            manufacturer="Cisco Meraki",
-            model="VLAN",
-            via_device=(self._config_entry.domain, f"network_{network_id}"),
-        )
-
-    @property
-    def device_info(self) -> DeviceInfo | None:
-        """Return the device info."""
-        return self._attr_device_info
+    # Refactor: Removed device_info property to inherit from MerakiNetworkEntity
+    # This automatically attaches VLAN entities to the Network Device
+    # (Virtual Controller)

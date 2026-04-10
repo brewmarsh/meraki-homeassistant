@@ -9,27 +9,30 @@ from homeassistant.components.switch import SwitchEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import callback
 from homeassistant.helpers.device_registry import DeviceInfo
-from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from ..core.api.client import MerakiAPIClient
-from ..helpers.device_info_helpers import resolve_device_info
-from ..meraki_data_coordinator import MerakiDataCoordinator
+from ..coordinators import MerakiSensorCoordinator
+from ..core.api import MerakiApiClientProtocol
+from ..core.models.device import MerakiDevice
+from ..entity import MerakiEntity
 
 _LOGGER = logging.getLogger(__name__)
 
 
 class MerakiMt40PowerOutlet(
-    CoordinatorEntity,
+    MerakiEntity,
     SwitchEntity,
 ):
     """Representation of a Meraki MT40 power outlet."""
 
+    _attr_has_entity_name = True
+    coordinator: MerakiSensorCoordinator
+
     def __init__(
         self,
-        coordinator: MerakiDataCoordinator,
-        device_info: dict[str, Any],
+        coordinator: MerakiSensorCoordinator,
+        device_info: MerakiDevice,
         config_entry: ConfigEntry,
-        meraki_client: MerakiAPIClient,
+        meraki_client: MerakiApiClientProtocol,
     ) -> None:
         """
         Initialize the switch.
@@ -44,49 +47,36 @@ class MerakiMt40PowerOutlet(
         """
         super().__init__(coordinator)
         self._device_info = device_info
+        self._device_serial = device_info.serial
+        self._network_id = device_info.network_id
         self._config_entry = config_entry
         self._meraki_client = meraki_client
-        self._attr_unique_id = f"{self._device_info['serial']}-outlet"
-        self._attr_name = f"{self._device_info['name']} Outlet"
+        # Explicitly set the unique ID here to override the base class logic
+        # which might generate a different ID based on class name.
+        self._unique_id_override = (
+            f"{self._device_info.serial}_{self._device_info.network_id}_outlet"
+        )
+        self._attr_name = "Outlet"
         self._attr_is_on: bool | None = None
 
-    @property
-    def device_info(self) -> DeviceInfo | None:
-        """Return device information."""
-        return resolve_device_info(self._device_info, self._config_entry)
 
     @callback
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
-        device = next(
-            (
-                d
-                for d in self.coordinator.data.get("devices", [])
-                if d.get("serial") == self._device_info["serial"]
-            ),
-            None,
-        )
-        if device:
-            self._device_info = device
-            if not self.coordinator.is_pending(self.unique_id):
-                self._attr_is_on = self._get_power_state()
-            self.async_write_ha_state()
-        else:
-            super()._handle_coordinator_update()
+        if self._device_info.serial:
+            device: MerakiDevice | None = self.coordinator.get_device(
+                serial=self._device_info.serial
+            )
+            if device:
+                self._device_info = device
+                if self.unique_id and not self.coordinator.is_pending(self.unique_id):
+                    self._attr_is_on = self._get_power_state()
+
+        super()._handle_coordinator_update()
 
     def _get_power_state(self) -> bool | None:
-        """Get the power state from the device's readings."""
-        readings = self._device_info.get("readings")
-        if not isinstance(readings, list):
-            return None
-        return next(
-            (
-                reading.get("value")
-                for reading in readings
-                if reading.get("metric") == "downstream_power"
-            ),
-            None,
-        )
+        """Get the power state from the device information."""
+        return self._device_info.outlet_status
 
     async def async_turn_on(self, **kwargs: Any) -> None:
         """
@@ -99,16 +89,20 @@ class MerakiMt40PowerOutlet(
         """
         self._attr_is_on = True
         self.async_write_ha_state()
-        self.coordinator.register_pending_update(self.unique_id)
+        if self.unique_id:
+            self.coordinator.register_pending_update(self.unique_id)
 
         try:
+            if self._device_info.serial is None:
+                raise ValueError("Device serial is missing")
             await self._meraki_client.sensor.create_device_sensor_command(
-                serial=self._device_info["serial"],
+                serial=self._device_info.serial,
                 operation="enableDownstreamPower",
             )
         except Exception as e:
             _LOGGER.error("Error turning on MT40 outlet %s: %s", self.unique_id, e)
-            self.coordinator.cancel_pending_update(self.unique_id)
+            if self.unique_id:
+                self.coordinator.cancel_pending_update(self.unique_id)
 
     async def async_turn_off(self, **kwargs: Any) -> None:
         """
@@ -121,18 +115,27 @@ class MerakiMt40PowerOutlet(
         """
         self._attr_is_on = False
         self.async_write_ha_state()
-        self.coordinator.register_pending_update(self.unique_id)
+        if self.unique_id:
+            self.coordinator.register_pending_update(self.unique_id)
 
         try:
+            if self._device_info.serial is None:
+                raise ValueError("Device serial is missing")
             await self._meraki_client.sensor.create_device_sensor_command(
-                serial=self._device_info["serial"],
+                serial=self._device_info.serial,
                 operation="disableDownstreamPower",
             )
         except Exception as e:
             _LOGGER.error("Error turning off MT40 outlet %s: %s", self.unique_id, e)
-            self.coordinator.cancel_pending_update(self.unique_id)
+            if self.unique_id:
+                self.coordinator.cancel_pending_update(self.unique_id)
+
+    @property
+    def unique_id(self) -> str | None:
+        """Return the unique ID."""
+        return self._unique_id_override
 
     @property
     def available(self) -> bool:
         """Return if the entity is available."""
-        return super().available and self._get_power_state() is not None
+        return super().available and self._device_info.outlet_status is not None

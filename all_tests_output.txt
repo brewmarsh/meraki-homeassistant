@@ -1,0 +1,3012 @@
+warning: No `requires-python` value found in the workspace. Defaulting to `>=3.12`.
+============================= test session starts ==============================
+platform linux -- Python 3.12.13, pytest-8.3.3, pluggy-1.6.0
+rootdir: /app
+configfile: pytest.ini
+plugins: picked-0.5.0, requests-mock-1.12.1, mock-3.12.0, socket-0.7.0, sugar-1.0.0, timeout-2.3.1, aiohttp-1.0.5, syrupy-4.7.2, anyio-4.13.0, github-actions-annotate-failures-0.2.0, asyncio-0.24.0, cov-6.0.0, respx-0.21.1, unordered-0.6.1, homeassistant-custom-component-0.13.195, xdist-3.6.1, braintrust-0.12.0, pytest_freezer-0.4.8
+asyncio: mode=Mode.AUTO, default_loop_scope=function
+collected 409 items
+
+tests/api/test_websocket.py EEEEEEEEE                                    [  2%]
+tests/binary_sensor/device/test_camera_motion.py ..                      [  2%]
+tests/binary_sensor/device/test_meraki_mt_binary_sensor.py ....          [  3%]
+tests/binary_sensor/test_meraki_switch_port_binary_sensor.py .....       [  4%]
+tests/button/device/test_mt15_refresh_data.py ..                         [  5%]
+tests/button/device/test_poe_cycle.py ..                                 [  5%]
+tests/button/device/test_reboot.py ...                                   [  6%]
+tests/camera/test_camera.py ...                                          [  7%]
+tests/camera/test_camera_auto_stream.py ...                              [  8%]
+tests/camera/test_camera_serial_guard.py ....                            [  9%]
+tests/camera/test_regressions.py ..                                      [  9%]
+tests/camera/test_snapshot_error_handling.py ..                          [ 10%]
+tests/core/api/endpoints/test_appliance.py ..........                    [ 12%]
+tests/core/api/endpoints/test_appliance_uplink_fallback.py ....          [ 13%]
+tests/core/api/endpoints/test_get_vlan_data.py .....                     [ 14%]
+tests/core/api/endpoints/test_network.py .....                           [ 15%]
+tests/core/api/endpoints/test_switch_normalization.py ....               [ 16%]
+tests/core/api/endpoints/test_wireless.py ...                            [ 17%]
+tests/core/coordinator_helpers/test_consolidation.py ..                  [ 18%]
+tests/core/coordinator_helpers/test_data_fetcher.py ...                  [ 18%]
+tests/core/coordinator_helpers/test_data_fetcher_feature_errors.py ...   [ 19%]
+tests/core/coordinator_helpers/test_data_fetcher_sanitization.py ..      [ 20%]
+tests/core/coordinator_helpers/test_data_fetcher_timeouts.py ...         [ 20%]
+tests/core/coordinator_helpers/test_graceful_degradation.py ....         [ 21%]
+tests/core/coordinator_helpers/test_update_processor.py ..               [ 22%]
+tests/core/fetch_strategies/test_appliance_strategy.py ..........        [ 24%]
+tests/core/fetch_strategies/test_appliance_uplink_performance.py ....    [ 25%]
+tests/core/fetch_strategies/test_camera_strategy.py ......               [ 27%]
+tests/core/fetch_strategies/test_switch_strategy.py ....                 [ 28%]
+tests/core/fetch_strategies/test_wireless_strategy.py ....               [ 29%]
+tests/core/managers/test_polling_manager.py .......                      [ 30%]
+tests/core/parsers/test_appliance_parser.py ......                       [ 32%]
+tests/core/parsers/test_device_parser.py ..                              [ 32%]
+tests/core/parsers/test_mt40_data_parsing.py ......                      [ 34%]
+tests/core/parsers/test_network_parser.py .....                          [ 35%]
+tests/core/test_api_utils.py .....                                       [ 36%]
+tests/core/test_data_fetch_manager_features.py .                         [ 36%]
+tests/core/test_entities.py ...                                          [ 37%]
+tests/core/test_entity_naming.py ...                                     [ 38%]
+tests/core/test_wireless_ssids.py .                                      [ 38%]
+tests/core/utils/test_api_silencing.py ..                                [ 39%]
+tests/core/utils/test_api_utils.py .....F                                [ 40%]
+tests/core/utils/test_naming_utils.py .....                              [ 41%]
+tests/core/utils/test_network_utils.py ..                                [ 42%]
+tests/core/utils/test_validation_utils.py ..FF                           [ 43%]
+tests/discovery/handlers/test_base.py ..                                 [ 43%]
+tests/discovery/handlers/test_network.py ...                             [ 44%]
+tests/discovery/handlers/test_switch.py ...                              [ 45%]
+tests/discovery/handlers/test_universal.py ......                        [ 46%]
+tests/discovery/test_service.py ..                                       [ 47%]
+tests/event/device/test_camera_motion_event.py ...                       [ 47%]
+tests/event/device/test_mt_button_event.py ...                           [ 48%]
+tests/helpers/test_camera_naming.py .                                    [ 48%]
+tests/helpers/test_device_info_helpers.py ...                            [ 49%]
+tests/helpers/test_entity_helpers.py .                                   [ 49%]
+tests/helpers/test_schema.py F.                                          [ 50%]
+tests/helpers/test_ssid_status_calculator.py .                           [ 50%]
+tests/helpers/test_ssid_status_calculator_extended.py ....               [ 51%]
+tests/hubs/test_network.py .....                                         [ 52%]
+tests/hubs/test_organization.py ....                                     [ 53%]
+tests/meraki_select/test_content_filtering_select.py F                   [ 54%]
+tests/meraki_select/test_meraki_content_filtering.py F                   [ 54%]
+tests/meraki_select/test_meraki_content_filtering_repro.py F             [ 54%]
+tests/meraki_select/test_rf_profile_select.py F                          [ 54%]
+tests/meraki_select/test_vpn_select.py F                                 [ 55%]
+tests/sensor/client/test_status.py F                                     [ 55%]
+tests/sensor/device/test_ap_client_count.py ..                           [ 55%]
+tests/sensor/device/test_appliance_port.py .                             [ 55%]
+tests/sensor/device/test_appliance_uplink.py .                           [ 56%]
+tests/sensor/device/test_camera_analytics.py ..                          [ 56%]
+tests/sensor/device/test_camera_audio_detection.py F                     [ 56%]
+tests/sensor/device/test_connected_clients.py FFFF                       [ 57%]
+tests/sensor/device/test_data_usage.py FF                                [ 58%]
+tests/sensor/device/test_device_status.py .                              [ 58%]
+tests/sensor/device/test_ipv6_truncation.py ..                           [ 59%]
+tests/sensor/device/test_meraki_firmware_status.py F                     [ 59%]
+tests/sensor/device/test_meraki_mt_base.py ..                            [ 59%]
+tests/sensor/device/test_meraki_mt_sensor.py ...                         [ 60%]
+tests/sensor/device/test_meraki_switch_poe_sensor.py F...                [ 61%]
+tests/sensor/device/test_meraki_switch_port_sensor.py FF....             [ 63%]
+tests/sensor/device/test_meraki_wireless_radio_sensor.py ..              [ 63%]
+tests/sensor/device/test_network_settings.py .                           [ 63%]
+tests/sensor/device/test_poe_usage.py .                                  [ 64%]
+tests/sensor/network/test_ssid_client_count.py ..                        [ 64%]
+tests/sensor/network/test_ssid_details.py FF                             [ 65%]
+tests/sensor/network/test_traffic_shaping_sensor.py F.                   [ 65%]
+tests/sensor/network/test_vlan.py .                                      [ 65%]
+tests/sensor/network/test_vlans_list.py .                                [ 66%]
+tests/sensor/network/test_vlans_list_unit.py .                           [ 66%]
+tests/sensor/test_meraki_wan1_connectivity.py F                          [ 66%]
+tests/sensor/test_meraki_wan2_connectivity.py F                          [ 66%]
+tests/sensor/test_network_clients.py .                                   [ 66%]
+tests/sensor/test_network_health.py ..                                   [ 67%]
+tests/sensor/test_org_clients.py ...                                     [ 68%]
+tests/sensor/test_org_device_type_clients.py .                           [ 68%]
+tests/sensor/test_setup_mt_sensors.py .....                              [ 69%]
+tests/sensor/test_switch_port_generation.py F                            [ 69%]
+tests/sensor/test_uplink_performance.py F.                               [ 70%]
+tests/services/test_device_control_service.py .                          [ 70%]
+tests/services/test_network_control_service.py ..                        [ 71%]
+tests/services/test_switch_port_service.py ....                          [ 72%]
+tests/switch/test_adult_content_filtering.py F...                        [ 73%]
+tests/switch/test_camera_profiles.py ..                                  [ 73%]
+tests/switch/test_firewall_rule.py ..                                    [ 74%]
+tests/switch/test_meraki_appliance_port_switch.py ....                   [ 75%]
+tests/switch/test_meraki_ssid_device_switch.py ..                        [ 75%]
+tests/switch/test_meraki_switch_port_switch.py ......                    [ 77%]
+tests/switch/test_mt40_power_outlet.py ....                              [ 77%]
+tests/switch/test_traffic_shaping_switch.py ...                          [ 78%]
+tests/switch/test_vlan_dhcp.py ....                                      [ 79%]
+tests/switch/test_vpn_switch.py ...                                      [ 80%]
+tests/test_adaptive_polling.py ...                                       [ 81%]
+tests/test_authentication.py ....                                        [ 82%]
+tests/test_availability_edge_cases.py ....                               [ 83%]
+tests/test_camera_control.py ..                                          [ 83%]
+tests/test_camera_optimization.py ...                                    [ 84%]
+tests/test_config_flow.py FFF.                                           [ 85%]
+tests/test_coordinator.py FF                                             [ 85%]
+tests/test_coordinator_entity_priority.py .                              [ 86%]
+tests/test_device_trigger.py FFF                                         [ 86%]
+tests/test_e2e_ipsk.py ..                                                [ 87%]
+tests/test_friendly_logging.py ..                                        [ 87%]
+tests/test_ipsk_fix.py ...                                               [ 88%]
+tests/test_ipsk_manager.py .......                                       [ 90%]
+tests/test_issue_repro.py ....                                           [ 91%]
+tests/test_meraki_client_init.py .                                       [ 91%]
+tests/test_migration.py F                                                [ 91%]
+tests/test_naming_conventions.py .                                       [ 91%]
+tests/test_naming_standardization.py ..                                  [ 92%]
+tests/test_options_flow_defaults.py F                                    [ 92%]
+tests/test_serialization.py ........                                     [ 94%]
+tests/test_services_ipsk.py ......                                       [ 96%]
+tests/test_simple.py .                                                   [ 96%]
+tests/test_ssid_device_representation.py .                               [ 96%]
+tests/test_static_path.py F                                              [ 96%]
+tests/test_topology.py F                                                 [ 97%]
+tests/test_webhook.py ......                                             [ 98%]
+tests/test_webhook_cleanup.py ...                                        [ 99%]
+tests/test_webhook_fault_tolerance.py .                                  [ 99%]
+tests/test_webhook_registration.py .                                     [ 99%]
+tests/text/test_meraki_ssid_name.py .                                    [100%]
+
+==================================== ERRORS ====================================
+_________________ ERROR at setup of test_subscribe_meraki_data _________________
+
+hass = <HomeAssistant RUNNING>
+hass_ws_client = <function hass_ws_client.<locals>.create_client at 0x7f91097bf060>
+
+    @pytest.fixture
+    async def ws_client(
+        hass: HomeAssistant,
+        hass_ws_client: WebSocketGenerator,
+    ) -> Any:
+        """Fixture to setup and return a websocket client."""
+        async_setup_websocket_api(hass)
+>       return await hass_ws_client(hass)
+
+tests/api/test_websocket.py:89:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+hass = <HomeAssistant RUNNING>
+access_token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiI0YjJhM2UxNWI0N2Y0MDFhYTZlYjBkOTJkYWVjZGU4NSIsImlhdCI6MTc3NTQ0MDU0NCwiZXhwIjoxNzc1NDQyMzQ0fQ.QGpT_EP23FhjEybdW9T8PrWEp2HH27EWlmzph02qLqI'
+
+    async def create_client(
+        hass: HomeAssistant = hass, access_token: str | None = hass_access_token
+    ) -> MockHAClientWebSocket:
+        """Create a websocket client."""
+>       assert await async_setup_component(hass, "websocket_api", {})
+E       assert False
+
+.venv/lib/python3.12/site-packages/pytest_homeassistant_custom_component/plugins.py:869: AssertionError
+---------------------------- Captured stderr setup -----------------------------
+INFO:homeassistant.loader:Loaded meraki_ha from custom_components.meraki_ha
+WARNING:homeassistant.loader:We found a custom integration meraki_ha which has not been tested by Home Assistant. This component might cause stability problems, be sure to disable it if you experience issues with Home Assistant
+ERROR:homeassistant.loader:Error loading integration: websocket_api
+Traceback (most recent call last):
+  File "/app/.venv/lib/python3.12/site-packages/homeassistant/loader.py", line 1331, in _resolve_integrations_from_root
+    integration = Integration.resolve_from_root(hass, root_module, domain)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/.venv/lib/python3.12/site-packages/homeassistant/loader.py", line 655, in resolve_from_root
+    for base in root_module.__path__:
+                ^^^^^^^^^^^^^^^^^^^^
+  File "/home/jules/.pyenv/versions/3.12.13/lib/python3.12/unittest/mock.py", line 662, in __getattr__
+    raise AttributeError(name)
+AttributeError: __path__
+ERROR:homeassistant.setup:Setup failed for 'websocket_api': Integration not found.
+------------------------------ Captured log setup ------------------------------
+INFO     homeassistant.loader:loader.py:773 Loaded meraki_ha from custom_components.meraki_ha
+WARNING  homeassistant.loader:loader.py:687 We found a custom integration meraki_ha which has not been tested by Home Assistant. This component might cause stability problems, be sure to disable it if you experience issues with Home Assistant
+ERROR    homeassistant.loader:loader.py:1333 Error loading integration: websocket_api
+Traceback (most recent call last):
+  File "/app/.venv/lib/python3.12/site-packages/homeassistant/loader.py", line 1331, in _resolve_integrations_from_root
+    integration = Integration.resolve_from_root(hass, root_module, domain)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/.venv/lib/python3.12/site-packages/homeassistant/loader.py", line 655, in resolve_from_root
+    for base in root_module.__path__:
+                ^^^^^^^^^^^^^^^^^^^^
+  File "/home/jules/.pyenv/versions/3.12.13/lib/python3.12/unittest/mock.py", line 662, in __getattr__
+    raise AttributeError(name)
+AttributeError: __path__
+ERROR    homeassistant.setup:setup.py:269 Setup failed for 'websocket_api': Integration not found.
+______________________ ERROR at setup of test_get_version ______________________
+
+hass = <HomeAssistant RUNNING>
+hass_ws_client = <function hass_ws_client.<locals>.create_client at 0x7f910151a5c0>
+
+    @pytest.fixture
+    async def ws_client(
+        hass: HomeAssistant,
+        hass_ws_client: WebSocketGenerator,
+    ) -> Any:
+        """Fixture to setup and return a websocket client."""
+        async_setup_websocket_api(hass)
+>       return await hass_ws_client(hass)
+
+tests/api/test_websocket.py:89:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+hass = <HomeAssistant RUNNING>
+access_token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiIxNTAyOTc0YWRhNjk0Njg4OGYyMDFhYmUxOWRkNDcxYSIsImlhdCI6MTc3NTQ0MDU0NCwiZXhwIjoxNzc1NDQyMzQ0fQ.M3xjJXnfCOb75nl6H_5L9KC-KV3vHv2ihJ7ox2OEyYI'
+
+    async def create_client(
+        hass: HomeAssistant = hass, access_token: str | None = hass_access_token
+    ) -> MockHAClientWebSocket:
+        """Create a websocket client."""
+>       assert await async_setup_component(hass, "websocket_api", {})
+E       assert False
+
+.venv/lib/python3.12/site-packages/pytest_homeassistant_custom_component/plugins.py:869: AssertionError
+---------------------------- Captured stderr setup -----------------------------
+INFO:homeassistant.loader:Loaded meraki_ha from custom_components.meraki_ha
+WARNING:homeassistant.loader:We found a custom integration meraki_ha which has not been tested by Home Assistant. This component might cause stability problems, be sure to disable it if you experience issues with Home Assistant
+ERROR:homeassistant.loader:Error loading integration: websocket_api
+Traceback (most recent call last):
+  File "/app/.venv/lib/python3.12/site-packages/homeassistant/loader.py", line 1331, in _resolve_integrations_from_root
+    integration = Integration.resolve_from_root(hass, root_module, domain)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/.venv/lib/python3.12/site-packages/homeassistant/loader.py", line 655, in resolve_from_root
+    for base in root_module.__path__:
+                ^^^^^^^^^^^^^^^^^^^^
+  File "/home/jules/.pyenv/versions/3.12.13/lib/python3.12/unittest/mock.py", line 662, in __getattr__
+    raise AttributeError(name)
+AttributeError: __path__
+ERROR:homeassistant.setup:Setup failed for 'websocket_api': Integration not found.
+------------------------------ Captured log setup ------------------------------
+INFO     homeassistant.loader:loader.py:773 Loaded meraki_ha from custom_components.meraki_ha
+WARNING  homeassistant.loader:loader.py:687 We found a custom integration meraki_ha which has not been tested by Home Assistant. This component might cause stability problems, be sure to disable it if you experience issues with Home Assistant
+ERROR    homeassistant.loader:loader.py:1333 Error loading integration: websocket_api
+Traceback (most recent call last):
+  File "/app/.venv/lib/python3.12/site-packages/homeassistant/loader.py", line 1331, in _resolve_integrations_from_root
+    integration = Integration.resolve_from_root(hass, root_module, domain)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/.venv/lib/python3.12/site-packages/homeassistant/loader.py", line 655, in resolve_from_root
+    for base in root_module.__path__:
+                ^^^^^^^^^^^^^^^^^^^^
+  File "/home/jules/.pyenv/versions/3.12.13/lib/python3.12/unittest/mock.py", line 662, in __getattr__
+    raise AttributeError(name)
+AttributeError: __path__
+ERROR    homeassistant.setup:setup.py:269 Setup failed for 'websocket_api': Integration not found.
+__________________ ERROR at setup of test_get_network_events ___________________
+
+hass = <HomeAssistant RUNNING>
+hass_ws_client = <function hass_ws_client.<locals>.create_client at 0x7f9100b38fe0>
+
+    @pytest.fixture
+    async def ws_client(
+        hass: HomeAssistant,
+        hass_ws_client: WebSocketGenerator,
+    ) -> Any:
+        """Fixture to setup and return a websocket client."""
+        async_setup_websocket_api(hass)
+>       return await hass_ws_client(hass)
+
+tests/api/test_websocket.py:89:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+hass = <HomeAssistant RUNNING>
+access_token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJlNTRkMzQwZWE1NTA0ZmYyOWFkYTA2YjI4Nzg4ODMxZCIsImlhdCI6MTc3NTQ0MDU0NCwiZXhwIjoxNzc1NDQyMzQ0fQ.3ACxobuZw3ZPEZ-GMAWBrGoNv3xgw_exCX9wdibHoA8'
+
+    async def create_client(
+        hass: HomeAssistant = hass, access_token: str | None = hass_access_token
+    ) -> MockHAClientWebSocket:
+        """Create a websocket client."""
+>       assert await async_setup_component(hass, "websocket_api", {})
+E       assert False
+
+.venv/lib/python3.12/site-packages/pytest_homeassistant_custom_component/plugins.py:869: AssertionError
+---------------------------- Captured stderr setup -----------------------------
+INFO:homeassistant.loader:Loaded meraki_ha from custom_components.meraki_ha
+WARNING:homeassistant.loader:We found a custom integration meraki_ha which has not been tested by Home Assistant. This component might cause stability problems, be sure to disable it if you experience issues with Home Assistant
+ERROR:homeassistant.loader:Error loading integration: websocket_api
+Traceback (most recent call last):
+  File "/app/.venv/lib/python3.12/site-packages/homeassistant/loader.py", line 1331, in _resolve_integrations_from_root
+    integration = Integration.resolve_from_root(hass, root_module, domain)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/.venv/lib/python3.12/site-packages/homeassistant/loader.py", line 655, in resolve_from_root
+    for base in root_module.__path__:
+                ^^^^^^^^^^^^^^^^^^^^
+  File "/home/jules/.pyenv/versions/3.12.13/lib/python3.12/unittest/mock.py", line 662, in __getattr__
+    raise AttributeError(name)
+AttributeError: __path__
+ERROR:homeassistant.setup:Setup failed for 'websocket_api': Integration not found.
+------------------------------ Captured log setup ------------------------------
+INFO     homeassistant.loader:loader.py:773 Loaded meraki_ha from custom_components.meraki_ha
+WARNING  homeassistant.loader:loader.py:687 We found a custom integration meraki_ha which has not been tested by Home Assistant. This component might cause stability problems, be sure to disable it if you experience issues with Home Assistant
+ERROR    homeassistant.loader:loader.py:1333 Error loading integration: websocket_api
+Traceback (most recent call last):
+  File "/app/.venv/lib/python3.12/site-packages/homeassistant/loader.py", line 1331, in _resolve_integrations_from_root
+    integration = Integration.resolve_from_root(hass, root_module, domain)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/.venv/lib/python3.12/site-packages/homeassistant/loader.py", line 655, in resolve_from_root
+    for base in root_module.__path__:
+                ^^^^^^^^^^^^^^^^^^^^
+  File "/home/jules/.pyenv/versions/3.12.13/lib/python3.12/unittest/mock.py", line 662, in __getattr__
+    raise AttributeError(name)
+AttributeError: __path__
+ERROR    homeassistant.setup:setup.py:269 Setup failed for 'websocket_api': Integration not found.
+____________________ ERROR at setup of test_update_options _____________________
+
+hass = <HomeAssistant RUNNING>
+hass_ws_client = <function hass_ws_client.<locals>.create_client at 0x7f9100b3a480>
+
+    @pytest.fixture
+    async def ws_client(
+        hass: HomeAssistant,
+        hass_ws_client: WebSocketGenerator,
+    ) -> Any:
+        """Fixture to setup and return a websocket client."""
+        async_setup_websocket_api(hass)
+>       return await hass_ws_client(hass)
+
+tests/api/test_websocket.py:89:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+hass = <HomeAssistant RUNNING>
+access_token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJlM2U2NWY1ODA4YzQ0OTBlYThkZjNhYWRhOTU4ODM3YyIsImlhdCI6MTc3NTQ0MDU0NCwiZXhwIjoxNzc1NDQyMzQ0fQ.o6nERpYVaXnuVGVy_3yOTvm2FfM85zc0EMfNnxDE4QQ'
+
+    async def create_client(
+        hass: HomeAssistant = hass, access_token: str | None = hass_access_token
+    ) -> MockHAClientWebSocket:
+        """Create a websocket client."""
+>       assert await async_setup_component(hass, "websocket_api", {})
+E       assert False
+
+.venv/lib/python3.12/site-packages/pytest_homeassistant_custom_component/plugins.py:869: AssertionError
+---------------------------- Captured stderr setup -----------------------------
+INFO:homeassistant.loader:Loaded meraki_ha from custom_components.meraki_ha
+WARNING:homeassistant.loader:We found a custom integration meraki_ha which has not been tested by Home Assistant. This component might cause stability problems, be sure to disable it if you experience issues with Home Assistant
+ERROR:homeassistant.loader:Error loading integration: websocket_api
+Traceback (most recent call last):
+  File "/app/.venv/lib/python3.12/site-packages/homeassistant/loader.py", line 1331, in _resolve_integrations_from_root
+    integration = Integration.resolve_from_root(hass, root_module, domain)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/.venv/lib/python3.12/site-packages/homeassistant/loader.py", line 655, in resolve_from_root
+    for base in root_module.__path__:
+                ^^^^^^^^^^^^^^^^^^^^
+  File "/home/jules/.pyenv/versions/3.12.13/lib/python3.12/unittest/mock.py", line 662, in __getattr__
+    raise AttributeError(name)
+AttributeError: __path__
+ERROR:homeassistant.setup:Setup failed for 'websocket_api': Integration not found.
+------------------------------ Captured log setup ------------------------------
+INFO     homeassistant.loader:loader.py:773 Loaded meraki_ha from custom_components.meraki_ha
+WARNING  homeassistant.loader:loader.py:687 We found a custom integration meraki_ha which has not been tested by Home Assistant. This component might cause stability problems, be sure to disable it if you experience issues with Home Assistant
+ERROR    homeassistant.loader:loader.py:1333 Error loading integration: websocket_api
+Traceback (most recent call last):
+  File "/app/.venv/lib/python3.12/site-packages/homeassistant/loader.py", line 1331, in _resolve_integrations_from_root
+    integration = Integration.resolve_from_root(hass, root_module, domain)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/.venv/lib/python3.12/site-packages/homeassistant/loader.py", line 655, in resolve_from_root
+    for base in root_module.__path__:
+                ^^^^^^^^^^^^^^^^^^^^
+  File "/home/jules/.pyenv/versions/3.12.13/lib/python3.12/unittest/mock.py", line 662, in __getattr__
+    raise AttributeError(name)
+AttributeError: __path__
+ERROR    homeassistant.setup:setup.py:269 Setup failed for 'websocket_api': Integration not found.
+________________ ERROR at setup of test_update_enabled_networks ________________
+
+hass = <HomeAssistant RUNNING>
+hass_ws_client = <function hass_ws_client.<locals>.create_client at 0x7f9100beb740>
+
+    @pytest.fixture
+    async def ws_client(
+        hass: HomeAssistant,
+        hass_ws_client: WebSocketGenerator,
+    ) -> Any:
+        """Fixture to setup and return a websocket client."""
+        async_setup_websocket_api(hass)
+>       return await hass_ws_client(hass)
+
+tests/api/test_websocket.py:89:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+hass = <HomeAssistant RUNNING>
+access_token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiI1NzI0OTBkZDU2Zjg0NzZjOTBmZWU3Y2I2OTMyOGI2MiIsImlhdCI6MTc3NTQ0MDU0NCwiZXhwIjoxNzc1NDQyMzQ0fQ.cCp-4sC_IHlIZ6jIC8RVcAn_jSfMO4OqVHKDWy3hMpY'
+
+    async def create_client(
+        hass: HomeAssistant = hass, access_token: str | None = hass_access_token
+    ) -> MockHAClientWebSocket:
+        """Create a websocket client."""
+>       assert await async_setup_component(hass, "websocket_api", {})
+E       assert False
+
+.venv/lib/python3.12/site-packages/pytest_homeassistant_custom_component/plugins.py:869: AssertionError
+---------------------------- Captured stderr setup -----------------------------
+INFO:homeassistant.loader:Loaded meraki_ha from custom_components.meraki_ha
+WARNING:homeassistant.loader:We found a custom integration meraki_ha which has not been tested by Home Assistant. This component might cause stability problems, be sure to disable it if you experience issues with Home Assistant
+ERROR:homeassistant.loader:Error loading integration: websocket_api
+Traceback (most recent call last):
+  File "/app/.venv/lib/python3.12/site-packages/homeassistant/loader.py", line 1331, in _resolve_integrations_from_root
+    integration = Integration.resolve_from_root(hass, root_module, domain)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/.venv/lib/python3.12/site-packages/homeassistant/loader.py", line 655, in resolve_from_root
+    for base in root_module.__path__:
+                ^^^^^^^^^^^^^^^^^^^^
+  File "/home/jules/.pyenv/versions/3.12.13/lib/python3.12/unittest/mock.py", line 662, in __getattr__
+    raise AttributeError(name)
+AttributeError: __path__
+ERROR:homeassistant.setup:Setup failed for 'websocket_api': Integration not found.
+------------------------------ Captured log setup ------------------------------
+INFO     homeassistant.loader:loader.py:773 Loaded meraki_ha from custom_components.meraki_ha
+WARNING  homeassistant.loader:loader.py:687 We found a custom integration meraki_ha which has not been tested by Home Assistant. This component might cause stability problems, be sure to disable it if you experience issues with Home Assistant
+ERROR    homeassistant.loader:loader.py:1333 Error loading integration: websocket_api
+Traceback (most recent call last):
+  File "/app/.venv/lib/python3.12/site-packages/homeassistant/loader.py", line 1331, in _resolve_integrations_from_root
+    integration = Integration.resolve_from_root(hass, root_module, domain)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/.venv/lib/python3.12/site-packages/homeassistant/loader.py", line 655, in resolve_from_root
+    for base in root_module.__path__:
+                ^^^^^^^^^^^^^^^^^^^^
+  File "/home/jules/.pyenv/versions/3.12.13/lib/python3.12/unittest/mock.py", line 662, in __getattr__
+    raise AttributeError(name)
+AttributeError: __path__
+ERROR    homeassistant.setup:setup.py:269 Setup failed for 'websocket_api': Integration not found.
+_____________________ ERROR at setup of test_ipsk_get_keys _____________________
+
+hass = <HomeAssistant RUNNING>
+hass_ws_client = <function hass_ws_client.<locals>.create_client at 0x7f9100bbdb20>
+
+    @pytest.fixture
+    async def ws_client(
+        hass: HomeAssistant,
+        hass_ws_client: WebSocketGenerator,
+    ) -> Any:
+        """Fixture to setup and return a websocket client."""
+        async_setup_websocket_api(hass)
+>       return await hass_ws_client(hass)
+
+tests/api/test_websocket.py:89:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+hass = <HomeAssistant RUNNING>
+access_token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJiMDJkN2Q5ZjY5YjY0MTYyODIwZDQ0MDQwNzljMWJjYSIsImlhdCI6MTc3NTQ0MDU0NCwiZXhwIjoxNzc1NDQyMzQ0fQ.xpdQpOMys5Po9661ymS1jK4OffQXsvBqGOMhRrhJdxs'
+
+    async def create_client(
+        hass: HomeAssistant = hass, access_token: str | None = hass_access_token
+    ) -> MockHAClientWebSocket:
+        """Create a websocket client."""
+>       assert await async_setup_component(hass, "websocket_api", {})
+E       assert False
+
+.venv/lib/python3.12/site-packages/pytest_homeassistant_custom_component/plugins.py:869: AssertionError
+---------------------------- Captured stderr setup -----------------------------
+INFO:homeassistant.loader:Loaded meraki_ha from custom_components.meraki_ha
+WARNING:homeassistant.loader:We found a custom integration meraki_ha which has not been tested by Home Assistant. This component might cause stability problems, be sure to disable it if you experience issues with Home Assistant
+ERROR:homeassistant.loader:Error loading integration: websocket_api
+Traceback (most recent call last):
+  File "/app/.venv/lib/python3.12/site-packages/homeassistant/loader.py", line 1331, in _resolve_integrations_from_root
+    integration = Integration.resolve_from_root(hass, root_module, domain)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/.venv/lib/python3.12/site-packages/homeassistant/loader.py", line 655, in resolve_from_root
+    for base in root_module.__path__:
+                ^^^^^^^^^^^^^^^^^^^^
+  File "/home/jules/.pyenv/versions/3.12.13/lib/python3.12/unittest/mock.py", line 662, in __getattr__
+    raise AttributeError(name)
+AttributeError: __path__
+ERROR:homeassistant.setup:Setup failed for 'websocket_api': Integration not found.
+------------------------------ Captured log setup ------------------------------
+INFO     homeassistant.loader:loader.py:773 Loaded meraki_ha from custom_components.meraki_ha
+WARNING  homeassistant.loader:loader.py:687 We found a custom integration meraki_ha which has not been tested by Home Assistant. This component might cause stability problems, be sure to disable it if you experience issues with Home Assistant
+ERROR    homeassistant.loader:loader.py:1333 Error loading integration: websocket_api
+Traceback (most recent call last):
+  File "/app/.venv/lib/python3.12/site-packages/homeassistant/loader.py", line 1331, in _resolve_integrations_from_root
+    integration = Integration.resolve_from_root(hass, root_module, domain)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/.venv/lib/python3.12/site-packages/homeassistant/loader.py", line 655, in resolve_from_root
+    for base in root_module.__path__:
+                ^^^^^^^^^^^^^^^^^^^^
+  File "/home/jules/.pyenv/versions/3.12.13/lib/python3.12/unittest/mock.py", line 662, in __getattr__
+    raise AttributeError(name)
+AttributeError: __path__
+ERROR    homeassistant.setup:setup.py:269 Setup failed for 'websocket_api': Integration not found.
+_______________ ERROR at setup of test_timed_access_get_policies _______________
+
+hass = <HomeAssistant RUNNING>
+hass_ws_client = <function hass_ws_client.<locals>.create_client at 0x7f9100909300>
+
+    @pytest.fixture
+    async def ws_client(
+        hass: HomeAssistant,
+        hass_ws_client: WebSocketGenerator,
+    ) -> Any:
+        """Fixture to setup and return a websocket client."""
+        async_setup_websocket_api(hass)
+>       return await hass_ws_client(hass)
+
+tests/api/test_websocket.py:89:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+hass = <HomeAssistant RUNNING>
+access_token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiI4NDAzYTQ1YmVhMGQ0ZTBjOWQyZWVhMmU1NGRlZDY1YyIsImlhdCI6MTc3NTQ0MDU0NCwiZXhwIjoxNzc1NDQyMzQ0fQ.IwurN6aA3q2leD3ZmCV-hE8g7mast8RZxr5sjXLkbvI'
+
+    async def create_client(
+        hass: HomeAssistant = hass, access_token: str | None = hass_access_token
+    ) -> MockHAClientWebSocket:
+        """Create a websocket client."""
+>       assert await async_setup_component(hass, "websocket_api", {})
+E       assert False
+
+.venv/lib/python3.12/site-packages/pytest_homeassistant_custom_component/plugins.py:869: AssertionError
+---------------------------- Captured stderr setup -----------------------------
+INFO:homeassistant.loader:Loaded meraki_ha from custom_components.meraki_ha
+WARNING:homeassistant.loader:We found a custom integration meraki_ha which has not been tested by Home Assistant. This component might cause stability problems, be sure to disable it if you experience issues with Home Assistant
+ERROR:homeassistant.loader:Error loading integration: websocket_api
+Traceback (most recent call last):
+  File "/app/.venv/lib/python3.12/site-packages/homeassistant/loader.py", line 1331, in _resolve_integrations_from_root
+    integration = Integration.resolve_from_root(hass, root_module, domain)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/.venv/lib/python3.12/site-packages/homeassistant/loader.py", line 655, in resolve_from_root
+    for base in root_module.__path__:
+                ^^^^^^^^^^^^^^^^^^^^
+  File "/home/jules/.pyenv/versions/3.12.13/lib/python3.12/unittest/mock.py", line 662, in __getattr__
+    raise AttributeError(name)
+AttributeError: __path__
+ERROR:homeassistant.setup:Setup failed for 'websocket_api': Integration not found.
+------------------------------ Captured log setup ------------------------------
+INFO     homeassistant.loader:loader.py:773 Loaded meraki_ha from custom_components.meraki_ha
+WARNING  homeassistant.loader:loader.py:687 We found a custom integration meraki_ha which has not been tested by Home Assistant. This component might cause stability problems, be sure to disable it if you experience issues with Home Assistant
+ERROR    homeassistant.loader:loader.py:1333 Error loading integration: websocket_api
+Traceback (most recent call last):
+  File "/app/.venv/lib/python3.12/site-packages/homeassistant/loader.py", line 1331, in _resolve_integrations_from_root
+    integration = Integration.resolve_from_root(hass, root_module, domain)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/.venv/lib/python3.12/site-packages/homeassistant/loader.py", line 655, in resolve_from_root
+    for base in root_module.__path__:
+                ^^^^^^^^^^^^^^^^^^^^
+  File "/home/jules/.pyenv/versions/3.12.13/lib/python3.12/unittest/mock.py", line 662, in __getattr__
+    raise AttributeError(name)
+AttributeError: __path__
+ERROR    homeassistant.setup:setup.py:269 Setup failed for 'websocket_api': Integration not found.
+______________________ ERROR at setup of test_ipsk_create ______________________
+
+hass = <HomeAssistant RUNNING>
+hass_ws_client = <function hass_ws_client.<locals>.create_client at 0x7f910096be20>
+
+    @pytest.fixture
+    async def ws_client(
+        hass: HomeAssistant,
+        hass_ws_client: WebSocketGenerator,
+    ) -> Any:
+        """Fixture to setup and return a websocket client."""
+        async_setup_websocket_api(hass)
+>       return await hass_ws_client(hass)
+
+tests/api/test_websocket.py:89:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+hass = <HomeAssistant RUNNING>
+access_token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiI4MDA0NzJkNmJjOGU0NjE1YjNkMmIyNTVkMTcwOTk4YSIsImlhdCI6MTc3NTQ0MDU0NCwiZXhwIjoxNzc1NDQyMzQ0fQ.ImFJDq1Ck0XW51wLA8eeUWpmQXhlJboAOV0_Sj4WzRU'
+
+    async def create_client(
+        hass: HomeAssistant = hass, access_token: str | None = hass_access_token
+    ) -> MockHAClientWebSocket:
+        """Create a websocket client."""
+>       assert await async_setup_component(hass, "websocket_api", {})
+E       assert False
+
+.venv/lib/python3.12/site-packages/pytest_homeassistant_custom_component/plugins.py:869: AssertionError
+---------------------------- Captured stderr setup -----------------------------
+INFO:homeassistant.loader:Loaded meraki_ha from custom_components.meraki_ha
+WARNING:homeassistant.loader:We found a custom integration meraki_ha which has not been tested by Home Assistant. This component might cause stability problems, be sure to disable it if you experience issues with Home Assistant
+ERROR:homeassistant.loader:Error loading integration: websocket_api
+Traceback (most recent call last):
+  File "/app/.venv/lib/python3.12/site-packages/homeassistant/loader.py", line 1331, in _resolve_integrations_from_root
+    integration = Integration.resolve_from_root(hass, root_module, domain)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/.venv/lib/python3.12/site-packages/homeassistant/loader.py", line 655, in resolve_from_root
+    for base in root_module.__path__:
+                ^^^^^^^^^^^^^^^^^^^^
+  File "/home/jules/.pyenv/versions/3.12.13/lib/python3.12/unittest/mock.py", line 662, in __getattr__
+    raise AttributeError(name)
+AttributeError: __path__
+ERROR:homeassistant.setup:Setup failed for 'websocket_api': Integration not found.
+------------------------------ Captured log setup ------------------------------
+INFO     homeassistant.loader:loader.py:773 Loaded meraki_ha from custom_components.meraki_ha
+WARNING  homeassistant.loader:loader.py:687 We found a custom integration meraki_ha which has not been tested by Home Assistant. This component might cause stability problems, be sure to disable it if you experience issues with Home Assistant
+ERROR    homeassistant.loader:loader.py:1333 Error loading integration: websocket_api
+Traceback (most recent call last):
+  File "/app/.venv/lib/python3.12/site-packages/homeassistant/loader.py", line 1331, in _resolve_integrations_from_root
+    integration = Integration.resolve_from_root(hass, root_module, domain)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/.venv/lib/python3.12/site-packages/homeassistant/loader.py", line 655, in resolve_from_root
+    for base in root_module.__path__:
+                ^^^^^^^^^^^^^^^^^^^^
+  File "/home/jules/.pyenv/versions/3.12.13/lib/python3.12/unittest/mock.py", line 662, in __getattr__
+    raise AttributeError(name)
+AttributeError: __path__
+ERROR    homeassistant.setup:setup.py:269 Setup failed for 'websocket_api': Integration not found.
+______________________ ERROR at setup of test_ipsk_revoke ______________________
+
+hass = <HomeAssistant RUNNING>
+hass_ws_client = <function hass_ws_client.<locals>.create_client at 0x7f9100908360>
+
+    @pytest.fixture
+    async def ws_client(
+        hass: HomeAssistant,
+        hass_ws_client: WebSocketGenerator,
+    ) -> Any:
+        """Fixture to setup and return a websocket client."""
+        async_setup_websocket_api(hass)
+>       return await hass_ws_client(hass)
+
+tests/api/test_websocket.py:89:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+hass = <HomeAssistant RUNNING>
+access_token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiIxMTlmM2Y1NTExNGQ0ZTI0YjcwOGU0YjZhNzZmMzg0YyIsImlhdCI6MTc3NTQ0MDU0NCwiZXhwIjoxNzc1NDQyMzQ0fQ.wJ-Tvdipmtx2K0HQT76MsXoEYMgN3-ec01xHIWDyP2Y'
+
+    async def create_client(
+        hass: HomeAssistant = hass, access_token: str | None = hass_access_token
+    ) -> MockHAClientWebSocket:
+        """Create a websocket client."""
+>       assert await async_setup_component(hass, "websocket_api", {})
+E       assert False
+
+.venv/lib/python3.12/site-packages/pytest_homeassistant_custom_component/plugins.py:869: AssertionError
+---------------------------- Captured stderr setup -----------------------------
+INFO:homeassistant.loader:Loaded meraki_ha from custom_components.meraki_ha
+WARNING:homeassistant.loader:We found a custom integration meraki_ha which has not been tested by Home Assistant. This component might cause stability problems, be sure to disable it if you experience issues with Home Assistant
+ERROR:homeassistant.loader:Error loading integration: websocket_api
+Traceback (most recent call last):
+  File "/app/.venv/lib/python3.12/site-packages/homeassistant/loader.py", line 1331, in _resolve_integrations_from_root
+    integration = Integration.resolve_from_root(hass, root_module, domain)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/.venv/lib/python3.12/site-packages/homeassistant/loader.py", line 655, in resolve_from_root
+    for base in root_module.__path__:
+                ^^^^^^^^^^^^^^^^^^^^
+  File "/home/jules/.pyenv/versions/3.12.13/lib/python3.12/unittest/mock.py", line 662, in __getattr__
+    raise AttributeError(name)
+AttributeError: __path__
+ERROR:homeassistant.setup:Setup failed for 'websocket_api': Integration not found.
+------------------------------ Captured log setup ------------------------------
+INFO     homeassistant.loader:loader.py:773 Loaded meraki_ha from custom_components.meraki_ha
+WARNING  homeassistant.loader:loader.py:687 We found a custom integration meraki_ha which has not been tested by Home Assistant. This component might cause stability problems, be sure to disable it if you experience issues with Home Assistant
+ERROR    homeassistant.loader:loader.py:1333 Error loading integration: websocket_api
+Traceback (most recent call last):
+  File "/app/.venv/lib/python3.12/site-packages/homeassistant/loader.py", line 1331, in _resolve_integrations_from_root
+    integration = Integration.resolve_from_root(hass, root_module, domain)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/.venv/lib/python3.12/site-packages/homeassistant/loader.py", line 655, in resolve_from_root
+    for base in root_module.__path__:
+                ^^^^^^^^^^^^^^^^^^^^
+  File "/home/jules/.pyenv/versions/3.12.13/lib/python3.12/unittest/mock.py", line 662, in __getattr__
+    raise AttributeError(name)
+AttributeError: __path__
+ERROR    homeassistant.setup:setup.py:269 Setup failed for 'websocket_api': Integration not found.
+=================================== FAILURES ===================================
+_______________ test_handle_meraki_errors_rate_limit_max_retries _______________
+
+func = <AsyncMock id='140260665351808'>, args = (), kwargs = {}
+retry_context = (3, 3, 2)
+
+    async def _execute_api_call(
+        func: Callable[..., Awaitable[T]],
+        args: tuple[Any, ...],
+        kwargs: dict[str, Any],
+        retry_context: tuple[int, int, int],
+    ) -> T:
+        """Execute a single API call and handle exceptions."""
+        try:
+>           return await func(*args, **kwargs)
+
+custom_components/meraki_ha/core/utils/api/decorator.py:58:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+/home/jules/.pyenv/versions/3.12.13/lib/python3.12/unittest/mock.py:2291: in _execute_mock_call
+    raise effect
+custom_components/meraki_ha/core/utils/api/decorator.py:58: in _execute_api_call
+    return await func(*args, **kwargs)
+/home/jules/.pyenv/versions/3.12.13/lib/python3.12/unittest/mock.py:2291: in _execute_mock_call
+    raise effect
+custom_components/meraki_ha/core/utils/api/decorator.py:58: in _execute_api_call
+    return await func(*args, **kwargs)
+/home/jules/.pyenv/versions/3.12.13/lib/python3.12/unittest/mock.py:2291: in _execute_mock_call
+    raise effect
+custom_components/meraki_ha/core/utils/api/decorator.py:58: in _execute_api_call
+    return await func(*args, **kwargs)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <AsyncMock id='140260665351808'>, args = (), kwargs = {}, _call = call()
+effect = t, op - 429 Too Many Requests, {'errors': ['rate limit exceeded']}
+
+    async def _execute_mock_call(self, /, *args, **kwargs):
+        # This is nearly just like super(), except for special handling
+        # of coroutines
+
+        _call = _Call((args, kwargs), two=True)
+        self.await_count += 1
+        self.await_args = _call
+        self.await_args_list.append(_call)
+
+        effect = self.side_effect
+        if effect is not None:
+            if _is_exception(effect):
+>               raise effect
+E               meraki.exceptions.APIError: t, op - 429 Too Many Requests, {'errors': ['rate limit exceeded']}
+
+/home/jules/.pyenv/versions/3.12.13/lib/python3.12/unittest/mock.py:2291: APIError
+
+The above exception was the direct cause of the following exception:
+
+    @pytest.mark.asyncio
+    async def test_handle_meraki_errors_rate_limit_max_retries():
+        """Test the handle_meraki_errors decorator with max retries reached."""
+        # Action 1: Instantiate real APIError with required metadata and response
+        mock_response = MagicMock()
+        mock_response.status_code = 429
+        mock_response.reason = "Too Many Requests"
+        mock_response.json.return_value = {"errors": ["rate limit exceeded"]}
+        mock_func = AsyncMock(
+            side_effect=APIError(
+                metadata={"tags": ["t"], "operation": "op"}, response=mock_response
+            )
+        )
+        decorated = handle_meraki_errors(mock_func)
+
+        with patch("asyncio.sleep", new_callable=AsyncMock) as mock_sleep:
+            with pytest.raises(UpdateFailed) as excinfo:
+>               await decorated()
+
+tests/core/utils/test_api_utils.py:190:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+custom_components/meraki_ha/core/utils/api/decorator.py:39: in wrapper
+    return await _execute_api_call(
+custom_components/meraki_ha/core/utils/api/decorator.py:64: in _execute_api_call
+    await handle_api_exception(err, func, args, kwargs, retry_context),
+custom_components/meraki_ha/core/utils/api/handlers.py:156: in handle_api_exception
+    await handle_rate_limit(err, attempt, max_retries, base_delay)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+err = t, op - 429 Too Many Requests, {'errors': ['rate limit exceeded']}
+attempt = 3, max_retries = 3, base_delay = 2
+
+    async def handle_rate_limit(
+        err: APIError, attempt: int, max_retries: int, base_delay: int
+    ) -> None:
+        """Handle rate limiting by sleeping and raising RetryRequest."""
+        if attempt >= max_retries:
+            _LOGGER.warning(
+                "Meraki API rate limit reached after %s retries: %s",
+                max_retries,
+                err,
+            )
+>           raise UpdateFailed(
+                f"meraki.exceptions.APIError: 429 Too Many Requests "
+                f"after {max_retries} retries"
+            ) from err
+E           homeassistant.helpers.update_coordinator.UpdateFailed: meraki.exceptions.APIError: 429 Too Many Requests after 3 retries
+
+custom_components/meraki_ha/core/utils/api/handlers.py:86: UpdateFailed
+
+During handling of the above exception, another exception occurred:
+
+    @pytest.mark.asyncio
+    async def test_handle_meraki_errors_rate_limit_max_retries():
+        """Test the handle_meraki_errors decorator with max retries reached."""
+        # Action 1: Instantiate real APIError with required metadata and response
+        mock_response = MagicMock()
+        mock_response.status_code = 429
+        mock_response.reason = "Too Many Requests"
+        mock_response.json.return_value = {"errors": ["rate limit exceeded"]}
+        mock_func = AsyncMock(
+            side_effect=APIError(
+                metadata={"tags": ["t"], "operation": "op"}, response=mock_response
+            )
+        )
+        decorated = handle_meraki_errors(mock_func)
+
+        with patch("asyncio.sleep", new_callable=AsyncMock) as mock_sleep:
+>           with pytest.raises(UpdateFailed) as excinfo:
+E           TypeError: issubclass() arg 2 must be a class, a tuple of classes, or a union
+
+tests/core/utils/test_api_utils.py:189: TypeError
+----------------------------- Captured stderr call -----------------------------
+WARNING:custom_components.meraki_ha.core.utils.api.handlers:Meraki API rate limit reached after 3 retries: t, op - 429 Too Many Requests, {'errors': ['rate limit exceeded']}
+------------------------------ Captured log call -------------------------------
+WARNING  custom_components.meraki_ha.core.utils.api.handlers:handlers.py:81 Meraki API rate limit reached after 3 retries: t, op - 429 Too Many Requests, {'errors': ['rate limit exceeded']}
+______________________________ test_config_schema ______________________________
+
+    def test_config_schema():
+        """Test the CONFIG_SCHEMA."""
+        with pytest.raises(vol.Invalid):
+            CONFIG_SCHEMA({})
+        with pytest.raises(vol.Invalid):
+            CONFIG_SCHEMA({"api_key": "invalid", "organization_id": "123456"})
+        with pytest.raises(vol.Invalid):
+            CONFIG_SCHEMA({"api_key": "0" * 40, "organization_id": "invalid"})
+        # Correct: use an integer for scan_interval so vol.Range works
+        # Providing a valid integer (e.g., 60) for scan_interval
+>       assert CONFIG_SCHEMA(
+            {"api_key": "0" * 40, "organization_id": "123456", "scan_interval": 60}
+        ) == {
+            "api_key": "0" * 40,
+            "organization_id": "123456",
+            "scan_interval": 60,
+        }
+
+tests/core/utils/test_validation_utils.py:38:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+.venv/lib/python3.12/site-packages/voluptuous/schema_builder.py:205: in __call__
+    return self._compiled([], data)
+.venv/lib/python3.12/site-packages/voluptuous/schema_builder.py:549: in validate_dict
+    return base_validate(path, data.items(), out)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+path = []
+iterable = dict_items([('api_key', '0000000000000000000000000000000000000000'), ('organization_id', '123456'), ('scan_interval', 60)])
+out = {'api_key': '0000000000000000000000000000000000000000', 'organization_id': '123456'}
+
+    def validate_mapping(path, iterable, out):
+        required_keys = all_required_keys.copy()
+
+        # Build a map of all provided key-value pairs.
+        # The type(out) is used to retain ordering in case a ordered
+        # map type is provided as input.
+        key_value_map = type(out)()
+        for key, value in iterable:
+            key_value_map[key] = value
+
+        # Insert default values for non-existing keys.
+        for key in all_default_keys:
+            if (
+                not isinstance(key.default, Undefined)
+                and key.schema not in key_value_map
+            ):
+                # A default value has been specified for this missing
+                # key, insert it.
+                key_value_map[key.schema] = key.default()
+
+        errors = []
+        for key, value in key_value_map.items():
+            key_path = path + [key]
+            remove_key = False
+
+            # Optimization. Validate against the matching key first, then fallback to the rest
+            relevant_candidates = itertools.chain(
+                candidates_by_key.get(key, []), additional_candidates
+            )
+
+            # compare each given key/value against all compiled key/values
+            # schema key, (compiled key, compiled value)
+            error = None
+            for skey, (ckey, cvalue) in relevant_candidates:
+                try:
+                    new_key = ckey(key_path, key)
+                except er.Invalid as e:
+                    if len(e.path) > len(key_path):
+                        raise
+                    if not error or len(e.path) > len(error.path):
+                        error = e
+                    continue
+                # Backtracking is not performed once a key is selected, so if
+                # the value is invalid we immediately throw an exception.
+                exception_errors = []
+                # check if the key is marked for removal
+                is_remove = new_key is Remove
+                try:
+                    cval = cvalue(key_path, value)
+                    # include if it's not marked for removal
+                    if not is_remove:
+                        out[new_key] = cval
+                    else:
+                        remove_key = True
+                        continue
+                except er.MultipleInvalid as e:
+                    exception_errors.extend(e.errors)
+                except er.Invalid as e:
+                    exception_errors.append(e)
+
+                if exception_errors:
+                    if is_remove or remove_key:
+                        continue
+                    for err in exception_errors:
+                        if len(err.path) <= len(key_path):
+                            err.error_type = invalid_msg
+                        errors.append(err)
+                    # If there is a validation error for a required
+                    # key, this means that the key was provided.
+                    # Discard the required key so it does not
+                    # create an additional, noisy exception.
+                    required_keys.discard(skey)
+                    break
+
+                # Key and value okay, mark as found in case it was
+                # a Required() field.
+                required_keys.discard(skey)
+
+                break
+            else:
+                if remove_key:
+                    # remove key
+                    continue
+                elif self.extra == ALLOW_EXTRA:
+                    out[key] = value
+                elif error:
+                    errors.append(error)
+                elif self.extra != REMOVE_EXTRA:
+                    errors.append(er.Invalid('extra keys not allowed', key_path))
+                    # else REMOVE_EXTRA: ignore the key so it's removed from output
+
+        # for any required keys left that weren't found and don't have defaults:
+        for key in required_keys:
+            msg = (
+                key.msg
+                if hasattr(key, 'msg') and key.msg
+                else 'required key not provided'
+            )
+            errors.append(er.RequiredFieldInvalid(msg, path + [key]))
+        if errors:
+>           raise er.MultipleInvalid(errors)
+E           voluptuous.error.MultipleInvalid: invalid value or type (must have a partial ordering) for dictionary value @ data['scan_interval']
+
+.venv/lib/python3.12/site-packages/voluptuous/schema_builder.py:382: MultipleInvalid
+_____________________________ test_options_schema ______________________________
+
+    def test_options_schema():
+        """Test the OPTIONS_SCHEMA."""
+        with pytest.raises(vol.Invalid):
+            OPTIONS_SCHEMA({"scan_interval": 29})
+        # Correct: use an integer for scan_interval so vol.Range(min=30) works
+        # Providing a valid integer (e.g., 60) for scan_interval
+>       assert OPTIONS_SCHEMA({"scan_interval": 60}) == {"scan_interval": 60}
+
+tests/core/utils/test_validation_utils.py:53:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+.venv/lib/python3.12/site-packages/voluptuous/schema_builder.py:205: in __call__
+    return self._compiled([], data)
+.venv/lib/python3.12/site-packages/voluptuous/schema_builder.py:549: in validate_dict
+    return base_validate(path, data.items(), out)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+path = [], iterable = dict_items([('scan_interval', 60)]), out = {}
+
+    def validate_mapping(path, iterable, out):
+        required_keys = all_required_keys.copy()
+
+        # Build a map of all provided key-value pairs.
+        # The type(out) is used to retain ordering in case a ordered
+        # map type is provided as input.
+        key_value_map = type(out)()
+        for key, value in iterable:
+            key_value_map[key] = value
+
+        # Insert default values for non-existing keys.
+        for key in all_default_keys:
+            if (
+                not isinstance(key.default, Undefined)
+                and key.schema not in key_value_map
+            ):
+                # A default value has been specified for this missing
+                # key, insert it.
+                key_value_map[key.schema] = key.default()
+
+        errors = []
+        for key, value in key_value_map.items():
+            key_path = path + [key]
+            remove_key = False
+
+            # Optimization. Validate against the matching key first, then fallback to the rest
+            relevant_candidates = itertools.chain(
+                candidates_by_key.get(key, []), additional_candidates
+            )
+
+            # compare each given key/value against all compiled key/values
+            # schema key, (compiled key, compiled value)
+            error = None
+            for skey, (ckey, cvalue) in relevant_candidates:
+                try:
+                    new_key = ckey(key_path, key)
+                except er.Invalid as e:
+                    if len(e.path) > len(key_path):
+                        raise
+                    if not error or len(e.path) > len(error.path):
+                        error = e
+                    continue
+                # Backtracking is not performed once a key is selected, so if
+                # the value is invalid we immediately throw an exception.
+                exception_errors = []
+                # check if the key is marked for removal
+                is_remove = new_key is Remove
+                try:
+                    cval = cvalue(key_path, value)
+                    # include if it's not marked for removal
+                    if not is_remove:
+                        out[new_key] = cval
+                    else:
+                        remove_key = True
+                        continue
+                except er.MultipleInvalid as e:
+                    exception_errors.extend(e.errors)
+                except er.Invalid as e:
+                    exception_errors.append(e)
+
+                if exception_errors:
+                    if is_remove or remove_key:
+                        continue
+                    for err in exception_errors:
+                        if len(err.path) <= len(key_path):
+                            err.error_type = invalid_msg
+                        errors.append(err)
+                    # If there is a validation error for a required
+                    # key, this means that the key was provided.
+                    # Discard the required key so it does not
+                    # create an additional, noisy exception.
+                    required_keys.discard(skey)
+                    break
+
+                # Key and value okay, mark as found in case it was
+                # a Required() field.
+                required_keys.discard(skey)
+
+                break
+            else:
+                if remove_key:
+                    # remove key
+                    continue
+                elif self.extra == ALLOW_EXTRA:
+                    out[key] = value
+                elif error:
+                    errors.append(error)
+                elif self.extra != REMOVE_EXTRA:
+                    errors.append(er.Invalid('extra keys not allowed', key_path))
+                    # else REMOVE_EXTRA: ignore the key so it's removed from output
+
+        # for any required keys left that weren't found and don't have defaults:
+        for key in required_keys:
+            msg = (
+                key.msg
+                if hasattr(key, 'msg') and key.msg
+                else 'required key not provided'
+            )
+            errors.append(er.RequiredFieldInvalid(msg, path + [key]))
+        if errors:
+>           raise er.MultipleInvalid(errors)
+E           voluptuous.error.MultipleInvalid: invalid value or type (must have a partial ordering) for dictionary value @ data['scan_interval']
+
+.venv/lib/python3.12/site-packages/voluptuous/schema_builder.py:382: MultipleInvalid
+________________________ test_populate_schema_defaults _________________________
+
+    def test_populate_schema_defaults():
+        """Test populating schema defaults."""
+        schema = vol.Schema(
+            {
+                vol.Required("test_option", default="default"): str,
+                vol.Optional(CONF_IGNORED_NETWORKS): selector.SelectSelector(
+                    selector.SelectSelectorConfig(options=[])
+                ),
+            }
+        )
+
+        defaults = {
+            "test_option": "new_value",
+        }
+
+        network_options = [
+            {"label": "Network 1", "value": "net1"},
+            {"label": "Network 2", "value": "net2"},
+        ]
+
+>       new_schema = populate_schema_defaults(schema, defaults, network_options)
+
+tests/helpers/test_schema.py:30:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+schema = <Schema({'test_option': <class 'str'>, 'ignored_networks': <MagicMock name='mock.selector.SelectSelector()' id='140260667232848'>}, extra=PREVENT_EXTRA, required=False) object at 0x7f90fb1b5b80>
+defaults = {'test_option': 'new_value'}
+network_options = [{'label': 'Network 1', 'value': 'net1'}, {'label': 'Network 2', 'value': 'net2'}]
+
+    def populate_schema_defaults(
+        schema: vol.Schema,
+        defaults: dict[str, Any],
+        network_options: list[dict[str, str]] | None = None,
+    ) -> vol.Schema:
+        """
+        Populate a schema with default values.
+
+        This is used to ensure that the options form is pre-filled with the
+        existing values from the config entry.
+
+        Args:
+        ----
+            schema: The schema to populate.
+            defaults: The default values.
+            network_options: The network options.
+
+        Returns
+        -------
+            The populated schema.
+
+        """
+        new_schema_keys = {}
+        for key, value in schema.schema.items():
+            key_name = key.schema
+            # 'key.schema' is the name of the option (e.g., 'scan_interval')
+            if key_name in defaults:
+                # Create a new voluptuous key (e.g., vol.Required) with the
+                # default value set to the existing option value.
+                key = type(key)(key.schema, default=defaults[key.schema])
+
+            if (
+                key_name == CONF_IGNORED_NETWORKS
+>               and isinstance(value, selector.SelectSelector)
+                and network_options is not None
+            ):
+E           TypeError: isinstance() arg 2 must be a type, a tuple of types, or a union
+
+custom_components/meraki_ha/helpers/schema.py:99: TypeError
+_____________________ test_content_filtering_select_entity _____________________
+
+hass = <HomeAssistant RUNNING>
+mock_config_entry = <MagicMock name='mock.MockConfigEntry()' id='140260660352096'>
+mock_meraki_client = <MagicMock id='140260660352192'>
+mock_data_fetch_manager = <AsyncMock id='140260663427776'>
+
+    async def test_content_filtering_select_entity(
+        hass: HomeAssistant,
+        mock_config_entry: MockConfigEntry,
+        mock_meraki_client: AsyncMock,
+        mock_data_fetch_manager: AsyncMock,
+    ) -> None:
+        """Test the content filtering select entity is created and functional."""
+>       assert await async_setup_component(hass, "http", {})
+E       assert False
+
+tests/meraki_select/test_content_filtering_select.py:133: AssertionError
+----------------------------- Captured stderr call -----------------------------
+INFO:homeassistant.loader:Loaded meraki_ha from custom_components.meraki_ha
+WARNING:homeassistant.loader:We found a custom integration meraki_ha which has not been tested by Home Assistant. This component might cause stability problems, be sure to disable it if you experience issues with Home Assistant
+ERROR:homeassistant.loader:Error loading integration: http
+Traceback (most recent call last):
+  File "/app/.venv/lib/python3.12/site-packages/homeassistant/loader.py", line 1331, in _resolve_integrations_from_root
+    integration = Integration.resolve_from_root(hass, root_module, domain)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/.venv/lib/python3.12/site-packages/homeassistant/loader.py", line 655, in resolve_from_root
+    for base in root_module.__path__:
+                ^^^^^^^^^^^^^^^^^^^^
+  File "/home/jules/.pyenv/versions/3.12.13/lib/python3.12/unittest/mock.py", line 662, in __getattr__
+    raise AttributeError(name)
+AttributeError: __path__
+ERROR:homeassistant.setup:Setup failed for 'http': Integration not found.
+------------------------------ Captured log call -------------------------------
+INFO     homeassistant.loader:loader.py:773 Loaded meraki_ha from custom_components.meraki_ha
+WARNING  homeassistant.loader:loader.py:687 We found a custom integration meraki_ha which has not been tested by Home Assistant. This component might cause stability problems, be sure to disable it if you experience issues with Home Assistant
+ERROR    homeassistant.loader:loader.py:1333 Error loading integration: http
+Traceback (most recent call last):
+  File "/app/.venv/lib/python3.12/site-packages/homeassistant/loader.py", line 1331, in _resolve_integrations_from_root
+    integration = Integration.resolve_from_root(hass, root_module, domain)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/.venv/lib/python3.12/site-packages/homeassistant/loader.py", line 655, in resolve_from_root
+    for base in root_module.__path__:
+                ^^^^^^^^^^^^^^^^^^^^
+  File "/home/jules/.pyenv/versions/3.12.13/lib/python3.12/unittest/mock.py", line 662, in __getattr__
+    raise AttributeError(name)
+AttributeError: __path__
+ERROR    homeassistant.setup:setup.py:269 Setup failed for 'http': Integration not found.
+_____________________ test_content_filtering_select_entity _____________________
+
+hass = <HomeAssistant RUNNING>
+mock_config_entry = <MagicMock name='mock.MockConfigEntry()' id='140260660352096'>
+mock_meraki_client = <MagicMock id='140260660359200'>
+mock_data_fetch_manager = <AsyncMock id='140260665066416'>
+
+    async def test_content_filtering_select_entity(
+        hass: HomeAssistant,
+        mock_config_entry: MockConfigEntry,
+        mock_meraki_client: AsyncMock,
+        mock_data_fetch_manager: AsyncMock,
+    ) -> None:
+        """Test the content filtering select entity is created and functional."""
+>       assert await async_setup_component(hass, "http", {})
+E       assert False
+
+tests/meraki_select/test_meraki_content_filtering.py:108: AssertionError
+----------------------------- Captured stderr call -----------------------------
+INFO:homeassistant.loader:Loaded meraki_ha from custom_components.meraki_ha
+WARNING:homeassistant.loader:We found a custom integration meraki_ha which has not been tested by Home Assistant. This component might cause stability problems, be sure to disable it if you experience issues with Home Assistant
+ERROR:homeassistant.loader:Error loading integration: http
+Traceback (most recent call last):
+  File "/app/.venv/lib/python3.12/site-packages/homeassistant/loader.py", line 1331, in _resolve_integrations_from_root
+    integration = Integration.resolve_from_root(hass, root_module, domain)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/.venv/lib/python3.12/site-packages/homeassistant/loader.py", line 655, in resolve_from_root
+    for base in root_module.__path__:
+                ^^^^^^^^^^^^^^^^^^^^
+  File "/home/jules/.pyenv/versions/3.12.13/lib/python3.12/unittest/mock.py", line 662, in __getattr__
+    raise AttributeError(name)
+AttributeError: __path__
+ERROR:homeassistant.setup:Setup failed for 'http': Integration not found.
+------------------------------ Captured log call -------------------------------
+INFO     homeassistant.loader:loader.py:773 Loaded meraki_ha from custom_components.meraki_ha
+WARNING  homeassistant.loader:loader.py:687 We found a custom integration meraki_ha which has not been tested by Home Assistant. This component might cause stability problems, be sure to disable it if you experience issues with Home Assistant
+ERROR    homeassistant.loader:loader.py:1333 Error loading integration: http
+Traceback (most recent call last):
+  File "/app/.venv/lib/python3.12/site-packages/homeassistant/loader.py", line 1331, in _resolve_integrations_from_root
+    integration = Integration.resolve_from_root(hass, root_module, domain)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/.venv/lib/python3.12/site-packages/homeassistant/loader.py", line 655, in resolve_from_root
+    for base in root_module.__path__:
+                ^^^^^^^^^^^^^^^^^^^^
+  File "/home/jules/.pyenv/versions/3.12.13/lib/python3.12/unittest/mock.py", line 662, in __getattr__
+    raise AttributeError(name)
+AttributeError: __path__
+ERROR    homeassistant.setup:setup.py:269 Setup failed for 'http': Integration not found.
+_________________ test_content_filtering_select_dict_response __________________
+
+hass = <HomeAssistant RUNNING>
+mock_config_entry = <MagicMock name='mock.MockConfigEntry()' id='140260660352096'>
+mock_meraki_client = <MagicMock id='140260660464720'>
+mock_data_fetch_manager = <AsyncMock id='140260660353152'>
+
+    async def test_content_filtering_select_dict_response(
+        hass: HomeAssistant,
+        mock_config_entry: MockConfigEntry,
+        mock_meraki_client: AsyncMock,
+        mock_data_fetch_manager: AsyncMock,
+    ) -> None:
+        """Test that the content filtering select entity handles dictionary responses."""
+>       assert await async_setup_component(hass, "http", {})
+E       assert False
+
+tests/meraki_select/test_meraki_content_filtering_repro.py:110: AssertionError
+----------------------------- Captured stderr call -----------------------------
+INFO:homeassistant.loader:Loaded meraki_ha from custom_components.meraki_ha
+WARNING:homeassistant.loader:We found a custom integration meraki_ha which has not been tested by Home Assistant. This component might cause stability problems, be sure to disable it if you experience issues with Home Assistant
+ERROR:homeassistant.loader:Error loading integration: http
+Traceback (most recent call last):
+  File "/app/.venv/lib/python3.12/site-packages/homeassistant/loader.py", line 1331, in _resolve_integrations_from_root
+    integration = Integration.resolve_from_root(hass, root_module, domain)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/.venv/lib/python3.12/site-packages/homeassistant/loader.py", line 655, in resolve_from_root
+    for base in root_module.__path__:
+                ^^^^^^^^^^^^^^^^^^^^
+  File "/home/jules/.pyenv/versions/3.12.13/lib/python3.12/unittest/mock.py", line 662, in __getattr__
+    raise AttributeError(name)
+AttributeError: __path__
+ERROR:homeassistant.setup:Setup failed for 'http': Integration not found.
+------------------------------ Captured log call -------------------------------
+INFO     homeassistant.loader:loader.py:773 Loaded meraki_ha from custom_components.meraki_ha
+WARNING  homeassistant.loader:loader.py:687 We found a custom integration meraki_ha which has not been tested by Home Assistant. This component might cause stability problems, be sure to disable it if you experience issues with Home Assistant
+ERROR    homeassistant.loader:loader.py:1333 Error loading integration: http
+Traceback (most recent call last):
+  File "/app/.venv/lib/python3.12/site-packages/homeassistant/loader.py", line 1331, in _resolve_integrations_from_root
+    integration = Integration.resolve_from_root(hass, root_module, domain)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/.venv/lib/python3.12/site-packages/homeassistant/loader.py", line 655, in resolve_from_root
+    for base in root_module.__path__:
+                ^^^^^^^^^^^^^^^^^^^^
+  File "/home/jules/.pyenv/versions/3.12.13/lib/python3.12/unittest/mock.py", line 662, in __getattr__
+    raise AttributeError(name)
+AttributeError: __path__
+ERROR    homeassistant.setup:setup.py:269 Setup failed for 'http': Integration not found.
+________________________ test_rf_profile_select_entity _________________________
+
+hass = <HomeAssistant RUNNING>
+mock_config_entry = <MagicMock name='mock.MockConfigEntry()' id='140260660352096'>
+mock_meraki_client = <MagicMock id='140260748239856'>
+mock_data_fetch_manager = <AsyncMock id='140260660464576'>
+
+    async def test_rf_profile_select_entity(
+        hass: HomeAssistant,
+        mock_config_entry: MockConfigEntry,
+        mock_meraki_client: AsyncMock,
+        mock_data_fetch_manager: AsyncMock,
+    ) -> None:
+        """Test the RF Profile select entity is created and functional."""
+>       assert await async_setup_component(hass, "http", {})
+E       assert False
+
+tests/meraki_select/test_rf_profile_select.py:101: AssertionError
+----------------------------- Captured stderr call -----------------------------
+INFO:homeassistant.loader:Loaded meraki_ha from custom_components.meraki_ha
+WARNING:homeassistant.loader:We found a custom integration meraki_ha which has not been tested by Home Assistant. This component might cause stability problems, be sure to disable it if you experience issues with Home Assistant
+ERROR:homeassistant.loader:Error loading integration: http
+Traceback (most recent call last):
+  File "/app/.venv/lib/python3.12/site-packages/homeassistant/loader.py", line 1331, in _resolve_integrations_from_root
+    integration = Integration.resolve_from_root(hass, root_module, domain)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/.venv/lib/python3.12/site-packages/homeassistant/loader.py", line 655, in resolve_from_root
+    for base in root_module.__path__:
+                ^^^^^^^^^^^^^^^^^^^^
+  File "/home/jules/.pyenv/versions/3.12.13/lib/python3.12/unittest/mock.py", line 662, in __getattr__
+    raise AttributeError(name)
+AttributeError: __path__
+ERROR:homeassistant.setup:Setup failed for 'http': Integration not found.
+------------------------------ Captured log call -------------------------------
+INFO     homeassistant.loader:loader.py:773 Loaded meraki_ha from custom_components.meraki_ha
+WARNING  homeassistant.loader:loader.py:687 We found a custom integration meraki_ha which has not been tested by Home Assistant. This component might cause stability problems, be sure to disable it if you experience issues with Home Assistant
+ERROR    homeassistant.loader:loader.py:1333 Error loading integration: http
+Traceback (most recent call last):
+  File "/app/.venv/lib/python3.12/site-packages/homeassistant/loader.py", line 1331, in _resolve_integrations_from_root
+    integration = Integration.resolve_from_root(hass, root_module, domain)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/.venv/lib/python3.12/site-packages/homeassistant/loader.py", line 655, in resolve_from_root
+    for base in root_module.__path__:
+                ^^^^^^^^^^^^^^^^^^^^
+  File "/home/jules/.pyenv/versions/3.12.13/lib/python3.12/unittest/mock.py", line 662, in __getattr__
+    raise AttributeError(name)
+AttributeError: __path__
+ERROR    homeassistant.setup:setup.py:269 Setup failed for 'http': Integration not found.
+____________________________ test_vpn_select_entity ____________________________
+
+hass = <HomeAssistant RUNNING>
+mock_config_entry = <MagicMock name='mock.MockConfigEntry()' id='140260660352096'>
+mock_meraki_client = <MagicMock id='140260665513680'>
+mock_data_fetch_manager = <AsyncMock id='140260664209200'>
+
+    async def test_vpn_select_entity(
+        hass: HomeAssistant,
+        mock_config_entry: MockConfigEntry,
+        mock_meraki_client: AsyncMock,
+        mock_data_fetch_manager: AsyncMock,
+    ) -> None:
+        """Test the VPN select entity is created and functional."""
+>       assert await async_setup_component(hass, "http", {})
+E       assert False
+
+tests/meraki_select/test_vpn_select.py:96: AssertionError
+----------------------------- Captured stderr call -----------------------------
+INFO:homeassistant.loader:Loaded meraki_ha from custom_components.meraki_ha
+WARNING:homeassistant.loader:We found a custom integration meraki_ha which has not been tested by Home Assistant. This component might cause stability problems, be sure to disable it if you experience issues with Home Assistant
+ERROR:homeassistant.loader:Error loading integration: http
+Traceback (most recent call last):
+  File "/app/.venv/lib/python3.12/site-packages/homeassistant/loader.py", line 1331, in _resolve_integrations_from_root
+    integration = Integration.resolve_from_root(hass, root_module, domain)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/.venv/lib/python3.12/site-packages/homeassistant/loader.py", line 655, in resolve_from_root
+    for base in root_module.__path__:
+                ^^^^^^^^^^^^^^^^^^^^
+  File "/home/jules/.pyenv/versions/3.12.13/lib/python3.12/unittest/mock.py", line 662, in __getattr__
+    raise AttributeError(name)
+AttributeError: __path__
+ERROR:homeassistant.setup:Setup failed for 'http': Integration not found.
+------------------------------ Captured log call -------------------------------
+INFO     homeassistant.loader:loader.py:773 Loaded meraki_ha from custom_components.meraki_ha
+WARNING  homeassistant.loader:loader.py:687 We found a custom integration meraki_ha which has not been tested by Home Assistant. This component might cause stability problems, be sure to disable it if you experience issues with Home Assistant
+ERROR    homeassistant.loader:loader.py:1333 Error loading integration: http
+Traceback (most recent call last):
+  File "/app/.venv/lib/python3.12/site-packages/homeassistant/loader.py", line 1331, in _resolve_integrations_from_root
+    integration = Integration.resolve_from_root(hass, root_module, domain)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/.venv/lib/python3.12/site-packages/homeassistant/loader.py", line 655, in resolve_from_root
+    for base in root_module.__path__:
+                ^^^^^^^^^^^^^^^^^^^^
+  File "/home/jules/.pyenv/versions/3.12.13/lib/python3.12/unittest/mock.py", line 662, in __getattr__
+    raise AttributeError(name)
+AttributeError: __path__
+ERROR    homeassistant.setup:setup.py:269 Setup failed for 'http': Integration not found.
+__________________________ test_client_status_sensor ___________________________
+
+mock_coordinator = <MagicMock id='140260665079712'>
+
+    def test_client_status_sensor(mock_coordinator):
+        """Test the client status sensor."""
+        client1_data = mock_coordinator.data["clients"][0]
+        client2_data = mock_coordinator.data["clients"][1]
+
+        config_entry = MagicMock()
+        config_entry.options = {}
+
+        # Test Online Client
+        sensor1 = MerakiClientStatusSensor(mock_coordinator, client1_data, config_entry)
+        sensor1.hass = MagicMock()
+        sensor1.async_write_ha_state = MagicMock()
+
+        assert sensor1.unique_id == "00:11:22:33:44:55_client_status"
+        assert sensor1.name == "My Laptop status"
+        assert sensor1.native_value == "online"
+        assert sensor1.icon == "mdi:lan-connect"
+        assert sensor1.extra_state_attributes["ip_address"] == "192.168.1.100"
+        assert sensor1.extra_state_attributes["manufacturer"] == "Apple"
+        assert sensor1.extra_state_attributes["usage_sent"] == 100
+
+        # Verify DeviceInfo
+        assert sensor1.device_info["identifiers"] == {(DOMAIN, "00:11:22:33:44:55")}
+        assert sensor1.device_info["name"] == "Meraki My Laptop"
+        assert sensor1.device_info["model"] == "Client"
+        assert sensor1.device_info["via_device"] == (DOMAIN, "Q2XX-XXXX-XXXX")
+
+        # Test Offline Client -> Now expecting Online as per Action 3
+        sensor2 = MerakiClientStatusSensor(mock_coordinator, client2_data, config_entry)
+        sensor2.hass = MagicMock()
+        sensor2.async_write_ha_state = MagicMock()
+
+        assert sensor2.unique_id == "AA:BB:CC:DD:EE:FF_client_status"
+        assert sensor2.name == "192.168.1.101 status"
+        assert sensor2.native_value == "online"  # Updated from offline as per Action 3
+        assert sensor2.icon == "mdi:lan-connect"
+        assert sensor2.extra_state_attributes["ip_address"] == "192.168.1.101"
+        # Name fallback to IP/MAC
+        assert sensor2.device_info["name"] == "Meraki 192.168.1.101"
+
+        # Test Update Logic
+        # Simulate client going offline
+        mock_coordinator.data["clients"][0]["status"] = "Offline"
+        sensor1._handle_coordinator_update()
+>       assert sensor1.native_value == "offline"
+E       AssertionError: assert 'online' == 'offline'
+E
+E         - offline
+E         ?  ^^
+E         + online
+E         ?  ^
+
+tests/sensor/client/test_status.py:83: AssertionError
+______________________ test_camera_audio_detection_sensor ______________________
+
+mock_coordinator = <MagicMock id='140260665797776'>
+
+    def test_camera_audio_detection_sensor(mock_coordinator):
+        """Test the camera audio detection sensor."""
+        hass = MagicMock()
+
+        # Create a mock device with audio detection enabled
+        device = MerakiDevice(
+            serial="test_serial",
+            name="Test Camera",
+            model="MV2",
+            mac="00:11:22:33:44:55",
+            network_id="net1",
+            product_type="camera",
+            sense_settings={"audioDetection": {"enabled": True}},
+        )
+        # Ensure device is online for availability
+        device.status = "online"
+
+        mock_coordinator.get_device.return_value = device
+
+        sensor = MerakiCameraAudioDetectionSensor(
+            mock_coordinator, device, mock_coordinator.config_entry
+        )
+
+        assert sensor.unique_id == "test_serial_camera_audio_detection_status"
+        # Note: Name format checks are good to keep
+        assert "Audio Detection" in sensor.name
+        assert sensor.entity_category == EntityCategory.DIAGNOSTIC
+        assert sensor.native_value == "enabled"
+        assert sensor.icon == "mdi:microphone"
+
+        # Mock hass for the sensor
+        sensor.hass = hass
+        sensor.async_write_ha_state = MagicMock()
+
+        # Update with enabled audio (Action 3: assertion from disabled to enabled)
+        device.sense_settings = {"audioDetection": {"enabled": True}}
+        sensor._handle_coordinator_update()
+
+        assert sensor.native_value == "enabled"
+        assert sensor.icon == "mdi:microphone"
+
+        # Update with missing audio detection data
+        # To ensure it lacks the audio detection data as per remediation requirement
+        device.sense_settings = {"some_other_key": "some_value"}
+        sensor._handle_coordinator_update()
+
+>       assert sensor.native_value is None
+E       AssertionError: assert 'enabled' is None
+E        +  where 'enabled' = <entity unknown.unknown=unknown>.native_value
+
+tests/sensor/device/test_camera_audio_detection.py:71: AssertionError
+___________________ test_connected_clients_sensor_appliance ____________________
+
+mock_data_coordinator = <MagicMock id='140260660475472'>
+
+    def test_connected_clients_sensor_appliance(mock_data_coordinator):
+        """Test the connected clients sensor for an appliance."""
+        device = mock_data_coordinator.get_device("dev_appliance")
+        config_entry = mock_data_coordinator.config_entry
+        sensor = MerakiDeviceConnectedClientsSensor(
+            mock_data_coordinator, device, config_entry
+        )
+        sensor.hass = MagicMock()
+        sensor.async_write_ha_state = MagicMock()
+        sensor._handle_coordinator_update()
+        # Expects 2: the two online clients on net1 from the main `clients` list
+>       assert sensor.native_value == 2
+E       assert None == 2
+E        +  where None = <entity unknown.unknown=unknown>.native_value
+
+tests/sensor/device/test_connected_clients.py:107: AssertionError
+____________________ test_connected_clients_sensor_gateway _____________________
+
+mock_data_coordinator = <MagicMock id='140260660474560'>
+
+    def test_connected_clients_sensor_gateway(mock_data_coordinator):
+        """Test the connected clients sensor for a cellular gateway."""
+        device = mock_data_coordinator.get_device("dev_gateway")
+        config_entry = mock_data_coordinator.config_entry
+        sensor = MerakiDeviceConnectedClientsSensor(
+            mock_data_coordinator, device, config_entry
+        )
+        sensor.hass = MagicMock()
+        sensor.async_write_ha_state = MagicMock()
+        sensor._handle_coordinator_update()
+        # Expects 2: the two online clients on net1 from the main `clients` list
+>       assert sensor.native_value == 2
+E       assert None == 2
+E        +  where None = <entity unknown.unknown=unknown>.native_value
+
+tests/sensor/device/test_connected_clients.py:122: AssertionError
+_____________________ test_connected_clients_sensor_switch _____________________
+
+mock_data_coordinator = <MagicMock id='140260658000960'>
+
+    def test_connected_clients_sensor_switch(mock_data_coordinator):
+        """Test the connected clients sensor for a switch."""
+        device = mock_data_coordinator.get_device("dev_switch")
+        config_entry = mock_data_coordinator.config_entry
+        sensor = MerakiDeviceConnectedClientsSensor(
+            mock_data_coordinator, device, config_entry
+        )
+        sensor.hass = MagicMock()
+        sensor.async_write_ha_state = MagicMock()
+        sensor._handle_coordinator_update()
+        # Expects 1 from the `clients_by_serial` data
+>       assert sensor.native_value == 1
+E       assert None == 1
+E        +  where None = <entity unknown.unknown=unknown>.native_value
+
+tests/sensor/device/test_connected_clients.py:137: AssertionError
+____________________ test_connected_clients_sensor_wireless ____________________
+
+mock_data_coordinator = <MagicMock id='140260657956624'>
+
+    def test_connected_clients_sensor_wireless(mock_data_coordinator):
+        """Test the connected clients sensor for a wireless device."""
+        device = mock_data_coordinator.get_device("dev_wireless")
+        config_entry = mock_data_coordinator.config_entry
+        sensor = MerakiDeviceConnectedClientsSensor(
+            mock_data_coordinator, device, config_entry
+        )
+        sensor.hass = MagicMock()
+        sensor.async_write_ha_state = MagicMock()
+        sensor._handle_coordinator_update()
+        # Expects 3 from the `clients_by_serial` data
+>       assert sensor.native_value == 3
+E       assert None == 3
+E        +  where None = <entity unknown.unknown=unknown>.native_value
+
+tests/sensor/device/test_connected_clients.py:152: AssertionError
+____________________________ test_data_usage_sensor ____________________________
+
+mock_data_coordinator = <MagicMock id='140260658198192'>
+
+    def test_data_usage_sensor(mock_data_coordinator):
+        """Test the data usage sensor."""
+        device = mock_data_coordinator.get_device("dev1")
+        config_entry = mock_data_coordinator.config_entry
+        sensor = MerakiDataUsageSensor(mock_data_coordinator, device, config_entry)
+        sensor.hass = MagicMock()
+        sensor.async_write_ha_state = MagicMock()
+        sensor._handle_coordinator_update()
+        assert sensor.unique_id == "dev1_data_usage"
+        assert sensor.name == "Data Usage"
+>       assert sensor.native_value == 10.0  # (1+1) + (4+4) = 10 MB
+E       assert None == 10.0
+E        +  where None = <entity unknown.unknown=unknown>.native_value
+
+tests/sensor/device/test_data_usage.py:59: AssertionError
+_______________________ test_data_usage_sensor_disabled ________________________
+
+mock_data_coordinator = <MagicMock id='140260663441024'>
+
+    def test_data_usage_sensor_disabled(mock_data_coordinator):
+        """Test the data usage sensor when traffic analysis is disabled."""
+        # Overwrite the traffic data with the disabled marker
+        mock_data_coordinator.data["appliance_traffic"]["net-123"] = {"error": "disabled"}
+
+        device = mock_data_coordinator.get_device("dev1")
+        config_entry = mock_data_coordinator.config_entry
+        sensor = MerakiDataUsageSensor(mock_data_coordinator, device, config_entry)
+        sensor.hass = MagicMock()
+        sensor.async_write_ha_state = MagicMock()
+        sensor._handle_coordinator_update()
+
+>       assert sensor.native_value == "Disabled"
+E       AssertionError: assert None == 'Disabled'
+E        +  where None = <entity unknown.unknown=unknown>.native_value
+
+tests/sensor/device/test_data_usage.py:76: AssertionError
+_________________________ test_firmware_status_sensor __________________________
+
+mock_device_coordinator = <MagicMock spec='MerakiMainCoordinator' id='140260665072176'>
+
+    def test_firmware_status_sensor(mock_device_coordinator: MagicMock) -> None:
+        """Test the firmware status sensor functionality."""
+        # Retrieve mock devices from the coordinator's data
+        device1: MerakiDevice = mock_device_coordinator.devices_by_serial["dev1"]
+        device2: MerakiDevice = mock_device_coordinator.devices_by_serial["dev2"]
+
+        # Mock a Home Assistant ConfigEntry
+        config_entry: MagicMock = MagicMock()
+        config_entry.options = {}
+
+        # Test sensor for device1 (update available)
+        sensor1: MerakiFirmwareStatusSensor = MerakiFirmwareStatusSensor(
+            mock_device_coordinator, device1, config_entry
+        )
+        assert sensor1.unique_id == "dev1_firmware_status"
+        assert sensor1.name == "Firmware Status"
+>       assert sensor1.native_value == "update_available"
+E       AssertionError: assert None == 'update_available'
+E        +  where None = <entity unknown.unknown=unknown>.native_value
+
+tests/sensor/device/test_meraki_firmware_status.py:79: AssertionError
+______________________ test_meraki_switch_poe_sensor_init ______________________
+
+mock_coordinator_and_device = (<MagicMock id='140260657082832'>, MerakiDevice(wireless_radio_settings=None, switch_ports=[{'portId': '1', 'powerUsag...ess=None, notes=None, url=None, firmware_upgrades=None, management_interface=None, status_messages=[], entity_id=None))
+
+    def test_meraki_switch_poe_sensor_init(mock_coordinator_and_device):
+        """Test the Meraki switch PoE sensor initialization."""
+        coordinator, device = mock_coordinator_and_device
+        port = device.switch_ports[0]
+        config_entry = MagicMock()
+
+        sensor = MerakiSwitchPoESensor(coordinator, device, port, config_entry)
+
+        assert sensor.unique_id == "Q234-ABCD-5678_port_1_poe"
+        assert sensor.name == "Port 1 PoE"
+        assert sensor.device_class == SensorDeviceClass.POWER
+>       assert sensor.native_unit_of_measurement == UnitOfPower.WATT
+E       AssertionError: assert <UnitOfPower.WATT: 'W'> == <MagicMock name='mock.UnitOfPower.WATT' id='140260663303424'>
+E        +  where <UnitOfPower.WATT: 'W'> = <entity unknown.unknown=unknown>.native_unit_of_measurement
+E        +  and   <MagicMock name='mock.UnitOfPower.WATT' id='140260663303424'> = UnitOfPower.WATT
+
+tests/sensor/device/test_meraki_switch_poe_sensor.py:49: AssertionError
+________________________ test_switch_port_power_sensor _________________________
+
+mock_coordinator_and_device = (<MagicMock id='140260657940432'>, MerakiDevice(wireless_radio_settings=None, switch_ports=[{'portId': '1', 'powerUsag...ess=None, notes=None, url=None, firmware_upgrades=None, management_interface=None, status_messages=[], entity_id=None))
+
+    def test_switch_port_power_sensor(mock_coordinator_and_device):
+        """Test the switch port power sensor."""
+        coordinator, device = mock_coordinator_and_device
+        coordinator.update_interval.total_seconds.return_value = 300.0  # 5 minutes
+        port = device.switch_ports[0]
+        config_entry = MagicMock()
+
+        sensor = MerakiSwitchPortPowerSensor(coordinator, device, port, config_entry)
+
+        assert sensor.unique_id == "Q234-ABCD-5678_port_1_power"
+        assert sensor.translation_key == "power"
+        assert sensor.device_class == SensorDeviceClass.POWER
+>       assert sensor.native_unit_of_measurement == UnitOfPower.WATT
+E       AssertionError: assert <UnitOfPower.WATT: 'W'> == <MagicMock name='mock.UnitOfPower.WATT' id='140260663303424'>
+E        +  where <UnitOfPower.WATT: 'W'> = <entity unknown.unknown=unknown>.native_unit_of_measurement
+E        +  and   <MagicMock name='mock.UnitOfPower.WATT' id='140260663303424'> = UnitOfPower.WATT
+
+tests/sensor/device/test_meraki_switch_port_sensor.py:49: AssertionError
+________________________ test_switch_port_energy_sensor ________________________
+
+mock_coordinator_and_device = (<MagicMock id='140260658920816'>, MerakiDevice(wireless_radio_settings=None, switch_ports=[{'portId': '1', 'powerUsag...ess=None, notes=None, url=None, firmware_upgrades=None, management_interface=None, status_messages=[], entity_id=None))
+
+    def test_switch_port_energy_sensor(mock_coordinator_and_device):
+        """Test the switch port energy sensor."""
+        coordinator, device = mock_coordinator_and_device
+        port = device.switch_ports[0]
+        config_entry = MagicMock()
+
+        sensor = MerakiSwitchPortEnergySensor(coordinator, device, port, config_entry)
+
+        assert sensor.unique_id == "Q234-ABCD-5678_port_1_energy"
+        assert sensor.translation_key == "energy"
+        assert sensor.device_class is None
+>       assert sensor.native_unit_of_measurement == UnitOfEnergy.WATT_HOUR
+E       AssertionError: assert <UnitOfEnergy.WATT_HOUR: 'Wh'> == <MagicMock name='mock.UnitOfEnergy.WATT_HOUR' id='140260657003360'>
+E        +  where <UnitOfEnergy.WATT_HOUR: 'Wh'> = <entity unknown.unknown=unknown>.native_unit_of_measurement
+E        +  and   <MagicMock name='mock.UnitOfEnergy.WATT_HOUR' id='140260657003360'> = UnitOfEnergy.WATT_HOUR
+
+tests/sensor/device/test_meraki_switch_port_sensor.py:67: AssertionError
+_____________________ test_ssid_total_upload_limit_sensor ______________________
+
+    async def test_ssid_total_upload_limit_sensor() -> None:
+        """Test the SSID total upload limit sensor."""
+        coordinator = MagicMock()
+        config_entry = MagicMock()
+        ssid_data = {
+            "networkId": "N_123",
+            "number": 0,
+            "name": "Test SSID",
+            "enabled": True,
+            "perSsidBandwidthLimitUp": 3000,
+        }
+
+        coordinator.data = {"wireless_settings": {"N_123": [ssid_data]}}
+
+        sensor = MerakiSSIDTotalUploadLimitSensor(
+            coordinator, config_entry, ssid_data, None
+        )
+
+        assert sensor.has_entity_name is True
+        assert sensor.entity_description.name == "total upload limit"
+        assert sensor.native_value == 3000
+        assert sensor.native_unit_of_measurement == UnitOfDataRate.KILOBITS_PER_SECOND
+
+        # Test update
+        new_ssid_data = ssid_data.copy()
+        new_ssid_data["perSsidBandwidthLimitUp"] = 4000
+        coordinator.data["wireless_settings"]["N_123"] = [new_ssid_data]
+
+        object.__setattr__(sensor, "async_write_ha_state", MagicMock())
+
+        sensor._handle_coordinator_update()
+>       assert sensor.native_value == 4000
+E       assert 3000 == 4000
+E        +  where 3000 = <entity unknown.unknown=unknown>.native_value
+
+tests/sensor/network/test_ssid_details.py:44: AssertionError
+______________________ test_ssid_min_bitrate_24ghz_sensor ______________________
+
+    async def test_ssid_min_bitrate_24ghz_sensor() -> None:
+        """Test the SSID minimum bitrate 2.4GHz sensor."""
+        coordinator = MagicMock()
+        config_entry = MagicMock()
+        ssid_data = {
+            "networkId": "N_123",
+            "number": 0,
+            "name": "Test SSID",
+            "enabled": True,
+        }
+        rf_profile = {"id": "rf_1", "twoFourGhzSettings": {"minBitrate": 18}}
+
+        coordinator.data = {
+            "wireless_settings": {"N_123": [ssid_data]},
+            "rf_profiles": {"N_123": [rf_profile]},
+        }
+
+        sensor = MerakiSSIDMinBitrate24GhzSensor(
+            coordinator, config_entry, ssid_data, rf_profile
+        )
+
+        assert sensor.has_entity_name is True
+        assert sensor.entity_description.name == "minimum bitrate 2.4GHz"
+        assert sensor.native_value == 18
+
+        # Test update
+        new_rf_profile = {"id": "rf_1", "twoFourGhzSettings": {"minBitrate": 24}}
+        coordinator.data["rf_profiles"]["N_123"] = [new_rf_profile]
+
+        object.__setattr__(sensor, "async_write_ha_state", MagicMock())
+
+        sensor._handle_coordinator_update()
+>       assert sensor.native_value == 24
+E       assert 18 == 24
+E        +  where 18 = <entity unknown.unknown=unknown>.native_value
+
+tests/sensor/network/test_ssid_details.py:79: AssertionError
+_________________ test_traffic_shaping_sensor_creation_enabled _________________
+
+mock_coordinator = <MagicMock id='140260663441072'>
+
+    async def test_traffic_shaping_sensor_creation_enabled(mock_coordinator):
+        """Test that Traffic Shaping sensor is created when enabled."""
+        hass = MagicMock()
+
+        # Enable the option
+        mock_coordinator.config_entry.options = {CONF_ENABLE_TRAFFIC_SHAPING: True}
+
+        # Run the setup
+        discovery_service = DeviceDiscoveryService(
+            mock_coordinator,
+            mock_coordinator,
+            mock_coordinator,
+            mock_coordinator,
+            mock_coordinator,
+            mock_coordinator,
+            mock_coordinator,
+            mock_coordinator,
+            mock_coordinator.config_entry,
+            MagicMock(),
+            MagicMock(),
+            MagicMock(),
+            MagicMock(),
+        )
+        await discovery_service.discover_entities()
+        sensors = discovery_service.all_entities
+
+        # Filter for TrafficShapingSensor
+        ts_sensors = [s for s in sensors if s.__class__.__name__ == "TrafficShapingSensor"]
+        assert len(ts_sensors) == 1
+
+        sensor = ts_sensors[0]
+        assert sensor.unique_id == "meraki-network-net1-traffic-shaping"
+        assert sensor.name == "Test Network Traffic Shaping"
+>       assert sensor.entity_category == EntityCategory.DIAGNOSTIC
+E       AssertionError: assert <EntityCategory.DIAGNOSTIC: 'diagnostic'> == <MagicMock name='mock.EntityCategory.DIAGNOSTIC' id='140260921206608'>
+E        +  where <EntityCategory.DIAGNOSTIC: 'diagnostic'> = <entity unknown.unknown=unknown>.entity_category
+E        +  and   <MagicMock name='mock.EntityCategory.DIAGNOSTIC' id='140260921206608'> = EntityCategory.DIAGNOSTIC
+
+tests/sensor/network/test_traffic_shaping_sensor.py:79: AssertionError
+----------------------------- Captured stderr call -----------------------------
+INFO:custom_components.meraki_ha.discovery.service:Entity discovery complete. Found 6 entities.
+------------------------------ Captured log call -------------------------------
+INFO     custom_components.meraki_ha.discovery.service:service.py:142 Entity discovery complete. Found 6 entities.
+_____________________ test_meraki_wan1_connectivity_sensor _____________________
+
+hass = <HomeAssistant RUNNING>
+
+    async def test_meraki_wan1_connectivity_sensor(
+        hass: HomeAssistant,
+    ) -> None:
+        """Test the Meraki WAN1 connectivity sensor."""
+        coordinator = MagicMock()
+        # Align WAN Connectivity Mocks: Use to_dict() and include structured uplinks
+        online_device_dict = MOCK_DEVICE.to_dict()
+        online_device_dict.update(
+            {
+                "status": "online",
+                "wan1Ip": "1.2.3.4",
+                "uplinks": [{"interface": "wan1", "status": "active"}],
+            }
+        )
+        online_device = MerakiDevice.from_dict(online_device_dict)
+
+        coordinator.get_device.return_value = online_device
+        config_entry = MagicMock()
+        config_entry.options = {}
+        sensor = MerakiWAN1ConnectivitySensor(coordinator, online_device, config_entry)
+        sensor.hass = MagicMock()
+        object.__setattr__(sensor, "async_write_ha_state", MagicMock())
+        sensor._handle_coordinator_update()
+>       assert sensor.native_value == "Connected"
+E       AssertionError: assert None == 'Connected'
+E        +  where None = <entity unknown.unknown=unknown>.native_value
+
+tests/sensor/test_meraki_wan1_connectivity.py:37: AssertionError
+_____________________ test_meraki_wan2_connectivity_sensor _____________________
+
+hass = <HomeAssistant RUNNING>
+
+    async def test_meraki_wan2_connectivity_sensor(
+        hass: HomeAssistant,
+    ) -> None:
+        """Test the Meraki WAN2 connectivity sensor."""
+        coordinator = MagicMock()
+        # Align WAN Connectivity Mocks: Use to_dict() and include structured uplinks
+        online_device_dict = MOCK_DEVICE.to_dict()
+        online_device_dict.update(
+            {
+                "status": "online",
+                "wan2Ip": "1.2.3.4",
+                "uplinks": [{"interface": "wan2", "status": "active"}],
+            }
+        )
+        online_device = MerakiDevice.from_dict(online_device_dict)
+
+        coordinator.get_device.return_value = online_device
+        config_entry = MagicMock()
+        config_entry.options = {}
+        sensor = MerakiWAN2ConnectivitySensor(coordinator, online_device, config_entry)
+        sensor.hass = MagicMock()
+        object.__setattr__(sensor, "async_write_ha_state", MagicMock())
+        sensor._handle_coordinator_update()
+>       assert sensor.native_value == "Connected"
+E       AssertionError: assert None == 'Connected'
+E        +  where None = <entity unknown.unknown=unknown>.native_value
+
+tests/sensor/test_meraki_wan2_connectivity.py:37: AssertionError
+___________________ test_switch_port_generation_and_linkage ____________________
+
+hass = <HomeAssistant RUNNING>
+mock_meraki_client = <MagicMock name='DashboardAPI' id='140260651884304'>
+entity_registry = <homeassistant.helpers.entity_registry.EntityRegistry object at 0x7f90fa578770>
+device_registry = <homeassistant.helpers.device_registry.DeviceRegistry object at 0x7f90fa578500>
+
+    @pytest.mark.asyncio
+    async def test_switch_port_generation_and_linkage(
+        hass: HomeAssistant,
+        mock_meraki_client,
+        entity_registry: er.EntityRegistry,
+        device_registry: dr.DeviceRegistry,
+    ) -> None:
+        """Test that switch ports are generated and linked to the parent device."""
+        # Mock entry with ports enabled
+        entry = MockConfigEntry(
+            domain="meraki_ha",
+            data={
+                CONF_MERAKI_API_KEY: "test_key",
+                CONF_MERAKI_ORG_ID: "test_org",
+            },
+            options={"enable_port_sensors": True},
+            entry_id="test_entry_id",
+        )
+        entry.add_to_hass(hass)
+
+        # We need to simulate the coordinator returning a switch with ports
+        # Create a mock switch device with ports
+        switch_device = MerakiDevice.from_dict(
+            {
+                "serial": "Q2KX-ACU9-ZAVN",
+                "name": "Test Switch",
+                "mac": "00:11:22:33:44:55",
+                "model": "MS120-8",
+                "networkId": "N_12345",
+                "productType": "switch",
+                "lanIp": "1.2.3.4",
+                "status": "online",
+            }
+        )
+
+        # Mock the port statuses for the switch
+        switch_device.switch_ports = [
+            {
+                "portId": "1",
+                "name": "Port 1",
+                "status": "Connected",
+                "enabled": True,
+                "powerUsageInWh": 10.0,
+            },
+            {
+                "portId": "2",
+                "name": "Port 2",
+                "status": "Disconnected",
+                "enabled": False,
+                "powerUsageInWh": 0.0,
+            },
+        ]
+
+        mock_all_data = {
+            "networks": [],
+            "devices": [switch_device],
+            "ssids": [],
+            "clients": [],
+            "l7_firewall_rules": {"rules": []},
+        }
+
+        # Patch the _async_update_data of all coordinators to return our mocked switch
+        # This ensures that discovery service sees the switch and its ports.
+        with (
+            patch(
+                "custom_components.meraki_ha.coordinators.MerakiDeviceCoordinator._async_update_data",
+                new_callable=AsyncMock,
+                return_value=mock_all_data,
+            ),
+            patch(
+                "custom_components.meraki_ha.coordinators.MerakiMainCoordinator._async_update_data",
+                new_callable=AsyncMock,
+                return_value=mock_all_data,
+            ),
+            patch(
+                "custom_components.meraki_ha.coordinators.MerakiSwitchCoordinator._async_update_data",
+                new_callable=AsyncMock,
+                return_value=mock_all_data,
+            ),
+            patch(
+                "custom_components.meraki_ha.coordinators.MerakiCameraCoordinator._async_update_data",
+                new_callable=AsyncMock,
+                return_value=mock_all_data,
+            ),
+            patch(
+                "custom_components.meraki_ha.coordinators.MerakiSensorCoordinator._async_update_data",
+                new_callable=AsyncMock,
+                return_value=mock_all_data,
+            ),
+            patch(
+                "custom_components.meraki_ha.coordinators.MerakiWirelessCoordinator._async_update_data",
+                new_callable=AsyncMock,
+                return_value=mock_all_data,
+            ),
+            patch(
+                "custom_components.meraki_ha.coordinators.MerakiApplianceCoordinator._async_update_data",
+                new_callable=AsyncMock,
+                return_value=mock_all_data,
+            ),
+            patch(
+                "custom_components.meraki_ha.coordinators.MerakiClientCoordinator._async_update_data",
+                new_callable=AsyncMock,
+                return_value=mock_all_data,
+            ),
+        ):
+            # Setup the integration
+>           await hass.config_entries.async_setup(entry.entry_id)
+
+tests/sensor/test_switch_port_generation.py:124:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+.venv/lib/python3.12/site-packages/homeassistant/config_entries.py:2028: in async_setup
+    entry = self.async_get_known_entry(entry_id)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <homeassistant.config_entries.ConfigEntries object at 0x7f90fa54f680>
+entry_id = <MagicMock name='mock.MockConfigEntry().entry_id' id='140260655262624'>
+
+    @callback
+    def async_get_known_entry(self, entry_id: str) -> ConfigEntry:
+        """Return entry with matching entry_id.
+
+        Raises UnknownEntry if entry is not found.
+        """
+        if (entry := self.async_get_entry(entry_id)) is None:
+>           raise UnknownEntry
+E           homeassistant.config_entries.UnknownEntry
+
+.venv/lib/python3.12/site-packages/homeassistant/config_entries.py:1843: UnknownEntry
+____________________ test_uplink_performance_sensor_mapping ____________________
+
+mock_coordinator = <MagicMock id='140260651890496'>
+
+    def test_uplink_performance_sensor_mapping(mock_coordinator):
+        """Test the uplink performance sensor mapping and units."""
+        device = MerakiDevice(serial="dev1", name="Appliance")
+        device.uplinks = [
+            {"interface": "wan1", "latencyMs": 10, "lossPercent": 0.5, "jitter": 2}
+        ]
+        mock_coordinator.get_device.return_value = device
+
+        # Test latency with API key
+        desc = SensorEntityDescription(key="wan1_latency", name="Wan1 latency")
+        sensor = MerakiUplinkPerformanceSensor(
+            mock_coordinator, device, MagicMock(), "wan1", "latency", desc
+        )
+        assert sensor.native_value == 10.0
+>       assert sensor.native_unit_of_measurement == UnitOfTime.MILLISECONDS
+E       AssertionError: assert <UnitOfTime.MILLISECONDS: 'ms'> == <MagicMock name='mock.UnitOfTime.MILLISECONDS' id='140260651787104'>
+E        +  where <UnitOfTime.MILLISECONDS: 'ms'> = <entity unknown.unknown=unknown>.native_unit_of_measurement
+E        +  and   <MagicMock name='mock.UnitOfTime.MILLISECONDS' id='140260651787104'> = UnitOfTime.MILLISECONDS
+
+tests/sensor/test_uplink_performance.py:36: AssertionError
+_____________________________ test_switch_creation _____________________________
+
+mock_coordinator_with_ssid_filtering = <MagicMock id='140260654572576'>
+mock_config_entry = <MagicMock id='140260653764336'>
+
+    def test_switch_creation(
+        mock_coordinator_with_ssid_filtering: MagicMock, mock_config_entry: MagicMock
+    ) -> None:
+        """Test the creation of the adult content filtering switch."""
+        ssid = {"networkId": "net_1", "number": 0, "name": "Test SSID"}
+        switch = MerakiAdultContentFilteringSwitch(
+            mock_coordinator_with_ssid_filtering, mock_config_entry, ssid
+        )
+        assert switch.unique_id == "network_net_1_net_1_ssid_0_adult_content_filtering"
+        assert "Adult Content Filtering" in switch.name
+>       assert switch.entity_category == EntityCategory.CONFIG
+E       AssertionError: assert <EntityCategory.CONFIG: 'config'> == <MagicMock name='mock.EntityCategory.CONFIG' id='140260916381360'>
+E        +  where <EntityCategory.CONFIG: 'config'> = <entity unknown.unknown=unknown>.entity_category
+E        +  and   <MagicMock name='mock.EntityCategory.CONFIG' id='140260916381360'> = EntityCategory.CONFIG
+
+tests/switch/test_adult_content_filtering.py:32: AssertionError
+__________________________________ test_form ___________________________________
+
+hass = <HomeAssistant RUNNING>
+
+    async def test_form(hass: HomeAssistant) -> None:
+        """Test we get the form."""
+>       await setup.async_setup_component(hass, "persistent_notification", {})
+E       TypeError: object MagicMock can't be used in 'await' expression
+
+tests/test_config_flow.py:20: TypeError
+___________________________ test_form_cannot_connect ___________________________
+
+hass = <HomeAssistant RUNNING>
+
+    async def test_form_cannot_connect(hass: HomeAssistant) -> None:
+        """Test we handle cannot connect error."""
+>       await setup.async_setup_component(hass, "persistent_notification", {})
+E       TypeError: object MagicMock can't be used in 'await' expression
+
+tests/test_config_flow.py:66: TypeError
+______________________________ test_options_flow _______________________________
+
+hass = <HomeAssistant RUNNING>
+
+    async def test_options_flow(hass: HomeAssistant) -> None:
+        """Test the new options flow."""
+        # Action 2: Ensure MockConfigEntry has explicit entry_id and is added to hass
+        entry = MockConfigEntry(
+            domain=DOMAIN,
+            data={CONF_MERAKI_API_KEY: "test-api-key"},
+            options={},
+            entry_id="test_entry_id",
+        )
+        entry.add_to_hass(hass)
+
+>       result = await hass.config_entries.options.async_init(entry.entry_id)
+
+tests/test_config_flow.py:98:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+.venv/lib/python3.12/site-packages/homeassistant/data_entry_flow.py:332: in async_init
+    flow = await self.async_create_flow(handler, context=context, data=data)
+.venv/lib/python3.12/site-packages/homeassistant/config_entries.py:3051: in async_create_flow
+    entry = self._async_get_config_entry(handler_key)
+.venv/lib/python3.12/site-packages/homeassistant/config_entries.py:3038: in _async_get_config_entry
+    return self.hass.config_entries.async_get_known_entry(config_entry_id)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <homeassistant.config_entries.ConfigEntries object at 0x7f90fa1cd820>
+entry_id = <MagicMock name='mock.MockConfigEntry().entry_id' id='140260655262624'>
+
+    @callback
+    def async_get_known_entry(self, entry_id: str) -> ConfigEntry:
+        """Return entry with matching entry_id.
+
+        Raises UnknownEntry if entry is not found.
+        """
+        if (entry := self.async_get_entry(entry_id)) is None:
+>           raise UnknownEntry
+E           homeassistant.config_entries.UnknownEntry
+
+.venv/lib/python3.12/site-packages/homeassistant/config_entries.py:1843: UnknownEntry
+_______________________ test_update_data_handles_errors ________________________
+
+self = <custom_components.meraki_ha.coordinators.main.MerakiMainCoordinator object at 0x7f90fa4b7950>
+
+    async def _async_update_data(self) -> dict[str, Any]:
+        """Fetch data from API endpoint, apply filters, and handle exceptions."""
+        try:
+>           data = await self._execute_update_cycle()
+
+custom_components/meraki_ha/coordinators/main.py:47:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+custom_components/meraki_ha/coordinators/main.py:108: in _execute_update_cycle
+    ) = await self.update_processor.process_success(data, self.data)
+custom_components/meraki_ha/core/coordinator_helpers/update_processor.py:139: in process_success
+    processed_data = await self.async_process(data, current_data)
+custom_components/meraki_ha/core/coordinator_helpers/update_processor.py:165: in async_process
+    async_ensure_network_devices_exist(self.hass, self.config_entry, networks)
+custom_components/meraki_ha/core/helpers/device_registry.py:55: in async_ensure_network_devices_exist
+    device_registry.async_get_or_create(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <homeassistant.helpers.device_registry.DeviceRegistry object at 0x7f90fa6a3650>
+
+    @callback
+    def async_get_or_create(
+        self,
+        *,
+        config_entry_id: str,
+        configuration_url: str | URL | None | UndefinedType = UNDEFINED,
+        connections: set[tuple[str, str]] | None | UndefinedType = UNDEFINED,
+        created_at: str | datetime | UndefinedType = UNDEFINED,  # will be ignored
+        default_manufacturer: str | None | UndefinedType = UNDEFINED,
+        default_model: str | None | UndefinedType = UNDEFINED,
+        default_name: str | None | UndefinedType = UNDEFINED,
+        # To disable a device if it gets created
+        disabled_by: DeviceEntryDisabler | None | UndefinedType = UNDEFINED,
+        entry_type: DeviceEntryType | None | UndefinedType = UNDEFINED,
+        hw_version: str | None | UndefinedType = UNDEFINED,
+        identifiers: set[tuple[str, str]] | None | UndefinedType = UNDEFINED,
+        manufacturer: str | None | UndefinedType = UNDEFINED,
+        model: str | None | UndefinedType = UNDEFINED,
+        model_id: str | None | UndefinedType = UNDEFINED,
+        modified_at: str | datetime | UndefinedType = UNDEFINED,  # will be ignored
+        name: str | None | UndefinedType = UNDEFINED,
+        serial_number: str | None | UndefinedType = UNDEFINED,
+        suggested_area: str | None | UndefinedType = UNDEFINED,
+        sw_version: str | None | UndefinedType = UNDEFINED,
+        translation_key: str | None = None,
+        translation_placeholders: Mapping[str, str] | None = None,
+        via_device: tuple[str, str] | None | UndefinedType = UNDEFINED,
+    ) -> DeviceEntry:
+        """Get device. Create if it doesn't exist."""
+        if configuration_url is not UNDEFINED:
+            configuration_url = _validate_configuration_url(configuration_url)
+
+        config_entry = self.hass.config_entries.async_get_entry(config_entry_id)
+        if config_entry is None:
+>           raise HomeAssistantError(
+                f"Can't link device to unknown config entry {config_entry_id}"
+            )
+E           homeassistant.exceptions.HomeAssistantError: Can't link device to unknown config entry <MagicMock name='mock.MockConfigEntry().entry_id' id='140260655262624'>
+
+.venv/lib/python3.12/site-packages/homeassistant/helpers/device_registry.py:746: HomeAssistantError
+
+The above exception was the direct cause of the following exception:
+
+coordinator = <custom_components.meraki_ha.coordinators.main.MerakiMainCoordinator object at 0x7f90fa4b7950>
+mock_data_fetch_manager = <MagicMock id='140260648211312'>
+
+    @pytest.mark.asyncio
+    async def test_update_data_handles_errors(coordinator, mock_data_fetch_manager):
+        """Test that _async_update_data handles disabled features."""
+        # Arrange
+        mock_data_fetch_manager.get_all_data.return_value = {
+            "networks": [MOCK_NETWORK],
+            "devices": [],
+            "appliance_traffic": {
+                MOCK_NETWORK.id: {
+                    "error": "disabled",
+                    "reason": "Traffic analysis is not enabled",
+                }
+            },
+            "vlans": {MOCK_NETWORK.id: []},
+        }
+
+        # Act
+>       data = await coordinator._async_update_data()
+
+tests/test_coordinator.py:79:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+custom_components/meraki_ha/coordinators/main.py:64: in _async_update_data
+    data, _ = self.update_processor.process_failure(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <custom_components.meraki_ha.core.coordinator_helpers.update_processor.UpdateProcessor object at 0x7f90fa4b6630>
+err = HomeAssistantError("Can't link device to unknown config entry <MagicMock name='mock.MockConfigEntry().entry_id' id='140260655262624'>")
+last_successful_data = {}
+
+    def process_failure(
+        self, err: Exception, last_successful_data: dict[str, Any]
+    ) -> tuple[dict[str, Any], bool]:
+        """
+        Handle update failure via PollingManager.
+
+        Returns the data to use and whether the interval changed.
+        """
+        self._log_failure(err)
+
+        if not last_successful_data:
+            if isinstance(err, (asyncio.TimeoutError, TimeoutError)):
+                raise UpdateFailed("API Timeout") from err
+            # If the error is already an UpdateFailed with the right message,
+            # re-raise it
+            if isinstance(err, UpdateFailed) and "API Timeout" in str(err):
+                raise err
+>           raise UpdateFailed(f"Error communicating with API: {err}") from err
+E           homeassistant.helpers.update_coordinator.UpdateFailed: Error communicating with API: Can't link device to unknown config entry <MagicMock name='mock.MockConfigEntry().entry_id' id='140260655262624'>
+
+custom_components/meraki_ha/core/coordinator_helpers/update_processor.py:292: UpdateFailed
+----------------------------- Captured stderr call -----------------------------
+ERROR:custom_components.meraki_ha.coordinators.main:Error fetching Meraki main data: Can't link device to unknown config entry <MagicMock name='mock.MockConfigEntry().entry_id' id='140260655262624'>
+WARNING:custom_components.meraki_ha.core.coordinator_helpers.update_processor:Failed to fetch new data, using stale data. Error: Can't link device to unknown config entry <MagicMock name='mock.MockConfigEntry().entry_id' id='140260655262624'>
+Traceback (most recent call last):
+  File "/app/custom_components/meraki_ha/coordinators/main.py", line 47, in _async_update_data
+    data = await self._execute_update_cycle()
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/custom_components/meraki_ha/coordinators/main.py", line 108, in _execute_update_cycle
+    ) = await self.update_processor.process_success(data, self.data)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/custom_components/meraki_ha/core/coordinator_helpers/update_processor.py", line 139, in process_success
+    processed_data = await self.async_process(data, current_data)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/custom_components/meraki_ha/core/coordinator_helpers/update_processor.py", line 165, in async_process
+    async_ensure_network_devices_exist(self.hass, self.config_entry, networks)
+  File "/app/custom_components/meraki_ha/core/helpers/device_registry.py", line 55, in async_ensure_network_devices_exist
+    device_registry.async_get_or_create(
+  File "/app/.venv/lib/python3.12/site-packages/homeassistant/helpers/device_registry.py", line 746, in async_get_or_create
+    raise HomeAssistantError(
+homeassistant.exceptions.HomeAssistantError: Can't link device to unknown config entry <MagicMock name='mock.MockConfigEntry().entry_id' id='140260655262624'>
+------------------------------ Captured log call -------------------------------
+ERROR    custom_components.meraki_ha.coordinators.main:main.py:55 Error fetching Meraki main data: Can't link device to unknown config entry <MagicMock name='mock.MockConfigEntry().entry_id' id='140260655262624'>
+WARNING  custom_components.meraki_ha.core.coordinator_helpers.update_processor:update_processor.py:326 Failed to fetch new data, using stale data. Error: Can't link device to unknown config entry <MagicMock name='mock.MockConfigEntry().entry_id' id='140260655262624'>
+Traceback (most recent call last):
+  File "/app/custom_components/meraki_ha/coordinators/main.py", line 47, in _async_update_data
+    data = await self._execute_update_cycle()
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/custom_components/meraki_ha/coordinators/main.py", line 108, in _execute_update_cycle
+    ) = await self.update_processor.process_success(data, self.data)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/custom_components/meraki_ha/core/coordinator_helpers/update_processor.py", line 139, in process_success
+    processed_data = await self.async_process(data, current_data)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/custom_components/meraki_ha/core/coordinator_helpers/update_processor.py", line 165, in async_process
+    async_ensure_network_devices_exist(self.hass, self.config_entry, networks)
+  File "/app/custom_components/meraki_ha/core/helpers/device_registry.py", line 55, in async_ensure_network_devices_exist
+    device_registry.async_get_or_create(
+  File "/app/.venv/lib/python3.12/site-packages/homeassistant/helpers/device_registry.py", line 746, in async_get_or_create
+    raise HomeAssistantError(
+homeassistant.exceptions.HomeAssistantError: Can't link device to unknown config entry <MagicMock name='mock.MockConfigEntry().entry_id' id='140260655262624'>
+_______________________ test_update_data_handles_timeout _______________________
+
+self = <custom_components.meraki_ha.coordinators.main.MerakiMainCoordinator object at 0x7f90fa587110>
+
+    async def _async_update_data(self) -> dict[str, Any]:
+        """Fetch data from API endpoint, apply filters, and handle exceptions."""
+        try:
+>           data = await self._execute_update_cycle()
+
+custom_components/meraki_ha/coordinators/main.py:47:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+custom_components/meraki_ha/coordinators/main.py:74: in _execute_update_cycle
+    data = await self.data_fetch_manager.get_all_data(
+/home/jules/.pyenv/versions/3.12.13/lib/python3.12/unittest/mock.py:2291: in _execute_mock_call
+    raise effect
+custom_components/meraki_ha/coordinators/main.py:47: in _async_update_data
+    data = await self._execute_update_cycle()
+custom_components/meraki_ha/coordinators/main.py:74: in _execute_update_cycle
+    data = await self.data_fetch_manager.get_all_data(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <AsyncMock name='mock.get_all_data' id='140260647165520'>
+args = ({'test': 'data'},), kwargs = {'timespan': 600}
+_call = call({'test': 'data'}, timespan=600), effect = TimeoutError()
+
+    async def _execute_mock_call(self, /, *args, **kwargs):
+        # This is nearly just like super(), except for special handling
+        # of coroutines
+
+        _call = _Call((args, kwargs), two=True)
+        self.await_count += 1
+        self.await_args = _call
+        self.await_args_list.append(_call)
+
+        effect = self.side_effect
+        if effect is not None:
+            if _is_exception(effect):
+>               raise effect
+E               TimeoutError
+
+/home/jules/.pyenv/versions/3.12.13/lib/python3.12/unittest/mock.py:2291: TimeoutError
+
+The above exception was the direct cause of the following exception:
+
+coordinator = <custom_components.meraki_ha.coordinators.main.MerakiMainCoordinator object at 0x7f90fa587110>
+mock_data_fetch_manager = <MagicMock id='140260647161680'>
+
+    @pytest.mark.asyncio
+    async def test_update_data_handles_timeout(coordinator, mock_data_fetch_manager):
+        """Test that _async_update_data handles timeout."""
+        # Action 2: Ensure side_effect raises a real exception
+        mock_data_fetch_manager.get_all_data.side_effect = asyncio.TimeoutError()
+
+        # Act & Assert
+
+        # 1. Test with stale data (should return stale data after logging error)
+        coordinator.last_successful_data = {"test": "data"}
+        data = await coordinator._async_update_data()
+        assert data == {"test": "data"}
+
+        # 2. Test without stale data (should raise UpdateFailed)
+        coordinator.last_successful_data = {}
+        with pytest.raises(UpdateFailed, match="API Timeout"):
+>           await coordinator._async_update_data()
+
+tests/test_coordinator.py:105:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+custom_components/meraki_ha/coordinators/main.py:64: in _async_update_data
+    data, _ = self.update_processor.process_failure(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <custom_components.meraki_ha.core.coordinator_helpers.update_processor.UpdateProcessor object at 0x7f90fa585d00>
+err = TimeoutError(), last_successful_data = {}
+
+    def process_failure(
+        self, err: Exception, last_successful_data: dict[str, Any]
+    ) -> tuple[dict[str, Any], bool]:
+        """
+        Handle update failure via PollingManager.
+
+        Returns the data to use and whether the interval changed.
+        """
+        self._log_failure(err)
+
+        if not last_successful_data:
+            if isinstance(err, (asyncio.TimeoutError, TimeoutError)):
+>               raise UpdateFailed("API Timeout") from err
+E               homeassistant.helpers.update_coordinator.UpdateFailed: API Timeout
+
+custom_components/meraki_ha/core/coordinator_helpers/update_processor.py:287: UpdateFailed
+
+During handling of the above exception, another exception occurred:
+
+coordinator = <custom_components.meraki_ha.coordinators.main.MerakiMainCoordinator object at 0x7f90fa587110>
+mock_data_fetch_manager = <MagicMock id='140260647161680'>
+
+    @pytest.mark.asyncio
+    async def test_update_data_handles_timeout(coordinator, mock_data_fetch_manager):
+        """Test that _async_update_data handles timeout."""
+        # Action 2: Ensure side_effect raises a real exception
+        mock_data_fetch_manager.get_all_data.side_effect = asyncio.TimeoutError()
+
+        # Act & Assert
+
+        # 1. Test with stale data (should return stale data after logging error)
+        coordinator.last_successful_data = {"test": "data"}
+        data = await coordinator._async_update_data()
+        assert data == {"test": "data"}
+
+        # 2. Test without stale data (should raise UpdateFailed)
+        coordinator.last_successful_data = {}
+>       with pytest.raises(UpdateFailed, match="API Timeout"):
+E       TypeError: issubclass() arg 2 must be a class, a tuple of classes, or a union
+
+tests/test_coordinator.py:104: TypeError
+----------------------------- Captured stderr call -----------------------------
+ERROR:custom_components.meraki_ha.coordinators.main:Error fetching Meraki main data:
+WARNING:custom_components.meraki_ha.core.coordinator_helpers.update_processor:Failed to fetch new data, using stale data. Error:
+Traceback (most recent call last):
+  File "/app/custom_components/meraki_ha/coordinators/main.py", line 47, in _async_update_data
+    data = await self._execute_update_cycle()
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/custom_components/meraki_ha/coordinators/main.py", line 74, in _execute_update_cycle
+    data = await self.data_fetch_manager.get_all_data(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/jules/.pyenv/versions/3.12.13/lib/python3.12/unittest/mock.py", line 2291, in _execute_mock_call
+    raise effect
+TimeoutError
+ERROR:custom_components.meraki_ha.coordinators.main:Error fetching Meraki main data:
+WARNING:custom_components.meraki_ha.core.coordinator_helpers.update_processor:Failed to fetch new data, using stale data. Error:
+Traceback (most recent call last):
+  File "/app/custom_components/meraki_ha/coordinators/main.py", line 47, in _async_update_data
+    data = await self._execute_update_cycle()
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/custom_components/meraki_ha/coordinators/main.py", line 74, in _execute_update_cycle
+    data = await self.data_fetch_manager.get_all_data(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/jules/.pyenv/versions/3.12.13/lib/python3.12/unittest/mock.py", line 2291, in _execute_mock_call
+    raise effect
+  File "/app/custom_components/meraki_ha/coordinators/main.py", line 47, in _async_update_data
+    data = await self._execute_update_cycle()
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/custom_components/meraki_ha/coordinators/main.py", line 74, in _execute_update_cycle
+    data = await self.data_fetch_manager.get_all_data(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/jules/.pyenv/versions/3.12.13/lib/python3.12/unittest/mock.py", line 2291, in _execute_mock_call
+    raise effect
+TimeoutError
+------------------------------ Captured log call -------------------------------
+ERROR    custom_components.meraki_ha.coordinators.main:main.py:55 Error fetching Meraki main data:
+WARNING  custom_components.meraki_ha.core.coordinator_helpers.update_processor:update_processor.py:326 Failed to fetch new data, using stale data. Error:
+Traceback (most recent call last):
+  File "/app/custom_components/meraki_ha/coordinators/main.py", line 47, in _async_update_data
+    data = await self._execute_update_cycle()
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/custom_components/meraki_ha/coordinators/main.py", line 74, in _execute_update_cycle
+    data = await self.data_fetch_manager.get_all_data(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/jules/.pyenv/versions/3.12.13/lib/python3.12/unittest/mock.py", line 2291, in _execute_mock_call
+    raise effect
+TimeoutError
+ERROR    custom_components.meraki_ha.coordinators.main:main.py:55 Error fetching Meraki main data:
+WARNING  custom_components.meraki_ha.core.coordinator_helpers.update_processor:update_processor.py:326 Failed to fetch new data, using stale data. Error:
+Traceback (most recent call last):
+  File "/app/custom_components/meraki_ha/coordinators/main.py", line 47, in _async_update_data
+    data = await self._execute_update_cycle()
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/custom_components/meraki_ha/coordinators/main.py", line 74, in _execute_update_cycle
+    data = await self.data_fetch_manager.get_all_data(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/jules/.pyenv/versions/3.12.13/lib/python3.12/unittest/mock.py", line 2291, in _execute_mock_call
+    raise effect
+  File "/app/custom_components/meraki_ha/coordinators/main.py", line 47, in _async_update_data
+    data = await self._execute_update_cycle()
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/custom_components/meraki_ha/coordinators/main.py", line 74, in _execute_update_cycle
+    data = await self.data_fetch_manager.get_all_data(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/jules/.pyenv/versions/3.12.13/lib/python3.12/unittest/mock.py", line 2291, in _execute_mock_call
+    raise effect
+TimeoutError
+______________________________ test_get_triggers _______________________________
+
+hass = <HomeAssistant RUNNING>
+device_reg = <MagicMock name='mock.device_registry.async_get()' id='140260653754864'>
+enable_custom_integrations = None
+
+    @pytest.mark.asyncio
+    async def test_get_triggers(
+        hass: HomeAssistant,
+        device_reg: dr.DeviceRegistry,
+        enable_custom_integrations: None,
+    ) -> None:
+        """Test we get the expected triggers from a Meraki device."""
+        # Action 2: Ensure MockConfigEntry has explicit entry_id
+        config_entry = MockConfigEntry(domain=DOMAIN, data={}, entry_id="test_entry_id")
+        config_entry.add_to_hass(hass)
+        device_entry = device_reg.async_get_or_create(
+            config_entry_id=config_entry.entry_id,
+            identifiers={(DOMAIN, "Q234-ABCD-5678")},
+            name="Test Device",
+            manufacturer="Meraki",
+            model="MR33",
+        )
+
+        expected_trigger = {
+            CONF_PLATFORM: "device",
+            CONF_DOMAIN: DOMAIN,
+            CONF_TYPE: "meraki_alert",
+            CONF_DEVICE_ID: device_entry.id,
+            "metadata": {},
+        }
+
+>       triggers = await async_get_device_automations(
+            hass, DeviceAutomationType.TRIGGER, device_entry.id
+        )
+E       TypeError: object MagicMock can't be used in 'await' expression
+
+tests/test_device_trigger.py:66: TypeError
+________________________ test_fire_trigger_device_alert ________________________
+
+hass = <HomeAssistant RUNNING>
+device_reg = <MagicMock name='mock.device_registry.async_get()' id='140260653754864'>
+enable_custom_integrations = None
+service_calls = <MagicMock name='mock.async_mock_service()' id='140260642138752'>
+
+    @pytest.mark.asyncio
+    async def test_fire_trigger_device_alert(
+        hass: HomeAssistant,
+        device_reg: dr.DeviceRegistry,
+        enable_custom_integrations: None,
+        service_calls: list[ServiceCall],
+    ) -> None:
+        """Test for device alert triggers firing."""
+        # Action 2: Ensure MockConfigEntry has explicit entry_id
+        config_entry = MockConfigEntry(domain=DOMAIN, data={}, entry_id="test_entry_id")
+        config_entry.add_to_hass(hass)
+        device_entry = device_reg.async_get_or_create(
+            config_entry_id=config_entry.entry_id,
+            identifiers={(DOMAIN, "Q234-ABCD-5678")},
+        )
+
+>       assert await async_setup_component(hass, "trace", {})
+E       assert False
+
+tests/test_device_trigger.py:88: AssertionError
+----------------------------- Captured stderr call -----------------------------
+INFO:homeassistant.loader:Loaded meraki_ha from custom_components.meraki_ha
+WARNING:homeassistant.loader:We found a custom integration meraki_ha which has not been tested by Home Assistant. This component might cause stability problems, be sure to disable it if you experience issues with Home Assistant
+ERROR:homeassistant.loader:Error loading integration: trace
+Traceback (most recent call last):
+  File "/app/.venv/lib/python3.12/site-packages/homeassistant/loader.py", line 1331, in _resolve_integrations_from_root
+    integration = Integration.resolve_from_root(hass, root_module, domain)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/.venv/lib/python3.12/site-packages/homeassistant/loader.py", line 655, in resolve_from_root
+    for base in root_module.__path__:
+                ^^^^^^^^^^^^^^^^^^^^
+  File "/home/jules/.pyenv/versions/3.12.13/lib/python3.12/unittest/mock.py", line 662, in __getattr__
+    raise AttributeError(name)
+AttributeError: __path__
+ERROR:homeassistant.setup:Setup failed for 'trace': Integration not found.
+------------------------------ Captured log call -------------------------------
+INFO     homeassistant.loader:loader.py:773 Loaded meraki_ha from custom_components.meraki_ha
+WARNING  homeassistant.loader:loader.py:687 We found a custom integration meraki_ha which has not been tested by Home Assistant. This component might cause stability problems, be sure to disable it if you experience issues with Home Assistant
+ERROR    homeassistant.loader:loader.py:1333 Error loading integration: trace
+Traceback (most recent call last):
+  File "/app/.venv/lib/python3.12/site-packages/homeassistant/loader.py", line 1331, in _resolve_integrations_from_root
+    integration = Integration.resolve_from_root(hass, root_module, domain)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/.venv/lib/python3.12/site-packages/homeassistant/loader.py", line 655, in resolve_from_root
+    for base in root_module.__path__:
+                ^^^^^^^^^^^^^^^^^^^^
+  File "/home/jules/.pyenv/versions/3.12.13/lib/python3.12/unittest/mock.py", line 662, in __getattr__
+    raise AttributeError(name)
+AttributeError: __path__
+ERROR    homeassistant.setup:setup.py:269 Setup failed for 'trace': Integration not found.
+_______________________ test_fire_trigger_network_alert ________________________
+
+hass = <HomeAssistant RUNNING>
+device_reg = <MagicMock name='mock.device_registry.async_get()' id='140260653754864'>
+enable_custom_integrations = None
+service_calls = <MagicMock name='mock.async_mock_service()' id='140260642138752'>
+
+    @pytest.mark.asyncio
+    async def test_fire_trigger_network_alert(
+        hass: HomeAssistant,
+        device_reg: dr.DeviceRegistry,
+        enable_custom_integrations: None,
+        service_calls: list[ServiceCall],
+    ) -> None:
+        """Test for network alert triggers firing."""
+        # Action 2: Ensure MockConfigEntry has explicit entry_id
+        config_entry = MockConfigEntry(domain=DOMAIN, data={}, entry_id="test_entry_id")
+        config_entry.add_to_hass(hass)
+        # Create a network device
+        network_id = "N_12345"
+        device_entry = device_reg.async_get_or_create(
+            config_entry_id=config_entry.entry_id,
+            identifiers={(DOMAIN, f"network_{network_id}")},
+            name="Test Network",
+            model="Meraki Network",
+        )
+
+>       assert await async_setup_component(hass, "trace", {})
+E       assert False
+
+tests/test_device_trigger.py:156: AssertionError
+----------------------------- Captured stderr call -----------------------------
+INFO:homeassistant.loader:Loaded meraki_ha from custom_components.meraki_ha
+WARNING:homeassistant.loader:We found a custom integration meraki_ha which has not been tested by Home Assistant. This component might cause stability problems, be sure to disable it if you experience issues with Home Assistant
+ERROR:homeassistant.loader:Error loading integration: trace
+Traceback (most recent call last):
+  File "/app/.venv/lib/python3.12/site-packages/homeassistant/loader.py", line 1331, in _resolve_integrations_from_root
+    integration = Integration.resolve_from_root(hass, root_module, domain)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/.venv/lib/python3.12/site-packages/homeassistant/loader.py", line 655, in resolve_from_root
+    for base in root_module.__path__:
+                ^^^^^^^^^^^^^^^^^^^^
+  File "/home/jules/.pyenv/versions/3.12.13/lib/python3.12/unittest/mock.py", line 662, in __getattr__
+    raise AttributeError(name)
+AttributeError: __path__
+ERROR:homeassistant.setup:Setup failed for 'trace': Integration not found.
+------------------------------ Captured log call -------------------------------
+INFO     homeassistant.loader:loader.py:773 Loaded meraki_ha from custom_components.meraki_ha
+WARNING  homeassistant.loader:loader.py:687 We found a custom integration meraki_ha which has not been tested by Home Assistant. This component might cause stability problems, be sure to disable it if you experience issues with Home Assistant
+ERROR    homeassistant.loader:loader.py:1333 Error loading integration: trace
+Traceback (most recent call last):
+  File "/app/.venv/lib/python3.12/site-packages/homeassistant/loader.py", line 1331, in _resolve_integrations_from_root
+    integration = Integration.resolve_from_root(hass, root_module, domain)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/.venv/lib/python3.12/site-packages/homeassistant/loader.py", line 655, in resolve_from_root
+    for base in root_module.__path__:
+                ^^^^^^^^^^^^^^^^^^^^
+  File "/home/jules/.pyenv/versions/3.12.13/lib/python3.12/unittest/mock.py", line 662, in __getattr__
+    raise AttributeError(name)
+AttributeError: __path__
+ERROR    homeassistant.setup:setup.py:269 Setup failed for 'trace': Integration not found.
+___________________________ test_migration_v1_to_v2 ____________________________
+
+hass = <HomeAssistant RUNNING>
+
+    async def test_migration_v1_to_v2(hass: HomeAssistant):
+        """Test migrating a config entry from version 1 to 2."""
+        entry = MockConfigEntry(
+            domain="meraki_ha",
+            version=1,
+            data={
+                "meraki_api_key": "test-key",
+                "organization_id": "123456",
+            },
+        )
+        entry.add_to_hass(hass)
+
+        assert await async_migrate_entry(hass, entry)
+
+>       assert entry.version == 2
+E       AssertionError: assert <MagicMock name='mock.MockConfigEntry().version' id='140260643822992'> == 2
+E        +  where <MagicMock name='mock.MockConfigEntry().version' id='140260643822992'> = <MagicMock name='mock.MockConfigEntry()' id='140260660352096'>.version
+
+tests/test_migration.py:23: AssertionError
+----------------------------- Captured stderr call -----------------------------
+INFO:custom_components.meraki_ha:Migration to version <MagicMock name='mock.MockConfigEntry().version' id='140260643822992'> successful
+------------------------------ Captured log call -------------------------------
+INFO     custom_components.meraki_ha:__init__.py:97 Migration to version <MagicMock name='mock.MockConfigEntry().version' id='140260643822992'> successful
+__________________________ test_options_flow_defaults __________________________
+
+hass = <HomeAssistant RUNNING>
+
+    async def test_options_flow_defaults(hass: HomeAssistant) -> None:
+        """Test that the options flow correctly pre-fills defaults from existing options."""
+        options = {
+            CONF_SCAN_INTERVAL: "900",
+            CONF_ENABLE_DEVICE_STATUS: False,
+        }
+        entry = MockConfigEntry(
+            domain=DOMAIN,
+            data={CONF_MERAKI_API_KEY: "test-api-key"},
+            options=options,
+            entry_id="test_entry_id",
+        )
+        entry.add_to_hass(hass)
+
+>       result = await hass.config_entries.options.async_init(entry.entry_id)
+
+tests/test_options_flow_defaults.py:30:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+.venv/lib/python3.12/site-packages/homeassistant/data_entry_flow.py:332: in async_init
+    flow = await self.async_create_flow(handler, context=context, data=data)
+.venv/lib/python3.12/site-packages/homeassistant/config_entries.py:3051: in async_create_flow
+    entry = self._async_get_config_entry(handler_key)
+.venv/lib/python3.12/site-packages/homeassistant/config_entries.py:3038: in _async_get_config_entry
+    return self.hass.config_entries.async_get_known_entry(config_entry_id)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <homeassistant.config_entries.ConfigEntries object at 0x7f910a156900>
+entry_id = <MagicMock name='mock.MockConfigEntry().entry_id' id='140260655262624'>
+
+    @callback
+    def async_get_known_entry(self, entry_id: str) -> ConfigEntry:
+        """Return entry with matching entry_id.
+
+        Raises UnknownEntry if entry is not found.
+        """
+        if (entry := self.async_get_entry(entry_id)) is None:
+>           raise UnknownEntry
+E           homeassistant.config_entries.UnknownEntry
+
+.venv/lib/python3.12/site-packages/homeassistant/config_entries.py:1843: UnknownEntry
+________________________ test_static_path_registration _________________________
+
+hass = <HomeAssistant RUNNING>
+
+    async def test_static_path_registration(hass: HomeAssistant) -> None:
+        """Test that static path registration uses the new async method."""
+        entry = MockConfigEntry(
+            domain=DOMAIN,
+            data={"api_key": "fake_key", "organization_id": "fake_org"},
+            entry_id="test_entry_id",
+        )
+        entry.add_to_hass(hass)
+
+        # Ensure frontend is in components to trigger the registration block
+        hass.config.components.add("frontend")
+
+        with (
+            patch("custom_components.meraki_ha.create_api_client"),
+            patch("custom_components.meraki_ha.coordinators.base.DataFetchManager"),
+            patch("custom_components.meraki_ha.async_register_webhook", return_value=None),
+        ):
+>           await hass.config_entries.async_setup(entry.entry_id)
+
+tests/test_static_path.py:29:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+.venv/lib/python3.12/site-packages/homeassistant/config_entries.py:2028: in async_setup
+    entry = self.async_get_known_entry(entry_id)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <homeassistant.config_entries.ConfigEntries object at 0x7f90f977deb0>
+entry_id = <MagicMock name='mock.MockConfigEntry().entry_id' id='140260655262624'>
+
+    @callback
+    def async_get_known_entry(self, entry_id: str) -> ConfigEntry:
+        """Return entry with matching entry_id.
+
+        Raises UnknownEntry if entry is not found.
+        """
+        if (entry := self.async_get_entry(entry_id)) is None:
+>           raise UnknownEntry
+E           homeassistant.config_entries.UnknownEntry
+
+.venv/lib/python3.12/site-packages/homeassistant/config_entries.py:1843: UnknownEntry
+_________________________ test_network_device_creation _________________________
+
+hass = <HomeAssistant RUNNING>
+mock_meraki_client = <MagicMock name='DashboardAPI' id='140260641974096'>
+device_registry = <homeassistant.helpers.device_registry.DeviceRegistry object at 0x7f90f9b8b860>
+
+    async def test_network_device_creation(
+        hass: HomeAssistant,
+        mock_meraki_client: MagicMock,
+        device_registry: dr.DeviceRegistry,
+    ) -> None:
+        """Test that a network device is created (Virtual Controller)."""
+        mock_dashboard = mock_meraki_client.return_value
+        mock_dashboard.organizations.getOrganizations.return_value = [
+            {"id": MERAKI_TEST_ORG_ID, "name": "Test Organization"}
+        ]
+        mock_dashboard.organizations.getOrganizationNetworks.return_value = [
+            {"id": MERAKI_TEST_NETWORK_ID, "name": "Site A", "productTypes": ["appliance"]}
+        ]
+        mock_dashboard.organizations.getOrganizationDevices.return_value = []
+
+        config_entry = await async_get_config_entry(hass)
+        await hass.config_entries.async_setup(config_entry.entry_id)
+        await hass.async_block_till_done()
+
+        device = device_registry.async_get_device(
+            identifiers={("meraki_ha", f"network_{MERAKI_TEST_NETWORK_ID}")}
+        )
+>       assert device is not None
+E       assert None is not None
+
+tests/test_topology.py:34: AssertionError
+----------------------------- Captured stderr call -----------------------------
+INFO:homeassistant.loader:Loaded meraki_ha from custom_components.meraki_ha
+WARNING:homeassistant.loader:We found a custom integration meraki_ha which has not been tested by Home Assistant. This component might cause stability problems, be sure to disable it if you experience issues with Home Assistant
+ERROR:homeassistant.loader:Error loading integration: http
+Traceback (most recent call last):
+  File "/app/.venv/lib/python3.12/site-packages/homeassistant/loader.py", line 1331, in _resolve_integrations_from_root
+    integration = Integration.resolve_from_root(hass, root_module, domain)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/.venv/lib/python3.12/site-packages/homeassistant/loader.py", line 655, in resolve_from_root
+    for base in root_module.__path__:
+                ^^^^^^^^^^^^^^^^^^^^
+  File "/home/jules/.pyenv/versions/3.12.13/lib/python3.12/unittest/mock.py", line 662, in __getattr__
+    raise AttributeError(name)
+AttributeError: __path__
+ERROR:homeassistant.loader:Unable to resolve dependencies for meraki_ha: unable to resolve (sub)dependency http
+------------------------------ Captured log call -------------------------------
+INFO     homeassistant.loader:loader.py:773 Loaded meraki_ha from custom_components.meraki_ha
+WARNING  homeassistant.loader:loader.py:687 We found a custom integration meraki_ha which has not been tested by Home Assistant. This component might cause stability problems, be sure to disable it if you experience issues with Home Assistant
+ERROR    homeassistant.loader:loader.py:1333 Error loading integration: http
+Traceback (most recent call last):
+  File "/app/.venv/lib/python3.12/site-packages/homeassistant/loader.py", line 1331, in _resolve_integrations_from_root
+    integration = Integration.resolve_from_root(hass, root_module, domain)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/.venv/lib/python3.12/site-packages/homeassistant/loader.py", line 655, in resolve_from_root
+    for base in root_module.__path__:
+                ^^^^^^^^^^^^^^^^^^^^
+  File "/home/jules/.pyenv/versions/3.12.13/lib/python3.12/unittest/mock.py", line 662, in __getattr__
+    raise AttributeError(name)
+AttributeError: __path__
+ERROR    homeassistant.loader:loader.py:953 Unable to resolve dependencies for meraki_ha: unable to resolve (sub)dependency http
+=============================== warnings summary ===============================
+tests/core/coordinator_helpers/test_graceful_degradation.py::test_async_gather_with_timeout_graceful_traffic_analysis
+  /app/.venv/lib/python3.12/site-packages/pytest_homeassistant_custom_component/plugins.py:275: RuntimeWarning: coroutine 'AsyncMockMixin._execute_mock_call' was never awaited
+  Coroutine created at (most recent call last)
+    File "/app/tests/core/coordinator_helpers/test_data_fetcher_timeouts.py", line 156, in test_get_all_data_client_timeout
+      await data_fetch_manager.get_all_data()
+    File "/app/custom_components/meraki_ha/core/coordinator_helpers/data_fetcher.py", line 312, in get_all_data
+      return await self.get_sensor_data(current_data, timespan)
+    File "/app/custom_components/meraki_ha/core/coordinator_helpers/data_fetcher.py", line 294, in get_sensor_data
+      await self._build_strategy_tasks(data)
+    File "/app/custom_components/meraki_ha/core/coordinator_helpers/data_fetcher.py", line 267, in _build_strategy_tasks
+      collect_network_tasks(data, tasks, self.strategies)
+    File "/app/custom_components/meraki_ha/core/coordinator_helpers/strategy_executor.py", line 33, in collect_network_tasks
+      build_func(network_id, product_types, tasks)
+    File "/app/custom_components/meraki_ha/core/coordinator_helpers/strategy_executor.py", line 16, in <lambda>
+      "appliance": lambda nid, pts, tks: strategies["appliance"].build_network_tasks(
+    File "/app/custom_components/meraki_ha/core/fetch_strategies/appliance.py", line 49, in build_network_tasks
+      self._add_standard_appliance_tasks(network_id, tasks)
+    File "/app/custom_components/meraki_ha/core/fetch_strategies/appliance.py", line 87, in _add_standard_appliance_tasks
+      tasks[f"content_filtering_{network_id}"] = self.client.run_with_semaphore(
+    File "/home/jules/.pyenv/versions/3.12.13/lib/python3.12/unittest/mock.py", line 1139, in __call__
+      return self._mock_call(*args, **kwargs)
+    File "/home/jules/.pyenv/versions/3.12.13/lib/python3.12/unittest/mock.py", line 1143, in _mock_call
+      return self._execute_mock_call(*args, **kwargs)
+    gc.collect()
+  Enable tracemalloc to get traceback where the object was allocated.
+  See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
+
+tests/core/coordinator_helpers/test_graceful_degradation.py::test_async_gather_with_timeout_graceful_traffic_analysis
+  /app/.venv/lib/python3.12/site-packages/pytest_homeassistant_custom_component/plugins.py:275: RuntimeWarning: coroutine 'AsyncMockMixin._execute_mock_call' was never awaited
+  Coroutine created at (most recent call last)
+    File "/app/tests/core/coordinator_helpers/test_data_fetcher_timeouts.py", line 156, in test_get_all_data_client_timeout
+      await data_fetch_manager.get_all_data()
+    File "/app/custom_components/meraki_ha/core/coordinator_helpers/data_fetcher.py", line 312, in get_all_data
+      return await self.get_sensor_data(current_data, timespan)
+    File "/app/custom_components/meraki_ha/core/coordinator_helpers/data_fetcher.py", line 294, in get_sensor_data
+      await self._build_strategy_tasks(data)
+    File "/app/custom_components/meraki_ha/core/coordinator_helpers/data_fetcher.py", line 267, in _build_strategy_tasks
+      collect_network_tasks(data, tasks, self.strategies)
+    File "/app/custom_components/meraki_ha/core/coordinator_helpers/strategy_executor.py", line 33, in collect_network_tasks
+      build_func(network_id, product_types, tasks)
+    File "/app/custom_components/meraki_ha/core/coordinator_helpers/strategy_executor.py", line 16, in <lambda>
+      "appliance": lambda nid, pts, tks: strategies["appliance"].build_network_tasks(
+    File "/app/custom_components/meraki_ha/core/fetch_strategies/appliance.py", line 49, in build_network_tasks
+      self._add_standard_appliance_tasks(network_id, tasks)
+    File "/app/custom_components/meraki_ha/core/fetch_strategies/appliance.py", line 92, in _add_standard_appliance_tasks
+      tasks[f"uplink_performance_{network_id}"] = self.client.run_with_semaphore(
+    File "/home/jules/.pyenv/versions/3.12.13/lib/python3.12/unittest/mock.py", line 1139, in __call__
+      return self._mock_call(*args, **kwargs)
+    File "/home/jules/.pyenv/versions/3.12.13/lib/python3.12/unittest/mock.py", line 1143, in _mock_call
+      return self._execute_mock_call(*args, **kwargs)
+    gc.collect()
+  Enable tracemalloc to get traceback where the object was allocated.
+  See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
+
+tests/core/coordinator_helpers/test_graceful_degradation.py::test_async_gather_with_timeout_graceful_traffic_analysis
+  /app/.venv/lib/python3.12/site-packages/pytest_homeassistant_custom_component/plugins.py:275: RuntimeWarning: coroutine 'AsyncMockMixin._execute_mock_call' was never awaited
+  Coroutine created at (most recent call last)
+    File "/home/jules/.pyenv/versions/3.12.13/lib/python3.12/asyncio/base_events.py", line 678, in run_until_complete
+      self.run_forever()
+    File "/home/jules/.pyenv/versions/3.12.13/lib/python3.12/asyncio/base_events.py", line 645, in run_forever
+      self._run_once()
+    File "/home/jules/.pyenv/versions/3.12.13/lib/python3.12/asyncio/base_events.py", line 1991, in _run_once
+      handle._run()
+    File "/home/jules/.pyenv/versions/3.12.13/lib/python3.12/asyncio/events.py", line 88, in _run
+      self._context.run(self._callback, *self._args)
+    File "/app/tests/core/coordinator_helpers/test_data_fetcher_timeouts.py", line 156, in test_get_all_data_client_timeout
+      await data_fetch_manager.get_all_data()
+    File "/app/custom_components/meraki_ha/core/coordinator_helpers/data_fetcher.py", line 312, in get_all_data
+      return await self.get_sensor_data(current_data, timespan)
+    File "/app/custom_components/meraki_ha/core/coordinator_helpers/data_fetcher.py", line 295, in get_sensor_data
+      await self._fetch_client_data(data)
+    File "/app/custom_components/meraki_ha/core/coordinator_helpers/data_fetcher.py", line 321, in _fetch_client_data
+      f"clients_{n.id}": self.client_fetcher.async_fetch_network_clients([n])
+    File "/home/jules/.pyenv/versions/3.12.13/lib/python3.12/unittest/mock.py", line 1139, in __call__
+      return self._mock_call(*args, **kwargs)
+    File "/home/jules/.pyenv/versions/3.12.13/lib/python3.12/unittest/mock.py", line 1143, in _mock_call
+      return self._execute_mock_call(*args, **kwargs)
+    gc.collect()
+  Enable tracemalloc to get traceback where the object was allocated.
+  See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
+
+tests/core/coordinator_helpers/test_graceful_degradation.py::test_async_gather_with_timeout_graceful_traffic_analysis
+  /app/.venv/lib/python3.12/site-packages/pytest_homeassistant_custom_component/plugins.py:275: RuntimeWarning: coroutine 'AsyncMockMixin._execute_mock_call' was never awaited
+  Coroutine created at (most recent call last)
+    File "/app/tests/core/coordinator_helpers/test_data_fetcher_timeouts.py", line 156, in test_get_all_data_client_timeout
+      await data_fetch_manager.get_all_data()
+    File "/app/custom_components/meraki_ha/core/coordinator_helpers/data_fetcher.py", line 312, in get_all_data
+      return await self.get_sensor_data(current_data, timespan)
+    File "/app/custom_components/meraki_ha/core/coordinator_helpers/data_fetcher.py", line 294, in get_sensor_data
+      await self._build_strategy_tasks(data)
+    File "/app/custom_components/meraki_ha/core/coordinator_helpers/data_fetcher.py", line 267, in _build_strategy_tasks
+      collect_network_tasks(data, tasks, self.strategies)
+    File "/app/custom_components/meraki_ha/core/coordinator_helpers/strategy_executor.py", line 33, in collect_network_tasks
+      build_func(network_id, product_types, tasks)
+    File "/app/custom_components/meraki_ha/core/coordinator_helpers/strategy_executor.py", line 16, in <lambda>
+      "appliance": lambda nid, pts, tks: strategies["appliance"].build_network_tasks(
+    File "/app/custom_components/meraki_ha/core/fetch_strategies/appliance.py", line 47, in build_network_tasks
+      self._add_traffic_and_vlan_tasks(network_id, tasks)
+    File "/app/custom_components/meraki_ha/core/fetch_strategies/appliance.py", line 61, in _add_traffic_and_vlan_tasks
+      tasks[f"vlans_{network_id}"] = self.client.run_with_semaphore(
+    File "/home/jules/.pyenv/versions/3.12.13/lib/python3.12/unittest/mock.py", line 1139, in __call__
+      return self._mock_call(*args, **kwargs)
+    File "/home/jules/.pyenv/versions/3.12.13/lib/python3.12/unittest/mock.py", line 1143, in _mock_call
+      return self._execute_mock_call(*args, **kwargs)
+    gc.collect()
+  Enable tracemalloc to get traceback where the object was allocated.
+  See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
+
+tests/core/coordinator_helpers/test_graceful_degradation.py::test_async_gather_with_timeout_graceful_traffic_analysis
+  /app/.venv/lib/python3.12/site-packages/pytest_homeassistant_custom_component/plugins.py:275: RuntimeWarning: coroutine 'AsyncMockMixin._execute_mock_call' was never awaited
+  Coroutine created at (most recent call last)
+    File "/app/tests/core/coordinator_helpers/test_data_fetcher_timeouts.py", line 156, in test_get_all_data_client_timeout
+      await data_fetch_manager.get_all_data()
+    File "/app/custom_components/meraki_ha/core/coordinator_helpers/data_fetcher.py", line 312, in get_all_data
+      return await self.get_sensor_data(current_data, timespan)
+    File "/app/custom_components/meraki_ha/core/coordinator_helpers/data_fetcher.py", line 294, in get_sensor_data
+      await self._build_strategy_tasks(data)
+    File "/app/custom_components/meraki_ha/core/coordinator_helpers/data_fetcher.py", line 267, in _build_strategy_tasks
+      collect_network_tasks(data, tasks, self.strategies)
+    File "/app/custom_components/meraki_ha/core/coordinator_helpers/strategy_executor.py", line 33, in collect_network_tasks
+      build_func(network_id, product_types, tasks)
+    File "/app/custom_components/meraki_ha/core/coordinator_helpers/strategy_executor.py", line 16, in <lambda>
+      "appliance": lambda nid, pts, tks: strategies["appliance"].build_network_tasks(
+    File "/app/custom_components/meraki_ha/core/fetch_strategies/appliance.py", line 49, in build_network_tasks
+      self._add_standard_appliance_tasks(network_id, tasks)
+    File "/app/custom_components/meraki_ha/core/fetch_strategies/appliance.py", line 84, in _add_standard_appliance_tasks
+      tasks[f"appliance_ports_{network_id}"] = self.client.run_with_semaphore(
+    File "/home/jules/.pyenv/versions/3.12.13/lib/python3.12/unittest/mock.py", line 1139, in __call__
+      return self._mock_call(*args, **kwargs)
+    File "/home/jules/.pyenv/versions/3.12.13/lib/python3.12/unittest/mock.py", line 1143, in _mock_call
+      return self._execute_mock_call(*args, **kwargs)
+    gc.collect()
+  Enable tracemalloc to get traceback where the object was allocated.
+  See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
+
+tests/core/coordinator_helpers/test_graceful_degradation.py::test_async_gather_with_timeout_graceful_traffic_analysis
+  /app/.venv/lib/python3.12/site-packages/pytest_homeassistant_custom_component/plugins.py:275: RuntimeWarning: coroutine 'AsyncMockMixin._execute_mock_call' was never awaited
+  Coroutine created at (most recent call last)
+    File "/app/tests/core/coordinator_helpers/test_data_fetcher_timeouts.py", line 156, in test_get_all_data_client_timeout
+      await data_fetch_manager.get_all_data()
+    File "/app/custom_components/meraki_ha/core/coordinator_helpers/data_fetcher.py", line 312, in get_all_data
+      return await self.get_sensor_data(current_data, timespan)
+    File "/app/custom_components/meraki_ha/core/coordinator_helpers/data_fetcher.py", line 294, in get_sensor_data
+      await self._build_strategy_tasks(data)
+    File "/app/custom_components/meraki_ha/core/coordinator_helpers/data_fetcher.py", line 267, in _build_strategy_tasks
+      collect_network_tasks(data, tasks, self.strategies)
+    File "/app/custom_components/meraki_ha/core/coordinator_helpers/strategy_executor.py", line 33, in collect_network_tasks
+      build_func(network_id, product_types, tasks)
+    File "/app/custom_components/meraki_ha/core/coordinator_helpers/strategy_executor.py", line 16, in <lambda>
+      "appliance": lambda nid, pts, tks: strategies["appliance"].build_network_tasks(
+    File "/app/custom_components/meraki_ha/core/fetch_strategies/appliance.py", line 47, in build_network_tasks
+      self._add_traffic_and_vlan_tasks(network_id, tasks)
+    File "/app/custom_components/meraki_ha/core/fetch_strategies/appliance.py", line 56, in _add_traffic_and_vlan_tasks
+      tasks[f"traffic_{network_id}"] = self.client.run_with_semaphore(
+    File "/home/jules/.pyenv/versions/3.12.13/lib/python3.12/unittest/mock.py", line 1139, in __call__
+      return self._mock_call(*args, **kwargs)
+    File "/home/jules/.pyenv/versions/3.12.13/lib/python3.12/unittest/mock.py", line 1143, in _mock_call
+      return self._execute_mock_call(*args, **kwargs)
+    gc.collect()
+  Enable tracemalloc to get traceback where the object was allocated.
+  See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED tests/core/utils/test_api_utils.py::test_handle_meraki_errors_rate_limit_max_retries
+FAILED tests/core/utils/test_validation_utils.py::test_config_schema - volupt...
+FAILED tests/core/utils/test_validation_utils.py::test_options_schema - volup...
+FAILED tests/helpers/test_schema.py::test_populate_schema_defaults - TypeErro...
+FAILED tests/meraki_select/test_content_filtering_select.py::test_content_filtering_select_entity
+FAILED tests/meraki_select/test_meraki_content_filtering.py::test_content_filtering_select_entity
+FAILED tests/meraki_select/test_meraki_content_filtering_repro.py::test_content_filtering_select_dict_response
+FAILED tests/meraki_select/test_rf_profile_select.py::test_rf_profile_select_entity
+FAILED tests/meraki_select/test_vpn_select.py::test_vpn_select_entity - asser...
+FAILED tests/sensor/client/test_status.py::test_client_status_sensor - Assert...
+FAILED tests/sensor/device/test_camera_audio_detection.py::test_camera_audio_detection_sensor
+FAILED tests/sensor/device/test_connected_clients.py::test_connected_clients_sensor_appliance
+FAILED tests/sensor/device/test_connected_clients.py::test_connected_clients_sensor_gateway
+FAILED tests/sensor/device/test_connected_clients.py::test_connected_clients_sensor_switch
+FAILED tests/sensor/device/test_connected_clients.py::test_connected_clients_sensor_wireless
+FAILED tests/sensor/device/test_data_usage.py::test_data_usage_sensor - asser...
+FAILED tests/sensor/device/test_data_usage.py::test_data_usage_sensor_disabled
+FAILED tests/sensor/device/test_meraki_firmware_status.py::test_firmware_status_sensor
+FAILED tests/sensor/device/test_meraki_switch_poe_sensor.py::test_meraki_switch_poe_sensor_init
+FAILED tests/sensor/device/test_meraki_switch_port_sensor.py::test_switch_port_power_sensor
+FAILED tests/sensor/device/test_meraki_switch_port_sensor.py::test_switch_port_energy_sensor
+FAILED tests/sensor/network/test_ssid_details.py::test_ssid_total_upload_limit_sensor
+FAILED tests/sensor/network/test_ssid_details.py::test_ssid_min_bitrate_24ghz_sensor
+FAILED tests/sensor/network/test_traffic_shaping_sensor.py::test_traffic_shaping_sensor_creation_enabled
+FAILED tests/sensor/test_meraki_wan1_connectivity.py::test_meraki_wan1_connectivity_sensor
+FAILED tests/sensor/test_meraki_wan2_connectivity.py::test_meraki_wan2_connectivity_sensor
+FAILED tests/sensor/test_switch_port_generation.py::test_switch_port_generation_and_linkage
+FAILED tests/sensor/test_uplink_performance.py::test_uplink_performance_sensor_mapping
+FAILED tests/switch/test_adult_content_filtering.py::test_switch_creation - A...
+FAILED tests/test_config_flow.py::test_form - TypeError: object MagicMock can...
+FAILED tests/test_config_flow.py::test_form_cannot_connect - TypeError: objec...
+FAILED tests/test_config_flow.py::test_options_flow - homeassistant.config_en...
+FAILED tests/test_coordinator.py::test_update_data_handles_errors - homeassis...
+FAILED tests/test_coordinator.py::test_update_data_handles_timeout - TypeErro...
+FAILED tests/test_device_trigger.py::test_get_triggers - TypeError: object Ma...
+FAILED tests/test_device_trigger.py::test_fire_trigger_device_alert - assert ...
+FAILED tests/test_device_trigger.py::test_fire_trigger_network_alert - assert...
+FAILED tests/test_migration.py::test_migration_v1_to_v2 - AssertionError: ass...
+FAILED tests/test_options_flow_defaults.py::test_options_flow_defaults - home...
+FAILED tests/test_static_path.py::test_static_path_registration - homeassista...
+FAILED tests/test_topology.py::test_network_device_creation - assert None is ...
+ERROR tests/api/test_websocket.py::test_subscribe_meraki_data - assert False
+ERROR tests/api/test_websocket.py::test_get_version - assert False
+ERROR tests/api/test_websocket.py::test_get_network_events - assert False
+ERROR tests/api/test_websocket.py::test_update_options - assert False
+ERROR tests/api/test_websocket.py::test_update_enabled_networks - assert False
+ERROR tests/api/test_websocket.py::test_ipsk_get_keys - assert False
+ERROR tests/api/test_websocket.py::test_timed_access_get_policies - assert False
+ERROR tests/api/test_websocket.py::test_ipsk_create - assert False
+ERROR tests/api/test_websocket.py::test_ipsk_revoke - assert False
+============ 41 failed, 359 passed, 6 warnings, 9 errors in 43.78s =============

@@ -21,8 +21,8 @@ _If this document describes a new feature, list the functional and non-functiona
 
 | Requirement ID | Description | Priority |
 | :------------- | :---------- | :------- |
-| REQ-001        | ...         | High     |
-| REQ-002        | ...         | Medium   |
+| REQ-001.       | ...         | High     |
+| REQ-002.       | ...         | Medium   |
 
 ---
 
@@ -30,15 +30,15 @@ _If this document describes a new feature, list the functional and non-functiona
 
 _Describe the proposed design. This can include architecture diagrams, UI mockups, data models, and API endpoint descriptions._
 
-### 3.1. High-Level Architecture
+\*\*3.1. High-Level Architecture
 
 _A diagram or description of the overall system architecture._
 
-### 3.2. UI/UX Mockups
+\*\*3.2. UI/UX Mockups
 
 _Embed or link to mockups for any user interface changes._
 
-### 3.3. Data Model
+\*\*3.3. Data Model
 
 _Describe any new or modified data models._
 

@@ -6,11 +6,12 @@ import logging
 
 from homeassistant.components.number import NumberEntity
 from homeassistant.config_entries import ConfigEntry
+from homeassistant.const import EntityCategory
 from homeassistant.core import callback
 
+from ..coordinators import MerakiApplianceCoordinator
 from ..core.entities.meraki_network_entity import MerakiNetworkEntity
-from ..meraki_data_coordinator import MerakiDataCoordinator
-from ..types import MerakiNetwork
+from ..core.models.network import MerakiNetwork
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -18,9 +19,12 @@ _LOGGER = logging.getLogger(__name__)
 class MerakiUplinkBandwidthNumber(MerakiNetworkEntity, NumberEntity):
     """Representation of a Meraki uplink bandwidth number."""
 
+    _attr_entity_category = EntityCategory.CONFIG
+    coordinator: MerakiApplianceCoordinator
+
     def __init__(
         self,
-        coordinator: MerakiDataCoordinator,
+        coordinator: MerakiApplianceCoordinator,
         config_entry: ConfigEntry,
         network: MerakiNetwork,
         uplink: str,
@@ -34,8 +38,7 @@ class MerakiUplinkBandwidthNumber(MerakiNetworkEntity, NumberEntity):
             f"uplink_bandwidth_{self._network_id}_{self._uplink}_{self._direction}"
         )
         self._attr_name = (
-            f"{self._network['name']} {self._uplink.capitalize()} "
-            f"{self._direction.capitalize()} Limit"
+            f"{self._uplink.capitalize()} {self._direction.capitalize()} Limit"
         )
         self._attr_native_unit_of_measurement = "kbps"
         self._attr_native_min_value = 0
@@ -45,7 +48,7 @@ class MerakiUplinkBandwidthNumber(MerakiNetworkEntity, NumberEntity):
 
     def _update_internal_state(self) -> None:
         """Update the internal state of the number."""
-        if self.coordinator.is_pending(self.unique_id):
+        if self.unique_id and self.coordinator.is_pending(self.unique_id):
             _LOGGER.debug(
                 "Not updating state for %s because a pending update is registered",
                 self.unique_id,
@@ -70,7 +73,8 @@ class MerakiUplinkBandwidthNumber(MerakiNetworkEntity, NumberEntity):
         """Update the current value."""
         self._attr_native_value = value
         self.async_write_ha_state()
-        self.coordinator.register_pending_update(self.unique_id)
+        if self.unique_id:
+            self.coordinator.register_pending_update(self.unique_id)
         traffic_shaping = self.coordinator.data.get("traffic_shaping", {}).get(
             self._network_id, {}
         )

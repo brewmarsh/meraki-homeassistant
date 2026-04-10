@@ -1,5 +1,9 @@
 """Placeholder for the Meraki Radio Settings Sensor."""
 
+from __future__ import annotations
+
+from typing import Any
+
 
 class MerakiRadioSettingsSensor:
     """
@@ -9,6 +13,6 @@ class MerakiRadioSettingsSensor:
     deleted file that is still referenced in the sensor registry.
     """
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
         """Initialize the placeholder."""
         pass

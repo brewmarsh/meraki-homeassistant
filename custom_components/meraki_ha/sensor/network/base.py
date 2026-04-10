@@ -3,25 +3,26 @@
 import logging
 from typing import Any
 
+from custom_components.meraki_ha.const.integration import DOMAIN
 from homeassistant.components.sensor import SensorEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import callback
-from homeassistant.helpers.update_coordinator import CoordinatorEntity
+from homeassistant.helpers.device_registry import DeviceInfo
 
-from ...helpers.device_info_helpers import resolve_device_info
-from ...meraki_data_coordinator import MerakiDataCoordinator
+from ...coordinators import MerakiSwitchCoordinator
+from ...entity import MerakiEntity
 
 _LOGGER = logging.getLogger(__name__)
 
 
-class MerakiSSIDBaseSensor(CoordinatorEntity, SensorEntity):
+class MerakiSSIDBaseSensor(MerakiEntity, SensorEntity):
     """Base class for Meraki SSID sensors."""
 
-    _attr_has_entity_name = True
+    _attr_name: str | None = None
 
     def __init__(
         self,
-        coordinator: MerakiDataCoordinator,
+        coordinator: MerakiSwitchCoordinator,
         config_entry: ConfigEntry,
         ssid_data: dict[str, Any],
         attribute: str,
@@ -33,20 +34,59 @@ class MerakiSSIDBaseSensor(CoordinatorEntity, SensorEntity):
         self._attribute = attribute
         self._network_id = ssid_data.get("networkId")
         self._ssid_number = ssid_data.get("number")
-        self._attr_unique_id = (
-            f"ssid-{self._network_id}-{self._ssid_number}-{self._attribute}"
-        )
-        # Set device_info directly in init
-        self._attr_device_info = resolve_device_info(
-            entity_data=self._ssid_data_at_init,
-            config_entry=self._config_entry,
+
+        # Unique ID is now handled by the dynamic @property method below
+        self._attr_has_entity_name = True
+        network = coordinator.get_network(self._network_id)
+        network_name = network.name if network else f"Network {self._network_id}"
+        ssid_name = ssid_data.get("name", f"SSID {self._ssid_number}")
+        if (
+            hasattr(self, "entity_description")
+            and self.entity_description
+            and self.entity_description.name
+        ):
+            self._attr_name = (
+                f"{network_name} SSID {ssid_name} {self.entity_description.name}"
+            )
+
+        # SSID entities are logical children of the "Virtual SSID Device"
+        # (Network Device)
+        self._attr_device_info = DeviceInfo(
+            identifiers={(DOMAIN, f"network_{self._network_id}")},
         )
 
     def _get_current_ssid_data(self) -> dict[str, Any] | None:
         """Retrieve the latest data for this SSID from the coordinator."""
-        if not self.coordinator.data or "ssids" not in self.coordinator.data:
+        if not self.coordinator.data:
             return None
+
+        # Look in wireless_settings (preferred) or flat ssids list
+        if "wireless_settings" in self.coordinator.data:
+            return self._find_ssid_in_wireless_settings()
+
+        if "ssids" in self.coordinator.data:
+            return self._find_ssid_in_flat_list()
+
+        return None
+
+    def _find_ssid_in_wireless_settings(self) -> dict[str, Any] | None:
+        """Find the SSID data in the wireless_settings structure."""
+        network_ssids = self.coordinator.data["wireless_settings"].get(self._network_id)
+        if not network_ssids:
+            return None
+
+        for ssid in network_ssids:
+            if not isinstance(ssid, dict):
+                continue
+            if str(ssid.get("number")) == str(self._ssid_number):
+                return ssid
+        return None
+
+    def _find_ssid_in_flat_list(self) -> dict[str, Any] | None:
+        """Find the SSID data in the flat ssids list."""
         for ssid in self.coordinator.data["ssids"]:
+            if not isinstance(ssid, dict):
+                continue
             if ssid.get("networkId") == self._network_id and str(
                 ssid.get("number")
             ) == str(self._ssid_number):
@@ -54,16 +94,55 @@ class MerakiSSIDBaseSensor(CoordinatorEntity, SensorEntity):
         return None
 
     @property
+    def extra_state_attributes(self) -> dict[str, Any]:
+        """Return the state attributes for the SSID."""
+        ssid_data = self._get_current_ssid_data() or self._ssid_data_at_init
+        network = self.coordinator.get_network(self._network_id)
+        return {
+            "network_id": self._network_id,
+            "network_name": network.name if network else None,
+            "ssid_number": self._ssid_number,
+            "ssid_name": ssid_data.get("name") if ssid_data else None,
+            "enabled": ssid_data.get("enabled") if ssid_data else False,
+            "auth_mode": ssid_data.get("authMode") if ssid_data else None,
+        }
+
+    @property
     def available(self) -> bool:
         """Return True if entity is available."""
-        if not super().available or not self.coordinator.data:
+        if self.coordinator.data is None or not super().available:
             return False
         ssid_data = self._get_current_ssid_data()
         return ssid_data is not None and ssid_data.get("enabled", False)
 
+    @property
+    def unique_id(self) -> str | None:
+        """Return a unique ID that prevents platform collisions.
+
+        For SSID-based entities, we combine the network ID, SSID number, and
+        the lowercased class name. This allows multiple entities (Switch, Sensor, Text)
+        to exist for the same SSID without ID conflicts.
+        """
+        if (
+            hasattr(self, "entity_description")
+            and self.entity_description
+            and self.entity_description.key
+        ):
+            return (
+                f"{self._network_id}ssid{self._ssid_number}_"
+                f"{self.entity_description.key}"
+            )
+
+        return (
+            f"{self._network_id}ssid{self._ssid_number}"
+            f"{self.__class__.__name__.lower()}"
+        )
+
     @callback
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
+        if self.coordinator.data is None:
+            return
         ssid_data = self._get_current_ssid_data()
         if ssid_data:
             self._attr_native_value = ssid_data.get(self._attribute)

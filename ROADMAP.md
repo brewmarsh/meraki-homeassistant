@@ -1,17 +1,29 @@
-# Roadmap: Meraki-HA 2026.1 Update
+# Roadmap
 
-## Phase 1: Architecture & UI
+This document outlines the technical debt and refactoring goals for the Meraki Home Assistant integration.
 
-- [ ] Implement `has_entity_name = True` (Naming Schema Refactor)
-- [ ] Categorize technical sensors as `EntityCategory.DIAGNOSTIC`
-- [ ] Migrate MV/MT momentary events to `EventEntity` class
+## Architectural Standards
 
-## Phase 2: Energy & Power
+To maintain a modular, service-oriented architecture, we will adhere to the following standards. Files that violate these standards are considered "God Classes" and must be refactored.
 
-- [ ] Add real-time Power (W) sensors for MS Switches
-- [ ] Add cumulative Energy (kWh) sensors for Energy Dashboard
+- **Size**: Files must not exceed 400 lines of code.
+- **Responsibility**: Classes should handle a single, distinct domain (e.g., API calls, entity creation, or data validation).
+- **Coupling**: Classes should not import more than 3 distinct service modules.
 
-## Phase 3: Advanced Media
+## Refactoring Backlog
 
-- [ ] Implement Native WebRTC for MV Camera streams
-- [ ] Update translation strings for all new entities
+| File                                               | Status     | God Class Violation(s)                                                                                                                                                     | Refactoring Plan                                                                     |
+| -------------------------------------------------- | ---------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
+| `custom_components/meraki_ha/coordinator.py`       | Refactored | Size (439 lines), Responsibility (API data fetching, entity population, state management), Coupling (imports `CameraService`, `DeviceControlService`, `SwitchPortService`) | Split into `helpers.py` (pure logic) and `managers.py` (state tracking)              |
+| `custom_components/meraki_ha/const.py`             | Refactored | Responsibility (mixes configuration keys, API constants, platform types, UI labels)                                                                                        | Split into `const_conf.py`, `const_api.py`, etc.                                     |
+| `custom_components/meraki_ha/discovery/service.py` | Refactored | N/A (previously suspected)                                                                                                                                                 | Implement Factory/Handler pattern for entity creation                                |
+| `custom_components/meraki_ha/api.py`               | Refactored | N/A (previously suspected)                                                                                                                                                 | Split into domain services (e.g., `SwitchService`, `CameraService`, `SensorService`) |
+| `custom_components/meraki_ha/core/api/client.py`   | Refactored | Size (361 lines)                                                                                                                                                           | Extract detailed data fetching and processing logic                                  |
+
+## Future Goals
+
+- [x] Refactor MerakiDataUpdateCoordinator
+- [x] Refactor const.py
+- [x] Refactor DeviceDiscoveryService
+- [x] Refactor MerakiAPIClient detailed data fetching
+- [x] Continue refactoring MerakiAPIClient into domain services

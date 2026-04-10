@@ -1,0 +1,55 @@
+name: Publish Meraki Runner Image
+
+on:
+  push:
+    branches:
+      - main
+      - beta
+    paths:
+      - 'docker-runner/**'
+  workflow_dispatch:
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v4
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }} 
+
+      - name: Extract metadata (tags, labels)
+        id: meta
+        uses: docker/metadata-action@v6
+        with:
+          images: 80m1/meraki-runner
+          tags: |
+            # Tag as 'latest' on main
+            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
+            # Tag as 'beta' on beta
+            type=raw,value=beta,enable=${{ github.ref == 'refs/heads/beta' }}
+            # Tag with SHA on main
+            type=raw,value=${{ github.sha }},enable=${{ github.ref == 'refs/heads/main' }}
+            # Tag with 'beta-SHA' on beta
+            type=raw,value=beta-${{ github.sha }},enable=${{ github.ref == 'refs/heads/beta' }}
+
+      - name: Build and push
+        uses: docker/build-push-action@v7
+        with:
+          context: ./docker-runner
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          platforms: linux/amd64,linux/arm64
+          cache-from: type=gha
+          cache-to: type=gha,mode=max

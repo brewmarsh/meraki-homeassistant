@@ -1,15 +1,22 @@
 {
   "name": "meraki-homeassistant",
-  "version": "2.0.0-beta.69",
+  "version": "2.3.0-beta.3628",
   "description": "Meraki Home Assistant Integration",
   "scripts": {
+    "test:ui": "playwright test",
     "changelog": "conventional-changelog -p angular -i CHANGELOG.md -s",
-    "set-version": "node get-version.js && npm version $(node get-version.js) --no-git-tag-version"
+    "set-version": "node get-version.js && npm version $(node get-version.js) --no-git-tag-version",
+    "postversion": "node scripts/sync-version.js"
   },
   "devDependencies": {
+    "@playwright/test": "^1.40.0",
     "conventional-changelog-cli": "^4.1.0"
   },
   "engines": {
     "node": ">=18"
+  },
+  "dependencies": {
+    "@google/gemini-cli": "^0.31.0",
+    "lit": "^3.3.2"
   }
 }

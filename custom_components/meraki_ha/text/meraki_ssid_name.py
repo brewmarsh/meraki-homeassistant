@@ -5,21 +5,24 @@ from typing import Any
 
 from homeassistant.components.text import TextEntity, TextEntityDescription, TextMode
 from homeassistant.config_entries import ConfigEntry
+from homeassistant.const import EntityCategory
 from homeassistant.core import callback
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.device_registry import DeviceInfo
-from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from ..core.api.client import MerakiAPIClient
-from ..helpers.device_info_helpers import resolve_device_info
-from ..meraki_data_coordinator import MerakiDataCoordinator
+from custom_components.meraki_ha.const.integration import DOMAIN
+
+from ..coordinators import MerakiWirelessCoordinator
+from ..core.api import MerakiApiClientProtocol
 
 _LOGGER = logging.getLogger(__name__)
 
 
-class MerakiSSIDNameText(CoordinatorEntity, TextEntity):
+class MerakiSSIDNameText(CoordinatorEntity[MerakiWirelessCoordinator], TextEntity):
     """Representation of a Meraki SSID Name text entity."""
+
+    coordinator: MerakiWirelessCoordinator
 
     _attr_mode = TextMode.TEXT  # Or TextMode.PASSWORD if it were a password
     entity_category = EntityCategory.CONFIG
@@ -27,8 +30,8 @@ class MerakiSSIDNameText(CoordinatorEntity, TextEntity):
 
     def __init__(
         self,
-        coordinator: MerakiDataCoordinator,
-        meraki_client: MerakiAPIClient,
+        coordinator: MerakiWirelessCoordinator,
+        meraki_client: MerakiApiClientProtocol,
         config_entry: ConfigEntry,  # Added to match switch entities
         ssid_data: dict[str, Any],
     ) -> None:
@@ -45,32 +48,34 @@ class MerakiSSIDNameText(CoordinatorEntity, TextEntity):
         )  # Can be int or str depending on source
 
         # EntityDescription can be used for name, icon etc.
+        network = coordinator.get_network(self._network_id)
+        network_name = network.name if network else f"Network {self._network_id}"
         self.entity_description = TextEntityDescription(
-            key=f"ssid-{self._network_id}-{self._ssid_number}_ssid_name",
-            name="SSID Name",
+            key=f"{self._network_id}ssid{self._ssid_number}_ssid_name",
+            name=f"{network_name} SSID {ssid_data.get('name')} name",
             icon="mdi:form-textbox",
             native_min=1,
             native_max=32,
         )
 
-        self._attr_unique_id = f"ssid-{self._network_id}-{self._ssid_number}_name_text"
+        self._attr_name = None
+
+        self._attr_unique_id = f"{self._network_id}ssid{self._ssid_number}_name_text"
 
         # Set initial state
         self._update_internal_state()
 
     @property
     def device_info(self) -> DeviceInfo | None:
-        """Return device information to link this entity to the SSID device."""
-        return resolve_device_info(
-            entity_data={"networkId": self._network_id},
-            config_entry=self._config_entry,
-            ssid_data=self._ssid_data,
+        """Return device information to link this entity to the Network device."""
+        return DeviceInfo(
+            identifiers={(DOMAIN, f"network_{self._network_id}")},
         )
 
     @property
     def available(self) -> bool:
         """Return True if entity is available."""
-        if not super().available or not self.coordinator.data:
+        if self.coordinator.data is None or not super().available:
             return False
         ssid_data = self._get_current_ssid_data()
         # This entity should be available as long as we have data for the SSID,
@@ -91,13 +96,15 @@ class MerakiSSIDNameText(CoordinatorEntity, TextEntity):
     @callback
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
+        if self.coordinator.data is None:
+            return
         self._update_internal_state()
         self.async_write_ha_state()
 
     def _update_internal_state(self) -> None:
         """Update the internal state of the text entity based on coordinator data."""
         # Ignore coordinator data to avoid overwriting optimistic state
-        if self.coordinator.is_update_pending(self.unique_id):
+        if self.unique_id and self.coordinator.is_pending(self.unique_id):
             return
 
         current_ssid_data = self._get_current_ssid_data()
@@ -126,7 +133,8 @@ class MerakiSSIDNameText(CoordinatorEntity, TextEntity):
                 name=value,
             )
             # Register a pending update to prevent overwriting the optimistic state
-            self.coordinator.register_update_pending(self.unique_id)
+            if self.unique_id:
+                self.coordinator.register_pending_update(self.unique_id)
             await self.coordinator.async_request_refresh()
         except Exception as e:
             _LOGGER.error(

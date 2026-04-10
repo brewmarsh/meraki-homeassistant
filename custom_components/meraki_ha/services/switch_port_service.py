@@ -58,7 +58,7 @@ class SwitchPortService:
         statuses = await self.async_get_ports_statuses(serial)
         if statuses:
             for port in statuses:
-                if port.get("portId") == port_id:
+                if port.get("portId") == port_id or port.get("number") == port_id:
                     return port.get("status")
         return None
 
@@ -79,6 +79,25 @@ class SwitchPortService:
         statuses = await self.async_get_ports_statuses(serial)
         if statuses:
             for port in statuses:
-                if port.get("portId") == port_id:
+                if port.get("portId") == port_id or port.get("number") == port_id:
                     return port.get("speed")
         return None
+
+    async def async_cycle_ports(
+        self, serial: str, ports: list[str]
+    ) -> dict[str, Any] | None:
+        """
+        Cycle a set of switch ports.
+
+        Args:
+        ----
+            serial: The serial number of the switch.
+            ports: A list of port IDs to cycle.
+
+        Returns
+        -------
+            A dictionary containing the API response, or None if an error occurred.
+
+        """
+        _LOGGER.info("Cycling ports %s on device %s", ports, serial)
+        return await self._repository.async_cycle_switch_ports(serial, ports)

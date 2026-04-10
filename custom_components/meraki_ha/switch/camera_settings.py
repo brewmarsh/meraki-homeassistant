@@ -1,30 +1,32 @@
 """Base classes for Meraki camera switch entities."""
 
+import dataclasses
 import logging
-from typing import Any
+from typing import Any, cast
 
+from custom_components.meraki_ha.coordinators import MerakiSwitchCoordinator
 from homeassistant.components.switch import SwitchEntity
 from homeassistant.helpers.device_registry import DeviceInfo
-from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from ..core.api.client import MerakiAPIClient
-from ..meraki_data_coordinator import MerakiDataCoordinator
-from ..types import MerakiDevice
+from ..core.api import MerakiApiClientProtocol
+from ..core.models.device import MerakiDevice
+from ..core.utils.naming_utils import standardize_device_name
+from ..entity import MerakiEntity
 
 _LOGGER = logging.getLogger(__name__)
 
 
 class MerakiCameraSettingSwitchBase(
-    CoordinatorEntity,
+    MerakiEntity,
     SwitchEntity,
 ):
     """Base class for a Meraki Camera Setting Switch."""
 
     def __init__(
         self,
-        coordinator: MerakiDataCoordinator,
-        meraki_client: MerakiAPIClient,
-        device_data: dict[str, Any],
+        coordinator: MerakiSwitchCoordinator,
+        meraki_client: MerakiApiClientProtocol,
+        device_data: "MerakiDevice",
         key: str,
         api_field: str,
     ) -> None:
@@ -45,23 +47,13 @@ class MerakiCameraSettingSwitchBase(
         self._device_data = device_data
         self._key = key
         self._api_field = api_field
-        self._attr_unique_id = f"{self._device_data['serial']}_{self._key}"
+        # Fallback ID - the @property unique_id below will override this in HA
+        self._attr_unique_id = f"{device_data.serial}{self.__class__.__name__.lower()}"
         self._attr_is_on = False
         self._update_state()  # Set initial state
 
     def _get_value_from_device(self, device: MerakiDevice | None) -> bool:
-        """
-        Drill down into the device dictionary to get the state value.
-
-        Args:
-        ----
-            device: The device data.
-
-        Returns
-        -------
-            The state value.
-
-        """
+        """Drill down into the device data to get the state value."""
         if device is None:
             return False
         keys = self._api_field.split(".")
@@ -69,15 +61,18 @@ class MerakiCameraSettingSwitchBase(
         for key in keys:
             if isinstance(value, dict):
                 value = value.get(key)
+            elif dataclasses.is_dataclass(value) and hasattr(value, key):
+                value = getattr(value, key)
             else:
                 return False
         return bool(value)
 
     def _update_state(self) -> None:
         """Update the internal state of the switch."""
-        device = self.coordinator.get_device(self._device_data["serial"])
-        if device is not None:
-            self._device_data = device
+        if self._device_data.serial:
+            device = self.coordinator.get_device(self._device_data.serial)
+            if device is not None:
+                self._device_data = device
             self._attr_is_on = self._get_value_from_device(device)
         else:
             self._attr_is_on = False
@@ -88,49 +83,37 @@ class MerakiCameraSettingSwitchBase(
         self.async_write_ha_state()
 
     @property
+    def unique_id(self) -> str | None:
+        """Return a unique ID that prevents platform collisions.
+
+        This combines the device serial, the class name, and the specific
+        setting key to guarantee a unique registry entry.
+        """
+        if (
+            hasattr(self, "_device_data")
+            and self._device_data
+            and self._device_data.serial
+        ):
+            return (
+                f"{self._device_data.serial}_{self.__class__.__name__.lower()}_"
+                f"{self._key}"
+            )
+        return getattr(self, "_attr_unique_id", None)
+
+    @property
     def is_on(self) -> bool | None:
         """Return the current state of the switch."""
         return self._attr_is_on
 
     async def async_turn_on(self, **kwargs: Any) -> None:
-        """
-        Turn the setting on.
-
-        Args:
-        ----
-            **kwargs: Additional arguments.
-
-        """
+        """Turn the setting on."""
         await self._async_update_setting(True)
 
     async def async_turn_off(self, **kwargs: Any) -> None:
-        """
-        Turn the setting off.
-
-        Args:
-        ----
-            **kwargs: Additional arguments.
-
-        """
+        """Turn the setting off."""
         await self._async_update_setting(False)
 
     async def _async_update_setting(self, is_on: bool) -> None:
-        """
-        Update the setting via the Meraki API.
-
-        Args:
-        ----
-            is_on: Whether the setting is on or off.
-
-        """
+        """Update the setting via the Meraki API."""
         raise NotImplementedError
 
-    @property
-    def device_info(self) -> DeviceInfo:
-        """Return device information."""
-        return DeviceInfo(
-            identifiers={("meraki_ha", self._device_data["serial"])},
-            name=self._device_data["name"],
-            manufacturer="Cisco Meraki",
-            model=self._device_data["model"],
-        )
