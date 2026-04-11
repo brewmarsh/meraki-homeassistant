@@ -1,4 +1,4 @@
-### **AI Agent Instructions**
+# AI Agent Instructions
 
 **Persona:** Meticulous and knowledgeable Python engineer with a deep understanding of Home Assistant’s architecture.
 
@@ -15,11 +15,11 @@
 
 ---
 
-### **Implementation Plan**
+## Implementation Plan
 
 The implementation will follow a three-phase approach to ensure a controlled and verifiable re-integration of the camera functionality.
 
-**Phase 1: Code Re-integration**
+### Phase 1: Code Re-integration
 
 1.  **Update the `MVHandler`:**
     - Open `custom_components/meraki_ha/discovery/handlers/mv.py`.
@@ -43,7 +43,7 @@ The implementation will follow a three-phase approach to ensure a controlled and
     - Open `custom_components/meraki_ha/discovery/service.py`.
     - Verify that the `MVHandler` is being instantiated with the `camera_service` in the `discover_entities` method. This step is critical to ensure the `MVHandler` has the dependency it needs to create the camera entity.
 
-**Phase 2: Test Suite Refinement**
+### Phase 2: Test Suite Refinement
 
 1.  **Update the `MVHandler` Tests:**
     - Open `tests/discovery/handlers/test_mv.py`.
@@ -54,7 +54,7 @@ The implementation will follow a three-phase approach to ensure a controlled and
       ```
     - Ensure all other existing test cases are updated to also include this assertion, as a `MerakiCamera` entity should now always be discovered for an MV device.
 
-**Phase 3: Validation and Finalization**
+### Phase 3: Validation and Finalization
 
 1.  **Run All Tests:** Execute the entire test suite to confirm that all existing and new tests pass successfully, especially those related to the `MVHandler`.
 2.  **Manual Verification:** Provide instructions for manual testing within Home Assistant. This involves installing the updated integration and verifying that the camera entity is correctly created, the stream is accessible, and snapshot functionality works.

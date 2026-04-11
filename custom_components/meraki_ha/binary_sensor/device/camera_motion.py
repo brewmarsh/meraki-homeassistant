@@ -11,43 +11,40 @@ from homeassistant.components.binary_sensor import (
 )
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.device_registry import DeviceInfo
-from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from ...helpers.device_info_helpers import resolve_device_info
-from ...meraki_data_coordinator import MerakiDataCoordinator
+from ...coordinators import MerakiCameraCoordinator
+from ...entity import MerakiBinarySensor
 
 if TYPE_CHECKING:
+    from ...core.models.device import MerakiDevice
     from ...services.camera_service import CameraService
 
 
 _LOGGER = logging.getLogger(__name__)
 
 
-class MerakiMotionSensor(CoordinatorEntity, BinarySensorEntity):
+class MerakiMotionSensor(MerakiBinarySensor):
     """Representation of a motion sensor."""
 
     _attr_device_class = BinarySensorDeviceClass.MOTION
 
     def __init__(
         self,
-        coordinator: MerakiDataCoordinator,
-        device: dict[str, Any],
+        coordinator: MerakiCameraCoordinator,
+        device: MerakiDevice,
         camera_service: CameraService,
         config_entry: ConfigEntry,
     ) -> None:
         """Initialize the sensor."""
         super().__init__(coordinator)
         self._device = device
+        self._device_serial = device.serial
         self._camera_service = camera_service
         self._config_entry = config_entry
-        self._attr_unique_id = f"{self._device['serial']}-motion"
-        self._attr_name = f"{self._device['name']} Motion"
+        self._attr_unique_id = f"{device.serial}-motion"
+        self._attr_name = "Motion"
         self._motion_events: list[dict[str, Any]] = []
 
-    @property
-    def device_info(self) -> DeviceInfo | None:
-        """Return device information."""
-        return resolve_device_info(self._device, self._config_entry)
 
     @property
     def is_on(self) -> bool:
@@ -61,9 +58,12 @@ class MerakiMotionSensor(CoordinatorEntity, BinarySensorEntity):
 
     async def async_update(self) -> None:
         """Update the sensor."""
-        serial = self._device["serial"]
         try:
-            self._motion_events = await self._camera_service.get_motion_history(serial)
+            self._motion_events = await self._camera_service.get_motion_history(
+                str(self._device.serial)
+            )
         except Exception as e:
-            _LOGGER.error("Error updating motion sensor for %s: %s", serial, e)
+            _LOGGER.error(
+                "Error updating motion sensor for %s: %s", str(self._device.serial), e
+            )
             self._motion_events = []

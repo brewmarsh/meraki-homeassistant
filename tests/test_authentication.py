@@ -2,16 +2,20 @@
 
 from __future__ import annotations
 
-from unittest.mock import AsyncMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-from homeassistant.core import HomeAssistant
-from homeassistant.exceptions import ConfigEntryAuthFailed
+from meraki.exceptions import APIError
 
 from custom_components.meraki_ha.authentication import (
     validate_meraki_credentials,
 )
-from custom_components.meraki_ha.core.errors import MerakiAuthenticationError
+from custom_components.meraki_ha.core.errors import (
+    InvalidOrgID,
+    MerakiConnectionError,
+)
+from homeassistant.core import HomeAssistant
+from homeassistant.exceptions import ConfigEntryAuthFailed
 
 
 @pytest.mark.asyncio
@@ -25,11 +29,13 @@ async def test_validate_meraki_credentials(hass: HomeAssistant) -> None:
 
     """
     with patch(
-        "custom_components.meraki_ha.authentication.MerakiAPIClient",
-    ) as mock_client:
-        mock_client.return_value.async_setup = AsyncMock()
-        mock_client.return_value.organization.get_organizations = AsyncMock(
-            return_value=[{"id": "test-org-id", "name": "Test Org"}],
+        "custom_components.meraki_ha.core.api.create_api_client",
+    ) as mock_create_client:
+        mock_client = AsyncMock()
+        mock_create_client.return_value = mock_client
+        mock_client.async_setup = AsyncMock()
+        mock_client.organization.get_organization = AsyncMock(
+            return_value={"id": "test-org-id", "name": "Test Org"},
         )
         result = await validate_meraki_credentials(hass, "test-api-key", "test-org-id")
         assert result == {"org_name": "Test Org", "valid": True}
@@ -47,13 +53,15 @@ async def test_validate_meraki_credentials_invalid_org(hass: HomeAssistant) -> N
     """
     with (
         patch(
-            "custom_components.meraki_ha.authentication.MerakiAPIClient",
-        ) as mock_client,
-        pytest.raises(ValueError),
+            "custom_components.meraki_ha.core.api.create_api_client",
+        ) as mock_create_client,
+        pytest.raises(InvalidOrgID),
     ):
-        mock_client.return_value.async_setup = AsyncMock()
-        mock_client.return_value.organization.get_organizations = AsyncMock(
-            return_value=[{"id": "other-org-id", "name": "Other Org"}],
+        mock_client = AsyncMock()
+        mock_create_client.return_value = mock_client
+        mock_client.async_setup = AsyncMock()
+        mock_client.organization.get_organization = AsyncMock(
+            return_value={},
         )
         await validate_meraki_credentials(hass, "test-api-key", "test-org-id")
 
@@ -68,14 +76,46 @@ async def test_validate_meraki_credentials_auth_failed(hass: HomeAssistant) -> N
         hass: The Home Assistant instance.
 
     """
+    metadata = {"tags": ["test"], "operation": "getOrganization"}
+    response = MagicMock()
+    response.status_code = 401
+    response.json.return_value = {"errors": ["Invalid API key"]}
+    error = APIError(metadata, response)
+
     with (
         patch(
-            "custom_components.meraki_ha.authentication.MerakiAPIClient",
-        ) as mock_client,
+            "custom_components.meraki_ha.core.api.create_api_client",
+        ) as mock_create_client,
         pytest.raises(ConfigEntryAuthFailed),
     ):
-        mock_client.return_value.async_setup = AsyncMock()
-        mock_client.return_value.organization.get_organizations = AsyncMock(
-            side_effect=MerakiAuthenticationError("test"),
+        mock_client = AsyncMock()
+        mock_create_client.return_value = mock_client
+        mock_client.async_setup = AsyncMock()
+        # Direct call to the organization endpoint which would be called by authentication
+        mock_client.organization.get_organization = AsyncMock(
+            side_effect=error,
         )
+        await validate_meraki_credentials(hass, "test-api-key", "test-org-id")
+
+
+@pytest.mark.asyncio
+async def test_validate_meraki_credentials_no_dashboard(hass: HomeAssistant) -> None:
+    """
+    Test validate_meraki_credentials with no dashboard.
+
+    Args:
+    ----
+        hass: The Home Assistant instance.
+
+    """
+    with (
+        patch(
+            "custom_components.meraki_ha.core.api.create_api_client",
+        ) as mock_create_client,
+        pytest.raises(MerakiConnectionError),
+    ):
+        mock_client = AsyncMock()
+        mock_create_client.return_value = mock_client
+        mock_client.async_setup = AsyncMock()
+        mock_client.dashboard = None
         await validate_meraki_credentials(hass, "test-api-key", "test-org-id")

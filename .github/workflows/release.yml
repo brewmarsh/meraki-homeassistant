@@ -1,0 +1,80 @@
+name: Release
+
+on:
+  push:
+    branches:
+      - beta
+      - main
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.PAT_TOKEN }}
+          fetch-depth: 0 # CRITICAL: Prevents diverged branch errors when committing back
+          ref: ${{ github.ref }} # Ensure we are on the exact branch
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install bump-my-version jq
+
+      - name: Determine release part
+        id: part
+        run: |
+          if [[ "${{ github.ref }}" == "refs/heads/beta" ]]; then
+            echo "part=beta" >> $GITHUB_ENV
+          elif [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
+            echo "part=patch" >> $GITHUB_ENV
+          else
+            echo "Unsupported branch for release"
+            exit 1
+          fi
+
+      - name: Run release script
+        run: ./scripts/release.sh ${{ env.part }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '20'
+
+      - name: Build Frontend
+        working-directory: frontend
+        run: |
+          npm ci
+          npm run build
+
+      - name: Commit and push changes
+        uses: stefanzweifel/git-auto-commit-action@v7
+        with:
+          commit_message: 'chore(release): version bump [skip ci]'
+          branch: ${{ github.ref_name }}
+          # CORRECT: Updated to .toml and explicitly included all bumped files
+          file_pattern: 'custom_components/meraki_ha/manifest.json package.json frontend/package.json frontend/package-lock.json .bumpversion.toml package-lock.json'
+
+      - name: Get version
+        id: get_version
+        run: echo "tag=v$(jq -r .version custom_components/meraki_ha/manifest.json)" >> $GITHUB_OUTPUT
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.get_version.outputs.tag }}
+          prerelease: ${{ github.ref_name == 'beta' }}
+          generate_release_notes: true

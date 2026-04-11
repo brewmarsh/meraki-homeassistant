@@ -11,10 +11,9 @@ import logging
 from typing import TYPE_CHECKING, Any
 
 from ..errors import MerakiInformationalError
-from ..utils.api_utils import handle_meraki_errors
 
 if TYPE_CHECKING:
-    from ..api.client import MerakiAPIClient
+    from ..api import MerakiApiClientProtocol
 
 
 _LOGGER = logging.getLogger(__name__)
@@ -23,7 +22,9 @@ _LOGGER = logging.getLogger(__name__)
 class CameraRepository:
     """Repository for camera-related data."""
 
-    def __init__(self, api_client: MerakiAPIClient, organization_id: str) -> None:
+    def __init__(
+        self, api_client: MerakiApiClientProtocol, organization_id: str
+    ) -> None:
         """Initialize the camera repository."""
         self._api_client = api_client
         self._organization_id = organization_id
@@ -36,6 +37,10 @@ class CameraRepository:
         and other properties. For now, we'll assume all cameras support basic
         features, but this can be expanded later.
         """
+        if not serial:
+            _LOGGER.debug("Cannot fetch features: Serial is missing.")
+            return []
+
         # In the future, this could involve a call to get device details
         # and then a lookup based on the model.
         # For now, we'll hardcode some features for demonstration.
@@ -56,14 +61,22 @@ class CameraRepository:
 
         return features
 
-    @handle_meraki_errors
     async def get_analytics_data(
         self, serial: str, object_type: str
     ) -> list[dict[str, Any]] | None:
         """Fetch object detection and motion data."""
-        return await self._api_client.camera.get_device_camera_analytics_recent(
-            serial, object_type
-        )
+        if not serial:
+            _LOGGER.debug("Cannot fetch analytics: Serial is missing.")
+            return None
+
+        try:
+            recent = await self._api_client.camera.get_device_camera_analytics_recent(
+                serial, object_type
+            )
+            return recent
+        except Exception as e:
+            _LOGGER.error("Error fetching analytics data for %s: %s", serial, e)
+            return None
 
     async def async_get_rtsp_stream_url(self, serial: str) -> str | None:
         """
@@ -71,6 +84,10 @@ class CameraRepository:
 
         This method validates that the URL is a valid RTSP stream URL.
         """
+        if not serial:
+            _LOGGER.debug("Cannot fetch RTSP URL: Serial is missing.")
+            return None
+
         # MV2 cameras do not support historical viewing without cloud archive,
         # so we should not attempt to fetch a video link for them.
         try:
@@ -96,14 +113,19 @@ class CameraRepository:
             )
             url = video_link_data.get("url")
 
-            # Validate that we received a valid RTSP URL
-            if url and url.startswith("rtsp://"):
+            # Validate that we received a valid RTSP or HTTP(S) .m3u8 stream URL
+            if url and (
+                url.startswith("rtsp://")
+                or url.startswith("https://")
+                or url.endswith(".m3u8")
+            ):
                 return url
 
-            # If we get a non-RTSP URL, log it and return None
+            # If we get a non-supported URL, log it and return None
             if url:
                 _LOGGER.debug(
-                    "API returned a non-RTSP URL, assuming no stream available: %s",
+                    "API returned a non-supported video URL, assuming no "
+                    "stream available: %s",
                     url,
                 )
             return None
@@ -125,27 +147,30 @@ class CameraRepository:
         self, network_id: str, object_type: str
     ) -> list[dict[str, Any]]:
         """Get analytics history for a network."""
-        try:
-            return await self._api_client.network.get_network_camera_analytics_history(
-                network_id, object_type
-            )
-        except Exception as e:
-            _LOGGER.error("Error fetching analytics history: %s", e)
-            return []
+        # This endpoint is not yet available in the Meraki API or client
+        return []
 
     async def generate_snapshot(self, serial: str) -> str | None:
         """Generate a snapshot and return the URL."""
+        if not serial:
+            _LOGGER.debug("Cannot generate snapshot: Serial is missing.")
+            return None
+
         try:
             snapshot_data = (
                 await self._api_client.camera.generate_device_camera_snapshot(serial)
             )
             return snapshot_data.get("url")
         except Exception as e:
-            _LOGGER.error("Error generating snapshot for %s: %s", serial, e)
+            _LOGGER.warning("Error generating snapshot for %s: %s", serial, e)
             return None
 
     async def set_rtsp_stream_enabled(self, serial: str, enabled: bool) -> None:
         """Enable or disable RTSP stream for a camera."""
+        if not serial:
+            _LOGGER.debug("Cannot set RTSP stream: Serial is missing.")
+            return
+
         try:
             await self._api_client.camera.update_camera_video_settings(
                 serial, externalRtspEnabled=enabled

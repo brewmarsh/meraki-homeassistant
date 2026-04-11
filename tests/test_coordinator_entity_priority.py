@@ -1,0 +1,77 @@
+"""Test for reproducing camera status issue."""
+
+from unittest.mock import MagicMock, patch
+
+from custom_components.meraki_ha.core.coordinator_helpers.update_processor import (
+    update_device_registry_info,
+)
+
+
+async def test_update_device_registry_info_picks_camera(hass):
+    """Test that update_device_registry_info picks the camera entity over sensor."""
+    # Mock data
+    from custom_components.meraki_ha.types import MerakiDevice
+
+    devices = [
+        MerakiDevice(
+            serial="Q234-ABCD-5678",
+            model="MV12",
+            name="Test Camera",
+        )
+    ]
+
+    # Mock Device Registry
+    mock_dr = MagicMock()
+    mock_device = MagicMock()
+    mock_device.id = "device_id_123"
+    mock_dr.async_get_device.return_value = mock_device
+
+    # Mock Entity Registry
+    mock_er = MagicMock()
+
+    # Create mock entities
+    # Action 6: Remove spec=er.RegistryEntry to avoid InvalidSpec errors
+    entity_sensor = MagicMock()
+    entity_sensor.entity_id = "sensor.test_camera_last_reported"
+    entity_sensor.name = "Test Camera Last Reported"
+    entity_sensor.original_name = "Test Camera Last Reported"
+    entity_sensor.platform = "meraki_ha"  # Integration platform
+    entity_sensor.domain = "sensor"  # Entity domain
+    entity_sensor.unique_id = "Q234-ABCD-5678_last_reported"
+
+    # Entity 2: Camera - SHOULD be picked
+    entity_camera = MagicMock()
+    entity_camera.entity_id = "camera.test_camera"
+    entity_camera.name = "Test Camera"
+    entity_camera.original_name = "Test Camera"
+    entity_camera.platform = "meraki_ha"  # Integration platform
+    entity_camera.domain = "camera"  # Entity domain
+    entity_camera.unique_id = "Q234-ABCD-5678-camera"
+
+    # Return them in an order where sensor comes first (to test priority)
+    mock_entries = [entity_sensor, entity_camera]
+
+    # Set states in HA state machine
+    hass.states.async_set("sensor.test_camera_last_reported", "2023-01-01")
+    hass.states.async_set("camera.test_camera", "idle")
+
+    with (
+        patch(
+            "custom_components.meraki_ha.core.coordinator_helpers.update_processor.dr.async_get",
+            return_value=mock_dr,
+        ),
+        patch(
+            "custom_components.meraki_ha.core.coordinator_helpers.update_processor.er.async_get",
+            return_value=mock_er,
+        ),
+        patch(
+            "custom_components.meraki_ha.core.coordinator_helpers.update_processor.er.async_entries_for_device",
+            return_value=mock_entries,
+        ),
+    ):
+        update_device_registry_info(hass, devices)
+
+        device = devices[0]
+
+        # We expect camera.test_camera as it is prioritized in coordinator.py
+        assert device.entity_id == "camera.test_camera"

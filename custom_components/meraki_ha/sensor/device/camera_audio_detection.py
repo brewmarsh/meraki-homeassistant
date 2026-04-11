@@ -1,41 +1,51 @@
 """Sensor entity for Meraki camera audio detection status."""
 
-import logging
-from typing import Any
+from __future__ import annotations
 
-from homeassistant.components.sensor import SensorEntity, SensorEntityDescription
+import logging
+from typing import TYPE_CHECKING, cast
+
+from homeassistant.components.sensor import SensorEntityDescription
 from homeassistant.config_entries import ConfigEntry
+from homeassistant.const import EntityCategory
 from homeassistant.core import callback
 from homeassistant.helpers.device_registry import DeviceInfo
-from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from ...const import DOMAIN
+from custom_components.meraki_ha.const.integration import DOMAIN
+
+from ...coordinators import MerakiCameraCoordinator
 from ...core.utils.naming_utils import format_device_name
-from ...meraki_data_coordinator import MerakiDataCoordinator
+from ...entity import MerakiSensor
+
+if TYPE_CHECKING:
+    from ...core.models.device import MerakiDevice
 
 _LOGGER = logging.getLogger(__name__)
 
 
-class MerakiCameraAudioDetectionSensor(CoordinatorEntity, SensorEntity):
+class MerakiCameraAudioDetectionSensor(MerakiSensor):
     """Representation of a Meraki Camera Audio Detection Status sensor."""
 
+    coordinator: MerakiCameraCoordinator
+
     _attr_has_entity_name = True
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
 
     def __init__(
         self,
-        coordinator: MerakiDataCoordinator,
-        device_data: dict[str, Any],
+        coordinator: MerakiCameraCoordinator,
+        device_data: MerakiDevice,
         config_entry: ConfigEntry,
     ) -> None:
         """Initialize the Meraki Camera Audio Detection sensor."""
         super().__init__(coordinator)
-        self._device_serial: str = device_data["serial"]
+        self._device_serial: str = cast(str, device_data.serial)
         self._attr_unique_id = f"{self._device_serial}_camera_audio_detection_status"
 
         self._attr_device_info = DeviceInfo(
             identifiers={(DOMAIN, self._device_serial)},
             name=format_device_name(device_data, config_entry.options),
-            model=device_data.get("model"),
+            model=device_data.model,
             manufacturer="Cisco Meraki",
         )
         self.entity_description = SensorEntityDescription(
@@ -47,13 +57,9 @@ class MerakiCameraAudioDetectionSensor(CoordinatorEntity, SensorEntity):
 
         self._update_sensor_data()
 
-    def _get_current_device_data(self) -> dict[str, Any] | None:
+    def _get_current_device_data(self) -> MerakiDevice | None:
         """Retrieve the latest data for this sensor's device from the coordinator."""
-        if self.coordinator.data and self.coordinator.data.get("devices"):
-            for dev_data in self.coordinator.data["devices"]:
-                if dev_data.get("serial") == self._device_serial:
-                    return dev_data
-        return None
+        return self.coordinator.get_device(self._device_serial)
 
     def _update_sensor_data(self) -> None:
         """Update sensor state (native_value and icon) from coordinator data."""
@@ -64,7 +70,15 @@ class MerakiCameraAudioDetectionSensor(CoordinatorEntity, SensorEntity):
             self._attr_icon = "mdi:help-rhombus"
             return
 
-        audio_detection_data = current_device_data.get("audioDetection")
+        # Audio detection is part of sense settings
+        sense_settings = getattr(current_device_data, "sense_settings", None)
+
+        if not isinstance(sense_settings, dict):
+            self._attr_native_value = None
+            self._attr_icon = "mdi:microphone-question"
+            return
+
+        audio_detection_data = sense_settings.get("audioDetection")
 
         if (
             not isinstance(audio_detection_data, dict)
@@ -92,14 +106,18 @@ class MerakiCameraAudioDetectionSensor(CoordinatorEntity, SensorEntity):
     @property
     def available(self) -> bool:
         """Return True if entity is available and data is present."""
-        if not super().available:
+        if self.coordinator.data is None or not super().available:
             return False
 
         current_device_data = self._get_current_device_data()
         if not current_device_data:
             return False
 
-        audio_data = current_device_data.get("audioDetection")
+        sense_settings = getattr(current_device_data, "sense_settings", None)
+        if not isinstance(sense_settings, dict):
+            return False
+
+        audio_data = sense_settings.get("audioDetection")
         if not isinstance(audio_data, dict) or "enabled" not in audio_data:
             return False
 

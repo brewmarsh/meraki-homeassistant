@@ -10,7 +10,7 @@ from custom_components.meraki_ha.text.meraki_ssid_name import MerakiSSIDNameText
 
 @pytest.fixture
 def mock_meraki_client() -> MagicMock:
-    """Fixture for a mocked MerakiAPIClient."""
+    """Fixture for a mocked MerakiApiClientProtocol."""
     client = MagicMock()
     client.wireless.update_network_wireless_ssid = AsyncMock()
     return client
@@ -18,7 +18,7 @@ def mock_meraki_client() -> MagicMock:
 
 @pytest.fixture
 def mock_coordinator_with_refresh(mock_coordinator: MagicMock) -> MagicMock:
-    """Fixture for a mocked MerakiDataCoordinator.
+    """Fixture for a mocked MerakiMainCoordinator.
 
     This fixture includes an async_request_refresh mock.
     """

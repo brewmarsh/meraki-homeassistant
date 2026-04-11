@@ -13,7 +13,7 @@ The key architectural pillars are:
 
 ## 2. Core Components
 
-### 2.1. `MerakiDataCoordinator`
+\*\*2.1. `MerakiDataCoordinator`
 
 The heart of the integration is the `MerakiDataCoordinator`, located in `custom_components/meraki_ha/core/coordinators/meraki_data_coordinator.py`.
 
@@ -26,14 +26,14 @@ The heart of the integration is the `MerakiDataCoordinator`, located in `custom_
     - `ssids_by_network_and_number`: A dictionary mapping a `(network_id, ssid_number)` tuple to SSID data.
 - **Entity Interaction:** Entities in Home Assistant are subclasses of `CoordinatorEntity` and are linked to the `MerakiDataCoordinator`. They should not fetch their own data. Instead, they access the coordinator's `data` or use the efficient `get_device()`, `get_network()`, and `get_ssid()` methods to retrieve their state. When the coordinator updates its data, it notifies all listening entities, which then update their state via their `_handle_coordinator_update()` method.
 
-### 2.2. `MerakiAPIClient`
+\*\*2.2. `MerakiAPIClient`
 
 The `MerakiAPIClient`, located in `custom_components/meraki_ha/core/api/client.py`, is responsible for all communication with the Meraki Dashboard API.
 
 - **Design:** It acts as a facade, providing a single entry point for fetching all data (`get_all_data`). It delegates the actual API calls to smaller, endpoint-specific handler classes located in `custom_components/meraki_ha/core/api/endpoints/`.
 - **Concurrency:** The client uses `asyncio.gather` and a semaphore to fetch data from multiple API endpoints concurrently, significantly reducing the total time spent waiting for I/O. This makes the integration feel much more responsive, especially during startup.
 
-### 2.3. Entity and Sensor Setup
+\*\*2.3. Entity and Sensor Setup
 
 - **`setup_helpers.py`:** The logic for creating all sensor entities is centralized in `custom_components/meraki_ha/sensor/setup_helpers.py`. This file was refactored from a single large function into several smaller, more manageable helper functions, each responsible for a specific category of sensor (e.g., `_setup_device_sensors`, `_setup_network_sensors`).
 - **`sensor_registry.py`:** To ensure type safety and avoid `mypy` errors, the integration uses a sensor registry (`custom_components/meraki_ha/sensor_registry.py`). This registry explicitly defines which sensor classes should be created for each Meraki device type and what their constructor arguments are. This avoids the need for dynamic, untyped introspection.
@@ -42,15 +42,15 @@ The `MerakiAPIClient`, located in `custom_components/meraki_ha/core/api/client.p
 
 The integration is designed to be resilient to transient API errors and network issues, providing a stable user experience.
 
-### 3.1. Stale Data on Failure
+\*\*3.1. Stale Data on Failure
 
 If the `MerakiDataCoordinator` fails to fetch an update from the Meraki API, it does not immediately mark all entities as unavailable. Instead, it checks the timestamp of the last successful update. If the last successful data is within a configurable threshold (defaulting to 30 minutes), the coordinator will log a warning but continue to provide the existing "stale" data to all entities. This makes the integration resilient to brief network or API outages, preventing the user's dashboard from going blank due to a temporary glitch. This feature can be configured in the integration's options.
 
-### 3.2. Partial Data Merging
+\*\*3.2. Partial Data Merging
 
 The `MerakiAPIClient` fetches data from multiple endpoints concurrently. If one of these sub-requests fails, the integration does not discard all the data from the successful requests. Instead, it will use the data from the last successful coordinator run for the specific slice of data that failed. For example, if fetching VLAN information fails but device statuses succeed, the VLAN sensors will continue to show their previous state, while the device status sensors will show the latest information. This prevents a single, non-critical API failure from causing an entire category of sensors to become unavailable.
 
-### 3.3. Persistent Caching
+\*\*3.3. Persistent Caching
 
 To improve startup times for Home Assistant, the integration uses a persistent disk cache (`diskcache`). The results of the `get_all_data` API call are cached on disk with a short TTL (2 minutes). When Home Assistant restarts, the integration can load the cached data almost instantly, making entities available right away while a fresh API call is made in the background.
 

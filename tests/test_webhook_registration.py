@@ -1,0 +1,59 @@
+"""Tests for Meraki webhook registration."""
+
+from unittest.mock import AsyncMock, patch
+
+import pytest
+from homeassistant.core import HomeAssistant
+from pytest_homeassistant_custom_component.common import MockConfigEntry
+
+from custom_components.meraki_ha.const.integration import DOMAIN
+from custom_components.meraki_ha.webhook import (
+    async_handle_webhook,
+    async_register_webhook,
+)
+
+
+@pytest.fixture
+def mock_api_client():
+    """Mock the Meraki API client."""
+    client = AsyncMock()
+    client.register_webhook = AsyncMock()
+    return client
+
+
+@pytest.mark.asyncio
+async def test_register_webhook_call(hass: HomeAssistant, mock_api_client):
+    """Test that register_webhook is called correctly."""
+    entry = MockConfigEntry(
+        domain="meraki_ha",
+        data={"webhook_url": "https://example.com/api/webhook/test"},
+        entry_id="test_entry_id",
+    )
+    # Explicitly assign the entry_id property to the string "test_entry_id".
+    # Since ConfigEntry attributes are frozen, we use object.__setattr__ to bypass
+    # the restriction. This ensures the application code extracts the literal
+    # string rather than a MagicMock if the class implementation uses mocking
+    # internally.
+    object.__setattr__(entry, "entry_id", "test_entry_id")
+    entry.add_to_hass(hass)
+
+    with (
+        patch(
+            "custom_components.meraki_ha.webhook.get_webhook_url",
+            return_value="https://example.com/api/webhook/test",
+        ),
+        patch("homeassistant.components.webhook.async_register") as mock_ha_register,
+    ):
+        await async_register_webhook(
+            hass, "test_webhook_id", "test_secret", mock_api_client, entry=entry
+        )
+
+    # This assertion validates that the fix correctly extracts config_entry_id from
+    # entry
+    mock_api_client.register_webhook.assert_called_once_with(
+        "https://example.com/api/webhook/test", "test_secret", "test_entry_id"
+    )
+
+    mock_ha_register.assert_called_once_with(
+        hass, DOMAIN, "Meraki", "test_webhook_id", async_handle_webhook
+    )

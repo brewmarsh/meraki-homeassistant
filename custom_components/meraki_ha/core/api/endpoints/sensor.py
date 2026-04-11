@@ -5,8 +5,10 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING, Any
 
+from custom_components.meraki_ha.core.api.cache import async_timed_cache
+
 if TYPE_CHECKING:
-    from ..client import MerakiAPIClient
+    from ..protocol import MerakiApiClientProtocol
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -14,7 +16,7 @@ _LOGGER = logging.getLogger(__name__)
 class SensorEndpoints:
     """Sensor endpoints for the Meraki API."""
 
-    def __init__(self, client: MerakiAPIClient) -> None:
+    def __init__(self, client: MerakiApiClientProtocol) -> None:
         """
         Initialize the sensor endpoints.
 
@@ -44,14 +46,47 @@ class SensorEndpoints:
 
         """
         _LOGGER.debug("Sending command '%s' to sensor %s", operation, serial)
-        if self._client.dashboard is None:
-            return {}
         return await self._client.run_sync(
             self._client.dashboard.sensor.createDeviceSensorCommand,
             serial=serial,
             operation=operation,
         )
 
+    @async_timed_cache(timeout=60)
+    async def get_organization_sensor_readings_latest_for_serials(
+        self,
+        serials: list[str],
+        metrics: list[str],
+    ) -> list[dict[str, Any]]:
+        """
+        Return the latest readings for specified metrics from a list of sensors.
+
+        Args:
+        ----
+            serials: A list of sensor serials to fetch data for.
+            metrics: A list of metrics to fetch.
+
+        Returns
+        -------
+            The response from the API.
+
+        """
+        if not serials:
+            return []
+        _LOGGER.debug(
+            "Getting latest sensor readings for serials: %s, metrics: %s",
+            serials,
+            metrics,
+        )
+        return await self._client.run_sync(
+            self._client.dashboard.sensor.getOrganizationSensorReadingsLatest,
+            organizationId=self._client.organization_id,
+            serials=serials,
+            metrics=metrics,
+            total_pages="all",
+        )
+
+    @async_timed_cache(timeout=60)
     async def get_organization_sensor_readings_latest(
         self,
     ) -> list[dict[str, Any]]:
@@ -63,11 +98,54 @@ class SensorEndpoints:
             The response from the API.
 
         """
-        _LOGGER.debug("Getting latest sensor readings for organization")
-        if self._client.dashboard is None:
-            return []
+        metrics = [
+            "apparentPower",
+            "battery",
+            "button",
+            "co2",
+            "current",
+            "door",
+            "downstreamPower",
+            "frequency",
+            "humidity",
+            "noise",
+            "pm25",
+            "powerFactor",
+            "realPower",
+            "temperature",
+            "tvoc",
+            "voltage",
+            "water",
+        ]
+        _LOGGER.debug(
+            "Getting latest sensor readings for organization with metrics: %s",
+            ", ".join(metrics),
+        )
         return await self._client.run_sync(
             self._client.dashboard.sensor.getOrganizationSensorReadingsLatest,
             organizationId=self._client.organization_id,
+            metrics=metrics,
             total_pages="all",
+        )
+
+    async def get_device_sensor_relationships(
+        self,
+        serial: str,
+    ) -> list[dict[str, Any]]:
+        """
+        Return the sensor relationships for a device.
+
+        Args:
+        ----
+            serial: The serial number of the device.
+
+        Returns
+        -------
+            The response from the API.
+
+        """
+        _LOGGER.debug("Getting sensor relationships for device %s", serial)
+        return await self._client.run_sync(
+            self._client.dashboard.sensor.getDeviceSensorRelationships,
+            serial=serial,
         )

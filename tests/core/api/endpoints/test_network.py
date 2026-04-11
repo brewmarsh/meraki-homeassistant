@@ -1,0 +1,121 @@
+"""Tests for the Network Endpoints."""
+
+from unittest.mock import AsyncMock, MagicMock
+
+import pytest
+from meraki.exceptions import APIError
+
+from custom_components.meraki_ha.core.api.endpoints.network import NetworkEndpoints
+from custom_components.meraki_ha.core.errors import MerakiConnectionError
+
+
+@pytest.fixture
+def mock_client():
+    """Mock the Meraki API client."""
+    client = MagicMock()
+    client.dashboard = MagicMock()
+    client.run_sync = AsyncMock()
+
+    async def mock_run_with_semaphore(coro):
+        return await coro
+
+    async def mock_run_with_cache(cache_key, func, ttl=None):
+        return await func()
+
+    client.run_with_semaphore = AsyncMock(side_effect=mock_run_with_semaphore)
+    client.run_with_cache = AsyncMock(side_effect=mock_run_with_cache)
+    return client
+
+
+@pytest.fixture
+def network(mock_client):
+    """Fixture for the NetworkEndpoints."""
+    return NetworkEndpoints(mock_client)
+
+
+@pytest.mark.asyncio
+async def test_get_group_policies(network, mock_client):
+    """Test get_group_policies."""
+    mock_data = [{"groupPolicyId": "gp1"}]
+    mock_client.run_sync.return_value = mock_data
+
+    result = await network.get_group_policies("net1")
+
+    assert result == mock_data
+    mock_client.run_sync.assert_called_once()
+    args, kwargs = mock_client.run_sync.call_args
+    assert kwargs["networkId"] == "net1"
+
+
+@pytest.mark.asyncio
+async def test_get_group_policies_failure(network, mock_client):
+    """Test get_group_policies failure handling."""
+    # Action 2: Use real APIError class
+    metadata = {"tags": ["test"], "operation": "test_op"}
+    response = MagicMock()
+    response.status_code = 400
+    response.json.return_value = {"errors": ["Bad Request"]}
+
+    mock_client.run_sync.side_effect = APIError(metadata, response)
+
+    # Action 2: Expected raises MerakiConnectionError
+    with pytest.raises(MerakiConnectionError):
+        await network.get_group_policies("net1")
+
+
+@pytest.mark.asyncio
+async def test_get_network_events_filters_none(network, mock_client):
+    """Test that get_network_events filters out None values from arguments."""
+    # Arrange
+    mock_client.dashboard.networks.getNetworkEvents.return_value = {"events": []}
+    mock_client.run_sync.return_value = {"events": []}
+    network_id = "N_123"
+
+    # Act
+    await network.get_network_events(network_id)
+
+    # Assert
+    mock_client.run_sync.assert_called_once()
+    args, kwargs = mock_client.run_sync.call_args
+    # First arg to run_sync is function, second is network_id
+    assert args[0] == mock_client.dashboard.networks.getNetworkEvents
+    assert args[1] == network_id
+    # Ensure no None values in kwargs
+    for key, value in kwargs.items():
+        assert value is not None, f"Found None value for key: {key}"
+    # Specifically check that productType is not in kwargs
+    assert "productType" not in kwargs
+
+
+@pytest.mark.asyncio
+async def test_get_network_events_failure(network, mock_client):
+    """Test get_network_events failure handling."""
+    # Action 3 & 5: Properly instantiated APIError and expect {}
+    metadata = {"tags": ["test"], "operation": "test_op"}
+    response = MagicMock()
+    response.status_code = 500
+    response.json.return_value = {"errors": ["Internal Server Error"]}
+
+    mock_client.run_sync.side_effect = APIError(metadata, response)
+
+    # Action 2: Expected raises MerakiConnectionError
+    with pytest.raises(MerakiConnectionError):
+        await network.get_network_events("N_123")
+
+
+@pytest.mark.asyncio
+async def test_get_network_events_passes_values(network, mock_client):
+    """Test that get_network_events passes non-None values correctly."""
+    # Arrange
+    mock_client.dashboard.networks.getNetworkEvents.return_value = {"events": []}
+    mock_client.run_sync.return_value = {"events": []}
+    network_id = "N_123"
+    product_type = "appliance"
+
+    # Act
+    await network.get_network_events(network_id, productType=product_type)
+
+    # Assert
+    mock_client.run_sync.assert_called_once()
+    args, kwargs = mock_client.run_sync.call_args
+    assert kwargs.get("productType") == product_type

@@ -9,18 +9,16 @@ from __future__ import annotations
 
 import logging
 from abc import ABC, abstractmethod
+from collections.abc import AsyncIterator
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
     from homeassistant.helpers.entity import Entity
 
-    from ....services.camera_service import CameraService
-    from ....services.device_control_service import DeviceControlService
-    from ....services.network_control_service import NetworkControlService
-    from ....types import MerakiDevice
-    from ...meraki_data_coordinator import (
-        MerakiDataCoordinator,
+    from ....core.models.device import MerakiDevice
+    from ...coordinators import (
+        MerakiMainCoordinator,
     )
 
 
@@ -32,7 +30,7 @@ class BaseHandler(ABC):
 
     def __init__(
         self,
-        coordinator: MerakiDataCoordinator,
+        coordinator: MerakiMainCoordinator,
         config_entry: ConfigEntry,
     ) -> None:
         """Initialize the BaseHandler."""
@@ -40,7 +38,7 @@ class BaseHandler(ABC):
         self._config_entry = config_entry
 
     @abstractmethod
-    async def discover_entities(self) -> list[Entity]:
+    def discover_entities(self) -> AsyncIterator[Entity]:
         """Discover entities."""
         raise NotImplementedError("Subclasses must implement discover_entities")
 
@@ -50,24 +48,10 @@ class BaseDeviceHandler(BaseHandler, ABC):
 
     def __init__(
         self,
-        coordinator: MerakiDataCoordinator,
+        coordinator: MerakiMainCoordinator,
         device: MerakiDevice,
         config_entry: ConfigEntry,
     ) -> None:
         """Initialize the BaseDeviceHandler."""
         super().__init__(coordinator, config_entry)
         self.device = device
-
-    @classmethod
-    @abstractmethod
-    def create(
-        cls,
-        coordinator: MerakiDataCoordinator,
-        device: MerakiDevice,
-        config_entry: ConfigEntry,
-        camera_service: CameraService,
-        control_service: DeviceControlService,
-        network_control_service: NetworkControlService,
-    ) -> BaseDeviceHandler:
-        """Create an instance of the handler."""
-        raise NotImplementedError

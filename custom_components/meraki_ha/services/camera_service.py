@@ -31,7 +31,7 @@ class CameraService:
         analytics = [
             feature
             for feature in features
-            if feature in ["person_detection", "vehicle_detection"]
+            if feature in ("person_detection", "vehicle_detection")
         ]
         return analytics
 
@@ -61,8 +61,12 @@ class CameraService:
 
         motion_events = []
         if person_history:
+            for event in person_history:
+                event["event_type"] = "person"
             motion_events.extend(person_history)
         if vehicle_history:
+            for event in vehicle_history:
+                event["event_type"] = "vehicle"
             motion_events.extend(vehicle_history)
 
         return motion_events

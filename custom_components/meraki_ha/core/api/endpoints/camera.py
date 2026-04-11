@@ -5,7 +5,7 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING, Any
 
-from custom_components.meraki_ha.core.utils.api_utils import (
+from custom_components.meraki_ha.core.utils.api import (
     handle_meraki_errors,
     validate_response,
 )
@@ -13,7 +13,7 @@ from custom_components.meraki_ha.core.utils.api_utils import (
 from ..cache import async_timed_cache
 
 if TYPE_CHECKING:
-    from ..client import MerakiAPIClient
+    from ..protocol import MerakiApiClientProtocol
 
 
 _LOGGER = logging.getLogger(__name__)
@@ -22,7 +22,7 @@ _LOGGER = logging.getLogger(__name__)
 class CameraEndpoints:
     """Camera-related endpoints."""
 
-    def __init__(self, api_client: MerakiAPIClient) -> None:
+    def __init__(self, api_client: MerakiApiClientProtocol) -> None:
         """
         Initialize the endpoint.
 
@@ -37,7 +37,8 @@ class CameraEndpoints:
     @async_timed_cache()
     async def get_camera_sense_settings(self, serial: str) -> dict[str, Any]:
         """Get sense settings for a specific camera."""
-        if self._api_client.dashboard is None:
+        if not serial:
+            _LOGGER.warning("get_camera_sense_settings: serial is required")
             return {}
         settings = await self._api_client.run_sync(
             self._api_client.dashboard.camera.getDeviceCameraSense, serial=serial
@@ -52,7 +53,8 @@ class CameraEndpoints:
     @async_timed_cache()
     async def get_camera_video_settings(self, serial: str) -> dict[str, Any]:
         """Get video settings for a specific camera."""
-        if self._api_client.dashboard is None:
+        if not serial:
+            _LOGGER.warning("get_camera_video_settings: serial is required")
             return {}
         settings = await self._api_client.run_sync(
             self._api_client.dashboard.camera.getDeviceCameraVideoSettings,
@@ -68,7 +70,8 @@ class CameraEndpoints:
     @async_timed_cache(timeout=30)
     async def get_device_camera_video_link(self, serial: str) -> dict[str, Any]:
         """Get video link for a specific camera."""
-        if self._api_client.dashboard is None:
+        if not serial:
+            _LOGGER.warning("get_device_camera_video_link: serial is required")
             return {}
         link = await self._api_client.run_sync(
             self._api_client.dashboard.camera.getDeviceCameraVideoLink, serial=serial
@@ -81,15 +84,28 @@ class CameraEndpoints:
 
     @handle_meraki_errors
     async def update_camera_video_settings(
-        self, serial: str, **kwargs
+        self, serial: str, **kwargs: Any
     ) -> dict[str, Any]:
         """Update video settings for a specific camera."""
-        if self._api_client.dashboard is None:
+        if not serial:
+            _LOGGER.warning("update_camera_video_settings: serial is required")
             return {}
+        # Map snake_case keys to camelCase keys for the Meraki API
+        payload = {}
+        mapping = {
+            "external_rtsp_enabled": "externalRtspEnabled",
+            "rtsp_enabled": "rtspEnabled",
+        }
+        for key, value in kwargs.items():
+            if key in mapping:
+                payload[mapping[key]] = value
+            else:
+                payload[key] = value
+
         result = await self._api_client.run_sync(
             self._api_client.dashboard.camera.updateDeviceCameraVideoSettings,
             serial=serial,
-            **kwargs,
+            **payload,
         )
         validated = validate_response(result)
         if not isinstance(validated, dict):
@@ -99,15 +115,30 @@ class CameraEndpoints:
 
     @handle_meraki_errors
     async def update_camera_sense_settings(
-        self, serial: str, **kwargs
+        self, serial: str, **kwargs: Any
     ) -> dict[str, Any]:
         """Update sense settings for a specific camera."""
-        if self._api_client.dashboard is None:
+        if not serial:
+            _LOGGER.warning("update_camera_sense_settings: serial is required")
             return {}
+        # Map snake_case keys to camelCase keys for the Meraki API
+        payload = {}
+        mapping = {
+            "sense_enabled": "senseEnabled",
+            "mqtt_broker_id": "mqttBrokerId",
+            "audio_detection": "audioDetection",
+            "detection_model_id": "detectionModelId",
+        }
+        for key, value in kwargs.items():
+            if key in mapping:
+                payload[mapping[key]] = value
+            else:
+                payload[key] = value
+
         result = await self._api_client.run_sync(
             self._api_client.dashboard.camera.updateDeviceCameraSense,
             serial=serial,
-            **kwargs,
+            **payload,
         )
         validated = validate_response(result)
         if not isinstance(validated, dict):
@@ -121,7 +152,8 @@ class CameraEndpoints:
         self, serial: str, object_type: str = "person"
     ) -> list[dict[str, Any]]:
         """Get recent analytics for a specific camera."""
-        if self._api_client.dashboard is None:
+        if not serial:
+            _LOGGER.warning("get_device_camera_analytics_recent: serial is required")
             return []
         recent = await self._api_client.run_sync(
             self._api_client.dashboard.camera.getDeviceCameraAnalyticsRecent,
@@ -140,7 +172,8 @@ class CameraEndpoints:
         self, serial: str
     ) -> list[dict[str, Any]]:
         """Get analytics zones for a specific camera."""
-        if self._api_client.dashboard is None:
+        if not serial:
+            _LOGGER.warning("get_device_camera_analytics_zones: serial is required")
             return []
         zones = await self._api_client.run_sync(
             self._api_client.dashboard.camera.getDeviceCameraAnalyticsZones,
@@ -154,10 +187,11 @@ class CameraEndpoints:
 
     @handle_meraki_errors
     async def generate_device_camera_snapshot(
-        self, serial: str, **kwargs
+        self, serial: str, **kwargs: Any
     ) -> dict[str, Any]:
         """Generate a snapshot of what the camera sees."""
-        if self._api_client.dashboard is None:
+        if not serial:
+            _LOGGER.warning("generate_device_camera_snapshot: serial is required")
             return {}
         snapshot = await self._api_client.run_sync(
             self._api_client.dashboard.camera.generateDeviceCameraSnapshot,

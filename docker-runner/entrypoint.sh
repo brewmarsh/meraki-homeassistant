@@ -1,10 +1,30 @@
 #!/bin/bash
 set -e
 
-# --- Cleaned-Up entrypoint.sh ---
+# --- Meraki Runner Entrypoint ---
+
+# Action: Sync internal docker group GID with the host socket GID
+# This ensures the 'runner' user has permission to use the mounted docker socket.
+DOCKER_SOCKET_GID=$(stat -c '%g' /var/run/docker.sock 2>/dev/null)
+if [ -n "$DOCKER_SOCKET_GID" ]; then
+    echo "--- Syncing internal docker group GID to $DOCKER_SOCKET_GID ---"
+    if getent group docker >/dev/null; then
+        groupmod -g "$DOCKER_SOCKET_GID" docker || true
+    else
+        groupadd -g "$DOCKER_SOCKET_GID" docker
+        usermod -aG docker runner
+    fi
+fi
+
+# Diagnostic: Verify Docker CLI availability
+echo "--- Doctor Check ---"
+if command -v docker >/dev/null 2>&1; then
+    docker --version
+else
+    echo "WARNING: Docker CLI not found in PATH"
+fi
 
 # Check for required environment variables
-# Note: We rely on the parent shell/environment to have set GITHUB_PAT.
 if [ -z "$RUNNER_TOKEN" ]; then
     echo "FATAL: RUNNER_TOKEN environment variable must be set."
     exit 1
@@ -13,6 +33,11 @@ if [ -z "$RUNNER_REPO" ]; then
     echo "FATAL: RUNNER_REPO environment variable must be set (e.g., brewmarsh/meraki-homeassistant)."
     exit 1
 fi
+
+# ACTION: Cleanup any existing runner configuration to ensure ephemeral behavior.
+# EXPLICIT: Set HOME=/home/runner to prevent sudo from leaking /root
+echo "--- Cleaning up stale runner state ---"
+sudo -E -u runner env HOME=/home/runner rm -f /home/runner/actions-runner/.runner /home/runner/actions-runner/.credentials /home/runner/actions-runner/.credentials_rsaparams
 
 # Define the configuration arguments
 CONFIG_ARGS=()
@@ -32,12 +57,23 @@ fi
 
 # Standard flags for non-interactive Docker deployment
 CONFIG_ARGS+=(--unattended) # Skips confirmation prompts
-CONFIG_ARGS+=(--replace)    # Replaces any existing runner with the same name
+CONFIG_ARGS+=(--replace)    # Forcefully overwrite existing registrations
+
+# Navigate to the runner directory
+cd /home/runner/actions-runner
 
 echo "--- Configuring Runner ---"
-# FIX: Execute config.sh using sudo to switch to the non-root 'runner' user
-sudo -u runner /home/runner/actions-runner/config.sh "${CONFIG_ARGS[@]}"
+# EXPLICIT: Set HOME=/home/runner to prevent sudo -E from leaking /root
+# Execute config.sh using sudo to switch to the non-root 'runner' user
+sudo -E -u runner env HOME=/home/runner ./config.sh "${CONFIG_ARGS[@]}"
 
 echo "--- Starting Runner ---"
-# FIX: Execute run.sh using sudo to switch to the non-root 'runner' user
-exec sudo -u runner /home/runner/actions-runner/run.sh
+# Startup diagnostic
+which docker
+docker --version
+
+# Action: Use exec to launch the runner process as PID 1
+# This ensures correct signal handling and allows 'docker exec' to work reliably.
+# EXPLICIT: Set HOME=/home/runner to prevent sudo -E from leaking /root
+echo "Handing off to GitHub Runner..."
+exec sudo -E -u runner env HOME=/home/runner ./run.sh

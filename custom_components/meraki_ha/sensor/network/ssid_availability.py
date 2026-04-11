@@ -7,22 +7,25 @@ from typing import Any
 from homeassistant.components.sensor import SensorEntityDescription
 from homeassistant.config_entries import ConfigEntry
 
-from ...meraki_data_coordinator import MerakiDataCoordinator
+from ...coordinators import MerakiMainCoordinator
 from .base import MerakiSSIDBaseSensor
 
 
 class MerakiSSIDAvailabilitySensor(MerakiSSIDBaseSensor):
     """Representation of a Meraki SSID Availability sensor."""
 
+    _attr_has_entity_name = True
+    _attr_name: str | None = None
+
     entity_description = SensorEntityDescription(
         key="availability",
-        name="Availability",
+        name="availability",
         icon="mdi:check-circle-outline",
     )
 
     def __init__(
         self,
-        coordinator: MerakiDataCoordinator,
+        coordinator: MerakiMainCoordinator,
         config_entry: ConfigEntry,
         ssid_data: dict[str, Any],
     ) -> None:
@@ -37,4 +40,8 @@ class MerakiSSIDAvailabilitySensor(MerakiSSIDBaseSensor):
 
         """
         super().__init__(coordinator, config_entry, ssid_data, "enabled")
+        self._attr_unique_id = (
+            f"{ssid_data.get('networkId')}_{ssid_data.get('number')}_"
+            f"MerakiSSIDAvailabilitySensor_{self.entity_description.key}"
+        )
         self._attr_native_value = self._ssid_data_at_init.get("enabled")

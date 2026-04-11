@@ -1,0 +1,125 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Meraki Card Verification</title>
+    <script type="module" src="meraki-card.js"></script>
+    <style>
+        body {
+            background-color: #f0f0f0;
+            padding: 20px;
+            font-family: sans-serif;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        ha-card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            display: block;
+            padding: 16px;
+        }
+        .card-content {
+            padding: 16px;
+        }
+    </style>
+    <script>
+        // Mock HA components
+        class MockElement extends HTMLElement {
+            constructor() { super(); }
+        }
+        customElements.define('ha-card', class extends MockElement {});
+        customElements.define('ha-switch', class extends MockElement {});
+        customElements.define('ha-icon', class extends MockElement {});
+        customElements.define('ha-circular-progress', class extends MockElement {});
+        customElements.define('ha-alert', class extends MockElement {});
+        customElements.define('ha-button', class extends MockElement {});
+    </script>
+</head>
+<body>
+    <div class="container">
+        <h2>VLAN Card</h2>
+        <meraki-vlan-card id="vlan-card"></meraki-vlan-card>
+
+        <h2>Content Filter Card</h2>
+        <meraki-content-filter-card id="filter-card"></meraki-content-filter-card>
+
+        <h2>Guest Access Card</h2>
+        <meraki-guest-access-card id="guest-card"></meraki-guest-access-card>
+    </div>
+    <script>
+        const hass = {
+            states: {
+                "select.main_office_content_filter": {
+                    state: "Security",
+                    attributes: {
+                        friendly_name: "Main Office Content Filter",
+                        options: ["None", "Security", "Family", "Strict"]
+                    }
+                },
+                "switch.guest_dhcp": {
+                    state: "on",
+                    attributes: {
+                        friendly_name: "Guest DHCP",
+                        vlan_id: "10",
+                        vlan_name: "Guest",
+                        subnet: "192.168.10.0/24",
+                        gateway: "192.168.10.1"
+                    }
+                },
+                "switch.staff_dhcp": {
+                    state: "off",
+                    attributes: {
+                        friendly_name: "Staff DHCP",
+                        vlan_id: "20",
+                        vlan_name: "Staff",
+                        subnet: "192.168.20.0/24",
+                        gateway: "192.168.20.1"
+                    }
+                },
+                "sensor.wifi_ap": {
+                    attributes: {
+                        network_id: "N_123",
+                        network_name: "Test Network",
+                        product_types: ["wireless"],
+                        ssid_number: 0,
+                        ssid_name: "Guest WiFi",
+                        enabled: true,
+                        auth_mode: "psk"
+                    }
+                }
+            },
+            user: { name: "Jules" },
+            callWS: async (msg) => {
+                if (msg.type === 'config_entries/get') return [{ entry_id: 'test_entry' }];
+                if (msg.type === 'meraki_ha/get_config') return { networks: [{ id: 'N_123', name: 'Test Network', productTypes: ['wireless'] }], ssids: [], group_policies: {} };
+                return [];
+            },
+            callService: async (domain, service, data) => {
+                console.log(`Service Call: ${domain}.${service}`, data);
+            }
+        };
+
+        const vlanCard = document.getElementById('vlan-card');
+        vlanCard.hass = hass;
+        vlanCard.setConfig({ type: 'meraki-vlan-card', name: 'Meraki VLANs' });
+
+        const filterCard = document.getElementById('filter-card');
+        filterCard.hass = hass;
+        filterCard.setConfig({ type: 'meraki-content-filter-card', entity: 'select.main_office_content_filter' });
+
+        const guestCard = document.getElementById('guest-card');
+        guestCard.hass = hass;
+        guestCard.setConfig({ type: 'meraki-guest-access-card', name: 'Guest Access' });
+    </script>
+</body>
+</html>

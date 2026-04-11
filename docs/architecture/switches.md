@@ -1,4 +1,4 @@
-### AI Agent Instructions
+# AI Agent Instructions
 
 Your task is to refactor the `meraki_ha` integration to properly represent Meraki MS/GS switch ports as Home Assistant entities. This includes creating a **visual status indicator** that changes based on whether a port is connected or disconnected. The refactor must be modular and testable, adhering to all previous instructions regarding file size and code structure.
 
@@ -8,35 +8,33 @@ Your task is to refactor the `meraki_ha` integration to properly represent Merak
 
 ---
 
-### Refactor Plan for Meraki MS/GS Switches
+## Refactor Plan for Meraki MS/GS Switches
 
 This plan will integrate switch port monitoring into the existing architecture by adding a new service layer and updating the `MSHandler` to dynamically create a binary sensor for each port.
 
-#### Phase 1: API and Repository Updates
+### Phase 1: API and Repository Updates
 
 1.  **Add `getDeviceSwitchPortsStatuses` to `MerakiApiClient`**:
     - Add a new asynchronous method, `async_get_switch_port_statuses(serial)`, that calls the Meraki API's `/devices/{serial}/switch/ports/statuses` endpoint. This will return a list of all ports and their current status.
-
 2.  **Add `get_switch_port_statuses` to `MerakiRepository`**:
     - Create a new method, `async_get_switch_port_statuses(serial)`, in the repository.
     - This method will accept the switch's serial number and call the API client. The repository will handle caching the results with a short TTL (e.g., 60 seconds) since port status can change frequently.
 
 ---
 
-#### Phase 2: Create a Dedicated Switch Port Service
+### Phase 2: Create a Dedicated Switch Port Service
 
 1.  **Develop `SwitchPortService` (`meraki_ha/services/switch_port_service.py`)**:
     - Create a new class, `SwitchPortService`, that is injected with the `MerakiRepository`.
     - This service will contain methods for handling switch port data, such as:
       - `async_get_port_status(serial, port_id)`: A method that queries the repository and returns the status (`Connected` or `Disconnected`) for a specific port.
       - `async_get_port_speed(serial, port_id)`: A similar method to get the port's current speed.
-
 2.  **Update `MSHandler`**:
     - The `MSHandler` needs to be updated to accept the `SwitchPortService` via **Dependency Injection**.
 
 ---
 
-#### Phase 3: Dynamic Entity Creation and Visual Indicators
+### Phase 3: Dynamic Entity Creation and Visual Indicators
 
 1.  **Refactor `MSHandler`**:
     - During device discovery, after identifying a Meraki MS switch, the handler must iterate through all of its ports.
@@ -46,7 +44,7 @@ This plan will integrate switch port monitoring into the existing architecture b
 
 ---
 
-#### Phase 4: Testing and Cleanup
+### Phase 4: Testing and Cleanup
 
 1.  **Write New Unit Tests**:
     - Write tests for the `SwitchPortService` to ensure it correctly parses data from mock API responses.
@@ -56,18 +54,18 @@ This plan will integrate switch port monitoring into the existing architecture b
 
 ---
 
-### SSID Switches
+## SSID Switches
 
 The integration provides two switches for each SSID (Service Set Identifier) on a wireless network, allowing for fine-grained control over its availability and visibility.
 
-#### SSID Enable Switch
+### SSID Enable Switch
 
 - **Name**: `SSID Enable`
 - **Purpose**: This switch controls the operational state of the SSID.
   - **ON**: The SSID is enabled and active. Wireless clients can associate with it.
   - **OFF**: The SSID is disabled. No clients can connect.
 
-#### SSID Broadcast Switch
+### SSID Broadcast Switch
 
 - **Name**: `SSID Broadcast`
 - **Purpose**: This switch controls whether the SSID's name (its "broadcast") is visible to nearby devices. This is also known as a "hidden" network.

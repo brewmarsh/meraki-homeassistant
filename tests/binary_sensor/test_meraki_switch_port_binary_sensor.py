@@ -1,0 +1,119 @@
+"""Tests for the SwitchPortSensor."""
+
+from unittest.mock import MagicMock
+
+from custom_components.meraki_ha.binary_sensor.device.switch_port import (
+    SwitchPortSensor,
+)
+from custom_components.meraki_ha.core.models.device import MerakiDevice
+from homeassistant.components.binary_sensor import BinarySensorDeviceClass
+
+
+def test_switch_port_sensor_connected():
+    """Test the sensor when the port is connected."""
+    # Arrange
+    mock_coordinator = MagicMock()
+    mock_device = MerakiDevice(
+        serial="s1",
+        name="d1",
+        model="MS220",
+        mac="00:11:22:33:44:55",
+        product_type="switch",
+    )
+    mock_port = {"portId": "p1", "status": "Connected", "enabled": True}
+
+    sensor = SwitchPortSensor(mock_coordinator, mock_device, mock_port)
+
+    # Assert
+    assert sensor.is_on is True
+    assert sensor.device_class == BinarySensorDeviceClass.CONNECTIVITY
+    assert sensor.name == "Port p1"
+    assert sensor.unique_id == "s1_port_p1_connectivity"
+    assert sensor.has_entity_name is True
+
+
+def test_switch_port_sensor_connected_lowercase():
+    """Test the sensor when the port is connected (lowercase status)."""
+    # Arrange
+    mock_coordinator = MagicMock()
+    mock_device = MerakiDevice(
+        serial="s1",
+        name="d1",
+        model="MS220",
+        mac="00:11:22:33:44:55",
+        product_type="switch",
+    )
+    mock_port = {"portId": "p1", "status": "connected", "enabled": True}
+
+    sensor = SwitchPortSensor(mock_coordinator, mock_device, mock_port)
+
+    # Assert
+    assert sensor.is_on is True
+
+
+def test_switch_port_sensor_disconnected():
+    """Test the sensor when the port is disconnected."""
+    # Arrange
+    mock_coordinator = MagicMock()
+    mock_device = MerakiDevice(
+        serial="s1",
+        name="d1",
+        model="MS220",
+        mac="00:11:22:33:44:55",
+        product_type="switch",
+    )
+    mock_port = {"portId": "p1", "status": "Disconnected", "enabled": True}
+
+    sensor = SwitchPortSensor(mock_coordinator, mock_device, mock_port)
+
+    # Assert
+    assert sensor.is_on is False
+
+
+def test_switch_port_sensor_disabled():
+    """Test the sensor when the port is disabled."""
+    # Arrange
+    mock_coordinator = MagicMock()
+    mock_device = MerakiDevice(
+        serial="s1",
+        name="d1",
+        model="MS220",
+        mac="00:11:22:33:44:55",
+        product_type="switch",
+    )
+    mock_port = {"portId": "p1", "status": "Connected", "enabled": False}
+
+    sensor = SwitchPortSensor(mock_coordinator, mock_device, mock_port)
+
+    # Assert
+    assert sensor.is_on is False
+
+
+def test_extra_state_attributes():
+    """Test the extra state attributes of the sensor."""
+    # Arrange
+    mock_coordinator = MagicMock()
+    mock_device = MerakiDevice(
+        serial="s1",
+        name="d1",
+        model="MS220",
+        mac="00:11:22:33:44:55",
+        product_type="switch",
+    )
+    mock_port = {
+        "portId": "p1",
+        "speed": "1000",
+        "duplex": "full",
+        "vlan": 1,
+        "enabled": True,
+    }
+
+    sensor = SwitchPortSensor(mock_coordinator, mock_device, mock_port)
+
+    # Assert
+    attrs = sensor.extra_state_attributes
+    assert attrs["port_id"] == "p1"
+    assert attrs["speed"] == "1000"
+    assert attrs["duplex"] == "full"
+    assert attrs["vlan"] == 1
+    assert attrs["enabled"] is True

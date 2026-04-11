@@ -1,0 +1,266 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Cisco Meraki credentials",
+        "description": "Enter your Cisco Meraki API key and organization ID.",
+        "data": {
+          "api_key": "Cisco Meraki API key",
+          "organization_id": "Cisco Meraki organization ID"
+        }
+      },
+      "reauth": {
+        "title": "Re-authenticate Cisco Meraki",
+        "description": "The API key for organization {org_id} is no longer valid. Please enter a new Cisco Meraki API key.",
+        "data": {
+          "api_key": "Cisco Meraki API key",
+          "organization_id": "Cisco Meraki organization ID"
+        }
+      },
+      "reconfigure": {
+        "title": "Reconfigure Cisco Meraki",
+        "description": "Update your Cisco Meraki configuration.",
+        "data": {
+          "scan_interval": "Update frequency",
+          "enable_device_tracker": "Enable client tracker",
+          "enable_vlan_management": "Enable VLAN management",
+          "enable_device_status": "Enable device status entities",
+          "enable_org_sensors": "Enable organization sensors",
+          "enable_camera_entities": "Enable camera entities",
+          "enable_device_sensors": "Enable device sensors",
+          "enable_network_sensors": "Enable network sensors",
+          "enable_vlan_sensors": "Enable VLAN sensors",
+          "enable_port_sensors": "Enable port sensors",
+          "enable_ssid_sensors": "Enable SSID sensors",
+          "enable_client_status_sensors": "Enable client status sensors",
+          "enabled_networks": "Enabled networks",
+          "enable_firewall_rules": "Enable firewall rules",
+          "enable_traffic_shaping": "Enable traffic shaping controls",
+          "enable_vpn_management": "VPN management",
+          "enable_camera_sense": "Enable camera sense"
+        },
+        "data_description": {
+          "scan_interval": "Frequency of data updates from the Cisco Meraki API.",
+          "enable_device_tracker": "Track devices connected to your Cisco Meraki networks.",
+          "enable_vlan_management": "Allow management of VLANs through switches.",
+          "enable_device_status": "Create binary sensors for device online/offline status.",
+          "enable_org_sensors": "Create sensors for organization-wide metrics.",
+          "enable_camera_entities": "Create entities for Cisco Meraki cameras.",
+          "enable_device_sensors": "Create sensors for device-specific metrics.",
+          "enable_network_sensors": "Create sensors for network-specific metrics.",
+          "enable_vlan_sensors": "Create sensors for VLAN metrics.",
+          "enable_port_sensors": "Create sensors for switch port metrics.",
+          "enable_ssid_sensors": "Create sensors for SSID metrics.",
+          "enable_client_status_sensors": "Create sensors for client online/offline status.",
+          "enabled_networks": "Select which Cisco Meraki networks to include in Home Assistant.",
+          "enable_firewall_rules": "Enables management of Layer 3 firewall rules.",
+          "enable_traffic_shaping": "Allows you to view and set bandwidth limits per SSID.",
+          "enable_vpn_management": "Exposes switches to toggle site-to-site VPN settings.",
+          "enable_camera_sense": "Enable Cisco Meraki MV Sense analytics entities."
+        }
+      }
+    },
+    "error": {
+      "invalid_auth": "Invalid API key",
+      "invalid_org_id": "The organization ID is incorrect or not accessible with the provided API key",
+      "cannot_connect": "Cannot connect to Cisco Meraki API",
+      "unknown": "An unknown error occurred"
+    },
+    "abort": {
+      "reauth_successful": "Re-authentication successful",
+      "already_configured": "This Cisco Meraki organization is already configured",
+      "reconfigure_successful": "Reconfiguration successful",
+      "unknown_entry": "Unknown config entry"
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Cisco Meraki",
+        "menu_options": {
+          "general": "General settings",
+          "sensors": "Sensor configuration",
+          "cameras": "Camera settings",
+          "advanced": "Advanced configuration"
+        }
+      },
+      "general": {
+        "title": "General settings",
+        "description": "Configure general settings for the Cisco Meraki integration.",
+        "data": {
+          "scan_interval": "Update frequency",
+          "enabled_networks": "Enabled networks",
+          "enable_device_tracker": "Enable client tracker"
+        },
+        "data_description": {
+          "scan_interval": "Frequency of data updates from the Cisco Meraki API.",
+          "enabled_networks": "Select which Cisco Meraki networks to include in Home Assistant.",
+          "enable_device_tracker": "Track devices connected to your Cisco Meraki networks."
+        }
+      },
+      "sensors": {
+        "title": "Sensor configuration",
+        "description": "Select which sensor types to enable.",
+        "data": {
+          "enable_device_status": "Enable device status entities",
+          "enable_org_sensors": "Enable organization sensors",
+          "enable_device_sensors": "Enable device sensors",
+          "enable_network_sensors": "Enable network sensors",
+          "enable_vlan_sensors": "Enable VLAN sensors",
+          "enable_port_sensors": "Enable port sensors",
+          "enable_ssid_sensors": "Enable SSID sensors",
+          "enable_client_status_sensors": "Enable client status sensors"
+        },
+        "data_description": {
+          "enable_device_status": "Create binary sensors for device online/offline status.",
+          "enable_org_sensors": "Create sensors for organization-wide metrics.",
+          "enable_device_sensors": "Create sensors for device-specific metrics.",
+          "enable_network_sensors": "Create sensors for network-specific metrics.",
+          "enable_vlan_sensors": "Create sensors for VLAN metrics.",
+          "enable_port_sensors": "Create sensors for switch port metrics.",
+          "enable_ssid_sensors": "Create sensors for SSID metrics.",
+          "enable_client_status_sensors": "Create sensors for client connectivity status."
+        }
+      },
+      "cameras": {
+        "title": "Camera settings",
+        "description": "Configure Cisco Meraki camera integration.",
+        "data": {
+          "enable_camera_entities": "Enable camera entities",
+          "enable_camera_sense": "Enable camera sense"
+        },
+        "data_description": {
+          "enable_camera_entities": "Create entities for Cisco Meraki cameras.",
+          "enable_camera_sense": "Enable Cisco Meraki MV Sense analytics entities."
+        }
+      },
+      "advanced": {
+        "title": "Advanced configuration",
+        "description": "Configure advanced integration features.",
+        "data": {
+          "enable_vlan_management": "Enable VLAN management",
+          "enable_firewall_rules": "Enable firewall rules",
+          "enable_traffic_shaping": "Enable traffic shaping controls",
+          "enable_vpn_management": "VPN management"
+        },
+        "data_description": {
+          "enable_vlan_management": "Allow management of VLANs through switches.",
+          "enable_firewall_rules": "Enables management of Layer 3 firewall rules.",
+          "enable_traffic_shaping": "Allows you to view and set bandwidth limits per SSID.",
+          "enable_vpn_management": "Exposes switches to toggle site-to-site VPN settings."
+        }
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "meraki_wan1_connectivity": {
+        "name": "WAN 1 connectivity"
+      },
+      "meraki_wan2_connectivity": {
+        "name": "WAN 2 connectivity"
+      },
+      "meraki_network_info": {
+        "name": "Network information"
+      },
+      "meraki_firmware_status": {
+        "name": "Firmware status",
+        "state": {
+          "up-to-date": "Up-to-date",
+          "out-of-date": "Out-of-date",
+          "unknown": "Unknown"
+        }
+      },
+      "device_status": {
+        "name": "Status",
+        "state": {
+          "online": "Online",
+          "offline": "Offline",
+          "alerting": "Alerting",
+          "dormant": "Dormant",
+          "unknown": "Unknown"
+        }
+      },
+      "power": {
+        "name": "Power"
+      },
+      "voltage": {
+        "name": "Voltage"
+      },
+      "current": {
+        "name": "Current"
+      },
+      "energy": {
+        "name": "Energy"
+      },
+      "network_clients": {
+        "name": "Clients"
+      },
+      "vlan_id": {
+        "name": "VLAN ID"
+      },
+      "ipv4_enabled": {
+        "name": "IPv4 enabled"
+      },
+      "ipv4_interface_ip": {
+        "name": "IPv4 interface IP"
+      },
+      "ipv4_uplink": {
+        "name": "IPv4 uplink"
+      },
+      "ipv6_enabled": {
+        "name": "IPv6 enabled"
+      },
+      "ipv6_interface_ip": {
+        "name": "IPv6 interface IP"
+      },
+      "ipv6_uplink": {
+        "name": "IPv6 uplink"
+      },
+      "uplink_latency": {
+        "name": "Latency"
+      },
+      "uplink_packet_loss": {
+        "name": "Packet loss"
+      },
+      "uplink_jitter": {
+        "name": "Jitter"
+      }
+    },
+    "switch": {
+      "meraki_ssid_enabled_switch": {
+        "name": "SSID enabled"
+      },
+      "meraki_ssid_broadcast_switch": {
+        "name": "SSID broadcast"
+      },
+      "meraki_camera_sense_switch": {
+        "name": "MV Sense"
+      },
+      "meraki_camera_audio_detection_switch": {
+        "name": "Audio detection"
+      },
+      "meraki_camera_rtsp_switch": {
+        "name": "RTSP server"
+      }
+    },
+    "text": {
+      "meraki_ssid_name": {
+        "name": "SSID name"
+      }
+    },
+    "event": {
+      "motion_event": {
+        "name": "Motion event"
+      },
+      "button_press": {
+        "name": "Button press"
+      }
+    }
+  },
+  "device_automation": {
+    "trigger_type": {
+      "meraki_alert": "Received Cisco Meraki alert"
+    }
+  }
+}

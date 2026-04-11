@@ -1,25 +1,32 @@
 """Switch entity for controlling Meraki Adult Content Filtering on an SSID."""
 
+from __future__ import annotations
+
 import logging
 from typing import Any
 
 from homeassistant.components.switch import SwitchEntity, SwitchEntityDescription
 from homeassistant.config_entries import ConfigEntry
+from homeassistant.const import EntityCategory
 from homeassistant.core import callback
-from homeassistant.helpers.update_coordinator import CoordinatorEntity
+from homeassistant.helpers.device_registry import DeviceInfo
 
-from ..helpers.device_info_helpers import resolve_device_info
-from ..meraki_data_coordinator import MerakiDataCoordinator
+from custom_components.meraki_ha.const.integration import DOMAIN
+
+from ..coordinators import MerakiSwitchCoordinator
+from ..entity import MerakiEntity
 
 _LOGGER = logging.getLogger(__name__)
 
 
-class MerakiAdultContentFilteringSwitch(CoordinatorEntity, SwitchEntity):
+class MerakiAdultContentFilteringSwitch(MerakiEntity, SwitchEntity):
     """Representation of a Meraki Adult Content Filtering switch."""
+
+    _attr_entity_category = EntityCategory.CONFIG
 
     def __init__(
         self,
-        coordinator: MerakiDataCoordinator,
+        coordinator: MerakiSwitchCoordinator,
         config_entry: ConfigEntry,
         ssid: dict[str, Any],
     ) -> None:
@@ -29,23 +36,37 @@ class MerakiAdultContentFilteringSwitch(CoordinatorEntity, SwitchEntity):
         self._ssid = ssid
         self._client = coordinator.api
 
+        network = coordinator.get_network(self._network_id)
+        network_name = network.name if network else f"Network {self._network_id}"
         self.entity_description = SwitchEntityDescription(
-            key=f"adult_content_filtering_{ssid['networkId']}_{ssid['number']}",
-            name=f"Adult Content Filtering on {ssid['name']}",
+            key="adult_content_filtering",
+            name=f"{network_name} SSID {ssid['name']} Adult Content Filtering",
         )
 
     @property
-    def unique_id(self) -> str:
-        """Return a unique ID."""
+    def _network_id(self) -> str:
+        """Return the network ID."""
+        return self._ssid["networkId"]
+
+    @property
+    def _ssid_number(self) -> int:
+        """Return the SSID number."""
+        return self._ssid["number"]
+
+    @property
+    def unique_id(self) -> str | None:
+        """Return the unique ID."""
         return (
-            f"meraki-adult-content-filtering-{self._ssid['networkId']}-"
-            f"{self._ssid['number']}"
+            f"network_{self._network_id}_{self._network_id}_ssid_"
+            f"{self._ssid_number}_adult_content_filtering"
         )
 
     @property
-    def device_info(self):
+    def device_info(self) -> DeviceInfo | None:
         """Return the device info."""
-        return resolve_device_info(self._ssid, self._config_entry)
+        return DeviceInfo(
+            identifiers={(DOMAIN, f"network_{self._network_id}")},
+        )
 
     @property
     def is_on(self) -> bool:
@@ -53,6 +74,8 @@ class MerakiAdultContentFilteringSwitch(CoordinatorEntity, SwitchEntity):
         ssid_data = self.coordinator.get_ssid(
             self._ssid["networkId"], self._ssid["number"]
         )
+        if not ssid_data:
+            return False
         return ssid_data.get("adultContentFilteringEnabled", False)
 
     async def async_turn_on(self, **kwargs: Any) -> None:

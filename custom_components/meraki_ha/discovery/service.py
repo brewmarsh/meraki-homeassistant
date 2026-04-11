@@ -11,22 +11,29 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING
 
-from .handlers.gx import GXHandler
-from .handlers.mr import MRHandler
-from .handlers.ms import MSHandler
-from .handlers.mt import MTHandler
-from .handlers.mv import MVHandler
-from .handlers.mx import MXHandler
+from custom_components.meraki_ha.const.config import CONF_ENABLE_NETWORK_SENSORS
+
+from ..core.models.device import MerakiDevice
 from .handlers.network import NetworkHandler
-from .handlers.ssid import SSIDHandler
+from .handlers.switch import SwitchHandler
+from .handlers.universal import UniversalHandler
+from .handlers.wireless import WirelessHandler
 
 if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
     from homeassistant.helpers.entity import Entity
 
-    from ...types import MerakiDevice
-    from ..core.api.client import MerakiAPIClient
-    from ..meraki_data_coordinator import MerakiDataCoordinator
+    from ..coordinators import (
+        MerakiApplianceCoordinator,
+        MerakiCameraCoordinator,
+        MerakiClientCoordinator,
+        MerakiDeviceCoordinator,
+        MerakiMainCoordinator,
+        MerakiSensorCoordinator,
+        MerakiSwitchCoordinator,
+        MerakiWirelessCoordinator,
+    )
+    from ..core.api import MerakiApiClientProtocol
     from ..services.camera_service import CameraService
     from ..services.device_control_service import DeviceControlService
     from ..services.network_control_service import NetworkControlService
@@ -34,142 +41,165 @@ if TYPE_CHECKING:
 
 _LOGGER = logging.getLogger(__name__)
 
-HANDLER_MAPPING = {
-    "MR": MRHandler,
-    "MV": MVHandler,
-    "MX": MXHandler,
-    "GX": GXHandler,
-    "MS": MSHandler,
-    "GS": MSHandler,
-    "MT": MTHandler,
-    "GR": GXHandler,
-}
-
 
 class DeviceDiscoveryService:
     """Service for discovering Meraki devices and creating corresponding entities."""
 
     def __init__(
         self,
-        coordinator: MerakiDataCoordinator,
+        main_coordinator: MerakiMainCoordinator,
+        device_coordinator: MerakiDeviceCoordinator,
+        switch_coordinator: MerakiSwitchCoordinator,
+        camera_coordinator: MerakiCameraCoordinator,
+        sensor_coordinator: MerakiSensorCoordinator,
+        wireless_coordinator: MerakiWirelessCoordinator,
+        appliance_coordinator: MerakiApplianceCoordinator,
+        client_coordinator: MerakiClientCoordinator,
         config_entry: ConfigEntry,
-        meraki_client: MerakiAPIClient,
+        meraki_client: MerakiApiClientProtocol,
         camera_service: CameraService,
         control_service: DeviceControlService,
         network_control_service: NetworkControlService,
     ) -> None:
         """Initialize the DeviceDiscoveryService."""
-        self._coordinator = coordinator
+        self._main_coordinator = main_coordinator
+        self._device_coordinator = device_coordinator
+        self._switch_coordinator = switch_coordinator
+        self._camera_coordinator = camera_coordinator
+        self._sensor_coordinator = sensor_coordinator
+        self._wireless_coordinator = wireless_coordinator
+        self._appliance_coordinator = appliance_coordinator
+        self._client_coordinator = client_coordinator
+
         self._config_entry = config_entry
         self._meraki_client = meraki_client
         self._camera_service = camera_service
         self._control_service = control_service
         self._network_control_service = network_control_service
-        self._devices: list[MerakiDevice] = self._coordinator.data.get("devices", [])
+
+        devices_data = self._device_coordinator.data.get("devices", [])
+        self._devices: list[MerakiDevice] = [
+            d if isinstance(d, MerakiDevice) else MerakiDevice.from_dict(d)
+            for d in devices_data
+        ]
+        self.all_entities: list[Entity] = []
 
     async def discover_entities(self) -> list[Entity]:
         """
         Discover all entities for all devices and networks.
 
         This method iterates through all devices in the organization and uses
-        the HANDLER_MAPPING to delegate entity creation to the appropriate
-        handler based on the device's model type. It also discovers
-        network-level and virtual SSID entities.
+        the UniversalHandler to create entities based on device capabilities.
+        It also discovers network-level and virtual SSID entities.
         """
         all_entities: list[Entity] = []
 
         # Discover network-level entities
-        network_handler = NetworkHandler.create(
-            self._coordinator,
-            None,
-            self._config_entry,
-            self._camera_service,
-            self._control_service,
-            self._network_control_service,
-        )
-        network_entities = await network_handler.discover_entities()
-        all_entities.extend(network_entities)
+        try:
+            async for entity in self._discover_network_entities():
+                all_entities.append(entity)
+        except Exception as err:
+            _LOGGER.error(
+                "Failed to discover network-level entities: %s", err, exc_info=True
+            )
 
+        # Discover device-level entities
+        try:
+            async for entity in self._discover_device_entities():
+                all_entities.append(entity)
+        except Exception as err:
+            _LOGGER.error(
+                "Failed to discover device-level entities: %s", err, exc_info=True
+            )
+
+        # Create Wireless handler for devices and virtual SSID devices
+        try:
+            wireless_handler = WirelessHandler(
+                self._wireless_coordinator,
+                self._config_entry,
+                self._meraki_client,
+                self._client_coordinator,
+            )
+            async for entity in wireless_handler.discover_entities():
+                all_entities.append(entity)
+        except Exception as err:
+            _LOGGER.error(
+                "Failed to discover wireless entities: %s", err, exc_info=True
+            )
+
+        # Create Switch handler for switch devices
+        try:
+            switch_handler = SwitchHandler(
+                self._switch_coordinator,
+                self._config_entry,
+                self._client_coordinator,
+            )
+            async for entity in switch_handler.discover_entities():
+                all_entities.append(entity)
+        except Exception as err:
+            _LOGGER.error("Failed to discover switch entities: %s", err, exc_info=True)
+
+        _LOGGER.info("Entity discovery complete. Found %d entities.", len(all_entities))
+        self.all_entities = all_entities
+        return self.all_entities
+
+    async def _discover_network_entities(self):
+        """Discover network-level entities."""
+        if self._config_entry.options.get(CONF_ENABLE_NETWORK_SENSORS, True):
+            network_handler = NetworkHandler(
+                self._main_coordinator,
+                self._config_entry,
+                self._network_control_service,
+                self._client_coordinator,
+            )
+            async for entity in network_handler.discover_entities():
+                yield entity
+        else:
+            _LOGGER.debug("Network sensors are disabled.")
+
+    async def _discover_device_entities(self):
+        """Discover entities for all devices."""
         _LOGGER.debug("Starting entity discovery for %d devices", len(self._devices))
 
         for device in self._devices:
-            model = device.get("model")
-            if not model:
-                _LOGGER.warning(
-                    "Device %s has no model, skipping", device.get("serial")
-                )
-                continue
+            try:
+                if not device.model:
+                    _LOGGER.warning("Device %s has no model, skipping", device.serial)
+                    continue
 
-            # Get the first two letters of the model (e.g., "MR" from "MR36")
-            model_prefix = model[:2]
-            handler_class = HANDLER_MAPPING.get(model_prefix)
+                coordinator = self._get_coordinator_for_device(device)
 
-            if not handler_class:
-                _LOGGER.debug(
-                    "No handler found for model '%s', skipping device %s",
-                    model,
-                    device.get("serial"),
-                )
-                continue
-
-            _LOGGER.debug(
-                "Using handler %s for device %s",
-                handler_class.__name__,
-                device.get("serial"),
-            )
-
-            # Pass the correct services to the handler based on its type
-            if model_prefix == "MV":
-                handler = handler_class(
-                    self._coordinator,
+                handler = UniversalHandler(
+                    coordinator,
                     device,
                     self._config_entry,
                     self._camera_service,
                     self._control_service,
                     self._network_control_service,
-                    self._meraki_client,
-                )
-            elif model_prefix in ("MX", "GX", "GR"):
-                handler = handler_class(
-                    self._coordinator,
-                    device,
-                    self._config_entry,
-                    self._control_service,
-                    self._network_control_service,
-                )
-            elif model_prefix in ("MS", "GS"):
-                handler = handler_class(
-                    self._coordinator,
-                    device,
-                    self._config_entry,
-                    self._control_service,
-                    self._network_control_service,
-                )
-            elif model_prefix == "MR":
-                handler = handler_class(
-                    self._coordinator,
-                    device,
-                    self._config_entry,
-                    self._control_service,
-                    self._network_control_service,
-                )
-            else:
-                handler = handler_class(
-                    self._coordinator,
-                    device,
-                    self._config_entry,
-                    self._control_service,
+                    status_coordinator=self._device_coordinator,
+                    sensor_coordinator=self._sensor_coordinator,
                 )
 
-            entities = await handler.discover_entities()
-            all_entities.extend(entities)
+                async for entity in handler.discover_entities():
+                    yield entity
+            except Exception as err:
+                _LOGGER.error(
+                    "Unexpected error during entity discovery for device %s: %s",
+                    device.serial if hasattr(device, "serial") else "Unknown",
+                    err,
+                    exc_info=True,
+                )
 
-        # Create SSID handler for virtual SSID devices
-        ssid_handler = SSIDHandler.create(
-            self._coordinator, self._config_entry, self._meraki_client
-        )
-        ssid_entities = await ssid_handler.discover_entities()
-        all_entities.extend(ssid_entities)
-
-        _LOGGER.info("Entity discovery complete. Found %d entities.", len(all_entities))
-        return all_entities
+    def _get_coordinator_for_device(self, device: MerakiDevice):
+        """Select coordinator based on product type."""
+        if device.product_type == "switch":
+            return self._switch_coordinator
+        if device.product_type == "camera":
+            return self._camera_coordinator
+        if device.product_type == "sensor":
+            return self._sensor_coordinator
+        if device.product_type in ["appliance", "cellularGateway"]:
+            return self._appliance_coordinator
+        if device.product_type == "wireless":
+            return self._wireless_coordinator
+        return self._main_coordinator

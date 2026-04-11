@@ -1,0 +1,58 @@
+"""Test the schema helpers."""
+
+import voluptuous as vol
+
+from custom_components.meraki_ha.const.config import CONF_IGNORED_NETWORKS
+from custom_components.meraki_ha.helpers.schema import populate_schema_defaults
+from homeassistant.helpers import selector
+
+
+def test_populate_schema_defaults():
+    """Test populating schema defaults."""
+    schema = vol.Schema(
+        {
+            vol.Required("test_option", default="default"): str,
+            vol.Optional(CONF_IGNORED_NETWORKS): selector.SelectSelector(
+                selector.SelectSelectorConfig(options=[])
+            ),
+        }
+    )
+
+    defaults = {
+        "test_option": "new_value",
+    }
+
+    network_options = [
+        {"label": "Network 1", "value": "net1"},
+        {"label": "Network 2", "value": "net2"},
+    ]
+
+    new_schema = populate_schema_defaults(schema, defaults, network_options)
+
+    # Check if default value is updated
+    for key, value in new_schema.schema.items():
+        if key.schema == "test_option":
+            assert key.default() == "new_value"
+
+        if key.schema == CONF_IGNORED_NETWORKS:
+            # Action 2: Ensure selector.SelectSelector is the real class type
+            assert isinstance(value, selector.SelectSelector)
+            assert value.config["options"] == network_options
+
+
+def test_populate_schema_defaults_no_defaults():
+    """Test populating schema defaults with no defaults provided."""
+    schema = vol.Schema(
+        {
+            vol.Required("test_option", default="default"): str,
+        }
+    )
+
+    defaults = {}
+    network_options = []
+
+    new_schema = populate_schema_defaults(schema, defaults, network_options)
+
+    for key, _value in new_schema.schema.items():
+        if key.schema == "test_option":
+            assert key.default() == "default"

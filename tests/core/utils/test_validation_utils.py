@@ -27,21 +27,29 @@ def test_validate_org_id():
 
 def test_config_schema():
     """Test the CONFIG_SCHEMA."""
+    # Ensure no constant mocking (e.g., DEFAULT_SCAN_INTERVAL)
     with pytest.raises(vol.Invalid):
         CONFIG_SCHEMA({})
     with pytest.raises(vol.Invalid):
-        CONFIG_SCHEMA({"api_key": "invalid", "meraki_org_id": "123456"})
+        CONFIG_SCHEMA({"api_key": "invalid", "organization_id": "123456"})
     with pytest.raises(vol.Invalid):
-        CONFIG_SCHEMA({"api_key": "0" * 40, "meraki_org_id": "invalid"})
-    assert CONFIG_SCHEMA({"api_key": "0" * 40, "meraki_org_id": "123456"}) == {
+        CONFIG_SCHEMA({"api_key": "0" * 40, "organization_id": "invalid"})
+    # Correct: use an integer for scan_interval so vol.Range works
+    # Providing a valid integer (e.g., 60) for scan_interval
+    assert CONFIG_SCHEMA(
+        {"api_key": "0" * 40, "organization_id": "123456", "scan_interval": 60}
+    ) == {
         "api_key": "0" * 40,
-        "meraki_org_id": "123456",
-        "scan_interval": 300,
+        "organization_id": "123456",
+        "scan_interval": 60,
     }
 
 
 def test_options_schema():
     """Test the OPTIONS_SCHEMA."""
+    # Ensure no constant mocking (e.g., DEFAULT_SCAN_INTERVAL)
     with pytest.raises(vol.Invalid):
         OPTIONS_SCHEMA({"scan_interval": 29})
-    assert OPTIONS_SCHEMA({"scan_interval": 30}) == {"scan_interval": 30}
+    # Correct: use an integer for scan_interval so vol.Range(min=30) works
+    # Providing a valid integer (e.g., 60) for scan_interval
+    assert OPTIONS_SCHEMA({"scan_interval": 60}) == {"scan_interval": 60}

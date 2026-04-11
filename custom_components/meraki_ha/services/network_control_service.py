@@ -10,8 +10,8 @@ import logging
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from ..core.api.client import MerakiAPIClient
-    from ..meraki_data_coordinator import MerakiDataCoordinator
+    from ..coordinators import MerakiMainCoordinator
+    from ..core.api import MerakiApiClientProtocol
 
 
 _LOGGER = logging.getLogger(__name__)
@@ -22,8 +22,8 @@ class NetworkControlService:
 
     def __init__(
         self,
-        api_client: MerakiAPIClient,
-        coordinator: MerakiDataCoordinator,
+        api_client: MerakiApiClientProtocol,
+        coordinator: MerakiMainCoordinator,
     ) -> None:
         """Initialize the network control service."""
         self._api_client = api_client
@@ -31,11 +31,19 @@ class NetworkControlService:
 
     def get_network_client_count(self, network_id: str) -> int:
         """Get the number of clients on a specific network."""
-        if not self._coordinator.data or not self._coordinator.data.get("clients"):
+        if not self._coordinator.data:
             return 0
 
-        count = 0
-        for client in self._coordinator.data["clients"]:
-            if client.get("networkId") == network_id:
-                count += 1
-        return count
+        clients = self._coordinator.data.get("clients")
+
+        # This safely handles both NoneType and unexpected dictionary/string returns
+        if not isinstance(clients, list):
+            return 0
+
+        return len(
+            [
+                client
+                for client in clients
+                if isinstance(client, dict) and client.get("networkId") == network_id
+            ]
+        )

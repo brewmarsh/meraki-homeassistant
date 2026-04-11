@@ -1,0 +1,11 @@
+aiofiles>=24.1.0
+bandit==1.7.9
+meraki==1.54.0
+mypy
+pytest-cov
+pytest-homeassistant-custom-component
+pytest-mock==3.12.0
+ruff==0.5.5
+types-aiofiles>=24.1.0
+webrtc-models==0.3.0
+types-aiofiles>=24.1.0

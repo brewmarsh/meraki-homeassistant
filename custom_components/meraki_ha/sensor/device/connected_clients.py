@@ -1,52 +1,55 @@
 """Sensor entity for monitoring connected clients on a Meraki device."""
 
-import logging
-from typing import Any
+from __future__ import annotations
 
-from homeassistant.components.sensor import SensorEntity, SensorStateClass
+import logging
+from dataclasses import asdict
+from typing import TYPE_CHECKING
+
+from homeassistant.components.sensor import (
+    SensorEntityDescription,
+    SensorStateClass,
+)
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import callback
-from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
+from ...coordinators import MerakiMainCoordinator
+from ...entity import MerakiSensor
 from ...helpers.device_info_helpers import resolve_device_info
-from ...meraki_data_coordinator import MerakiDataCoordinator
+
+if TYPE_CHECKING:
+    from ...core.models.device import MerakiDevice
 
 _LOGGER = logging.getLogger(__name__)
 
 
-class MerakiDeviceConnectedClientsSensor(CoordinatorEntity, SensorEntity):
+class MerakiDeviceConnectedClientsSensor(MerakiSensor):
     """Representation of a Meraki Connected Clients sensor."""
 
     _attr_icon = "mdi:account-network"
     _attr_native_unit_of_measurement = "clients"
     _attr_state_class = SensorStateClass.MEASUREMENT
-    _attr_has_entity_name = True
 
     def __init__(
         self,
-        coordinator: MerakiDataCoordinator,
-        device_data: dict[str, Any],
+        coordinator: MerakiMainCoordinator,
+        device_data: MerakiDevice,
         config_entry: ConfigEntry,
     ) -> None:
         """Initialize the sensor."""
         super().__init__(coordinator)
-        self._device_serial: str = device_data["serial"]
-        self._config_entry = config_entry
-        self._attr_unique_id = f"{self._device_serial}_connected_clients"
-        self._attr_name = "Connected Clients"
-
-        self._attr_device_info = resolve_device_info(
-            entity_data=device_data,
-            config_entry=self._config_entry,
+        self._device_serial: str | None = device_data.serial
+        self.entity_description = SensorEntityDescription(
+            key="connected_clients",
+            name="Connected Clients",
         )
+
         self._update_state()
 
-    def _get_current_device_data(self) -> dict[str, Any] | None:
+    def _get_current_device_data(self) -> MerakiDevice | None:
         """Retrieve the latest data for this sensor's device from the coordinator."""
-        if self.coordinator.data and self.coordinator.data.get("devices"):
-            for device in self.coordinator.data["devices"]:
-                if device.get("serial") == self._device_serial:
-                    return device
+        if self._device_serial:
+            return self.coordinator.get_device(self._device_serial)
         return None
 
     @callback
@@ -57,21 +60,23 @@ class MerakiDeviceConnectedClientsSensor(CoordinatorEntity, SensorEntity):
             self._attr_native_value = 0
             return
 
-        product_type = device.get("productType")
+        product_type = device.product_type
 
         # For routers (appliances), the client count is all online clients
         # in the network.
-        if product_type in ["appliance", "cellularGateway"]:
-            network_id = device.get("networkId")
+        if product_type in ("appliance", "cellularGateway"):
+            network_id = device.network_id
             all_clients = self.coordinator.data.get("clients", [])
-            if not all_clients:
+            if not all_clients or not isinstance(all_clients, list):
                 self._attr_native_value = 0
                 return
 
             network_clients = [
                 c
                 for c in all_clients
-                if c.get("networkId") == network_id and c.get("status") == "Online"
+                if isinstance(c, dict)
+                and c.get("networkId") == network_id
+                and c.get("status") == "Online"
             ]
             self._attr_native_value = len(network_clients)
         # For other devices (switches, APs), use the direct per-device client list.
@@ -95,4 +100,6 @@ class MerakiDeviceConnectedClientsSensor(CoordinatorEntity, SensorEntity):
     @property
     def available(self) -> bool:
         """Return if entity is available."""
+        if self.coordinator.data is None:
+            return False
         return super().available and self._get_current_device_data() is not None

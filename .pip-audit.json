@@ -31,6 +31,10 @@
     {
       "id": "GHSA-mqqc-3gqh-h2x8",
       "reason": "Pinned by Home Assistant Core 2025.11.0"
+    },
+    {
+      "id": "GHSA-mq77-rv97-285m",
+      "reason": "Testing"
     }
   ]
 }

@@ -5,7 +5,7 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING, Any
 
-from custom_components.meraki_ha.core.utils.api_utils import (
+from custom_components.meraki_ha.core.utils.api import (
     handle_meraki_errors,
     validate_response,
 )
@@ -13,7 +13,7 @@ from custom_components.meraki_ha.core.utils.api_utils import (
 from ..cache import async_timed_cache
 
 if TYPE_CHECKING:
-    from ..client import MerakiAPIClient
+    from ..protocol import MerakiApiClientProtocol
 
 
 _LOGGER = logging.getLogger(__name__)
@@ -22,7 +22,7 @@ _LOGGER = logging.getLogger(__name__)
 class OrganizationEndpoints:
     """Organization-related endpoints."""
 
-    def __init__(self, api_client: MerakiAPIClient) -> None:
+    def __init__(self, api_client: MerakiApiClientProtocol) -> None:
         """
         Initialize the endpoint.
 
@@ -44,8 +44,6 @@ class OrganizationEndpoints:
             The organization details.
 
         """
-        if self._api_client.dashboard is None:
-            return {}
         org = await self._api_client.run_sync(
             self._api_client.dashboard.organizations.getOrganization,
             organizationId=self._api_client.organization_id,
@@ -67,8 +65,9 @@ class OrganizationEndpoints:
             A list of networks.
 
         """
-        if self._api_client.dashboard is None:
+        if not self._api_client.has_dashboard:
             return []
+
         networks = await self._api_client.run_sync(
             self._api_client.dashboard.organizations.getOrganizationNetworks,
             organizationId=self._api_client.organization_id,
@@ -90,8 +89,6 @@ class OrganizationEndpoints:
             A list of firmware upgrades.
 
         """
-        if self._api_client.dashboard is None:
-            return []
         upgrades = await self._api_client.run_sync(
             self._api_client.dashboard.organizations.getOrganizationFirmwareUpgrades,
             organizationId=self._api_client.organization_id,
@@ -104,7 +101,7 @@ class OrganizationEndpoints:
 
     @handle_meraki_errors
     @async_timed_cache(timeout=60)
-    async def get_organization_device_statuses(self) -> list[dict[str, Any]]:
+    async def get_organization_devices_statuses(self) -> list[dict[str, Any]]:
         """
         Get status information for all devices in the organization.
 
@@ -113,15 +110,14 @@ class OrganizationEndpoints:
             A list of device statuses.
 
         """
-        if self._api_client.dashboard is None:
-            return []
         statuses = await self._api_client.run_sync(
-            self._api_client.dashboard.organizations.getOrganizationDeviceStatuses,
+            self._api_client.dashboard.organizations.getOrganizationDevicesStatuses,
             organizationId=self._api_client.organization_id,
+            total_pages="all",
         )
         validated = validate_response(statuses)
         if not isinstance(validated, list):
-            _LOGGER.warning("get_organization_device_statuses did not return a list.")
+            _LOGGER.warning("get_organization_devices_statuses did not return a list.")
             return []
         return validated
 
@@ -136,8 +132,6 @@ class OrganizationEndpoints:
             A list of device availabilities.
 
         """
-        if self._api_client.dashboard is None:
-            return []
         availabilities = await self._api_client.run_sync(
             self._api_client.dashboard.organizations.getOrganizationDevicesAvailabilities,
             organizationId=self._api_client.organization_id,
@@ -162,8 +156,6 @@ class OrganizationEndpoints:
             A list of devices.
 
         """
-        if self._api_client.dashboard is None:
-            return []
         devices = await self._api_client.run_sync(
             self._api_client.dashboard.organizations.getOrganizationDevices,
             organizationId=self._api_client.organization_id,
@@ -185,8 +177,6 @@ class OrganizationEndpoints:
             A list of organizations.
 
         """
-        if self._api_client.dashboard is None:
-            return []
         orgs = await self._api_client.run_sync(
             self._api_client.dashboard.organizations.getOrganizations
         )
@@ -195,3 +185,47 @@ class OrganizationEndpoints:
             _LOGGER.warning("get_organizations did not return a list.")
             return []
         return validated
+
+    @handle_meraki_errors
+    @async_timed_cache()
+    async def get_organization_wireless_ssids_statuses_by_device(
+        self,
+    ) -> list[dict[str, Any]]:
+        """
+        Get organization-wide wireless SSIDs statuses by device.
+
+        Returns
+        -------
+            A list of wireless SSIDs statuses.
+
+        """
+        statuses = await self._api_client.run_sync(
+            self._api_client.dashboard.organizations.getOrganizationWirelessSsidsStatusesByDevice,
+            organizationId=self._api_client.organization_id,
+            total_pages="all",
+        )
+        validated = validate_response(statuses)
+        if not isinstance(validated, list):
+            _LOGGER.warning("Wireless SSIDs statuses by device did not return a list.")
+            return []
+        return validated
+
+    @handle_meraki_errors
+    @async_timed_cache(timeout=60)
+    async def get_organization_switch_ports_statuses(self) -> list[dict[str, Any]]:
+        """
+        Get organization-wide switch ports statuses.
+
+        Returns
+        -------
+            A list of switch ports statuses.
+
+        """
+        statuses = await self._api_client.run_sync(
+            self._api_client.dashboard.switch.getOrganizationSwitchPortsStatusesBySwitch,
+            organizationId=self._api_client.organization_id,
+            total_pages="all",
+        )
+        res = validate_response(statuses)
+        # Type Normalization: Meraki sometimes returns {} instead of [] for no data
+        return [] if not res else res

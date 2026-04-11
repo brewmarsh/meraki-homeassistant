@@ -3,6 +3,7 @@
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
+from homeassistant.const import UnitOfTime, EntityCategory
 
 from custom_components.meraki_ha.switch.adult_content_filtering import (
     MerakiAdultContentFilteringSwitch,
@@ -11,7 +12,7 @@ from custom_components.meraki_ha.switch.adult_content_filtering import (
 
 @pytest.fixture
 def mock_coordinator_with_ssid_filtering(mock_coordinator: MagicMock) -> MagicMock:
-    """Fixture for a mocked MerakiDataCoordinator with SSID filtering data."""
+    """Fixture for a mocked MerakiMainCoordinator with SSID filtering data."""
     mock_coordinator.get_ssid.return_value = {"adultContentFilteringEnabled": True}
     mock_coordinator.api.wireless.update_network_wireless_ssid = AsyncMock()
     mock_coordinator.async_request_refresh = AsyncMock()
@@ -26,8 +27,9 @@ def test_switch_creation(
     switch = MerakiAdultContentFilteringSwitch(
         mock_coordinator_with_ssid_filtering, mock_config_entry, ssid
     )
-    assert switch.unique_id == "meraki-adult-content-filtering-net_1-0"
-    assert switch.name == "Adult Content Filtering on Test SSID"
+    assert switch.unique_id == "network_net_1_net_1_ssid_0_adult_content_filtering"
+    assert "Adult Content Filtering" in switch.name
+    assert switch.entity_category == EntityCategory.CONFIG
 
 
 def test_is_on(

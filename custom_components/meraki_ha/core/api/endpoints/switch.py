@@ -5,7 +5,7 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING, Any
 
-from custom_components.meraki_ha.core.utils.api_utils import (
+from custom_components.meraki_ha.core.utils.api import (
     handle_meraki_errors,
     validate_response,
 )
@@ -13,7 +13,7 @@ from custom_components.meraki_ha.core.utils.api_utils import (
 from ..cache import async_timed_cache
 
 if TYPE_CHECKING:
-    from ..client import MerakiAPIClient
+    from ..protocol import MerakiApiClientProtocol
 
 
 _LOGGER = logging.getLogger(__name__)
@@ -22,7 +22,7 @@ _LOGGER = logging.getLogger(__name__)
 class SwitchEndpoints:
     """Switch-related endpoints."""
 
-    def __init__(self, api_client: MerakiAPIClient) -> None:
+    def __init__(self, api_client: MerakiApiClientProtocol) -> None:
         """
         Initialize the endpoint.
 
@@ -55,22 +55,14 @@ class SwitchEndpoints:
             A list of port statuses.
 
         """
-        if self._api_client.dashboard is None:
-            return []
-
-        if timespan is not None:
-            kwargs["timespan"] = timespan
-
         statuses = await self._api_client.run_sync(
             self._api_client.dashboard.switch.getDeviceSwitchPortsStatuses,
             serial=serial,
             **kwargs,
         )
-        validated = validate_response(statuses)
-        if not isinstance(validated, list):
-            _LOGGER.warning("get_device_switch_ports_statuses did not return a list.")
-            return []
-        return validated
+        res = validate_response(statuses)
+        # Type Normalization: Meraki sometimes returns {} instead of [] for no data
+        return [] if not res else res
 
     @handle_meraki_errors
     @async_timed_cache()
@@ -87,13 +79,64 @@ class SwitchEndpoints:
             A list of ports.
 
         """
-        if self._api_client.dashboard is None:
-            return []
         ports = await self._api_client.run_sync(
             self._api_client.dashboard.switch.getDeviceSwitchPorts, serial=serial
         )
-        validated = validate_response(ports)
-        if not isinstance(validated, list):
-            _LOGGER.warning("get_switch_ports did not return a list.")
-            return []
-        return validated
+        res = validate_response(ports)
+        # Type Normalization: Meraki sometimes returns {} instead of [] for no data
+        return [] if not res else res
+
+    @handle_meraki_errors
+    async def cycle_device_switch_ports(
+        self,
+        serial: str,
+        ports: list[str],
+    ) -> dict[str, Any] | list[Any]:
+        """
+        Cycle a set of switch ports.
+
+        Args:
+        ----
+            serial: The serial number of the switch.
+            ports: A list of port IDs to cycle.
+
+        Returns
+        -------
+            The API response.
+
+        """
+        response = await self._api_client.run_sync(
+            self._api_client.dashboard.switch.cycleDeviceSwitchPorts,
+            serial=serial,
+            ports=ports,
+        )
+        return validate_response(response)
+
+    @handle_meraki_errors
+    async def update_device_switch_port(
+        self,
+        serial: str,
+        port_id: str,
+        **kwargs: Any,
+    ) -> dict[str, Any]:
+        """
+        Update a switch port.
+
+        Args:
+        ----
+            serial: The serial number of the switch.
+            port_id: The port ID to update.
+            **kwargs: The parameters to update (e.g., enabled, vlan, etc.).
+
+        Returns
+        -------
+            The updated port configuration.
+
+        """
+        response = await self._api_client.run_sync(
+            self._api_client.dashboard.switch.updateDeviceSwitchPort,
+            serial=serial,
+            portId=port_id,
+            **kwargs,
+        )
+        return validate_response(response)

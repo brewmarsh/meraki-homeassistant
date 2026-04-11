@@ -2,28 +2,31 @@
 
 import logging
 
-from homeassistant.components.sensor import SensorEntity, SensorStateClass
+from homeassistant.components.sensor import SensorStateClass
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import callback
 from homeassistant.helpers.device_registry import DeviceInfo
-from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from ...const import DOMAIN
-from ...helpers.entity_helpers import format_entity_name
-from ...meraki_data_coordinator import MerakiDataCoordinator
+from custom_components.meraki_ha.const.integration import DOMAIN
+
+from ...coordinators import MerakiMainCoordinator
+from ...core.utils.naming_utils import standardize_device_name
+from ...entity import MerakiSensor
 
 _LOGGER = logging.getLogger(__name__)
 
 
-class MerakiOrganizationDeviceTypeClientsSensor(CoordinatorEntity, SensorEntity):
+class MerakiOrganizationDeviceTypeClientsSensor(MerakiSensor):
     """Representation of a Meraki organization-level client counter by device type."""
+
+    coordinator: MerakiMainCoordinator
 
     _attr_state_class = SensorStateClass.MEASUREMENT
     _attr_has_entity_name = True
 
     def __init__(
         self,
-        coordinator: MerakiDataCoordinator,
+        coordinator: MerakiMainCoordinator,
         config_entry: ConfigEntry,
         device_type: str,
     ) -> None:
@@ -31,18 +34,22 @@ class MerakiOrganizationDeviceTypeClientsSensor(CoordinatorEntity, SensorEntity)
         super().__init__(coordinator)
         self._config_entry = config_entry
         self._device_type = device_type
-        self._org_id = self.coordinator.api_client.organization_id
+        self._org_id = self.coordinator.api.organization_id
         self._attr_unique_id = f"{self._org_id}_{self._device_type}_clients"
-        self._attr_name = format_entity_name(self._device_type.capitalize(), "Clients")
+        self._attr_name = f"{self._device_type.capitalize()} Clients"
 
     @property
     def device_info(self) -> DeviceInfo:
         """Return the device info."""
+        org_name = "Organization"
+        if self.coordinator.data:
+            org_data = self.coordinator.data.get("organization")
+            if isinstance(org_data, dict):
+                org_name = org_data.get("name", "Organization")
+
         return DeviceInfo(
             identifiers={(DOMAIN, self._org_id)},
-            name=self.coordinator.data.get("organization", {}).get(
-                "name", "Meraki Organization"
-            ),
+            name=standardize_device_name(org_name),
             manufacturer="Cisco Meraki",
         )
 
@@ -54,11 +61,17 @@ class MerakiOrganizationDeviceTypeClientsSensor(CoordinatorEntity, SensorEntity)
     @property
     def native_value(self) -> int:
         """Return the state of the sensor."""
-        if not self.coordinator.data or not self.coordinator.data.get("clients"):
+        if not self.coordinator.data:
+            return 0
+
+        clients = self.coordinator.data.get("clients")
+        if not isinstance(clients, list):
             return 0
 
         count = 0
-        for client in self.coordinator.data["clients"]:
+        for client in clients:
+            if not isinstance(client, dict):
+                continue
             if client.get("deviceType") == self._device_type:
                 count += 1
         return count

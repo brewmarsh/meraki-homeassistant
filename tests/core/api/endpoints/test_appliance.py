@@ -3,12 +3,17 @@
 from unittest.mock import MagicMock, patch
 
 import pytest
+from meraki.exceptions import APIError
 
-from custom_components.meraki_ha.core.api.client import MerakiAPIClient
+# Resolved: Using the centralized coordinator path from the 2.3.0-beta.120 refactor
+from custom_components.meraki_ha.coordinators import MerakiMainCoordinator
+from custom_components.meraki_ha.core.api import (
+    create_api_client,
+)
 from custom_components.meraki_ha.core.api.endpoints.appliance import (
     ApplianceEndpoints,
 )
-from custom_components.meraki_ha.meraki_data_coordinator import MerakiDataCoordinator
+from custom_components.meraki_ha.core.errors import MerakiConnectionError
 from tests.const import MOCK_NETWORK
 
 
@@ -28,18 +33,18 @@ def hass():
 @pytest.fixture
 def coordinator():
     """Fixture for a mocked coordinator."""
-    mock = MagicMock(spec=MerakiDataCoordinator)
-    mock.is_vlan_check_due.return_value = True
-    mock.is_traffic_check_due.return_value = True
+    # Updated to use the correct class reference
+    mock = MagicMock(spec=MerakiMainCoordinator)
     return mock
 
 
 @pytest.fixture
-def api_client(hass, mock_dashboard):
-    """Fixture for a MerakiAPIClient instance."""
-    client = MerakiAPIClient(hass=hass, api_key="test-key", org_id="test-org")
-    client.dashboard = mock_dashboard
-    yield client
+def api_client(hass, mock_dashboard, coordinator):
+    """Fixture for a MerakiApiClientProtocol instance."""
+    with patch("meraki.DashboardAPI", return_value=mock_dashboard):
+        client = create_api_client(hass=hass, api_key="test-key", org_id="test-org")
+        client.dashboard = mock_dashboard
+        yield client
 
 
 @pytest.fixture
@@ -52,19 +57,37 @@ def appliance_endpoints(api_client, hass):
 async def test_get_network_vlans(appliance_endpoints, mock_dashboard):
     """Test get_network_vlans."""
     mock_dashboard.appliance.getNetworkApplianceVlans = MagicMock(return_value=[])
-    await appliance_endpoints.get_network_vlans(MOCK_NETWORK["id"])
+    await appliance_endpoints.get_network_vlans(MOCK_NETWORK.id)
     mock_dashboard.appliance.getNetworkApplianceVlans.assert_called_once_with(
-        networkId=MOCK_NETWORK["id"]
+        networkId=MOCK_NETWORK.id
     )
+
+
+@pytest.mark.asyncio
+async def test_get_network_vlans_failure(appliance_endpoints, mock_dashboard):
+    """Test get_network_vlans failure handling."""
+    metadata = {"tags": ["test"], "operation": "test_op"}
+    response = MagicMock()
+    response.status_code = 400
+    response.json.return_value = {"errors": ["VLANs are not enabled for this network"]}
+
+    # Use real APIError instead of a Mock
+    mock_dashboard.appliance.getNetworkApplianceVlans.side_effect = APIError(
+        metadata, response
+    )
+
+    # Action 1: The core error handler returns [] on failure
+    result = await appliance_endpoints.get_network_vlans(MOCK_NETWORK.id)
+    assert result == []
 
 
 @pytest.mark.asyncio
 async def test_update_network_vlan(appliance_endpoints, mock_dashboard):
     """Test update_network_vlan."""
     mock_dashboard.appliance.updateNetworkApplianceVlan = MagicMock(return_value={})
-    await appliance_endpoints.update_network_vlan(MOCK_NETWORK["id"], "1", name="test")
+    await appliance_endpoints.update_network_vlan(MOCK_NETWORK.id, "1", name="test")
     mock_dashboard.appliance.updateNetworkApplianceVlan.assert_called_once_with(
-        networkId=MOCK_NETWORK["id"], vlanId="1", name="test"
+        networkId=MOCK_NETWORK.id, vlanId="1", name="test"
     )
 
 
@@ -72,12 +95,29 @@ async def test_update_network_vlan(appliance_endpoints, mock_dashboard):
 async def test_get_l3_firewall_rules(appliance_endpoints, mock_dashboard):
     """Test get_l3_firewall_rules."""
     mock_dashboard.appliance.getNetworkApplianceFirewallL3FirewallRules = MagicMock(
-        return_value={}
+        return_value=[]
     )
-    await appliance_endpoints.get_l3_firewall_rules(MOCK_NETWORK["id"])
+    await appliance_endpoints.get_l3_firewall_rules(MOCK_NETWORK.id)
     mock_dashboard.appliance.getNetworkApplianceFirewallL3FirewallRules.assert_called_once_with(
-        networkId=MOCK_NETWORK["id"]
+        networkId=MOCK_NETWORK.id
     )
+
+
+@pytest.mark.asyncio
+async def test_get_l3_firewall_rules_failure(appliance_endpoints, mock_dashboard):
+    """Test get_l3_firewall_rules failure handling."""
+    metadata = {"tags": ["test"], "operation": "test_op"}
+    response = MagicMock()
+    response.status_code = 500
+    response.json.return_value = {"errors": ["Internal Server Error"]}
+
+    mock_dashboard.appliance.getNetworkApplianceFirewallL3FirewallRules.side_effect = (
+        APIError(metadata, response)
+    )
+
+    # Action 2: Expected raises MerakiConnectionError
+    with pytest.raises(MerakiConnectionError):
+        await appliance_endpoints.get_l3_firewall_rules(MOCK_NETWORK.id)
 
 
 @pytest.mark.asyncio
@@ -86,9 +126,9 @@ async def test_update_l3_firewall_rules(appliance_endpoints, mock_dashboard):
     mock_dashboard.appliance.updateNetworkApplianceFirewallL3FirewallRules = MagicMock(
         return_value={}
     )
-    await appliance_endpoints.update_l3_firewall_rules(MOCK_NETWORK["id"], rules=[])
+    await appliance_endpoints.update_l3_firewall_rules(MOCK_NETWORK.id, rules=[])
     mock_dashboard.appliance.updateNetworkApplianceFirewallL3FirewallRules.assert_called_once_with(
-        networkId=MOCK_NETWORK["id"], rules=[]
+        networkId=MOCK_NETWORK.id, rules=[]
     )
 
 
@@ -96,11 +136,11 @@ async def test_update_l3_firewall_rules(appliance_endpoints, mock_dashboard):
 async def test_get_traffic_shaping(appliance_endpoints, mock_dashboard):
     """Test get_traffic_shaping."""
     mock_dashboard.appliance.getNetworkApplianceTrafficShaping = MagicMock(
-        return_value={}
+        return_value=[]
     )
-    await appliance_endpoints.get_traffic_shaping(MOCK_NETWORK["id"])
+    await appliance_endpoints.get_traffic_shaping(MOCK_NETWORK.id)
     mock_dashboard.appliance.getNetworkApplianceTrafficShaping.assert_called_once_with(
-        networkId=MOCK_NETWORK["id"]
+        networkId=MOCK_NETWORK.id
     )
 
 
@@ -110,9 +150,9 @@ async def test_update_traffic_shaping(appliance_endpoints, mock_dashboard):
     mock_dashboard.appliance.updateNetworkApplianceTrafficShaping = MagicMock(
         return_value={}
     )
-    await appliance_endpoints.update_traffic_shaping(MOCK_NETWORK["id"], enabled=True)
+    await appliance_endpoints.update_traffic_shaping(MOCK_NETWORK.id, enabled=True)
     mock_dashboard.appliance.updateNetworkApplianceTrafficShaping.assert_called_once_with(
-        networkId=MOCK_NETWORK["id"], enabled=True
+        networkId=MOCK_NETWORK.id, enabled=True
     )
 
 
@@ -120,11 +160,11 @@ async def test_update_traffic_shaping(appliance_endpoints, mock_dashboard):
 async def test_get_vpn_status(appliance_endpoints, mock_dashboard):
     """Test get_vpn_status."""
     mock_dashboard.appliance.getNetworkApplianceVpnSiteToSiteVpn = MagicMock(
-        return_value={}
+        return_value=[]
     )
-    await appliance_endpoints.get_vpn_status(MOCK_NETWORK["id"])
+    await appliance_endpoints.get_vpn_status(MOCK_NETWORK.id)
     mock_dashboard.appliance.getNetworkApplianceVpnSiteToSiteVpn.assert_called_once_with(
-        networkId=MOCK_NETWORK["id"]
+        networkId=MOCK_NETWORK.id
     )
 
 
@@ -134,7 +174,7 @@ async def test_update_vpn_status(appliance_endpoints, mock_dashboard):
     mock_dashboard.appliance.updateNetworkApplianceVpnSiteToSiteVpn = MagicMock(
         return_value={}
     )
-    await appliance_endpoints.update_vpn_status(MOCK_NETWORK["id"], mode="hub")
+    await appliance_endpoints.update_vpn_status(MOCK_NETWORK.id, mode="hub")
     mock_dashboard.appliance.updateNetworkApplianceVpnSiteToSiteVpn.assert_called_once_with(
-        networkId=MOCK_NETWORK["id"], mode="hub"
+        networkId=MOCK_NETWORK.id, mode="hub"
     )

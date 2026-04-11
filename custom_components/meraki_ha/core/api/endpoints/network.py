@@ -3,21 +3,20 @@
 from __future__ import annotations
 
 import logging
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, cast
 
 import meraki
 
-from custom_components.meraki_ha.core.errors import MerakiTrafficAnalysisError
-from custom_components.meraki_ha.core.utils.api_utils import (
+from custom_components.meraki_ha.core.utils.api import (
     handle_meraki_errors,
     validate_response,
 )
 
+from ...errors import MerakiVlansDisabledError
 from ..cache import async_timed_cache
 
 if TYPE_CHECKING:
-    from ..client import MerakiAPIClient
-
+    from ..protocol import MerakiApiClientProtocol
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -25,43 +24,56 @@ _LOGGER = logging.getLogger(__name__)
 class NetworkEndpoints:
     """Network-related endpoints."""
 
-    def __init__(self, api_client: MerakiAPIClient) -> None:
-        """
-        Initialize the endpoint.
-
-        Args:
-        ----
-            api_client: The Meraki API client.
-
-        """
+    def __init__(self, api_client: MerakiApiClientProtocol) -> None:
+        """Initialize the endpoint."""
         self._api_client = api_client
 
     @handle_meraki_errors
     @async_timed_cache(timeout=60)
-    async def get_network_clients(self, network_id: str) -> list[dict[str, Any]]:
-        """
-        Get all clients in a network.
+    async def get_network_clients(
+        self,
+        network_id: str,
+        timespan: int | None = None,
+        perPage: int | None = None,
+        statuses: list[str] | None = None,
+        total_pages: int | str = "all",
+    ) -> list[dict[str, Any]]:
+        """Get all clients in a network."""
+        kwargs: dict[str, Any] = {
+            "networkId": network_id,
+            "total_pages": total_pages,
+        }
+        if timespan:
+            kwargs["timespan"] = timespan
+        if perPage:
+            kwargs["perPage"] = perPage
+        if statuses:
+            kwargs["statuses"] = statuses
 
-        Args:
-        ----
-            network_id: The ID of the network.
-
-        Returns
-        -------
-            A list of clients.
-
-        """
-        if self._api_client.dashboard is None:
-            return []
         clients = await self._api_client.run_sync(
             self._api_client.dashboard.networks.getNetworkClients,
-            networkId=network_id,
-            total_pages="all",
+            **kwargs,
         )
         validated = validate_response(clients)
-        if not isinstance(validated, list):
-            _LOGGER.warning("get_network_clients did not return a list.")
-            return []
+        return (
+            cast(list[dict[str, Any]], validated) if isinstance(validated, list) else []
+        )
+
+    @handle_meraki_errors
+    async def create_group_policy(
+        self, network_id: str, name: str, **kwargs: Any
+    ) -> dict[str, Any]:
+        """Create a group policy for a network."""
+        policy = await self._api_client.run_sync(
+            self._api_client.dashboard.networks.createNetworkGroupPolicy,
+            networkId=network_id,
+            name=name,
+            **kwargs,
+        )
+        validated = validate_response(policy)
+        if not isinstance(validated, dict):
+            _LOGGER.warning("create_group_policy did not return a dict")
+            return {}
         return validated
 
     @handle_meraki_errors
@@ -69,86 +81,34 @@ class NetworkEndpoints:
     async def get_network_traffic(
         self, network_id: str, device_type: str
     ) -> list[dict[str, Any]]:
-        """
-        Get traffic data for a network, filtered by device type.
-
-        Args:
-        ----
-            network_id: The ID of the network.
-            device_type: The type of device to filter by.
-
-        Returns
-        -------
-            A list of traffic data.
-
-        """
-        if self._api_client.dashboard is None:
-            return []
-        try:
-            traffic = await self._api_client.run_sync(
-                self._api_client.dashboard.networks.getNetworkTraffic,
-                networkId=network_id,
-                deviceType=device_type,
-                timespan=86400,  # 24 hours
-            )
-        except meraki.APIError as e:
-            if "Traffic Analysis with Hostname Visibility must be enabled" in str(e):
-                _LOGGER.info(
-                    "Traffic analysis is not enabled for network %s. "
-                    "Please enable it at "
-                    "https://documentation.meraki.com/MX/Design_and_Configure/Configuration_Guides/Firewall_and_Traffic_Shaping/Traffic_Analysis_and_Classification",
-                    network_id,
-                )
-                raise MerakiTrafficAnalysisError(
-                    f"Traffic analysis not enabled for network {network_id}"
-                ) from e
-            raise
+        """Get traffic data for a network, filtered by device type."""
+        traffic = await self._api_client.run_sync(
+            self._api_client.dashboard.networks.getNetworkTraffic,
+            networkId=network_id,
+            deviceType=device_type,
+            timespan=86400,  # 24 hours
+        )
         validated = validate_response(traffic)
-        if not isinstance(validated, list):
-            _LOGGER.warning("get_network_traffic did not return a list.")
-            return []
-        return validated
+        return (
+            cast(list[dict[str, Any]], validated) if isinstance(validated, list) else []
+        )
 
     @handle_meraki_errors
     @async_timed_cache(timeout=10)
     async def get_webhooks(self, network_id: str) -> list[dict[str, Any]]:
-        """
-        Get all webhooks for a network.
-
-        Args:
-        ----
-            network_id: The ID of the network.
-
-        Returns
-        -------
-            A list of webhooks.
-
-        """
-        if self._api_client.dashboard is None:
-            return []
+        """Get all webhooks for a network."""
         webhooks = await self._api_client.run_sync(
             self._api_client.dashboard.networks.getNetworkWebhooksHttpServers,
             networkId=network_id,
         )
         validated = validate_response(webhooks)
-        if not isinstance(validated, list):
-            _LOGGER.warning("get_webhooks did not return a list.")
-            return []
-        return validated
+        return (
+            cast(list[dict[str, Any]], validated) if isinstance(validated, list) else []
+        )
 
     @handle_meraki_errors
     async def delete_webhook(self, network_id: str, webhook_id: str) -> None:
-        """
-        Delete a webhook from a network.
-
-        Args:
-        ----
-            network_id: The ID of the network.
-            webhook_id: The ID of the webhook.
-
-        """
-        if self._api_client.dashboard is None:
-            return
+        """Delete a webhook from a network."""
         await self._api_client.run_sync(
             self._api_client.dashboard.networks.deleteNetworkWebhooksHttpServer,
             networkId=network_id,
@@ -156,134 +116,207 @@ class NetworkEndpoints:
         )
 
     @handle_meraki_errors
-    async def find_webhook_by_url(
-        self, network_id: str, url: str
+    async def find_webhook_by_name_and_url(
+        self, network_id: str, name: str, url: str
     ) -> dict[str, Any] | None:
-        """
-        Find a webhook by its URL.
-
-        Args:
-        ----
-            network_id: The ID of the network.
-            url: The URL of the webhook.
-
-        Returns
-        -------
-            The webhook details, or None if not found.
-
-        """
+        """Find a webhook by its name and URL."""
         webhooks = await self.get_webhooks(network_id)
         for webhook in webhooks:
-            if webhook.get("url") == url:
+            if webhook.get("name") == name and webhook.get("url") == url:
                 return webhook
         return None
 
     @handle_meraki_errors
-    async def register_webhook(self, webhook_url: str, secret: str) -> None:
-        """
-        Register a webhook with the Meraki API.
+    async def register_webhook(
+        self, webhook_url: str, secret: str, config_entry_id: str
+    ) -> list[str]:
+        """Register or update a webhook with the Meraki API."""
+        import asyncio
 
-        Args:
-        ----
-            webhook_url: The URL of the webhook.
-            secret: The secret for the webhook.
-
-        """
         networks = await self._api_client.organization.get_organization_networks()
+        webhook_name = f"Home Assistant Webhook - {config_entry_id}"
+        webhook_ids = []
+
         for network in networks:
             network_id = network["id"]
-            existing_webhook = await self.find_webhook_by_url(network_id, webhook_url)
-            if existing_webhook:
-                await self.delete_webhook(network_id, existing_webhook["id"])
+            # Always fetch existing webhooks directly using the dashboard
+            # API for fresh data
+            raw_webhooks = await self._api_client.run_sync(
+                self._api_client.dashboard.networks.getNetworkWebhooksHttpServers,
+                networkId=network_id,
+            )
+            webhooks = validate_response(raw_webhooks)
+            if not isinstance(webhooks, list):
+                webhooks = []
 
-            if self._api_client.dashboard is None:
-                return
-            await self._api_client.run_sync(
+            exact_match = None
+            to_delete = []
+
+            # 1. Identify perfect match and garbage
+            for webhook in webhooks:
+                name_match = webhook.get("name") == webhook_name
+                url_match = webhook.get("url") == webhook_url
+
+                # Perfect match found - we'll reuse this one
+                if name_match and url_match:
+                    exact_match = webhook
+                # Proactive garbage collection: anything that looks like us
+                # but isn't a perfect match
+                elif (
+                    "Home Assistant Webhook" in webhook.get("name", "")
+                    or webhook.get("url") == webhook_url
+                ):
+                    to_delete.append(webhook)
+
+            # 2. Clean up garbage webhooks (Legacy/Orphaned/Conflicting)
+            for webhook in to_delete:
+                _LOGGER.info(
+                    "Deleting orphaned/conflicting webhook '%s' (ID: %s) in network %s",
+                    webhook.get("name"),
+                    webhook.get("id"),
+                    network_id,
+                )
+                await self.delete_webhook(network_id, webhook["id"])
+                # Sleep briefly to avoid 429 rate limits during cleanup
+                await asyncio.sleep(1)
+
+            # 3. Finalize registration
+            if exact_match:
+                _LOGGER.debug(
+                    "Webhook '%s' already exists in network %s, skipping creation",
+                    webhook_name,
+                    network_id,
+                )
+                webhook_ids.append(exact_match["id"])
+                continue
+
+            _LOGGER.info(
+                "Registering new webhook '%s' for network %s", webhook_name, network_id
+            )
+            response = await self._api_client.run_sync(
                 self._api_client.dashboard.networks.createNetworkWebhooksHttpServer,
                 networkId=network_id,
                 url=webhook_url,
                 sharedSecret=secret,
-                name=f"Home Assistant Integration - {network.get('name', 'Unknown')}",
+                name=webhook_name,
             )
+            if response and "id" in response:
+                webhook_ids.append(response["id"])
 
-    @handle_meraki_errors
-    async def unregister_webhook(self, webhook_url: str) -> None:
-        """
-        Unregister a webhook with the Meraki API.
+        return webhook_ids
 
-        Args:
-        ----
-            webhook_url: The URL of the webhook to unregister.
-
-        """
+    async def unregister_webhook(self, config_entry_id: str) -> None:
+        """Unregister a webhook from all networks."""
+        webhook_name = f"Home Assistant Webhook - {config_entry_id}"
         networks = await self._api_client.organization.get_organization_networks()
         for network in networks:
             network_id = network["id"]
-            webhook_to_delete = await self.find_webhook_by_url(network_id, webhook_url)
-            if webhook_to_delete and "id" in webhook_to_delete:
-                _LOGGER.debug(
-                    "Deleting webhook %s from network %s",
-                    webhook_to_delete["id"],
-                    network_id,
-                )
-                await self.delete_webhook(network_id, webhook_to_delete["id"])
+            # Fetch webhooks directly to ensure cleanup of all instances
+            raw_webhooks = await self._api_client.run_sync(
+                self._api_client.dashboard.networks.getNetworkWebhooksHttpServers,
+                networkId=network_id,
+            )
+            webhooks = validate_response(raw_webhooks)
+            if isinstance(webhooks, list):
+                for webhook in webhooks:
+                    if webhook.get("name") == webhook_name:
+                        await self.delete_webhook(network_id, webhook["id"])
 
-    @handle_meraki_errors
-    @async_timed_cache(timeout=60)
-    async def get_network_camera_analytics_history(
-        self, network_id: str, object_type: str
-    ) -> list[dict[str, Any]]:
+    async def get_vlan_data(self, network_id: str) -> list[dict[str, Any]]:
         """
-        Get analytics history for a network.
+        Get VLAN data for a network with fallback and safety logic.
 
-        Args:
-        ----
-            network_id: The ID of the network.
-            object_type: The type of object to get analytics for.
-
-        Returns
-        -------
-            A list of analytics history.
-
+        This method uses product type verification and safe attribute lookup
+        to prevent AttributeError crashes and reduce 429 rate-limiting.
         """
-        if self._api_client.dashboard is None:
-            return []
-        history = await self._api_client.run_sync(
-            self._api_client.dashboard.camera.getNetworkCameraAnalyticsRecent,
-            networkId=network_id,
-            objectType=object_type,
-        )
-        validated = validate_response(history)
-        if not isinstance(validated, list):
-            _LOGGER.warning(
-                "get_network_camera_analytics_history did not return a list."
+        # 1. Product Type Guard: Only appliances (MX) support this endpoint
+        networks = await self._api_client.organization.get_organization_networks()
+        network = next((n for n in networks if n["id"] == network_id), None)
+
+        if network and "appliance" not in network.get("productTypes", []):
+            _LOGGER.debug(
+                "Skipping VLAN fetch for non-appliance network %s", network_id
             )
             return []
-        return validated
+
+        # 2. SDK Safety Guard: Check if the appliance module and method exist
+        appliance = getattr(self._api_client.dashboard, "appliance", None)
+        vlan_method = getattr(appliance, "getNetworkApplianceVlans", None)
+
+        if not vlan_method:
+            _LOGGER.debug("VLAN method not found in SDK for network %s", network_id)
+            return []
+
+        try:
+            res = await self._api_client.run_sync(
+                vlan_method,
+                networkId=network_id,
+            )
+            validated = validate_response(res)
+
+            # Robust extraction logic (Merged from fix/beta)
+            if isinstance(validated, list):
+                return cast(list[dict[str, Any]], validated)
+
+            if isinstance(validated, dict):
+                # Fallback: Deep-search dictionary values for a list (Fix branch logic)
+                for value in validated.values():
+                    if isinstance(value, list):
+                        return cast(list[dict[str, Any]], value)
+                return [validated]  # Treat single dict as a list of one
+
+            return []
+
+        except (meraki.APIError, MerakiVlansDisabledError, AttributeError) as e:
+            # Handle specific 400 error indicating VLANs are disabled
+            error_str = str(e).lower()
+            if (
+                "vlans are not enabled" in error_str
+                or "vlan is not enabled" in error_str
+            ):
+                _LOGGER.info("VLANs disabled for network %s (Status 400)", network_id)
+            else:
+                _LOGGER.debug("VLAN fetch error for %s: %s", network_id, e)
+            return []
 
     @handle_meraki_errors
     @async_timed_cache(timeout=300)
-    async def get_network_group_policies(self, network_id: str) -> list[dict[str, Any]]:
-        """
-        Get all group policies for a network.
-
-        Args:
-        ----
-            network_id: The ID of the network.
-
-        Returns
-        -------
-            A list of group policies.
-
-        """
-        if self._api_client.dashboard is None:
-            return []
+    async def get_group_policies(self, network_id: str) -> list[dict[str, Any]]:
+        """Get group policies for a network."""
         policies = await self._api_client.run_sync(
             self._api_client.dashboard.networks.getNetworkGroupPolicies,
             networkId=network_id,
         )
         validated = validate_response(policies)
-        if not isinstance(validated, list):
-            _LOGGER.warning("get_network_group_policies did not return a list.")
-            return []
-        return validated
+        return (
+            cast(list[dict[str, Any]], validated) if isinstance(validated, list) else []
+        )
+
+    @handle_meraki_errors
+    async def get_network_events(self, network_id: str, **kwargs) -> dict[str, Any]:
+        """Fetch events for a network."""
+        # Map snake_case to camelCase for common arguments
+        key_map = {
+            "product_type": "productType",
+            "included_event_types": "includedEventTypes",
+            "excluded_event_types": "excludedEventTypes",
+            "device_serial": "deviceSerial",
+            "sm_owner_id": "smOwnerId",
+            "sm_device_mac": "smDeviceMac",
+            "sm_user_tags": "smUserTags",
+            "starting_after": "startingAfter",
+            "ending_before": "endingBefore",
+            "per_page": "perPage",
+        }
+
+        filtered_kwargs = {}
+        for k, v in kwargs.items():
+            if v is not None:
+                new_key = key_map.get(k, k)
+                filtered_kwargs[new_key] = v
+
+        return await self._api_client.run_sync(
+            self._api_client.dashboard.networks.getNetworkEvents,
+            network_id,
+            **filtered_kwargs,
+        )

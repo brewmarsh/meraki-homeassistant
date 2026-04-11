@@ -1,0 +1,467 @@
+warning: No `requires-python` value found in the workspace. Defaulting to `>=3.12`.
+============================= test session starts ==============================
+platform linux -- Python 3.12.13, pytest-8.3.3, pluggy-1.6.0
+rootdir: /app
+configfile: pytest.ini
+plugins: picked-0.5.0, requests-mock-1.12.1, mock-3.12.0, socket-0.7.0, sugar-1.0.0, timeout-2.3.1, aiohttp-1.0.5, syrupy-4.7.2, anyio-4.13.0, github-actions-annotate-failures-0.2.0, asyncio-0.24.0, cov-6.0.0, respx-0.21.1, unordered-0.6.1, homeassistant-custom-component-0.13.195, xdist-3.6.1, braintrust-0.12.0, pytest_freezer-0.4.8
+asyncio: mode=Mode.AUTO, default_loop_scope=function
+created: 4/4 workers
+4 workers [422 items]
+
+........................................................................ [ 17%]
+........................................................................ [ 34%]
+........................................................................ [ 51%]
+........................................................................ [ 68%]
+........................................................................ [ 85%]
+..............................................................           [100%]
+==================================== ERRORS ====================================
+_________ ERROR collecting tests/sensor/device/test_appliance_port.py __________
+import file mismatch:
+imported module 'test_appliance_port' has this __file__ attribute:
+  /app/tests/binary_sensor/device/test_appliance_port.py
+which is not the same as the test file we want to collect:
+  /app/tests/sensor/device/test_appliance_port.py
+HINT: remove __pycache__ / .pyc files and/or use a unique basename for your test file modules
+=============================== warnings summary ===============================
+tests/core/coordinator_helpers/test_graceful_degradation.py::test_async_gather_with_timeout_graceful_traffic_analysis
+  /app/.venv/lib/python3.12/site-packages/pytest_homeassistant_custom_component/plugins.py:275: RuntimeWarning: coroutine 'AsyncMockMixin._execute_mock_call' was never awaited
+  Coroutine created at (most recent call last)
+    File "/home/jules/.pyenv/versions/3.12.13/lib/python3.12/asyncio/base_events.py", line 678, in run_until_complete
+      self.run_forever()
+    File "/home/jules/.pyenv/versions/3.12.13/lib/python3.12/asyncio/base_events.py", line 645, in run_forever
+      self._run_once()
+    File "/home/jules/.pyenv/versions/3.12.13/lib/python3.12/asyncio/base_events.py", line 1991, in _run_once
+      handle._run()
+    File "/home/jules/.pyenv/versions/3.12.13/lib/python3.12/asyncio/events.py", line 88, in _run
+      self._context.run(self._callback, *self._args)
+    File "/app/tests/core/coordinator_helpers/test_data_fetcher_timeouts.py", line 156, in test_get_all_data_client_timeout
+      await data_fetch_manager.get_all_data()
+    File "/app/custom_components/meraki_ha/core/coordinator_helpers/data_fetcher.py", line 312, in get_all_data
+      return await self.get_sensor_data(current_data, timespan)
+    File "/app/custom_components/meraki_ha/core/coordinator_helpers/data_fetcher.py", line 295, in get_sensor_data
+      await self._fetch_client_data(data)
+    File "/app/custom_components/meraki_ha/core/coordinator_helpers/data_fetcher.py", line 321, in _fetch_client_data
+      f"clients_{n.id}": self.client_fetcher.async_fetch_network_clients([n])
+    File "/home/jules/.pyenv/versions/3.12.13/lib/python3.12/unittest/mock.py", line 1139, in __call__
+      return self._mock_call(*args, **kwargs)
+    File "/home/jules/.pyenv/versions/3.12.13/lib/python3.12/unittest/mock.py", line 1143, in _mock_call
+      return self._execute_mock_call(*args, **kwargs)
+    gc.collect()
+  Enable tracemalloc to get traceback where the object was allocated.
+  See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
+
+tests/core/coordinator_helpers/test_graceful_degradation.py::test_async_gather_with_timeout_graceful_traffic_analysis
+  /app/.venv/lib/python3.12/site-packages/pytest_homeassistant_custom_component/plugins.py:275: RuntimeWarning: coroutine 'AsyncMockMixin._execute_mock_call' was never awaited
+  Coroutine created at (most recent call last)
+    File "/app/tests/core/coordinator_helpers/test_data_fetcher_timeouts.py", line 156, in test_get_all_data_client_timeout
+      await data_fetch_manager.get_all_data()
+    File "/app/custom_components/meraki_ha/core/coordinator_helpers/data_fetcher.py", line 312, in get_all_data
+      return await self.get_sensor_data(current_data, timespan)
+    File "/app/custom_components/meraki_ha/core/coordinator_helpers/data_fetcher.py", line 294, in get_sensor_data
+      await self._build_strategy_tasks(data)
+    File "/app/custom_components/meraki_ha/core/coordinator_helpers/data_fetcher.py", line 267, in _build_strategy_tasks
+      collect_network_tasks(data, tasks, self.strategies)
+    File "/app/custom_components/meraki_ha/core/coordinator_helpers/strategy_executor.py", line 33, in collect_network_tasks
+      build_func(network_id, product_types, tasks)
+    File "/app/custom_components/meraki_ha/core/coordinator_helpers/strategy_executor.py", line 16, in <lambda>
+      "appliance": lambda nid, pts, tks: strategies["appliance"].build_network_tasks(
+    File "/app/custom_components/meraki_ha/core/fetch_strategies/appliance.py", line 47, in build_network_tasks
+      self._add_traffic_and_vlan_tasks(network_id, tasks)
+    File "/app/custom_components/meraki_ha/core/fetch_strategies/appliance.py", line 56, in _add_traffic_and_vlan_tasks
+      tasks[f"traffic_{network_id}"] = self.client.run_with_semaphore(
+    File "/home/jules/.pyenv/versions/3.12.13/lib/python3.12/unittest/mock.py", line 1139, in __call__
+      return self._mock_call(*args, **kwargs)
+    File "/home/jules/.pyenv/versions/3.12.13/lib/python3.12/unittest/mock.py", line 1143, in _mock_call
+      return self._execute_mock_call(*args, **kwargs)
+    gc.collect()
+  Enable tracemalloc to get traceback where the object was allocated.
+  See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
+
+tests/core/coordinator_helpers/test_graceful_degradation.py::test_async_gather_with_timeout_graceful_traffic_analysis
+  /app/.venv/lib/python3.12/site-packages/pytest_homeassistant_custom_component/plugins.py:275: RuntimeWarning: coroutine 'AsyncMockMixin._execute_mock_call' was never awaited
+  Coroutine created at (most recent call last)
+    File "/app/tests/core/coordinator_helpers/test_data_fetcher_timeouts.py", line 156, in test_get_all_data_client_timeout
+      await data_fetch_manager.get_all_data()
+    File "/app/custom_components/meraki_ha/core/coordinator_helpers/data_fetcher.py", line 312, in get_all_data
+      return await self.get_sensor_data(current_data, timespan)
+    File "/app/custom_components/meraki_ha/core/coordinator_helpers/data_fetcher.py", line 294, in get_sensor_data
+      await self._build_strategy_tasks(data)
+    File "/app/custom_components/meraki_ha/core/coordinator_helpers/data_fetcher.py", line 267, in _build_strategy_tasks
+      collect_network_tasks(data, tasks, self.strategies)
+    File "/app/custom_components/meraki_ha/core/coordinator_helpers/strategy_executor.py", line 33, in collect_network_tasks
+      build_func(network_id, product_types, tasks)
+    File "/app/custom_components/meraki_ha/core/coordinator_helpers/strategy_executor.py", line 16, in <lambda>
+      "appliance": lambda nid, pts, tks: strategies["appliance"].build_network_tasks(
+    File "/app/custom_components/meraki_ha/core/fetch_strategies/appliance.py", line 47, in build_network_tasks
+      self._add_traffic_and_vlan_tasks(network_id, tasks)
+    File "/app/custom_components/meraki_ha/core/fetch_strategies/appliance.py", line 61, in _add_traffic_and_vlan_tasks
+      tasks[f"vlans_{network_id}"] = self.client.run_with_semaphore(
+    File "/home/jules/.pyenv/versions/3.12.13/lib/python3.12/unittest/mock.py", line 1139, in __call__
+      return self._mock_call(*args, **kwargs)
+    File "/home/jules/.pyenv/versions/3.12.13/lib/python3.12/unittest/mock.py", line 1143, in _mock_call
+      return self._execute_mock_call(*args, **kwargs)
+    gc.collect()
+  Enable tracemalloc to get traceback where the object was allocated.
+  See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
+
+tests/core/coordinator_helpers/test_graceful_degradation.py::test_async_gather_with_timeout_graceful_traffic_analysis
+  /app/.venv/lib/python3.12/site-packages/pytest_homeassistant_custom_component/plugins.py:275: RuntimeWarning: coroutine 'AsyncMockMixin._execute_mock_call' was never awaited
+  Coroutine created at (most recent call last)
+    File "/app/tests/core/coordinator_helpers/test_data_fetcher_timeouts.py", line 156, in test_get_all_data_client_timeout
+      await data_fetch_manager.get_all_data()
+    File "/app/custom_components/meraki_ha/core/coordinator_helpers/data_fetcher.py", line 312, in get_all_data
+      return await self.get_sensor_data(current_data, timespan)
+    File "/app/custom_components/meraki_ha/core/coordinator_helpers/data_fetcher.py", line 294, in get_sensor_data
+      await self._build_strategy_tasks(data)
+    File "/app/custom_components/meraki_ha/core/coordinator_helpers/data_fetcher.py", line 267, in _build_strategy_tasks
+      collect_network_tasks(data, tasks, self.strategies)
+    File "/app/custom_components/meraki_ha/core/coordinator_helpers/strategy_executor.py", line 33, in collect_network_tasks
+      build_func(network_id, product_types, tasks)
+    File "/app/custom_components/meraki_ha/core/coordinator_helpers/strategy_executor.py", line 16, in <lambda>
+      "appliance": lambda nid, pts, tks: strategies["appliance"].build_network_tasks(
+    File "/app/custom_components/meraki_ha/core/fetch_strategies/appliance.py", line 49, in build_network_tasks
+      self._add_standard_appliance_tasks(network_id, tasks)
+    File "/app/custom_components/meraki_ha/core/fetch_strategies/appliance.py", line 84, in _add_standard_appliance_tasks
+      tasks[f"appliance_ports_{network_id}"] = self.client.run_with_semaphore(
+    File "/home/jules/.pyenv/versions/3.12.13/lib/python3.12/unittest/mock.py", line 1139, in __call__
+      return self._mock_call(*args, **kwargs)
+    File "/home/jules/.pyenv/versions/3.12.13/lib/python3.12/unittest/mock.py", line 1143, in _mock_call
+      return self._execute_mock_call(*args, **kwargs)
+    gc.collect()
+  Enable tracemalloc to get traceback where the object was allocated.
+  See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
+
+tests/core/coordinator_helpers/test_graceful_degradation.py::test_async_gather_with_timeout_graceful_traffic_analysis
+  /app/.venv/lib/python3.12/site-packages/pytest_homeassistant_custom_component/plugins.py:275: RuntimeWarning: coroutine 'AsyncMockMixin._execute_mock_call' was never awaited
+  Coroutine created at (most recent call last)
+    File "/app/tests/core/coordinator_helpers/test_data_fetcher_timeouts.py", line 156, in test_get_all_data_client_timeout
+      await data_fetch_manager.get_all_data()
+    File "/app/custom_components/meraki_ha/core/coordinator_helpers/data_fetcher.py", line 312, in get_all_data
+      return await self.get_sensor_data(current_data, timespan)
+    File "/app/custom_components/meraki_ha/core/coordinator_helpers/data_fetcher.py", line 294, in get_sensor_data
+      await self._build_strategy_tasks(data)
+    File "/app/custom_components/meraki_ha/core/coordinator_helpers/data_fetcher.py", line 267, in _build_strategy_tasks
+      collect_network_tasks(data, tasks, self.strategies)
+    File "/app/custom_components/meraki_ha/core/coordinator_helpers/strategy_executor.py", line 33, in collect_network_tasks
+      build_func(network_id, product_types, tasks)
+    File "/app/custom_components/meraki_ha/core/coordinator_helpers/strategy_executor.py", line 16, in <lambda>
+      "appliance": lambda nid, pts, tks: strategies["appliance"].build_network_tasks(
+    File "/app/custom_components/meraki_ha/core/fetch_strategies/appliance.py", line 49, in build_network_tasks
+      self._add_standard_appliance_tasks(network_id, tasks)
+    File "/app/custom_components/meraki_ha/core/fetch_strategies/appliance.py", line 87, in _add_standard_appliance_tasks
+      tasks[f"content_filtering_{network_id}"] = self.client.run_with_semaphore(
+    File "/home/jules/.pyenv/versions/3.12.13/lib/python3.12/unittest/mock.py", line 1139, in __call__
+      return self._mock_call(*args, **kwargs)
+    File "/home/jules/.pyenv/versions/3.12.13/lib/python3.12/unittest/mock.py", line 1143, in _mock_call
+      return self._execute_mock_call(*args, **kwargs)
+    gc.collect()
+  Enable tracemalloc to get traceback where the object was allocated.
+  See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
+
+tests/core/coordinator_helpers/test_graceful_degradation.py::test_async_gather_with_timeout_graceful_traffic_analysis
+  /app/.venv/lib/python3.12/site-packages/pytest_homeassistant_custom_component/plugins.py:275: RuntimeWarning: coroutine 'AsyncMockMixin._execute_mock_call' was never awaited
+  Coroutine created at (most recent call last)
+    File "/app/tests/core/coordinator_helpers/test_data_fetcher_timeouts.py", line 156, in test_get_all_data_client_timeout
+      await data_fetch_manager.get_all_data()
+    File "/app/custom_components/meraki_ha/core/coordinator_helpers/data_fetcher.py", line 312, in get_all_data
+      return await self.get_sensor_data(current_data, timespan)
+    File "/app/custom_components/meraki_ha/core/coordinator_helpers/data_fetcher.py", line 294, in get_sensor_data
+      await self._build_strategy_tasks(data)
+    File "/app/custom_components/meraki_ha/core/coordinator_helpers/data_fetcher.py", line 267, in _build_strategy_tasks
+      collect_network_tasks(data, tasks, self.strategies)
+    File "/app/custom_components/meraki_ha/core/coordinator_helpers/strategy_executor.py", line 33, in collect_network_tasks
+      build_func(network_id, product_types, tasks)
+    File "/app/custom_components/meraki_ha/core/coordinator_helpers/strategy_executor.py", line 16, in <lambda>
+      "appliance": lambda nid, pts, tks: strategies["appliance"].build_network_tasks(
+    File "/app/custom_components/meraki_ha/core/fetch_strategies/appliance.py", line 49, in build_network_tasks
+      self._add_standard_appliance_tasks(network_id, tasks)
+    File "/app/custom_components/meraki_ha/core/fetch_strategies/appliance.py", line 92, in _add_standard_appliance_tasks
+      tasks[f"uplink_performance_{network_id}"] = self.client.run_with_semaphore(
+    File "/home/jules/.pyenv/versions/3.12.13/lib/python3.12/unittest/mock.py", line 1139, in __call__
+      return self._mock_call(*args, **kwargs)
+    File "/home/jules/.pyenv/versions/3.12.13/lib/python3.12/unittest/mock.py", line 1143, in _mock_call
+      return self._execute_mock_call(*args, **kwargs)
+    gc.collect()
+  Enable tracemalloc to get traceback where the object was allocated.
+  See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+
+---------- coverage: platform linux, python 3.12.13-final-0 ----------
+Name                                                                            Stmts   Miss  Cover
+---------------------------------------------------------------------------------------------------
+custom_components/meraki_ha/__init__.py                                           112      3    97%
+custom_components/meraki_ha/api/__init__.py                                         0      0   100%
+custom_components/meraki_ha/api/commands_camera.py                                 36     17    53%
+custom_components/meraki_ha/api/commands_config.py                                 77     18    77%
+custom_components/meraki_ha/api/commands_guest.py                                  54     11    80%
+custom_components/meraki_ha/api/commands_network.py                                43      6    86%
+custom_components/meraki_ha/api/utils.py                                           25      7    72%
+custom_components/meraki_ha/api/websocket.py                                       12      0   100%
+custom_components/meraki_ha/async_logging.py                                       18      0   100%
+custom_components/meraki_ha/authentication.py                                      71     22    69%
+custom_components/meraki_ha/binary_sensor/__init__.py                              30      5    83%
+custom_components/meraki_ha/binary_sensor/device/__init__.py                        0      0   100%
+custom_components/meraki_ha/binary_sensor/device/appliance_port.py                 49      4    92%
+custom_components/meraki_ha/binary_sensor/device/camera_motion.py                  35      5    86%
+custom_components/meraki_ha/binary_sensor/device/meraki_mt_binary_base.py          60      7    88%
+custom_components/meraki_ha/binary_sensor/device/switch_port.py                    56     23    59%
+custom_components/meraki_ha/binary_sensor/network.py                               46      4    91%
+custom_components/meraki_ha/button/__init__.py                                     31      4    87%
+custom_components/meraki_ha/button/device/__init__.py                               0      0   100%
+custom_components/meraki_ha/button/device/camera_snapshot.py                       35     18    49%
+custom_components/meraki_ha/button/device/mt15_refresh_data.py                     33      2    94%
+custom_components/meraki_ha/button/device/poe_cycle.py                             21      0   100%
+custom_components/meraki_ha/button/reboot.py                                       49      9    82%
+custom_components/meraki_ha/camera.py                                             131     24    82%
+custom_components/meraki_ha/config_flow.py                                         63     11    83%
+custom_components/meraki_ha/const/__init__.py                                       8      0   100%
+custom_components/meraki_ha/const/api.py                                            3      0   100%
+custom_components/meraki_ha/const/config.py                                        66      0   100%
+custom_components/meraki_ha/const/data.py                                           3      0   100%
+custom_components/meraki_ha/const/device.py                                        19      1    95%
+custom_components/meraki_ha/const/device_types.py                                  22      0   100%
+custom_components/meraki_ha/const/integration.py                                    5      0   100%
+custom_components/meraki_ha/const/platform.py                                      24      0   100%
+custom_components/meraki_ha/const/sensor.py                                        12      0   100%
+custom_components/meraki_ha/const/webhooks.py                                       4      0   100%
+custom_components/meraki_ha/const/websocket.py                                     14      0   100%
+custom_components/meraki_ha/coordinators/__init__.py                               10      0   100%
+custom_components/meraki_ha/coordinators/appliance.py                              22      3    86%
+custom_components/meraki_ha/coordinators/base.py                                   58      3    95%
+custom_components/meraki_ha/coordinators/camera.py                                 22      3    86%
+custom_components/meraki_ha/coordinators/client.py                                 22      3    86%
+custom_components/meraki_ha/coordinators/device.py                                 29      8    72%
+custom_components/meraki_ha/coordinators/main.py                                   57      6    89%
+custom_components/meraki_ha/coordinators/sensor.py                                 24      3    88%
+custom_components/meraki_ha/coordinators/switch.py                                 22      3    86%
+custom_components/meraki_ha/coordinators/wireless.py                               22      3    86%
+custom_components/meraki_ha/core/__init__.py                                        3      0   100%
+custom_components/meraki_ha/core/api/__init__.py                                    5      0   100%
+custom_components/meraki_ha/core/api/cache.py                                      45      4    91%
+custom_components/meraki_ha/core/api/client.py                                    137     17    88%
+custom_components/meraki_ha/core/api/endpoints/__init__.py                          0      0   100%
+custom_components/meraki_ha/core/api/endpoints/appliance/__init__.py               14      1    93%
+custom_components/meraki_ha/core/api/endpoints/appliance/firewall.py               71     31    56%
+custom_components/meraki_ha/core/api/endpoints/appliance/settings.py               62     26    58%
+custom_components/meraki_ha/core/api/endpoints/appliance/traffic.py                37     11    70%
+custom_components/meraki_ha/core/api/endpoints/appliance/uplink.py                 52     12    77%
+custom_components/meraki_ha/core/api/endpoints/appliance/vpn.py                    28      5    82%
+custom_components/meraki_ha/core/api/endpoints/camera.py                          116     85    27%
+custom_components/meraki_ha/core/api/endpoints/devices.py                          49     30    39%
+custom_components/meraki_ha/core/api/endpoints/network.py                         144     31    78%
+custom_components/meraki_ha/core/api/endpoints/organization.py                     91     35    62%
+custom_components/meraki_ha/core/api/endpoints/sensor.py                           27      9    67%
+custom_components/meraki_ha/core/api/endpoints/switch.py                           31      5    84%
+custom_components/meraki_ha/core/api/endpoints/wireless.py                        122     72    41%
+custom_components/meraki_ha/core/api/factory.py                                     6      0   100%
+custom_components/meraki_ha/core/api/protocol.py                                  209     93    56%
+custom_components/meraki_ha/core/api/shared_cache.py                               35      3    91%
+custom_components/meraki_ha/core/coordinator_helpers/__init__.py                    0      0   100%
+custom_components/meraki_ha/core/coordinator_helpers/batch_utils.py                67      4    94%
+custom_components/meraki_ha/core/coordinator_helpers/client_fetcher.py             55     21    62%
+custom_components/meraki_ha/core/coordinator_helpers/config_helper.py              32      3    91%
+custom_components/meraki_ha/core/coordinator_helpers/data_fetcher.py              170     13    92%
+custom_components/meraki_ha/core/coordinator_helpers/strategy_executor.py          42      6    86%
+custom_components/meraki_ha/core/coordinator_helpers/update_processor.py          147     27    82%
+custom_components/meraki_ha/core/coordinators/__init__.py                           0      0   100%
+custom_components/meraki_ha/core/coordinators/ssid_firewall_coordinator.py          2      0   100%
+custom_components/meraki_ha/core/entities/__init__.py                              63      7    89%
+custom_components/meraki_ha/core/entities/meraki_firewall_rule_entity.py           19      1    95%
+custom_components/meraki_ha/core/entities/meraki_network_entity.py                 33      3    91%
+custom_components/meraki_ha/core/entities/meraki_vlan_entity.py                    17      1    94%
+custom_components/meraki_ha/core/errors.py                                         11      0   100%
+custom_components/meraki_ha/core/fetch_strategies/__init__.py                       0      0   100%
+custom_components/meraki_ha/core/fetch_strategies/appliance.py                     54      2    96%
+custom_components/meraki_ha/core/fetch_strategies/appliance_device.py              42     11    74%
+custom_components/meraki_ha/core/fetch_strategies/appliance_traffic.py             46     17    63%
+custom_components/meraki_ha/core/fetch_strategies/appliance_uplinks.py             61      7    89%
+custom_components/meraki_ha/core/fetch_strategies/base.py                          11      2    82%
+custom_components/meraki_ha/core/fetch_strategies/camera.py                        47      3    94%
+custom_components/meraki_ha/core/fetch_strategies/sensor.py                        22     10    55%
+custom_components/meraki_ha/core/fetch_strategies/switch.py                        18      1    94%
+custom_components/meraki_ha/core/fetch_strategies/wireless.py                      38      3    92%
+custom_components/meraki_ha/core/helpers/__init__.py                                0      0   100%
+custom_components/meraki_ha/core/helpers/device_registry.py                        23      6    74%
+custom_components/meraki_ha/core/managers.py                                       71     17    76%
+custom_components/meraki_ha/core/models/__init__.py                                10      0   100%
+custom_components/meraki_ha/core/models/appliance.py                               41      6    85%
+custom_components/meraki_ha/core/models/base.py                                    37      0   100%
+custom_components/meraki_ha/core/models/camera.py                                  26      6    77%
+custom_components/meraki_ha/core/models/device.py                                  28      0   100%
+custom_components/meraki_ha/core/models/network.py                                 62      0   100%
+custom_components/meraki_ha/core/models/organization.py                            17      2    88%
+custom_components/meraki_ha/core/models/sensor.py                                  36      6    83%
+custom_components/meraki_ha/core/models/switch.py                                  23      6    74%
+custom_components/meraki_ha/core/models/wireless.py                                23      6    74%
+custom_components/meraki_ha/core/parsers/__init__.py                                0      0   100%
+custom_components/meraki_ha/core/parsers/appliance.py                              53      4    92%
+custom_components/meraki_ha/core/parsers/camera.py                                 12     12     0%
+custom_components/meraki_ha/core/parsers/devices.py                                20      0   100%
+custom_components/meraki_ha/core/parsers/network.py                                98      8    92%
+custom_components/meraki_ha/core/parsers/sensors.py                                79     17    78%
+custom_components/meraki_ha/core/parsers/switch.py                                 11     11     0%
+custom_components/meraki_ha/core/parsers/wireless.py                              122     34    72%
+custom_components/meraki_ha/core/repositories/__init__.py                           0      0   100%
+custom_components/meraki_ha/core/repositories/camera_repository.py                 80     64    20%
+custom_components/meraki_ha/core/repository.py                                     45     31    31%
+custom_components/meraki_ha/core/utils/__init__.py                                  2      0   100%
+custom_components/meraki_ha/core/utils/_data.py                                     6      0   100%
+custom_components/meraki_ha/core/utils/_mappers.py                                 30     21    30%
+custom_components/meraki_ha/core/utils/api/__init__.py                              3      0   100%
+custom_components/meraki_ha/core/utils/api/decorator.py                            37      2    95%
+custom_components/meraki_ha/core/utils/api/errors.py                               13      0   100%
+custom_components/meraki_ha/core/utils/api/formatters.py                           29      1    97%
+custom_components/meraki_ha/core/utils/api/handlers.py                             74      6    92%
+custom_components/meraki_ha/core/utils/api_utils.py                                 2      0   100%
+custom_components/meraki_ha/core/utils/data.py                                     13      1    92%
+custom_components/meraki_ha/core/utils/device_types.py                              4      0   100%
+custom_components/meraki_ha/core/utils/entity_id_utils.py                           4      0   100%
+custom_components/meraki_ha/core/utils/icon_utils.py                                4      0   100%
+custom_components/meraki_ha/core/utils/naming_utils.py                             47      3    94%
+custom_components/meraki_ha/core/utils/network_utils.py                            50     31    38%
+custom_components/meraki_ha/core/utils/validation_utils.py                         18      0   100%
+custom_components/meraki_ha/descriptions.py                                        23      0   100%
+custom_components/meraki_ha/device_trigger.py                                      45      4    91%
+custom_components/meraki_ha/diagnostics.py                                          9      3    67%
+custom_components/meraki_ha/discovery/__init__.py                                   0      0   100%
+custom_components/meraki_ha/discovery/entities.py                                  48      9    81%
+custom_components/meraki_ha/discovery/handlers/__init__.py                          0      0   100%
+custom_components/meraki_ha/discovery/handlers/base.py                             22      4    82%
+custom_components/meraki_ha/discovery/handlers/network.py                         135     41    70%
+custom_components/meraki_ha/discovery/handlers/switch.py                           43      8    81%
+custom_components/meraki_ha/discovery/handlers/universal.py                        93     12    87%
+custom_components/meraki_ha/discovery/handlers/wireless.py                         76     22    71%
+custom_components/meraki_ha/discovery/providers/__init__.py                         8      0   100%
+custom_components/meraki_ha/discovery/providers/appliance.py                       48     31    35%
+custom_components/meraki_ha/discovery/providers/camera.py                          49     31    37%
+custom_components/meraki_ha/discovery/providers/device.py                          24      4    83%
+custom_components/meraki_ha/discovery/providers/mt_sensor.py                       16      4    75%
+custom_components/meraki_ha/discovery/providers/switch.py                          32      5    84%
+custom_components/meraki_ha/discovery/providers/uplink.py                          82     14    83%
+custom_components/meraki_ha/discovery/providers/wireless.py                        28      4    86%
+custom_components/meraki_ha/discovery/service.py                                   94     21    78%
+custom_components/meraki_ha/entity.py                                              93      7    92%
+custom_components/meraki_ha/event/__init__.py                                      29     17    41%
+custom_components/meraki_ha/event/device/camera_motion.py                          53      6    89%
+custom_components/meraki_ha/event/device/mt_button.py                              57      9    84%
+custom_components/meraki_ha/helpers/__init__.py                                     0      0   100%
+custom_components/meraki_ha/helpers/device_info_helpers.py                         63      6    90%
+custom_components/meraki_ha/helpers/flow_utils.py                                  51      1    98%
+custom_components/meraki_ha/helpers/migrations.py                                  62     38    39%
+custom_components/meraki_ha/helpers/schema.py                                      42     24    43%
+custom_components/meraki_ha/helpers/serialization.py                               15      0   100%
+custom_components/meraki_ha/helpers/ssid_status_calculator.py                      84     19    77%
+custom_components/meraki_ha/hubs/__init__.py                                        0      0   100%
+custom_components/meraki_ha/hubs/network.py                                        28      5    82%
+custom_components/meraki_ha/hubs/organization.py                                   18      1    94%
+custom_components/meraki_ha/media/__init__.py                                       0      0   100%
+custom_components/meraki_ha/meraki_select/__init__.py                              23      3    87%
+custom_components/meraki_ha/meraki_select/meraki_content_filtering.py              68      6    91%
+custom_components/meraki_ha/meraki_select/rf_profile.py                            76      4    95%
+custom_components/meraki_ha/meraki_select/vpn.py                                   57      4    93%
+custom_components/meraki_ha/number/__init__.py                                     22      5    77%
+custom_components/meraki_ha/number/setup_helpers.py                                 8      0   100%
+custom_components/meraki_ha/number/uplink_bandwidth.py                             50      1    98%
+custom_components/meraki_ha/platforms/__init__.py                                   0      0   100%
+custom_components/meraki_ha/platforms/sensor/__init__.py                           34     34     0%
+custom_components/meraki_ha/platforms/sensor/device/__init__.py                     4      4     0%
+custom_components/meraki_ha/platforms/sensor/device/connected_clients.py           27     27     0%
+custom_components/meraki_ha/platforms/sensor/device/uplink_status.py               29     29     0%
+custom_components/meraki_ha/platforms/sensor/network/__init__.py                    2      2     0%
+custom_components/meraki_ha/platforms/sensor/network/info.py                       25     25     0%
+custom_components/meraki_ha/reauth_flow.py                                         39      8    79%
+custom_components/meraki_ha/repairs.py                                              6      1    83%
+custom_components/meraki_ha/schemas.py                                             20      0   100%
+custom_components/meraki_ha/select.py                                               2      0   100%
+custom_components/meraki_ha/sensor/__init__.py                                     51     21    59%
+custom_components/meraki_ha/sensor/client/__init__.py                               0      0   100%
+custom_components/meraki_ha/sensor/client/status.py                                53      1    98%
+custom_components/meraki_ha/sensor/client_tracker.py                               68      2    97%
+custom_components/meraki_ha/sensor/device/__init__.py                               0      0   100%
+custom_components/meraki_ha/sensor/device/ap_client_count.py                       46     11    76%
+custom_components/meraki_ha/sensor/device/appliance_port.py                        61     61     0%
+custom_components/meraki_ha/sensor/device/appliance_uplink.py                      55     11    80%
+custom_components/meraki_ha/sensor/device/camera_analytics.py                      48     10    79%
+custom_components/meraki_ha/sensor/device/camera_audio_detection.py                65     16    75%
+custom_components/meraki_ha/sensor/device/camera_sense_status.py                   62      3    95%
+custom_components/meraki_ha/sensor/device/connected_clients.py                     56     11    80%
+custom_components/meraki_ha/sensor/device/data_usage.py                            58      5    91%
+custom_components/meraki_ha/sensor/device/device_status.py                         68      1    99%
+custom_components/meraki_ha/sensor/device/meraki_firmware_status.py                55      9    84%
+custom_components/meraki_ha/sensor/device/meraki_mt_base.py                       103     15    85%
+custom_components/meraki_ha/sensor/device/meraki_wan1_connectivity.py              54      8    85%
+custom_components/meraki_ha/sensor/device/meraki_wan2_connectivity.py              54      8    85%
+custom_components/meraki_ha/sensor/device/network_settings.py                     123      6    95%
+custom_components/meraki_ha/sensor/device/poe_usage.py                             45      4    91%
+custom_components/meraki_ha/sensor/device/radio_settings.py                         5      5     0%
+custom_components/meraki_ha/sensor/device/rtsp_url.py                              49     29    41%
+custom_components/meraki_ha/sensor/device/switch_client_count.py                   46     10    78%
+custom_components/meraki_ha/sensor/device/switch_poe.py                            72      7    90%
+custom_components/meraki_ha/sensor/device/switch_port.py                          129     18    86%
+custom_components/meraki_ha/sensor/device/wireless_radio.py                        49      9    82%
+custom_components/meraki_ha/sensor/network/__init__.py                              0      0   100%
+custom_components/meraki_ha/sensor/network/base.py                                 75     13    83%
+custom_components/meraki_ha/sensor/network/network_clients.py                      27      2    93%
+custom_components/meraki_ha/sensor/network/ssid_auth_mode.py                       13      0   100%
+custom_components/meraki_ha/sensor/network/ssid_availability.py                    14     14     0%
+custom_components/meraki_ha/sensor/network/ssid_band_selection.py                  14     14     0%
+custom_components/meraki_ha/sensor/network/ssid_client_count.py                    31      5    84%
+custom_components/meraki_ha/sensor/network/ssid_details.py                         99     22    78%
+custom_components/meraki_ha/sensor/network/ssid_encryption_mode.py                 13     13     0%
+custom_components/meraki_ha/sensor/network/ssid_ip_assignment_mode.py              13     13     0%
+custom_components/meraki_ha/sensor/network/ssid_per_client_bandwidth_limit.py      19     19     0%
+custom_components/meraki_ha/sensor/network/ssid_per_ssid_bandwidth_limit.py        18     18     0%
+custom_components/meraki_ha/sensor/network/ssid_splash_page.py                     13     13     0%
+custom_components/meraki_ha/sensor/network/ssid_visible.py                         13     13     0%
+custom_components/meraki_ha/sensor/network/ssid_wpa_encryption_mode.py             13     13     0%
+custom_components/meraki_ha/sensor/network/traffic_shaping.py                      26      2    92%
+custom_components/meraki_ha/sensor/network/vlan.py                                 31      3    90%
+custom_components/meraki_ha/sensor/network/vlans_list.py                           42      4    90%
+custom_components/meraki_ha/sensor/network_health.py                               68      4    94%
+custom_components/meraki_ha/sensor/org/__init__.py                                  0      0   100%
+custom_components/meraki_ha/sensor/org/org_clients.py                              64      6    91%
+custom_components/meraki_ha/sensor/org/org_device_type_clients.py                  46      9    80%
+custom_components/meraki_ha/sensor/ssid/__init__.py                                 0      0   100%
+custom_components/meraki_ha/sensor/uplink_performance.py                           67     15    78%
+custom_components/meraki_ha/sensor_registry.py                                     20     20     0%
+custom_components/meraki_ha/services/__init__.py                                   68      4    94%
+custom_components/meraki_ha/services/camera_service.py                             36     21    42%
+custom_components/meraki_ha/services/device_control_service.py                     12      1    92%
+custom_components/meraki_ha/services/ipsk_manager.py                              137     31    77%
+custom_components/meraki_ha/services/manager.py                                    34      9    74%
+custom_components/meraki_ha/services/network_control_service.py                    18      2    89%
+custom_components/meraki_ha/services/switch_port_service.py                        28      3    89%
+custom_components/meraki_ha/switch/__init__.py                                     56     11    80%
+custom_components/meraki_ha/switch/adult_content_filtering.py                      50      3    94%
+custom_components/meraki_ha/switch/builders/__init__.py                             0      0   100%
+custom_components/meraki_ha/switch/builders/camera.py                              31      9    71%
+custom_components/meraki_ha/switch/builders/firewall.py                            32      0   100%
+custom_components/meraki_ha/switch/builders/mt40.py                                34     11    68%
+custom_components/meraki_ha/switch/builders/ssid.py                                42      9    79%
+custom_components/meraki_ha/switch/builders/traffic_shaping.py                     32      2    94%
+custom_components/meraki_ha/switch/builders/vlan.py                                35      2    94%
+custom_components/meraki_ha/switch/builders/vpn.py                                 34      2    94%
+custom_components/meraki_ha/switch/camera_controls.py                              19      9    53%
+custom_components/meraki_ha/switch/camera_profiles.py                              22      0   100%
+custom_components/meraki_ha/switch/camera_settings.py                              57      5    91%
+custom_components/meraki_ha/switch/firewall_rule.py                                58     31    47%
+custom_components/meraki_ha/switch/meraki_client_blocker.py                        60      9    85%
+custom_components/meraki_ha/switch/meraki_device_led_switch.py                     66     38    42%
+custom_components/meraki_ha/switch/meraki_ssid_device_switch.py                   107     13    88%
+custom_components/meraki_ha/switch/mt40_power_outlet.py                            68     10    85%
+custom_components/meraki_ha/switch/setup_helpers.py                                29      1    97%
+custom_components/meraki_ha/switch/switch_port.py                                 125     15    88%
+custom_components/meraki_ha/switch/traffic_shaping.py                              45      8    82%
+custom_components/meraki_ha/switch/vlan_dhcp.py                                    71     36    49%
+custom_components/meraki_ha/switch/vpn.py                                          46      4    91%
+custom_components/meraki_ha/text/__init__.py                                       30      5    83%
+custom_components/meraki_ha/text/meraki_ssid_name.py                               74     12    84%
+custom_components/meraki_ha/types.py                                                5      0   100%
+custom_components/meraki_ha/webhook.py                                            130     34    74%
+---------------------------------------------------------------------------------------------------
+TOTAL                                                                           10956   2518    77%
+
+=========================== short test summary info ============================
+ERROR tests/sensor/device/test_appliance_port.py
+================== 422 passed, 6 warnings, 1 error in 27.35s ===================

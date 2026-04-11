@@ -1,8 +1,19 @@
 #!/bin/bash
 set -e
 
+echo "Installing uv..."
+pip install uv
+
 echo "Installing dependencies..."
-pip install -r requirements_dev.txt -r requirements_test.txt
+grep -vE "aiodns|pycares" requirements_dev.txt > requirements_dev_no_aiodns.txt
+uv pip install --system --prerelease=allow -r requirements_dev_no_aiodns.txt
+rm requirements_dev_no_aiodns.txt
+
+# Force reinstall aiodns and pycares to match Python 3.13 compatibility requirements
+# even if Home Assistant pins older versions.
+echo "Force reinstalling aiodns and pycares..."
+uv pip uninstall --system pycares aiodns
+uv pip install --system --no-cache-dir aiodns==3.6.1 pycares==4.11.0
 
 export PYTHONPATH=$PYTHONPATH:.
 echo "PYTHONPATH: $PYTHONPATH"
@@ -20,6 +31,15 @@ echo "Running bandit..."
 bandit -r custom_components/meraki_ha/ -c .bandit.yaml
 
 echo "Running tests..."
-pytest
+python -m pytest
+
+echo "Running ruff..."
+python -m ruff check .
+
+echo "Running bandit..."
+python -m bandit -c .bandit.yaml -r .
+
+echo "Running mypy..."
+python -m mypy --ignore-missing-imports custom_components/meraki_ha/ tests/
 
 echo "All checks passed!"

@@ -3,22 +3,23 @@
 import logging
 from typing import Any
 
-from homeassistant.components.sensor import SensorEntity, SensorEntityDescription
+from homeassistant.components.sensor import SensorEntityDescription
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import callback
 from homeassistant.helpers.device_registry import DeviceInfo
-from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from ..const import DOMAIN
-from ..core.utils.naming_utils import format_device_name
-from ..meraki_data_coordinator import MerakiDataCoordinator
+from custom_components.meraki_ha.const.integration import DOMAIN
+
+from ..coordinators import MerakiMainCoordinator
+from ..core.utils.naming_utils import standardize_device_name
+from ..entity import MerakiSensor
 
 _LOGGER = logging.getLogger(__name__)
 
 CLIENT_TRACKER_DEVICE_ID = "client_tracker"
 
 
-class ClientTrackerDeviceSensor(CoordinatorEntity, SensorEntity):
+class ClientTrackerDeviceSensor(MerakiSensor):
     """A sensor representing the Client Tracker device itself."""
 
     _attr_has_entity_name = True
@@ -29,25 +30,16 @@ class ClientTrackerDeviceSensor(CoordinatorEntity, SensorEntity):
     )
 
     def __init__(
-        self, coordinator: MerakiDataCoordinator, config_entry: ConfigEntry
+        self, coordinator: MerakiMainCoordinator, config_entry: ConfigEntry
     ) -> None:
         """Initialize the sensor."""
         super().__init__(coordinator)
         self._config_entry = config_entry
         self._attr_unique_id = f"{DOMAIN}_{CLIENT_TRACKER_DEVICE_ID}"
 
-        tracker_device_data = {
-            "name": "Client Tracker",
-            "productType": "tracker",
-        }
-        formatted_name = format_device_name(
-            device=tracker_device_data,
-            config=self._config_entry.options,
-        )
-
         self._attr_device_info = DeviceInfo(
             identifiers={(DOMAIN, CLIENT_TRACKER_DEVICE_ID)},
-            name=formatted_name,
+            name=standardize_device_name("Client Tracker"),
             manufacturer="Cisco Meraki",
             model="Client Tracker",
         )
@@ -61,13 +53,17 @@ class ClientTrackerDeviceSensor(CoordinatorEntity, SensorEntity):
 
     def _update_state(self) -> None:
         """Update the state of the sensor."""
-        if self.coordinator.data and self.coordinator.data.get("clients"):
-            self._attr_native_value = len(self.coordinator.data["clients"])
+        if not self.coordinator.data:
+            self._attr_native_value = 0
+            return
+        clients = self.coordinator.data.get("clients")
+        if isinstance(clients, list):
+            self._attr_native_value = len(clients)
         else:
             self._attr_native_value = 0
 
 
-class MerakiClientSensor(CoordinatorEntity, SensorEntity):
+class MerakiClientSensor(MerakiSensor):
     """Representation of a Meraki client as a sensor."""
 
     _attr_has_entity_name = True
@@ -75,7 +71,7 @@ class MerakiClientSensor(CoordinatorEntity, SensorEntity):
 
     def __init__(
         self,
-        coordinator: MerakiDataCoordinator,
+        coordinator: MerakiMainCoordinator,
         config_entry: ConfigEntry,
         client_data: dict[str, Any],
     ) -> None:
@@ -104,8 +100,16 @@ class MerakiClientSensor(CoordinatorEntity, SensorEntity):
         """Update the state of the sensor."""
         is_online = False
         client_info = {}
-        if self.coordinator.data and self.coordinator.data.get("clients"):
-            for client in self.coordinator.data["clients"]:
+        if not self.coordinator.data:
+            self._attr_native_value = "offline"
+            self._attr_extra_state_attributes = {}
+            self._attr_icon = "mdi:lan-disconnect"
+            return
+        clients = self.coordinator.data.get("clients")
+        if isinstance(clients, list):
+            for client in clients:
+                if not isinstance(client, dict):
+                    continue
                 if client.get("mac") == self._client_mac:
                     is_online = True
                     client_info = client
