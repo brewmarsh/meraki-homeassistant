@@ -18,6 +18,18 @@ uv pip install --system --no-cache-dir aiodns==3.6.1 pycares==4.11.0
 export PYTHONPATH=$PYTHONPATH:.
 echo "PYTHONPATH: $PYTHONPATH"
 
+echo "Running ruff check..."
+ruff check --fix .
+
+echo "Running ruff format..."
+ruff format .
+
+echo "Running mypy..."
+mypy --ignore-missing-imports custom_components/meraki_ha/ tests/
+
+echo "Running bandit..."
+bandit -r custom_components/meraki_ha/ -c .bandit.yaml
+
 echo "Running tests..."
 python -m pytest
 
