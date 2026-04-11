@@ -57,11 +57,6 @@ jobs:
           fi
           echo "All runner dependencies (Docker, Node.js, Python 3) are present."
 
-      - name: HACS Action
-        uses: hacs/action@main
-        with:
-          category: integration
-
       - name: Setup Node.js
         uses: actions/setup-node@v6
         with:
