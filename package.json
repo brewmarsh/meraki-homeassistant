@@ -1,6 +1,6 @@
 {
   "name": "meraki-homeassistant",
-  "version": "2.5.2-gamma.3",
+  "version": "2.5.2-gamma.4",
   "description": "Meraki Home Assistant Integration",
   "scripts": {
     "test:ui": "playwright test",

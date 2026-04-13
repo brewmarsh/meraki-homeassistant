@@ -53,5 +53,5 @@
     "urllib3>=1.26.5",
     "webrtc-models==0.3.0"
   ],
-  "version": "2.5.2-gamma.3"
+  "version": "2.5.2-gamma.4"
 }
