@@ -1,10 +1,17 @@
 {
   "domain": "meraki_ha",
   "name": "Cisco Meraki",
-  "after_dependencies": ["webrtc", "frontend"],
-  "codeowners": ["@brewmarsh"],
+  "after_dependencies": [
+    "webrtc",
+    "frontend"
+  ],
+  "codeowners": [
+    "@brewmarsh"
+  ],
   "config_flow": true,
-  "dependencies": ["http"],
+  "dependencies": [
+    "http"
+  ],
   "dhcp": [
     {
       "hostname": "meraki*",
@@ -24,7 +31,9 @@
   "integration_type": "hub",
   "iot_class": "cloud_polling",
   "issue_tracker": "https://github.com/brewmarsh/meraki-homeassistant/issues",
-  "loggers": ["meraki_ha"],
+  "loggers": [
+    "meraki_ha"
+  ],
   "quality_scale": "platinum",
   "requirements": [
     "aiodns>=4.0.0",
@@ -44,5 +53,5 @@
     "urllib3>=1.26.5",
     "webrtc-models==0.3.0"
   ],
-  "version": "2.5.1"
+  "version": "2.5.1-gamma.2"
 }
