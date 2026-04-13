@@ -1,5 +1,11 @@
 # Changelog
 
+## [2.5.2] - 2026-04-08
+
+### Fixed
+
+- Downgraded `cryptography` requirement to `>=46.0.5` to resolve a fatal installation crash caused by an unsatisfiable dependency conflict with Home Assistant Core.
+
 ## [2.5.1] - 2026-04-08
 
 ### Fixed

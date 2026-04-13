@@ -34,6 +34,33 @@ test('Guest Access Card UI Validation', async ({ page }) => {
   // Navigate to the dashboard.
   await page.goto('/');
 
+  // Action 2: Implement Login Flow if redirected to the login page
+  if (page.url().includes('/auth/authorize')) {
+    console.log('Redirected to login page. Attempting authentication...');
+
+    // Fill username
+    const username = process.env.HA_USERNAME || 'admin';
+    await page.fill('input[name="username"]', username);
+
+    // Some HA versions have a "Next" button, others show password immediately
+    const nextButton = page.locator('button:has-text("Next")');
+    if (await nextButton.isVisible()) {
+      await nextButton.click();
+    }
+
+    // Fill password
+    const password = process.env.HA_PASSWORD || 'password';
+    await page.fill('input[name="password"]', password);
+
+    // Click login button
+    await page.click('button:has-text("Log in")');
+
+    // Wait for navigation back to the app
+    await page.waitForURL((url) => !url.href.includes('/auth/authorize'), {
+      timeout: 30000,
+    });
+  }
+
   // Wait for the Home Assistant main interface to load.
   // We look for the main app-drawer-layout or similar top-level element.
   await page.waitForSelector('home-assistant', { timeout: 30000 });
