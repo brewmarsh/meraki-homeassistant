@@ -1,5 +1,11 @@
 # Changelog
 
+## [2.3.0-beta.3630] - 2026-04-08
+
+### Fixed
+
+- Downgraded `PyJWT` requirement to `2.10.1` to resolve a fatal installation crash caused by an unsatisfiable dependency conflict with Home Assistant Core.
+
 ## [2.3.0-beta.3627] - 2026-04-08
 
 ### Security
