@@ -5,13 +5,12 @@ from __future__ import annotations
 import logging
 from typing import Any
 
+from custom_components.meraki_ha.const.integration import DOMAIN
 from homeassistant.components.sensor import SensorEntity, SensorEntityDescription
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import EntityCategory, UnitOfDataRate
 from homeassistant.core import callback
 from homeassistant.helpers.device_registry import DeviceInfo
-
-from custom_components.meraki_ha.const.integration import DOMAIN
 
 from ...coordinators import MerakiMainCoordinator
 from ...entity import MerakiEntity
@@ -81,6 +80,13 @@ class MerakiSSIDDetailSensor(MerakiEntity, SensorEntity):
 
     def _extract_ssid_data(self, data: dict[str, Any]) -> dict[str, Any]:
         """Extract SSID data from coordinator data."""
+        # Use the optimized coordinator helper
+        if hasattr(self.coordinator, "get_ssid"):
+            new_data = self.coordinator.get_ssid(self._network_id, self._ssid_number)
+            if new_data:
+                return new_data
+
+        # Fallback: Look in wireless_settings (preferred) or flat ssids list
         if not (wireless := data.get("wireless_settings")):
             return self._ssid_data
 

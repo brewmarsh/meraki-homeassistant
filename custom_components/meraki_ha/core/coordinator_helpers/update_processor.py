@@ -191,6 +191,8 @@ class UpdateProcessor:
             "networks": list(networks_by_id.values()),
             "devices_by_serial": devices_by_serial,
             "networks_by_id": networks_by_id,
+            "ssids": data.get("ssids", []),
+            "wireless_settings": data.get("wireless_settings", {}),
             "ssids_by_network_and_number": ssids_by_network_and_number,
             "clients": data.get("clients", []),
             "clients_by_serial": data.get("clients_by_serial", {}),

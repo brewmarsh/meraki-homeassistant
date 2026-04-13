@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import logging
-from dataclasses import asdict
 from typing import TYPE_CHECKING, Any, cast
 
 from homeassistant.components.sensor import SensorEntity, SensorEntityDescription
@@ -14,7 +13,6 @@ from homeassistant.helpers.typing import StateType
 
 from ...coordinators import MerakiMainCoordinator
 from ...entity import MerakiEntity
-from ...helpers.device_info_helpers import resolve_device_info
 
 if TYPE_CHECKING:
     from ...core.models.device import MerakiDevice
@@ -86,10 +84,10 @@ class MerakiDeviceIPSensor(MerakiDeviceUplinkBaseSensor):
 
         # Clean up interface name for display (e.g., lanIp -> LAN, publicIp -> Public)
         display_interface = interface.replace("Ip", "").replace("IP", "")
-        if not display_interface: # for "ip" or "IP" interfaces
-             display_interface = "IP"
+        if not display_interface:  # for "ip" or "IP" interfaces
+            display_interface = "IP"
         else:
-             display_interface = display_interface.upper()
+            display_interface = display_interface.upper()
 
         self.entity_description = SensorEntityDescription(
             key=f"{interface}_ip",
@@ -103,38 +101,55 @@ class MerakiDeviceIPSensor(MerakiDeviceUplinkBaseSensor):
     def _update_state(self) -> None:
         """Update the sensor state."""
         device = self.coordinator.get_device(self._device_serial)
+        if not device:
+            self._attr_native_value = None
+            return
+
         ip_value: str | None = None
 
-        if self._interface == "lanIp" and device:
+        if self._interface == "lanIp":
             if device.model and device.model.startswith("MT"):
                 self._attr_native_value = "N/A (Bluetooth)"
                 self._attr_extra_state_attributes = {}
                 return
-            lan_ip = device.lan_ip
+
+            ip_value = device.lan_ip
+            # Fallback to uplinks if lan_ip is None
+            if ip_value is None and device.uplinks:
+                for uplink in device.uplinks:
+                    if uplink.get("interface") in ["lan", "wan1", "wan2"]:
+                        ip_value = uplink.get("ip")
+                        if ip_value:
+                            break
+
             if (
-                (not lan_ip)
+                (not ip_value)
                 and device.model
                 and (device.model.startswith("MX") or device.model.startswith("Z3"))
             ):
                 self._attr_native_value = "Multiple (VLANs)"
                 self._attr_extra_state_attributes = {}
                 return
-            ip_value = lan_ip
-        elif self._interface == "publicIp" and device:
+
+        elif self._interface == "publicIp":
             if device.model and device.model.startswith("MT"):
                 self._attr_native_value = "N/A (Bluetooth)"
                 self._attr_extra_state_attributes = {}
                 return
             ip_value = device.public_ip
+            # Fallback to uplinks if public_ip is None
+            if ip_value is None and device.uplinks:
+                for uplink in device.uplinks:
+                    if uplink.get("publicIp"):
+                        ip_value = uplink.get("publicIp")
+                        break
         else:
             uplink_data = self._get_uplink_data()
             if uplink_data:
                 ip_value = uplink_data.get("ip")
 
         self._attr_native_value = self._truncate_value(ip_value)
-        self._attr_extra_state_attributes = {
-            "full_ip_address": ip_value or "Unknown"
-        }
+        self._attr_extra_state_attributes = {"full_ip_address": ip_value or "Unknown"}
 
     @callback
     def _handle_coordinator_update(self) -> None:
@@ -224,9 +239,7 @@ class MerakiDeviceDNSSensor(MerakiDeviceUplinkBaseSensor):
                 dns_value = dns_servers
 
         self._attr_native_value = cast(StateType, self._truncate_value(dns_value))
-        self._attr_extra_state_attributes = {
-            "full_dns_servers": dns_value or "Unknown"
-        }
+        self._attr_extra_state_attributes = {"full_dns_servers": dns_value or "Unknown"}
 
     @callback
     def _handle_coordinator_update(self) -> None:

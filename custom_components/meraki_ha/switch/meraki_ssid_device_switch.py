@@ -81,15 +81,22 @@ class MerakiSSIDBaseSwitch(MerakiEntity, SwitchEntity):
 
     def _get_current_ssid_data(self) -> dict[str, Any] | None:
         """Retrieve the latest data for this SSID from the coordinator."""
-        if not self.coordinator.data or "ssids" not in self.coordinator.data:
+        if not self.coordinator or not self.coordinator.data:
             return None
-        for ssid in self.coordinator.data["ssids"]:
-            if not isinstance(ssid, dict):
-                continue
-            if ssid.get("networkId") == self._network_id and str(
-                ssid.get("number")
-            ) == str(self._ssid_number):
-                return ssid
+
+        # Use the optimized coordinator helper
+        if hasattr(self.coordinator, "get_ssid"):
+            return self.coordinator.get_ssid(self._network_id, self._ssid_number)
+
+        # Fallback: manually loop if helper not available or data structure is raw
+        if "ssids" in self.coordinator.data:
+            for ssid in self.coordinator.data["ssids"]:
+                if not isinstance(ssid, dict):
+                    continue
+                if ssid.get("networkId") == self._network_id and str(
+                    ssid.get("number")
+                ) == str(self._ssid_number):
+                    return ssid
         return None
 
     @property

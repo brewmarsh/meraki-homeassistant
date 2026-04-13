@@ -57,10 +57,14 @@ class MerakiSSIDBaseSensor(MerakiEntity, SensorEntity):
 
     def _get_current_ssid_data(self) -> dict[str, Any] | None:
         """Retrieve the latest data for this SSID from the coordinator."""
-        if not self.coordinator.data:
+        if not self.coordinator or not self.coordinator.data:
             return None
 
-        # Look in wireless_settings (preferred) or flat ssids list
+        # Use the optimized coordinator helper
+        if hasattr(self.coordinator, "get_ssid"):
+            return self.coordinator.get_ssid(self._network_id, self._ssid_number)
+
+        # Fallback: Look in wireless_settings (preferred) or flat ssids list
         if "wireless_settings" in self.coordinator.data:
             return self._find_ssid_in_wireless_settings()
 

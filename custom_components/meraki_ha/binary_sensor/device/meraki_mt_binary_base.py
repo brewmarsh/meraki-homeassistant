@@ -7,13 +7,11 @@ from homeassistant.components.binary_sensor import (
     BinarySensorEntityDescription,
 )
 from homeassistant.core import callback
-from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.typing import UNDEFINED
 
 from ...coordinators import MerakiSensorCoordinator as MerakiDataCoordinator
 from ...core.models.device import MerakiDevice
 from ...entity import MerakiBinarySensor
-from ...helpers.device_info_helpers import resolve_device_info
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -35,12 +33,20 @@ class MerakiMtBinarySensor(MerakiBinarySensor):
         if self.entity_description.name is not UNDEFINED:
             self._attr_name = cast(str | None, self.entity_description.name)
 
-
     @callback
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
         if self.coordinator.data is None:
             return
+
+        # Use the optimized coordinator helper
+        if hasattr(self.coordinator, "get_device"):
+            if device := self.coordinator.get_device(self._device.serial):
+                self._device = device
+                self.async_write_ha_state()
+                return
+
+        # Fallback to manual loop
         for device in self.coordinator.data.get("devices", []):
             if device.serial == self._device.serial:
                 self._device = device
@@ -65,30 +71,37 @@ class MerakiMtBinarySensor(MerakiBinarySensor):
     @property
     def is_on(self) -> bool | None:
         """Return true if the binary sensor is on."""
+        # 1. Try to extract from raw readings (latest data)
         metric_data = self._get_metric_data()
-        if not metric_data:
-            return None
+        if metric_data:
+            # Map metric to the key holding its value in the Meraki API response
+            key_map = {
+                "water": "present",
+                "door": "open",
+            }
+            value_key = key_map.get(self.entity_description.key)
+            if value_key:
+                val = metric_data.get(value_key)
+                if isinstance(val, bool):
+                    last_reported = metric_data.get("last_reported")
+                    self._attr_extra_state_attributes = {
+                        "last_reported": str(last_reported)
+                        if last_reported is not None
+                        else None,
+                    }
+                    return val
 
-        # Map metric to the key holding its value
-        key_map = {
-            "water": "present",
-            "door": "open",
+        # 2. Fallback to dataclass attributes (processed data)
+        # Map HA key to dataclass attribute name
+        attr_map = {
+            "door": "door_open",
+            "water": "water_present",
         }
-        value_key = key_map.get(self.entity_description.key)
+        attr_name = attr_map.get(self.entity_description.key)
+        if attr_name and hasattr(self._device, attr_name):
+            return getattr(self._device, attr_name)
 
-        if not value_key:
-            return None
-
-        val = metric_data.get(value_key)
-        if not isinstance(val, bool):
-            return None
-
-        last_reported = metric_data.get("last_reported")
-        self._attr_extra_state_attributes = {
-            "last_reported": str(last_reported) if last_reported is not None else None,
-        }
-
-        return val
+        return None
 
     @property
     def available(self) -> bool:

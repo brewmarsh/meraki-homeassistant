@@ -19,6 +19,7 @@ from homeassistant.components.frontend import add_extra_js_url
 from homeassistant.components.http import StaticPathConfig
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
+from homeassistant.exceptions import ConfigEntryAuthFailed
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers.typing import ConfigType
 
@@ -87,12 +88,25 @@ async def async_migrate_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Migrate old entry."""
     _LOGGER.debug("Migrating from version %s", entry.version)
 
+    new_data = {**entry.data}
+
     if entry.version == 1:
-        new_data = {**entry.data}
         if "meraki_api_key" in new_data:
             new_data["api_key"] = new_data.pop("meraki_api_key")
+        entry.version = 2
 
-        hass.config_entries.async_update_entry(entry, data=new_data, version=2)
+    if entry.version == 2:
+        # Migration: org_id -> organization_id
+        if "org_id" in new_data:
+            new_data[CONF_MERAKI_ORG_ID] = new_data.pop("org_id")
+
+        # Ensure we also use the correct constant for api_key if it was something else
+        if "meraki_api_key" in new_data:
+            new_data[CONF_MERAKI_API_KEY] = new_data.pop("meraki_api_key")
+
+        entry.version = 3
+
+    hass.config_entries.async_update_entry(entry, data=new_data)
 
     _LOGGER.info("Migration to version %s successful", entry.version)
 
@@ -132,11 +146,22 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     await async_migrate_entities(hass, entry.entry_id)
     await async_cleanup_ghost_devices(hass, entry.entry_id)
 
+    # Action 2: Safe extraction with legacy fallbacks
+    api_key = entry.data.get(CONF_MERAKI_API_KEY) or entry.data.get("meraki_api_key")
+    org_id = entry.data.get(CONF_MERAKI_ORG_ID) or entry.data.get("org_id")
+
+    if not api_key:
+        _LOGGER.error("Meraki API Key is missing. Please re-authenticate.")
+        raise ConfigEntryAuthFailed("Missing Meraki API Key")
+    if not org_id:
+        _LOGGER.error("Meraki Organization ID is missing. Please re-authenticate.")
+        raise ConfigEntryAuthFailed("Missing Meraki Organization ID")
+
     # Initialize shared API client
     api_client = create_api_client(
         hass=hass,
-        api_key=entry.data[CONF_MERAKI_API_KEY],
-        org_id=entry.data[CONF_MERAKI_ORG_ID],
+        api_key=api_key,
+        org_id=org_id,
     )
     await api_client.async_setup()
 
@@ -218,7 +243,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     repo = MerakiRepository(api_client)
     device_control_service = DeviceControlService(repo)
     switch_port_service = SwitchPortService(repo)
-    camera_repo = CameraRepository(api_client, entry.data[CONF_MERAKI_ORG_ID])
+    camera_repo = CameraRepository(api_client, org_id)
     camera_service = CameraService(camera_repo)
     network_control_service = NetworkControlService(api_client, main_coordinator)
 

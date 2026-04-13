@@ -37,7 +37,11 @@ class MerakiSSIDClientCountSensor(MerakiSSIDBaseSensor):
         ssid_data = self._get_current_ssid_data()
         if ssid_data and "clientCount" in ssid_data:
             self._attr_native_value = ssid_data["clientCount"]
-        elif self.coordinator.data and "clients" in self.coordinator.data:
+        elif (
+            self.coordinator
+            and self.coordinator.data
+            and "clients" in self.coordinator.data
+        ):
             # Fallback to manual calculation if clientCount not in ssid_data
             all_clients = self.coordinator.data.get("clients", [])
             if not isinstance(all_clients, list):

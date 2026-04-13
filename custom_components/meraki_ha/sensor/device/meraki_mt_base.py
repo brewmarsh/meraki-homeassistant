@@ -10,13 +10,11 @@ from homeassistant.components.sensor import (
     SensorEntityDescription,
 )
 from homeassistant.core import callback
-from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.typing import UNDEFINED
 
 from ...coordinators import MerakiSensorCoordinator
 from ...core.models.device import MerakiDevice
 from ...entity import MerakiSensor
-from ...helpers.device_info_helpers import resolve_device_info
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -63,7 +61,6 @@ class MerakiMtSensor(MerakiSensor, RestoreSensor):
                     self._attr_native_value = value
                 elif isinstance(value, int):
                     self._attr_native_value = float(value)
-
 
     def _get_readings_list(self) -> list[dict[str, Any]] | None:
         if not self.coordinator.data or not self._serial:
@@ -122,29 +119,37 @@ class MerakiMtSensor(MerakiSensor, RestoreSensor):
             return
 
         target_key = self.entity_description.key
+
+        # Convert target_key from camelCase to snake_case if needed
+        import re
+
+        snake_target = re.sub(r"(?<!^)(?=[A-Z])", "_", target_key).lower()
+
         fallback_keys = [
             target_key,
+            snake_target,
             target_key.replace("_", ""),
-            "energyApparent",
             "energy_kWh",
-            "doorOpen",
+            "energy",
             "door_open",
-            "ambientNoise",
             "ambient_noise",
+            "real_power",
+            "power_factor",
         ]
 
-        device_dict = (
-            self._device if isinstance(self._device, dict) else vars(self._device)
-        )
         for fk in fallback_keys:
-            val = (
-                self._maybe_get_value(device_dict.get(fk))
-                if isinstance(self._device, dict)
-                else self._maybe_get_value(getattr(self._device, fk, UNDEFINED))
-            )
+            # Try attribute access first (for dataclasses)
+            val = self._maybe_get_value(getattr(self._device, fk, UNDEFINED))
             if val is not None:
                 self._attr_native_value = val
                 return
+
+            # Fallback to dict access (for backward compatibility or nested data)
+            if isinstance(self._device, dict):
+                val = self._maybe_get_value(self._device.get(fk, UNDEFINED))
+                if val is not None:
+                    self._attr_native_value = val
+                    return
 
     @callback
     def _handle_coordinator_update(self) -> None:

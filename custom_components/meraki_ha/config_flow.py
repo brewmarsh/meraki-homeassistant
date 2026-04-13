@@ -5,11 +5,9 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-import voluptuous as vol
+from homeassistant import config_entries
 from homeassistant.core import callback
 from homeassistant.data_entry_flow import FlowResult
-
-from homeassistant import config_entries
 
 from .const.config import (
     CONF_MERAKI_API_KEY,
@@ -26,7 +24,7 @@ class MerakiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
     async_step_reauth = async_step_reauth
 
-    VERSION = 2
+    VERSION = 3
 
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
