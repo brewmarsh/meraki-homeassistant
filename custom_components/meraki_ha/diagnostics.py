@@ -2,14 +2,30 @@
 
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, Final
 
+from custom_components.meraki_ha.const.integration import DOMAIN
+from homeassistant.components.diagnostics import async_redact_data
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 
-from custom_components.meraki_ha.const.integration import DOMAIN
+from .coordinators import MerakiMainCoordinator
 
-from ..coordinators import MerakiMainCoordinator
+TO_REDACT: Final = {
+    "api_key",
+    "serial",
+    "serial_number",
+    "mac",
+    "macaddress",
+    "mac_address",
+    "password",
+    "latitude",
+    "longitude",
+    "organizationId",
+    "organization_id",
+    "networkId",
+    "network_id",
+}
 
 
 async def async_get_config_entry_diagnostics(
@@ -32,7 +48,10 @@ async def async_get_config_entry_diagnostics(
     coordinator: MerakiMainCoordinator = hass.data[DOMAIN][entry.entry_id][
         "coordinator"
     ]
-    return {
-        "config_entry": entry.as_dict(),
-        "coordinator_data": coordinator.data,
-    }
+    return async_redact_data(
+        {
+            "config_entry": entry.as_dict(),
+            "coordinator_data": coordinator.data,
+        },
+        TO_REDACT,
+    )
