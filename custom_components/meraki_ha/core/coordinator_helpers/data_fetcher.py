@@ -181,6 +181,18 @@ class DataFetchManager:
 
         networks_raw = batch_data.get("networks") or []
 
+        # Filter networks if enabled_networks is specified
+        if self.client.enabled_networks:
+            networks_raw = [
+                n
+                for n in networks_raw
+                if isinstance(n, dict)
+                and (
+                    n.get("id") in self.client.enabled_networks
+                    or n.get("name") in self.client.enabled_networks
+                )
+            ]
+
         # Extract org_id from the batch data to ensure it's propagated to models
         # This is critical for discovery handlers that filter by organization_id.
         org_id = None
@@ -208,6 +220,23 @@ class DataFetchManager:
         from ..models.device import MerakiDevice
 
         devices_raw = batch_data.get("devices") or []
+
+        # Filter devices based on enabled networks if specified
+        if self.client.enabled_networks:
+            # We need the IDs of enabled networks to filter devices
+            enabled_network_ids = set()
+            for n in data.get("networks", []):
+                if hasattr(n, "id"):
+                    enabled_network_ids.add(n.id)
+                elif isinstance(n, dict):
+                    enabled_network_ids.add(n.get("id"))
+
+            devices_raw = [
+                d
+                for d in devices_raw
+                if isinstance(d, dict) and d.get("networkId") in enabled_network_ids
+            ]
+
         data["devices"] = [
             MerakiDevice.from_dict(d) if isinstance(d, dict) else d for d in devices_raw
         ]
@@ -284,6 +313,10 @@ class DataFetchManager:
         """Perform a lightweight orchestrated data fetch (Fast Poll)."""
         batch_data = await self._async_fetch_batch_data(fast_only=True)
         data = self._distribute_batch_data(batch_data)
+        
+        # Include client data in fast poll for real-time tracking
+        await self._fetch_client_data(data)
+        
         self._process_data(data, current_data)
         return data
 

@@ -3,11 +3,12 @@
 import logging
 from typing import Any
 
-from custom_components.meraki_ha.const.integration import DOMAIN
 from homeassistant.components.switch import SwitchEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import callback
 from homeassistant.helpers.device_registry import DeviceInfo
+
+from custom_components.meraki_ha.const.integration import DOMAIN
 
 from ..coordinators import MerakiSwitchCoordinator
 from ..core.api import MerakiApiClientProtocol
@@ -158,21 +159,39 @@ class MerakiSSIDBaseSwitch(MerakiEntity, SwitchEntity):
             return
 
         # Optimistically update the UI for immediate feedback
+        old_value = self._attr_is_on
         self._attr_is_on = value
         self.async_write_ha_state()
 
+        if self.unique_id:
+            self.coordinator.register_pending_update(self.unique_id)
+
         payload = {self._attribute_to_check: value}
 
-        self.hass.async_create_task(
-            self._meraki_client.wireless.update_network_wireless_ssid(
+        try:
+            await self._meraki_client.wireless.update_network_wireless_ssid(
                 network_id=self._network_id,
                 number=self._ssid_number,
                 **payload,
             )
-        )
-
-        if self.unique_id:
-            self.coordinator.register_pending_update(self.unique_id)
+            _LOGGER.debug(
+                "Successfully updated SSID %s %s to %s",
+                self._ssid_name,
+                self._attribute_to_check,
+                value,
+            )
+        except Exception as err:
+            _LOGGER.error(
+                "Error updating SSID %s %s: %s",
+                self._ssid_name,
+                self._attribute_to_check,
+                err,
+            )
+            # Revert optimistic update
+            self._attr_is_on = old_value
+            if self.unique_id:
+                self.coordinator.cancel_pending_update(self.unique_id)
+            self.async_write_ha_state()
 
     async def async_turn_on(self, **kwargs: Any) -> None:
         """Turn the switch on."""

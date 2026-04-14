@@ -48,13 +48,6 @@ class DeviceDiscoveryService:
     def __init__(
         self,
         main_coordinator: MerakiMainCoordinator,
-        device_coordinator: MerakiDeviceCoordinator,
-        switch_coordinator: MerakiSwitchCoordinator,
-        camera_coordinator: MerakiCameraCoordinator,
-        sensor_coordinator: MerakiSensorCoordinator,
-        wireless_coordinator: MerakiWirelessCoordinator,
-        appliance_coordinator: MerakiApplianceCoordinator,
-        client_coordinator: MerakiClientCoordinator,
         config_entry: ConfigEntry,
         meraki_client: MerakiApiClientProtocol,
         camera_service: CameraService,
@@ -63,13 +56,15 @@ class DeviceDiscoveryService:
     ) -> None:
         """Initialize the DeviceDiscoveryService."""
         self._main_coordinator = main_coordinator
-        self._device_coordinator = device_coordinator
-        self._switch_coordinator = switch_coordinator
-        self._camera_coordinator = camera_coordinator
-        self._sensor_coordinator = sensor_coordinator
-        self._wireless_coordinator = wireless_coordinator
-        self._appliance_coordinator = appliance_coordinator
-        self._client_coordinator = client_coordinator
+        
+        # All specialized references now point to the main coordinator
+        self._device_coordinator = main_coordinator
+        self._switch_coordinator = main_coordinator
+        self._camera_coordinator = main_coordinator
+        self._sensor_coordinator = main_coordinator
+        self._wireless_coordinator = main_coordinator
+        self._appliance_coordinator = main_coordinator
+        self._client_coordinator = main_coordinator
 
         self._config_entry = config_entry
         self._meraki_client = meraki_client

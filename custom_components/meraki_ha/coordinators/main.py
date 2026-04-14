@@ -3,7 +3,8 @@
 from __future__ import annotations
 
 import logging
-from datetime import datetime
+import time
+from datetime import datetime, timedelta
 from typing import TYPE_CHECKING, Any
 
 from homeassistant.helpers.update_coordinator import UpdateFailed
@@ -36,10 +37,13 @@ class MerakiMainCoordinator(MerakiBaseCoordinator[dict[str, Any]]):
         )
         self.last_successful_update: datetime | None = None
         self.last_successful_data: dict[str, Any] = {}
-        # Slow poll interval
-        from datetime import timedelta
-
-        self.update_interval = timedelta(seconds=600)
+        
+        # Tiered polling state
+        self._last_slow_poll: float = 0
+        self._slow_poll_interval: int = 600  # 10 minutes
+        
+        # Fast poll interval (30s)
+        self.update_interval = timedelta(seconds=30)
 
     async def _async_update_data(self) -> dict[str, Any]:
         """Fetch data from API endpoint, apply filters, and handle exceptions."""
@@ -48,7 +52,11 @@ class MerakiMainCoordinator(MerakiBaseCoordinator[dict[str, Any]]):
 
             # Record success and potentially reset interval
             updated = self.polling_manager.record_success()
-            self.apply_polling_update(updated)
+            # In tiered mode, we maintain our own fast poll interval
+            # unless the polling manager forces a specific backoff
+            if updated and self.polling_manager.update_interval:
+                 if self.polling_manager.update_interval > self.update_interval:
+                      self.apply_polling_update(updated)
 
             return data
         except Exception as err:
@@ -67,16 +75,27 @@ class MerakiMainCoordinator(MerakiBaseCoordinator[dict[str, Any]]):
             return data
 
     async def _execute_update_cycle(self) -> dict[str, Any]:
-        """Execute the update cycle and process data."""
-        timespan = (
-            int(self.update_interval.total_seconds()) if self.update_interval else 300
-        )
-        data = await self.data_fetch_manager.get_all_data(
-            self.last_successful_data, timespan=timespan
-        )
+        """Execute the tiered update cycle."""
+        now = time.time()
+        
+        # Determine if we should do a full slow poll
+        is_slow_poll = (now - self._last_slow_poll) >= self._slow_poll_interval
+        
+        if is_slow_poll:
+            _LOGGER.debug("Executing Meraki slow poll (full refresh)")
+            data = await self.data_fetch_manager.get_sensor_data(
+                self.last_successful_data, 
+                timespan=self._slow_poll_interval
+            )
+            self._last_slow_poll = now
+        else:
+            _LOGGER.debug("Executing Meraki fast poll (status only)")
+            data = await self.data_fetch_manager.get_device_data(
+                self.last_successful_data
+            )
 
         if not data:
-            _LOGGER.warning("API call to get_all_data returned no data.")
+            _LOGGER.warning("API call returned no data.")
             return self.last_successful_data
 
         # Explicitly propagate organization_id to all networks and devices

@@ -11,14 +11,14 @@ import asyncio
 import logging
 import os
 from collections.abc import Awaitable, Callable
-from functools import partial
 from typing import Any, cast
 
 import braintrust
-import meraki
+import meraki.aio
 from dotenv import load_dotenv
 
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
 from ...core.errors import (
     ApiClientCommunicationError,
@@ -94,17 +94,20 @@ class MerakiClient:
         api_key: str,
         org_id: str | None = None,
         base_url: str = "https://api.meraki.com/api/v1",
+        enabled_networks: list[str] | None = None,
     ) -> None:
         """Initialize the API client and compose endpoint handlers."""
         self._api_key = api_key
         self._org_id = org_id
         self._hass = hass
         self._base_url = base_url
+        self.enabled_networks = enabled_networks or []
 
-        self.dashboard: meraki.DashboardAPI | None = None
+        self.dashboard: meraki.aio.AsyncDashboardAPI | None = None
 
-        # Semaphore to limit concurrent API calls
-        self._semaphore = asyncio.Semaphore(2)
+        # Priority queue for API requests to ensure real-time updates aren't blocked
+        self._priority_queue: asyncio.PriorityQueue = asyncio.PriorityQueue()
+        self._worker_tasks: list[asyncio.Task] = []
 
         # Shared cache for preventing thundering herd
         self.api_cache = MerakiApiCache()
@@ -135,28 +138,65 @@ class MerakiClient:
     async def async_setup(self) -> None:
         """Perform asynchronous setup of the API client."""
         if self.dashboard is None:
-            self.dashboard = await self._hass.async_add_executor_job(
-                partial(
-                    meraki.DashboardAPI,
-                    api_key=self._api_key,
-                    base_url=self._base_url,
-                    output_log=False,
-                    print_console=False,
-                    suppress_logging=True,
-                    maximum_retries=3,
-                    wait_on_rate_limit=True,
-                    nginx_429_retry_wait_time=2,
-                )
+            self.dashboard = meraki.aio.AsyncDashboardAPI(
+                api_key=self._api_key,
+                base_url=self._base_url,
+                output_log=False,
+                print_console=False,
+                suppress_logging=True,
+                maximum_retries=3,
+                wait_on_rate_limit=True,
+                nginx_429_retry_wait_time=2,
+                aiohttp_session=async_get_clientsession(self._hass),
             )
+        
+        if self._worker_tasks is None or not self._worker_tasks:
+            self._worker_tasks = [
+                asyncio.create_task(self._worker_loop(i)) 
+                for i in range(5) # 5 concurrent workers
+            ]
+
+    async def _worker_loop(self, worker_id: int) -> None:
+        """Background worker loop to process API requests based on priority."""
+        _LOGGER.debug("Starting Meraki API worker %d", worker_id)
+        while True:
+            try:
+                priority, func, args, kwargs, future = await self._priority_queue.get()
+                if future.done() or future.cancelled():
+                    self._priority_queue.task_done()
+                    continue
+
+                self.request_count += 1
+                try:
+                    result = await func(*args, **kwargs)
+                    if not future.done():
+                        future.set_result(result)
+                except Exception as e:
+                    if not future.done():
+                        future.set_exception(e)
+                finally:
+                    self._priority_queue.task_done()
+
+            except asyncio.CancelledError:
+                break
+            except Exception as e:
+                _LOGGER.error("Error in Meraki API worker %d: %s", worker_id, e)
+                await asyncio.sleep(1)
 
     @braintrust.traced
-    async def run_sync(
+    async def run_async(
         self,
         func: Callable[..., Any],
         *args: Any,
         **kwargs: Any,
     ) -> Any:
-        """Run a synchronous function in a thread pool with rate limiting."""
+        """Run an asynchronous function with rate limiting and priority."""
+        # Default priority: 1 (Medium)
+        # 0: High (Webhooks, User actions)
+        # 1: Medium (Standard sensors)
+        # 2: Low (Bulk polls, Background sync)
+        priority = kwargs.pop("priority", 1)
+
         org_id = kwargs.get("organizationId") or self.organization_id
         serial = kwargs.get("serial") or kwargs.get("deviceSerial")
         if not serial and args and isinstance(args[0], str):
@@ -185,15 +225,17 @@ class MerakiClient:
             }
         )
 
-        async with self._semaphore:
-            # Strictly count actual network I/O
-            self.request_count += 1
-            try:
-                loop = asyncio.get_event_loop()
-                result = await loop.run_in_executor(
-                    None, partial(func, *args, **kwargs)
-                )
-            except meraki.APIError as e:
+        # Use priority queue instead of direct semaphore acquisition
+        future = asyncio.get_event_loop().create_future()
+        await self._priority_queue.put((priority, func, args, kwargs, future))
+        
+        try:
+            result = await future
+        except Exception as e:
+            # Capture any Meraki API specific error
+            # Note: Async SDK still uses common APIError from meraki package
+            import meraki
+            if isinstance(e, meraki.APIError):
                 braintrust.current_span().log(
                     metadata={
                         "error_message": str(e),
@@ -240,26 +282,32 @@ class MerakiClient:
                 raise ApiClientCommunicationError(
                     f"Error communicating with Meraki API: {e}"
                 ) from e
-            except Exception as e:
-                _LOGGER.warning(
-                    "An unexpected error occurred: %s. Type: %s",
-                    e,
-                    type(e).__name__,
-                )
-                if "JSON" in str(e):
-                    raise ApiClientCommunicationError(
-                        f"Invalid JSON response from Meraki API: {e}"
-                    ) from e
+            
+            # Non-Meraki error
+            _LOGGER.warning(
+                "An unexpected error occurred: %s. Type: %s",
+                e,
+                type(e).__name__,
+            )
+            if "JSON" in str(e):
                 raise ApiClientCommunicationError(
-                    f"An unexpected error occurred: {e}"
+                    f"Invalid JSON response from Meraki API: {e}"
                 ) from e
+            raise ApiClientCommunicationError(
+                f"An unexpected error occurred: {e}"
+            ) from e
 
         await asyncio.sleep(0.1)
         return result
 
     async def run_with_semaphore(self, coro: Awaitable[Any]) -> Any:
-        """Run an awaitable with the rate limiter."""
-        return await coro
+        """Run an awaitable with the rate limiter (wrapped in run_async compatible way)."""
+        # If it's already an awaitable, we wrap it in a function for run_async
+        async def _wrapper():
+            return await coro
+        
+        return await self.run_async(_wrapper, priority=2) # Bulk polls use priority 2
+
 
     async def run_with_cache(
         self, key: str, fetch_coro: Any, ttl: int | None = None
