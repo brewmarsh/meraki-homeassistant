@@ -22,8 +22,8 @@
 3. Integration setup does not block the Home Assistant event loop.
    **Plans**: 2 plans
 
-- [ ] 01-01-PLAN.md — Core Async & Multi-step Flow
-- [ ] 01-02-PLAN.md — Integration Lifecycle & Discovery Coordinator
+- [ ] .planning/phases/01-foundation-discovery/01-01-PLAN.md — Core Async & Multi-step Flow
+- [ ] .planning/phases/01-foundation-discovery/01-02-PLAN.md — Integration Lifecycle & Discovery Coordinator
       **UI hint**: yes
 
 ### Phase 2: Coordinated Tracking & Monitoring
