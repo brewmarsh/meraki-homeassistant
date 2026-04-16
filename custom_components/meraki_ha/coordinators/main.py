@@ -37,11 +37,11 @@ class MerakiMainCoordinator(MerakiBaseCoordinator[dict[str, Any]]):
         )
         self.last_successful_update: datetime | None = None
         self.last_successful_data: dict[str, Any] = {}
-        
+
         # Tiered polling state
         self._last_slow_poll: float = 0
         self._slow_poll_interval: int = 600  # 10 minutes
-        
+
         # Fast poll interval (30s)
         self.update_interval = timedelta(seconds=30)
 
@@ -55,8 +55,8 @@ class MerakiMainCoordinator(MerakiBaseCoordinator[dict[str, Any]]):
             # In tiered mode, we maintain our own fast poll interval
             # unless the polling manager forces a specific backoff
             if updated and self.polling_manager.update_interval:
-                 if self.polling_manager.update_interval > self.update_interval:
-                      self.apply_polling_update(updated)
+                if self.polling_manager.update_interval > self.update_interval:
+                    self.apply_polling_update(updated)
 
             return data
         except Exception as err:
@@ -69,23 +69,19 @@ class MerakiMainCoordinator(MerakiBaseCoordinator[dict[str, Any]]):
             if "429" in str(err):
                 raise UpdateFailed(f"Meraki API rate limit: {err}") from err
 
-            data, _ = self.update_processor.process_failure(
-                err, self.last_successful_data
-            )
-            return data
+            raise UpdateFailed(f"Error fetching Meraki data: {err}") from err
 
     async def _execute_update_cycle(self) -> dict[str, Any]:
         """Execute the tiered update cycle."""
         now = time.time()
-        
+
         # Determine if we should do a full slow poll
         is_slow_poll = (now - self._last_slow_poll) >= self._slow_poll_interval
-        
+
         if is_slow_poll:
             _LOGGER.debug("Executing Meraki slow poll (full refresh)")
             data = await self.data_fetch_manager.get_sensor_data(
-                self.last_successful_data, 
-                timespan=self._slow_poll_interval
+                self.last_successful_data, timespan=self._slow_poll_interval
             )
             self._last_slow_poll = now
         else:

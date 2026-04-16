@@ -37,7 +37,7 @@ class ApplianceSettingsMixin:
             A list of VLANs.
 
         """
-        vlans = await self._api_client.run_sync(
+        vlans = await self._api_client.run_async(
             self._api_client.dashboard.appliance.getNetworkApplianceVlans,
             networkId=network_id,
         )
@@ -67,7 +67,7 @@ class ApplianceSettingsMixin:
             The updated VLAN.
 
         """
-        vlan = await self._api_client.run_sync(
+        vlan = await self._api_client.run_async(
             self._api_client.dashboard.appliance.updateNetworkApplianceVlan,
             networkId=network_id,
             vlanId=vlan_id,
@@ -92,7 +92,7 @@ class ApplianceSettingsMixin:
             The response from the API.
 
         """
-        result = await self._api_client.run_sync(
+        result = await self._api_client.run_async(
             self._api_client.dashboard.devices.rebootDevice,
             serial=serial,
         )
@@ -122,7 +122,7 @@ class ApplianceSettingsMixin:
             The updated port.
 
         """
-        port = await self._api_client.run_sync(
+        port = await self._api_client.run_async(
             self._api_client.dashboard.appliance.updateNetworkAppliancePort,
             networkId=network_id,
             portId=port_id,
@@ -148,7 +148,7 @@ class ApplianceSettingsMixin:
             A list of ports.
 
         """
-        ports = await self._api_client.run_sync(
+        ports = await self._api_client.run_async(
             self._api_client.dashboard.appliance.getNetworkAppliancePorts,
             networkId=network_id,
         )
@@ -172,7 +172,7 @@ class ApplianceSettingsMixin:
             The settings for the network appliance.
 
         """
-        settings = await self._api_client.run_sync(
+        settings = await self._api_client.run_async(
             self._api_client.dashboard.appliance.getNetworkApplianceSettings,
             networkId=network_id,
         )

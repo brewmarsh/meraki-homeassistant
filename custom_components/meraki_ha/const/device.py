@@ -21,6 +21,7 @@ ERASE_TAGS_WARNING: Final = (
 
 # Shared Capability Definitions
 _MX_CAPS = [
+    "connectivity",
     "uplinks",
     "performance",
     "vlans",
@@ -34,6 +35,7 @@ _MX_CAPS = [
 ]
 
 _MR_CAPS = [
+    "connectivity",
     "ssids",
     "radio_utilization",
     "reboot",
@@ -44,6 +46,7 @@ _MR_CAPS = [
 ]
 
 _MS_CAPS = [
+    "connectivity",
     "switch_ports",
     "poe_usage",
     "power_supply",
@@ -53,6 +56,7 @@ _MS_CAPS = [
 ]
 
 _MV_CAPS = [
+    "connectivity",
     "camera_stream",
     "storage_status",
     "camera_analytics",
@@ -62,6 +66,7 @@ _MV_CAPS = [
 ]
 
 _GX_CAPS = [
+    "connectivity",
     "uplinks",
     "performance",
     "vlans",
@@ -74,10 +79,11 @@ _GX_CAPS = [
 
 # Strict Hardware Capability Matrix based on Meraki Datasheets
 DEVICE_CAPABILITIES: Final[dict[str, list[str]]] = {
-    "MT10": ["temperature", "humidity", "battery", "signal_strength"],
-    "MT11": ["temperature", "battery", "signal_strength"],
-    "MT12": ["water", "battery", "signal_strength"],
+    "MT10": ["connectivity", "temperature", "humidity", "battery", "signal_strength"],
+    "MT11": ["connectivity", "temperature", "battery", "signal_strength"],
+    "MT12": ["connectivity", "water", "battery", "signal_strength"],
     "MT14": [
+        "connectivity",
         "pm25",
         "tvoc",
         "temperature",
@@ -87,6 +93,7 @@ DEVICE_CAPABILITIES: Final[dict[str, list[str]]] = {
         "signal_strength",
     ],
     "MT15": [
+        "connectivity",
         "co2",
         "tvoc",
         "pm25",
@@ -99,9 +106,10 @@ DEVICE_CAPABILITIES: Final[dict[str, list[str]]] = {
         "status",
         "physical_sensors",
     ],  # Note: MT15 uses AC power/USB, typically no battery sensor
-    "MT20": ["door", "battery", "signal_strength"],
-    "MT30": ["button_press", "battery", "signal_strength"],
+    "MT20": ["connectivity", "door", "battery", "signal_strength"],
+    "MT30": ["connectivity", "button_press", "battery", "signal_strength"],
     "MT40": [
+        "connectivity",
         "power_monitor",
         "remote_switch",
         "signal_strength",
@@ -132,7 +140,7 @@ DEVICE_CAPABILITIES: Final[dict[str, list[str]]] = {
     "GX50": _GX_CAPS,
 }
 
-DEFAULT_CAPS: Final = ["reboot", "status", "physical_sensors"]
+DEFAULT_CAPS: Final = ["connectivity", "reboot", "status", "physical_sensors"]
 
 
 def get_ssid_identifier(network_id: str, ssid_number: int | str) -> str:

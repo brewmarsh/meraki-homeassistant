@@ -21,6 +21,7 @@ from custom_components.meraki_ha.const.device import (
     DEVICE_CAPABILITIES,
 )
 
+from ...binary_sensor.device.status import MerakiConnectivityBinarySensor
 from ...button.device.mt15_refresh_data import MerakiMt15RefreshDataButton
 from ...button.reboot import MerakiRebootButton
 from ...sensor.device.device_status import MerakiDeviceStatusSensor
@@ -104,6 +105,7 @@ class UniversalHandler(BaseDeviceHandler):
         "physical_sensors": PhysicalSensorProvider,
         "camera_stream": CameraStreamProvider,
         "wireless": WirelessRadioProvider,
+        "connectivity": MerakiConnectivityBinarySensor,
     }
 
     # Mapping of capabilities to their configuration option toggle
@@ -131,6 +133,7 @@ class UniversalHandler(BaseDeviceHandler):
         "camera_stream": CONF_ENABLE_CAMERA_ENTITIES,
         "status": CONF_ENABLE_DEVICE_STATUS,
         "wireless": CONF_ENABLE_DEVICE_SENSORS,
+        "connectivity": CONF_ENABLE_DEVICE_STATUS,
     }
 
     def __init__(

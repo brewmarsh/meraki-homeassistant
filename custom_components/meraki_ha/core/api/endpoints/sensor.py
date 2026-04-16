@@ -46,7 +46,7 @@ class SensorEndpoints:
 
         """
         _LOGGER.debug("Sending command '%s' to sensor %s", operation, serial)
-        return await self._client.run_sync(
+        return await self._client.run_async(
             self._client.dashboard.sensor.createDeviceSensorCommand,
             serial=serial,
             operation=operation,
@@ -78,7 +78,7 @@ class SensorEndpoints:
             serials,
             metrics,
         )
-        return await self._client.run_sync(
+        return await self._client.run_async(
             self._client.dashboard.sensor.getOrganizationSensorReadingsLatest,
             organizationId=self._client.organization_id,
             serials=serials,
@@ -121,7 +121,7 @@ class SensorEndpoints:
             "Getting latest sensor readings for organization with metrics: %s",
             ", ".join(metrics),
         )
-        return await self._client.run_sync(
+        return await self._client.run_async(
             self._client.dashboard.sensor.getOrganizationSensorReadingsLatest,
             organizationId=self._client.organization_id,
             metrics=metrics,
@@ -145,7 +145,7 @@ class SensorEndpoints:
 
         """
         _LOGGER.debug("Getting sensor relationships for device %s", serial)
-        return await self._client.run_sync(
+        return await self._client.run_async(
             self._client.dashboard.sensor.getDeviceSensorRelationships,
             serial=serial,
         )

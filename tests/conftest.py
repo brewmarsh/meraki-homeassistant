@@ -1,5 +1,8 @@
 """Global fixtures for meraki_ha integration."""
 
+from __future__ import annotations
+
+import asyncio
 import sys
 from collections.abc import Generator
 from unittest.mock import AsyncMock, MagicMock, patch
@@ -15,6 +18,22 @@ from tests.const import (
     MOCK_MX_DEVICE_INIT,
     MOCK_NETWORK_INIT,
 )
+
+if sys.platform == "win32":
+    asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+
+
+def pytest_configure(config):
+    """Enable socket globally to avoid SocketBlockedError on Windows."""
+    import pytest_socket
+
+    pytest_socket.enable_socket()
+
+
+@pytest.fixture(autouse=True)
+def socket_enabled():
+    """Enable socket for all tests."""
+    return True
 
 
 @pytest.fixture(autouse=True)

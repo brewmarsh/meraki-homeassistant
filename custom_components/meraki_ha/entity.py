@@ -6,6 +6,7 @@ import logging
 from typing import TYPE_CHECKING, Any, Generic, TypeVar
 
 from homeassistant.components.binary_sensor import BinarySensorEntity
+from homeassistant.components.device_tracker.config_entry import ScannerEntity
 from homeassistant.components.select import SelectEntity
 from homeassistant.components.sensor import SensorEntity
 from homeassistant.components.switch import SwitchEntity
@@ -169,3 +170,7 @@ class MerakiSelect(MerakiEntity[T], SelectEntity, Generic[T]):
 
 class MerakiSwitch(MerakiEntity[T], SwitchEntity, Generic[T]):
     """Base Cisco Meraki switch entity."""
+
+
+class MerakiDeviceTracker(MerakiEntity[T], ScannerEntity, Generic[T]):
+    """Base Cisco Meraki device tracker entity."""

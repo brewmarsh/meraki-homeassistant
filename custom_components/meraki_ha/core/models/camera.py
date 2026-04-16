@@ -16,6 +16,8 @@ class CameraMixin:
     rtsp_url: str | None = None
     sense_settings: dict[str, Any] | None = None
     camera_analytics: list[dict[str, Any]] = field(default_factory=list)
+    last_motion_event: dict[str, Any] | None = None
+    last_person_detected_event: dict[str, Any] | None = None
 
     def camera_to_dict(self) -> dict[str, Any]:
         """Convert camera fields to dictionary."""
@@ -24,6 +26,8 @@ class CameraMixin:
             "rtspUrl": self.rtsp_url,
             "senseSettings": self.sense_settings,
             "analytics": self.camera_analytics,
+            "lastMotionEvent": self.last_motion_event,
+            "lastPersonDetectedEvent": self.last_person_detected_event,
         }
 
     @staticmethod
@@ -34,6 +38,8 @@ class CameraMixin:
             "rtsp_url": data.get("rtspUrl"),
             "sense_settings": data.get("senseSettings"),
             "camera_analytics": data.get("analytics", []),
+            "last_motion_event": data.get("lastMotionEvent"),
+            "last_person_detected_event": data.get("lastPersonDetectedEvent"),
         }
 
 

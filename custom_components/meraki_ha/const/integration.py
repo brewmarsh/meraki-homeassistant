@@ -6,4 +6,4 @@ from typing import Final
 
 DOMAIN: Final = "meraki_ha"
 MANUFACTURER: Final = "Cisco Meraki"
-VERSION: Final = "1.0.0"
+VERSION: Final = "2.6.0"

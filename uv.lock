@@ -227,7 +227,7 @@ wheels = [
 
 [[package]]
 name = "meraki-ha"
-version = "2.3.0b1734"
+version = "2.6.0"
 source = { virtual = "." }
 dependencies = [
     { name = "baml-py" },

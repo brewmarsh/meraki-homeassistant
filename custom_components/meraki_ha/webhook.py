@@ -7,12 +7,12 @@ from typing import TYPE_CHECKING, Any
 from urllib.parse import urlparse
 
 from aiohttp import web
-from homeassistant.components import webhook
-from homeassistant.core import HomeAssistant
-from homeassistant.helpers.network import NoURLAvailableError, get_url
 
 from custom_components.meraki_ha.const.integration import DOMAIN
 from custom_components.meraki_ha.const.webhooks import EVENT_MERAKI_WEBHOOK_ALERT
+from homeassistant.components import webhook
+from homeassistant.core import HomeAssistant
+from homeassistant.helpers.network import NoURLAvailableError, get_url
 
 from .core.errors import MerakiConnectionError
 
@@ -137,6 +137,7 @@ async def async_register_webhook(
     webhook_id: str,
     secret: str,
     api_client: MerakiApiClientProtocol,
+    validator: str | None = None,
     entry: ConfigEntry | None = None,
     config_entry_id: str | None = None,
 ) -> None:
@@ -149,6 +150,7 @@ async def async_register_webhook(
         webhook_id: The ID of the webhook.
         secret: The secret for the webhook.
         api_client: The Meraki API client.
+        validator: The validator for the webhook.
         entry: The config entry.
 
     """
@@ -158,7 +160,9 @@ async def async_register_webhook(
             hass, webhook_id, entry, config_entry_id
         )
         if webhook_url and resolved_id:
-            await api_client.register_webhook(webhook_url, secret, resolved_id)
+            await api_client.register_webhook(
+                webhook_url, secret, resolved_id, validator
+            )
     except Exception:
         _LOGGER.error("Failed to register webhook", exc_info=True)
 
@@ -205,11 +209,71 @@ def _handle_ap_went_down_alert(data: dict, coordinator: Any) -> None:
             break
 
 
+def _handle_camera_motion_alert(data: dict, coordinator: Any) -> None:
+    """Handle the 'Motion detected' alert type."""
+    import time
+
+    device_serial = data.get("deviceSerial")
+    if not device_serial or not coordinator.data:
+        return
+
+    devices = coordinator.data.get("devices", [])
+    if not isinstance(devices, list):
+        return
+
+    for _i, device in enumerate(devices):
+        if not hasattr(device, "serial"):
+            continue
+        if device.serial == device_serial:
+            _LOGGER.info("Motion detected on camera %s via webhook", device_serial)
+            # Update the device object in the coordinator's data
+            if hasattr(device, "last_motion_event"):
+                device.last_motion_event = {
+                    "timestamp": time.time(),
+                    "alertData": data.get("alertData", {}),
+                }
+                coordinator.async_update_listeners()
+            break
+
+
+def _handle_camera_person_detected_alert(data: dict, coordinator: Any) -> None:
+    """Handle the 'Person detected' alert type."""
+    import time
+
+    device_serial = data.get("deviceSerial")
+    if not device_serial or not coordinator.data:
+        return
+
+    devices = coordinator.data.get("devices", [])
+    if not isinstance(devices, list):
+        return
+
+    for _i, device in enumerate(devices):
+        if not hasattr(device, "serial"):
+            continue
+        if device.serial == device_serial:
+            _LOGGER.info("Person detected on camera %s via webhook", device_serial)
+            # Update the device object in the coordinator's data
+            if hasattr(device, "last_person_detected_event"):
+                device.last_person_detected_event = {
+                    "timestamp": time.time(),
+                    "alertData": data.get("alertData", {}),
+                }
+                coordinator.async_update_listeners()
+            break
+
+
 def _handle_client_connectivity_changed_alert(data: dict, coordinator: Any) -> None:
     """Handle the 'Client connectivity changed' alert type."""
+    from .core.utils.mac import is_locally_administered_mac
+
     alert_data = data.get("alertData", {})
     client_mac = alert_data.get("mac")
     if not client_mac or not coordinator.data:
+        return
+
+    # Skip randomized MAC addresses
+    if is_locally_administered_mac(client_mac):
         return
 
     clients = coordinator.data.get("clients", [])
@@ -227,6 +291,12 @@ def _handle_client_connectivity_changed_alert(data: dict, coordinator: Any) -> N
             coordinator.data["clients"][i]["status"] = (
                 "Online" if alert_data.get("connected") else "Offline"
             )
+
+            # Add a timestamp to help with state synthesis/oscillation prevention
+            import time
+
+            coordinator.data["clients"][i]["last_webhook_update"] = time.time()
+
             coordinator.async_update_listeners()
             break
 
@@ -257,29 +327,90 @@ def _validate_webhook_payload(
         return None
 
     secret = entry_data.get("secret")
-    if not secret or data.get("sharedSecret") != secret:
+    # Alerts use 'sharedSecret', Scanning API uses 'secret'
+    payload_secret = data.get("sharedSecret") or data.get("secret")
+
+    if not secret or payload_secret != secret:
         _LOGGER.warning("Received webhook with invalid secret: %s", webhook_id)
         return None
 
     return entry_data
 
 
+def _handle_devices_seen(data: dict[str, Any], coordinator: Any) -> None:
+    """Handle Scanning API 'DevicesSeen' events."""
+    from .core.utils.mac import is_locally_administered_mac
+
+    event_data = data.get("data", {})
+    observations = event_data.get("observations", [])
+    if not observations or not coordinator.data:
+        return
+
+    clients = coordinator.data.get("clients", [])
+    if not isinstance(clients, list):
+        return
+
+    updated = False
+    for observation in observations:
+        client_mac = observation.get("clientMac")
+        if not client_mac:
+            continue
+
+        # Skip randomized MAC addresses
+        if is_locally_administered_mac(client_mac):
+            continue
+
+        for i, client in enumerate(clients):
+            if not isinstance(client, dict):
+                continue
+            if client.get("mac") == client_mac:
+                _LOGGER.debug(
+                    "Client %s seen via Scanning API webhook",
+                    client_mac,
+                )
+                # Update status and SSID if available
+                coordinator.data["clients"][i]["status"] = "Online"
+                if observation.get("ssid"):
+                    coordinator.data["clients"][i]["ssid"] = observation.get("ssid")
+
+                # Add a timestamp to help with state synthesis/oscillation prevention
+                import time
+
+                coordinator.data["clients"][i]["last_webhook_update"] = time.time()
+                updated = True
+                break
+
+    if updated:
+        coordinator.async_update_listeners()
+
+
 def _dispatch_webhook_alert(data: dict[str, Any], coordinator: Any) -> None:
     """Dispatch webhook alert to the appropriate handler."""
+    # Alerts use 'alertType', Scanning API uses 'type'
     alert_type = data.get("alertType")
+    event_type = data.get("type")
+
     if alert_type == "APs went down":
         _handle_ap_went_down_alert(data, coordinator)
+    elif alert_type == "Motion detected":
+        _handle_camera_motion_alert(data, coordinator)
+    elif alert_type == "Person detected":
+        _handle_camera_person_detected_alert(data, coordinator)
     elif alert_type == "Client connectivity changed":
         _handle_client_connectivity_changed_alert(data, coordinator)
+    elif event_type == "DevicesSeen":
+        _handle_devices_seen(data, coordinator)
     else:
-        _LOGGER.debug("Ignoring webhook alert type: %s", alert_type)
+        _LOGGER.debug(
+            "Ignoring webhook event: alertType=%s, type=%s", alert_type, event_type
+        )
 
 
 async def async_handle_webhook(
     hass: HomeAssistant,
     webhook_id: str,
     request: web.Request,
-) -> None:
+) -> web.Response | None:
     """
     Handle a webhook from the Meraki API.
 
@@ -290,13 +421,29 @@ async def async_handle_webhook(
         request: The request object.
 
     """
+    if request.method == "GET":
+        # Handle validator challenge
+        entry_data = hass.data.get(DOMAIN, {}).get(webhook_id)
+        if not entry_data:
+            return web.Response(status=404)
+
+        validator = entry_data.get("validator")
+        if not validator:
+            _LOGGER.warning("No validator found for webhook %s", webhook_id)
+            return web.Response(status=404)
+
+        return web.Response(text=validator)
+
+    if request.method != "POST":
+        return web.Response(status=405)
+
     data = await _parse_webhook_request(webhook_id, request)
     if not data:
-        return
+        return web.Response(status=400)
 
     entry_data = _validate_webhook_payload(hass, webhook_id, data)
     if not entry_data:
-        return
+        return web.Response(status=401)
 
     # Fire event for automation triggers
     hass.bus.async_fire(EVENT_MERAKI_WEBHOOK_ALERT, data)
@@ -304,6 +451,7 @@ async def async_handle_webhook(
     coordinator = entry_data.get("coordinator")
     if not coordinator:
         _LOGGER.warning("Coordinator not found for webhook: %s", webhook_id)
-        return
+        return web.Response(status=200)
 
     _dispatch_webhook_alert(data, coordinator)
+    return web.Response(status=200)

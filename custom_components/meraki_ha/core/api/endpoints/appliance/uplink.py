@@ -40,7 +40,7 @@ class ApplianceUplinkMixin:
             The uplinks settings.
 
         """
-        uplinks = await self._api_client.run_sync(
+        uplinks = await self._api_client.run_async(
             self._api_client.dashboard.appliance.getDeviceApplianceUplinksSettings,
             serial=serial,
         )
@@ -70,10 +70,11 @@ class ApplianceUplinkMixin:
 
         """
         # SDK method names vary across versions; try each known variant
-        # UsageHistory with timespan=60 is preferred for real-time status
+        # LossAndLatency is prioritized for real-time performance metrics
         sdk_methods = [
-            "getNetworkApplianceUplinksUsageHistory",
             "getNetworkApplianceUplinksLossAndLatency",
+            "getNetworkApplianceUplinksUsageHistory",
+            "getNetworkApplianceUplinksPerformance",
             "getNetworkApplianceUplinksUplinksLossAndLatency",
         ]
 
@@ -93,7 +94,7 @@ class ApplianceUplinkMixin:
         if method_name == "getNetworkApplianceUplinksUsageHistory":
             kwargs["timespan"] = 60
 
-        performance = await self._api_client.run_sync(
+        performance = await self._api_client.run_async(
             method,
             **kwargs,
         )
@@ -116,7 +117,7 @@ class ApplianceUplinkMixin:
             A list of uplink statuses.
 
         """
-        statuses = await self._api_client.run_sync(
+        statuses = await self._api_client.run_async(
             self._api_client.dashboard.appliance.getOrganizationApplianceUplinkStatuses,
             organizationId=self._api_client.organization_id,
             total_pages="all",

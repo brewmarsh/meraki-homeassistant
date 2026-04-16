@@ -108,6 +108,7 @@ class NetworkHandler(BaseHandler):
             self._discover_select_entities,
             self._discover_network_clients,
             self._discover_client_status_sensors,
+            self._discover_device_trackers,
             self._discover_traffic_shaping,
             self._discover_vlans,
             self._discover_network_health_sensors,
@@ -211,6 +212,50 @@ class NetworkHandler(BaseHandler):
                     "Failed to instantiate MerakiClientStatusSensor for client "
                     "%s in network %s: %s",
                     client.get("mac", "Unknown"),
+                    network.id,
+                    err,
+                )
+
+    async def _discover_device_trackers(
+        self, network: MerakiNetwork
+    ) -> AsyncIterator[Entity]:
+        """Discover device tracker entities for clients."""
+        from ...const.config import CONF_ENABLE_DEVICE_TRACKER
+        from ...core.utils.mac import is_locally_administered_mac
+        from ...device_tracker import MerakiClientTracker
+
+        if not self._config_entry.options.get(CONF_ENABLE_DEVICE_TRACKER, True):
+            _LOGGER.debug("Device tracker is disabled.")
+            return
+
+        clients = self._coordinator.data.get("clients")
+        if not isinstance(clients, list):
+            return
+
+        for client in filter(
+            lambda c: isinstance(c, dict) and c.get("networkId") == network.id,
+            clients,
+        ):
+            mac = client.get("mac")
+            if not mac:
+                continue
+
+            # Skip randomized MAC addresses to prevent entity bloat
+            if is_locally_administered_mac(mac):
+                _LOGGER.debug("Skipping randomized MAC address: %s", mac)
+                continue
+
+            try:
+                yield MerakiClientTracker(
+                    self._coordinator,
+                    client,
+                    self._config_entry,
+                )
+            except Exception as err:
+                _LOGGER.error(
+                    "Failed to instantiate MerakiClientTracker for client "
+                    "%s in network %s: %s",
+                    mac,
                     network.id,
                     err,
                 )

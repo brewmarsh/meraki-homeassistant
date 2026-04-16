@@ -313,10 +313,10 @@ class DataFetchManager:
         """Perform a lightweight orchestrated data fetch (Fast Poll)."""
         batch_data = await self._async_fetch_batch_data(fast_only=True)
         data = self._distribute_batch_data(batch_data)
-        
+
         # Include client data in fast poll for real-time tracking
         await self._fetch_client_data(data)
-        
+
         self._process_data(data, current_data)
         return data
 

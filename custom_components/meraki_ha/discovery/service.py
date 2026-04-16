@@ -24,14 +24,7 @@ if TYPE_CHECKING:
     from homeassistant.helpers.entity import Entity
 
     from ..coordinators import (
-        MerakiApplianceCoordinator,
-        MerakiCameraCoordinator,
-        MerakiClientCoordinator,
-        MerakiDeviceCoordinator,
         MerakiMainCoordinator,
-        MerakiSensorCoordinator,
-        MerakiSwitchCoordinator,
-        MerakiWirelessCoordinator,
     )
     from ..core.api import MerakiApiClientProtocol
     from ..services.camera_service import CameraService
@@ -56,7 +49,7 @@ class DeviceDiscoveryService:
     ) -> None:
         """Initialize the DeviceDiscoveryService."""
         self._main_coordinator = main_coordinator
-        
+
         # All specialized references now point to the main coordinator
         self._device_coordinator = main_coordinator
         self._switch_coordinator = main_coordinator

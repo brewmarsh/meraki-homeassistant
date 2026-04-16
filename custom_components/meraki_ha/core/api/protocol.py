@@ -5,7 +5,7 @@ from __future__ import annotations
 from collections.abc import Awaitable, Callable
 from typing import Any, Protocol
 
-import meraki
+import meraki.aio
 
 
 class ApplianceEndpointsProtocol(Protocol):
@@ -227,7 +227,11 @@ class NetworkEndpointsProtocol(Protocol):
         ...
 
     async def register_webhook(
-        self, webhook_url: str, secret: str, config_entry_id: str
+        self,
+        webhook_url: str,
+        secret: str,
+        config_entry_id: str,
+        validator: str | None = None,
     ) -> list[str]:
         """Register or update a webhook with the Meraki API."""
         ...
@@ -254,6 +258,12 @@ class NetworkEndpointsProtocol(Protocol):
         self, network_id: str, **kwargs: Any
     ) -> dict[str, Any]:
         """Fetch events for a network."""
+        ...
+
+    async def update_network_client_policy(
+        self, network_id: str, client_mac: str, device_policy: str
+    ) -> dict[str, Any]:
+        """Update the policy for a client in a network."""
         ...
 
 
@@ -429,7 +439,7 @@ class MerakiApiClientProtocol(Protocol):
     """Protocol defining the interface for the Meraki API Client."""
 
     @property
-    def dashboard(self) -> meraki.DashboardAPI:
+    def dashboard(self) -> meraki.aio.AsyncDashboardAPI:
         """Get the Dashboard API instance."""
         ...
 
@@ -478,13 +488,13 @@ class MerakiApiClientProtocol(Protocol):
         """Get the sensor endpoints."""
         ...
 
-    async def run_sync(
+    async def run_async(
         self,
         func: Callable[..., Any],
         *args: Any,
         **kwargs: Any,
     ) -> Any:
-        """Run a synchronous function in a thread pool."""
+        """Run an asynchronous function with rate limiting."""
         ...
 
     async def run_with_semaphore(self, coro: Awaitable[Any]) -> Any:
@@ -502,7 +512,11 @@ class MerakiApiClientProtocol(Protocol):
         ...
 
     async def register_webhook(
-        self, webhook_url: str, secret: str, config_entry_id: str
+        self,
+        webhook_url: str,
+        secret: str,
+        config_entry_id: str,
+        validator: str | None = None,
     ) -> list[str]:
         """Register a webhook with the Meraki API."""
         ...

@@ -180,6 +180,9 @@ class UpdateProcessor:
         _, networks_by_id = await self._normalize_networks(data)
         ssids_by_network_and_number = await self._normalize_ssids(data)
 
+        # Synthesize client state from webhooks and polling
+        self._synthesize_client_state(data, previous_data)
+
         update_device_registry_info(self.hass, devices)
 
         # Process appliance-specific data mappings
@@ -200,6 +203,56 @@ class UpdateProcessor:
         data.update(result)
 
         return result
+
+    def _synthesize_client_state(
+        self, data: dict[str, Any], previous_data: dict[str, Any] | None
+    ) -> None:
+        """Synthesize client state from polling and recent webhooks."""
+        import time
+
+        from ..utils.mac import is_locally_administered_mac
+
+        clients = data.get("clients", [])
+        if not isinstance(clients, list):
+            return
+
+        prev_clients_by_mac = {}
+        if previous_data and "clients" in previous_data:
+            prev_clients = previous_data.get("clients", [])
+            if isinstance(prev_clients, list):
+                for c in prev_clients:
+                    if isinstance(c, dict) and (mac := c.get("mac")):
+                        prev_clients_by_mac[mac] = c
+
+        now = time.time()
+        filtered_clients = []
+
+        for client in clients:
+            if not isinstance(client, dict):
+                continue
+
+            mac = client.get("mac")
+            if not mac:
+                continue
+
+            # Filter randomized MACs
+            if is_locally_administered_mac(mac):
+                continue
+
+            # Reconcile with webhook state
+            prev_client = prev_clients_by_mac.get(mac)
+            if prev_client:
+                last_webhook = prev_client.get("last_webhook_update")
+                if last_webhook and (now - last_webhook) < 120:  # 2 minute window
+                    # If webhook said they are online, keep them online
+                    # unless polling is clearly newer (but polling is usually slower)
+                    if prev_client.get("status") == "Online":
+                        client["status"] = "Online"
+                        client["last_webhook_update"] = last_webhook
+
+            filtered_clients.append(client)
+
+        data["clients"] = filtered_clients
 
     async def _normalize_devices(
         self, data: dict[str, Any]

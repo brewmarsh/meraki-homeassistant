@@ -40,7 +40,7 @@ class WirelessEndpoints:
             A list of SSIDs.
 
         """
-        ssids = await self._api_client.run_sync(
+        ssids = await self._api_client.run_async(
             self._api_client.dashboard.wireless.getNetworkWirelessSsids,
             networkId=network_id,
         )
@@ -65,7 +65,7 @@ class WirelessEndpoints:
             The wireless settings.
 
         """
-        settings = await self._api_client.run_sync(
+        settings = await self._api_client.run_async(
             self._api_client.dashboard.wireless.getDeviceWirelessRadioSettings,
             serial=serial,
         )
@@ -95,7 +95,7 @@ class WirelessEndpoints:
             The SSID details.
 
         """
-        ssid = await self._api_client.run_sync(
+        ssid = await self._api_client.run_async(
             self._api_client.dashboard.wireless.getNetworkWirelessSsid,
             networkId=network_id,
             number=number,
@@ -127,7 +127,7 @@ class WirelessEndpoints:
             The updated SSID.
 
         """
-        ssid = await self._api_client.run_sync(
+        ssid = await self._api_client.run_async(
             self._api_client.dashboard.wireless.updateNetworkWirelessSsid,
             networkId=network_id,
             number=number,
@@ -157,7 +157,7 @@ class WirelessEndpoints:
             A list of RF profiles.
 
         """
-        profiles = await self._api_client.run_sync(
+        profiles = await self._api_client.run_async(
             self._api_client.dashboard.wireless.getNetworkWirelessRfProfiles,
             networkId=network_id,
         )
@@ -187,7 +187,7 @@ class WirelessEndpoints:
             The L7 firewall rules.
 
         """
-        rules = await self._api_client.run_sync(
+        rules = await self._api_client.run_async(
             self._api_client.dashboard.wireless.getNetworkWirelessSsidL7FirewallRules,
             networkId=network_id,
             number=number,
@@ -345,7 +345,7 @@ class WirelessEndpoints:
             {k: v if k != "passphrase" else "***" for k, v in payload.items()},
         )
 
-        psk = await self._api_client.run_sync(
+        psk = await self._api_client.run_async(
             self._api_client.dashboard.wireless.createNetworkWirelessSsidIdentityPsk,
             networkId=network_id,
             number=number,
@@ -376,7 +376,7 @@ class WirelessEndpoints:
         """
         if self._api_client.dashboard is None:
             return
-        await self._api_client.run_sync(
+        await self._api_client.run_async(
             self._api_client.dashboard.wireless.deleteNetworkWirelessSsidIdentityPsk,
             networkId=network_id,
             number=number,
@@ -404,7 +404,7 @@ class WirelessEndpoints:
             The updated L7 firewall rules.
 
         """
-        rules = await self._api_client.run_sync(
+        rules = await self._api_client.run_async(
             self._api_client.dashboard.wireless.updateNetworkWirelessSsidL7FirewallRules,
             networkId=network_id,
             number=number,

@@ -37,7 +37,7 @@ class ApplianceVpnMixin:
             The VPN status.
 
         """
-        status = await self._api_client.run_sync(
+        status = await self._api_client.run_async(
             self._api_client.dashboard.appliance.getNetworkApplianceVpnSiteToSiteVpn,
             networkId=network_id,
         )
@@ -61,7 +61,7 @@ class ApplianceVpnMixin:
             The updated VPN status.
 
         """
-        status = await self._api_client.run_sync(
+        status = await self._api_client.run_async(
             self._api_client.dashboard.appliance.updateNetworkApplianceVpnSiteToSiteVpn,
             networkId=network_id,
             **kwargs,

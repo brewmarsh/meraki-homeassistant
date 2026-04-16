@@ -55,7 +55,7 @@ class SwitchEndpoints:
             A list of port statuses.
 
         """
-        statuses = await self._api_client.run_sync(
+        statuses = await self._api_client.run_async(
             self._api_client.dashboard.switch.getDeviceSwitchPortsStatuses,
             serial=serial,
             **kwargs,
@@ -79,7 +79,7 @@ class SwitchEndpoints:
             A list of ports.
 
         """
-        ports = await self._api_client.run_sync(
+        ports = await self._api_client.run_async(
             self._api_client.dashboard.switch.getDeviceSwitchPorts, serial=serial
         )
         res = validate_response(ports)
@@ -105,7 +105,7 @@ class SwitchEndpoints:
             The API response.
 
         """
-        response = await self._api_client.run_sync(
+        response = await self._api_client.run_async(
             self._api_client.dashboard.switch.cycleDeviceSwitchPorts,
             serial=serial,
             ports=ports,
@@ -133,7 +133,7 @@ class SwitchEndpoints:
             The updated port configuration.
 
         """
-        response = await self._api_client.run_sync(
+        response = await self._api_client.run_async(
             self._api_client.dashboard.switch.updateDeviceSwitchPort,
             serial=serial,
             portId=port_id,

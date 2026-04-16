@@ -16,8 +16,9 @@ from homeassistant.const import PERCENTAGE, UnitOfTime
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers import entity_registry as er
 
+from ...sensor.appliance.uplink_performance import MerakiUplinkPerformanceSensor
 from ...sensor.device.appliance_uplink import MerakiApplianceUplinkSensor
-from ...sensor.uplink_performance import MerakiUplinkPerformanceSensor
+from ...sensor.device.bandwidth import MerakiBandwidthSensor
 
 if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
@@ -134,6 +135,37 @@ def _get_uplinks_from_device(device: MerakiDevice) -> list[dict[str, Any]]:
     return device.uplinks
 
 
+def _create_bandwidth_entities(
+    coordinator: MerakiApplianceCoordinator,
+    device: MerakiDevice,
+    config_entry: ConfigEntry,
+    interface: str,
+) -> list[Entity]:
+    """Create bandwidth entities for a single interface."""
+    entities: list[Entity] = []
+    bandwidth_metrics = [
+        ("sent", "upload_speed", "mdi:upload-network"),
+        ("received", "download_speed", "mdi:download-network"),
+    ]
+
+    for direction, key_suffix, icon in bandwidth_metrics:
+        entities.append(
+            MerakiBandwidthSensor(
+                coordinator,
+                device,
+                config_entry,
+                interface,
+                direction,
+                SensorEntityDescription(
+                    key=f"{interface}_bandwidth_{direction}",
+                    name=f"{interface.capitalize()} {key_suffix.replace('_', ' ')}",
+                    icon=icon,
+                ),
+            )
+        )
+    return entities
+
+
 class UplinkProvider:
     """Provider for appliance uplink entities."""
 
@@ -162,6 +194,10 @@ class UplinkProvider:
                 MerakiApplianceUplinkSensor(
                     coordinator, device, config_entry, uplink_data
                 )
+            )
+            # Add bandwidth sensors for each discovered interface
+            entities.extend(
+                _create_bandwidth_entities(coordinator, device, config_entry, interface)
             )
 
         return entities

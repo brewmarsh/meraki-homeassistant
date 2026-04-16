@@ -50,7 +50,7 @@ class NetworkEndpoints:
         if statuses:
             kwargs["statuses"] = statuses
 
-        clients = await self._api_client.run_sync(
+        clients = await self._api_client.run_async(
             self._api_client.dashboard.networks.getNetworkClients,
             **kwargs,
         )
@@ -64,7 +64,7 @@ class NetworkEndpoints:
         self, network_id: str, name: str, **kwargs: Any
     ) -> dict[str, Any]:
         """Create a group policy for a network."""
-        policy = await self._api_client.run_sync(
+        policy = await self._api_client.run_async(
             self._api_client.dashboard.networks.createNetworkGroupPolicy,
             networkId=network_id,
             name=name,
@@ -82,7 +82,7 @@ class NetworkEndpoints:
         self, network_id: str, device_type: str
     ) -> list[dict[str, Any]]:
         """Get traffic data for a network, filtered by device type."""
-        traffic = await self._api_client.run_sync(
+        traffic = await self._api_client.run_async(
             self._api_client.dashboard.networks.getNetworkTraffic,
             networkId=network_id,
             deviceType=device_type,
@@ -97,7 +97,7 @@ class NetworkEndpoints:
     @async_timed_cache(timeout=10)
     async def get_webhooks(self, network_id: str) -> list[dict[str, Any]]:
         """Get all webhooks for a network."""
-        webhooks = await self._api_client.run_sync(
+        webhooks = await self._api_client.run_async(
             self._api_client.dashboard.networks.getNetworkWebhooksHttpServers,
             networkId=network_id,
         )
@@ -109,7 +109,7 @@ class NetworkEndpoints:
     @handle_meraki_errors
     async def delete_webhook(self, network_id: str, webhook_id: str) -> None:
         """Delete a webhook from a network."""
-        await self._api_client.run_sync(
+        await self._api_client.run_async(
             self._api_client.dashboard.networks.deleteNetworkWebhooksHttpServer,
             networkId=network_id,
             httpServerId=webhook_id,
@@ -128,7 +128,11 @@ class NetworkEndpoints:
 
     @handle_meraki_errors
     async def register_webhook(
-        self, webhook_url: str, secret: str, config_entry_id: str
+        self,
+        webhook_url: str,
+        secret: str,
+        config_entry_id: str,
+        validator: str | None = None,
     ) -> list[str]:
         """Register or update a webhook with the Meraki API."""
         import asyncio
@@ -141,7 +145,7 @@ class NetworkEndpoints:
             network_id = network["id"]
             # Always fetch existing webhooks directly using the dashboard
             # API for fresh data
-            raw_webhooks = await self._api_client.run_sync(
+            raw_webhooks = await self._api_client.run_async(
                 self._api_client.dashboard.networks.getNetworkWebhooksHttpServers,
                 networkId=network_id,
             )
@@ -181,27 +185,119 @@ class NetworkEndpoints:
                 await asyncio.sleep(1)
 
             # 3. Finalize registration
+            http_server_id = None
             if exact_match:
                 _LOGGER.debug(
                     "Webhook '%s' already exists in network %s, skipping creation",
                     webhook_name,
                     network_id,
                 )
-                webhook_ids.append(exact_match["id"])
-                continue
+                http_server_id = exact_match["id"]
+            else:
+                _LOGGER.info(
+                    "Registering new webhook '%s' for network %s",
+                    webhook_name,
+                    network_id,
+                )
 
-            _LOGGER.info(
-                "Registering new webhook '%s' for network %s", webhook_name, network_id
-            )
-            response = await self._api_client.run_sync(
-                self._api_client.dashboard.networks.createNetworkWebhooksHttpServer,
-                networkId=network_id,
-                url=webhook_url,
-                sharedSecret=secret,
-                name=webhook_name,
-            )
-            if response and "id" in response:
-                webhook_ids.append(response["id"])
+                kwargs = {
+                    "networkId": network_id,
+                    "url": webhook_url,
+                    "sharedSecret": secret,
+                    "name": webhook_name,
+                }
+                if validator:
+                    kwargs["validator"] = validator
+
+                response = await self._api_client.run_async(
+                    self._api_client.dashboard.networks.createNetworkWebhooksHttpServer,
+                    **kwargs,
+                )
+                if response and "id" in response:
+                    http_server_id = response["id"]
+
+            if http_server_id:
+                webhook_ids.append(http_server_id)
+
+                # 4. Configure Alerts
+                _LOGGER.debug(
+                    "Configuring alerts for network %s to use webhook %s",
+                    network_id,
+                    http_server_id,
+                )
+                try:
+                    # Fetch current alert settings
+                    current_alerts = await self._api_client.run_async(
+                        self._api_client.dashboard.networks.getNetworkAlertsSettings,
+                        networkId=network_id,
+                    )
+
+                    alerts = current_alerts.get("alerts", [])
+                    updated = False
+
+                    # Target alert types we care about
+                    target_types = ["APs went down", "Client connectivity changed"]
+
+                    for alert in alerts:
+                        if alert.get("type") in target_types:
+                            destinations = alert.get("alertDestinations", {})
+                            server_ids = destinations.get("httpServerIds", [])
+                            if http_server_id not in server_ids:
+                                server_ids.append(http_server_id)
+                                destinations["httpServerIds"] = server_ids
+                                alert["alertDestinations"] = destinations
+                                alert["enabled"] = True
+                                updated = True
+
+                    if updated:
+                        await self._api_client.run_async(
+                            self._api_client.dashboard.networks.updateNetworkAlertsSettings,
+                            networkId=network_id,
+                            alerts=alerts,
+                        )
+                except Exception as e:
+                    _LOGGER.warning(
+                        "Failed to configure alerts for network %s: %s", network_id, e
+                    )
+
+                # 5. Configure Location Scanning
+                _LOGGER.debug(
+                    "Configuring location scanning for network %s to use webhook %s",
+                    network_id,
+                    http_server_id,
+                )
+                try:
+                    await self._api_client.run_async(
+                        self._api_client.dashboard.networks.updateNetworkSettings,
+                        networkId=network_id,
+                        localStatusPageEnabled=True,  # Often required for some features
+                        remoteStatusPageEnabled=True,
+                    )
+
+                    # Try to enable Scanning API (v2/v3 depends on network type,
+                    # v2 is standard for MR)
+                    # Note: This might fail if the network doesn't support it
+                    # (e.g. MS only)
+                    await self._api_client.run_async(
+                        self._api_client.dashboard.networks.updateNetworkSettings,
+                        networkId=network_id,
+                        # Meraki dashboard settings sometimes wrap these
+                    )
+
+                    # Real location scanning settings are often under wireless
+                    if "wireless" in network.get("productTypes", []):
+                        await self._api_client.run_async(
+                            self._api_client.dashboard.networks.updateNetworkWirelessSettings,
+                            networkId=network_id,
+                            locationAnalyticsEnabled=True,
+                            scanningApiEnabled=True,
+                        )
+                except Exception as e:
+                    _LOGGER.debug(
+                        "Failed to configure location scanning for network %s: %s",
+                        network_id,
+                        e,
+                    )
 
         return webhook_ids
 
@@ -212,7 +308,7 @@ class NetworkEndpoints:
         for network in networks:
             network_id = network["id"]
             # Fetch webhooks directly to ensure cleanup of all instances
-            raw_webhooks = await self._api_client.run_sync(
+            raw_webhooks = await self._api_client.run_async(
                 self._api_client.dashboard.networks.getNetworkWebhooksHttpServers,
                 networkId=network_id,
             )
@@ -248,7 +344,7 @@ class NetworkEndpoints:
             return []
 
         try:
-            res = await self._api_client.run_sync(
+            res = await self._api_client.run_async(
                 vlan_method,
                 networkId=network_id,
             )
@@ -283,7 +379,7 @@ class NetworkEndpoints:
     @async_timed_cache(timeout=300)
     async def get_group_policies(self, network_id: str) -> list[dict[str, Any]]:
         """Get group policies for a network."""
-        policies = await self._api_client.run_sync(
+        policies = await self._api_client.run_async(
             self._api_client.dashboard.networks.getNetworkGroupPolicies,
             networkId=network_id,
         )
@@ -315,8 +411,25 @@ class NetworkEndpoints:
                 new_key = key_map.get(k, k)
                 filtered_kwargs[new_key] = v
 
-        return await self._api_client.run_sync(
+        return await self._api_client.run_async(
             self._api_client.dashboard.networks.getNetworkEvents,
             network_id,
             **filtered_kwargs,
         )
+
+    @handle_meraki_errors
+    async def update_network_client_policy(
+        self, network_id: str, client_mac: str, device_policy: str
+    ) -> dict[str, Any]:
+        """Update the policy for a client in a network."""
+        policy = await self._api_client.run_async(
+            self._api_client.dashboard.networks.updateNetworkClientPolicy,
+            networkId=network_id,
+            clientId=client_mac,
+            devicePolicy=device_policy,
+        )
+        validated = validate_response(policy)
+        if not isinstance(validated, dict):
+            _LOGGER.warning("update_network_client_policy did not return a dict")
+            return {}
+        return validated

@@ -59,6 +59,7 @@ class ApplianceMixin:
     appliance_uplink_statuses: list[dict[str, Any]] = field(default_factory=list)
     appliance_ports: list[MerakiAppliancePort] = field(default_factory=list)
     dynamic_dns: dict[str, Any] | None = None
+    uplink_usage_history: list[dict[str, Any]] = field(default_factory=list)
 
     def appliance_to_dict(self) -> dict[str, Any]:
         """Convert appliance fields to dictionary."""
@@ -66,6 +67,7 @@ class ApplianceMixin:
             "applianceUplinkStatuses": self.appliance_uplink_statuses,
             "appliancePorts": [p.to_dict() for p in self.appliance_ports],
             "dynamicDns": self.dynamic_dns,
+            "uplinkUsageHistory": self.uplink_usage_history,
         }
 
     @staticmethod
@@ -77,6 +79,7 @@ class ApplianceMixin:
                 MerakiAppliancePort.from_dict(p) for p in data.get("appliancePorts", [])
             ],
             "dynamic_dns": data.get("dynamicDns"),
+            "uplink_usage_history": data.get("uplinkUsageHistory", []),
         }
 
 

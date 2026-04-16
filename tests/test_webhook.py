@@ -5,8 +5,7 @@ from __future__ import annotations
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-from homeassistant.core import HomeAssistant
-from homeassistant.helpers.network import NoURLAvailableError
+from aiohttp import web
 
 from custom_components.meraki_ha.const.integration import DOMAIN
 from custom_components.meraki_ha.const.webhooks import EVENT_MERAKI_WEBHOOK_ALERT
@@ -15,6 +14,8 @@ from custom_components.meraki_ha.const.webhooks import EVENT_MERAKI_WEBHOOK_ALER
 from custom_components.meraki_ha.coordinators import MerakiMainCoordinator
 from custom_components.meraki_ha.types import MerakiDevice
 from custom_components.meraki_ha.webhook import async_handle_webhook, get_webhook_url
+from homeassistant.core import HomeAssistant
+from homeassistant.helpers.network import NoURLAvailableError
 
 
 @pytest.fixture
@@ -55,6 +56,7 @@ def mock_hass_with_webhook_data(hass: HomeAssistant) -> HomeAssistant:
         "test_webhook_id": {
             "coordinator": coordinator,
             "secret": "test_secret",
+            "validator": "test_validator",
         },
     }
     return hass
@@ -75,6 +77,7 @@ async def test_handle_webhook_device_down(
     # Arrange
     webhook_id = "test_webhook_id"
     request = AsyncMock()
+    request.method = "POST"
     request.json.return_value = {
         "sharedSecret": "test_secret",
         "alertType": "APs went down",
@@ -106,6 +109,7 @@ async def test_handle_webhook_invalid_secret(
     # Arrange
     webhook_id = "test_webhook_id"
     request = AsyncMock()
+    request.method = "POST"
     request.json.return_value = {
         "sharedSecret": "wrong_secret",
         "alertType": "APs went down",
@@ -137,6 +141,7 @@ async def test_handle_webhook_unknown_alert(
     # Arrange
     webhook_id = "test_webhook_id"
     request = AsyncMock()
+    request.method = "POST"
     request.json.return_value = {
         "sharedSecret": "test_secret",
         "alertType": "Some other alert",
@@ -159,6 +164,7 @@ async def test_handle_webhook_fires_event(
     # Arrange
     webhook_id = "test_webhook_id"
     request = AsyncMock()
+    request.method = "POST"
     data = {
         "sharedSecret": "test_secret",
         "alertType": "Any alert",
@@ -182,6 +188,27 @@ async def test_handle_webhook_fires_event(
     # Assert
     assert len(events) == 1
     assert events[0].data == data
+
+
+@pytest.mark.asyncio
+async def test_handle_webhook_get_validator(
+    mock_hass_with_webhook_data: HomeAssistant,
+) -> None:
+    """Test handling a GET request for the validator challenge."""
+    # Arrange
+    webhook_id = "test_webhook_id"
+    request = AsyncMock()
+    request.method = "GET"
+
+    # Act
+    response = await async_handle_webhook(
+        mock_hass_with_webhook_data, webhook_id, request
+    )
+
+    # Assert
+    assert isinstance(response, web.Response)
+    assert response.status == 200
+    assert response.text == "test_validator"
 
 
 def test_get_webhook_url_fallback(hass: HomeAssistant) -> None:

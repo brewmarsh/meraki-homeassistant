@@ -149,11 +149,11 @@ class MerakiClient:
                 nginx_429_retry_wait_time=2,
                 aiohttp_session=async_get_clientsession(self._hass),
             )
-        
+
         if self._worker_tasks is None or not self._worker_tasks:
             self._worker_tasks = [
-                asyncio.create_task(self._worker_loop(i)) 
-                for i in range(5) # 5 concurrent workers
+                asyncio.create_task(self._worker_loop(i))
+                for i in range(5)  # 5 concurrent workers
             ]
 
     async def _worker_loop(self, worker_id: int) -> None:
@@ -228,13 +228,14 @@ class MerakiClient:
         # Use priority queue instead of direct semaphore acquisition
         future = asyncio.get_event_loop().create_future()
         await self._priority_queue.put((priority, func, args, kwargs, future))
-        
+
         try:
             result = await future
         except Exception as e:
             # Capture any Meraki API specific error
             # Note: Async SDK still uses common APIError from meraki package
             import meraki
+
             if isinstance(e, meraki.APIError):
                 braintrust.current_span().log(
                     metadata={
@@ -282,7 +283,7 @@ class MerakiClient:
                 raise ApiClientCommunicationError(
                     f"Error communicating with Meraki API: {e}"
                 ) from e
-            
+
             # Non-Meraki error
             _LOGGER.warning(
                 "An unexpected error occurred: %s. Type: %s",
@@ -301,13 +302,13 @@ class MerakiClient:
         return result
 
     async def run_with_semaphore(self, coro: Awaitable[Any]) -> Any:
-        """Run an awaitable with the rate limiter (wrapped in run_async compatible way)."""
+        """Run an awaitable with the rate limiter (wrapped for run_async)."""
         # If it's already an awaitable, we wrap it in a function for run_async
+
         async def _wrapper():
             return await coro
-        
-        return await self.run_async(_wrapper, priority=2) # Bulk polls use priority 2
 
+        return await self.run_async(_wrapper, priority=2)  # Bulk polls use priority 2
 
     async def run_with_cache(
         self, key: str, fetch_coro: Any, ttl: int | None = None
@@ -338,10 +339,16 @@ class MerakiClient:
         return self._org_id
 
     async def register_webhook(
-        self, webhook_url: str, secret: str, config_entry_id: str
+        self,
+        webhook_url: str,
+        secret: str,
+        config_entry_id: str,
+        validator: str | None = None,
     ) -> list[str]:
         """Register a webhook with the Meraki API."""
-        return await self.network.register_webhook(webhook_url, secret, config_entry_id)
+        return await self.network.register_webhook(
+            webhook_url, secret, config_entry_id, validator
+        )
 
     async def unregister_webhook(self, config_entry_id: str) -> None:
         """Unregister a webhook with the Meraki API."""

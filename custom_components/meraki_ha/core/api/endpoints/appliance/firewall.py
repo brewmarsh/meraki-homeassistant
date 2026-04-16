@@ -37,7 +37,7 @@ class ApplianceFirewallMixin:
             The L3 firewall rules.
 
         """
-        rules = await self._api_client.run_sync(
+        rules = await self._api_client.run_async(
             self._api_client.dashboard.appliance.getNetworkApplianceFirewallL3FirewallRules,
             networkId=network_id,
         )
@@ -65,7 +65,7 @@ class ApplianceFirewallMixin:
             The updated L3 firewall rules.
 
         """
-        rules = await self._api_client.run_sync(
+        rules = await self._api_client.run_async(
             self._api_client.dashboard.appliance.updateNetworkApplianceFirewallL3FirewallRules,
             networkId=network_id,
             **kwargs,
@@ -93,7 +93,7 @@ class ApplianceFirewallMixin:
             The L7 firewall rules.
 
         """
-        rules = await self._api_client.run_sync(
+        rules = await self._api_client.run_async(
             self._api_client.dashboard.appliance.getNetworkApplianceL7FirewallRules,
             networkId=network_id,
         )
@@ -123,7 +123,7 @@ class ApplianceFirewallMixin:
             The updated L7 firewall rules.
 
         """
-        rules = await self._api_client.run_sync(
+        rules = await self._api_client.run_async(
             self._api_client.dashboard.appliance.updateNetworkApplianceL7FirewallRules,
             networkId=network_id,
             **kwargs,
@@ -153,7 +153,7 @@ class ApplianceFirewallMixin:
             The content filtering settings.
 
         """
-        result = await self._api_client.run_sync(
+        result = await self._api_client.run_async(
             self._api_client.dashboard.appliance.getNetworkApplianceContentFiltering,
             networkId=network_id,
         )
@@ -182,7 +182,7 @@ class ApplianceFirewallMixin:
             The content filtering categories.
 
         """
-        result = await self._api_client.run_sync(
+        result = await self._api_client.run_async(
             self._api_client.dashboard.appliance.getNetworkApplianceContentFilteringCategories,
             networkId=network_id,
         )
@@ -213,7 +213,7 @@ class ApplianceFirewallMixin:
             The updated content filtering settings.
 
         """
-        result = await self._api_client.run_sync(
+        result = await self._api_client.run_async(
             self._api_client.dashboard.appliance.updateNetworkApplianceContentFiltering,
             networkId=network_id,
             **kwargs,

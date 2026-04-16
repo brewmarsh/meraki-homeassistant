@@ -40,7 +40,7 @@ class CameraEndpoints:
         if not serial:
             _LOGGER.warning("get_camera_sense_settings: serial is required")
             return {}
-        settings = await self._api_client.run_sync(
+        settings = await self._api_client.run_async(
             self._api_client.dashboard.camera.getDeviceCameraSense, serial=serial
         )
         validated = validate_response(settings)
@@ -56,7 +56,7 @@ class CameraEndpoints:
         if not serial:
             _LOGGER.warning("get_camera_video_settings: serial is required")
             return {}
-        settings = await self._api_client.run_sync(
+        settings = await self._api_client.run_async(
             self._api_client.dashboard.camera.getDeviceCameraVideoSettings,
             serial=serial,
         )
@@ -73,7 +73,7 @@ class CameraEndpoints:
         if not serial:
             _LOGGER.warning("get_device_camera_video_link: serial is required")
             return {}
-        link = await self._api_client.run_sync(
+        link = await self._api_client.run_async(
             self._api_client.dashboard.camera.getDeviceCameraVideoLink, serial=serial
         )
         validated = validate_response(link)
@@ -102,7 +102,7 @@ class CameraEndpoints:
             else:
                 payload[key] = value
 
-        result = await self._api_client.run_sync(
+        result = await self._api_client.run_async(
             self._api_client.dashboard.camera.updateDeviceCameraVideoSettings,
             serial=serial,
             **payload,
@@ -135,7 +135,7 @@ class CameraEndpoints:
             else:
                 payload[key] = value
 
-        result = await self._api_client.run_sync(
+        result = await self._api_client.run_async(
             self._api_client.dashboard.camera.updateDeviceCameraSense,
             serial=serial,
             **payload,
@@ -155,7 +155,7 @@ class CameraEndpoints:
         if not serial:
             _LOGGER.warning("get_device_camera_analytics_recent: serial is required")
             return []
-        recent = await self._api_client.run_sync(
+        recent = await self._api_client.run_async(
             self._api_client.dashboard.camera.getDeviceCameraAnalyticsRecent,
             serial=serial,
             objectType=object_type,
@@ -175,7 +175,7 @@ class CameraEndpoints:
         if not serial:
             _LOGGER.warning("get_device_camera_analytics_zones: serial is required")
             return []
-        zones = await self._api_client.run_sync(
+        zones = await self._api_client.run_async(
             self._api_client.dashboard.camera.getDeviceCameraAnalyticsZones,
             serial=serial,
         )
@@ -193,7 +193,7 @@ class CameraEndpoints:
         if not serial:
             _LOGGER.warning("generate_device_camera_snapshot: serial is required")
             return {}
-        snapshot = await self._api_client.run_sync(
+        snapshot = await self._api_client.run_async(
             self._api_client.dashboard.camera.generateDeviceCameraSnapshot,
             serial=serial,
             **kwargs,

@@ -20,7 +20,13 @@ class ApplianceUplinkHelper:
         self.client = client
 
     async def get_uplink_performance(self, network_id: str) -> list[dict[str, Any]]:
-        """Fetch uplink performance with robust fallback."""
+        """Fetch uplink performance and bandwidth with robust fallback."""
+        all_results = []
+
+        # We want to try fetching both usage history (for bandwidth) and
+        # performance (loss/latency)
+        # UsageHistory is first because it's preferred by the existing logic,
+        # but we no longer stop if it succeeds.
         methods = [
             ("getNetworkApplianceUplinksUsageHistory", {"timespan": 60}),
             ("getNetworkApplianceUplinksLossAndLatency", {}),
@@ -28,11 +34,16 @@ class ApplianceUplinkHelper:
         ]
 
         for method_name, extra_kwargs in methods:
-            if result := await self._try_fetch_performance(
-                network_id, method_name, extra_kwargs
-            ):
-                return result
-        return []
+            try:
+                if result := await self._try_fetch_performance(
+                    network_id, method_name, extra_kwargs
+                ):
+                    if isinstance(result, list):
+                        all_results.extend(result)
+            except Exception:  # pylint: disable=broad-except
+                continue
+
+        return all_results
 
     async def _try_fetch_performance(
         self, network_id: str, method_name: str, extra_kwargs: dict[str, Any]
@@ -46,7 +57,7 @@ class ApplianceUplinkHelper:
             _LOGGER.debug(
                 "Attempting to fetch uplink performance using %s", method_name
             )
-            performance = await self.client.run_sync(
+            performance = await self.client.run_async(
                 method, networkId=network_id, **extra_kwargs
             )
             if isinstance(performance, list):
@@ -76,7 +87,9 @@ class ApplianceUplinkHelper:
 
         normalized_performance = self._normalize_uplink_performance(performance)
         device_perf = [
-            p for p in normalized_performance if p.get("serial") == device.serial
+            p
+            for p in normalized_performance
+            if p.get("serial") == device.serial or p.get("serial") is None
         ]
 
         device.uplinks = self._merge_uplink_status_and_performance(
@@ -89,18 +102,27 @@ class ApplianceUplinkHelper:
         performance: list[dict[str, Any]],
     ) -> list[dict[str, Any]]:
         """Merge uplink status and performance data."""
-        perf_by_interface = {p.get("interface"): p for p in performance}
+        # Use a dict to merge performance data by interface
+        merged_perf_by_interface = {}
+        for p in performance:
+            interface = p.get("interface")
+            if not interface:
+                continue
+            if interface not in merged_perf_by_interface:
+                merged_perf_by_interface[interface] = {}
+            merged_perf_by_interface[interface].update(p)
+
         merged_uplinks = []
 
         # Use appliance_uplink_statuses as the base for merging
         for status_uplink in statuses:
             interface = status_uplink.get("interface")
-            perf = perf_by_interface.get(interface, {})
+            perf = merged_perf_by_interface.get(interface, {})
             merged_uplinks.append({**status_uplink, **perf})
 
         # Add any interfaces found in performance but not in status
         status_interfaces = {u.get("interface") for u in statuses}
-        for interface, perf in perf_by_interface.items():
+        for interface, perf in merged_perf_by_interface.items():
             if interface not in status_interfaces:
                 merged_uplinks.append(perf)
 
@@ -114,6 +136,24 @@ class ApplianceUplinkHelper:
         for p in performance:
             if not isinstance(p, dict):
                 continue
+
+            # Handle UsageHistory format: list of intervals with byInterface
+            if "byInterface" in p and isinstance(p["byInterface"], list):
+                # Take all interfaces from the interval
+                for interface_data in p["byInterface"]:
+                    item = interface_data.copy()
+                    normalized.append(item)
+                continue
+
+            # Handle getNetworkApplianceUplinksLossAndLatency format:
+            # list of devices with uplinks
+            if "uplinks" in p and isinstance(p["uplinks"], list) and "serial" in p:
+                for interface_data in p["uplinks"]:
+                    item = interface_data.copy()
+                    item["serial"] = p["serial"]
+                    normalized.append(item)
+                continue
+
             item = p.copy()
             if "loss" in item and "lossPercent" not in item:
                 item["lossPercent"] = item["loss"]

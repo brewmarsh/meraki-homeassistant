@@ -3,8 +3,8 @@
 from __future__ import annotations
 
 from typing import Any
+
 import voluptuous as vol
-from homeassistant.helpers import selector
 
 from custom_components.meraki_ha.const.config import (
     CONF_ENABLE_CAMERA_ENTITIES,
@@ -44,13 +44,13 @@ from custom_components.meraki_ha.const.config import (
     DEFAULT_ENABLED_NETWORKS,
     DEFAULT_SCAN_INTERVAL,
 )
+from homeassistant.helpers import selector
 
 CONFIG_SCHEMA = vol.Schema(
     {
         vol.Required(CONF_MERAKI_API_KEY): selector.TextSelector(
             selector.TextSelectorConfig(type=selector.TextSelectorType.PASSWORD)
         ),
-        vol.Required(CONF_MERAKI_ORG_ID): selector.TextSelector(),
     }
 )
 
@@ -59,9 +59,43 @@ STEP_USER_DATA_SCHEMA = vol.Schema(
         vol.Required(CONF_MERAKI_API_KEY): selector.TextSelector(
             selector.TextSelectorConfig(type=selector.TextSelectorType.PASSWORD)
         ),
-        vol.Required(CONF_MERAKI_ORG_ID): selector.TextSelector(),
     }
 )
+
+
+def get_org_selection_schema(orgs: list[dict[str, Any]]) -> vol.Schema:
+    """Return the organization selection schema."""
+    return vol.Schema(
+        {
+            vol.Required(CONF_MERAKI_ORG_ID): selector.SelectSelector(
+                selector.SelectSelectorConfig(
+                    options=[
+                        selector.SelectOptionDict(label=org["name"], value=org["id"])
+                        for org in orgs
+                    ],
+                    mode=selector.SelectSelectorMode.DROPDOWN,
+                )
+            ),
+        }
+    )
+
+
+def get_network_selection_schema(networks: list[dict[str, Any]]) -> vol.Schema:
+    """Return the network selection schema."""
+    return vol.Schema(
+        {
+            vol.Required(CONF_ENABLED_NETWORKS): selector.SelectSelector(
+                selector.SelectSelectorConfig(
+                    options=[
+                        selector.SelectOptionDict(label=net["name"], value=net["id"])
+                        for net in networks
+                    ],
+                    multiple=True,
+                    mode=selector.SelectSelectorMode.DROPDOWN,
+                )
+            ),
+        }
+    )
 
 
 def get_options_schema_general(options: dict[str, Any]) -> vol.Schema:

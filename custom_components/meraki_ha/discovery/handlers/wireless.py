@@ -96,6 +96,7 @@ class WirelessHandler(BaseHandler):
     async def _discover_ssid_entities(self) -> AsyncIterator[Entity]:
         """Discover entities for wireless SSIDs."""
         from ...meraki_select.rf_profile import MerakiRFProfileSelect
+        from ...select.meraki_group_policy_select import MerakiGroupPolicySelect
         from ...switch.meraki_ssid_device_switch import (
             MerakiSSIDBroadcastSwitch,
             MerakiSSIDEnabledSwitch,
@@ -152,6 +153,14 @@ class WirelessHandler(BaseHandler):
 
                 # RF Profile Select
                 yield MerakiRFProfileSelect(
+                    self._coordinator,
+                    self._meraki_client,
+                    self._config_entry,
+                    ssid,
+                )
+
+                # Group Policy Select
+                yield MerakiGroupPolicySelect(
                     self._coordinator,
                     self._meraki_client,
                     self._config_entry,

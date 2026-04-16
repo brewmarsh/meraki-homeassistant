@@ -10,7 +10,7 @@ from homeassistant.helpers.device_registry import DeviceEntryType, DeviceInfo
 
 from ..core.models.device import MerakiDevice
 from ..core.models.network import MerakiNetwork
-from ..core.utils.naming_utils import standardize_device_name, format_device_name
+from ..core.utils.naming_utils import format_device_name, standardize_device_name
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -88,12 +88,11 @@ def _resolve_physical_device_info(
 ) -> DeviceInfo | None:
     """Resolve DeviceInfo for a physical device."""
     device_serial = data.get("serial")
+    network_id = data.get("networkId")
     if device_serial:
         model = str(data.get("model") or "Unknown")
 
-        # Optimization: Use the centralized format_device_name. 
-        # Note: Ensure naming_utils.format_device_name includes the GS logic:
-        # is_switch = product_type == "switch" or model.startswith(("MS", "GS"))
+        # Optimization: Use the centralized format_device_name.
         name = format_device_name(data, config_entry.options)
 
         return DeviceInfo(
@@ -102,6 +101,7 @@ def _resolve_physical_device_info(
             manufacturer="Cisco Meraki",
             model=model,
             sw_version=str(data.get("firmware") or ""),
+            via_device=(DOMAIN, f"network_{network_id}") if network_id else None,
         )
     return None
 
@@ -121,7 +121,7 @@ def resolve_device_info(
     # Determine the effective data to use for device resolution.
     effective_data = entity_data
     is_ssid = False
-    
+
     if is_dataclass(effective_data):
         is_ssid = hasattr(effective_data, "number") and hasattr(
             effective_data, "networkId"

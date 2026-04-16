@@ -13,6 +13,7 @@ def create_api_client(
     api_key: str,
     org_id: str | None = None,
     base_url: str = "https://api.meraki.com/api/v1",
+    enabled_networks: list[str] | None = None,
 ) -> MerakiApiClientProtocolType:
     """
     Create a new Meraki API client with all endpoints configured.
@@ -22,10 +23,11 @@ def create_api_client(
         api_key: The Meraki API key.
         org_id: The organization ID.
         base_url: The base URL for the Meraki API.
+        enabled_networks: The list of enabled networks.
 
     Returns
     -------
         The configured Meraki API client.
 
     """
-    return MerakiClient(hass, api_key, org_id, base_url)
+    return MerakiClient(hass, api_key, org_id, base_url, enabled_networks)

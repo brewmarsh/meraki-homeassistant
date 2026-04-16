@@ -14,7 +14,7 @@ def mock_client():
     """Mock the Meraki API client."""
     client = MagicMock()
     client.dashboard = MagicMock()
-    client.run_sync = AsyncMock()
+    client.run_async = AsyncMock()
 
     async def mock_run_with_semaphore(coro):
         return await coro
@@ -37,13 +37,13 @@ def network(mock_client):
 async def test_get_group_policies(network, mock_client):
     """Test get_group_policies."""
     mock_data = [{"groupPolicyId": "gp1"}]
-    mock_client.run_sync.return_value = mock_data
+    mock_client.run_async.return_value = mock_data
 
     result = await network.get_group_policies("net1")
 
     assert result == mock_data
-    mock_client.run_sync.assert_called_once()
-    args, kwargs = mock_client.run_sync.call_args
+    mock_client.run_async.assert_called_once()
+    args, kwargs = mock_client.run_async.call_args
     assert kwargs["networkId"] == "net1"
 
 
@@ -56,7 +56,7 @@ async def test_get_group_policies_failure(network, mock_client):
     response.status_code = 400
     response.json.return_value = {"errors": ["Bad Request"]}
 
-    mock_client.run_sync.side_effect = APIError(metadata, response)
+    mock_client.run_async.side_effect = APIError(metadata, response)
 
     # Action 2: Expected raises MerakiConnectionError
     with pytest.raises(MerakiConnectionError):
@@ -68,16 +68,16 @@ async def test_get_network_events_filters_none(network, mock_client):
     """Test that get_network_events filters out None values from arguments."""
     # Arrange
     mock_client.dashboard.networks.getNetworkEvents.return_value = {"events": []}
-    mock_client.run_sync.return_value = {"events": []}
+    mock_client.run_async.return_value = {"events": []}
     network_id = "N_123"
 
     # Act
     await network.get_network_events(network_id)
 
     # Assert
-    mock_client.run_sync.assert_called_once()
-    args, kwargs = mock_client.run_sync.call_args
-    # First arg to run_sync is function, second is network_id
+    mock_client.run_async.assert_called_once()
+    args, kwargs = mock_client.run_async.call_args
+    # First arg to run_async is function, second is network_id
     assert args[0] == mock_client.dashboard.networks.getNetworkEvents
     assert args[1] == network_id
     # Ensure no None values in kwargs
@@ -96,7 +96,7 @@ async def test_get_network_events_failure(network, mock_client):
     response.status_code = 500
     response.json.return_value = {"errors": ["Internal Server Error"]}
 
-    mock_client.run_sync.side_effect = APIError(metadata, response)
+    mock_client.run_async.side_effect = APIError(metadata, response)
 
     # Action 2: Expected raises MerakiConnectionError
     with pytest.raises(MerakiConnectionError):
@@ -108,7 +108,7 @@ async def test_get_network_events_passes_values(network, mock_client):
     """Test that get_network_events passes non-None values correctly."""
     # Arrange
     mock_client.dashboard.networks.getNetworkEvents.return_value = {"events": []}
-    mock_client.run_sync.return_value = {"events": []}
+    mock_client.run_async.return_value = {"events": []}
     network_id = "N_123"
     product_type = "appliance"
 
@@ -116,6 +116,6 @@ async def test_get_network_events_passes_values(network, mock_client):
     await network.get_network_events(network_id, productType=product_type)
 
     # Assert
-    mock_client.run_sync.assert_called_once()
-    args, kwargs = mock_client.run_sync.call_args
+    mock_client.run_async.assert_called_once()
+    args, kwargs = mock_client.run_async.call_args
     assert kwargs.get("productType") == product_type

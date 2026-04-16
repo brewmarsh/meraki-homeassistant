@@ -44,7 +44,7 @@ class OrganizationEndpoints:
             The organization details.
 
         """
-        org = await self._api_client.run_sync(
+        org = await self._api_client.run_async(
             self._api_client.dashboard.organizations.getOrganization,
             organizationId=self._api_client.organization_id,
         )
@@ -68,7 +68,7 @@ class OrganizationEndpoints:
         if not self._api_client.has_dashboard:
             return []
 
-        networks = await self._api_client.run_sync(
+        networks = await self._api_client.run_async(
             self._api_client.dashboard.organizations.getOrganizationNetworks,
             organizationId=self._api_client.organization_id,
         )
@@ -89,7 +89,7 @@ class OrganizationEndpoints:
             A list of firmware upgrades.
 
         """
-        upgrades = await self._api_client.run_sync(
+        upgrades = await self._api_client.run_async(
             self._api_client.dashboard.organizations.getOrganizationFirmwareUpgrades,
             organizationId=self._api_client.organization_id,
         )
@@ -110,7 +110,7 @@ class OrganizationEndpoints:
             A list of device statuses.
 
         """
-        statuses = await self._api_client.run_sync(
+        statuses = await self._api_client.run_async(
             self._api_client.dashboard.organizations.getOrganizationDevicesStatuses,
             organizationId=self._api_client.organization_id,
             total_pages="all",
@@ -132,7 +132,7 @@ class OrganizationEndpoints:
             A list of device availabilities.
 
         """
-        availabilities = await self._api_client.run_sync(
+        availabilities = await self._api_client.run_async(
             self._api_client.dashboard.organizations.getOrganizationDevicesAvailabilities,
             organizationId=self._api_client.organization_id,
             total_pages="all",
@@ -156,7 +156,7 @@ class OrganizationEndpoints:
             A list of devices.
 
         """
-        devices = await self._api_client.run_sync(
+        devices = await self._api_client.run_async(
             self._api_client.dashboard.organizations.getOrganizationDevices,
             organizationId=self._api_client.organization_id,
         )
@@ -177,7 +177,7 @@ class OrganizationEndpoints:
             A list of organizations.
 
         """
-        orgs = await self._api_client.run_sync(
+        orgs = await self._api_client.run_async(
             self._api_client.dashboard.organizations.getOrganizations
         )
         validated = validate_response(orgs)
@@ -199,7 +199,7 @@ class OrganizationEndpoints:
             A list of wireless SSIDs statuses.
 
         """
-        statuses = await self._api_client.run_sync(
+        statuses = await self._api_client.run_async(
             self._api_client.dashboard.organizations.getOrganizationWirelessSsidsStatusesByDevice,
             organizationId=self._api_client.organization_id,
             total_pages="all",
@@ -221,7 +221,7 @@ class OrganizationEndpoints:
             A list of switch ports statuses.
 
         """
-        statuses = await self._api_client.run_sync(
+        statuses = await self._api_client.run_async(
             self._api_client.dashboard.switch.getOrganizationSwitchPortsStatusesBySwitch,
             organizationId=self._api_client.organization_id,
             total_pages="all",

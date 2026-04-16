@@ -1,6 +1,6 @@
 """Test the Meraki HA config flow."""
 
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, patch
 
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
@@ -16,13 +16,17 @@ from homeassistant.data_entry_flow import FlowResultType
 
 
 async def test_form(hass: HomeAssistant) -> None:
-    """Test we get the form."""
+    """Test the multi-step config flow."""
+    from custom_components.meraki_ha.const.config import CONF_ENABLED_NETWORKS
+
     await setup.async_setup_component(hass, "persistent_notification", {})
+
+    # Step 1: User enters API Key
     result = await hass.config_entries.flow.async_init(
         DOMAIN, context={"source": config_entries.SOURCE_USER}
     )
     assert result["type"] == FlowResultType.FORM
-    assert result["errors"] == {}
+    assert result["step_id"] == "user"
 
     with (
         patch(
@@ -34,7 +38,6 @@ async def test_form(hass: HomeAssistant) -> None:
             return_value=True,
         ) as mock_setup_entry,
     ):
-        # Action 1: Use AsyncMock for the client
         mock_client = AsyncMock()
         mock_create_client.return_value = mock_client
 
@@ -42,21 +45,49 @@ async def test_form(hass: HomeAssistant) -> None:
         mock_client.get_organizations = AsyncMock(
             return_value=[{"id": "test-org-id", "name": "Test Org"}]
         )
+        mock_client.organization.get_organization_networks = AsyncMock(
+            return_value=[{"id": "test-net-id", "name": "Test Network"}]
+        )
 
+        # Submit API Key
         result2 = await hass.config_entries.flow.async_configure(
             result["flow_id"],
             {
                 CONF_MERAKI_API_KEY: "test-api-key",
+            },
+        )
+        await hass.async_block_till_done()
+
+        assert result2["type"] == FlowResultType.FORM
+        assert result2["step_id"] == "org"
+
+        # Step 2: User selects Organization
+        result3 = await hass.config_entries.flow.async_configure(
+            result2["flow_id"],
+            {
                 CONF_MERAKI_ORG_ID: "test-org-id",
             },
         )
         await hass.async_block_till_done()
 
-    assert result2["type"] == FlowResultType.CREATE_ENTRY
-    assert result2["title"] == "Cisco Meraki"
-    assert result2["data"] == {
+        assert result3["type"] == FlowResultType.FORM
+        assert result3["step_id"] == "networks"
+
+        # Step 3: User selects Networks
+        result4 = await hass.config_entries.flow.async_configure(
+            result3["flow_id"],
+            {
+                CONF_ENABLED_NETWORKS: ["test-net-id"],
+            },
+        )
+        await hass.async_block_till_done()
+
+    assert result4["type"] == FlowResultType.CREATE_ENTRY
+    assert result4["title"] == "Cisco Meraki"
+    assert result4["data"] == {
         CONF_MERAKI_API_KEY: "test-api-key",
         CONF_MERAKI_ORG_ID: "test-org-id",
+        CONF_ENABLED_NETWORKS: ["test-net-id"],
     }
     assert len(mock_setup_entry.mock_calls) == 1
 
@@ -76,7 +107,6 @@ async def test_form_cannot_connect(hass: HomeAssistant) -> None:
             result["flow_id"],
             {
                 CONF_MERAKI_API_KEY: "test-api-key",
-                CONF_MERAKI_ORG_ID: "test-org-id",
             },
         )
 

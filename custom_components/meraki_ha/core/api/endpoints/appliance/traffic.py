@@ -42,7 +42,7 @@ class ApplianceTrafficMixin:
             A list of traffic data.
 
         """
-        traffic = await self._api_client.run_sync(
+        traffic = await self._api_client.run_async(
             self._api_client.dashboard.appliance.getNetworkApplianceTraffic,
             networkId=network_id,
             timespan=timespan,
@@ -67,7 +67,7 @@ class ApplianceTrafficMixin:
             The traffic shaping settings.
 
         """
-        settings = await self._api_client.run_sync(
+        settings = await self._api_client.run_async(
             self._api_client.dashboard.appliance.getNetworkApplianceTrafficShaping,
             networkId=network_id,
         )
@@ -95,7 +95,7 @@ class ApplianceTrafficMixin:
             The updated traffic shaping settings.
 
         """
-        settings = await self._api_client.run_sync(
+        settings = await self._api_client.run_async(
             self._api_client.dashboard.appliance.updateNetworkApplianceTrafficShaping,
             networkId=network_id,
             **kwargs,
