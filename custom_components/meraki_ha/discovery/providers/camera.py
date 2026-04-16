@@ -11,6 +11,7 @@ from custom_components.meraki_ha.const.config import (
 )
 
 from ...binary_sensor.device.camera_motion import MerakiMotionSensor
+from ...binary_sensor.device.camera_person import MerakiPersonSensor
 from ...button.device.camera_snapshot import MerakiSnapshotButton
 from ...core.errors import MerakiInformationalError
 from ...sensor.device.camera_analytics import (
@@ -95,6 +96,12 @@ class CameraStreamProvider:
 
         return [
             MerakiMotionSensor(
+                coordinator,
+                device,
+                camera_service,
+                config_entry,
+            ),
+            MerakiPersonSensor(
                 coordinator,
                 device,
                 camera_service,
