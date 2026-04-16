@@ -5,6 +5,8 @@ from __future__ import annotations
 import logging
 from typing import Any
 
+from homeassistant.helpers.update_coordinator import UpdateFailed
+
 from ...coordinators.base import MerakiBaseCoordinator
 
 _LOGGER = logging.getLogger(__name__)
@@ -29,6 +31,9 @@ class SsidFirewallCoordinator(MerakiBaseCoordinator[dict[str, Any]]):
                 _LOGGER.error(
                     "Error fetching clients for network %s: %s", network_id, err
                 )
+                raise UpdateFailed(
+                    f"Error fetching clients for {network_id}: {err}"
+                ) from err
 
         return {
             "rules": [],
