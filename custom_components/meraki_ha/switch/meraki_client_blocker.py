@@ -33,13 +33,13 @@ class MerakiClientBlockerSwitch(MerakiSwitch):
         super().__init__(firewall_coordinator)
         self._config_entry = config_entry
         self._client_data = client_data
-        self._client_ip = client_data.get("ip")
         self._client_mac = client_data["mac"]
+        self._network_id = client_data.get("networkId")
 
         self.entity_description = SwitchEntityDescription(
             key=f"client_blocker_{self._client_mac}",
             name="Internet Access",
-            icon="mdi:web-cancel",
+            icon="mdi:web",
         )
 
         self._attr_unique_id = f"meraki-client-{self._client_mac}-blocker"
@@ -69,46 +69,61 @@ class MerakiClientBlockerSwitch(MerakiSwitch):
         self.async_write_ha_state()
 
     def _update_internal_state(self) -> None:
-        """Update the internal state of the switch based on firewall rules."""
-        if not self.coordinator.data or not self._client_ip:
-            self._attr_is_on = False
+        """Update the internal state of the switch based on client policy."""
+        if self.coordinator.is_pending(self.entity_description.key):
             return
 
-        rules = self.coordinator.data.get("rules", [])
-        is_blocked = any(
-            rule.get("policy") == "deny" and self._client_ip in rule.get("value", "")
-            for rule in rules
-        )
-        self._attr_is_on = is_blocked
+        # Default to client_data policy or Normal if not known
+        device_policy = self._client_data.get("devicePolicy", "Normal")
+
+        if self.coordinator.data:
+            clients = self.coordinator.data.get("clients", [])
+            for client in clients:
+                if client.get("mac") == self._client_mac:
+                    device_policy = client.get("devicePolicy", "Normal")
+                    break
+
+        # ON = Normal (Internet Allowed), OFF = Blocked
+        self._attr_is_on = device_policy == "Normal"
 
     async def async_turn_on(self, **kwargs: Any) -> None:
-        """Turn the switch on (block the client)."""
-        if not self._client_ip:
-            raise HomeAssistantError("Client IP address is not available.")
+        """Turn the switch on (unblock the client)."""
+        if not self._network_id:
+            raise HomeAssistantError("Network ID is not available.")
+
+        old_state = self._attr_is_on
+        self._attr_is_on = True
+        self.async_write_ha_state()
+
         try:
-            await self.coordinator.async_block_client(self._client_ip)
-        except Exception as e:
-            _LOGGER.error(
-                "Failed to block client %s: %s",
-                self._client_mac,
-                e,
+            await self.coordinator.async_unblock_client(
+                self._client_mac, self._network_id
             )
+        except Exception as e:
+            self._attr_is_on = old_state
+            self.async_write_ha_state()
+            _LOGGER.error("Failed to unblock client %s: %s", self._client_mac, e)
             raise HomeAssistantError(
-                f"Failed to block client {self._client_mac}: {e}"
+                f"Failed to allow internet for {self._client_mac}: {e}"
             ) from e
 
     async def async_turn_off(self, **kwargs: Any) -> None:
-        """Turn the switch off (unblock the client)."""
-        if not self._client_ip:
-            raise HomeAssistantError("Client IP address is not available.")
+        """Turn the switch off (block the client)."""
+        if not self._network_id:
+            raise HomeAssistantError("Network ID is not available.")
+
+        old_state = self._attr_is_on
+        self._attr_is_on = False
+        self.async_write_ha_state()
+
         try:
-            await self.coordinator.async_unblock_client(self._client_ip)
-        except Exception as e:
-            _LOGGER.error(
-                "Failed to unblock client %s: %s",
-                self._client_mac,
-                e,
+            await self.coordinator.async_block_client(
+                self._client_mac, self._network_id
             )
+        except Exception as e:
+            self._attr_is_on = old_state
+            self.async_write_ha_state()
+            _LOGGER.error("Failed to block client %s: %s", self._client_mac, e)
             raise HomeAssistantError(
-                f"Failed to unblock client {self._client_mac}: {e}"
+                f"Failed to block internet for {self._client_mac}: {e}"
             ) from e

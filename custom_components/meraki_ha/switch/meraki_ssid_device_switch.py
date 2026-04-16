@@ -1,14 +1,15 @@
 """Switch entities for controlling Meraki SSID devices."""
 
+import asyncio
 import logging
 from typing import Any
 
+from custom_components.meraki_ha.const.integration import DOMAIN
 from homeassistant.components.switch import SwitchEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import callback
+from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.device_registry import DeviceInfo
-
-from custom_components.meraki_ha.const.integration import DOMAIN
 
 from ..coordinators import MerakiSwitchCoordinator
 from ..core.api import MerakiApiClientProtocol
@@ -155,8 +156,9 @@ class MerakiSSIDBaseSwitch(MerakiEntity, SwitchEntity):
     async def _update_ssid_setting(self, value: bool) -> None:
         """Update the specific SSID setting (enabled or visible) via API."""
         if not self._network_id or self._ssid_number is None:
-            _LOGGER.error("Cannot update SSID: Missing networkId or SSID number.")
-            return
+            raise HomeAssistantError(
+                "Cannot update SSID: Missing networkId or SSID number."
+            )
 
         # Optimistically update the UI for immediate feedback
         old_value = self._attr_is_on
@@ -169,17 +171,58 @@ class MerakiSSIDBaseSwitch(MerakiEntity, SwitchEntity):
         payload = {self._attribute_to_check: value}
 
         try:
-            await self._meraki_client.wireless.update_network_wireless_ssid(
-                network_id=self._network_id,
-                number=self._ssid_number,
-                **payload,
-            )
+            # Task 3: Harden with explicit timeout
+            async with asyncio.timeout(10):
+                await self._meraki_client.wireless.update_network_wireless_ssid(
+                    network_id=self._network_id,
+                    number=self._ssid_number,
+                    **payload,
+                )
+
             _LOGGER.debug(
-                "Successfully updated SSID %s %s to %s",
+                "Successfully updated SSID %s %s to %s. Verifying...",
                 self._ssid_name,
                 self._attribute_to_check,
                 value,
             )
+
+            # Trigger a background refresh to confirm the state change at the source
+            await self.coordinator.async_request_refresh()
+
+            # Verify the state change
+            current_data = self._get_current_ssid_data()
+            if current_data:
+                actual_value = current_data.get(self._attribute_to_check)
+                if actual_value != value:
+                    _LOGGER.warning(
+                        "SSID %s %s was set to %s but Meraki API reports %s "
+                        "after refresh",
+                        self._ssid_name,
+                        self._attribute_to_check,
+                        value,
+                        actual_value,
+                    )
+                    # Revert internal state if verification fails
+                    self._attr_is_on = actual_value
+                    self.async_write_ha_state()
+
+            if self.unique_id:
+                self.coordinator.cancel_pending_update(self.unique_id)
+
+        except asyncio.TimeoutError as err:
+            _LOGGER.error(
+                "Timeout updating SSID %s %s: %s",
+                self._ssid_name,
+                self._attribute_to_check,
+                err,
+            )
+            # Revert optimistic update
+            self._attr_is_on = old_value
+            self.async_write_ha_state()
+            raise HomeAssistantError(
+                f"Timeout updating SSID {self._ssid_name} "
+                f"{self._attribute_to_check} after 10s"
+            ) from err
         except Exception as err:
             _LOGGER.error(
                 "Error updating SSID %s %s: %s",
@@ -192,6 +235,10 @@ class MerakiSSIDBaseSwitch(MerakiEntity, SwitchEntity):
             if self.unique_id:
                 self.coordinator.cancel_pending_update(self.unique_id)
             self.async_write_ha_state()
+            raise HomeAssistantError(
+                f"Error updating SSID {self._ssid_name} "
+                f"{self._attribute_to_check}: {err}"
+            ) from err
 
     async def async_turn_on(self, **kwargs: Any) -> None:
         """Turn the switch on."""
