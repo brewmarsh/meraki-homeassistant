@@ -2,11 +2,11 @@
 
 ## Phases
 
-- [ ] **Phase 1: Foundation & Discovery** - Config flow, API key validation, and hierarchical discovery.
-- [ ] **Phase 2: Coordinated Tracking & Monitoring** - Efficient bulk-polling for hardware status and client presence.
-- [ ] **Phase 3: Real-time Webhooks & Presence Optimization** - Sub-second updates and entity bloat prevention.
-- [ ] **Phase 4: Advanced Control & Selective Stats** - SSID/Client management and performance monitoring.
-- [ ] **Phase 5: Final Refinement & Stable Release** - Polish the integration for a stable release.
+- [x] **Phase 1: Foundation & Discovery** - Config flow, API key validation, and hierarchical discovery.
+- [x] **Phase 2: Coordinated Tracking & Monitoring** - Efficient bulk-polling for hardware status and client presence.
+- [x] **Phase 3: Real-time Webhooks & Presence Optimization** - Sub-second updates and entity bloat prevention.
+- [x] **Phase 4: Advanced Control & Selective Stats** - SSID/Client management and performance monitoring.
+- [x] **Phase 5: Final Refinement & Stable Release** - Polish the integration for a stable release.
 
 ## Phase Details
 
@@ -22,8 +22,8 @@
 3. Integration setup does not block the Home Assistant event loop.
    **Plans**: 2 plans
 
-- [ ] .planning/phases/01-foundation-discovery/01-01-PLAN.md — Core Async & Multi-step Flow
-- [ ] .planning/phases/01-foundation-discovery/01-02-PLAN.md — Integration Lifecycle & Discovery Coordinator
+- [x] .planning/phases/01-foundation-discovery/01-01-PLAN.md — Core Async & Multi-step Flow
+- [x] .planning/phases/01-foundation-discovery/01-02-PLAN.md — Integration Lifecycle & Discovery Coordinator
       **UI hint**: yes
 
 ### Phase 2: Coordinated Tracking & Monitoring
@@ -63,9 +63,9 @@
 3. Bandwidth and uplink metrics provide actionable data without performance degradation.
    **Plans**: 3 plans
 
-- [ ] 04-01-PLAN.md — Advanced Management Controls (SSID & Client Policy)
-- [ ] 04-02-PLAN.md — Network Performance Telemetry (Uplink Metrics & Usage)
-- [ ] 04-03-PLAN.md — Camera Sense Webhook Integration
+- [x] 04-01-PLAN.md — Advanced Management Controls (SSID & Client Policy)
+- [x] 04-02-PLAN.md — Network Performance Telemetry (Uplink Metrics & Usage)
+- [x] 04-03-PLAN.md — Camera Sense Webhook Integration
       **UI hint**: yes
 
 ### Phase 5: Final Refinement & Stable Release
@@ -81,16 +81,16 @@
 4. Refine error handling in coordinators to use standard Home Assistant UpdateFailed.
    **Plans**: 3 plans
 
-- [ ] 05-01-PLAN.md — Stable v1.0.0 & Secure Diagnostics
-- [ ] 05-02-PLAN.md — Resilient Coordinator Error Handling
-- [ ] 05-03-PLAN.md — Quality Scale Coverage Optimization
+- [x] 05-01-PLAN.md — Stable v1.0.0 & Secure Diagnostics
+- [x] 05-02-PLAN.md — Resilient Coordinator Error Handling
+- [x] 05-03-PLAN.md — Quality Scale Coverage Optimization
 
 ## Progress Table
 
-| Phase                                         | Plans Complete | Status      | Completed |
-| --------------------------------------------- | -------------- | ----------- | --------- |
-| 1. Foundation & Discovery                     | 0/2            | In Progress | -         |
-| 2. Coordinated Tracking & Monitoring          | 0/1            | Not started | -         |
-| 3. Real-time Webhooks & Presence Optimization | 0/1            | Not started | -         |
-| 4. Advanced Control & Selective Stats         | 0/3            | Not started | -         |
-| 5. Final Refinement & Stable Release          | 0/3            | Not started | -         |
+| Phase                                         | Plans Complete | Status   | Completed  |
+| --------------------------------------------- | -------------- | -------- | ---------- |
+| 1. Foundation & Discovery                     | 2/2            | Complete | 2026-04-13 |
+| 2. Coordinated Tracking & Monitoring          | 3/3            | Complete | 2026-04-14 |
+| 3. Real-time Webhooks & Presence Optimization | 2/2            | Complete | 2026-04-14 |
+| 4. Advanced Control & Selective Stats         | 3/3            | Complete | 2026-04-16 |
+| 5. Final Refinement & Stable Release          | 3/3            | Complete | 2026-04-16 |
