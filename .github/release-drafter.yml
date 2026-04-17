@@ -1,10 +1,8 @@
-name-template: 'v$RESOLVED_VERSION'
-tag-template: 'v$RESOLVED_VERSION'
 categories:
   - title: '🚀 Features'
     labels:
       - 'feature'
-      - 'enhancement'
+      - 'feat'
   - title: '🐛 Bug Fixes'
     labels:
       - 'fix'
@@ -12,29 +10,9 @@ categories:
   - title: '🧰 Maintenance'
     labels:
       - 'chore'
-      - 'maintenance'
       - 'refactor'
-  - title: '📝 Documentation'
-    labels:
-      - 'documentation'
       - 'docs'
-  - title: '📦 Dependencies'
-    labels:
-      - 'dependencies'
-change-template: '- $TITLE @$AUTHOR (#$NUMBER)'
-change-title-escapes: '\<*_&' # You can add # and @ to disable allow-listing
-version-resolver:
-  major:
-    labels:
-      - 'major'
-  minor:
-    labels:
-      - 'minor'
-  patch:
-    labels:
-      - 'patch'
-  default: patch
 template: |
-  ## What's Changed
+  ## What’s Changed
 
   $CHANGES

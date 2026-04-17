@@ -1,52 +1,54 @@
-# AI Agent Instructions
+# Layered Architecture and Data Flow
 
-**Primary Objective:** Refactor the `meraki_ha` Home Assistant integration to a modern, layered architecture that is scalable, highly testable, and robust against API failures. Prioritize a modular design to enable future feature expansion without significant refactoring.
+The Meraki HA integration follows a strict layered architecture to ensure scalability and ease of maintenance.
 
-**Core Instructions:**
+## 1. Architecture Layers
 
-1.  **Strictly Adhere to the Implementation Plan:** Follow the provided ## Updated Design and Implementation Plan sequentially. Do not deviate from the specified phases and components.
-2.  **Focus on Unit Testing:** Write comprehensive unit tests for each new class and function as you develop it. Use in-memory mocks for any external dependencies (e.g., the `MerakiApiClient` and `MerakiRepository`). Minimize the number of full integration tests to conserve disk space.
-3.  **Modular Code Structure:** Create separate Python files and directories as outlined in the plan (e.g., `meraki_ha/api/`, `meraki_ha/repository/`, `meraki_ha/hubs/`). Ensure each file contains a single, well-defined class or module.
-4.  **Clear Documentation:** Add docstrings to all new classes and public methods, explaining their purpose, parameters, and return values. This is crucial for future maintenance and for other agents.
-5.  **Git Commits:** Make small, logical commits for each completed sub-task (e.g., "feat: Implement MerakiApiClient with circuit breaker," "refactor: Add MerakiRepository and FSM").
+### 1.1. Data Source (Meraki Cloud)
 
-**Constraints & Guidelines:**
+The source of truth. Data is retrieved via the official Meraki Dashboard SDK (v1.x).
 
-- **No Unnecessary Packages:** Only install libraries that are strictly necessary for the new architecture (e.g., `tenacity` for the circuit breaker, if not already present).
-- **Disk Space Management:** Be mindful of disk usage during testing. Delete any temporary files generated and avoid storing large test fixtures in the codebase.
-- **Handle Errors Gracefully:** Implement robust error handling at all layers, logging issues clearly without crashing the integration.
+### 1.2. Client Layer (`core/api/`)
 
----
+Stateless wrapper for the Meraki SDK.
 
-## Updated Design and Implementation Plan
+- **`MerakiAPIClient`**: Orchestrates all network requests.
+- **Throttling**: Implements a global semaphore to ensure we do not exceed organization rate limits.
 
-This plan is a cohesive roadmap for refactoring the `meraki_ha` integration. It combines a robust architectural design with a practical, step-by-step implementation guide, built to be executed by AI coding agents.
+### 1.3. Strategy Layer (`core/fetch_strategies/`)
 
-### Architectural Design: A Layered and Modular Approach
+The "heavy lifting" layer. Strategies are responsible for:
 
-The architecture is based on a clean separation of concerns, ensuring each component has a single, well-defined responsibility.
+- Fetching specific slices of data (e.g., `ApplianceUplinkHelper`).
+- Normalizing varied API response formats into consistent internal models.
+- Merging disparate data (e.g., combining status and performance metrics).
 
-- **API Layer:** The `MerakiApiClient` handles low-level HTTP requests and responses. It is a stateless, pure client.
-- **Data Access Layer:** The `MerakiRepository` sits on top of the `MerakiApiClient`. It is responsible for caching data, managing the API connection state with a **Finite State Machine (FSM)**, and handling retries/rate-limiting.
-- **Logic Layer:** The `OrganizationHub` and `NetworkHub` orchestrate the integration's logic. They are responsible for polling at appropriate intervals and managing the Home Assistant device/entity registry. They are decoupled from data access via **Dependency Injection (DI)** of the `MerakiRepository`.
-- **Entity Discovery Layer:** A modular `DeviceDiscoveryService` uses a collection of device-specific `Handlers` to dynamically create Home Assistant entities. This pattern makes adding support for new devices straightforward.
+### 1.4. Orchestration Layer (`core/coordinators/`)
 
-## Implementation Plan
+- **`MerakiMainCoordinator`**: Manages the integration state.
+- **Tiered Polling**: Uses different intervals for "fast" data (Online/Offline) vs "slow" data (Versions/Settings).
+- **Update Cycle**: `Coordinator` -> `Strategy` -> `Processor` -> `Registry`.
 
-### Phase 1: Foundational Layers (API Client & Repository)
+### 1.5. Platform Layer (`sensor/`, `switch/`, etc.)
 
-1.  **Refactor `OrganizationHub` and `NetworkHub` (`meraki_ha/hubs/`)**:
-    - **Extract Logic into Helper Methods:** The main `_async_update_data` method should primarily serve as an orchestrator. Move complex data processing, filtering, or transformation logic into private helper methods within the same file.
-    - **Maintain Small File Sizes:** If a hub's file becomes too large, consider whether some of its logic could be moved to a dedicated service class (e.g., `meraki_ha/services/state_manager.py`).
+Home Assistant specific implementations.
 
-### Phase 3: Modular Entity Discovery
+- **Optimistic Entities**: Specialized base classes for entities that modify state.
+- **Registration**: Entities are dynamically created by `DiscoveryService` handlers.
 
-1.  **Develop `DeviceHandlers` (`meraki_ha/discovery/handlers/`)**:
-    - **Enforce the 300-Line Limit:** If a handler file (e.g., `MRHandler.py`) becomes too large, it suggests that the handler is trying to do too much. Break its entity creation logic into multiple, separate functions.
-2.  **Create `DeviceDiscoveryService` (`meraki_ha/discovery/service.py`)**:
-    - **Simplify the Core Loop:** Ensure the `discover_entities` method is a simple loop that delegates all complex work to the `DeviceHandlers`. The code should be clear and have a low cyclomatic complexity.
+## 2. Request Life Cycle
 
-### Phase 4: Testing and Project Cleanup
+### 2.1. Inbound Update (Webhook)
 
-1.  **Prioritize Lightweight Tests:** When writing tests, focus on testing individual methods and functions, not entire classes. This keeps test files small and prevents the need for large, deeply nested test fixtures.
-2.  **Linting and Formatting:** Use automated tools like `black` or `ruff` to ensure consistent code style and formatting across the entire project. This improves readability and helps prevent subtle errors that can be caused by inconsistent indentation.
+1. Meraki Cloud sends a POST request to the HA Webhook endpoint.
+2. `webhook.py` validates the `sharedSecret`.
+3. The specific handler (e.g., `_handle_camera_motion_alert`) parses the payload.
+4. The coordinator is notified and immediately updates the relevant device state.
+
+### 2.2. Outbound Command (Service Call)
+
+1. User toggles a switch in the HA UI.
+2. `async_turn_on` performs an **Optimistic Update** (UI reflects change instantly).
+3. `register_pending_update` starts a cooldown timer.
+4. The `MerakiAPIClient` sends the command to Meraki.
+5. On failure, the entity reverts state after the cooldown expires.

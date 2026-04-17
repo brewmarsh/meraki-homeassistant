@@ -1,58 +1,51 @@
-name: Release
+name: Release Pipeline
 
 on:
   push:
     branches:
-      - beta
       - main
-
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+      - beta
 
 permissions:
   contents: write
+  pull-requests: write
 
 jobs:
   release:
+    name: 'Version & Release'
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
+          fetch-depth: 0
           token: ${{ secrets.PAT_TOKEN }}
-          fetch-depth: 0 # CRITICAL: Prevents diverged branch errors when committing back
-          ref: ${{ github.ref }} # Ensure we are on the exact branch
 
-      - name: Set up Python
-        uses: actions/setup-python@v6
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v5
         with:
-          python-version: '3.11'
+          python-version: '3.13'
+          enable-cache: true
 
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install bump-my-version jq
+      - name: Install bump-my-version
+        run: uv pip install --system bump-my-version
 
-      - name: Determine release part
-        id: part
+      - name: Determine Version Bump
+        id: bump_part
         run: |
-          if [[ "${{ github.ref }}" == "refs/heads/beta" ]]; then
-            echo "part=beta" >> $GITHUB_ENV
-          elif [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
-            echo "part=patch" >> $GITHUB_ENV
+          # Use [major], [minor], [patch] from commit message if present
+          # Default to patch for beta, minor for main if no tags
+          COMMIT_MSG=$(git log -1 --pretty=%B)
+          if [[ "$COMMIT_MSG" == *"[major]"* ]]; then
+            echo "part=major" >> $GITHUB_OUTPUT
+          elif [[ "$COMMIT_MSG" == *"[minor]"* ]]; then
+            echo "part=minor" >> $GITHUB_OUTPUT
           else
-            echo "Unsupported branch for release"
-            exit 1
+            echo "part=patch" >> $GITHUB_OUTPUT
           fi
 
-      - name: Run release script
-        run: ./scripts/release.sh ${{ env.part }}
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v6
-        with:
-          node-version: '20'
+      - name: Bump Version
+        run: |
+          uv run bump-my-version bump ${{ steps.bump_part.outputs.part }} --allow-dirty
 
       - name: Build Frontend
         working-directory: frontend
@@ -60,21 +53,23 @@ jobs:
           npm ci
           npm run build
 
-      - name: Commit and push changes
-        uses: stefanzweifel/git-auto-commit-action@v7
+      - name: Commit & Push Changes
+        uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          commit_message: 'chore(release): version bump [skip ci]'
-          branch: ${{ github.ref_name }}
-          # CORRECT: Updated to .toml and explicitly included all bumped files
-          file_pattern: 'custom_components/meraki_ha/manifest.json package.json frontend/package.json frontend/package-lock.json .bumpversion.toml package-lock.json'
+          commit_message: 'chore(release): version bump to v${{ steps.get_version.outputs.version }} [skip ci]'
+          file_pattern: 'custom_components/meraki_ha/manifest.json package.json frontend/package.json .bumpversion.toml'
 
-      - name: Get version
+      - name: Get New Version
         id: get_version
-        run: echo "tag=v$(jq -r .version custom_components/meraki_ha/manifest.json)" >> $GITHUB_OUTPUT
+        run: |
+          VERSION=$(grep -Po '(?<="version": ")[^"]*' custom_components/meraki_ha/manifest.json)
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
 
-      - name: Create GitHub Release
-        uses: softprops/action-gh-release@v3
+      - name: Create Release
+        uses: release-drafter/release-drafter@v6
         with:
-          tag_name: ${{ steps.get_version.outputs.tag }}
+          publish: true
+          tag: v${{ steps.get_version.outputs.version }}
           prerelease: ${{ github.ref_name == 'beta' }}
-          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

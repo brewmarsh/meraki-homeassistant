@@ -1,84 +1,43 @@
-# Agent instructions and project standards
+# Agent Instructions and Project Standards (v2.6.0)
 
-## 1. Project overview
-Meraki Home Assistant integration using the Meraki Dashboard API.
+## 1. Project Overview
 
-## 2. Core architecture
-The integration follows a structured data flow:
-`Coordinator` -> `DataFetchManager` -> `FetchStrategies` -> `DataProcessor` -> `Entities`.
+A high-performance Meraki Home Assistant integration utilizing a centralized coordinator and specialized fetch strategies.
 
-## 3. Concurrency model
-To ensure efficient API usage and prevent rate limiting, the integration uses `asyncio.gather` for parallel requests. All outgoing requests are throttled by a central semaphore managed by the `MerakiAPIClient`.
+## 2. Core Architecture
 
-## 4. Key entry points
-- `async_setup_entry` in `custom_components/meraki_ha/__init__.py`: Initializes the integration for a config entry.
-- `coordinator.async_config_entry_first_refresh()`: Triggered during setup to perform the initial data fetch.
+- **Coordinator:** `MerakiMainCoordinator` (central state management).
+- **Fetch Logic:** Modular `FetchStrategies` (e.g., `ApplianceUplinkHelper`) for parallel, throttled API requests.
+- **Discovery:** `DiscoveryService` with platform-specific handlers.
 
-## 5. Chain of thought (Mandatory)
+## 3. Mandatory Development Pattern (Optimistic UI)
 
-Before writing any code, the agent must provide a **Technical Plan** in the task response:
+To prevent "toggle flicker" caused by Meraki API latency, all interactive entities MUST:
 
-- **Context:** Identify the current branch and confirm it is derived from `beta`.
-- **Impact:** List every file to be modified and justify the change.
-- **Risk:** Identify if the change affects shared files like `manifest.json` or `strings.json`.
-- **Verification:** State exactly which command will be used to test the fix.
+1. Update `self._attr_is_on` / `self._attr_native_value` immediately.
+2. Call `self.async_write_ha_state()`.
+3. Invoke the API call.
+4. Register a pending update: `self.coordinator.register_pending_update(self.unique_id)`.
+5. Check `if self.coordinator.is_pending(self.unique_id): return` in the update handler.
 
-## 6. Git & branch management
+## 4. Quality & "Agent Readiness" Standards
 
-- **Targeting:** ALL work MUST target the `beta` branch. `main` is protected for production releases only.
-- **Branch Naming:** Use the following prefixes:
-  - `feat/` for new capabilities.
-  - `fix/` for bug fixes.
-  - `chore/` for maintenance (security audits, dependency updates).
-  - `refactor/` for code structure changes (like the `meraki_select` rename).
-- **Linear History:** Use `git rebase origin/beta`. Merge commits are forbidden.
+- **ACL (Agent Cognitive Load):** Max **10** per function.
+- **Function Length:** Max **50** lines.
+- **Nesting:** Max depth of **2**.
+- **Type Safety:** All new code MUST have 100% type hint coverage.
+- **File Length:** Keep files under **300** lines.
 
-## 7. Separation of concerns & architecture
+## 5. Tooling & Git
 
-- **Platform Isolation:** Keep logic for `sensor`, `binary_sensor`, and `select` strictly within their respective files.
-- **Module Shadowing:** NEVER name a local folder after a standard Python library.
-  - _Rule:_ `custom_components/meraki_ha/select/` MUST be `custom_components/meraki_ha/meraki_select/`.
-- **UI vs Logic:** Integration setup logic belongs in `config_flow.py`; hardware communication belongs in `api.py` or `coordinator.py`.
-- **Selectors:** Raw Voluptuous types are forbidden in `config_flow.py`. Use `homeassistant.helpers.selector`.
+- **Env:** Always use `uv` for dependency management.
+- **Target:** Branch from `beta`. Linear history only (use rebase).
+- **Versioning:** Automated via PR title labels (`[major]`, `[minor]`, `[patch]`).
 
-## 8. Environment & dependencies
+## 6. PR Requirements
 
-- **Testing Stubs:** Do not install `homeassistant` core in CI. Use `pytest-homeassistant-custom-component`.
-- **Security:** `pip-audit` must be run with the `-l` (local) flag to ignore system packages (e.g., `ufw`, `cloud-init`).
+Every PR MUST include:
 
-## 9. Automated self-correction
-
-- If a merge conflict is detected, the agent is authorized to self-initiate a rebase onto `beta`.
-- If a CI failure occurs, the agent must read the error log, explain the failure in the PR, and attempt one automated fix before requesting human intervention.
-
-## 10. Repository map (Source of truth)
-
-- `custom_components/meraki_ha/`: Root of the integration.
-- `config_flow.py`: UI setup and validation logic.
-- `coordinator.py`: Data update coordinator (API polling logic).
-- `api.py`: Direct interactions with the Meraki Dashboard API.
-- `tests/`: All pytest logic (do not create tests outside this folder).
-
-## 11. Code style examples
-
-- **Async/Await:** All I/O bound operations MUST be async.
-  - _Bad:_ `requests.get(url)`
-  - _Good:_ `await hass.async_add_executor_job(requests.get, url)` OR use `aiohttp`.
-- **Logging:** Use the integration logger, not print.
-  - _Good:_ `_LOGGER.debug("Meraki device %s found", device_id)`
-- **Type Hinting:** Strictly enforce `Callables`, `Awaitables`, and `ConfigEntry` types.
-
-## 12. Forbidden patterns (Strict)
-
-- **NO** `time.sleep()`: This blocks the Home Assistant event loop.
-- **NO** generic `except Exception:`: You must catch specific errors (e.g., `ClientError`, `TimeoutError`) to prevent swallowing bugs.
-- **NO** hardcoded secrets: Never hardcode API keys or Org IDs in tests; use `tests/conftest.py` fixtures.
-
-## 13. Pull request requirements
-
-Every PR description generated by an agent MUST include:
-
-1. **Summary:** One sentence explaining the "Why".
+1. **Technical Plan:** List of files and justification.
 2. **Type:** (Bugfix/Feature/Chore).
-3. **Test Proof:** A snippet of the successful `pytest` or `pip-audit` output.
-4. **Manual Verification:** A statement confirming the code was checked against the `AGENTS.md` rules.
+3. **Verification:** Evidence of `uv run pytest` passing.

@@ -1,0 +1,103 @@
+name: CI Quality Gate
+
+on:
+  push:
+    branches: [main, beta]
+    paths-ignore:
+      - 'docs/**'
+      - '**.md'
+      - '**.png'
+      - '**.jpg'
+      - '**.svg'
+      - '**.webp'
+  pull_request:
+    branches: [main, beta]
+    paths-ignore:
+      - 'docs/**'
+      - '**.md'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quality-gate:
+    name: 'Check & Test'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      issues: write
+    strategy:
+      matrix:
+        python-version: ['3.13']
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install libturbojpeg
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libturbojpeg
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          enable-cache: true
+
+      - name: Sync dependencies
+        run: uv sync
+
+      - name: Lint (Ruff)
+        run: uv run ruff check .
+
+      - name: Format Check (Ruff)
+        run: uv run ruff format --check .
+
+      - name: Type Check (Mypy)
+        run: uv run mypy custom_components/meraki_ha/ tests/
+
+      - name: Security (Bandit)
+        run: uv run bandit -r custom_components/meraki_ha/ -c .bandit.yaml
+
+      - name: Security (Pip-Audit)
+        env:
+          PIP_AUDIT_IGNORE_VULN: 'GHSA-6mq8-rvhq-8wgg GHSA-69f9-5gxw-wvc2 GHSA-6jhg-hg63-jvvf GHSA-g84x-mcqj-x9qq GHSA-fh55-r93g-j68g GHSA-54jq-c3m8-4m76 GHSA-jj3x-wxrx-4x23 GHSA-mqqc-3gqh-h2x8 PYSEC-2020-49 PYSEC-2022-42969 GHSA-g7vv-2v7x-gj9p GHSA-mq77-rv97-285m GHSA-pp3g-xmm4-5cw9 GHSA-9548-qrrj-x5pj GHSA-hx9q-6w63-j58v GHSA-79v4-65xg-pq4g GHSA-cpwx-vrp4-4pq7 GHSA-9hjg-9r4m-mvj7 GHSA-8qf3-x8v5-2pj8 GHSA-w476-p2h3-79g9 GHSA-pqhf-p39g-3x64 GHSA-pq67-6m6q-mj2v GHSA-gm62-xv2j-4w53 GHSA-2xpw-w6gg-jr37 GHSA-38jv-5279-wg99 GHSA-8rrh-rw8j-w5fx'
+        run: |
+          IGNORE_ARGS=""
+          for vuln in $PIP_AUDIT_IGNORE_VULN; do
+            IGNORE_ARGS="$IGNORE_ARGS --ignore-vuln $vuln"
+          done
+          uv run pip-audit -r custom_components/meraki_ha/requirements.txt -l $IGNORE_ARGS
+
+      - name: Home Assistant Validation (Hassfest)
+        uses: home-assistant/actions/hassfest@master
+
+      - name: HACS Validation
+        uses: hacs/action@main
+        with:
+          category: integration
+
+      - name: Run Tests (Pytest)
+        run: uv run pytest --cov=custom_components/meraki_ha --cov-report=xml tests/
+
+      - name: Upload coverage
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./coverage.xml
+
+      - name: Create Issue on Failure
+        if: failure() && github.event_name != 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const title = '🚨 CI Quality Gate Failed';
+            const body = `### ❌ CI Failure Detected\n\nThe CI pipeline failed on branch \`${context.ref}\`.\n\n[🔗 View Run Details](${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId})\n\n---\n*This is an automated report.*`;
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: title,
+              body: body,
+              labels: ['bug', 'automated-ci']
+            });
