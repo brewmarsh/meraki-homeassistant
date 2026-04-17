@@ -418,6 +418,26 @@ class NetworkEndpoints:
         )
 
     @handle_meraki_errors
+    async def create_network_firmware_upgrades_rollout(
+        self, network_id: str, product_type: str, **kwargs: Any
+    ) -> dict[str, Any]:
+        """Create a firmware upgrade rollout for a network and product type."""
+        rollout = await self._api_client.run_async(
+            self._api_client.dashboard.networks.createNetworkFirmwareUpgradesRollout,
+            networkId=network_id,
+            productType=product_type,
+            **kwargs,
+        )
+        validated = validate_response(rollout)
+        if not isinstance(validated, dict):
+            _LOGGER.warning(
+                "create_network_firmware_upgrades_rollout did not return a dict"
+            )
+            return {}
+
+        return validated
+
+    @handle_meraki_errors
     async def update_network_client_policy(
         self, network_id: str, client_mac: str, device_policy: str
     ) -> dict[str, Any]:

@@ -7,6 +7,7 @@
 - [x] **Phase 3: Real-time Webhooks & Presence Optimization** - Sub-second updates and entity bloat prevention.
 - [x] **Phase 4: Advanced Control & Selective Stats** - SSID/Client management and performance monitoring.
 - [x] **Phase 5: Final Refinement & Stable Release** - Polish the integration for a stable release.
+- [ ] **Phase 6: Advanced Native Platforms** - Firmware management and maintenance services.
 
 ## Phase Details
 
@@ -85,6 +86,22 @@
 - [x] 05-02-PLAN.md — Resilient Coordinator Error Handling
 - [x] 05-03-PLAN.md — Quality Scale Coverage Optimization
 
+### Phase 6: Advanced Native Platforms
+
+**Goal**: Deepen integration with native HA platforms for maintenance and management.
+**Depends on**: Phase 5
+**Requirements**: UP-01, SVC-01, BP-01
+**Success Criteria**:
+
+1. Users can see and trigger firmware updates natively in the HA UI via the `update` platform.
+2. Hardware reboots via PoE power cycle work reliably through a dedicated service call.
+3. MT sensor alerts are easily automatable via pre-configured blueprints.
+   **Plans**: 3 plans
+
+- [x] 06-01-PLAN.md — Native Firmware Management Entity
+- [x] 06-02-PLAN.md — PoE Power Cycling Service
+- [x] 06-03-PLAN.md — MT Sensor Blueprint Expansion
+
 ## Progress Table
 
 | Phase                                         | Plans Complete | Status   | Completed  |
@@ -94,3 +111,4 @@
 | 3. Real-time Webhooks & Presence Optimization | 2/2            | Complete | 2026-04-14 |
 | 4. Advanced Control & Selective Stats         | 3/3            | Complete | 2026-04-16 |
 | 5. Final Refinement & Stable Release          | 3/3            | Complete | 2026-04-16 |
+| 6. Advanced Native Platforms                  | 3/3            | Complete | 2026-04-17 |

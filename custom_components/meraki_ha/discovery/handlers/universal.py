@@ -27,6 +27,7 @@ from ...button.reboot import MerakiRebootButton
 from ...sensor.device.device_status import MerakiDeviceStatusSensor
 from ...sensor.device.poe_usage import MerakiPoeUsageSensor
 from ...switch.mt40_power_outlet import MerakiMt40PowerOutlet
+from ...update import MerakiUpdateEntity
 from ..entities import (
     MerakiBatterySensor,
     MerakiButtonPressSensor,
@@ -106,6 +107,7 @@ class UniversalHandler(BaseDeviceHandler):
         "camera_stream": CameraStreamProvider,
         "wireless": WirelessRadioProvider,
         "connectivity": MerakiConnectivityBinarySensor,
+        "update": MerakiUpdateEntity,
     }
 
     # Mapping of capabilities to their configuration option toggle

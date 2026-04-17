@@ -156,6 +156,9 @@ class DataFetchManager:
                 tasks["sensor_readings"] = self.client.run_with_semaphore(
                     self.client.sensor.get_organization_sensor_readings_latest()
                 )
+                tasks["firmware_upgrades"] = self.client.run_with_semaphore(
+                    self.client.organization.get_organization_firmware_upgrades()
+                )
 
             return await async_gather_with_timeout(
                 tasks, label="Batch fetch", client=self.client
@@ -252,6 +255,7 @@ class DataFetchManager:
 
         data["appliance_uplink_statuses"] = batch_data.get("appliance_uplink_statuses")
         data["sensor_readings"] = batch_data.get("sensor_readings")
+        data["firmware_upgrades"] = batch_data.get("firmware_upgrades")
 
         data["clients"] = []
         return data
@@ -267,6 +271,26 @@ class DataFetchManager:
         for entry in switch_ports:
             if isinstance(entry, dict) and (serial := entry.get("serial")):
                 data[f"switch_ports_{serial}"] = entry.get("ports", [])
+
+        # Map firmware upgrades to devices
+        firmware_upgrades = batch_data.get("firmware_upgrades") or []
+        for upgrade in firmware_upgrades:
+            # Upgrade data format:
+            # {"networkId": "...", "productType": "...", "status": "...",
+            #  "availableVersions": [...]}
+            # Meraki organizes upgrades by network and product type.
+            # We need to map this to devices in that network.
+            network_id = upgrade.get("networkId")
+            product_type = upgrade.get("productType")
+            if not network_id or not product_type:
+                continue
+
+            for device in data["devices"]:
+                if (
+                    device.network_id == network_id
+                    and device.product_type == product_type
+                ):
+                    device.firmware_upgrades = upgrade
 
     def _get_device_capabilities(self, model: str | None) -> list[str]:
         """Return hardcoded capabilities based on device model."""

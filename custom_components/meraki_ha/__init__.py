@@ -16,6 +16,7 @@ from .coordinators import MerakiMainCoordinator
 from .core.api.factory import create_meraki_client
 from .core.errors import MerakiAuthError, MerakiConnectionError
 from .discovery.service import DiscoveryService
+from .services import async_setup_services
 from .services.guest_key_service import GuestKeyService
 from .services.switch_port_service import SwitchPortService
 from .setup_helpers import async_setup_frontend, async_setup_webhook_lifecycle
@@ -58,6 +59,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     # 4. Initialize Services
     guest_key_service = GuestKeyService(api_client, main_coordinator)
     switch_port_service = SwitchPortService(api_client, main_coordinator)
+    await async_setup_services(hass)
 
     # Store for platforms and cleanup
     hass.data[DOMAIN][entry.entry_id] = {

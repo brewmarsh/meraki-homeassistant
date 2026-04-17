@@ -9,7 +9,7 @@ import voluptuous as vol
 
 from custom_components.meraki_ha.const.integration import DOMAIN
 from homeassistant.core import HomeAssistant, ServiceCall
-from homeassistant.exceptions import HomeAssistantError, ServiceValidationError
+from homeassistant.exceptions import ServiceValidationError
 from homeassistant.helpers import config_validation as cv
 
 if TYPE_CHECKING:
@@ -20,7 +20,26 @@ _LOGGER = logging.getLogger(__name__)
 SERVICE_CREATE_GUEST_KEY = "create_guest_key"
 SERVICE_GENERATE_GUEST_ACCESS = "generate_guest_access"
 
-# Schema for technical/automation use
+# Service schemas
+SERVICE_REBOOT_DEVICE_SCHEMA = vol.Schema(
+    {
+        vol.Required("serial"): cv.string,
+    }
+)
+
+SERVICE_CYCLE_PORT_SCHEMA = vol.Schema(
+    {
+        vol.Required("serial"): cv.string,
+        vol.Required("port_id"): cv.string,
+    }
+)
+
+SERVICE_GENERATE_SNAPSHOT_SCHEMA = vol.Schema(
+    {
+        vol.Required("serial"): cv.string,
+    }
+)
+
 SERVICE_CREATE_GUEST_KEY_SCHEMA = vol.Schema(
     {
         vol.Required("network_id"): cv.string,
@@ -32,7 +51,6 @@ SERVICE_CREATE_GUEST_KEY_SCHEMA = vol.Schema(
     }
 )
 
-# Schema for frontend card use (matches JS property names)
 GUEST_ACCESS_SCHEMA = vol.Schema(
     {
         vol.Required("network_id"): cv.string,
@@ -69,7 +87,6 @@ async def async_setup_services(hass: HomeAssistant) -> None:
         # Handle policy logic
         policy_id_to_use = group_policy_id
         if policy_id_to_use == "NONE":
-            # Explicitly no policy assignment
             policy_id_to_use = "NONE"
         elif not policy_id_to_use or policy_id_to_use == "CREATE":
             policy_id_to_use = await ipsk_manager.get_or_create_guest_policy(
@@ -77,7 +94,8 @@ async def async_setup_services(hass: HomeAssistant) -> None:
             )
             if not policy_id_to_use:
                 raise ServiceValidationError(
-                    "A Group Policy ID is required but could not be determined or created."
+                    "A Group Policy ID is required but could not be "
+                    "determined or created."
                 )
 
         await ipsk_manager.create_guest_key(
@@ -110,7 +128,6 @@ async def async_setup_services(hass: HomeAssistant) -> None:
         # Handle policy logic
         policy_id_to_use = group_policy
         if policy_id_to_use == "NONE":
-            # Explicitly no policy assignment
             policy_id_to_use = "NONE"
         elif not policy_id_to_use or policy_id_to_use == "CREATE":
             policy_id_to_use = await ipsk_manager.get_or_create_guest_policy(
@@ -118,10 +135,10 @@ async def async_setup_services(hass: HomeAssistant) -> None:
             )
             if not policy_id_to_use:
                 raise ServiceValidationError(
-                    "A Group Policy ID is required but could not be determined or created."
+                    "A Group Policy ID is required but could not be "
+                    "determined or created."
                 )
 
-        # Map frontend parameters to the underlying IPSK manager method
         await ipsk_manager.create_guest_key(
             config_entry_id=config_entry_id,
             network_id=network_id,
@@ -132,7 +149,44 @@ async def async_setup_services(hass: HomeAssistant) -> None:
             group_policy_id=policy_id_to_use,
         )
 
-    # Register both service entry points
+    async def _async_reboot_device(call: ServiceCall) -> None:
+        """Reboot a Meraki device."""
+        serial = call.data["serial"]
+        # Find config entry that manages this device
+        for _entry_id, entry_data in hass.data[DOMAIN].items():
+            if not isinstance(entry_data, dict):
+                continue
+            api_client = entry_data.get("api_client")
+            main_coordinator = entry_data.get("main_coordinator")
+            if main_coordinator and api_client:
+                # Check if device is in this coordinator
+                devices = main_coordinator.data.get("devices", [])
+                if any(d.serial == serial for d in devices):
+                    await api_client.async_reboot_device(serial)
+                    return
+
+        raise ServiceValidationError(f"Device with serial {serial} not found")
+
+    async def _async_cycle_port(call: ServiceCall) -> None:
+        """Cycle a Meraki switch port."""
+        serial = call.data["serial"]
+        port_id = call.data["port_id"]
+        # Find config entry that manages this device
+        for _entry_id, entry_data in hass.data[DOMAIN].items():
+            if not isinstance(entry_data, dict):
+                continue
+            api_client = entry_data.get("api_client")
+            main_coordinator = entry_data.get("main_coordinator")
+            if main_coordinator and api_client:
+                # Check if device is in this coordinator
+                devices = main_coordinator.data.get("devices", [])
+                if any(d.serial == serial for d in devices):
+                    await api_client.switch.cycle_device_switch_ports(serial, [port_id])
+                    return
+
+        raise ServiceValidationError(f"Device with serial {serial} not found")
+
+    # Register services
     hass.services.async_register(
         DOMAIN,
         SERVICE_CREATE_GUEST_KEY,
@@ -145,6 +199,20 @@ async def async_setup_services(hass: HomeAssistant) -> None:
         SERVICE_GENERATE_GUEST_ACCESS,
         _async_generate_guest_access,
         schema=GUEST_ACCESS_SCHEMA,
+    )
+
+    hass.services.async_register(
+        DOMAIN,
+        "reboot_device",
+        _async_reboot_device,
+        schema=SERVICE_REBOOT_DEVICE_SCHEMA,
+    )
+
+    hass.services.async_register(
+        DOMAIN,
+        "cycle_port",
+        _async_cycle_port,
+        schema=SERVICE_CYCLE_PORT_SCHEMA,
     )
 
 

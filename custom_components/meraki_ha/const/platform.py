@@ -25,6 +25,8 @@ PLATFORM_NUMBER: Final = "number"
 """Represents the number platform."""
 PLATFORM_SELECT: Final = "select"
 """Represents the select platform."""
+PLATFORM_UPDATE: Final = "update"
+"""Represents the update platform."""
 
 PLATFORMS: Final = [
     PLATFORM_SENSOR,
@@ -36,5 +38,6 @@ PLATFORMS: Final = [
     PLATFORM_NUMBER,
     PLATFORM_SELECT,
     PLATFORM_DEVICE_TRACKER,
+    PLATFORM_UPDATE,
 ]
 """List of platforms supported by the integration."""

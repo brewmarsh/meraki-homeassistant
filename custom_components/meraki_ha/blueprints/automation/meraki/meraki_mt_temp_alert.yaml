@@ -1,0 +1,45 @@
+blueprint:
+  name: Meraki MT High Temperature Alert
+  description: Send a notification when a Meraki MT sensor detects temperature above a threshold.
+  domain: automation
+  input:
+    temp_sensor:
+      name: Meraki Temperature Sensor
+      description: The MT sensor to monitor.
+      selector:
+        entity:
+          domain: sensor
+          device_class: temperature
+    threshold:
+      name: Temperature Threshold
+      description: The temperature above which an alert is triggered.
+      default: 25
+      selector:
+        number:
+          min: 0
+          max: 100
+          unit_of_measurement: '°C'
+          mode: box
+    notify_device:
+      name: Notification Device
+      description: The device to notify.
+      selector:
+        device:
+          filter:
+            integration: mobile_app
+    alert_title:
+      name: Alert Title
+      description: The title of the notification.
+      default: '⚠️ Meraki High Temp Alert'
+
+trigger:
+  - platform: numeric_state
+    entity_id: !input temp_sensor
+    above: !input threshold
+
+action:
+  - device_id: !input notify_device
+    domain: mobile_app
+    type: notify
+    title: !input alert_title
+    message: "High temperature ({{ states(temp_sensor) }}°C) detected by {{ state_attr(temp_sensor, 'friendly_name') }}!"

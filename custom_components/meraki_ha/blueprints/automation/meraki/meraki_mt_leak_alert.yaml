@@ -1,0 +1,39 @@
+blueprint:
+  name: Meraki MT Water Leak Alert
+  description: Send a notification when a Meraki MT12 sensor detects a water leak.
+  domain: automation
+  input:
+    leak_sensor:
+      name: Meraki Leak Sensor
+      description: The MT12 binary sensor to monitor for leaks.
+      selector:
+        entity:
+          domain: binary_sensor
+          device_class: moisture
+    notify_device:
+      name: Notification Device
+      description: The device to notify when a leak is detected.
+      selector:
+        device:
+          filter:
+            integration: mobile_app
+    alert_title:
+      name: Alert Title
+      description: The title of the notification.
+      default: '🚨 Meraki Water Leak Detected'
+    alert_message:
+      name: Alert Message
+      description: The message to send.
+      default: "Water leak detected by {{ state_attr(leak_sensor, 'friendly_name') }}!"
+
+trigger:
+  - platform: state
+    entity_id: !input leak_sensor
+    to: 'on'
+
+action:
+  - device_id: !input notify_device
+    domain: mobile_app
+    type: notify
+    title: !input alert_title
+    message: !input alert_message

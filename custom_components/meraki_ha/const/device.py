@@ -32,6 +32,7 @@ _MX_CAPS = [
     "physical_sensors",
     "led_control",
     "wireless",
+    "update",
 ]
 
 _MR_CAPS = [
@@ -43,6 +44,7 @@ _MR_CAPS = [
     "physical_sensors",
     "led_control",
     "wireless",
+    "update",
 ]
 
 _MS_CAPS = [
@@ -53,6 +55,7 @@ _MS_CAPS = [
     "reboot",
     "status",
     "physical_sensors",
+    "update",
 ]
 
 _MV_CAPS = [
@@ -63,6 +66,7 @@ _MV_CAPS = [
     "reboot",
     "status",
     "physical_sensors",
+    "update",
 ]
 
 _GX_CAPS = [
@@ -75,6 +79,7 @@ _GX_CAPS = [
     "reboot",
     "status",
     "physical_sensors",
+    "update",
 ]
 
 # Strict Hardware Capability Matrix based on Meraki Datasheets
@@ -140,7 +145,7 @@ DEVICE_CAPABILITIES: Final[dict[str, list[str]]] = {
     "GX50": _GX_CAPS,
 }
 
-DEFAULT_CAPS: Final = ["connectivity", "reboot", "status", "physical_sensors"]
+DEFAULT_CAPS: Final = ["connectivity", "reboot", "status", "physical_sensors", "update"]
 
 
 def get_ssid_identifier(network_id: str, ssid_number: int | str) -> str:
