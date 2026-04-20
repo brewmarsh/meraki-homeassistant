@@ -89,7 +89,7 @@ jobs:
 
       - name: Create Issue on Failure
         if: failure() && github.event_name != 'pull_request'
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         with:
           script: |
             const title = '🚨 CI Quality Gate Failed';
