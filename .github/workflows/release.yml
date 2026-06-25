@@ -54,7 +54,7 @@ jobs:
           npm run build
 
       - name: Commit & Push Changes
-        uses: stefanzweifel/git-auto-commit-action@v5
+        uses: stefanzweifel/git-auto-commit-action@v7
         with:
           commit_message: 'chore(release): version bump to v${{ steps.get_version.outputs.version }} [skip ci]'
           file_pattern: 'custom_components/meraki_ha/manifest.json package.json frontend/package.json .bumpversion.toml'
