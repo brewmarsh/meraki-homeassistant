@@ -1,12 +1,16 @@
 from unittest.mock import AsyncMock, patch
 
-from pytest_homeassistant_custom_component.common import MockConfigEntry
 from homeassistant import config_entries, setup
 from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResultType
+from pytest_homeassistant_custom_component.common import MockConfigEntry
 
+from custom_components.meraki_ha.const.config import (
+    CONF_MERAKI_API_KEY,
+    CONF_MERAKI_ORG_ID,
+)
 from custom_components.meraki_ha.const.integration import DOMAIN
-from custom_components.meraki_ha.const.config import CONF_MERAKI_API_KEY, CONF_MERAKI_ORG_ID
+
 
 async def test_reauth_flow(hass: HomeAssistant) -> None:
     """Test the reauthentication flow."""

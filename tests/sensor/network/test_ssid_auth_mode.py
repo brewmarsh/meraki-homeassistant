@@ -1,9 +1,13 @@
 """Tests for Meraki SSID auth mode sensor."""
 
 from unittest.mock import MagicMock
+
 import pytest
 
-from custom_components.meraki_ha.sensor.network.ssid_auth_mode import MerakiSSIDAuthModeSensor
+from custom_components.meraki_ha.sensor.network.ssid_auth_mode import (
+    MerakiSSIDAuthModeSensor,
+)
+
 
 @pytest.mark.asyncio
 async def test_ssid_auth_mode_sensor():

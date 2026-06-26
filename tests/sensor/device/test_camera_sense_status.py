@@ -1,10 +1,14 @@
 """Tests for the Meraki camera sense status sensor."""
 
 from unittest.mock import MagicMock
+
 import pytest
 
-from custom_components.meraki_ha.sensor.device.camera_sense_status import MerakiCameraSenseStatusSensor
 from custom_components.meraki_ha.core.models.device import MerakiDevice
+from custom_components.meraki_ha.sensor.device.camera_sense_status import (
+    MerakiCameraSenseStatusSensor,
+)
+
 
 @pytest.mark.asyncio
 async def test_camera_sense_status_sensor():

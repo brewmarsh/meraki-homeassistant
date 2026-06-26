@@ -117,7 +117,7 @@ class MerakiDeviceIPSensor(MerakiDeviceUplinkBaseSensor):
             # Fallback to uplinks if lan_ip is None
             if ip_value is None and device.uplinks:
                 for uplink in device.uplinks:
-                    if uplink.get("interface") in ["lan", "wan1", "wan2"]:
+                    if uplink.get("interface") == "lan":
                         ip_value = uplink.get("ip")
                         if ip_value:
                             break

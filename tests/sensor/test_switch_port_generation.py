@@ -3,6 +3,9 @@
 from unittest.mock import AsyncMock, patch
 
 import pytest
+from homeassistant.core import HomeAssistant
+from homeassistant.helpers import device_registry as dr
+from homeassistant.helpers import entity_registry as er
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.meraki_ha.const.config import (
@@ -10,9 +13,6 @@ from custom_components.meraki_ha.const.config import (
     CONF_MERAKI_ORG_ID,
 )
 from custom_components.meraki_ha.types import MerakiDevice
-from homeassistant.core import HomeAssistant
-from homeassistant.helpers import device_registry as dr
-from homeassistant.helpers import entity_registry as er
 
 
 @pytest.mark.asyncio

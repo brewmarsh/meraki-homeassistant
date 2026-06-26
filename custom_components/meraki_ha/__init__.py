@@ -10,14 +10,20 @@ from homeassistant.exceptions import ConfigEntryAuthFailed
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers.typing import ConfigType
 
+from .const.config import CONF_MERAKI_ORG_ID
 from .const.integration import DOMAIN
 from .const.platform import PLATFORMS
 from .coordinators import MerakiMainCoordinator
 from .core.api.factory import create_meraki_client
 from .core.errors import MerakiAuthenticationError, MerakiConnectionError
+from .core.repositories.camera_repository import CameraRepository
+from .core.repository import MerakiRepository
 from .discovery.service import DeviceDiscoveryService
+from .helpers.migrations import async_migrate_entities, async_migrate_entry
 from .services import async_setup_services
-from .services.guest_key_service import GuestKeyService
+from .services.camera_service import CameraService
+from .services.device_control_service import DeviceControlService
+from .services.network_control_service import NetworkControlService
 from .services.switch_port_service import SwitchPortService
 from .setup_helpers import async_setup_frontend, async_setup_webhook_lifecycle
 from .webhook import async_unregister_webhook
@@ -37,6 +43,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up Meraki from a config entry."""
     _LOGGER.debug("Setting up Meraki config entry: %s", entry.entry_id)
 
+    # Perform migrations
+    await async_migrate_entities(hass, entry.entry_id)
+
     # 1. Initialize API Client
     try:
         api_client = create_meraki_client(hass, entry)
@@ -53,19 +62,25 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     static_data = {}
     main_coordinator = MerakiMainCoordinator(hass, entry, api_client, static_data)
 
-    # 3. Setup Discovery Service
+    # 3. Initialize Repositories and Services
+    repository = MerakiRepository(api_client)
+    camera_repository = CameraRepository(api_client, entry.data[CONF_MERAKI_ORG_ID])
+
+    camera_service = CameraService(camera_repository)
+    control_service = DeviceControlService(repository)
+    network_control_service = NetworkControlService(api_client, main_coordinator)
+    switch_port_service = SwitchPortService(repository)
+
+    # 4. Setup Discovery Service
     discovery_service = DeviceDiscoveryService(
         main_coordinator,
         entry,
         api_client,
-        None,  # camera_service
-        None,  # device_control_service
-        None,  # network_control_service
+        camera_service,
+        control_service,
+        network_control_service,
     )
 
-    # 4. Initialize Services
-    guest_key_service = GuestKeyService(api_client, main_coordinator)
-    switch_port_service = SwitchPortService(api_client, main_coordinator)
     await async_setup_services(hass)
 
     # Store for platforms and cleanup
@@ -73,7 +88,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         "api_client": api_client,
         "main_coordinator": main_coordinator,
         "discovery_service": discovery_service,
-        "guest_key_service": guest_key_service,
         "switch_port_service": switch_port_service,
     }
 

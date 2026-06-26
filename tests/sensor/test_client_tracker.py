@@ -1,13 +1,15 @@
 """Tests for the Meraki client tracker sensor."""
 
 from unittest.mock import MagicMock
+
 import pytest
 
+from custom_components.meraki_ha.const.integration import DOMAIN
 from custom_components.meraki_ha.sensor.client_tracker import (
     ClientTrackerDeviceSensor,
     MerakiClientSensor,
 )
-from custom_components.meraki_ha.const.integration import DOMAIN
+
 
 @pytest.mark.asyncio
 async def test_client_tracker_device_sensor():

@@ -1,11 +1,13 @@
 """Tests for the Meraki appliance uplink sensor."""
 
-from unittest.mock import MagicMock, AsyncMock
+from unittest.mock import MagicMock
 
 import pytest
 
 from custom_components.meraki_ha.discovery.service import DeviceDiscoveryService
-from custom_components.meraki_ha.sensor.device.appliance_uplink import MerakiApplianceUplinkSensor
+from custom_components.meraki_ha.sensor.device.appliance_uplink import (
+    MerakiApplianceUplinkSensor,
+)
 from custom_components.meraki_ha.types import MerakiDevice
 
 

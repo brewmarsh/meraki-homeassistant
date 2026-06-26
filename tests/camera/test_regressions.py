@@ -1,9 +1,12 @@
 """Tests for camera NameError and None fallback regressions."""
 
 from unittest.mock import MagicMock
+
 import pytest
+
 from custom_components.meraki_ha.camera import MerakiRTSPStreamCamera
 from tests.const import MOCK_CAMERA_DEVICE
+
 
 @pytest.fixture
 def mock_coordinator_no_device():
