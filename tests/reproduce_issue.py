@@ -1,9 +1,12 @@
 """Reproduction test for MX LAN IP bug."""
 
 from unittest.mock import MagicMock
-import pytest
-from custom_components.meraki_ha.sensor.device.network_settings import MerakiDeviceIPSensor
+
 from custom_components.meraki_ha.core.models.device import MerakiDevice
+from custom_components.meraki_ha.sensor.device.network_settings import (
+    MerakiDeviceIPSensor,
+)
+
 
 def test_mx_lan_ip_fallback_bug():
     """Reproduce the bug where MX LAN IP falls back to WAN IP."""

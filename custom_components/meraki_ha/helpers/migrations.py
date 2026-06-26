@@ -9,9 +9,11 @@ from typing import TYPE_CHECKING
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers import entity_registry as er
 
+from custom_components.meraki_ha.const.config import CONF_MERAKI_API_KEY
 from custom_components.meraki_ha.const.integration import DOMAIN
 
 if TYPE_CHECKING:
+    from homeassistant.config_entries import ConfigEntry
     from homeassistant.core import HomeAssistant
 
 _LOGGER = logging.getLogger(__name__)
@@ -56,6 +58,26 @@ def _get_new_unique_id(old_unique_id: str) -> str | None:
         # This handles the legacy N_123_0_walled_garden format
         return f"{net_id}ssid{ssid_num}_{attr}"
     return None
+
+
+async def async_migrate_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+    """Migrate old entry."""
+    _LOGGER.debug("Migrating from version %s", entry.version)
+
+    if entry.version == 1:
+        new_data = {**entry.data}
+        if "meraki_api_key" in new_data:
+            new_data[CONF_MERAKI_API_KEY] = new_data.pop("meraki_api_key")
+
+        entry.version = 2
+        hass.config_entries.async_update_entry(entry, data=new_data)
+
+    if entry.version == 2:
+        entry.version = 3
+        hass.config_entries.async_update_entry(entry)
+
+    _LOGGER.info("Migration to version %s successful", entry.version)
+    return True
 
 
 async def async_migrate_entities(hass: HomeAssistant, entry_id: str) -> None:

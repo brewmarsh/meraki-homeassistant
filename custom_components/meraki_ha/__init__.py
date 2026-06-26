@@ -19,11 +19,11 @@ from .core.errors import MerakiAuthenticationError, MerakiConnectionError
 from .core.repositories.camera_repository import CameraRepository
 from .core.repository import MerakiRepository
 from .discovery.service import DeviceDiscoveryService
+from .helpers.migrations import async_migrate_entities, async_migrate_entry
 from .services import async_setup_services
 from .services.camera_service import CameraService
 from .services.device_control_service import DeviceControlService
 from .services.network_control_service import NetworkControlService
-from .helpers.migrations import async_migrate_entities
 from .services.switch_port_service import SwitchPortService
 from .setup_helpers import async_setup_frontend, async_setup_webhook_lifecycle
 from .webhook import async_unregister_webhook
