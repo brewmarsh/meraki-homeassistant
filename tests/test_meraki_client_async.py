@@ -3,9 +3,9 @@
 from unittest.mock import AsyncMock, patch
 
 import pytest
+from homeassistant.core import HomeAssistant
 
 from custom_components.meraki_ha.core.api.client import MerakiClient
-from homeassistant.core import HomeAssistant
 
 
 @pytest.mark.asyncio

@@ -7,12 +7,10 @@ from typing import TYPE_CHECKING
 
 from homeassistant.components.button import ButtonEntity
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.helpers.device_registry import DeviceInfo
 
 from ...coordinators import MerakiCameraCoordinator
 from ...core.models.device import MerakiDevice
 from ...entity import MerakiEntity
-from ...helpers.device_info_helpers import resolve_device_info
 
 if TYPE_CHECKING:
     from ...services.camera_service import CameraService
@@ -39,7 +37,6 @@ class MerakiSnapshotButton(MerakiEntity, ButtonEntity):
         self._attr_unique_id = f"{self._device.serial}-snapshot"
         self._attr_has_entity_name = True
         self._attr_name = "Snapshot"
-
 
     @property
     def available(self) -> bool:

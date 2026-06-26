@@ -70,7 +70,9 @@ def data_fetch_manager(mock_client):
 async def test_fetch_initial_data_timeout(data_fetch_manager, mock_client):
     """Test that _async_fetch_batch_data logs error and raises TimeoutError."""
     # Action 2: Ensure awaited methods are AsyncMock
-    data_fetch_manager._async_fetch_batch_data = AsyncMock(side_effect=asyncio.TimeoutError)
+    data_fetch_manager._async_fetch_batch_data = AsyncMock(
+        side_effect=asyncio.TimeoutError
+    )
 
     with patch(
         "custom_components.meraki_ha.core.coordinator_helpers.batch_utils.asyncio.wait_for",
@@ -79,7 +81,7 @@ async def test_fetch_initial_data_timeout(data_fetch_manager, mock_client):
     ):
         with patch(
             "custom_components.meraki_ha.core.coordinator_helpers.batch_utils._LOGGER.error"
-        ) as mock_log_error:
+        ):
             with pytest.raises(asyncio.TimeoutError):
                 # This call will trigger wait_for which will raise TimeoutError
                 await data_fetch_manager._async_fetch_batch_data()
@@ -100,8 +102,12 @@ async def test_get_all_data_detailed_timeout(data_fetch_manager, mock_client):
     )
 
     # Mock helpers to return non-coroutine objects to avoid unawaited coroutines
-    data_fetch_manager.appliance_strategy.device_helper.get_appliance_ports = MagicMock(return_value=[])
-    data_fetch_manager.appliance_strategy.uplink_helper.get_uplink_performance = MagicMock(return_value=[])
+    data_fetch_manager.appliance_strategy.device_helper.get_appliance_ports = MagicMock(
+        return_value=[]
+    )
+    data_fetch_manager.appliance_strategy.uplink_helper.get_uplink_performance = (
+        MagicMock(return_value=[])
+    )
 
     with patch(
         "custom_components.meraki_ha.core.coordinator_helpers.batch_utils.asyncio.wait_for",
@@ -136,11 +142,17 @@ async def test_get_all_data_client_timeout(data_fetch_manager, mock_client):
     )
 
     # Mock helpers to return non-coroutine objects to avoid unawaited coroutines
-    data_fetch_manager.appliance_strategy.device_helper.get_appliance_ports = MagicMock(return_value=[])
-    data_fetch_manager.appliance_strategy.uplink_helper.get_uplink_performance = MagicMock(return_value=[])
+    data_fetch_manager.appliance_strategy.device_helper.get_appliance_ports = MagicMock(
+        return_value=[]
+    )
+    data_fetch_manager.appliance_strategy.uplink_helper.get_uplink_performance = (
+        MagicMock(return_value=[])
+    )
 
     # Mock client_fetcher to avoid unawaited coroutines
-    data_fetch_manager.client_fetcher.async_fetch_network_clients = AsyncMock(return_value=[])
+    data_fetch_manager.client_fetcher.async_fetch_network_clients = AsyncMock(
+        return_value=[]
+    )
 
     # We also need detail batch to succeed (or return empty) so we reach client fetch.
     with patch(

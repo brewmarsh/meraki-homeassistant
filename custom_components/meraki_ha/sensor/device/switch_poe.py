@@ -6,14 +6,11 @@ from typing import Any
 
 from homeassistant.components.sensor import (
     SensorDeviceClass,
-    SensorEntity,
     SensorStateClass,
 )
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import UnitOfPower
 from homeassistant.core import callback
-from homeassistant.helpers.device_registry import DeviceInfo
-from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from ...coordinators import MerakiSwitchCoordinator
 from ...core.models import MerakiSwitchDevice
@@ -49,7 +46,6 @@ class MerakiSwitchPoESensor(MerakiSensor):
         self._attr_unique_id = f"{self._device.serial}_port_{port_id}_poe"
         self._attr_name = f"Port {port_id} PoE"
         self._last_state = None
-
 
     @property
     def available(self) -> bool:

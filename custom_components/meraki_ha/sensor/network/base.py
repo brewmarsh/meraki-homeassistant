@@ -3,11 +3,12 @@
 import logging
 from typing import Any
 
-from custom_components.meraki_ha.const.integration import DOMAIN
 from homeassistant.components.sensor import SensorEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import callback
 from homeassistant.helpers.device_registry import DeviceInfo
+
+from custom_components.meraki_ha.const.integration import DOMAIN
 
 from ...coordinators import MerakiSwitchCoordinator
 from ...entity import MerakiEntity

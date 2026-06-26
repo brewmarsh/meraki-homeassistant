@@ -2,15 +2,14 @@
 
 import dataclasses
 import logging
-from typing import Any, cast
+from typing import Any
+
+from homeassistant.components.switch import SwitchEntity
 
 from custom_components.meraki_ha.coordinators import MerakiSwitchCoordinator
-from homeassistant.components.switch import SwitchEntity
-from homeassistant.helpers.device_registry import DeviceInfo
 
 from ..core.api import MerakiApiClientProtocol
 from ..core.models.device import MerakiDevice
-from ..core.utils.naming_utils import standardize_device_name
 from ..entity import MerakiEntity
 
 _LOGGER = logging.getLogger(__name__)
@@ -116,4 +115,3 @@ class MerakiCameraSettingSwitchBase(
     async def _async_update_setting(self, is_on: bool) -> None:
         """Update the setting via the Meraki API."""
         raise NotImplementedError
-

@@ -1,9 +1,13 @@
 """Tests for Meraki SSID auth mode sensor."""
 
 from unittest.mock import MagicMock
+
 import pytest
 
-from custom_components.meraki_ha.sensor.network.ssid_auth_mode import MerakiSSIDAuthModeSensor
+from custom_components.meraki_ha.sensor.network.ssid_auth_mode import (
+    MerakiSSIDAuthModeSensor,
+)
+
 
 @pytest.mark.asyncio
 async def test_ssid_auth_mode_sensor():
@@ -21,7 +25,12 @@ async def test_ssid_auth_mode_sensor():
     mock_network.name = "Test Network"
     mock_coordinator.get_network.return_value = mock_network
 
-    ssid_data = {"networkId": "N123", "number": 1, "name": "Test SSID", "authMode": "open"}
+    ssid_data = {
+        "networkId": "N123",
+        "number": 1,
+        "name": "Test SSID",
+        "authMode": "open",
+    }
     mock_config_entry = MagicMock()
 
     # Instantiate sensor

@@ -3,9 +3,9 @@
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
+from homeassistant.core import HomeAssistant
 
 from custom_components.meraki_ha.switch.switch_port import MerakiSwitchPortToggle
-from homeassistant.core import HomeAssistant
 
 
 @pytest.fixture

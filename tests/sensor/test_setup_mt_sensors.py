@@ -5,14 +5,14 @@ from typing import Any, cast
 from unittest.mock import MagicMock
 
 import pytest
-
-from custom_components.meraki_ha.discovery.entities import MerakiSignalStrengthSensor
-from custom_components.meraki_ha.discovery.service import DeviceDiscoveryService
-from custom_components.meraki_ha.types import MerakiDevice
 from homeassistant.components.binary_sensor import BinarySensorEntity
 from homeassistant.components.sensor import SensorEntity
 from homeassistant.helpers.entity import Entity
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
+
+from custom_components.meraki_ha.discovery.entities import MerakiSignalStrengthSensor
+from custom_components.meraki_ha.discovery.service import DeviceDiscoveryService
+from custom_components.meraki_ha.types import MerakiDevice
 
 MT_DEVICES_DATA: list[dict[str, Any]] = [
     {
@@ -134,14 +134,7 @@ async def _prepare_discovery_service_and_entities(
         devices = [devices]
 
     discovery_service = DeviceDiscoveryService(
-        MagicMock(),  # main_coordinator
-        mock_coordinator,  # device_coordinator
-        MagicMock(),  # switch_coordinator
-        MagicMock(),  # camera_coordinator
-        mock_coordinator,  # sensor_coordinator
-        MagicMock(),  # wireless_coordinator
-        MagicMock(),  # appliance_coordinator
-        MagicMock(),  # client_coordinator
+        mock_coordinator,  # main_coordinator
         MagicMock(),  # config_entry
         MagicMock(),  # meraki_client
         MagicMock(),  # camera_service

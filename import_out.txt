@@ -1,0 +1,2 @@
+warning: No `requires-python` value found in the workspace. Defaulting to `>=3.12`.
+/app/.venv/lib/python3.12/site-packages/homeassistant/__init__.py
