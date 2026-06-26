@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import logging
-from dataclasses import asdict
 from typing import TYPE_CHECKING
 
 from homeassistant.components.sensor import SensorEntityDescription
@@ -13,7 +12,6 @@ from homeassistant.core import callback
 
 from ...coordinators import MerakiMainCoordinator
 from ...entity import MerakiSensor
-from ...helpers.device_info_helpers import resolve_device_info
 
 if TYPE_CHECKING:
     from ...core.models.device import MerakiDevice

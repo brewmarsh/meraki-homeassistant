@@ -79,7 +79,7 @@ async def test_fetch_initial_data_timeout(data_fetch_manager, mock_client):
     ):
         with patch(
             "custom_components.meraki_ha.core.coordinator_helpers.batch_utils._LOGGER.error"
-        ) as mock_log_error:
+        ):
             with pytest.raises(asyncio.TimeoutError):
                 # This call will trigger wait_for which will raise TimeoutError
                 await data_fetch_manager._async_fetch_batch_data()

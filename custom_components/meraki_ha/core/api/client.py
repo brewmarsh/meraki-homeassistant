@@ -16,7 +16,6 @@ from typing import Any, cast
 import braintrust
 import meraki.aio
 from dotenv import load_dotenv
-
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 

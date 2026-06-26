@@ -4,10 +4,11 @@ from __future__ import annotations
 
 from typing import Any, Final
 
-from custom_components.meraki_ha.const.integration import DOMAIN
 from homeassistant.components.diagnostics import async_redact_data
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
+
+from custom_components.meraki_ha.const.integration import DOMAIN
 
 from .coordinators import MerakiMainCoordinator
 

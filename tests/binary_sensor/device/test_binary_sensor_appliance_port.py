@@ -1,11 +1,15 @@
 """Tests for Meraki appliance port binary sensor."""
 
 from unittest.mock import MagicMock
+
 import pytest
 
-from custom_components.meraki_ha.binary_sensor.device.appliance_port import AppliancePortBinarySensor
-from custom_components.meraki_ha.core.models.device import MerakiDevice
+from custom_components.meraki_ha.binary_sensor.device.appliance_port import (
+    AppliancePortBinarySensor,
+)
 from custom_components.meraki_ha.core.models import MerakiAppliancePort
+from custom_components.meraki_ha.core.models.device import MerakiDevice
+
 
 @pytest.mark.asyncio
 async def test_appliance_port_binary_sensor():

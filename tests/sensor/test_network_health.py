@@ -2,8 +2,9 @@
 
 from unittest.mock import MagicMock
 
-from custom_components.meraki_ha.sensor.network_health import MerakiNetworkHealthSensor
 from homeassistant.core import HomeAssistant
+
+from custom_components.meraki_ha.sensor.network_health import MerakiNetworkHealthSensor
 
 
 class MockDevice:

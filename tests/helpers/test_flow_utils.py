@@ -1,14 +1,19 @@
 """Tests for Meraki flow utilities."""
 
-import pytest
 from unittest.mock import MagicMock
 
+import pytest
+
+from custom_components.meraki_ha.core.errors import (
+    MerakiAuthenticationError,
+    MerakiConnectionError,
+)
 from custom_components.meraki_ha.helpers.flow_utils import (
     get_network_options,
     has_cameras,
     validate_credentials,
 )
-from custom_components.meraki_ha.core.errors import MerakiAuthenticationError, MerakiConnectionError
+
 
 def test_get_network_options():
     """Test get_network_options."""

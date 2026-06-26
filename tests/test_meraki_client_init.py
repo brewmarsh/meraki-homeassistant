@@ -1,7 +1,8 @@
 """Test the MerakiClient initialization."""
 
-from custom_components.meraki_ha.core.api.client import MerakiClient
 from homeassistant.core import HomeAssistant
+
+from custom_components.meraki_ha.core.api.client import MerakiClient
 
 
 def test_meraki_client_init(hass: HomeAssistant) -> None:

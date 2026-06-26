@@ -3,11 +3,11 @@
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
+from homeassistant.components.camera import CameraEntityFeature
+from homeassistant.core import HomeAssistant
 
 from custom_components.meraki_ha.camera import MerakiRTSPStreamCamera
 from custom_components.meraki_ha.core.models.device import MerakiDevice
-from homeassistant.components.camera import CameraEntityFeature
-from homeassistant.core import HomeAssistant
 
 
 @pytest.fixture

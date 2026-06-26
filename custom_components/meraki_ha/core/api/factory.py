@@ -2,10 +2,32 @@
 
 from __future__ import annotations
 
+from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 
+from ...const.config import (
+    CONF_ENABLED_NETWORKS,
+    CONF_MERAKI_API_KEY,
+    CONF_MERAKI_ORG_ID,
+)
 from .client import MerakiClient
 from .protocol import MerakiApiClientProtocol as MerakiApiClientProtocolType
+
+
+def create_meraki_client(
+    hass: HomeAssistant, entry: ConfigEntry
+) -> MerakiApiClientProtocolType:
+    """Create a Meraki API client from a config entry."""
+    api_key = entry.data[CONF_MERAKI_API_KEY]
+    org_id = entry.data.get(CONF_MERAKI_ORG_ID)
+    enabled_networks = entry.data.get(CONF_ENABLED_NETWORKS)
+
+    return create_api_client(
+        hass,
+        api_key,
+        org_id,
+        enabled_networks=enabled_networks,
+    )
 
 
 def create_api_client(

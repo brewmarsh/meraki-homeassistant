@@ -28,7 +28,5 @@ def is_fatal_error(log_line: str) -> bool:
 
 
 def filter_logs(log_lines: list[str]) -> list[str]:
-    """
-    Filters a list of log lines, returning only those that are considered fatal errors.
-    """
+    """Filters a list of log lines, returning only those that are considered fatal errors."""
     return [line for line in log_lines if is_fatal_error(line)]

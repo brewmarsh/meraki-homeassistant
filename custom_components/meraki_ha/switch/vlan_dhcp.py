@@ -38,7 +38,7 @@ class MerakiVLANDHCPSwitch(MerakiVLANEntity, SwitchEntity):
 
         # RESOLVED: Use the more descriptive name from beta
         self._attr_name = f"{vlan.name} (VLAN {vlan_id}) DHCP"
-        
+
         # Set has_entity_name to False to use the full custom name
         self._attr_has_entity_name = False
         self._attr_entity_category = EntityCategory.CONFIG
