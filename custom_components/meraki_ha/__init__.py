@@ -14,8 +14,8 @@ from .const.integration import DOMAIN
 from .const.platform import PLATFORMS
 from .coordinators import MerakiMainCoordinator
 from .core.api.factory import create_meraki_client
-from .core.errors import MerakiAuthError, MerakiConnectionError
-from .discovery.service import DiscoveryService
+from .core.errors import MerakiAuthenticationError, MerakiConnectionError
+from .discovery.service import DeviceDiscoveryService
 from .services import async_setup_services
 from .services.guest_key_service import GuestKeyService
 from .services.switch_port_service import SwitchPortService
@@ -41,7 +41,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     try:
         api_client = create_meraki_client(hass, entry)
         await api_client.async_setup()
-    except MerakiAuthError as err:
+    except MerakiAuthenticationError as err:
         _LOGGER.error("Authentication failed: %s", err)
         raise ConfigEntryAuthFailed(err) from err
     except MerakiConnectionError as err:
@@ -54,7 +54,14 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     main_coordinator = MerakiMainCoordinator(hass, entry, api_client, static_data)
 
     # 3. Setup Discovery Service
-    discovery_service = DiscoveryService(hass, entry, api_client, main_coordinator)
+    discovery_service = DeviceDiscoveryService(
+        main_coordinator,
+        entry,
+        api_client,
+        None,  # camera_service
+        None,  # device_control_service
+        None,  # network_control_service
+    )
 
     # 4. Initialize Services
     guest_key_service = GuestKeyService(api_client, main_coordinator)
