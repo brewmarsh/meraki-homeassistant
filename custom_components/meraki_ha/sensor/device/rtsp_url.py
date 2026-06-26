@@ -3,12 +3,9 @@
 from __future__ import annotations
 
 import logging
-from typing import cast
 
-from homeassistant.components.sensor import SensorEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import EntityCategory
-from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from ...coordinators import MerakiMainCoordinator
 from ...core.models.device import MerakiDevice

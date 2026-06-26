@@ -3,11 +3,11 @@
 from unittest.mock import MagicMock
 
 import pytest
+from homeassistant.const import EntityCategory
 
 from custom_components.meraki_ha.sensor.network.ssid_band_selection import (
     MerakiSSIDBandSelectionSensor,
 )
-from homeassistant.const import EntityCategory
 
 
 @pytest.fixture

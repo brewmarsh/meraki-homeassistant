@@ -1,10 +1,12 @@
 """Tests for Meraki async logging utilities."""
 
-import pytest
-from unittest.mock import MagicMock
 import asyncio
+from unittest.mock import MagicMock
+
+import pytest
 
 from custom_components.meraki_ha.async_logging import async_log_time
+
 
 @pytest.mark.asyncio
 async def test_async_log_time():

@@ -4,9 +4,10 @@ import logging
 from dataclasses import asdict, is_dataclass
 from typing import Any
 
-from custom_components.meraki_ha.const.integration import DOMAIN
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.device_registry import DeviceEntryType, DeviceInfo
+
+from custom_components.meraki_ha.const.integration import DOMAIN
 
 from ..core.models.device import MerakiDevice
 from ..core.models.network import MerakiNetwork

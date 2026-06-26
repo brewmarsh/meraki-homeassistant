@@ -1,14 +1,23 @@
 """Tests for Meraki Appliance Port discovery."""
 
 from unittest.mock import MagicMock
+
 import pytest
-from custom_components.meraki_ha.discovery.providers.appliance import AppliancePortProvider
+
+from custom_components.meraki_ha.binary_sensor.device.appliance_port import (
+    AppliancePortBinarySensor,
+)
 from custom_components.meraki_ha.const.config import CONF_ENABLE_PORT_SENSORS
-from custom_components.meraki_ha.core.models.device import MerakiDevice
 from custom_components.meraki_ha.core.models.appliance import MerakiAppliancePort
-from custom_components.meraki_ha.sensor.device.appliance_port import MerakiAppliancePortSensor
-from custom_components.meraki_ha.binary_sensor.device.appliance_port import AppliancePortBinarySensor
+from custom_components.meraki_ha.core.models.device import MerakiDevice
+from custom_components.meraki_ha.discovery.providers.appliance import (
+    AppliancePortProvider,
+)
+from custom_components.meraki_ha.sensor.device.appliance_port import (
+    MerakiAppliancePortSensor,
+)
 from custom_components.meraki_ha.switch.switch_port import MerakiAppliancePortSwitch
+
 
 @pytest.fixture
 def mock_coordinator():

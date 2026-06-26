@@ -1,10 +1,14 @@
 """Tests for the Meraki uplink bandwidth number."""
 
-from unittest.mock import MagicMock, AsyncMock
+from unittest.mock import AsyncMock, MagicMock
+
 import pytest
 
-from custom_components.meraki_ha.number.uplink_bandwidth import MerakiUplinkBandwidthNumber
 from custom_components.meraki_ha.core.models.network import MerakiNetwork
+from custom_components.meraki_ha.number.uplink_bandwidth import (
+    MerakiUplinkBandwidthNumber,
+)
+
 
 @pytest.mark.asyncio
 async def test_uplink_bandwidth_number():

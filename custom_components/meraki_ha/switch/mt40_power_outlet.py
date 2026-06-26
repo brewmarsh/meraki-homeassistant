@@ -8,7 +8,6 @@ from typing import Any
 from homeassistant.components.switch import SwitchEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import callback
-from homeassistant.helpers.device_registry import DeviceInfo
 
 from ..coordinators import MerakiSensorCoordinator
 from ..core.api import MerakiApiClientProtocol

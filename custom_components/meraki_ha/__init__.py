@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+from typing import Any
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
@@ -13,11 +14,16 @@ from homeassistant.helpers.typing import ConfigType
 from .const.integration import DOMAIN
 from .const.platform import PLATFORMS
 from .coordinators import MerakiMainCoordinator
-from .core.api.factory import create_meraki_client
-from .core.errors import MerakiAuthError, MerakiConnectionError
-from .discovery.service import DiscoveryService
+from .core.api.factory import create_api_client
+from .core.errors import MerakiAuthenticationError, MerakiConnectionError
+from .core.repositories.camera_repository import CameraRepository
+from .core.repository import MerakiRepository
+from .discovery.service import DeviceDiscoveryService
 from .services import async_setup_services
-from .services.guest_key_service import GuestKeyService
+from .services.camera_service import CameraService
+from .services.device_control_service import DeviceControlService
+from .services.ipsk_manager import IPSKManager
+from .services.network_control_service import NetworkControlService
 from .services.switch_port_service import SwitchPortService
 from .setup_helpers import async_setup_frontend, async_setup_webhook_lifecycle
 from .webhook import async_unregister_webhook
@@ -39,9 +45,11 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     # 1. Initialize API Client
     try:
-        api_client = create_meraki_client(hass, entry)
+        api_key = entry.data["api_key"]
+        org_id = entry.data.get("organization_id")
+        api_client = create_api_client(hass, api_key, org_id)
         await api_client.async_setup()
-    except MerakiAuthError as err:
+    except MerakiAuthenticationError as err:
         _LOGGER.error("Authentication failed: %s", err)
         raise ConfigEntryAuthFailed(err) from err
     except MerakiConnectionError as err:
@@ -50,23 +58,38 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     # 2. Initialize Discovery & Main Coordinator
     # We fetch static data once at startup to use across all coordinators
-    static_data = {}
+    static_data: dict[str, Any] = {}
     main_coordinator = MerakiMainCoordinator(hass, entry, api_client, static_data)
 
-    # 3. Setup Discovery Service
-    discovery_service = DiscoveryService(hass, entry, api_client, main_coordinator)
+    # 3. Initialize Repositories and Services
+    meraki_repo = MerakiRepository(api_client)
+    camera_repo = CameraRepository(api_client, api_client.organization_id or "")
 
-    # 4. Initialize Services
-    guest_key_service = GuestKeyService(api_client, main_coordinator)
-    switch_port_service = SwitchPortService(api_client, main_coordinator)
+    device_control_service = DeviceControlService(meraki_repo)
+    switch_port_service = SwitchPortService(meraki_repo)
+    camera_service = CameraService(camera_repo)
+    network_control_service = NetworkControlService(api_client, main_coordinator)
+    ipsk_manager = IPSKManager(hass)
+
+    await ipsk_manager.async_setup()
     await async_setup_services(hass)
+
+    # 4. Setup Discovery Service
+    discovery_service = DeviceDiscoveryService(
+        main_coordinator,
+        entry,
+        api_client,
+        camera_service,
+        device_control_service,
+        network_control_service,
+    )
 
     # Store for platforms and cleanup
     hass.data[DOMAIN][entry.entry_id] = {
         "api_client": api_client,
         "main_coordinator": main_coordinator,
         "discovery_service": discovery_service,
-        "guest_key_service": guest_key_service,
+        "ipsk_manager": ipsk_manager,
         "switch_port_service": switch_port_service,
     }
 
