@@ -1,5 +1,0 @@
-warning: No `requires-python` value found in the workspace. Defaulting to `>=3.12`.
-ImportError while loading conftest '/app/tests/conftest.py'.
-tests/__init__.py:7: in <module>
-    from homeassistant.core import HomeAssistant
-E   ModuleNotFoundError: No module named 'homeassistant'

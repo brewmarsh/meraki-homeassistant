@@ -1,2 +1,0 @@
-warning: No `requires-python` value found in the workspace. Defaulting to `>=3.12`.
-['', '/home/jules/.pyenv/versions/3.12.13/lib/python312.zip', '/home/jules/.pyenv/versions/3.12.13/lib/python3.12', '/home/jules/.pyenv/versions/3.12.13/lib/python3.12/lib-dynload', '/app/.venv/lib/python3.12/site-packages']

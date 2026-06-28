@@ -1,4 +1,4 @@
-"""Config flow for Meraki for Home Assistant integration."""
+"""Config flow for Meraki Home Assistant integration."""
 
 from __future__ import annotations
 

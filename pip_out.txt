@@ -1,6 +1,0 @@
-  × No solution found when resolving dependencies:
-  ╰─▶ Because homeassistant==2024.12.5 depends on requests==2.32.3 and you
-      require homeassistant==2024.12.5, we can conclude that you require
-      requests==2.32.3.
-      And because you require requests>=2.33.0, we can conclude that your
-      requirements are unsatisfiable.
