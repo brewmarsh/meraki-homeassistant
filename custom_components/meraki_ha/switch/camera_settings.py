@@ -115,4 +115,3 @@ class MerakiCameraSettingSwitchBase(
     async def _async_update_setting(self, is_on: bool) -> None:
         """Update the setting via the Meraki API."""
         raise NotImplementedError
-

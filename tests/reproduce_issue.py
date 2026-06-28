@@ -27,9 +27,9 @@ def test_mx_lan_ip_fallback_bug():
                 "interface": "wan1",
                 "ip": "8.8.8.8",
                 "publicIp": "8.8.8.8",
-                "status": "active"
+                "status": "active",
             }
-        ]
+        ],
     )
 
     coordinator.get_device.return_value = mx_device
@@ -40,6 +40,7 @@ def test_mx_lan_ip_fallback_bug():
     # The bug is that it returns "8.8.8.8" instead of "Multiple (VLANs)" or None
     print(f"LAN IP Sensor value: {sensor.native_value}")
     assert sensor.native_value == "Multiple (VLANs)"
+
 
 if __name__ == "__main__":
     test_mx_lan_ip_fallback_bug()

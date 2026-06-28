@@ -55,7 +55,9 @@ def mock_device_coordinator() -> MagicMock:
     coordinator.data = {"devices_by_serial": coordinator.devices_by_serial}
 
     # Assign the side effect to the mock's get_device method
-    coordinator.get_device.side_effect = lambda serial: coordinator.devices_by_serial.get(serial)
+    coordinator.get_device.side_effect = lambda serial: (
+        coordinator.devices_by_serial.get(serial)
+    )
 
     return coordinator
 
