@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import hmac
 import logging
 from typing import TYPE_CHECKING, Any
 from urllib.parse import urlparse
@@ -330,7 +331,13 @@ def _validate_webhook_payload(
     # Alerts use 'sharedSecret', Scanning API uses 'secret'
     payload_secret = data.get("sharedSecret") or data.get("secret")
 
-    if not secret or payload_secret != secret:
+    if (
+        not secret
+        or not payload_secret
+        or not isinstance(secret, str)
+        or not isinstance(payload_secret, str)
+        or not hmac.compare_digest(payload_secret, secret)
+    ):
         _LOGGER.warning("Received webhook with invalid secret: %s", webhook_id)
         return None
 
