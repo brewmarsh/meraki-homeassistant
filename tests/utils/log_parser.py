@@ -12,8 +12,8 @@ IGNORE_PATTERNS = [
 
 
 def is_fatal_error(log_line: str) -> bool:
-    """
-    Determines if a log line represents a fatal error that should fail a test run.
+    """Determines if a log line represents a fatal error that should fail a test run.
+
     It returns True if the line contains [WARNING] or [ERROR] and does NOT match
     any of the IGNORE_PATTERNS.
     """

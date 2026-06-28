@@ -334,7 +334,9 @@ def _validate_webhook_payload(
     if (
         not secret
         or not payload_secret
-        or not hmac.compare_digest(str(payload_secret), str(secret))
+        or not isinstance(secret, str)
+        or not isinstance(payload_secret, str)
+        or not hmac.compare_digest(payload_secret, secret)
     ):
         _LOGGER.warning("Received webhook with invalid secret: %s", webhook_id)
         return None
