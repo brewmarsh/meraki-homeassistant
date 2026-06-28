@@ -1,6 +1,5 @@
 """Tests for Meraki API client initialization."""
 
-from unittest.mock import MagicMock
 from homeassistant.core import HomeAssistant
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
@@ -9,12 +8,12 @@ from custom_components.meraki_ha.const.config import (
     CONF_MERAKI_API_KEY,
     CONF_MERAKI_ORG_ID,
 )
-from custom_components.meraki_ha.core.api.factory import create_meraki_client
 from custom_components.meraki_ha.const.integration import DOMAIN
+from custom_components.meraki_ha.core.api.factory import create_meraki_client
+
 
 async def test_create_meraki_client_initialization(hass: HomeAssistant):
     """Test that create_meraki_client correctly initializes the client with filtered networks."""
-
     # Mock data
     api_key = "test_api_key"
     org_id = "test_org_id"
@@ -45,7 +44,6 @@ async def test_create_meraki_client_initialization(hass: HomeAssistant):
 
 async def test_create_meraki_client_fallback_to_data(hass: HomeAssistant):
     """Test that create_meraki_client falls back to data if options are missing."""
-
     # Mock data
     api_key = "test_api_key"
     org_id = "test_org_id"
