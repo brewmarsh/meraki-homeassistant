@@ -19,7 +19,8 @@ from .core.errors import MerakiAuthenticationError, MerakiConnectionError
 from .core.repositories.camera_repository import CameraRepository
 from .core.repository import MerakiRepository
 from .discovery.service import DeviceDiscoveryService
-from .helpers.migrations import async_migrate_entities, async_migrate_entry
+from .helpers.migrations import async_migrate_entities
+from .helpers.migrations import async_migrate_entry as async_migrate_entry
 from .services import async_setup_services
 from .services.camera_service import CameraService
 from .services.device_control_service import DeviceControlService
