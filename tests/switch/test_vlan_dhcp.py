@@ -72,7 +72,6 @@ def test_vlan_dhcp_switch_creation(
     assert isinstance(switch, MerakiVLANDHCPSwitch)
     assert switch.unique_id == "meraki_vlan_net1_1_dhcp_handling"
 
-    # RESOLVED: Asserting the descriptive name from beta
     assert switch.name == "VLAN 1 (VLAN 1) DHCP"
     assert switch.is_on is True
 

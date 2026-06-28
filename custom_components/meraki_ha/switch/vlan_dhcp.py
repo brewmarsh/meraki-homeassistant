@@ -36,7 +36,6 @@ class MerakiVLANDHCPSwitch(MerakiVLANEntity, SwitchEntity):
         if not vlan_id:
             raise ValueError("VLAN ID should not be None here")
 
-        # RESOLVED: Use the more descriptive name from beta
         self._attr_name = f"{vlan.name} (VLAN {vlan_id}) DHCP"
 
         # Set has_entity_name to False to use the full custom name
@@ -52,7 +51,6 @@ class MerakiVLANDHCPSwitch(MerakiVLANEntity, SwitchEntity):
     def extra_state_attributes(self) -> dict[str, Any]:
         """Return the state attributes for the VLAN DHCP switch."""
         attrs = super().extra_state_attributes
-        # RESOLVED: Retain extended attributes from the feature branch
         attrs.update(
             {
                 "vlan_id": self._vlan.id,
