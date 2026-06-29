@@ -22,14 +22,14 @@ def test_get_network_options():
         "networks": [
             {"name": "Network 1", "id": "N1"},
             {"name": "Network 2", "id": "N2"},
-            {"id": "N3"}, # Missing name
-            {"name": "Network 4"} # Missing id
+            {"id": "N3"},  # Missing name
+            {"name": "Network 4"},  # Missing id
         ]
     }
     options = get_network_options(data)
     assert options == [
         {"label": "Network 1", "value": "N1"},
-        {"label": "Network 2", "value": "N2"}
+        {"label": "Network 2", "value": "N2"},
     ]
 
     # Test with objects
@@ -39,6 +39,7 @@ def test_get_network_options():
     data = {"networks": [mock_net]}
     options = get_network_options(data)
     assert options == [{"label": "Network Obj", "value": "N_OBJ"}]
+
 
 def test_has_cameras():
     """Test has_cameras."""
@@ -64,6 +65,7 @@ def test_has_cameras():
     data = {"devices": [mock_mv]}
     assert has_cameras(data) is True
 
+
 @pytest.mark.asyncio
 async def test_validate_credentials(hass):
     """Test validate_credentials."""
@@ -71,7 +73,9 @@ async def test_validate_credentials(hass):
 
     user_input = {"api_key": "test_key", "org_id": "test_org"}
 
-    with patch("custom_components.meraki_ha.authentication.validate_meraki_credentials") as mock_val:
+    with patch(
+        "custom_components.meraki_ha.authentication.validate_meraki_credentials"
+    ) as mock_val:
         mock_val.return_value = {"success": True}
         errors, result = await validate_credentials(hass, user_input)
         assert errors == {}

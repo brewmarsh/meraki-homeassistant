@@ -23,10 +23,7 @@ async def test_uplink_bandwidth_number():
         "traffic_shaping": {
             "N123": {
                 "bandwidthLimits": {
-                    "wan1": {
-                        "limitUplink": 5000,
-                        "limitDownlink": 10000
-                    }
+                    "wan1": {"limitUplink": 5000, "limitDownlink": 10000}
                 }
             }
         }
@@ -38,11 +35,7 @@ async def test_uplink_bandwidth_number():
 
     # Instantiate number entity
     number = MerakiUplinkBandwidthNumber(
-        mock_coordinator,
-        mock_config_entry,
-        mock_network,
-        "wan1",
-        "uplink"
+        mock_coordinator, mock_config_entry, mock_network, "wan1", "uplink"
     )
     number.hass = MagicMock()
     number.async_write_ha_state = MagicMock()
@@ -53,7 +46,9 @@ async def test_uplink_bandwidth_number():
     assert number.native_unit_of_measurement == "kbps"
 
     # Test update_state
-    mock_coordinator.data["traffic_shaping"]["N123"]["bandwidthLimits"]["wan1"]["limitUplink"] = 6000
+    mock_coordinator.data["traffic_shaping"]["N123"]["bandwidthLimits"]["wan1"][
+        "limitUplink"
+    ] = 6000
     number._handle_coordinator_update()
     assert number.native_value == 6000.0
 
@@ -65,6 +60,8 @@ async def test_uplink_bandwidth_number():
 
     # Test pending update (should skip update_state)
     mock_coordinator.is_pending.return_value = True
-    mock_coordinator.data["traffic_shaping"]["N123"]["bandwidthLimits"]["wan1"]["limitUplink"] = 8000
+    mock_coordinator.data["traffic_shaping"]["N123"]["bandwidthLimits"]["wan1"][
+        "limitUplink"
+    ] = 8000
     number._handle_coordinator_update()
     assert number.native_value == 7000.0  # Still 7000 because update was skipped

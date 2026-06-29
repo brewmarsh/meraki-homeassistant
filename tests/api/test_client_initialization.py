@@ -25,10 +25,10 @@ async def test_create_meraki_client_initialization(hass: HomeAssistant):
         data={
             CONF_MERAKI_API_KEY: api_key,
             CONF_MERAKI_ORG_ID: org_id,
-            CONF_ENABLED_NETWORKS: [], # Initial data is empty
+            CONF_ENABLED_NETWORKS: [],  # Initial data is empty
         },
         options={
-            CONF_ENABLED_NETWORKS: enabled_networks, # Options has the filtered list
+            CONF_ENABLED_NETWORKS: enabled_networks,  # Options has the filtered list
         },
         entry_id="test_entry_id",
     )
@@ -41,6 +41,7 @@ async def test_create_meraki_client_initialization(hass: HomeAssistant):
     assert client._api_key == api_key
     assert client._org_id == org_id
     assert client.enabled_networks == enabled_networks
+
 
 async def test_create_meraki_client_fallback_to_data(hass: HomeAssistant):
     """Test that create_meraki_client falls back to data if options are missing."""

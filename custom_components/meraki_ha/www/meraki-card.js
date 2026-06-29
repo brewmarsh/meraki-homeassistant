@@ -284,7 +284,7 @@ et.elementStyles = [], et.shadowRootOptions = { mode: "open" }, et[ut("elementPr
  * Copyright 2017 Google LLC
  * SPDX-License-Identifier: BSD-3-Clause
  */
-const ft = globalThis, Ae = (n) => n, Tt = ft.trustedTypes, $e = Tt ? Tt.createPolicy("lit-html", { createHTML: (n) => n }) : void 0, Be = "$lit$", j = `lit$${Math.random().toFixed(9).slice(2)}$`, Re = "?" + j, fi = `<${Re}>`, Z = document, pt = () => Z.createComment(""), mt = (n) => n === null || typeof n != "object" && typeof n != "function", se = Array.isArray, gi = (n) => se(n) || typeof (n == null ? void 0 : n[Symbol.iterator]) == "function", Ft = `[ 	
+const ft = globalThis, Ae = (n) => n, Tt = ft.trustedTypes, $e = Tt ? Tt.createPolicy("lit-html", { createHTML: (n) => n }) : void 0, Re = "$lit$", j = `lit$${Math.random().toFixed(9).slice(2)}$`, Be = "?" + j, fi = `<${Be}>`, Z = document, pt = () => Z.createComment(""), mt = (n) => n === null || typeof n != "object" && typeof n != "function", se = Array.isArray, gi = (n) => se(n) || typeof (n == null ? void 0 : n[Symbol.iterator]) == "function", Ft = `[
 \f\r]`, ht = /<(?:(!--|\/[^a-zA-Z])|(\/?[a-zA-Z][^>\s]*)|(\/?$))/g, ke = /-->/g, Se = />/g, J = RegExp(`>|${Ft}(?:([^\\s"'>=/]+)(${Ft}*=${Ft}*(?:[^ 	
 \f\r"'\`<>=]|("|')|))|$)`, "g"), Pe = /'/g, Ne = /"/g, Ue = /^(?:script|style|textarea|title)$/i, pi = (n) => (t, ...e) => ({ _$litType$: n, strings: t, values: e }), b = pi(1), it = Symbol.for("lit-noChange"), k = Symbol.for("lit-nothing"), xe = /* @__PURE__ */ new WeakMap(), Y = Z.createTreeWalker(Z, 129);
 function Oe(n, t) {
@@ -299,7 +299,7 @@ const mi = (n, t) => {
     let d, l, h = -1, u = 0;
     for (; u < c.length && (o.lastIndex = u, l = o.exec(c), l !== null); ) u = o.lastIndex, o === ht ? l[1] === "!--" ? o = ke : l[1] !== void 0 ? o = Se : l[2] !== void 0 ? (Ue.test(l[2]) && (i = RegExp("</" + l[2], "g")), o = J) : l[3] !== void 0 && (o = J) : o === J ? l[0] === ">" ? (o = i ?? ht, h = -1) : l[1] === void 0 ? h = -2 : (h = o.lastIndex - l[2].length, d = l[1], o = l[3] === void 0 ? J : l[3] === '"' ? Ne : Pe) : o === Ne || o === Pe ? o = J : o === ke || o === Se ? o = ht : (o = J, i = void 0);
     const f = o === J && n[a + 1].startsWith("/>") ? " " : "";
-    r += o === ht ? c + fi : h >= 0 ? (s.push(d), c.slice(0, h) + Be + c.slice(h) + j + f) : c + j + (h === -2 ? a : f);
+    r += o === ht ? c + fi : h >= 0 ? (s.push(d), c.slice(0, h) + Re + c.slice(h) + j + f) : c + j + (h === -2 ? a : f);
   }
   return [Oe(n, r + (n[e] || "<?>") + (t === 2 ? "</svg>" : t === 3 ? "</math>" : "")), s];
 };
@@ -315,7 +315,7 @@ class _t {
     }
     for (; (i = Y.nextNode()) !== null && c.length < a; ) {
       if (i.nodeType === 1) {
-        if (i.hasAttributes()) for (const h of i.getAttributeNames()) if (h.endsWith(Be)) {
+        if (i.hasAttributes()) for (const h of i.getAttributeNames()) if (h.endsWith(Re)) {
           const u = l[o++], f = i.getAttribute(h).split(j), g = /([.?@])?(.*)/.exec(u);
           c.push({ type: 1, index: r, name: g[2], strings: f, ctor: g[1] === "." ? yi : g[1] === "?" ? wi : g[1] === "@" ? vi : Lt }), i.removeAttribute(h);
         } else h.startsWith(j) && (c.push({ type: 6, index: r }), i.removeAttribute(h));
@@ -327,7 +327,7 @@ class _t {
             i.append(h[u], pt());
           }
         }
-      } else if (i.nodeType === 8) if (i.data === Re) c.push({ type: 2, index: r });
+      } else if (i.nodeType === 8) if (i.data === Be) c.push({ type: 2, index: r });
       else {
         let h = -1;
         for (; (h = i.data.indexOf(j, h + 1)) !== -1; ) c.push({ type: 7, index: r }), h += j.length - 1;
@@ -726,7 +726,7 @@ const $i = async (n, t) => {
     throw console.error(`Cisco Meraki HA: WebSocket error [${t.type}]:`, e), e;
   }
 };
-class R {
+class B {
   /**
    * Fetches wireless networks, SSIDs, and group policies directly from the integration's backend cache.
    */
@@ -896,7 +896,7 @@ x.isKanjiModeEnabled = function() {
 x.toSJIS = function(t) {
   return re(t);
 };
-var Bt = {};
+var Rt = {};
 (function(n) {
   n.L = { bit: 1 }, n.M = { bit: 0 }, n.Q = { bit: 3 }, n.H = { bit: 2 };
   function t(e) {
@@ -930,7 +930,7 @@ var Bt = {};
       return i;
     }
   };
-})(Bt);
+})(Rt);
 function Fe() {
   this.buffer = [], this.length = 0;
 }
@@ -1098,8 +1098,8 @@ var qe = {};
     return a;
   };
 })(qe);
-var Rt = {};
-const q = Bt, Pt = [
+var Bt = {};
+const q = Rt, Pt = [
   // L  M  Q  H
   1,
   1,
@@ -1424,7 +1424,7 @@ const q = Bt, Pt = [
   2040,
   2430
 ];
-Rt.getBlocksCount = function(t, e) {
+Bt.getBlocksCount = function(t, e) {
   switch (e) {
     case q.L:
       return Pt[(t - 1) * 4 + 0];
@@ -1438,7 +1438,7 @@ Rt.getBlocksCount = function(t, e) {
       return;
   }
 };
-Rt.getTotalCodewordsCount = function(t, e) {
+Bt.getTotalCodewordsCount = function(t, e) {
   switch (e) {
     case q.L:
       return Nt[(t - 1) * 4 + 0];
@@ -1531,7 +1531,7 @@ U.BYTE_KANJI = new RegExp("[^A-Z0-9 $%*+\\-./:]+", "g");
 U.BYTE = new RegExp(Mi, "g");
 U.NUMERIC = new RegExp(Je, "g");
 U.ALPHANUMERIC = new RegExp(Ti, "g");
-const Di = new RegExp("^" + yt + "$"), Li = new RegExp("^" + Je + "$"), Bi = new RegExp("^[A-Z0-9 $%*+\\-./:]+$");
+const Di = new RegExp("^" + yt + "$"), Li = new RegExp("^" + Je + "$"), Ri = new RegExp("^[A-Z0-9 $%*+\\-./:]+$");
 U.testKanji = function(t) {
   return Di.test(t);
 };
@@ -1539,7 +1539,7 @@ U.testNumeric = function(t) {
   return Li.test(t);
 };
 U.testAlphanumeric = function(t) {
-  return Bi.test(t);
+  return Ri.test(t);
 };
 (function(n) {
   const t = ae, e = U;
@@ -1601,7 +1601,7 @@ U.testAlphanumeric = function(t) {
   };
 })(G);
 (function(n) {
-  const t = x, e = Rt, s = Bt, i = G, r = ae, o = 7973, a = t.getBCHDigit(o);
+  const t = x, e = Bt, s = Rt, i = G, r = ae, o = 7973, a = t.getBCHDigit(o);
   function c(u, f, g) {
     for (let y = 1; y <= 40; y++)
       if (f <= n.getCapacity(y, g, u))
@@ -1664,13 +1664,13 @@ U.testAlphanumeric = function(t) {
   };
 })(We);
 var Ye = {};
-const Yt = x, Qe = 1335, Ri = 21522, Te = Yt.getBCHDigit(Qe);
+const Yt = x, Qe = 1335, Bi = 21522, Te = Yt.getBCHDigit(Qe);
 Ye.getEncodedBits = function(t, e) {
   const s = t.bit << 3 | e;
   let i = s << 10;
   for (; Yt.getBCHDigit(i) - Te >= 0; )
     i ^= Qe << Yt.getBCHDigit(i) - Te;
-  return (s << 10 | i) ^ Ri;
+  return (s << 10 | i) ^ Bi;
 };
 var Ze = {};
 const Ui = G;
@@ -1962,11 +1962,11 @@ var Gi = Xe.exports;
     for (let C = 0; C < p.length; C++) {
       const $ = p[C], M = [];
       for (let V = 0; V < $.length; V++) {
-        const B = $[V], dt = "" + C + V;
-        M.push(dt), _[dt] = { node: B, lastCount: 0 }, m[dt] = {};
+        const R = $[V], dt = "" + C + V;
+        M.push(dt), _[dt] = { node: R, lastCount: 0 }, m[dt] = {};
         for (let Ht = 0; Ht < E.length; Ht++) {
           const O = E[Ht];
-          _[O] && _[O].node.mode === B.mode ? (m[O][dt] = u(_[O].lastCount + B.length, B.mode) - u(_[O].lastCount, B.mode), _[O].lastCount += B.length) : (_[O] && (_[O].lastCount = B.length), m[O][dt] = u(B.length, B.mode) + 4 + t.getCharCountIndicator(B.mode, v));
+          _[O] && _[O].node.mode === R.mode ? (m[O][dt] = u(_[O].lastCount + R.length, R.mode) - u(_[O].lastCount, R.mode), _[O].lastCount += R.length) : (_[O] && (_[O].lastCount = R.length), m[O][dt] = u(R.length, R.mode) + 4 + t.getCharCountIndicator(R.mode, v));
         }
       }
       E = M;
@@ -2007,7 +2007,7 @@ var Gi = Xe.exports;
     );
   };
 })(Ze);
-const Ot = x, Kt = Bt, Wi = Pi, Ji = Ni, Yi = Ve, Qi = je, Qt = qe, Zt = Rt, Zi = Ii, Dt = We, Xi = Ye, ts = G, Gt = Ze;
+const Ot = x, Kt = Rt, Wi = Pi, Ji = Ni, Yi = Ve, Qi = je, Qt = qe, Zt = Bt, Zi = Ii, Dt = We, Xi = Ye, ts = G, Gt = Ze;
 function es(n, t) {
   const e = n.size, s = Qi.getPositions(t);
   for (let i = 0; i < s.length; i++) {
@@ -2396,8 +2396,11 @@ class I {
       "sky",
       "earth",
       "sun"
-    ], s = (i) => i[Math.floor(Math.random() * i.length)];
-    return `${s(t)}-${s(e)}-${Math.floor(Math.random() * 1e3)}`;
+    ], s = () => {
+      const r = new Uint32Array(1);
+      return window.crypto.getRandomValues(r), r[0] / 4294967296;
+    }, i = (r) => r[Math.floor(s() * r.length)];
+    return `${i(t)}-${i(e)}-${Math.floor(s() * 1e3)}`;
   }
 }
 var fs = Object.defineProperty, W = (n, t, e, s) => {
@@ -2421,7 +2424,7 @@ const de = class de extends N {
     super.firstUpdated(t), this._loadCentralizedData();
   }
   async _loadCentralizedData() {
-    this.hass && await R.pollConfig(this.hass, (t, e) => {
+    this.hass && await B.pollConfig(this.hass, (t, e) => {
       this._loadingMessage = t, this._isLoading = e;
     });
   }
@@ -2446,14 +2449,14 @@ const de = class de extends N {
       return At(
         ((l = this._config) == null ? void 0 : l.name) || "Cisco Meraki Content Filter",
         this._loadingMessage,
-        "2.3.0-beta.3628"
+        "2.6.0"
       );
     const t = this._config.entity || this._discoverEntity(), e = t ? this.hass.states[t] : void 0, s = this._config.entity ? this.hass.states[this._config.entity] : void 0, i = (h = s == null ? void 0 : s.attributes) == null ? void 0 : h.friendly_name, r = typeof i == "string" ? i : "Cisco Meraki", o = this._config.name || (this._config.entity ? `${r} Content Filter` : "Cisco Meraki Content Filter");
     if (!t || !e)
       return ne(
         "Entity Missing",
         "No content filter entity was found. Please check your configuration.",
-        "2.3.0-beta.3628"
+        "2.6.0"
       );
     const a = e.state || "Unknown", c = ((u = e.attributes) == null ? void 0 : u.options) || [
       "None",
@@ -2483,7 +2486,7 @@ const de = class de extends N {
     })}
           </div>
         </div>
-        <div class="version">v${"2.3.0-beta.3628"}</div>
+        <div class="version">v${"2.6.0"}</div>
       </ha-card>
     `;
   }
@@ -2667,7 +2670,7 @@ const ue = class ue extends N {
   }
   async _loadCentralizedData() {
     if (!this.hass) return;
-    const { networks: t, ssids: e } = await R.pollConfig(
+    const { networks: t, ssids: e } = await B.pollConfig(
       this.hass,
       (s, i) => {
         this._loadingMessage = s, this._isLoading = i;
@@ -2699,10 +2702,10 @@ const ue = class ue extends N {
           </div>
         </div>
       `;
-    const t = R.getNetworkOptions(
+    const t = B.getNetworkOptions(
       this._networks,
       !0
-    ), e = R.getSsidOptions(
+    ), e = B.getSsidOptions(
       this._ssids,
       this._config.networkId,
       "name"
@@ -2784,7 +2787,7 @@ const fe = class fe extends N {
   }
   async _loadCentralizedData() {
     if (!this.hass) return;
-    const { ssids: t } = await R.pollConfig(
+    const { ssids: t } = await B.pollConfig(
       this.hass,
       (e, s) => {
         this._loadingMessage = e, this._isLoading = s;
@@ -2818,7 +2821,7 @@ const fe = class fe extends N {
       return At(
         ((s = this._config) == null ? void 0 : s.name) || "Wi-Fi Access",
         this._loadingMessage,
-        "2.3.0-beta.3628"
+        "2.6.0"
       );
     const t = I.getValue(this.hass, this._config.ssid), e = I.getPasswordForSsid(
       this.hass,
@@ -2840,7 +2843,7 @@ const fe = class fe extends N {
                 Password: <code class="copyable-code">${e}</code>
               </div>` : ""}
         </div>
-        <div class="version">v${"2.3.0-beta.3628"}</div>
+        <div class="version">v${"2.6.0"}</div>
       </ha-card>
     `;
   }
@@ -2921,7 +2924,7 @@ const ge = class ge extends N {
     super.firstUpdated(t), this._loadCentralizedData();
   }
   async _loadCentralizedData() {
-    this.hass && await R.pollConfig(this.hass, (t, e) => {
+    this.hass && await B.pollConfig(this.hass, (t, e) => {
       this._loadingMessage = t, this._isLoading = e;
     });
   }
@@ -3000,7 +3003,7 @@ const ge = class ge extends N {
       return At(
         ((i = this._config) == null ? void 0 : i.name) || "Cisco Meraki Network Vitals",
         this._loadingMessage,
-        "2.3.0-beta.3628"
+        "2.6.0"
       );
     const t = this._config.throughput_entity;
     t && this.hass.states[t] && console.log(
@@ -3035,7 +3038,7 @@ const ge = class ge extends N {
             </div>
           </div>
         </div>
-        <div class="version">v${"2.3.0-beta.3628"}</div>
+        <div class="version">v${"2.6.0"}</div>
       </ha-card>
     `;
   }
@@ -3241,7 +3244,7 @@ const me = class me extends N {
     super.firstUpdated(t), this._loadCentralizedData();
   }
   async _loadCentralizedData() {
-    this.hass && await R.pollConfig(this.hass, (t, e) => {
+    this.hass && await B.pollConfig(this.hass, (t, e) => {
       this._loadingMessage = t, this._isLoading = e;
     });
   }
@@ -3274,13 +3277,13 @@ const me = class me extends N {
       return At(
         ((e = this._config) == null ? void 0 : e.name) || "Cisco Meraki VLANs",
         this._loadingMessage,
-        "2.3.0-beta.3628"
+        "2.6.0"
       );
     const t = this._getVlanEntities();
     return t.length === 0 ? ne(
       "No VLANs Found",
       "No Meraki VLAN DHCP switches were found. Ensure VLAN management is enabled in the integration options.",
-      "2.3.0-beta.3628"
+      "2.6.0"
     ) : b`
       <ha-card .header="${this._config.name || "Cisco Meraki VLANs"}">
         <div class="card-content">
@@ -3311,7 +3314,7 @@ const me = class me extends N {
     )}
           </div>
         </div>
-        <div class="version">v${"2.3.0-beta.3628"}</div>
+        <div class="version">v${"2.6.0"}</div>
       </ha-card>
     `;
   }
@@ -3564,14 +3567,16 @@ const we = class we extends N {
     });
   }
   _generateUniqueGuestName() {
-    var s, i;
-    const t = ((i = (s = this.hass) == null ? void 0 : s.user) == null ? void 0 : i.name) || "Home Assistant", e = Math.floor(Math.random() * 1e4).toString().padStart(4, "0");
-    return `${t} - Guest ${e}`;
+    var r, o;
+    const t = ((o = (r = this.hass) == null ? void 0 : r.user) == null ? void 0 : o.name) || "Home Assistant", e = new Uint32Array(1);
+    window.crypto.getRandomValues(e);
+    const s = e[0] / 4294967296, i = Math.floor(s * 1e4).toString().padStart(4, "0");
+    return `${t} - Guest ${i}`;
   }
   async _loadCentralizedData() {
     var d;
     if (!this.hass) return;
-    const { networks: t, ssids: e, groupPolicies: s, entryId: i } = await R.pollConfig(this.hass, (l, h) => {
+    const { networks: t, ssids: e, groupPolicies: s, entryId: i } = await B.pollConfig(this.hass, (l, h) => {
       this._loadingMessage = l, this._isLoading = h;
     });
     if (t.length === 0) {
@@ -3641,17 +3646,17 @@ const we = class we extends N {
       return At(
         ((h = this._config) == null ? void 0 : h.name) || "Cisco Meraki Guest Access",
         this._loadingMessage,
-        "2.3.0-beta.3628"
+        "2.6.0"
       );
     if (this._networks.length === 0)
       return ne(
         "No Wireless Networks",
         "No Cisco Meraki wireless networks found. Ensure the integration is configured.",
-        "2.3.0-beta.3628"
+        "2.6.0"
       );
-    const t = R.getNetworkOptions(
+    const t = B.getNetworkOptions(
       this._networks
-    ), e = R.getSsidOptions(
+    ), e = B.getSsidOptions(
       this._ssids,
       this._formData.network,
       "number"
@@ -3758,7 +3763,7 @@ const we = class we extends N {
               Create Another
             </ha-button>
           </div>
-          <div class="version">v${"2.3.0-beta.3628"}</div>
+          <div class="version">v${"2.6.0"}</div>
         </ha-card>
       `;
     }
@@ -3806,7 +3811,7 @@ const we = class we extends N {
             </ha-button>
           </div>
         </div>
-        <div class="version">v${"2.3.0-beta.3628"}</div>
+        <div class="version">v${"2.6.0"}</div>
       </ha-card>
     `;
   }
@@ -3951,9 +3956,9 @@ window.customCards.some(
 ) || window.customCards.push({
   type: "meraki-guest-access-card",
   name: "Cisco Meraki Guest Access",
-  description: "Manage temporary guest WiFi access. Version: 2.3.0-beta.3628",
+  description: "Manage temporary guest WiFi access. Version: 2.6.0",
   preview: !0,
-  version: "2.3.0-beta.3628"
+  version: "2.6.0"
 });
 export {
   S as MerakiGuestAccessCard
