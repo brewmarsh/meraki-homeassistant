@@ -80,7 +80,6 @@ class MerakiRtspUrlSensor(MerakiSensor):
 
         self._attr_native_value = "Not available"
 
-
     @property
     def entity_registry_enabled_default(self) -> bool:
         """Return if the entity should be enabled by default."""

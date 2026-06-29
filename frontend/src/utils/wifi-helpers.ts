@@ -142,7 +142,14 @@ export class WifiHelpers {
       'stone', 'water', 'fire', 'wood', 'metal', 'glass', 'sky', 'earth', 'sun'
     ];
 
-    const pick = (arr: string[]) => arr[Math.floor(Math.random() * arr.length)];
-    return `${pick(adjs)}-${pick(nouns)}-${Math.floor(Math.random() * 1000)}`;
+    // Use Web Crypto API for secure random number generation
+    const getSecureRandom = () => {
+      const array = new Uint32Array(1);
+      window.crypto.getRandomValues(array);
+      return array[0] / (0xffffffff + 1);
+    };
+
+    const pick = (arr: string[]) => arr[Math.floor(getSecureRandom() * arr.length)];
+    return `${pick(adjs)}-${pick(nouns)}-${Math.floor(getSecureRandom() * 1000)}`;
   }
 }

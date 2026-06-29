@@ -38,7 +38,6 @@ class MerakiSnapshotButton(MerakiEntity, ButtonEntity):
         self._attr_has_entity_name = True
         self._attr_name = "Snapshot"
 
-
     @property
     def available(self) -> bool:
         """Return if entity is available."""

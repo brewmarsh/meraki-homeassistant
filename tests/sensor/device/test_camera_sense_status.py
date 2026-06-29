@@ -20,7 +20,7 @@ async def test_camera_sense_status_sensor():
         model="MV12",
         name="Test Camera",
         product_type="camera",
-        network_id="N_123"
+        network_id="N_123",
     )
     device_data.sense_settings = {"senseEnabled": True}
 
@@ -31,7 +31,9 @@ async def test_camera_sense_status_sensor():
     mock_config_entry.options = {}
 
     # Instantiate sensor
-    sensor = MerakiCameraSenseStatusSensor(mock_coordinator, device_data, mock_config_entry)
+    sensor = MerakiCameraSenseStatusSensor(
+        mock_coordinator, device_data, mock_config_entry
+    )
     sensor.hass = MagicMock()
     sensor.async_write_ha_state = MagicMock()
 
