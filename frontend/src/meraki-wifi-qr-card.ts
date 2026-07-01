@@ -1,5 +1,6 @@
 import { LitElement, html, css, PropertyValues } from 'lit';
 import { property, state } from 'lit/decorators.js';
+import { unsafeSVG } from 'lit/directives/unsafe-svg.js';
 import { HomeAssistant } from './types/ha';
 import { Network, SSID } from './types/meraki';
 import { renderLoadingState, sharedStyles } from './shared-ui';
@@ -246,8 +247,7 @@ export class MerakiWifiQrCard extends LitElement {
           <div
             class="qr-container"
             style="width: 200px; height: 200px;"
-            .innerHTML=${this._qrSvg}
-          ></div>
+          >${unsafeSVG(this._qrSvg)}</div>
           ${password
             ? html`<div class="password-display">
                 Password: <code class="copyable-code">${password}</code>

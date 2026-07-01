@@ -1,5 +1,6 @@
 import { LitElement, html, css, PropertyValues } from 'lit';
 import { property, state } from 'lit/decorators.js';
+import { unsafeSVG } from 'lit/directives/unsafe-svg.js';
 import { HomeAssistant } from './types/ha';
 import { renderWarning, renderLoadingState, sharedStyles } from './shared-ui';
 import { MerakiDataProvider } from './utils/meraki-data';
@@ -361,8 +362,7 @@ export class MerakiGuestAccessCard extends LitElement {
                   <div
                     class="qr-container"
                     style="width: 200px; height: 200px;"
-                    .innerHTML="${this._qrSvg}"
-                  ></div>
+                  >${unsafeSVG(this._qrSvg)}</div>
 
                   <div class="credentials-block">
                     <div class="credential-item">
