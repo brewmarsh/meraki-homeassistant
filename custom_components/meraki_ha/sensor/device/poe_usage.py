@@ -52,7 +52,6 @@ class MerakiPoeUsageSensor(MerakiSensor):
         self._attr_unique_id = f"{device.serial}_poe_usage"
         self._attr_name = "PoE Usage"
 
-
     @callback
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""

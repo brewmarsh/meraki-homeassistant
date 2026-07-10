@@ -38,7 +38,6 @@ class MerakiMt15RefreshDataButton(MerakiEntity, ButtonEntity):
         """Return the unique ID."""
         return self._attr_unique_id
 
-
     async def async_press(self) -> None:
         """Handle the button press."""
         _LOGGER.info("MT15 refresh data button pressed for %s", self._serial)

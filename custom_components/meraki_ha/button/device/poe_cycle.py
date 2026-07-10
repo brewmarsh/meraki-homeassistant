@@ -37,7 +37,6 @@ class MerakiPoECycleButton(MerakiEntity, ButtonEntity):
             icon="mdi:restart",
         )
 
-
     async def async_press(self) -> None:
         """Handle the button press."""
         port_id = self._port.get("portId") or self._port.get("number")

@@ -32,9 +32,10 @@ async def test_run_sync_friendly_logging(hass):
     error = APIError(metadata, response)
 
     # Use patch to mock loop.run_in_executor
-    with patch("asyncio.get_event_loop") as mock_loop, patch(
-        "custom_components.meraki_ha.core.api.client._LOGGER"
-    ) as mock_logger:
+    with (
+        patch("asyncio.get_event_loop") as mock_loop,
+        patch("custom_components.meraki_ha.core.api.client._LOGGER") as mock_logger,
+    ):
         mock_loop.return_value.run_in_executor.side_effect = error
 
         # We need to provide a networkId to trigger the logging properly
@@ -73,9 +74,10 @@ async def test_run_sync_fallback_logging(hass):
     response.headers = {}
     error = APIError(metadata, response)
 
-    with patch("asyncio.get_event_loop") as mock_loop, patch(
-        "custom_components.meraki_ha.core.api.client._LOGGER"
-    ) as mock_logger:
+    with (
+        patch("asyncio.get_event_loop") as mock_loop,
+        patch("custom_components.meraki_ha.core.api.client._LOGGER") as mock_logger,
+    ):
         mock_loop.return_value.run_in_executor.side_effect = error
 
         result = await client.run_sync(mock_func, networkId="N_456")

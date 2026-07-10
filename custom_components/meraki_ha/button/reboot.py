@@ -42,7 +42,6 @@ class MerakiRebootButton(MerakiEntity, ButtonEntity):
         self._config_entry = config_entry
         self._attr_name = "Reboot"
 
-
     @property
     def available(self) -> bool:
         """Return if entity is available."""

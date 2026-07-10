@@ -58,7 +58,6 @@ class MerakiMt40PowerOutlet(
         self._attr_name = "Outlet"
         self._attr_is_on: bool | None = None
 
-
     @callback
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""

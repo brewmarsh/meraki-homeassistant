@@ -35,11 +35,14 @@ async def test_client_tracker_device_sensor():
         assert sensor.native_value == 1
         mock_write.assert_called()
 
+
 @pytest.mark.asyncio
 async def test_meraki_client_sensor():
     """Test the MerakiClientSensor."""
     mock_coordinator = MagicMock()
-    mock_coordinator.data = {"clients": [{"mac": "11:22:33:44:55:66", "description": "Test Client"}]}
+    mock_coordinator.data = {
+        "clients": [{"mac": "11:22:33:44:55:66", "description": "Test Client"}]
+    }
     mock_config_entry = MagicMock()
     client_data = {"mac": "11:22:33:44:55:66", "description": "Test Client"}
 

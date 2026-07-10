@@ -47,7 +47,6 @@ class MerakiSwitchPoESensor(MerakiSensor):
         self._attr_name = f"Port {port_id} PoE"
         self._last_state = None
 
-
     @property
     def available(self) -> bool:
         """Return if the entity is available."""

@@ -70,10 +70,9 @@ async def test_generate_guest_access_none_policy(
         group_policy_id="NONE",
     )
 
+
 @pytest.mark.asyncio
-async def test_create_guest_key_none_policy(
-    hass, mock_ipsk_manager, mock_coordinator
-):
+async def test_create_guest_key_none_policy(hass, mock_ipsk_manager, mock_coordinator):
     """Test NONE policy handling in create_guest_key service."""
     await async_setup_services(hass)
 
@@ -101,6 +100,7 @@ async def test_create_guest_key_none_policy(
         passphrase=None,
         group_policy_id="NONE",
     )
+
 
 @pytest.mark.asyncio
 async def test_service_validation_error_on_policy_failure(
