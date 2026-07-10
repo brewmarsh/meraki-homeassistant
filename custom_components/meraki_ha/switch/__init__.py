@@ -2,13 +2,14 @@
 
 import logging
 
-from custom_components.meraki_ha.const.config import CONF_ENABLE_PORT_SENSORS
-from custom_components.meraki_ha.const.integration import DOMAIN
-from custom_components.meraki_ha.const.platform import PLATFORM_SWITCH
 from homeassistant.components.switch import SwitchEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
+
+from custom_components.meraki_ha.const.config import CONF_ENABLE_PORT_SENSORS
+from custom_components.meraki_ha.const.integration import DOMAIN
+from custom_components.meraki_ha.const.platform import PLATFORM_SWITCH
 
 from .setup_helpers import async_setup_switches
 
@@ -54,9 +55,14 @@ async def async_setup_entry(
     seen_ids: set[str] = set()
     entities_to_add: list[SwitchEntity] = []
 
-    def async_add_unique_entities(new_entities: list[SwitchEntity]) -> None:
+    def async_add_unique_entities(
+        new_entities: list[SwitchEntity] | list[Entity],
+        update_before_add: bool = False,
+    ) -> None:
         """Filter and add unique entities."""
         for entity in new_entities:
+            if not isinstance(entity, SwitchEntity):
+                continue
             if entity.unique_id:
                 if entity.unique_id not in seen_ids:
                     seen_ids.add(entity.unique_id)

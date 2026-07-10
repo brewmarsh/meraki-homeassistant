@@ -3,11 +3,11 @@
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
+from homeassistant.exceptions import HomeAssistantError
 
 from custom_components.meraki_ha.switch.meraki_client_blocker import (
     MerakiClientBlockerSwitch,
 )
-from homeassistant.exceptions import HomeAssistantError
 
 
 @pytest.mark.asyncio

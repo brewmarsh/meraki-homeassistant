@@ -13,11 +13,9 @@ from typing import TYPE_CHECKING
 from homeassistant.components.button import ButtonEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import callback
-from homeassistant.helpers.device_registry import DeviceInfo
 
 from ..const.device import DEFAULT_CAPS, DEVICE_CAPABILITIES
 from ..entity import MerakiEntity
-from ..helpers.device_info_helpers import resolve_device_info
 
 if TYPE_CHECKING:
     from ..coordinators import MerakiDeviceCoordinator
@@ -43,7 +41,6 @@ class MerakiRebootButton(MerakiEntity, ButtonEntity):
         self._device = device
         self._config_entry = config_entry
         self._attr_name = "Reboot"
-
 
     @property
     def available(self) -> bool:

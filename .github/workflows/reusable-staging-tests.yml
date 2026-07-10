@@ -15,7 +15,7 @@ jobs:
       issues: write
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Deploy to Test Server
         uses: appleboy/ssh-action@v1.2.5

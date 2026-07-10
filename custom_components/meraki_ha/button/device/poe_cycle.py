@@ -6,12 +6,10 @@ from typing import Any
 
 from homeassistant.components.button import ButtonEntity, ButtonEntityDescription
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.helpers.device_registry import DeviceInfo
 
 from ...coordinators import MerakiSwitchCoordinator
 from ...core.models.device import MerakiDevice
 from ...entity import MerakiEntity
-from ...helpers.device_info_helpers import resolve_device_info
 
 
 class MerakiPoECycleButton(MerakiEntity, ButtonEntity):
@@ -38,7 +36,6 @@ class MerakiPoECycleButton(MerakiEntity, ButtonEntity):
             name=f"Port {port_id} cycle",
             icon="mdi:restart",
         )
-
 
     async def async_press(self) -> None:
         """Handle the button press."""

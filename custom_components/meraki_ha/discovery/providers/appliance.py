@@ -7,8 +7,8 @@ from typing import TYPE_CHECKING, Any
 
 from custom_components.meraki_ha.const.config import CONF_ENABLE_PORT_SENSORS
 
-from ...core.models.appliance import MerakiAppliancePort
 from ...binary_sensor.device.appliance_port import AppliancePortBinarySensor
+from ...core.models.appliance import MerakiAppliancePort
 from ...sensor.device.appliance_port import MerakiAppliancePortSensor
 from ...sensor.device.switch_port import (
     MerakiSwitchPortEnergySensor,

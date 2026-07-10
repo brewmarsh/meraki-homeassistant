@@ -4,6 +4,7 @@ from unittest.mock import AsyncMock, MagicMock, call, patch
 
 import pytest
 from aiohttp import ClientError
+from homeassistant.helpers.update_coordinator import UpdateFailed
 from meraki.exceptions import APIError
 
 from custom_components.meraki_ha.core.errors import (
@@ -16,7 +17,6 @@ from custom_components.meraki_ha.core.utils.api_utils import (
     handle_meraki_errors,
     validate_response,
 )
-from homeassistant.helpers.update_coordinator import UpdateFailed
 
 
 @handle_meraki_errors

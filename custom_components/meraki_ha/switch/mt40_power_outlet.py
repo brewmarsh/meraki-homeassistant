@@ -8,7 +8,6 @@ from typing import Any
 from homeassistant.components.switch import SwitchEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import callback
-from homeassistant.helpers.device_registry import DeviceInfo
 
 from ..coordinators import MerakiSensorCoordinator
 from ..core.api import MerakiApiClientProtocol
@@ -58,7 +57,6 @@ class MerakiMt40PowerOutlet(
         )
         self._attr_name = "Outlet"
         self._attr_is_on: bool | None = None
-
 
     @callback
     def _handle_coordinator_update(self) -> None:

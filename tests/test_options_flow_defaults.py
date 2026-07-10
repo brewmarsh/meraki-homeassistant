@@ -1,6 +1,5 @@
 """Test the Meraki HA options flow defaults."""
 
-from typing import Any
 from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResultType
 from pytest_homeassistant_custom_component.common import MockConfigEntry
@@ -11,7 +10,7 @@ from custom_components.meraki_ha.const.config import (
     CONF_SCAN_INTERVAL,
 )
 from custom_components.meraki_ha.const.integration import DOMAIN
-from homeassistant import config_entries
+
 
 async def test_options_flow_defaults(hass: HomeAssistant) -> None:
     """Test that the options flow correctly pre-fills defaults from existing options."""
@@ -56,4 +55,4 @@ async def test_options_flow_defaults(hass: HomeAssistant) -> None:
     schema = result_sensors["data_schema"].schema
     for key in schema:
         if key == CONF_ENABLE_DEVICE_STATUS:
-            assert key.default() == False
+            assert not key.default()

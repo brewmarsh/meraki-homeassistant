@@ -3,12 +3,12 @@
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
+from homeassistant.core import HomeAssistant
+from homeassistant.setup import async_setup_component
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.meraki_ha.const.integration import DOMAIN
 from custom_components.meraki_ha.core.models.network import MerakiNetwork
-from homeassistant.core import HomeAssistant
-from homeassistant.setup import async_setup_component
 
 TEST_ORG_ID = "fake_org"
 TEST_NETWORK_ID = "N_12345"

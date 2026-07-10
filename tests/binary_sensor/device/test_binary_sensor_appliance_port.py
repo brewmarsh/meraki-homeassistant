@@ -1,11 +1,15 @@
 """Tests for Meraki appliance port binary sensor."""
 
 from unittest.mock import MagicMock
+
 import pytest
 
-from custom_components.meraki_ha.binary_sensor.device.appliance_port import AppliancePortBinarySensor
-from custom_components.meraki_ha.core.models.device import MerakiDevice
+from custom_components.meraki_ha.binary_sensor.device.appliance_port import (
+    AppliancePortBinarySensor,
+)
 from custom_components.meraki_ha.core.models import MerakiAppliancePort
+from custom_components.meraki_ha.core.models.device import MerakiDevice
+
 
 @pytest.mark.asyncio
 async def test_appliance_port_binary_sensor():
@@ -13,7 +17,14 @@ async def test_appliance_port_binary_sensor():
     mock_coordinator = MagicMock()
 
     device = MerakiDevice(serial="SERIAL123")
-    port = MerakiAppliancePort(number=1, enabled=True, status="Connected", speed="1 Gbps", vlan=10, type="access")
+    port = MerakiAppliancePort(
+        number=1,
+        enabled=True,
+        status="Connected",
+        speed="1 Gbps",
+        vlan=10,
+        type="access",
+    )
     device.appliance_ports = [port]
 
     mock_coordinator.get_device.return_value = device
@@ -36,7 +47,14 @@ async def test_appliance_port_binary_sensor():
     }
 
     # Test update to disconnected
-    new_port = MerakiAppliancePort(number=1, enabled=True, status="Disconnected", speed="None", vlan=10, type="access")
+    new_port = MerakiAppliancePort(
+        number=1,
+        enabled=True,
+        status="Disconnected",
+        speed="None",
+        vlan=10,
+        type="access",
+    )
     new_device = MerakiDevice(serial="SERIAL123")
     new_device.appliance_ports = [new_port]
     mock_coordinator.get_device.return_value = new_device

@@ -3,12 +3,11 @@
 from __future__ import annotations
 
 import logging
-from typing import TYPE_CHECKING, Any, cast
+from typing import TYPE_CHECKING, Any
 
-from homeassistant.components.sensor import SensorEntity, SensorStateClass
+from homeassistant.components.sensor import SensorStateClass
 from homeassistant.const import UnitOfPower
 from homeassistant.core import callback
-from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from ...coordinators import MerakiMainCoordinator
 from ...entity import MerakiSensor
@@ -52,7 +51,6 @@ class MerakiPoeUsageSensor(MerakiSensor):
         self._attr_has_entity_name = True
         self._attr_unique_id = f"{device.serial}_poe_usage"
         self._attr_name = "PoE Usage"
-
 
     @callback
     def _handle_coordinator_update(self) -> None:

@@ -3,10 +3,10 @@
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
+from homeassistant.exceptions import HomeAssistantError
 
 from custom_components.meraki_ha.const.integration import DOMAIN
 from custom_components.meraki_ha.services import async_setup_services
-from homeassistant.exceptions import HomeAssistantError
 
 
 @pytest.fixture(autouse=True)

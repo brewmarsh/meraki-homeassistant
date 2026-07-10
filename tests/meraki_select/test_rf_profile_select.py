@@ -3,13 +3,13 @@
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
+from homeassistant.core import HomeAssistant
+from homeassistant.helpers import entity_registry as er
+from homeassistant.setup import async_setup_component
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.meraki_ha.const.config import CONF_ENABLE_SSID_SENSORS
 from custom_components.meraki_ha.const.integration import DOMAIN
-from homeassistant.core import HomeAssistant
-from homeassistant.helpers import entity_registry as er
-from homeassistant.setup import async_setup_component
 from tests.const import MOCK_NETWORK
 
 

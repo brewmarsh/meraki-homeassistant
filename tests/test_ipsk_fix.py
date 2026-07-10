@@ -3,10 +3,10 @@
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
+from homeassistant.exceptions import ServiceValidationError
 
 from custom_components.meraki_ha.const.integration import DOMAIN
 from custom_components.meraki_ha.services import async_setup_services
-from homeassistant.exceptions import ServiceValidationError
 
 
 @pytest.fixture(autouse=True)
@@ -70,10 +70,9 @@ async def test_generate_guest_access_none_policy(
         group_policy_id="NONE",
     )
 
+
 @pytest.mark.asyncio
-async def test_create_guest_key_none_policy(
-    hass, mock_ipsk_manager, mock_coordinator
-):
+async def test_create_guest_key_none_policy(hass, mock_ipsk_manager, mock_coordinator):
     """Test NONE policy handling in create_guest_key service."""
     await async_setup_services(hass)
 
@@ -101,6 +100,7 @@ async def test_create_guest_key_none_policy(
         passphrase=None,
         group_policy_id="NONE",
     )
+
 
 @pytest.mark.asyncio
 async def test_service_validation_error_on_policy_failure(

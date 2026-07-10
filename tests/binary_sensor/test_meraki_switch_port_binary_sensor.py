@@ -2,11 +2,12 @@
 
 from unittest.mock import MagicMock
 
+from homeassistant.components.binary_sensor import BinarySensorDeviceClass
+
 from custom_components.meraki_ha.binary_sensor.device.switch_port import (
     SwitchPortSensor,
 )
 from custom_components.meraki_ha.core.models.device import MerakiDevice
-from homeassistant.components.binary_sensor import BinarySensorDeviceClass
 
 
 def test_switch_port_sensor_connected():

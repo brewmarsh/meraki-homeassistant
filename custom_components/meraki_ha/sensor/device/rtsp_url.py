@@ -3,12 +3,9 @@
 from __future__ import annotations
 
 import logging
-from typing import cast
 
-from homeassistant.components.sensor import SensorEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import EntityCategory
-from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from ...coordinators import MerakiMainCoordinator
 from ...core.models.device import MerakiDevice
@@ -82,7 +79,6 @@ class MerakiRtspUrlSensor(MerakiSensor):
             return
 
         self._attr_native_value = "Not available"
-
 
     @property
     def entity_registry_enabled_default(self) -> bool:

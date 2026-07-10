@@ -1,11 +1,13 @@
 """Tests for the Meraki appliance uplink sensor."""
 
-from unittest.mock import MagicMock, AsyncMock
+from unittest.mock import MagicMock
 
 import pytest
 
 from custom_components.meraki_ha.discovery.service import DeviceDiscoveryService
-from custom_components.meraki_ha.sensor.device.appliance_uplink import MerakiApplianceUplinkSensor
+from custom_components.meraki_ha.sensor.device.appliance_uplink import (
+    MerakiApplianceUplinkSensor,
+)
 from custom_components.meraki_ha.types import MerakiDevice
 
 
@@ -92,13 +94,6 @@ async def test_appliance_uplink_sensor_creation(hass, mock_coordinator):
 
     discovery_service = DeviceDiscoveryService(
         mock_coordinator,  # main_coordinator
-        mock_coordinator,  # device_coordinator
-        mock_coordinator,  # switch_coordinator
-        mock_coordinator,  # camera_coordinator
-        mock_coordinator,  # sensor_coordinator
-        mock_coordinator,  # wireless_coordinator
-        mock_coordinator,  # appliance_coordinator
-        mock_coordinator,  # client_coordinator
         config_entry,
         meraki_client,
         camera_service,

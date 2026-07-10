@@ -1,10 +1,14 @@
 """Tests for the Meraki camera sense status sensor."""
 
 from unittest.mock import MagicMock
+
 import pytest
 
-from custom_components.meraki_ha.sensor.device.camera_sense_status import MerakiCameraSenseStatusSensor
 from custom_components.meraki_ha.core.models.device import MerakiDevice
+from custom_components.meraki_ha.sensor.device.camera_sense_status import (
+    MerakiCameraSenseStatusSensor,
+)
+
 
 @pytest.mark.asyncio
 async def test_camera_sense_status_sensor():
@@ -16,7 +20,7 @@ async def test_camera_sense_status_sensor():
         model="MV12",
         name="Test Camera",
         product_type="camera",
-        network_id="N_123"
+        network_id="N_123",
     )
     device_data.sense_settings = {"senseEnabled": True}
 
@@ -27,7 +31,9 @@ async def test_camera_sense_status_sensor():
     mock_config_entry.options = {}
 
     # Instantiate sensor
-    sensor = MerakiCameraSenseStatusSensor(mock_coordinator, device_data, mock_config_entry)
+    sensor = MerakiCameraSenseStatusSensor(
+        mock_coordinator, device_data, mock_config_entry
+    )
     sensor.hass = MagicMock()
     sensor.async_write_ha_state = MagicMock()
 

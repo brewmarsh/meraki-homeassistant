@@ -19,9 +19,7 @@ def mock_coordinator_availability():
         "unknown_serial": {"serial": "unknown_serial", "status": "something_else"},
         "dict_online": {"serial": "dict_online", "status": "online"},
     }
-    coordinator.data = {
-        "devices_by_serial": devices_by_serial
-    }
+    coordinator.data = {"devices_by_serial": devices_by_serial}
     # Action 5: Add get_device method to mock coordinator
     coordinator.get_device.side_effect = lambda x: devices_by_serial.get(x)
     return coordinator

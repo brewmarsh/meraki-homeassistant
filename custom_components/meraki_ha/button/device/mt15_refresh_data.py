@@ -6,13 +6,11 @@ import logging
 
 from homeassistant.components.button import ButtonEntity
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.helpers.device_registry import DeviceInfo
 
 from ...coordinators import MerakiSensorCoordinator
 from ...core.api import MerakiApiClientProtocol
 from ...core.models.device import MerakiDevice
 from ...entity import MerakiEntity
-from ...helpers.device_info_helpers import resolve_device_info
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -39,7 +37,6 @@ class MerakiMt15RefreshDataButton(MerakiEntity, ButtonEntity):
     def unique_id(self) -> str | None:
         """Return the unique ID."""
         return self._attr_unique_id
-
 
     async def async_press(self) -> None:
         """Handle the button press."""

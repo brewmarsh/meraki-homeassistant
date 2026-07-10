@@ -3,11 +3,11 @@
 from unittest.mock import MagicMock, patch
 
 import pytest
+from homeassistant.components.binary_sensor import BinarySensorDeviceClass
 
 from custom_components.meraki_ha.binary_sensor.device.status import (
     MerakiConnectivityBinarySensor,
 )
-from homeassistant.components.binary_sensor import BinarySensorDeviceClass
 
 
 @pytest.fixture

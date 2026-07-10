@@ -20,7 +20,6 @@ from homeassistant.core import callback
 from ...coordinators import MerakiMainCoordinator
 from ...core.models.device import MerakiDevice
 from ...entity import MerakiSensor
-from ...helpers.device_info_helpers import resolve_device_info
 
 _LOGGER = logging.getLogger(__name__)
 

@@ -32,7 +32,7 @@ jobs:
         python-version: ['3.13']
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Install libturbojpeg
         run: |
@@ -40,7 +40,7 @@ jobs:
           sudo apt-get install -y libturbojpeg
 
       - name: Set up uv
-        uses: astral-sh/setup-uv@v5
+        uses: astral-sh/setup-uv@v7
         with:
           python-version: ${{ matrix.python-version }}
           enable-cache: true
@@ -82,14 +82,14 @@ jobs:
         run: uv run pytest --cov=custom_components/meraki_ha --cov-report=xml tests/
 
       - name: Upload coverage
-        uses: codecov/codecov-action@v5
+        uses: codecov/codecov-action@v7
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: ./coverage.xml
 
       - name: Create Issue on Failure
         if: failure() && github.event_name != 'pull_request'
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         with:
           script: |
             const title = '🚨 CI Quality Gate Failed';

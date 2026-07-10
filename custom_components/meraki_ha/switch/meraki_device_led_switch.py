@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import logging
-from dataclasses import asdict
 from typing import Any
 
 from homeassistant.components.switch import SwitchEntity
@@ -14,7 +13,6 @@ from homeassistant.core import callback
 from ..coordinators import MerakiSwitchCoordinator
 from ..core.models.device import MerakiDevice
 from ..entity import MerakiEntity
-from ..helpers.device_info_helpers import resolve_device_info
 
 _LOGGER = logging.getLogger(__name__)
 
