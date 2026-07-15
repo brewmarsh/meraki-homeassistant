@@ -137,17 +137,28 @@ class MerakiClient:
     async def async_setup(self) -> None:
         """Perform asynchronous setup of the API client."""
         if self.dashboard is None:
-            self.dashboard = meraki.aio.AsyncDashboardAPI(
-                api_key=self._api_key,
-                base_url=self._base_url,
-                output_log=False,
-                print_console=False,
-                suppress_logging=True,
-                maximum_retries=3,
-                wait_on_rate_limit=True,
-                nginx_429_retry_wait_time=2,
-                aiohttp_session=async_get_clientsession(self._hass),
-            )
+            kwargs: dict[str, Any] = {
+                "api_key": self._api_key,
+                "base_url": self._base_url,
+                "output_log": False,
+                "print_console": False,
+                "suppress_logging": True,
+                "maximum_retries": 3,
+                "wait_on_rate_limit": True,
+                "nginx_429_retry_wait_time": 2,
+            }
+            # Only pass aiohttp_session if the Meraki SDK supports it.
+            # The tests might run with an older/mocked Meraki version.
+            try:
+                import inspect
+
+                sig = inspect.signature(meraki.aio.AsyncDashboardAPI.__init__)
+                if "aiohttp_session" in sig.parameters:
+                    kwargs["aiohttp_session"] = async_get_clientsession(self._hass)
+            except Exception:
+                pass
+
+            self.dashboard = meraki.aio.AsyncDashboardAPI(**kwargs)
 
         if self._worker_tasks is None or not self._worker_tasks:
             self._worker_tasks = [
