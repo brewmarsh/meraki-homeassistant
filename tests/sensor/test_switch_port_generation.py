@@ -78,47 +78,10 @@ async def test_switch_port_generation_and_linkage(
 
     # Patch the _async_update_data of all coordinators to return our mocked switch
     # This ensures that discovery service sees the switch and its ports.
-    with (
-        patch(
-            "custom_components.meraki_ha.coordinators.MerakiDeviceCoordinator._async_update_data",
-            new_callable=AsyncMock,
-            return_value=mock_all_data,
-        ),
-        patch(
-            "custom_components.meraki_ha.coordinators.MerakiMainCoordinator._async_update_data",
-            new_callable=AsyncMock,
-            return_value=mock_all_data,
-        ),
-        patch(
-            "custom_components.meraki_ha.coordinators.MerakiSwitchCoordinator._async_update_data",
-            new_callable=AsyncMock,
-            return_value=mock_all_data,
-        ),
-        patch(
-            "custom_components.meraki_ha.coordinators.MerakiCameraCoordinator._async_update_data",
-            new_callable=AsyncMock,
-            return_value=mock_all_data,
-        ),
-        patch(
-            "custom_components.meraki_ha.coordinators.MerakiSensorCoordinator._async_update_data",
-            new_callable=AsyncMock,
-            return_value=mock_all_data,
-        ),
-        patch(
-            "custom_components.meraki_ha.coordinators.MerakiWirelessCoordinator._async_update_data",
-            new_callable=AsyncMock,
-            return_value=mock_all_data,
-        ),
-        patch(
-            "custom_components.meraki_ha.coordinators.MerakiApplianceCoordinator._async_update_data",
-            new_callable=AsyncMock,
-            return_value=mock_all_data,
-        ),
-        patch(
-            "custom_components.meraki_ha.coordinators.MerakiClientCoordinator._async_update_data",
-            new_callable=AsyncMock,
-            return_value=mock_all_data,
-        ),
+    with patch(
+        "custom_components.meraki_ha.coordinators.MerakiMainCoordinator._async_update_data",
+        new_callable=AsyncMock,
+        return_value=mock_all_data,
     ):
         # Setup the integration
         await hass.config_entries.async_setup(entry.entry_id)

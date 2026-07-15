@@ -121,3 +121,7 @@ class MerakiUpdateEntity(MerakiEntity[MerakiMainCoordinator], UpdateEntity):
             raise HomeAssistantError(
                 f"Failed to trigger firmware upgrade: {err}"
             ) from err
+
+async def async_setup_entry(hass, entry, async_add_entities):
+    """Set up the update platform."""
+    pass
