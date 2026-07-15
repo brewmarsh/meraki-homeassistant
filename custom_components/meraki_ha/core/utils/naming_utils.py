@@ -7,12 +7,33 @@ from typing import Any, cast
 
 _LOGGER = logging.getLogger(__name__)
 
+# Models that feature multiple imagers/sensors in a single physical unit
+MULTI_SENSOR_MODELS = {"MV44X", "MV84X"}
+
+
+def get_base_serial(serial: str, model: str | None) -> str:
+    """Get the base serial for a multi-sensor device by stripping suffixes."""
+    if model in MULTI_SENSOR_MODELS and "-" in serial:
+        # Meraki multi-sensor serials are usually QXXX-XXXX-XXXX-N
+        parts = serial.split("-")
+        if len(parts) > 3:  # Standard serial has 2 hyphens (3 parts)
+            return "-".join(parts[:3])
+    return serial
+
 
 def standardize_device_name(name: str | None) -> str:
     """Standardize device name with Meraki prefix."""
     if not name:
         return "Meraki Device"
     name_str = str(name)
+
+    # For multi-sensor cameras, strip the imager suffix from the device name
+    # They often come as "Name - 1", "Name - 2"
+    if " - " in name_str:
+        parts = name_str.rsplit(" - ", 1)
+        if parts[1].isdigit():
+            name_str = parts[0]
+
     if (
         name_str.lower().startswith("meraki")
         or name_str.startswith("[")
@@ -76,6 +97,25 @@ def format_entity_name(
 ) -> str:
     """Format an entity name by combining the device name and entity-specific name."""
     device_name = format_device_name(device, config)
+
+    # For multi-sensor devices, append the imager index if not already present
+    # to distinguish between different imagers of the same unit.
+    if dataclasses.is_dataclass(type(device)):
+        dev_dict = dataclasses.asdict(cast(Any, device))
+    else:
+        dev_dict = cast(dict[str, Any], device)
+
+    serial = dev_dict.get("serial", "")
+    model = dev_dict.get("model", "")
+
+    if model in MULTI_SENSOR_MODELS and "-" in serial:
+        parts = serial.split("-")
+        if len(parts) > 3:
+            imager_index = parts[-1]
+            suffix = f" (Imager {imager_index})"
+            if suffix not in device_name:
+                device_name = f"{device_name}{suffix}"
+
     if entity_name and entity_name.strip():
         return f"{device_name} {entity_name.strip()}"
     return device_name

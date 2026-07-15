@@ -7,100 +7,27 @@
 - [x] **Phase 3: Real-time Webhooks & Presence Optimization** - Sub-second updates and entity bloat prevention.
 - [x] **Phase 4: Advanced Control & Selective Stats** - SSID/Client management and performance monitoring.
 - [x] **Phase 5: Final Refinement & Stable Release** - Polish the integration for a stable release.
-- [ ] **Phase 6: Advanced Native Platforms** - Firmware management and maintenance services.
+- [x] **Phase 6: Advanced Native Platforms** - Firmware management and maintenance services.
+- [x] **Phase 7: Dual-Imager & Multi-Sensor Support** - Grouping imagers and handling Gen 3 camera features.
+- [ ] **Phase 8: Refactor Staging Test Deployment** - Consolidate tests and automate intelligent issue logging.
 
 ## Phase Details
 
-### Phase 1: Foundation & Discovery
+### Phase 8: Refactor Staging Test Deployment
 
-**Goal**: Establish secure connectivity and map the Meraki cloud hierarchy to local Home Assistant devices.
-**Depends on**: None
-**Requirements**: FND-01, FND-02, FND-03
+**Goal**: Modernize staging infrastructure to provide high-fidelity feedback with automated, deduplicated issue tracking.
+**Depends on**: Phase 7
+**Requirements**: STG-01, STG-02, STG-03, STG-04, STG-05
 **Success Criteria**:
 
-1. User can successfully complete the config flow using a valid API key.
-2. Meraki Organizations and Networks appear correctly as Devices in Home Assistant.
-3. Integration setup does not block the Home Assistant event loop.
-   **Plans**: 2 plans
+1. Single unified Python package handles all staging health checks.
+2. All API interactions use the WebSocket protocol for consistency.
+3. Failures are fingerprinted and either create new GitHub issues or comment on existing ones.
+4. Noise from expected staging warnings is effectively filtered out.
+   **Plans**: 1-2 plans
 
-- [x] .planning/phases/01-foundation-discovery/01-01-PLAN.md — Core Async & Multi-step Flow
-- [x] .planning/phases/01-foundation-discovery/01-02-PLAN.md — Integration Lifecycle & Discovery Coordinator
-      **UI hint**: yes
-
-### Phase 2: Coordinated Tracking & Monitoring
-
-**Goal**: Provide core monitoring value using a resilient polling architecture.
-**Depends on**: Phase 1
-**Requirements**: MON-01, MON-02, MON-03, MON-04, MON-05
-**Success Criteria**:
-
-1. Hardware status (Online/Offline) updates within 30 seconds of a change.
-2. Wireless clients are correctly tracked as `device_tracker` entities.
-3. API rate limiting is handled gracefully without 429 errors.
-   **Plans**: TBD
-
-### Phase 3: Real-time Webhooks & Presence Optimization
-
-**Goal**: Upgrade presence detection to real-time and ensure registry stability.
-**Depends on**: Phase 2
-**Requirements**: WEB-01, WEB-02, WEB-03, WEB-04
-**Success Criteria**:
-
-1. Client presence events reflect in HA within 2 seconds via webhooks.
-2. "Known Clients" filter prevents entity bloat from randomized MAC addresses.
-3. Webhook listener securely validates incoming Meraki payloads.
-   **Plans**: TBD
-   **UI hint**: yes
-
-### Phase 4: Advanced Control & Selective Stats
-
-**Goal**: Enable network management capabilities and high-resolution performance data.
-**Depends on**: Phase 3
-**Requirements**: CTRL-01, CTRL-02, CTRL-03, CTRL-04, CTRL-05, CTRL-06
-**Success Criteria**:
-
-1. User can toggle SSIDs and manage content filtering from the HA UI.
-2. Client blocking/unblocking services work reliably.
-3. Bandwidth and uplink metrics provide actionable data without performance degradation.
-   **Plans**: 3 plans
-
-- [x] 04-01-PLAN.md — Advanced Management Controls (SSID & Client Policy)
-- [x] 04-02-PLAN.md — Network Performance Telemetry (Uplink Metrics & Usage)
-- [x] 04-03-PLAN.md — Camera Sense Webhook Integration
-      **UI hint**: yes
-
-### Phase 5: Final Refinement & Stable Release
-
-**Goal**: Polish the integration for a stable release.
-**Depends on**: Phase 4
-**Requirements**: STB-01, STB-02, STB-03
-**Success Criteria**:
-
-1. Standardized versioning to v1.0.0 across all manifests and configs.
-2. Implement PII redaction in diagnostics.py.
-3. Improve test coverage for camera.py and appliance_port.py.
-4. Refine error handling in coordinators to use standard Home Assistant UpdateFailed.
-   **Plans**: 3 plans
-
-- [x] 05-01-PLAN.md — Stable v1.0.0 & Secure Diagnostics
-- [x] 05-02-PLAN.md — Resilient Coordinator Error Handling
-- [x] 05-03-PLAN.md — Quality Scale Coverage Optimization
-
-### Phase 6: Advanced Native Platforms
-
-**Goal**: Deepen integration with native HA platforms for maintenance and management.
-**Depends on**: Phase 5
-**Requirements**: UP-01, SVC-01, BP-01
-**Success Criteria**:
-
-1. Users can see and trigger firmware updates natively in the HA UI via the `update` platform.
-2. Hardware reboots via PoE power cycle work reliably through a dedicated service call.
-3. MT sensor alerts are easily automatable via pre-configured blueprints.
-   **Plans**: 3 plans
-
-- [x] 06-01-PLAN.md — Native Firmware Management Entity
-- [x] 06-02-PLAN.md — PoE Power Cycling Service
-- [x] 06-03-PLAN.md — MT Sensor Blueprint Expansion
+- [ ] .planning/phases/phase-8/08-01-PLAN.md — Test Consolidation & WebSocket Migration
+- [ ] .planning/phases/phase-8/08-02-PLAN.md — Intelligent Issue Automation & Fingerprinting
 
 ## Progress Table
 
@@ -112,3 +39,5 @@
 | 4. Advanced Control & Selective Stats         | 3/3            | Complete | 2026-04-16 |
 | 5. Final Refinement & Stable Release          | 3/3            | Complete | 2026-04-16 |
 | 6. Advanced Native Platforms                  | 3/3            | Complete | 2026-04-17 |
+| 7. Dual-Imager & Multi-Sensor Support         | 2/2            | Complete | 2026-04-27 |
+| 8. Refactor Staging Test Deployment           | 0/2            | Planned  | TBD        |

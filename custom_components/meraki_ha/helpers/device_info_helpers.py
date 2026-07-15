@@ -4,14 +4,17 @@ import logging
 from dataclasses import asdict, is_dataclass
 from typing import Any
 
+from custom_components.meraki_ha.const.integration import DOMAIN
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.device_registry import DeviceEntryType, DeviceInfo
 
-from custom_components.meraki_ha.const.integration import DOMAIN
-
 from ..core.models.device import MerakiDevice
 from ..core.models.network import MerakiNetwork
-from ..core.utils.naming_utils import format_device_name, standardize_device_name
+from ..core.utils.naming_utils import (
+    format_device_name,
+    get_base_serial,
+    standardize_device_name,
+)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -96,8 +99,12 @@ def _resolve_physical_device_info(
         # Optimization: Use the centralized format_device_name.
         name = format_device_name(data, config_entry.options)
 
+        # For multi-sensor devices, we group all imagers under the
+        # base serial identifier. This prevents fragmented device registry entries.
+        base_serial = get_base_serial(device_serial, model)
+
         return DeviceInfo(
-            identifiers={(DOMAIN, device_serial)},
+            identifiers={(DOMAIN, base_serial)},
             name=name,
             manufacturer="Cisco Meraki",
             model=model,

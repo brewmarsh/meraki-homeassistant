@@ -1,10 +1,12 @@
 """Home Assistant WebSocket client for staging audits."""
 
 import logging
-import aiohttp
 from typing import Any
 
+import aiohttp
+
 _LOGGER = logging.getLogger(__name__)
+
 
 class MerakiHaClient:
     """Client for Home Assistant WebSocket API."""
@@ -22,7 +24,7 @@ class MerakiHaClient:
         ws_url = self.ha_url.replace("http", "ws") + "/api/websocket"
         self.ws = await self.session.ws_connect(ws_url)
         _LOGGER.debug("Connected to %s", ws_url)
-        
+
         # Authenticate
         await self.ws.send_json({"type": "auth", "access_token": self.ha_token})
         auth_response = await self.ws.receive_json()

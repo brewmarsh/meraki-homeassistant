@@ -16,6 +16,7 @@ from typing import Any, cast
 import braintrust
 import meraki.aio
 from dotenv import load_dotenv
+
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
@@ -152,7 +153,7 @@ class MerakiClient:
         if self._worker_tasks is None or not self._worker_tasks:
             self._worker_tasks = [
                 asyncio.create_task(self._worker_loop(i))
-                for i in range(5)  # 5 concurrent workers
+                for i in range(3)  # 3 concurrent workers
             ]
 
     async def _worker_loop(self, worker_id: int) -> None:

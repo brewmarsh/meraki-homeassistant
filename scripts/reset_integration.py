@@ -91,7 +91,7 @@ async def _send_restart_command(session: aiohttp.ClientSession) -> bool:
             logger.error(f"Restart command failed: {resp.status}")
             return False
 
-    except (aiohttp.ClientError, asyncio.TimeoutError):
+    except (TimeoutError, aiohttp.ClientError):
         # Connection violently dropping is the ultimate proof it is restarting
         logger.warning("Connection dropped. Restart is in progress.")
         return True
@@ -114,7 +114,7 @@ async def _wait_for_restart(session: aiohttp.ClientSession) -> bool:
                     # Wait a little longer for components to initialize
                     await asyncio.sleep(15)
                     return True
-        except (aiohttp.ClientError, asyncio.TimeoutError):
+        except (TimeoutError, aiohttp.ClientError):
             pass
 
         if i % 3 == 0:

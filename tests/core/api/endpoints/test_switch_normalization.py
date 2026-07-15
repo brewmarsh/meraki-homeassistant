@@ -13,7 +13,7 @@ from custom_components.meraki_ha.core.errors import MerakiConnectionError
 def mock_client():
     """Mock the Meraki API client."""
     client = MagicMock()
-    client.run_sync = AsyncMock()
+    client.run_async = AsyncMock()
 
     async def mock_run_with_cache(key, func, ttl=None):
         return await func()
@@ -34,12 +34,12 @@ async def test_get_device_switch_ports_statuses_normalization(
     switch_endpoints, mock_client
 ):
     """Test get_device_switch_ports_statuses normalizes portId."""
-    mock_client.run_sync.return_value = [{"portId": "1", "enabled": True}]
+    mock_client.run_async.return_value = [{"portId": "1", "enabled": True}]
 
     result = await switch_endpoints.get_device_switch_ports_statuses("serial")
 
     assert result == [{"portId": "1", "enabled": True}]
-    assert mock_client.run_sync.call_count == 1
+    assert mock_client.run_async.call_count == 1
 
 
 @pytest.mark.asyncio
@@ -50,7 +50,7 @@ async def test_get_device_switch_ports_statuses_failure(switch_endpoints, mock_c
     response.status_code = 400
     response.json.return_value = {"errors": ["Some API Error"]}
 
-    mock_client.run_sync.side_effect = APIError(metadata, response)
+    mock_client.run_async.side_effect = APIError(metadata, response)
 
     # Action 2: Expected raises MerakiConnectionError
     with pytest.raises(MerakiConnectionError):
@@ -60,12 +60,12 @@ async def test_get_device_switch_ports_statuses_failure(switch_endpoints, mock_c
 @pytest.mark.asyncio
 async def test_get_switch_ports_normalization(switch_endpoints, mock_client):
     """Test get_switch_ports normalizes portId."""
-    mock_client.run_sync.return_value = [{"portId": "1", "enabled": True}]
+    mock_client.run_async.return_value = [{"portId": "1", "enabled": True}]
 
     result = await switch_endpoints.get_switch_ports("s1")
 
     assert result == [{"portId": "1", "enabled": True}]
-    assert mock_client.run_sync.call_count == 1
+    assert mock_client.run_async.call_count == 1
 
 
 @pytest.mark.asyncio
@@ -77,7 +77,7 @@ async def test_get_switch_ports_failure(switch_endpoints, mock_client):
     response.status_code = 400
     response.json.return_value = {"errors": ["Some API Error"]}
 
-    mock_client.run_sync.side_effect = APIError(metadata, response)
+    mock_client.run_async.side_effect = APIError(metadata, response)
 
     # Action 2: Expected raises MerakiConnectionError
     with pytest.raises(MerakiConnectionError):

@@ -23,7 +23,7 @@ T = TypeVar("T")
 _LOGGER = logging.getLogger(__name__)
 
 
-def handle_meraki_errors(
+def handle_meraki_errors[T](
     func: Callable[..., Awaitable[T]],
 ) -> Callable[..., Coroutine[Any, Any, T]]:
     """Decorate to handle Meraki API errors consistently."""
@@ -47,7 +47,7 @@ def handle_meraki_errors(
     return cast(Callable[..., Coroutine[Any, Any, T]], wrapper)
 
 
-async def _execute_api_call(
+async def _execute_api_call[T](
     func: Callable[..., Awaitable[T]],
     args: tuple[Any, ...],
     kwargs: dict[str, Any],

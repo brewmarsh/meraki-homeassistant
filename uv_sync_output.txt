@@ -1,0 +1,26 @@
+DEBUG uv 0.10.0 (0ba432459 2026-02-05)
+DEBUG Acquired shared lock for `C:\Users\brewm\AppData\Local\uv\cache`
+DEBUG Found project root: `D:\Code\meraki-homeassistant`
+DEBUG No workspace root found, using project root
+DEBUG Acquired exclusive lock for `D:\Code\meraki-homeassistant`
+DEBUG Reading Python requests from version file at `D:\Code\meraki-homeassistant\.python-version`
+DEBUG Using Python request `3.12.13` from version file at `.python-version`
+DEBUG Checking for Python environment at: `.venv`
+DEBUG The project environment's Python version does not satisfy the request: `Python 3.12.13`
+DEBUG Using request connect timeout of 10s and read timeout of 30s
+DEBUG Searching for Python 3.12.13 in managed installations, search path, or registry
+DEBUG Searching for managed installations at `C:\Users\brewm\AppData\Roaming\uv\python`
+DEBUG Skipping managed installation `cpython-3.12.12-windows-x86_64-none`: does not satisfy `3.12.13`
+DEBUG Found `cpython-3.12.12-windows-x86_64-none` at `C:\Users\brewm\.local\bin\python3.12.exe` (first executable in the search path)
+DEBUG Skipping interpreter at `C:\Users\brewm\.local\bin\python3.12.exe` from first executable in the search path: does not satisfy request `3.12.13`
+DEBUG Found `cpython-3.13.11-windows-x86_64-none` at `C:\Users\brewm\AppData\Local\Programs\Python\Python313\python.exe` (search path)
+DEBUG Skipping interpreter at `C:\Users\brewm\AppData\Local\Programs\Python\Python313\python.exe` from search path: does not satisfy request `3.12.13`
+DEBUG Found `cpython-3.10.6-windows-x86_64-none` at `C:\Users\brewm\AppData\Local\Programs\Python\Python310\python.exe` (search path)
+DEBUG Skipping interpreter at `C:\Users\brewm\AppData\Local\Programs\Python\Python310\python.exe` from search path: does not satisfy request `3.12.13`
+DEBUG Python interpreter in the registry is not executable: `Software\Python\PythonCore\3.14
+DEBUG No downloads are available for Python 3.12.13
+DEBUG Released lock at `C:\Users\brewm\AppData\Local\Temp\uv-9fb66e05ad851c85.lock`
+DEBUG Released lock at `C:\Users\brewm\AppData\Local\uv\cache\.lock`
+error: No interpreter found for Python 3.12.13 in managed installations, search path, or registry
+
+hint: uv embeds available Python downloads and may require an update to install new versions. Consider retrying on a newer version of uv.

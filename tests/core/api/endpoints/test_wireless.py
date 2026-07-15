@@ -12,7 +12,7 @@ def mock_client():
     """Mock the Meraki API client."""
     client = MagicMock()
     client.dashboard = MagicMock()
-    client.run_sync = AsyncMock()
+    client.run_async = AsyncMock()
     return client
 
 
@@ -24,7 +24,7 @@ def wireless(mock_client):
 
 async def test_create_identity_psk(wireless, mock_client):
     """Test create_identity_psk."""
-    mock_client.run_sync.return_value = {"id": "test_id"}
+    mock_client.run_async.return_value = {"id": "test_id"}
 
     result = await wireless.create_identity_psk(
         network_id="net1",
@@ -35,8 +35,8 @@ async def test_create_identity_psk(wireless, mock_client):
     )
 
     assert result == {"id": "test_id"}
-    mock_client.run_sync.assert_called_once()
-    args, kwargs = mock_client.run_sync.call_args
+    mock_client.run_async.assert_called_once()
+    args, kwargs = mock_client.run_async.call_args
     # Verify it calls the correct SDK method
     assert (
         args[0] == mock_client.dashboard.wireless.createNetworkWirelessSsidIdentityPsk
@@ -50,7 +50,7 @@ async def test_create_identity_psk(wireless, mock_client):
 
 async def test_create_identity_psk_no_group_policy(wireless, mock_client):
     """Test create_identity_psk without group policy."""
-    mock_client.run_sync.return_value = {"id": "test_id"}
+    mock_client.run_async.return_value = {"id": "test_id"}
 
     result = await wireless.create_identity_psk(
         network_id="net1",
@@ -61,8 +61,8 @@ async def test_create_identity_psk_no_group_policy(wireless, mock_client):
     )
 
     assert result == {"id": "test_id"}
-    mock_client.run_sync.assert_called_once()
-    args, kwargs = mock_client.run_sync.call_args
+    mock_client.run_async.assert_called_once()
+    args, kwargs = mock_client.run_async.call_args
     assert (
         args[0] == mock_client.dashboard.wireless.createNetworkWirelessSsidIdentityPsk
     )
@@ -75,7 +75,7 @@ async def test_create_identity_psk_no_group_policy(wireless, mock_client):
 
 async def test_delete_identity_psk(wireless, mock_client):
     """Test delete_identity_psk."""
-    mock_client.run_sync.return_value = None
+    mock_client.run_async.return_value = None
 
     await wireless.delete_identity_psk(
         network_id="net1",
@@ -83,8 +83,8 @@ async def test_delete_identity_psk(wireless, mock_client):
         identity_psk_id="psk1",
     )
 
-    mock_client.run_sync.assert_called_once()
-    args, kwargs = mock_client.run_sync.call_args
+    mock_client.run_async.assert_called_once()
+    args, kwargs = mock_client.run_async.call_args
     assert kwargs["networkId"] == "net1"
     assert kwargs["number"] == "0"
     assert kwargs["identityPskId"] == "psk1"

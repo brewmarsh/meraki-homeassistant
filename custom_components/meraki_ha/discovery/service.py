@@ -65,12 +65,18 @@ class DeviceDiscoveryService:
         self._control_service = control_service
         self._network_control_service = network_control_service
 
+        self.all_entities: list[Entity] = []
+
+    @property
+    def devices(self) -> list[MerakiDevice]:
+        """Return list of devices from the coordinator data."""
+        if not self._device_coordinator or not self._device_coordinator.data:
+            return []
         devices_data = self._device_coordinator.data.get("devices", [])
-        self._devices: list[MerakiDevice] = [
+        return [
             d if isinstance(d, MerakiDevice) else MerakiDevice.from_dict(d)
             for d in devices_data
         ]
-        self.all_entities: list[Entity] = []
 
     async def discover_entities(self) -> list[Entity]:
         """
@@ -147,9 +153,9 @@ class DeviceDiscoveryService:
 
     async def _discover_device_entities(self):
         """Discover entities for all devices."""
-        _LOGGER.debug("Starting entity discovery for %d devices", len(self._devices))
+        _LOGGER.debug("Starting entity discovery for %d devices", len(self.devices))
 
-        for device in self._devices:
+        for device in self.devices:
             try:
                 if not device.model:
                     _LOGGER.warning("Device %s has no model, skipping", device.serial)

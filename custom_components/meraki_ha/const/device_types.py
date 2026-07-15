@@ -1,6 +1,6 @@
 """Constants for Meraki device types."""
 
-from enum import Enum
+from enum import StrEnum
 from typing import Final
 
 # Define device type constants
@@ -28,7 +28,7 @@ VALID_DEVICE_TYPES: Final[list[str]] = [
 ]
 
 
-class DeviceType(str, Enum):
+class DeviceType(StrEnum):
     """Enum for Meraki device types."""
 
     WIRELESS = DEVICE_TYPE_WIRELESS

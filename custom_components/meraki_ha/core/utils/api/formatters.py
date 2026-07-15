@@ -16,6 +16,14 @@ def get_safe_return_value(
     """Get a safe return value based on the function's return type annotation."""
     sig = inspect.signature(func)
     return_type = sig.return_annotation
+
+    if isinstance(return_type, str):
+        rt_lower = return_type.strip().lower()
+        if rt_lower.startswith("list") or rt_lower == "list":
+            return []
+        if rt_lower.startswith("dict") or rt_lower == "dict":
+            return {}
+
     if return_type is list or getattr(return_type, "__origin__", None) is list:
         return []
     if return_type is dict or getattr(return_type, "__origin__", None) is dict:
@@ -54,7 +62,7 @@ def validate_response(response: Any) -> Any:
     if isinstance(response, list):
         return response
 
-    if isinstance(response, (str, int, float, bool)):
+    if isinstance(response, str | int | float | bool):
         return {"value": response}
 
     raise MerakiConnectionError(

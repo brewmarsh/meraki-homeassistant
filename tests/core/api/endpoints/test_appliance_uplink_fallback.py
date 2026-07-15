@@ -39,6 +39,18 @@ def api_client(hass, mock_dashboard):
         return func(*args, **kwargs)
 
     client.run_sync = MagicMock(side_effect=mock_run_sync)
+
+    # Mock run_async to execute the function directly in tests
+    import inspect
+
+    async def mock_run_async(func, *args, **kwargs):
+        kwargs.pop("priority", None)
+        res = func(*args, **kwargs)
+        if inspect.isawaitable(res):
+            return await res
+        return res
+
+    client.run_async = MagicMock(side_effect=mock_run_async)
     return client
 
 

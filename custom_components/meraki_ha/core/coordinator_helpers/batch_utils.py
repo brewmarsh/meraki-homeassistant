@@ -64,7 +64,7 @@ def handle_fetch_exception(
     exception: Exception, key: str, label: str
 ) -> Exception | None:
     """Handle and transform fetch exceptions for smart updates."""
-    if isinstance(exception, (MerakiTrafficAnalysisError, MerakiVlansDisabledError)):
+    if isinstance(exception, MerakiTrafficAnalysisError | MerakiVlansDisabledError):
         _LOGGER.debug("Feature disabled for %s during %s: %s", key, label, exception)
         return None
 
@@ -91,7 +91,7 @@ def process_single_result(key: str, result: Any, label: str) -> Any:
 
         return handle_fetch_exception(result, key, label)
 
-    if isinstance(result, (dict, list)) or result is None:
+    if isinstance(result, dict | list) or result is None:
         return result
 
     _LOGGER.debug(
@@ -142,6 +142,6 @@ async def async_gather_with_timeout(
         )
         return process_batch_results(tasks, results, label)
 
-    except asyncio.TimeoutError:
+    except TimeoutError:
         handle_batch_exceptions(tasks, label)
         raise

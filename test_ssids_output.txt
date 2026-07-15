@@ -1,0 +1,177 @@
+============================= test session starts =============================
+platform win32 -- Python 3.12.12, pytest-8.3.3, pluggy-1.6.0
+rootdir: D:\Code\meraki-homeassistant
+configfile: pytest.ini
+plugins: anyio-4.14.1, braintrust-0.12.0, aiohttp-1.0.5, asyncio-0.24.0, cov-6.0.0, pytest_freezer-0.4.8, github-actions-annotate-failures-0.2.0, homeassistant-custom-component-0.13.195, picked-0.5.0, socket-0.7.0, timeout-2.3.1, unordered-0.6.1, xdist-3.6.1, requests-mock-1.12.1, respx-0.21.1, syrupy-4.7.2
+asyncio: mode=Mode.AUTO, default_loop_scope=function
+collected 1 item
+
+tests\core\test_wireless_ssids.py F                                      [100%]
+
+================================== FAILURES ===================================
+_______________________ test_wireless_ssids_processing ________________________
+
+data_fetch_manager = <custom_components.meraki_ha.core.coordinator_helpers.data_fetcher.DataFetchManager object at 0x000002513EC50230>
+mock_client = <MagicMock id='2547968705264'>
+
+    @pytest.mark.asyncio
+    async def test_wireless_ssids_processing(data_fetch_manager, mock_client):
+        """Test that wireless SSIDs are correctly processed and added to data."""
+        # Mock initial data return
+        data_fetch_manager._async_fetch_batch_data = AsyncMock(
+            return_value={
+                "networks": [
+                    {"id": "N_123", "name": "Test Network", "productTypes": ["wireless"]}
+                ],
+                "devices": [],
+                "organization": {"name": "Test Org"},
+                "statuses": [],
+            }
+        )
+
+        # Mock client fetcher to avoid errors
+        data_fetch_manager.client_fetcher.async_fetch_network_clients = AsyncMock(
+            return_value=[]
+        )
+        data_fetch_manager.client_fetcher.derive_device_clients = MagicMock(return_value={})
+
+        # Mock the strategy to add a task that returns SSIDs
+        # This simulates what build_network_tasks does (adding a task to the dict)
+        async def mock_ssid_task():
+            return [{"number": 1, "name": "Test SSID", "enabled": True}]
+
+        # We need to ensure that when _build_strategy_tasks runs, it populates 'ssids_N_123'
+        # The real implementation calls strategy.build_network_tasks.
+        # We can mock strategy.build_network_tasks to add our mock task.
+
+        data_fetch_manager.wireless_strategy.build_network_tasks = MagicMock(
+            side_effect=lambda nid, pts, tks: tks.update({f"ssids_{nid}": mock_ssid_task()})
+        )
+
+        # Act
+        data = await data_fetch_manager.get_all_data()
+
+        print("KEYS:", list(data.keys()))
+        print("DATA:", {k: v for k, v in data.items() if not k.startswith("clients")})
+
+        # Assert
+>       assert "ssids" in data
+E       AssertionError: assert 'ssids' in {'appliance_traffic': {}, 'appliance_uplink_statuses': None, 'clients': [], 'content_filtering': {}, ...}
+
+tests\core\test_wireless_ssids.py:75: AssertionError
+---------------------------- Captured stderr setup ----------------------------
+--- Logging error ---
+Traceback (most recent call last):
+  File "C:\Users\brewm\AppData\Roaming\uv\python\cpython-3.12.12-windows-x86_64-none\Lib\logging\__init__.py", line 1163, in emit
+    stream.write(msg + self.terminator)
+OSError: [WinError 6] The handle is invalid
+Call stack:
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "D:\Code\meraki-homeassistant\.venv\Scripts\pytest.exe\__main__.py", line 10, in <module>
+    sys.exit(console_main())
+  File "D:\Code\meraki-homeassistant\.venv\Lib\site-packages\_pytest\config\__init__.py", line 201, in console_main
+    code = main()
+  File "D:\Code\meraki-homeassistant\.venv\Lib\site-packages\_pytest\config\__init__.py", line 175, in main
+    ret: ExitCode | int = config.hook.pytest_cmdline_main(config=config)
+  File "D:\Code\meraki-homeassistant\.venv\Lib\site-packages\pluggy\_hooks.py", line 512, in __call__
+    return self._hookexec(self.name, self._hookimpls.copy(), kwargs, firstresult)
+  File "D:\Code\meraki-homeassistant\.venv\Lib\site-packages\pluggy\_manager.py", line 120, in _hookexec
+    return self._inner_hookexec(hook_name, methods, kwargs, firstresult)
+  File "D:\Code\meraki-homeassistant\.venv\Lib\site-packages\pluggy\_callers.py", line 121, in _multicall
+    res = hook_impl.function(*args)
+  File "D:\Code\meraki-homeassistant\.venv\Lib\site-packages\_pytest\main.py", line 330, in pytest_cmdline_main
+    return wrap_session(config, _main)
+  File "D:\Code\meraki-homeassistant\.venv\Lib\site-packages\_pytest\main.py", line 283, in wrap_session
+    session.exitstatus = doit(config, session) or 0
+  File "D:\Code\meraki-homeassistant\.venv\Lib\site-packages\_pytest\main.py", line 337, in _main
+    config.hook.pytest_runtestloop(session=session)
+  File "D:\Code\meraki-homeassistant\.venv\Lib\site-packages\pluggy\_hooks.py", line 512, in __call__
+    return self._hookexec(self.name, self._hookimpls.copy(), kwargs, firstresult)
+  File "D:\Code\meraki-homeassistant\.venv\Lib\site-packages\pluggy\_manager.py", line 120, in _hookexec
+    return self._inner_hookexec(hook_name, methods, kwargs, firstresult)
+  File "D:\Code\meraki-homeassistant\.venv\Lib\site-packages\pluggy\_callers.py", line 121, in _multicall
+    res = hook_impl.function(*args)
+  File "D:\Code\meraki-homeassistant\.venv\Lib\site-packages\_pytest\main.py", line 362, in pytest_runtestloop
+    item.config.hook.pytest_runtest_protocol(item=item, nextitem=nextitem)
+  File "D:\Code\meraki-homeassistant\.venv\Lib\site-packages\pluggy\_hooks.py", line 512, in __call__
+    return self._hookexec(self.name, self._hookimpls.copy(), kwargs, firstresult)
+  File "D:\Code\meraki-homeassistant\.venv\Lib\site-packages\pluggy\_manager.py", line 120, in _hookexec
+    return self._inner_hookexec(hook_name, methods, kwargs, firstresult)
+  File "D:\Code\meraki-homeassistant\.venv\Lib\site-packages\pluggy\_callers.py", line 121, in _multicall
+    res = hook_impl.function(*args)
+  File "D:\Code\meraki-homeassistant\.venv\Lib\site-packages\_pytest\runner.py", line 113, in pytest_runtest_protocol
+    runtestprotocol(item, nextitem=nextitem)
+  File "D:\Code\meraki-homeassistant\.venv\Lib\site-packages\_pytest\runner.py", line 126, in runtestprotocol
+    rep = call_and_report(item, "setup", log)
+  File "D:\Code\meraki-homeassistant\.venv\Lib\site-packages\_pytest\runner.py", line 241, in call_and_report
+    call = CallInfo.from_call(
+  File "D:\Code\meraki-homeassistant\.venv\Lib\site-packages\_pytest\runner.py", line 341, in from_call
+    result: TResult | None = func()
+  File "D:\Code\meraki-homeassistant\.venv\Lib\site-packages\_pytest\runner.py", line 242, in <lambda>
+    lambda: runtest_hook(item=item, **kwds), when=when, reraise=reraise
+  File "D:\Code\meraki-homeassistant\.venv\Lib\site-packages\pluggy\_hooks.py", line 512, in __call__
+    return self._hookexec(self.name, self._hookimpls.copy(), kwargs, firstresult)
+  File "D:\Code\meraki-homeassistant\.venv\Lib\site-packages\pluggy\_manager.py", line 120, in _hookexec
+    return self._inner_hookexec(hook_name, methods, kwargs, firstresult)
+  File "D:\Code\meraki-homeassistant\.venv\Lib\site-packages\pluggy\_callers.py", line 121, in _multicall
+    res = hook_impl.function(*args)
+  File "D:\Code\meraki-homeassistant\.venv\Lib\site-packages\_pytest\runner.py", line 160, in pytest_runtest_setup
+    item.session._setupstate.setup(item)
+  File "D:\Code\meraki-homeassistant\.venv\Lib\site-packages\_pytest\runner.py", line 514, in setup
+    col.setup()
+  File "D:\Code\meraki-homeassistant\.venv\Lib\site-packages\_pytest\python.py", line 1630, in setup
+    self._request._fillfixtures()
+  File "D:\Code\meraki-homeassistant\.venv\Lib\site-packages\_pytest\fixtures.py", line 697, in _fillfixtures
+    item.funcargs[argname] = self.getfixturevalue(argname)
+  File "D:\Code\meraki-homeassistant\.venv\Lib\site-packages\_pytest\fixtures.py", line 532, in getfixturevalue
+    fixturedef = self._get_active_fixturedef(argname)
+  File "D:\Code\meraki-homeassistant\.venv\Lib\site-packages\_pytest\fixtures.py", line 617, in _get_active_fixturedef
+    fixturedef.execute(request=subrequest)
+  File "D:\Code\meraki-homeassistant\.venv\Lib\site-packages\_pytest\fixtures.py", line 1047, in execute
+    fixturedef = request._get_active_fixturedef(argname)
+  File "D:\Code\meraki-homeassistant\.venv\Lib\site-packages\_pytest\fixtures.py", line 617, in _get_active_fixturedef
+    fixturedef.execute(request=subrequest)
+  File "D:\Code\meraki-homeassistant\.venv\Lib\site-packages\_pytest\fixtures.py", line 1047, in execute
+    fixturedef = request._get_active_fixturedef(argname)
+  File "D:\Code\meraki-homeassistant\.venv\Lib\site-packages\_pytest\fixtures.py", line 617, in _get_active_fixturedef
+    fixturedef.execute(request=subrequest)
+  File "D:\Code\meraki-homeassistant\.venv\Lib\site-packages\_pytest\fixtures.py", line 1091, in execute
+    result = ihook.pytest_fixture_setup(fixturedef=self, request=request)
+  File "D:\Code\meraki-homeassistant\.venv\Lib\site-packages\pluggy\_hooks.py", line 512, in __call__
+    return self._hookexec(self.name, self._hookimpls.copy(), kwargs, firstresult)
+  File "D:\Code\meraki-homeassistant\.venv\Lib\site-packages\pluggy\_manager.py", line 120, in _hookexec
+    return self._inner_hookexec(hook_name, methods, kwargs, firstresult)
+  File "D:\Code\meraki-homeassistant\.venv\Lib\site-packages\pluggy\_callers.py", line 121, in _multicall
+    res = hook_impl.function(*args)
+  File "D:\Code\meraki-homeassistant\.venv\Lib\site-packages\_pytest\fixtures.py", line 1140, in pytest_fixture_setup
+    result = call_fixture_func(fixturefunc, request, kwargs)
+  File "D:\Code\meraki-homeassistant\.venv\Lib\site-packages\_pytest\fixtures.py", line 898, in call_fixture_func
+    fixture_result = fixturefunc(**kwargs)
+  File "D:\Code\meraki-homeassistant\.venv\Lib\site-packages\pytest_asyncio\plugin.py", line 343, in _asyncgen_fixture_wrapper
+    result = event_loop.run_until_complete(setup())
+  File "C:\Users\brewm\AppData\Roaming\uv\python\cpython-3.12.12-windows-x86_64-none\Lib\asyncio\base_events.py", line 678, in run_until_complete
+    self.run_forever()
+  File "C:\Users\brewm\AppData\Roaming\uv\python\cpython-3.12.12-windows-x86_64-none\Lib\asyncio\windows_events.py", line 322, in run_forever
+    super().run_forever()
+  File "C:\Users\brewm\AppData\Roaming\uv\python\cpython-3.12.12-windows-x86_64-none\Lib\asyncio\base_events.py", line 645, in run_forever
+    self._run_once()
+  File "C:\Users\brewm\AppData\Roaming\uv\python\cpython-3.12.12-windows-x86_64-none\Lib\asyncio\base_events.py", line 1994, in _run_once
+    logger.warning('Executing %s took %.3f seconds',
+Message: 'Executing %s took %.3f seconds'
+Arguments: ("<Task pending name='Task-1' coro=<_wrap_asyncgen_fixture.<locals>._asyncgen_fixture_wrapper.<locals>.setup() running at D:\\Code\\meraki-homeassistant\\.venv\\Lib\\site-packages\\pytest_asyncio\\plugin.py:325> wait_for=<Future pending cb=[_chain_future.<locals>._call_check_cancel() at C:\\Users\\brewm\\AppData\\Roaming\\uv\\python\\cpython-3.12.12-windows-x86_64-none\\Lib\\asyncio\\futures.py:389, Task.task_wakeup()] created at C:\\Users\\brewm\\AppData\\Roaming\\uv\\python\\cpython-3.12.12-windows-x86_64-none\\Lib\\asyncio\\base_events.py:448> cb=[_run_until_complete_cb() at C:\\Users\\brewm\\AppData\\Roaming\\uv\\python\\cpython-3.12.12-windows-x86_64-none\\Lib\\asyncio\\base_events.py:181] created at C:\\Users\\brewm\\AppData\\Roaming\\uv\\python\\cpython-3.12.12-windows-x86_64-none\\Lib\\asyncio\\tasks.py:695>", 0.125)
+----------------------------- Captured log setup ------------------------------
+WARNING  asyncio:base_events.py:1994 Executing <Task pending name='Task-1' coro=<_wrap_asyncgen_fixture.<locals>._asyncgen_fixture_wrapper.<locals>.setup() running at D:\Code\meraki-homeassistant\.venv\Lib\site-packages\pytest_asyncio\plugin.py:325> wait_for=<Future pending cb=[_chain_future.<locals>._call_check_cancel() at C:\Users\brewm\AppData\Roaming\uv\python\cpython-3.12.12-windows-x86_64-none\Lib\asyncio\futures.py:389, Task.task_wakeup()] created at C:\Users\brewm\AppData\Roaming\uv\python\cpython-3.12.12-windows-x86_64-none\Lib\asyncio\base_events.py:448> cb=[_run_until_complete_cb() at C:\Users\brewm\AppData\Roaming\uv\python\cpython-3.12.12-windows-x86_64-none\Lib\asyncio\base_events.py:181] created at C:\Users\brewm\AppData\Roaming\uv\python\cpython-3.12.12-windows-x86_64-none\Lib\asyncio\tasks.py:695> took 0.125 seconds
+---------------------------- Captured stdout call -----------------------------
+KEYS: ['organization', 'org_name', 'networks', 'devices', 'appliance_uplink_statuses', 'sensor_readings', 'firmware_upgrades', 'clients', 'appliance_traffic', 'vlans', 'l3_firewall_rules', 'traffic_shaping', 'vpn_status', 'rf_profiles', 'content_filtering']
+DATA: {'organization': {'name': 'Test Org'}, 'org_name': 'Test Org', 'networks': [], 'devices': [], 'appliance_uplink_statuses': None, 'sensor_readings': {}, 'firmware_upgrades': None, 'appliance_traffic': {}, 'vlans': {}, 'l3_firewall_rules': {}, 'traffic_shaping': {}, 'vpn_status': {}, 'rf_profiles': {}, 'content_filtering': {}}
+============================== warnings summary ===============================
+.venv\Lib\site-packages\_pytest\config\__init__.py:1441
+  D:\Code\meraki-homeassistant\.venv\Lib\site-packages\_pytest\config\__init__.py:1441: PytestConfigWarning: Unknown config option: allow_hosts
+
+    self._warn_or_fail_if_strict(f"Unknown config option: {key}\n")
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+FAILED tests/core/test_wireless_ssids.py::test_wireless_ssids_processing - As...
+======================== 1 failed, 1 warning in 2.25s =========================

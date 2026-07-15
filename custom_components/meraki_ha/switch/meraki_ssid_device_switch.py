@@ -4,13 +4,12 @@ import asyncio
 import logging
 from typing import Any
 
+from custom_components.meraki_ha.const.integration import DOMAIN
 from homeassistant.components.switch import SwitchEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import callback
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.device_registry import DeviceInfo
-
-from custom_components.meraki_ha.const.integration import DOMAIN
 
 from ..coordinators import MerakiSwitchCoordinator
 from ..core.api import MerakiApiClientProtocol
@@ -210,7 +209,7 @@ class MerakiSSIDBaseSwitch(MerakiEntity, SwitchEntity):
             if self.unique_id:
                 self.coordinator.cancel_pending_update(self.unique_id)
 
-        except asyncio.TimeoutError as err:
+        except TimeoutError as err:
             _LOGGER.error(
                 "Timeout updating SSID %s %s: %s",
                 self._ssid_name,

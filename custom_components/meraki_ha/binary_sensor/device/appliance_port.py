@@ -40,7 +40,7 @@ class AppliancePortBinarySensor(MerakiBinarySensor):
             f"{device.serial}_appliance_port_{self._port.number}_connectivity"
         )
         self._attr_name = f"Port {self._port.number}"
-        self._last_state = None
+        self._last_state = self.is_on
 
     @callback
     def _handle_coordinator_update(self) -> None:

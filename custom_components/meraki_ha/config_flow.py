@@ -39,6 +39,8 @@ class MerakiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         """Handle the initial step."""
         from .core.api import create_api_client
         from .core.errors import (
+            ApiClientCommunicationError,
+            InvalidOrgID,
             MerakiAuthenticationError,
             MerakiConnectionError,
         )
@@ -61,8 +63,10 @@ class MerakiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     return await self.async_step_org()
             except MerakiAuthenticationError:
                 errors["base"] = "invalid_auth"
-            except MerakiConnectionError:
+            except (MerakiConnectionError, ApiClientCommunicationError):
                 errors["base"] = "cannot_connect"
+            except InvalidOrgID:
+                errors["base"] = "invalid_org"
             except Exception:  # pylint: disable=broad-except
                 _LOGGER.exception("Unexpected exception during config flow")
                 errors["base"] = "cannot_connect"
@@ -92,6 +96,8 @@ class MerakiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         """Handle network selection."""
         from .core.api import create_api_client
         from .core.errors import (
+            ApiClientCommunicationError,
+            InvalidOrgID,
             MerakiAuthenticationError,
             MerakiConnectionError,
         )
@@ -127,8 +133,10 @@ class MerakiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             )
         except MerakiAuthenticationError:
             errors["base"] = "invalid_auth"
-        except MerakiConnectionError:
+        except (MerakiConnectionError, ApiClientCommunicationError):
             errors["base"] = "cannot_connect"
+        except InvalidOrgID:
+            errors["base"] = "invalid_org"
         except Exception:  # pylint: disable=broad-except
             _LOGGER.exception("Unexpected exception during network selection")
             errors["base"] = "cannot_connect"

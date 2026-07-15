@@ -1,0 +1,48 @@
+============================= test session starts =============================
+platform win32 -- Python 3.12.12, pytest-8.3.3, pluggy-1.6.0
+rootdir: D:\Code\meraki-homeassistant
+configfile: pytest.ini
+plugins: anyio-4.14.1, braintrust-0.12.0, aiohttp-1.0.5, asyncio-0.24.0, cov-6.0.0, pytest_freezer-0.4.8, github-actions-annotate-failures-0.2.0, homeassistant-custom-component-0.13.195, picked-0.5.0, socket-0.7.0, timeout-2.3.1, unordered-0.6.1, xdist-3.6.1, requests-mock-1.12.1, respx-0.21.1, syrupy-4.7.2
+asyncio: mode=Mode.AUTO, default_loop_scope=function
+collected 6 items
+
+tests\test_blueprints.py ....FF                                          [100%]
+
+================================== FAILURES ===================================
+___________________________ test_mt_leak_blueprint ____________________________
+
+    def test_mt_leak_blueprint():
+        """Test MT leak alert blueprint specifically."""
+        path = os.path.join(BLUEPRINT_PATH, "meraki_mt_leak_alert.yaml")
+        with open(path, "r", encoding="utf-8") as f:
+            content = yaml.safe_load(f)
+            assert "Water Leak" in content["blueprint"]["name"]
+            assert "input" in content["blueprint"]
+>           assert "target_sensor" in content["blueprint"]["input"]
+E           assert 'target_sensor' in {'alert_message': {'default': "Water leak detected by {{ state_attr(leak_sensor, 'friendly_name') }}!", 'description':... leak is detected.', 'name': 'Notification Device', 'selector': {'device': {'filter': {'integration': 'mobile_app'}}}}}
+
+tests\test_blueprints.py:50: AssertionError
+___________________________ test_mt_temp_blueprint ____________________________
+
+    def test_mt_temp_blueprint():
+        """Test MT temperature alert blueprint specifically."""
+        path = os.path.join(BLUEPRINT_PATH, "meraki_mt_temp_alert.yaml")
+        with open(path, "r", encoding="utf-8") as f:
+            content = yaml.safe_load(f)
+            assert "Temperature Alert" in content["blueprint"]["name"]
+            assert "input" in content["blueprint"]
+>           assert "target_sensor" in content["blueprint"]["input"]
+E           AssertionError: assert 'target_sensor' in {'alert_title': {'default': '\u26a0\ufe0f Meraki High Temp Alert', 'description': 'The title of the notification.', 'name': 'Ale...: 'Temperature Threshold', 'selector': {'number': {'max': 100, 'min': 0, 'mode': 'box', 'unit_of_measurement': '\xb0C'}}}}
+
+tests\test_blueprints.py:60: AssertionError
+============================== warnings summary ===============================
+.venv\Lib\site-packages\_pytest\config\__init__.py:1441
+  D:\Code\meraki-homeassistant\.venv\Lib\site-packages\_pytest\config\__init__.py:1441: PytestConfigWarning: Unknown config option: allow_hosts
+
+    self._warn_or_fail_if_strict(f"Unknown config option: {key}\n")
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+FAILED tests/test_blueprints.py::test_mt_leak_blueprint - assert 'target_sens...
+FAILED tests/test_blueprints.py::test_mt_temp_blueprint - AssertionError: ass...
+=================== 2 failed, 4 passed, 1 warning in 1.86s ====================

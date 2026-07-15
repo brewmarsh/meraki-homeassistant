@@ -27,6 +27,7 @@ from .services.manager import ServicesManager
 from .services.network_control_service import NetworkControlService
 from .services.switch_port_service import SwitchPortService
 from .setup_helpers import async_setup_frontend, async_setup_webhook_lifecycle
+from .webhook import async_register_webhook as async_register_webhook
 from .webhook import async_unregister_webhook
 
 _LOGGER = logging.getLogger(__name__)
@@ -92,32 +93,26 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     )
     await services_manager.async_register_services()
 
-    # 4. Setup Discovery Service
-    discovery_service = DeviceDiscoveryService(
-        main_coordinator,
-        entry,
-        api_client,
-        camera_service,
-        device_control_service,
-        network_control_service,
-    )
-
     # Store for platforms and cleanup
     hass.data[DOMAIN][entry.entry_id] = {
         "api_client": api_client,
+        "meraki_client": api_client,
         "main_coordinator": main_coordinator,
         "discovery_service": discovery_service,
         "ipsk_manager": ipsk_manager,
         "switch_port_service": switch_port_service,
+        "switch_coordinator": main_coordinator,
+        "camera_coordinator": main_coordinator,
+        "camera_service": camera_service,
     }
 
-    # 5. Handle Webhook Lifecycle (Registration/Unregistration)
+    # 6. Handle Webhook Lifecycle (Registration/Unregistration)
     await async_setup_webhook_lifecycle(hass, entry, api_client, main_coordinator)
 
-    # 6. Initialize Static Paths and Frontend
+    # 7. Initialize Static Paths and Frontend
     await async_setup_frontend(hass)
 
-    # 7. Perform initial discovery and platform setup
+    # 8. Perform initial discovery and platform setup
     # We do this after storing data so platforms can access it immediately
     await main_coordinator.async_config_entry_first_refresh()
     await discovery_service.async_setup_platforms()
@@ -133,6 +128,10 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     if unload_ok:
         data = hass.data[DOMAIN].pop(entry.entry_id)
+
+        # Unload IPSK manager to stop background reaping task
+        if "ipsk_manager" in data:
+            data["ipsk_manager"].async_unload()
 
         # Unregister webhook if configured
         if "webhook_id" in data:
