@@ -40,10 +40,11 @@ class NetworkControlService:
         if not isinstance(clients, list):
             return 0
 
-        return len(
-            [
-                client
-                for client in clients
-                if isinstance(client, dict) and client.get("networkId") == network_id
-            ]
+        # Performance optimization: use generator expression with sum() instead of list
+        # comprehension with len() to avoid allocating intermediate lists in memory.
+        # This saves memory (O(1) vs O(N)) and provides a slight CPU boost.
+        return sum(
+            1
+            for client in clients
+            if isinstance(client, dict) and client.get("networkId") == network_id
         )
