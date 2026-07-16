@@ -26,7 +26,7 @@ DEVICE_TYPE_MAPPING = {
 }
 
 
-def _resolve_ssid_info(data: dict[str, Any]) -> DeviceInfo | None:
+def _resolve_ssid_info(data: Any) -> DeviceInfo | None:
     """Resolve DeviceInfo for an SSID (Virtual Controller)."""
     network_id = data.get("networkId")
     if network_id:
@@ -39,7 +39,7 @@ def _resolve_ssid_info(data: dict[str, Any]) -> DeviceInfo | None:
     return None
 
 
-def _resolve_client_info(data: dict[str, Any]) -> DeviceInfo | None:
+def _resolve_client_info(data: Any) -> DeviceInfo | None:
     """Resolve DeviceInfo for a client device."""
     client_mac = data.get("mac")
     parent_serial = data.get("recentDeviceSerial")
@@ -53,7 +53,7 @@ def _resolve_client_info(data: dict[str, Any]) -> DeviceInfo | None:
     return None
 
 
-def _resolve_network_info(data: dict[str, Any]) -> DeviceInfo | None:
+def _resolve_network_info(data: Any) -> DeviceInfo | None:
     """Resolve DeviceInfo for a network device (Virtual Controller)."""
     network_id = data.get("id")
     is_network = ("productTypes" in data or "product_types" in data) and not data.get(
@@ -85,7 +85,7 @@ def _resolve_network_info(data: dict[str, Any]) -> DeviceInfo | None:
 
 
 def _resolve_physical_device_info(
-    data: dict[str, Any], config_entry: ConfigEntry
+    data: Any, config_entry: ConfigEntry
 ) -> DeviceInfo | None:
     """Resolve DeviceInfo for a physical device."""
     device_serial = data.get("serial")
@@ -102,7 +102,7 @@ def _resolve_physical_device_info(
             manufacturer="Cisco Meraki",
             model=model,
             sw_version=str(data.get("firmware") or ""),
-            via_device=(DOMAIN, f"network_{network_id}") if network_id else None,
+            via_device=(DOMAIN, f"network_{network_id}") if network_id else (),  # type: ignore[typeddict-item]
         )
     return None
 

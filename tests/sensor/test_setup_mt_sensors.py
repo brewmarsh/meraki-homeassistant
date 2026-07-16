@@ -134,14 +134,7 @@ async def _prepare_discovery_service_and_entities(
         devices = [devices]
 
     discovery_service = DeviceDiscoveryService(
-        MagicMock(),  # main_coordinator
-        mock_coordinator,  # device_coordinator
-        MagicMock(),  # switch_coordinator
-        MagicMock(),  # camera_coordinator
-        mock_coordinator,  # sensor_coordinator
-        MagicMock(),  # wireless_coordinator
-        MagicMock(),  # appliance_coordinator
-        MagicMock(),  # client_coordinator
+        mock_coordinator,  # main_coordinator
         MagicMock(),  # config_entry
         MagicMock(),  # meraki_client
         MagicMock(),  # camera_service
@@ -170,7 +163,7 @@ async def _prepare_discovery_service_and_entities(
             if hasattr(entity, "unique_id")
             else "test_entity"
         )
-        entity.async_write_ha_state = MagicMock()
+        # entity.async_write_ha_state = MagicMock()
 
         if hasattr(entity, "_handle_coordinator_update"):
             cast(CoordinatorEntity, entity)._handle_coordinator_update()
@@ -333,7 +326,11 @@ async def test_async_setup_mt12_sensors(
 def _get_outlet_switch(entities: list[Entity]) -> Entity:
     """Find the outlet switch entity."""
     outlet_switch = next(
-        (e for e in entities if hasattr(e, "unique_id") and "outlet" in e.unique_id),
+        (
+            e
+            for e in entities
+            if hasattr(e, "unique_id") and e.unique_id and "outlet" in str(e.unique_id)
+        ),
         None,
     )
     assert outlet_switch is not None, "Outlet switch entity not found for MT40"

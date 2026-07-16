@@ -68,13 +68,16 @@ def test_traffic_shaping_switch_creation(
 ) -> None:
     """Test that the traffic shaping switches are created correctly."""
     hass = MagicMock()
-    entities = []
+    entities: list = []
+    def mock_add_entities(new_entities, update_before_add=False):
+        entities.extend(new_entities)
+
     async_setup_switches(
         hass,
         mock_config_entry_with_traffic_shaping,
         mock_coordinator_with_traffic_shaping_data,
         mock_meraki_client,
-        entities.extend,
+        mock_add_entities,
     )
 
     assert len(entities) == 2
@@ -98,13 +101,16 @@ def test_traffic_shaping_switch_creation_disabled(
     """Traffic shaping switches are not created when the feature is disabled."""
     mock_config_entry.options = {CONF_ENABLE_TRAFFIC_SHAPING: False}
     hass = MagicMock()
-    entities = []
+    entities: list = []
+    def mock_add_entities(new_entities, update_before_add=False):
+        entities.extend(new_entities)
+
     async_setup_switches(
         hass,
         mock_config_entry,
         mock_coordinator_with_traffic_shaping_data,
         mock_meraki_client,
-        entities.extend,
+        mock_add_entities,
     )
     # Entities might contain other switches if data present, but our mock contains
     # only traffic shaping data. setup_helpers checks other things, but since
