@@ -6,8 +6,8 @@ import logging
 from typing import Any
 
 from homeassistant import config_entries
+from homeassistant.config_entries import ConfigFlowResult
 from homeassistant.core import callback
-from homeassistant.data_entry_flow import FlowResult
 
 from .const.config import (
     CONF_ENABLED_NETWORKS,
@@ -35,7 +35,7 @@ class MerakiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
-    ) -> FlowResult:
+    ) -> ConfigFlowResult:
         """Handle the initial step."""
         from .core.api import create_api_client
         from .core.errors import (
@@ -54,7 +54,7 @@ class MerakiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     self._api_key,
                 )
                 await client.async_setup()
-                self._orgs = await client.get_organizations()
+                self._orgs = await client.organization.get_organizations()
                 if not self._orgs:
                     errors["base"] = "no_orgs"
                 else:
@@ -73,7 +73,7 @@ class MerakiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
     async def async_step_org(
         self, user_input: dict[str, Any] | None = None
-    ) -> FlowResult:
+    ) -> ConfigFlowResult:
         """Handle organization selection."""
         from .schemas import get_org_selection_schema
 
@@ -88,7 +88,7 @@ class MerakiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
     async def async_step_networks(
         self, user_input: dict[str, Any] | None = None
-    ) -> FlowResult:
+    ) -> ConfigFlowResult:
         """Handle network selection."""
         from .core.api import create_api_client
         from .core.errors import (
@@ -108,7 +108,7 @@ class MerakiConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
         try:
             # Fetch networks for the selected organization
-            client = create_api_client(self.hass, self._api_key, self._org_id)
+            client = create_api_client(self.hass, str(self._api_key), self._org_id)
             await client.async_setup()
             networks = await client.organization.get_organization_networks()
 
@@ -156,7 +156,7 @@ class MerakiOptionsFlowHandler(config_entries.OptionsFlow):
 
     async def async_step_init(
         self, user_input: dict[str, Any] | None = None
-    ) -> FlowResult:
+    ) -> ConfigFlowResult:
         """Manage the options."""
         return self.async_show_menu(
             step_id="init",
@@ -165,7 +165,7 @@ class MerakiOptionsFlowHandler(config_entries.OptionsFlow):
 
     async def async_step_general(
         self, user_input: dict[str, Any] | None = None
-    ) -> FlowResult:
+    ) -> ConfigFlowResult:
         """Handle general settings."""
         if user_input is not None:
             return self.async_create_entry(
@@ -176,12 +176,12 @@ class MerakiOptionsFlowHandler(config_entries.OptionsFlow):
 
         return self.async_show_form(
             step_id="general",
-            data_schema=get_options_schema_general(self.config_entry.options),
+            data_schema=get_options_schema_general(dict(self.config_entry.options)),
         )
 
     async def async_step_sensors(
         self, user_input: dict[str, Any] | None = None
-    ) -> FlowResult:
+    ) -> ConfigFlowResult:
         """Handle sensor settings."""
         if user_input is not None:
             return self.async_create_entry(
@@ -192,12 +192,12 @@ class MerakiOptionsFlowHandler(config_entries.OptionsFlow):
 
         return self.async_show_form(
             step_id="sensors",
-            data_schema=get_options_schema_sensors(self.config_entry.options),
+            data_schema=get_options_schema_sensors(dict(self.config_entry.options)),
         )
 
     async def async_step_cameras(
         self, user_input: dict[str, Any] | None = None
-    ) -> FlowResult:
+    ) -> ConfigFlowResult:
         """Handle camera settings."""
         if user_input is not None:
             return self.async_create_entry(
@@ -208,12 +208,12 @@ class MerakiOptionsFlowHandler(config_entries.OptionsFlow):
 
         return self.async_show_form(
             step_id="cameras",
-            data_schema=get_options_schema_cameras(self.config_entry.options),
+            data_schema=get_options_schema_cameras(dict(self.config_entry.options)),
         )
 
     async def async_step_advanced(
         self, user_input: dict[str, Any] | None = None
-    ) -> FlowResult:
+    ) -> ConfigFlowResult:
         """Handle advanced settings."""
         if user_input is not None:
             return self.async_create_entry(
@@ -224,5 +224,5 @@ class MerakiOptionsFlowHandler(config_entries.OptionsFlow):
 
         return self.async_show_form(
             step_id="advanced",
-            data_schema=get_options_schema_advanced(self.config_entry.options),
+            data_schema=get_options_schema_advanced(dict(self.config_entry.options)),
         )
