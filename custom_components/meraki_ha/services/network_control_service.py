@@ -40,10 +40,8 @@ class NetworkControlService:
         if not isinstance(clients, list):
             return 0
 
-        return len(
-            [
-                client
-                for client in clients
-                if isinstance(client, dict) and client.get("networkId") == network_id
-            ]
+        return sum(
+            1
+            for client in clients
+            if isinstance(client, dict) and client.get("networkId") == network_id
         )
