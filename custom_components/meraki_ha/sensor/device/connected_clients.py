@@ -69,7 +69,8 @@ class MerakiDeviceConnectedClientsSensor(MerakiSensor):
                 self._attr_native_value = 0
                 return
 
-            # Optimization: Use sum with a generator expression instead of a list comprehension
+            # Optimization: Use sum with a generator expression instead
+            # of a list comprehension
             # to avoid O(N) intermediate memory allocation for counting.
             self._attr_native_value = sum(
                 1
