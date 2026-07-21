@@ -40,8 +40,16 @@ def calculate_network_health(data: dict[str, Any]) -> float:
     # Check alerts
     alerts = data.get("alerts", [])
     if alerts:
-        critical = sum(1 for a in alerts if a.get("severity") == "critical")
-        warning = sum(1 for a in alerts if a.get("severity") == "warning")
+        # Bolt Performance: Calculate both critical and warning alert counts
+        # in a single pass O(N) rather than two sequential O(N) iterations.
+        critical = 0
+        warning = 0
+        for a in alerts:
+            severity = a.get("severity")
+            if severity == "critical":
+                critical += 1
+            elif severity == "warning":
+                warning += 1
         score -= critical * 10 + warning * 5
 
     # Check client health
