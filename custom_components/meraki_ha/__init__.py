@@ -101,7 +101,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     # 7. Perform initial discovery and platform setup
     # We do this after storing data so platforms can access it immediately
     await main_coordinator.async_config_entry_first_refresh()
-    await discovery_service.async_setup_platforms()
+    await discovery_service.discover_entities()
+    await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
     return True
 
