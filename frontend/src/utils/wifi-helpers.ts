@@ -132,17 +132,69 @@ export class WifiHelpers {
    */
   static generateNaturalPassword(): string {
     const adjs = [
-      'hot', 'cold', 'fast', 'slow', 'red', 'blue', 'green', 'tall', 'short',
-      'loud', 'quiet', 'happy', 'brave', 'calm', 'cool', 'smart', 'bright',
-      'clear', 'warm', 'wild', 'free', 'solid', 'swift', 'dark', 'light'
+      'hot',
+      'cold',
+      'fast',
+      'slow',
+      'red',
+      'blue',
+      'green',
+      'tall',
+      'short',
+      'loud',
+      'quiet',
+      'happy',
+      'brave',
+      'calm',
+      'cool',
+      'smart',
+      'bright',
+      'clear',
+      'warm',
+      'wild',
+      'free',
+      'solid',
+      'swift',
+      'dark',
+      'light',
     ];
     const nouns = [
-      'butter', 'potato', 'apple', 'tiger', 'lion', 'bear', 'hawk', 'tree',
-      'river', 'mountain', 'ocean', 'breeze', 'cloud', 'star', 'moon', 'forest',
-      'stone', 'water', 'fire', 'wood', 'metal', 'glass', 'sky', 'earth', 'sun'
+      'butter',
+      'potato',
+      'apple',
+      'tiger',
+      'lion',
+      'bear',
+      'hawk',
+      'tree',
+      'river',
+      'mountain',
+      'ocean',
+      'breeze',
+      'cloud',
+      'star',
+      'moon',
+      'forest',
+      'stone',
+      'water',
+      'fire',
+      'wood',
+      'metal',
+      'glass',
+      'sky',
+      'earth',
+      'sun',
     ];
 
-    const pick = (arr: string[]) => arr[Math.floor(Math.random() * arr.length)];
-    return `${pick(adjs)}-${pick(nouns)}-${Math.floor(Math.random() * 1000)}`;
+    // Use Web Crypto API for secure random number generation
+    const getSecureRandom = () => {
+      const array = new Uint32Array(1);
+      window.crypto.getRandomValues(array);
+      return array[0] / (0xffffffff + 1);
+    };
+
+    const pick = (arr: string[]) =>
+      arr[Math.floor(getSecureRandom() * arr.length)];
+    return `${pick(adjs)}-${pick(nouns)}-${Math.floor(getSecureRandom() * 1000)}`;
   }
 }

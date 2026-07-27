@@ -2,9 +2,8 @@
 
 from unittest.mock import MagicMock, patch
 
-from homeassistant.components.event import EventDeviceClass
-
 from custom_components.meraki_ha.event.device.mt_button import MerakiMtButtonEvent
+from homeassistant.components.event import EventDeviceClass
 
 
 async def test_mt_button_event_initialization(

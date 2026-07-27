@@ -14,9 +14,9 @@ This refactor transitions the Meraki integration from a "Logical Object" model (
 
 The current architecture treats every API object as a unique Home Assistant Device. This leads to:
 
-* **Device Registry Bloat:** A simple network with 1 Switch, 3 APs, 4 SSIDs, and 5 VLANs results in **13 Devices** (4 physical + 9 logical).
-* **Fragmented UX:** Users must hunt for a specific "Guest Wi-Fi" device to toggle a switch, rather than finding it centrally.
-* **Ambiguous Ownership:** Logical entities (like VLAN stats) are arbitrarily attached to physical devices (like an MX Appliance), causing confusion if that specific hardware is replaced or offline.
+- **Device Registry Bloat:** A simple network with 1 Switch, 3 APs, 4 SSIDs, and 5 VLANs results in **13 Devices** (4 physical + 9 logical).
+- **Fragmented UX:** Users must hunt for a specific "Guest Wi-Fi" device to toggle a switch, rather than finding it centrally.
+- **Ambiguous Ownership:** Logical entities (like VLAN stats) are arbitrarily attached to physical devices (like an MX Appliance), causing confusion if that specific hardware is replaced or offline.
 
 ## 3. Proposed Architecture (Future State)
 
@@ -26,33 +26,31 @@ We will implement a **Virtual Controller Pattern**. This introduces a single, lo
 
 The integration will produce two distinct classes of devices:
 
-| Device Class | Represents | Examples | Entities Attached |
-| --- | --- | --- | --- |
-| **Physical Device** | Tangible hardware with a serial number. | MR Access Points, MS Switches, MV Cameras, MT Sensors | Hardware health (Temp, Power), Port Status, Connectivity Sensors. |
-| **Virtual Controller** | The logical "Network" or "Site" configuration. | "Chicago Office", "Home Network" | SSID Toggles, VLAN Stats, Uplink Status, Content Filtering Switches. |
+| Device Class           | Represents                                     | Examples                                              | Entities Attached                                                    |
+| ---------------------- | ---------------------------------------------- | ----------------------------------------------------- | -------------------------------------------------------------------- |
+| **Physical Device**    | Tangible hardware with a serial number.        | MR Access Points, MS Switches, MV Cameras, MT Sensors | Hardware health (Temp, Power), Port Status, Connectivity Sensors.    |
+| **Virtual Controller** | The logical "Network" or "Site" configuration. | "Chicago Office", "Home Network"                      | SSID Toggles, VLAN Stats, Uplink Status, Content Filtering Switches. |
 
 ### 3.2 Entity Mapping Strategy
 
 #### A. Wireless (SSIDs)
 
-* **Old Way:** `[SSID] Guest Wi-Fi` Device → `switch.guest_wifi`
-* **New Way:** `[Site] Chicago Office` Device → `switch.guest_wifi_enabled`
-* **Rationale:** An SSID is a broadcast profile pushed to *all* APs in a network. It is a site-wide configuration, not a standalone device.
+- **Old Way:** `[SSID] Guest Wi-Fi` Device → `switch.guest_wifi`
+- **New Way:** `[Site] Chicago Office` Device → `switch.guest_wifi_enabled`
+- **Rationale:** An SSID is a broadcast profile pushed to _all_ APs in a network. It is a site-wide configuration, not a standalone device.
 
 #### B. Network & Routing (VLANs)
 
-* **Old Way:** `[VLAN] 10` Device → 5 separate sensors (IP, Mask, etc.)
-* **New Way:** `[Site] Chicago Office` Device → `sensor.vlan_10_status`
-* **Attribute Flattening:** To reduce entity count, VLAN details (Subnet, IPv6 status) will be moved to **Attributes** of the primary VLAN status sensor.
+- **Old Way:** `[VLAN] 10` Device → 5 separate sensors (IP, Mask, etc.)
+- **New Way:** `[Site] Chicago Office` Device → `sensor.vlan_10_status`
+- **Attribute Flattening:** To reduce entity count, VLAN details (Subnet, IPv6 status) will be moved to **Attributes** of the primary VLAN status sensor.
 
 #### C. Switching (Ports)
 
-* **Old Way:** All 48 ports enabled as sensors by default.
-* **New Way:**
-* **Default:** Only `uplink` and `power_usage` sensors are enabled.
-* **Opt-In:** Individual port status/toggle entities are `disabled_by_default`. Users enable specific ports (e.g., "Port 4 - Printer") manually.
-
-
+- **Old Way:** All 48 ports enabled as sensors by default.
+- **New Way:**
+- **Default:** Only `uplink` and `power_usage` sensors are enabled.
+- **Opt-In:** Individual port status/toggle entities are `disabled_by_default`. Users enable specific ports (e.g., "Port 4 - Printer") manually.
 
 ## 4. Technical Implementation
 
@@ -77,14 +75,14 @@ def get_virtual_controller_info(network_id, network_name):
 
 Since this changes `unique_id` generation and Device associations, this is a **Breaking Change**.
 
-* **Users must:** Delete the existing integration entry and re-add it.
-* **Orphan cleanup:** The refactor code must include a migration step to identify and remove the old "Logical" devices (`[SSID] ...`, `[VLAN] ...`) from the registry to prevent duplicates.
+- **Users must:** Delete the existing integration entry and re-add it.
+- **Orphan cleanup:** The refactor code must include a migration step to identify and remove the old "Logical" devices (`[SSID] ...`, `[VLAN] ...`) from the registry to prevent duplicates.
 
 ## 5. User Experience Improvements
 
-* **Centralized Control:** A single dashboard card for "Chicago Office" now displays global network health (Uplink), configuration (SSIDs), and addressing (VLANs).
-* **Hardware Focus:** The "Devices" list now accurately reflects the physical inventory (racks, shelves, ceilings).
-* **Simplified Automations:** Triggers become more intuitive: `device: Chicago Office` -> `action: Turn off Guest Wi-Fi`.
+- **Centralized Control:** A single dashboard card for "Chicago Office" now displays global network health (Uplink), configuration (SSIDs), and addressing (VLANs).
+- **Hardware Focus:** The "Devices" list now accurately reflects the physical inventory (racks, shelves, ceilings).
+- **Simplified Automations:** Triggers become more intuitive: `device: Chicago Office` -> `action: Turn off Guest Wi-Fi`.
 
 ---
 
@@ -95,30 +93,30 @@ This diagram shows how the API data flows into the new architecture.
 ```mermaid
 flowchart LR
     API[Meraki Cloud API] --> Coordinator[Data Coordinator]
-    
+
     Coordinator -->|Hardware Data| HardwareFactory[Hardware Entity Factory]
     Coordinator -->|Config Data| ControllerFactory[Controller Entity Factory]
-    
+
     HardwareFactory --> Switch[Device: MS Switch]
     HardwareFactory --> AP[Device: MR Access Point]
-    
+
     ControllerFactory --> Controller[Device: Site Controller]
-    
+
     subgraph Controller_Entities
         VLANs[Sensor: VLAN Stats]
         SSIDs[Switch: Guest Wi-Fi]
         Uplink[Sensor: WAN Status]
     end
-    
+
     subgraph Switch_Entities
         Ports[Binary Sensor: Port 1]
         PoE[Sensor: Power Usage]
     end
-    
+
     Controller --- VLANs
     Controller --- SSIDs
     Controller --- Uplink
-    
+
     Switch --- Ports
     Switch --- PoE
 
@@ -138,13 +136,13 @@ graph TD
 
     subgraph Logical_Layer ["Logical Layer (The Virtual Controller)"]
         Controller["📱 Device: Site Controller<br/>(Model: Service)"]
-        
+
         SSID1("Enable 'Guest Wi-Fi'<br/>(Switch Entity)")
         SSID2("Enable 'IoT Network'<br/>(Switch Entity)")
         VLAN1("VLAN 10 Usage<br/>(Sensor Entity)")
         VLAN2("VLAN 20 Usage<br/>(Sensor Entity)")
         Uplink("WAN 1 Status<br/>(Binary Sensor)")
-        
+
         Controller --- SSID1
         Controller --- SSID2
         Controller --- VLAN1

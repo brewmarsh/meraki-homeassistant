@@ -6,11 +6,11 @@ import logging
 from typing import TYPE_CHECKING
 
 import voluptuous as vol
+
+from custom_components.meraki_ha.const.integration import DOMAIN
 from homeassistant.core import HomeAssistant, ServiceCall
 from homeassistant.exceptions import ServiceValidationError
 from homeassistant.helpers import config_validation as cv
-
-from custom_components.meraki_ha.const.integration import DOMAIN
 
 if TYPE_CHECKING:
     from .ipsk_manager import IPSKManager
@@ -186,6 +186,22 @@ async def async_setup_services(hass: HomeAssistant) -> None:
 
         raise ServiceValidationError(f"Device with serial {serial} not found")
 
+    async def _async_generate_snapshot(call: ServiceCall) -> None:
+        """Generate a camera snapshot."""
+        serial = call.data["serial"]
+        for _entry_id, entry_data in hass.data[DOMAIN].items():
+            if not isinstance(entry_data, dict):
+                continue
+            camera_service = entry_data.get("camera_service")
+            main_coordinator = entry_data.get("main_coordinator")
+            if main_coordinator and camera_service:
+                devices = main_coordinator.data.get("devices", [])
+                if any(d.serial == serial for d in devices):
+                    await camera_service.generate_snapshot(serial)
+                    return
+
+        raise ServiceValidationError(f"Device with serial {serial} not found")
+
     # Register services
     hass.services.async_register(
         DOMAIN,
@@ -213,6 +229,13 @@ async def async_setup_services(hass: HomeAssistant) -> None:
         "cycle_port",
         _async_cycle_port,
         schema=SERVICE_CYCLE_PORT_SCHEMA,
+    )
+
+    hass.services.async_register(
+        DOMAIN,
+        "generate_snapshot",
+        _async_generate_snapshot,
+        schema=SERVICE_GENERATE_SNAPSHOT_SCHEMA,
     )
 
 

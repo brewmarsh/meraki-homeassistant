@@ -5,7 +5,6 @@ from __future__ import annotations
 from typing import Any
 
 import voluptuous as vol
-from homeassistant.helpers import selector
 
 from custom_components.meraki_ha.const.config import (
     CONF_ENABLE_CAMERA_ENTITIES,
@@ -45,6 +44,7 @@ from custom_components.meraki_ha.const.config import (
     DEFAULT_ENABLED_NETWORKS,
     DEFAULT_SCAN_INTERVAL,
 )
+from homeassistant.helpers import selector
 
 CONFIG_SCHEMA = vol.Schema(
     {

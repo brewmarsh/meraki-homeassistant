@@ -15,15 +15,17 @@ from .const.config import CONF_MERAKI_API_KEY, CONF_MERAKI_ORG_ID
 from .const.integration import DOMAIN
 from .const.platform import PLATFORMS
 from .coordinators import MerakiMainCoordinator
-from .core.api.factory import create_api_client
+from .core.api.factory import create_meraki_client
 from .core.errors import MerakiAuthenticationError, MerakiConnectionError
 from .core.repositories.camera_repository import CameraRepository
 from .core.repository import MerakiRepository
 from .discovery.service import DeviceDiscoveryService
+from .helpers.migrations import async_migrate_entities
+from .helpers.migrations import async_migrate_entry as async_migrate_entry
+from .services import async_setup_services
 from .services.camera_service import CameraService
 from .services.device_control_service import DeviceControlService
 from .services.ipsk_manager import IPSKManager
-from .services.manager import ServicesManager
 from .services.network_control_service import NetworkControlService
 from .services.switch_port_service import SwitchPortService
 from .setup_helpers import async_setup_frontend, async_setup_webhook_lifecycle
@@ -45,12 +47,15 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up Meraki from a config entry."""
     _LOGGER.debug("Setting up Meraki config entry: %s", entry.entry_id)
 
-    api_key = entry.data[CONF_MERAKI_API_KEY]
+    # Perform migrations
+    await async_migrate_entities(hass, entry.entry_id)
+
+    entry.data[CONF_MERAKI_API_KEY]
     org_id = entry.data[CONF_MERAKI_ORG_ID]
 
     # 1. Initialize API Client
     try:
-        api_client = create_api_client(hass, api_key, org_id)
+        api_client = create_meraki_client(hass, entry)
         await api_client.async_setup()
     except MerakiAuthenticationError as err:
         _LOGGER.error("Authentication failed: %s", err)
@@ -76,6 +81,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     # IPSK Manager
     ipsk_manager = IPSKManager(hass)
     await ipsk_manager.async_setup()
+    hass.data[DOMAIN]["ipsk_manager"] = ipsk_manager
 
     # 4. Setup Discovery Service
     discovery_service = DeviceDiscoveryService(
@@ -87,11 +93,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         network_control_service,
     )
 
-    # Initialize Services
-    services_manager = ServicesManager(
-        hass, device_control_service, switch_port_service, camera_service
-    )
-    await services_manager.async_register_services()
+    await async_setup_services(hass)
 
     # Store for platforms and cleanup
     hass.data[DOMAIN][entry.entry_id] = {
@@ -144,21 +146,6 @@ async def async_reload_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
     """Reload config entry."""
     await async_unload_entry(hass, entry)
     await async_setup_entry(hass, entry)
-
-
-async def async_migrate_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> bool:
-    """Migrate old entry."""
-    _LOGGER.debug("Migrating from version %s", config_entry.version)
-
-    if config_entry.version < 3:
-        new_data = {**config_entry.data}
-        if config_entry.version == 1:
-            if "meraki_api_key" in new_data:
-                new_data["api_key"] = new_data.pop("meraki_api_key")
-
-        hass.config_entries.async_update_entry(config_entry, data=new_data, version=3)
-
-    return True
 
 
 async def update_listener(hass: HomeAssistant, entry: ConfigEntry) -> None:

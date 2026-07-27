@@ -4,9 +4,8 @@ import dataclasses
 import logging
 from typing import Any
 
-from homeassistant.components.switch import SwitchEntity
-
 from custom_components.meraki_ha.coordinators import MerakiSwitchCoordinator
+from homeassistant.components.switch import SwitchEntity
 
 from ..core.api import MerakiApiClientProtocol
 from ..core.models.device import MerakiDevice

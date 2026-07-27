@@ -6,7 +6,6 @@ from typing import Any
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-from homeassistant.config_entries import ConfigEntry
 
 # Resolved: Using the centralized coordinator path from the 2.3.0-beta.120 refactor
 from custom_components.meraki_ha.coordinators import MerakiMainCoordinator
@@ -15,6 +14,7 @@ from custom_components.meraki_ha.services.camera_service import CameraService
 from custom_components.meraki_ha.services.device_control_service import (
     DeviceControlService,
 )
+from homeassistant.config_entries import ConfigEntry
 from tests.const import MOCK_DEVICE
 
 

@@ -1,5 +1,6 @@
 import { LitElement, html, css, PropertyValues } from 'lit';
 import { property, state } from 'lit/decorators.js';
+import { unsafeSVG } from 'lit/directives/unsafe-svg.js';
 import { HomeAssistant } from './types/ha';
 import { renderWarning, renderLoadingState, sharedStyles } from './shared-ui';
 import { MerakiDataProvider } from './utils/meraki-data';
@@ -85,7 +86,12 @@ export class MerakiGuestAccessCard extends LitElement {
 
   private _generateUniqueGuestName(): string {
     const baseName = this.hass?.user?.name || 'Home Assistant';
-    const randomSuffix = Math.floor(Math.random() * 10000)
+    // Use Web Crypto API for secure random number generation
+    const array = new Uint32Array(1);
+    window.crypto.getRandomValues(array);
+    const secureRandom = array[0] / (0xffffffff + 1);
+
+    const randomSuffix = Math.floor(secureRandom * 10000)
       .toString()
       .padStart(4, '0');
     return `${baseName} - Guest ${randomSuffix}`;
@@ -356,8 +362,9 @@ export class MerakiGuestAccessCard extends LitElement {
                   <div
                     class="qr-container"
                     style="width: 200px; height: 200px;"
-                    .innerHTML="${this._qrSvg}"
-                  ></div>
+                  >
+                    ${unsafeSVG(this._qrSvg)}
+                  </div>
 
                   <div class="credentials-block">
                     <div class="credential-item">

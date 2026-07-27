@@ -3,11 +3,11 @@
 from unittest.mock import MagicMock
 
 import pytest
-from homeassistant.const import EntityCategory
 
 from custom_components.meraki_ha.core.models.network import MerakiVlan
 from custom_components.meraki_ha.sensor.network.vlans_list import VlansListSensor
 from custom_components.meraki_ha.types import MerakiNetwork
+from homeassistant.const import EntityCategory
 
 
 @pytest.fixture

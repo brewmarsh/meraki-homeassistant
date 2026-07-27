@@ -5,14 +5,13 @@ from __future__ import annotations
 from dataclasses import dataclass
 from datetime import timedelta
 
-from homeassistant.config_entries import ConfigEntry
-
 from custom_components.meraki_ha.const.config import (
     CONF_ENABLE_CAMERA_SENSE,
     CONF_ENABLE_FIREWALL_RULES,
     CONF_ENABLE_PORT_SENSORS,
     CONF_ENABLE_TRAFFIC_SHAPING,
     CONF_ENABLE_VPN_MANAGEMENT,
+    CONF_ENABLED_NETWORKS,
     CONF_IGNORED_NETWORKS,
     CONF_MERAKI_API_KEY,
     CONF_MERAKI_ORG_ID,
@@ -25,6 +24,7 @@ from custom_components.meraki_ha.const.config import (
     DEFAULT_IGNORED_NETWORKS,
     DEFAULT_SCAN_INTERVAL,
 )
+from homeassistant.config_entries import ConfigEntry
 
 
 @dataclass
@@ -41,6 +41,7 @@ class CoordinatorConfig:
     scan_interval: int
     update_interval: timedelta
     ignored_networks: list[str]
+    enabled_networks: list[str]
 
 
 def get_coordinator_config(entry: ConfigEntry) -> CoordinatorConfig:
@@ -74,6 +75,10 @@ def get_coordinator_config(entry: ConfigEntry) -> CoordinatorConfig:
         CONF_IGNORED_NETWORKS,
         DEFAULT_IGNORED_NETWORKS,
     )
+    enabled_networks: list[str] = entry.options.get(
+        CONF_ENABLED_NETWORKS,
+        entry.data.get(CONF_ENABLED_NETWORKS, []),
+    )
 
     try:
         scan_interval = int(
@@ -97,4 +102,5 @@ def get_coordinator_config(entry: ConfigEntry) -> CoordinatorConfig:
         scan_interval=scan_interval,
         update_interval=update_interval,
         ignored_networks=ignored_networks,
+        enabled_networks=enabled_networks,
     )

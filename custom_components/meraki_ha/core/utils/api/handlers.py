@@ -5,8 +5,9 @@ import logging
 from collections.abc import Callable
 from typing import Any
 
-from homeassistant.helpers.update_coordinator import UpdateFailed
 from meraki.exceptions import APIError  # type: ignore
+
+from homeassistant.helpers.update_coordinator import UpdateFailed
 
 from ...errors import (
     MerakiAuthenticationError,

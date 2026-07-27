@@ -34,7 +34,7 @@ def _handle_frequency(device: MerakiDevice, reading: dict[str, Any]) -> None:
     freq_data = reading.get("frequency")
     if isinstance(freq_data, dict):
         device.frequency = freq_data.get("level")
-    elif isinstance(freq_data, (int, float)):
+    elif isinstance(freq_data, int | float):
         device.frequency = freq_data
 
 
@@ -46,7 +46,7 @@ def _handle_energy(device: MerakiDevice, reading: dict[str, Any]) -> None:
             or energy_data.get("draw")
             or energy_data.get("apparentPower")
         )
-    elif isinstance(energy_data, (int, float)):
+    elif isinstance(energy_data, int | float):
         device.energy = energy_data
 
 

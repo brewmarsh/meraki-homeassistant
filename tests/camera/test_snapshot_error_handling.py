@@ -4,9 +4,9 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import aiohttp
 import pytest
-from homeassistant.core import HomeAssistant
 
 from custom_components.meraki_ha.camera import MerakiRTSPStreamCamera
+from homeassistant.core import HomeAssistant
 from tests.const import MOCK_CAMERA_DEVICE
 
 

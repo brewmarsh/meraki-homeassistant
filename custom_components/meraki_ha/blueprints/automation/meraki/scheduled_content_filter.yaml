@@ -22,25 +22,25 @@ blueprint:
     restricted_profile:
       name: Restricted Profile
       description: The profile to apply during the scheduled time.
-      default: "Strict"
+      default: 'Strict'
       selector:
         select:
           options:
-            - "None"
-            - "Security"
-            - "Family"
-            - "Strict"
+            - 'None'
+            - 'Security'
+            - 'Family'
+            - 'Strict'
     baseline_profile:
       name: Baseline Profile
       description: The profile to revert to outside the scheduled time.
-      default: "None"
+      default: 'None'
       selector:
         select:
           options:
-            - "None"
-            - "Security"
-            - "Family"
-            - "Strict"
+            - 'None'
+            - 'Security'
+            - 'Family'
+            - 'Strict'
 
 trigger:
   - platform: time

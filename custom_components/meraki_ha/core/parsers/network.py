@@ -99,7 +99,7 @@ def _extract_appliance_traffic(
     key = f"traffic_{network_id}"
     data = detail_data.get(key)
 
-    if isinstance(data, (MerakiTrafficAnalysisError, MerakiInformationalError)):
+    if isinstance(data, MerakiTrafficAnalysisError | MerakiInformationalError):
         disabled_features.add(key)
         return {"error": "disabled", "reason": str(data)}
 
@@ -122,7 +122,7 @@ def _extract_vlans(
     key = f"vlans_{network_id}"
     data = detail_data.get(key)
 
-    if isinstance(data, (MerakiVlanError, MerakiVlansDisabledError)):
+    if isinstance(data, MerakiVlanError | MerakiVlansDisabledError):
         disabled_features.add(key)
         return []
 

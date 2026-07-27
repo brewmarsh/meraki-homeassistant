@@ -3,12 +3,12 @@
 from unittest.mock import MagicMock
 
 import pytest
-from homeassistant.const import EntityCategory
 
 from custom_components.meraki_ha.sensor.device.camera_audio_detection import (
     MerakiCameraAudioDetectionSensor,
 )
 from custom_components.meraki_ha.types import MerakiDevice
+from homeassistant.const import EntityCategory
 
 
 @pytest.fixture

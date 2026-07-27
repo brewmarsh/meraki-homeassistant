@@ -6,17 +6,16 @@ import asyncio
 import logging
 from typing import TYPE_CHECKING, Any, cast
 
-from homeassistant.config_entries import ConfigEntry
-from homeassistant.core import HomeAssistant
-from homeassistant.helpers import device_registry as dr
-from homeassistant.helpers import entity_registry as er
-from homeassistant.helpers.update_coordinator import UpdateFailed
-
 from custom_components.meraki_ha.const.config import (
     CONF_IGNORED_NETWORKS,
     DEFAULT_IGNORED_NETWORKS,
 )
 from custom_components.meraki_ha.const.integration import DOMAIN
+from homeassistant.config_entries import ConfigEntry
+from homeassistant.core import HomeAssistant
+from homeassistant.helpers import device_registry as dr
+from homeassistant.helpers import entity_registry as er
+from homeassistant.helpers.update_coordinator import UpdateFailed
 
 from ..helpers.device_registry import (
     async_ensure_network_devices_exist,
@@ -342,7 +341,7 @@ class UpdateProcessor:
         self._log_failure(err)
 
         if not last_successful_data:
-            if isinstance(err, (asyncio.TimeoutError, TimeoutError)):
+            if isinstance(err, asyncio.TimeoutError | TimeoutError):
                 raise UpdateFailed("API Timeout") from err
             # If the error is already an UpdateFailed with the right message,
             # re-raise it

@@ -41,14 +41,6 @@ if sys.platform == "win32":
     except ImportError:
         pass
 
-# globally redirect DefaultResolver to ThreadedResolver to bypass aiodns restriction on Windows Proactor loop
-try:
-    import aiohttp.resolver
-
-    aiohttp.resolver.DefaultResolver = aiohttp.resolver.ThreadedResolver
-except ImportError:
-    pass
-
 
 def pytest_configure(config):
     """Enable socket globally to avoid SocketBlockedError on Windows."""
