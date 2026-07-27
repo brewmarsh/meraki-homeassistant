@@ -12,12 +12,8 @@ from homeassistant.components.update import (
     UpdateEntityFeature,
 )
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
-from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from .const.integration import DOMAIN
-from .const.platform import PLATFORM_UPDATE
 from .coordinators.main import MerakiMainCoordinator
 from .core.models.device import MerakiDevice
 from .entity import MerakiEntity
@@ -127,32 +123,6 @@ class MerakiUpdateEntity(MerakiEntity[MerakiMainCoordinator], UpdateEntity):
             ) from err
 
 
-async def async_setup_entry(
-    hass: HomeAssistant,
-    config_entry: ConfigEntry,
-    async_add_entities: AddEntitiesCallback,
-) -> bool:
-    """Set up Meraki update entities from a config entry."""
-    if config_entry.entry_id not in hass.data[DOMAIN]:
-        return False
-    entry_data = hass.data[DOMAIN][config_entry.entry_id]
-
-    from .discovery.service import DeviceDiscoveryService
-
-    discovery_service: DeviceDiscoveryService = entry_data["discovery_service"]
-
-    update_entities = []
-    for entity in discovery_service.all_entities:
-        if not isinstance(entity, UpdateEntity):
-            continue
-        update_entities.append(entity)
-
-    if update_entities:
-        async_add_entities(update_entities)
-
-    return True
-
-
-async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
-    """Unload a config entry."""
-    return await hass.config_entries.async_unload_platforms(entry, [PLATFORM_UPDATE])
+async def async_setup_entry(hass, entry, async_add_entities):
+    """Set up the update platform."""
+    pass

@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import logging
-from typing import Any
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
@@ -11,7 +10,7 @@ from homeassistant.exceptions import ConfigEntryAuthFailed
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers.typing import ConfigType
 
-from .const.config import CONF_MERAKI_API_KEY, CONF_MERAKI_ORG_ID
+from .const.config import CONF_MERAKI_ORG_ID
 from .const.integration import DOMAIN
 from .const.platform import PLATFORMS
 from .coordinators import MerakiMainCoordinator
@@ -25,11 +24,9 @@ from .helpers.migrations import async_migrate_entry as async_migrate_entry
 from .services import async_setup_services
 from .services.camera_service import CameraService
 from .services.device_control_service import DeviceControlService
-from .services.ipsk_manager import IPSKManager
 from .services.network_control_service import NetworkControlService
 from .services.switch_port_service import SwitchPortService
 from .setup_helpers import async_setup_frontend, async_setup_webhook_lifecycle
-from .webhook import async_register_webhook as async_register_webhook
 from .webhook import async_unregister_webhook
 
 _LOGGER = logging.getLogger(__name__)
@@ -50,9 +47,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     # Perform migrations
     await async_migrate_entities(hass, entry.entry_id)
 
-    entry.data[CONF_MERAKI_API_KEY]
-    org_id = entry.data[CONF_MERAKI_ORG_ID]
-
     # 1. Initialize API Client
     try:
         api_client = create_meraki_client(hass, entry)
@@ -66,22 +60,17 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     # 2. Initialize Discovery & Main Coordinator
     # We fetch static data once at startup to use across all coordinators
-    static_data: dict[str, Any] = {}
+    static_data = {}
     main_coordinator = MerakiMainCoordinator(hass, entry, api_client, static_data)
 
     # 3. Initialize Repositories and Services
-    camera_repo = CameraRepository(api_client, org_id)
-    camera_service = CameraService(camera_repo)
+    repository = MerakiRepository(api_client)
+    camera_repository = CameraRepository(api_client, entry.data[CONF_MERAKI_ORG_ID])
 
-    meraki_repo = MerakiRepository(api_client)
-    device_control_service = DeviceControlService(meraki_repo)
+    camera_service = CameraService(camera_repository)
+    control_service = DeviceControlService(repository)
     network_control_service = NetworkControlService(api_client, main_coordinator)
-    switch_port_service = SwitchPortService(meraki_repo)
-
-    # IPSK Manager
-    ipsk_manager = IPSKManager(hass)
-    await ipsk_manager.async_setup()
-    hass.data[DOMAIN]["ipsk_manager"] = ipsk_manager
+    switch_port_service = SwitchPortService(repository)
 
     # 4. Setup Discovery Service
     discovery_service = DeviceDiscoveryService(
@@ -89,7 +78,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         entry,
         api_client,
         camera_service,
-        device_control_service,
+        control_service,
         network_control_service,
     )
 
@@ -98,26 +87,32 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     # Store for platforms and cleanup
     hass.data[DOMAIN][entry.entry_id] = {
         "api_client": api_client,
-        "meraki_client": api_client,
         "main_coordinator": main_coordinator,
-        "discovery_service": discovery_service,
-        "ipsk_manager": ipsk_manager,
-        "switch_port_service": switch_port_service,
+        "device_coordinator": main_coordinator,
         "switch_coordinator": main_coordinator,
         "camera_coordinator": main_coordinator,
+        "sensor_coordinator": main_coordinator,
+        "wireless_coordinator": main_coordinator,
+        "appliance_coordinator": main_coordinator,
+        "client_coordinator": main_coordinator,
+        "meraki_client": api_client,
+        "discovery_service": discovery_service,
+        "switch_port_service": switch_port_service,
         "camera_service": camera_service,
+        "control_service": control_service,
+        "network_control_service": network_control_service,
     }
 
-    # 6. Handle Webhook Lifecycle (Registration/Unregistration)
+    # 5. Handle Webhook Lifecycle (Registration/Unregistration)
     await async_setup_webhook_lifecycle(hass, entry, api_client, main_coordinator)
 
-    # 7. Initialize Static Paths and Frontend
+    # 6. Initialize Static Paths and Frontend
     await async_setup_frontend(hass)
 
-    # 8. Perform initial discovery and platform setup
+    # 7. Perform initial discovery and platform setup
     # We do this after storing data so platforms can access it immediately
     await main_coordinator.async_config_entry_first_refresh()
-    await discovery_service.async_setup_platforms()
+    await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
     return True
 
@@ -131,10 +126,6 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     if unload_ok:
         data = hass.data[DOMAIN].pop(entry.entry_id)
 
-        # Unload IPSK manager to stop background reaping task
-        if "ipsk_manager" in data:
-            data["ipsk_manager"].async_unload()
-
         # Unregister webhook if configured
         if "webhook_id" in data:
             await async_unregister_webhook(hass, data["webhook_id"], data["api_client"])
@@ -146,8 +137,3 @@ async def async_reload_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
     """Reload config entry."""
     await async_unload_entry(hass, entry)
     await async_setup_entry(hass, entry)
-
-
-async def update_listener(hass: HomeAssistant, entry: ConfigEntry) -> None:
-    """Handle options update."""
-    await hass.config_entries.async_reload(entry.entry_id)

@@ -65,18 +65,14 @@ class DeviceDiscoveryService:
         self._control_service = control_service
         self._network_control_service = network_control_service
 
-        self.all_entities: list[Entity] = []
-
-    @property
-    def devices(self) -> list[MerakiDevice]:
-        """Return list of devices from the coordinator data."""
-        if not self._device_coordinator or not self._device_coordinator.data:
-            return []
-        devices_data = self._device_coordinator.data.get("devices", [])
-        return [
+        # Avoid AttributeError if coordinator data is not yet loaded
+        coord_data = self._device_coordinator.data or {}
+        devices_data = coord_data.get("devices", [])
+        self._devices: list[MerakiDevice] = [
             d if isinstance(d, MerakiDevice) else MerakiDevice.from_dict(d)
             for d in devices_data
         ]
+        self.all_entities: list[Entity] = []
 
     async def discover_entities(self) -> list[Entity]:
         """
@@ -153,9 +149,9 @@ class DeviceDiscoveryService:
 
     async def _discover_device_entities(self):
         """Discover entities for all devices."""
-        _LOGGER.debug("Starting entity discovery for %d devices", len(self.devices))
+        _LOGGER.debug("Starting entity discovery for %d devices", len(self._devices))
 
-        for device in self.devices:
+        for device in self._devices:
             try:
                 if not device.model:
                     _LOGGER.warning("Device %s has no model, skipping", device.serial)
@@ -183,36 +179,6 @@ class DeviceDiscoveryService:
                     err,
                     exc_info=True,
                 )
-
-    async def async_setup_platforms(self) -> None:
-        """Perform initial discovery and set up platforms."""
-        from ..const.platform import PLATFORMS
-
-        _LOGGER.debug("Setting up platforms for Meraki integration")
-
-        # Discover all entities
-        entities = await self.discover_entities()
-
-        # Group entities by platform
-        entities_by_platform: dict[str, list[Entity]] = {}
-        for entity in entities:
-            # Most entities should have a platform attribute or we can derive it
-            platform = getattr(entity, "platform", None)
-            if not platform:
-                # Fallback: check class name or other attributes if necessary
-                # For now we assume handlers set this or we can't easily group
-                continue
-
-            if platform not in entities_by_platform:
-                entities_by_platform[platform] = []
-            entities_by_platform[platform].append(entity)
-
-        # We also need to forward the setup to all platforms
-        # Even if no entities were discovered yet, as some platforms
-        # might handle their own discovery or dynamic entity addition.
-        await self._main_coordinator.hass.config_entries.async_forward_entry_setups(
-            self._config_entry, PLATFORMS
-        )
 
     def _get_coordinator_for_device(self, device: MerakiDevice):
         """Select coordinator based on product type."""

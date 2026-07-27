@@ -1,0 +1,3 @@
+## 2025-05-19 - [Performance Optimization: Sum Generator instead of List Comprehension Length]
+**Learning:** For simple counting loops over large arrays or data structures (like fetching and filtering large lists of Meraki clients), using `len([item for item in items if condition])` causes Python to allocate memory to build an intermediate list. This increases peak memory usage and takes slightly longer than simply counting via a generator.
+**Action:** Use a generator expression with `sum()` instead, e.g., `sum(1 for item in items if condition)`. This prevents intermediate list allocation, saving memory and improving execution time.
