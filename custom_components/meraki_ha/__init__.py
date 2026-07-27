@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+from typing import Any
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
@@ -60,7 +61,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     # 2. Initialize Discovery & Main Coordinator
     # We fetch static data once at startup to use across all coordinators
-    static_data = {}
+    static_data: dict[str, Any] = {}
     main_coordinator = MerakiMainCoordinator(hass, entry, api_client, static_data)
 
     # 3. Initialize Repositories and Services
@@ -88,19 +89,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     hass.data[DOMAIN][entry.entry_id] = {
         "api_client": api_client,
         "main_coordinator": main_coordinator,
-        "device_coordinator": main_coordinator,
-        "switch_coordinator": main_coordinator,
-        "camera_coordinator": main_coordinator,
-        "sensor_coordinator": main_coordinator,
-        "wireless_coordinator": main_coordinator,
-        "appliance_coordinator": main_coordinator,
-        "client_coordinator": main_coordinator,
-        "meraki_client": api_client,
         "discovery_service": discovery_service,
         "switch_port_service": switch_port_service,
-        "camera_service": camera_service,
-        "control_service": control_service,
-        "network_control_service": network_control_service,
     }
 
     # 5. Handle Webhook Lifecycle (Registration/Unregistration)
@@ -112,6 +102,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     # 7. Perform initial discovery and platform setup
     # We do this after storing data so platforms can access it immediately
     await main_coordinator.async_config_entry_first_refresh()
+    await discovery_service.discover_entities()
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
     return True
