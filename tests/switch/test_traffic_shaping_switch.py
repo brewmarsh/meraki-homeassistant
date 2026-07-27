@@ -69,6 +69,7 @@ def test_traffic_shaping_switch_creation(
     """Test that the traffic shaping switches are created correctly."""
     hass = MagicMock()
     entities: list = []
+
     def mock_add_entities(new_entities, update_before_add=False):
         entities.extend(new_entities)
 
@@ -102,6 +103,7 @@ def test_traffic_shaping_switch_creation_disabled(
     mock_config_entry.options = {CONF_ENABLE_TRAFFIC_SHAPING: False}
     hass = MagicMock()
     entities: list = []
+
     def mock_add_entities(new_entities, update_before_add=False):
         entities.extend(new_entities)
 

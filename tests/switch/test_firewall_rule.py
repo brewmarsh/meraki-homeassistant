@@ -61,6 +61,7 @@ def test_firewall_rule_switch_creation(
     """Test that the firewall rule switches are created correctly."""
     hass = MagicMock()
     entities: list = []
+
     def mock_add_entities(new_entities, update_before_add=False):
         entities.extend(new_entities)
 
@@ -96,6 +97,7 @@ def test_firewall_rule_switch_creation_disabled(
     mock_config_entry.options = {CONF_ENABLE_FIREWALL_RULES: False}
     hass = MagicMock()
     entities: list = []
+
     def mock_add_entities(new_entities, update_before_add=False):
         entities.extend(new_entities)
 
