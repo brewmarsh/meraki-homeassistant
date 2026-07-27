@@ -1,4 +1,4 @@
-## 2024-05-18 - List Comprehensions vs Generator Expressions in length checks
+## 2025-05-14 - Prevent List Allocation For Counting
 
-**Learning:** `len([x for x in data if condition])` builds an entire intermediate list in memory just to count elements.
-**Action:** Replace with `sum(1 for x in data if condition)` to save memory and CPU cycles when only the count is needed. This codebase has instances of this in `custom_components/meraki_ha/services/network_control_service.py`.
+**Learning:** Found instances where `len([x for x in list if condition])` was used. This creates a full list in memory just to get the length.
+**Action:** Use a generator expression instead with `sum(1 for x in list if condition)` to save memory and avoid an intermediate list allocation. This improves performance inside `network_control_service.py` where client dictionaries are counted.
