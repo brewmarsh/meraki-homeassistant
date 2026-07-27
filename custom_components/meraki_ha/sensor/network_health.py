@@ -46,12 +46,14 @@ class MerakiNetworkHealthSensor(MerakiNetworkEntity, SensorEntity):
             self._attr_icon = "mdi:server-network"
 
         self._family_devices_cache: list[Any] = []
+        self._offline_devices_cache: list[Any] = []
         self._compute_device_cache()
 
     def _compute_device_cache(self) -> None:
         """Compute the device cache to avoid O(M) scans on every property access."""
         if not self.coordinator.data:
             self._family_devices_cache = []
+            self._offline_devices_cache = []
             return
 
         data = self.coordinator.data
@@ -77,6 +79,15 @@ class MerakiNetworkHealthSensor(MerakiNetworkEntity, SensorEntity):
             )
         ]
 
+        # Bolt Performance: Pre-calculate offline devices in cache pass
+        # to prevent duplicate O(N) loops in native_value and extra_state_attributes
+        self._offline_devices_cache = [
+            d
+            for d in self._family_devices_cache
+            if str(getattr(d, "status", "offline")).lower()
+            not in ("online", "alerting", "dormant")
+        ]
+
     @callback
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
@@ -95,12 +106,7 @@ class MerakiNetworkHealthSensor(MerakiNetworkEntity, SensorEntity):
         if not devices:
             return "N/A"
 
-        offline_count = sum(
-            1
-            for d in devices
-            if str(getattr(d, "status", "offline")).lower()
-            not in ("online", "alerting", "dormant")
-        )
+        offline_count = len(self._offline_devices_cache)
 
         if offline_count == 0:
             return "Online"
@@ -114,18 +120,16 @@ class MerakiNetworkHealthSensor(MerakiNetworkEntity, SensorEntity):
         base_attributes = super().extra_state_attributes
         devices = self._family_devices
 
-        offline_devices = [
+        offline_devices_names = [
             getattr(d, "name", getattr(d, "serial", "unknown"))
-            for d in devices
-            if str(getattr(d, "status", "offline")).lower()
-            not in ("online", "alerting", "dormant")
+            for d in self._offline_devices_cache
         ]
 
         base_attributes.update(
             {
                 "total_devices": len(devices),
-                "online_devices": len(devices) - len(offline_devices),
-                "offline_devices": offline_devices,
+                "online_devices": len(devices) - len(self._offline_devices_cache),
+                "offline_devices": offline_devices_names,
                 "hardware_family": self._family_name,
             }
         )
