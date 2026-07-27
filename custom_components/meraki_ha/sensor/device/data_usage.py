@@ -86,8 +86,14 @@ class MerakiDataUsageSensor(MerakiSensor):
         self._attr_state_class = SensorStateClass.MEASUREMENT
         self._attr_native_unit_of_measurement = UnitOfInformation.MEGABYTES
 
-        total_sent_kb = sum(item.get("sent", 0) for item in traffic_data)
-        total_recv_kb = sum(item.get("recv", 0) for item in traffic_data)
+        # Bolt Performance: Calculate both sent and recv in a single O(N) pass
+        # instead of two O(N) generator iterations.
+        total_sent_kb = 0
+        total_recv_kb = 0
+        for item in traffic_data:
+            total_sent_kb += item.get("sent", 0)
+            total_recv_kb += item.get("recv", 0)
+
         total_kb = total_sent_kb + total_recv_kb
 
         self._attr_native_value = round(total_kb / 1024, 2)  # Convert to MB
