@@ -60,13 +60,16 @@ def test_firewall_rule_switch_creation(
 ) -> None:
     """Test that the firewall rule switches are created correctly."""
     hass = MagicMock()
-    entities = []
+    entities: list = []
+    def mock_add_entities(new_entities, update_before_add=False):
+        entities.extend(new_entities)
+
     async_setup_switches(
         hass,
         mock_config_entry_with_firewall_rules,
         mock_coordinator_with_firewall_data,
         mock_meraki_client,
-        entities.extend,
+        mock_add_entities,
     )
 
     assert len(entities) == 2
@@ -92,12 +95,15 @@ def test_firewall_rule_switch_creation_disabled(
     """Firewall rule switches are not created when the feature is disabled."""
     mock_config_entry.options = {CONF_ENABLE_FIREWALL_RULES: False}
     hass = MagicMock()
-    entities = []
+    entities: list = []
+    def mock_add_entities(new_entities, update_before_add=False):
+        entities.extend(new_entities)
+
     async_setup_switches(
         hass,
         mock_config_entry,
         mock_coordinator_with_firewall_data,
         mock_meraki_client,
-        entities.extend,
+        mock_add_entities,
     )
     assert len(entities) == 0

@@ -1,3 +1,4 @@
-## 2025-05-19 - [Performance Optimization: Sum Generator instead of List Comprehension Length]
-**Learning:** For simple counting loops over large arrays or data structures (like fetching and filtering large lists of Meraki clients), using `len([item for item in items if condition])` causes Python to allocate memory to build an intermediate list. This increases peak memory usage and takes slightly longer than simply counting via a generator.
-**Action:** Use a generator expression with `sum()` instead, e.g., `sum(1 for item in items if condition)`. This prevents intermediate list allocation, saving memory and improving execution time.
+## 2024-05-18 - List Comprehensions vs Generator Expressions in length checks
+
+**Learning:** `len([x for x in data if condition])` builds an entire intermediate list in memory just to count elements.
+**Action:** Replace with `sum(1 for x in data if condition)` to save memory and CPU cycles when only the count is needed. This codebase has instances of this in `custom_components/meraki_ha/services/network_control_service.py`.
