@@ -119,7 +119,8 @@ class MerakiNetworkHealthSensor(MerakiNetworkEntity, SensorEntity):
         base_attributes.update(
             {
                 "total_devices": len(self._family_devices_cache),
-                "online_devices": len(self._family_devices_cache) - len(self._offline_devices_cache),
+                "online_devices": len(self._family_devices_cache)
+                - len(self._offline_devices_cache),
                 "offline_devices": self._offline_devices_cache,
                 "hardware_family": self._family_name,
             }
