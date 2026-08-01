@@ -46,12 +46,14 @@ class MerakiNetworkHealthSensor(MerakiNetworkEntity, SensorEntity):
             self._attr_icon = "mdi:server-network"
 
         self._family_devices_cache: list[Any] = []
+        self._offline_devices_cache: list[str] = []
         self._compute_device_cache()
 
     def _compute_device_cache(self) -> None:
         """Compute the device cache to avoid O(M) scans on every property access."""
         if not self.coordinator.data:
             self._family_devices_cache = []
+            self._offline_devices_cache = []
             return
 
         data = self.coordinator.data
@@ -77,6 +79,13 @@ class MerakiNetworkHealthSensor(MerakiNetworkEntity, SensorEntity):
             )
         ]
 
+        self._offline_devices_cache = [
+            getattr(d, "name", getattr(d, "serial", "unknown"))
+            for d in self._family_devices_cache
+            if str(getattr(d, "status", "offline")).lower()
+            not in ("online", "alerting", "dormant")
+        ]
+
     @callback
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
@@ -91,20 +100,14 @@ class MerakiNetworkHealthSensor(MerakiNetworkEntity, SensorEntity):
     @property
     def native_value(self) -> str:
         """Calculate the aggregated state of the device family."""
-        devices = self._family_devices
-        if not devices:
+        if not self._family_devices_cache:
             return "N/A"
 
-        offline_count = sum(
-            1
-            for d in devices
-            if str(getattr(d, "status", "offline")).lower()
-            not in ("online", "alerting", "dormant")
-        )
+        offline_count = len(self._offline_devices_cache)
 
         if offline_count == 0:
             return "Online"
-        if offline_count < len(devices):
+        if offline_count < len(self._family_devices_cache):
             return "Degraded"
         return "Offline"
 
@@ -112,20 +115,13 @@ class MerakiNetworkHealthSensor(MerakiNetworkEntity, SensorEntity):
     def extra_state_attributes(self) -> dict[str, Any]:
         """Provide detailed fractional attributes for Lovelace cards."""
         base_attributes = super().extra_state_attributes
-        devices = self._family_devices
-
-        offline_devices = [
-            getattr(d, "name", getattr(d, "serial", "unknown"))
-            for d in devices
-            if str(getattr(d, "status", "offline")).lower()
-            not in ("online", "alerting", "dormant")
-        ]
 
         base_attributes.update(
             {
-                "total_devices": len(devices),
-                "online_devices": len(devices) - len(offline_devices),
-                "offline_devices": offline_devices,
+                "total_devices": len(self._family_devices_cache),
+                "online_devices": len(self._family_devices_cache)
+                - len(self._offline_devices_cache),
+                "offline_devices": self._offline_devices_cache,
                 "hardware_family": self._family_name,
             }
         )
