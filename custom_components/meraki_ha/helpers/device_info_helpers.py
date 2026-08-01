@@ -96,14 +96,16 @@ def _resolve_physical_device_info(
         # Optimization: Use the centralized format_device_name.
         name = format_device_name(data, config_entry.options)
 
-        return DeviceInfo(
+        device_info = DeviceInfo(
             identifiers={(DOMAIN, device_serial)},
             name=name,
             manufacturer="Cisco Meraki",
             model=model,
             sw_version=str(data.get("firmware") or ""),
-            via_device=(DOMAIN, f"network_{network_id}") if network_id else None,
         )
+        if network_id:
+            device_info["via_device"] = (DOMAIN, f"network_{network_id}")
+        return device_info
     return None
 
 
@@ -141,16 +143,18 @@ def resolve_device_info(
         effective_data = asdict(effective_data)
 
     # Resolve using specialized helpers
-    if is_ssid:
+    if is_ssid and isinstance(effective_data, dict):
         return _resolve_ssid_info(effective_data)
 
-    if info := _resolve_client_info(entity_data):
+    if isinstance(entity_data, dict) and (info := _resolve_client_info(entity_data)):
         return info
 
-    if info := _resolve_network_info(entity_data):
+    if isinstance(entity_data, dict) and (info := _resolve_network_info(entity_data)):
         return info
 
-    if info := _resolve_physical_device_info(entity_data, config_entry):
+    if isinstance(entity_data, dict) and (
+        info := _resolve_physical_device_info(entity_data, config_entry)
+    ):
         return info
 
     # This may happen temporarily during startup or if a device type is unknown
