@@ -46,12 +46,16 @@ class MerakiNetworkHealthSensor(MerakiNetworkEntity, SensorEntity):
             self._attr_icon = "mdi:server-network"
 
         self._family_devices_cache: list[Any] = []
+        self._offline_count_cache = 0
+        self._offline_devices_cache: list[str] = []
         self._compute_device_cache()
 
     def _compute_device_cache(self) -> None:
         """Compute the device cache to avoid O(M) scans on every property access."""
         if not self.coordinator.data:
             self._family_devices_cache = []
+            self._offline_count_cache = 0
+            self._offline_devices_cache = []
             return
 
         data = self.coordinator.data
@@ -64,18 +68,32 @@ class MerakiNetworkHealthSensor(MerakiNetworkEntity, SensorEntity):
         elif isinstance(data, list):
             devices = data
 
-        self._family_devices_cache = [
-            d
-            for d in devices
-            if getattr(d, "network_id", None) == self._network_id
-            and (
+        family_devices = []
+        offline_devices = []
+        offline_count = 0
+
+        for d in devices:
+            if getattr(d, "network_id", None) == self._network_id and (
                 (getattr(d, "model", "") or "").startswith(self._family_prefix)
                 or (
                     self._family_prefix == "MS"
                     and (getattr(d, "model", "") or "").startswith("GS")
                 )
-            )
-        ]
+            ):
+                family_devices.append(d)
+                if str(getattr(d, "status", "offline")).lower() not in (
+                    "online",
+                    "alerting",
+                    "dormant",
+                ):
+                    offline_count += 1
+                    offline_devices.append(
+                        getattr(d, "name", getattr(d, "serial", "unknown"))
+                    )
+
+        self._family_devices_cache = family_devices
+        self._offline_count_cache = offline_count
+        self._offline_devices_cache = offline_devices
 
     @callback
     def _handle_coordinator_update(self) -> None:
@@ -95,12 +113,7 @@ class MerakiNetworkHealthSensor(MerakiNetworkEntity, SensorEntity):
         if not devices:
             return "N/A"
 
-        offline_count = sum(
-            1
-            for d in devices
-            if str(getattr(d, "status", "offline")).lower()
-            not in ("online", "alerting", "dormant")
-        )
+        offline_count = self._offline_count_cache
 
         if offline_count == 0:
             return "Online"
@@ -113,13 +126,7 @@ class MerakiNetworkHealthSensor(MerakiNetworkEntity, SensorEntity):
         """Provide detailed fractional attributes for Lovelace cards."""
         base_attributes = super().extra_state_attributes
         devices = self._family_devices
-
-        offline_devices = [
-            getattr(d, "name", getattr(d, "serial", "unknown"))
-            for d in devices
-            if str(getattr(d, "status", "offline")).lower()
-            not in ("online", "alerting", "dormant")
-        ]
+        offline_devices = self._offline_devices_cache
 
         base_attributes.update(
             {
