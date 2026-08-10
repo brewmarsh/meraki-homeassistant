@@ -46,12 +46,16 @@ class MerakiNetworkHealthSensor(MerakiNetworkEntity, SensorEntity):
             self._attr_icon = "mdi:server-network"
 
         self._family_devices_cache: list[Any] = []
+        self._offline_count_cache: int = 0
+        self._offline_devices_cache: list[str] = []
         self._compute_device_cache()
 
     def _compute_device_cache(self) -> None:
         """Compute the device cache to avoid O(M) scans on every property access."""
         if not self.coordinator.data:
             self._family_devices_cache = []
+            self._offline_count_cache = 0
+            self._offline_devices_cache = []
             return
 
         data = self.coordinator.data
@@ -64,7 +68,7 @@ class MerakiNetworkHealthSensor(MerakiNetworkEntity, SensorEntity):
         elif isinstance(data, list):
             devices = data
 
-        self._family_devices_cache = [
+        family_devices = [
             d
             for d in devices
             if getattr(d, "network_id", None) == self._network_id
@@ -76,6 +80,20 @@ class MerakiNetworkHealthSensor(MerakiNetworkEntity, SensorEntity):
                 )
             )
         ]
+        self._family_devices_cache = family_devices
+
+        offline_devices = []
+        for d in family_devices:
+            if str(getattr(d, "status", "offline")).lower() not in (
+                "online",
+                "alerting",
+                "dormant",
+            ):
+                offline_devices.append(
+                    getattr(d, "name", getattr(d, "serial", "unknown"))
+                )
+        self._offline_count_cache = len(offline_devices)
+        self._offline_devices_cache = offline_devices
 
     @callback
     def _handle_coordinator_update(self) -> None:
@@ -91,20 +109,13 @@ class MerakiNetworkHealthSensor(MerakiNetworkEntity, SensorEntity):
     @property
     def native_value(self) -> str:
         """Calculate the aggregated state of the device family."""
-        devices = self._family_devices
+        devices = self._family_devices_cache
         if not devices:
             return "N/A"
 
-        offline_count = sum(
-            1
-            for d in devices
-            if str(getattr(d, "status", "offline")).lower()
-            not in ("online", "alerting", "dormant")
-        )
-
-        if offline_count == 0:
+        if self._offline_count_cache == 0:
             return "Online"
-        if offline_count < len(devices):
+        if self._offline_count_cache < len(devices):
             return "Degraded"
         return "Offline"
 
@@ -112,20 +123,13 @@ class MerakiNetworkHealthSensor(MerakiNetworkEntity, SensorEntity):
     def extra_state_attributes(self) -> dict[str, Any]:
         """Provide detailed fractional attributes for Lovelace cards."""
         base_attributes = super().extra_state_attributes
-        devices = self._family_devices
-
-        offline_devices = [
-            getattr(d, "name", getattr(d, "serial", "unknown"))
-            for d in devices
-            if str(getattr(d, "status", "offline")).lower()
-            not in ("online", "alerting", "dormant")
-        ]
+        devices = self._family_devices_cache
 
         base_attributes.update(
             {
                 "total_devices": len(devices),
-                "online_devices": len(devices) - len(offline_devices),
-                "offline_devices": offline_devices,
+                "online_devices": len(devices) - self._offline_count_cache,
+                "offline_devices": self._offline_devices_cache,
                 "hardware_family": self._family_name,
             }
         )
