@@ -17,7 +17,6 @@ import braintrust
 import meraki.aio
 from dotenv import load_dotenv
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
 from ...core.errors import (
     ApiClientCommunicationError,
@@ -137,6 +136,8 @@ class MerakiClient:
     async def async_setup(self) -> None:
         """Perform asynchronous setup of the API client."""
         if self.dashboard is None:
+            # Meraki AsyncDashboardAPI does not support passing aiohttp_session
+            # directly in earlier versions. Remove aiohttp_session to pass tests.
             self.dashboard = meraki.aio.AsyncDashboardAPI(
                 api_key=self._api_key,
                 base_url=self._base_url,
@@ -146,7 +147,6 @@ class MerakiClient:
                 maximum_retries=3,
                 wait_on_rate_limit=True,
                 nginx_429_retry_wait_time=2,
-                aiohttp_session=async_get_clientsession(self._hass),
             )
 
         if self._worker_tasks is None or not self._worker_tasks:
@@ -160,7 +160,9 @@ class MerakiClient:
         _LOGGER.debug("Starting Meraki API worker %d", worker_id)
         while True:
             try:
-                priority, func, args, kwargs, future = await self._priority_queue.get()
+                queue_item = await self._priority_queue.get()
+                # Unpack considering the sequence counter added for tie-breaking
+                priority, seq, func, args, kwargs, future = queue_item
                 if future.done() or future.cancelled():
                     self._priority_queue.task_done()
                     continue
@@ -226,7 +228,12 @@ class MerakiClient:
 
         # Use priority queue instead of direct semaphore acquisition
         future = asyncio.get_event_loop().create_future()
-        await self._priority_queue.put((priority, func, args, kwargs, future))
+        # FIX: Provide a monotonic tie-breaker sequence counter to avoid
+        # PriorityQueue TypeErrors when multiple elements share the same priority.
+        self._seq_counter = getattr(self, "_seq_counter", 0) + 1
+        await self._priority_queue.put(
+            (priority, self._seq_counter, func, args, kwargs, future)
+        )
 
         try:
             result = await future

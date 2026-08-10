@@ -80,6 +80,10 @@ async def test_switch_port_generation_and_linkage(
     # This ensures that discovery service sees the switch and its ports.
     with (
         patch(
+            "custom_components.meraki_ha.core.api.client.MerakiClient.async_setup",
+            new_callable=AsyncMock,
+        ),
+        patch(
             "custom_components.meraki_ha.coordinators.MerakiDeviceCoordinator._async_update_data",
             new_callable=AsyncMock,
             return_value=mock_all_data,
