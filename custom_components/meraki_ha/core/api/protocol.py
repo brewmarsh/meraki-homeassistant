@@ -444,6 +444,35 @@ class MerakiApiClientProtocol(Protocol):
         ...
 
     @property
+    def has_dashboard(self) -> bool:
+        """Check if the dashboard is initialized."""
+        ...
+
+    async def get_organizations(self) -> list[dict[str, Any]]:
+        """Get all organizations accessible by the API key."""
+        ...
+
+    @property
+    def run_with_cache(self) -> Any:
+        """Get the caching function."""
+        ...
+
+    @property
+    def enabled_networks(self) -> list[str]:
+        """Get the list of enabled network IDs."""
+        ...
+
+    @property
+    def _api_key(self) -> str:
+        """Get the API key."""
+        ...
+
+    @property
+    def _org_id(self) -> str | None:
+        """Get the Organization ID directly."""
+        ...
+
+    @property
     def organization_id(self) -> str | None:
         """Get the organization ID."""
         ...
