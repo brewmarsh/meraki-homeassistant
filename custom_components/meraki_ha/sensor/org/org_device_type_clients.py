@@ -49,8 +49,10 @@ class MerakiOrganizationDeviceTypeClientsSensor(MerakiSensor):
             if isinstance(org_data, dict):
                 org_name = org_data.get("name", "Organization")
 
+        # Fallback if _org_id is None, though it should be a str
+        org_id = self._org_id or "unknown_org"
         return DeviceInfo(
-            identifiers={(DOMAIN, self._org_id)},
+            identifiers={(DOMAIN, org_id)},
             name=standardize_device_name(org_name),
             manufacturer="Cisco Meraki",
         )
