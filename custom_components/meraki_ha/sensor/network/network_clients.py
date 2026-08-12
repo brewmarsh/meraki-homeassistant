@@ -36,17 +36,29 @@ class MerakiNetworkClientsSensor(MerakiNetworkEntity, SensorEntity):
         self._network_control_service = network_control_service
         self._attr_unique_id = f"meraki_network_clients_{self._network_id}"
         self._attr_name = f"{network_data.name} Clients"
+        self._attr_native_value = 0
+        self._update_state()
+
+    def _update_state(self) -> None:
+        """Update the state based on coordinator data."""
+        if not self._network_id:
+            self._attr_native_value = 0
+            return
+        self._attr_native_value = (
+            self._network_control_service.get_network_client_count(
+                str(self._network_id)
+            )
+        )
 
     @callback
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
+        self._update_state()
         self.async_write_ha_state()
 
     @property
     def native_value(self) -> int:
         """Return the state of the sensor."""
-        if not self._network_id:
-            return 0
-        return self._network_control_service.get_network_client_count(
-            str(self._network_id)
-        )
+        if isinstance(self._attr_native_value, (int, str, float)):
+            return int(self._attr_native_value)
+        return 0
