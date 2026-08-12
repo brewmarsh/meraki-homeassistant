@@ -1,3 +1,6 @@
 ## 2024-05-18 - Single-Pass Iteration for Multiple Counts
 **Learning:** Performing multiple `sum(1 for ...)` operations on the same list to extract different counts (like "critical" and "warning" alerts) creates a hidden O(k*N) inefficiency.
 **Action:** Refactor multiple generator counts into a single `for` loop to perform an O(N) pass, reducing loop overhead and redundant dictionary lookups.
+## 2026-08-12 - O(N) Evaluation in Home Assistant Properties
+**Learning:** Home Assistant frequently accesses properties like `native_value` on the main event loop for state machine evaluations and rendering. Implementing computationally expensive calculations (like iterating through a list of clients in O(N) time) directly within these getters can silently bottleneck the entire Home Assistant system, especially for components handling large datasets.
+**Action:** Always memoize calculated states in `self._attr_native_value` (and similar standard attributes) by moving the O(N) computations into the initialization (`__init__`) and periodic update handlers (e.g., `_handle_coordinator_update` or `_update_state`). This shifts the workload to only run when new data actually arrives, preserving fast O(1) property reads.

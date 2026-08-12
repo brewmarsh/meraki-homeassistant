@@ -37,6 +37,8 @@ class MerakiOrganizationDeviceTypeClientsSensor(MerakiSensor):
         self._org_id = self.coordinator.api.organization_id
         self._attr_unique_id = f"{self._org_id}_{self._device_type}_clients"
         self._attr_name = f"{self._device_type.capitalize()} Clients"
+        self._attr_native_value = 0
+        self._update_state()
 
     @property
     def device_info(self) -> DeviceInfo:
@@ -53,20 +55,16 @@ class MerakiOrganizationDeviceTypeClientsSensor(MerakiSensor):
             manufacturer="Cisco Meraki",
         )
 
-    @callback
-    def _handle_coordinator_update(self) -> None:
-        """Handle updated data from the coordinator."""
-        self.async_write_ha_state()
-
-    @property
-    def native_value(self) -> int:
-        """Return the state of the sensor."""
+    def _update_state(self) -> None:
+        """Update the state based on coordinator data."""
         if not self.coordinator.data:
-            return 0
+            self._attr_native_value = 0
+            return
 
         clients = self.coordinator.data.get("clients")
         if not isinstance(clients, list):
-            return 0
+            self._attr_native_value = 0
+            return
 
         count = 0
         for client in clients:
@@ -74,4 +72,15 @@ class MerakiOrganizationDeviceTypeClientsSensor(MerakiSensor):
                 continue
             if client.get("deviceType") == self._device_type:
                 count += 1
-        return count
+        self._attr_native_value = count
+
+    @callback
+    def _handle_coordinator_update(self) -> None:
+        """Handle updated data from the coordinator."""
+        self._update_state()
+        self.async_write_ha_state()
+
+    @property
+    def native_value(self) -> int:
+        """Return the state of the sensor."""
+        return self._attr_native_value
