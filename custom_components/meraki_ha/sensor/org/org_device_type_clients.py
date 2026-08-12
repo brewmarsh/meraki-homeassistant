@@ -50,7 +50,7 @@ class MerakiOrganizationDeviceTypeClientsSensor(MerakiSensor):
                 org_name = org_data.get("name", "Organization")
 
         return DeviceInfo(
-            identifiers={(DOMAIN, self._org_id)},
+            identifiers={(DOMAIN, str(self._org_id))},
             name=standardize_device_name(org_name),
             manufacturer="Cisco Meraki",
         )
@@ -83,4 +83,6 @@ class MerakiOrganizationDeviceTypeClientsSensor(MerakiSensor):
     @property
     def native_value(self) -> int:
         """Return the state of the sensor."""
-        return self._attr_native_value
+        if isinstance(self._attr_native_value, (int, str, float)):
+            return int(self._attr_native_value)
+        return 0

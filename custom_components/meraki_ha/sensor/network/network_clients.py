@@ -59,4 +59,6 @@ class MerakiNetworkClientsSensor(MerakiNetworkEntity, SensorEntity):
     @property
     def native_value(self) -> int:
         """Return the state of the sensor."""
-        return self._attr_native_value
+        if isinstance(self._attr_native_value, (int, str, float)):
+            return int(self._attr_native_value)
+        return 0
