@@ -1,0 +1,48 @@
+<<<<<<< SEARCH
+    if is_dataclass(entity_data) and not isinstance(entity_data, type):
+        entity_data = asdict(entity_data)
+    if is_dataclass(effective_data) and not isinstance(effective_data, type):
+        effective_data = asdict(effective_data)
+
+    # Resolve using specialized helpers
+    if is_ssid:
+        return _resolve_ssid_info(effective_data)
+
+    if info := _resolve_client_info(entity_data):
+        return info
+
+    if info := _resolve_network_info(entity_data):
+        return info
+
+    if info := _resolve_physical_device_info(entity_data, config_entry):
+        return info
+=======
+    if is_dataclass(entity_data) and not isinstance(entity_data, type):
+        entity_data = asdict(entity_data)
+    elif hasattr(entity_data, "to_dict"):
+        entity_data = entity_data.to_dict()
+
+    if is_dataclass(effective_data) and not isinstance(effective_data, type):
+        effective_data = asdict(effective_data)
+    elif hasattr(effective_data, "to_dict"):
+        effective_data = effective_data.to_dict()
+
+    # If entity_data isn't a dict by this point (e.g. object without to_dict), fallback
+    if not isinstance(entity_data, dict):
+        entity_data = vars(entity_data) if hasattr(entity_data, "__dict__") else {}
+    if not isinstance(effective_data, dict):
+        effective_data = vars(effective_data) if hasattr(effective_data, "__dict__") else {}
+
+    # Resolve using specialized helpers
+    if is_ssid:
+        return _resolve_ssid_info(effective_data)  # type: ignore[arg-type]
+
+    if info := _resolve_client_info(entity_data):  # type: ignore[arg-type]
+        return info
+
+    if info := _resolve_network_info(entity_data):  # type: ignore[arg-type]
+        return info
+
+    if info := _resolve_physical_device_info(entity_data, config_entry):  # type: ignore[arg-type]
+        return info
+>>>>>>> REPLACE
