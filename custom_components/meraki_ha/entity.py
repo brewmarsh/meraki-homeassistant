@@ -174,3 +174,8 @@ class MerakiSwitch(MerakiEntity[T], SwitchEntity, Generic[T]):
 
 class MerakiDeviceTracker(MerakiEntity[T], ScannerEntity, Generic[T]):
     """Base Cisco Meraki device tracker entity."""
+
+    @property
+    def device_info(self) -> None:
+        """Device tracker entities should not create device registry entries."""
+        return None
