@@ -32,6 +32,8 @@ class MerakiPoeUsageSensor(MerakiSensor):
     _attr_native_unit_of_measurement = UnitOfPower.WATT
     _attr_icon = "mdi:power-plug"
 
+    _attr_native_value: float | None
+
     def __init__(
         self,
         coordinator: MerakiMainCoordinator,
