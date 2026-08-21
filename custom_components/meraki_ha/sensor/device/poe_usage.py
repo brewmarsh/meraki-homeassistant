@@ -71,7 +71,8 @@ class MerakiPoeUsageSensor(MerakiSensor):
                 usage = port.get("powerUsageInWh", 0) or 0
                 total_poe_usage_wh += usage
                 if "portId" in port:
-                    attributes[f"port_{port['portId']}_power_usage_wh"] = port.get("powerUsageInWh")
+                    attr_key = f"port_{port['portId']}_power_usage_wh"
+                    attributes[attr_key] = port.get("powerUsageInWh")
 
         # The API returns power usage in Wh over the last day.
         # We divide by 24 to get the average power in Watts.
