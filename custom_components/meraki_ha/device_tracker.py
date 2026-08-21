@@ -64,7 +64,7 @@ class MerakiClientTracker(MerakiDeviceTracker[MerakiMainCoordinator]):
 
         from .core.utils.naming_utils import standardize_device_name
 
-        self._attr_device_info = DeviceInfo(
+        device_info = DeviceInfo(
             identifiers={(DOMAIN, self._client_mac)},
             name=standardize_device_name(client_name),
             manufacturer=client_data.get("manufacturer", "Cisco Meraki"),
@@ -72,10 +72,12 @@ class MerakiClientTracker(MerakiDeviceTracker[MerakiMainCoordinator]):
         )
 
         if client_data.get("recentDeviceSerial"):
-            self._attr_device_info["via_device"] = (
+            device_info["via_device"] = (
                 DOMAIN,
                 str(client_data["recentDeviceSerial"]),
             )
+
+        self._client_device_info = device_info
 
         self._attr_name = client_name
         self._attr_unique_id = f"{self._client_mac}_device_tracker"
@@ -94,12 +96,14 @@ class MerakiClientTracker(MerakiDeviceTracker[MerakiMainCoordinator]):
     @property
     def ip_address(self) -> str | None:
         """Return the primary ip address of the device."""
-        return self.extra_state_attributes.get("ip_address")
+        attrs = self.extra_state_attributes or {}
+        return attrs.get("ip_address")
 
     @property
     def hostname(self) -> str | None:
         """Return the hostname of the device."""
-        return self.extra_state_attributes.get("description")
+        attrs = self.extra_state_attributes or {}
+        return attrs.get("description")
 
     def _get_current_client_data(self) -> dict[str, Any] | None:
         """Retrieve the latest data for this client from the coordinator."""
@@ -114,7 +118,8 @@ class MerakiClientTracker(MerakiDeviceTracker[MerakiMainCoordinator]):
     @property
     def is_connected(self) -> bool:
         """Return true if the device is connected to the network."""
-        return self.extra_state_attributes.get("status") == "online"
+        attrs = self.extra_state_attributes or {}
+        return attrs.get("status") == "online"
 
     @callback
     def _handle_coordinator_update(self) -> None:
