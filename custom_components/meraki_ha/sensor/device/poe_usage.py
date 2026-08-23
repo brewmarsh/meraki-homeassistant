@@ -18,7 +18,7 @@ if TYPE_CHECKING:
 _LOGGER = logging.getLogger(__name__)
 
 
-class MerakiPoeUsageSensor(MerakiSensor):
+class MerakiPoeUsageSensor(MerakiSensor[MerakiMainCoordinator]):
     """
     Representation of a Meraki switch PoE usage sensor.
 
