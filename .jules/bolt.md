@@ -1,3 +1,3 @@
-## 2024-05-18 - Single-Pass Iteration for Multiple Counts
-**Learning:** Performing multiple `sum(1 for ...)` operations on the same list to extract different counts (like "critical" and "warning" alerts) creates a hidden O(k*N) inefficiency.
-**Action:** Refactor multiple generator counts into a single `for` loop to perform an O(N) pass, reducing loop overhead and redundant dictionary lookups.
+## $(date +%Y-%m-%d) - [Optimize memory allocation for appliance connected clients]
+**Learning:** Found a pattern where intermediate lists were created using list comprehensions solely to take their `len()` to count items in a hot update loop (running on every sensor update). This increases memory allocation and garbage collection overhead.
+**Action:** Replace `len([x for x in list if condition])` with `sum(1 for x in list if condition)` to leverage O(1) space complexity via generator expressions for all counting logic.
