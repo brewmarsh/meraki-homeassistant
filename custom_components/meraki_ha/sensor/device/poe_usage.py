@@ -51,6 +51,30 @@ class MerakiPoeUsageSensor(MerakiSensor):
         self._attr_has_entity_name = True
         self._attr_unique_id = f"{device.serial}_poe_usage"
         self._attr_name = "PoE Usage"
+        self._update_state()
+
+    def _update_state(self) -> None:
+        """Update sensor state and attributes efficiently."""
+        ports_statuses = self._device.switch_ports
+        if not isinstance(ports_statuses, list):
+            self._attr_native_value = None
+            self._attr_extra_state_attributes = {}
+            return
+
+        total_poe_usage_wh = 0
+        attrs = {}
+        for port in ports_statuses:
+            if isinstance(port, dict) and "portId" in port:
+                usage_wh = port.get("powerUsageInWh", 0) or 0
+                total_poe_usage_wh += usage_wh
+                attrs[f"port_{port['portId']}_power_usage_wh"] = port.get("powerUsageInWh")
+
+        if total_poe_usage_wh > 0:
+            self._attr_native_value = round(total_poe_usage_wh / 24, 2)
+        else:
+            self._attr_native_value = 0.0
+
+        self._attr_extra_state_attributes = attrs
 
     @callback
     def _handle_coordinator_update(self) -> None:
@@ -59,36 +83,5 @@ class MerakiPoeUsageSensor(MerakiSensor):
             device = self.coordinator.get_device(self._device.serial)
             if device:
                 self._device = device
+                self._update_state()
                 self.async_write_ha_state()
-
-    @property
-    def native_value(self) -> float | None:
-        """Return the state of the sensor."""
-        ports_statuses = self._device.switch_ports
-        if not isinstance(ports_statuses, list):
-            return None
-
-        total_poe_usage_wh = sum(
-            port.get("powerUsageInWh", 0) or 0
-            for port in ports_statuses
-            if isinstance(port, dict)
-        )
-
-        # The API returns power usage in Wh over the last day.
-        # We divide by 24 to get the average power in Watts.
-        if total_poe_usage_wh > 0:
-            return round(total_poe_usage_wh / 24, 2)
-        return 0.0
-
-    @property
-    def extra_state_attributes(self) -> dict[str, Any]:
-        """Return the state attributes."""
-        ports_statuses = self._device.switch_ports
-        if not isinstance(ports_statuses, list):
-            return {}
-
-        return {
-            f"port_{port['portId']}_power_usage_wh": port.get("powerUsageInWh")
-            for port in ports_statuses
-            if isinstance(port, dict) and "portId" in port
-        }
