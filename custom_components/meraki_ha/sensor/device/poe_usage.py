@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import logging
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 from homeassistant.components.sensor import SensorStateClass
 from homeassistant.const import UnitOfPower
@@ -67,7 +67,9 @@ class MerakiPoeUsageSensor(MerakiSensor):
             if isinstance(port, dict) and "portId" in port:
                 usage_wh = port.get("powerUsageInWh", 0) or 0
                 total_poe_usage_wh += usage_wh
-                attrs[f"port_{port['portId']}_power_usage_wh"] = port.get("powerUsageInWh")
+                attrs[f"port_{port['portId']}_power_usage_wh"] = port.get(
+                    "powerUsageInWh"
+                )
 
         if total_poe_usage_wh > 0:
             self._attr_native_value = round(total_poe_usage_wh / 24, 2)
