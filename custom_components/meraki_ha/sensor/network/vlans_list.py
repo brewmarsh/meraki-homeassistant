@@ -30,13 +30,13 @@ class VlansListSensor(MerakiNetworkEntity, SensorEntity):
         self._attr_unique_id = f"meraki-network-{network_data.id}-vlans-list"
         self._attr_name = f"{network_data.name} VLANs"
         self._vlans_cache: list[str] = []
-        self._attr_native_value = 0
+        self._native_value_cache: int = 0
         self._update_state()
 
     def _update_state(self) -> None:
         """Update the state based on coordinator data."""
         self._vlans_cache = []
-        self._attr_native_value = 0
+        self._native_value_cache = 0
 
         if not self._network:
             return
@@ -49,7 +49,7 @@ class VlansListSensor(MerakiNetworkEntity, SensorEntity):
         if not isinstance(vlans, list):
             return
 
-        self._attr_native_value = len(vlans)
+        self._native_value_cache = len(vlans)
 
         for vlan in vlans:
             if isinstance(vlan, dict) and "id" in vlan:
@@ -74,4 +74,4 @@ class VlansListSensor(MerakiNetworkEntity, SensorEntity):
     @property
     def native_value(self) -> int:
         """Return the number of VLANs."""
-        return self._attr_native_value
+        return self._native_value_cache
