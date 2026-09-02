@@ -7,6 +7,7 @@ from typing import Any
 from homeassistant.components.sensor import SensorEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import EntityCategory
+from homeassistant.core import callback
 
 from ...coordinators import MerakiMainCoordinator
 from ...core.entities.meraki_network_entity import MerakiNetworkEntity
@@ -28,37 +29,49 @@ class VlansListSensor(MerakiNetworkEntity, SensorEntity):
         super().__init__(coordinator, config_entry, network_data)
         self._attr_unique_id = f"meraki-network-{network_data.id}-vlans-list"
         self._attr_name = f"{network_data.name} VLANs"
+        self._vlans_cache: list[str] = []
+        self._native_value_cache: int = 0
+        self._update_state()
+
+    def _update_state(self) -> None:
+        """Update the state based on coordinator data."""
+        self._vlans_cache = []
+        self._native_value_cache = 0
+
+        if not self._network:
+            return
+
+        vlans_data = self.coordinator.data.get("vlans", {})
+        if not isinstance(vlans_data, dict):
+            return
+
+        vlans = vlans_data.get(self._network.id, [])
+        if not isinstance(vlans, list):
+            return
+
+        self._native_value_cache = len(vlans)
+
+        for vlan in vlans:
+            if isinstance(vlan, dict) and "id" in vlan:
+                self._vlans_cache.append(vlan.get("name") or f"VLAN {vlan.get('id')}")
+            elif hasattr(vlan, "id"):
+                name = getattr(vlan, "name", None) or f"VLAN {vlan.id}"
+                self._vlans_cache.append(name)
+
+    @callback
+    def _handle_coordinator_update(self) -> None:
+        """Handle updated data from the coordinator."""
+        self._update_state()
+        self.async_write_ha_state()
 
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
         """Return the state attributes."""
         attrs = super().extra_state_attributes
-        vlan_list = []
-        if self._network:
-            vlans_data = self.coordinator.data.get("vlans", {})
-            if isinstance(vlans_data, dict):
-                vlans = vlans_data.get(self._network.id, [])
-                if isinstance(vlans, list):
-                    for vlan in vlans:
-                        if isinstance(vlan, dict) and "id" in vlan:
-                            vlan_list.append(
-                                vlan.get("name") or f"VLAN {vlan.get('id')}"
-                            )
-                        elif hasattr(vlan, "id"):
-                            name = getattr(vlan, "name", None) or f"VLAN {vlan.id}"
-                            vlan_list.append(name)
-        attrs["vlans"] = vlan_list
+        attrs["vlans"] = self._vlans_cache
         return attrs
 
     @property
     def native_value(self) -> int:
         """Return the number of VLANs."""
-        if not self._network:
-            return 0
-        vlans_data = self.coordinator.data.get("vlans", {})
-        if not isinstance(vlans_data, dict):
-            return 0
-        vlans = vlans_data.get(self._network.id, [])
-        if not isinstance(vlans, list):
-            return 0
-        return len(vlans)
+        return self._native_value_cache
