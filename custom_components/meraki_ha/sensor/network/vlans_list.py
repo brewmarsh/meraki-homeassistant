@@ -53,9 +53,7 @@ class VlansListSensor(MerakiNetworkEntity, SensorEntity):
 
         for vlan in vlans:
             if isinstance(vlan, dict) and "id" in vlan:
-                self._vlans_cache.append(
-                    vlan.get("name") or f"VLAN {vlan.get('id')}"
-                )
+                self._vlans_cache.append(vlan.get("name") or f"VLAN {vlan.get('id')}")
             elif hasattr(vlan, "id"):
                 name = getattr(vlan, "name", None) or f"VLAN {vlan.id}"
                 self._vlans_cache.append(name)
