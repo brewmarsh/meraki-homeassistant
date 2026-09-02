@@ -62,19 +62,12 @@ async def test_vlans_list_sensor_creation_enabled(mock_coordinator):
 
     # Run the setup
     discovery_service = DeviceDiscoveryService(
-        mock_coordinator,
-        mock_coordinator,
-        mock_coordinator,
-        mock_coordinator,
-        mock_coordinator,
-        mock_coordinator,
-        mock_coordinator,
-        mock_coordinator,
-        mock_coordinator.config_entry,
-        MagicMock(),
-        MagicMock(),
-        MagicMock(),
-        MagicMock(),
+        main_coordinator=mock_coordinator,
+        config_entry=mock_coordinator.config_entry,
+        meraki_client=MagicMock(),
+        camera_service=MagicMock(),
+        control_service=MagicMock(),
+        network_control_service=MagicMock(),
     )
     await discovery_service.discover_entities()
     sensors = discovery_service.all_entities
