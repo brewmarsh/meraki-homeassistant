@@ -66,25 +66,32 @@ class MerakiNetworkHealthSensor(MerakiNetworkEntity, SensorEntity):
         elif isinstance(data, list):
             devices = data
 
-        self._family_devices_cache = [
-            d
-            for d in devices
-            if getattr(d, "network_id", None) == self._network_id
-            and (
+        # Bolt Performance: Calculate both family_devices and offline_devices counts
+        # in a single O(N) pass rather than two sequential O(N) list comprehensions.
+        # This reduces loop overhead when accessing device metrics.
+        family_devices = []
+        offline_devices = []
+
+        for d in devices:
+            if getattr(d, "network_id", None) == self._network_id and (
                 (getattr(d, "model", "") or "").startswith(self._family_prefix)
                 or (
                     self._family_prefix == "MS"
                     and (getattr(d, "model", "") or "").startswith("GS")
                 )
-            )
-        ]
+            ):
+                family_devices.append(d)
+                if str(getattr(d, "status", "offline")).lower() not in (
+                    "online",
+                    "alerting",
+                    "dormant",
+                ):
+                    offline_devices.append(
+                        getattr(d, "name", getattr(d, "serial", "unknown"))
+                    )
 
-        self._offline_devices_cache = [
-            getattr(d, "name", getattr(d, "serial", "unknown"))
-            for d in self._family_devices_cache
-            if str(getattr(d, "status", "offline")).lower()
-            not in ("online", "alerting", "dormant")
-        ]
+        self._family_devices_cache = family_devices
+        self._offline_devices_cache = offline_devices
 
     @callback
     def _handle_coordinator_update(self) -> None:
