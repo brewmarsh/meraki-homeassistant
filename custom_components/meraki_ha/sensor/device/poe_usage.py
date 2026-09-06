@@ -98,7 +98,9 @@ class MerakiPoeUsageSensor(MerakiSensor):
     @property
     def native_value(self) -> float | None:
         """Return the state of the sensor."""
-        return self._attr_native_value
+        if self._attr_native_value is None:
+            return None
+        return float(str(self._attr_native_value))
 
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
