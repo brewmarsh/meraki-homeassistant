@@ -143,15 +143,15 @@ async def test_switch_port_generation_and_linkage(
     for port_entity_id in [port_1_status, port_2_status]:
         registry_entry = entity_registry.async_get(port_entity_id)
         assert registry_entry is not None
-        assert registry_entry.device_id is not None, (
-            f"Entity {port_entity_id} is orphaned (no device_id)"
-        )
+        assert (
+            registry_entry.device_id is not None
+        ), f"Entity {port_entity_id} is orphaned (no device_id)"
 
         # Verify device actually exists and links properly
         device_entry = device_registry.async_get(registry_entry.device_id)
-        assert device_entry is not None, (
-            f"Device {registry_entry.device_id} not found in registry"
-        )
+        assert (
+            device_entry is not None
+        ), f"Device {registry_entry.device_id} not found in registry"
 
         # In Meraki_HA, typically the device identifiers includes the domain and serial
         assert ("meraki_ha", "Q2KX-ACU9-ZAVN") in device_entry.identifiers
