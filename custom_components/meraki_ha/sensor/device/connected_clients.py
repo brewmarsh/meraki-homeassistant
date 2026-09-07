@@ -69,14 +69,16 @@ class MerakiDeviceConnectedClientsSensor(MerakiSensor):
                 self._attr_native_value = 0
                 return
 
-            network_clients = [
-                c
+            # Bolt Performance: Use a generator expression with sum() instead of
+            # building an intermediate list and calling len(). This reduces memory
+            # allocation overhead from O(N) to O(1), especially for large organizations.
+            self._attr_native_value = sum(
+                1
                 for c in all_clients
                 if isinstance(c, dict)
                 and c.get("networkId") == network_id
                 and c.get("status") == "Online"
-            ]
-            self._attr_native_value = len(network_clients)
+            )
         # For other devices (switches, APs), use the direct per-device client list.
         else:
             clients_by_serial = self.coordinator.data.get("clients_by_serial", {})
