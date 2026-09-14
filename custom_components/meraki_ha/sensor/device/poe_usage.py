@@ -73,7 +73,9 @@ class MerakiPoeUsageSensor(MerakiSensor):
                 total_poe_usage_wh += usage
 
                 if "portId" in port:
-                    attributes[f"port_{port['portId']}_power_usage_wh"] = port.get("powerUsageInWh")
+                    attributes[f"port_{port['portId']}_power_usage_wh"] = port.get(
+                        "powerUsageInWh"
+                    )
 
         if total_poe_usage_wh > 0:
             self._attr_native_value = round(total_poe_usage_wh / 24, 2)
