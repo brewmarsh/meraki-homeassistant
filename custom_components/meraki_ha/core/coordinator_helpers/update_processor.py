@@ -57,8 +57,10 @@ def filter_ignored_networks(data: dict[str, Any], ignored_ids: list[str]) -> Non
     """Filter out networks that the user has chosen to ignore."""
     if not ignored_ids or "networks" not in data:
         return
+    # Convert to set for O(1) membership lookups instead of O(M) list lookups
+    ignored_set = set(ignored_ids)
     data["networks"] = [
-        n for n in data["networks"] if _get_network_id(n) not in ignored_ids
+        n for n in data["networks"] if _get_network_id(n) not in ignored_set
     ]
 
 
