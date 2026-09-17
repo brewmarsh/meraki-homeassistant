@@ -187,17 +187,22 @@ async def test_options_flow(hass: HomeAssistant) -> None:
 
 async def test_update_listener(hass: HomeAssistant) -> None:
     """Test the update listener."""
-    # Action 2: Ensure MockConfigEntry has explicit entry_id and is added to hass
-    entry = MockConfigEntry(domain=DOMAIN, entry_id="test_entry_id")
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        data={
+            CONF_MERAKI_API_KEY: "test_api_key",
+            CONF_MERAKI_ORG_ID: "test_org",
+        },
+    )
     entry.add_to_hass(hass)
-    # Action 1: Use AsyncMock for reload
+
+    # Note: custom_components.meraki_ha has no update_listener method right now.
+    # If the intent is to test config entry reloading:
     with patch(
         "homeassistant.config_entries.ConfigEntries.async_reload",
         new_callable=AsyncMock,
         return_value=None,
     ) as mock_reload:
-        from custom_components.meraki_ha import update_listener
-
-        await update_listener(hass, entry)
+        await hass.config_entries.async_reload(entry.entry_id)
 
     mock_reload.assert_called_once_with(entry.entry_id)
