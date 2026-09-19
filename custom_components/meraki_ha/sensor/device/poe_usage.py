@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import logging
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from homeassistant.components.sensor import SensorStateClass
 from homeassistant.const import UnitOfPower
@@ -78,6 +78,11 @@ class MerakiPoeUsageSensor(MerakiSensor):
             self._attr_native_value = 0.0
 
         self._attr_extra_state_attributes = attrs
+
+    @property
+    def extra_state_attributes(self) -> dict[str, Any]:
+        """Return the state attributes."""
+        return self._attr_extra_state_attributes
 
     @callback
     def _handle_coordinator_update(self) -> None:
