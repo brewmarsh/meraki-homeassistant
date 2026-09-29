@@ -66,25 +66,28 @@ class MerakiNetworkHealthSensor(MerakiNetworkEntity, SensorEntity):
         elif isinstance(data, list):
             devices = data
 
-        self._family_devices_cache = [
-            d
-            for d in devices
-            if getattr(d, "network_id", None) == self._network_id
-            and (
+        family_cache = []
+        offline_cache = []
+
+        for d in devices:
+            if getattr(d, "network_id", None) == self._network_id and (
                 (getattr(d, "model", "") or "").startswith(self._family_prefix)
                 or (
                     self._family_prefix == "MS"
                     and (getattr(d, "model", "") or "").startswith("GS")
                 )
-            )
-        ]
+            ):
+                family_cache.append(d)
+                if str(getattr(d, "status", "offline")).lower() not in (
+                    "online",
+                    "alerting",
+                    "dormant",
+                ):
+                    name = getattr(d, "name", getattr(d, "serial", "unknown"))
+                    offline_cache.append(name)
 
-        self._offline_devices_cache = [
-            getattr(d, "name", getattr(d, "serial", "unknown"))
-            for d in self._family_devices_cache
-            if str(getattr(d, "status", "offline")).lower()
-            not in ("online", "alerting", "dormant")
-        ]
+        self._family_devices_cache = family_cache
+        self._offline_devices_cache = offline_cache
 
     @callback
     def _handle_coordinator_update(self) -> None:
