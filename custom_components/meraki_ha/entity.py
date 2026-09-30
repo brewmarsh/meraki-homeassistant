@@ -27,7 +27,7 @@ class MerakiEntity(CoordinatorEntity[T], Generic[T]):
     _attr_has_entity_name = True
 
     @property
-    def device_info(self) -> DeviceInfo | None:
+    def device_info(self) -> DeviceInfo | None:  # type: ignore[override]
         """Return consistent device information across all platforms."""
         from .helpers.device_info_helpers import resolve_device_info
 
@@ -172,5 +172,5 @@ class MerakiSwitch(MerakiEntity[T], SwitchEntity, Generic[T]):
     """Base Cisco Meraki switch entity."""
 
 
-class MerakiDeviceTracker(MerakiEntity[T], ScannerEntity, Generic[T]):
+class MerakiDeviceTracker(MerakiEntity[T], ScannerEntity, Generic[T]):  # type: ignore[misc]
     """Base Cisco Meraki device tracker entity."""

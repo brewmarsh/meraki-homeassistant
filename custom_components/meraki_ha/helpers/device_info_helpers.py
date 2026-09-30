@@ -9,8 +9,6 @@ from homeassistant.helpers.device_registry import DeviceEntryType, DeviceInfo
 
 from custom_components.meraki_ha.const.integration import DOMAIN
 
-from ..core.models.device import MerakiDevice
-from ..core.models.network import MerakiNetwork
 from ..core.utils.naming_utils import format_device_name, standardize_device_name
 
 _LOGGER = logging.getLogger(__name__)
@@ -102,13 +100,13 @@ def _resolve_physical_device_info(
             manufacturer="Cisco Meraki",
             model=model,
             sw_version=str(data.get("firmware") or ""),
-            via_device=(DOMAIN, f"network_{network_id}") if network_id else None,
+            via_device=(DOMAIN, f"network_{network_id}") if network_id else None,  # type: ignore[typeddict-item]
         )
     return None
 
 
 def resolve_device_info(
-    entity_data: MerakiDevice | MerakiNetwork | dict[str, Any],
+    entity_data: Any,
     config_entry: ConfigEntry,
     ssid_data: dict[str, Any] | None = None,
 ) -> DeviceInfo | None:
