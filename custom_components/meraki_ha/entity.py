@@ -27,7 +27,7 @@ class MerakiEntity(CoordinatorEntity[T], Generic[T]):
     _attr_has_entity_name = True
 
     @property
-    def device_info(self) -> DeviceInfo | None:  # type: ignore[override]
+    def device_info(self) -> DeviceInfo | None:
         """Return consistent device information across all platforms."""
         from .helpers.device_info_helpers import resolve_device_info
 

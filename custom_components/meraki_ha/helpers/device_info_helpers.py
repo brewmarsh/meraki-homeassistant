@@ -140,15 +140,15 @@ def resolve_device_info(
 
     # Resolve using specialized helpers
     if is_ssid:
-        return _resolve_ssid_info(effective_data)
+        return _resolve_ssid_info(effective_data)  # type: ignore[arg-type]
 
-    if info := _resolve_client_info(entity_data):
+    if info := _resolve_client_info(entity_data):  # type: ignore[arg-type]
         return info
 
-    if info := _resolve_network_info(entity_data):
+    if info := _resolve_network_info(entity_data):  # type: ignore[arg-type]
         return info
 
-    if info := _resolve_physical_device_info(entity_data, config_entry):
+    if info := _resolve_physical_device_info(entity_data, config_entry):  # type: ignore[arg-type]
         return info
 
     # This may happen temporarily during startup or if a device type is unknown

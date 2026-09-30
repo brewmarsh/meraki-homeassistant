@@ -41,7 +41,7 @@ class MerakiAnalyticsSensor(MerakiSensor):
         """Return device information."""
         if not self.coordinator.config_entry:
             return None
-        return resolve_device_info(self._device, self.coordinator.config_entry)  # type: ignore[arg-type]
+        return resolve_device_info(self._device, self.coordinator.config_entry)
 
     @property
     def native_value(self) -> int | None:
