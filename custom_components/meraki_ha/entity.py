@@ -172,5 +172,5 @@ class MerakiSwitch(MerakiEntity[T], SwitchEntity, Generic[T]):
     """Base Cisco Meraki switch entity."""
 
 
-class MerakiDeviceTracker(MerakiEntity[T], ScannerEntity, Generic[T]):
+class MerakiDeviceTracker(MerakiEntity[T], ScannerEntity, Generic[T]):  # type: ignore[misc]
     """Base Cisco Meraki device tracker entity."""
