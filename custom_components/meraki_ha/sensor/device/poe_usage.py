@@ -71,7 +71,8 @@ class MerakiPoeUsageSensor(MerakiSensor):
                 total_poe_usage_wh += power_usage
 
                 if "portId" in port:
-                    attrs[f"port_{port['portId']}_power_usage_wh"] = port.get("powerUsageInWh")
+                    port_id = port["portId"]
+                    attrs[f"port_{port_id}_power_usage_wh"] = power_usage
 
         self._attr_extra_state_attributes = attrs
 
