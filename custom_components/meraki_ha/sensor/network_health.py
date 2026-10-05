@@ -66,25 +66,23 @@ class MerakiNetworkHealthSensor(MerakiNetworkEntity, SensorEntity):
         elif isinstance(data, list):
             devices = data
 
-        self._family_devices_cache = [
-            d
-            for d in devices
-            if getattr(d, "network_id", None) == self._network_id
-            and (
-                (getattr(d, "model", "") or "").startswith(self._family_prefix)
-                or (
-                    self._family_prefix == "MS"
-                    and (getattr(d, "model", "") or "").startswith("GS")
-                )
-            )
-        ]
+        # Bolt Performance: Build caches in a single O(N) pass to avoid
+        # intermediate allocations and multiple loop overheads.
+        self._family_devices_cache = []
+        self._offline_devices_cache = []
 
-        self._offline_devices_cache = [
-            getattr(d, "name", getattr(d, "serial", "unknown"))
-            for d in self._family_devices_cache
-            if str(getattr(d, "status", "offline")).lower()
-            not in ("online", "alerting", "dormant")
-        ]
+        for d in devices:
+            if getattr(d, "network_id", None) == self._network_id:
+                model = getattr(d, "model", "") or ""
+                if model.startswith(self._family_prefix) or (
+                    self._family_prefix == "MS" and model.startswith("GS")
+                ):
+                    self._family_devices_cache.append(d)
+
+                    status = str(getattr(d, "status", "offline")).lower()
+                    if status not in ("online", "alerting", "dormant"):
+                        name = getattr(d, "name", getattr(d, "serial", "unknown"))
+                        self._offline_devices_cache.append(name)
 
     @callback
     def _handle_coordinator_update(self) -> None:
