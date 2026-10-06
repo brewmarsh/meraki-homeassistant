@@ -262,9 +262,10 @@ class IPSKManager:
             config_entry_id: Optional filter for a specific config entry.
             network_id: Optional filter for a specific network.
         """
-        # Bolt Performance: Replaced multiple O(N) list filters that created intermediate lists
-        # with a single O(N) comprehension. This reduces memory allocation overhead and
-        # iteration time when retrieving active keys filtered by both entry and network ID.
+        # Bolt Performance: Replaced multiple O(N) list filters that created
+        # intermediate lists with a single O(N) comprehension. This reduces
+        # memory allocation overhead and iteration time when retrieving active
+        # keys filtered by both entry and network ID.
         return [
             k
             for k in self.active_keys
