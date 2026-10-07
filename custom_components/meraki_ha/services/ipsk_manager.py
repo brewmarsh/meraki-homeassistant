@@ -262,12 +262,16 @@ class IPSKManager:
             config_entry_id: Optional filter for a specific config entry.
             network_id: Optional filter for a specific network.
         """
-        keys = self.active_keys
-        if config_entry_id:
-            keys = [k for k in keys if k["config_entry_id"] == config_entry_id]
-        if network_id:
-            keys = [k for k in keys if k["network_id"] == network_id]
-        return keys
+        if not config_entry_id and not network_id:
+            return self.active_keys
+
+        # ⚡ Bolt Performance: Single-pass filter prevents intermediate list allocation
+        return [
+            k
+            for k in self.active_keys
+            if (not config_entry_id or k["config_entry_id"] == config_entry_id)
+            and (not network_id or k["network_id"] == network_id)
+        ]
 
     async def async_check_expirations(self, _now: datetime | None = None) -> None:
         """Check for and reap expired keys."""
