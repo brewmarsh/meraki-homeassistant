@@ -263,10 +263,21 @@ class IPSKManager:
             network_id: Optional filter for a specific network.
         """
         keys = self.active_keys
+
+        # Bolt Performance: Optimize multiple list comprehensions by routing to the most
+        # specific single O(N) pass, eliminating intermediate list allocations.
+        if config_entry_id and network_id:
+            return [
+                k
+                for k in keys
+                if k["config_entry_id"] == config_entry_id
+                and k["network_id"] == network_id
+            ]
         if config_entry_id:
-            keys = [k for k in keys if k["config_entry_id"] == config_entry_id]
+            return [k for k in keys if k["config_entry_id"] == config_entry_id]
         if network_id:
-            keys = [k for k in keys if k["network_id"] == network_id]
+            return [k for k in keys if k["network_id"] == network_id]
+
         return keys
 
     async def async_check_expirations(self, _now: datetime | None = None) -> None:
