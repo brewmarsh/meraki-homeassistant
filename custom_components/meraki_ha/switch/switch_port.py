@@ -76,8 +76,8 @@ class _MerakiPortSwitchBase(MerakiEntity, SwitchEntity, ABC):
             translation_key="switch_port_enabled",
             translation_placeholders={"port_id": port_id_str},
         )
-        self._last_state: bool | None = None
         self._update_internal_state()
+        self._last_state: bool | None = self.is_on
 
     @property
     def available(self) -> bool:
