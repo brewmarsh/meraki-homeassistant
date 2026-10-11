@@ -45,7 +45,7 @@ class MerakiSwitchPoESensor(MerakiSensor):
         port_id = self._port.get("portId") or self._port.get("number")
         self._attr_unique_id = f"{self._device.serial}_port_{port_id}_poe"
         self._attr_name = f"Port {port_id} PoE"
-        self._last_state = None
+        self._last_state: float | None = None
 
     @property
     def available(self) -> bool:
