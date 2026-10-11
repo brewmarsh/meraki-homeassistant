@@ -44,7 +44,7 @@ class SwitchPortSensor(MerakiBinarySensor):
         # Use prefix to prevent collisions between different port types
         self._attr_unique_id = f"{device.serial}_{port_prefix}_{port_id}_connectivity"
         self._attr_name = f"Port {port_id}"
-        self._last_state = None
+        self._last_state: bool | None = self.is_on
 
     @callback
     def _handle_coordinator_update(self) -> None:

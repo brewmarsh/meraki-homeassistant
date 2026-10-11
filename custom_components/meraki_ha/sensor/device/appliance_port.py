@@ -43,7 +43,7 @@ class MerakiAppliancePortSensor(MerakiSensor):
             f"{device.serial}_appliance_port_{self._port.number}_status"
         )
         self._attr_name = f"Port {self._port.number}"
-        self._last_state = None
+        self._last_state: str | None = self.native_value
 
     @property
     def device_info(self) -> DeviceInfo:
