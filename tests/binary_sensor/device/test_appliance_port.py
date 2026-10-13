@@ -89,6 +89,9 @@ def test_handle_coordinator_update(mock_appliance_coordinator):
     port1 = device.appliance_ports[0]
 
     sensor = AppliancePortBinarySensor(mock_appliance_coordinator, device, port1)
+    # Set the initial state to prime the internal _last_state tracker
+    _ = sensor.is_on
+    sensor._last_state = sensor.is_on
     sensor.async_write_ha_state = MagicMock()
 
     # Update port status to disconnected
@@ -117,6 +120,9 @@ def test_handle_coordinator_update_no_change(mock_appliance_coordinator):
     port1 = device.appliance_ports[0]
 
     sensor = AppliancePortBinarySensor(mock_appliance_coordinator, device, port1)
+    # Set the initial state to prime the internal _last_state tracker
+    _ = sensor.is_on
+    sensor._last_state = sensor.is_on
     sensor.async_write_ha_state = MagicMock()
 
     # Update port status but it stays "connected"

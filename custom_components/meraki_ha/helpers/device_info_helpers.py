@@ -96,14 +96,16 @@ def _resolve_physical_device_info(
         # Optimization: Use the centralized format_device_name.
         name = format_device_name(data, config_entry.options)
 
-        return DeviceInfo(
+        device_info = DeviceInfo(
             identifiers={(DOMAIN, device_serial)},
             name=name,
             manufacturer="Cisco Meraki",
             model=model,
             sw_version=str(data.get("firmware") or ""),
-            via_device=(DOMAIN, f"network_{network_id}") if network_id else None,
         )
+        if network_id:
+            device_info["via_device"] = (DOMAIN, f"network_{network_id}")
+        return device_info
     return None
 
 
@@ -135,22 +137,33 @@ def resolve_device_info(
         effective_data = ssid_data
 
     # Convert dataclasses to dicts for consistent access below
+    dict_entity_data: dict[str, Any]
     if is_dataclass(entity_data) and not isinstance(entity_data, type):
-        entity_data = asdict(entity_data)
+        dict_entity_data = asdict(entity_data)
+    elif isinstance(entity_data, dict):
+        dict_entity_data = entity_data
+    else:
+        dict_entity_data = {}
+
+    dict_effective_data: dict[str, Any]
     if is_dataclass(effective_data) and not isinstance(effective_data, type):
-        effective_data = asdict(effective_data)
+        dict_effective_data = asdict(effective_data)
+    elif isinstance(effective_data, dict):
+        dict_effective_data = effective_data
+    else:
+        dict_effective_data = {}
 
     # Resolve using specialized helpers
     if is_ssid:
-        return _resolve_ssid_info(effective_data)
+        return _resolve_ssid_info(dict_effective_data)
 
-    if info := _resolve_client_info(entity_data):
+    if info := _resolve_client_info(dict_entity_data):
         return info
 
-    if info := _resolve_network_info(entity_data):
+    if info := _resolve_network_info(dict_entity_data):
         return info
 
-    if info := _resolve_physical_device_info(entity_data, config_entry):
+    if info := _resolve_physical_device_info(dict_entity_data, config_entry):
         return info
 
     # This may happen temporarily during startup or if a device type is unknown
