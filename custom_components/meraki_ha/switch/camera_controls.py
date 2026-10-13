@@ -51,6 +51,8 @@ class AnalyticsSwitch(MerakiCameraSettingSwitchBase):
 
         """
         serial = self._device_data.serial
+        if not serial:
+            return
         try:
             await self.client.camera.update_camera_sense_settings(
                 serial=serial,
