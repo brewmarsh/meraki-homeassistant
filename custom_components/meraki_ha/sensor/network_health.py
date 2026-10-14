@@ -50,7 +50,7 @@ class MerakiNetworkHealthSensor(MerakiNetworkEntity, SensorEntity):
             self._attr_icon = "mdi:server-network"
 
         self._family_devices_cache: list[Any] = []
-        self._offline_devices_cache: list[Any] = []
+        self._offline_devices_cache: list[str] = []
         self._compute_device_cache()
 
     def _compute_device_cache(self) -> None:
@@ -83,10 +83,8 @@ class MerakiNetworkHealthSensor(MerakiNetworkEntity, SensorEntity):
             )
         ]
 
-        # Bolt Performance: Pre-calculate offline devices in cache pass
-        # to prevent duplicate O(N) loops in native_value and extra_state_attributes
         self._offline_devices_cache = [
-            d
+            getattr(d, "name", getattr(d, "serial", "unknown"))
             for d in self._family_devices_cache
             if str(getattr(d, "status", "offline")).lower()
             not in ("online", "alerting", "dormant")
@@ -123,17 +121,13 @@ class MerakiNetworkHealthSensor(MerakiNetworkEntity, SensorEntity):
         """Provide detailed fractional attributes for Lovelace cards."""
         base_attributes = super().extra_state_attributes
         devices = self._family_devices
-
-        offline_devices_names = [
-            getattr(d, "name", getattr(d, "serial", "unknown"))
-            for d in self._offline_devices_cache
-        ]
+        offline_devices = self._offline_devices_cache
 
         base_attributes.update(
             {
                 "total_devices": len(devices),
                 "online_devices": len(devices) - len(self._offline_devices_cache),
-                "offline_devices": offline_devices_names,
+                "offline_devices": offline_devices,
                 "hardware_family": self._family_name,
             }
         )
