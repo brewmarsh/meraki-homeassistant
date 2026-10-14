@@ -6,6 +6,8 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 
 from ...const.config import (
+    AUTH_TYPE_OAUTH,
+    CONF_AUTH_TYPE,
     CONF_ENABLED_NETWORKS,
     CONF_MERAKI_API_KEY,
     CONF_MERAKI_ORG_ID,
@@ -55,7 +57,16 @@ def create_meraki_client(
         The configured Meraki API client.
 
     """
-    api_key = entry.data[CONF_MERAKI_API_KEY]
+    auth_type = entry.data.get(CONF_AUTH_TYPE)
+    token_data = entry.data.get("token")
+    if (
+        auth_type == AUTH_TYPE_OAUTH
+        and isinstance(token_data, dict)
+        and "access_token" in token_data
+    ):
+        api_key = token_data["access_token"]
+    else:
+        api_key = entry.data[CONF_MERAKI_API_KEY]
     org_id = entry.data.get(CONF_MERAKI_ORG_ID)
 
     # Prioritize enabled networks from options, fall back to data

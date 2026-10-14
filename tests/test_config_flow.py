@@ -5,6 +5,8 @@ from unittest.mock import AsyncMock, patch
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.meraki_ha.const.config import (
+    AUTH_TYPE_API_KEY,
+    CONF_AUTH_TYPE,
     CONF_ENABLE_DEVICE_STATUS,
     CONF_MERAKI_API_KEY,
     CONF_MERAKI_ORG_ID,
@@ -42,7 +44,7 @@ async def test_form(hass: HomeAssistant) -> None:
         mock_create_client.return_value = mock_client
 
         mock_client.async_setup = AsyncMock()
-        mock_client.get_organizations = AsyncMock(
+        mock_client.organization.get_organizations = AsyncMock(
             return_value=[{"id": "test-org-id", "name": "Test Org"}]
         )
         mock_client.organization.get_organization_networks = AsyncMock(
@@ -85,6 +87,7 @@ async def test_form(hass: HomeAssistant) -> None:
     assert result4["type"] == FlowResultType.CREATE_ENTRY
     assert result4["title"] == "Cisco Meraki"
     assert result4["data"] == {
+        CONF_AUTH_TYPE: AUTH_TYPE_API_KEY,
         CONF_MERAKI_API_KEY: "test-api-key",
         CONF_MERAKI_ORG_ID: "test-org-id",
         CONF_ENABLED_NETWORKS: ["test-net-id"],

@@ -12,8 +12,7 @@ from custom_components.meraki_ha.const.config import (
 )
 from custom_components.meraki_ha.const.integration import DOMAIN
 from homeassistant.core import HomeAssistant
-
-from .const import MERAKI_TEST_API_KEY, MERAKI_TEST_ORG_ID
+from tests.const import MERAKI_TEST_API_KEY, MERAKI_TEST_ORG_ID
 
 
 async def async_get_config_entry(

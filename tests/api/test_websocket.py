@@ -6,7 +6,11 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 from pytest_homeassistant_custom_component.common import MockConfigEntry
-from pytest_homeassistant_custom_component.typing import WebSocketGenerator
+
+try:
+    from pytest_homeassistant_custom_component.typing import WebSocketGenerator
+except ImportError:
+    from typing import Any as WebSocketGenerator
 
 from custom_components.meraki_ha.api.websocket import async_setup_websocket_api
 from custom_components.meraki_ha.const.api import DATA_CLIENT

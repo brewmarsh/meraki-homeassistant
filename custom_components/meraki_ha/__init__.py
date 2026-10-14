@@ -115,13 +115,18 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     unload_ok = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
 
     if unload_ok:
-        data = hass.data[DOMAIN].pop(entry.entry_id)
+        data = hass.data[DOMAIN].pop(entry.entry_id, None)
 
         # Unregister webhook if configured
-        if "webhook_id" in data:
+        if data and "webhook_id" in data:
             await async_unregister_webhook(hass, data["webhook_id"], data["api_client"])
 
     return unload_ok
+
+
+async def update_listener(hass: HomeAssistant, entry: ConfigEntry) -> None:
+    """Handle options update."""
+    await hass.config_entries.async_reload(entry.entry_id)
 
 
 async def async_reload_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
