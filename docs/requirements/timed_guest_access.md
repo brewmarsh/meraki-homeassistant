@@ -61,6 +61,7 @@ Home Assistant automations/delays do not survive a system restart. The integrati
 - **Generate Button:** Triggers the service.
 
 **UI Implementation Notes:**
+
 - **Select Components:** Use `<ha-select>` with strict Lit property bindings (`.value="${...}"`) and `<ha-list-item>` for dropdown options to ensure compatibility with Home Assistant's internal event listeners and reactive state sync.
 
 **Outputs (Active Keys List):**

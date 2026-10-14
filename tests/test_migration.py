@@ -1,9 +1,9 @@
 """Test migration for Meraki."""
 
-from homeassistant.core import HomeAssistant
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.meraki_ha import async_migrate_entry
+from homeassistant.core import HomeAssistant
 
 
 async def test_migration_v1_to_v2(hass: HomeAssistant):
@@ -20,6 +20,6 @@ async def test_migration_v1_to_v2(hass: HomeAssistant):
 
     assert await async_migrate_entry(hass, entry)
 
-    assert entry.version == 2
+    assert entry.version == 3
     assert entry.data["api_key"] == "test-key"
     assert "meraki_api_key" not in entry.data

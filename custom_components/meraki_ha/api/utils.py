@@ -4,10 +4,9 @@ import logging
 from collections.abc import Callable, Coroutine
 from typing import Any, TypeVar
 
+from custom_components.meraki_ha.const.integration import DOMAIN
 from homeassistant.components import websocket_api
 from homeassistant.core import HomeAssistant
-
-from custom_components.meraki_ha.const.integration import DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
 

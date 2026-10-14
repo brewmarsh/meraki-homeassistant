@@ -5,6 +5,7 @@ from __future__ import annotations
 import asyncio
 import logging
 
+from custom_components.meraki_ha.const.integration import DOMAIN
 from homeassistant.components.binary_sensor import (
     BinarySensorDeviceClass,
     BinarySensorEntity,
@@ -13,8 +14,6 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
-
-from custom_components.meraki_ha.const.integration import DOMAIN
 
 from ..coordinators import MerakiMainCoordinator
 from ..core.models.network import MerakiNetwork

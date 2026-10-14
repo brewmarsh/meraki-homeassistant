@@ -362,7 +362,9 @@ export class MerakiGuestAccessCard extends LitElement {
                   <div
                     class="qr-container"
                     style="width: 200px; height: 200px;"
-                  >${unsafeSVG(this._qrSvg)}</div>
+                  >
+                    ${unsafeSVG(this._qrSvg)}
+                  </div>
 
                   <div class="credentials-block">
                     <div class="credential-item">

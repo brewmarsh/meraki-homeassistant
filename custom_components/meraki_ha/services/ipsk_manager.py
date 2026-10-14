@@ -3,15 +3,15 @@
 from __future__ import annotations
 
 import logging
+from collections.abc import Callable
 from datetime import datetime, timedelta
 from typing import TYPE_CHECKING, TypedDict, cast
 
+from custom_components.meraki_ha.const.api import DATA_CLIENT
+from custom_components.meraki_ha.const.integration import DOMAIN
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers import event, storage
 from homeassistant.util import dt as dt_util
-
-from custom_components.meraki_ha.const.api import DATA_CLIENT
-from custom_components.meraki_ha.const.integration import DOMAIN
 
 if TYPE_CHECKING:
     from ..core.api import MerakiApiClientProtocol
@@ -50,7 +50,7 @@ class IPSKManager:
             hass, STORAGE_VERSION, STORAGE_KEY
         )
         self.active_keys: list[IPSKKey] = []
-        self._unsub_reap_task: event.UnsubscribeFunc | None = None
+        self._unsub_reap_task: Callable[[], None] | None = None
 
     async def async_setup(self) -> None:
         """Set up the manager and load existing keys."""

@@ -6,7 +6,6 @@ from typing import Any
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-from homeassistant.config_entries import ConfigEntry
 
 # Resolved: Using the centralized coordinator path from the 2.3.0-beta.120 refactor
 from custom_components.meraki_ha.coordinators import MerakiMainCoordinator
@@ -15,6 +14,7 @@ from custom_components.meraki_ha.services.camera_service import CameraService
 from custom_components.meraki_ha.services.device_control_service import (
     DeviceControlService,
 )
+from homeassistant.config_entries import ConfigEntry
 from tests.const import MOCK_DEVICE
 
 
@@ -60,13 +60,6 @@ def test_discovery_service_init(
 
     service: DeviceDiscoveryService = DeviceDiscoveryService(
         main_coordinator=mock_coordinator_with_devices,
-        device_coordinator=mock_coordinator_with_devices,
-        switch_coordinator=mock_coordinator_with_devices,
-        camera_coordinator=mock_coordinator_with_devices,
-        sensor_coordinator=mock_coordinator_with_devices,
-        wireless_coordinator=mock_coordinator_with_devices,
-        appliance_coordinator=mock_coordinator_with_devices,
-        client_coordinator=mock_coordinator_with_devices,
         config_entry=mock_config_entry,
         meraki_client=mock_meraki_client,
         camera_service=mock_camera_service,
@@ -125,13 +118,6 @@ async def test_discover_entities_delegates_to_handler(
 
         service: DeviceDiscoveryService = DeviceDiscoveryService(
             main_coordinator=mock_coordinator_with_devices,
-            device_coordinator=mock_coordinator_with_devices,
-            switch_coordinator=mock_coordinator_with_devices,
-            camera_coordinator=mock_coordinator_with_devices,
-            sensor_coordinator=mock_coordinator_with_devices,
-            wireless_coordinator=mock_coordinator_with_devices,
-            appliance_coordinator=mock_coordinator_with_devices,
-            client_coordinator=mock_coordinator_with_devices,
             config_entry=mock_config_entry,
             meraki_client=mock_meraki_client,
             camera_service=mock_camera_service,

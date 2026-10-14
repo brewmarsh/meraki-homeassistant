@@ -27,12 +27,12 @@ trigger:
   - platform: state
     entity_id: !input primary_wan_sensor
     to:
-      - "failed"
-      - "offline"
+      - 'failed'
+      - 'offline'
 
 action:
   - device_id: !input notify_device
     domain: mobile_app
     type: notify
-    title: "Meraki Network Alert"
-    message: "Primary internet has failed. The network is now running on the backup link."
+    title: 'Meraki Network Alert'
+    message: 'Primary internet has failed. The network is now running on the backup link.'

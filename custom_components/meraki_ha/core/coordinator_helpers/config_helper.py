@@ -5,8 +5,6 @@ from __future__ import annotations
 from dataclasses import dataclass
 from datetime import timedelta
 
-from homeassistant.config_entries import ConfigEntry
-
 from custom_components.meraki_ha.const.config import (
     CONF_ENABLE_CAMERA_SENSE,
     CONF_ENABLE_FIREWALL_RULES,
@@ -26,6 +24,7 @@ from custom_components.meraki_ha.const.config import (
     DEFAULT_IGNORED_NETWORKS,
     DEFAULT_SCAN_INTERVAL,
 )
+from homeassistant.config_entries import ConfigEntry
 
 
 @dataclass

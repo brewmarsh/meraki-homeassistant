@@ -3,9 +3,6 @@
 from unittest.mock import AsyncMock, patch
 
 import pytest
-from homeassistant.core import HomeAssistant
-from homeassistant.helpers import device_registry as dr
-from homeassistant.helpers import entity_registry as er
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.meraki_ha.const.config import (
@@ -13,6 +10,9 @@ from custom_components.meraki_ha.const.config import (
     CONF_MERAKI_ORG_ID,
 )
 from custom_components.meraki_ha.types import MerakiDevice
+from homeassistant.core import HomeAssistant
+from homeassistant.helpers import device_registry as dr
+from homeassistant.helpers import entity_registry as er
 
 
 @pytest.mark.asyncio
@@ -80,6 +80,10 @@ async def test_switch_port_generation_and_linkage(
     # This ensures that discovery service sees the switch and its ports.
     with (
         patch(
+            "custom_components.meraki_ha.core.api.client.MerakiClient.async_setup",
+            new_callable=AsyncMock,
+        ),
+        patch(
             "custom_components.meraki_ha.coordinators.MerakiDeviceCoordinator._async_update_data",
             new_callable=AsyncMock,
             return_value=mock_all_data,
@@ -143,15 +147,15 @@ async def test_switch_port_generation_and_linkage(
     for port_entity_id in [port_1_status, port_2_status]:
         registry_entry = entity_registry.async_get(port_entity_id)
         assert registry_entry is not None
-        assert registry_entry.device_id is not None, (
-            f"Entity {port_entity_id} is orphaned (no device_id)"
-        )
+        assert (
+            registry_entry.device_id is not None
+        ), f"Entity {port_entity_id} is orphaned (no device_id)"
 
         # Verify device actually exists and links properly
         device_entry = device_registry.async_get(registry_entry.device_id)
-        assert device_entry is not None, (
-            f"Device {registry_entry.device_id} not found in registry"
-        )
+        assert (
+            device_entry is not None
+        ), f"Device {registry_entry.device_id} not found in registry"
 
         # In Meraki_HA, typically the device identifiers includes the domain and serial
         assert ("meraki_ha", "Q2KX-ACU9-ZAVN") in device_entry.identifiers

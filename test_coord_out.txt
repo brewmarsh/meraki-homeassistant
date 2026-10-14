@@ -1,0 +1,211 @@
+============================= test session starts =============================
+platform win32 -- Python 3.12.12, pytest-8.3.3, pluggy-1.6.0
+rootdir: D:\Code\meraki-homeassistant
+configfile: pytest.ini
+plugins: anyio-4.14.1, braintrust-0.12.0, aiohttp-1.0.5, asyncio-0.24.0, cov-6.0.0, pytest_freezer-0.4.8, github-actions-annotate-failures-0.2.0, homeassistant-custom-component-0.13.195, picked-0.5.0, socket-0.7.0, timeout-2.3.1, unordered-0.6.1, xdist-3.6.1, requests-mock-1.12.1, respx-0.21.1, syrupy-4.7.2
+asyncio: mode=Mode.AUTO, default_loop_scope=function
+collected 2 items
+
+tests\test_coordinator.py .F                                             [100%]
+
+================================== FAILURES ===================================
+______________________ test_update_data_handles_timeout _______________________
+
+self = <custom_components.meraki_ha.coordinators.main.MerakiMainCoordinator object at 0x000001CD899327B0>
+
+    async def _async_update_data(self) -> dict[str, Any]:
+        """Fetch data from API endpoint, apply filters, and handle exceptions."""
+        try:
+>           data = await self._execute_update_cycle()
+
+custom_components\meraki_ha\coordinators\main.py:51:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+custom_components\meraki_ha\coordinators\main.py:83: in _execute_update_cycle
+    data = await self.data_fetch_manager.get_sensor_data(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <AsyncMock name='mock.get_sensor_data' id='1982287992528'>
+args = ({'test': 'data'},), kwargs = {'timespan': 600}
+_call = call({'test': 'data'}, timespan=600), effect = TimeoutError()
+
+    async def _execute_mock_call(self, /, *args, **kwargs):
+        # This is nearly just like super(), except for special handling
+        # of coroutines
+
+        _call = _Call((args, kwargs), two=True)
+        self.await_count += 1
+        self.await_args = _call
+        self.await_args_list.append(_call)
+
+        effect = self.side_effect
+        if effect is not None:
+            if _is_exception(effect):
+>               raise effect
+E               TimeoutError
+
+C:\Users\brewm\AppData\Roaming\uv\python\cpython-3.12.12-windows-x86_64-none\Lib\unittest\mock.py:2291: TimeoutError
+
+The above exception was the direct cause of the following exception:
+
+coordinator = <custom_components.meraki_ha.coordinators.main.MerakiMainCoordinator object at 0x000001CD899327B0>
+mock_data_fetch_manager = <MagicMock id='1982288037888'>
+
+    @pytest.mark.asyncio
+    async def test_update_data_handles_timeout(coordinator, mock_data_fetch_manager):
+        """Test that _async_update_data handles timeout."""
+        # Action 2: Ensure side_effect raises a real exception
+        mock_data_fetch_manager.get_sensor_data.side_effect = asyncio.TimeoutError()
+
+        # Act & Assert
+
+        # 1. Test with stale data (should return stale data after logging error)
+        coordinator.last_successful_data = {"test": "data"}
+>       data = await coordinator._async_update_data()
+
+tests\test_coordinator.py:100:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <custom_components.meraki_ha.coordinators.main.MerakiMainCoordinator object at 0x000001CD899327B0>
+
+    async def _async_update_data(self) -> dict[str, Any]:
+        """Fetch data from API endpoint, apply filters, and handle exceptions."""
+        try:
+            data = await self._execute_update_cycle()
+
+            # Record success and potentially reset interval
+            updated = self.polling_manager.record_success()
+            # In tiered mode, we maintain our own fast poll interval
+            # unless the polling manager forces a specific backoff
+            if updated and self.polling_manager.update_interval:
+                if self.polling_manager.update_interval > self.update_interval:
+                    self.apply_polling_update(updated)
+
+            return data
+        except Exception as err:
+            _LOGGER.error("Error fetching Meraki main data: %s", err)
+
+            # Record failure and potentially back off
+            updated = self.polling_manager.record_failure(err)
+            self.apply_polling_update(updated)
+
+            if "429" in str(err):
+                raise UpdateFailed(f"Meraki API rate limit: {err}") from err
+
+>           raise UpdateFailed(f"Error fetching Meraki data: {err}") from err
+E           homeassistant.helpers.update_coordinator.UpdateFailed: Error fetching Meraki data:
+
+custom_components\meraki_ha\coordinators\main.py:72: UpdateFailed
+---------------------------- Captured stderr call -----------------------------
+--- Logging error ---
+Traceback (most recent call last):
+  File "D:\Code\meraki-homeassistant\custom_components\meraki_ha\coordinators\main.py", line 51, in _async_update_data
+    data = await self._execute_update_cycle()
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Code\meraki-homeassistant\custom_components\meraki_ha\coordinators\main.py", line 83, in _execute_update_cycle
+    data = await self.data_fetch_manager.get_sensor_data(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\brewm\AppData\Roaming\uv\python\cpython-3.12.12-windows-x86_64-none\Lib\unittest\mock.py", line 2291, in _execute_mock_call
+    raise effect
+TimeoutError
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\brewm\AppData\Roaming\uv\python\cpython-3.12.12-windows-x86_64-none\Lib\logging\__init__.py", line 1163, in emit
+    stream.write(msg + self.terminator)
+OSError: [WinError 6] The handle is invalid
+Call stack:
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "D:\Code\meraki-homeassistant\.venv\Scripts\pytest.exe\__main__.py", line 10, in <module>
+    sys.exit(console_main())
+  File "D:\Code\meraki-homeassistant\.venv\Lib\site-packages\_pytest\config\__init__.py", line 201, in console_main
+    code = main()
+  File "D:\Code\meraki-homeassistant\.venv\Lib\site-packages\_pytest\config\__init__.py", line 175, in main
+    ret: ExitCode | int = config.hook.pytest_cmdline_main(config=config)
+  File "D:\Code\meraki-homeassistant\.venv\Lib\site-packages\pluggy\_hooks.py", line 512, in __call__
+    return self._hookexec(self.name, self._hookimpls.copy(), kwargs, firstresult)
+  File "D:\Code\meraki-homeassistant\.venv\Lib\site-packages\pluggy\_manager.py", line 120, in _hookexec
+    return self._inner_hookexec(hook_name, methods, kwargs, firstresult)
+  File "D:\Code\meraki-homeassistant\.venv\Lib\site-packages\pluggy\_callers.py", line 121, in _multicall
+    res = hook_impl.function(*args)
+  File "D:\Code\meraki-homeassistant\.venv\Lib\site-packages\_pytest\main.py", line 330, in pytest_cmdline_main
+    return wrap_session(config, _main)
+  File "D:\Code\meraki-homeassistant\.venv\Lib\site-packages\_pytest\main.py", line 283, in wrap_session
+    session.exitstatus = doit(config, session) or 0
+  File "D:\Code\meraki-homeassistant\.venv\Lib\site-packages\_pytest\main.py", line 337, in _main
+    config.hook.pytest_runtestloop(session=session)
+  File "D:\Code\meraki-homeassistant\.venv\Lib\site-packages\pluggy\_hooks.py", line 512, in __call__
+    return self._hookexec(self.name, self._hookimpls.copy(), kwargs, firstresult)
+  File "D:\Code\meraki-homeassistant\.venv\Lib\site-packages\pluggy\_manager.py", line 120, in _hookexec
+    return self._inner_hookexec(hook_name, methods, kwargs, firstresult)
+  File "D:\Code\meraki-homeassistant\.venv\Lib\site-packages\pluggy\_callers.py", line 121, in _multicall
+    res = hook_impl.function(*args)
+  File "D:\Code\meraki-homeassistant\.venv\Lib\site-packages\_pytest\main.py", line 362, in pytest_runtestloop
+    item.config.hook.pytest_runtest_protocol(item=item, nextitem=nextitem)
+  File "D:\Code\meraki-homeassistant\.venv\Lib\site-packages\pluggy\_hooks.py", line 512, in __call__
+    return self._hookexec(self.name, self._hookimpls.copy(), kwargs, firstresult)
+  File "D:\Code\meraki-homeassistant\.venv\Lib\site-packages\pluggy\_manager.py", line 120, in _hookexec
+    return self._inner_hookexec(hook_name, methods, kwargs, firstresult)
+  File "D:\Code\meraki-homeassistant\.venv\Lib\site-packages\pluggy\_callers.py", line 121, in _multicall
+    res = hook_impl.function(*args)
+  File "D:\Code\meraki-homeassistant\.venv\Lib\site-packages\_pytest\runner.py", line 113, in pytest_runtest_protocol
+    runtestprotocol(item, nextitem=nextitem)
+  File "D:\Code\meraki-homeassistant\.venv\Lib\site-packages\_pytest\runner.py", line 132, in runtestprotocol
+    reports.append(call_and_report(item, "call", log))
+  File "D:\Code\meraki-homeassistant\.venv\Lib\site-packages\_pytest\runner.py", line 241, in call_and_report
+    call = CallInfo.from_call(
+  File "D:\Code\meraki-homeassistant\.venv\Lib\site-packages\_pytest\runner.py", line 341, in from_call
+    result: TResult | None = func()
+  File "D:\Code\meraki-homeassistant\.venv\Lib\site-packages\_pytest\runner.py", line 242, in <lambda>
+    lambda: runtest_hook(item=item, **kwds), when=when, reraise=reraise
+  File "D:\Code\meraki-homeassistant\.venv\Lib\site-packages\pluggy\_hooks.py", line 512, in __call__
+    return self._hookexec(self.name, self._hookimpls.copy(), kwargs, firstresult)
+  File "D:\Code\meraki-homeassistant\.venv\Lib\site-packages\pluggy\_manager.py", line 120, in _hookexec
+    return self._inner_hookexec(hook_name, methods, kwargs, firstresult)
+  File "D:\Code\meraki-homeassistant\.venv\Lib\site-packages\pluggy\_callers.py", line 121, in _multicall
+    res = hook_impl.function(*args)
+  File "D:\Code\meraki-homeassistant\.venv\Lib\site-packages\_pytest\runner.py", line 174, in pytest_runtest_call
+    item.runtest()
+  File "D:\Code\meraki-homeassistant\.venv\Lib\site-packages\pytest_asyncio\plugin.py", line 457, in runtest
+    super().runtest()
+  File "D:\Code\meraki-homeassistant\.venv\Lib\site-packages\_pytest\python.py", line 1627, in runtest
+    self.ihook.pytest_pyfunc_call(pyfuncitem=self)
+  File "D:\Code\meraki-homeassistant\.venv\Lib\site-packages\pluggy\_hooks.py", line 512, in __call__
+    return self._hookexec(self.name, self._hookimpls.copy(), kwargs, firstresult)
+  File "D:\Code\meraki-homeassistant\.venv\Lib\site-packages\pluggy\_manager.py", line 120, in _hookexec
+    return self._inner_hookexec(hook_name, methods, kwargs, firstresult)
+  File "D:\Code\meraki-homeassistant\.venv\Lib\site-packages\pluggy\_callers.py", line 121, in _multicall
+    res = hook_impl.function(*args)
+  File "D:\Code\meraki-homeassistant\.venv\Lib\site-packages\_pytest\python.py", line 159, in pytest_pyfunc_call
+    result = testfunction(**testargs)
+  File "D:\Code\meraki-homeassistant\.venv\Lib\site-packages\pytest_asyncio\plugin.py", line 929, in inner
+    _loop.run_until_complete(task)
+  File "C:\Users\brewm\AppData\Roaming\uv\python\cpython-3.12.12-windows-x86_64-none\Lib\asyncio\base_events.py", line 678, in run_until_complete
+    self.run_forever()
+  File "C:\Users\brewm\AppData\Roaming\uv\python\cpython-3.12.12-windows-x86_64-none\Lib\asyncio\windows_events.py", line 322, in run_forever
+    super().run_forever()
+  File "C:\Users\brewm\AppData\Roaming\uv\python\cpython-3.12.12-windows-x86_64-none\Lib\asyncio\base_events.py", line 645, in run_forever
+    self._run_once()
+  File "C:\Users\brewm\AppData\Roaming\uv\python\cpython-3.12.12-windows-x86_64-none\Lib\asyncio\base_events.py", line 1991, in _run_once
+    handle._run()
+  File "C:\Users\brewm\AppData\Roaming\uv\python\cpython-3.12.12-windows-x86_64-none\Lib\asyncio\events.py", line 88, in _run
+    self._context.run(self._callback, *self._args)
+  File "D:\Code\meraki-homeassistant\tests\test_coordinator.py", line 100, in test_update_data_handles_timeout
+    data = await coordinator._async_update_data()
+  File "D:\Code\meraki-homeassistant\custom_components\meraki_ha\coordinators\main.py", line 63, in _async_update_data
+    _LOGGER.error("Error fetching Meraki main data: %s", err)
+Message: 'Error fetching Meraki main data: %s'
+Arguments: (TimeoutError(),)
+------------------------------ Captured log call ------------------------------
+ERROR    custom_components.meraki_ha.coordinators.main:main.py:63 Error fetching Meraki main data:
+============================== warnings summary ===============================
+.venv\Lib\site-packages\_pytest\config\__init__.py:1441
+  D:\Code\meraki-homeassistant\.venv\Lib\site-packages\_pytest\config\__init__.py:1441: PytestConfigWarning: Unknown config option: allow_hosts
+
+    self._warn_or_fail_if_strict(f"Unknown config option: {key}\n")
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+FAILED tests/test_coordinator.py::test_update_data_handles_timeout - homeassi...
+=================== 1 failed, 1 passed, 1 warning in 1.73s ====================

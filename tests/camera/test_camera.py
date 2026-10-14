@@ -5,9 +5,9 @@ import time
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-from homeassistant.core import HomeAssistant
 
 from custom_components.meraki_ha.camera import MerakiRTSPStreamCamera
+from homeassistant.core import HomeAssistant
 from tests.const import MOCK_CAMERA_DEVICE
 
 
@@ -162,6 +162,40 @@ async def test_camera_extra_state_attributes(mock_camera):
     assert mock_camera.extra_state_attributes == {
         "rtsp_url": MOCK_CAMERA_DEVICE.rtsp_url
     }
+
+
+async def test_camera_extra_state_attributes_mv44x(
+    mock_coordinator: MagicMock,
+    mock_config_entry: MagicMock,
+    mock_camera_service: AsyncMock,
+) -> None:
+    """Test the extra state attributes for MV44X."""
+    mv44x_device = dataclasses.replace(MOCK_CAMERA_DEVICE, model="MV44X")
+    mock_coordinator.get_device.return_value = mv44x_device
+    camera = MerakiRTSPStreamCamera(
+        coordinator=mock_coordinator,
+        device=mv44x_device,
+        camera_service=mock_camera_service,
+        config_entry=mock_config_entry,
+    )
+    assert camera.extra_state_attributes["aspect_ratio"] == "32:9"
+
+
+async def test_camera_extra_state_attributes_imager_index(
+    mock_coordinator: MagicMock,
+    mock_config_entry: MagicMock,
+    mock_camera_service: AsyncMock,
+) -> None:
+    """Test the extra state attributes for multi-sensor imager index."""
+    imager_device = dataclasses.replace(MOCK_CAMERA_DEVICE, serial="QXXX-XXXX-XXXX-1")
+    mock_coordinator.get_device.return_value = imager_device
+    camera = MerakiRTSPStreamCamera(
+        coordinator=mock_coordinator,
+        device=imager_device,
+        camera_service=mock_camera_service,
+        config_entry=mock_config_entry,
+    )
+    assert camera.extra_state_attributes["imager_index"] == 1
 
 
 async def test_async_enable_rtsp(

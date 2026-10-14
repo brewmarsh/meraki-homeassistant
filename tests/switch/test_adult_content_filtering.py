@@ -3,11 +3,11 @@
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
-from homeassistant.const import EntityCategory
 
 from custom_components.meraki_ha.switch.adult_content_filtering import (
     MerakiAdultContentFilteringSwitch,
 )
+from homeassistant.const import EntityCategory
 
 
 @pytest.fixture

@@ -57,7 +57,7 @@ class MerakiMtSensor(MerakiSensor, RestoreSensor):
         if (last_sensor_data := await self.async_get_last_sensor_data()) is not None:
             value = last_sensor_data.native_value
             if value is not UNDEFINED:
-                if isinstance(value, (str, float, bool)):
+                if isinstance(value, str | float | bool):
                     self._attr_native_value = value
                 elif isinstance(value, int):
                     self._attr_native_value = float(value)

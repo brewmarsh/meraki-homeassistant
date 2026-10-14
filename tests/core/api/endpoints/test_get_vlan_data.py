@@ -16,7 +16,7 @@ def mock_client():
     client.dashboard = MagicMock()
     client.organization = MagicMock()
     client.organization.get_organization_networks = AsyncMock()
-    client.run_sync = AsyncMock()
+    client.run_async = AsyncMock()
     return client
 
 
@@ -34,12 +34,12 @@ async def test_get_vlan_data_supported_appliance(network_endpoints, mock_client)
         {"id": network_id, "productTypes": ["appliance"]}
     ]
     mock_vlan_data = [{"id": "vlan1"}]
-    mock_client.run_sync.return_value = mock_vlan_data
+    mock_client.run_async.return_value = mock_vlan_data
 
     result = await network_endpoints.get_vlan_data(network_id)
 
     assert result == mock_vlan_data
-    mock_client.run_sync.assert_called_with(
+    mock_client.run_async.assert_called_with(
         mock_client.dashboard.appliance.getNetworkApplianceVlans, networkId=network_id
     )
 
@@ -55,7 +55,7 @@ async def test_get_vlan_data_unsupported_network(network_endpoints, mock_client)
     result = await network_endpoints.get_vlan_data(network_id)
 
     assert result == []
-    mock_client.run_sync.assert_not_called()
+    mock_client.run_async.assert_not_called()
 
 
 @pytest.mark.asyncio
@@ -84,14 +84,16 @@ async def test_get_vlan_data_vlan_disabled_graceful_fail(
     ]
 
     # Raise MerakiVlansDisabledError
-    mock_client.run_sync.side_effect = MerakiVlansDisabledError("VLANs are not enabled")
+    mock_client.run_async.side_effect = MerakiVlansDisabledError(
+        "VLANs are not enabled"
+    )
 
     result = await network_endpoints.get_vlan_data(network_id)
 
     assert result == []
     # Verify called once
-    assert mock_client.run_sync.call_count == 1
-    mock_client.run_sync.assert_called_with(
+    assert mock_client.run_async.call_count == 1
+    mock_client.run_async.assert_called_with(
         mock_client.dashboard.appliance.getNetworkApplianceVlans, networkId=network_id
     )
 
@@ -110,7 +112,7 @@ async def test_get_vlan_data_api_error_graceful_fail(network_endpoints, mock_cli
     response.status_code = 400
     response.json.return_value = {"errors": ["Some API Error"]}
 
-    mock_client.run_sync.side_effect = APIError(metadata, response)
+    mock_client.run_async.side_effect = APIError(metadata, response)
 
     result = await network_endpoints.get_vlan_data(network_id)
 

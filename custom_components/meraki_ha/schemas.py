@@ -5,9 +5,11 @@ from __future__ import annotations
 from typing import Any
 
 import voluptuous as vol
-from homeassistant.helpers import selector
 
 from custom_components.meraki_ha.const.config import (
+    AUTH_TYPE_API_KEY,
+    AUTH_TYPE_OAUTH,
+    CONF_AUTH_TYPE,
     CONF_ENABLE_CAMERA_ENTITIES,
     CONF_ENABLE_CAMERA_SENSE,
     CONF_ENABLE_CLIENT_STATUS_SENSORS,
@@ -26,6 +28,7 @@ from custom_components.meraki_ha.const.config import (
     CONF_ENABLED_NETWORKS,
     CONF_MERAKI_API_KEY,
     CONF_MERAKI_ORG_ID,
+    CONF_OAUTH_TOKEN,
     CONF_SCAN_INTERVAL,
     DEFAULT_ENABLE_CAMERA_ENTITIES,
     DEFAULT_ENABLE_CAMERA_SENSE,
@@ -45,6 +48,7 @@ from custom_components.meraki_ha.const.config import (
     DEFAULT_ENABLED_NETWORKS,
     DEFAULT_SCAN_INTERVAL,
 )
+from homeassistant.helpers import selector
 
 CONFIG_SCHEMA = vol.Schema(
     {
@@ -54,13 +58,35 @@ CONFIG_SCHEMA = vol.Schema(
     }
 )
 
-STEP_USER_DATA_SCHEMA = vol.Schema(
-    {
-        vol.Required(CONF_MERAKI_API_KEY): selector.TextSelector(
-            selector.TextSelectorConfig(type=selector.TextSelectorType.PASSWORD)
-        ),
-    }
-)
+AUTH_METHOD_OPTIONS: list[selector.SelectOptionDict] = [
+    selector.SelectOptionDict(label="API Key", value=AUTH_TYPE_API_KEY),
+    selector.SelectOptionDict(label="OAuth 2.0", value=AUTH_TYPE_OAUTH),
+]
+
+
+def get_reconfigure_schema(current_auth_type: str = AUTH_TYPE_API_KEY) -> vol.Schema:
+    """Return schema for configuring or reconfiguring authentication."""
+    return vol.Schema(
+        {
+            vol.Required(
+                CONF_AUTH_TYPE, default=current_auth_type
+            ): selector.SelectSelector(
+                selector.SelectSelectorConfig(
+                    options=AUTH_METHOD_OPTIONS,
+                    mode=selector.SelectSelectorMode.DROPDOWN,
+                )
+            ),
+            vol.Optional(CONF_MERAKI_API_KEY): selector.TextSelector(
+                selector.TextSelectorConfig(type=selector.TextSelectorType.PASSWORD)
+            ),
+            vol.Optional(CONF_OAUTH_TOKEN): selector.TextSelector(
+                selector.TextSelectorConfig(type=selector.TextSelectorType.PASSWORD)
+            ),
+        }
+    )
+
+
+STEP_USER_DATA_SCHEMA = get_reconfigure_schema(AUTH_TYPE_API_KEY)
 
 
 def get_org_selection_schema(orgs: list[dict[str, Any]]) -> vol.Schema:

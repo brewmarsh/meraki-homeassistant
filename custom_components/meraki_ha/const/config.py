@@ -10,6 +10,18 @@ CONF_INTEGRATION_TITLE: Final = "Meraki"
 CONF_MERAKI_API_KEY: Final = "api_key"
 """Configuration key for the Meraki API key."""
 
+CONF_AUTH_TYPE: Final = "auth_type"
+"""Configuration key for the authentication type."""
+
+AUTH_TYPE_API_KEY: Final = "api_key"
+"""API key authentication method."""
+
+AUTH_TYPE_OAUTH: Final = "oauth"
+"""OAuth authentication method."""
+
+CONF_OAUTH_TOKEN: Final = "oauth_token"
+"""Configuration key for direct OAuth token."""
+
 CONF_MERAKI_ORG_ID: Final = "organization_id"
 """Configuration key for the Meraki organization ID."""
 

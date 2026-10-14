@@ -26,7 +26,7 @@ async def clean_exit_wait_for(coro, timeout=None, **kwargs):
             await coro
         except (asyncio.CancelledError, Exception):
             pass
-    raise asyncio.TimeoutError()
+    raise TimeoutError()
 
 
 async def mock_gather_and_close(tasks, **kwargs):
@@ -43,6 +43,7 @@ def mock_client():
     client = MagicMock()
     client._disabled_features = set()
     client.has_dashboard = True
+    client.enabled_networks = None
 
     # Ensure run_with_cache is an AsyncMock and works
     async def mock_run_with_cache(cache_key, func, ttl=None):

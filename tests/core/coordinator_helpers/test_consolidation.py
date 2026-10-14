@@ -15,6 +15,7 @@ def mock_client():
     client = MagicMock()
     client._disabled_features = set()
     client.has_dashboard = True
+    client.enabled_networks = None
 
     # Mock run_with_semaphore to return an awaitable that returns its input
     # if it was a coro or just returns a mock result.

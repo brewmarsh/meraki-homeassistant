@@ -15,6 +15,7 @@ def mock_client():
     client = MagicMock()
     client._disabled_features = set()
     client.has_dashboard = True
+    client.enabled_networks = None
 
     # Mock run_with_semaphore to be a simple pass-through for tests
     async def run_with_sem(coro):

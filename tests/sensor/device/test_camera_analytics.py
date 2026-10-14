@@ -69,3 +69,41 @@ async def test_vehicle_count_sensor(mock_coordinator):
 
     # Assert
     assert sensor.native_value == 10
+
+
+@pytest.mark.asyncio
+async def test_independent_imager_analytics(mock_coordinator):
+    """Test that two imagers of the same unit have independent sensors."""
+    # Unit base serial: QXXX-XXXX-XXXX
+    imager1 = MerakiDevice(
+        serial="QXXX-XXXX-XXXX-1",
+        model="MV84X",
+        product_type="camera",
+        camera_analytics=[{"zoneId": 0, "person_count": 3}],
+    )
+    imager2 = MerakiDevice(
+        serial="QXXX-XXXX-XXXX-2",
+        model="MV84X",
+        product_type="camera",
+        camera_analytics=[{"zoneId": 0, "person_count": 7}],
+    )
+
+    def side_effect(serial):
+        if serial == "QXXX-XXXX-XXXX-1":
+            return imager1
+        if serial == "QXXX-XXXX-XXXX-2":
+            return imager2
+        return None
+
+    mock_coordinator.get_device.side_effect = side_effect
+
+    sensor1 = MerakiPersonCountSensor(mock_coordinator, imager1)
+    sensor2 = MerakiPersonCountSensor(mock_coordinator, imager2)
+
+    # Unique IDs should be distinct (using the full serial)
+    assert sensor1.unique_id == "QXXX-XXXX-XXXX-1-person-count"
+    assert sensor2.unique_id == "QXXX-XXXX-XXXX-2-person-count"
+
+    # Values should be independent
+    assert sensor1.native_value == 3
+    assert sensor2.native_value == 7

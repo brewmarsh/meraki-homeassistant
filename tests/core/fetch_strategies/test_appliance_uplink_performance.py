@@ -19,11 +19,11 @@ def mock_client():
     client.dashboard = MagicMock()
     client.dashboard.appliance = MagicMock()
 
-    # Mock run_sync to execute the function directly
-    async def mock_run_sync(func, *args, **kwargs):
+    # Mock run_async to execute the function directly
+    async def mock_run_async(func, *args, **kwargs):
         return func(*args, **kwargs)
 
-    client.run_sync.side_effect = mock_run_sync
+    client.run_async.side_effect = mock_run_async
 
     return client
 

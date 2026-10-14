@@ -2,12 +2,11 @@
 
 import logging
 
+from custom_components.meraki_ha.const.integration import DOMAIN
 from homeassistant.components.sensor import SensorStateClass
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import callback
 from homeassistant.helpers.device_registry import DeviceInfo
-
-from custom_components.meraki_ha.const.integration import DOMAIN
 
 from ...coordinators import MerakiMainCoordinator
 from ...core.utils.naming_utils import standardize_device_name
@@ -83,6 +82,6 @@ class MerakiOrganizationDeviceTypeClientsSensor(MerakiSensor):
     @property
     def native_value(self) -> int:
         """Return the state of the sensor."""
-        if isinstance(self._attr_native_value, (int, str, float)):
+        if isinstance(self._attr_native_value, int | str | float):
             return int(self._attr_native_value)
         return 0

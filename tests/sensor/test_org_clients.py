@@ -2,13 +2,12 @@
 
 from unittest.mock import MagicMock
 
-from homeassistant.core import HomeAssistant
-
 from custom_components.meraki_ha.sensor.org.org_clients import (
     MerakiOrganizationApplianceClientsSensor,
     MerakiOrganizationSSIDClientsSensor,
     MerakiOrganizationWirelessClientsSensor,
 )
+from homeassistant.core import HomeAssistant
 
 
 async def test_meraki_organization_ssid_clients_sensor(

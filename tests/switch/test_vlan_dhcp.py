@@ -57,13 +57,17 @@ def test_vlan_dhcp_switch_creation(
 ) -> None:
     """Test that the VLAN DHCP switch is created correctly."""
     hass = MagicMock()
-    entities = []
+    entities: list = []
+
+    def mock_add_entities(new_entities, update_before_add=False):
+        entities.extend(new_entities)
+
     async_setup_switches(
         hass,
         mock_config_entry_with_vlan_management,
         mock_coordinator_with_vlan_data,
         mock_meraki_client,
-        entities.extend,
+        mock_add_entities,
     )
 
     assert len(entities) == 1
@@ -72,7 +76,6 @@ def test_vlan_dhcp_switch_creation(
     assert isinstance(switch, MerakiVLANDHCPSwitch)
     assert switch.unique_id == "meraki_vlan_net1_1_dhcp_handling"
 
-    # RESOLVED: Asserting the descriptive name from beta
     assert switch.name == "VLAN 1 (VLAN 1) DHCP"
     assert switch.is_on is True
 
@@ -112,13 +115,17 @@ def test_vlan_dhcp_switch_attributes(
     mock_coordinator.is_pending.return_value = False
 
     hass = MagicMock()
-    entities = []
+    entities: list = []
+
+    def mock_add_entities(new_entities, update_before_add=False):
+        entities.extend(new_entities)
+
     async_setup_switches(
         hass,
         mock_config_entry_with_vlan_management,
         mock_coordinator,
         mock_meraki_client,
-        entities.extend,
+        mock_add_entities,
     )
 
     assert len(entities) == 1
@@ -142,13 +149,17 @@ def test_vlan_dhcp_switch_off_state(
     ].dhcp_handling = "Do not respond to DHCP requests"
 
     hass = MagicMock()
-    entities = []
+    entities: list = []
+
+    def mock_add_entities(new_entities, update_before_add=False):
+        entities.extend(new_entities)
+
     async_setup_switches(
         hass,
         mock_config_entry_with_vlan_management,
         mock_coordinator_with_vlan_data,
         mock_meraki_client,
-        entities.extend,
+        mock_add_entities,
     )
 
     assert len(entities) == 1
@@ -165,12 +176,16 @@ def test_vlan_dhcp_switch_creation_disabled(
     """Test that the VLAN DHCP switch is not created if the feature is disabled."""
     mock_config_entry.options = {CONF_ENABLE_VLAN_MANAGEMENT: False}
     hass = MagicMock()
-    entities = []
+    entities: list = []
+
+    def mock_add_entities(new_entities, update_before_add=False):
+        entities.extend(new_entities)
+
     async_setup_switches(
         hass,
         mock_config_entry,
         mock_coordinator_with_vlan_data,
         mock_meraki_client,
-        entities.extend,
+        mock_add_entities,
     )
     assert len(entities) == 0

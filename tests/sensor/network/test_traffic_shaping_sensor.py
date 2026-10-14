@@ -3,11 +3,11 @@
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
-from homeassistant.const import EntityCategory
 
 from custom_components.meraki_ha.const.config import CONF_ENABLE_TRAFFIC_SHAPING
 from custom_components.meraki_ha.discovery.service import DeviceDiscoveryService
 from custom_components.meraki_ha.types import MerakiNetwork
+from homeassistant.const import EntityCategory
 
 
 @pytest.fixture
@@ -53,13 +53,6 @@ async def test_traffic_shaping_sensor_creation_enabled(mock_coordinator):
     # Run the setup
     discovery_service = DeviceDiscoveryService(
         mock_coordinator,
-        mock_coordinator,
-        mock_coordinator,
-        mock_coordinator,
-        mock_coordinator,
-        mock_coordinator,
-        mock_coordinator,
-        mock_coordinator,
         mock_coordinator.config_entry,
         MagicMock(),
         MagicMock(),
@@ -98,13 +91,6 @@ async def test_traffic_shaping_sensor_creation_disabled(mock_coordinator):
 
     # Run the setup
     discovery_service = DeviceDiscoveryService(
-        mock_coordinator,
-        mock_coordinator,
-        mock_coordinator,
-        mock_coordinator,
-        mock_coordinator,
-        mock_coordinator,
-        mock_coordinator,
         mock_coordinator,
         mock_coordinator.config_entry,
         MagicMock(),

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import logging
 import time
 from datetime import datetime, timedelta
@@ -65,6 +66,12 @@ class MerakiMainCoordinator(MerakiBaseCoordinator[dict[str, Any]]):
             # Record failure and potentially back off
             updated = self.polling_manager.record_failure(err)
             self.apply_polling_update(updated)
+
+            if self.last_successful_data:
+                return self.last_successful_data
+
+            if isinstance(err, asyncio.TimeoutError):
+                raise UpdateFailed(f"API Timeout error: {err}") from err
 
             if "429" in str(err):
                 raise UpdateFailed(f"Meraki API rate limit: {err}") from err

@@ -1,9 +1,16 @@
 import { html, css } from 'lit';
 
-export const renderWarning = (title: string, message: string, version?: string) => html`
+export const renderWarning = (
+  title: string,
+  message: string,
+  version?: string
+) => html`
   <ha-card class="status-card warning">
     <div class="card-content flex-col align-center p-8">
-      <ha-icon icon="mdi:alert-circle" style="--mdc-icon-size: 48px; margin-bottom: 16px;"></ha-icon>
+      <ha-icon
+        icon="mdi:alert-circle"
+        style="--mdc-icon-size: 48px; margin-bottom: 16px;"
+      ></ha-icon>
       <h1 class="status-title">${title}</h1>
       <div class="status-message mt-4">${message}</div>
     </div>
@@ -11,7 +18,11 @@ export const renderWarning = (title: string, message: string, version?: string) 
   </ha-card>
 `;
 
-export const renderLoadingState = (title: string, message: string, version: string) => html`
+export const renderLoadingState = (
+  title: string,
+  message: string,
+  version: string
+) => html`
   <ha-card class="status-card loading">
     <div class="card-content flex-col align-center p-8">
       <h1 class="status-title">${title}</h1>
@@ -73,11 +84,25 @@ export const sharedStyles = css`
     }
   }
 
-  .flex-col { display: flex; flex-direction: column; }
-  .flex-col-center { display: flex; flex-direction: column; align-items: center; justify-content: center; }
-  .align-center { align-items: center; }
-  .p-8 { padding: 32px; }
-  .mt-4 { margin-top: 16px; }
+  .flex-col {
+    display: flex;
+    flex-direction: column;
+  }
+  .flex-col-center {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+  .align-center {
+    align-items: center;
+  }
+  .p-8 {
+    padding: 32px;
+  }
+  .mt-4 {
+    margin-top: 16px;
+  }
 
   .qr-container {
     background: white;

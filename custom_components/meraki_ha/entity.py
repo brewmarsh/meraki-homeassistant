@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import logging
-from typing import TYPE_CHECKING, Any, Generic, TypeVar
+from typing import TYPE_CHECKING, Any, TypeVar
 
 from homeassistant.components.binary_sensor import BinarySensorEntity
 from homeassistant.components.device_tracker.config_entry import ScannerEntity
@@ -21,7 +21,7 @@ T = TypeVar("T", bound="MerakiBaseCoordinator")
 _LOGGER = logging.getLogger(__name__)
 
 
-class MerakiEntity(CoordinatorEntity[T], Generic[T]):
+class MerakiEntity[T: "MerakiBaseCoordinator"](CoordinatorEntity[T]):
     """Base Cisco Meraki entity."""
 
     _attr_has_entity_name = True
@@ -156,21 +156,23 @@ class MerakiEntity(CoordinatorEntity[T], Generic[T]):
         return None
 
 
-class MerakiSensor(MerakiEntity[T], SensorEntity, Generic[T]):
+class MerakiSensor[T: "MerakiBaseCoordinator"](MerakiEntity[T], SensorEntity):
     """Base Cisco Meraki sensor entity."""
 
 
-class MerakiBinarySensor(MerakiEntity[T], BinarySensorEntity, Generic[T]):
+class MerakiBinarySensor[T: "MerakiBaseCoordinator"](
+    MerakiEntity[T], BinarySensorEntity
+):
     """Base Cisco Meraki binary sensor entity."""
 
 
-class MerakiSelect(MerakiEntity[T], SelectEntity, Generic[T]):
+class MerakiSelect[T: "MerakiBaseCoordinator"](MerakiEntity[T], SelectEntity):
     """Base Cisco Meraki select entity."""
 
 
-class MerakiSwitch(MerakiEntity[T], SwitchEntity, Generic[T]):
+class MerakiSwitch[T: "MerakiBaseCoordinator"](MerakiEntity[T], SwitchEntity):
     """Base Cisco Meraki switch entity."""
 
 
-class MerakiDeviceTracker(MerakiEntity[T], ScannerEntity, Generic[T]):
+class MerakiDeviceTracker[T: "MerakiBaseCoordinator"](MerakiEntity[T], ScannerEntity):
     """Base Cisco Meraki device tracker entity."""

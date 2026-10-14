@@ -8,12 +8,20 @@ from typing import TYPE_CHECKING, Any
 from urllib.parse import urlparse
 
 from aiohttp import web
+
+from custom_components.meraki_ha.const.integration import DOMAIN
+from custom_components.meraki_ha.const.webhooks import (
+    ALERT_TYPE_AP_DOWN,
+    ALERT_TYPE_CLIENT_CONNECTIVITY,
+    ALERT_TYPE_MOTION_DETECTED,
+    ALERT_TYPE_PERSON_DETECTED,
+    EVENT_MERAKI_WEBHOOK_ALERT,
+    EVENT_TYPE_DEVICES_SEEN,
+)
 from homeassistant.components import webhook
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.network import NoURLAvailableError, get_url
-
-from custom_components.meraki_ha.const.integration import DOMAIN
-from custom_components.meraki_ha.const.webhooks import EVENT_MERAKI_WEBHOOK_ALERT
+from homeassistant.util import dt as dt_util
 
 from .core.errors import MerakiConnectionError
 
@@ -212,8 +220,6 @@ def _handle_ap_went_down_alert(data: dict, coordinator: Any) -> None:
 
 def _handle_camera_motion_alert(data: dict, coordinator: Any) -> None:
     """Handle the 'Motion detected' alert type."""
-    import time
-
     device_serial = data.get("deviceSerial")
     if not device_serial or not coordinator.data:
         return
@@ -230,7 +236,7 @@ def _handle_camera_motion_alert(data: dict, coordinator: Any) -> None:
             # Update the device object in the coordinator's data
             if hasattr(device, "last_motion_event"):
                 device.last_motion_event = {
-                    "timestamp": time.time(),
+                    "timestamp": dt_util.utcnow().timestamp(),
                     "alertData": data.get("alertData", {}),
                 }
                 coordinator.async_update_listeners()
@@ -239,8 +245,6 @@ def _handle_camera_motion_alert(data: dict, coordinator: Any) -> None:
 
 def _handle_camera_person_detected_alert(data: dict, coordinator: Any) -> None:
     """Handle the 'Person detected' alert type."""
-    import time
-
     device_serial = data.get("deviceSerial")
     if not device_serial or not coordinator.data:
         return
@@ -257,7 +261,7 @@ def _handle_camera_person_detected_alert(data: dict, coordinator: Any) -> None:
             # Update the device object in the coordinator's data
             if hasattr(device, "last_person_detected_event"):
                 device.last_person_detected_event = {
-                    "timestamp": time.time(),
+                    "timestamp": dt_util.utcnow().timestamp(),
                     "alertData": data.get("alertData", {}),
                 }
                 coordinator.async_update_listeners()
@@ -294,9 +298,9 @@ def _handle_client_connectivity_changed_alert(data: dict, coordinator: Any) -> N
             )
 
             # Add a timestamp to help with state synthesis/oscillation prevention
-            import time
-
-            coordinator.data["clients"][i]["last_webhook_update"] = time.time()
+            coordinator.data["clients"][i]["last_webhook_update"] = (
+                dt_util.utcnow().timestamp()
+            )
 
             coordinator.async_update_listeners()
             break
@@ -381,9 +385,9 @@ def _handle_devices_seen(data: dict[str, Any], coordinator: Any) -> None:
                     coordinator.data["clients"][i]["ssid"] = observation.get("ssid")
 
                 # Add a timestamp to help with state synthesis/oscillation prevention
-                import time
-
-                coordinator.data["clients"][i]["last_webhook_update"] = time.time()
+                coordinator.data["clients"][i]["last_webhook_update"] = (
+                    dt_util.utcnow().timestamp()
+                )
                 updated = True
                 break
 
@@ -397,15 +401,15 @@ def _dispatch_webhook_alert(data: dict[str, Any], coordinator: Any) -> None:
     alert_type = data.get("alertType")
     event_type = data.get("type")
 
-    if alert_type == "APs went down":
+    if alert_type == ALERT_TYPE_AP_DOWN:
         _handle_ap_went_down_alert(data, coordinator)
-    elif alert_type == "Motion detected":
+    elif alert_type == ALERT_TYPE_MOTION_DETECTED:
         _handle_camera_motion_alert(data, coordinator)
-    elif alert_type == "Person detected":
+    elif alert_type == ALERT_TYPE_PERSON_DETECTED:
         _handle_camera_person_detected_alert(data, coordinator)
-    elif alert_type == "Client connectivity changed":
+    elif alert_type == ALERT_TYPE_CLIENT_CONNECTIVITY:
         _handle_client_connectivity_changed_alert(data, coordinator)
-    elif event_type == "DevicesSeen":
+    elif event_type == EVENT_TYPE_DEVICES_SEEN:
         _handle_devices_seen(data, coordinator)
     else:
         _LOGGER.debug(

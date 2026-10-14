@@ -1,10 +1,8 @@
 """Tests for the Meraki data coordinator."""
 
-import asyncio
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-from homeassistant.helpers.update_coordinator import UpdateFailed
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.meraki_ha.const.config import (
@@ -17,6 +15,7 @@ from custom_components.meraki_ha.const.integration import DOMAIN
 from custom_components.meraki_ha.coordinators import (
     MerakiMainCoordinator as MerakiDataCoordinator,
 )
+from homeassistant.helpers.update_coordinator import UpdateFailed
 from tests.const import MOCK_NETWORK
 
 
@@ -35,6 +34,7 @@ def mock_data_fetch_manager():
     # Action 1: Use AsyncMock for awaited methods
     manager.get_all_data = AsyncMock()
     manager.get_device_data = AsyncMock()
+    manager.get_sensor_data = AsyncMock()
     return manager
 
 
@@ -63,7 +63,7 @@ def coordinator(hass, mock_api_client, mock_data_fetch_manager):
 async def test_update_data_handles_errors(coordinator, mock_data_fetch_manager):
     """Test that _async_update_data handles disabled features."""
     # Arrange
-    mock_data_fetch_manager.get_all_data.return_value = {
+    mock_data_fetch_manager.get_sensor_data.return_value = {
         "networks": [MOCK_NETWORK],
         "devices": [],
         "appliance_traffic": {
@@ -90,7 +90,7 @@ async def test_update_data_handles_errors(coordinator, mock_data_fetch_manager):
 async def test_update_data_handles_timeout(coordinator, mock_data_fetch_manager):
     """Test that _async_update_data handles timeout."""
     # Action 2: Ensure side_effect raises a real exception
-    mock_data_fetch_manager.get_all_data.side_effect = asyncio.TimeoutError()
+    mock_data_fetch_manager.get_sensor_data.side_effect = TimeoutError()
 
     # Act & Assert
 

@@ -4,13 +4,12 @@ from __future__ import annotations
 
 import logging
 from datetime import timedelta
-from typing import Any, Generic, TypeVar
+from typing import Any, TypeVar
 
+from custom_components.meraki_ha.const.integration import DOMAIN
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
-
-from custom_components.meraki_ha.const.integration import DOMAIN
 
 from ..core.api import MerakiApiClientProtocol as ApiClient
 from ..core.coordinator_helpers.config_helper import (
@@ -27,7 +26,7 @@ T = TypeVar("T")
 _LOGGER = logging.getLogger(__name__)
 
 
-class MerakiBaseCoordinator(DataUpdateCoordinator[T], Generic[T]):
+class MerakiBaseCoordinator[T](DataUpdateCoordinator[T]):
     """Base coordinator for Meraki API data."""
 
     config_entry: ConfigEntry

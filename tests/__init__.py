@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from typing import Any
 
-from homeassistant.core import HomeAssistant
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.meraki_ha.const.config import (
@@ -12,8 +11,8 @@ from custom_components.meraki_ha.const.config import (
     CONF_MERAKI_ORG_ID,
 )
 from custom_components.meraki_ha.const.integration import DOMAIN
-
-from .const import MERAKI_TEST_API_KEY, MERAKI_TEST_ORG_ID
+from homeassistant.core import HomeAssistant
+from tests.const import MERAKI_TEST_API_KEY, MERAKI_TEST_ORG_ID
 
 
 async def async_get_config_entry(

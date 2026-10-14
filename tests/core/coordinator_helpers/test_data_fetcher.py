@@ -14,6 +14,7 @@ def mock_client():
     """Mock the Meraki API client."""
     client = MagicMock()
     client._disabled_features = set()
+    client.enabled_networks = None
     return client
 
 

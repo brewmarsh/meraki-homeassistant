@@ -47,15 +47,19 @@ class MerakiConnectivityBinarySensor(MerakiBinarySensor):
             return False
 
         # We can use the model property if it's available
+        # and returns a boolean (not a Mock)
         if hasattr(device, "is_online"):
-            return device.is_online
+            val = device.is_online
+            if isinstance(val, bool):
+                return val
 
-        # Fallback to manual check if it's a dict
-        if isinstance(device, dict):
-            status = device.get("status")
-            return str(status).lower() in ("online", "alerting", "dormant")
-
-        return False
+        # Fallback to status status check
+        status = (
+            device.get("status")
+            if isinstance(device, dict)
+            else getattr(device, "status", None)
+        )
+        return str(status).lower() in ("online", "alerting", "dormant")
 
     @property
     def available(self) -> bool:

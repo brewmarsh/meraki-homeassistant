@@ -53,7 +53,7 @@ class MerakiSwitchPortBaseSensor(MerakiSensor, ABC):
             f"{self._device.serial}_{port_prefix}_{port_id}_{sensor_type}"
         )
         self._attr_name = f"Port {port_id}{name_suffix}"
-        self._last_state = None
+        self._last_state = self.native_value
 
     @property
     def available(self) -> bool:

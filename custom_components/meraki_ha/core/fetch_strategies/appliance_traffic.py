@@ -81,7 +81,7 @@ class ApplianceTrafficHelper:
 
     def _handle_vlan_error(self, key: str, data: Any) -> bool:
         """Handle VLAN errors and return True if feature should be disabled."""
-        if isinstance(data, (MerakiVlanError, MerakiVlansDisabledError)):
+        if isinstance(data, MerakiVlanError | MerakiVlansDisabledError):
             self._disabled_features.add(key)
             if isinstance(data, MerakiVlanError):
                 _LOGGER.info(str(data))

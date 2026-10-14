@@ -41,7 +41,7 @@ async def fetch_ha_states(session: aiohttp.ClientSession) -> list[dict[str, Any]
             if response.status == 200:
                 return await response.json()
             print(f"Error fetching entities: {response.status}")
-    except (aiohttp.ClientConnectorError, asyncio.TimeoutError) as e:
+    except (TimeoutError, aiohttp.ClientConnectorError) as e:
         print(f"Home Assistant API request failed: {e}")
     return []
 

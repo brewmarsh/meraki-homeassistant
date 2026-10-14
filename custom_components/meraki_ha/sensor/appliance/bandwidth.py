@@ -5,6 +5,7 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING, Any, Literal
 
+from custom_components.meraki_ha.const.integration import DOMAIN
 from homeassistant.components.sensor import (
     SensorDeviceClass,
     SensorEntityDescription,
@@ -13,8 +14,6 @@ from homeassistant.components.sensor import (
 from homeassistant.const import UnitOfDataRate
 from homeassistant.core import callback
 from homeassistant.helpers.device_registry import DeviceInfo
-
-from custom_components.meraki_ha.const.integration import DOMAIN
 
 from ...entity import MerakiSensor
 

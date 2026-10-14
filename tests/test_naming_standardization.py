@@ -1,7 +1,21 @@
 from custom_components.meraki_ha.core.utils.naming_utils import (
     format_device_name,
+    get_base_serial,
     standardize_device_name,
 )
+
+
+def test_get_base_serial():
+    assert get_base_serial("QXXX-XXXX-XXXX-1", "MV84X") == "QXXX-XXXX-XXXX"
+    assert get_base_serial("QXXX-XXXX-XXXX-2", "MV44X") == "QXXX-XXXX-XXXX"
+    assert get_base_serial("QXXX-XXXX-XXXX", "MV63") == "QXXX-XXXX-XXXX"
+    assert get_base_serial("QXXX-XXXX-XXXX-1", "MV63") == "QXXX-XXXX-XXXX-1"
+
+
+def test_standardize_device_name_multi_sensor():
+    assert standardize_device_name("Lobby Camera - 1") == "Meraki Lobby Camera"
+    assert standardize_device_name("Lobby Camera - 2") == "Meraki Lobby Camera"
+    assert standardize_device_name("Standard Camera") == "Meraki Standard Camera"
 
 
 def test_standardize_device_name():

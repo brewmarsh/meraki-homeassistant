@@ -8,7 +8,19 @@ from collections.abc import Generator
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
+
 from homeassistant.core import HomeAssistant
+
+# globally redirect DefaultResolver to ThreadedResolver to bypass aiodns restriction on Windows Proactor loop
+try:
+    import aiohttp.connector
+    import aiohttp.resolver
+
+    aiohttp.resolver.DefaultResolver = aiohttp.resolver.ThreadedResolver
+    aiohttp.resolver.AsyncResolver = aiohttp.resolver.ThreadedResolver
+    aiohttp.connector.DefaultResolver = aiohttp.resolver.ThreadedResolver
+except ImportError:
+    pass
 
 from custom_components.meraki_ha.const.integration import DOMAIN
 from tests.const import (
@@ -21,27 +33,45 @@ from tests.const import (
 
 if sys.platform == "win32":
     asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+    try:
+        import pytest_socket
+
+        pytest_socket.disable_socket = lambda *args, **kwargs: None
+        pytest_socket.enable_socket()
+    except ImportError:
+        pass
 
 
 def pytest_configure(config):
     """Enable socket globally to avoid SocketBlockedError on Windows."""
-    import pytest_socket
+    try:
+        import pytest_socket
 
-    pytest_socket.enable_socket()
+        pytest_socket.disable_socket = lambda *args, **kwargs: None
+        pytest_socket.enable_socket()
+    except ImportError:
+        pass
 
 
 @pytest.fixture(autouse=True)
 def socket_enabled():
     """Enable socket for all tests."""
-    return True
+    import pytest_socket
+
+    pytest_socket.enable_socket()
+    yield
 
 
 @pytest.fixture(autouse=True)
 def cleanup_ipsk_manager(hass: HomeAssistant) -> Generator[None, None, None]:
     """Ensure IPSKManager is unloaded after tests to avoid lingering timers."""
     yield
-    if DOMAIN in hass.data and "ipsk_manager" in hass.data[DOMAIN]:
-        hass.data[DOMAIN]["ipsk_manager"].async_unload()
+    if DOMAIN in hass.data:
+        if "ipsk_manager" in hass.data[DOMAIN]:
+            hass.data[DOMAIN]["ipsk_manager"].async_unload()
+        for _entry_id, entry_data in list(hass.data[DOMAIN].items()):
+            if isinstance(entry_data, dict) and "ipsk_manager" in entry_data:
+                entry_data["ipsk_manager"].async_unload()
 
 
 @pytest.fixture(autouse=True)

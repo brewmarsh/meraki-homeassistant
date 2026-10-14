@@ -1,6 +1,5 @@
 """Tests for Meraki API client initialization."""
 
-from homeassistant.core import HomeAssistant
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.meraki_ha.const.config import (
@@ -10,6 +9,7 @@ from custom_components.meraki_ha.const.config import (
 )
 from custom_components.meraki_ha.const.integration import DOMAIN
 from custom_components.meraki_ha.core.api.factory import create_meraki_client
+from homeassistant.core import HomeAssistant
 
 
 async def test_create_meraki_client_initialization(hass: HomeAssistant):

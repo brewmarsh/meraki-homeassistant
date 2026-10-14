@@ -4,11 +4,11 @@ from datetime import timedelta
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
-from homeassistant.util import dt as dt_util
 
 from custom_components.meraki_ha.const.api import DATA_CLIENT
 from custom_components.meraki_ha.const.integration import DOMAIN
 from custom_components.meraki_ha.services.ipsk_manager import IPSKManager
+from homeassistant.util import dt as dt_util
 
 
 @pytest.fixture

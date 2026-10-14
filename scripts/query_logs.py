@@ -13,7 +13,7 @@ Configuration is provided via environment variables:
 import os
 import re
 import sys
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 import requests  # type: ignore
 
@@ -52,7 +52,7 @@ def main():
     headers = {"Authorization": f"Bearer {api_token}"}
     url = "https://logs.betterstack.com/api/v1/query"
 
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     five_minutes_ago = now - timedelta(minutes=5)
 
     query = (

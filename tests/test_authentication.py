@@ -5,8 +5,6 @@ from __future__ import annotations
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-from homeassistant.core import HomeAssistant
-from homeassistant.exceptions import ConfigEntryAuthFailed
 from meraki.exceptions import APIError
 
 from custom_components.meraki_ha.authentication import (
@@ -16,6 +14,8 @@ from custom_components.meraki_ha.core.errors import (
     InvalidOrgID,
     MerakiConnectionError,
 )
+from homeassistant.core import HomeAssistant
+from homeassistant.exceptions import ConfigEntryAuthFailed
 
 
 @pytest.mark.asyncio

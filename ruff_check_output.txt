@@ -1,0 +1,54 @@
+F401 `.webhook.async_register_webhook` imported but unused; consider removing, adding to `__all__`, or using a redundant alias
+  --> custom_components\meraki_ha\__init__.py:30:22
+   |
+28 | from .services.switch_port_service import SwitchPortService
+29 | from .setup_helpers import async_setup_frontend, async_setup_webhook_lifecycle
+30 | from .webhook import async_register_webhook, async_unregister_webhook
+   |                      ^^^^^^^^^^^^^^^^^^^^^^
+31 |
+32 | _LOGGER = logging.getLogger(__name__)
+   |
+help: Use an explicit re-export: `async_register_webhook as async_register_webhook`
+
+E501 Line too long (92 > 88)
+  --> custom_components\meraki_ha\binary_sensor\device\status.py:49:89
+   |
+47 |             return False
+48 |
+49 |         # We can use the model property if it's available and returns a boolean (not a Mock)
+   |                                                                                         ^^^^
+50 |         if hasattr(device, "is_online"):
+51 |             val = device.is_online
+   |
+
+E501 Line too long (90 > 88)
+   --> custom_components\meraki_ha\entity.py:163:89
+    |
+163 | class MerakiBinarySensor[T: "MerakiBaseCoordinator"](MerakiEntity[T], BinarySensorEntity):
+    |                                                                                         ^^
+164 |     """Base Cisco Meraki binary sensor entity."""
+    |
+
+E501 Line too long (90 > 88)
+   --> custom_components\meraki_ha\helpers\device_info_helpers.py:103:89
+    |
+101 |         name = format_device_name(data, config_entry.options)
+102 |
+103 |         # For multi-sensor devices, we group all imagers under the base serial identifier.
+    |                                                                                         ^^
+104 |         # This prevents fragmented device registry entries.
+105 |         base_serial = get_base_serial(device_serial, model)
+    |
+
+D102 Missing docstring in public method
+  --> src\staging_test\reporter.py:17:15
+   |
+15 |         return hashlib.sha256(ctx.encode()).hexdigest()
+16 |
+17 |     async def report(self, failure: dict[str, Any]) -> None:
+   |               ^^^^^^
+18 |         fingerprint = self.generate_fingerprint(failure)
+19 |         print(f"Fingerprint: {fingerprint}")
+   |
+
+Found 5 errors.

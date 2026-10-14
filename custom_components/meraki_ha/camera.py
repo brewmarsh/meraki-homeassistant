@@ -6,13 +6,12 @@ import logging
 import time
 from typing import TYPE_CHECKING, Any
 
-from homeassistant.components.camera import Camera, CameraEntityFeature
-from homeassistant.helpers.aiohttp_client import async_get_clientsession
-
 from custom_components.meraki_ha.const.config import (
     CONF_RTSP_STREAM_ENABLED,
 )
 from custom_components.meraki_ha.const.integration import DOMAIN
+from homeassistant.components.camera import Camera, CameraEntityFeature
+from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
 from .core.models.device import MerakiDevice
 from .entity import MerakiEntity
@@ -243,8 +242,23 @@ class MerakiRTSPStreamCamera(MerakiEntity, Camera):
     def extra_state_attributes(self) -> dict[str, Any]:
         """Return the state attributes."""
         attrs = {}
-        if self.device_data and (rtsp_url := self.device_data.rtsp_url):
-            attrs["rtsp_url"] = rtsp_url
+        if self.device_data:
+            if rtsp_url := self.device_data.rtsp_url:
+                attrs["rtsp_url"] = rtsp_url
+
+            # Add model-specific metadata
+            model = self.device_data.model
+            if model == "MV44X":
+                # MV44X is a dual-imager 180-degree camera with ultra-wide view
+                attrs["aspect_ratio"] = "32:9"
+
+            # Detect and surface imager index for multi-sensor units
+            serial = self._device_serial
+            if "-" in serial:
+                parts = serial.split("-")
+                if len(parts) > 3 and parts[-1].isdigit():
+                    attrs["imager_index"] = int(parts[-1])
+
         return attrs
 
     async def async_turn_on(self) -> None:

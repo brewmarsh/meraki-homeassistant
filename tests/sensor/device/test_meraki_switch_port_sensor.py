@@ -3,8 +3,6 @@
 from unittest.mock import MagicMock
 
 import pytest
-from homeassistant.components.sensor import SensorDeviceClass, SensorStateClass
-from homeassistant.const import UnitOfEnergy, UnitOfPower
 
 from custom_components.meraki_ha.sensor.device.switch_port import (
     MerakiSwitchPortEnergySensor,
@@ -12,6 +10,8 @@ from custom_components.meraki_ha.sensor.device.switch_port import (
     MerakiSwitchPortSensor,
 )
 from custom_components.meraki_ha.types import MerakiDevice
+from homeassistant.components.sensor import SensorDeviceClass, SensorStateClass
+from homeassistant.const import UnitOfEnergy, UnitOfPower
 
 
 @pytest.fixture
