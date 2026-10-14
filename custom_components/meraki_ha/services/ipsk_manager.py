@@ -6,7 +6,7 @@ import logging
 from datetime import datetime, timedelta
 from typing import TYPE_CHECKING, TypedDict, cast
 
-from homeassistant.core import CALLBACK_TYPE, HomeAssistant, callback
+from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers import event, storage
 from homeassistant.util import dt as dt_util
 
@@ -50,7 +50,7 @@ class IPSKManager:
             hass, STORAGE_VERSION, STORAGE_KEY
         )
         self.active_keys: list[IPSKKey] = []
-        self._unsub_reap_task: CALLBACK_TYPE | None = None
+        self._unsub_reap_task: event.UnsubscribeFunc | None = None
 
     async def async_setup(self) -> None:
         """Set up the manager and load existing keys."""
@@ -263,15 +263,10 @@ class IPSKManager:
             network_id: Optional filter for a specific network.
         """
         keys = self.active_keys
-        if config_entry_id or network_id:
-            # Bolt Performance: Combine multiple O(N) list comprehensions into a
-            # single pass to avoid intermediate list allocations in memory.
-            keys = [
-                k
-                for k in keys
-                if (not config_entry_id or k["config_entry_id"] == config_entry_id)
-                and (not network_id or k["network_id"] == network_id)
-            ]
+        if config_entry_id:
+            keys = [k for k in keys if k["config_entry_id"] == config_entry_id]
+        if network_id:
+            keys = [k for k in keys if k["network_id"] == network_id]
         return keys
 
     async def async_check_expirations(self, _now: datetime | None = None) -> None:

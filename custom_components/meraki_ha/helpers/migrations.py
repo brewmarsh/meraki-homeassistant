@@ -69,12 +69,10 @@ async def async_migrate_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         if "meraki_api_key" in new_data:
             new_data[CONF_MERAKI_API_KEY] = new_data.pop("meraki_api_key")
 
-        entry.version = 2
-        hass.config_entries.async_update_entry(entry, data=new_data)
+        hass.config_entries.async_update_entry(entry, data=new_data, version=2)
 
     if entry.version == 2:
-        entry.version = 3
-        hass.config_entries.async_update_entry(entry)
+        hass.config_entries.async_update_entry(entry, version=3)
 
     _LOGGER.info("Migration to version %s successful", entry.version)
     return True

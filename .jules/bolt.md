@@ -1,3 +1,3 @@
-## 2024-05-18 - Single-Pass Iteration for Multiple Filters
-**Learning:** Performing multiple list comprehensions sequentially to filter the same list based on independent criteria creates a hidden O(k*N) inefficiency and unnecessary intermediate memory allocations.
-**Action:** Refactor multiple list comprehensions into a single comprehension with combined logical conditions (`if A or B`) to perform an O(N) pass, reducing loop overhead and redundant dictionary lookups.
+## 2024-05-18 - Single-Pass Iteration for Multiple Counts
+**Learning:** Performing multiple `sum(1 for ...)` operations on the same list to extract different counts (like "critical" and "warning" alerts) creates a hidden O(k*N) inefficiency.
+**Action:** Refactor multiple generator counts into a single `for` loop to perform an O(N) pass, reducing loop overhead and redundant dictionary lookups.
