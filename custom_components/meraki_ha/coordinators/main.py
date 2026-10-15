@@ -55,7 +55,10 @@ class MerakiMainCoordinator(MerakiBaseCoordinator[dict[str, Any]]):
             # In tiered mode, we maintain our own fast poll interval
             # unless the polling manager forces a specific backoff
             if updated and self.polling_manager.update_interval:
-                if self.polling_manager.update_interval > self.update_interval:
+                if (
+                    self.update_interval is not None
+                    and self.polling_manager.update_interval > self.update_interval
+                ):
                     self.apply_polling_update(updated)
 
             return data

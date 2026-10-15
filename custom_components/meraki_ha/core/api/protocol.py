@@ -439,6 +439,25 @@ class MerakiApiClientProtocol(Protocol):
     """Protocol defining the interface for the Meraki API Client."""
 
     @property
+    def enabled_networks(self) -> list[str]:
+        """Get the enabled networks."""
+        ...
+
+    async def run_with_cache(
+        self,
+        cache_key: str,
+        func: Callable[[], Awaitable[Any]],
+        ttl: int | None = None,
+    ) -> Any:
+        """Run a function with caching."""
+        ...
+
+    @property
+    def has_dashboard(self) -> bool:
+        """Check if the dashboard is initialized."""
+        ...
+
+    @property
     def dashboard(self) -> meraki.aio.AsyncDashboardAPI:
         """Get the Dashboard API instance."""
         ...
