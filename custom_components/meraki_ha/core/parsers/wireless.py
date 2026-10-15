@@ -236,7 +236,14 @@ def _process_network_rf_profiles(
 ) -> list[dict[str, Any]]:
     """Process RF Profiles for a single network."""
     network_rf_profiles_key = f"rf_profiles_{network_id}"
-    detail_data.get(network_rf_profiles_key)
+    network_rf_profiles = detail_data.get(network_rf_profiles_key)
+
+    if isinstance(network_rf_profiles, list):
+        return network_rf_profiles
+
+    return _fallback_network_rf_profiles(
+        network_id, network_rf_profiles_key, previous_data
+    )
 
 
 def _fallback_network_group_policies(

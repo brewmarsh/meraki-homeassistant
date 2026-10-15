@@ -69,14 +69,14 @@ def parse_appliance_data(
                 break
 
     # Also parse appliance ports if available
-    ports_by_serial = {}
+    ports_by_serial: dict[str, list[dict[str, Any]]] = {}
     for key, value in detail_data.items():
         if key.startswith("appliance_ports_") and isinstance(value, list):
             # We need to map these to serials.
             # Strategy stores them by network_id, but we need to match devices.
             network_id = key.replace("appliance_ports_", "")
             for device in devices:
-                if device.network_id == network_id:
+                if device.network_id == network_id and device.serial:
                     ports_by_serial[device.serial] = value
 
     if not ports_by_serial and previous_data:
@@ -85,8 +85,8 @@ def parse_appliance_data(
             if prev_dev := previous_data.get("devices_by_serial", {}).get(
                 device.serial
             ):
-                if hasattr(prev_dev, "ports") and prev_dev.ports:
-                    device.ports = prev_dev.ports
+                if hasattr(prev_dev, "switch_ports") and prev_dev.switch_ports:
+                    device.switch_ports = prev_dev.switch_ports
                 if hasattr(prev_dev, "appliance_ports") and prev_dev.appliance_ports:
                     device.appliance_ports = prev_dev.appliance_ports
 
@@ -113,11 +113,7 @@ def parse_appliance_ports(
     for device in devices:
         serial: str | None = device.serial
         if serial and (ports_data := ports_by_serial.get(serial)):
-            # Normalize list of MX ports into dictionary keyed by number/interface
-            device.ports = {
-                str(port.get("number", port.get("interface", "unknown"))): port
-                for port in ports_data
-            }
+            device.switch_ports = list(ports_data)
 
             appliance_ports = []
             for port in ports_data:
