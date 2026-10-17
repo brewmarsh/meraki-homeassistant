@@ -24,7 +24,9 @@ def wireless(mock_client):
 
 async def test_create_identity_psk(wireless, mock_client):
     """Test create_identity_psk."""
-    mock_client.run_sync.return_value = {"id": "test_id"}
+    async def mock_run_async(*args, **kwargs):
+        return {"id": "test_id"}
+    mock_client.run_async.side_effect = mock_run_async
 
     result = await wireless.create_identity_psk(
         network_id="net1",
@@ -35,8 +37,8 @@ async def test_create_identity_psk(wireless, mock_client):
     )
 
     assert result == {"id": "test_id"}
-    mock_client.run_sync.assert_called_once()
-    args, kwargs = mock_client.run_sync.call_args
+    mock_client.run_async.assert_called_once()
+    args, kwargs = mock_client.run_async.call_args
     # Verify it calls the correct SDK method
     assert (
         args[0] == mock_client.dashboard.wireless.createNetworkWirelessSsidIdentityPsk
@@ -50,7 +52,9 @@ async def test_create_identity_psk(wireless, mock_client):
 
 async def test_create_identity_psk_no_group_policy(wireless, mock_client):
     """Test create_identity_psk without group policy."""
-    mock_client.run_sync.return_value = {"id": "test_id"}
+    async def mock_run_async(*args, **kwargs):
+        return {"id": "test_id"}
+    mock_client.run_async.side_effect = mock_run_async
 
     result = await wireless.create_identity_psk(
         network_id="net1",
@@ -61,8 +65,8 @@ async def test_create_identity_psk_no_group_policy(wireless, mock_client):
     )
 
     assert result == {"id": "test_id"}
-    mock_client.run_sync.assert_called_once()
-    args, kwargs = mock_client.run_sync.call_args
+    mock_client.run_async.assert_called_once()
+    args, kwargs = mock_client.run_async.call_args
     assert (
         args[0] == mock_client.dashboard.wireless.createNetworkWirelessSsidIdentityPsk
     )
@@ -75,7 +79,9 @@ async def test_create_identity_psk_no_group_policy(wireless, mock_client):
 
 async def test_delete_identity_psk(wireless, mock_client):
     """Test delete_identity_psk."""
-    mock_client.run_sync.return_value = None
+    async def mock_run_async(*args, **kwargs):
+        return None
+    mock_client.run_async.side_effect = mock_run_async
 
     await wireless.delete_identity_psk(
         network_id="net1",
@@ -83,8 +89,8 @@ async def test_delete_identity_psk(wireless, mock_client):
         identity_psk_id="psk1",
     )
 
-    mock_client.run_sync.assert_called_once()
-    args, kwargs = mock_client.run_sync.call_args
+    mock_client.run_async.assert_called_once()
+    args, kwargs = mock_client.run_async.call_args
     assert kwargs["networkId"] == "net1"
     assert kwargs["number"] == "0"
     assert kwargs["identityPskId"] == "psk1"
