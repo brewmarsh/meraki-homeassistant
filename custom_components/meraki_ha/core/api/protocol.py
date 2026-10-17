@@ -371,7 +371,10 @@ class WirelessEndpointsProtocol(Protocol):
         ...
 
     def get_network_detail_tasks(
-        self, network_id: str, product_types: list[str]
+        self,
+        network_id: str,
+        product_types: list[str],
+        static_data: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         """Get tasks to fetch detailed data for a network."""
         ...
