@@ -148,7 +148,9 @@ def ws_subscribe_meraki_data(
         connection.subscriptions[msg["id"]] = cancel_subscription
     except Exception as err:  # pylint: disable=broad-except
         _LOGGER.exception("Error subscribing to Meraki data updates: %s", err)
-        connection.send_error(msg["id"], "unknown_error", "An unexpected error occurred")
+        connection.send_error(
+            msg["id"], "unknown_error", "An unexpected error occurred"
+        )
 
 
 @websocket_api.async_response

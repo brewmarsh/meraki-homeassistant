@@ -117,6 +117,7 @@ def test_handle_coordinator_update_no_change(mock_appliance_coordinator):
     port1 = device.appliance_ports[0]
 
     sensor = AppliancePortBinarySensor(mock_appliance_coordinator, device, port1)
+    sensor._last_state = True  # prime the initial state so a write isn't triggered
     sensor.async_write_ha_state = MagicMock()
 
     # Update port status but it stays "connected"

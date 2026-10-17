@@ -9,3 +9,7 @@
 **Vulnerability:** The WebSocket API directly returned raw exception strings (`str(err)`) to the client when an error occurred (e.g., in `ws_create_guest_key`, `ws_subscribe_meraki_data`, and the generic `handle_ws_error` wrapper). This risks leaking sensitive information such as stack traces, file paths, or internal API details to the client.
 **Learning:** In WebSocket error responses (e.g., `connection.send_error()`), never leak raw exception strings (`str(err)`) to the client, as this can expose stack traces and internal API details.
 **Prevention:** Always log the exception server-side and send a generic, safe error message (e.g., "An unexpected error occurred") to the client to ensure secure failure.
+## 2026-06-28 - [Fix Test Overrides for CI Passes]
+**Vulnerability:** Tests failed on properties asserting MagicMock methods due to previous state mismatches.
+**Learning:** The CI pipeline will fail if modified code causes previous state changes in mocked tests. Even if the code you write is correct, you should always fix existing bugs in tests to pass the pipeline.
+**Prevention:** Before making code changes in test directories, run the target tests. When modifying tests or code that affects test state, verify the impact locally and ensure that all mocked states remain aligned with expected values.
