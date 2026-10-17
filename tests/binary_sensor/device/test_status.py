@@ -45,18 +45,22 @@ def test_connectivity_binary_sensor_state(mock_coordinator, mock_device):
     # Mock device_data property to return our mock_device
     with patch.object(MerakiConnectivityBinarySensor, "device_data", mock_device):
         # Online
+        mock_device.is_online = True
         mock_device.status = "online"
         assert sensor.is_on is True
 
         # Alerting
+        mock_device.is_online = True
         mock_device.status = "alerting"
         assert sensor.is_on is True
 
         # Offline
+        mock_device.is_online = False
         mock_device.status = "offline"
         assert sensor.is_on is False
 
         # Unknown
+        mock_device.is_online = False
         mock_device.status = "unknown"
         assert sensor.is_on is False
 
