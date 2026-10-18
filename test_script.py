@@ -1,35 +1,28 @@
-import sys
+def get_active_keys(active_keys, config_entry_id=None, network_id=None):
+    keys = active_keys
+    if config_entry_id:
+        keys = [k for k in keys if k["config_entry_id"] == config_entry_id]
+    if network_id:
+        keys = [k for k in keys if k["network_id"] == network_id]
+    return keys
 
-sys.path.append(".")
-from unittest.mock import MagicMock
+def get_active_keys_opt(active_keys, config_entry_id=None, network_id=None):
+    if not config_entry_id and not network_id:
+        return active_keys
 
-from custom_components.meraki_ha.button.reboot import MerakiRebootButton
-from custom_components.meraki_ha.entity import MerakiEntity
+    return [
+        k for k in active_keys
+        if (not config_entry_id or k["config_entry_id"] == config_entry_id)
+        and (not network_id or k["network_id"] == network_id)
+    ]
 
+keys = [
+    {"config_entry_id": "c1", "network_id": "n1"},
+    {"config_entry_id": "c1", "network_id": "n2"},
+    {"config_entry_id": "c2", "network_id": "n1"},
+]
 
-def check():
-    """Run test script."""
-    coordinator = MagicMock()
-    coordinator.data = {
-        "devices_by_serial": {
-            "123": {"serial": "123", "status": "offline", "model": "MS120"}
-        }
-    }
-
-    # Test Base Meraki Entity
-    entity = MerakiEntity(coordinator)
-    entity._device_serial = "123"
-    entity.name = "Test Entity"
-
-    print(f"Base Entity Available (offline device): {entity.available}")
-
-    # Test Reboot Button
-    device_data = {"serial": "123", "status": "offline", "model": "MS120"}
-    btn = MerakiRebootButton(coordinator, MagicMock(), device_data, MagicMock())
-    btn._device_serial = "123"
-    btn.name = "Test Reboot Button"
-    btn.coordinator = coordinator
-    print(f"Reboot Button Available (offline device): {btn.available}")
-
-
-check()
+print("Original:")
+print(get_active_keys(keys, "c1", "n1"))
+print("Optimized:")
+print(get_active_keys_opt(keys, "c1", "n1"))
