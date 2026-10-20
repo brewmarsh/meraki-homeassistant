@@ -143,8 +143,10 @@ def ws_subscribe_meraki_data(
         # Register for updates
         cancel_subscription = coordinator.async_add_listener(async_send_update)
         connection.subscriptions[msg["id"]] = cancel_subscription
-    except Exception as err:  # pylint: disable=broad-except
-        connection.send_error(msg["id"], "unknown_error", str(err))
+    except Exception:  # pylint: disable=broad-except
+        connection.send_error(
+            msg["id"], "unknown_error", "An unexpected error occurred"
+        )
 
 
 @websocket_api.async_response
