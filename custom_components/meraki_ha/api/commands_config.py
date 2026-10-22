@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 from typing import TYPE_CHECKING, Any
 
 import voluptuous as vol
@@ -20,6 +21,8 @@ from custom_components.meraki_ha.const.websocket import (
 
 from ..helpers.serialization import to_serializable
 from .utils import handle_ws_error
+
+_LOGGER = logging.getLogger(__name__)
 
 if TYPE_CHECKING:
     from ..coordinators.main import MerakiMainCoordinator
@@ -144,7 +147,12 @@ def ws_subscribe_meraki_data(
         cancel_subscription = coordinator.async_add_listener(async_send_update)
         connection.subscriptions[msg["id"]] = cancel_subscription
     except Exception as err:  # pylint: disable=broad-except
-        connection.send_error(msg["id"], "unknown_error", str(err))
+        _LOGGER.exception("Error in ws_get_config: %s", err)
+        connection.send_error(
+            msg["id"],
+            "unknown_error",
+            "An internal error occurred while fetching config data.",
+        )
 
 
 @websocket_api.async_response
