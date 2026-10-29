@@ -33,7 +33,12 @@ def calculate_network_health(data: dict[str, Any]) -> float:
     # Check device status
     devices = data.get("devices", [])
     if devices:
-        online_devices = sum(1 for d in devices if d.get("status") == "online")
+        # Bolt Performance: Use explicit loop instead of sum(1 for ...)
+        # to avoid generator creation overhead.
+        online_devices = 0
+        for d in devices:
+            if d.get("status") == "online":
+                online_devices += 1
         device_ratio = online_devices / len(devices)
         score *= device_ratio
 
@@ -55,7 +60,12 @@ def calculate_network_health(data: dict[str, Any]) -> float:
     # Check client health
     clients = data.get("clients", [])
     if clients:
-        healthy_clients = sum(1 for c in clients if c.get("status") == "healthy")
+        # Bolt Performance: Use explicit loop instead of sum(1 for ...)
+        # to avoid generator creation overhead.
+        healthy_clients = 0
+        for c in clients:
+            if c.get("status") == "healthy":
+                healthy_clients += 1
         client_ratio = healthy_clients / len(clients)
         score *= client_ratio
 
