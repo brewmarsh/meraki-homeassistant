@@ -444,8 +444,18 @@ class MerakiApiClientProtocol(Protocol):
         ...
 
     @property
+    def has_dashboard(self) -> bool:
+        """Check if the dashboard is initialized."""
+        ...
+
+    @property
     def organization_id(self) -> str | None:
         """Get the organization ID."""
+        ...
+
+    @property
+    def enabled_networks(self) -> list[str]:
+        """Get the list of enabled networks."""
         ...
 
     @property
@@ -499,6 +509,12 @@ class MerakiApiClientProtocol(Protocol):
 
     async def run_with_semaphore(self, coro: Awaitable[Any]) -> Any:
         """Run an awaitable with the semaphore."""
+        ...
+
+    async def run_with_cache(
+        self, key: str, fetch_coro: Any, ttl: int | None = None
+    ) -> Any:
+        """Run an awaitable with the shared cache and lock."""
         ...
 
     def mark_feature_disabled(
