@@ -124,7 +124,9 @@ async def ws_create_guest_key(
         connection.send_result(msg["id"], to_serializable(key))
     except Exception as err:  # pylint: disable=broad-except
         _LOGGER.exception("Error in ws_create_guest_key: %s", err)
-        connection.send_error(msg["id"], "creation_failed", str(err))
+        connection.send_error(
+            msg["id"], "creation_failed", "An unexpected error occurred"
+        )
 
 
 @websocket_api.async_response
