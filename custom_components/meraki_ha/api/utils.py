@@ -56,6 +56,8 @@ def handle_ws_error(
             _LOGGER.exception(
                 "Error handling WebSocket command %s: %s", msg.get("type"), err
             )
-            connection.send_error(msg["id"], "unknown_error", "An unexpected error occurred")
+            connection.send_error(
+                msg["id"], "unknown_error", "An unexpected error occurred"
+            )
 
     return wrapper
