@@ -9,3 +9,5 @@
 **Action:** Ignore existing pre-existing CI errors outside of the modified file unless they were directly caused by the modification.
 ## 2024-05-18 - CI Failures / Strict Checks
 **Action:** Fixed the typing error in `custom_components/meraki_ha/helpers/device_info_helpers.py` where `asdict` was returning dicts that were not correctly handled or annotated, leading to mypy failures in other parts of the system. I also fixed the `via_device` annotation correctly.
+## 2024-05-18 - CI Failures / Strict Checks
+**Action:** Fixed the typing error in `custom_components/meraki_ha/device_trigger.py` where `_is_trigger_match` was expecting `dict[str, Any]` but receiving `Mapping[str, Any]`.

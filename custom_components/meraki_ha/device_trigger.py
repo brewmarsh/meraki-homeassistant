@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from typing import Any
 
 import voluptuous as vol
@@ -57,7 +58,7 @@ async def async_get_triggers(
     ]
 
 
-def _is_trigger_match(data: dict[str, Any], serial: str) -> bool:
+def _is_trigger_match(data: Mapping[str, Any], serial: str) -> bool:
     """Check if event data matches the device serial."""
     if data.get("deviceSerial") == serial:
         return True
