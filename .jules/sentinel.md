@@ -5,3 +5,8 @@
 **Vulnerability:** The frontend application used Lit templating to bind dynamically generated SVG (from \`QRCode.toString\`) directly to the \`.innerHTML\` attribute of a div in \`meraki-guest-access-card.ts\` and \`meraki-wifi-qr-card.ts\`. This direct binding bypasses Lit's contextual escaping and DOM management, posing an XSS risk if the string ever contained unsanitized user input (like a malicious SSID).
 **Learning:** Directly assigning to \`.innerHTML\` in lit templates (e.g., \`.innerHTML=\${...}\`) is an anti-pattern. Lit's \`unsafeHTML\` and \`unsafeSVG\` directives must be used for explicit parsing and marking of unsafe rendering points.
 **Prevention:** Use \`unsafeSVG\` or \`unsafeHTML\` from \`lit/directives/\` and inject it cleanly as text content between the elements (e.g., \`> \${unsafeSVG(qrSvg)} </div>\`) instead of using \`.innerHTML\`.
+
+## 2025-02-14 - Fix Error Handling Information Leakage
+**Vulnerability:** Raw exception strings (`str(err)`) were being leaked back to the client in WebSocket error responses (`connection.send_error(...)`) in `commands_guest.py`, `commands_config.py`, and `utils.py`. This exposes internal implementation details and stack traces.
+**Learning:** Returning `str(err)` directly in an API or WebSocket response is an anti-pattern because it often contains paths, internal object structures, or other sensitive details.
+**Prevention:** Always log the full exception server-side (e.g., using `_LOGGER.exception`) and send a generic, safe error message (e.g., "An internal error occurred") to the client to ensure secure failure.
