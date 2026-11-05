@@ -144,7 +144,12 @@ def ws_subscribe_meraki_data(
         cancel_subscription = coordinator.async_add_listener(async_send_update)
         connection.subscriptions[msg["id"]] = cancel_subscription
     except Exception as err:  # pylint: disable=broad-except
-        connection.send_error(msg["id"], "unknown_error", str(err))
+        import logging
+
+        logging.getLogger(__name__).exception(
+            "Error in ws_subscribe_meraki_data: %s", err
+        )
+        connection.send_error(msg["id"], "unknown_error", "An unknown error occurred")
 
 
 @websocket_api.async_response
