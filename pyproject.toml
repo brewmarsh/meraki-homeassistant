@@ -45,6 +45,21 @@ follow_imports = "silent"
 module = "aiofiles"
 ignore_missing_imports = true
 
+[[tool.mypy.overrides]]
+module = [
+  "meraki.*",
+  "pytest_homeassistant_custom_component.*",
+  "pytest_socket",
+  "custom_components.meraki_ha.core.entities.*",
+  "custom_components.meraki_ha.platforms.*",
+  "custom_components.meraki_ha.discovery.coordinators",
+  "custom_components.core.models.*",
+  "custom_components.coordinators",
+  "homeassistant.*",
+  "meraki.exceptions"
+]
+ignore_missing_imports = true
+
 # Required for the AI-assisted "Gatekeeper" workflow.
 [tool.ruff]
 fix = true
