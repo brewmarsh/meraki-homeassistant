@@ -5,3 +5,11 @@
 ## 2024-05-19 - Conditional List Comprehensions
 **Learning:** Sequential list comprehensions that filter the same source list for different conditions result in unnecessary list allocations. However, including loop-invariant conditions (e.g., `not param` or `item.id == param`) within a single comprehension is also an anti-pattern as the invariant is evaluated on every iteration.
 **Action:** Use early return conditional branches (e.g., `if not param: return original`) to avoid allocations when possible, and use outer conditional statements (e.g., `if param and param2: return [...]`) to select the appropriate optimized single-pass comprehension.
+
+## 2024-05-19 - CI Pipeline libturbojpeg Dependency
+**Learning:** Ubuntu 26.04 no longer offers `libturbojpeg` as a package name, throwing a 'no installation candidate' error in GitHub Actions `ubuntu-latest` (which has migrated to Ubuntu 26). The new package name is `libturbojpeg0`.
+**Action:** Always use `libturbojpeg0` for apt installations in CI pipelines to ensure cross-compatibility with Ubuntu 26.04+ runners.
+
+## 2024-05-19 - Pytest Compatibility with Python 3.12+
+**Learning:** `pytest<8.0.0` has compatibility issues with Python 3.12+ AST compilation, resulting in `TypeError: required field "lineno" missing from alias` when rewriting assertions.
+**Action:** Ensure `pytest>=8.0.0` is used in Python 3.12+ environments.
