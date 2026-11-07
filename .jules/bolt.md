@@ -13,3 +13,7 @@
 ## 2024-05-19 - Pytest Compatibility with Python 3.12+
 **Learning:** `pytest<8.0.0` has compatibility issues with Python 3.12+ AST compilation, resulting in `TypeError: required field "lineno" missing from alias` when rewriting assertions.
 **Action:** Ensure `pytest>=8.0.0` is used in Python 3.12+ environments.
+
+## 2024-05-19 - Mypy Dependency Inclusion
+**Learning:** `mypy` requires explicit dependency inclusion inline with `uv run` to resolve types for installed libraries without py.typed markers like `meraki` or `pytest-homeassistant-custom-component`. Alternatively, they can be ignored via `ignore_missing_imports = true` in `pyproject.toml`.
+**Action:** Ignore missing imports for these testing/external libraries in `pyproject.toml` instead of cluttering CI commands with specific test deps just for linting.
