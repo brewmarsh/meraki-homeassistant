@@ -34,10 +34,10 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      - name: Install libturbojpeg
+      - name: Install libturbojpeg0
         run: |
           sudo apt-get update
-          sudo apt-get install -y libturbojpeg
+          sudo apt-get install -y libturbojpeg0
 
       - name: Set up uv
         uses: astral-sh/setup-uv@v7
