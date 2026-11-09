@@ -6,7 +6,7 @@ import logging
 from datetime import datetime, timedelta
 from typing import TYPE_CHECKING, TypedDict, cast
 
-from homeassistant.core import HomeAssistant, callback
+from homeassistant.core import CALLBACK_TYPE, HomeAssistant, callback
 from homeassistant.helpers import event, storage
 from homeassistant.util import dt as dt_util
 
@@ -50,7 +50,7 @@ class IPSKManager:
             hass, STORAGE_VERSION, STORAGE_KEY
         )
         self.active_keys: list[IPSKKey] = []
-        self._unsub_reap_task: event.UnsubscribeFunc | None = None
+        self._unsub_reap_task: CALLBACK_TYPE | None = None
 
     async def async_setup(self) -> None:
         """Set up the manager and load existing keys."""
