@@ -37,7 +37,7 @@ jobs:
       - name: Install libturbojpeg
         run: |
           sudo apt-get update
-          sudo apt-get install -y libturbojpeg
+          sudo apt-get install -y libturbojpeg || sudo apt-get install -y libturbojpeg0
 
       - name: Set up uv
         uses: astral-sh/setup-uv@v7
