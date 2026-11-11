@@ -9,7 +9,7 @@ concurrency:
 
 jobs:
   enforce-branching:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - name: Block Main Target
         if: github.base_ref == 'main' && !startsWith(github.head_ref, 'release/')

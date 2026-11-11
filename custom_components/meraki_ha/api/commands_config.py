@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import logging
 from typing import TYPE_CHECKING, Any
 
 import voluptuous as vol
@@ -24,8 +23,6 @@ from .utils import handle_ws_error
 
 if TYPE_CHECKING:
     from ..coordinators.main import MerakiMainCoordinator
-
-_LOGGER = logging.getLogger(__name__)
 
 
 @callback
@@ -147,8 +144,7 @@ def ws_subscribe_meraki_data(
         cancel_subscription = coordinator.async_add_listener(async_send_update)
         connection.subscriptions[msg["id"]] = cancel_subscription
     except Exception as err:  # pylint: disable=broad-except
-        _LOGGER.exception("Error in ws_subscribe_meraki_data: %s", err)
-        connection.send_error(msg["id"], "unknown_error", "An internal error occurred")
+        connection.send_error(msg["id"], "unknown_error", str(err))
 
 
 @websocket_api.async_response
